@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="gdf">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="project" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="version" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="project">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="folder" />
+        <xs:element ref="datafile" />
+        <xs:element ref="arranger" />
+        <xs:element ref="palette" />
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="folder">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element ref="folder" />
+        <xs:element ref="datafile" />
+        <xs:element ref="arranger" />
+        <xs:element ref="palette" />
+      </xs:choice>
+      <xs:attribute name="name" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="datafile">
+    <xs:complexType>
+      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="location" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="palette">
+    <xs:complexType>
+      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="fileoffset" type="xs:string" use="required" />
+      <xs:attribute name="datafile" type="xs:string" use="required" />
+      <xs:attribute name="format" type="xs:string" use="required" />
+      <xs:attribute name="entries" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="zeroindextransparent" type="xs:boolean" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="arranger">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="element" />
+      </xs:choice>
+      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="elementx" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="elementy" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="width" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="height" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="layout" type="xs:string" use="required" />
+      <xs:attribute name="defaultformat" type="xs:string" use="required" />
+      <xs:attribute name="defaultdatafile" type="xs:string" use="required" />
+      <xs:attribute name="defaultpalette" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="element">
+    <xs:complexType>
+      <xs:attribute name="fileoffset" type="xs:string" use="required" />
+      <xs:attribute name="posx" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="posy" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="format" type="xs:string" />
+      <xs:attribute name="datafile" type="xs:string" />
+      <xs:attribute name="palette" type="xs:string" />
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

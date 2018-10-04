@@ -1,0 +1,16 @@
+<format name="PSX 4bpp">
+    <codec>
+        <colortype>indexed</colortype>
+        <colordepth>4</colordepth>
+        <layout>linear</layout>
+        <defaultheight>1</defaultheight>
+        <defaultwidth>256</defaultwidth>
+        <fixedsize>false</fixedsize>
+		<mergepriority>3, 2, 1, 0</mergepriority>
+    </codec>
+    <image>
+        <colordepth>4</colordepth>
+        <rowinterlace>false</rowinterlace>
+		<rowpixelpattern>1, 0</rowpixelpattern>
+    </image>
+</format>

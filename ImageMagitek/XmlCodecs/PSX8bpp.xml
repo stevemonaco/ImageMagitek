@@ -1,0 +1,15 @@
+<format name="PSX 8bpp">
+    <codec>
+        <colortype>indexed</colortype>
+        <colordepth>8</colordepth>
+        <layout>linear</layout>
+        <defaultheight>1</defaultheight>
+        <defaultwidth>256</defaultwidth>
+        <fixedsize>false</fixedsize>
+		<mergepriority>7, 6, 5, 4, 3, 2, 1, 0</mergepriority>
+    </codec>
+    <image>
+        <colordepth>8</colordepth>
+        <rowinterlace>false</rowinterlace>
+    </image>
+</format>

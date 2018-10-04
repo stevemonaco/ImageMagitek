@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "ImageMagitekConsole": {
+      "commandName": "Project"
+    },
+    "ImageMagitekConsoleTest": {
+      "commandName": "Project",
+      "commandLineArgs": "ff2.xml ExportAll D:\\Projects\\ImageMagitek\\FF2Extract",
+      "workingDirectory": "D:\\Projects\\ImageMagitek"
+    }
+  }
+}

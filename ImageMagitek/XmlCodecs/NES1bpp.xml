@@ -1,0 +1,15 @@
+<format name="NES 1bpp">
+    <codec>
+        <colortype>indexed</colortype>
+        <colordepth>1</colordepth>
+        <layout>tiled</layout>
+        <defaultheight>8</defaultheight>
+        <defaultwidth>8</defaultwidth>
+        <fixedsize>false</fixedsize>
+		<mergepriority>0</mergepriority>
+    </codec>
+    <image>
+        <colordepth>1</colordepth>
+        <rowinterlace>false</rowinterlace>
+    </image>
+</format>

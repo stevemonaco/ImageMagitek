@@ -1,0 +1,15 @@
+<format name="FF5 Font">
+    <codec>
+        <colortype>indexed</colortype>
+        <colordepth>1</colordepth>
+        <layout>tiled</layout>
+        <defaultheight>12</defaultheight>
+        <defaultwidth>8</defaultwidth>
+        <fixedsize>true</fixedsize>
+		<mergepriority>0</mergepriority>
+    </codec>
+    <image>
+        <colordepth>1</colordepth>
+        <rowinterlace>false</rowinterlace>
+    </image>
+</format>
