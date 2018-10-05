@@ -6,6 +6,8 @@ using System.Drawing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Primitives;
 using ImageMagitek.Codec;
 using ImageMagitek.Project;
 using System.Runtime.InteropServices;
@@ -239,12 +241,20 @@ namespace ImageMagitek
         /// <param name="el">Element with specified coordinates</param>
         public static void DecodeBlank(Image<Argb32> image, ArrangerElement el)
         {
-            /*Color c = Color.FromArgb(el.PaletteKey[0]);
-            Brush b = new SolidBrush(c);
-            Rectangle r = new Rectangle(el.X1, el.Y1, (el.X2 - el.X1) + 1, (el.Y2 - el.Y1) + 1);
+            var dest = image.GetPixelSpan();
 
-            Graphics g = Graphics.FromImage(image);
-            g.FillRectangle(b, r);*/
+            int destidx = image.Width * el.Y1 + el.X1;
+            var pal = el.Parent.GetResourceRelative<Palette>(el.PaletteKey);
+            var nc = pal[0];
+            var col = new Argb32(nc.R(), nc.G(), nc.B(), nc.A());
+
+            // Copy data into image
+            for (int y = 0; y < el.Height; y++)
+            {
+                for (int x = 0; x < el.Width; x++, destidx++)
+                    dest[destidx] = col;
+                destidx += el.X1 + image.Width - (el.X2 + 1);
+            }
         }
         #endregion
 
