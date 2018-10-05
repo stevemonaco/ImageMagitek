@@ -36,7 +36,7 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="image">Image to draw onto</param>
         /// <param name="el">ArrangerElement to decode</param>
-        public static void Decode(Image<Argb32> image, ArrangerElement el)
+        public static void Decode(Image<Rgba32> image, ArrangerElement el)
         {
             if (el.GraphicsFormat.ColorType == PixelColorType.Indexed)
                 IndexedDecode(image, el);
@@ -49,7 +49,7 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="image">Destination bitmap</param>
         /// <param name="el">Element to decode</param>
-        unsafe static void IndexedDecode(Image<Argb32> image, ArrangerElement el)
+        unsafe static void IndexedDecode(Image<Rgba32> image, ArrangerElement el)
         {
             FileStream fs = el.Parent.GetResourceRelative<DataFile>(el.DataFileKey).Stream;
             GraphicsFormat format = el.GraphicsFormat;
@@ -62,9 +62,9 @@ namespace ImageMagitek
                 return;
             }
 
-            byte[] Data = fs.ReadUnshifted(el.FileAddress, el.StorageSize, true);
+            byte[] data = fs.ReadUnshifted(el.FileAddress, el.StorageSize, true);
 
-            BitStream bs = BitStream.OpenRead(Data, el.StorageSize); // TODO: Change to account for first bit alignment
+            BitStream bs = BitStream.OpenRead(data, el.StorageSize); // TODO: Change to account for first bit alignment
 
             int plane = 0;
             int pos = 0;
@@ -111,7 +111,7 @@ namespace ImageMagitek
             DrawBitmapIndexedSafe(image, el);
         }
 
-        public static void DirectDecode(Image<Argb32> image, ArrangerElement el)
+        public static void DirectDecode(Image<Rgba32> image, ArrangerElement el)
         {
             throw new NotImplementedException();
 
@@ -172,7 +172,7 @@ namespace ImageMagitek
             DrawBitmapIndexed(image, el);*/
         }
 
-        static void DrawBitmapIndexedSafe(Image<Argb32> image, ArrangerElement el)
+        static void DrawBitmapIndexedSafe(Image<Rgba32> image, ArrangerElement el)
         {
             var dest = image.GetPixelSpan();
 
@@ -186,51 +186,11 @@ namespace ImageMagitek
                 for(int x = 0; x < el.Width; x++, srcidx++, destidx++)
                 {
                     var nc = pal[el.MergedData[srcidx]];
-                    dest[destidx] = new Argb32(nc.R(), nc.G(), nc.B(), nc.A());
+                    var col = new Rgba32(nc.R(), nc.G(), nc.B(), nc.A());
+                    dest[destidx] = col;
                 }
                 destidx += el.X1 + image.Width - (el.X2 + 1);
             }
-        }
-
-        /// <summary>
-        /// Draws an indexed element onto an ARGB32 Bitmap at the specified location
-        /// </summary>
-        /// <param name="image">Destination bitmap</param>
-        /// <param name="el">ArrangerElement to render</param>
-        unsafe static void DrawBitmapIndexed(Image<Argb32> image, ArrangerElement el)
-        {
-            /*Rectangle lockRect = new Rectangle(0, 0, image.Width, image.Height);
-            BitmapData bd = image.LockBits(lockRect, ImageLockMode.ReadOnly, image.PixelFormat);
-
-            // Draw bitmap
-            uint* dest = (uint*)bd.Scan0;
-            int StrideWidth = bd.Stride - (image.Width * 4);
-
-            dest += (bd.Stride / 4) * el.Y1; // Seek to the appropriate vertical scanline in the bitmap
-
-            fixed (byte* fixedData = el.MergedData) // Fix el.MergedData in memory so unsafe pointers can be used
-            {
-                byte* src = fixedData;
-
-                int Height = el.Y2 - el.Y1 + 1;
-                int Width = el.X2 - el.X1 + 1;
-                Palette pal = el.Parent.GetResourceRelative<Palette>(el.PaletteKey);
-
-                for (int y = 0; y < Height; y++)
-                {
-                    dest += el.X1; // Seek to PixelX in the scanline
-                    for (int x = 0; x < Width; x++)
-                    {
-                        *dest = pal[*src].Color;
-                        dest++;
-                        src++;
-                    }
-                    dest += (image.Width - el.X1 - Width);
-                    dest += StrideWidth;
-                }
-            }
-
-            image.UnlockBits(bd);*/
         }
 
         /// <summary>
@@ -239,14 +199,14 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="image">Bitmap to draw onto</param>
         /// <param name="el">Element with specified coordinates</param>
-        public static void DecodeBlank(Image<Argb32> image, ArrangerElement el)
+        public static void DecodeBlank(Image<Rgba32> image, ArrangerElement el)
         {
             var dest = image.GetPixelSpan();
 
             int destidx = image.Width * el.Y1 + el.X1;
             var pal = el.Parent.GetResourceRelative<Palette>(el.PaletteKey);
             var nc = pal[0];
-            var col = new Argb32(nc.R(), nc.G(), nc.B(), nc.A());
+            var col = new Rgba32(nc.R(), nc.G(), nc.B(), nc.A());
 
             // Copy data into image
             for (int y = 0; y < el.Height; y++)
@@ -259,7 +219,7 @@ namespace ImageMagitek
         #endregion
 
         #region Graphics Encoding Functions
-        public unsafe static void Encode(Image<Argb32> image, ArrangerElement el)
+        public unsafe static void Encode(Image<Rgba32> image, ArrangerElement el)
         {
             if (el.GraphicsFormat.ColorType == PixelColorType.Indexed)
                 IndexedEncode(image, el);
@@ -267,10 +227,10 @@ namespace ImageMagitek
                 DirectEncode(image, el);
         }
 
-        unsafe static void IndexedEncode(Image<Argb32> image, ArrangerElement el)
+        unsafe static void IndexedEncode(Image<Rgba32> image, ArrangerElement el)
         {
             // ReadBitmap for local->foreign color conversion into fmt.MergedData
-            ReadBitmapIndexed(image, el);
+            ReadBitmapIndexedSafe(image, el);
 
             FileStream fs = el.Parent.GetResourceRelative<DataFile>(el.DataFileKey).Stream;
             GraphicsFormat format = el.GraphicsFormat;
@@ -297,48 +257,69 @@ namespace ImageMagitek
                         for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
                         {
                             pos = y * el.Height;
-                            //for (int x = 0; x < format.Width; x++, pos++)
-                            //    bs.WriteBit(el.TileData[curPlane][pos]);
-                            for (int x = 0; x < el.Width; x++)
-                                bs.WriteBit(el.ElementData[format.MergePriority[curPlane]][pos + ip.RowPixelPattern[x]]);
+                            for (int x = 0; x < format.Width; x++, pos++)
+                                bs.WriteBit(el.ElementData[curPlane][pos]);
+                            //for (int x = 0; x < el.Width; x++)
+                            //    bs.WriteBit(el.ElementData[format.MergePriority[curPlane]][pos + ip.RowPixelPattern[x]]);
                         }
                     }
                 }
                 else
                 {
-                    /*for (int y = 0; y < el.Height; y++, pos += el.Width)
-                    {
-                        for (int x = 0; x < el.Width; x++)
-                            for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
-                                bs.WriteBit(el.ElementData[curPlane][pos + ip.RowPixelPattern[x]]);
-                    }*/
-
                     for (int y = 0; y < el.Height; y++, pos += el.Width)
                     {
                         for (int x = 0; x < el.Width; x++)
                             for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
-                                bs.WriteBit(el.ElementData[format.MergePriority[curPlane]][pos + ip.RowPixelPattern[x]]);
+                                bs.WriteBit(el.ElementData[curPlane][pos + ip.RowPixelPattern[x]]);
                     }
+
+                    /*for (int y = 0; y < el.Height; y++, pos += el.Width)
+                    {
+                        for (int x = 0; x < el.Width; x++)
+                            for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
+                                bs.WriteBit(el.ElementData[format.MergePriority[curPlane]][pos + ip.RowPixelPattern[x]]);
+                    }*/
                 }
 
                 plane += ip.ColorDepth;
             }
 
             BinaryWriter bw = new BinaryWriter(fs);
+            fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
             bw.Write(bs.Data, 0, bs.Data.Length); // TODO: Fix with a shifted, merged write
         }
 
-        unsafe static void DirectEncode(Image<Argb32> image, ArrangerElement el)
+        unsafe static void DirectEncode(Image<Rgba32> image, ArrangerElement el)
         {
             throw new NotImplementedException();
         }
 
+        static void ReadBitmapIndexedSafe(Image<Rgba32> image, ArrangerElement el)
+        {
+            var src = image.GetPixelSpan();
+
+            int srcidx = image.Width * el.Y1 + el.X1;
+            int destidx = 0;
+            var pal = el.Parent.GetResourceRelative<Palette>(el.PaletteKey);
+
+            // Copy data into element
+            for (int y = 0; y < el.Height; y++)
+            {
+                for (int x = 0; x < el.Width; x++, srcidx++, destidx++)
+                {
+                    var col = src[srcidx];
+                    el.MergedData[destidx] = pal.GetIndexByNativeColor(new NativeColor(col.A, col.R, col.G, col.B), true);
+                }
+                srcidx += el.X1 + image.Width - (el.X2 + 1);
+            }
+        }
+
         /// <summary>
-        /// Reads an indexed element at a specified location on a ARGB32 Bitmap
+        /// Reads an indexed element at a specified location on a Rgba32 Bitmap
         /// </summary>
         /// <param name="image">Source bitmap</param>
         /// <param name="el">Destination arranger</param>
-        unsafe static void ReadBitmapIndexed(Image<Argb32> image, ArrangerElement el)
+        unsafe static void ReadBitmapIndexed(Image<Rgba32> image, ArrangerElement el)
         {
             /*Rectangle lockRect = new Rectangle(0, 0, image.Width, image.Height);
             BitmapData bd = image.LockBits(lockRect, ImageLockMode.WriteOnly, image.PixelFormat);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using ImageMagitek.Codec;
 using ImageMagitek.Project;
@@ -14,7 +15,7 @@ namespace ImageMagitek
 
     public class RenderManager : IDisposable
     {
-        public Image<Argb32> Image { get; set; }
+        public Image<Rgba32> Image { get; set; }
         bool NeedsRedraw = true;
         bool Disposed = false;
 
@@ -32,7 +33,7 @@ namespace ImageMagitek
                 throw new ArgumentException();
 
             if (Image is null || arranger.ArrangerPixelSize.Height != Image.Height || arranger.ArrangerPixelSize.Width != Image.Width)
-                Image = new Image<Argb32>(arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
+                Image = new Image<Rgba32>(arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
 
             if(Image is null)
                 throw new InvalidOperationException();
@@ -45,11 +46,8 @@ namespace ImageMagitek
             FileStream fs = null;
             bool isSequential = arranger is SequentialArranger;
 
-            if(isSequential) // Sequential requires only one seek per render
-            {
-                fs = arranger.GetResourceRelative<DataFile>(arranger.ElementGrid[0, 0].DataFileKey).Stream;
-                fs.Seek(arranger.ElementGrid[0, 0].FileAddress.FileOffset, SeekOrigin.Begin); // TODO: Fix for bitwise
-            }
+            fs = arranger.GetResourceRelative<DataFile>(arranger.ElementGrid[0, 0].DataFileKey).Stream;
+            fs.Seek(arranger.ElementGrid[0, 0].FileAddress.FileOffset, SeekOrigin.Begin); // TODO: Fix for bitwise
 
             string prevFileKey = "";
 
@@ -58,13 +56,14 @@ namespace ImageMagitek
                 for(int x = 0; x < arranger.ArrangerElementSize.Width; x++)
                 {
                     ArrangerElement el = arranger.ElementGrid[x, y];
+                    if (el.IsBlank())
+                    {
+                        GraphicsCodec.DecodeBlank(Image, el);
+                        continue;
+                    }
+
                     if (!isSequential) // Non-sequential requires a seek for each element rendered
                     {
-                        if (el.IsBlank())
-                        {
-                            GraphicsCodec.DecodeBlank(Image, el);
-                            continue;
-                        }
                         if(prevFileKey != el.DataFileKey) // Only create a new binary reader when necessary
                             fs = arranger.GetResourceRelative<DataFile>(el.DataFileKey).Stream;
 
@@ -78,6 +77,12 @@ namespace ImageMagitek
 
             NeedsRedraw = false;
 
+            return true;
+        }
+
+        public bool LoadImage(string imageFileName)
+        {
+            Image = SixLabors.ImageSharp.Image.Load(imageFileName);
             return true;
         }
 
@@ -100,34 +105,14 @@ namespace ImageMagitek
             if (Image is null)
                 throw new NullReferenceException();
 
-            string PrevFileKey = "";
-
-            FileStream fs = null; // Used for seeking the DataFile associated with an ArrangerElement before encoding it
-            bool IsSequential = false;
-
-            if (arranger is SequentialArranger seqArranger) // Seek to the first element
-            {
-                IsSequential = true;
-                fs = arranger.GetResourceRelative<DataFile>(arranger.ElementGrid[0, 0].DataFileKey).Stream;
-                fs.Seek(seqArranger.GetInitialSequentialFileAddress().FileOffset, SeekOrigin.Begin); // TODO: Fix for bitwise seeking
-            }
-
             for (int y = 0; y < arranger.ArrangerElementSize.Height; y++)
             {
                 for (int x = 0; x < arranger.ArrangerElementSize.Width; x++)
                 {
                     ArrangerElement el = arranger.ElementGrid[x, y];
-                    if (!IsSequential) // Non-sequential requires a seek for each element rendered
-                    {
-                        if (el.FormatName == "") // Empty format means a blank tile
-                            continue;
 
-                        if (PrevFileKey != el.DataFileKey) // Only get a new FileStream when necessary
-                            fs = arranger.GetResourceRelative<DataFile>(el.DataFileKey).Stream;
-
-                        fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin); // TODO: Fix for bitwise seeks
-                        PrevFileKey = el.DataFileKey;
-                    }
+                    if (el.IsBlank())
+                        continue;
 
                     GraphicsCodec.Encode(Image, el);
                 }
@@ -150,7 +135,7 @@ namespace ImageMagitek
         /// <param name="x">x-coordinate</param>
         /// <param name="y">y-coordinate</param>
         /// <returns>Local color</returns>
-        public Argb32 GetPixel(int x, int y)
+        public Rgba32 GetPixel(int x, int y)
         {
             if (Image is null)
                 throw new NullReferenceException();
@@ -164,7 +149,7 @@ namespace ImageMagitek
         /// <param name="x">x-coordinate of pixel</param>
         /// <param name="y">y-coordinate of pixel</param>
         /// <param name="color">Local color to set</param>
-        public void SetPixel(int x, int y, Argb32 color)
+        public void SetPixel(int x, int y, Rgba32 color)
         {
             if (Image is null)
                 throw new NullReferenceException();
