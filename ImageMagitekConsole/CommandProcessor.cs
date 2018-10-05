@@ -42,12 +42,16 @@ namespace ImageMagitekConsole
             {
                 var exportFileName = Path.Combine(basePath, res.ResourceKey) + ".bmp";
                 Console.WriteLine($"Exporting {res.Name} to {exportFileName}...");
-                var rm = new RenderManager();
-                rm.Render(res);
 
                 Directory.CreateDirectory(Path.GetDirectoryName(exportFileName));
+
+                using (var rm = new RenderManager())
                 using (var fs = File.Create(exportFileName, 32 * 1024, FileOptions.SequentialScan))
+                {
+                    rm.Render(res);
                     rm.Image.SaveAsBmp(fs);
+                }
+
             }
 
             return true;
