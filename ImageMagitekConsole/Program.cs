@@ -10,16 +10,32 @@ namespace ImageMagitekConsole
 {
     class Program
     {
+        static readonly HashSet<string> Commands = new HashSet<string> { "export", "exportall", "import", "importall" };
+
         static void Main(string[] args)
         {
             Console.WriteLine("ImageMagitek v0.01");
             if (args.Length < 3)
             {
-                Console.WriteLine("Usage: ImageMagitek project.xml (ExportAll|ImportAll) DestinationRoot");
-                Console.WriteLine("ImageMagitek project.xml (Export|Import) DestinationRoot ResourceName1 ResourceName2 ...");
+                Console.WriteLine("Usage: ImageMagitek project.xml (ExportAll|ImportAll) ProjectRoot");
+                Console.WriteLine("ImageMagitek project.xml (Export|Import) ProjectRoot ResourceKey1 ResourceKey2 ...");
             }
 
+            string projectFileName = args[0];
 
+            var command = args[1].ToLower();
+            if (!Commands.Contains(command))
+            {
+                Console.WriteLine($"Invalid command {command}");
+                return;
+            }
+
+            var projectRoot = args[2];
+
+            if (!Directory.Exists(projectRoot))
+                Directory.CreateDirectory(projectRoot);        
+
+            // Load default graphic formats and palettes
             var codecPath = Path.Combine(Directory.GetCurrentDirectory(), "codecs");
             var formats = new Dictionary<string, GraphicsFormat>();
             var serializer = new XmlGraphicsFormatSerializer();
@@ -38,17 +54,28 @@ namespace ImageMagitekConsole
                 palettes.Add(pal);
             }
 
-            string projectFileName = args[0];
             var resourceManager = new ResourceManager(formats);
             resourceManager.LoadProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
 
-            var command = args[1];
-
-            var destinationRoot = args[2];
-            if (!Directory.Exists(destinationRoot))
-                Directory.CreateDirectory(destinationRoot);
             var processor = new CommandProcessor(resourceManager, formats);
-            processor.ExportAllArrangers(destinationRoot);
+
+            switch (command)
+            {
+                case "export":
+                    foreach(var key in args.Skip(3))
+                        processor.ExportArranger(key, projectRoot);
+                    break;
+                case "exportall":
+                    processor.ExportAllArrangers(projectRoot);
+                    break;
+                case "import":
+                    foreach (var key in args.Skip(3))
+                        processor.ImportImage(Path.Combine(projectRoot, key + ".bmp"), key);
+                    break;
+                case "importall":
+                    processor.ImportAllImages(projectRoot);
+                    break;
+            }
         }
     }
 }

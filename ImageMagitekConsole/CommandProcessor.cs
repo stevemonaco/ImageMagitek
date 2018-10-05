@@ -35,25 +35,55 @@ namespace ImageMagitekConsole
             return true;
         }
 
-        public bool ExportAllArrangers(string basePath)
+        public bool ExportArranger(string arrangerKey, string projectRoot)
         {
-            //Configuration.Default.ImageFormatsManager.SetEncoder(ImageFormats.Bmp, new BmpEncoder { BitsPerPixel = BmpBitsPerPixel.Pixel32 });
-            foreach (var res in Resources.TraverseDepthFirst().OfType<Arranger>())
+            var arranger = Resources.GetResource<ScatteredArranger>(arrangerKey);
+
+            var exportFileName = Path.Combine(projectRoot, arrangerKey + ".bmp");
+            Console.WriteLine($"Exporting {arranger.Name} to {exportFileName}...");
+
+            Directory.CreateDirectory(Path.GetDirectoryName(exportFileName));
+
+            using (var rm = new RenderManager())
+            using (var fs = File.Create(exportFileName, 32 * 1024, FileOptions.SequentialScan))
             {
-                var exportFileName = Path.Combine(basePath, res.ResourceKey) + ".bmp";
-                Console.WriteLine($"Exporting {res.Name} to {exportFileName}...");
-
-                Directory.CreateDirectory(Path.GetDirectoryName(exportFileName));
-
-                using (var rm = new RenderManager())
-                using (var fs = File.Create(exportFileName, 32 * 1024, FileOptions.SequentialScan))
-                {
-                    rm.Render(res);
-                    rm.Image.SaveAsBmp(fs);
-                }
-
+                rm.Render(arranger);
+                rm.Image.SaveAsBmp(fs);
             }
 
+            return true;
+        }
+
+        public bool ExportAllArrangers(string projectRoot)
+        {
+            foreach (var res in Resources.TraverseDepthFirst().OfType<ScatteredArranger>())
+                ExportArranger(res.ResourceKey, projectRoot);
+
+            return true;
+        }
+
+
+        public bool ImportImage(string imageFileName, string arrangerKey)
+        {
+            var arranger = Resources.GetResource<ScatteredArranger>(arrangerKey);
+
+            using (var rm = new RenderManager())
+            {
+                rm.LoadImage(imageFileName);
+                rm.SaveImage(arranger);
+            }
+
+            return true;
+        }
+
+        public bool ImportAllImages(string projectRoot)
+        {
+            foreach(var arranger in Resources.TraverseDepthFirst().OfType<ScatteredArranger>())
+            {
+                string imageFileName = Path.Combine(projectRoot, arranger.ResourceKey + ".bmp");
+                if(File.Exists(imageFileName))
+                    ImportImage(imageFileName, arranger.ResourceKey);
+            }
             return true;
         }
     }
