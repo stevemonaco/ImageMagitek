@@ -238,13 +238,10 @@ namespace ImageMagitek.Project
 
             foreach(var arranger in tree.SelfAndDescendants().OfType<ScatteredArranger>())
             {
-                for(int x = 0; x < arranger.ArrangerElementSize.Width; x++)
+                foreach(var el in arranger.EnumerateElements())
                 {
-                    for(int y = 0; y < arranger.ArrangerElementSize.Height; y++)
-                    {
-                        if(Formats.ContainsKey(arranger.ElementGrid[x, y].FormatName))
-                            arranger.ElementGrid[x, y].InitializeGraphicsFormat(Formats[arranger.ElementGrid[x, y].FormatName]);
-                    }
+                    if (Formats.ContainsKey(el.FormatName))
+                        el.InitializeGraphicsFormat(Formats[el.FormatName]);
                 }
             }
 

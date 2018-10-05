@@ -151,7 +151,26 @@ namespace ImageMagitek
             xe.SetAttributeValue("defaultdatafile", DefaultFile);
             xe.SetAttributeValue("defaultpalette", DefaultPalette);
 
-            for (int y = 0; y < ArrangerElementSize.Height; y++)
+            foreach(var el in EnumerateElements())
+            {
+                var graphic = new XElement("element");
+
+                graphic.SetAttributeValue("fileoffset", String.Format("{0:X}", el.FileAddress.FileOffset));
+                if (el.FileAddress.BitOffset != 0)
+                    graphic.SetAttributeValue("bitoffset", String.Format("{0:X}", el.FileAddress.BitOffset));
+                graphic.SetAttributeValue("posx", el.X1 / el.Width);
+                graphic.SetAttributeValue("posy", el.Y1 / el.Height);
+                if (el.FormatName != DefaultFormat)
+                    graphic.SetAttributeValue("format", el.FormatName);
+                if (el.DataFileKey != DefaultFile)
+                    graphic.SetAttributeValue("file", el.DataFileKey);
+                if (el.PaletteKey != DefaultPalette)
+                    graphic.SetAttributeValue("palette", el.PaletteKey);
+
+                xe.Add(graphic);
+            }
+
+            /*for (int y = 0; y < ArrangerElementSize.Height; y++)
             {
                 for (int x = 0; x < ArrangerElementSize.Width; x++)
                 {
@@ -172,7 +191,7 @@ namespace ImageMagitek
 
                     xe.Add(graphic);
                 }
-            }
+            }*/
 
             return xe;
         }

@@ -23,13 +23,8 @@ namespace ImageMagitek
         {
             HashSet<string> palSet = new HashSet<string>();
 
-            for (int x = 0; x < self.ArrangerElementSize.Width; x++)
-            {
-                for (int y = 0; y < self.ArrangerElementSize.Height; y++)
-                {
-                    palSet.Add(self.ElementGrid[x, y].PaletteKey);
-                }
-            }
+            foreach (var el in self.EnumerateElements())
+                palSet.Add(el.PaletteKey);
 
             return palSet;
         }
@@ -128,13 +123,10 @@ namespace ImageMagitek
 
             int ElementStorageSize = self.ElementGrid[0, 0].StorageSize;
 
-            for (int i = 0; i < self.ArrangerElementSize.Height; i++)
+            foreach(var el in self.EnumerateElements())
             {
-                for (int j = 0; j < self.ArrangerElementSize.Width; j++)
-                {
-                    self.ElementGrid[j, i].FileAddress = address;
-                    address += ElementStorageSize;
-                }
+                el.FileAddress = address;
+                address += ElementStorageSize;
             }
 
             return self.ElementGrid[0, 0].FileAddress;

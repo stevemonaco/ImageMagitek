@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Xml.Linq;
 using ImageMagitek.Project;
@@ -183,6 +184,13 @@ namespace ImageMagitek
                 throw new ArgumentNullException();
 
             return ElementGrid[arrangerPosX, arrangerPosY];
+        }
+
+        public IEnumerable<ArrangerElement> EnumerateElements()
+        {
+            for (int y = 0; y < ArrangerElementSize.Height; y++)
+                for (int x = 0; x < ArrangerElementSize.Width; x++)
+                    yield return ElementGrid[x, y];
         }
 
         /// <summary>

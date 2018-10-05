@@ -43,36 +43,12 @@ namespace ImageMagitek
 
             // TODO: Consider using Tile Cache
 
-            FileStream fs = null;
-            bool isSequential = arranger is SequentialArranger;
-
-            fs = arranger.GetResourceRelative<DataFile>(arranger.ElementGrid[0, 0].DataFileKey).Stream;
-            fs.Seek(arranger.ElementGrid[0, 0].FileAddress.FileOffset, SeekOrigin.Begin); // TODO: Fix for bitwise
-
-            string prevFileKey = "";
-
-            for(int y = 0; y < arranger.ArrangerElementSize.Height; y++)
+            foreach(var el in arranger.EnumerateElements())
             {
-                for(int x = 0; x < arranger.ArrangerElementSize.Width; x++)
-                {
-                    ArrangerElement el = arranger.ElementGrid[x, y];
-                    if (el.IsBlank())
-                    {
-                        GraphicsCodec.DecodeBlank(Image, el);
-                        continue;
-                    }
-
-                    if (!isSequential) // Non-sequential requires a seek for each element rendered
-                    {
-                        if(prevFileKey != el.DataFileKey) // Only create a new binary reader when necessary
-                            fs = arranger.GetResourceRelative<DataFile>(el.DataFileKey).Stream;
-
-                        fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin); // TODO: Fix for bitwise seeking
-                        prevFileKey = el.DataFileKey;
-                    }
-
-                     GraphicsCodec.Decode(Image, el);
-                }
+                if (el.IsBlank())
+                    GraphicsCodec.DecodeBlank(Image, el);
+                else
+                    GraphicsCodec.Decode(Image, el);
             }
 
             NeedsRedraw = false;
@@ -105,17 +81,9 @@ namespace ImageMagitek
             if (Image is null)
                 throw new NullReferenceException();
 
-            for (int y = 0; y < arranger.ArrangerElementSize.Height; y++)
+            foreach(var el in arranger.EnumerateElements().Where(x => !x.IsBlank()))
             {
-                for (int x = 0; x < arranger.ArrangerElementSize.Width; x++)
-                {
-                    ArrangerElement el = arranger.ElementGrid[x, y];
-
-                    if (el.IsBlank())
-                        continue;
-
-                    GraphicsCodec.Encode(Image, el);
-                }
+                GraphicsCodec.Encode(Image, el);
             }
 
             return true;
