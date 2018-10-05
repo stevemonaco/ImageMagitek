@@ -12,10 +12,11 @@ namespace ImageMagitek
     // RenderManager
     // Class that is responsible for rendering an Arranger into a bitmap
 
-    public class RenderManager
+    public class RenderManager : IDisposable
     {
         public Image<Argb32> Image { get; set; }
         bool NeedsRedraw = true;
+        bool Disposed = false;
 
         /// <summary>
         /// Renders an image using the specified arranger
@@ -171,5 +172,28 @@ namespace ImageMagitek
             Image[x, y] = color;
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (Disposed)
+                return;
+
+            if(disposing)
+            {
+                Image.Dispose();
+            }
+
+            Disposed = true;
+        }
+
+        ~RenderManager()
+        {
+            Dispose(false);
+        }
     }
 }
