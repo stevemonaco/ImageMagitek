@@ -10,20 +10,20 @@ namespace ImageMagitek
         /// <summary>
         /// Gets or sets the foreign color value
         /// </summary>
-        public UInt32 Color { get; set; }
+        public uint Color { get; set; }
 
         /// <summary>
         /// Construct a ForeignColor
         /// </summary>
         /// <param name="color">Foreign Color ARGB value</param>
-        public ForeignColor(UInt32 color)
+        public ForeignColor(uint color)
         {
             Color = color;
         }
 
-        public ForeignColor(byte A, byte R, byte G, byte B, ColorModel colorFormat)
+        public ForeignColor(byte A, byte R, byte G, byte B, ColorModel colorModel)
         {
-            switch (colorFormat)
+            switch (colorModel)
             {
                 // TODO: Validate color ranges
                 case ColorModel.BGR15:
@@ -53,9 +53,9 @@ namespace ImageMagitek
         /// Gets the foreign alpha channel intensity
         /// </summary>
         /// <returns></returns>
-        public byte A(ColorModel format)
+        public byte A(ColorModel colorModel)
         {
-            switch (format)
+            switch (colorModel)
             {
                 case ColorModel.RGB15:
                 case ColorModel.BGR15:
@@ -63,7 +63,7 @@ namespace ImageMagitek
                 case ColorModel.ABGR16:
                     return (byte)((Color & 0x8000) >> 15);
                 default:
-                    throw new ArgumentException("Unsupported ColorModel " + format.ToString());
+                    throw new ArgumentException("Unsupported ColorModel " + colorModel.ToString());
             }
         }
 
@@ -71,9 +71,9 @@ namespace ImageMagitek
         /// Gets the foreign red channel intensity
         /// </summary>
         /// <returns></returns>
-        public byte R(ColorModel format)
+        public byte R(ColorModel colorModel)
         {
-            switch (format)
+            switch (colorModel)
             {
                 case ColorModel.BGR15:
                 case ColorModel.ABGR16:
@@ -81,7 +81,7 @@ namespace ImageMagitek
                 case ColorModel.RGB15:
                     return (byte)((Color & 0x7C00) >> 10);
                 default:
-                    throw new ArgumentException("Unsupported ColorModel " + format.ToString());
+                    throw new ArgumentException("Unsupported ColorModel " + colorModel.ToString());
             }
         }
 
@@ -89,9 +89,9 @@ namespace ImageMagitek
         /// Gets the foreign green channel intensity
         /// </summary>
         /// <returns></returns>
-        public byte G(ColorModel format)
+        public byte G(ColorModel colorModel)
         {
-            switch (format)
+            switch (colorModel)
             {
                 case ColorModel.BGR15:
                 case ColorModel.ABGR16:
@@ -99,7 +99,7 @@ namespace ImageMagitek
                 case ColorModel.RGB15:
                     return (byte)((Color & 0x3E0) >> 5);
                 default:
-                    throw new ArgumentException("Unsupported ColorModel " + format.ToString());
+                    throw new ArgumentException("Unsupported ColorModel " + colorModel.ToString());
             }
         }
 
@@ -107,9 +107,9 @@ namespace ImageMagitek
         /// Gets the foreign blue channel intensity
         /// </summary>
         /// <returns></returns>
-        public byte B(ColorModel format)
+        public byte B(ColorModel colorModel)
         {
-            switch (format)
+            switch (colorModel)
             {
                 case ColorModel.BGR15:
                 case ColorModel.ABGR16:
@@ -117,16 +117,16 @@ namespace ImageMagitek
                 case ColorModel.RGB15:
                     return (byte)(Color & 0x1F);
                 default:
-                    throw new ArgumentException("Unsupported ColorModel " + format.ToString());
+                    throw new ArgumentException("Unsupported ColorModel " + colorModel.ToString());
             }
         }
 
         /// <summary>
         /// Splits the foreign color into its foreign color components
         /// </summary>
-        /// <param name="format"></param>
+        /// <param name="colorModel"></param>
         /// <returns></returns>
-        public (byte A, byte R, byte G, byte B) Split(ColorModel format) => (A(format), R(format), G(format), B(format));
+        public (byte A, byte R, byte G, byte B) Split(ColorModel colorModel) => (A(colorModel), R(colorModel), G(colorModel), B(colorModel));
 
         #endregion
 
@@ -135,49 +135,49 @@ namespace ImageMagitek
         /// <summary>
         /// Splits the foreign color into its native color components
         /// </summary>
-        /// <param name="format"></param>
+        /// <param name="colorModel"></param>
         /// <returns></returns>
-        public (byte A, byte R, byte G, byte B) SplitToNative(ColorModel format)
+        public (byte A, byte R, byte G, byte B) SplitToNative(ColorModel colorModel)
         {
-            NativeColor nc = ToNativeColor(format);
+            NativeColor nc = ToNativeColor(colorModel);
             return nc.Split();
         }
 
         /// <summary>
         /// Converts into a NativeColor
         /// </summary>
-        /// <param name="model">ColorModel of ForeignColor</param>
+        /// <param name="colorModel">ColorModel of ForeignColor</param>
         /// <returns>Native ARGB32 color value</returns>
-        public NativeColor ToNativeColor(ColorModel model)
+        public NativeColor ToNativeColor(ColorModel colorModel)
         {
             NativeColor nc = (NativeColor) 0;
             byte A, R, G, B;
 
-            switch(model)
+            switch(colorModel)
             {
                 case ColorModel.BGR15:
-                    (A, R, G, B) = Split(model); // Split into foreign color components
+                    (A, R, G, B) = Split(colorModel); // Split into foreign color components
                     nc.Color = ((uint)R << 19); // Red
                     nc.Color |= (uint)G << 11; // Green
                     nc.Color |= (uint)B << 3; // Blue
                     nc.Color |= 0xFF000000; // Alpha
                     break;
                 case ColorModel.ABGR16:
-                    (A, R, G, B) = Split(model); // Split into foreign color components
+                    (A, R, G, B) = Split(colorModel); // Split into foreign color components
                     nc.Color = (uint)R << 19; // Red
                     nc.Color |= (uint)G << 11; // Green
                     nc.Color |= (uint)B << 3; // Blue
                     nc.Color |= (uint)(A * 255) << 24; // Alpha
                     break;
                 case ColorModel.RGB15:
-                    (A, R, G, B) = Split(model); // Split into foreign color components
+                    (A, R, G, B) = Split(colorModel); // Split into foreign color components
                     nc.Color = (uint)R << 19; // Red
                     nc.Color |= (uint)G << 11; // Green
                     nc.Color |= (uint)B << 3; // Blue
                     nc.Color |= 0xFF000000; // Alpha
                     break;
                 default:
-                    throw new ArgumentException("Unsupported ColorModel " + model.ToString());
+                    throw new ArgumentException("Unsupported ColorModel " + colorModel.ToString());
             }
 
             return nc;
@@ -186,11 +186,11 @@ namespace ImageMagitek
         /// <summary>
         /// Converts into a Color with native representation
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="colorModel"></param>
         /// <returns></returns>
-        public System.Drawing.Color ToColor(ColorModel model)
+        public System.Drawing.Color ToColor(ColorModel colorModel)
         {
-            return ToNativeColor(model).ToColor();
+            return ToNativeColor(colorModel).ToColor();
         }
 
         #endregion
@@ -201,7 +201,7 @@ namespace ImageMagitek
             return new ForeignColor(color);
         }
 
-        public static explicit operator UInt32(ForeignColor color)
+        public static explicit operator uint(ForeignColor color)
         {
             return color.Color;
         }

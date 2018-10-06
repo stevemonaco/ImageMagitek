@@ -15,16 +15,16 @@ namespace ImageMagitek
         /// <summary>
         /// Gets or sets the native 32bit ARGB Color
         /// </summary>
-        public UInt32 Color { get; set; }
+        public uint Color { get; set; }
 
-        public NativeColor(UInt32 color)
+        public NativeColor(uint color)
         {
             Color = color;
         }
 
         public NativeColor(byte A, byte R, byte G, byte B)
         {
-            Color = ((UInt32)A << AlphaShift | ((UInt32)R << RedShift) | ((UInt32)G << GreenShift) | ((UInt32)B << BlueShift));
+            Color = ((uint)A << AlphaShift | ((uint)R << RedShift) | ((uint)G << GreenShift) | ((uint)B << BlueShift));
         }
 
         #region Color Channel Helper Functions
@@ -125,7 +125,7 @@ namespace ImageMagitek
             return new NativeColor(color);
         }
 
-        public static explicit operator UInt32(NativeColor color)
+        public static explicit operator uint(NativeColor color)
         {
             return color.Color;
         }
