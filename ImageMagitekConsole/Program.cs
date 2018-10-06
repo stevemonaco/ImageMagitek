@@ -14,7 +14,7 @@ namespace ImageMagitekConsole
 
         static void Main(string[] args)
         {
-            Console.WriteLine("ImageMagitek v0.01");
+            Console.WriteLine("ImageMagitek v0.05");
             if (args.Length < 3)
             {
                 Console.WriteLine("Usage: ImageMagitek project.xml (ExportAll|ImportAll) ProjectRoot");
