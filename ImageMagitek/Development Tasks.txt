@@ -1,0 +1,14 @@
+﻿Codec operations
+- Work to find increased orthogonality of methods
+- Flowtiles (?)
+- "Compiled" remap
+- Direct decoding/encoding
+- Write schema after new spec
+
+Palette
+- Start adding unit tests
+
+Project
+- Transition to PathTree
+- Implement renaming/moving logic
+- Test schemas
