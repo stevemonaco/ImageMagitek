@@ -255,6 +255,39 @@ namespace ImageMagitek.Project
                 resourcePair.Value.Parent = root;
             }
 
+            // Resolve resources
+            foreach(var item in ResourceTree.SelfAndDescendants())
+            {
+                DataFile dataFile;
+                Palette palette;
+
+                switch(item)
+                {
+                    case Palette pal:
+                        if (ResourceTree.TryGetResource<DataFile>(pal.DataFileKey, out  dataFile))
+                            pal.DataFile = dataFile;
+                        else
+                            throw new KeyNotFoundException($"{nameof(ResourceTreeExtensions.TryGetResource)} failed to find the DataFile associated with the key {pal.DataFileKey} referenced by the Palette {item.ResourceKey}");
+                        break;
+                    case Arranger arr:
+                        foreach(var el in arr.EnumerateElements())
+                        {
+                            if (ResourceTree.TryGetResource<DataFile>(el.DataFileKey, out dataFile))
+                                el.DataFile = dataFile;
+                            else
+                                throw new KeyNotFoundException($"{nameof(ResourceTreeExtensions.TryGetResource)} failed to find the DataFile associated with the key {el.DataFileKey} referenced by the Arranger {item.ResourceKey}");
+
+                            if (ResourceTree.TryGetResource<Palette>(el.PaletteKey, out palette))
+                                el.Palette = palette;
+                            else
+                                throw new KeyNotFoundException($"{nameof(ResourceTreeExtensions.TryGetResource)} failed to find the Palette associated with the key {el.PaletteKey} referenced by the Arranger {item.ResourceKey}");
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
             // Invoke ResourceAdded event for every deserialized node
             foreach (var item in tree.SelfAndDescendants())
                 ResourceAdded?.Invoke(this, new ResourceEventArgs(item.ResourceKey));
