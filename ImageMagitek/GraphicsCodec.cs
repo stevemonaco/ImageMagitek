@@ -178,14 +178,13 @@ namespace ImageMagitek
 
             int destidx = image.Width * el.Y1 + el.X1;
             int srcidx = 0;
-            var pal = el.Parent.GetResourceRelative<Palette>(el.PaletteKey);
 
             // Copy data into image
             for (int y = 0; y < el.Height; y++)
             {
                 for(int x = 0; x < el.Width; x++, srcidx++, destidx++)
                 {
-                    var nc = pal[el.MergedData[srcidx]];
+                    var nc = el.Palette[el.MergedData[srcidx]];
                     var col = new Rgba32(nc.R(), nc.G(), nc.B(), nc.A());
                     dest[destidx] = col;
                 }
@@ -204,8 +203,7 @@ namespace ImageMagitek
             var dest = image.GetPixelSpan();
 
             int destidx = image.Width * el.Y1 + el.X1;
-            var pal = el.Parent.GetResourceRelative<Palette>(el.PaletteKey);
-            var nc = pal[0];
+            var nc = el.Palette[0];
             var col = new Rgba32(nc.R(), nc.G(), nc.B(), nc.A());
 
             // Copy data into image
@@ -232,7 +230,6 @@ namespace ImageMagitek
             // ReadBitmap for local->foreign color conversion into fmt.MergedData
             ReadBitmapIndexedSafe(image, el);
 
-            FileStream fs = el.Parent.GetResourceRelative<DataFile>(el.DataFileKey).Stream;
             GraphicsFormat format = el.GraphicsFormat;
 
             // Loop over MergedData to split foreign colors into bit planes in fmt.TileData
@@ -284,8 +281,8 @@ namespace ImageMagitek
                 plane += ip.ColorDepth;
             }
 
-            BinaryWriter bw = new BinaryWriter(fs);
-            fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
+            el.DataFile.Stream.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
+            BinaryWriter bw = new BinaryWriter(el.DataFile.Stream);
             bw.Write(bs.Data, 0, bs.Data.Length); // TODO: Fix with a shifted, merged write
         }
 
@@ -300,7 +297,6 @@ namespace ImageMagitek
 
             int srcidx = image.Width * el.Y1 + el.X1;
             int destidx = 0;
-            var pal = el.Parent.GetResourceRelative<Palette>(el.PaletteKey);
 
             // Copy data into element
             for (int y = 0; y < el.Height; y++)
@@ -308,7 +304,7 @@ namespace ImageMagitek
                 for (int x = 0; x < el.Width; x++, srcidx++, destidx++)
                 {
                     var col = src[srcidx];
-                    el.MergedData[destidx] = pal.GetIndexByNativeColor(new NativeColor(col.A, col.R, col.G, col.B), true);
+                    el.MergedData[destidx] = el.Palette.GetIndexByNativeColor(new NativeColor(col.A, col.R, col.G, col.B), true);
                 }
                 srcidx += el.X1 + image.Width - (el.X2 + 1);
             }

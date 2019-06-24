@@ -90,8 +90,6 @@ namespace ImageMagitek
             Name = PaletteName;
 
             HasAlpha = false;
-            Entries = 0;
-            DataFileKey = null;
             ZeroIndexTransparent = true;
         }
 
@@ -114,7 +112,7 @@ namespace ImageMagitek
         }
 
         /// <summary>
-        /// Sets the DataFile key source. Does not reload.
+        /// Sets the DataFile key source. Does not reload palette data.
         /// </summary>
         /// <param name="fileKey">New DataFile key</param>
         /// <returns></returns>
@@ -233,8 +231,7 @@ namespace ImageMagitek
                     throw new NotSupportedException("An unsupported palette format was attempted to be read");
             }
 
-            FileStream fs = GetResourceRelative<DataFile>(DataFileKey).Stream;
-            byte[] tempPalette = fs.ReadUnshifted(FileAddress, readSize * 8 * Entries, true);
+            byte[] tempPalette = DataFile.Stream.ReadUnshifted(FileAddress, readSize * 8 * Entries, true);
             BitStream bs = BitStream.OpenRead(tempPalette, readSize * 8 * Entries);
             var foreignPalette = new ForeignColor[Entries];
 
@@ -437,10 +434,9 @@ namespace ImageMagitek
                         throw new NotSupportedException("An unsupported palette format was attempted to be read");
                 }
 
-                FileStream fs = GetResourceRelative<DataFile>(DataFileKey).Stream;
-                BinaryWriter bw = new BinaryWriter(fs);
+                BinaryWriter bw = new BinaryWriter(DataFile.Stream);
 
-                fs.Seek(FileAddress.FileOffset, SeekOrigin.Begin); // TODO: Recode this for bitwise writing
+                DataFile.Stream.Seek(FileAddress.FileOffset, SeekOrigin.Begin); // TODO: Recode this for bitwise writing
 
                 for (int i = 0; i < Entries; i++)
                 {
@@ -521,13 +517,14 @@ namespace ImageMagitek
         {
             Palette pal = new Palette(Name)
             {
-                ColorModel = this.ColorModel,
-                FileAddress = this.FileAddress,
-                DataFileKey = this.DataFileKey,
-                Entries = this.Entries,
-                HasAlpha = this.HasAlpha,
-                ZeroIndexTransparent = this.ZeroIndexTransparent,
-                StorageSource = this.StorageSource,
+                ColorModel = ColorModel,
+                FileAddress = FileAddress,
+                DataFile = DataFile,
+                DataFileKey = DataFileKey,
+                Entries = Entries,
+                HasAlpha = HasAlpha,
+                ZeroIndexTransparent = ZeroIndexTransparent,
+                StorageSource = StorageSource,
                 _nativePalette = new Lazy<NativeColor[]>(() => NativePalette),
                 _foreignPalette = new Lazy<ForeignColor[]>(() => ForeignPalette),
             };
