@@ -17,6 +17,11 @@ namespace ImageMagitek
         public Arranger Parent { get; set; }
 
         /// <summary>
+        /// DataFile which contains the element's pixel data
+        /// </summary>
+        public DataFile DataFile { get; set; }
+
+        /// <summary>
         /// DataFile key in FileManager
         /// </summary>
         public string DataFileKey { get; set; }
@@ -47,31 +52,35 @@ namespace ImageMagitek
         public int Height { get; set; }
 
         /// <summary>
+        /// Palette to apply to the element's pixel data
+        /// </summary>
+        public Palette Palette { get; set; }
+
+        /// <summary>
         /// Palette key in FileManager
         /// </summary>
         public string PaletteKey { get; set; }
 
         /// <summary>
-        /// Left X-coordinate of the Element
+        /// Left edge of the Element within the Arranger in unzoomed coordinates, inclusive
         /// </summary>
-        public int X1 { get; set; } // Locations in unzoomed coordinates
+        public int X1 { get; set; }
 
         /// <summary>
-        /// Top Y-coordinate of the Element
+        /// Top edge of the Element within the Arranger in unzoomed coordinates, inclusive
         /// </summary>
         public int Y1 { get; set; }
 
         /// <summary>
-        /// Right X-coordinate of the Element, inclusive
+        /// Right edge of the Element within the Arranger in unzoomed coordinates, inclusive
         /// </summary>
         public int X2 { get; set; }
 
         /// <summary>
-        /// Bottom Y-coordinate of the Element, inclusive
+        /// Bottom edge of the Element within the Arranger in unzoomed coordinates, inclusive
         /// </summary>
         public int Y2 { get; set; }
 
-        // Preallocated TileData buffers
         /// <summary>
         /// Preallocated buffer that separates and stores pixel color data
         /// </summary>
@@ -83,7 +92,7 @@ namespace ImageMagitek
         public byte[] MergedData { get; private set; }
 
         /// <summary>
-        /// Number of bits needed to store the Element's foreign pixel data
+        /// Number of bits required to store the Element's foreign pixel data
         /// </summary>
         public int StorageSize { get; private set; }
 
@@ -137,12 +146,14 @@ namespace ImageMagitek
             ArrangerElement el = new ArrangerElement()
             {
                 Parent = Parent,
+                DataFile = DataFile,
                 DataFileKey = DataFileKey,
                 FileAddress = FileAddress,
                 GraphicsFormat = GraphicsFormat,
                 FormatName = FormatName,
                 Width = Width,
                 Height = Height,
+                Palette = Palette,
                 PaletteKey = PaletteKey,
                 X1 = X1,
                 Y1 = Y1,

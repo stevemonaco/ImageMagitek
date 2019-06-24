@@ -34,6 +34,11 @@ namespace ImageMagitek
         public ColorModel ColorModel { get; private set; }
 
         /// <summary>
+        /// DataFile which contains the palette
+        /// </summary>
+        public DataFile DataFile { get; set; }
+
+        /// <summary>
         /// DataFile key which contains the palette
         /// </summary>
         public string DataFileKey { get; private set; }
