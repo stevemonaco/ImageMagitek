@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ImageMagitek.Project;
 
 namespace ImageMagitek.ExtensionMethods
@@ -29,6 +30,33 @@ namespace ImageMagitek.ExtensionMethods
 
             resource = node;
             return true;
+        }
+
+        public static bool TryGetResource<T>(this IDictionary<string, ProjectResourceBase> tree, string resourceKey, out T resource) where T : ProjectResourceBase
+        {
+            if (string.IsNullOrWhiteSpace(resourceKey))
+                throw new ArgumentException();
+
+            var paths = resourceKey.Split('\\').Where(x => x.Length > 0);
+            var nodeVisitor = tree;
+            ProjectResourceBase node = null;
+
+            foreach (var name in paths)
+            {
+                if (nodeVisitor.TryGetValue(name, out node))
+                    nodeVisitor = node.ChildResources;
+                else
+                    break;
+            }
+
+            if (node is T tNode)
+            {
+                resource = tNode;
+                return true;
+            }
+
+            resource = null;
+            return false;
         }
 
         public static bool ContainsResource(this IDictionary<string, ProjectResourceBase> tree, string resourceKey)
