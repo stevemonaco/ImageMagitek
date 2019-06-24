@@ -7,8 +7,10 @@
 
 Palette
 - Start adding unit tests
+- Use lambdas/delegate for color converters
 
 Project
+- Isolate project retrieval from codec methods
 - Transition to PathTree
 - Implement renaming/moving logic
 - Test schemas
