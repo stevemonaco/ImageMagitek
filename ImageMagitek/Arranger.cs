@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Xml.Linq;
 using ImageMagitek.Project;
 
@@ -126,6 +127,7 @@ namespace ImageMagitek
 
             if ((arrangerPosY < 0) || (arrangerPosY + copyHeight > ArrangerElementSize.Height))
                 throw new ArgumentOutOfRangeException();
+
             Arranger sub = new ScatteredArranger(Layout, ArrangerElementSize.Width, ArrangerElementSize.Height, ElementPixelSize.Width, ElementPixelSize.Height);
 
             Arranger subArranger = new ScatteredArranger()
@@ -197,16 +199,7 @@ namespace ImageMagitek
         /// Tests the Arranger Elements to see if any Elements are blank
         /// </summary>
         /// <returns></returns>
-        public bool ContainsBlankElements()
-        {
-            foreach(ArrangerElement el in ElementGrid)
-            {
-                if (el.IsBlank())
-                    return true;
-            }
-
-            return false;
-        }
+        public bool ContainsBlankElements() => EnumerateElements().Any(x => x.IsBlank());
 
         public override XElement Serialize()
         {
