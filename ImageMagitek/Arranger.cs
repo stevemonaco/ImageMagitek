@@ -166,10 +166,10 @@ namespace ImageMagitek
         public void SetElement(ArrangerElement element, int arrangerPosX, int arrangerPosY)
         {
             if (ElementGrid is null)
-                throw new ArgumentNullException();
+                throw new NullReferenceException($"{nameof(SetElement)} property '{nameof(ElementGrid)}' was null");
 
             if (arrangerPosX > ArrangerElementSize.Width || arrangerPosY > ArrangerElementSize.Height)
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({arrangerPosX}, {arrangerPosY})");
 
             ElementGrid[arrangerPosX, arrangerPosY] = element;
         }
@@ -183,7 +183,10 @@ namespace ImageMagitek
         public ArrangerElement GetElement(int arrangerPosX, int arrangerPosY)
         {
             if (ElementGrid is null)
-                throw new ArgumentNullException();
+                throw new NullReferenceException($"{nameof(GetElement)} property '{nameof(ElementGrid)}' was null");
+
+            if (arrangerPosX > ArrangerElementSize.Width || arrangerPosY > ArrangerElementSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({arrangerPosX}, {arrangerPosY})");
 
             return ElementGrid[arrangerPosX, arrangerPosY];
         }

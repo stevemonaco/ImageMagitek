@@ -61,9 +61,11 @@ namespace ImageMagitek.Project
         public bool AddResource(string resourceKey, ProjectResourceBase resource)
         {
             if (resource is null)
-                throw new ArgumentNullException("Null argument passed into AddResource");
+                throw new ArgumentNullException($"{nameof(AddResource)} parameter '{nameof(resource)}' was null");
             if (resource.Name is null)
-                throw new ArgumentException("Argument with null Name property passed into AddResource");
+                throw new ArgumentException($"{nameof(AddResource)} parameter '{nameof(resource)}' contained a null '{nameof(resource.Name)}' property");
+            if (resourceKey is null)
+                throw new ArgumentNullException($"{nameof(AddResource)} parameter '{nameof(resourceKey)}' was null");
 
             if (ResourceTree.ContainsResource(resourceKey))
                 return false;
@@ -81,7 +83,7 @@ namespace ImageMagitek.Project
         public bool RemoveResource(string resourceKey)
         {
             if (resourceKey is null)
-                throw new ArgumentException("Null name argument passed into RemoveResource");
+                throw new ArgumentException($"{nameof(RemoveResource)} parameter '{nameof(resourceKey)}' was null");
 
             if (ResourceTree.ContainsResource(resourceKey))
                 ResourceTree.Remove(resourceKey);
@@ -124,7 +126,7 @@ namespace ImageMagitek.Project
         public T GetResource<T>(string resourceKey) where T : ProjectResourceBase
         {
             if (resourceKey is null)
-                throw new ArgumentException($"Null name argument passed into {nameof(GetResource)}");
+                throw new ArgumentException($"{nameof(GetResource)} parameter '{nameof(resourceKey)}' was null");
 
             if (ResourceTree.TryGetResource(resourceKey, out var res))
             {
@@ -132,7 +134,7 @@ namespace ImageMagitek.Project
                     return tRes;
             }
 
-            throw new KeyNotFoundException($"Key '{resourceKey}' of requested type not found in ResourceManager");
+            throw new KeyNotFoundException($"{nameof(GetResource)} key '{resourceKey}' of requested type not found");
         }
 
         /// <summary>
@@ -145,12 +147,12 @@ namespace ImageMagitek.Project
         public Type GetResourceType(string resourceKey)
         {
             if (resourceKey is null)
-                throw new ArgumentException($"Null name argument passed into {nameof(GetResourceType)}");
+                throw new ArgumentException($"{nameof(GetResourceType)} parameter '{nameof(resourceKey)}' was null");
 
             if (ResourceTree.TryGetResource(resourceKey, out var res))
                 return res.GetType();
 
-            throw new KeyNotFoundException($"Key '{resourceKey}' of requested type not found in ResourceManager");
+            throw new KeyNotFoundException($"{nameof(GetResourceType)} key '{resourceKey}' of requested type not found");
         }
 
         /// <summary>
@@ -161,7 +163,7 @@ namespace ImageMagitek.Project
         public bool HasResource(string resourceKey)
         {
             if (resourceKey is null)
-                throw new ArgumentException($"Null name argument passed into {nameof(HasResource)}");
+                throw new ArgumentException($"{nameof(HasResource)} parameter '{nameof(resourceKey)}' was null");
 
             return ResourceTree.ContainsResource(resourceKey);
         }
@@ -176,7 +178,7 @@ namespace ImageMagitek.Project
         public bool HasResource<T>(string resourceKey) where T : ProjectResourceBase
         {
             if (resourceKey is null)
-                throw new ArgumentException($"Null name argument passed into {nameof(HasResource)}");
+                throw new ArgumentException($"{nameof(HasResource)} parameter '{nameof(resourceKey)}' was null");
 
             if(ResourceTree.TryGetResource(resourceKey, out var res))
             {

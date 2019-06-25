@@ -38,10 +38,10 @@ namespace ImageMagitek
         public static FileBitAddress Move(this SequentialArranger self, ArrangerMoveType moveType)
         {
             if (self.Mode != ArrangerMode.SequentialArranger)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"{nameof(Move)}: Arranger {self.Name} is not in sequential mode");
 
             if (self.ElementGrid is null)
-                throw new NullReferenceException();
+                throw new NullReferenceException($"{nameof(Move)} property {nameof(self.ElementGrid)} was null");
 
             FileBitAddress address = self.ElementGrid[0, 0].FileAddress;
             FileBitAddress delta;
@@ -106,10 +106,10 @@ namespace ImageMagitek
         public static FileBitAddress Move(this SequentialArranger self, FileBitAddress absoluteAddress)
         {
             if (self.Mode != ArrangerMode.SequentialArranger)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"{nameof(Move)}: Arranger {self.Name} is not in sequential mode");
 
             if (self.ElementGrid is null)
-                throw new NullReferenceException();
+                throw new NullReferenceException($"{nameof(Move)} property {nameof(self.ElementGrid)} was null");
 
             FileBitAddress address;
             FileBitAddress testaddress = absoluteAddress + self.ArrangerBitSize; // Tests the bounds of the arranger vs the file size
@@ -152,7 +152,7 @@ namespace ImageMagitek
                 }
             }
 
-            throw new ArgumentOutOfRangeException("Location is outside of the range of all ArrangerElements in ElementList");
+            throw new ArgumentOutOfRangeException($"{nameof(PointToElementLocation)} Location ({Location.X}, {Location.Y}) is out of range");
         }
 
         /// <summary>

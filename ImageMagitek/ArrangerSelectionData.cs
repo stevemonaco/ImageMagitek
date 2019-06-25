@@ -61,7 +61,7 @@ namespace ImageMagitek
             set
             {
                 if (value < 1)
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"{Zoom}: Value '{value}' must be greater or equal to 1");
                 _zoom = value;
             }
         }

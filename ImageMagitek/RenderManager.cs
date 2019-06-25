@@ -28,9 +28,10 @@ namespace ImageMagitek
         public bool Render(Arranger arranger)
         {
             if (arranger is null)
-                throw new ArgumentNullException();
+                throw new ArgumentNullException($"{nameof(Render)} parameter '{nameof(arranger)}' was null");
             if (arranger.ArrangerPixelSize.Width <= 0 || arranger.ArrangerPixelSize.Height <= 0)
-                throw new ArgumentException();
+                throw new InvalidOperationException($"{nameof(Render)}: arranger dimensions too small to render " + 
+                    $"({arranger.ArrangerPixelSize.Width}, {arranger.ArrangerPixelSize.Height})");
 
             if (Image is null || arranger.ArrangerPixelSize.Height != Image.Height || arranger.ArrangerPixelSize.Width != Image.Width)
                 Image = new Image<Rgba32>(arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
@@ -70,16 +71,21 @@ namespace ImageMagitek
         public bool SaveImage(Arranger arranger)
         {
             if (arranger is null)
-                throw new ArgumentNullException();
+                throw new ArgumentNullException($"{nameof(SaveImage)} parameter '{nameof(arranger)}' was null");
 
-            if (arranger.ArrangerPixelSize.Width <= 0 || arranger.ArrangerPixelSize.Height <= 0 || arranger.Mode == ArrangerMode.SequentialArranger)
-                throw new ArgumentException();
+            if (arranger.ArrangerPixelSize.Width <= 0 || arranger.ArrangerPixelSize.Height <= 0)
+                throw new ArgumentException($"{nameof(SaveImage)} parameter '{nameof(arranger)}' has invalid dimensions" + 
+                    $"({arranger.ArrangerPixelSize.Width}, {arranger.ArrangerPixelSize.Height})");
 
-            if (Image is null || arranger.ArrangerPixelSize.Width != Image.Width || arranger.ArrangerPixelSize.Height != Image.Height)
-                throw new InvalidOperationException();
+            if (arranger.Mode == ArrangerMode.SequentialArranger)
+                throw new InvalidOperationException($"{nameof(SaveImage)} parameter '{nameof(arranger)}' is in invalid {nameof(ArrangerMode)} ({arranger.Mode.ToString()})");
 
             if (Image is null)
-                throw new NullReferenceException();
+                throw new NullReferenceException($"{nameof(SaveImage)} property '{nameof(Image)}' was null");
+
+            if (arranger.ArrangerPixelSize.Width != Image.Width || arranger.ArrangerPixelSize.Height != Image.Height)
+                throw new InvalidOperationException($"{nameof(SaveImage)} has mismatched dimensions: " + 
+                    $"'{nameof(arranger)}' ({arranger.ArrangerPixelSize.Width}, {arranger.ArrangerPixelSize.Height}) '{nameof(Image)} ({Image.Width}, {Image.Height})'");
 
             foreach(var el in arranger.EnumerateElements().Where(x => !x.IsBlank()))
             {
@@ -106,7 +112,7 @@ namespace ImageMagitek
         public Rgba32 GetPixel(int x, int y)
         {
             if (Image is null)
-                throw new NullReferenceException();
+                throw new NullReferenceException($"{nameof(GetPixel)} property '{nameof(Image)}' was null");
 
             return Image[x, y];
         }
@@ -120,7 +126,7 @@ namespace ImageMagitek
         public void SetPixel(int x, int y, Rgba32 color)
         {
             if (Image is null)
-                throw new NullReferenceException();
+                throw new NullReferenceException($"{nameof(SetPixel)} property '{nameof(Image)}' was null");
 
             Image[x, y] = color;
         }

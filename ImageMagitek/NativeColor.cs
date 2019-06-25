@@ -73,14 +73,14 @@ namespace ImageMagitek
         /// <summary>
         /// Converts into a Foreign Color
         /// </summary>
-        /// <param name="model">ColorModel of ForeignColor</param>
+        /// <param name="colorModel">ColorModel of ForeignColor</param>
         /// <returns>Foreign color value</returns>
-        public ForeignColor ToForeignColor(ColorModel model)
+        public ForeignColor ToForeignColor(ColorModel colorModel)
         {
             ForeignColor fc = (ForeignColor) 0;
             byte A, R, G, B;
 
-            switch(model)
+            switch(colorModel)
             {
                 case ColorModel.BGR15:
                     (A, R, G, B) = Split();
@@ -102,7 +102,7 @@ namespace ImageMagitek
                     fc.Color |= ((uint)R >> 3) << 10;
                     break;
                 default:
-                    throw new ArgumentException("Unsupported ColorModel " + model.ToString());
+                    throw new ArgumentException($"{nameof(ToForeignColor)} unsupported {nameof(ColorModel)} {colorModel.ToString()}");
             }
 
             return fc;

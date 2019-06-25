@@ -30,8 +30,8 @@ namespace ImageMagitek
 
             _stream = new Lazy<FileStream>(() =>
             {
-                if (String.IsNullOrWhiteSpace(Location))
-                    throw new ArgumentException();
+                if (string.IsNullOrWhiteSpace(Location))
+                    throw new ArgumentException($"{nameof(DataFile)} parameter {nameof(Location)} was null or empty");
 
                 return File.Open(Location, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
             });

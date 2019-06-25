@@ -11,7 +11,7 @@ namespace ImageMagitek.ExtensionMethods
         public static bool TryGetResource(this IDictionary<string, ProjectResourceBase> tree, string resourceKey, out ProjectResourceBase resource)
         {
             if (string.IsNullOrWhiteSpace(resourceKey))
-                throw new ArgumentException();
+                throw new ArgumentException($"{nameof(TryGetResource)} parameter '{nameof(resourceKey)}' was null or empty");
 
             var paths = resourceKey.Split('\\');
             var nodeVisitor = tree;
@@ -35,7 +35,7 @@ namespace ImageMagitek.ExtensionMethods
         public static bool TryGetResource<T>(this IDictionary<string, ProjectResourceBase> tree, string resourceKey, out T resource) where T : ProjectResourceBase
         {
             if (string.IsNullOrWhiteSpace(resourceKey))
-                throw new ArgumentException();
+                throw new ArgumentException($"{nameof(TryGetResource)} parameter '{nameof(resourceKey)}' was null or empty");
 
             var paths = resourceKey.Split('\\').Where(x => x.Length > 0);
             var nodeVisitor = tree;
@@ -67,7 +67,7 @@ namespace ImageMagitek.ExtensionMethods
         public static void AddResource(this IDictionary<string, ProjectResourceBase> tree, string resourceKey, ProjectResourceBase resource)
         {
             if (string.IsNullOrWhiteSpace(resourceKey))
-                throw new ArgumentException();
+                throw new ArgumentException($"{nameof(AddResource)} parameter '{nameof(resourceKey)}' was null or empty");
 
             string parentResourceKey = Path.GetDirectoryName(resourceKey);
 
@@ -88,7 +88,7 @@ namespace ImageMagitek.ExtensionMethods
         public static void RemoveResource(this IDictionary<string, ProjectResourceBase> tree, string resourceKey)
         {
             if (string.IsNullOrWhiteSpace(resourceKey))
-                throw new ArgumentException();
+                throw new ArgumentException($"{nameof(RemoveResource)} parameter '{nameof(resourceKey)}' was null or empty");
 
             string parentResourceKey = Path.GetDirectoryName(resourceKey);
             string resourceName = Path.GetDirectoryName(resourceKey);
@@ -110,7 +110,7 @@ namespace ImageMagitek.ExtensionMethods
         public static void ReplaceResource(this IDictionary<string, ProjectResourceBase> tree, string resourceKey, ProjectResourceBase newResource)
         {
             if (string.IsNullOrWhiteSpace(resourceKey))
-                throw new ArgumentException();
+                throw new ArgumentException($"{nameof(ReplaceResource)} parameter '{nameof(resourceKey)}' was null or empty");
 
             string parentResourceKey = Path.GetDirectoryName(resourceKey);
             string resourceName = Path.GetDirectoryName(resourceKey);

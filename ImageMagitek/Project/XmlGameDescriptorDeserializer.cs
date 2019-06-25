@@ -15,9 +15,9 @@ namespace ImageMagitek.Project
         public IDictionary<string, ProjectResourceBase> DeserializeProject(string fileName, string baseDirectory)
         {
             if (string.IsNullOrWhiteSpace(fileName))
-                throw new ArgumentException($"{nameof(DeserializeProject)} was called with a null or empty value for '{nameof(fileName)}'");
+                throw new ArgumentException($"{nameof(DeserializeProject)} cannot have a null or empty value for '{nameof(fileName)}'");
             if (string.IsNullOrWhiteSpace(baseDirectory))
-                throw new ArgumentException($"{nameof(DeserializeProject)} was called with a null or empty value for '{nameof(baseDirectory)}'");
+                throw new ArgumentException($"{nameof(DeserializeProject)} cannot have a null or empty value for '{nameof(baseDirectory)}'");
 
             var stream = File.OpenRead(fileName);
 

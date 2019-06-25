@@ -27,7 +27,7 @@ namespace ImageMagitek
         public FileBitAddress(long fileOffset, int bitOffset)
         {
             if (bitOffset > 7)
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException($"{nameof(FileBitAddress)}: {nameof(bitOffset)} {bitOffset} is out of range");
 
             FileOffset = fileOffset;
             BitOffset = bitOffset;
@@ -305,15 +305,15 @@ namespace ImageMagitek
         public int ReadBit()
         {
             if (Access != BitStreamAccess.Read && Access != BitStreamAccess.ReadWrite)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"{nameof(ReadBit)} does not have read access");
             if (bitsremaining == 0)
-                throw new EndOfStreamException();
+                throw new EndOfStreamException($"{nameof(ReadBit)} read past end of stream");
 
             if (bitindex == 0)
             {
                 index++;
                 if (index == Data.Length)
-                    throw new EndOfStreamException();
+                    throw new EndOfStreamException($"{nameof(ReadBit)} read past end of stream");
 
                 bitindex = 8;
             }
@@ -328,7 +328,7 @@ namespace ImageMagitek
         public byte ReadByte()
         {
             if (bitsremaining < 8)
-                throw new EndOfStreamException();
+                throw new EndOfStreamException($"{nameof(ReadByte)} read past end of stream");
 
             return (byte)ReadBits(8);
         }
@@ -341,10 +341,10 @@ namespace ImageMagitek
         public int ReadBits(int numBits)
         {
             if (numBits > 32 || numBits < 1)
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException($"{nameof(ReadBits)} parameter {nameof(numBits)} ({numBits}) is out of range");
 
             if (numBits > bitsremaining)
-                throw new EndOfStreamException();
+                throw new EndOfStreamException($"{nameof(ReadBits)} read past end of stream");
 
             int numCycles;
 
@@ -392,14 +392,14 @@ namespace ImageMagitek
             if ((bit & 0xFE) > 1)
                 throw new ArgumentOutOfRangeException();
             if (Access != BitStreamAccess.Write && Access != BitStreamAccess.ReadWrite)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"{nameof(WriteBit)} does not have write access");
             if (bitsremaining == 0)
-                throw new EndOfStreamException();
+                throw new EndOfStreamException($"{nameof(WriteBit)} wrote past end of stream");
 
             if(bitindex == 0)
             {
                 if (index == Data.Length)
-                    throw new EndOfStreamException();
+                    throw new EndOfStreamException($"{nameof(WriteBit)} wrote past end of stream");
 
                 index++;
                 bitindex = 8;
@@ -417,10 +417,10 @@ namespace ImageMagitek
 
         public void FlushWrites()
         {
-            if(bitindex != 8) // Some work has been done
-            {
-
-            }
+            throw new NotImplementedException();
+            //if(bitindex != 8) // Some work has been done
+            //{
+            //}
         }
     }
 }

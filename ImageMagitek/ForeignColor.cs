@@ -44,7 +44,7 @@ namespace ImageMagitek
                     Color |= ((uint)A << 15);
                     break;
                 default:
-                    throw new ArgumentException("Unsupported ColorModel");
+                    throw new ArgumentException($"{nameof(ForeignColor)} unsupported {nameof(ColorModel)} {colorModel.ToString()}");
             }
         }
 
@@ -63,7 +63,7 @@ namespace ImageMagitek
                 case ColorModel.ABGR16:
                     return (byte)((Color & 0x8000) >> 15);
                 default:
-                    throw new ArgumentException("Unsupported ColorModel " + colorModel.ToString());
+                    throw new ArgumentException($"{nameof(A)} unsupported {nameof(ColorModel)} {colorModel.ToString()}");
             }
         }
 
@@ -81,7 +81,7 @@ namespace ImageMagitek
                 case ColorModel.RGB15:
                     return (byte)((Color & 0x7C00) >> 10);
                 default:
-                    throw new ArgumentException("Unsupported ColorModel " + colorModel.ToString());
+                    throw new ArgumentException($"{nameof(R)} unsupported {nameof(ColorModel)} {colorModel.ToString()}");
             }
         }
 
@@ -99,7 +99,7 @@ namespace ImageMagitek
                 case ColorModel.RGB15:
                     return (byte)((Color & 0x3E0) >> 5);
                 default:
-                    throw new ArgumentException("Unsupported ColorModel " + colorModel.ToString());
+                    throw new ArgumentException($"{nameof(G)} unsupported {nameof(ColorModel)} {colorModel.ToString()}");
             }
         }
 
@@ -117,7 +117,7 @@ namespace ImageMagitek
                 case ColorModel.RGB15:
                     return (byte)(Color & 0x1F);
                 default:
-                    throw new ArgumentException("Unsupported ColorModel " + colorModel.ToString());
+                    throw new ArgumentException($"{nameof(B)} unsupported {nameof(ColorModel)} {colorModel.ToString()}");
             }
         }
 
@@ -177,7 +177,7 @@ namespace ImageMagitek
                     nc.Color |= 0xFF000000; // Alpha
                     break;
                 default:
-                    throw new ArgumentException("Unsupported ColorModel " + colorModel.ToString());
+                    throw new ArgumentException($"{nameof(ToNativeColor)} unsupported {nameof(ColorModel)} {colorModel.ToString()}");
             }
 
             return nc;

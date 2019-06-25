@@ -70,7 +70,7 @@ namespace ImageMagitek
         public override void Resize(int arrangerWidth, int arrangerHeight)
         {
             if (Mode != ArrangerMode.ScatteredArranger)
-                throw new ArgumentException();
+                throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
             ArrangerElement[,] newList = new ArrangerElement[arrangerWidth, arrangerHeight];
 

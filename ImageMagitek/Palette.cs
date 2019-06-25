@@ -180,8 +180,8 @@ namespace ImageMagitek
         /// <returns>Success value</returns>
         public bool LazyLoadPalette(string dataFileKey, FileBitAddress address, ColorModel model, bool zeroIndexTransparent, int numEntries)
         {
-            if (numEntries > 256)
-                throw new ArgumentException("Maximum palette size must be 256 entries or less");
+            if (numEntries > 256 || numEntries < 2)
+                throw new ArgumentOutOfRangeException($"{nameof(LazyLoadPalette)}: {nameof(numEntries)} ({numEntries}) is out of range");
 
             DataFileKey = dataFileKey;
             FileAddress = address;
@@ -240,7 +240,7 @@ namespace ImageMagitek
                     HasAlpha = true;
                     break;
                 default:
-                    throw new NotSupportedException("An unsupported palette format was attempted to be read");
+                    throw new NotSupportedException($"{nameof(LoadForeignPalette)} unsupported {nameof(ColorModel)} ({ColorModel.ToString()})");
             }
 
             byte[] tempPalette = DataFile.Stream.ReadUnshifted(FileAddress, readSize * 8 * Entries, true);
@@ -272,7 +272,7 @@ namespace ImageMagitek
                     readColor |= ((uint)bs.ReadByte()) << 24;
                 }
                 else
-                    throw new NotSupportedException("Palette formats with entry sizes larger than 4 bytes are not supported");
+                    throw new NotSupportedException($"{nameof(LoadForeignPalette)}: Palette formats with entry sizes larger than 4 bytes are not supported");
 
                 ForeignColor foreignColor = (ForeignColor)readColor;
                 foreignPalette[i] = foreignColor;
@@ -292,7 +292,7 @@ namespace ImageMagitek
             get
             {
                 if (NativePalette is null)
-                    throw new ArgumentNullException();
+                    throw new ArgumentNullException($"{nameof(NativeColor)}[] property '{nameof(NativePalette)}' was null");
 
                 return NativePalette[index];
             }
@@ -307,7 +307,7 @@ namespace ImageMagitek
         public NativeColor GetNativeColor(int index)
         {
             if (NativePalette is null)
-                throw new ArgumentNullException();
+                throw new ArgumentNullException($"{nameof(GetNativeColor)} property '{nameof(NativePalette)}' was null");
 
             return NativePalette[index];
         }
@@ -315,7 +315,7 @@ namespace ImageMagitek
         public ForeignColor GetForeignColor(int index)
         {
             if (ForeignPalette is null)
-                throw new ArgumentNullException();
+                throw new ArgumentNullException($"{nameof(GetForeignColor)} property '{nameof(ForeignPalette)}' was null");
 
             return ForeignPalette[index];
         }
@@ -328,7 +328,7 @@ namespace ImageMagitek
         public Color GetColor(int index)
         {
             if (NativePalette is null)
-                throw new ArgumentNullException();
+                throw new ArgumentNullException($"{nameof(GetColor)} property '{nameof(NativePalette)}' was null");
 
             return Color.FromArgb((int)NativePalette[index].Color);
         }
@@ -350,7 +350,7 @@ namespace ImageMagitek
                 }
 
                 // Failed to find the exact color in the palette
-                throw new Exception();
+                throw new Exception($"{nameof(GetIndexByNativeColor)} could not match exact color");
             }
 
             // Color matching involves converting colors to hue-saturation-luminance and comparing
@@ -389,10 +389,10 @@ namespace ImageMagitek
         public void SetPaletteForeignColor(int index, ForeignColor foreignColor)
         {
             if (ForeignPalette is null)
-                throw new NullReferenceException();
+                throw new NullReferenceException($"{nameof(SetPaletteForeignColor)} property '{nameof(ForeignPalette)}' was null");
 
             if (index >= Entries)
-                throw new ArgumentOutOfRangeException("index", index, "Index is outside the range of number of entries in the palette");
+                throw new ArgumentOutOfRangeException($"{nameof(GetForeignColor)} parameter '{nameof(index)}' was out of range");
 
             ForeignPalette[index] = foreignColor;
             NativePalette[index] = foreignColor.ToNativeColor(ColorModel);
@@ -443,7 +443,7 @@ namespace ImageMagitek
                         HasAlpha = false;
                         break;
                     default:
-                        throw new NotSupportedException("An unsupported palette format was attempted to be read");
+                        throw new NotSupportedException($"{nameof(SavePalette)} unsupported {nameof(ColorModel)} ({ColorModel.ToString()})");
                 }
 
                 BinaryWriter bw = new BinaryWriter(DataFile.Stream);
@@ -491,7 +491,7 @@ namespace ImageMagitek
                 case "NES":
                     return ColorModel.NES;
                 default:
-                    throw new ArgumentException($"ColorModel '{ColorModelName}' is not supported");
+                    throw new ArgumentException($"{nameof(StringToColorModel)} {nameof(ColorModel)} '{ColorModelName}' is not supported");
             }
         }
 
@@ -512,7 +512,7 @@ namespace ImageMagitek
                 case ColorModel.NES:
                     return "NES";
                 default:
-                    throw new ArgumentException($"ColorModel '{model.ToString()}' is not supported");
+                    throw new ArgumentException($"{nameof(ColorModelToString)} {nameof(ColorModel)} '{model.ToString()}' is not supported");
             }
         }
 

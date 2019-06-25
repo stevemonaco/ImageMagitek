@@ -50,7 +50,7 @@ namespace ImageMagitek
         public override void Resize(int arrangerWidth, int arrangerHeight)
         {
             if (Mode != ArrangerMode.SequentialArranger)
-                throw new ArgumentException();
+                throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
             Resize(arrangerWidth, arrangerHeight, ElementGrid[0, 0].DataFileKey, ElementGrid[0, 0].GraphicsFormat);
         }
@@ -66,7 +66,7 @@ namespace ImageMagitek
         private FileBitAddress Resize(int arrangerWidth, int arrangerHeight, string dataFileKey, GraphicsFormat format)
         {
             if (Mode != ArrangerMode.SequentialArranger)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
             FileBitAddress address;
 
@@ -133,10 +133,11 @@ namespace ImageMagitek
         public FileBitAddress GetInitialSequentialFileAddress()
         {
             if (ElementGrid is null)
-                throw new NullReferenceException();
+                throw new NullReferenceException($"{nameof(GetInitialSequentialFileAddress)} property '{nameof(ElementGrid)}' was null");
 
             if (Mode != ArrangerMode.SequentialArranger)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"{nameof(GetInitialSequentialFileAddress)} property '{nameof(Mode)}' " + 
+                    $"is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
             return ElementGrid[0, 0].FileAddress;
         }
@@ -148,7 +149,7 @@ namespace ImageMagitek
         public string GetSequentialGraphicsFormat()
         {
             if (ElementGrid is null)
-                throw new NullReferenceException();
+                throw new NullReferenceException($"{nameof(GetSequentialGraphicsFormat)} property '{nameof(ElementGrid)}' was null");
 
             return ElementGrid[0, 0].FormatName;
         }
@@ -162,10 +163,10 @@ namespace ImageMagitek
         public bool SetGraphicsFormat(string Format, Size ElementSize)
         {
             if (ElementGrid is null)
-                throw new NullReferenceException();
+                throw new NullReferenceException($"{nameof(SetGraphicsFormat)} property '{nameof(ElementGrid)}' was null");
 
             if (Mode != ArrangerMode.SequentialArranger)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"{nameof(SetGraphicsFormat)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
             FileBitAddress address = ElementGrid[0, 0].FileAddress;
             GraphicsFormat format = ElementGrid[0, 0].GraphicsFormat;
@@ -203,6 +204,9 @@ namespace ImageMagitek
 
         public override ProjectResourceBase Clone()
         {
+            if (ElementGrid is null)
+                throw new NullReferenceException($"{nameof(Clone)} property '{nameof(ElementGrid)}' was null");
+
             Arranger arr = new SequentialArranger()
             {
                 ElementGrid = new ArrangerElement[ArrangerElementSize.Width, ArrangerElementSize.Height],

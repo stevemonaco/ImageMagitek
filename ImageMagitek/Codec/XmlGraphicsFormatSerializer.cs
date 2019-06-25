@@ -33,7 +33,7 @@ namespace ImageMagitek.Codec
             else if (codecs.colortype == "direct")
                 format.ColorType = PixelColorType.Direct;
             else
-                throw new XmlException(String.Format("Unsupported colortype '{0}'", codecs.colortype));
+                throw new XmlException($"Unsupported colortype '{codecs.colortype}'");
 
             format.ColorDepth = int.Parse(codecs.colordepth);
 
@@ -42,7 +42,7 @@ namespace ImageMagitek.Codec
             else if (codecs.layout == "linear")
                 format.Layout = ImageLayout.Linear;
             else
-                throw new XmlException(String.Format("Unsupported layout '{0}'", codecs.layout));
+                throw new XmlException($"Unsupported layout '{codecs.layout}'");
 
             format.DefaultWidth = int.Parse(codecs.width);
             format.DefaultHeight = int.Parse(codecs.height);
