@@ -93,6 +93,18 @@ namespace ImageMagitek
             ZeroIndexTransparent = true;
         }
 
+        public Palette(string name, ColorModel colorModel, string dataFileKey, FileBitAddress fileAddress,
+            int entries, bool zeroIndexTransparent, PaletteStorageSource storageSource)
+        {
+            Name = name;
+            ColorModel = colorModel;
+            DataFileKey = dataFileKey;
+            FileAddress = fileAddress;
+            Entries = entries;
+            ZeroIndexTransparent = zeroIndexTransparent;
+            StorageSource = storageSource;
+        }
+
         /// <summary>
         /// Renames a Palette to a new name
         /// </summary>
@@ -479,7 +491,7 @@ namespace ImageMagitek
                 case "NES":
                     return ColorModel.NES;
                 default:
-                    throw new ArgumentException("ColorModel " + ColorModelName + " is not supported");
+                    throw new ArgumentException($"ColorModel '{ColorModelName}' is not supported");
             }
         }
 
@@ -500,7 +512,7 @@ namespace ImageMagitek
                 case ColorModel.NES:
                     return "NES";
                 default:
-                    throw new ArgumentException("ColorModel " + model.ToString() + " is not supported");
+                    throw new ArgumentException($"ColorModel '{model.ToString()}' is not supported");
             }
         }
 

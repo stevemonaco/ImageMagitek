@@ -6,11 +6,9 @@ namespace ImageMagitek.Project.Models
 {
     internal class DataFileModel
     {
-        public DataFileModel(string location)
-        {
-            Location = location;
-        }
+        public string Name { get; set; }
+        public string Location { get; set; }
 
-        public string Location { get; }
+        public DataFile ToDataFile() => new DataFile(Name, Location);
     }
 }
