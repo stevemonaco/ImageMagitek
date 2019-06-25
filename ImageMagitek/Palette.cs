@@ -5,10 +5,8 @@ using System.IO;
 using System.Drawing;
 //using ColorMine.ColorSpaces.Comparisons;
 //using ColorMine.ColorSpaces.Conversions;
-//using System.Drawing.Drawing2D;
-//using System.Drawing.Imaging;
-using System.Xml.Linq;
 using ImageMagitek.Project;
+using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek
 {
