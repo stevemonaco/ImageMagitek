@@ -200,15 +200,5 @@ namespace ImageMagitek
         /// </summary>
         /// <returns></returns>
         public bool ContainsBlankElements() => EnumerateElements().Any(x => x.IsBlank());
-
-        public override XElement Serialize()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool Deserialize(XElement element)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

@@ -201,7 +201,6 @@ namespace ImageMagitek
             return true;
         }
 
-        #region ProjectResourceBase implementation
         public override ProjectResourceBase Clone()
         {
             Arranger arr = new SequentialArranger()
@@ -222,17 +221,5 @@ namespace ImageMagitek
 
             return arr;
         }
-
-        public override XElement Serialize()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool Deserialize(XElement element)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
     }
 }

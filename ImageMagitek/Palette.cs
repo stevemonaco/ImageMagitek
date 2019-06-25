@@ -546,43 +546,6 @@ namespace ImageMagitek
 
             return pal;
         }
-
-        public override XElement Serialize()
-        {
-            XElement xe = new XElement("palette");
-
-            xe.SetAttributeValue("name", Name);
-            xe.SetAttributeValue("fileoffset", String.Format("{0:X}", FileAddress.FileOffset));
-            xe.SetAttributeValue("bitoffset", String.Format("{0:X}", FileAddress.BitOffset));
-            xe.SetAttributeValue("datafile", DataFileKey);
-            xe.SetAttributeValue("format", ColorModelToString(ColorModel));
-            xe.SetAttributeValue("entries", Entries);
-            xe.SetAttributeValue("zeroindextransparent",ZeroIndexTransparent);
-
-            return xe;
-        }
-
-        public override bool Deserialize(XElement element)
-        {
-            string Name = element.Attribute("name").Value;
-            long fileOffset = long.Parse(element.Attribute("fileoffset").Value, System.Globalization.NumberStyles.HexNumber);
-            string dataFileKey = element.Attribute("datafile").Value;
-            int entries = int.Parse(element.Attribute("entries").Value);
-            string formatName = element.Attribute("format").Value;
-            bool zeroIndexTransparent = bool.Parse(element.Attribute("zeroindextransparent").Value);
-
-            FileBitAddress address;
-            if (element.Attribute("bitoffset") is null)
-                address = new FileBitAddress(fileOffset, 0);
-            else
-                address = new FileBitAddress(fileOffset, int.Parse(element.Attribute("bitoffset").Value));
-
-            ColorModel format = Palette.StringToColorModel(formatName);
-
-            LazyLoadPalette(dataFileKey, address, format, zeroIndexTransparent, entries);
-
-            return true;
-        }
     }
 
     public class PaletteNotFoundException: Exception

@@ -57,22 +57,5 @@ namespace ImageMagitek
             if (Stream != null)
                 Stream.Close();
         }
-
-        public override XElement Serialize()
-        {
-            XElement xe = new XElement("datafile");
-            xe.SetAttributeValue("name", Name);
-            xe.SetAttributeValue("location", Location);
-
-            return xe;
-        }
-
-        public override bool Deserialize(XElement element)
-        {
-            Name = element.Attribute("name").Value;
-            Location = element.Attribute("location").Value;
-
-            return true;
-        }
     }
 }

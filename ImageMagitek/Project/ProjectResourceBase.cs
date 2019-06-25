@@ -63,19 +63,6 @@ namespace ImageMagitek.Project
         /// <returns></returns>
         public abstract ProjectResourceBase Clone();
 
-        /// <summary>
-        /// Serializes resource into an XElement
-        /// </summary>
-        /// <returns></returns>
-        public abstract XElement Serialize();
-
-        /// <summary>
-        /// Deserialize XElement into ProjectResource
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        public abstract bool Deserialize(XElement element);
-
         public IEnumerator<ProjectResourceBase> GetEnumerator() => ChildResources.Values.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
