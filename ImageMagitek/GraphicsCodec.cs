@@ -51,7 +51,6 @@ namespace ImageMagitek
         /// <param name="el">Element to decode</param>
         unsafe static void IndexedDecode(Image<Rgba32> image, ArrangerElement el)
         {
-            //FileStream fs = el.Parent.GetResourceRelative<DataFile>(el.DataFileKey).Stream;
             FileStream fs = el.DataFile.Stream;
             GraphicsFormat format = el.GraphicsFormat;
 
