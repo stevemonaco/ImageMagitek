@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.IO;
-using System.Drawing;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Primitives;
 using ImageMagitek.Codec;
-using ImageMagitek.Project;
-using System.Runtime.InteropServices;
+using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek
 {
