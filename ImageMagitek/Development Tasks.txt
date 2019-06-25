@@ -14,3 +14,6 @@ Project
 - Transition to PathTree
 - Implement renaming/moving logic
 - Test schemas
+
+Tests
+- BitStream
