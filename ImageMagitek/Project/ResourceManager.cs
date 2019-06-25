@@ -229,7 +229,7 @@ namespace ImageMagitek.Project
         #region XML Management
         public bool LoadProject(string fileName, string baseDirectory)
         {
-            var serializer = new XmlGameDescriptorSerializer();
+            var serializer = new XmlGameDescriptorDeserializer();
             var tree = serializer.DeserializeProject(fileName, baseDirectory);
 
             // Add root-level nodes to the ResourceTree
