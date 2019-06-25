@@ -10,7 +10,7 @@ namespace ImageMagitek
     /// <summary>
     /// Stream class with specific features for bit reading and writing
     /// </summary>
-    internal class BitStream
+    public class BitStream
     {
         private enum BitStreamAccess { Read, Write, ReadWrite };
 
@@ -69,22 +69,8 @@ namespace ImageMagitek
         /// <param name="DataBits"></param>
         /// <param name="FirstByteBits"></param>
         /// <returns>A readable BitStream instance</returns>
-        public static BitStream OpenRead(BinaryReader br, int DataBits, int FirstByteBits)
-        {
-            BitStream bs = new BitStream();
-
-            int ReadLength = (int)Math.Ceiling((DataBits + (8 - FirstByteBits)) / 8.0);
-            bs.Data = br.ReadBytes(ReadLength);
-            byte mask = (byte)((1 << FirstByteBits) - 1);
-            bs.Data[0] = (byte)(bs.Data[0] & mask);
-
-            bs.bitindex = FirstByteBits;
-            bs.bitsremaining = DataBits;
-            bs.index = 0;
-            bs.Access = BitStreamAccess.Read;
-
-            return bs;
-        }
+        public static BitStream OpenRead(BinaryReader br, int DataBits, int FirstByteBits) =>
+            BitStream.OpenRead(br.BaseStream, DataBits, FirstByteBits);
 
         /// <summary>
         /// Creates a new BitStream with its own array from a Stream for bit reading
@@ -183,13 +169,19 @@ namespace ImageMagitek
 
             int numCycles;
 
-            if (bitsremaining >= numBits)
+            if (bitindex == 0)
+            {
+                index++;
+                bitindex = 8;
+            }
+
+            if (bitindex >= numBits)
                 numCycles = 1;
             else
-                numCycles = 1 + (numBits - bitsremaining + 7) / 8;
+                numCycles = 1 + (numBits - bitindex + 7) / 8;
 
             int bitsRead = 0; // Number of bits read so far
-            int ret = 0; // Value to be returned
+            var result = 0;
 
             for(int i = 0; i < numCycles; i++)
             {
@@ -197,29 +189,31 @@ namespace ImageMagitek
                 {
                     int bitsToRead = numBits - bitsRead;
 
-                    int mask = ((1 << bitsToRead) - 1); // Make mask for bits to read
+                    int mask = ((1 << bitsToRead) - 1); // Make mask for the bits to be read
                     mask <<= (bitindex - bitsToRead); // Shift mask to the bit index
 
-                    ret <<= bitsToRead;
-                    ret |= (Data[index] & mask);
+                    result <<= bitsToRead;
+                    var value = (Data[index] & mask) >> (8 - bitsToRead);
+                    result |= value;
 
                     index++;
                     bitsremaining -= bitsToRead;
-                    bitindex = 8;
+                    bitindex -= bitsToRead;
                 }
                 else // Read entirety of remaining byte
                 {
                     int mask = (1 << bitindex) - 1;
-                    ret <<= bitindex;
-                    ret |= (Data[index] & mask);
+                    result <<= bitindex;
+                    result |= (Data[index] & mask);
 
                     index++;
                     bitsremaining -= bitindex;
+                    numBits -= bitindex;
                     bitindex = 8;
                 }
             }
 
-            return ret;
+            return result;
         }
 
         public void WriteBit(byte bit)
