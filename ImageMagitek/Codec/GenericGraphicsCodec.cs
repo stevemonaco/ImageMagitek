@@ -8,7 +8,7 @@ using ImageMagitek.ExtensionMethods;
 namespace ImageMagitek
 {
     /// <summary>
-    /// GraphicsCodec provides a generalized method to encode/decode bitmap formats
+    /// GenericGraphicsCodec provides a generalized method to encode/decode bitmap formats
     /// The process goes through several stages of transformations
     /// 
     /// For indexed bitmaps:
@@ -20,7 +20,7 @@ namespace ImageMagitek
     /// For direct bitmaps:
     /// In development
     /// </summary>
-    public class GraphicsCodec : IGraphicsCodec
+    public class GenericGraphicsCodec : IGraphicsCodec
     {
         #region Graphics Decoding Functions
 

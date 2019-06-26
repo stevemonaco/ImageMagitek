@@ -35,6 +35,8 @@ namespace ImageMagitek
         /// </summary>
         public string FormatName { get; set; }
 
+        public IGraphicsCodec GraphicsCodec { get; set; }
+
         /// <summary>
         /// GraphicsFormat for encoding/decoding the Element
         /// </summary>
