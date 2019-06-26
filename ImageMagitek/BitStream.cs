@@ -17,29 +17,30 @@ namespace ImageMagitek
         /// <summary>
         /// Current working bit index
         /// </summary>
-        private int bitindex;
+        private int BitIndex;
 
         /// <summary>
         ///  Current working index into data array where bits are read/written to
         /// </summary>
-        private int index;
+        private int Index;
 
         /// <summary>
         /// Bits remaining in the stream
         /// </summary>
-        private int bitsremaining;
+        private int BitsRemaining;
 
         /// <summary>
         /// Type of access to the stream
         /// </summary>
         private BitStreamAccess Access;
 
-        public byte[] Data
-        {
-            get { return data; }
-            private set { data = value; }
-        }
-        private byte[] data;
+        private int StreamStartOffset;
+
+        private int StreamEndOffset;
+
+        private int StreamSize { get => StreamEndOffset - StreamStartOffset; }
+
+        public byte[] Data { get; private set; }
 
         private BitStream() { }
 
@@ -54,10 +55,12 @@ namespace ImageMagitek
             BitStream bs = new BitStream();
 
             bs.Data = ReadData;
-            bs.bitsremaining = DataBits;
-            bs.bitindex = 8;
-            bs.index = 0;
+            bs.BitsRemaining = DataBits;
+            bs.BitIndex = 8;
+            bs.Index = 0;
             bs.Access = BitStreamAccess.Read;
+            bs.StreamStartOffset = 0;
+            bs.StreamEndOffset = DataBits;
 
             return bs;
         }
@@ -90,10 +93,12 @@ namespace ImageMagitek
             byte mask = (byte)((1 << FirstByteBits) - 1);
             bs.Data[0] = (byte)(bs.Data[0] & mask);
 
-            bs.bitindex = FirstByteBits;
-            bs.bitsremaining = DataBits;
-            bs.index = 0;
+            bs.BitIndex = FirstByteBits;
+            bs.BitsRemaining = DataBits;
+            bs.Index = 0;
             bs.Access = BitStreamAccess.Read;
+            bs.StreamStartOffset = 8 - FirstByteBits;
+            bs.StreamEndOffset = DataBits - bs.StreamStartOffset;
 
             return bs;
         }
@@ -111,12 +116,36 @@ namespace ImageMagitek
             int BufferLength = (int)Math.Ceiling((DataBits + (8 - FirstByteBits)) / 8.0);
             bs.Data = new byte[BufferLength];
 
-            bs.bitindex = FirstByteBits;
-            bs.bitsremaining = DataBits;
-            bs.index = 0;
+            bs.BitIndex = FirstByteBits;
+            bs.BitsRemaining = DataBits;
+            bs.Index = 0;
             bs.Access = BitStreamAccess.Write;
+            bs.StreamStartOffset = 8 - FirstByteBits;
+            bs.StreamEndOffset = DataBits - bs.StreamStartOffset;
 
             return bs;
+        }
+
+        public void SeekAbsolute(int seekOffset)
+        {
+            if (seekOffset < 0 || seekOffset >= StreamSize)
+                throw new ArgumentOutOfRangeException($"{nameof(SeekAbsolute)} parameter '{nameof(seekOffset)} is out of range ({seekOffset})'");
+
+            Index = (StreamStartOffset + seekOffset) / 8;
+            BitIndex = 8 - (StreamStartOffset + seekOffset) % 8;
+            BitsRemaining = StreamEndOffset - (StreamStartOffset + seekOffset);
+        }
+
+        public void SeekRelative(int seekBits)
+        {
+            int seekOffset = BitsRemaining + seekBits;
+
+            if (seekOffset < 0 || seekOffset >= StreamSize)
+                throw new ArgumentOutOfRangeException($"{nameof(SeekRelative)} parameter '{nameof(seekOffset)} is out of range ({seekOffset})'");
+
+            Index = (StreamStartOffset + seekOffset) / 8;
+            BitIndex = 8 - (StreamStartOffset + seekOffset) % 8;
+            BitsRemaining = StreamEndOffset - (StreamStartOffset + seekOffset);
         }
 
         /// <summary>
@@ -127,28 +156,28 @@ namespace ImageMagitek
         {
             if (Access != BitStreamAccess.Read && Access != BitStreamAccess.ReadWrite)
                 throw new InvalidOperationException($"{nameof(ReadBit)} does not have read access");
-            if (bitsremaining == 0)
+            if (BitsRemaining == 0)
                 throw new EndOfStreamException($"{nameof(ReadBit)} read past end of stream");
 
-            if (bitindex == 0)
+            if (BitIndex == 0)
             {
-                index++;
-                if (index == Data.Length)
+                Index++;
+                if (Index == Data.Length)
                     throw new EndOfStreamException($"{nameof(ReadBit)} read past end of stream");
 
-                bitindex = 8;
+                BitIndex = 8;
             }
 
-            int bit = (Data[index] >> (bitindex - 1)) & 1;
-            bitsremaining--;
-            bitindex--;
+            int bit = (Data[Index] >> (BitIndex - 1)) & 1;
+            BitsRemaining--;
+            BitIndex--;
 
             return bit;
         }
 
         public byte ReadByte()
         {
-            if (bitsremaining < 8)
+            if (BitsRemaining < 8)
                 throw new EndOfStreamException($"{nameof(ReadByte)} read past end of stream");
 
             return (byte)ReadBits(8);
@@ -164,52 +193,52 @@ namespace ImageMagitek
             if (numBits > 32 || numBits < 1)
                 throw new ArgumentOutOfRangeException($"{nameof(ReadBits)} parameter {nameof(numBits)} ({numBits}) is out of range");
 
-            if (numBits > bitsremaining)
+            if (numBits > BitsRemaining)
                 throw new EndOfStreamException($"{nameof(ReadBits)} read past end of stream");
 
             int numCycles;
 
-            if (bitindex == 0)
+            if (BitIndex == 0)
             {
-                index++;
-                bitindex = 8;
+                Index++;
+                BitIndex = 8;
             }
 
-            if (bitindex >= numBits)
+            if (BitIndex >= numBits)
                 numCycles = 1;
             else
-                numCycles = 1 + (numBits - bitindex + 7) / 8;
+                numCycles = 1 + (numBits - BitIndex + 7) / 8;
 
             int bitsRead = 0; // Number of bits read so far
             var result = 0;
 
             for(int i = 0; i < numCycles; i++)
             {
-                if (bitsRead + bitindex > numBits) // Do a partial read
+                if (bitsRead + BitIndex > numBits) // Do a partial read
                 {
                     int bitsToRead = numBits - bitsRead;
 
                     int mask = ((1 << bitsToRead) - 1); // Make mask for the bits to be read
-                    mask <<= (bitindex - bitsToRead); // Shift mask to the bit index
+                    mask <<= (BitIndex - bitsToRead); // Shift mask to the bit index
 
                     result <<= bitsToRead;
-                    var value = (Data[index] & mask) >> (8 - bitsToRead);
+                    var value = (Data[Index] & mask) >> (8 - bitsToRead);
                     result |= value;
 
-                    index++;
-                    bitsremaining -= bitsToRead;
-                    bitindex -= bitsToRead;
+                    Index++;
+                    BitsRemaining -= bitsToRead;
+                    BitIndex -= bitsToRead;
                 }
                 else // Read entirety of remaining byte
                 {
-                    int mask = (1 << bitindex) - 1;
-                    result <<= bitindex;
-                    result |= (Data[index] & mask);
+                    int mask = (1 << BitIndex) - 1;
+                    result <<= BitIndex;
+                    result |= (Data[Index] & mask);
 
-                    index++;
-                    bitsremaining -= bitindex;
-                    numBits -= bitindex;
-                    bitindex = 8;
+                    Index++;
+                    BitsRemaining -= BitIndex;
+                    numBits -= BitIndex;
+                    BitIndex = 8;
                 }
             }
 
@@ -222,21 +251,21 @@ namespace ImageMagitek
                 throw new ArgumentOutOfRangeException();
             if (Access != BitStreamAccess.Write && Access != BitStreamAccess.ReadWrite)
                 throw new InvalidOperationException($"{nameof(WriteBit)} does not have write access");
-            if (bitsremaining == 0)
+            if (BitsRemaining == 0)
                 throw new EndOfStreamException($"{nameof(WriteBit)} wrote past end of stream");
 
-            if(bitindex == 0)
+            if(BitIndex == 0)
             {
-                if (index == Data.Length)
+                if (Index == Data.Length)
                     throw new EndOfStreamException($"{nameof(WriteBit)} wrote past end of stream");
 
-                index++;
-                bitindex = 8;
+                Index++;
+                BitIndex = 8;
             }
 
-            Data[index] |= (byte)(bit << (bitindex - 1));
-            bitsremaining--;
-            bitindex--;
+            Data[Index] |= (byte)(bit << (BitIndex - 1));
+            BitsRemaining--;
+            BitIndex--;
         }
 
         public void WriteBits(int val, int numBits)
