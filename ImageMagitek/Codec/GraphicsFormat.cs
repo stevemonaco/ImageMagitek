@@ -4,7 +4,7 @@ using System.Xml;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace ImageMagitek.Codec
+namespace ImageMagitek
 {
     /// <summary>
     /// Specifies how the graphical viewer will treat the graphic
