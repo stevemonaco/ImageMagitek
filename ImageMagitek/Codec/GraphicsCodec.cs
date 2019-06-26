@@ -20,7 +20,7 @@ namespace ImageMagitek
     /// For direct bitmaps:
     /// In development
     /// </summary>
-    public class GraphicsCodec
+    public class GraphicsCodec : IGraphicsCodec
     {
         #region Graphics Decoding Functions
 
@@ -29,7 +29,7 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="image">Image to draw onto</param>
         /// <param name="el">ArrangerElement to decode</param>
-        public static void Decode(Image<Rgba32> image, ArrangerElement el)
+        public void Decode(Image<Rgba32> image, ArrangerElement el)
         {
             if (el.GraphicsFormat.ColorType == PixelColorType.Indexed)
                 IndexedDecode(image, el);
@@ -42,7 +42,7 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="image">Destination bitmap</param>
         /// <param name="el">Element to decode</param>
-        unsafe static void IndexedDecode(Image<Rgba32> image, ArrangerElement el)
+        unsafe void IndexedDecode(Image<Rgba32> image, ArrangerElement el)
         {
             FileStream fs = el.DataFile.Stream;
             GraphicsFormat format = el.GraphicsFormat;
@@ -104,7 +104,7 @@ namespace ImageMagitek
             DrawBitmapIndexedSafe(image, el);
         }
 
-        public static void DirectDecode(Image<Rgba32> image, ArrangerElement el)
+        public void DirectDecode(Image<Rgba32> image, ArrangerElement el)
         {
             throw new NotImplementedException();
 
@@ -165,7 +165,7 @@ namespace ImageMagitek
             DrawBitmapIndexed(image, el);*/
         }
 
-        static void DrawBitmapIndexedSafe(Image<Rgba32> image, ArrangerElement el)
+        void DrawBitmapIndexedSafe(Image<Rgba32> image, ArrangerElement el)
         {
             var dest = image.GetPixelSpan();
 
@@ -191,7 +191,7 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="image">Bitmap to draw onto</param>
         /// <param name="el">Element with specified coordinates</param>
-        public static void DecodeBlank(Image<Rgba32> image, ArrangerElement el)
+        public void DecodeBlank(Image<Rgba32> image, ArrangerElement el)
         {
             var dest = image.GetPixelSpan();
 
@@ -210,7 +210,7 @@ namespace ImageMagitek
         #endregion
 
         #region Graphics Encoding Functions
-        public unsafe static void Encode(Image<Rgba32> image, ArrangerElement el)
+        public unsafe void Encode(Image<Rgba32> image, ArrangerElement el)
         {
             if (el.GraphicsFormat.ColorType == PixelColorType.Indexed)
                 IndexedEncode(image, el);
@@ -218,7 +218,7 @@ namespace ImageMagitek
                 DirectEncode(image, el);
         }
 
-        unsafe static void IndexedEncode(Image<Rgba32> image, ArrangerElement el)
+        unsafe void IndexedEncode(Image<Rgba32> image, ArrangerElement el)
         {
             // ReadBitmap for local->foreign color conversion into fmt.MergedData
             ReadBitmapIndexedSafe(image, el);
@@ -279,12 +279,12 @@ namespace ImageMagitek
             bw.Write(bs.Data, 0, bs.Data.Length); // TODO: Fix with a shifted, merged write
         }
 
-        unsafe static void DirectEncode(Image<Rgba32> image, ArrangerElement el)
+        unsafe void DirectEncode(Image<Rgba32> image, ArrangerElement el)
         {
             throw new NotImplementedException();
         }
 
-        static void ReadBitmapIndexedSafe(Image<Rgba32> image, ArrangerElement el)
+        void ReadBitmapIndexedSafe(Image<Rgba32> image, ArrangerElement el)
         {
             var src = image.GetPixelSpan();
 
@@ -308,7 +308,7 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="image">Source bitmap</param>
         /// <param name="el">Destination arranger</param>
-        unsafe static void ReadBitmapIndexed(Image<Rgba32> image, ArrangerElement el)
+        unsafe void ReadBitmapIndexed(Image<Rgba32> image, ArrangerElement el)
         {
             /*Rectangle lockRect = new Rectangle(0, 0, image.Width, image.Height);
             BitmapData bd = image.LockBits(lockRect, ImageLockMode.WriteOnly, image.PixelFormat);
