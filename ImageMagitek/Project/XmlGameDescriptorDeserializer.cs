@@ -4,7 +4,6 @@ using System.IO;
 using System.Xml;
 using System.Xml.Linq;
 using System.Linq;
-using ImageMagitek.Codec;
 using ImageMagitek.Project.Models;
 using System.Drawing;
 

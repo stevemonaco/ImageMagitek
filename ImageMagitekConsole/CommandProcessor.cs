@@ -6,7 +6,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Bmp;
 using ImageMagitek;
-using ImageMagitek.Codec;
 using ImageMagitek.Project;
 
 namespace ImageMagitekConsole

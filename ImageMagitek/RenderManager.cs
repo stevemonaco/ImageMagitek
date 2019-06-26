@@ -5,7 +5,6 @@ using System.IO;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
-using ImageMagitek.Codec;
 using ImageMagitek.Project;
 
 namespace ImageMagitek
@@ -43,13 +42,14 @@ namespace ImageMagitek
                 return true;
 
             // TODO: Consider using Tile Cache
+            var codec = new GraphicsCodec();
 
             foreach(var el in arranger.EnumerateElements())
             {
                 if (el.IsBlank())
-                    GraphicsCodec.DecodeBlank(Image, el);
+                    codec.DecodeBlank(Image, el);
                 else
-                    GraphicsCodec.Decode(Image, el);
+                    codec.Decode(Image, el);
             }
 
             NeedsRedraw = false;
@@ -87,9 +87,11 @@ namespace ImageMagitek
                 throw new InvalidOperationException($"{nameof(SaveImage)} has mismatched dimensions: " + 
                     $"'{nameof(arranger)}' ({arranger.ArrangerPixelSize.Width}, {arranger.ArrangerPixelSize.Height}) '{nameof(Image)} ({Image.Width}, {Image.Height})'");
 
+            var codec = new GraphicsCodec();
+
             foreach(var el in arranger.EnumerateElements().Where(x => !x.IsBlank()))
             {
-                GraphicsCodec.Encode(Image, el);
+                codec.Encode(Image, el);
             }
 
             return true;

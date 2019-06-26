@@ -4,7 +4,6 @@ using System.Linq;
 using System.IO;
 using MoreLinq;
 using ImageMagitek;
-using ImageMagitek.Codec;
 using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Project

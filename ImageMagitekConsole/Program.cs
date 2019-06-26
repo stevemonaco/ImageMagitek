@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ImageMagitek;
-using ImageMagitek.Codec;
 using ImageMagitek.Project;
 
 namespace ImageMagitekConsole
