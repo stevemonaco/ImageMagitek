@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SixLabors.ImageSharp.PixelFormats;
+using System;
 
 namespace ImageMagitek
 {
@@ -117,6 +118,8 @@ namespace ImageMagitek
         {
             return System.Drawing.Color.FromArgb((int)Color);
         }
+
+        public Rgba32 ToRgba32() => new Rgba32(R(), G(), B(), A());
         #endregion
 
         #region Cast operators
