@@ -28,13 +28,18 @@ namespace ImageMagitek
         /// General-purpose routine to decode a single arranger element
         /// </summary>
         /// <param name="image">Image to draw onto</param>
-        /// <param name="el">ArrangerElement to decode</param>
-        public void Decode(Image<Rgba32> image, ArrangerElement el)
+        /// <param name="element">ArrangerElement to decode</param>
+        public void Decode(Image<Rgba32> image, ArrangerElement element)
         {
-            if (el.GraphicsFormat.ColorType == PixelColorType.Indexed)
-                IndexedDecode(image, el);
-            else if (el.GraphicsFormat.ColorType == PixelColorType.Direct)
-                DirectDecode(image, el);
+            if (image is null)
+                throw new ArgumentNullException($"{nameof(Decode)} parameter '{nameof(image)}' was null");
+            if (element is null)
+                throw new ArgumentNullException($"{nameof(Decode)} parameter '{nameof(element)}' was null");
+
+            if (element.GraphicsFormat.ColorType == PixelColorType.Indexed)
+                IndexedDecode(image, element);
+            else if (element.GraphicsFormat.ColorType == PixelColorType.Direct)
+                DirectDecode(image, element);
         }
 
         /// <summary>
@@ -193,6 +198,11 @@ namespace ImageMagitek
         /// <param name="el">Element with specified coordinates</param>
         public void DecodeBlank(Image<Rgba32> image, ArrangerElement el)
         {
+            if (image is null)
+                throw new ArgumentNullException($"{nameof(Decode)} parameter '{nameof(image)}' was null");
+            if (element is null)
+                throw new ArgumentNullException($"{nameof(Decode)} parameter '{nameof(element)}' was null");
+
             var dest = image.GetPixelSpan();
 
             int destidx = image.Width * el.Y1 + el.X1;
@@ -210,12 +220,17 @@ namespace ImageMagitek
         #endregion
 
         #region Graphics Encoding Functions
-        public unsafe void Encode(Image<Rgba32> image, ArrangerElement el)
+        public unsafe void Encode(Image<Rgba32> image, ArrangerElement element)
         {
-            if (el.GraphicsFormat.ColorType == PixelColorType.Indexed)
-                IndexedEncode(image, el);
-            else if (el.GraphicsFormat.ColorType == PixelColorType.Direct)
-                DirectEncode(image, el);
+            if (image is null)
+                throw new ArgumentNullException($"{nameof(Decode)} parameter '{nameof(image)}' was null");
+            if (element is null)
+                throw new ArgumentNullException($"{nameof(Decode)} parameter '{nameof(element)}' was null");
+
+            if (element.GraphicsFormat.ColorType == PixelColorType.Indexed)
+                IndexedEncode(image, element);
+            else if (element.GraphicsFormat.ColorType == PixelColorType.Direct)
+                DirectEncode(image, element);
         }
 
         unsafe void IndexedEncode(Image<Rgba32> image, ArrangerElement el)
