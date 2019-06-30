@@ -75,12 +75,12 @@ namespace ImageMagitek
         /// <summary>
         /// Right edge of the Element within the Arranger in unzoomed coordinates, inclusive
         /// </summary>
-        public int X2 { get; set; }
+        public int X2 { get => X1 + Width - 1; }
 
         /// <summary>
         /// Bottom edge of the Element within the Arranger in unzoomed coordinates, inclusive
         /// </summary>
-        public int Y2 { get; set; }
+        public int Y2 { get => Y1 + Height - 1; }
 
         /// <summary>
         /// Preallocated buffer that separates and stores pixel color data
@@ -131,9 +131,7 @@ namespace ImageMagitek
             Height = 0;
             PaletteKey = "Default";
             X1 = 0;
-            X2 = 0;
             Y1 = 0;
-            Y2 = 0;
 
             ElementData = new List<byte[]>();
         }
@@ -158,8 +156,6 @@ namespace ImageMagitek
                 PaletteKey = PaletteKey,
                 X1 = X1,
                 Y1 = Y1,
-                X2 = X2,
-                Y2 = Y2,
                 StorageSize = StorageSize
             };
 

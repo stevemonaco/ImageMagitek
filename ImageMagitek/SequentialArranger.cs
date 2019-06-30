@@ -90,8 +90,6 @@ namespace ImageMagitek
                         FileAddress = address,
                         X1 = x,
                         Y1 = y,
-                        X2 = x + ElementPixelSize.Width - 1,
-                        Y2 = y + ElementPixelSize.Height - 1,
                         Width = ElementPixelSize.Width,
                         Height = ElementPixelSize.Height,
                         DataFileKey = dataFileKey,
@@ -187,9 +185,7 @@ namespace ImageMagitek
                     ElementGrid[j, i].Width = ElementPixelSize.Width;
                     ElementGrid[j, i].Height = ElementPixelSize.Height;
                     ElementGrid[j, i].X1 = j * ElementPixelSize.Width;
-                    ElementGrid[j, i].X2 = j * ElementPixelSize.Width + (ElementPixelSize.Width - 1);
                     ElementGrid[j, i].Y1 = i * ElementPixelSize.Height;
-                    ElementGrid[j, i].Y2 = i * ElementPixelSize.Height + (ElementPixelSize.Height - 1);
                     ElementGrid[j, i].InitializeGraphicsFormat(format);
                     address += elembitsize;
                 }

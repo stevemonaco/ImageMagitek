@@ -147,9 +147,7 @@ namespace ImageMagitek
                 {
                     ArrangerElement el = GetElement(srcx, srcy).Clone();
                     el.X1 = destx * subArranger.ElementPixelSize.Width;
-                    el.X2 = el.X1 + subArranger.ElementPixelSize.Width - 1;
                     el.Y1 = desty * subArranger.ElementPixelSize.Height;
-                    el.Y2 = el.Y1 + subArranger.ElementPixelSize.Height - 1;
                     subArranger.SetElement(el, destx, desty);
                 }
             }

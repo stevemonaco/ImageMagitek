@@ -44,8 +44,6 @@ namespace ImageMagitek
                         Parent = this,
                         X1 = x,
                         Y1 = y,
-                        X2 = x + elementWidth - 1,
-                        Y2 = y + elementHeight - 1,
                         Width = elementWidth,
                         Height = elementHeight,
                     };
@@ -92,8 +90,6 @@ namespace ImageMagitek
                             Parent = this,
                             X1 = x * Width,
                             Y1 = y * Height,
-                            X2 = x * Width + Width - 1,
-                            Y2 = y * Height + Height - 1,
                             Width = Width,
                             Height = Height,
                         };
