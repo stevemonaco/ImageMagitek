@@ -95,7 +95,7 @@ namespace ImageMagitek
         /// <summary>
         /// Number of bits required to store the Element's foreign pixel data
         /// </summary>
-        public int StorageSize { get; private set; }
+        public int StorageSize { get => (Width + GraphicsFormat.RowStride) * Height * GraphicsFormat.ColorDepth + GraphicsFormat.ElementStride; }
 
         /// <summary>
         /// Used to allocate internal buffers to hold graphical data specific to the Element
@@ -113,7 +113,6 @@ namespace ImageMagitek
             }
 
             MergedData = new byte[Width * Height];
-            StorageSize = (Width + GraphicsFormat.RowStride) * Height * GraphicsFormat.ColorDepth + GraphicsFormat.ElementStride;
         }
 
         public void InitializeGraphicsFormat(GraphicsFormat format)
@@ -155,8 +154,7 @@ namespace ImageMagitek
                 Palette = Palette,
                 PaletteKey = PaletteKey,
                 X1 = X1,
-                Y1 = Y1,
-                StorageSize = StorageSize
+                Y1 = Y1
             };
 
             if (IsBlank()) // Blank elements have no data buffers to copy
