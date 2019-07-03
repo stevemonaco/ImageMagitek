@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ImageMagitek;
+using ImageMagitek.Codec;
 using ImageMagitek.Project;
 
 namespace ImageMagitekConsole
@@ -53,7 +54,7 @@ namespace ImageMagitekConsole
                 palettes.Add(pal);
             }
 
-            var resourceManager = new ResourceManager(formats);
+            var resourceManager = new ResourceManager(new CodecFactory(formats));
             resourceManager.LoadProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
 
             var processor = new CommandProcessor(resourceManager, formats);

@@ -5,6 +5,7 @@ using System.IO;
 using MoreLinq;
 using ImageMagitek;
 using ImageMagitek.ExtensionMethods;
+using ImageMagitek.Codec;
 
 namespace ImageMagitek.Project
 {
@@ -29,7 +30,9 @@ namespace ImageMagitek.Project
         /// <summary>
         /// List of graphics format codecs
         /// </summary>
-        private IDictionary<string, GraphicsFormat> Formats;
+        //private IDictionary<string, GraphicsFormat> Formats;
+
+        private ICodecFactory CodecFactory;
 
         /// <summary>
         /// FileTypeLoader which is used to match file extensions with the default graphics codec upon opening for sequential arranger
@@ -46,9 +49,9 @@ namespace ImageMagitek.Project
         }
         #endregion*/
 
-        public ResourceManager(IDictionary<string, GraphicsFormat> formats)
+        public ResourceManager(ICodecFactory codecFactory)
         {
-            Formats = formats;
+            CodecFactory = codecFactory;
         }
 
         #region ProjectResourceBase Management
@@ -241,8 +244,9 @@ namespace ImageMagitek.Project
             {
                 foreach(var el in arranger.EnumerateElements())
                 {
-                    if (Formats.ContainsKey(el.FormatName))
-                        el.InitializeGraphicsFormat(Formats[el.FormatName]);
+                    el.Codec = CodecFactory.GetCodec(el.FormatName);
+                    if (el.Codec is GenericGraphicsCodec ggc)
+                        el.InitializeGraphicsFormat(ggc.Format);
                 }
             }
 

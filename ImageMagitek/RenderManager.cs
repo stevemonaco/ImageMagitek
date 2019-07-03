@@ -42,14 +42,13 @@ namespace ImageMagitek
                 return true;
 
             // TODO: Consider using Tile Cache
-            var codec = new GenericGraphicsCodec();
 
             foreach(var el in arranger.EnumerateElements())
             {
                 if (el.IsBlank())
-                    codec.DecodeBlank(Image, el);
+                    el.Codec.DecodeBlank(Image, el);
                 else
-                    codec.Decode(Image, el);
+                    el.Codec.Decode(Image, el);
             }
 
             NeedsRedraw = false;
@@ -87,11 +86,9 @@ namespace ImageMagitek
                 throw new InvalidOperationException($"{nameof(SaveImage)} has mismatched dimensions: " + 
                     $"'{nameof(arranger)}' ({arranger.ArrangerPixelSize.Width}, {arranger.ArrangerPixelSize.Height}) '{nameof(Image)} ({Image.Width}, {Image.Height})'");
 
-            var codec = new GenericGraphicsCodec();
-
             foreach(var el in arranger.EnumerateElements().Where(x => !x.IsBlank()))
             {
-                codec.Encode(Image, el);
+                el.Codec.Encode(Image, el);
             }
 
             return true;

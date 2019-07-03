@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ImageMagitek.Codec;
 using ImageMagitek.Project;
 
 namespace ImageMagitek
@@ -35,7 +36,7 @@ namespace ImageMagitek
         /// </summary>
         public string FormatName { get; set; }
 
-        public IGraphicsCodec GraphicsCodec { get; set; }
+        public IGraphicsCodec Codec { get; set; }
 
         /// <summary>
         /// GraphicsFormat for encoding/decoding the Element
@@ -131,6 +132,8 @@ namespace ImageMagitek
             PaletteKey = "Default";
             X1 = 0;
             Y1 = 0;
+
+            Codec = new BlankCodec();
 
             ElementData = new List<byte[]>();
         }

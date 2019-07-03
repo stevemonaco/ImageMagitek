@@ -115,5 +115,39 @@ namespace ImageMagitek
                     ImageProperties[i].ExtendRowPattern(Width);
             }
         }
+
+        public GraphicsFormat Clone()
+        {
+            var clone = new GraphicsFormat();
+            clone.Name = Name;
+            clone.FixedSize = FixedSize;
+            clone.Layout = Layout;
+            clone.ColorDepth = ColorDepth;
+            clone.ColorType = ColorType;
+            clone.Width = Width;
+            clone.Height = Height;
+            clone.DefaultWidth = DefaultWidth;
+            clone.DefaultHeight = DefaultHeight;
+            clone.RowStride = RowStride;
+            clone.ElementStride = ElementStride;
+            clone.HFlip = HFlip;
+            clone.VFlip = VFlip;
+            clone.Remap = Remap;
+
+            clone.MergePriority = new int[MergePriority.Length];
+            Array.Copy(MergePriority, clone.MergePriority, MergePriority.Length);
+
+            clone.ImageProperties = new List<ImageProperty>();
+            foreach(var prop in ImageProperties)
+            {
+                var pattern = new int[prop.RowPixelPattern.Length];
+                Array.Copy(prop.RowPixelPattern, pattern, prop.RowPixelPattern.Length);
+
+                var propclone = new ImageProperty(prop.ColorDepth, prop.RowInterlace, pattern);
+                clone.ImageProperties.Add(propclone);
+            }
+
+            return clone;
+        }
     }
 }

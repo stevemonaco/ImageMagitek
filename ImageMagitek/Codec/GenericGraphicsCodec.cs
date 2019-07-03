@@ -22,8 +22,15 @@ namespace ImageMagitek
     /// </summary>
     public class GenericGraphicsCodec : IGraphicsCodec
     {
-        #region Graphics Decoding Functions
+        public string Name { get; set; }
+        public GraphicsFormat Format { get; private set; }
 
+        public GenericGraphicsCodec(GraphicsFormat format)
+        {
+            Format = format;
+        }
+
+        #region Graphics Decoding Functions
         /// <summary>
         /// General-purpose routine to decode a single arranger element
         /// </summary>
