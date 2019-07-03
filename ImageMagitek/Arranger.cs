@@ -37,7 +37,7 @@ namespace ImageMagitek
         /// <summary>
         /// Gets individual Elements that compose the Arranger
         /// </summary>
-        public ArrangerElement[,] ElementGrid { get; set; }
+        public ArrangerElement[,] ElementGrid { get; protected set; }
 
         /// <summary>
         /// Gets the size of the entire Arranger in Elements
