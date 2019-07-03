@@ -111,7 +111,6 @@ namespace ImageMagitek
             }
 
             ArrangerElement lastElem = ElementGrid[arrangerWidth - 1, arrangerHeight - 1];
-            ArrangerPixelSize = new Size(lastElem.X2 + 1, lastElem.Y2 + 1);
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
             ElementPixelSize = new Size(ElementPixelSize.Width, ElementPixelSize.Height);
 
@@ -192,7 +191,6 @@ namespace ImageMagitek
             }
 
             ArrangerElement LastElem = ElementGrid[ArrangerElementSize.Width - 1, ArrangerElementSize.Height - 1];
-            ArrangerPixelSize = new Size(LastElem.X2 + 1, LastElem.Y2 + 1);
 
             return true;
         }
@@ -207,7 +205,6 @@ namespace ImageMagitek
                 ElementGrid = new ArrangerElement[ArrangerElementSize.Width, ArrangerElementSize.Height],
                 ArrangerElementSize = ArrangerElementSize,
                 ElementPixelSize = ElementPixelSize,
-                ArrangerPixelSize = ArrangerPixelSize,
                 Mode = Mode,
                 Name = Name,
                 FileSize = FileSize,
