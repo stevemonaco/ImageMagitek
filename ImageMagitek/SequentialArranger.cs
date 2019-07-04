@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Xml.Linq;
 using System.Linq;
 using ImageMagitek.Project;
+using ImageMagitek.Codec;
 
 namespace ImageMagitek
 {
@@ -24,20 +25,25 @@ namespace ImageMagitek
         /// </summary>
         public long ArrangerBitSize { get; private set; }
 
+        private ICodecFactory _codecs;
+        private string _codecName;
+
         public SequentialArranger()
         {
             Mode = ArrangerMode.SequentialArranger;
         }
 
-        public SequentialArranger(int arrangerWidth, int arrangerHeight, string dataFileKey, GraphicsFormat format)
+        public SequentialArranger(int arrangerWidth, int arrangerHeight, string dataFileKey, ICodecFactory codecFactory, string codecName)
         {
             DataFile df = GetResourceRelative<DataFile>(dataFileKey);
 
             Mode = ArrangerMode.SequentialArranger;
             FileSize = df.Stream.Length;
             Name = df.Name;
+            _codecs = codecFactory;
+            _codecName = codecName;
 
-            Resize(arrangerWidth, arrangerHeight, dataFileKey, format);
+            Resize(arrangerWidth, arrangerHeight, dataFileKey, codecName);
         }
 
         /// <summary>
@@ -51,7 +57,7 @@ namespace ImageMagitek
             if (Mode != ArrangerMode.SequentialArranger)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
-            Resize(arrangerWidth, arrangerHeight, ElementGrid[0, 0].DataFileKey, ElementGrid[0, 0].GraphicsFormat);
+            Resize(arrangerWidth, arrangerHeight, ElementGrid[0, 0].DataFileKey, _codecName);
         }
 
         /// <summary>
@@ -60,13 +66,14 @@ namespace ImageMagitek
         /// <param name="arrangerWidth">Width of Arranger in Elements</param>
         /// <param name="arrangerHeight">Height of Arranger in Elements</param>
         /// <param name="dataFileKey">DataFile key in IResourceManager</param>
-        /// <param name="format">GraphicsFormat for encoding/decoding Elements</param>
+        /// <param name="codecName">Codec name for encoding/decoding Elements</param>
         /// <returns></returns>
-        private FileBitAddress Resize(int arrangerWidth, int arrangerHeight, string dataFileKey, GraphicsFormat format)
+        private FileBitAddress Resize(int arrangerWidth, int arrangerHeight, string dataFileKey, string codecName)
         {
             if (Mode != ArrangerMode.SequentialArranger)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
+            _codecName = codecName;
             FileBitAddress address;
 
             if (ElementGrid is null) // New Arranger being resized
@@ -93,15 +100,17 @@ namespace ImageMagitek
                         Width = ElementPixelSize.Width,
                         Height = ElementPixelSize.Height,
                         DataFileKey = dataFileKey,
-                        FormatName = format.Name,
+                        FormatName = codecName
                     };
+
+                    el.Codec = _codecs.GetCodec(codecName, el.Width, el.Height);
 
                     ElementGrid[j, i] = el;
 
-                    if (format.Layout == ImageLayout.Tiled)
+                    if (el.Codec.Layout == ImageLayout.Tiled)
                         address += el.Codec.StorageSize;
                     else // Linear
-                        address += (ElementPixelSize.Width + format.RowStride) * format.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
+                        address += (ElementPixelSize.Width + el.Codec.RowStride) * el.Codec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
 
                     x += ElementPixelSize.Width;
                 }
@@ -154,7 +163,7 @@ namespace ImageMagitek
         /// <param name="FormatName">Name of the GraphicsFormat</param>
         /// <param name="ElementSize">Size of each Element in pixels</param>
         /// <returns></returns>
-        public bool SetGraphicsFormat(string FormatName, Size ElementSize)
+        /*public bool SetGraphicsFormat(string FormatName, Size ElementSize)
         {
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(SetGraphicsFormat)} property '{nameof(ElementGrid)}' was null");
@@ -163,7 +172,7 @@ namespace ImageMagitek
                 throw new InvalidOperationException($"{nameof(SetGraphicsFormat)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
             FileBitAddress address = ElementGrid[0, 0].FileAddress;
-            GraphicsFormat format = ElementGrid[0, 0].GraphicsFormat;
+            //GraphicsFormat format = ElementGrid[0, 0].GraphicsFormat;
 
             ElementPixelSize = ElementSize;
 
@@ -183,7 +192,6 @@ namespace ImageMagitek
                     ElementGrid[j, i].Height = ElementPixelSize.Height;
                     ElementGrid[j, i].X1 = j * ElementPixelSize.Width;
                     ElementGrid[j, i].Y1 = i * ElementPixelSize.Height;
-                    ElementGrid[j, i].InitializeGraphicsFormat(format);
                     address += elembitsize;
                 }
             }
@@ -191,7 +199,7 @@ namespace ImageMagitek
             ArrangerElement LastElem = ElementGrid[ArrangerElementSize.Width - 1, ArrangerElementSize.Height - 1];
 
             return true;
-        }
+        }*/
 
         public override ProjectResourceBase Clone()
         {

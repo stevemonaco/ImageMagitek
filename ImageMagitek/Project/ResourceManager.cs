@@ -240,14 +240,9 @@ namespace ImageMagitek.Project
             foreach (var item in tree)
                 ResourceTree.AddResource(item.Key, item.Value);
 
-            foreach(var arranger in tree.SelfAndDescendants().OfType<ScatteredArranger>())
+            foreach(var el in tree.SelfAndDescendants().OfType<ScatteredArranger>().SelectMany(x => x.EnumerateElements()))
             {
-                foreach(var el in arranger.EnumerateElements())
-                {
-                    el.Codec = CodecFactory.GetCodec(el.FormatName, el.Width, el.Height);
-                    if (el.Codec is GenericGraphicsCodec ggc)
-                        el.InitializeGraphicsFormat(ggc.Format);
-                }
+                el.Codec = CodecFactory.GetCodec(el.FormatName, el.Width, el.Height);
             }
 
             root = new ResourceFolder();

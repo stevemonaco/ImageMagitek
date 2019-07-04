@@ -39,11 +39,6 @@ namespace ImageMagitek
         public IGraphicsCodec Codec { get; set; }
 
         /// <summary>
-        /// GraphicsFormat for encoding/decoding the Element
-        /// </summary>
-        public GraphicsFormat GraphicsFormat { get; set; }
-
-        /// <summary>
         /// Width of Element in pixels
         /// </summary>
         public int Width { get; set; }
@@ -83,16 +78,6 @@ namespace ImageMagitek
         /// </summary>
         public int Y2 { get => Y1 + Height - 1; }
 
-        /// <summary>
-        /// Number of bits required to store the Element's foreign pixel data
-        /// </summary>
-        //public int StorageSize { get => (Width + GraphicsFormat.RowStride) * Height * GraphicsFormat.ColorDepth + GraphicsFormat.ElementStride; }
-
-        public void InitializeGraphicsFormat(GraphicsFormat format)
-        {
-            GraphicsFormat = format;
-        }
-
         public ArrangerElement()
         {
             DataFileKey = "";
@@ -119,7 +104,6 @@ namespace ImageMagitek
                 DataFile = DataFile,
                 DataFileKey = DataFileKey,
                 FileAddress = FileAddress,
-                GraphicsFormat = GraphicsFormat,
                 FormatName = FormatName,
                 Width = Width,
                 Height = Height,

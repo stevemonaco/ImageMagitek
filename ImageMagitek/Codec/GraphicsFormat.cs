@@ -7,20 +7,6 @@ using System.Xml.Linq;
 namespace ImageMagitek
 {
     /// <summary>
-    /// Specifies how the graphical viewer will treat the graphic
-    /// Tiled graphics will render a grid of multiple images
-    /// Linear graphics will render a single image
-    /// </summary>
-    public enum ImageLayout { Tiled = 0, Linear }
-
-    /// <summary>
-    /// Specifies how the pixels' colors are determined for the graphic
-    /// Indexed graphics have their full color determined by a palette
-    /// Direct graphics have their full color determined by the pixel image data alone
-    /// </summary>
-    public enum PixelColorType { Indexed = 0, Direct }
-
-    /// <summary>
     /// GraphicsFormat describes properties relating to decoding/encoding a general graphics format
     /// </summary>
     public class GraphicsFormat

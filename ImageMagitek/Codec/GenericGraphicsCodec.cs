@@ -26,6 +26,13 @@ namespace ImageMagitek
         public string Name { get; set; }
         public GraphicsFormat Format { get; private set; }
         public int StorageSize => Format.StorageSize;
+        public ImageLayout Layout => Format.Layout;
+        public PixelColorType ColorType => Format.ColorType;
+        public int ColorDepth => Format.ColorDepth;
+        public int Width => Format.Width;
+        public int Height => Format.Height;
+        public int RowStride => Format.RowStride;
+        public int ElementStride => Format.ElementStride;
 
         /// <summary>
         /// Preallocated buffer that separates and stores pixel color data
@@ -217,9 +224,9 @@ namespace ImageMagitek
         #region Graphics Encoding Functions
         public unsafe void Encode(Image<Rgba32> image, ArrangerElement el)
         {
-            if (el.GraphicsFormat.ColorType == PixelColorType.Indexed)
+            if (Format.ColorType == PixelColorType.Indexed)
                 IndexedEncode(image, el);
-            else if (el.GraphicsFormat.ColorType == PixelColorType.Direct)
+            else if (Format.ColorType == PixelColorType.Direct)
                 DirectEncode(image, el);
         }
 

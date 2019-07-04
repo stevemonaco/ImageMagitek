@@ -12,6 +12,13 @@ namespace ImageMagitek.Codec
         public string Name => "Blank";
 
         public int StorageSize => 0;
+        public int Width => 0;
+        public int Height => 0;
+        public ImageLayout Layout => ImageLayout.Tiled;
+        public PixelColorType ColorType => PixelColorType.Direct;
+        public int ColorDepth => 1;
+        public int RowStride => 0;
+        public int ElementStride => 0;
 
         private Rgba32 FillColor = Rgba32.Black;
 
