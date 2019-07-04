@@ -16,7 +16,7 @@ namespace ImageMagitek
         /// <summary>
         /// Gets or sets the native 32bit ARGB Color
         /// </summary>
-        public uint Color { get; set; }
+        public uint Color;
 
         public NativeColor(uint color)
         {

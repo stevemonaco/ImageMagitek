@@ -17,3 +17,6 @@ Project
 
 Tests
 - BitStream
+
+Bugs
+- ArrangerExtensions to move rows/pages assume each element's storage size is the same

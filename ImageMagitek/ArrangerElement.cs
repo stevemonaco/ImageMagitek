@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ImageMagitek.Codec;
 using ImageMagitek.Project;
 
 namespace ImageMagitek
@@ -35,12 +36,7 @@ namespace ImageMagitek
         /// </summary>
         public string FormatName { get; set; }
 
-        public IGraphicsCodec GraphicsCodec { get; set; }
-
-        /// <summary>
-        /// GraphicsFormat for encoding/decoding the Element
-        /// </summary>
-        public GraphicsFormat GraphicsFormat { get; set; }
+        public IGraphicsCodec Codec { get; set; }
 
         /// <summary>
         /// Width of Element in pixels
@@ -75,52 +71,12 @@ namespace ImageMagitek
         /// <summary>
         /// Right edge of the Element within the Arranger in unzoomed coordinates, inclusive
         /// </summary>
-        public int X2 { get; set; }
+        public int X2 { get => X1 + Width - 1; }
 
         /// <summary>
         /// Bottom edge of the Element within the Arranger in unzoomed coordinates, inclusive
         /// </summary>
-        public int Y2 { get; set; }
-
-        /// <summary>
-        /// Preallocated buffer that separates and stores pixel color data
-        /// </summary>
-        public List<byte[]> ElementData { get; private set; }
-
-        /// <summary>
-        /// Preallocated buffer that stores merged pixel color data
-        /// </summary>
-        public byte[] MergedData { get; private set; }
-
-        /// <summary>
-        /// Number of bits required to store the Element's foreign pixel data
-        /// </summary>
-        public int StorageSize { get; private set; }
-
-        /// <summary>
-        /// Used to allocate internal buffers to hold graphical data specific to the Element
-        /// </summary>
-        private void AllocateBuffers()
-        {
-            if (IsBlank())
-                return;
-
-            ElementData.Clear();
-            for (int i = 0; i < GraphicsFormat.ColorDepth; i++)
-            {
-                byte[] data = new byte[Width * Height];
-                ElementData.Add(data);
-            }
-
-            MergedData = new byte[Width * Height];
-            StorageSize = (Width + GraphicsFormat.RowStride) * Height * GraphicsFormat.ColorDepth + GraphicsFormat.ElementStride;
-        }
-
-        public void InitializeGraphicsFormat(GraphicsFormat format)
-        {
-            GraphicsFormat = format;
-            AllocateBuffers();
-        }
+        public int Y2 { get => Y1 + Height - 1; }
 
         public ArrangerElement()
         {
@@ -131,11 +87,9 @@ namespace ImageMagitek
             Height = 0;
             PaletteKey = "Default";
             X1 = 0;
-            X2 = 0;
             Y1 = 0;
-            Y2 = 0;
 
-            ElementData = new List<byte[]>();
+            Codec = new BlankCodec();
         }
 
         /// <summary>
@@ -150,46 +104,16 @@ namespace ImageMagitek
                 DataFile = DataFile,
                 DataFileKey = DataFileKey,
                 FileAddress = FileAddress,
-                GraphicsFormat = GraphicsFormat,
                 FormatName = FormatName,
                 Width = Width,
                 Height = Height,
                 Palette = Palette,
                 PaletteKey = PaletteKey,
                 X1 = X1,
-                Y1 = Y1,
-                X2 = X2,
-                Y2 = Y2,
-                StorageSize = StorageSize
+                Y1 = Y1
             };
 
-            if (IsBlank()) // Blank elements have no data buffers to copy
-                return el;
-
-            // Copy MergedData
-            el.AllocateBuffers();
-            el.Parent = Parent;
-            for (int i = 0; i < MergedData.Length; i++)
-                el.MergedData[i] = MergedData[i];
-
-            // Copy TileData
-            for (int i = 0; i < ElementData.Count; i++)
-                for (int j = 0; j < ElementData[i].Length; j++)
-                    el.ElementData[i][j] = ElementData[i][j];
-
             return el;
-        }
-
-        /// <summary>
-        /// Detects if the ArrangerElement is a blank element
-        /// </summary>
-        /// <returns>True if blank, false if not</returns>
-        public bool IsBlank()
-        {
-            if (FormatName == "")
-                return true;
-            else
-                return false;
         }
     }
 }

@@ -7,20 +7,6 @@ using System.Xml.Linq;
 namespace ImageMagitek
 {
     /// <summary>
-    /// Specifies how the graphical viewer will treat the graphic
-    /// Tiled graphics will render a grid of multiple images
-    /// Linear graphics will render a single image
-    /// </summary>
-    public enum ImageLayout { Tiled = 0, Linear }
-
-    /// <summary>
-    /// Specifies how the pixels' colors are determined for the graphic
-    /// Indexed graphics have their full color determined by a palette
-    /// Direct graphics have their full color determined by the pixel image data alone
-    /// </summary>
-    public enum PixelColorType { Indexed = 0, Direct }
-
-    /// <summary>
     /// GraphicsFormat describes properties relating to decoding/encoding a general graphics format
     /// </summary>
     public class GraphicsFormat
@@ -91,7 +77,7 @@ namespace ImageMagitek
         /// Storage size of an element in bits
         /// </summary>
         /// <returns></returns>
-        public int StorageSize(int width, int height) { return (width + RowStride) * height * ColorDepth + ElementStride; }
+        public int StorageSize => (Width + RowStride) * Height * ColorDepth + ElementStride;
 
         public IList<ImageProperty> ImageProperties { get; set; } = new List<ImageProperty>();
 
@@ -114,6 +100,40 @@ namespace ImageMagitek
                 for (int i = 0; i < ImageProperties.Count; i++)
                     ImageProperties[i].ExtendRowPattern(Width);
             }
+        }
+
+        public GraphicsFormat Clone()
+        {
+            var clone = new GraphicsFormat();
+            clone.Name = Name;
+            clone.FixedSize = FixedSize;
+            clone.Layout = Layout;
+            clone.ColorDepth = ColorDepth;
+            clone.ColorType = ColorType;
+            clone.Width = Width;
+            clone.Height = Height;
+            clone.DefaultWidth = DefaultWidth;
+            clone.DefaultHeight = DefaultHeight;
+            clone.RowStride = RowStride;
+            clone.ElementStride = ElementStride;
+            clone.HFlip = HFlip;
+            clone.VFlip = VFlip;
+            clone.Remap = Remap;
+
+            clone.MergePriority = new int[MergePriority.Length];
+            Array.Copy(MergePriority, clone.MergePriority, MergePriority.Length);
+
+            clone.ImageProperties = new List<ImageProperty>();
+            foreach(var prop in ImageProperties)
+            {
+                var pattern = new int[prop.RowPixelPattern.Length];
+                Array.Copy(prop.RowPixelPattern, pattern, prop.RowPixelPattern.Length);
+
+                var propclone = new ImageProperty(prop.ColorDepth, prop.RowInterlace, pattern);
+                clone.ImageProperties.Add(propclone);
+            }
+
+            return clone;
         }
     }
 }

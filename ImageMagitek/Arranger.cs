@@ -37,7 +37,7 @@ namespace ImageMagitek
         /// <summary>
         /// Gets individual Elements that compose the Arranger
         /// </summary>
-        public ArrangerElement[,] ElementGrid { get; set; }
+        public ArrangerElement[,] ElementGrid { get; protected set; }
 
         /// <summary>
         /// Gets the size of the entire Arranger in Elements
@@ -47,7 +47,7 @@ namespace ImageMagitek
         /// <summary>
         /// Gets the Size of the entire Arranger in unzoomed pixels
         /// </summary>
-        public Size ArrangerPixelSize { get; protected set; }
+        public Size ArrangerPixelSize { get => new Size(ArrangerElementSize.Width * ElementPixelSize.Width, ArrangerElementSize.Height * ElementPixelSize.Height); }
 
         /// <summary>
         /// Gets the size of an individual Element in unzoomed pixels
@@ -138,7 +138,6 @@ namespace ImageMagitek
                 ElementGrid = new ArrangerElement[copyWidth, copyHeight],
                 ArrangerElementSize = new Size(copyWidth, copyHeight),
                 ElementPixelSize = ElementPixelSize,
-                ArrangerPixelSize = new Size(ElementPixelSize.Width * copyWidth, ElementPixelSize.Height * copyHeight)
             };
 
             for (int srcy = arrangerPosY, desty = 0; srcy < arrangerPosY + copyHeight; srcy++, desty++)
@@ -147,9 +146,7 @@ namespace ImageMagitek
                 {
                     ArrangerElement el = GetElement(srcx, srcy).Clone();
                     el.X1 = destx * subArranger.ElementPixelSize.Width;
-                    el.X2 = el.X1 + subArranger.ElementPixelSize.Width - 1;
                     el.Y1 = desty * subArranger.ElementPixelSize.Height;
-                    el.Y2 = el.Y1 + subArranger.ElementPixelSize.Height - 1;
                     subArranger.SetElement(el, destx, desty);
                 }
             }
@@ -197,11 +194,5 @@ namespace ImageMagitek
                 for (int x = 0; x < ArrangerElementSize.Width; x++)
                     yield return ElementGrid[x, y];
         }
-
-        /// <summary>
-        /// Tests the Arranger Elements to see if any Elements are blank
-        /// </summary>
-        /// <returns></returns>
-        public bool ContainsBlankElements() => EnumerateElements().Any(x => x.IsBlank());
     }
 }

@@ -10,7 +10,7 @@ namespace ImageMagitek
         /// <summary>
         /// Gets or sets the foreign color value
         /// </summary>
-        public uint Color { get; set; }
+        public uint Color;
 
         /// <summary>
         /// Construct a ForeignColor

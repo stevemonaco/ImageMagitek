@@ -21,8 +21,6 @@ namespace ImageMagitek.Project.Models
                     var el = ElementGrid[x, y].ToArrangerElement();
                     el.Width = arr.ElementPixelSize.Width;
                     el.Height = arr.ElementPixelSize.Height;
-                    el.X2 = el.X1 + el.Width - 1;
-                    el.Y2 = el.Y1 + el.Height - 1;
 
                     arr.ElementGrid[x, y] = el;
                 }

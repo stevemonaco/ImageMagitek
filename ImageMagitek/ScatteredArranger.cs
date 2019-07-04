@@ -44,8 +44,6 @@ namespace ImageMagitek
                         Parent = this,
                         X1 = x,
                         Y1 = y,
-                        X2 = x + elementWidth - 1,
-                        Y2 = y + elementHeight - 1,
                         Width = elementWidth,
                         Height = elementHeight,
                     };
@@ -57,7 +55,6 @@ namespace ImageMagitek
             }
 
             ArrangerElement LastElem = ElementGrid[arrangerWidth - 1, arrangerHeight - 1];
-            ArrangerPixelSize = new Size(LastElem.X2 + 1, LastElem.Y2 + 1);
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
             ElementPixelSize = new Size(elementWidth, elementHeight);
         }
@@ -92,8 +89,6 @@ namespace ImageMagitek
                             Parent = this,
                             X1 = x * Width,
                             Y1 = y * Height,
-                            X2 = x * Width + Width - 1,
-                            Y2 = y * Height + Height - 1,
                             Width = Width,
                             Height = Height,
                         };
@@ -105,7 +100,6 @@ namespace ImageMagitek
 
             ElementGrid = newList;
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
-            ArrangerPixelSize = new Size(arrangerWidth * Width, arrangerHeight * Height);
         }
 
         public override ProjectResourceBase Clone()
@@ -115,7 +109,6 @@ namespace ImageMagitek
                 ElementGrid = new ArrangerElement[ArrangerElementSize.Width, ArrangerElementSize.Height],
                 ArrangerElementSize = ArrangerElementSize,
                 ElementPixelSize = ElementPixelSize,
-                ArrangerPixelSize = ArrangerPixelSize,
                 Mode = Mode,
                 Name = Name,
             };
