@@ -80,10 +80,7 @@ namespace ImageMagitek
             Format.Resize(el.Width, el.Height);
 
             if (el.FileAddress + Format.StorageSize > fs.Length * 8) // Element would contain data past the end of the file
-            {
-                DecodeBlank(image, el);
                 return;
-            }
 
             byte[] data = fs.ReadUnshifted(el.FileAddress, Format.StorageSize, true);
 
@@ -211,29 +208,6 @@ namespace ImageMagitek
                     var col = new Rgba32(nc.R(), nc.G(), nc.B(), nc.A());
                     dest[destidx] = col;
                 }
-                destidx += el.X1 + image.Width - (el.X2 + 1);
-            }
-        }
-
-        /// <summary>
-        /// Draws a blank element using the 0-index color from the default palette
-        /// Used for when an arranger does not have a graphic assigned to every element
-        /// </summary>
-        /// <param name="image">Bitmap to draw onto</param>
-        /// <param name="el">Element with specified coordinates</param>
-        public void DecodeBlank(Image<Rgba32> image, ArrangerElement el)
-        {
-            var dest = image.GetPixelSpan();
-
-            int destidx = image.Width * el.Y1 + el.X1;
-            var nc = el.Palette[0];
-            var col = new Rgba32(nc.R(), nc.G(), nc.B(), nc.A());
-
-            // Copy data into image
-            for (int y = 0; y < el.Height; y++)
-            {
-                for (int x = 0; x < el.Width; x++, destidx++)
-                    dest[destidx] = col;
                 destidx += el.X1 + image.Width - (el.X2 + 1);
             }
         }

@@ -194,11 +194,5 @@ namespace ImageMagitek
                 for (int x = 0; x < ArrangerElementSize.Width; x++)
                     yield return ElementGrid[x, y];
         }
-
-        /// <summary>
-        /// Tests the Arranger Elements to see if any Elements are blank
-        /// </summary>
-        /// <returns></returns>
-        public bool ContainsBlankElements() => EnumerateElements().Any(x => x.IsBlank());
     }
 }

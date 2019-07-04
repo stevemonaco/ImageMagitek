@@ -34,14 +34,8 @@ namespace ImageMagitek.Codec
             }
         }
 
-        public void DecodeBlank(Image<Rgba32> image, ArrangerElement el)
-        {
-            throw new NotImplementedException();
-        }
-
         public void Encode(Image<Rgba32> image, ArrangerElement el)
         {
-            throw new NotImplementedException();
         }
     }
 }

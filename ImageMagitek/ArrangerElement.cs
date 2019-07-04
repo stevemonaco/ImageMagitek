@@ -131,11 +131,5 @@ namespace ImageMagitek
 
             return el;
         }
-
-        /// <summary>
-        /// Detects if the ArrangerElement is a blank element
-        /// </summary>
-        /// <returns>True if blank, false if not</returns>
-        public bool IsBlank() => FormatName == "";
     }
 }
