@@ -95,8 +95,6 @@ namespace ImageMagitek
                         DataFileKey = dataFileKey,
                         FormatName = format.Name,
                     };
-                    if (el.ElementData.Count == 0 || el.MergedData is null)
-                        el.InitializeGraphicsFormat(format);
 
                     ElementGrid[j, i] = el;
 
@@ -153,10 +151,10 @@ namespace ImageMagitek
         /// <summary>
         /// Sets the GraphicsFormat name and Element size for a Sequential Arranger
         /// </summary>
-        /// <param name="Format">Name of the GraphicsFormat</param>
+        /// <param name="FormatName">Name of the GraphicsFormat</param>
         /// <param name="ElementSize">Size of each Element in pixels</param>
         /// <returns></returns>
-        public bool SetGraphicsFormat(string Format, Size ElementSize)
+        public bool SetGraphicsFormat(string FormatName, Size ElementSize)
         {
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(SetGraphicsFormat)} property '{nameof(ElementGrid)}' was null");
@@ -169,7 +167,7 @@ namespace ImageMagitek
 
             ElementPixelSize = ElementSize;
 
-            int elembitsize = format.StorageSize(ElementSize.Width, ElementSize.Height);
+            int elembitsize = format.StorageSize;
             ArrangerBitSize = ArrangerElementSize.Width * ArrangerElementSize.Height * elembitsize;
 
             if (FileSize * 8 < address + ArrangerBitSize)
@@ -180,7 +178,7 @@ namespace ImageMagitek
                 for (int j = 0; j < ArrangerElementSize.Width; j++)
                 {
                     ElementGrid[j, i].FileAddress = address;
-                    ElementGrid[j, i].FormatName = Format;
+                    ElementGrid[j, i].FormatName = FormatName;
                     ElementGrid[j, i].Width = ElementPixelSize.Width;
                     ElementGrid[j, i].Height = ElementPixelSize.Height;
                     ElementGrid[j, i].X1 = j * ElementPixelSize.Width;

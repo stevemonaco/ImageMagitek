@@ -84,42 +84,13 @@ namespace ImageMagitek
         public int Y2 { get => Y1 + Height - 1; }
 
         /// <summary>
-        /// Preallocated buffer that separates and stores pixel color data
-        /// </summary>
-        public List<byte[]> ElementData { get; private set; }
-
-        /// <summary>
-        /// Preallocated buffer that stores merged pixel color data
-        /// </summary>
-        public byte[] MergedData { get; private set; }
-
-        /// <summary>
         /// Number of bits required to store the Element's foreign pixel data
         /// </summary>
         public int StorageSize { get => (Width + GraphicsFormat.RowStride) * Height * GraphicsFormat.ColorDepth + GraphicsFormat.ElementStride; }
 
-        /// <summary>
-        /// Used to allocate internal buffers to hold graphical data specific to the Element
-        /// </summary>
-        private void AllocateBuffers()
-        {
-            if (IsBlank())
-                return;
-
-            ElementData.Clear();
-            for (int i = 0; i < GraphicsFormat.ColorDepth; i++)
-            {
-                byte[] data = new byte[Width * Height];
-                ElementData.Add(data);
-            }
-
-            MergedData = new byte[Width * Height];
-        }
-
         public void InitializeGraphicsFormat(GraphicsFormat format)
         {
             GraphicsFormat = format;
-            AllocateBuffers();
         }
 
         public ArrangerElement()
@@ -134,8 +105,6 @@ namespace ImageMagitek
             Y1 = 0;
 
             Codec = new BlankCodec();
-
-            ElementData = new List<byte[]>();
         }
 
         /// <summary>
@@ -159,20 +128,6 @@ namespace ImageMagitek
                 X1 = X1,
                 Y1 = Y1
             };
-
-            if (IsBlank()) // Blank elements have no data buffers to copy
-                return el;
-
-            // Copy MergedData
-            el.AllocateBuffers();
-            el.Parent = Parent;
-            for (int i = 0; i < MergedData.Length; i++)
-                el.MergedData[i] = MergedData[i];
-
-            // Copy TileData
-            for (int i = 0; i < ElementData.Count; i++)
-                for (int j = 0; j < ElementData[i].Length; j++)
-                    el.ElementData[i][j] = ElementData[i][j];
 
             return el;
         }

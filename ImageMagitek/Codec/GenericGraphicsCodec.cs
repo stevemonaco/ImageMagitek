@@ -4,6 +4,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Advanced;
 using ImageMagitek.ExtensionMethods;
+using System.Collections.Generic;
 
 namespace ImageMagitek
 {
@@ -25,9 +26,32 @@ namespace ImageMagitek
         public string Name { get; set; }
         public GraphicsFormat Format { get; private set; }
 
+        /// <summary>
+        /// Preallocated buffer that separates and stores pixel color data
+        /// </summary>
+        private List<byte[]> ElementData;
+
+        /// <summary>
+        /// Preallocated buffer that stores merged pixel color data
+        /// </summary>
+        private byte[] MergedData;
+
         public GenericGraphicsCodec(GraphicsFormat format)
         {
             Format = format;
+            AllocateBuffers();
+        }
+
+        private void AllocateBuffers()
+        {
+            ElementData = new List<byte[]>();
+            for (int i = 0; i < Format.ColorDepth; i++)
+            {
+                byte[] data = new byte[Format.Width * Format.Height];
+                ElementData.Add(data);
+            }
+
+            MergedData = new byte[Format.Width * Format.Height];
         }
 
         #region Graphics Decoding Functions
@@ -38,9 +62,9 @@ namespace ImageMagitek
         /// <param name="el">ArrangerElement to decode</param>
         public void Decode(Image<Rgba32> image, ArrangerElement el)
         {
-            if (el.GraphicsFormat.ColorType == PixelColorType.Indexed)
+            if (Format.ColorType == PixelColorType.Indexed)
                 IndexedDecode(image, el);
-            else if (el.GraphicsFormat.ColorType == PixelColorType.Direct)
+            else if (Format.ColorType == PixelColorType.Direct)
                 DirectDecode(image, el);
         }
 
@@ -52,25 +76,24 @@ namespace ImageMagitek
         unsafe void IndexedDecode(Image<Rgba32> image, ArrangerElement el)
         {
             FileStream fs = el.DataFile.Stream;
-            GraphicsFormat format = el.GraphicsFormat;
 
-            format.Resize(el.Width, el.Height);
+            Format.Resize(el.Width, el.Height);
 
-            if (el.FileAddress + el.StorageSize > fs.Length * 8) // Element would contain data past the end of the file
+            if (el.FileAddress + Format.StorageSize > fs.Length * 8) // Element would contain data past the end of the file
             {
                 DecodeBlank(image, el);
                 return;
             }
 
-            byte[] data = fs.ReadUnshifted(el.FileAddress, el.StorageSize, true);
+            byte[] data = fs.ReadUnshifted(el.FileAddress, Format.StorageSize, true);
 
-            BitStream bs = BitStream.OpenRead(data, el.StorageSize); // TODO: Change to account for first bit alignment
+            BitStream bs = BitStream.OpenRead(data, Format.StorageSize); // TODO: Change to account for first bit alignment
 
             int plane = 0;
             int pos = 0;
 
             // Deinterlace into separate bitplanes
-            foreach (ImageProperty ip in format.ImageProperties)
+            foreach (ImageProperty ip in Format.ImageProperties)
             {
                 pos = 0;
                 if (ip.RowInterlace)
@@ -81,7 +104,7 @@ namespace ImageMagitek
                         {
                             pos = y * el.Height;
                             for (int x = 0; x < el.Width; x++)
-                                el.ElementData[format.MergePriority[curPlane]][pos + ip.RowExtendedPixelPattern[x]] = (byte)bs.ReadBit();
+                                ElementData[Format.MergePriority[curPlane]][pos + ip.RowExtendedPixelPattern[x]] = (byte)bs.ReadBit();
                         }
                     }
                 }
@@ -90,7 +113,7 @@ namespace ImageMagitek
                     for (int y = 0; y < el.Height; y++, pos += el.Width)
                         for (int x = 0; x < el.Width; x++)
                             for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
-                                el.ElementData[format.MergePriority[curPlane]][pos + ip.RowExtendedPixelPattern[x]] = (byte)bs.ReadBit();
+                                ElementData[Format.MergePriority[curPlane]][pos + ip.RowExtendedPixelPattern[x]] = (byte)bs.ReadBit();
                 }
 
                 plane += ip.ColorDepth;
@@ -99,12 +122,12 @@ namespace ImageMagitek
             // Merge into foreign pixel data
             byte foreignPixelData = 0;
 
-            for (pos = 0; pos < el.MergedData.Length; pos++)
+            for (pos = 0; pos < MergedData.Length; pos++)
             {
                 foreignPixelData = 0;
-                for (int i = 0; i < format.ColorDepth; i++)
-                    foreignPixelData |= (byte)(el.ElementData[i][pos] << i); // Works for SNES palettes
-                el.MergedData[pos] = foreignPixelData;
+                for (int i = 0; i < Format.ColorDepth; i++)
+                    foreignPixelData |= (byte)(ElementData[i][pos] << i); // Works for SNES palettes
+                MergedData[pos] = foreignPixelData;
             }
 
             // Translate foreign colors to native colors and draw to bitmap
@@ -180,11 +203,11 @@ namespace ImageMagitek
             int srcidx = 0;
 
             // Copy data into image
-            for (int y = 0; y < el.Height; y++)
+            for (int y = 0; y < Format.Height; y++)
             {
-                for(int x = 0; x < el.Width; x++, srcidx++, destidx++)
+                for(int x = 0; x < Format.Width; x++, srcidx++, destidx++)
                 {
-                    var nc = el.Palette[el.MergedData[srcidx]];
+                    var nc = el.Palette[MergedData[srcidx]];
                     var col = new Rgba32(nc.R(), nc.G(), nc.B(), nc.A());
                     dest[destidx] = col;
                 }
@@ -230,32 +253,30 @@ namespace ImageMagitek
             // ReadBitmap for local->foreign color conversion into fmt.MergedData
             ReadBitmapIndexedSafe(image, el);
 
-            GraphicsFormat format = el.GraphicsFormat;
-
             // Loop over MergedData to split foreign colors into bit planes in fmt.TileData
-            for (int pos = 0; pos < el.MergedData.Length; pos++)
+            for (int pos = 0; pos < MergedData.Length; pos++)
             {
-                for (int i = 0; i < format.ColorDepth; i++)
-                    el.ElementData[i][pos] = (byte)((el.MergedData[pos] >> i) & 0x1);
+                for (int i = 0; i < Format.ColorDepth; i++)
+                    ElementData[i][pos] = (byte)((MergedData[pos] >> i) & 0x1);
             }
 
             // Loop over planes and putbit to data buffer with proper interlacing
-            BitStream bs = BitStream.OpenWrite(el.StorageSize, 8);
+            BitStream bs = BitStream.OpenWrite(Format.StorageSize, 8);
             int plane = 0;
 
-            foreach (ImageProperty ip in format.ImageProperties)
+            foreach (ImageProperty ip in Format.ImageProperties)
             {
                 int pos = 0;
 
                 if (ip.RowInterlace)
                 {
-                    for (int y = 0; y < el.Height; y++)
+                    for (int y = 0; y < Format.Height; y++)
                     {
                         for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
                         {
                             pos = y * el.Height;
-                            for (int x = 0; x < format.Width; x++, pos++)
-                                bs.WriteBit(el.ElementData[curPlane][pos]);
+                            for (int x = 0; x < Format.Width; x++, pos++)
+                                bs.WriteBit(ElementData[curPlane][pos]);
                             //for (int x = 0; x < el.Width; x++)
                             //    bs.WriteBit(el.ElementData[format.MergePriority[curPlane]][pos + ip.RowPixelPattern[x]]);
                         }
@@ -263,11 +284,11 @@ namespace ImageMagitek
                 }
                 else
                 {
-                    for (int y = 0; y < el.Height; y++, pos += el.Width)
+                    for (int y = 0; y < Format.Height; y++, pos += Format.Width)
                     {
-                        for (int x = 0; x < el.Width; x++)
+                        for (int x = 0; x < Format.Width; x++)
                             for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
-                                bs.WriteBit(el.ElementData[curPlane][pos + ip.RowPixelPattern[x]]);
+                                bs.WriteBit(ElementData[curPlane][pos + ip.RowPixelPattern[x]]);
                     }
 
                     /*for (int y = 0; y < el.Height; y++, pos += el.Width)
@@ -299,12 +320,12 @@ namespace ImageMagitek
             int destidx = 0;
 
             // Copy data into element
-            for (int y = 0; y < el.Height; y++)
+            for (int y = 0; y < Format.Height; y++)
             {
-                for (int x = 0; x < el.Width; x++, srcidx++, destidx++)
+                for (int x = 0; x < Format.Width; x++, srcidx++, destidx++)
                 {
                     var col = src[srcidx];
-                    el.MergedData[destidx] = el.Palette.GetIndexByNativeColor(new NativeColor(col.A, col.R, col.G, col.B), true);
+                    MergedData[destidx] = el.Palette.GetIndexByNativeColor(new NativeColor(col.A, col.R, col.G, col.B), true);
                 }
                 srcidx += el.X1 + image.Width - (el.X2 + 1);
             }

@@ -91,7 +91,7 @@ namespace ImageMagitek
         /// Storage size of an element in bits
         /// </summary>
         /// <returns></returns>
-        public int StorageSize(int width, int height) { return (width + RowStride) * height * ColorDepth + ElementStride; }
+        public int StorageSize => (Width + RowStride) * Height * ColorDepth + ElementStride;
 
         public IList<ImageProperty> ImageProperties { get; set; } = new List<ImageProperty>();
 
