@@ -25,6 +25,7 @@ namespace ImageMagitek
     {
         public string Name { get; set; }
         public GraphicsFormat Format { get; private set; }
+        public int StorageSize => Format.StorageSize;
 
         /// <summary>
         /// Preallocated buffer that separates and stores pixel color data

@@ -86,7 +86,7 @@ namespace ImageMagitek
         /// <summary>
         /// Number of bits required to store the Element's foreign pixel data
         /// </summary>
-        public int StorageSize { get => (Width + GraphicsFormat.RowStride) * Height * GraphicsFormat.ColorDepth + GraphicsFormat.ElementStride; }
+        //public int StorageSize { get => (Width + GraphicsFormat.RowStride) * Height * GraphicsFormat.ColorDepth + GraphicsFormat.ElementStride; }
 
         public void InitializeGraphicsFormat(GraphicsFormat format)
         {

@@ -55,27 +55,27 @@ namespace ImageMagitek
                     address -= 8;
                     break;
                 case ArrangerMoveType.RowDown:
-                    delta = self.ArrangerElementSize.Width * self.ElementGrid[0, 0].StorageSize;
+                    delta = self.ArrangerElementSize.Width * self.ElementGrid[0, 0].Codec.StorageSize;
                     address += delta;
                     break;
                 case ArrangerMoveType.RowUp:
-                    delta = self.ArrangerElementSize.Width * self.ElementGrid[0, 0].StorageSize;
+                    delta = self.ArrangerElementSize.Width * self.ElementGrid[0, 0].Codec.StorageSize;
                     address -= delta;
                     break;
                 case ArrangerMoveType.ColRight:
-                    delta = self.ElementGrid[0, 0].StorageSize;
+                    delta = self.ElementGrid[0, 0].Codec.StorageSize;
                     address += delta;
                     break;
                 case ArrangerMoveType.ColLeft:
-                    delta = self.ElementGrid[0, 0].StorageSize;
+                    delta = self.ElementGrid[0, 0].Codec.StorageSize;
                     address -= delta;
                     break;
                 case ArrangerMoveType.PageDown:
-                    delta = self.ArrangerElementSize.Width * self.ElementGrid[0, 0].StorageSize * self.ArrangerElementSize.Height / 2;
+                    delta = self.ArrangerElementSize.Width * self.ElementGrid[0, 0].Codec.StorageSize * self.ArrangerElementSize.Height / 2;
                     address += delta;
                     break;
                 case ArrangerMoveType.PageUp:
-                    delta = self.ArrangerElementSize.Width * self.ElementGrid[0, 0].StorageSize * self.ArrangerElementSize.Height / 2;
+                    delta = self.ArrangerElementSize.Width * self.ElementGrid[0, 0].Codec.StorageSize * self.ArrangerElementSize.Height / 2;
                     address -= delta;
                     break;
                 case ArrangerMoveType.Home:
@@ -121,7 +121,7 @@ namespace ImageMagitek
             else
                 address = absoluteAddress;
 
-            int ElementStorageSize = self.ElementGrid[0, 0].StorageSize;
+            int ElementStorageSize = self.ElementGrid[0, 0].Codec.StorageSize;
 
             foreach(var el in self.EnumerateElements())
             {

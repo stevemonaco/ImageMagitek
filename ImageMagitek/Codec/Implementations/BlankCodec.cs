@@ -10,6 +10,9 @@ namespace ImageMagitek.Codec
     public sealed class BlankCodec : IGraphicsCodec
     {
         public string Name => "Blank";
+
+        public int StorageSize => 0;
+
         private Rgba32 FillColor = Rgba32.Black;
 
         public BlankCodec() { }

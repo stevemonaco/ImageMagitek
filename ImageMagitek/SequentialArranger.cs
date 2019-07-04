@@ -99,7 +99,7 @@ namespace ImageMagitek
                     ElementGrid[j, i] = el;
 
                     if (format.Layout == ImageLayout.Tiled)
-                        address += el.StorageSize;
+                        address += el.Codec.StorageSize;
                     else // Linear
                         address += (ElementPixelSize.Width + format.RowStride) * format.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
 
@@ -112,7 +112,7 @@ namespace ImageMagitek
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
             ElementPixelSize = new Size(ElementPixelSize.Width, ElementPixelSize.Height);
 
-            ArrangerBitSize = arrangerWidth * arrangerHeight * lastElem.StorageSize;
+            ArrangerBitSize = arrangerWidth * arrangerHeight * lastElem.Codec.StorageSize;
 
             address = GetInitialSequentialFileAddress();
             address = this.Move(address);

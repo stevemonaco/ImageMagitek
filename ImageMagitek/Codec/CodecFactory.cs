@@ -16,15 +16,21 @@ namespace ImageMagitek.Codec
                 Formats = formats;
         }
 
-        public IGraphicsCodec GetCodec(string codecName)
+        public IGraphicsCodec GetCodec(string codecName, int width = 8, int height = 8)
         {
-            switch(codecName)
+            switch (codecName)
             {
                 case "SNES3bpp":
-                    return new SNES3bppCodec();
+                    return new SNES3bppCodec(width, height);
                 default:
                     if (Formats.ContainsKey(codecName))
-                        return new GenericGraphicsCodec(Formats[codecName].Clone());
+                    {
+                        var format = Formats[codecName].Clone();
+                        format.Width = 8;
+                        format.Height = 8;
+
+                        return new GenericGraphicsCodec(format);
+                    }
                     else
                         throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{nameof(codecName)}'");
             }

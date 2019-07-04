@@ -244,7 +244,7 @@ namespace ImageMagitek.Project
             {
                 foreach(var el in arranger.EnumerateElements())
                 {
-                    el.Codec = CodecFactory.GetCodec(el.FormatName);
+                    el.Codec = CodecFactory.GetCodec(el.FormatName, el.Width, el.Height);
                     if (el.Codec is GenericGraphicsCodec ggc)
                         el.InitializeGraphicsFormat(ggc.Format);
                 }
