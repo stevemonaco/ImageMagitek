@@ -64,7 +64,46 @@ namespace ImageMagitek
 
         public void Encode(Image<Rgba32> image, ArrangerElement el)
         {
-            throw new NotImplementedException();
+            var fs = el.DataFile.Stream;
+
+            if (el.FileAddress + StorageSize > fs.Length * 8) // Element would contain data past the end of the file
+                return;
+
+            var bs = BitStream.OpenWrite(StorageSize, 8);
+
+            var offsetPlane1 = 0;
+            var offsetPlane2 = el.Width;
+            var offsetPlane3 = el.Width * el.Height * 2;
+
+            for (int y = 0; y < el.Height; y++)
+            {
+                for (int x = 0; x < el.Width; x++)
+                {
+                    var imageColor = image[x + el.X1, y + el.Y1];
+                    var nc = new NativeColor(imageColor.A, imageColor.R, imageColor.G, imageColor.B);
+                    byte index = el.Palette.GetIndexByNativeColor(nc, true);
+
+                    byte bp1 = (byte)(index & 1);
+                    byte bp2 = (byte)((index >> 1) & 1);
+                    byte bp3 = (byte)((index >> 2) & 1);
+
+                    bs.SeekAbsolute(offsetPlane1);
+                    bs.WriteBit(bp1);
+                    bs.SeekAbsolute(offsetPlane2);
+                    bs.WriteBit(bp2);
+                    bs.SeekAbsolute(offsetPlane3);
+                    bs.WriteBit(bp3);
+
+                    offsetPlane1++;
+                    offsetPlane2++;
+                    offsetPlane3++;
+                }
+                offsetPlane1 += Width;
+                offsetPlane2 += Width;
+            }
+
+            fs.Seek(el.FileAddress.FileOffset, System.IO.SeekOrigin.Begin);
+            fs.Write(bs.Data, 0, bs.Data.Length);
         }
     }
 }
