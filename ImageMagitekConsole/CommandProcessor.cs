@@ -64,6 +64,8 @@ namespace ImageMagitekConsole
 
         public bool ImportImage(string imageFileName, string arrangerKey)
         {
+            Console.WriteLine($"Importing {imageFileName} to {arrangerKey}...");
+
             var arranger = Resources.GetResource<ScatteredArranger>(arrangerKey);
 
             using (var rm = new RenderManager())
