@@ -219,10 +219,8 @@ namespace ImageMagitek.Project
         /// <returns></returns>
         public void ClearResources()
         {
-            ResourceTree.SelfAndDescendants().OfType<DataFile>().ForEach((x) =>
-            {
-                x.Close();
-            });
+            foreach (var df in ResourceTree.SelfAndDescendants().OfType<DataFile>())
+                df.Close();
 
             ResourceTree.Clear();
         }
