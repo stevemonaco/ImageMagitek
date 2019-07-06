@@ -9,10 +9,10 @@ using ImageMagitek.Project;
 
 namespace ImageMagitek
 {
-    // RenderManager
-    // Class that is responsible for rendering an Arranger into a bitmap
-
-    public class RenderManager : IDisposable
+    /// <summary>
+    /// Provides support for rendering Arrangers to an image, manipulating pixel data, and saving to disk with sequential operations
+    /// </summary>
+    public class ArrangerImage : IArrangerImage<Rgba32>, IDisposable
     {
         public Image<Rgba32> Image { get; set; }
         bool NeedsRedraw = true;
@@ -34,9 +34,6 @@ namespace ImageMagitek
 
             if (Image is null || arranger.ArrangerPixelSize.Height != Image.Height || arranger.ArrangerPixelSize.Width != Image.Width)
                 Image = new Image<Rgba32>(arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
-
-            if(Image is null)
-                throw new InvalidOperationException();
 
             if (!NeedsRedraw)
                 return true;
@@ -142,7 +139,7 @@ namespace ImageMagitek
             Disposed = true;
         }
 
-        ~RenderManager()
+        ~ArrangerImage()
         {
             Dispose(false);
         }

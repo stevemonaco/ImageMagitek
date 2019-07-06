@@ -43,7 +43,7 @@ namespace ImageMagitekConsole
 
             Directory.CreateDirectory(Path.GetDirectoryName(exportFileName));
 
-            using (var rm = new RenderManager())
+            using (var rm = new ArrangerImage())
             using (var fs = File.Create(exportFileName, 32 * 1024, FileOptions.SequentialScan))
             {
                 rm.Render(arranger);
@@ -68,7 +68,7 @@ namespace ImageMagitekConsole
 
             var arranger = Resources.GetResource<ScatteredArranger>(arrangerKey);
 
-            using (var rm = new RenderManager())
+            using (var rm = new ArrangerImage())
             {
                 rm.LoadImage(imageFileName);
                 rm.SaveImage(arranger);
