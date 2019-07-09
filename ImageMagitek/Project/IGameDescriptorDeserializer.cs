@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using Monaco.PathTree;
 
 namespace ImageMagitek.Project
 {
     public interface IGameDescriptorDeserializer
     {
-        IDictionary<string, ProjectResourceBase> DeserializeProject(string fileName, string baseDirectory);
+        PathTree<ProjectResourceBase> DeserializeProject(string fileName, string baseDirectory);
     }
 }

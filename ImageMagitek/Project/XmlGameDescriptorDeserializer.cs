@@ -4,14 +4,24 @@ using System.IO;
 using System.Xml;
 using System.Xml.Linq;
 using System.Linq;
-using ImageMagitek.Project.Models;
+using ImageMagitek.Project.SerializationModels;
+using ImageMagitek.ExtensionMethods;
 using System.Drawing;
+using Monaco.PathTree;
+using ImageMagitek.Codec;
 
 namespace ImageMagitek.Project
 {
     public class XmlGameDescriptorDeserializer : IGameDescriptorDeserializer
     {
-        public IDictionary<string, ProjectResourceBase> DeserializeProject(string fileName, string baseDirectory)
+        private CodecFactory _codecFactory;
+
+        public XmlGameDescriptorDeserializer(CodecFactory CodecFactory)
+        {
+            _codecFactory = CodecFactory;
+        }
+
+        public PathTree<ProjectResourceBase> DeserializeProject(string fileName, string baseDirectory)
         {
             if (string.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentException($"{nameof(DeserializeProject)} cannot have a null or empty value for '{nameof(fileName)}'");
@@ -24,46 +34,56 @@ namespace ImageMagitek.Project
             XElement projectNode = doc.Element("project");
 
             Directory.SetCurrentDirectory(baseDirectory);
-            var resourceTree = new Dictionary<string, ProjectResourceBase>();
+            var tree = new PathTree<ProjectResourceBase>();
 
-            foreach (var resource in DeserializeChildren(projectNode))
-                resourceTree.Add(resource.Name, resource);
-
-            return resourceTree;
-        }
-
-        private IEnumerable<ProjectResourceBase> DeserializeChildren(XElement element)
-        {
-            foreach (XElement node in element.Elements())
+            foreach(var node in projectNode.Descendants("folder"))
             {
-                if (node.Name == "folder")
-                {
-                    var folder = DeserializeResourceFolder(node).ToResourceFolder();
-
-                    foreach (var child in DeserializeChildren(node))
-                    {
-                        child.Parent = folder;
-                        folder.ChildResources.Add(child.Name, child);
-                    }
-                    yield return folder;
-                }
-                else if (node.Name == "datafile")
-                {
-                    yield return DeserializeDataFile(node).ToDataFile();
-                }
-                else if (node.Name == "palette")
-                {
-                    var pal = DeserializePalette(node).ToPalette();
-                    pal.LazyLoadPalette(pal.DataFileKey, pal.FileAddress, pal.ColorModel, pal.ZeroIndexTransparent, pal.Entries);
-                    yield return pal;
-                }
-                else if (node.Name == "arranger")
-                {
-                    var arr = DeserializeScatteredArranger(node).ToScatteredArranger();
-                    arr.Rename(node.Attribute("name").Value);
-                    yield return arr;
-                }
+                var res = DeserializeResourceFolder(node).ToResourceFolder();
+                var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
+                tree.Add(path, res);
             }
+
+            foreach (var node in projectNode.Descendants("datafile"))
+            {
+                var res = DeserializeDataFile(node).ToDataFile();
+                var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
+                tree.Add(path, res);
+            }
+
+            foreach (var node in projectNode.Descendants("palette"))
+            {
+                var model = DeserializePalette(node);
+                var pal = model.ToPalette();
+                tree.TryGetValue<DataFile>(model.DataFileKey, out var df);
+                pal.DataFile = df;
+                pal.LazyLoadPalette(model.DataFileKey, pal.FileAddress, pal.ColorModel, pal.ZeroIndexTransparent, pal.Entries);
+                var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
+                tree.Add(path, pal);
+            }
+
+            foreach (var node in projectNode.Descendants("arranger"))
+            {
+                var model = DeserializeScatteredArranger(node);
+                var arranger = model.ToScatteredArranger();
+
+                for(int x = 0; x < arranger.ArrangerElementSize.Width; x++)
+                {
+                    for(int y = 0; y < arranger.ArrangerElementSize.Height; y++)
+                    {
+                        tree.TryGetValue<DataFile>(model.ElementGrid[x, y].DataFileKey, out var df);
+                        tree.TryGetValue<Palette>(model.ElementGrid[x, y].PaletteKey, out var pal);
+                        var el = arranger.ElementGrid[x, y];
+                        el.DataFile = df;
+                        el.Palette = pal;
+                        el.Codec = _codecFactory.GetCodec(el.FormatName, el.Width, el.Height);
+                    }
+                }
+
+                var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
+                tree.Add(path, arranger);
+            }
+
+            return tree;
         }
 
         private DataFileModel DeserializeDataFile(XElement element)
