@@ -231,7 +231,7 @@ namespace ImageMagitek.Project
         #region XML Management
         public bool LoadProject(string fileName, string baseDirectory)
         {
-            var serializer = new XmlGameDescriptorDeserializer();
+            /*var serializer = new XmlGameDescriptorDeserializer();
             var tree = serializer.DeserializeProject(fileName, baseDirectory);
 
             // Add root-level nodes to the ResourceTree
@@ -288,7 +288,7 @@ namespace ImageMagitek.Project
 
             // Invoke ResourceAdded event for every deserialized node
             foreach (var item in tree.SelfAndDescendants())
-                ResourceAdded?.Invoke(this, new ResourceEventArgs(item.ResourceKey));
+                ResourceAdded?.Invoke(this, new ResourceEventArgs(item.ResourceKey));*/
 
             return true;
         }

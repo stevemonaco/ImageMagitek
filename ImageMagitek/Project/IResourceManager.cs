@@ -6,11 +6,8 @@ namespace ImageMagitek.Project
 {
     interface IResourceManager
     {
-        //void AddGraphicsFormat(GraphicsFormat format);
-        //GraphicsFormat GetGraphicsFormat(string formatName);
-        //bool LoadFormat(string fileName);
-        //void RemoveGraphicsFormat(string formatName);
-        //IEnumerable<GraphicsFormat> EnumerateFormats();
+        bool LoadProject(string fileName, string baseDirectory);
+        bool SaveProject(Stream stream);
 
         bool AddResource(string resourceKey, ProjectResourceBase resource);
         T GetResource<T>(string resourceKey) where T : ProjectResourceBase;
@@ -21,8 +18,5 @@ namespace ImageMagitek.Project
         bool RemoveResource(string resourceKey);
         bool RenameResource(string resourceKey, string newName);
         IEnumerable<ProjectResourceBase> EnumerateResources();
-
-        bool LoadProject(string fileName, string baseDirectory);
-        bool SaveProject(Stream stream);
     }
 }
