@@ -6,10 +6,10 @@ using SixLabors.ImageSharp.Advanced;
 using ImageMagitek.ExtensionMethods;
 using System.Collections.Generic;
 
-namespace ImageMagitek
+namespace ImageMagitek.Codec
 {
     /// <summary>
-    /// GenericGraphicsCodec provides a generalized method to encode/decode bitmap formats
+    /// GeneralGraphicsCodec provides a generalized method to encode/decode bitmap formats
     /// The process goes through several stages of transformations
     /// 
     /// For indexed bitmaps:
@@ -21,7 +21,7 @@ namespace ImageMagitek
     /// For direct bitmaps:
     /// In development
     /// </summary>
-    public class GenericGraphicsCodec : IGraphicsCodec
+    public class GeneralGraphicsCodec : IGraphicsCodec
     {
         public string Name { get; set; }
         public GraphicsFormat Format { get; private set; }
@@ -44,7 +44,7 @@ namespace ImageMagitek
         /// </summary>
         private byte[] MergedData;
 
-        public GenericGraphicsCodec(GraphicsFormat format)
+        public GeneralGraphicsCodec(GraphicsFormat format)
         {
             Format = format;
             AllocateBuffers();

@@ -29,7 +29,7 @@ namespace ImageMagitek.Codec
                         format.Width = 8;
                         format.Height = 8;
 
-                        return new GenericGraphicsCodec(format);
+                        return new GeneralGraphicsCodec(format);
                     }
                     else
                         throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{nameof(codecName)}'");

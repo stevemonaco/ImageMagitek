@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ImageMagitek
+namespace ImageMagitek.Codec
 {
     public class ImageProperty
     {

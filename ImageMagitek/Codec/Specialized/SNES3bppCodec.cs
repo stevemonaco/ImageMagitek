@@ -5,7 +5,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using ImageMagitek.ExtensionMethods;
 
-namespace ImageMagitek
+namespace ImageMagitek.Codec
 {
     public sealed class SNES3bppCodec : IGraphicsCodec
     {
