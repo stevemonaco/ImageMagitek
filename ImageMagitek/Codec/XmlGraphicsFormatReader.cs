@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace ImageMagitek
 {
-    public class XmlGraphicsFormatSerializer : IGraphicsFormatSerializer
+    public class XmlGraphicsFormatReader : IGraphicsFormatReader
     {
         public GraphicsFormat LoadFromFile(string fileName)
         {

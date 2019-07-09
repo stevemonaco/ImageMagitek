@@ -42,7 +42,7 @@ namespace ImageMagitekConsole
             // Load default graphic formats and palettes
             var codecPath = Path.Combine(Directory.GetCurrentDirectory(), "codecs");
             var formats = new Dictionary<string, GraphicsFormat>();
-            var serializer = new XmlGraphicsFormatSerializer();
+            var serializer = new XmlGraphicsFormatReader();
             foreach (var formatFileName in Directory.GetFiles(codecPath).Where(x => x.EndsWith(".xml")))
             {
                 var format = serializer.LoadFromFile(formatFileName);

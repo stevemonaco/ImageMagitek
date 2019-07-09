@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ImageMagitek
 {
-    public interface IGraphicsFormatSerializer
+    public interface IGraphicsFormatReader
     {
         GraphicsFormat LoadFromFile(string fileName);
     }
