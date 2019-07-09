@@ -149,13 +149,7 @@ namespace ImageMagitek
         /// Gets the GraphicsFormat name for a Sequential Arranger
         /// </summary>
         /// <returns></returns>
-        public string GetSequentialGraphicsFormat()
-        {
-            if (ElementGrid is null)
-                throw new NullReferenceException($"{nameof(GetSequentialGraphicsFormat)} property '{nameof(ElementGrid)}' was null");
-
-            return ElementGrid[0, 0].FormatName;
-        }
+        public string GetSequentialGraphicsFormat() => _codecName;
 
         /// <summary>
         /// Sets the GraphicsFormat name and Element size for a Sequential Arranger
