@@ -7,28 +7,27 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Bmp;
 using ImageMagitek;
 using ImageMagitek.Project;
+using Monaco.PathTree;
 
 namespace ImageMagitekConsole
 {
     public class CommandProcessor
     {
-        private readonly IDictionary<string, GraphicsFormat> GraphicsFormats;
-        private readonly ResourceManager Resources;
+        private readonly PathTree<ProjectResourceBase> ResourceTree;
 
-        public CommandProcessor(ResourceManager resourceManager, IDictionary<string, GraphicsFormat> formats)
+        public CommandProcessor(PathTree<ProjectResourceBase> resourceTree)
         {
-            Resources = resourceManager;
-            GraphicsFormats = formats;
+            ResourceTree = resourceTree;
         }
 
         public bool PrintResources()
         {
-            foreach (var res in Resources.TraverseDepthFirst())
+            foreach (var res in ResourceTree.EnumerateDepthFirst())
             {
-                string resourceKey = res.ResourceKey;
-                int level = resourceKey.Split('\\').Length;
+                string key = res.PathKey;
+                int level = key.Split('\\').Length;
 
-                Console.WriteLine($"{res.Name}({level}): {Resources.GetResourceType(res.ResourceKey).ToString()}");
+                Console.WriteLine($"{res.Name}({level}): {res.Value.GetType().ToString()}");
             }
 
             return true;
@@ -36,7 +35,7 @@ namespace ImageMagitekConsole
 
         public bool ExportArranger(string arrangerKey, string projectRoot)
         {
-            var arranger = Resources.GetResource<ScatteredArranger>(arrangerKey);
+            ResourceTree.TryGetValue(arrangerKey, out ScatteredArranger arranger);
 
             var exportFileName = Path.Combine(projectRoot, arrangerKey + ".bmp");
             Console.WriteLine($"Exporting {arranger.Name} to {exportFileName}...");
@@ -55,18 +54,17 @@ namespace ImageMagitekConsole
 
         public bool ExportAllArrangers(string projectRoot)
         {
-            foreach (var res in Resources.TraverseDepthFirst().OfType<ScatteredArranger>())
-                ExportArranger(res.ResourceKey, projectRoot);
+            foreach (var res in ResourceTree.EnumerateDepthFirst().OfType<IPathTreeNode<ScatteredArranger>>())
+                ExportArranger(res.PathKey, projectRoot);
 
             return true;
         }
-
 
         public bool ImportImage(string imageFileName, string arrangerKey)
         {
             Console.WriteLine($"Importing {imageFileName} to {arrangerKey}...");
 
-            var arranger = Resources.GetResource<ScatteredArranger>(arrangerKey);
+            ResourceTree.TryGetValue(arrangerKey, out ScatteredArranger arranger);
 
             using (var rm = new ArrangerImage())
             {
@@ -79,7 +77,7 @@ namespace ImageMagitekConsole
 
         public bool ImportAllImages(string projectRoot)
         {
-            foreach(var arranger in Resources.TraverseDepthFirst().OfType<ScatteredArranger>())
+            foreach(var arranger in ResourceTree.EnumerateDepthFirst().OfType<ScatteredArranger>())
             {
                 string imageFileName = Path.Combine(projectRoot, arranger.ResourceKey + ".bmp");
                 if(File.Exists(imageFileName))

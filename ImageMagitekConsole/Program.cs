@@ -54,10 +54,10 @@ namespace ImageMagitekConsole
                 palettes.Add(pal);
             }
 
-            var resourceManager = new ResourceManager(new CodecFactory(formats));
-            resourceManager.LoadProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
+            var deserializer = new XmlGameDescriptorDeserializer(new CodecFactory(formats));
+            var tree = deserializer.DeserializeProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
 
-            var processor = new CommandProcessor(resourceManager, formats);
+            var processor = new CommandProcessor(tree);
 
             switch (command)
             {
