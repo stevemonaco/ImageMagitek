@@ -25,8 +25,9 @@ namespace ImageMagitek
         /// <param name="elementWidth">Width of each element</param>
         /// <param name="elementHeight">Height of each element</param>
         /// <returns></returns>
-        public ScatteredArranger(ArrangerLayout layout, int arrangerWidth, int arrangerHeight, int elementWidth, int elementHeight)
+        public ScatteredArranger(string name, ArrangerLayout layout, int arrangerWidth, int arrangerHeight, int elementWidth, int elementHeight)
         {
+            Name = name;
             Mode = ArrangerMode.ScatteredArranger;
             Layout = layout;
             ElementGrid = new ArrangerElement[arrangerWidth, arrangerHeight];

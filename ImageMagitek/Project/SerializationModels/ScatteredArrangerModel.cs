@@ -11,7 +11,7 @@ namespace ImageMagitek.Project.SerializationModels
         public ArrangerLayout Layout { get; set; }
         public ScatteredArranger ToScatteredArranger()
         {
-            var arr = new ScatteredArranger(Layout, ArrangerElementSize.Width, ArrangerElementSize.Height, ElementPixelSize.Width, ElementPixelSize.Height);
+            var arr = new ScatteredArranger(Name, Layout, ArrangerElementSize.Width, ArrangerElementSize.Height, ElementPixelSize.Width, ElementPixelSize.Height);
 
             for(int x = 0; x < ElementGrid.GetLength(0); x++)
             {
