@@ -22,19 +22,9 @@ namespace ImageMagitek
         public DataFile DataFile { get; set; }
 
         /// <summary>
-        /// DataFile key in FileManager
-        /// </summary>
-        public string DataFileKey { get; set; }
-
-        /// <summary>
         /// FileAddress of Element
         /// </summary>
         public FileBitAddress FileAddress { get; set; }
-
-        /// <summary>
-        /// GraphicsFormat name for encoding/decoding the Element
-        /// </summary>
-        public string FormatName { get; set; }
 
         public IGraphicsCodec Codec { get; set; }
 
@@ -52,11 +42,6 @@ namespace ImageMagitek
         /// Palette to apply to the element's pixel data
         /// </summary>
         public Palette Palette { get; set; }
-
-        /// <summary>
-        /// Palette key in FileManager
-        /// </summary>
-        public string PaletteKey { get; set; }
 
         /// <summary>
         /// Left edge of the Element within the Arranger in unzoomed coordinates, inclusive
@@ -80,12 +65,9 @@ namespace ImageMagitek
 
         public ArrangerElement()
         {
-            DataFileKey = "";
             FileAddress = new FileBitAddress(0, 0);
-            FormatName = "";
             Width = 0;
             Height = 0;
-            PaletteKey = "Default";
             X1 = 0;
             Y1 = 0;
 
@@ -102,13 +84,10 @@ namespace ImageMagitek
             {
                 Parent = Parent,
                 DataFile = DataFile,
-                DataFileKey = DataFileKey,
                 FileAddress = FileAddress,
-                FormatName = FormatName,
                 Width = Width,
                 Height = Height,
                 Palette = Palette,
-                PaletteKey = PaletteKey,
                 X1 = X1,
                 Y1 = Y1
             };

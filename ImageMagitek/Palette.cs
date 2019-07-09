@@ -37,11 +37,6 @@ namespace ImageMagitek
         public DataFile DataFile { get; set; }
 
         /// <summary>
-        /// DataFile key which contains the palette
-        /// </summary>
-        public string DataFileKey { get; private set; }
-
-        /// <summary>
         /// Address of the palette within the file
         /// </summary>
         public FileBitAddress FileAddress { get; private set; }
@@ -96,7 +91,6 @@ namespace ImageMagitek
         {
             Name = name;
             ColorModel = colorModel;
-            DataFileKey = dataFileKey;
             FileAddress = fileAddress;
             Entries = entries;
             ZeroIndexTransparent = zeroIndexTransparent;
@@ -118,17 +112,7 @@ namespace ImageMagitek
         /// <returns></returns>
         public bool Reload()
         {
-            return LazyLoadPalette(DataFileKey, FileAddress, ColorModel, ZeroIndexTransparent, Entries);
-        }
-
-        /// <summary>
-        /// Sets the DataFile key source. Does not reload palette data.
-        /// </summary>
-        /// <param name="fileKey">New DataFile key</param>
-        /// <returns></returns>
-        public void SetFileKey(string fileKey)
-        {
-            DataFileKey = fileKey;
+            return LazyLoadPalette(DataFile, FileAddress, ColorModel, ZeroIndexTransparent, Entries);
         }
 
         /// <summary>
@@ -158,9 +142,9 @@ namespace ImageMagitek
                 ForeignPalette[idx] = (ForeignColor)color;
             }
 
+            // TODO: Set DataFile
             ColorModel = ColorModel.ARGB32;
             FileAddress = new FileBitAddress(0, 0);
-            DataFileKey = filename;
             Entries = entrySize;
             StorageSource = PaletteStorageSource.File;
 
@@ -170,18 +154,18 @@ namespace ImageMagitek
         /// <summary>
         /// Lazily loads palette from a previously opened file. Actual loading will occur during color access.
         /// </summary>
-        /// <param name="dataFileKey">DataFile key in FileManager</param>
+        /// <param name="dataFile">DataFile containing the palette data</param>
         /// <param name="address">File address to the beginning of the palette</param>
         /// <param name="model">ColorModel of the palette</param>
         /// <param name="zeroIndexTransparent">If the 0-index of the palette is automatically transparent</param>
         /// <param name="numEntries">Number of entries the palette contains</param>
         /// <returns>Success value</returns>
-        public bool LazyLoadPalette(string dataFileKey, FileBitAddress address, ColorModel model, bool zeroIndexTransparent, int numEntries)
+        public bool LazyLoadPalette(DataFile dataFile, FileBitAddress address, ColorModel model, bool zeroIndexTransparent, int numEntries)
         {
             if (numEntries > 256 || numEntries < 2)
                 throw new ArgumentOutOfRangeException($"{nameof(LazyLoadPalette)}: {nameof(numEntries)} ({numEntries}) is out of range");
 
-            DataFileKey = dataFileKey;
+            DataFile = dataFile;
             FileAddress = address;
             ColorModel = model;
             ZeroIndexTransparent = zeroIndexTransparent;
@@ -530,7 +514,6 @@ namespace ImageMagitek
                 ColorModel = ColorModel,
                 FileAddress = FileAddress,
                 DataFile = DataFile,
-                DataFileKey = DataFileKey,
                 Entries = Entries,
                 HasAlpha = HasAlpha,
                 ZeroIndexTransparent = ZeroIndexTransparent,

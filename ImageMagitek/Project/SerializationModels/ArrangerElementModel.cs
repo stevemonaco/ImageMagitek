@@ -24,9 +24,6 @@
         public ArrangerElement ToArrangerElement()
         {
             var el = new ArrangerElement();
-            el.DataFileKey = DataFileKey;
-            el.PaletteKey = PaletteKey;
-            el.FormatName = FormatName;
             el.FileAddress = FileAddress;
             el.X1 = PositionX;
             el.Y1 = PositionY;

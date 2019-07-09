@@ -56,26 +56,26 @@ namespace ImageMagitek.Project
                 var pal = model.ToPalette();
                 tree.TryGetValue<DataFile>(model.DataFileKey, out var df);
                 pal.DataFile = df;
-                pal.LazyLoadPalette(model.DataFileKey, pal.FileAddress, pal.ColorModel, pal.ZeroIndexTransparent, pal.Entries);
+                pal.LazyLoadPalette(pal.DataFile, pal.FileAddress, pal.ColorModel, pal.ZeroIndexTransparent, pal.Entries);
                 var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
                 tree.Add(path, pal);
             }
 
             foreach (var node in projectNode.Descendants("arranger"))
             {
-                var model = DeserializeScatteredArranger(node);
-                var arranger = model.ToScatteredArranger();
+                var modelArranger = DeserializeScatteredArranger(node);
+                var arranger = modelArranger.ToScatteredArranger();
 
                 for(int x = 0; x < arranger.ArrangerElementSize.Width; x++)
                 {
                     for(int y = 0; y < arranger.ArrangerElementSize.Height; y++)
                     {
-                        tree.TryGetValue<DataFile>(model.ElementGrid[x, y].DataFileKey, out var df);
-                        tree.TryGetValue<Palette>(model.ElementGrid[x, y].PaletteKey, out var pal);
-                        var el = arranger.ElementGrid[x, y];
-                        el.DataFile = df;
-                        el.Palette = pal;
-                        el.Codec = _codecFactory.GetCodec(el.FormatName, el.Width, el.Height);
+                        tree.TryGetValue<DataFile>(modelArranger.ElementGrid[x, y].DataFileKey, out var df);
+                        tree.TryGetValue<Palette>(modelArranger.ElementGrid[x, y].PaletteKey, out var pal);
+                        var element = arranger.ElementGrid[x, y];
+                        element.DataFile = df;
+                        element.Palette = pal;
+                        element.Codec = _codecFactory.GetCodec(modelArranger.ElementGrid[x, y].FormatName, element.Width, element.Height);
                     }
                 }
 

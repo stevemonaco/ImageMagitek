@@ -19,7 +19,7 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="self"></param>
         /// <returns></returns>
-        public static HashSet<string> GetPaletteKeySet(this Arranger self)
+        /*public static HashSet<string> GetPaletteKeySet(this Arranger self)
         {
             HashSet<string> palSet = new HashSet<string>();
 
@@ -27,7 +27,7 @@ namespace ImageMagitek
                 palSet.Add(el.PaletteKey);
 
             return palSet;
-        }
+        }*/
 
         /// <summary>
         /// Moves a Sequential Arranger's file position and updates each Element

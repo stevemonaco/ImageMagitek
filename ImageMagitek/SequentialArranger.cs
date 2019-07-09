@@ -33,17 +33,15 @@ namespace ImageMagitek
             Mode = ArrangerMode.SequentialArranger;
         }
 
-        public SequentialArranger(int arrangerWidth, int arrangerHeight, string dataFileKey, ICodecFactory codecFactory, string codecName)
+        public SequentialArranger(int arrangerWidth, int arrangerHeight, DataFile dataFile, ICodecFactory codecFactory, string codecName)
         {
-            DataFile df = GetResourceRelative<DataFile>(dataFileKey);
-
             Mode = ArrangerMode.SequentialArranger;
-            FileSize = df.Stream.Length;
-            Name = df.Name;
+            FileSize = dataFile.Stream.Length;
+            Name = dataFile.Name;
             _codecs = codecFactory;
             _codecName = codecName;
 
-            Resize(arrangerWidth, arrangerHeight, dataFileKey, codecName);
+            Resize(arrangerWidth, arrangerHeight, dataFile, codecName);
         }
 
         /// <summary>
@@ -57,7 +55,7 @@ namespace ImageMagitek
             if (Mode != ArrangerMode.SequentialArranger)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
-            Resize(arrangerWidth, arrangerHeight, ElementGrid[0, 0].DataFileKey, _codecName);
+            Resize(arrangerWidth, arrangerHeight, ElementGrid[0, 0].DataFile, _codecName);
         }
 
         /// <summary>
@@ -68,7 +66,7 @@ namespace ImageMagitek
         /// <param name="dataFileKey">DataFile key in IResourceManager</param>
         /// <param name="codecName">Codec name for encoding/decoding Elements</param>
         /// <returns></returns>
-        private FileBitAddress Resize(int arrangerWidth, int arrangerHeight, string dataFileKey, string codecName)
+        private FileBitAddress Resize(int arrangerWidth, int arrangerHeight, DataFile dataFile, string codecName)
         {
             if (Mode != ArrangerMode.SequentialArranger)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
@@ -99,8 +97,7 @@ namespace ImageMagitek
                         Y1 = y,
                         Width = ElementPixelSize.Width,
                         Height = ElementPixelSize.Height,
-                        DataFileKey = dataFileKey,
-                        FormatName = codecName
+                        DataFile = dataFile,
                     };
 
                     el.Codec = _codecs.GetCodec(codecName, el.Width, el.Height);

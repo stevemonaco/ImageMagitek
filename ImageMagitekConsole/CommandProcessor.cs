@@ -83,11 +83,13 @@ namespace ImageMagitekConsole
 
         public bool ImportAllImages(string projectRoot)
         {
-            foreach(var arranger in ResourceTree.EnumerateDepthFirst().OfType<ScatteredArranger>())
+            foreach (var node in ResourceTree.EnumerateDepthFirst().Where(x => x.Value is ScatteredArranger))
             {
-                string imageFileName = Path.Combine(projectRoot, arranger.ResourceKey + ".bmp");
+                var arranger = node.Value as ScatteredArranger;
+                var relativeFile = Path.Combine(node.Paths.ToArray());
+                var imageFileName = Path.Combine(projectRoot, relativeFile + ".bmp");
                 if(File.Exists(imageFileName))
-                    ImportImage(imageFileName, arranger.ResourceKey);
+                    ImportImage(imageFileName, node.PathKey);
             }
             return true;
         }

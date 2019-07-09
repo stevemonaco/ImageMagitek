@@ -96,7 +96,6 @@ namespace ImageMagitek
         public ArrangerSelectionData(Arranger arranger)
         {
             Arranger = arranger;
-            ArrangerKey = Arranger.ResourceKey;
             ClearSelection();
         }
 

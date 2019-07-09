@@ -68,27 +68,6 @@ namespace ImageMagitek.Project
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         /// <summary>
-        /// Returns the key of the ProjectResourceBase
-        /// </summary>
-        /// <returns></returns>
-        public string ResourceKey
-        {
-            get
-            {
-                string key = Name;
-                ProjectResourceBase parentVisitor = Parent;
-
-                while (parentVisitor != null)
-                {
-                    key = Path.Combine(parentVisitor.Name, key);
-                    parentVisitor = parentVisitor.Parent;
-                }
-
-                return key;
-            }
-        }
-
-        /// <summary>
         /// Gets the resource relative to this resource by the relative key
         /// </summary>
         /// <typeparam name="T"></typeparam>
