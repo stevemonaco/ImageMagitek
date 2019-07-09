@@ -12,21 +12,21 @@ using ImageMagitek.Codec;
 
 namespace ImageMagitek.Project
 {
-    public class XmlGameDescriptorDeserializer : IGameDescriptorDeserializer
+    public class XmlGameDescriptorReader : IGameDescriptorReader
     {
         private CodecFactory _codecFactory;
 
-        public XmlGameDescriptorDeserializer(CodecFactory CodecFactory)
+        public XmlGameDescriptorReader(CodecFactory CodecFactory)
         {
             _codecFactory = CodecFactory;
         }
 
-        public PathTree<ProjectResourceBase> DeserializeProject(string fileName, string baseDirectory)
+        public PathTree<ProjectResourceBase> ReadProject(string fileName, string baseDirectory)
         {
             if (string.IsNullOrWhiteSpace(fileName))
-                throw new ArgumentException($"{nameof(DeserializeProject)} cannot have a null or empty value for '{nameof(fileName)}'");
+                throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(fileName)}'");
             if (string.IsNullOrWhiteSpace(baseDirectory))
-                throw new ArgumentException($"{nameof(DeserializeProject)} cannot have a null or empty value for '{nameof(baseDirectory)}'");
+                throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(baseDirectory)}'");
 
             var stream = File.OpenRead(fileName);
 

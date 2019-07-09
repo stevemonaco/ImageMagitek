@@ -58,8 +58,8 @@ namespace ImageMagitekConsole
                 palettes.Add(pal);
             }
 
-            var deserializer = new XmlGameDescriptorDeserializer(new CodecFactory(formats));
-            var tree = deserializer.DeserializeProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
+            var deserializer = new XmlGameDescriptorReader(new CodecFactory(formats));
+            var tree = deserializer.ReadProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
 
             var processor = new CommandProcessor(tree);
 

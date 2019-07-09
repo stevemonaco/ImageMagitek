@@ -4,9 +4,9 @@ using System.Text;
 
 namespace ImageMagitek.Project
 {
-    public class XmlGameDescriptorSerializer : IGameDescriptorSerializer
+    public class XmlGameDescriptorWriter : IGameDescriptorWriter
     {
-        public void SerializeProject(IDictionary<string, ProjectResourceBase> projectTree, string fileName)
+        public void WriteProject(IDictionary<string, ProjectResourceBase> projectTree, string fileName)
         {
             throw new NotImplementedException();
         }
