@@ -4,6 +4,10 @@
 - "Compiled" remap
 - Direct decoding/encoding
 - Write schema after new spec
+- Separate into encoding and decoding classes
+
+General Refactors
+- Give Codecs to SequentialArranger instead of CodecFactory; ensures compatible element sizing
 
 Palette
 - Start adding unit tests
