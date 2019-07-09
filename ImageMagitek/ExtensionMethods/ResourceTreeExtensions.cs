@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ImageMagitek.Project;
+using ImageMagitek.Project.SerializationModels;
 
 namespace ImageMagitek.ExtensionMethods
 {
@@ -147,6 +148,30 @@ namespace ImageMagitek.ExtensionMethods
                 nodeStack.Push(node);
 
             while(nodeStack.Count > 0)
+            {
+                var node = nodeStack.Pop();
+                yield return node;
+                foreach (var child in node.ChildResources.Values)
+                    nodeStack.Push(child);
+            }
+        }
+
+        /// <summary>
+        /// Allows depth-first iteration over a resource tree
+        /// </summary>
+        /// <param name="tree">The tree.</param>
+        /// <returns></returns>
+        /// <remarks>Idea adapted from https://www.benjamin.pizza/posts/2017-11-13-recursion-without-recursion.html 
+        /// Implementation adapted from https://blogs.msdn.microsoft.com/wesdyer/2007/03/23/all-about-iterators/
+        /// </remarks>
+        internal static IEnumerable<ProjectNodeModel> SelfAndDescendants(this IDictionary<string, ProjectNodeModel> tree)
+        {
+            Stack<ProjectNodeModel> nodeStack = new Stack<ProjectNodeModel>();
+
+            foreach (var node in tree.Values)
+                nodeStack.Push(node);
+
+            while (nodeStack.Count > 0)
             {
                 var node = nodeStack.Pop();
                 yield return node;
