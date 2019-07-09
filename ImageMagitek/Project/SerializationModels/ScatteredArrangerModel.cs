@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Drawing;
 
-namespace ImageMagitek.Project.Models
+namespace ImageMagitek.Project.SerializationModels
 {
-    internal class ScatteredArrangerModel
+    internal class ScatteredArrangerModel : ProjectNodeModel
     {
-        public string Name { get; set; }
         public ArrangerElementModel[,] ElementGrid { get; set; }
         public Size ArrangerElementSize { get; set; }
         public Size ElementPixelSize { get; set; }

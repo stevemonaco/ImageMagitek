@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ImageMagitek.Project.Models
+﻿namespace ImageMagitek.Project.SerializationModels
 {
-    internal class PaletteModel
+    internal class PaletteModel : ProjectNodeModel
     {
-        public string Name { get; set; }
         public ColorModel ColorModel { get; set; }
         public string DataFileKey { get; set; }
         public FileBitAddress FileAddress { get; set; }

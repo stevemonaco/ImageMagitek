@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ImageMagitek.Project.Models
+﻿namespace ImageMagitek.Project.SerializationModels
 {
     internal class ArrangerElementModel
     {

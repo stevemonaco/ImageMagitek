@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ImageMagitek.Project.Models
+namespace ImageMagitek.Project.SerializationModels
 {
-    public class ResourceFolderModel
+    internal class ResourceFolderModel : ProjectNodeModel
     {
-        public string Name { get; set; }
-
         public ResourceFolder ToResourceFolder()
         {
             var folder = new ResourceFolder();
