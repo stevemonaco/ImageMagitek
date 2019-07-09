@@ -27,7 +27,7 @@ namespace ImageMagitekConsole
                 string key = res.PathKey;
                 int level = key.Split('\\').Length;
 
-                Console.WriteLine($"{res.Name}({level}): {res.Value.GetType().ToString()}");
+                Console.WriteLine($"{res.Name}({level}): type '{res.Value.GetType().ToString()}' path '{key}'");
             }
 
             return true;
@@ -35,18 +35,21 @@ namespace ImageMagitekConsole
 
         public bool ExportArranger(string arrangerKey, string projectRoot)
         {
-            ResourceTree.TryGetValue(arrangerKey, out ScatteredArranger arranger);
+            ResourceTree.TryGetNode(arrangerKey, out var node);
 
-            var exportFileName = Path.Combine(projectRoot, arrangerKey + ".bmp");
+            var relativeFile = Path.Combine(node.Paths.ToArray());
+            var exportFileName = Path.Combine(projectRoot, relativeFile + ".bmp");
+
+            var arranger = node.Value as ScatteredArranger;
+
             Console.WriteLine($"Exporting {arranger.Name} to {exportFileName}...");
-
             Directory.CreateDirectory(Path.GetDirectoryName(exportFileName));
 
-            using (var rm = new ArrangerImage())
+            using (var image = new ArrangerImage())
             using (var fs = File.Create(exportFileName, 32 * 1024, FileOptions.SequentialScan))
             {
-                rm.Render(arranger);
-                rm.Image.SaveAsBmp(fs);
+                image.Render(arranger);
+                image.Image.SaveAsBmp(fs);
             }
 
             return true;
@@ -54,8 +57,11 @@ namespace ImageMagitekConsole
 
         public bool ExportAllArrangers(string projectRoot)
         {
-            foreach (var res in ResourceTree.EnumerateDepthFirst().OfType<IPathTreeNode<ScatteredArranger>>())
-                ExportArranger(res.PathKey, projectRoot);
+            foreach (var node in ResourceTree.EnumerateDepthFirst())
+            {
+                if(node.Value is ScatteredArranger)
+                    ExportArranger(node.PathKey, projectRoot);
+            }
 
             return true;
         }
@@ -66,10 +72,10 @@ namespace ImageMagitekConsole
 
             ResourceTree.TryGetValue(arrangerKey, out ScatteredArranger arranger);
 
-            using (var rm = new ArrangerImage())
+            using (var image = new ArrangerImage())
             {
-                rm.LoadImage(imageFileName);
-                rm.SaveImage(arranger);
+                image.LoadImage(imageFileName);
+                image.SaveImage(arranger);
             }
 
             return true;

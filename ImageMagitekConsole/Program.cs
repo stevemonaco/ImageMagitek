@@ -10,7 +10,7 @@ namespace ImageMagitekConsole
 {
     class Program
     {
-        static readonly HashSet<string> Commands = new HashSet<string> { "export", "exportall", "import", "importall" };
+        static readonly HashSet<string> Commands = new HashSet<string> { "export", "exportall", "import", "importall", "print" };
 
         static void Main(string[] args)
         {
@@ -30,10 +30,14 @@ namespace ImageMagitekConsole
                 return;
             }
 
-            var projectRoot = args[2];
+            string projectRoot = null;
+            if (args.Length >= 3)
+            {
+                projectRoot = args[2];
 
-            if (!Directory.Exists(projectRoot))
-                Directory.CreateDirectory(projectRoot);        
+                if (!Directory.Exists(projectRoot))
+                    Directory.CreateDirectory(projectRoot);
+            }
 
             // Load default graphic formats and palettes
             var codecPath = Path.Combine(Directory.GetCurrentDirectory(), "codecs");
@@ -74,6 +78,9 @@ namespace ImageMagitekConsole
                     break;
                 case "importall":
                     processor.ImportAllImages(projectRoot);
+                    break;
+                case "print":
+                    processor.PrintResources();
                     break;
             }
         }
