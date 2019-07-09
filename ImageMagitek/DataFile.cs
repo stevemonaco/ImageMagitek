@@ -37,21 +37,6 @@ namespace ImageMagitek
             });
         }
 
-        /// <summary>
-        /// Renames a DataFile to a new name
-        /// </summary>
-        /// <param name="name"></param>
-        public override void Rename(string name)
-        {
-            Name = name;
-        }
-
-        public override ProjectResourceBase Clone()
-        {
-            DataFile df = new DataFile(Name, Location);
-            return df;
-        }
-
         public void Close()
         {
             if (Stream != null)

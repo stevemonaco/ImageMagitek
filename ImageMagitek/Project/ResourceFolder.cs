@@ -9,22 +9,12 @@ namespace ImageMagitek.Project
 {
     public class ResourceFolder: ProjectResourceBase
     {
-        public ResourceFolder()
-        {
-            CanContainChildResources = true;
-        }
+        public ResourceFolder() : this("") { }
 
-        public override void Rename(string name)
+        public ResourceFolder(string name)
         {
             Name = name;
-        }
-
-        public override ProjectResourceBase Clone()
-        {
-            ResourceFolder rf = new ResourceFolder();
-            rf.Name = Name;
-
-            return rf;
+            CanContainChildResources = true;
         }
     }
 }

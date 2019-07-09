@@ -102,23 +102,5 @@ namespace ImageMagitek
             ElementGrid = newList;
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
         }
-
-        public override ProjectResourceBase Clone()
-        {
-            Arranger arr = new ScatteredArranger()
-            {
-                ElementGrid = new ArrangerElement[ArrangerElementSize.Width, ArrangerElementSize.Height],
-                ArrangerElementSize = ArrangerElementSize,
-                ElementPixelSize = ElementPixelSize,
-                Mode = Mode,
-                Name = Name,
-            };
-
-            for (int y = 0; y < ArrangerElementSize.Height; y++)
-                for (int x = 0; x < ArrangerElementSize.Width; x++)
-                    arr.SetElement(ElementGrid[x, y], x, y);
-
-            return arr;
-        }
     }
 }

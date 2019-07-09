@@ -8,8 +8,7 @@ namespace ImageMagitek.Project.SerializationModels
     {
         public ResourceFolder ToResourceFolder()
         {
-            var folder = new ResourceFolder();
-            folder.Rename(Name);
+            var folder = new ResourceFolder(Name);
             return folder;
         }
     }

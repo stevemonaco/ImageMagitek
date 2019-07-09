@@ -502,34 +502,5 @@ namespace ImageMagitek
         {
             return Enum.GetNames(typeof(ColorModel)).Cast<string>().ToList();
         }
-
-        /// <summary>
-        /// Creates a deep copy of the palette
-        /// </summary>
-        /// <returns></returns>
-        public override ProjectResourceBase Clone()
-        {
-            Palette pal = new Palette(Name)
-            {
-                ColorModel = ColorModel,
-                FileAddress = FileAddress,
-                DataFile = DataFile,
-                Entries = Entries,
-                HasAlpha = HasAlpha,
-                ZeroIndexTransparent = ZeroIndexTransparent,
-                StorageSource = StorageSource,
-                _nativePalette = new Lazy<NativeColor[]>(() => NativePalette),
-                _foreignPalette = new Lazy<ForeignColor[]>(() => ForeignPalette),
-            };
-
-            NativePalette.CopyTo(pal.NativePalette, 0);
-            ForeignPalette.CopyTo(pal.ForeignPalette, 0);
-
-            return pal;
-        }
-    }
-
-    public class PaletteNotFoundException: Exception
-    {
     }
 }

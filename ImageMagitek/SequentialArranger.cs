@@ -191,28 +191,5 @@ namespace ImageMagitek
 
             return true;
         }*/
-
-        public override ProjectResourceBase Clone()
-        {
-            if (ElementGrid is null)
-                throw new NullReferenceException($"{nameof(Clone)} property '{nameof(ElementGrid)}' was null");
-
-            Arranger arr = new SequentialArranger()
-            {
-                ElementGrid = new ArrangerElement[ArrangerElementSize.Width, ArrangerElementSize.Height],
-                ArrangerElementSize = ArrangerElementSize,
-                ElementPixelSize = ElementPixelSize,
-                Mode = Mode,
-                Name = Name,
-                FileSize = FileSize,
-                ArrangerBitSize = ArrangerBitSize
-            };
-
-            for (int y = 0; y < ArrangerElementSize.Height; y++)
-                for (int x = 0; x < ArrangerElementSize.Width; x++)
-                    arr.SetElement(ElementGrid[x, y], x, y);
-
-            return arr;
-        }
     }
 }
