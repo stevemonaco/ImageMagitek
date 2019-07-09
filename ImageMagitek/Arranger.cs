@@ -128,8 +128,6 @@ namespace ImageMagitek
             if ((arrangerPosY < 0) || (arrangerPosY + copyHeight > ArrangerElementSize.Height))
                 throw new ArgumentOutOfRangeException();
 
-            Arranger sub = new ScatteredArranger(Layout, ArrangerElementSize.Width, ArrangerElementSize.Height, ElementPixelSize.Width, ElementPixelSize.Height);
-
             Arranger subArranger = new ScatteredArranger()
             {
                 Mode = ArrangerMode.ScatteredArranger, // Default to scattered arranger
