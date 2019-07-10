@@ -7,6 +7,7 @@ namespace ImageMagitek.UnitTests
     public class BitStreamTestCases
     {
         public static byte[] readData = new byte[] { 0b10110011, 0b11111111, 0b01010101, 0b11001100, 0b00000001 };
+        public static byte[] writeData => new byte[] { 0b10110011, 0b11111111, 0b01010101, 0b11001100, 0b00000001 };
 
         public static IEnumerable<TestCaseData> ReadBitCases
         {
@@ -45,6 +46,21 @@ namespace ImageMagitek.UnitTests
                 yield return new TestCaseData(BitStream.OpenRead(readData, readData.Length * 8), 10, 8, 0b11111101);
                 yield return new TestCaseData(BitStream.OpenRead(readData, readData.Length * 8), 19, 18, 0b101011100110000000);
                 yield return new TestCaseData(BitStream.OpenRead(readData, readData.Length * 8), 16, 24, 0b010101011100110000000001);
+            }
+        }
+
+        public static IEnumerable<TestCaseData> WriteBitCases
+        {
+            get
+            {
+                yield return new TestCaseData(BitStream.OpenWrite(writeData, writeData.Length * 8, 8), 0, 1, 0b10110011);
+                yield return new TestCaseData(BitStream.OpenWrite(writeData, writeData.Length * 8, 8), 1, 1, 0b11110011);
+                yield return new TestCaseData(BitStream.OpenWrite(writeData, writeData.Length * 8, 8), 0, 0, 0b00110011);
+                yield return new TestCaseData(BitStream.OpenWrite(writeData, writeData.Length * 8, 8), 7, 0, 0b10110010);
+                yield return new TestCaseData(BitStream.OpenWrite(writeData, writeData.Length * 8, 8), 8, 0, 0b01111111);
+                yield return new TestCaseData(BitStream.OpenWrite(writeData, writeData.Length * 8, 8), 8, 1, 0b11111111);
+                yield return new TestCaseData(BitStream.OpenWrite(writeData, writeData.Length * 8, 8), 39, 0, 0b00000000);
+                yield return new TestCaseData(BitStream.OpenWrite(writeData, writeData.Length * 8, 8), 39, 1, 0b00000001);
             }
         }
     }

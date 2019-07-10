@@ -111,13 +111,28 @@ namespace ImageMagitek
         /// <returns>A writable BitStream instance</returns>
         public static BitStream OpenWrite(int DataBits, int FirstByteBits)
         {
+            int BufferLength = (int)Math.Ceiling((DataBits + (8 - FirstByteBits)) / 8.0);
+            var data = new byte[BufferLength];
+
+            return OpenWrite(data, DataBits, FirstByteBits);
+
+            /*bs.BitIndex = FirstByteBits;
+            bs.BitsRemaining = DataBits;
+            bs.Index = 0;
+            bs.Access = BitStreamAccess.Write;
+            bs.StreamStartOffset = 8 - FirstByteBits;
+            bs.StreamEndOffset = DataBits - bs.StreamStartOffset;
+
+            return bs;*/
+        }
+
+        public static BitStream OpenWrite(byte[] Buffer, int DataBits, int FirstByteBits)
+        {
             BitStream bs = new BitStream();
 
-            int BufferLength = (int)Math.Ceiling((DataBits + (8 - FirstByteBits)) / 8.0);
-            bs.Data = new byte[BufferLength];
+            bs.Data = Buffer;
 
             bs.BitIndex = FirstByteBits;
-            bs.BitsRemaining = DataBits;
             bs.Index = 0;
             bs.Access = BitStreamAccess.Write;
             bs.StreamStartOffset = 8 - FirstByteBits;
@@ -245,25 +260,32 @@ namespace ImageMagitek
             return result;
         }
 
-        public void WriteBit(byte bit)
+        public void WriteBit(int bit)
         {
-            if ((bit & 0xFE) > 1)
+            if (bit > 1)
                 throw new ArgumentOutOfRangeException();
             if (Access != BitStreamAccess.Write && Access != BitStreamAccess.ReadWrite)
                 throw new InvalidOperationException($"{nameof(WriteBit)} does not have write access");
             if (BitsRemaining == 0)
-                throw new EndOfStreamException($"{nameof(WriteBit)} wrote past end of stream");
+                throw new EndOfStreamException($"{nameof(WriteBit)} attempted to write past end of stream");
 
             if(BitIndex == 0)
             {
                 if (Index == Data.Length)
-                    throw new EndOfStreamException($"{nameof(WriteBit)} wrote past end of stream");
+                    throw new EndOfStreamException($"{nameof(WriteBit)} attempted to write past end of stream");
 
                 Index++;
                 BitIndex = 8;
             }
 
-            Data[Index] |= (byte)(bit << (BitIndex - 1));
+            if (bit == 0)
+            {
+                byte mask = (byte) ~(1 << (BitIndex - 1));
+                Data[Index] &= mask;
+            }
+            else
+                Data[Index] |= (byte)(1 << (BitIndex - 1));
+
             BitsRemaining--;
             BitIndex--;
         }
@@ -271,14 +293,6 @@ namespace ImageMagitek
         public void WriteBits(int val, int numBits)
         {
             throw new NotImplementedException();
-        }
-
-        public void FlushWrites()
-        {
-            throw new NotImplementedException();
-            //if(bitindex != 8) // Some work has been done
-            //{
-            //}
         }
     }
 }
