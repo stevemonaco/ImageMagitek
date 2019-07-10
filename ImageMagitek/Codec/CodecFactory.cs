@@ -26,8 +26,8 @@ namespace ImageMagitek.Codec
                     if (Formats.ContainsKey(codecName))
                     {
                         var format = Formats[codecName].Clone();
-                        format.Width = 8;
-                        format.Height = 8;
+                        format.Width = width;
+                        format.Height = height;
 
                         return new GeneralGraphicsCodec(format);
                     }
