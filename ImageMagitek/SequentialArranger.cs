@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Xml.Linq;
-using System.Linq;
 using ImageMagitek.Project;
 using ImageMagitek.Codec;
 

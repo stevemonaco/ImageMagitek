@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
-using MoreLinq;
-using ImageMagitek;
+﻿using System.Collections.Generic;
 
 namespace ImageMagitek.Project
 {

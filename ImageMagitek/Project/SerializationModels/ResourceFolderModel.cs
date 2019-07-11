@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ImageMagitek.Project.SerializationModels
+﻿namespace ImageMagitek.Project.SerializationModels
 {
     internal class ResourceFolderModel : ProjectNodeModel
     {

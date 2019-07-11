@@ -1,5 +1,5 @@
-﻿using SixLabors.ImageSharp.PixelFormats;
-using System;
+﻿using System;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace ImageMagitek
 {

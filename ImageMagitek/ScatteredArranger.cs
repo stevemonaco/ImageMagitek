@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Drawing;
-using System.Xml.Linq;
 using System.Collections.Generic;
-using System.Linq;
-using System.Xml;
-using ImageMagitek.ExtensionMethods;
 using ImageMagitek.Project;
 
 namespace ImageMagitek

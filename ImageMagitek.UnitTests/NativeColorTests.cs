@@ -1,6 +1,4 @@
-﻿using System;
-using NUnit.Framework;
-using ImageMagitek;
+﻿using NUnit.Framework;
 
 namespace ImageMagitek.UnitTests
 {

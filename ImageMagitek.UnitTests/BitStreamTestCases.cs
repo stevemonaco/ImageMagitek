@@ -1,6 +1,5 @@
 ﻿using NUnit.Framework;
 using System.Collections.Generic;
-using ImageMagitek;
 
 namespace ImageMagitek.UnitTests
 {

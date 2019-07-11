@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using MoreLinq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ImageMagitek
 {

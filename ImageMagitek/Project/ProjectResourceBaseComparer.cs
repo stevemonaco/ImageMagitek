@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using ImageMagitek;
+﻿using System.Collections.Generic;
 
 namespace ImageMagitek.Project
 {

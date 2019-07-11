@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Xml.Linq;
@@ -11,7 +10,7 @@ using Monaco.PathTree;
 using ImageMagitek.Codec;
 
 namespace ImageMagitek.Project
-{ 
+{
     public class XmlGameDescriptorReader : IGameDescriptorReader
     {
         public string DescriptorVersion => "0.1";
