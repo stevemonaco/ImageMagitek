@@ -4,7 +4,6 @@
 - "Compiled" remap
 - Direct decoding/encoding
 - Write schema after new spec
-- Separate into encoding and decoding classes
 
 General Refactors
 - Give Codecs to SequentialArranger instead of CodecFactory; ensures compatible element sizing
@@ -12,15 +11,13 @@ General Refactors
 Palette
 - Start adding unit tests
 - Use lambdas/delegate for color converters
+- Isolate specific palette implementations? Move to ImageMagitek.Color
 
 Project
-- Isolate project retrieval from codec methods
-- Transition to PathTree
 - Implement renaming/moving logic
-- Test schemas
 
-Tests
-- BitStream
+Low priority
+- Implement BitStream.WriteBits
 
 Bugs
-- ArrangerExtensions to move rows/pages assume each element's storage size is the same
+- ArrangerExtensions to move rows/pages erroneously assume each element's storage size is the same
