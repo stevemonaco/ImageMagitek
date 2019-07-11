@@ -11,9 +11,10 @@ using Monaco.PathTree;
 using ImageMagitek.Codec;
 
 namespace ImageMagitek.Project
-{
+{ 
     public class XmlGameDescriptorReader : IGameDescriptorReader
     {
+        public string DescriptorVersion => "0.1";
         private CodecFactory _codecFactory;
 
         public XmlGameDescriptorReader(CodecFactory CodecFactory)
@@ -75,7 +76,7 @@ namespace ImageMagitek.Project
                         var element = arranger.ElementGrid[x, y];
                         element.DataFile = df;
                         element.Palette = pal;
-                        element.Codec = _codecFactory.GetCodec(modelArranger.ElementGrid[x, y].FormatName, element.Width, element.Height);
+                        element.Codec = _codecFactory.GetCodec(modelArranger.ElementGrid[x, y].CodecName, element.Width, element.Height);
                     }
                 }
 
@@ -165,7 +166,7 @@ namespace ImageMagitek.Project
 
                 el.DataFileKey = xmlElement.file?.Value ?? defaultDataFile;
                 el.PaletteKey = xmlElement.palette?.Value ?? defaultPalette;
-                el.FormatName = xmlElement.format?.Value ?? defaultFormat;
+                el.CodecName = xmlElement.format?.Value ?? defaultFormat;
                 el.PositionX = xmlElement.posx * width;
                 el.PositionY = xmlElement.posy * height;
 

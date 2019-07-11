@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using Monaco.PathTree;
+﻿using Monaco.PathTree;
 
 namespace ImageMagitek.Project
 {
     public interface IGameDescriptorReader
     {
+        string DescriptorVersion { get; }
         PathTree<ProjectResourceBase> ReadProject(string fileName, string baseDirectory);
     }
 }
