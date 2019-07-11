@@ -111,15 +111,6 @@ namespace ImageMagitek
             var data = new byte[BufferLength];
 
             return OpenWrite(data, DataBits, FirstByteBits);
-
-            /*bs.BitIndex = FirstByteBits;
-            bs.BitsRemaining = DataBits;
-            bs.Index = 0;
-            bs.Access = BitStreamAccess.Write;
-            bs.StreamStartOffset = 8 - FirstByteBits;
-            bs.StreamEndOffset = DataBits - bs.StreamStartOffset;
-
-            return bs;*/
         }
 
         public static BitStream OpenWrite(byte[] Buffer, int DataBits, int FirstByteBits)
@@ -137,14 +128,14 @@ namespace ImageMagitek
             return bs;
         }
 
-        public void SeekAbsolute(int seekOffset)
+        public void SeekAbsolute(int seekBits)
         {
-            if (seekOffset < 0 || seekOffset >= StreamSize)
-                throw new ArgumentOutOfRangeException($"{nameof(SeekAbsolute)} parameter '{nameof(seekOffset)} is out of range ({seekOffset})'");
+            if (seekBits < 0 || seekBits >= StreamSize)
+                throw new ArgumentOutOfRangeException($"{nameof(SeekAbsolute)} parameter '{nameof(seekBits)} is out of range ({seekBits})'");
 
-            Index = (StreamStartOffset + seekOffset) / 8;
-            BitIndex = 8 - (StreamStartOffset + seekOffset) % 8;
-            BitsRemaining = StreamEndOffset - (StreamStartOffset + seekOffset);
+            Index = (StreamStartOffset + seekBits) / 8;
+            BitIndex = 8 - (StreamStartOffset + seekBits) % 8;
+            BitsRemaining = StreamEndOffset - (StreamStartOffset + seekBits);
         }
 
         public void SeekRelative(int seekBits)
