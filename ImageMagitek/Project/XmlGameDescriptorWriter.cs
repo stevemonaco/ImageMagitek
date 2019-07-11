@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 using ImageMagitek.Project.SerializationModels;
 using Monaco.PathTree;
@@ -52,7 +53,15 @@ namespace ImageMagitek.Project
                 AddResourceToXmlTree(projectRoot, element, node.Paths.ToArray());
             }
 
-            xmlRoot.Save(fileName);
+            var xws = new XmlWriterSettings();
+            xws.Indent = true;
+            xws.IndentChars = "\t";
+
+            using (var fs = new FileStream(fileName, FileMode.Create))
+            using (var xw = XmlWriter.Create(fs, xws))
+            {
+                xmlRoot.Save(xw);
+            }
 
             return true;
         }
