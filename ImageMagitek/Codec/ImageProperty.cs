@@ -36,12 +36,19 @@
 
             int patternIndex = 0; // Index into RowPixelPattern
             int extendedIndex = 0;   // Index into RowExtendedPixelPattern
+            int offset = 0;
 
             while (extendedIndex < width)
             {
-                RowExtendedPixelPattern[patternIndex] = extendedIndex + RowPixelPattern[patternIndex];
+                RowExtendedPixelPattern[extendedIndex] = offset + RowPixelPattern[patternIndex];
                 extendedIndex++;
-                patternIndex = (patternIndex + 1) & RowPixelPattern.Length;
+                patternIndex++;
+
+                if(patternIndex >= RowPixelPattern.Length)
+                {
+                    patternIndex = 0;
+                    offset += RowPixelPattern.Length;
+                }
             }
         }
     }
