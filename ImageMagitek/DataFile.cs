@@ -42,5 +42,10 @@ namespace ImageMagitek
             if (Stream != null)
                 Stream.Close();
         }
+
+        public override IEnumerable<ProjectResourceBase> LinkedResources()
+        {
+            yield break;
+        }
     }
 }

@@ -16,5 +16,10 @@ namespace ImageMagitek.Project
             Name = name;
             CanContainChildResources = true;
         }
+
+        public override IEnumerable<ProjectResourceBase> LinkedResources()
+        {
+            yield break;
+        }
     }
 }

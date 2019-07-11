@@ -35,5 +35,7 @@ namespace ImageMagitek.Project
         /// </summary>
         /// <param name="name">The new name.</param>
         public virtual void Rename(string name) => Name = name;
+
+        public abstract IEnumerable<ProjectResourceBase> LinkedResources();
     }
 }

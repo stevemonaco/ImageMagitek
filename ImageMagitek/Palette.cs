@@ -502,5 +502,10 @@ namespace ImageMagitek
         {
             return Enum.GetNames(typeof(ColorModel)).Cast<string>().ToList();
         }
+
+        public override IEnumerable<ProjectResourceBase> LinkedResources()
+        {
+            yield return DataFile;
+        }
     }
 }

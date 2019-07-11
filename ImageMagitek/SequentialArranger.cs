@@ -148,6 +148,20 @@ namespace ImageMagitek
         /// <returns></returns>
         public string GetSequentialGraphicsFormat() => _codecName;
 
+        public override IEnumerable<ProjectResourceBase> LinkedResources()
+        {
+            var set = new HashSet<ProjectResourceBase>();
+
+            foreach (var el in EnumerateElements())
+            {
+                set.Add(el.Palette);
+                set.Add(el.DataFile);
+            }
+
+            foreach (var item in set)
+                yield return item;
+        }
+
         /// <summary>
         /// Sets the GraphicsFormat name and Element size for a Sequential Arranger
         /// </summary>

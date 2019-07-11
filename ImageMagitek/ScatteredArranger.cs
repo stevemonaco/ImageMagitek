@@ -102,5 +102,19 @@ namespace ImageMagitek
             ElementGrid = newList;
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
         }
+
+        public override IEnumerable<ProjectResourceBase> LinkedResources()
+        {
+            var set = new HashSet<ProjectResourceBase>();
+
+            foreach (var el in EnumerateElements())
+            {
+                set.Add(el.Palette);
+                set.Add(el.DataFile);
+            }
+
+            foreach (var item in set)
+                yield return item;
+        }
     }
 }
