@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using Monaco.PathTree;
 
 namespace ImageMagitek.Project
 {
     public interface IGameDescriptorWriter
     {
-        void WriteProject(IDictionary<string, ProjectResourceBase> projectTree, string fileName);
+        string DescriptorVersion { get; }
+        bool WriteProject(PathTree<ProjectResourceBase> tree, string fileName);
     }
 }

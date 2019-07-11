@@ -2,7 +2,7 @@
 
 namespace ImageMagitek.Project.SerializationModels
 {
-    internal abstract class ProjectNodeModel
+    public abstract class ProjectNodeModel
     {
         public string Name { get; set; }
         public ProjectNodeModel Parent { get; set; }

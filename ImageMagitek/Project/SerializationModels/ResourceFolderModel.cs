@@ -11,5 +11,13 @@ namespace ImageMagitek.Project.SerializationModels
             var folder = new ResourceFolder(Name);
             return folder;
         }
+
+        public static ResourceFolderModel FromResourceFolder(ResourceFolder folder)
+        {
+            return new ResourceFolderModel()
+            {
+                Name = folder.Name
+            };
+        }
     }
 }

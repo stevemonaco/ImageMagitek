@@ -10,5 +10,17 @@
         public PaletteStorageSource StorageSource { get; set; }
 
         public Palette ToPalette() => new Palette(Name, ColorModel, DataFileKey, FileAddress, Entries, ZeroIndexTransparent, StorageSource);
+
+        public static PaletteModel FromPalette(Palette pal)
+        {
+            return new PaletteModel()
+            {
+                Name = pal.Name,
+                ColorModel = pal.ColorModel,
+                FileAddress = pal.FileAddress,
+                Entries = pal.Entries,
+                ZeroIndexTransparent = pal.ZeroIndexTransparent
+            };
+        }
     }
 }
