@@ -74,41 +74,6 @@ namespace ImageMagitek
 
         public abstract void Resize(int arrangerWidth, int arrangerHeight);
 
-        /*void NewBlankArranger(int ElementsX, int ElementsY, GraphicsFormat format)
-        {
-            if (format == null)
-                throw new ArgumentNullException();
-
-            ElementList = new ArrangerElement[ElementsX, ElementsY];
-
-            int x = 0;
-            int y = 0;
-
-            for (int i = 0; i < ElementsY; i++)
-            {
-                x = 0;
-                for (int j = 0; j < ElementsX; j++)
-                {
-                    ArrangerElement el = new ArrangerElement();
-                    // Filename
-                    el.FileOffset = 0;
-                    el.X1 = x;
-                    el.Y1 = y;
-                    el.X2 = x + format.Width - 1;
-                    el.Y2 = y + format.Height - 1;
-                    el.Format = format.Name;
-                    el.Palette = "Default";
-                    ElementList[j, i] = el;
-
-                    x += format.Width;
-                }
-                y += format.Height;
-            }
-
-            ArrangerElement LastElem = ElementList[ElementsX - 1, ElementsY - 1];
-            ArrangerPixelSize = new Size(LastElem.X2, LastElem.Y2);
-        }*/
-
         /// <summary>
         /// Creates a new Scattered Arranger from an existing Arranger
         /// </summary>
