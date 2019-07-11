@@ -9,7 +9,7 @@ namespace ImageMagitek.Codec
 {
     public sealed class SNES3bppCodec : IGraphicsCodec
     {
-        public string Name => "SNES3bpp";
+        public string Name => "SNES 3bpp";
         public int Width { get; private set; } = 8;
         public int Height { get; private set; } = 8;
         public int StorageSize => 3 * Width * Height;
