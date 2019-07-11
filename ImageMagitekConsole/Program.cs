@@ -10,12 +10,12 @@ namespace ImageMagitekConsole
 {
     class Program
     {
-        static readonly HashSet<string> Commands = new HashSet<string> { "export", "exportall", "import", "importall", "print" };
+        static readonly HashSet<string> Commands = new HashSet<string> { "export", "exportall", "import", "importall", "print", "resave" };
 
         static void Main(string[] args)
         {
-            Console.WriteLine("ImageMagitek v0.05");
-            if (args.Length < 3)
+            Console.WriteLine("ImageMagitek v0.06");
+            if (args.Length < 2)
             {
                 Console.WriteLine("Usage: ImageMagitek project.xml (ExportAll|ImportAll) ProjectRoot");
                 Console.WriteLine("ImageMagitek project.xml (Export|Import) ProjectRoot ResourceKey1 ResourceKey2 ...");
@@ -81,6 +81,10 @@ namespace ImageMagitekConsole
                     break;
                 case "print":
                     processor.PrintResources();
+                    break;
+                case "resave":
+                    var newFileName = Path.GetFullPath(Path.GetFileNameWithoutExtension(projectFileName) + "-resave.xml");
+                    processor.ResaveProject(newFileName);
                     break;
             }
         }

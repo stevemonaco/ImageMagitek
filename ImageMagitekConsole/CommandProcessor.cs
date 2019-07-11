@@ -93,5 +93,11 @@ namespace ImageMagitekConsole
             }
             return true;
         }
+
+        public bool ResaveProject(string newProjectFile)
+        {
+            var writer = new XmlGameDescriptorWriter();
+            return writer.WriteProject(ResourceTree, newProjectFile);
+        }
     }
 }
