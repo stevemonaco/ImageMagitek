@@ -14,7 +14,7 @@ namespace ImageMagitek
         public long FileSize { get; private set; }
 
         /// <summary>
-        /// Gets the filesize of the file associated with a Sequential Arranger
+        /// Gets the current file address of the file associated with a Sequential Arranger
         /// </summary>
         public long FileAddress { get; private set; }
 
