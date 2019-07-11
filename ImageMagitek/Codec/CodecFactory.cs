@@ -10,10 +10,7 @@ namespace ImageMagitek.Codec
 
         public CodecFactory(Dictionary<string, GraphicsFormat> formats)
         {
-            if (formats is null)
-                Formats = new Dictionary<string, GraphicsFormat>();
-            else
-                Formats = formats;
+            Formats = formats ?? new Dictionary<string, GraphicsFormat>();
         }
 
         public IGraphicsCodec GetCodec(string codecName, int width = 8, int height = 8)
