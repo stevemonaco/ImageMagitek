@@ -5,8 +5,12 @@
 - Direct decoding/encoding
 - Write schema after new spec
 
+Error handling
+- Need a pattern to implement errors intended to notify users
+- Better error handling for serializers
+
 General Refactors
-- Give Codecs to SequentialArranger instead of CodecFactory; ensures compatible element sizing
+- Give Codecs to SequentialArranger instead of CodecFactory; ensures compatible element sizing; better use of codec information in general
 
 Palette
 - Start adding unit tests
