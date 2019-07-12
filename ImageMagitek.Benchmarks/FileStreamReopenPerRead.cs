@@ -11,9 +11,6 @@ namespace ImageMagitek.Benchmarks
     /// </summary>
     public class FileStreamReopenPerRead
     {
-        [Params(1000)]
-        public int N;
-
         [Params(16, 64, 256, 512, 16384)]
         public int TotalReadSize;
 
