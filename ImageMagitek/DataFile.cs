@@ -8,11 +8,17 @@ namespace ImageMagitek
     /// <summary>
     /// DataFile manages access to user-modifiable files
     /// </summary>
-    public class DataFile: ProjectResourceBase
+    public class DataFile: IProjectResource
     {
         public string Location { get; private set; }
 
         public FileStream Stream { get => _stream.Value; }
+        public string Name { get; set; }
+
+        public bool CanContainChildResources => true;
+
+        public bool ShouldBeSerialized { get; set; } = true;
+
         Lazy<FileStream> _stream;
 
         public DataFile(string name): this(name, "")
@@ -39,9 +45,11 @@ namespace ImageMagitek
                 Stream.Close();
         }
 
-        public override IEnumerable<ProjectResourceBase> LinkedResources()
+        public IEnumerable<IProjectResource> LinkedResources()
         {
             yield break;
         }
+
+        public void Rename(string name) => Name = name;
     }
 }

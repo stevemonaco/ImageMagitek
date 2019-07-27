@@ -22,7 +22,7 @@ namespace ImageMagitek.Project
             _codecFactory = CodecFactory;
         }
 
-        public PathTree<ProjectResourceBase> ReadProject(string fileName, string baseDirectory)
+        public PathTree<IProjectResource> ReadProject(string fileName, string baseDirectory)
         {
             if (string.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(fileName)}'");
@@ -35,7 +35,7 @@ namespace ImageMagitek.Project
             XElement projectNode = doc.Element("project");
 
             Directory.SetCurrentDirectory(baseDirectory);
-            var tree = new PathTree<ProjectResourceBase>();
+            var tree = new PathTree<IProjectResource>();
 
             foreach(var node in projectNode.Descendants("folder"))
             {

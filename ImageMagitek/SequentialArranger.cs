@@ -22,6 +22,7 @@ namespace ImageMagitek
         /// Number of bits required to be read from file sequentially
         /// </summary>
         public long ArrangerBitSize { get; private set; }
+        public override bool ShouldBeSerialized { get; set; } = true;
 
         private ICodecFactory _codecs;
         private string _codecName;
@@ -146,9 +147,9 @@ namespace ImageMagitek
         /// <returns></returns>
         public string GetSequentialGraphicsFormat() => _codecName;
 
-        public override IEnumerable<ProjectResourceBase> LinkedResources()
+        public override IEnumerable<IProjectResource> LinkedResources()
         {
-            var set = new HashSet<ProjectResourceBase>();
+            var set = new HashSet<IProjectResource>();
 
             foreach (var el in EnumerateElements())
             {

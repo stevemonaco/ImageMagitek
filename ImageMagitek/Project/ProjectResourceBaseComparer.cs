@@ -2,9 +2,9 @@
 
 namespace ImageMagitek.Project
 {
-    class ProjectResourceBaseComparer : IComparer<ProjectResourceBase>
+    class ProjectResourceBaseComparer : IComparer<IProjectResource>
     {
-        public int Compare(ProjectResourceBase x, ProjectResourceBase y)
+        public int Compare(IProjectResource x, IProjectResource y)
         {
             if (x is ResourceFolder && y is ResourceFolder)
                 return string.Compare(x.Name, y.Name);

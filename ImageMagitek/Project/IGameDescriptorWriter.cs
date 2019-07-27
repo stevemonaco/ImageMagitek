@@ -5,6 +5,6 @@ namespace ImageMagitek.Project
     public interface IGameDescriptorWriter
     {
         string DescriptorVersion { get; }
-        bool WriteProject(PathTree<ProjectResourceBase> tree, string fileName);
+        bool WriteProject(PathTree<IProjectResource> tree, string fileName);
     }
 }

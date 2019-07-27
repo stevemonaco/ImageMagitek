@@ -29,7 +29,7 @@ namespace ImageMagitek
     /// <summary>
     /// Arranger for graphical screen elements
     /// </summary>
-    public abstract class Arranger : ProjectResourceBase
+    public abstract class Arranger : IProjectResource
     {
         // General Arranger variables
         /// <summary>
@@ -62,12 +62,17 @@ namespace ImageMagitek
         /// Gets the ArrangerLayout of the Arranger
         /// </summary>
         public ArrangerLayout Layout { get; protected set; }
+        public string Name { get; set; }
+
+        public bool CanContainChildResources => false;
+
+        public abstract bool ShouldBeSerialized { get; set; }
 
         /// <summary>
         /// Renames an Arranger to a new name
         /// </summary>
         /// <param name="name"></param>
-        public override void Rename(string name)
+        public void Rename(string name)
         {
             Name = name;
         }
@@ -155,5 +160,7 @@ namespace ImageMagitek
                 for (int x = 0; x < ArrangerElementSize.Width; x++)
                     yield return ElementGrid[x, y];
         }
+
+        public abstract IEnumerable<IProjectResource> LinkedResources();
     }
 }

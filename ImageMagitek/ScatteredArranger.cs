@@ -7,6 +7,8 @@ namespace ImageMagitek
 {
     public class ScatteredArranger: Arranger
     {
+        public override bool ShouldBeSerialized { get; set; } = true;
+
         public ScatteredArranger()
         {
             Mode = ArrangerMode.ScatteredArranger;
@@ -99,9 +101,9 @@ namespace ImageMagitek
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
         }
 
-        public override IEnumerable<ProjectResourceBase> LinkedResources()
+        public override IEnumerable<IProjectResource> LinkedResources()
         {
-            var set = new HashSet<ProjectResourceBase>();
+            var set = new HashSet<IProjectResource>();
 
             foreach (var el in EnumerateElements())
             {

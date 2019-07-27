@@ -23,7 +23,7 @@ namespace ImageMagitek.Colors
     /// Local colors are internally ARGB32
     /// Foreign colors are the same as the target system
     /// </summary>
-    public class Palette : ProjectResourceBase
+    public class Palette : IProjectResource
     {
         #region Properties
         /// <summary>
@@ -71,6 +71,10 @@ namespace ImageMagitek.Colors
         /// Gets the internal palette containing foreign colors
         /// </summary>
         ForeignColor[] ForeignPalette { get => _foreignPalette.Value; }
+        public string Name { get; set; }
+        public bool CanContainChildResources => false;
+        public bool ShouldBeSerialized { get; set; } = true;
+
         Lazy<ForeignColor[]> _foreignPalette;
         #endregion
 
@@ -101,7 +105,7 @@ namespace ImageMagitek.Colors
         /// Renames a Palette to a new name
         /// </summary>
         /// <param name="name"></param>
-        public override void Rename(string name)
+        public void Rename(string name)
         {
             Name = name;
         }
@@ -503,7 +507,7 @@ namespace ImageMagitek.Colors
             return Enum.GetNames(typeof(ColorModel)).Cast<string>().ToList();
         }
 
-        public override IEnumerable<ProjectResourceBase> LinkedResources()
+        public IEnumerable<IProjectResource> LinkedResources()
         {
             yield return DataFile;
         }

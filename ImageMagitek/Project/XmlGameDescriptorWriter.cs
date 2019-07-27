@@ -14,7 +14,7 @@ namespace ImageMagitek.Project
     {
         public string DescriptorVersion => "0.1";
 
-        public bool WriteProject(PathTree<ProjectResourceBase> tree, string fileName)
+        public bool WriteProject(PathTree<IProjectResource> tree, string fileName)
         {
             if (tree is null)
                 throw new ArgumentNullException($"{nameof(WriteProject)} property '{nameof(tree)}' was null");
@@ -67,9 +67,9 @@ namespace ImageMagitek.Project
             return true;
         }
 
-        private PathTree<ProjectNodeModel> BuildModelTree(PathTree<ProjectResourceBase> tree)
+        private PathTree<ProjectNodeModel> BuildModelTree(PathTree<IProjectResource> tree)
         {
-            var resourceResolver = new Dictionary<ProjectResourceBase, string>();
+            var resourceResolver = new Dictionary<IProjectResource, string>();
             foreach (var node in tree.EnumerateDepthFirst())
                 resourceResolver.Add(node.Value, node.PathKey);
 
