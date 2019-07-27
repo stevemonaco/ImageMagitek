@@ -64,7 +64,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Colors\Palettes\" />
     <Folder Include="Schemas\" />
   </ItemGroup>
 

@@ -214,7 +214,7 @@ namespace ImageMagitek.Codec
                 for(int x = 0; x < Format.Width; x++, srcidx++, destidx++)
                 {
                     var nc = el.Palette[MergedData[srcidx]];
-                    var col = new Rgba32(nc.R(), nc.G(), nc.B(), nc.A());
+                    var col = new Rgba32(nc.Color);
                     dest[destidx] = col;
                 }
                 destidx += el.X1 + image.Width - (el.X2 + 1);

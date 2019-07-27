@@ -16,12 +16,12 @@ namespace ImageMagitek.Colors
         /// Construct a ForeignColor
         /// </summary>
         /// <param name="color">Foreign Color ARGB value</param>
-        public ForeignColor(uint color)
+        public ForeignColor(uint color) : this()
         {
             Color = color;
         }
 
-        public ForeignColor(byte A, byte R, byte G, byte B, ColorModel colorModel)
+        public ForeignColor(byte A, byte R, byte G, byte B, ColorModel colorModel) : this()
         {
             switch (colorModel)
             {
@@ -157,23 +157,23 @@ namespace ImageMagitek.Colors
             {
                 case ColorModel.BGR15:
                     (A, R, G, B) = Split(colorModel); // Split into foreign color components
-                    nc.Color = ((uint)R << 19); // Red
+                    nc.Color = ((uint)R << 3); // Red
                     nc.Color |= (uint)G << 11; // Green
-                    nc.Color |= (uint)B << 3; // Blue
+                    nc.Color |= (uint)B << 19; // Blue
                     nc.Color |= 0xFF000000; // Alpha
                     break;
                 case ColorModel.ABGR16:
                     (A, R, G, B) = Split(colorModel); // Split into foreign color components
-                    nc.Color = (uint)R << 19; // Red
+                    nc.Color = (uint)R << 3; // Red
                     nc.Color |= (uint)G << 11; // Green
-                    nc.Color |= (uint)B << 3; // Blue
+                    nc.Color |= (uint)B << 19; // Blue
                     nc.Color |= (uint)(A * 255) << 24; // Alpha
                     break;
                 case ColorModel.RGB15:
                     (A, R, G, B) = Split(colorModel); // Split into foreign color components
-                    nc.Color = (uint)R << 19; // Red
+                    nc.Color = (uint)R << 3; // Red
                     nc.Color |= (uint)G << 11; // Green
-                    nc.Color |= (uint)B << 3; // Blue
+                    nc.Color |= (uint)B << 19; // Blue
                     nc.Color |= 0xFF000000; // Alpha
                     break;
                 default:

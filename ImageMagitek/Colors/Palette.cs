@@ -26,6 +26,10 @@ namespace ImageMagitek.Colors
     public class Palette : IProjectResource
     {
         #region Properties
+        public string Name { get; set; }
+        public bool CanContainChildResources => false;
+        public bool ShouldBeSerialized { get; set; } = true;
+
         /// <summary>
         /// ColorModel of the palette
         /// </summary>
@@ -71,10 +75,6 @@ namespace ImageMagitek.Colors
         /// Gets the internal palette containing foreign colors
         /// </summary>
         ForeignColor[] ForeignPalette { get => _foreignPalette.Value; }
-        public string Name { get; set; }
-        public bool CanContainChildResources => false;
-        public bool ShouldBeSerialized { get; set; } = true;
-
         Lazy<ForeignColor[]> _foreignPalette;
         #endregion
 
@@ -90,7 +90,7 @@ namespace ImageMagitek.Colors
             ZeroIndexTransparent = true;
         }
 
-        public Palette(string name, ColorModel colorModel, string dataFileKey, FileBitAddress fileAddress,
+        public Palette(string name, ColorModel colorModel, FileBitAddress fileAddress,
             int entries, bool zeroIndexTransparent, PaletteStorageSource storageSource)
         {
             Name = name;
