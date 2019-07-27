@@ -1,4 +1,5 @@
 ﻿using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek
 {

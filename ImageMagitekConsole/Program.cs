@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using ImageMagitek;
 using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 using ImageMagitek.Project;
 
 namespace ImageMagitekConsole

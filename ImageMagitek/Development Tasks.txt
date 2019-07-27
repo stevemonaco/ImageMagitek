@@ -3,7 +3,14 @@
 - Flowtiles (?)
 - "Compiled" remap
 - Direct decoding/encoding
+- Consider moving flip/rotation functionality to elements rather than codecs
 - Write schema after new spec
+
+FileStream - Currently always opened
+- Create a FileStreamContext service to keep track of opened files for a given operation
+- Manage FileStreamContext in ArrangerImage and inject context into Codec
+- Potentially inject into ArrangerImage as well to scope the context
+- FileStreamContext will dispose of opened FileStreams
 
 Error handling
 - Need a pattern to implement errors intended to notify users
@@ -22,6 +29,7 @@ Project
 
 Low priority
 - Implement BitStream.WriteBits
+- Change ProjectResourceBase to an interface
 
 Bugs
 - ArrangerExtensions to move rows/pages erroneously assume each element's storage size is the same

@@ -1,4 +1,6 @@
-﻿namespace ImageMagitek.Project.SerializationModels
+﻿using ImageMagitek.Colors;
+
+namespace ImageMagitek.Project.SerializationModels
 {
     internal class PaletteModel : ProjectNodeModel
     {

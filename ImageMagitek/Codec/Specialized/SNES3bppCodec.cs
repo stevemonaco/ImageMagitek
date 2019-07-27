@@ -1,5 +1,6 @@
 ﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Codec

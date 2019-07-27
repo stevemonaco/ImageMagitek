@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ImageMagitek
+namespace ImageMagitek.Colors
 {
     /// <summary>
     /// Manages the storage and conversion of foreign colors

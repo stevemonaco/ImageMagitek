@@ -1,7 +1,7 @@
 ﻿using System;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace ImageMagitek
+namespace ImageMagitek.Colors
 {
     /// <summary>
     /// Manages the storage and conversion of internal 32bit ARGB colors

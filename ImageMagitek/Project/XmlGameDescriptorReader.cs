@@ -8,6 +8,7 @@ using ImageMagitek.ExtensionMethods;
 using System.Drawing;
 using Monaco.PathTree;
 using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.Project
 {

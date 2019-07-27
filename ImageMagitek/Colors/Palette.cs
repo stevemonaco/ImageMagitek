@@ -8,7 +8,7 @@ using System.Drawing;
 using ImageMagitek.Project;
 using ImageMagitek.ExtensionMethods;
 
-namespace ImageMagitek
+namespace ImageMagitek.Colors
 {
     public enum ColorModel { RGB24 = 0, ARGB32, BGR15, ABGR16, RGB15, NES }
 
@@ -182,7 +182,7 @@ namespace ImageMagitek
         {
             var nativePalette = new NativeColor[Entries];
             for(int i = 0; i < Entries; i++)
-                nativePalette[i] = ForeignPalette[i].ToNativeColor(ColorModel); // Will load ForeignPalette if not already loaded
+                nativePalette[i] = ForeignPalette[i].ToNativeColor( ColorModel); // Will load ForeignPalette if not already loaded
 
             if (ZeroIndexTransparent)
                 nativePalette[0].Color &= 0x00FFFFFF;

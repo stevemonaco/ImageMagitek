@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.ExtensionMethods
 {

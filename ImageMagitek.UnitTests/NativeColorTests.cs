@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.UnitTests
 {

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using ImageMagitek.Project.SerializationModels;
+using ImageMagitek.Colors;
 using Monaco.PathTree;
 
 namespace ImageMagitek.Project
