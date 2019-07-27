@@ -11,7 +11,7 @@ namespace ImageMagitek.Project.SerializationModels
         public bool ZeroIndexTransparent { get; set; }
         public PaletteStorageSource StorageSource { get; set; }
 
-        public Palette ToPalette() => new Palette(Name, ColorModel, DataFileKey, FileAddress, Entries, ZeroIndexTransparent, StorageSource);
+        public Palette ToPalette() => new Palette(Name, ColorModel, FileAddress, Entries, ZeroIndexTransparent, StorageSource);
 
         public static PaletteModel FromPalette(Palette pal)
         {
