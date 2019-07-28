@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -10,11 +11,6 @@ namespace ImageMagitek.Colors
     [StructLayout(LayoutKind.Explicit)]
     public struct NativeColor
     {
-        private const int AlphaShift = 24;
-        private const int RedShift = 16;
-        private const int GreenShift = 8;
-        private const int BlueShift = 0;
-
         [FieldOffset(0)]
         public byte R;
         [FieldOffset(1)]
@@ -25,7 +21,7 @@ namespace ImageMagitek.Colors
         public byte A;
 
         /// <summary>
-        /// Gets or sets the native 32bit ARGB Color
+        /// Gets or sets the native 32bit RGBA Color
         /// </summary>
         [FieldOffset(0)]
         public uint Color;
@@ -43,48 +39,6 @@ namespace ImageMagitek.Colors
             B = blue;
         }
 
-        #region Color Channel Helper Functions
-
-        /// <summary>
-        /// Gets the native alpha channel intensity
-        /// </summary>
-        /// <returns></returns>
-        /*public byte A()
-        {
-            return (byte)((Color >> AlphaShift) & 0xFF);
-        }
-
-        /// <summary>
-        /// Gets the native red channel intensity
-        /// </summary>
-        /// <returns></returns>
-        public byte R()
-        {
-            return (byte)((Color >> RedShift) & 0xFF);
-        }
-
-        /// <summary>
-        /// Gets the native green channel intensity
-        /// </summary>
-        /// <returns></returns>
-        public byte G()
-        {
-            return (byte)((Color >> GreenShift) & 0xFF);
-        }
-
-        /// <summary>
-        /// Gets the native blue channel intensity
-        /// </summary>
-        /// <returns></returns>
-        public byte B()
-        {
-            return (byte)((Color >> BlueShift) & 0xFF);
-        }*/
-
-        public (byte A, byte R, byte G, byte B) Split() => (this.A, this.R, this.G, this.B);
-
-        #endregion
-
         #region Conversion Functions
         /// <summary>
         /// Converts into a Foreign Color
@@ -93,7 +47,7 @@ namespace ImageMagitek.Colors
         /// <returns>Foreign color value</returns>
         public ForeignColor ToForeignColor(ColorModel colorModel)
         {
-            ForeignColor fc = (ForeignColor) 0;
+            ForeignColor fc;
 
             switch(colorModel)
             {
@@ -130,7 +84,7 @@ namespace ImageMagitek.Colors
             return System.Drawing.Color.FromArgb((int)Color);
         }
 
-        public Rgba32 ToRgba32() => new Rgba32(R, G, B, A);
+        public Rgba32 ToRgba32() => new Rgba32(Color);
         #endregion
 
         #region Cast operators

@@ -76,6 +76,8 @@ namespace ImageMagitek.Colors
         /// </summary>
         ForeignColor[] ForeignPalette { get => _foreignPalette.Value; }
         Lazy<ForeignColor[]> _foreignPalette;
+
+        IColorConverter<IColor, IColor> converter;
         #endregion
 
         /// <summary>

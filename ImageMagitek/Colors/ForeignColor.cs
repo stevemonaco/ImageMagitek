@@ -16,12 +16,12 @@ namespace ImageMagitek.Colors
         /// Construct a ForeignColor
         /// </summary>
         /// <param name="color">Foreign Color ARGB value</param>
-        public ForeignColor(uint color) : this()
+        public ForeignColor(uint color)
         {
             Color = color;
         }
 
-        public ForeignColor(byte A, byte R, byte G, byte B, ColorModel colorModel) : this()
+        public ForeignColor(byte A, byte R, byte G, byte B, ColorModel colorModel)
         {
             switch (colorModel)
             {
@@ -140,7 +140,7 @@ namespace ImageMagitek.Colors
         public (byte A, byte R, byte G, byte B) SplitToNative(ColorModel colorModel)
         {
             NativeColor nc = ToNativeColor(colorModel);
-            return nc.Split();
+            return (nc.A, nc.R, nc.G, nc.B);
         }
 
         /// <summary>
