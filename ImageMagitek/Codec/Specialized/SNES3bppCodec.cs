@@ -2,6 +2,7 @@
 using SixLabors.ImageSharp.PixelFormats;
 using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
+using SixLabors.ImageSharp.Advanced;
 
 namespace ImageMagitek.Codec
 {
@@ -30,6 +31,9 @@ namespace ImageMagitek.Codec
             if (el.FileAddress + StorageSize > fs.Length * 8) // Element would contain data past the end of the file
                 return;
 
+            var dest = image.GetPixelSpan();
+            int destidx = image.Width * el.Y1 + el.X1;
+
             var data = fs.ReadUnshifted(el.FileAddress, StorageSize, true);
             var bs = BitStream.OpenRead(data, StorageSize);
 
@@ -49,12 +53,15 @@ namespace ImageMagitek.Codec
                     var bp3 = bs.ReadBit();
 
                     var palIndex = (bp1 << 0) | (bp2 << 1) | (bp3 << 2);
-                    image[el.X1 + x, el.Y1 + y] = el.Palette[palIndex].ToRgba32();
+                    dest[destidx] = el.Palette[palIndex].ToRgba32();
+                    destidx++;
 
                     offsetPlane1++;
                     offsetPlane2++;
                     offsetPlane3++;
                 }
+
+                destidx += el.X1 + image.Width - (el.X2 + 1);
                 offsetPlane1 += Width;
                 offsetPlane2 += Width;
             }
