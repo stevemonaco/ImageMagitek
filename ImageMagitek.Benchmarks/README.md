@@ -1,4 +1,7 @@
-﻿# FileStreamReopenPerRead
+﻿# ImageMagitek.Benchmarks
+Contains benchmarks relevant to performance decisions and performance tracking for ImageMagitek
+
+## FileStreamReopenPerRead
 ``` ini
 
 BenchmarkDotNet=v0.11.5, OS=Windows 10.0.17763.557 (1809/October2018Update/Redstone5)
@@ -22,7 +25,7 @@ Intel Core i7-2600K CPU 3.40GHz (Sandy Bridge), 1 CPU, 8 logical and 4 physical 
 |      **KeepOpen** | **1000** |         **16384** |  **2,677.68 us** |  **42.8831 us** |  **38.0147 us** |
 | ReopenPerRead | 1000 |         16384 | 44,844.35 us | 249.6111 us | 221.2738 us |
 
-# Snes3bppDecodeToImage
+## Snes3bppDecodeToImage
 ``` ini
 
 BenchmarkDotNet=v0.11.5, OS=Windows 10.0.17763.615 (1809/October2018Update/Redstone5)
