@@ -10,7 +10,7 @@ using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Colors
 {
-    public enum ColorModel { RGB24 = 0, ARGB32, BGR15, ABGR16, RGB15, NES }
+    public enum ColorModel { RGBA32 = 0, RGB24, ARGB32, BGR15, ABGR16, RGB15, NES }
 
     /// <summary>
     /// Storage source of the palette
@@ -127,7 +127,7 @@ namespace ImageMagitek.Colors
         public bool LoadPalette(string filename)
         {
             int entrySize = 256;
-            ColorModel = ColorModel.ARGB32;
+            ColorModel = ColorModel.RGBA32;
 
             _nativePalette = new Lazy<ColorRgba32[]>(() => new ColorRgba32[entrySize]);
             _foreignPalette = new Lazy<IColor32[]>(() => new IColor32[entrySize]);

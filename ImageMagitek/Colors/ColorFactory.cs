@@ -12,8 +12,10 @@ namespace ImageMagitek.Colors
             {
                 case ColorModel.RGB24:
                     break;
-                case ColorModel.ARGB32:
+                case ColorModel.RGBA32:
                     return new ColorRgba32();
+                case ColorModel.ARGB32:
+                    break;
                 case ColorModel.BGR15:
                     return new ColorBgr15();
                 case ColorModel.ABGR16:
