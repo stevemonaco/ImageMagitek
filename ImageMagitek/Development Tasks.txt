@@ -20,9 +20,6 @@ General Refactors
 - Give Codecs to SequentialArranger instead of CodecFactory; ensures compatible element sizing; better use of codec information in general
 
 Palette
-- Start adding unit tests
-- Use lambdas/delegate for color converters
-- Isolate specific palette implementations? Move to ImageMagitek.Color
 - Add JSON support: Default.pal -> DefaultRgba32.json + DefaultNes.json
 
 Project
@@ -34,3 +31,4 @@ Low priority
 
 Bugs
 - ArrangerExtensions to move rows/pages erroneously assume each element's storage size is the same
+- CodecFactory / GeneralGraphicsCodec does not resize RowExtendedPixelPattern (tested via PSX 8bpp XML codec)
