@@ -28,7 +28,7 @@ namespace ImageMagitek.Benchmarks
         [GlobalSetup(Target = nameof(DecodeNative))]
         public void GlobalSetupNative()
         {
-            Codec = new SNES3bppCodec(8, 8);
+            Codec = new Snes3bppCodec(8, 8);
             Setup(nativeFileName, "native");
         }
 

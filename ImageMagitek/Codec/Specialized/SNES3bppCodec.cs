@@ -6,7 +6,7 @@ using SixLabors.ImageSharp.Advanced;
 
 namespace ImageMagitek.Codec
 {
-    public sealed class SNES3bppCodec : IGraphicsCodec
+    public sealed class Snes3bppCodec : IGraphicsCodec
     {
         public string Name => "SNES 3bpp";
         public int Width { get; private set; } = 8;
@@ -18,7 +18,7 @@ namespace ImageMagitek.Codec
         public int RowStride => 0;
         public int ElementStride => 0;
 
-        public SNES3bppCodec(int width, int height)
+        public Snes3bppCodec(int width, int height)
         {
             Width = width;
             Height = height;

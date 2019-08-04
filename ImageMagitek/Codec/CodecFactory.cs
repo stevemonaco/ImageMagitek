@@ -16,7 +16,7 @@ namespace ImageMagitek.Codec
             switch (codecName)
             {
                 case "SNES 3bpp":
-                    return new SNES3bppCodec(width, height);
+                    return new Snes3bppCodec(width, height);
                 default:
                     if (Formats.ContainsKey(codecName))
                     {
