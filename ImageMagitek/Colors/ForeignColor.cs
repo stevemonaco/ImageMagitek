@@ -5,6 +5,7 @@ namespace ImageMagitek.Colors
     /// <summary>
     /// Manages the storage and conversion of foreign colors
     /// </summary>
+    [Obsolete]
     public struct ForeignColor
     {
         /// <summary>

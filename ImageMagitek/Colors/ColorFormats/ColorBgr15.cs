@@ -1,30 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace ImageMagitek.Colors
 {
-    public struct ColorBgr15 : IColor
+    public struct ColorBgr15 : IColor32
     {
         public byte r;
         public byte g;
         public byte b;
+        public byte a;
 
-        public ColorBgr15(byte blue, byte green, byte red)
+        public ColorBgr15(byte red, byte green, byte blue)
         {
-            b = blue;
             r = red;
             g = green;
+            b = blue;
+            a = 0;
         }
 
-        public byte A => 0;
-
         public byte R { get => r; set => r = value; }
-
         public byte G { get => g; set => g = value; }
-
         public byte B { get => b; set => b = value; }
+        public byte A { get => 0; set => a = 0; }
 
         public uint Color
         {
@@ -39,9 +39,11 @@ namespace ImageMagitek.Colors
             {
                 r = (byte)(value & 0x1f);
                 g = (byte)((value & 0x3e0) >> 5);
-                g = (byte)((value & 0x7c0) >> 10);
+                b = (byte)((value & 0x7c00) >> 10);
             }
         }
+
+        public int Size => 16;
 
         public int AlphaMax => 0;
 
@@ -50,6 +52,20 @@ namespace ImageMagitek.Colors
         public int GreenMax => 31;
 
         public int BlueMax => 31;
+
+        private static Vector4 _maxVector = new Vector4(31f, 31f, 31f, 1f);
+        public Vector4 ColorVector
+        {
+            get => new Vector4(r, g, b, 1f) / _maxVector;
+            set
+            {
+                var vec = value * _maxVector;
+                r = (byte)Math.Round(vec.X);
+                g = (byte)Math.Round(vec.Y);
+                b = (byte)Math.Round(vec.Z);
+                a = 0;
+            }
+        }
 
         public void Deconstruct(out byte A, out byte R, out byte G, out byte B)
         {

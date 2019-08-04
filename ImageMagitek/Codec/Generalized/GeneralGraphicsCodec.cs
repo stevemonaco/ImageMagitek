@@ -308,7 +308,7 @@ namespace ImageMagitek.Codec
                 for (int x = 0; x < Format.Width; x++, srcidx++, destidx++)
                 {
                     var col = src[srcidx];
-                    MergedData[destidx] = el.Palette.GetIndexByNativeColor(new NativeColor(col.A, col.R, col.G, col.B), true);
+                    MergedData[destidx] = el.Palette.GetIndexByNativeColor(new ColorRgba32(col.R, col.G, col.B, col.A), true);
                 }
                 srcidx += el.X1 + image.Width - (el.X2 + 1);
             }

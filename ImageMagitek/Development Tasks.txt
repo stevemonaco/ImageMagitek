@@ -23,6 +23,7 @@ Palette
 - Start adding unit tests
 - Use lambdas/delegate for color converters
 - Isolate specific palette implementations? Move to ImageMagitek.Color
+- Add JSON support: Default.pal -> DefaultRgba32.json + DefaultNes.json
 
 Project
 - Implement renaming/moving logic

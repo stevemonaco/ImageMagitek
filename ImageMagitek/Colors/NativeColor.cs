@@ -9,6 +9,7 @@ namespace ImageMagitek.Colors
     /// Manages the storage and conversion of internal 32bit ARGB colors
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
+    [Obsolete]
     public struct NativeColor
     {
         [FieldOffset(0)]

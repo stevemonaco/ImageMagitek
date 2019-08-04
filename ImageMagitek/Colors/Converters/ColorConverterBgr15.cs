@@ -4,15 +4,15 @@ using System.Text;
 
 namespace ImageMagitek.Colors.Converters
 {
-    public sealed class ColorConverterBgr15 : IColorConverter<ColorBgr15, ColorRgba32>
+    public sealed class ColorConverterBgr15 : IColorConverter<ColorBgr15>
     {
         public ColorBgr15 ToForeignColor(ColorRgba32 nc)
         {
+            byte r = (byte)(nc.r >> 3);
             byte b = (byte)(nc.b >> 3);
             byte g = (byte)(nc.g >> 3);
-            byte r = (byte)(nc.r >> 3);
 
-            return new ColorBgr15(b, g, r);
+            return new ColorBgr15(r, g, b);
         }
 
         public ColorRgba32 ToNativeColor(ColorBgr15 fc)

@@ -6,17 +6,17 @@ namespace ImageMagitek.UnitTests
     public class ForeignColorTests
     {
         [TestCaseSource(typeof(ForeignColorTestCases), "ToNativeTestCases")]
-        public void ToNativeColor_Converts_Correctly(ForeignColor fc, NativeColor expected, ColorModel colorModel)
+        public void ToNative_AsExpected(IColor32 fc, ColorRgba32 expected)
         {
-            var actual = fc.ToNativeColor(colorModel);
+            var actual = ColorConverter.ToNative(fc);
 
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(actual.Color, expected.Color, ".Color components not equal");
-                Assert.AreEqual(actual.A, expected.A, "Alpha components not equal");
-                Assert.AreEqual(actual.R, expected.R, "Red components not equal");
-                Assert.AreEqual(actual.G, expected.G, "Green components not equal");
-                Assert.AreEqual(actual.B, expected.B, "Blue components not equal");
+                Assert.AreEqual(expected.Color, actual.Color, ".Color components not equal");
+                Assert.AreEqual(expected.R, actual.R, "Red components not equal");
+                Assert.AreEqual(expected.G, actual.G, "Green components not equal");
+                Assert.AreEqual(expected.B, actual.B, "Blue components not equal");
+                Assert.AreEqual(expected.A, actual.A, "Alpha components not equal");
             });
         }
     }

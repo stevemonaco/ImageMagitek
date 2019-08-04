@@ -4,11 +4,9 @@ using System.Text;
 
 namespace ImageMagitek.Colors
 {
-    public interface IColorConverter<TForeign, TNative>
-        where TForeign : IColor
-        where TNative : IColor
+    public interface IColorConverter<TColor> where TColor : IColor32
     {
-        TForeign ToForeignColor(TNative nc);
-        TNative ToNativeColor(TForeign fc);
+        TColor ToForeignColor(ColorRgba32 nc);
+        ColorRgba32 ToNativeColor(TColor fc);
     }
 }
