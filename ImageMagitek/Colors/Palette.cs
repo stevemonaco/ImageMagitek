@@ -144,7 +144,7 @@ namespace ImageMagitek.Colors
                 uint color = br.ReadUInt32();
                 var nativeColor = new ColorRgba32(color | 0xFF000000); // Disable transparency
                 NativePalette[idx] = nativeColor;
-                IColor32 foreignColor = ColorFactory.NewColor(ColorModel, color);
+                IColor32 foreignColor = ColorFactory.CreateColor(ColorModel, color);
                 ForeignPalette[idx] = foreignColor;
             }
 
@@ -205,7 +205,7 @@ namespace ImageMagitek.Colors
         /// </exception>
         private IColor32[] LoadForeignPalette()
         {
-            var foreignColor = ColorFactory.NewColor(ColorModel);
+            var foreignColor = ColorFactory.CreateColor(ColorModel);
             int readSize = (foreignColor.Size + 7) / 8;
             HasAlpha = foreignColor.AlphaMax > 0;
 
@@ -240,7 +240,7 @@ namespace ImageMagitek.Colors
                 else
                     throw new NotSupportedException($"{nameof(LoadForeignPalette)}: Palette formats with entry sizes larger than 4 bytes are not supported");
 
-                foreignColor = ColorFactory.NewColor(ColorModel, readColor);
+                foreignColor = ColorFactory.CreateColor(ColorModel, readColor);
                 foreignPalette[i] = foreignColor;
             }
 
@@ -372,7 +372,7 @@ namespace ImageMagitek.Colors
         /// <param name=""></param>
         public void SetPaletteForeignColor(int index, byte R, byte G, byte B, byte A)
         {
-            var fc = ColorFactory.NewColor(ColorModel);
+            var fc = ColorFactory.CreateColor(ColorModel);
             fc.R = R;
             fc.G = G;
             fc.B = B;

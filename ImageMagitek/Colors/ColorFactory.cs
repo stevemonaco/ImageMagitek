@@ -6,7 +6,7 @@ namespace ImageMagitek.Colors
 {
     public static class ColorFactory
     {
-        public static IColor32 NewColor(ColorModel model, uint color = 0)
+        public static IColor32 CreateColor(ColorModel model, uint color = 0)
         {
             switch (model)
             {
