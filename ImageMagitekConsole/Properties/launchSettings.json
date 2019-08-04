@@ -7,6 +7,11 @@
       "commandName": "Project",
       "commandLineArgs": "ff2.xml ExportAll F:\\Projects\\ImageMagitek\\FF2Extract",
       "workingDirectory": "F:\\Projects\\ImageMagitek"
+    },
+    "ImageMagitekConsoleTestPSX8bpp": {
+      "commandName": "Project",
+      "commandLineArgs": "bossx.xml ExportAll F:\\Projects\\ImageMagitek\\BossX",
+      "workingDirectory": "F:\\Projects\\ImageMagitek"
     }
   }
 }
