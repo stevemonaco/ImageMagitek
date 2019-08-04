@@ -17,6 +17,8 @@ namespace ImageMagitek.Codec
             {
                 case "SNES 3bpp":
                     return new Snes3bppCodec(width, height);
+                case "PSX 8bpp":
+                    return new Psx8bppCodec(width, height);
                 default:
                     if (Formats.ContainsKey(codecName))
                     {
