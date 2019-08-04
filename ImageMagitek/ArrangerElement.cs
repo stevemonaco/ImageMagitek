@@ -72,7 +72,7 @@ namespace ImageMagitek
         }
 
         /// <summary>
-        /// Creates a deep clone
+        /// Creates a shallow clone
         /// </summary>
         /// <returns></returns>
         public ArrangerElement Clone()
