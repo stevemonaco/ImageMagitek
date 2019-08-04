@@ -4,6 +4,15 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace ImageMagitek
 {
+    public interface IArrangerImage<TPixel>
+    {
+        bool Render(Arranger arranger);
+        bool LoadImage(string imageFileName);
+        bool SaveImage(Arranger arranger);
+        TPixel GetPixel(int x, int y);
+        void SetPixel(int x, int y, TPixel color);
+    }
+
     /// <summary>
     /// Provides support for rendering Arrangers to an image, manipulating pixel data, and saving to disk with sequential operations
     /// </summary>
