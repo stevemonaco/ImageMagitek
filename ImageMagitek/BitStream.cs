@@ -227,7 +227,6 @@ namespace ImageMagitek
                     var value = (Data[Index] & mask) >> (8 - bitsToRead);
                     result |= value;
 
-                    Index++;
                     BitsRemaining -= bitsToRead;
                     BitIndex -= bitsToRead;
                 }
