@@ -73,7 +73,7 @@ namespace ImageMagitek.Codec
         {
             var fs = el.DataFile.Stream;
 
-            if (el.FileAddress + StorageSize > fs.Length * 8) // Element would contain data past the end of the file
+            if (el.FileAddress + StorageSize > fs.Length * 8) // Ensure there is enough data to decode
                 return;
 
             var bs = BitStream.OpenWrite(StorageSize, 8);
