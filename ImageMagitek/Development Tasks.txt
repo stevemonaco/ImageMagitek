@@ -21,6 +21,7 @@ General Refactors
 
 Palette
 - Add JSON support: Default.pal -> DefaultRgba32.json + DefaultNes.json
+- Re-enable adding palettes from pal folder to project
 
 Project
 - Implement renaming/moving logic
