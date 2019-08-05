@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 using SixLabors.ImageSharp;
@@ -70,7 +71,7 @@ namespace ImageMagitek.Codec
             if (el.FileAddress + StorageSize > fs.Length * 8) // Element would contain data past the end of the file
                 return;
 
-            fs.Seek(el.FileAddress.FileOffset, System.IO.SeekOrigin.Begin);
+            fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
 
             var src = image.GetPixelSpan();
             int srcidx = image.Width * el.Y1 + el.X1;
