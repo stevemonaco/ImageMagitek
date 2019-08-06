@@ -8,9 +8,9 @@
       "commandLineArgs": "ff2.xml ExportAll F:\\Projects\\ImageMagitek\\FF2Extract",
       "workingDirectory": "F:\\Projects\\ImageMagitek"
     },
-    "ImageMagitekConsoleTestPSX8bpp": {
+    "ImageMagitekConsoleTestPSX": {
       "commandName": "Project",
-      "commandLineArgs": "bossx.xml ExportAll F:\\Projects\\ImageMagitek\\BossX",
+      "commandLineArgs": "psx.xml ExportAll F:\\Projects\\ImageMagitek\\PSXExtract",
       "workingDirectory": "F:\\Projects\\ImageMagitek"
     }
   }
