@@ -72,7 +72,11 @@ namespace ImageMagitek.Project
                     for(int y = 0; y < arranger.ArrangerElementSize.Height; y++)
                     {
                         tree.TryGetValue<DataFile>(modelArranger.ElementGrid[x, y].DataFileKey, out var df);
-                        tree.TryGetValue<Palette>(modelArranger.ElementGrid[x, y].PaletteKey, out var pal);
+
+                        Palette pal = default;
+                        if(!string.IsNullOrEmpty(modelArranger.ElementGrid[x, y].PaletteKey))
+                            tree.TryGetValue<Palette>(modelArranger.ElementGrid[x, y].PaletteKey, out pal);
+
                         var element = arranger.ElementGrid[x, y];
                         element.DataFile = df;
                         element.Palette = pal;
@@ -134,7 +138,7 @@ namespace ImageMagitek.Project
             var height = int.Parse(element.Attribute("height").Value); // Height of element in pixels
             var defaultFormat = element.Attribute("defaultformat").Value;
             var defaultDataFile = element.Attribute("defaultdatafile").Value;
-            var defaultPalette = element.Attribute("defaultpalette").Value;
+            var defaultPalette = element.Attribute("defaultpalette")?.Value ?? "";
             var layoutName = element.Attribute("layout").Value;
             var elementList = element.Descendants("element");
 
