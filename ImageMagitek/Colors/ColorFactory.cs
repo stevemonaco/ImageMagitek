@@ -21,7 +21,9 @@ namespace ImageMagitek.Colors
                     colorBgr15.Color = color;
                     return colorBgr15;
                 case ColorModel.ABGR16:
-                    break;
+                    var colorAbgr16 = new ColorAbgr16();
+                    colorAbgr16.Color = color;
+                    return colorAbgr16;
                 case ColorModel.RGB15:
                     break;
                 case ColorModel.NES:
