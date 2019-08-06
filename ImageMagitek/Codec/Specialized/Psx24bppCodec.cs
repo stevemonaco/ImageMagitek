@@ -10,9 +10,9 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace ImageMagitek.Codec
 {
-    public class Psx16bppCodec : IGraphicsCodec
+    public class Psx24bppCodec : IGraphicsCodec
     {
-        public string Name => "PSX 16bpp";
+        public string Name => "PSX 24bpp";
 
         public int Width { get; private set; } = 8;
 
@@ -22,15 +22,15 @@ namespace ImageMagitek.Codec
 
         public PixelColorType ColorType => PixelColorType.Direct;
 
-        public int ColorDepth => 16;
+        public int ColorDepth => 24;
 
-        public int StorageSize => Width * Height * 16;
+        public int StorageSize => Width * Height * 24;
 
         public int RowStride { get; private set; } = 0;
 
         public int ElementStride { get; private set; } = 0;
 
-        public Psx16bppCodec(int width, int height)
+        public Psx24bppCodec(int width, int height)
         {
             Width = width;
             Height = height;
@@ -55,10 +55,12 @@ namespace ImageMagitek.Codec
             {
                 for (int x = 0; x < el.Width; x++)
                 {
-                    uint packedColor = bs.ReadByte();
-                    packedColor |= (uint)bs.ReadByte() << 8;
-                    var colorAbgr16 = ColorFactory.CreateColor(ColorModel.ABGR16, packedColor);
-                    dest[destidx] = ColorConverter.ToNative(colorAbgr16).ToRgba32();
+                    byte r = bs.ReadByte();
+                    byte g = bs.ReadByte();
+                    byte b = bs.ReadByte();
+
+                    var nc = new ColorRgba32(r, g, b, 0xFF);
+                    dest[destidx] = nc.ToRgba32();
                     destidx++;
                 }
 
@@ -74,7 +76,6 @@ namespace ImageMagitek.Codec
                 return;
 
             fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
-            var bw = new BinaryWriter(fs);
 
             var src = image.GetPixelSpan();
             int srcidx = image.Width * el.Y1 + el.X1;
@@ -84,16 +85,16 @@ namespace ImageMagitek.Codec
                 for (int x = 0; x < el.Width; x++)
                 {
                     var imageColor = src[srcidx];
-                    var nc = new ColorRgba32(imageColor.PackedValue);
-                    var fc = ColorConverter.ToForeign(nc, ColorModel.ABGR16);
+                    fs.WriteByte(imageColor.R);
+                    fs.WriteByte(imageColor.G);
+                    fs.WriteByte(imageColor.B);
 
-                    bw.Write((ushort)fc.Color);
                     srcidx++;
                 }
                 srcidx += RowStride + el.X1 + image.Width - (el.X2 + 1);
             }
 
-            bw.Flush();
+            fs.Flush();
         }
     }
 }

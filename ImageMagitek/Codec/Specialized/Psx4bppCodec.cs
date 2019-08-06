@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
+using System.IO;
 using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 using SixLabors.ImageSharp;
@@ -10,9 +10,9 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace ImageMagitek.Codec
 {
-    public class Psx16bppCodec : IGraphicsCodec
+    public class Psx4bppCodec : IGraphicsCodec
     {
-        public string Name => "PSX 16bpp";
+        public string Name => "PSX 4bpp";
 
         public int Width { get; private set; } = 8;
 
@@ -20,17 +20,17 @@ namespace ImageMagitek.Codec
 
         public ImageLayout Layout => ImageLayout.Linear;
 
-        public PixelColorType ColorType => PixelColorType.Direct;
+        public PixelColorType ColorType => PixelColorType.Indexed;
 
-        public int ColorDepth => 16;
+        public int ColorDepth => 4;
 
-        public int StorageSize => Width * Height * 16;
+        public int StorageSize => Width * Height * 4;
 
         public int RowStride { get; private set; } = 0;
 
         public int ElementStride { get; private set; } = 0;
 
-        public Psx16bppCodec(int width, int height)
+        public Psx4bppCodec(int width, int height)
         {
             Width = width;
             Height = height;
@@ -53,13 +53,14 @@ namespace ImageMagitek.Codec
 
             for (int y = 0; y < el.Height; y++)
             {
-                for (int x = 0; x < el.Width; x++)
+                for (int x = 0; x < el.Width / 2; x++)
                 {
-                    uint packedColor = bs.ReadByte();
-                    packedColor |= (uint)bs.ReadByte() << 8;
-                    var colorAbgr16 = ColorFactory.CreateColor(ColorModel.ABGR16, packedColor);
-                    dest[destidx] = ColorConverter.ToNative(colorAbgr16).ToRgba32();
-                    destidx++;
+                    var palIndex = bs.ReadBits(4);
+                    dest[destidx+1] = pal[palIndex].ToRgba32();
+
+                    palIndex = bs.ReadBits(4);
+                    dest[destidx] = pal[palIndex].ToRgba32();
+                    destidx += 2;
                 }
 
                 destidx += RowStride + el.X1 + image.Width - (el.X2 + 1);
@@ -74,26 +75,31 @@ namespace ImageMagitek.Codec
                 return;
 
             fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
-            var bw = new BinaryWriter(fs);
 
             var src = image.GetPixelSpan();
             int srcidx = image.Width * el.Y1 + el.X1;
 
             for (int y = 0; y < el.Height; y++)
             {
-                for (int x = 0; x < el.Width; x++)
+                for (int x = 0; x < el.Width / 2; x++)
                 {
                     var imageColor = src[srcidx];
                     var nc = new ColorRgba32(imageColor.PackedValue);
-                    var fc = ColorConverter.ToForeign(nc, ColorModel.ABGR16);
+                    byte indexLow = el.Palette.GetIndexByNativeColor(nc, true);
 
-                    bw.Write((ushort)fc.Color);
+                    imageColor = src[srcidx + 1];
+                    nc = new ColorRgba32(imageColor.PackedValue);
+                    byte indexHigh = el.Palette.GetIndexByNativeColor(nc, true);
+
+                    byte index = (byte)(indexLow | (indexHigh << 4));
+                    fs.WriteByte(index);
+
                     srcidx++;
                 }
                 srcidx += RowStride + el.X1 + image.Width - (el.X2 + 1);
             }
 
-            bw.Flush();
+            fs.Flush();
         }
     }
 }
