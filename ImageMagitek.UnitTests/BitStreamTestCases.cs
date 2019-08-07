@@ -21,6 +21,14 @@ namespace ImageMagitek.UnitTests
             }
         }
 
+        public static IEnumerable<TestCaseData> ReadBitMultipleCases
+        {
+            get
+            {
+                yield return new TestCaseData(BitStream.OpenRead(readData, readData.Length * 8), new int[] { 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1 });
+            }
+        }
+
         public static IEnumerable<TestCaseData> ReadByteCases
         {
             get
@@ -35,6 +43,14 @@ namespace ImageMagitek.UnitTests
             }
         }
 
+        public static IEnumerable<TestCaseData> ReadByteMultipleCases
+        {
+            get
+            {
+                yield return new TestCaseData(BitStream.OpenRead(readData, readData.Length * 8), 3, new int[] { 0b10011111, 0b11111010, 0b10101110, 0b01100000 });
+            }
+        }
+
         public static IEnumerable<TestCaseData> ReadBitsCases
         {
             get
@@ -45,6 +61,14 @@ namespace ImageMagitek.UnitTests
                 yield return new TestCaseData(BitStream.OpenRead(readData, readData.Length * 8), 10, 8, 0b11111101);
                 yield return new TestCaseData(BitStream.OpenRead(readData, readData.Length * 8), 19, 18, 0b101011100110000000);
                 yield return new TestCaseData(BitStream.OpenRead(readData, readData.Length * 8), 16, 24, 0b010101011100110000000001);
+            }
+        }
+
+        public static IEnumerable<TestCaseData> ReadBitsMultipleCases
+        {
+            get
+            {
+                yield return new TestCaseData(BitStream.OpenRead(readData, readData.Length * 8), new int[] { 4, 8, 3, 5 }, new int[] { 0b1011, 0b00111111, 0b111, 0b10101 } );
             }
         }
 

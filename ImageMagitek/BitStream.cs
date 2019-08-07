@@ -140,7 +140,7 @@ namespace ImageMagitek
 
         public void SeekRelative(int seekBits)
         {
-            int seekOffset = BitsRemaining + seekBits;
+            int seekOffset = Index * 8 + (8 - BitIndex) + seekBits;
 
             if (seekOffset < 0 || seekOffset >= StreamSize)
                 throw new ArgumentOutOfRangeException($"{nameof(SeekRelative)} parameter '{nameof(seekOffset)} is out of range ({seekOffset})'");
@@ -151,7 +151,7 @@ namespace ImageMagitek
         }
 
         /// <summary>
-        /// Reads a single bit from the underlying array
+        /// Reads a single bit from the underlying stream
         /// </summary>
         /// <returns></returns>
         public int ReadBit()
@@ -177,12 +177,31 @@ namespace ImageMagitek
             return bit;
         }
 
+        /// <summary>
+        /// Reads a single byte from the underlying stream
+        /// </summary>
+        /// <returns></returns>
         public byte ReadByte()
         {
             if (BitsRemaining < 8)
                 throw new EndOfStreamException($"{nameof(ReadByte)} read past end of stream");
 
-            return (byte)ReadBits(8);
+            byte result = 0;
+
+            if (BitIndex == 8)
+            {
+                result = Data[Index];
+                Advance(8);
+            }
+            else
+            {
+                int readSize = BitIndex;
+                result = (byte)(PartialRead(readSize) << (8 - readSize));
+                readSize = 8 - readSize;
+                result = (byte)(result | PartialRead(readSize));
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -198,52 +217,59 @@ namespace ImageMagitek
             if (numBits > BitsRemaining)
                 throw new EndOfStreamException($"{nameof(ReadBits)} read past end of stream");
 
-            int numCycles;
+            var readRemaining = numBits; // Number of bits remaining to be read
+            int result = 0;
 
-            if (BitIndex == 0)
+            // Unaligned, partial read
+            if (BitIndex != 8)
             {
-                Index++;
-                BitIndex = 8;
+                int readLength = Math.Min(BitIndex, readRemaining);
+                result = PartialRead(readLength);
+                readRemaining -= readLength;
             }
 
-            if (BitIndex >= numBits)
-                numCycles = 1;
-            else
-                numCycles = 1 + (numBits - BitIndex + 7) / 8;
-
-            int bitsRead = 0; // Number of bits read so far
-            var result = 0;
-
-            for(int i = 0; i < numCycles; i++)
+            // Multiple aligned byte reads
+            while(readRemaining >= 8)
             {
-                if (bitsRead + BitIndex > numBits) // Do a partial read
-                {
-                    int bitsToRead = numBits - bitsRead;
-
-                    int mask = ((1 << bitsToRead) - 1); // Make mask for the bits to be read
-                    mask <<= (BitIndex - bitsToRead); // Shift mask to the bit index
-
-                    result <<= bitsToRead;
-                    var value = (Data[Index] & mask) >> (8 - bitsToRead);
-                    result |= value;
-
-                    BitsRemaining -= bitsToRead;
-                    BitIndex -= bitsToRead;
-                }
-                else // Read entirety of remaining byte
-                {
-                    int mask = (1 << BitIndex) - 1;
-                    result <<= BitIndex;
-                    result |= (Data[Index] & mask);
-
-                    Index++;
-                    BitsRemaining -= BitIndex;
-                    numBits -= BitIndex;
-                    BitIndex = 8;
-                }
+                result = (result << 8) | Data[Index];
+                Advance(8);
+                readRemaining -= 8;
             }
+
+            // Final unaligned read
+            if(readRemaining > 0)
+                result = (result << readRemaining) | PartialRead(readRemaining);
 
             return result;
+        }
+
+        /// <summary>
+        /// Perform a simple bit read that does not cross byte boundaries
+        /// </summary>
+        /// <param name="bitReadLength"></param>
+        /// <returns></returns>
+        private int PartialRead(int bitReadLength)
+        {
+            int mask = ((1 << bitReadLength) - 1); // Make mask for the bits to be read
+            mask <<= (BitIndex - bitReadLength); // Shift mask to the bit index
+
+            int result = (Data[Index] & mask) >> (BitIndex - bitReadLength);
+
+            Advance(bitReadLength);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Advances the stream's position internals
+        /// </summary>
+        /// <param name="advanceLength">Number of bits to advance</param>
+        private void Advance(int advanceLength)
+        {
+            int offset = (8 - BitIndex) + advanceLength;
+            Index += offset / 8;
+            BitIndex = 8 - (offset % 8);
+            BitsRemaining -= advanceLength;
         }
 
         public void WriteBit(int bit)
