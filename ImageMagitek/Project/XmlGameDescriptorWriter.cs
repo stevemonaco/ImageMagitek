@@ -58,11 +58,9 @@ namespace ImageMagitek.Project
             xws.Indent = true;
             xws.IndentChars = "\t";
 
-            using (var fs = new FileStream(fileName, FileMode.Create))
-            using (var xw = XmlWriter.Create(fs, xws))
-            {
-                xmlRoot.Save(xw);
-            }
+            using var fs = new FileStream(fileName, FileMode.Create);
+            using var xw = XmlWriter.Create(fs, xws);
+            xmlRoot.Save(xw);
 
             return true;
         }
