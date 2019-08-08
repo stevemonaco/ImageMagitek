@@ -347,15 +347,15 @@ namespace ImageMagitek.Colors
         }
 
         /// <summary>
-        /// Replaces the color at a particular palette index with the specified foreign color
+        /// Replaces the color at the specified palette index with the specified foreign color
         /// Additionally, updates the native color in the palette
         /// </summary>
         /// <param name="index">Zero-based palette index</param>
-        /// <param name=""></param>
-        public void SetPaletteForeignColor(int index, IColor32 foreignColor)
+        /// <param name="foreignColor">Color to assign to the foreign palette</param>
+        public void SetForeignColor(int index, IColor32 foreignColor)
         {
             if (ForeignPalette is null)
-                throw new NullReferenceException($"{nameof(SetPaletteForeignColor)} property '{nameof(ForeignPalette)}' was null");
+                throw new NullReferenceException($"{nameof(SetForeignColor)} property '{nameof(ForeignPalette)}' was null");
 
             if (index >= Entries)
                 throw new ArgumentOutOfRangeException($"{nameof(GetForeignColor)} parameter '{nameof(index)}' was out of range");
@@ -365,12 +365,11 @@ namespace ImageMagitek.Colors
         }
 
         /// <summary>
-        /// Replaces the color at a particular palette index with the specified foreign color
-        /// Additionally, updates the local color in the palette
+        /// Replaces the color at the specified palette index with the specified foreign color
+        /// Additionally, updates the native color in the palette
         /// </summary>
         /// <param name="index">Zero-based palette index</param>
-        /// <param name=""></param>
-        public void SetPaletteForeignColor(int index, byte R, byte G, byte B, byte A)
+        public void SetForeignColor(int index, byte R, byte G, byte B, byte A)
         {
             var fc = ColorFactory.CreateColor(ColorModel);
             fc.R = R;
@@ -378,7 +377,41 @@ namespace ImageMagitek.Colors
             fc.B = B;
             fc.A = A;
 
-            SetPaletteForeignColor(index, fc);
+            SetForeignColor(index, fc);
+        }
+
+        /// <summary>
+        /// Replaces the color at the specified palette index with the specified native color
+        /// Additionally, updates the foreign color in the palette
+        /// </summary>
+        /// <param name="index">Zero-based palette index</param>
+        /// <param name="nativeColor">Color to assign to the native palette</param>
+        public void SetNativeColor(int index, ColorRgba32 nativeColor)
+        {
+            if (NativePalette is null)
+                throw new NullReferenceException($"{nameof(SetNativeColor)} property '{nameof(NativePalette)}' was null");
+
+            if (index >= Entries)
+                throw new ArgumentOutOfRangeException($"{nameof(GetNativeColor)} parameter '{nameof(index)}' was out of range");
+
+            NativePalette[index] = nativeColor;
+            ForeignPalette[index] = ColorConverter.ToForeign(nativeColor, ColorModel);
+        }
+
+        /// <summary>
+        /// Replaces the color at the specified palette index with the specified native color
+        /// Additionally, updates the foreign color in the palette
+        /// </summary>
+        /// <param name="index">Zero-based palette index</param>
+        public void SetNativeColor(int index, byte R, byte G, byte B, byte A)
+        {
+            var nc = ColorFactory.CreateColor(ColorModel.RGBA32);
+            nc.R = R;
+            nc.G = G;
+            nc.B = B;
+            nc.A = A;
+
+            SetForeignColor(index, nc);
         }
 
         /// <summary>
