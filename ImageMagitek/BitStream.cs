@@ -302,9 +302,73 @@ namespace ImageMagitek
             BitIndex--;
         }
 
+        public void WriteByte(byte val)
+        {
+            if (BitsRemaining < 8)
+                throw new EndOfStreamException($"{nameof(WriteByte)} read past end of stream");
+
+            if (BitIndex == 8)
+            {
+                Data[Index] = val;
+                Advance(8);
+            }
+            else
+            {
+                int writeSize = BitIndex;
+                int writeValue = val >> (8 - writeSize);
+                PartialWrite(writeValue, writeSize);
+                writeSize = 8 - writeSize;
+                writeValue = val & ((1 << writeSize) - 1);
+                PartialWrite(writeValue, writeSize);
+            }
+        }
+
         public void WriteBits(int val, int numBits)
         {
-            throw new NotImplementedException();
+            if (numBits > 32 || numBits < 1)
+                throw new ArgumentOutOfRangeException($"{nameof(WriteBits)} parameter {nameof(numBits)} ({numBits}) is out of range");
+
+            if (numBits > BitsRemaining)
+                throw new EndOfStreamException($"{nameof(WriteBits)} read past end of stream");
+
+            var writeRemaining = numBits;
+
+            // Unaligned, partial write
+            if (BitIndex != 8)
+            {
+                int writeLength = Math.Min(BitIndex, writeRemaining);
+                int writeValue = val >> (writeRemaining - writeLength);
+                PartialWrite(writeValue, writeLength);
+                writeRemaining -= writeLength;
+            }
+
+            // Multiple aligned byte reads
+            while (writeRemaining >= 8)
+            {
+                int writeValue = val >> (writeRemaining - 8);
+                writeValue &= (1 << 8) - 1;
+                Data[Index] = (byte) writeValue;
+                Advance(8);
+                writeRemaining -= 8;
+            }
+
+            // Final unaligned read
+            if (writeRemaining > 0)
+            {
+                int writeValue = val & ((1 << writeRemaining) - 1);
+                PartialWrite(writeValue, writeRemaining);
+            }
+        }
+
+        private void PartialWrite(int val, int bitWriteLength)
+        {
+            int mask = ((1 << bitWriteLength) - 1); // Make mask for the bits to be read
+            mask <<= (BitIndex - bitWriteLength); // Shift mask to the bit index
+
+            Data[Index] &= (byte) ~mask; // Clear bits
+            Data[Index] |= (byte) (val << (BitIndex - bitWriteLength));
+
+            Advance(bitWriteLength);
         }
     }
 }
