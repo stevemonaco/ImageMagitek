@@ -52,12 +52,6 @@ namespace ImageMagitekConsole
 
             var palPath = Path.Combine(Directory.GetCurrentDirectory(), "pal");
             var palettes = new List<Palette>();
-            foreach(var paletteFileName in Directory.GetFiles(palPath).Where(x => x.EndsWith(".pal")))
-            {
-                var pal = new Palette(Path.GetFileNameWithoutExtension(paletteFileName));
-                pal.LoadPalette(paletteFileName);
-                palettes.Add(pal);
-            }
 
             foreach (var paletteFileName in Directory.GetFiles(palPath).Where(x => x.EndsWith(".json")))
             {

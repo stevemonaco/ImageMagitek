@@ -16,7 +16,7 @@ namespace ImageMagitek.Benchmarks
         private const string nativeFileName = "Snes3bppDecodeToImageNative.bin";
         private const string genericFileName = "Snes3bppDecodeToImageGeneric.bin";
         private const string genericCodecFileName = "SNES3bpp.xml";
-        private const string paletteFileName = "Default.pal";
+        private const string paletteFileName = "DefaultRgba32.json";
         private const string outputDirectory = @"F:\Projects\ImageMagitek\Benchmark\";
 
         private IGraphicsCodec Codec;
@@ -54,8 +54,7 @@ namespace ImageMagitek.Benchmarks
             }
 
             var palFileName = Path.Combine(Directory.GetCurrentDirectory(), "Resources", paletteFileName);
-            pal = new Palette(Path.GetFileNameWithoutExtension(palFileName));
-            pal.LoadPalette(palFileName);
+            pal = PaletteJsonSerializer.ReadPalette(palFileName);
             df = new DataFile("df", Path.GetFullPath(dataFileName));
 
             arranger = new ScatteredArranger(arrangerName, ArrangerLayout.TiledArranger, 16, 32, 8, 8);

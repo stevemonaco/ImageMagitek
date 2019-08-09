@@ -129,43 +129,6 @@ namespace ImageMagitek.Colors
         }
 
         /// <summary>
-        /// Load a 256-entry palette from a new file in ARGB32 format
-        /// </summary>
-        /// <param name="filename">Path to the palette file on disk</param>
-        /// <returns>Success value</returns>
-        public bool LoadPalette(string filename)
-        {
-            int entrySize = 256;
-            ColorModel = ColorModel.RGBA32;
-
-            _nativePalette = new Lazy<ColorRgba32[]>(() => new ColorRgba32[entrySize]);
-            _foreignPalette = new Lazy<IColor32[]>(() => new IColor32[entrySize]);
-
-            BinaryReader br = new BinaryReader(File.OpenRead(filename));
-
-            int numColors = (int)br.BaseStream.Length / 4;
-
-            if (numColors != entrySize)
-                return false;
-
-            for (int idx = 0; idx < numColors; idx++)
-            {
-                uint color = br.ReadUInt32();
-                var nativeColor = new ColorRgba32(color | 0xFF000000); // Disable transparency
-                NativePalette[idx] = nativeColor;
-                IColor32 foreignColor = ColorFactory.CreateColor(ColorModel, color);
-                ForeignPalette[idx] = foreignColor;
-            }
-
-            // TODO: Set DataFile
-            FileAddress = new FileBitAddress(0, 0);
-            Entries = entrySize;
-            StorageSource = PaletteStorageSource.File;
-
-            return true;
-        }
-
-        /// <summary>
         /// Lazily loads palette from a previously opened file. Actual loading will occur during color access.
         /// </summary>
         /// <param name="dataFile">DataFile containing the palette data</param>
