@@ -59,6 +59,13 @@ namespace ImageMagitekConsole
                 palettes.Add(pal);
             }
 
+            foreach (var paletteFileName in Directory.GetFiles(palPath).Where(x => x.EndsWith(".json")))
+            {
+                string json = File.ReadAllText(paletteFileName);
+                var pal = PaletteJsonSerializer.ReadPalette(json);
+                palettes.Add(pal);
+            }
+
             var deserializer = new XmlGameDescriptorReader(new CodecFactory(formats));
             var tree = deserializer.ReadProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
 

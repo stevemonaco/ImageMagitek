@@ -16,7 +16,7 @@ namespace ImageMagitek.Colors
     /// Storage source of the palette
     /// ProjectFile palettes are stored in the XML project file
     /// </summary>
-    public enum PaletteStorageSource { File = 0, ProjectFile }
+    public enum PaletteStorageSource { File = 0, ProjectFile, Json }
 
     /// <summary>
     /// Palette manages the loading of palettes and colors from a variety of color formats
@@ -25,7 +25,6 @@ namespace ImageMagitek.Colors
     /// </summary>
     public class Palette : IProjectResource
     {
-        #region Properties
         public string Name { get; set; }
         public bool CanContainChildResources => false;
         public bool ShouldBeSerialized { get; set; } = true;
@@ -76,7 +75,6 @@ namespace ImageMagitek.Colors
         /// </summary>
         IColor32[] ForeignPalette { get => _foreignPalette.Value; }
         Lazy<IColor32[]> _foreignPalette;
-        #endregion
 
         /// <summary>
         /// Constructs a new named Palette object
@@ -99,6 +97,17 @@ namespace ImageMagitek.Colors
             Entries = entries;
             ZeroIndexTransparent = zeroIndexTransparent;
             StorageSource = storageSource;
+
+            if(storageSource == PaletteStorageSource.File)
+            {
+                _nativePalette = new Lazy<ColorRgba32[]>(() => LoadNativePalette());
+                _foreignPalette = new Lazy<IColor32[]>(() => LoadForeignPalette());
+            }
+            else if(storageSource == PaletteStorageSource.Json)
+            {
+                _nativePalette = new Lazy<ColorRgba32[]>(() => new ColorRgba32[Entries]);
+                _foreignPalette = new Lazy<IColor32[]>(() => new IColor32[Entries]);
+            }
         }
 
         /// <summary>
@@ -205,46 +214,7 @@ namespace ImageMagitek.Colors
         /// </exception>
         private IColor32[] LoadForeignPalette()
         {
-            var foreignColor = ColorFactory.CreateColor(ColorModel);
-            int readSize = (foreignColor.Size + 7) / 8;
-            HasAlpha = foreignColor.AlphaMax > 0;
-
-            byte[] tempPalette = DataFile.Stream.ReadUnshifted(FileAddress, readSize * 8 * Entries, true);
-            BitStream bs = BitStream.OpenRead(tempPalette, readSize * 8 * Entries);
-            var foreignPalette = new IColor32[Entries];
-
-            for (int i = 0; i < Entries; i++)
-            {
-                uint readColor;
-
-                if (readSize == 1)
-                    readColor = bs.ReadByte();
-                else if (readSize == 2)
-                {
-                    readColor = bs.ReadByte();
-                    readColor |= ((uint)bs.ReadByte()) << 8;
-                }
-                else if (readSize == 3)
-                {
-                    readColor = bs.ReadByte();
-                    readColor |= ((uint)bs.ReadByte()) << 8;
-                    readColor |= ((uint)bs.ReadByte()) << 16;
-                }
-                else if (readSize == 4)
-                {
-                    readColor = bs.ReadByte();
-                    readColor |= ((uint)bs.ReadByte()) << 8;
-                    readColor |= ((uint)bs.ReadByte()) << 16;
-                    readColor |= ((uint)bs.ReadByte()) << 24;
-                }
-                else
-                    throw new NotSupportedException($"{nameof(LoadForeignPalette)}: Palette formats with entry sizes larger than 4 bytes are not supported");
-
-                foreignColor = ColorFactory.CreateColor(ColorModel, readColor);
-                foreignPalette[i] = foreignColor;
-            }
-
-            return foreignPalette;
+            return PaletteBinarySerializer.ReadPalette(DataFile, FileAddress, ColorModel, Entries);
         }
 
         /// <summary>
@@ -421,55 +391,8 @@ namespace ImageMagitek.Colors
         public bool SavePalette()
         {
             if(StorageSource == PaletteStorageSource.File)
-            {
-                int writeSize;
+                PaletteBinarySerializer.WritePalette(DataFile, FileAddress, ForeignPalette);
 
-                switch (ColorModel)
-                {
-                    case ColorModel.BGR15:
-                        writeSize = 2;
-                        HasAlpha = false;
-                        break;
-                    case ColorModel.ABGR16:
-                        writeSize = 2;
-                        HasAlpha = true;
-                        break;
-                    case ColorModel.RGB24:
-                        writeSize = 3;
-                        HasAlpha = false;
-                        break;
-                    case ColorModel.ARGB32:
-                        writeSize = 4;
-                        HasAlpha = true;
-                        break;
-                    case ColorModel.RGB15:
-                        writeSize = 2;
-                        HasAlpha = false;
-                        break;
-                    default:
-                        throw new NotSupportedException($"{nameof(SavePalette)} unsupported {nameof(ColorModel)} ({ColorModel.ToString()})");
-                }
-
-                BinaryWriter bw = new BinaryWriter(DataFile.Stream);
-
-                DataFile.Stream.Seek(FileAddress.FileOffset, SeekOrigin.Begin); // TODO: Recode this for bitwise writing
-
-                for (int i = 0; i < Entries; i++)
-                {
-                    if (writeSize == 1)
-                        bw.Write((byte)ForeignPalette[i].Color);
-                    else if (writeSize == 2)
-                        bw.Write((short)ForeignPalette[i].Color);
-                    else if (writeSize == 3)
-                    {
-                        bw.Write((byte)(ForeignPalette[i].Color & 0xFF));
-                        bw.Write((byte)((ForeignPalette[i].Color >> 8) & 0xFF));
-                        bw.Write((byte)((ForeignPalette[i].Color >> 16) & 0xFF));
-                    }
-                    else if (writeSize == 4)
-                        bw.Write(ForeignPalette[i].Color);
-                }
-            }
             return true;
         }
 
