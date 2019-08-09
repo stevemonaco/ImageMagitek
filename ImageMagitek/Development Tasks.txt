@@ -6,6 +6,9 @@
 - Consider moving flip/rotation functionality to elements rather than codecs
 - Write schema after new spec
 
+Usage improvements
+- Helper methods for simply defining and decoding/encoding small graphics
+
 FileStream - Currently always opened
 - Create a FileStreamContext service to keep track of opened files for a given operation
 - Manage FileStreamContext in ArrangerImage and inject context into Codec
@@ -20,15 +23,13 @@ General Refactors
 - Give Codecs to SequentialArranger instead of CodecFactory; ensures compatible element sizing; better use of codec information in general
 
 Palette
-- Add JSON support: Default.pal -> DefaultRgba32.json + DefaultNes.json
 - Re-enable adding palettes from pal folder to project
 
 Project
 - Implement renaming/moving logic
 
-Low priority
-- Implement BitStream.WriteBits
-- Change ProjectResourceBase to an interface
+Tests
+- Graphics encoder/decoder tests
 
 Bugs
 - ArrangerExtensions to move rows/pages erroneously assume each element's storage size is the same
