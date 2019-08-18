@@ -10,9 +10,9 @@ namespace ImageMagitekConsole
 {
     public class CommandProcessor
     {
-        private readonly PathTree<IProjectResource> ResourceTree;
+        private readonly IPathTree<IProjectResource> ResourceTree;
 
-        public CommandProcessor(PathTree<IProjectResource> resourceTree)
+        public CommandProcessor(IPathTree<IProjectResource> resourceTree)
         {
             ResourceTree = resourceTree;
         }
