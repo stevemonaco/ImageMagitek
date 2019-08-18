@@ -38,5 +38,17 @@ namespace ImageMagitek.Codec
                         throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{nameof(codecName)}'");
             }
         }
+
+        public IEnumerable<string> GetSupportedCodecNames()
+        {
+            yield return "SNES 3bpp";
+            yield return "PSX 4bpp";
+            yield return "PSX 8bpp";
+            yield return "PSX 16bpp";
+            yield return "PSX 24bpp";
+
+            foreach (var format in Formats.Values)
+                yield return format.Name;
+        }
     }
 }

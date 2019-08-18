@@ -15,14 +15,14 @@ namespace ImageMagitek.Project
     public class XmlGameDescriptorReader : IGameDescriptorReader
     {
         public string DescriptorVersion => "0.1";
-        private CodecFactory _codecFactory;
+        private ICodecFactory _codecFactory;
 
-        public XmlGameDescriptorReader(CodecFactory CodecFactory)
+        public XmlGameDescriptorReader(ICodecFactory CodecFactory)
         {
             _codecFactory = CodecFactory;
         }
 
-        public PathTree<IProjectResource> ReadProject(string fileName, string baseDirectory)
+        public IPathTree<IProjectResource> ReadProject(string fileName, string baseDirectory)
         {
             if (string.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(fileName)}'");
