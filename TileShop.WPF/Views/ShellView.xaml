@@ -1,0 +1,46 @@
+﻿<Window x:Class="TileShop.WPF.Views.ShellView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TileShop.WPF.Views"
+        xmlns:cal="clr-namespace:Caliburn.Micro;assembly=Caliburn.Micro.Core"
+        mc:Ignorable="d"
+        Title="TileShop" Height="600" Width="1000">
+
+    <DockPanel>
+        <ContentControl x:Name="ActiveMenu" DockPanel.Dock="Top" />
+        
+        <ToolBarPanel DockPanel.Dock="Top">
+            <Button>Test Button</Button>
+        </ToolBarPanel>
+
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock>Test</TextBlock>
+            </StatusBarItem>
+        </StatusBar>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="100" Width="30*" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition MinWidth="100" Width="70*" />
+            </Grid.ColumnDefinitions>
+
+            <ContentControl x:Name="ActiveTree" Grid.Column="0" />
+            
+            <!--
+            <TreeView Grid.Column="0">
+                <TreeViewItem>
+                    <TextBlock>Sample item here</TextBlock>
+                </TreeViewItem>
+            </TreeView>
+            -->
+
+            <GridSplitter Width="5" Grid.Column="1" ShowsPreview="True" VerticalAlignment="Stretch" HorizontalAlignment="Center" />
+            <Button Grid.Column="2">Test</Button>
+        </Grid>
+
+    </DockPanel>
+</Window>
