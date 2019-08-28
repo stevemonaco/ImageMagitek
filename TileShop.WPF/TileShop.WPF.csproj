@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Assets\" />
     <Folder Include="Styles\" />
   </ItemGroup>
 
