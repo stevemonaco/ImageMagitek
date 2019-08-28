@@ -31,5 +31,19 @@ namespace ImageMagitek.Colors
             }
             throw new NotImplementedException();
         }
+
+        public static IColor32 CloneColor(IColor32 color)
+        {
+            switch(color)
+            {
+                case ColorRgba32 _:
+                    return new ColorRgba32(color.Color);
+                case ColorBgr15 _:
+                    return new ColorBgr15(color.R, color.G, color.B);
+                case ColorAbgr16 _:
+                    return new ColorAbgr16(color.R, color.G, color.B, color.A);
+            }
+            throw new NotImplementedException();
+        }
     }
 }
