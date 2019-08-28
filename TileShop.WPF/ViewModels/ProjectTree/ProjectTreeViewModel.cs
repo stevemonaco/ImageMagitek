@@ -52,17 +52,52 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public async Task HandleAsync(OpenProjectEvent message, CancellationToken cancellationToken)
+        private object _selectedItem;
+        public object SelectedItem
+        {
+            get => _selectedItem;
+            set
+            {
+                _selectedItem = value;
+                NotifyOfPropertyChange(() => SelectedItem);
+            }
+        }
+
+        public void ActivateSelectedItem()
+        {
+            switch(SelectedItem)
+            {
+                case ProjectTreePaletteViewModel pal:
+                    _events.PublishOnUIThreadAsync(new ActivateResourceEditorEvent(pal.Node.Value));
+                    break;
+                case ProjectTreeArrangerViewModel arranger:
+                    _events.PublishOnUIThreadAsync(new ActivateResourceEditorEvent(arranger.Node.Value));
+                    break;
+                case ProjectTreeDataFileViewModel file:
+                    _events.PublishOnUIThreadAsync(new ActivateResourceEditorEvent(file.Node.Value));
+                    break;
+                case ProjectTreeFolderViewModel folder:
+                    _events.PublishOnUIThreadAsync(new ActivateResourceEditorEvent(folder.Node.Value));
+                    break;
+                default:
+                    throw new InvalidOperationException($"{nameof(ActivateSelectedItem)} was called with a {nameof(SelectedItem)} of type {SelectedItem.GetType()}");
+            }
+            Console.WriteLine("Test");
+        }
+
+        public Task HandleAsync(OpenProjectEvent message, CancellationToken cancellationToken)
         {
             //var projectFileName = await Dispatcher.CurrentDispatcher.InvokeAsync(() => _fileSelect.GetProjectByUser());
 
             var projectFileName = _fileSelect.GetProjectByUser();
 
-            if (projectFileName is null)
-                return;
+            if (projectFileName is object)
+            {
+                _tree = _treeService.ReadProject(projectFileName);
+                NotifyOfPropertyChange(() => RootItems);
+            }
 
-            _tree = _treeService.ReadProject(projectFileName);
-            NotifyOfPropertyChange(() => RootItems);
+            return Task.CompletedTask;
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -9,16 +8,17 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace TileShop.WPF.Views
 {
     /// <summary>
-    /// Interaction logic for ShellView.xaml
+    /// Interaction logic for EditorHostView.xaml
     /// </summary>
-    public partial class ShellView : MetroWindow
+    public partial class EditorHostView : UserControl
     {
-        public ShellView()
+        public EditorHostView()
         {
             InitializeComponent();
         }

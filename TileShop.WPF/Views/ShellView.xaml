@@ -1,16 +1,22 @@
-﻿<Window x:Class="TileShop.WPF.Views.ShellView"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:TileShop.WPF.Views"
-        xmlns:cal="clr-namespace:Caliburn.Micro;assembly=Caliburn.Micro.Core"
-        mc:Ignorable="d"
-        Title="TileShop" Height="600" Width="1000">
+﻿<mah:MetroWindow
+    x:Class="TileShop.WPF.Views.ShellView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cal="clr-namespace:Caliburn.Micro;assembly=Caliburn.Micro.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:TileShop.WPF.Views"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="TileShop"
+    Width="1000"
+    Height="600"
+    ResizeMode="CanResizeWithGrip"
+    TitleCharacterCasing="Normal"
+    mc:Ignorable="d">
 
     <DockPanel>
         <ContentControl x:Name="ActiveMenu" DockPanel.Dock="Top" />
-        
+
         <ToolBarPanel DockPanel.Dock="Top">
             <Button>Test Button</Button>
         </ToolBarPanel>
@@ -23,24 +29,20 @@
 
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition MinWidth="100" Width="30*" />
+                <ColumnDefinition Width="30*" MinWidth="100" />
                 <ColumnDefinition Width="auto" />
-                <ColumnDefinition MinWidth="100" Width="70*" />
+                <ColumnDefinition Width="70*" MinWidth="100" />
             </Grid.ColumnDefinitions>
 
             <ContentControl x:Name="ActiveTree" Grid.Column="0" />
-            
-            <!--
-            <TreeView Grid.Column="0">
-                <TreeViewItem>
-                    <TextBlock>Sample item here</TextBlock>
-                </TreeViewItem>
-            </TreeView>
-            -->
-
-            <GridSplitter Width="5" Grid.Column="1" ShowsPreview="True" VerticalAlignment="Stretch" HorizontalAlignment="Center" />
-            <Button Grid.Column="2">Test</Button>
+            <GridSplitter
+                Grid.Column="1"
+                Width="5"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Stretch"
+                ShowsPreview="True" />
+            <ContentControl x:Name="ActiveEditorHost" Grid.Column="2" />
         </Grid>
 
     </DockPanel>
-</Window>
+</mah:MetroWindow>

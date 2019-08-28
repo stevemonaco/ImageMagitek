@@ -22,15 +22,31 @@ namespace TileShop.WPF.ViewModels
         private ProjectTreeViewModel _activeTree;
         public ProjectTreeViewModel ActiveTree
         {
-            get { return _activeTree; }
-            set { _activeTree = value; }
+            get => _activeTree;
+            set 
+            { 
+                _activeTree = value;
+                NotifyOfPropertyChange(() => ActiveTree);
+            }
+        }
+
+        private EditorHostViewModel _activeEditorHost;
+        public EditorHostViewModel ActiveEditorHost
+        {
+            get { return _activeEditorHost; }
+            set 
+            {
+                _activeEditorHost = value;
+                NotifyOfPropertyChange(() => ActiveEditorHost);
+            }
         }
 
 
-        public ShellViewModel(MenuViewModel activeMenu, ProjectTreeViewModel activeTree)
+        public ShellViewModel(MenuViewModel activeMenu, ProjectTreeViewModel activeTree, EditorHostViewModel activeEditorHost)
         {
             ActiveMenu = activeMenu;
             ActiveTree = activeTree;
+            ActiveEditorHost = activeEditorHost;
         }
     }
 }

@@ -1,0 +1,157 @@
+﻿<UserControl
+    x:Class="TileShop.WPF.Views.PaletteEditorView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cm="http://caliburnmicro.com"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:TileShop.WPF.Views"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <StackPanel Orientation="Vertical">
+        <!--  Selected color display  -->
+        <Grid Margin="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition
+                    Width="*"
+                    MinWidth="100"
+                    MaxWidth="400" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+
+            <Border
+                Grid.Row="0"
+                Grid.RowSpan="4"
+                Grid.Column="1"
+                Margin="0,0,10,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                BorderBrush="Black"
+                BorderThickness="2"
+                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}">
+
+                <Rectangle Width="50" Height="50">
+                    <Rectangle.Fill>
+                        <SolidColorBrush Color="{Binding Color}" />
+                    </Rectangle.Fill>
+                </Rectangle>
+            </Border>
+
+            <Button
+                Grid.Row="0"
+                Grid.RowSpan="4"
+                Grid.Column="0"
+                Height="50"
+                MinWidth="50"
+                Margin="0,0,20,0"
+                cm:Message.Attach="SaveColor"
+                Content="Save"
+                IsEnabled="{Binding EditingItem.CanSaveColor}" />
+
+            <Slider
+                Grid.Row="0"
+                Grid.Column="2"
+                Margin="0,0,10,5"
+                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
+                Foreground="Red"
+                Maximum="{Binding RedMax, UpdateSourceTrigger=PropertyChanged}"
+                Minimum="0"
+                Style="{DynamicResource MahApps.Styles.Slider.Flat}"
+                Value="{Binding Red, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+            <Slider
+                Grid.Row="1"
+                Grid.Column="2"
+                Margin="0,0,10,5"
+                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
+                Foreground="Green"
+                Maximum="{Binding GreenMax}"
+                Minimum="0"
+                Style="{DynamicResource MahApps.Styles.Slider.Flat}"
+                Value="{Binding Green, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+            <Slider
+                Grid.Row="2"
+                Grid.Column="2"
+                Margin="0,0,10,5"
+                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
+                Foreground="Blue"
+                Maximum="{Binding BlueMax}"
+                Minimum="0"
+                Style="{DynamicResource MahApps.Styles.Slider.Flat}"
+                Value="{Binding Blue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+            <Slider
+                Grid.Row="3"
+                Grid.Column="2"
+                Margin="0,0,10,0"
+                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
+                Foreground="{StaticResource CheckeredBrush}"
+                Maximum="{Binding AlphaMax}"
+                Minimum="0"
+                Style="{DynamicResource MahApps.Styles.Slider.Flat}"
+                Value="{Binding Alpha, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBlock
+                Grid.Row="0"
+                Grid.Column="3"
+                VerticalAlignment="Center"
+                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
+                Text="{Binding Red}" />
+            <TextBlock
+                Grid.Row="1"
+                Grid.Column="3"
+                VerticalAlignment="Center"
+                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
+                Text="{Binding Green}" />
+            <TextBlock
+                Grid.Row="2"
+                Grid.Column="3"
+                VerticalAlignment="Center"
+                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
+                Text="{Binding Blue}" />
+            <TextBlock
+                Grid.Row="3"
+                Grid.Column="3"
+                VerticalAlignment="Center"
+                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
+                Text="{Binding Alpha}" />
+        </Grid>
+
+        <!--  Palette Display  -->
+        <ListView
+            Margin="0"
+            Padding="0"
+            ItemsSource="{Binding Colors}"
+            SelectedIndex="{Binding SelectedIndex}"
+            SelectedItem="{Binding SelectedItem}">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Border BorderBrush="Black" BorderThickness="2">
+                        <Rectangle Width="50" Height="50">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{Binding Color}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </StackPanel>
+</UserControl>
