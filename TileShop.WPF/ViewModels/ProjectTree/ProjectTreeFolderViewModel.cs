@@ -10,20 +10,20 @@ namespace TileShop.WPF.ViewModels
 {
     public class ProjectTreeFolderViewModel : Screen
     {
-        private IPathTreeNode<IProjectResource> _node;
+        public IPathTreeNode<IProjectResource> Node { get; set; }
 
-        public string Name => _node.Name;
+        public string Name => Node.Name;
 
         public ProjectTreeFolderViewModel(IPathTreeNode<IProjectResource> node)
         {
-            _node = node;
+            Node = node;
         }
 
         public IEnumerable<Screen> Children
         {
             get
             {
-                foreach (var node in _node.Children())
+                foreach (var node in Node.Children())
                 {
                     if (node.Value is ResourceFolder)
                         yield return new ProjectTreeFolderViewModel(node);

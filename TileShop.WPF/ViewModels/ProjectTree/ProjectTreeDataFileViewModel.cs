@@ -9,13 +9,13 @@ namespace TileShop.WPF.ViewModels
 {
     public class ProjectTreeDataFileViewModel : Screen
     {
-        private IPathTreeNode<IProjectResource> _node;
+        public IPathTreeNode<IProjectResource> Node { get; set; }
 
-        public string Name => _node.Name;
+        public string Name => Node.Name;
 
         public ProjectTreeDataFileViewModel(IPathTreeNode<IProjectResource> node)
         {
-            _node = node;
+            Node = node;
         } 
     }
 }
