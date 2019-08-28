@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Caliburn.Micro;
+using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using TileShop.WPF.EventModels;
@@ -12,7 +13,7 @@ namespace TileShop.WPF.ViewModels
 {
     public class EditorHostViewModel : Screen, IHandle<ActivateResourceEditorEvent>
     {
-        private IEventAggregator _events;
+        protected IEventAggregator _events;
 
         private BindableCollection<EditorBaseViewModel> _documents = new BindableCollection<EditorBaseViewModel>();
         public BindableCollection<EditorBaseViewModel> Documents
@@ -54,6 +55,9 @@ namespace TileShop.WPF.ViewModels
                 {
                     case Palette pal:
                         newDocument = new PaletteEditorViewModel(pal);
+                        break;
+                    case Arranger arr:
+                        newDocument = new ArrangerEditorViewModel(arr, _events);
                         break;
                     default:
                         throw new InvalidOperationException();

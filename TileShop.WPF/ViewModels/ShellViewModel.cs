@@ -30,6 +30,17 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        private StatusBarViewModel _activeStatusBar;
+        public StatusBarViewModel ActiveStatusBar
+        {
+            get => _activeStatusBar;
+            set
+            {
+                _activeStatusBar = value;
+                NotifyOfPropertyChange(() => ActiveStatusBar);
+            }
+        }
+
         private EditorHostViewModel _activeEditorHost;
         public EditorHostViewModel ActiveEditorHost
         {
@@ -41,11 +52,12 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-
-        public ShellViewModel(MenuViewModel activeMenu, ProjectTreeViewModel activeTree, EditorHostViewModel activeEditorHost)
+        public ShellViewModel(MenuViewModel activeMenu, ProjectTreeViewModel activeTree, 
+            StatusBarViewModel activeStatusBar, EditorHostViewModel activeEditorHost)
         {
             ActiveMenu = activeMenu;
             ActiveTree = activeTree;
+            ActiveStatusBar = activeStatusBar;
             ActiveEditorHost = activeEditorHost;
         }
     }

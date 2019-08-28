@@ -21,11 +21,7 @@
             <Button>Test Button</Button>
         </ToolBarPanel>
 
-        <StatusBar DockPanel.Dock="Bottom">
-            <StatusBarItem>
-                <TextBlock>Test</TextBlock>
-            </StatusBarItem>
-        </StatusBar>
+        <ContentControl x:Name="ActiveStatusBar" DockPanel.Dock="Bottom" />
 
         <Grid>
             <Grid.ColumnDefinitions>

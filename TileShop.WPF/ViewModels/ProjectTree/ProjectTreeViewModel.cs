@@ -65,6 +65,9 @@ namespace TileShop.WPF.ViewModels
 
         public void ActivateSelectedItem()
         {
+            if (SelectedItem is null)
+                return;
+
             switch(SelectedItem)
             {
                 case ProjectTreePaletteViewModel pal:
@@ -82,7 +85,6 @@ namespace TileShop.WPF.ViewModels
                 default:
                     throw new InvalidOperationException($"{nameof(ActivateSelectedItem)} was called with a {nameof(SelectedItem)} of type {SelectedItem.GetType()}");
             }
-            Console.WriteLine("Test");
         }
 
         public Task HandleAsync(OpenProjectEvent message, CancellationToken cancellationToken)
