@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+  <CodeSnippet Format="1.0.0">
+    <Header>
+      <Title>INotifyPropertyChanged Property</Title>
+      <Author>Stephen Monaco</Author>
+      <Description>Creates a class with INotifyPropertyChanged notification</Description>
+      <Shortcut>classnot</Shortcut>
+      <SnippetTypes>
+        <SnippetType>Expansion</SnippetType>
+      </SnippetTypes>
+    </Header>
+    <Snippet>
+      <Code Language="CSharp">
+        <![CDATA[public class $Class$ : INotifyPropertyChanged
+  {
+    private $Type$ $Field$;
+    public $Type$ $Property$
+	  {
+		  get => $Field$;
+		  set => SetField(ref $Field$, value);
+	  }
+
+	  public event PropertyChangedEventHandler PropertyChanged;
+	  protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+		  => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+	  protected bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+	  {
+		  if (EqualityComparer<T>.Default.Equals(field, value))
+			  return false;
+
+		  field = value;
+		  OnPropertyChanged(propertyName);
+		  return true;
+	  }
+  }
+		$end$]]>
+      </Code>
+      <Imports>
+        <Import>
+          <Namespace>System.ComponentModel</Namespace>
+        </Import>
+        <Import>
+          <Namespace>System.Runtime.CompilerServices</Namespace>
+        </Import>
+      </Imports>
+      <Declarations>
+        <Literal>
+          <ID>Class</ID>
+          <ToolTip>Class name</ToolTip>
+          <Default>ClassName</Default>
+        </Literal>
+        <Literal>
+          <ID>Type</ID>
+          <ToolTip>Property Type</ToolTip>
+          <Default>int</Default>
+        </Literal>
+        <Literal>
+          <ID>Field</ID>
+          <ToolTip>Name of backing field</ToolTip>
+          <Default>_myField</Default>
+        </Literal>
+        <Literal>
+          <ID>Property</ID>
+          <ToolTip>Name of property</ToolTip>
+          <Default>MyProperty</Default>
+        </Literal>
+      </Declarations>
+    </Snippet>
+  </CodeSnippet>
+</CodeSnippets>
