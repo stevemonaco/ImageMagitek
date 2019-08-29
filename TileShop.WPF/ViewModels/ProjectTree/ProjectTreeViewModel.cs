@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using ImageMagitek.Colors;
-using TileShop.WPF.EventModels;
+using TileShop.Shared.EventModels;
 using System.Threading;
 using System.Threading.Tasks;
 using TileShop.WPF.Services;

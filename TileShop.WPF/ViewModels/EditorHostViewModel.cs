@@ -7,7 +7,7 @@ using Caliburn.Micro;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
-using TileShop.WPF.EventModels;
+using TileShop.Shared.EventModels;
 
 namespace TileShop.WPF.ViewModels
 {

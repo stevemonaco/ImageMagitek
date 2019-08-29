@@ -1,9 +1,6 @@
 ﻿using ImageMagitek.Project;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace TileShop.WPF.EventModels
+namespace TileShop.Shared.EventModels
 {
     public class ActivateResourceEditorEvent
     {

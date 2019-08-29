@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TileShop.WPF.EventModels
+﻿namespace TileShop.Shared.EventModels
 {
     public enum NotifyStatusDuration { Short, Indefinite }
     public class NotifyStatusEvent
