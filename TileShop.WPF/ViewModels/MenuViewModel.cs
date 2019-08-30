@@ -1,9 +1,7 @@
-﻿using Caliburn.Micro;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 using System.Threading.Tasks;
-using TileShop.WPF.EventModels;
+using Caliburn.Micro;
+using TileShop.Shared.EventModels;
 
 namespace TileShop.WPF.ViewModels
 {
