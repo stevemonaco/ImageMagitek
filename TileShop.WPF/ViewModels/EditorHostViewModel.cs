@@ -11,7 +11,7 @@ using TileShop.Shared.EventModels;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class EditorHostViewModel : Screen, IHandle<ActivateResourceEditorEvent>
+    public class EditorHostViewModel : Screen, IHandle<ActivateEditorEvent>
     {
         protected IEventAggregator _events;
 
@@ -43,7 +43,7 @@ namespace TileShop.WPF.ViewModels
             _events.SubscribeOnUIThread(this);
         }
 
-        public Task HandleAsync(ActivateResourceEditorEvent message, CancellationToken cancellationToken)
+        public Task HandleAsync(ActivateEditorEvent message, CancellationToken cancellationToken)
         {
             var openDocument = Documents.FirstOrDefault(x => ReferenceEquals(x.Resource, message.Resource));
 

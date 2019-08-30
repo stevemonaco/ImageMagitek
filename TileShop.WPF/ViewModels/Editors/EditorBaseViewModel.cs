@@ -6,7 +6,7 @@ using System.Text;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class EditorBaseViewModel : Screen
+    public abstract class EditorBaseViewModel : Screen
     {
         public string Name => Resource?.Name;
         public IProjectResource Resource { get; protected set; }

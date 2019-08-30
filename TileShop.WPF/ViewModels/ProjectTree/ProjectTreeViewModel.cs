@@ -71,16 +71,16 @@ namespace TileShop.WPF.ViewModels
             switch(SelectedItem)
             {
                 case ProjectTreePaletteViewModel pal:
-                    _events.PublishOnUIThreadAsync(new ActivateResourceEditorEvent(pal.Node.Value));
+                    _events.PublishOnUIThreadAsync(new ActivateEditorEvent(pal.Node.Value));
                     break;
                 case ProjectTreeArrangerViewModel arranger:
-                    _events.PublishOnUIThreadAsync(new ActivateResourceEditorEvent(arranger.Node.Value));
+                    _events.PublishOnUIThreadAsync(new ActivateEditorEvent(arranger.Node.Value));
                     break;
                 case ProjectTreeDataFileViewModel file:
-                    _events.PublishOnUIThreadAsync(new ActivateResourceEditorEvent(file.Node.Value));
+                    _events.PublishOnUIThreadAsync(new ActivateEditorEvent(file.Node.Value));
                     break;
                 case ProjectTreeFolderViewModel folder:
-                    _events.PublishOnUIThreadAsync(new ActivateResourceEditorEvent(folder.Node.Value));
+                    _events.PublishOnUIThreadAsync(new ActivateEditorEvent(folder.Node.Value));
                     break;
                 default:
                     throw new InvalidOperationException($"{nameof(ActivateSelectedItem)} was called with a {nameof(SelectedItem)} of type {SelectedItem.GetType()}");

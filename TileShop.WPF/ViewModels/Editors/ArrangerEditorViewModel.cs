@@ -5,13 +5,28 @@ using System.Collections.Generic;
 using System.Text;
 using TileShop.WPF.Behaviors;
 using TileShop.Shared.EventModels;
+using TileShop.WPF.Helpers;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace TileShop.WPF.ViewModels
 {
     public class ArrangerEditorViewModel : EditorBaseViewModel, IMouseCaptureProxy
     {
         private Arranger _arranger;
+        private ArrangerImage _arrangerImage = new ArrangerImage();
         private IEventAggregator _events;
+
+        private ImageRgba32Source _arrangerSource;
+        public ImageRgba32Source ArrangerSource
+        {
+            get => _arrangerSource;
+            set
+            {
+                _arrangerSource = value;
+                NotifyOfPropertyChange(() => ArrangerSource);
+            }
+        }
 
         public int DisplayHeight => _arranger.ArrangerPixelSize.Height * Zoom;
         public int DisplayWidth => _arranger.ArrangerPixelSize.Width * Zoom;
@@ -39,6 +54,23 @@ namespace TileShop.WPF.ViewModels
             Resource = arranger;
             _arranger = arranger;
             _events = events;
+
+            try
+            {
+                _arrangerImage.Render(_arranger);
+                ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        protected override void OnViewLoaded(object view)
+        {
+            base.OnViewLoaded(view);
+
         }
 
         public void OnMouseMove(object sender, MouseCaptureArgs e)
