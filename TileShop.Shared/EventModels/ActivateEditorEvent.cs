@@ -2,11 +2,11 @@
 
 namespace TileShop.Shared.EventModels
 {
-    public class ActivateResourceEditorEvent
+    public class ActivateEditorEvent
     {
         public IProjectResource Resource { get; set; }
 
-        public ActivateResourceEditorEvent(IProjectResource resource)
+        public ActivateEditorEvent(IProjectResource resource)
         {
             Resource = resource;
         }
