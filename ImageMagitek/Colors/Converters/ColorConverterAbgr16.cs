@@ -13,7 +13,7 @@ namespace ImageMagitek.Colors
         private const byte AlphaOpaque = 255;
         private AlphaBitTransparency _transparency;
 
-        public ColorConverterAbgr16() : this(AlphaBitTransparency.Transparent) { }
+        public ColorConverterAbgr16() : this(AlphaBitTransparency.Opaque) { }
 
         public ColorConverterAbgr16(AlphaBitTransparency transparency)
         {
