@@ -47,8 +47,6 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public Uri Source => new Uri(@"F:\Projects\ImageMagitek\ff2.bmp", UriKind.Absolute);
-
         public ArrangerEditorViewModel(Arranger arranger, IEventAggregator events)
         {
             Resource = arranger;
