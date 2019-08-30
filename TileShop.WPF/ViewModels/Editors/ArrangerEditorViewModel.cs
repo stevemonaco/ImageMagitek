@@ -55,22 +55,8 @@ namespace TileShop.WPF.ViewModels
             _arranger = arranger;
             _events = events;
 
-            try
-            {
-                _arrangerImage.Render(_arranger);
-                ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
-            }
-            catch (Exception)
-            {
-
-                throw;
-            }
-        }
-
-        protected override void OnViewLoaded(object view)
-        {
-            base.OnViewLoaded(view);
-
+            _arrangerImage.Render(_arranger);
+            ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
         }
 
         public void OnMouseMove(object sender, MouseCaptureArgs e)
