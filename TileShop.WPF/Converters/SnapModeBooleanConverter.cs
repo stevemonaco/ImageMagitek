@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Windows.Data;
-using TileShop.WPF.ViewModels;
+using TileShop.WPF.Helpers;
 
 namespace TileShop.WPF.Converters
 {

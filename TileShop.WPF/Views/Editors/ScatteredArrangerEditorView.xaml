@@ -47,8 +47,8 @@
             <ToggleButton
                 Margin="0,0,10,0"
                 Content="Snap"
-                IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
-                Visibility="{Binding CanChangeSnapMode}" />
+                IsChecked="{Binding Selection.SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
+                Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
             <ToggleButton
                 x:Name="ToggleGridlines"
                 Content="ArrangeEdit"
@@ -65,20 +65,48 @@
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
             <Grid>
+                <Grid.Resources>
+                    <ScaleTransform x:Key="transform" ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />
+                    <SolidColorBrush
+                        x:Key="arrangeSelectionFillBrush"
+                        Opacity="0.5"
+                        Color="Maroon" />
+                    <SolidColorBrush
+                        x:Key="editSelectionFillBrush"
+                        Opacity="0.5"
+                        Color="LawnGreen" />
+                </Grid.Resources>
+
+                <i:Interaction.Behaviors>
+                    <behaviors:MouseCaptureBehavior Proxy="{Binding}" />
+                </i:Interaction.Behaviors>
+
                 <Image
                     Grid.Row="0"
                     Grid.Column="0"
+                    LayoutTransform="{StaticResource transform}"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                     SnapsToDevicePixels="True"
                     Source="{Binding ArrangerSource}"
-                    Stretch="None">
-                    <i:Interaction.Behaviors>
-                        <behaviors:MouseCaptureBehavior Proxy="{Binding}" />
-                    </i:Interaction.Behaviors>
-                    <Image.LayoutTransform>
-                        <ScaleTransform ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />
-                    </Image.LayoutTransform>
-                </Image>
+                    Stretch="None" />
+
+                <!--  Selection Overlay  -->
+                <Canvas
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    DataContext="{Binding Selection, Mode=TwoWay}"
+                    LayoutTransform="{StaticResource transform}"
+                    Visibility="{Binding HasSelection, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}">
+                    <Rectangle
+                        Canvas.Left="{Binding SnappedX1}"
+                        Canvas.Top="{Binding SnappedY1}"
+                        Width="{Binding SnappedWidth}"
+                        Height="{Binding SnappedHeight}"
+                        Fill="{StaticResource arrangeSelectionFillBrush}"
+                        Stroke="Black"
+                        StrokeDashArray="3 2"
+                        StrokeThickness="0.3" />
+                </Canvas>
 
                 <!--  Gridline Overlay  -->
                 <ItemsControl
@@ -102,37 +130,15 @@
                                 X1="{Binding X1}"
                                 X2="{Binding X2}"
                                 Y1="{Binding Y1}"
-                                Y2="{Binding Y2}" />
+                                Y2="{Binding Y2}">
+                                <Line.LayoutTransform>
+                                    <ScaleTransform ScaleX="1" ScaleY="1" />
+                                </Line.LayoutTransform>
+                            </Line>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <!--  Selection Overlay  -->
-                <ItemsControl
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    ItemsSource="{Binding Gridlines}"
-                    Visibility="{Binding ShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <Canvas />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type model:Gridline}">
-                            <Line
-                                RenderOptions.EdgeMode="Aliased"
-                                SnapsToDevicePixels="True"
-                                Stroke="Black"
-                                StrokeThickness="1"
-                                UseLayoutRounding="True"
-                                X1="{Binding X1}"
-                                X2="{Binding X2}"
-                                Y1="{Binding Y1}"
-                                Y2="{Binding Y2}" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
             </Grid>
         </ScrollViewer>
 

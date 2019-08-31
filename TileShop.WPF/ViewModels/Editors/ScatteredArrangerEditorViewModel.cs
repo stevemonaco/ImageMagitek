@@ -5,10 +5,10 @@ using TileShop.WPF.Behaviors;
 using TileShop.Shared.EventModels;
 using TileShop.WPF.Helpers;
 using TileShop.WPF.Models;
+using System.Drawing;
 
 namespace TileShop.WPF.ViewModels
 {
-    public enum SnapMode { Element, Pixel }
     public enum EditMode { ArrangeGraphics, ModifyGraphics }
 
     public class ScatteredArrangerEditorViewModel : EditorBaseViewModel, IMouseCaptureProxy
@@ -67,17 +67,6 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private SnapMode _snapMode = SnapMode.Element;
-        public SnapMode SnapMode
-        {
-            get => _snapMode;
-            set
-            {
-                _snapMode = value;
-                NotifyOfPropertyChange(() => SnapMode);
-            }
-        }
-
         public event EventHandler Capture;
         public event EventHandler Release;
 
@@ -95,6 +84,17 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        private ArrangerSelector _selection;
+        public ArrangerSelector Selection
+        {
+            get => _selection;
+            set
+            {
+                _selection = value;
+                NotifyOfPropertyChange(() => Selection);
+            }
+        }
+
         public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events)
         {
             Resource = arranger;
@@ -104,11 +104,11 @@ namespace TileShop.WPF.ViewModels
             _arrangerImage.Render(_arranger);
             ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
             CreateGridlines();
-        }
 
-        public void ToggleGridlines()
-        {
-
+            if (arranger.Layout == ArrangerLayout.TiledArranger)
+                Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Element);
+            else
+                Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
         }
 
         private void CreateGridlines()
@@ -139,9 +139,27 @@ namespace TileShop.WPF.ViewModels
 
         public void OnMouseMove(object sender, MouseCaptureArgs e)
         {
-            var notifyMessage = $"{_arranger.Name}: ({(int)e.X}, {(int)e.Y})";
-            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            _events.PublishOnUIThreadAsync(notifyEvent);
+            if(Selection.IsSelecting)
+                Selection.UpdateSelection(e.X / Zoom, e.Y / Zoom);
+
+            if(Selection.HasSelection)
+            {
+                string notifyMessage;
+                if(Selection.SnapMode == SnapMode.Element)
+                    notifyMessage = $"Element Selection: {Selection.SnappedWidth / _arranger.ElementPixelSize.Width} x {Selection.SnappedHeight / _arranger.ElementPixelSize.Height}" +
+                        $" at ({Selection.SnappedX1 / _arranger.ElementPixelSize.Width}, {Selection.SnappedY1 / _arranger.ElementPixelSize.Height})";
+                else
+                    notifyMessage = $"Pixel Selection: {Selection.SnappedWidth} x {Selection.SnappedHeight}" +
+                        $" at ({Selection.SnappedX1} x {Selection.SnappedY1})";
+                var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+                _events.PublishOnUIThreadAsync(notifyEvent);
+            }
+            else
+            {
+                var notifyMessage = $"{_arranger.Name}: ({(int)Math.Round(e.X / Zoom)}, {(int)Math.Round(e.Y / Zoom)})";
+                var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+                _events.PublishOnUIThreadAsync(notifyEvent);
+            }
         }
 
         public void OnMouseLeave(object sender, MouseCaptureArgs e)
@@ -150,7 +168,28 @@ namespace TileShop.WPF.ViewModels
             _events.PublishOnUIThreadAsync(notifyEvent);
         }
 
-        public void OnMouseUp(object sender, MouseCaptureArgs e) { return; }
-        public void OnMouseDown(object sender, MouseCaptureArgs e) { return; }
+        public void OnMouseUp(object sender, MouseCaptureArgs e)
+        {
+            Selection.StopSelection();
+        }
+
+        public void OnMouseDown(object sender, MouseCaptureArgs e)
+        {
+            if(!Selection.HasSelection && e.LeftButton)
+            {
+                Selection.StartSelection(e.X / Zoom, e.Y / Zoom);
+            }
+            if(Selection.HasSelection && e.LeftButton)
+            {
+                if (Selection.IsPointInSelection(e.X / Zoom, e.Y / Zoom)) // Start drag
+                    return;
+                else // New selection
+                    Selection.StartSelection(e.X / Zoom, e.Y / Zoom);
+            }
+            if(Selection.HasSelection && e.RightButton)
+            {
+                Selection.CancelSelection();
+            }
+        }
     }
 }
