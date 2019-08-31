@@ -31,6 +31,9 @@ namespace TileShop.WPF.ViewModels
         public int DisplayHeight => _arranger.ArrangerPixelSize.Height * Zoom;
         public int DisplayWidth => _arranger.ArrangerPixelSize.Width * Zoom;
 
+        public bool IsScattered => _arranger.Mode == ArrangerMode.ScatteredArranger;
+        public bool IsSequential => _arranger.Mode == ArrangerMode.SequentialArranger;
+
         public event EventHandler Capture;
         public event EventHandler Release;
 

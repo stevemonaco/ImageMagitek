@@ -56,15 +56,24 @@ namespace TileShop.WPF.ViewModels
                     case Palette pal:
                         newDocument = new PaletteEditorViewModel(pal);
                         break;
-                    case Arranger arr:
-                        newDocument = new ArrangerEditorViewModel(arr, _events);
+                    case ScatteredArranger scatteredArranger:
+                        newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _events);
+                        break;
+                    case SequentialArranger sequentialArranger:
+                        newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events);
+                        break;
+                    case ResourceFolder resourceFolder:
+                        newDocument = null;
                         break;
                     default:
                         throw new InvalidOperationException();
                 }
 
-                Documents.Add(newDocument);
-                ActiveEditor = newDocument;
+                if(newDocument is object)
+                {
+                    Documents.Add(newDocument);
+                    ActiveEditor = newDocument;
+                }
             }
             else
                 ActiveEditor = openDocument;

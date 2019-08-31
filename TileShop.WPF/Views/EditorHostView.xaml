@@ -14,8 +14,11 @@
         <DataTemplate x:Key="paletteEditorSelector" DataType="{x:Type vm:PaletteEditorViewModel}">
             <local:PaletteEditorView />
         </DataTemplate>
-        <DataTemplate x:Key="arrangerEditorSelector" DataType="{x:Type vm:ArrangerEditorViewModel}">
-            <local:ArrangerEditorView />
+        <DataTemplate x:Key="scatteredArrangerEditorSelector" DataType="{x:Type vm:ScatteredArrangerEditorViewModel}">
+            <local:ScatteredArrangerEditorView />
+        </DataTemplate>
+        <DataTemplate x:Key="sequentialArrangerEditorSelector" DataType="{x:Type vm:SequentialArrangerEditorViewModel}">
+            <local:SequentialArrangerEditorView />
         </DataTemplate>
         <DataTemplate x:Key="dataFileEditorSelector" DataType="{x:Type vm:DataFileEditorViewModel}">
             <local:DataFileEditorView />
@@ -23,9 +26,10 @@
 
         <sel:EditorHostTemplateSelector
             x:Key="projectTreeTemplateSelector"
-            ArrangerEditorTemplate="{StaticResource arrangerEditorSelector}"
             DataFileEditorTemplate="{StaticResource dataFileEditorSelector}"
-            PaletteEditorTemplate="{StaticResource paletteEditorSelector}" />
+            PaletteEditorTemplate="{StaticResource paletteEditorSelector}"
+            ScatteredArrangerEditorTemplate="{StaticResource scatteredArrangerEditorSelector}"
+            SequentialArrangerEditorTemplate="{StaticResource sequentialArrangerEditorSelector}" />
     </UserControl.Resources>
 
     <Grid>

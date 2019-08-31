@@ -10,7 +10,8 @@ namespace TileShop.WPF.Selectors
     public class EditorHostTemplateSelector : DataTemplateSelector
     {
         public DataTemplate PaletteEditorTemplate { get; set; }
-        public DataTemplate ArrangerEditorTemplate { get; set; }
+        public DataTemplate ScatteredArrangerEditorTemplate { get; set; }
+        public DataTemplate SequentialArrangerEditorTemplate { get; set; }
         public DataTemplate DataFileEditorTemplate { get; set; }
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
@@ -23,7 +24,8 @@ namespace TileShop.WPF.Selectors
             return item switch
             {
                 PaletteEditorViewModel _ => PaletteEditorTemplate,
-                ArrangerEditorViewModel _ => ArrangerEditorTemplate,
+                ScatteredArrangerEditorViewModel _ => ScatteredArrangerEditorTemplate,
+                SequentialArrangerEditorViewModel _ => SequentialArrangerEditorTemplate,
                 DataFileEditorViewModel _ => DataFileEditorTemplate,
                 _ => throw new ArgumentException($"{nameof(SelectTemplate)} does not contain a template for type {item.GetType()}")
             };
