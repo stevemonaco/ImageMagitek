@@ -4,9 +4,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:behaviors="clr-namespace:TileShop.WPF.Behaviors"
     xmlns:cm="http://caliburnmicro.com"
+    xmlns:converters="clr-namespace:TileShop.WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:TileShop.WPF.Models"
     cm:Message.Attach="[Event Closing] = [Action OnClose($eventArgs)]"
@@ -23,6 +25,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
+        <!--  Toolbar  -->
         <StackPanel
             Grid.Row="0"
             Grid.Column="0"
@@ -31,18 +34,28 @@
             Orientation="Horizontal">
             <Slider
                 MinWidth="100"
-                Margin="15,0,15,0"
+                Margin="10,0,10,0"
                 Maximum="16"
                 Minimum="1"
                 Value="{Binding Zoom}" />
             <ToggleButton
-                x:Name="ToggleGridlines"
+                Margin="0,0,10,0"
                 cm:Message.Attach="[Event Checked] = [Action ToggleGridlines];[Event Unchecked] = [Action ToggleGridlines]"
-                Content="G"
+                Content="#"
                 IsChecked="{Binding ShowGridlines}"
                 Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+            <ToggleButton
+                Margin="0,0,10,0"
+                Content="Snap"
+                IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
+                Visibility="{Binding CanChangeSnapMode}" />
+            <ToggleButton
+                x:Name="ToggleGridlines"
+                Content="ArrangeEdit"
+                IsChecked="{Binding EditMode, Converter={StaticResource EditModeBooleanConverter}}" />
         </StackPanel>
 
+        <!--  Image Display  -->
         <ScrollViewer
             Grid.Row="1"
             Grid.Column="0"
@@ -67,6 +80,34 @@
                     </Image.LayoutTransform>
                 </Image>
 
+                <!--  Gridline Overlay  -->
+                <ItemsControl
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    ItemsSource="{Binding Gridlines}"
+                    Visibility="{Binding ShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type model:Gridline}">
+                            <Line
+                                RenderOptions.EdgeMode="Aliased"
+                                SnapsToDevicePixels="True"
+                                Stroke="Black"
+                                StrokeThickness="1"
+                                UseLayoutRounding="True"
+                                X1="{Binding X1}"
+                                X2="{Binding X2}"
+                                Y1="{Binding Y1}"
+                                Y2="{Binding Y2}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!--  Selection Overlay  -->
                 <ItemsControl
                     Grid.Row="0"
                     Grid.Column="0"

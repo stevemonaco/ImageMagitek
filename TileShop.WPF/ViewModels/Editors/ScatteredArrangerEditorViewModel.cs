@@ -8,6 +8,9 @@ using TileShop.WPF.Models;
 
 namespace TileShop.WPF.ViewModels
 {
+    public enum SnapMode { Element, Pixel }
+    public enum EditMode { ArrangeGraphics, ModifyGraphics }
+
     public class ScatteredArrangerEditorViewModel : EditorBaseViewModel, IMouseCaptureProxy
     {
         private Arranger _arranger;
@@ -40,6 +43,7 @@ namespace TileShop.WPF.ViewModels
         }
 
         public bool CanShowGridlines => _arranger.Layout == ArrangerLayout.TiledArranger;
+        public bool CanChangeSnapMode => _arranger.Layout == ArrangerLayout.TiledArranger;
 
         private BindableCollection<Gridline> _gridlines;
         public BindableCollection<Gridline> Gridlines
@@ -49,6 +53,28 @@ namespace TileShop.WPF.ViewModels
             {
                 _gridlines = value;
                 NotifyOfPropertyChange(() => Gridlines);
+            }
+        }
+
+        private EditMode _editMode = EditMode.ArrangeGraphics;
+        public EditMode EditMode
+        {
+            get => _editMode;
+            set
+            {
+                _editMode = value;
+                NotifyOfPropertyChange(() => EditMode);
+            }
+        }
+
+        private SnapMode _snapMode = SnapMode.Element;
+        public SnapMode SnapMode
+        {
+            get => _snapMode;
+            set
+            {
+                _snapMode = value;
+                NotifyOfPropertyChange(() => SnapMode);
             }
         }
 
@@ -98,9 +124,6 @@ namespace TileShop.WPF.ViewModels
             _gridlines.Add(new Gridline(_arranger.ArrangerPixelSize.Width * Zoom, 0,
                 _arranger.ArrangerPixelSize.Width * Zoom, _arranger.ArrangerPixelSize.Height * Zoom));
 
-            //_gridlines[^1].X1 -= 1; // Constrain last vertical gridline to right image edge
-            //_gridlines[^1].X2 -= 1;
-
             for (int y = 0; y < _arranger.ArrangerElementSize.Height; y++) // Horizontal gridlines
             {
                 var gridline = new Gridline(0, y * _arranger.ElementPixelSize.Height * Zoom + 1,
@@ -110,9 +133,6 @@ namespace TileShop.WPF.ViewModels
 
             _gridlines.Add(new Gridline(0, _arranger.ArrangerPixelSize.Height * Zoom,
                 _arranger.ArrangerPixelSize.Width * Zoom, _arranger.ArrangerPixelSize.Height * Zoom));
-
-            //_gridlines[^1].Y1 -= 1; // Constrain last horizontal gridline to bottom image edge
-            //_gridlines[^1].Y2 -= 1;
 
             NotifyOfPropertyChange(() => Gridlines);
         }
