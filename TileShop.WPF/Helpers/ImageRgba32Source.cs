@@ -45,12 +45,16 @@ namespace TileShop.WPF.Helpers
         public override double DpiX => _source.MetaData.HorizontalResolution;
         public override double DpiY => _source.MetaData.VerticalResolution;
         public override BitmapPalette Palette => null;
-        public override event EventHandler<ExceptionEventArgs> DecodeFailed;
 
         public override bool IsDownloading => false;
+
+#pragma warning disable CS0067
+        // Unused events that are required to be present, else System.NotImplementedException will be thrown by WPF/WIC
+        public override event EventHandler<ExceptionEventArgs> DecodeFailed;
         public override event EventHandler DownloadCompleted;
         public override event EventHandler<DownloadProgressEventArgs> DownloadProgress;
         public override event EventHandler<ExceptionEventArgs> DownloadFailed;
+#pragma warning restore CS0067
 
         public override void CopyPixels(Array pixels, int stride, int offset)
         {
