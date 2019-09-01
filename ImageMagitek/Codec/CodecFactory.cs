@@ -1,14 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using ImageMagitek.Colors;
+using System.Collections.Generic;
 
 namespace ImageMagitek.Codec
 {
     public class CodecFactory : ICodecFactory
     {
         private Dictionary<string, GraphicsFormat> Formats;
+        public Palette DefaultPalette { get; set; }
 
-        public CodecFactory(Dictionary<string, GraphicsFormat> formats)
+        public CodecFactory(Dictionary<string, GraphicsFormat> formats, Palette defaultPalette)
         {
             Formats = formats ?? new Dictionary<string, GraphicsFormat>();
+            DefaultPalette = defaultPalette;
         }
 
         public IGraphicsCodec GetCodec(string codecName, int width = 8, int height = 8)
@@ -16,11 +19,11 @@ namespace ImageMagitek.Codec
             switch (codecName)
             {
                 case "SNES 3bpp":
-                    return new Snes3bppCodec(width, height);
+                    return new Snes3bppCodec(width, height, DefaultPalette);
                 case "PSX 4bpp":
-                    return new Psx4bppCodec(width, height);
+                    return new Psx4bppCodec(width, height, DefaultPalette);
                 case "PSX 8bpp":
-                    return new Psx8bppCodec(width, height);
+                    return new Psx8bppCodec(width, height, DefaultPalette);
                 case "PSX 16bpp":
                     return new Psx16bppCodec(width, height);
                 case "PSX 24bpp":
@@ -32,7 +35,7 @@ namespace ImageMagitek.Codec
                         format.Width = width;
                         format.Height = height;
 
-                        return new GeneralGraphicsCodec(format);
+                        return new GeneralGraphicsCodec(format, DefaultPalette);
                     }
                     else
                         throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{nameof(codecName)}'");

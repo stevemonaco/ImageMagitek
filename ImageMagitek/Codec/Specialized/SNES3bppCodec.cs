@@ -17,11 +17,13 @@ namespace ImageMagitek.Codec
         public int ColorDepth => 3;
         public int RowStride => 0;
         public int ElementStride => 0;
+        public Palette DefaultPalette { get; set; }
 
-        public Snes3bppCodec(int width, int height)
+        public Snes3bppCodec(int width, int height, Palette defaultPalette)
         {
             Width = width;
             Height = height;
+            DefaultPalette = defaultPalette;
         }
 
         public void Decode(Image<Rgba32> image, ArrangerElement el)
@@ -37,7 +39,7 @@ namespace ImageMagitek.Codec
             var data = fs.ReadUnshifted(el.FileAddress, StorageSize, true);
             var bs = BitStream.OpenRead(data, StorageSize);
 
-            var pal = el.Palette;
+            var pal = el.Palette ?? DefaultPalette;
 
             var offsetPlane1 = 0;
             var offsetPlane2 = el.Width;
@@ -82,13 +84,15 @@ namespace ImageMagitek.Codec
             var offsetPlane2 = el.Width;
             var offsetPlane3 = el.Width * el.Height * 2;
 
+            var pal = el.Palette ?? DefaultPalette;
+
             for (int y = 0; y < el.Height; y++)
             {
                 for (int x = 0; x < el.Width; x++)
                 {
                     var imageColor = image[x + el.X1, y + el.Y1];
                     var nc = new ColorRgba32(imageColor.R, imageColor.G, imageColor.B, imageColor.A);
-                    byte index = el.Palette.GetIndexByNativeColor(nc, true);
+                    byte index = pal.GetIndexByNativeColor(nc, true);
 
                     byte bp1 = (byte)(index & 1);
                     byte bp2 = (byte)((index >> 1) & 1);

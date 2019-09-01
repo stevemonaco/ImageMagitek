@@ -34,6 +34,7 @@ namespace ImageMagitek.Codec
         public int Height => Format.Height;
         public int RowStride => Format.RowStride;
         public int ElementStride => Format.ElementStride;
+        public Palette DefaultPalette { get; set; }
 
         /// <summary>
         /// Preallocated buffer that separates and stores pixel color data
@@ -45,9 +46,10 @@ namespace ImageMagitek.Codec
         /// </summary>
         private byte[] MergedData;
 
-        public GeneralGraphicsCodec(GraphicsFormat format)
+        public GeneralGraphicsCodec(GraphicsFormat format, Palette defaultPalette)
         {
             Format = format;
+            DefaultPalette = defaultPalette;
             AllocateBuffers();
         }
 
@@ -213,7 +215,8 @@ namespace ImageMagitek.Codec
             {
                 for(int x = 0; x < Format.Width; x++, srcidx++, destidx++)
                 {
-                    var nc = el.Palette[MergedData[srcidx]];
+                    var pal = el.Palette ?? DefaultPalette;
+                    var nc = pal[MergedData[srcidx]];
                     var col = new Rgba32(nc.Color);
                     dest[destidx] = col;
                 }
@@ -308,7 +311,8 @@ namespace ImageMagitek.Codec
                 for (int x = 0; x < Format.Width; x++, srcidx++, destidx++)
                 {
                     var col = src[srcidx];
-                    MergedData[destidx] = el.Palette.GetIndexByNativeColor(new ColorRgba32(col.R, col.G, col.B, col.A), true);
+                    var pal = el.Palette ?? DefaultPalette;
+                    MergedData[destidx] = pal.GetIndexByNativeColor(new ColorRgba32(col.R, col.G, col.B, col.A), true);
                 }
                 srcidx += el.X1 + image.Width - (el.X2 + 1);
             }

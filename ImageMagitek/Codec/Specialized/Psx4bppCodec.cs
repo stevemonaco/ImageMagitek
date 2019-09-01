@@ -29,11 +29,13 @@ namespace ImageMagitek.Codec
         public int RowStride { get; private set; } = 0;
 
         public int ElementStride { get; private set; } = 0;
+        public Palette DefaultPalette { get; set; }
 
-        public Psx4bppCodec(int width, int height)
+        public Psx4bppCodec(int width, int height, Palette defaultPalette)
         {
             Width = width;
             Height = height;
+            DefaultPalette = defaultPalette;
         }
 
         public void Decode(Image<Rgba32> image, ArrangerElement el)
@@ -49,7 +51,7 @@ namespace ImageMagitek.Codec
             var data = fs.ReadUnshifted(el.FileAddress, StorageSize, true);
             var bs = BitStream.OpenRead(data, StorageSize);
 
-            var pal = el.Palette;
+            var pal = el.Palette ?? DefaultPalette;
 
             for (int y = 0; y < el.Height; y++)
             {
@@ -78,6 +80,7 @@ namespace ImageMagitek.Codec
 
             var src = image.GetPixelSpan();
             int srcidx = image.Width * el.Y1 + el.X1;
+            var pal = el.Palette ?? DefaultPalette;
 
             for (int y = 0; y < el.Height; y++)
             {
@@ -85,11 +88,12 @@ namespace ImageMagitek.Codec
                 {
                     var imageColor = src[srcidx];
                     var nc = new ColorRgba32(imageColor.PackedValue);
-                    byte indexLow = el.Palette.GetIndexByNativeColor(nc, true);
+
+                    byte indexLow = pal.GetIndexByNativeColor(nc, true);
 
                     imageColor = src[srcidx + 1];
                     nc = new ColorRgba32(imageColor.PackedValue);
-                    byte indexHigh = el.Palette.GetIndexByNativeColor(nc, true);
+                    byte indexHigh = pal.GetIndexByNativeColor(nc, true);
 
                     byte index = (byte)(indexLow | (indexHigh << 4));
                     fs.WriteByte(index);

@@ -1,4 +1,5 @@
-﻿using SixLabors.ImageSharp;
+﻿using ImageMagitek.Colors;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace ImageMagitek.Codec
@@ -28,7 +29,6 @@ namespace ImageMagitek.Codec
         int StorageSize { get; }
         int RowStride { get; }
         int ElementStride { get; }
-
 
         void Decode(Image<Rgba32> image, ArrangerElement el);
         void Encode(Image<Rgba32> image, ArrangerElement el);

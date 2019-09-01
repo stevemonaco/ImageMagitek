@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using ImageMagitek.Project;
 using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek
 {
@@ -73,12 +74,18 @@ namespace ImageMagitek
             _codecName = codecName;
             FileBitAddress address;
 
+            var codec = _codecs.GetCodec(codecName);
+            ElementPixelSize = new Size(codec.Width, codec.Height);
+
             if (ElementGrid is null) // New Arranger being resized
                 address = 0;
             else
                 address = GetInitialSequentialFileAddress();
 
             ElementGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
+
+            ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
+            ArrangerBitSize = arrangerWidth * arrangerHeight * codec.StorageSize;
 
             int x = 0;
             int y = 0;
@@ -96,7 +103,7 @@ namespace ImageMagitek
                         Y1 = y,
                         Width = ElementPixelSize.Width,
                         Height = ElementPixelSize.Height,
-                        DataFile = dataFile,
+                        DataFile = dataFile
                     };
 
                     el.Codec = _codecs.GetCodec(codecName, el.Width, el.Height);
@@ -112,12 +119,6 @@ namespace ImageMagitek
                 }
                 y += ElementPixelSize.Height;
             }
-
-            ArrangerElement lastElem = ElementGrid[arrangerWidth - 1, arrangerHeight - 1];
-            ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
-            ElementPixelSize = new Size(ElementPixelSize.Width, ElementPixelSize.Height);
-
-            ArrangerBitSize = arrangerWidth * arrangerHeight * lastElem.Codec.StorageSize;
 
             address = GetInitialSequentialFileAddress();
             address = this.Move(address);
