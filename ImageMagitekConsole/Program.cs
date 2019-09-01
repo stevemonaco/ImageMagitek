@@ -60,7 +60,9 @@ namespace ImageMagitekConsole
                 palettes.Add(pal);
             }
 
-            var deserializer = new XmlGameDescriptorReader(new CodecFactory(formats));
+            var defaultPalette = palettes.Single(x => x.Name.Contains("DefaultRgba32"));
+
+            var deserializer = new XmlGameDescriptorReader(new CodecFactory(formats, defaultPalette));
             var tree = deserializer.ReadProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
 
             var processor = new CommandProcessor(tree);
