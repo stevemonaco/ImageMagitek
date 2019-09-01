@@ -39,8 +39,6 @@
                 Maximum="{Binding MaxZoom}"
                 Minimum="{Binding MinZoom}"
                 Value="{Binding Zoom}" />
-
-            <!--  :Message.Attach="[Event Checked] = [Action ToggleGridlines];[Event Unchecked] = [Action ToggleGridlines]"  -->
             <ToggleButton
                 Margin="0,0,10,0"
                 Content="#"

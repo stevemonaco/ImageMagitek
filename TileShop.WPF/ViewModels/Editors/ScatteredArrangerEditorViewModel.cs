@@ -27,8 +27,8 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public event EventHandler Capture;
-        public event EventHandler Release;
+        //public override event EventHandler Capture;
+        //public override event EventHandler Release;
 
         private ArrangerSelector _selection;
         public ArrangerSelector Selection
