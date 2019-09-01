@@ -28,17 +28,23 @@ namespace ImageMagitek.Benchmarks
         [GlobalSetup(Target = nameof(DecodeNative))]
         public void GlobalSetupNative()
         {
-            Codec = new Snes3bppCodec(8, 8);
+            var palFileName = Path.Combine(Directory.GetCurrentDirectory(), "Resources", paletteFileName);
+            pal = PaletteJsonSerializer.ReadPalette(palFileName);
+
+            Codec = new Snes3bppCodec(8, 8, pal);
             Setup(nativeFileName, "native");
         }
 
         [GlobalSetup(Target = nameof(DecodeGeneric))]
         public void GlobalSetupGeneric()
         {
+            var palFileName = Path.Combine(Directory.GetCurrentDirectory(), "Resources", paletteFileName);
+            pal = PaletteJsonSerializer.ReadPalette(palFileName);
+
             var codecFileName = Path.Combine(Directory.GetCurrentDirectory(), "Resources", genericCodecFileName);
             var serializer = new XmlGraphicsFormatReader();
             var format = serializer.LoadFromFile(codecFileName);
-            Codec = new GeneralGraphicsCodec(format);
+            Codec = new GeneralGraphicsCodec(format, pal);
 
             Setup(genericFileName, "generic");
         }
@@ -53,8 +59,6 @@ namespace ImageMagitek.Benchmarks
                 fs.Write(data);
             }
 
-            var palFileName = Path.Combine(Directory.GetCurrentDirectory(), "Resources", paletteFileName);
-            pal = PaletteJsonSerializer.ReadPalette(palFileName);
             df = new DataFile("df", Path.GetFullPath(dataFileName));
 
             arranger = new ScatteredArranger(arrangerName, ArrangerLayout.TiledArranger, 16, 32, 8, 8);
