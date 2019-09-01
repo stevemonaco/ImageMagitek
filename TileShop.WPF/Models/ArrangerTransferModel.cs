@@ -8,7 +8,7 @@ using System.Text;
 
 namespace TileShop.WPF.Models
 {
-    public class ArrangerDragDropModel
+    public class ArrangerTransferModel
     {
         public Arranger Arranger { get; set; }
 
@@ -17,9 +17,9 @@ namespace TileShop.WPF.Models
         public int Width { get; set; }
         public int Height { get; set; }
 
-        public ArrangerDragDropModel() { }
+        public ArrangerTransferModel() { }
 
-        public ArrangerDragDropModel(Arranger arranger, int x, int y, int width, int height)
+        public ArrangerTransferModel(Arranger arranger, int x, int y, int width, int height)
         {
             Arranger = arranger;
             X = x;
