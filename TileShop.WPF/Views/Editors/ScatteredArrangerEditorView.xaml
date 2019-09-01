@@ -36,8 +36,8 @@
             <Slider
                 MinWidth="100"
                 Margin="10,0,10,0"
-                Maximum="16"
-                Minimum="1"
+                Maximum="{Binding MaxZoom}"
+                Minimum="{Binding MinZoom}"
                 Value="{Binding Zoom}" />
 
             <!--  :Message.Attach="[Event Checked] = [Action ToggleGridlines];[Event Unchecked] = [Action ToggleGridlines]"  -->

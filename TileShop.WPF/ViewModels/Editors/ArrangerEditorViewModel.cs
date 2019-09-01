@@ -72,6 +72,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        public int MinZoom => 1;
         public int MaxZoom => 16;
 
         protected void CreateGridlines()
