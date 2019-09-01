@@ -6,6 +6,7 @@
     xmlns:cm="http://caliburnmicro.com"
     xmlns:converters="clr-namespace:TileShop.WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dd="urn:gong-wpf-dragdrop"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
@@ -38,9 +39,10 @@
                 Maximum="16"
                 Minimum="1"
                 Value="{Binding Zoom}" />
+
+            <!--  :Message.Attach="[Event Checked] = [Action ToggleGridlines];[Event Unchecked] = [Action ToggleGridlines]"  -->
             <ToggleButton
                 Margin="0,0,10,0"
-                cm:Message.Attach="[Event Checked] = [Action ToggleGridlines];[Event Unchecked] = [Action ToggleGridlines]"
                 Content="#"
                 IsChecked="{Binding ShowGridlines}"
                 Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
@@ -49,10 +51,7 @@
                 Content="Snap"
                 IsChecked="{Binding Selection.SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
                 Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
-            <ToggleButton
-                x:Name="ToggleGridlines"
-                Content="ArrangeEdit"
-                IsChecked="{Binding EditMode, Converter={StaticResource EditModeBooleanConverter}}" />
+            <ToggleButton Content="ArrangeEdit" IsChecked="{Binding EditMode, Converter={StaticResource EditModeBooleanConverter}}" />
         </StackPanel>
 
         <!--  Image Display  -->
@@ -84,6 +83,7 @@
                 <Image
                     Grid.Row="0"
                     Grid.Column="0"
+                    dd:DragDrop.DropHandler="{Binding}"
                     LayoutTransform="{StaticResource transform}"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                     SnapsToDevicePixels="True"

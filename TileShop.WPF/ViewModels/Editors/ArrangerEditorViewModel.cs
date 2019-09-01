@@ -8,16 +8,17 @@ using TileShop.Shared.EventModels;
 using TileShop.WPF.Helpers;
 using System.Threading;
 using System.Threading.Tasks;
+using TileShop.WPF.Models;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ArrangerEditorViewModel : EditorBaseViewModel, IMouseCaptureProxy
+    public abstract class ArrangerEditorViewModel : EditorBaseViewModel, IMouseCaptureProxy
     {
-        private Arranger _arranger;
-        private ArrangerImage _arrangerImage = new ArrangerImage();
-        private IEventAggregator _events;
+        protected Arranger _arranger;
+        protected ArrangerImage _arrangerImage = new ArrangerImage();
+        protected IEventAggregator _events;
 
-        private ImageRgba32Source _arrangerSource;
+        protected ImageRgba32Source _arrangerSource;
         public ImageRgba32Source ArrangerSource
         {
             get => _arrangerSource;
@@ -28,11 +29,31 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public int DisplayHeight => _arranger.ArrangerPixelSize.Height * Zoom;
-        public int DisplayWidth => _arranger.ArrangerPixelSize.Width * Zoom;
+        public int DisplayHeight => _arranger.ArrangerPixelSize.Height * Zoom + 2;
+        public int DisplayWidth => _arranger.ArrangerPixelSize.Width * Zoom + 2;
 
-        public bool IsScattered => _arranger.Mode == ArrangerMode.ScatteredArranger;
-        public bool IsSequential => _arranger.Mode == ArrangerMode.SequentialArranger;
+        public bool CanShowGridlines => _arranger.Layout == ArrangerLayout.TiledArranger;
+        protected bool _showGridlines = false;
+        public bool ShowGridlines
+        {
+            get => _showGridlines;
+            set
+            {
+                _showGridlines = value;
+                NotifyOfPropertyChange(() => ShowGridlines);
+            }
+        }
+
+        protected BindableCollection<Gridline> _gridlines;
+        public BindableCollection<Gridline> Gridlines
+        {
+            get => _gridlines;
+            set
+            {
+                _gridlines = value;
+                NotifyOfPropertyChange(() => Gridlines);
+            }
+        }
 
         public event EventHandler Capture;
         public event EventHandler Release;
@@ -47,33 +68,52 @@ namespace TileShop.WPF.ViewModels
                 NotifyOfPropertyChange(() => Zoom);
                 NotifyOfPropertyChange(() => DisplayWidth);
                 NotifyOfPropertyChange(() => DisplayHeight);
+                CreateGridlines();
             }
         }
 
-        public ArrangerEditorViewModel(Arranger arranger, IEventAggregator events)
-        {
-            Resource = arranger;
-            _arranger = arranger;
-            _events = events;
+        public int MaxZoom => 16;
 
-            _arrangerImage.Render(_arranger);
-            ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
+        protected void CreateGridlines()
+        {
+            _gridlines = new BindableCollection<Gridline>();
+            for (int x = 0; x < _arranger.ArrangerElementSize.Width; x++) // Vertical gridlines
+            {
+                var gridline = new Gridline(x * _arranger.ElementPixelSize.Width * Zoom + 1, 0,
+                    x * _arranger.ElementPixelSize.Width * Zoom + 1, _arranger.ArrangerPixelSize.Height * Zoom);
+                _gridlines.Add(gridline);
+            }
+
+            _gridlines.Add(new Gridline(_arranger.ArrangerPixelSize.Width * Zoom, 0,
+                _arranger.ArrangerPixelSize.Width * Zoom, _arranger.ArrangerPixelSize.Height * Zoom));
+
+            for (int y = 0; y < _arranger.ArrangerElementSize.Height; y++) // Horizontal gridlines
+            {
+                var gridline = new Gridline(0, y * _arranger.ElementPixelSize.Height * Zoom + 1,
+                    _arranger.ArrangerPixelSize.Width * Zoom, y * _arranger.ElementPixelSize.Height * Zoom + 1);
+                _gridlines.Add(gridline);
+            }
+
+            _gridlines.Add(new Gridline(0, _arranger.ArrangerPixelSize.Height * Zoom,
+                _arranger.ArrangerPixelSize.Width * Zoom, _arranger.ArrangerPixelSize.Height * Zoom));
+
+            NotifyOfPropertyChange(() => Gridlines);
         }
 
-        public void OnMouseMove(object sender, MouseCaptureArgs e)
+        public virtual void OnMouseMove(object sender, MouseCaptureArgs e)
         {
             var notifyMessage = $"{_arranger.Name}: ({(int)e.X}, {(int)e.Y})";
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
             _events.PublishOnUIThreadAsync(notifyEvent);
         }
 
-        public void OnMouseLeave(object sender, MouseCaptureArgs e)
+        public virtual void OnMouseLeave(object sender, MouseCaptureArgs e)
         {
             var notifyEvent = new NotifyStatusEvent("", NotifyStatusDuration.Indefinite);
             _events.PublishOnUIThreadAsync(notifyEvent);
         }
 
-        public void OnMouseUp(object sender, MouseCaptureArgs e) { return; }
-        public void OnMouseDown(object sender, MouseCaptureArgs e) { return; }
+        public abstract void OnMouseUp(object sender, MouseCaptureArgs e);
+        public abstract void OnMouseDown(object sender, MouseCaptureArgs e);
     }
 }
