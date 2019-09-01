@@ -101,6 +101,10 @@ namespace TileShop.WPF.ViewModels
             NotifyOfPropertyChange(() => Gridlines);
         }
 
+        public void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);
+        public void ZoomOut() => Zoom = Math.Clamp(Zoom - 1, MinZoom, MaxZoom);
+        public void ToggleGridlineVisibility() => ShowGridlines ^= true;
+
         public virtual void OnMouseMove(object sender, MouseCaptureArgs e)
         {
             var notifyMessage = $"{_arranger.Name}: ({(int)e.X}, {(int)e.Y})";

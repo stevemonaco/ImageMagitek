@@ -1,4 +1,5 @@
 ﻿using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,6 +19,12 @@ namespace TileShop.Shared.Services
     public class CodecService : ICodecService
     {
         public ICodecFactory CodecFactory { get; set; }
+        public Palette DefaultPalette { get; private set; }
+
+        public CodecService(Palette defaultPalette)
+        {
+            DefaultPalette = defaultPalette;
+        }
 
         public void LoadXmlCodecs(string codecsPath)
         {
@@ -29,7 +36,7 @@ namespace TileShop.Shared.Services
                 formats.Add(format.Name, format);
             }
 
-            CodecFactory = new CodecFactory(formats);
+            CodecFactory = new CodecFactory(formats, DefaultPalette);
         }
 
         public IEnumerable<string> GetSupportedCodecNames() => CodecFactory.GetSupportedCodecNames();

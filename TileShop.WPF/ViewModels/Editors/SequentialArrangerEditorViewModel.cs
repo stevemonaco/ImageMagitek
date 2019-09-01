@@ -41,22 +41,22 @@ namespace TileShop.WPF.ViewModels
 
         public void OnMouseDown(object sender, MouseCaptureArgs e)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void OnMouseLeave(object sender, MouseCaptureArgs e)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void OnMouseMove(object sender, MouseCaptureArgs e)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void OnMouseUp(object sender, MouseCaptureArgs e)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 }

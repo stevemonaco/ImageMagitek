@@ -38,7 +38,7 @@
         <KeyBinding Key="Esc" Command="{Binding CancelSelection}" />
         <KeyBinding Key="Z" Command="{Binding ZoomIn}" />
         <KeyBinding Key="X" Command="{Binding ZoomOut}" />
-        <KeyBinding Key="G" Command="{Binding ToggleGridlines}" />
+        <KeyBinding Key="G" Command="{Binding ToggleGridlineVisibility}" />
         <KeyBinding Key="J" Command="{Binding ShowJumpDialog}" />
     </UserControl.InputBindings>
     <Grid UseLayoutRounding="True">
@@ -48,14 +48,12 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <!--  Toolbar  -->
         <StackPanel
             Grid.Row="0"
             Grid.Column="0"
-            Grid.ColumnSpan="2"
             Margin="0,10,0,20"
             Orientation="Horizontal">
             <Slider
@@ -81,7 +79,6 @@
         <ScrollViewer
             Grid.Row="1"
             Grid.Column="0"
-            Grid.ColumnSpan="2"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             HorizontalScrollBarVisibility="Auto"

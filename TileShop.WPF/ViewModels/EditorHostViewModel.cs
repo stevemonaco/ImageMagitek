@@ -5,15 +5,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Caliburn.Micro;
 using ImageMagitek;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using TileShop.Shared.EventModels;
+using TileShop.Shared.Services;
 
 namespace TileShop.WPF.ViewModels
 {
     public class EditorHostViewModel : Screen, IHandle<ActivateEditorEvent>
     {
         protected IEventAggregator _events;
+        protected ICodecService _codecService;
 
         private BindableCollection<EditorBaseViewModel> _documents = new BindableCollection<EditorBaseViewModel>();
         public BindableCollection<EditorBaseViewModel> Documents
@@ -37,8 +40,9 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public EditorHostViewModel(IEventAggregator events)
+        public EditorHostViewModel(IEventAggregator events, ICodecService codecService)
         {
+            _codecService = codecService;
             _events = events;
             _events.SubscribeOnUIThread(this);
         }
@@ -61,6 +65,10 @@ namespace TileShop.WPF.ViewModels
                         break;
                     case SequentialArranger sequentialArranger:
                         newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events);
+                        break;
+                    case DataFile dataFile:
+                        var newArranger = new SequentialArranger(8, 16, dataFile, _codecService.CodecFactory, "SNES 3bpp");
+                        newDocument = new SequentialArrangerEditorViewModel(newArranger, _events);
                         break;
                     case ResourceFolder resourceFolder:
                         newDocument = null;
