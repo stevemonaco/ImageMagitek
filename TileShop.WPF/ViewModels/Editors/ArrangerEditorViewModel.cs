@@ -55,8 +55,8 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public event EventHandler Capture;
-        public event EventHandler Release;
+        public virtual event EventHandler Capture;
+        public virtual event EventHandler Release;
 
         private int _zoom = 1;
         public int Zoom

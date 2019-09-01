@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using System.Windows.Input;
 using Caliburn.Micro;
+using Microsoft.Xaml.Behaviors;
 using TileShop.Shared.Services;
+using TileShop.WPF.Keybinding;
 using TileShop.WPF.Services;
 using TileShop.WPF.ViewModels;
 
@@ -41,6 +44,7 @@ namespace TileShop.WPF
             _container.Instance(_container);
 
             ConfigureServices();
+            ConfigureKeybindTrigger();
 
             _container.Singleton<IWindowManager, WindowManager>()
                 .Singleton<IEventAggregator, EventAggregator>();
@@ -51,6 +55,45 @@ namespace TileShop.WPF
 
             foreach (var type in viewModelTypes)
                 _container.RegisterPerRequest(type, type.ToString(), type);
+        }
+
+        private void ConfigureKeybindTrigger()
+        {
+            var defaultCreateTrigger = Parser.CreateTrigger;
+
+            Parser.CreateTrigger = (target, triggerText) =>
+            {
+                if (triggerText == null)
+                {
+                    return defaultCreateTrigger(target, null);
+                }
+
+                var triggerDetail = triggerText
+                    .Replace("[", string.Empty)
+                    .Replace("]", string.Empty);
+
+                var splits = triggerDetail.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+
+                TriggerBase<UIElement> trigger = null;
+
+                switch (splits[0])
+                {
+                    case "Key":
+                        var key = (Key)Enum.Parse(typeof(Key), splits[1], true);
+                        trigger = new KeyTrigger { Key = key };
+                        break;
+
+                    case "Gesture":
+                        var mkg = (MultiKeyGesture)(new MultiKeyGestureConverter()).ConvertFrom(splits[1]);
+                        trigger = new KeyTrigger { Modifiers = mkg.KeySequences[0].Modifiers, Key = mkg.KeySequences[0].Keys[0] };
+                        break;
+                }
+
+                if (trigger is null)
+                    return defaultCreateTrigger(target, triggerText);
+                else
+                    return trigger;
+            };
         }
 
         protected override void OnStartup(object sender, StartupEventArgs e)

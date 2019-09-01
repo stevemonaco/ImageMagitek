@@ -7,40 +7,17 @@
     xmlns:converters="clr-namespace:TileShop.WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dd="urn:gong-wpf-dragdrop"
+    xmlns:helpers="clr-namespace:TileShop.WPF.Helpers"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:TileShop.WPF.Models"
-    cm:Message.Attach="[Event Closing] = [Action OnClose($eventArgs)]"
+    cm:Message.Attach="[Key OemPlus] = [MoveByteDown]; [Key Add] = [MoveByteDown]; [Key Subtract] = [MoveByteUp]; [Key OemMinus] = [MoveByteUp]; [Key Down] = [MoveRowDown]; [Key Up] = [MoveRowUp]; [Key Right] = [MoveColumnRight]; [Key Left] = [MoveColumnLeft]; [Key PageDown] = [MovePageDown]; [Key PageUp] = [MovePageUp]; [Key Home] = [MoveHome]; [Key End] = [MoveEnd]; [Key OemQuestion] = [ExpandColumn]; [Key OemPeriod] = [ShrinkColumn]; [Key L] = [ExpandRow]; [Key OemSemicolon] = [ShrinkRow]; [Key A] = [SelectNextCodec]; [Key S] = [SelectPreviousCodec]; [Key Z] = [ZoomIn]; [Key X] = [ZoomOut]; [Key G] = [ToggleGridlineVisibility]; [Key J] = [ShowJumpDialog]; [Key Escape] = [CancelSelection]; [Event Closing] = [Action OnClose($eventArgs)]"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <UserControl.InputBindings>
-        <KeyBinding Key="OemPlus" Command="{Binding MoveByteDown}" />
-        <KeyBinding Key="Add" Command="{Binding MoveByteDown}" />
-        <KeyBinding Key="Subtract" Command="{Binding MoveByteUp}" />
-        <KeyBinding Key="OemMinus" Command="{Binding MoveByteUp}" />
-        <KeyBinding Key="Down" Command="{Binding MoveRowDown}" />
-        <KeyBinding Key="Up" Command="{Binding MoveRowUp}" />
-        <KeyBinding Key="Right" Command="{Binding MoveColumnRight}" />
-        <KeyBinding Key="Left" Command="{Binding MoveColumnLeft}" />
-        <KeyBinding Key="PageDown" Command="{Binding MovePageDown}" />
-        <KeyBinding Key="PageUp" Command="{Binding MovePageUp}" />
-        <KeyBinding Key="Home" Command="{Binding MoveHome}" />
-        <KeyBinding Key="End" Command="{Binding MoveEnd}" />
-        <KeyBinding Key="OemQuestion" Command="{Binding ExpandColumn}" />
-        <KeyBinding Key="OemPeriod" Command="{Binding ShrinkColumn}" />
-        <KeyBinding Key="L" Command="{Binding ExpandRow}" />
-        <KeyBinding Key="OemSemicolon" Command="{Binding ShrinkRow}" />
-        <KeyBinding Key="A" Command="{Binding SelectNextCodec}" />
-        <KeyBinding Key="S" Command="{Binding SelectPreviousCodec}" />
-        <KeyBinding Key="Esc" Command="{Binding CancelSelection}" />
-        <KeyBinding Key="Z" Command="{Binding ZoomIn}" />
-        <KeyBinding Key="X" Command="{Binding ZoomOut}" />
-        <KeyBinding Key="G" Command="{Binding ToggleGridlineVisibility}" />
-        <KeyBinding Key="J" Command="{Binding ShowJumpDialog}" />
-    </UserControl.InputBindings>
+
     <Grid UseLayoutRounding="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -59,13 +36,14 @@
             <Slider
                 MinWidth="100"
                 Margin="10,0,10,0"
-                Maximum="16"
-                Minimum="1"
+                Focusable="False"
+                Maximum="{Binding MaxZoom}"
+                Minimum="{Binding MinZoom}"
                 Value="{Binding Zoom}" />
             <ToggleButton
                 Margin="0,0,10,0"
-                cm:Message.Attach="[Event Checked] = [Action ToggleGridlines];[Event Unchecked] = [Action ToggleGridlines]"
                 Content="#"
+                Focusable="False"
                 IsChecked="{Binding ShowGridlines}"
                 Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
             <ToggleButton
