@@ -25,8 +25,11 @@ namespace ImageMagitek
         public long ArrangerBitSize { get; private set; }
         public override bool ShouldBeSerialized { get; set; } = true;
 
+        public IGraphicsCodec ActiveCodec { get; private set; }
+
         private ICodecFactory _codecs;
         private string _codecName;
+        private DataFile _dataFile;
 
         public SequentialArranger()
         {
@@ -38,10 +41,13 @@ namespace ImageMagitek
             Mode = ArrangerMode.SequentialArranger;
             FileSize = dataFile.Stream.Length;
             Name = dataFile.Name;
+            _dataFile = dataFile;
             _codecs = codecFactory;
             _codecName = codecName;
 
-            Resize(arrangerWidth, arrangerHeight, dataFile, codecName);
+            ActiveCodec = _codecs.GetCodec(_codecName);
+
+            Resize(arrangerWidth, arrangerHeight, dataFile);
         }
 
         /// <summary>
@@ -55,7 +61,7 @@ namespace ImageMagitek
             if (Mode != ArrangerMode.SequentialArranger)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
-            Resize(arrangerWidth, arrangerHeight, ElementGrid[0, 0].DataFile, _codecName);
+            Resize(arrangerWidth, arrangerHeight, ElementGrid[0, 0].DataFile);
         }
 
         /// <summary>
@@ -66,15 +72,14 @@ namespace ImageMagitek
         /// <param name="dataFileKey">DataFile key in IResourceManager</param>
         /// <param name="codecName">Codec name for encoding/decoding Elements</param>
         /// <returns></returns>
-        private FileBitAddress Resize(int arrangerWidth, int arrangerHeight, DataFile dataFile, string codecName)
+        private FileBitAddress Resize(int arrangerWidth, int arrangerHeight, DataFile dataFile)
         {
             if (Mode != ArrangerMode.SequentialArranger)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
-            _codecName = codecName;
             FileBitAddress address;
 
-            var codec = _codecs.GetCodec(codecName);
+            var codec = _codecs.GetCodec(_codecName);
             ElementPixelSize = new Size(codec.Width, codec.Height);
 
             if (ElementGrid is null) // New Arranger being resized
@@ -106,7 +111,7 @@ namespace ImageMagitek
                         DataFile = dataFile
                     };
 
-                    el.Codec = _codecs.GetCodec(codecName, el.Width, el.Height);
+                    el.Codec = _codecs.GetCodec(_codecName, el.Width, el.Height);
 
                     ElementGrid[j, i] = el;
 
@@ -124,6 +129,49 @@ namespace ImageMagitek
             address = this.Move(address);
 
             return address;
+        }
+
+        public void ChangeCodec(IGraphicsCodec codec)
+        {
+            FileBitAddress address = GetInitialSequentialFileAddress();
+            ElementPixelSize = new Size(codec.Width, codec.Height);
+
+            ActiveCodec = codec;
+
+            if (codec.Layout == ImageLayout.Linear)
+                Layout = ArrangerLayout.LinearArranger;
+            else if (codec.Layout == ImageLayout.Tiled)
+                Layout = ArrangerLayout.TiledArranger;
+
+            ArrangerBitSize = ArrangerElementSize.Width * ArrangerElementSize.Height * codec.StorageSize;
+
+            int x = 0;
+            int y = 0;
+
+            for (int i = 0; i < ArrangerElementSize.Height; i++)
+            {
+                x = 0;
+                for (int j = 0; j < ArrangerElementSize.Width; j++)
+                {
+                    ElementGrid[j, i].FileAddress = address;
+                    ElementGrid[j, i].X1 = x;
+                    ElementGrid[j, i].Y1 = y;
+                    ElementGrid[j, i].Width = ElementPixelSize.Width;
+                    ElementGrid[j, i].Height = ElementPixelSize.Height;
+                    ElementGrid[j, i].Codec = _codecs.CloneCodec(codec);
+
+                    if (codec.Layout == ImageLayout.Tiled)
+                        address += codec.StorageSize;
+                    else // Linear
+                        address += (ElementPixelSize.Width + codec.RowStride) * codec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
+
+                    x += ElementPixelSize.Width;
+                }
+                y += ElementPixelSize.Height;
+            }
+
+            address = GetInitialSequentialFileAddress();
+            address = this.Move(address);
         }
 
         /// <summary>
@@ -161,49 +209,5 @@ namespace ImageMagitek
             foreach (var item in set)
                 yield return item;
         }
-
-        /// <summary>
-        /// Sets the GraphicsFormat name and Element size for a Sequential Arranger
-        /// </summary>
-        /// <param name="FormatName">Name of the GraphicsFormat</param>
-        /// <param name="ElementSize">Size of each Element in pixels</param>
-        /// <returns></returns>
-        /*public bool SetGraphicsFormat(string FormatName, Size ElementSize)
-        {
-            if (ElementGrid is null)
-                throw new NullReferenceException($"{nameof(SetGraphicsFormat)} property '{nameof(ElementGrid)}' was null");
-
-            if (Mode != ArrangerMode.SequentialArranger)
-                throw new InvalidOperationException($"{nameof(SetGraphicsFormat)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
-
-            FileBitAddress address = ElementGrid[0, 0].FileAddress;
-            //GraphicsFormat format = ElementGrid[0, 0].GraphicsFormat;
-
-            ElementPixelSize = ElementSize;
-
-            int elembitsize = format.StorageSize;
-            ArrangerBitSize = ArrangerElementSize.Width * ArrangerElementSize.Height * elembitsize;
-
-            if (FileSize * 8 < address + ArrangerBitSize)
-                address = new FileBitAddress(FileSize * 8 - ArrangerBitSize);
-
-            for (int i = 0; i < ArrangerElementSize.Height; i++)
-            {
-                for (int j = 0; j < ArrangerElementSize.Width; j++)
-                {
-                    ElementGrid[j, i].FileAddress = address;
-                    ElementGrid[j, i].FormatName = FormatName;
-                    ElementGrid[j, i].Width = ElementPixelSize.Width;
-                    ElementGrid[j, i].Height = ElementPixelSize.Height;
-                    ElementGrid[j, i].X1 = j * ElementPixelSize.Width;
-                    ElementGrid[j, i].Y1 = i * ElementPixelSize.Height;
-                    address += elembitsize;
-                }
-            }
-
-            ArrangerElement LastElem = ElementGrid[ArrangerElementSize.Width - 1, ArrangerElementSize.Height - 1];
-
-            return true;
-        }*/
     }
 }

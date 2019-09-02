@@ -49,6 +49,7 @@ namespace ImageMagitek.Codec
         public GeneralGraphicsCodec(GraphicsFormat format, Palette defaultPalette)
         {
             Format = format;
+            Name = format.Name;
             DefaultPalette = defaultPalette;
             AllocateBuffers();
         }

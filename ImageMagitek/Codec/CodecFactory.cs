@@ -14,7 +14,7 @@ namespace ImageMagitek.Codec
             DefaultPalette = defaultPalette;
         }
 
-        public IGraphicsCodec GetCodec(string codecName, int width = 8, int height = 8)
+        public IGraphicsCodec GetCodec(string codecName, int width = 8, int height = 8, int rowStride = 0)
         {
             switch (codecName)
             {
@@ -32,6 +32,7 @@ namespace ImageMagitek.Codec
                     if (Formats.ContainsKey(codecName))
                     {
                         var format = Formats[codecName].Clone();
+                        format.Name = codecName;
                         format.Width = width;
                         format.Height = height;
 
@@ -40,6 +41,11 @@ namespace ImageMagitek.Codec
                     else
                         throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{nameof(codecName)}'");
             }
+        }
+
+        public IGraphicsCodec CloneCodec(IGraphicsCodec codec)
+        {
+            return GetCodec(codec.Name, codec.Width, codec.Height, codec.RowStride);
         }
 
         public IEnumerable<string> GetSupportedCodecNames()
