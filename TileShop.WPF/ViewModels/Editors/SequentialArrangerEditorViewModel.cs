@@ -3,6 +3,8 @@ using ImageMagitek;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using TileShop.Shared.EventModels;
+using TileShop.Shared.Services;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Helpers;
 
@@ -12,12 +14,119 @@ namespace TileShop.WPF.ViewModels
     {
         //public override event EventHandler Capture;
         //public override event EventHandler Release;
+        private ICodecService _codecService;
 
-        public SequentialArrangerEditorViewModel(SequentialArranger arranger, IEventAggregator events)
+        private BindableCollection<string> _codecNames = new BindableCollection<string>();
+        public BindableCollection<string> CodecNames
+        {
+            get => _codecNames;
+            set
+            {
+                _codecNames = value;
+                NotifyOfPropertyChange(() => CodecNames);
+            }
+        }
+
+        private string _selectedCodecName;
+        public string SelectedCodecName
+        {
+            get => _selectedCodecName;
+            set
+            {
+                _selectedCodecName = value;
+                NotifyOfPropertyChange(() => SelectedCodecName);
+                ChangeCodec();
+            }
+        }
+
+        public bool IsLinearLayout => _arranger.Layout == ArrangerLayout.LinearArranger;
+        public bool IsTiledLayout => _arranger.Layout == ArrangerLayout.TiledArranger;
+
+        private int _tiledElementWidth = 8;
+        public int TiledElementWidth
+        {
+            get => _tiledElementWidth;
+            set
+            {
+                _tiledElementWidth = value;
+                NotifyOfPropertyChange(() => TiledElementWidth);
+                ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
+            }
+        }
+
+        private int _tiledElementHeight = 8;
+        public int TiledElementHeight
+        {
+            get => _tiledElementHeight;
+            set
+            {
+                _tiledElementHeight = value;
+                NotifyOfPropertyChange(() => TiledElementHeight);
+                ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
+            }
+        }
+
+        private int _tiledArrangerWidth = 8;
+        public int TiledArrangerWidth
+        {
+            get => _tiledArrangerWidth;
+            set
+            {
+                _tiledArrangerWidth = value;
+                NotifyOfPropertyChange(() => TiledArrangerWidth);
+                ResizeArranger(TiledArrangerWidth, TiledArrangerHeight);
+            }
+        }
+
+        private int _tiledArrangerHeight = 16;
+        public int TiledArrangerHeight
+        {
+            get => _tiledArrangerHeight;
+            set
+            {
+                _tiledArrangerHeight = value;
+                NotifyOfPropertyChange(() => TiledArrangerHeight);
+                ResizeArranger(TiledArrangerWidth, TiledArrangerHeight);
+            }
+        }
+
+        private int _linearArrangerWidth = 256;
+        public int LinearArrangerWidth
+        {
+            get => _linearArrangerWidth;
+            set
+            {
+                _linearArrangerWidth = value;
+                NotifyOfPropertyChange(() => LinearArrangerWidth);
+                ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
+            }
+        }
+
+        private int _linearArrangerHeight = 256;
+        public int LinearArrangerHeight
+        {
+            get => _linearArrangerHeight;
+            set
+            {
+                _linearArrangerHeight = value;
+                NotifyOfPropertyChange(() => LinearArrangerHeight);
+                ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
+            }
+        }
+
+        public SequentialArrangerEditorViewModel(SequentialArranger arranger, IEventAggregator events, ICodecService codecService)
         {
             Resource = arranger;
             _arranger = arranger;
             _events = events;
+            _codecService = codecService;
+
+            foreach (var name in codecService.GetSupportedCodecNames())
+                CodecNames.Add(name);
+            NotifyOfPropertyChange(() => CodecNames);
+
+            _tiledElementWidth = arranger.ActiveCodec.Width;
+            _tiledElementHeight = arranger.ActiveCodec.Height;
 
             MoveHome();
         }
@@ -32,18 +141,48 @@ namespace TileShop.WPF.ViewModels
         public void MovePageUp() => Move(ArrangerMoveType.PageUp);
         public void MoveHome() => Move(ArrangerMoveType.Home);
         public void MoveEnd() => Move(ArrangerMoveType.End);
-        public void ExpandColumn() => ResizeArranger(_arranger.ArrangerElementSize.Width + 1, _arranger.ArrangerElementSize.Height);
-        public void ExpandRow() => ResizeArranger(_arranger.ArrangerElementSize.Width, _arranger.ArrangerElementSize.Height + 1);
-        public void ShrinkColumn() => ResizeArranger(_arranger.ArrangerElementSize.Width - 1, _arranger.ArrangerElementSize.Height);
-        public void ShrinkRow() => ResizeArranger(_arranger.ArrangerElementSize.Width, _arranger.ArrangerElementSize.Height - 1);
+        public void ExpandWidth()
+        {
+            if (IsTiledLayout)
+                TiledElementWidth += 8;
+            else
+                ResizeArranger(_arranger.ArrangerElementSize.Width + 1, _arranger.ArrangerElementSize.Height);
+        }
 
+        public void ExpandHeight()
+        {
+            if (IsTiledLayout)
+                TiledElementHeight += 8;
+            else
+                ResizeArranger(_arranger.ArrangerElementSize.Width, _arranger.ArrangerElementSize.Height + 1);
+        }
+
+        public void ShrinkWidth()
+        {
+            if (IsTiledLayout)
+                TiledElementHeight = Math.Clamp(TiledElementHeight - 8, 1, int.MaxValue);
+            else
+                ResizeArranger(_arranger.ArrangerElementSize.Width - 1, _arranger.ArrangerElementSize.Height);
+        }
+
+        public void ShrinkHeight()
+        {
+            if (IsTiledLayout)
+                TiledElementWidth = Math.Clamp(TiledElementWidth - 8, 1, int.MaxValue);
+            else
+                ResizeArranger(_arranger.ArrangerElementSize.Width, _arranger.ArrangerElementSize.Height - 1);
+        }
 
         private void Move(ArrangerMoveType moveType)
         {
-            (_arranger as SequentialArranger).Move(moveType);
+            var address = (_arranger as SequentialArranger).Move(moveType);
             _arrangerImage.Invalidate();
             _arrangerImage.Render(_arranger);
             ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
+
+            string notifyMessage = $"File Offset: 0x{address.FileOffset:X}";
+            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+            _events.PublishOnUIThreadAsync(notifyEvent);
         }
 
         private void ResizeArranger(int arrangerWidth, int arrangerHeight)
@@ -52,6 +191,39 @@ namespace TileShop.WPF.ViewModels
                 return;
 
             (_arranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
+            _arrangerImage.Invalidate();
+            _arrangerImage.Render(_arranger);
+            ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
+        }
+
+        private void ChangeCodec()
+        {
+            var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName);
+            if (codec.Layout == ImageMagitek.Codec.ImageLayout.Tiled)
+            {
+                _arranger.Resize(TiledArrangerWidth, TiledArrangerHeight);
+                codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, TiledElementWidth, TiledElementHeight);
+                (_arranger as SequentialArranger).ChangeCodec(codec);
+            }
+            else if (codec.Layout == ImageMagitek.Codec.ImageLayout.Linear)
+            {
+                _arranger.Resize(1, 1);
+                codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, LinearArrangerWidth, LinearArrangerHeight);
+                (_arranger as SequentialArranger).ChangeCodec(codec);
+            }
+
+            _arrangerImage.Invalidate();
+            _arrangerImage.Render(_arranger);
+            ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
+
+            NotifyOfPropertyChange(() => IsTiledLayout);
+            NotifyOfPropertyChange(() => IsLinearLayout);
+        }
+
+        private void ChangeCodecDimensions(int width, int height)
+        {
+            var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, width, height);
+            (_arranger as SequentialArranger).ChangeCodec(codec);
             _arrangerImage.Invalidate();
             _arrangerImage.Render(_arranger);
             ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);

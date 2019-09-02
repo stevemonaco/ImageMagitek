@@ -13,7 +13,7 @@
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:TileShop.WPF.Models"
-    cm:Message.Attach="[Key OemPlus] = [MoveByteDown]; [Key Add] = [MoveByteDown]; [Key Subtract] = [MoveByteUp]; [Key OemMinus] = [MoveByteUp]; [Key Down] = [MoveRowDown]; [Key Up] = [MoveRowUp]; [Key Right] = [MoveColumnRight]; [Key Left] = [MoveColumnLeft]; [Key PageDown] = [MovePageDown]; [Key PageUp] = [MovePageUp]; [Key Home] = [MoveHome]; [Key End] = [MoveEnd]; [Key OemQuestion] = [ExpandColumn]; [Key OemPeriod] = [ShrinkColumn]; [Key L] = [ExpandRow]; [Key OemSemicolon] = [ShrinkRow]; [Key A] = [SelectNextCodec]; [Key S] = [SelectPreviousCodec]; [Key Z] = [ZoomIn]; [Key X] = [ZoomOut]; [Key G] = [ToggleGridlineVisibility]; [Key J] = [ShowJumpDialog]; [Key Escape] = [CancelSelection]; [Event Closing] = [Action OnClose($eventArgs)]"
+    cm:Message.Attach="[Key OemPlus] = [MoveByteDown]; [Key Add] = [MoveByteDown]; [Key Subtract] = [MoveByteUp]; [Key OemMinus] = [MoveByteUp]; [Key Down] = [MoveRowDown]; [Key Up] = [MoveRowUp]; [Key Right] = [MoveColumnRight]; [Key Left] = [MoveColumnLeft]; [Key PageDown] = [MovePageDown]; [Key PageUp] = [MovePageUp]; [Key Home] = [MoveHome]; [Key End] = [MoveEnd]; [Key OemQuestion] = [ExpandWidth]; [Key OemPeriod] = [ShrinkWidth]; [Key L] = [ExpandHeight]; [Key OemSemicolon] = [ShrinkHeight]; [Key A] = [SelectNextCodec]; [Key S] = [SelectPreviousCodec]; [Key Z] = [ZoomIn]; [Key X] = [ZoomOut]; [Key G] = [ToggleGridlineVisibility]; [Key J] = [ShowJumpDialog]; [Key Escape] = [CancelSelection]; [Event Closing] = [Action OnClose($eventArgs)]"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
@@ -33,6 +33,7 @@
             Grid.Column="0"
             Margin="0,10,0,20"
             Orientation="Horizontal">
+            <ComboBox ItemsSource="{Binding CodecNames}" SelectedValue="{Binding SelectedCodecName}" />
             <Slider
                 MinWidth="100"
                 Margin="10,0,10,0"
@@ -51,6 +52,30 @@
                 Content="Snap"
                 IsChecked="{Binding Selection.SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
                 Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+            <mah:NumericUpDown
+                Minimum="1"
+                Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                Value="{Binding TiledElementWidth}" />
+            <mah:NumericUpDown
+                Minimum="1"
+                Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                Value="{Binding TiledElementHeight}" />
+            <mah:NumericUpDown
+                Minimum="1"
+                Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                Value="{Binding TiledArrangerWidth}" />
+            <mah:NumericUpDown
+                Minimum="1"
+                Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                Value="{Binding TiledArrangerHeight}" />
+            <mah:NumericUpDown
+                Minimum="1"
+                Visibility="{Binding IsLinearLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                Value="{Binding LinearArrangerWidth}" />
+            <mah:NumericUpDown
+                Minimum="1"
+                Visibility="{Binding IsLinearLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                Value="{Binding LinearArrangerHeight}" />
         </StackPanel>
 
         <!--  Image Display  -->
@@ -136,7 +161,6 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-
             </Grid>
         </ScrollViewer>
     </Grid>
