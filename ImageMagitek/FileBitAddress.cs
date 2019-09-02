@@ -49,6 +49,17 @@ namespace ImageMagitek
         public override bool Equals(object obj) =>
             Equals((FileBitAddress)obj);
 
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 23 + BitOffset;
+                hash = hash * 23 + (int)FileOffset;
+                return hash;
+            }
+        }
+
         public static bool operator ==(FileBitAddress lhs, FileBitAddress rhs) =>
             lhs.Equals(rhs);
 
