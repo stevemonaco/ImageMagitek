@@ -19,18 +19,17 @@ Error handling
 - Need a pattern to implement errors intended to notify users
 - Better error handling for serializers
 
-General Refactors
-- Give Codecs to SequentialArranger instead of CodecFactory; ensures compatible element sizing; better use of codec information in general
-
-Palette
-- Re-enable adding palettes from pal folder to project
-
 Project
 - Implement renaming/moving logic
 
 Tests
 - Graphics encoder/decoder tests
 
+File reading
+- ReadUnshifted can crash during unaligned reads (reading too much data).
+- ReadUnshifted needs a new case of a partial read on an aligned address.
+- ReadShifted needs implemented for non-byte sized elements.
+
 Bugs
-- ArrangerExtensions to move rows/pages erroneously assume each element's storage size is the same
+- ReadUnshifted can crash during unaligned reads (reading too much data). Will need to fix as well as implement ReadShifted for non-byte sized elements.
 - CodecFactory / GeneralGraphicsCodec does not resize RowExtendedPixelPattern (tested via PSX 8bpp XML codec)
