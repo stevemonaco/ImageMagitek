@@ -41,7 +41,7 @@ namespace ImageMagitek
                 throw new NullReferenceException($"{nameof(Move)} property {nameof(self.ElementGrid)} was null");
 
             FileBitAddress address = self.ElementGrid[0, 0].FileAddress;
-            FileBitAddress delta;
+            FileBitAddress delta = 0;
 
             switch (moveType) // Calculate the new address based on the movement command. Negative and post-EOF addresses are handled after the switch
             {
@@ -52,27 +52,46 @@ namespace ImageMagitek
                     address -= 8;
                     break;
                 case ArrangerMoveType.RowDown:
-                    delta = self.ArrangerElementSize.Width * self.ElementGrid[0, 0].Codec.StorageSize;
+                    if(self.Layout == ArrangerLayout.TiledArranger)
+                        delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize;
+                    else if(self.Layout == ArrangerLayout.LinearArranger)
+                        delta = self.ActiveCodec.StorageSize / self.ArrangerPixelSize.Height;
+
                     address += delta;
                     break;
                 case ArrangerMoveType.RowUp:
-                    delta = self.ArrangerElementSize.Width * self.ElementGrid[0, 0].Codec.StorageSize;
+                    if (self.Layout == ArrangerLayout.TiledArranger)
+                        delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize;
+                    else if (self.Layout == ArrangerLayout.LinearArranger)
+                        delta = self.ActiveCodec.StorageSize / self.ArrangerPixelSize.Height;
                     address -= delta;
                     break;
                 case ArrangerMoveType.ColRight:
-                    delta = self.ElementGrid[0, 0].Codec.StorageSize;
+                    if (self.Layout == ArrangerLayout.TiledArranger)
+                        delta = self.ActiveCodec.StorageSize;
+                    else if (self.Layout == ArrangerLayout.LinearArranger)
+                        delta = 16 * self.ActiveCodec.StorageSize / ((self.ActiveCodec.RowStride + self.ActiveCodec.Width) * self.ActiveCodec.Height);
                     address += delta;
                     break;
                 case ArrangerMoveType.ColLeft:
-                    delta = self.ElementGrid[0, 0].Codec.StorageSize;
+                    if (self.Layout == ArrangerLayout.TiledArranger)
+                        delta = self.ActiveCodec.StorageSize;
+                    else if (self.Layout == ArrangerLayout.LinearArranger)
+                        delta = 16 * self.ActiveCodec.StorageSize / ((self.ActiveCodec.RowStride + self.ActiveCodec.Width) * self.ActiveCodec.Height);
                     address -= delta;
                     break;
                 case ArrangerMoveType.PageDown:
-                    delta = self.ArrangerElementSize.Width * self.ElementGrid[0, 0].Codec.StorageSize * self.ArrangerElementSize.Height / 2;
+                    if (self.Layout == ArrangerLayout.TiledArranger)
+                        delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize * self.ArrangerElementSize.Height / 2;
+                    else if (self.Layout == ArrangerLayout.LinearArranger)
+                        delta = self.ActiveCodec.StorageSize / 2;
                     address += delta;
                     break;
                 case ArrangerMoveType.PageUp:
-                    delta = self.ArrangerElementSize.Width * self.ElementGrid[0, 0].Codec.StorageSize * self.ArrangerElementSize.Height / 2;
+                    if (self.Layout == ArrangerLayout.TiledArranger)
+                        delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize * self.ArrangerElementSize.Height / 2;
+                    else if (self.Layout == ArrangerLayout.LinearArranger)
+                        delta = self.ActiveCodec.StorageSize / 2;
                     address -= delta;
                     break;
                 case ArrangerMoveType.Home:
@@ -118,7 +137,7 @@ namespace ImageMagitek
             else
                 address = absoluteAddress;
 
-            int ElementStorageSize = self.ElementGrid[0, 0].Codec.StorageSize;
+            int ElementStorageSize = self.ActiveCodec.StorageSize;
 
             foreach(var el in self.EnumerateElements())
             {

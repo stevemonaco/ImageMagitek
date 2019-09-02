@@ -2,6 +2,7 @@
 using ImageMagitek;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Services;
@@ -121,12 +122,22 @@ namespace TileShop.WPF.ViewModels
             _events = events;
             _codecService = codecService;
 
-            foreach (var name in codecService.GetSupportedCodecNames())
+            foreach (var name in codecService.GetSupportedCodecNames().OrderBy(x => x))
                 CodecNames.Add(name);
-            NotifyOfPropertyChange(() => CodecNames);
+            _selectedCodecName = arranger.ActiveCodec.Name;
 
-            _tiledElementWidth = arranger.ActiveCodec.Width;
-            _tiledElementHeight = arranger.ActiveCodec.Height;
+            if(arranger.Layout == ArrangerLayout.TiledArranger)
+            {
+                _tiledElementWidth = arranger.ElementPixelSize.Width;
+                _tiledElementHeight = arranger.ElementPixelSize.Height;
+                _tiledArrangerHeight = arranger.ArrangerElementSize.Height;
+                _tiledArrangerWidth = arranger.ArrangerElementSize.Width;
+            }
+            else if(arranger.Layout == ArrangerLayout.LinearArranger)
+            {
+                _linearArrangerHeight = arranger.ArrangerPixelSize.Height;
+                _linearArrangerWidth = arranger.ArrangerPixelSize.Width;
+            }
 
             MoveHome();
         }
@@ -144,33 +155,33 @@ namespace TileShop.WPF.ViewModels
         public void ExpandWidth()
         {
             if (IsTiledLayout)
-                TiledElementWidth += 8;
-            else
                 ResizeArranger(_arranger.ArrangerElementSize.Width + 1, _arranger.ArrangerElementSize.Height);
+            else
+                LinearArrangerWidth += 8;
         }
 
         public void ExpandHeight()
         {
             if (IsTiledLayout)
-                TiledElementHeight += 8;
-            else
                 ResizeArranger(_arranger.ArrangerElementSize.Width, _arranger.ArrangerElementSize.Height + 1);
+            else
+                LinearArrangerHeight += 8;
         }
 
         public void ShrinkWidth()
         {
             if (IsTiledLayout)
-                TiledElementHeight = Math.Clamp(TiledElementHeight - 8, 1, int.MaxValue);
-            else
                 ResizeArranger(_arranger.ArrangerElementSize.Width - 1, _arranger.ArrangerElementSize.Height);
+            else
+                LinearArrangerHeight = Math.Clamp(LinearArrangerHeight - 8, 1, int.MaxValue);
         }
 
         public void ShrinkHeight()
         {
             if (IsTiledLayout)
-                TiledElementWidth = Math.Clamp(TiledElementWidth - 8, 1, int.MaxValue);
-            else
                 ResizeArranger(_arranger.ArrangerElementSize.Width, _arranger.ArrangerElementSize.Height - 1);
+            else
+                LinearArrangerWidth = Math.Clamp(LinearArrangerWidth - 8, 1, int.MaxValue);
         }
 
         private void Move(ArrangerMoveType moveType)
