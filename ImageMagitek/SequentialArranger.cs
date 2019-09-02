@@ -82,36 +82,45 @@ namespace ImageMagitek
             var codec = _codecs.GetCodec(_codecName);
             ElementPixelSize = new Size(codec.Width, codec.Height);
 
-            if (ElementGrid is null) // New Arranger being resized
+            if (ElementGrid is null) // New Arranger being initially sized
+            {
+                ElementGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
                 address = 0;
-            else
-                address = GetInitialSequentialFileAddress();
+            }
+            else // Arranger being resized with existing elements
+            {
+                var oldElementGrid = ElementGrid;
+                ElementGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
+                var elemsX = Math.Min(ArrangerElementSize.Width, arrangerWidth);
+                var elemsY = Math.Min(ArrangerElementSize.Height, arrangerHeight);
 
-            ElementGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
+                for (int i = 0; i < elemsY; i++)
+                    for (int j = 0; j < elemsX; j++)
+                        ElementGrid[j, i] = oldElementGrid[j, i];
+
+                address = GetInitialSequentialFileAddress();
+            }
 
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
             ArrangerBitSize = arrangerWidth * arrangerHeight * codec.StorageSize;
 
-            int x = 0;
             int y = 0;
 
             for (int i = 0; i < arrangerHeight; i++)
             {
-                x = 0;
+                int x = 0;
                 for (int j = 0; j < arrangerWidth; j++)
                 {
-                    ArrangerElement el = new ArrangerElement()
-                    {
-                        Parent = this,
-                        FileAddress = address,
-                        X1 = x,
-                        Y1 = y,
-                        Width = ElementPixelSize.Width,
-                        Height = ElementPixelSize.Height,
-                        DataFile = dataFile
-                    };
+                    ArrangerElement el = ElementGrid[j, i] ??
+                        new ArrangerElement() { Codec = _codecs.GetCodec(_codecName, ElementPixelSize.Width, ElementPixelSize.Height) };
 
-                    el.Codec = _codecs.GetCodec(_codecName, el.Width, el.Height);
+                    el.Parent = this;
+                    el.FileAddress = address;
+                    el.X1 = x;
+                    el.Y1 = y;
+                    el.Width = ElementPixelSize.Width;
+                    el.Height = ElementPixelSize.Height;
+                    el.DataFile = dataFile;
 
                     ElementGrid[j, i] = el;
 
@@ -145,12 +154,11 @@ namespace ImageMagitek
 
             ArrangerBitSize = ArrangerElementSize.Width * ArrangerElementSize.Height * codec.StorageSize;
 
-            int x = 0;
             int y = 0;
 
             for (int i = 0; i < ArrangerElementSize.Height; i++)
             {
-                x = 0;
+                int x = 0;
                 for (int j = 0; j < ArrangerElementSize.Width; j++)
                 {
                     ElementGrid[j, i].FileAddress = address;
