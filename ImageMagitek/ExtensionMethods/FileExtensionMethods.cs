@@ -28,7 +28,28 @@ namespace ImageMagitek.ExtensionMethods
                 byte postmaskbits = (byte)(premaskbits ^ 0xFF);
                 retArray[numBytes - 1] &= postmaskbits;
 
-                return br.ReadBytes(numBytes);
+                return retArray;
+            }
+            else
+                throw new Exception();
+        }
+
+        public static void ReadUnshifted(this FileStream file, FileBitAddress address, int numBits, bool Seek, Span<byte> buffer)
+        {
+            if (Seek)
+                file.Seek(address.FileOffset, SeekOrigin.Begin);
+
+            if (address.BitOffset == 0 && (numBits % 8 == 0)) // Byte-aligned, whole-byte read
+                file.Read(buffer);
+            else if (address.BitOffset != 0) // Byte-unaligned read
+            {
+                int numBytes = (numBits + address.BitOffset + 7) / 8; // Add 7 to take advantage of integer truncation instead of using doubles and Math.Ceiling
+
+                file.Read(buffer);
+                byte premaskbits = (byte)((1 << (8 - address.BitOffset)) - 1);
+                buffer[0] &= premaskbits;
+                byte postmaskbits = (byte)(premaskbits ^ 0xFF);
+                buffer[numBytes - 1] &= postmaskbits;
             }
             else
                 throw new Exception();

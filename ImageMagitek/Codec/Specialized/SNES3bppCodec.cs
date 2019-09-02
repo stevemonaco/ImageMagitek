@@ -3,6 +3,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 using SixLabors.ImageSharp.Advanced;
+using System;
 
 namespace ImageMagitek.Codec
 {
@@ -19,11 +20,19 @@ namespace ImageMagitek.Codec
         public int ElementStride => 0;
         public Palette DefaultPalette { get; set; }
 
+        private byte[] _buffer;
+        private Memory<byte> _memoryBuffer;
+        private BitStream _bitStream;
+
         public Snes3bppCodec(int width, int height, Palette defaultPalette)
         {
             Width = width;
             Height = height;
             DefaultPalette = defaultPalette;
+
+            _buffer = new byte[StorageSize];
+            _memoryBuffer = new Memory<byte>(_buffer);
+            _bitStream = BitStream.OpenRead(_buffer, StorageSize);
         }
 
         public void Decode(Image<Rgba32> image, ArrangerElement el)
@@ -36,8 +45,7 @@ namespace ImageMagitek.Codec
             var dest = image.GetPixelSpan();
             int destidx = image.Width * el.Y1 + el.X1;
 
-            var data = fs.ReadUnshifted(el.FileAddress, StorageSize, true);
-            var bs = BitStream.OpenRead(data, StorageSize);
+            fs.ReadUnshifted(el.FileAddress, StorageSize, true, _memoryBuffer.Span);
 
             var pal = el.Palette ?? DefaultPalette;
 
@@ -49,12 +57,12 @@ namespace ImageMagitek.Codec
             {
                 for (int x = 0; x < el.Width; x++)
                 {
-                    bs.SeekAbsolute(offsetPlane1);
-                    var bp1 = bs.ReadBit();
-                    bs.SeekAbsolute(offsetPlane2);
-                    var bp2 = bs.ReadBit();
-                    bs.SeekAbsolute(offsetPlane3);
-                    var bp3 = bs.ReadBit();
+                    _bitStream.SeekAbsolute(offsetPlane1);
+                    var bp1 = _bitStream.ReadBit();
+                    _bitStream.SeekAbsolute(offsetPlane2);
+                    var bp2 = _bitStream.ReadBit();
+                    _bitStream.SeekAbsolute(offsetPlane3);
+                    var bp3 = _bitStream.ReadBit();
 
                     var palIndex = (bp1 << 0) | (bp2 << 1) | (bp3 << 2);
                     dest[destidx] = pal[palIndex].ToRgba32();
