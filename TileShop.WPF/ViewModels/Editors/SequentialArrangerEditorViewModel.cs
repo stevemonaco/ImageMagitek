@@ -155,7 +155,7 @@ namespace TileShop.WPF.ViewModels
         public void ExpandWidth()
         {
             if (IsTiledLayout)
-                ResizeArranger(_arranger.ArrangerElementSize.Width + 1, _arranger.ArrangerElementSize.Height);
+                TiledArrangerWidth++;
             else
                 LinearArrangerWidth += 8;
         }
@@ -163,7 +163,7 @@ namespace TileShop.WPF.ViewModels
         public void ExpandHeight()
         {
             if (IsTiledLayout)
-                ResizeArranger(_arranger.ArrangerElementSize.Width, _arranger.ArrangerElementSize.Height + 1);
+                TiledArrangerHeight++;
             else
                 LinearArrangerHeight += 8;
         }
@@ -171,7 +171,7 @@ namespace TileShop.WPF.ViewModels
         public void ShrinkWidth()
         {
             if (IsTiledLayout)
-                ResizeArranger(_arranger.ArrangerElementSize.Width - 1, _arranger.ArrangerElementSize.Height);
+                TiledArrangerWidth = Math.Clamp(TiledArrangerWidth - 1, 1, int.MaxValue);
             else
                 LinearArrangerHeight = Math.Clamp(LinearArrangerHeight - 8, 1, int.MaxValue);
         }
@@ -179,7 +179,7 @@ namespace TileShop.WPF.ViewModels
         public void ShrinkHeight()
         {
             if (IsTiledLayout)
-                ResizeArranger(_arranger.ArrangerElementSize.Width, _arranger.ArrangerElementSize.Height - 1);
+                TiledArrangerHeight = Math.Clamp(TiledArrangerHeight - 1, 1, int.MaxValue);
             else
                 LinearArrangerWidth = Math.Clamp(LinearArrangerWidth - 8, 1, int.MaxValue);
         }
