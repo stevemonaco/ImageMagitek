@@ -12,7 +12,7 @@
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:TileShop.WPF.Models"
-    cm:Message.Attach="[Event Closing] = [Action OnClose($eventArgs)]"
+    cm:Message.Attach="[Key Z] = [ZoomIn]; [Key X] = [ZoomOut]; [Key G] = [ToggleGridlineVisibility]; [Key Escape] = [CancelSelection]; [Event Closing] = [Action OnClose($eventArgs)]"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">

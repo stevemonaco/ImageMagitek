@@ -57,6 +57,8 @@ namespace TileShop.WPF.ViewModels
                 Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
         }
 
+        public void CancelSelection() => Selection.CancelSelection();
+
         public override void OnMouseMove(object sender, MouseCaptureArgs e)
         {
             if(Selection.IsSelecting)
