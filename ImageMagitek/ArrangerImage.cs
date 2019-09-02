@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using ImageMagitek.Codec;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -19,8 +21,10 @@ namespace ImageMagitek
     public class ArrangerImage : IArrangerImage<Rgba32>, IDisposable
     {
         public Image<Rgba32> Image { get; set; }
-        bool NeedsRedraw = true;
-        bool Disposed = false;
+        
+        private bool _needsRedraw = true;
+        private bool _disposed = false;
+        private BlankCodec _blankCodec = new BlankCodec();
 
         /// <summary>
         /// Renders an image using the specified arranger
@@ -39,15 +43,20 @@ namespace ImageMagitek
             if (Image is null || arranger.ArrangerPixelSize.Height != Image.Height || arranger.ArrangerPixelSize.Width != Image.Width)
                 Image = new Image<Rgba32>(arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
 
-            if (!NeedsRedraw)
+            if (!_needsRedraw)
                 return true;
 
             // TODO: Consider using Tile Cache
 
-            foreach(var el in arranger.EnumerateElements())
-                el.Codec.Decode(Image, el);
+            foreach (var el in arranger.EnumerateElements())
+            {
+                if (el.Codec is null)
+                    _blankCodec.Decode(Image, el);
+                else
+                    el.Codec.Decode(Image, el);
+            }
 
-            NeedsRedraw = false;
+            _needsRedraw = false;
 
             return true;
         }
@@ -82,7 +91,7 @@ namespace ImageMagitek
                 throw new InvalidOperationException($"{nameof(SaveImage)} has mismatched dimensions: " + 
                     $"'{nameof(arranger)}' ({arranger.ArrangerPixelSize.Width}, {arranger.ArrangerPixelSize.Height}) '{nameof(Image)} ({Image.Width}, {Image.Height})'");
 
-            foreach(var el in arranger.EnumerateElements())
+            foreach(var el in arranger.EnumerateElements().Where(x => x.Codec != null))
                 el.Codec.Encode(Image, el);
 
             return true;
@@ -93,7 +102,7 @@ namespace ImageMagitek
         /// </summary>
         public void Invalidate()
         {
-            NeedsRedraw = true;
+            _needsRedraw = true;
         }
 
         /// <summary>
@@ -132,7 +141,7 @@ namespace ImageMagitek
 
         protected virtual void Dispose(bool disposing)
         {
-            if (Disposed)
+            if (_disposed)
                 return;
 
             if(disposing)
@@ -140,7 +149,7 @@ namespace ImageMagitek
                 Image.Dispose();
             }
 
-            Disposed = true;
+            _disposed = true;
         }
 
         ~ArrangerImage()

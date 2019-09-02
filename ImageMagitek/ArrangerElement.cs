@@ -67,8 +67,6 @@ namespace ImageMagitek
             Height = 0;
             X1 = 0;
             Y1 = 0;
-
-            Codec = new BlankCodec();
         }
 
         /// <summary>
