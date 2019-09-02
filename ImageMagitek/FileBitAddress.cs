@@ -5,7 +5,7 @@ namespace ImageMagitek
     /// <summary>
     /// Struct used to store a file address that does not start on a byte-aligned address
     /// </summary>
-    public struct FileBitAddress
+    public struct FileBitAddress : IEquatable<FileBitAddress>
     {
         /// <summary>
         /// File offset in bytes
@@ -42,6 +42,18 @@ namespace ImageMagitek
         {
             return FileOffset * 8 + BitOffset;
         }
+
+        public bool Equals(FileBitAddress other) =>
+            FileOffset == other.FileOffset && BitOffset == other.BitOffset;
+
+        public override bool Equals(object obj) =>
+            Equals((FileBitAddress)obj);
+
+        public static bool operator ==(FileBitAddress lhs, FileBitAddress rhs) =>
+            lhs.Equals(rhs);
+
+        public static bool operator !=(FileBitAddress lhs, FileBitAddress rhs) =>
+            !lhs.Equals(rhs);
 
         /// <summary>
         /// Casts a long into a FileBitAddress
