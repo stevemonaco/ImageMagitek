@@ -40,16 +40,17 @@ namespace ImageMagitek
             if (self.ElementGrid is null)
                 throw new NullReferenceException($"{nameof(Move)} property {nameof(self.ElementGrid)} was null");
 
-            FileBitAddress address = self.ElementGrid[0, 0].FileAddress;
+            var initialAddress = self.GetInitialSequentialFileAddress();
+            var newAddress = self.GetInitialSequentialFileAddress();
             FileBitAddress delta = 0;
 
             switch (moveType) // Calculate the new address based on the movement command. Negative and post-EOF addresses are handled after the switch
             {
                 case ArrangerMoveType.ByteDown:
-                    address += 8;
+                    newAddress += 8;
                     break;
                 case ArrangerMoveType.ByteUp:
-                    address -= 8;
+                    newAddress -= 8;
                     break;
                 case ArrangerMoveType.RowDown:
                     if(self.Layout == ArrangerLayout.TiledArranger)
@@ -57,60 +58,61 @@ namespace ImageMagitek
                     else if(self.Layout == ArrangerLayout.LinearArranger)
                         delta = self.ActiveCodec.StorageSize / self.ArrangerPixelSize.Height;
 
-                    address += delta;
+                    newAddress += delta;
                     break;
                 case ArrangerMoveType.RowUp:
                     if (self.Layout == ArrangerLayout.TiledArranger)
                         delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize;
                     else if (self.Layout == ArrangerLayout.LinearArranger)
                         delta = self.ActiveCodec.StorageSize / self.ArrangerPixelSize.Height;
-                    address -= delta;
+                    newAddress -= delta;
                     break;
                 case ArrangerMoveType.ColRight:
                     if (self.Layout == ArrangerLayout.TiledArranger)
                         delta = self.ActiveCodec.StorageSize;
                     else if (self.Layout == ArrangerLayout.LinearArranger)
                         delta = 16 * self.ActiveCodec.StorageSize / ((self.ActiveCodec.RowStride + self.ActiveCodec.Width) * self.ActiveCodec.Height);
-                    address += delta;
+                    newAddress += delta;
                     break;
                 case ArrangerMoveType.ColLeft:
                     if (self.Layout == ArrangerLayout.TiledArranger)
                         delta = self.ActiveCodec.StorageSize;
                     else if (self.Layout == ArrangerLayout.LinearArranger)
                         delta = 16 * self.ActiveCodec.StorageSize / ((self.ActiveCodec.RowStride + self.ActiveCodec.Width) * self.ActiveCodec.Height);
-                    address -= delta;
+                    newAddress -= delta;
                     break;
                 case ArrangerMoveType.PageDown:
                     if (self.Layout == ArrangerLayout.TiledArranger)
                         delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize * self.ArrangerElementSize.Height / 2;
                     else if (self.Layout == ArrangerLayout.LinearArranger)
                         delta = self.ActiveCodec.StorageSize / 2;
-                    address += delta;
+                    newAddress += delta;
                     break;
                 case ArrangerMoveType.PageUp:
                     if (self.Layout == ArrangerLayout.TiledArranger)
                         delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize * self.ArrangerElementSize.Height / 2;
                     else if (self.Layout == ArrangerLayout.LinearArranger)
                         delta = self.ActiveCodec.StorageSize / 2;
-                    address -= delta;
+                    newAddress -= delta;
                     break;
                 case ArrangerMoveType.Home:
-                    address = 0;
+                    newAddress = 0;
                     break;
                 case ArrangerMoveType.End:
-                    address = new FileBitAddress(self.FileSize * 8 - self.ArrangerBitSize);
+                    newAddress = new FileBitAddress(self.FileSize * 8 - self.ArrangerBitSize);
                     break;
             }
 
-            if (address + self.ArrangerBitSize > self.FileSize * 8) // Calculated address is past EOF (first)
-                address = new FileBitAddress(self.FileSize * 8 - self.ArrangerBitSize);
+            if (newAddress + self.ArrangerBitSize > self.FileSize * 8) // Calculated address is past EOF (first)
+                newAddress = new FileBitAddress(self.FileSize * 8 - self.ArrangerBitSize);
 
-            if (address < 0) // Calculated address is before start of file (second)
-                address = 0;
+            if (newAddress < 0) // Calculated address is before start of file (second)
+                newAddress = 0;
 
-            self.Move(address);
+            if(initialAddress != newAddress)
+                self.Move(newAddress);
 
-            return address;
+            return newAddress;
         }
 
         /// <summary>

@@ -139,7 +139,7 @@ namespace TileShop.WPF.ViewModels
                 _linearArrangerWidth = arranger.ArrangerPixelSize.Width;
             }
 
-            MoveHome();
+            Render();
         }
 
         public void MoveByteDown() => Move(ArrangerMoveType.ByteDown);
@@ -186,10 +186,11 @@ namespace TileShop.WPF.ViewModels
 
         private void Move(ArrangerMoveType moveType)
         {
+            var oldAddress = (_arranger as SequentialArranger).GetInitialSequentialFileAddress();
             var address = (_arranger as SequentialArranger).Move(moveType);
-            _arrangerImage.Invalidate();
-            _arrangerImage.Render(_arranger);
-            ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
+
+            if (oldAddress != address)
+                Render();
 
             string notifyMessage = $"File Offset: 0x{address.FileOffset:X}";
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
@@ -202,9 +203,7 @@ namespace TileShop.WPF.ViewModels
                 return;
 
             (_arranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
-            _arrangerImage.Invalidate();
-            _arrangerImage.Render(_arranger);
-            ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
+            Render();
         }
 
         private void ChangeCodec()
@@ -223,9 +222,7 @@ namespace TileShop.WPF.ViewModels
                 (_arranger as SequentialArranger).ChangeCodec(codec);
             }
 
-            _arrangerImage.Invalidate();
-            _arrangerImage.Render(_arranger);
-            ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
+            Render();
 
             NotifyOfPropertyChange(() => IsTiledLayout);
             NotifyOfPropertyChange(() => IsLinearLayout);
@@ -235,6 +232,11 @@ namespace TileShop.WPF.ViewModels
         {
             var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, width, height);
             (_arranger as SequentialArranger).ChangeCodec(codec);
+            Render();
+        }
+
+        private void Render()
+        {
             _arrangerImage.Invalidate();
             _arrangerImage.Render(_arranger);
             ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
