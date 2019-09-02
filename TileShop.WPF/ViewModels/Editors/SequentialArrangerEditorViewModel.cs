@@ -2,7 +2,9 @@
 using ImageMagitek;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Services;
@@ -200,6 +202,14 @@ namespace TileShop.WPF.ViewModels
         private void ResizeArranger(int arrangerWidth, int arrangerHeight)
         {
             if (arrangerWidth <= 0 || arrangerHeight <= 0)
+                return;
+
+            if (arrangerWidth == _arranger.ArrangerElementSize.Width && 
+                arrangerHeight == _arranger.ArrangerElementSize.Height && IsTiledLayout)
+                return;
+
+            if (arrangerWidth == _arranger.ArrangerPixelSize.Width &&
+                arrangerHeight == _arranger.ArrangerPixelSize.Height && IsLinearLayout)
                 return;
 
             (_arranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
