@@ -30,7 +30,7 @@ namespace ImageMagitek.Codec
             Height = height;
             DefaultPalette = defaultPalette;
 
-            _buffer = new byte[StorageSize];
+            _buffer = new byte[(StorageSize + 7) / 8];
             _memoryBuffer = new Memory<byte>(_buffer);
             _bitStream = BitStream.OpenRead(_buffer, StorageSize);
         }
@@ -45,6 +45,7 @@ namespace ImageMagitek.Codec
             var dest = image.GetPixelSpan();
             int destidx = image.Width * el.Y1 + el.X1;
 
+            _bitStream.SeekAbsolute(0);
             fs.ReadUnshifted(el.FileAddress, StorageSize, true, _memoryBuffer.Span);
 
             var pal = el.Palette ?? DefaultPalette;

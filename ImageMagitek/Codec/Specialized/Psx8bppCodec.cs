@@ -31,11 +31,19 @@ namespace ImageMagitek.Codec
         public int ElementStride { get; private set; } = 0;
         public Palette DefaultPalette { get; set; }
 
+        private byte[] _buffer;
+        private Memory<byte> _memoryBuffer;
+        private BitStream _bitStream;
+
         public Psx8bppCodec(int width, int height, Palette defaultPalette)
         {
             Width = width;
             Height = height;
             DefaultPalette = defaultPalette;
+
+            _buffer = new byte[(StorageSize + 7) / 8];
+            _memoryBuffer = new Memory<byte>(_buffer);
+            _bitStream = BitStream.OpenRead(_buffer, StorageSize);
         }
 
         public void Decode(Image<Rgba32> image, ArrangerElement el)
@@ -48,8 +56,8 @@ namespace ImageMagitek.Codec
             var dest = image.GetPixelSpan();
             int destidx = image.Width * el.Y1 + el.X1;
 
-            var data = fs.ReadUnshifted(el.FileAddress, StorageSize, true);
-            var bs = BitStream.OpenRead(data, StorageSize);
+            _bitStream.SeekAbsolute(0);
+            fs.ReadUnshifted(el.FileAddress, StorageSize, true, _memoryBuffer.Span);
 
             var pal = el.Palette ?? DefaultPalette;
 
@@ -57,7 +65,7 @@ namespace ImageMagitek.Codec
             {
                 for (int x = 0; x < el.Width; x++)
                 {
-                    var palIndex = bs.ReadByte();
+                    var palIndex = _bitStream.ReadByte();
                     dest[destidx] = pal[palIndex].ToRgba32();
                     destidx++;
                 }

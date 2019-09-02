@@ -46,6 +46,10 @@ namespace ImageMagitek.Codec
         /// </summary>
         private byte[] MergedData;
 
+        private byte[] _buffer;
+        private Memory<byte> _memoryBuffer;
+        private BitStream _bitStream;
+
         public GeneralGraphicsCodec(GraphicsFormat format, Palette defaultPalette)
         {
             Format = format;
@@ -64,6 +68,10 @@ namespace ImageMagitek.Codec
             }
 
             MergedData = new byte[Format.Width * Format.Height];
+
+            _buffer = new byte[(StorageSize + 7) / 8];
+            _memoryBuffer = new Memory<byte>(_buffer);
+            _bitStream = BitStream.OpenRead(_buffer, StorageSize);
         }
 
         #region Graphics Decoding Functions
@@ -94,9 +102,8 @@ namespace ImageMagitek.Codec
             if (el.FileAddress + Format.StorageSize > fs.Length * 8) // Element would contain data past the end of the file
                 return;
 
-            byte[] data = fs.ReadUnshifted(el.FileAddress, Format.StorageSize, true);
-
-            BitStream bs = BitStream.OpenRead(data, Format.StorageSize); // TODO: Change to account for first bit alignment
+            _bitStream.SeekAbsolute(0);
+            fs.ReadUnshifted(el.FileAddress, Format.StorageSize, true, _memoryBuffer.Span);
 
             int plane = 0;
             int pos = 0;
@@ -113,7 +120,7 @@ namespace ImageMagitek.Codec
                         {
                             pos = y * el.Height;
                             for (int x = 0; x < el.Width; x++)
-                                ElementData[Format.MergePriority[curPlane]][pos + ip.RowExtendedPixelPattern[x]] = (byte)bs.ReadBit();
+                                ElementData[Format.MergePriority[curPlane]][pos + ip.RowExtendedPixelPattern[x]] = (byte)_bitStream.ReadBit();
                         }
                     }
                 }
@@ -122,7 +129,7 @@ namespace ImageMagitek.Codec
                     for (int y = 0; y < el.Height; y++, pos += el.Width)
                         for (int x = 0; x < el.Width; x++)
                             for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
-                                ElementData[Format.MergePriority[curPlane]][pos + ip.RowExtendedPixelPattern[x]] = (byte)bs.ReadBit();
+                                ElementData[Format.MergePriority[curPlane]][pos + ip.RowExtendedPixelPattern[x]] = (byte)_bitStream.ReadBit();
                 }
 
                 plane += ip.ColorDepth;
