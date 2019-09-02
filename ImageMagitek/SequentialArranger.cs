@@ -28,7 +28,6 @@ namespace ImageMagitek
         public IGraphicsCodec ActiveCodec { get; private set; }
 
         private ICodecFactory _codecs;
-        private string _codecName;
         private DataFile _dataFile;
 
         public SequentialArranger()
@@ -43,9 +42,8 @@ namespace ImageMagitek
             Name = dataFile.Name;
             _dataFile = dataFile;
             _codecs = codecFactory;
-            _codecName = codecName;
 
-            ActiveCodec = _codecs.GetCodec(_codecName);
+            ActiveCodec = _codecs.GetCodec(codecName);
 
             Resize(arrangerWidth, arrangerHeight, dataFile);
         }
@@ -79,8 +77,7 @@ namespace ImageMagitek
 
             FileBitAddress address;
 
-            var codec = _codecs.GetCodec(_codecName);
-            ElementPixelSize = new Size(codec.Width, codec.Height);
+            ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);
 
             if (ElementGrid is null) // New Arranger being initially sized
             {
@@ -102,7 +99,7 @@ namespace ImageMagitek
             }
 
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
-            ArrangerBitSize = arrangerWidth * arrangerHeight * codec.StorageSize;
+            ArrangerBitSize = arrangerWidth * arrangerHeight * ActiveCodec.StorageSize;
 
             int y = 0;
 
@@ -112,7 +109,7 @@ namespace ImageMagitek
                 for (int j = 0; j < arrangerWidth; j++)
                 {
                     ArrangerElement el = ElementGrid[j, i] ??
-                        new ArrangerElement() { Codec = _codecs.GetCodec(_codecName, ElementPixelSize.Width, ElementPixelSize.Height) };
+                        new ArrangerElement() { Codec = _codecs.CloneCodec(ActiveCodec) };
 
                     el.Parent = this;
                     el.FileAddress = address;
@@ -125,9 +122,9 @@ namespace ImageMagitek
                     ElementGrid[j, i] = el;
 
                     if (el.Codec.Layout == ImageLayout.Tiled)
-                        address += el.Codec.StorageSize;
+                        address += ActiveCodec.StorageSize;
                     else // Linear
-                        address += (ElementPixelSize.Width + el.Codec.RowStride) * el.Codec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
+                        address += (ElementPixelSize.Width + ActiveCodec.RowStride) * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
 
                     x += ElementPixelSize.Width;
                 }
@@ -166,12 +163,12 @@ namespace ImageMagitek
                     ElementGrid[j, i].Y1 = y;
                     ElementGrid[j, i].Width = ElementPixelSize.Width;
                     ElementGrid[j, i].Height = ElementPixelSize.Height;
-                    ElementGrid[j, i].Codec = _codecs.CloneCodec(codec);
+                    ElementGrid[j, i].Codec = _codecs.CloneCodec(ActiveCodec);
 
-                    if (codec.Layout == ImageLayout.Tiled)
-                        address += codec.StorageSize;
+                    if (ActiveCodec.Layout == ImageLayout.Tiled)
+                        address += ActiveCodec.StorageSize;
                     else // Linear
-                        address += (ElementPixelSize.Width + codec.RowStride) * codec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
+                        address += (ElementPixelSize.Width + ActiveCodec.RowStride) * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
 
                     x += ElementPixelSize.Width;
                 }
@@ -202,7 +199,7 @@ namespace ImageMagitek
         /// Gets the GraphicsFormat name for a Sequential Arranger
         /// </summary>
         /// <returns></returns>
-        public string GetSequentialGraphicsFormat() => _codecName;
+        public string GetSequentialGraphicsFormat() => ActiveCodec.Name;
 
         public override IEnumerable<IProjectResource> LinkedResources()
         {
