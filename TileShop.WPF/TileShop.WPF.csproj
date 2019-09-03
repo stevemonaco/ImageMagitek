@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Caliburn.Micro" Version="4.0.89-alpha" />
+    <PackageReference Include="Dirkster.AvalonDock" Version="3.5.12" />
     <PackageReference Include="gong-wpf-dragdrop" Version="2.0.5" />
     <PackageReference Include="MahApps.Metro" Version="2.0.0-alpha0455" />
     <PackageReference Include="Monaco.PathTree" Version="0.1.4" />

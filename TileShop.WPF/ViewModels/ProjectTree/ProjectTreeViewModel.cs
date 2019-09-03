@@ -89,8 +89,6 @@ namespace TileShop.WPF.ViewModels
 
         public Task HandleAsync(OpenProjectEvent message, CancellationToken cancellationToken)
         {
-            //var projectFileName = await Dispatcher.CurrentDispatcher.InvokeAsync(() => _fileSelect.GetProjectByUser());
-
             var projectFileName = _fileSelect.GetProjectByUser();
 
             if (projectFileName is object)

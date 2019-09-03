@@ -40,37 +40,16 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Border
-            Margin="0,5,0,0"
-            BorderBrush="Black"
-            BorderThickness="0,0,0,1">
-            <TextBlock
-                Grid.Row="0"
-                Margin="5,0,0,3"
-                Text="Project Explorer" />
-        </Border>
-
         <TextBox
-            Grid.Row="1"
+            Grid.Row="0"
             mah:TextBoxHelper.Watermark="Search Project"
             Style="{DynamicResource MahApps.Styles.TextBox.Search}" />
 
-        <!--
-        <StackPanel
-            Grid.Row="1"
-            Margin="0,5,0,3"
-            Orientation="Horizontal">
-            <Label Margin="0,0,10,0" Content="Filter" />
-            <TextBox MinWidth="100" />
-        </StackPanel>
-        -->
-
         <TreeView
-            Grid.Row="2"
+            Grid.Row="1"
             cm:Message.Attach="[Event MouseDoubleClick] = [Action ActivateSelectedItem()]"
             ItemTemplateSelector="{StaticResource projectTreeTemplateSelector}"
             ItemsSource="{Binding RootItems}">

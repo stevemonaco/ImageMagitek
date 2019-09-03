@@ -10,9 +10,6 @@
     mc:Ignorable="d">
     <StatusBar>
         <StatusBarItem>
-            <TextBlock>Test</TextBlock>
-        </StatusBarItem>
-        <StatusBarItem>
             <TextBlock Text="{Binding ActivityMessage}" />
         </StatusBarItem>
     </StatusBar>

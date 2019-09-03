@@ -19,15 +19,13 @@ namespace TileShop.WPF.Selectors
             if (item == null || container is null)
                 return null;
 
-            var element = container as FrameworkElement;
-
             return item switch
             {
                 PaletteEditorViewModel _ => PaletteEditorTemplate,
                 ScatteredArrangerEditorViewModel _ => ScatteredArrangerEditorTemplate,
                 SequentialArrangerEditorViewModel _ => SequentialArrangerEditorTemplate,
                 DataFileEditorViewModel _ => DataFileEditorTemplate,
-                _ => throw new ArgumentException($"{nameof(SelectTemplate)} does not contain a template for type {item.GetType()}")
+                _ => base.SelectTemplate(item, container)
             };
         }
     }

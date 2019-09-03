@@ -2,11 +2,16 @@
     x:Class="TileShop.WPF.Views.ShellView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:cal="clr-namespace:Caliburn.Micro;assembly=Caliburn.Micro.Core"
+    xmlns:ad="http://schemas.xceed.com/wpf/xaml/avalondock"
+    xmlns:cm="clr-namespace:Caliburn.Micro;assembly=Caliburn.Micro.Core"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sel="clr-namespace:TileShop.WPF.Selectors"
+    xmlns:v="clr-namespace:TileShop.WPF.Views"
+    xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
+    xmlns:winformsIntegration="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
     Title="TileShop"
     Width="1000"
     Height="600"
@@ -14,31 +19,77 @@
     TitleCharacterCasing="Normal"
     mc:Ignorable="d">
 
-    <DockPanel>
-        <ContentControl x:Name="ActiveMenu" DockPanel.Dock="Top" />
+    <mah:MetroWindow.Resources>
+        <DataTemplate x:Key="paletteEditorSelector" DataType="{x:Type vm:PaletteEditorViewModel}">
+            <v:PaletteEditorView />
+        </DataTemplate>
+        <DataTemplate x:Key="scatteredArrangerEditorSelector" DataType="{x:Type vm:ScatteredArrangerEditorViewModel}">
+            <v:ScatteredArrangerEditorView />
+        </DataTemplate>
+        <DataTemplate x:Key="sequentialArrangerEditorSelector" DataType="{x:Type vm:SequentialArrangerEditorViewModel}">
+            <v:SequentialArrangerEditorView />
+        </DataTemplate>
+        <DataTemplate x:Key="dataFileEditorSelector" DataType="{x:Type vm:DataFileEditorViewModel}">
+            <v:DataFileEditorView />
+        </DataTemplate>
 
-        <ToolBarPanel DockPanel.Dock="Top">
+        <sel:EditorHostTemplateSelector
+            x:Key="editorTemplateSelector"
+            DataFileEditorTemplate="{StaticResource dataFileEditorSelector}"
+            PaletteEditorTemplate="{StaticResource paletteEditorSelector}"
+            ScatteredArrangerEditorTemplate="{StaticResource scatteredArrangerEditorSelector}"
+            SequentialArrangerEditorTemplate="{StaticResource sequentialArrangerEditorSelector}" />
+    </mah:MetroWindow.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <ContentControl x:Name="ActiveMenu" Grid.Row="0" />
+
+        <ToolBarPanel Grid.Row="1" Visibility="Collapsed">
             <Button>Test Button</Button>
         </ToolBarPanel>
 
-        <ContentControl x:Name="ActiveStatusBar" DockPanel.Dock="Bottom" />
+        <ContentControl x:Name="ActiveStatusBar" Grid.Row="3" />
 
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="30*" MinWidth="100" />
-                <ColumnDefinition Width="auto" />
-                <ColumnDefinition Width="70*" MinWidth="100" />
-            </Grid.ColumnDefinitions>
+        <ad:DockingManager
+            x:Name="dockManager"
+            Grid.Row="2"
+            ActiveContent="{Binding ActiveEditor, Mode=TwoWay}"
+            AllowMixedOrientation="True"
+            DocumentsSource="{Binding Editors}"
+            LayoutItemTemplateSelector="{StaticResource editorTemplateSelector}">
+            <ad:DockingManager.DocumentHeaderTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <!-- <Image Margin="0,0,4,0" Source="{Binding IconSource}" /> -->
+                        <TextBlock Text="{Binding Content.Name}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="*" Visibility="{Binding IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ad:DockingManager.DocumentHeaderTemplate>
 
-            <ContentControl x:Name="ActiveTree" Grid.Column="0" />
-            <GridSplitter
-                Grid.Column="1"
-                Width="5"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Stretch"
-                ShowsPreview="True" />
-            <ContentControl x:Name="ActiveEditorHost" Grid.Column="2" />
-        </Grid>
+            <ad:LayoutRoot>
+                <ad:LayoutPanel Orientation="Horizontal">
+                    <ad:LayoutAnchorablePane DockWidth="200">
+                        <ad:LayoutAnchorable
+                            Title="Project Explorer"
+                            AutoHideWidth="240"
+                            CanClose="False"
+                            CanHide="False"
+                            ContentId="projectExplorer">
+                            <v:ProjectTreeView DataContext="{Binding ActiveTree}" />
+                        </ad:LayoutAnchorable>
+                    </ad:LayoutAnchorablePane>
+                    <ad:LayoutDocumentPane />
+                </ad:LayoutPanel>
+            </ad:LayoutRoot>
+        </ad:DockingManager>
 
-    </DockPanel>
+    </Grid>
 </mah:MetroWindow>
