@@ -22,6 +22,7 @@
                     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
                     <converters:EditModeBooleanConverter x:Key="EditModeBooleanConverter" />
                     <converters:SnapModeBooleanConverter x:Key="SnapModeBooleanConverter" />
+                    <converters:ColorToSolidColorBrushConverter x:Key="ColorToSolidColorBrushConverter" />
                 </ResourceDictionary>
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
