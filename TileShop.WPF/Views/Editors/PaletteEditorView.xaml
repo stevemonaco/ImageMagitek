@@ -10,9 +10,14 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <StackPanel Orientation="Vertical">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
         <!--  Selected color display  -->
-        <Grid Margin="3">
+        <Grid Grid.Row="0" Margin="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition Width="auto" />
@@ -129,21 +134,23 @@
         </Grid>
 
         <!--  Palette Display  -->
-        <ListView
-            Margin="0"
-            Padding="0"
+        <ListBox
+            Grid.Row="1"
             ItemsSource="{Binding Colors}"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
             SelectedIndex="{Binding SelectedIndex}"
             SelectedItem="{Binding SelectedItem}">
-            <ListView.ItemsPanel>
+            <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <WrapPanel />
+                    <WrapPanel IsItemsHost="True" Orientation="Horizontal" />
                 </ItemsPanelTemplate>
-            </ListView.ItemsPanel>
-
-            <ListView.ItemTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Border BorderBrush="Black" BorderThickness="2">
+                    <Border
+                        Margin="0,2,0,2"
+                        BorderBrush="Black"
+                        BorderThickness="2">
                         <Rectangle Width="50" Height="50">
                             <Rectangle.Fill>
                                 <SolidColorBrush Color="{Binding Color}" />
@@ -151,7 +158,7 @@
                         </Rectangle>
                     </Border>
                 </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-    </StackPanel>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
 </UserControl>

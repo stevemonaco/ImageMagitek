@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using TileShop.Shared.EventModels;
 using TileShop.WPF.Models;
 
 namespace TileShop.WPF.ViewModels
@@ -13,6 +14,7 @@ namespace TileShop.WPF.ViewModels
     public class PaletteEditorViewModel : EditorBaseViewModel
     {
         private Palette _palette;
+        private IEventAggregator _events;
 
         private BindableCollection<PaletteItemModel> _colors = new BindableCollection<PaletteItemModel>();
         public BindableCollection<PaletteItemModel> Colors
@@ -34,7 +36,7 @@ namespace TileShop.WPF.ViewModels
                 _selectedIndex = value;
                 NotifyOfPropertyChange(() => SelectedIndex);
                 if(SelectedIndex >= 0)
-                    EditingItem = new PaletteItemModel(_palette.GetForeignColor(SelectedIndex));
+                    EditingItem = new PaletteItemModel(_palette.GetForeignColor(SelectedIndex), SelectedIndex);
             }
         }
 
@@ -62,13 +64,14 @@ namespace TileShop.WPF.ViewModels
 
         public override string DisplayName => Resource?.Name;
 
-        public PaletteEditorViewModel(Palette palette)
+        public PaletteEditorViewModel(Palette palette, IEventAggregator events)
         {
             Resource = palette;
             _palette = palette;
+            _events = events;
 
             for(int i = 0; i < _palette.Entries; i++)
-                Colors.Add(new PaletteItemModel(_palette.GetForeignColor(i)));
+                Colors.Add(new PaletteItemModel(_palette.GetForeignColor(i), i));
 
             SelectedIndex = 0;
         }
@@ -79,6 +82,13 @@ namespace TileShop.WPF.ViewModels
             IsModified = true;
 
             return Task.CompletedTask;
+        }
+
+        public void MouseOver(PaletteItemModel model)
+        {
+            string notifyMessage = $"Palette Index: {model.Index}";
+            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+            _events.PublishOnUIThreadAsync(notifyEvent);
         }
     }
 }

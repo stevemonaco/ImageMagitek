@@ -112,9 +112,12 @@ namespace TileShop.WPF.Models
             }
         }
 
-        public PaletteItemModel(IColor32 foreignColor)
+        public int Index { get; set; }
+
+        public PaletteItemModel(IColor32 foreignColor, int index)
         {
             _foreignColor = foreignColor;
+            Index = index;
             WorkingColor = ColorFactory.CloneColor(foreignColor);
             var nativeColor = ImageMagitek.Colors.ColorConverter.ToNative(foreignColor);
             Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
