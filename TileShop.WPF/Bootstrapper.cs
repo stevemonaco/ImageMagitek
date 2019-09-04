@@ -37,7 +37,8 @@ namespace TileShop.WPF
             var projectService = new ProjectTreeService(codecService);
             _container.Instance<IProjectTreeService>(projectService);
 
-            _container.PerRequest<IFileSelectService, FileSelectService>();
+            _container.PerRequest<IFileSelectService, FileSelectService>()
+                .PerRequest<IUserPromptService, UserPromptService>();
         }
 
         protected override void Configure()
