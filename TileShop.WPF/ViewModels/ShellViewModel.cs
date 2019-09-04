@@ -22,66 +22,42 @@ namespace TileShop.WPF.ViewModels
         public MenuViewModel ActiveMenu
         {
             get =>_activeMenu;
-            set
-            {
-                _activeMenu = value;
-                NotifyOfPropertyChange(() => ActiveMenu);
-            }
+            set => Set(ref _activeMenu, value);
         }
 
         private ProjectTreeViewModel _activeTree;
         public ProjectTreeViewModel ActiveTree
         {
             get => _activeTree;
-            set 
-            { 
-                _activeTree = value;
-                NotifyOfPropertyChange(() => ActiveTree);
-            }
+            set => Set(ref _activeTree, value);
         }
 
         private StatusBarViewModel _activeStatusBar;
         public StatusBarViewModel ActiveStatusBar
         {
             get => _activeStatusBar;
-            set
-            {
-                _activeStatusBar = value;
-                NotifyOfPropertyChange(() => ActiveStatusBar);
-            }
+            set => Set(ref _activeStatusBar, value);
         }
 
         private BindableCollection<ResourceEditorBaseViewModel> _editors = new BindableCollection<ResourceEditorBaseViewModel>();
         public BindableCollection<ResourceEditorBaseViewModel> Editors
         {
             get => _editors;
-            set
-            {
-                _editors = value;
-                NotifyOfPropertyChange(() => Editors);
-            }
+            set => Set(ref _editors, value);
         }
 
         private ResourceEditorBaseViewModel _activeEditor;
         public ResourceEditorBaseViewModel ActiveEditor
         {
             get { return _activeEditor; }
-            set
-            {
-                _activeEditor = value;
-                NotifyOfPropertyChange(() => ActiveEditor);
-            }
+            set => Set(ref _activeEditor, value);
         }
 
         private PixelEditorViewModel _activePixelEditor;
         public PixelEditorViewModel ActivePixelEditor
         {
             get => _activePixelEditor;
-            set
-            {
-                _activePixelEditor = value;
-                NotifyOfPropertyChange(() => ActivePixelEditor);
-            }
+            set => Set(ref _activePixelEditor, value);
         }
 
         public ShellViewModel(IEventAggregator events, ICodecService codecService,

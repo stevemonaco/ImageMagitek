@@ -56,11 +56,7 @@ namespace TileShop.WPF.ViewModels
         public object SelectedItem
         {
             get => _selectedItem;
-            set
-            {
-                _selectedItem = value;
-                NotifyOfPropertyChange(() => SelectedItem);
-            }
+            set => Set(ref _selectedItem, value);
         }
 
         public void ActivateSelectedItem()

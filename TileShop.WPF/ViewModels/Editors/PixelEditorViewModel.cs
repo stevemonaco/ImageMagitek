@@ -26,11 +26,7 @@ namespace TileShop.WPF.ViewModels
         public bool HasArranger
         {
             get => _hasArranger;
-            set
-            {
-                _hasArranger = value;
-                NotifyOfPropertyChange(() => HasArranger);
-            }
+            set => Set(ref _hasArranger, value);
         }
 
         public override bool CanShowGridlines => HasArranger;

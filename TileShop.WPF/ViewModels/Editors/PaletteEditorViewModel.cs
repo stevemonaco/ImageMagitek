@@ -20,11 +20,7 @@ namespace TileShop.WPF.ViewModels
         public BindableCollection<PaletteItemModel> Colors
         {
             get => _colors;
-            set
-            {
-                _colors = value;
-                NotifyOfPropertyChange(() => Colors);
-            }
+            set => Set(ref _colors, value);
         }
 
         private int _selectedIndex;
@@ -33,8 +29,7 @@ namespace TileShop.WPF.ViewModels
             get => _selectedIndex;
             set
             {
-                _selectedIndex = value;
-                NotifyOfPropertyChange(() => SelectedIndex);
+                Set(ref _selectedIndex, value);
                 if(SelectedIndex >= 0)
                     EditingItem = new PaletteItemModel(_palette.GetForeignColor(SelectedIndex), SelectedIndex);
             }
@@ -44,22 +39,14 @@ namespace TileShop.WPF.ViewModels
         public PaletteItemModel SelectedItem
         {
             get => _selectedItem;
-            set
-            {
-                _selectedItem = value;
-                NotifyOfPropertyChange(() => SelectedItem);
-            }
+            set => Set(ref _selectedItem, value);
         }
 
         private PaletteItemModel _editingItem;
         public PaletteItemModel EditingItem
         {
             get => _editingItem;
-            set
-            {
-                _editingItem = value;
-                NotifyOfPropertyChange(() => EditingItem);
-            }
+            set => Set(ref _editingItem, value);
         }
 
         public override string DisplayName => Resource?.Name;

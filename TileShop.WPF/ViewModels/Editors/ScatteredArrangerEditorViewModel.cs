@@ -21,25 +21,14 @@ namespace TileShop.WPF.ViewModels
         public EditMode EditMode
         {
             get => _editMode;
-            set
-            {
-                _editMode = value;
-                NotifyOfPropertyChange(() => EditMode);
-            }
+            set => Set(ref _editMode, value);
         }
-
-        //public override event EventHandler Capture;
-        //public override event EventHandler Release;
 
         private ArrangerSelector _selection;
         public ArrangerSelector Selection
         {
             get => _selection;
-            set
-            {
-                _selection = value;
-                NotifyOfPropertyChange(() => Selection);
-            }
+            set => Set(ref _selection, value);
         }
 
         public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events)

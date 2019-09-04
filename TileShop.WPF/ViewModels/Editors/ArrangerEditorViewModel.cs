@@ -37,26 +37,20 @@ namespace TileShop.WPF.ViewModels
         public bool ShowGridlines
         {
             get => _showGridlines;
-            set
-            {
-                _showGridlines = value;
-                NotifyOfPropertyChange(() => ShowGridlines);
-            }
+            set => Set(ref _showGridlines, value);
         }
 
         protected BindableCollection<Gridline> _gridlines;
         public BindableCollection<Gridline> Gridlines
         {
             get => _gridlines;
-            set
-            {
-                _gridlines = value;
-                NotifyOfPropertyChange(() => Gridlines);
-            }
+            set => Set(ref _gridlines, value);
         }
-
+#pragma warning disable CS0067
+        // Unused events that are required to be present by the proxy
         public virtual event EventHandler Capture;
         public virtual event EventHandler Release;
+#pragma warning restore CS0067
 
         private int _zoom = 1;
         public int Zoom
@@ -64,8 +58,7 @@ namespace TileShop.WPF.ViewModels
             get => _zoom;
             set
             {
-                _zoom = value;
-                NotifyOfPropertyChange(() => Zoom);
+                Set(ref _zoom, value);
                 CreateGridlines();
             }
         }

@@ -13,22 +13,14 @@ namespace TileShop.WPF.ViewModels
         public string ActivityMessage
         {
             get => _activityMessage;
-            set
-            {
-                _activityMessage = value;
-                NotifyOfPropertyChange(() => ActivityMessage);
-            }
+            set => Set(ref _activityMessage, value);
         }
 
         private BindableCollection<string> _timedMessages;
         public BindableCollection<string> TimedMessages
         {
             get => _timedMessages;
-            set
-            {
-                _timedMessages = value;
-                NotifyOfPropertyChange(() => TimedMessages);
-            }
+            set => Set(ref _timedMessages, value);
         } 
 
         public StatusBarViewModel(IEventAggregator events)

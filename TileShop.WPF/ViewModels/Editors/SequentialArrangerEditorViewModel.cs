@@ -15,19 +15,13 @@ namespace TileShop.WPF.ViewModels
 {
     public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouseCaptureProxy
     {
-        //public override event EventHandler Capture;
-        //public override event EventHandler Release;
         private ICodecService _codecService;
 
         private BindableCollection<string> _codecNames = new BindableCollection<string>();
         public BindableCollection<string> CodecNames
         {
             get => _codecNames;
-            set
-            {
-                _codecNames = value;
-                NotifyOfPropertyChange(() => CodecNames);
-            }
+            set => Set(ref _codecNames, value);
         }
 
         private string _selectedCodecName;
@@ -36,8 +30,7 @@ namespace TileShop.WPF.ViewModels
             get => _selectedCodecName;
             set
             {
-                _selectedCodecName = value;
-                NotifyOfPropertyChange(() => SelectedCodecName);
+                Set(ref _selectedCodecName, value);
                 ChangeCodec();
             }
         }
@@ -48,8 +41,7 @@ namespace TileShop.WPF.ViewModels
             get => _tiledElementWidth;
             set
             {
-                _tiledElementWidth = value;
-                NotifyOfPropertyChange(() => TiledElementWidth);
+                Set(ref _tiledElementWidth, value);
                 ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
             }
         }
@@ -60,8 +52,7 @@ namespace TileShop.WPF.ViewModels
             get => _tiledElementHeight;
             set
             {
-                _tiledElementHeight = value;
-                NotifyOfPropertyChange(() => TiledElementHeight);
+                Set(ref _tiledElementHeight, value);
                 ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
             }
         }
@@ -72,8 +63,7 @@ namespace TileShop.WPF.ViewModels
             get => _tiledArrangerWidth;
             set
             {
-                _tiledArrangerWidth = value;
-                NotifyOfPropertyChange(() => TiledArrangerWidth);
+                Set(ref _tiledArrangerWidth, value);
                 ResizeArranger(TiledArrangerWidth, TiledArrangerHeight);
             }
         }
@@ -84,8 +74,7 @@ namespace TileShop.WPF.ViewModels
             get => _tiledArrangerHeight;
             set
             {
-                _tiledArrangerHeight = value;
-                NotifyOfPropertyChange(() => TiledArrangerHeight);
+                Set(ref _tiledArrangerHeight, value);
                 ResizeArranger(TiledArrangerWidth, TiledArrangerHeight);
             }
         }
@@ -96,8 +85,7 @@ namespace TileShop.WPF.ViewModels
             get => _linearArrangerWidth;
             set
             {
-                _linearArrangerWidth = value;
-                NotifyOfPropertyChange(() => LinearArrangerWidth);
+                Set(ref _linearArrangerWidth, value);
                 ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
             }
         }
@@ -108,8 +96,7 @@ namespace TileShop.WPF.ViewModels
             get => _linearArrangerHeight;
             set
             {
-                _linearArrangerHeight = value;
-                NotifyOfPropertyChange(() => LinearArrangerHeight);
+                Set(ref _linearArrangerHeight, value);
                 ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
             }
         }
