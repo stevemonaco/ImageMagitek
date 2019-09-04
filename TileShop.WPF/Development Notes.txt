@@ -1,0 +1,1 @@
+﻿- Properly dispose of ArrangerImage instances in editors when closing

@@ -74,20 +74,41 @@
                 </DataTemplate>
             </ad:DockingManager.DocumentHeaderTemplate>
 
+
             <ad:LayoutRoot>
-                <ad:LayoutPanel Orientation="Horizontal">
-                    <ad:LayoutAnchorablePane DockWidth="200">
-                        <ad:LayoutAnchorable
-                            Title="Project Explorer"
-                            AutoHideWidth="240"
-                            CanClose="False"
-                            CanHide="False"
-                            ContentId="projectExplorer">
-                            <v:ProjectTreeView DataContext="{Binding ActiveTree}" />
-                        </ad:LayoutAnchorable>
-                    </ad:LayoutAnchorablePane>
-                    <ad:LayoutDocumentPane />
+                <ad:LayoutPanel x:Name="documentsPane" Orientation="Horizontal">
+                    <ad:LayoutPanel DockWidth="300">
+                        <ad:LayoutAnchorablePane>
+                            <ad:LayoutAnchorable
+                                Title="Project Explorer"
+                                AutoHideWidth="240"
+                                CanClose="False"
+                                CanHide="False"
+                                ContentId="projectExplorer">
+                                <v:ProjectTreeView DataContext="{Binding ActiveTree}" />
+                            </ad:LayoutAnchorable>
+                        </ad:LayoutAnchorablePane>
+                    </ad:LayoutPanel>
+
+                    <ad:LayoutDocumentPaneGroup>
+                        <ad:LayoutDocumentPane />
+                    </ad:LayoutDocumentPaneGroup>
+
+                    <ad:LayoutPanel DockWidth="400">
+                        <ad:LayoutAnchorablePane>
+                            <ad:LayoutAnchorable
+                                Title="Pixel Editor"
+                                AutoHideWidth="240"
+                                CanClose="False"
+                                CanHide="True"
+                                ContentId="pixelEditor">
+                                <v:PixelEditorView DataContext="{Binding ActivePixelEditor}" />
+                            </ad:LayoutAnchorable>
+                        </ad:LayoutAnchorablePane>
+                    </ad:LayoutPanel>
+
                 </ad:LayoutPanel>
+
             </ad:LayoutRoot>
         </ad:DockingManager>
 

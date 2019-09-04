@@ -35,7 +35,7 @@ namespace TileShop.WPF.ViewModels
         public bool IsLinearLayout => _arranger.Layout == ArrangerLayout.LinearArranger;
         public bool IsTiledLayout => _arranger.Layout == ArrangerLayout.TiledArranger;
 
-        public bool CanShowGridlines => _arranger.Layout == ArrangerLayout.TiledArranger;
+        public virtual bool CanShowGridlines => _arranger.Layout == ArrangerLayout.TiledArranger;
         protected bool _showGridlines = false;
         public bool ShowGridlines
         {
@@ -121,7 +121,7 @@ namespace TileShop.WPF.ViewModels
             _events.PublishOnUIThreadAsync(notifyEvent);
         }
 
-        public abstract void OnMouseUp(object sender, MouseCaptureArgs e);
-        public abstract void OnMouseDown(object sender, MouseCaptureArgs e);
+        public virtual void OnMouseUp(object sender, MouseCaptureArgs e) { }
+        public virtual void OnMouseDown(object sender, MouseCaptureArgs e) { }
     }
 }
