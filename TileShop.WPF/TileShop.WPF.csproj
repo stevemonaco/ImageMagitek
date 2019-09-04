@@ -21,7 +21,7 @@
     <PackageReference Include="gong-wpf-dragdrop" Version="2.0.5" />
     <PackageReference Include="MahApps.Metro" Version="2.0.0-alpha0455" />
     <PackageReference Include="Monaco.PathTree" Version="0.1.4" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
     <PackageReference Include="System.Windows.Interactivity.WPF" Version="2.0.20525" />
     <PackageReference Include="WpfAnalyzers" Version="2.4.0">
       <PrivateAssets>all</PrivateAssets>
