@@ -73,13 +73,13 @@ namespace ImageMagitek
         /// <returns></returns>
         public void RenderSubImage(Arranger arranger, int x, int y, int width, int height)
         {
-            if (x <= 0 || y <= 0 || x >= arranger.ArrangerPixelSize.Width || y >= arranger.ArrangerPixelSize.Height)
+            if (x < 0 || y < 0 || x >= arranger.ArrangerPixelSize.Width || y >= arranger.ArrangerPixelSize.Height)
                 throw new ArgumentOutOfRangeException($"{nameof(RenderSubImage)} parameters {nameof(x)} '{x}' and {nameof(y)} '{y}' are outside of the arranger bounds");
 
             if(width <= 0 || height <= 0)
                 throw new ArgumentOutOfRangeException($"{nameof(RenderSubImage)} parameters {nameof(width)} '{width}' and {nameof(height)} '{height}' must be greater than zero");
 
-            if(x+width >= arranger.ArrangerPixelSize.Width || y+height >= arranger.ArrangerPixelSize.Height)
+            if(x+width > arranger.ArrangerPixelSize.Width || y+height > arranger.ArrangerPixelSize.Height)
                 throw new ArgumentException($"{nameof(RenderSubImage)} parameters ({x+width}, {y+height}) are outside of the arranger bounds ({arranger.ArrangerPixelSize.Width}, {arranger.ArrangerPixelSize.Height})");
 
             Render(arranger);
