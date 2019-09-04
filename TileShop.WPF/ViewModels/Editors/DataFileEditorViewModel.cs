@@ -4,7 +4,7 @@ using System.Text;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class DataFileEditorViewModel : EditorBaseViewModel
+    public class DataFileEditorViewModel : ResourceEditorBaseViewModel
     {
     }
 }

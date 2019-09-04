@@ -42,9 +42,6 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public bool IsLinearLayout => _arranger.Layout == ArrangerLayout.LinearArranger;
-        public bool IsTiledLayout => _arranger.Layout == ArrangerLayout.TiledArranger;
-
         private int _tiledElementWidth = 8;
         public int TiledElementWidth
         {

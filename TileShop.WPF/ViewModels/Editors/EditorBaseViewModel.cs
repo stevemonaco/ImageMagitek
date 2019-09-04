@@ -1,5 +1,4 @@
 ﻿using Caliburn.Micro;
-using ImageMagitek.Project;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -8,11 +7,10 @@ namespace TileShop.WPF.ViewModels
 {
     public abstract class EditorBaseViewModel : Screen
     {
-        public string Name => Resource?.Name;
-        public IProjectResource Resource { get; protected set; }
+        public abstract string Name { get; }
 
         protected bool _isModified;
-        public bool IsModified
+        public virtual bool IsModified
         {
             get => _isModified;
             set

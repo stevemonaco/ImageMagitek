@@ -51,8 +51,8 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private BindableCollection<EditorBaseViewModel> _editors = new BindableCollection<EditorBaseViewModel>();
-        public BindableCollection<EditorBaseViewModel> Editors
+        private BindableCollection<ResourceEditorBaseViewModel> _editors = new BindableCollection<ResourceEditorBaseViewModel>();
+        public BindableCollection<ResourceEditorBaseViewModel> Editors
         {
             get => _editors;
             set
@@ -62,8 +62,8 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private EditorBaseViewModel _activeEditor;
-        public EditorBaseViewModel ActiveEditor
+        private ResourceEditorBaseViewModel _activeEditor;
+        public ResourceEditorBaseViewModel ActiveEditor
         {
             get { return _activeEditor; }
             set
@@ -92,7 +92,7 @@ namespace TileShop.WPF.ViewModels
 
             if (openDocument is null)
             {
-                EditorBaseViewModel newDocument;
+                ResourceEditorBaseViewModel newDocument;
 
                 switch (message.Resource)
                 {

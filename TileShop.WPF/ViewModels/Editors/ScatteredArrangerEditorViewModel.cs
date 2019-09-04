@@ -7,6 +7,7 @@ using TileShop.WPF.Helpers;
 using TileShop.WPF.Models;
 using System.Drawing;
 using GongSolutions.Wpf.DragDrop;
+using TileShop.Shared.Models;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -55,6 +56,19 @@ namespace TileShop.WPF.ViewModels
                 Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Element);
             else
                 Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
+        }
+
+        public void RaiseEditSelection()
+        {
+            ArrangerTransferModel transferModel;
+
+            if (Selection.SnapMode == SnapMode.Element)
+                transferModel = new ArrangerTransferModel(_arranger, Selection.SnappedX1, Selection.SnappedY1, Selection.SnappedWidth, Selection.SnappedHeight);
+            else
+                transferModel = new ArrangerTransferModel(_arranger, Selection.SnappedX1, Selection.SnappedY1, Selection.SnappedWidth, Selection.SnappedHeight);
+
+            var editEvent = new EditArrangerPixelsEvent(transferModel);
+            _events.PublishOnUIThreadAsync(transferModel);
         }
 
         public void CancelSelection() => Selection.CancelSelection();

@@ -11,7 +11,7 @@ using TileShop.WPF.Models;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class PaletteEditorViewModel : EditorBaseViewModel
+    public class PaletteEditorViewModel : ResourceEditorBaseViewModel
     {
         private Palette _palette;
         private IEventAggregator _events;

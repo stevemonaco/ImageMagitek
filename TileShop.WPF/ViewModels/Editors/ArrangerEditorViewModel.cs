@@ -12,7 +12,7 @@ using TileShop.WPF.Models;
 
 namespace TileShop.WPF.ViewModels
 {
-    public abstract class ArrangerEditorViewModel : EditorBaseViewModel, IMouseCaptureProxy
+    public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMouseCaptureProxy
     {
         protected Arranger _arranger;
         protected ArrangerImage _arrangerImage = new ArrangerImage();
@@ -31,6 +31,9 @@ namespace TileShop.WPF.ViewModels
 
         public int DisplayHeight => _arranger.ArrangerPixelSize.Height * Zoom + 2;
         public int DisplayWidth => _arranger.ArrangerPixelSize.Width * Zoom + 2;
+
+        public bool IsLinearLayout => _arranger.Layout == ArrangerLayout.LinearArranger;
+        public bool IsTiledLayout => _arranger.Layout == ArrangerLayout.TiledArranger;
 
         public bool CanShowGridlines => _arranger.Layout == ArrangerLayout.TiledArranger;
         protected bool _showGridlines = false;
