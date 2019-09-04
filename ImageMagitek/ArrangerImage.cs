@@ -3,6 +3,8 @@ using System.Linq;
 using ImageMagitek.Codec;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.Primitives;
 
 namespace ImageMagitek
 {
@@ -31,8 +33,7 @@ namespace ImageMagitek
         /// Invalidate must be called to force a new render
         /// </summary>
         /// <param name="arranger"></param>
-        /// <returns></returns>
-        public bool Render(Arranger arranger)
+        public void Render(Arranger arranger)
         {
             if (arranger is null)
                 throw new ArgumentNullException($"{nameof(Render)} parameter '{nameof(arranger)}' was null");
@@ -44,7 +45,7 @@ namespace ImageMagitek
                 Image = new Image<Rgba32>(arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
 
             if (!_needsRedraw)
-                return true;
+                return;
 
             // TODO: Consider using Tile Cache
 
@@ -57,8 +58,32 @@ namespace ImageMagitek
             }
 
             _needsRedraw = false;
+        }
 
-            return true;
+        /// <summary>
+        /// Renders a rectangular section using the specified arranger
+        /// Invalidate must be called to force a new render
+        /// </summary>
+        /// <param name="arranger"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        /// <returns></returns>
+        public void RenderSubImage(Arranger arranger, int x, int y, int width, int height)
+        {
+            if (x <= 0 || y <= 0 || x >= arranger.ArrangerPixelSize.Width || y >= arranger.ArrangerPixelSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(RenderSubImage)} parameters {nameof(x)} '{x}' and {nameof(y)} '{y}' are outside of the arranger bounds");
+
+            if(width <= 0 || height <= 0)
+                throw new ArgumentOutOfRangeException($"{nameof(RenderSubImage)} parameters {nameof(width)} '{width}' and {nameof(height)} '{height}' must be greater than zero");
+
+            if(x+width >= arranger.ArrangerPixelSize.Width || y+height >= arranger.ArrangerPixelSize.Height)
+                throw new ArgumentException($"{nameof(RenderSubImage)} parameters ({x+width}, {y+height}) are outside of the arranger bounds ({arranger.ArrangerPixelSize.Width}, {arranger.ArrangerPixelSize.Height})");
+
+            Render(arranger);
+            var cropRectangle = new Rectangle(x, y, width, height);
+            Image.Mutate(x => x.Crop(cropRectangle));
         }
 
         public bool LoadImage(string imageFileName)
