@@ -10,7 +10,8 @@ namespace ImageMagitek
 {
     public interface IArrangerImage<TPixel>
     {
-        bool Render(Arranger arranger);
+        void Render(Arranger arranger);
+        void RenderSubImage(Arranger arranger, int x, int y, int width, int height);
         bool LoadImage(string imageFileName);
         bool SaveImage(Arranger arranger);
         TPixel GetPixel(int x, int y);
