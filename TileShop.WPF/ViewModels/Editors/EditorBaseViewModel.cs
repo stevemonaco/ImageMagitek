@@ -1,7 +1,4 @@
 ﻿using Caliburn.Micro;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -13,11 +10,7 @@ namespace TileShop.WPF.ViewModels
         public virtual bool IsModified
         {
             get => _isModified;
-            set
-            {
-                _isModified = value;
-                NotifyOfPropertyChange(() => IsModified);
-            }
+            set => Set(ref _isModified, value);
         }
     }
 }

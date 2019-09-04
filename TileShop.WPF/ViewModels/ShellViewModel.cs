@@ -73,9 +73,20 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        private PixelEditorViewModel _activePixelEditor;
+        public PixelEditorViewModel ActivePixelEditor
+        {
+            get => _activePixelEditor;
+            set
+            {
+                _activePixelEditor = value;
+                NotifyOfPropertyChange(() => ActivePixelEditor);
+            }
+        }
+
         public ShellViewModel(IEventAggregator events, ICodecService codecService,
             MenuViewModel activeMenu, ProjectTreeViewModel activeTree, 
-            StatusBarViewModel activeStatusBar)
+            StatusBarViewModel activeStatusBar, PixelEditorViewModel activePixelEditor)
         {
             _events = events;
             _events.SubscribeOnUIThread(this);
@@ -84,6 +95,7 @@ namespace TileShop.WPF.ViewModels
             ActiveMenu = activeMenu;
             ActiveTree = activeTree;
             ActiveStatusBar = activeStatusBar;
+            ActivePixelEditor = activePixelEditor;
         }
 
         public Task HandleAsync(ActivateEditorEvent message, CancellationToken cancellationToken)

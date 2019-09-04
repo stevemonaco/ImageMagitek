@@ -58,7 +58,9 @@ namespace TileShop.WPF.ViewModels
                 Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
         }
 
-        public void RaiseEditSelection()
+        public bool CanEditSelection => true;
+
+        public void EditSelection()
         {
             ArrangerTransferModel transferModel;
 
@@ -68,7 +70,7 @@ namespace TileShop.WPF.ViewModels
                 transferModel = new ArrangerTransferModel(_arranger, Selection.SnappedX1, Selection.SnappedY1, Selection.SnappedWidth, Selection.SnappedHeight);
 
             var editEvent = new EditArrangerPixelsEvent(transferModel);
-            _events.PublishOnUIThreadAsync(transferModel);
+            _events.PublishOnUIThreadAsync(editEvent);
         }
 
         public void CancelSelection() => Selection.CancelSelection();

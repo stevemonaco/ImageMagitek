@@ -10,7 +10,7 @@ using TileShop.WPF.Behaviors;
 using TileShop.WPF.Helpers;
 using TileShop.WPF.Services;
 
-namespace TileShop.WPF.ViewModels.Editors
+namespace TileShop.WPF.ViewModels
 {
     public class PixelEditorViewModel : ArrangerEditorViewModel, IMouseCaptureProxy, IHandle<EditArrangerPixelsEvent>
     {
@@ -21,8 +21,6 @@ namespace TileShop.WPF.ViewModels.Editors
         private int _cropHeight;
 
         public override string Name => "Pixel Editor";
-        public event EventHandler Capture;
-        public event EventHandler Release;
 
         private bool _hasArranger;
         public bool HasArranger
@@ -41,13 +39,16 @@ namespace TileShop.WPF.ViewModels.Editors
         {
             _events = events;
             _promptService = promptService;
+
+            _events.SubscribeOnUIThread(this);
         }
 
         public void CreateImage()
         {
-            using var arrangerImage = new ArrangerImage();
-            arrangerImage.RenderSubImage(_arranger, _cropX, _cropY, _cropWidth, _cropHeight);
-            ArrangerSource = new ImageRgba32Source(arrangerImage.Image);
+            _arrangerImage = new ArrangerImage();
+            _arrangerImage.RenderSubImage(_arranger, _cropX, _cropY, _cropWidth, _cropHeight);
+            ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
+            HasArranger = true;
         }
 
         public override void OnMouseDown(object sender, MouseCaptureArgs e)

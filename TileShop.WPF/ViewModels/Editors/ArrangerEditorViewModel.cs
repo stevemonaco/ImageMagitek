@@ -29,13 +29,10 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public int DisplayHeight => _arranger.ArrangerPixelSize.Height * Zoom + 2;
-        public int DisplayWidth => _arranger.ArrangerPixelSize.Width * Zoom + 2;
+        public bool IsLinearLayout => _arranger?.Layout == ArrangerLayout.LinearArranger;
+        public bool IsTiledLayout => _arranger?.Layout == ArrangerLayout.TiledArranger;
 
-        public bool IsLinearLayout => _arranger.Layout == ArrangerLayout.LinearArranger;
-        public bool IsTiledLayout => _arranger.Layout == ArrangerLayout.TiledArranger;
-
-        public virtual bool CanShowGridlines => _arranger.Layout == ArrangerLayout.TiledArranger;
+        public virtual bool CanShowGridlines => _arranger?.Layout == ArrangerLayout.TiledArranger;
         protected bool _showGridlines = false;
         public bool ShowGridlines
         {
@@ -69,8 +66,6 @@ namespace TileShop.WPF.ViewModels
             {
                 _zoom = value;
                 NotifyOfPropertyChange(() => Zoom);
-                NotifyOfPropertyChange(() => DisplayWidth);
-                NotifyOfPropertyChange(() => DisplayHeight);
                 CreateGridlines();
             }
         }

@@ -60,7 +60,7 @@
         <ad:DockingManager
             x:Name="dockManager"
             Grid.Row="2"
-            ActiveContent="{Binding ActiveEditor, Mode=TwoWay}"
+            ActiveContent="{Binding ActiveEditor}"
             AllowMixedOrientation="True"
             DocumentsSource="{Binding Editors}"
             LayoutItemTemplateSelector="{StaticResource editorTemplateSelector}">
@@ -69,11 +69,10 @@
                     <StackPanel Orientation="Horizontal">
                         <!-- <Image Margin="0,0,4,0" Source="{Binding IconSource}" /> -->
                         <TextBlock Text="{Binding Content.Name}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="*" Visibility="{Binding IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                        <TextBlock Text="*" Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
                     </StackPanel>
                 </DataTemplate>
             </ad:DockingManager.DocumentHeaderTemplate>
-
 
             <ad:LayoutRoot>
                 <ad:LayoutPanel x:Name="documentsPane" Orientation="Horizontal">

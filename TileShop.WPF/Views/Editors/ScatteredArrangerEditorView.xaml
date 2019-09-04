@@ -39,6 +39,10 @@
                 Maximum="{Binding MaxZoom}"
                 Minimum="{Binding MinZoom}"
                 Value="{Binding Zoom}" />
+            <Button
+                cm:Message.Attach="EditSelection"
+                Content="Edit"
+                Visibility="{Binding Selection.HasSelection, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
 
         </StackPanel>
 
