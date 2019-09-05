@@ -107,6 +107,7 @@ namespace TileShop.WPF.ViewModels
             _arranger = arranger;
             _events = events;
             _codecService = codecService;
+            _arrangerImage = new ArrangerImage(arranger);
 
             foreach (var name in codecService.GetSupportedCodecNames().OrderBy(x => x))
                 CodecNames.Add(name);
@@ -232,7 +233,7 @@ namespace TileShop.WPF.ViewModels
         private void Render()
         {
             _arrangerImage.Invalidate();
-            _arrangerImage.Render(_arranger);
+            _arrangerImage.Render();
             ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
         }
 

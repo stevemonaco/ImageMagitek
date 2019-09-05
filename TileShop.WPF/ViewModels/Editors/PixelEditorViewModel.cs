@@ -1,13 +1,16 @@
 ﻿using Caliburn.Micro;
 using ImageMagitek;
+using ImageMagitek.Colors;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using TileShop.Shared.EventModels;
+using TileShop.Shared.Services;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Helpers;
 using TileShop.WPF.Models;
@@ -21,6 +24,7 @@ namespace TileShop.WPF.ViewModels
     public class PixelEditorViewModel : ArrangerEditorViewModel, IMouseCaptureProxy, IHandle<EditArrangerPixelsEvent>
     {
         private IUserPromptService _promptService;
+        private IPaletteService _paletteService;
         private int _cropX;
         private int _cropY;
         private int _cropWidth;
@@ -34,6 +38,20 @@ namespace TileShop.WPF.ViewModels
         {
             get => _history;
             set => Set(ref _history, value);
+        }
+
+        private BindableCollection<PaletteModel> _palettes = new BindableCollection<PaletteModel>();
+        public BindableCollection<PaletteModel> Palettes
+        {
+            get => _palettes;
+            set => Set(ref _palettes, value);
+        }
+
+        private PaletteModel _activePalette;
+        public PaletteModel ActivePalette
+        {
+            get => _activePalette;
+            set => Set(ref _activePalette, value);
         }
 
         private bool _hasArranger;
@@ -57,21 +75,21 @@ namespace TileShop.WPF.ViewModels
             set => Set(ref _activeTool, value);
         }
 
-        private Color _activeColor = Color.FromRgb(0, 255, 0);
+        private Color _activeColor;
         public Color ActiveColor
         {
             get => _activeColor;
             set => Set(ref _activeColor, value);
         }
 
-        private Color _primaryColor = Color.FromRgb(0, 255, 0);
+        private Color _primaryColor;
         public Color PrimaryColor
         {
             get => _primaryColor;
             set => Set(ref _primaryColor, value);
         }
 
-        private Color _secondaryColor = Color.FromRgb(0, 0, 255);
+        private Color _secondaryColor;
         public Color SecondaryColor
         {
             get => _secondaryColor;
@@ -80,18 +98,19 @@ namespace TileShop.WPF.ViewModels
 
         public override bool CanShowGridlines => HasArranger;
 
-        public PixelEditorViewModel(IEventAggregator events, IUserPromptService promptService)
+        public PixelEditorViewModel(IEventAggregator events, IUserPromptService promptService, IPaletteService paletteService)
         {
             _events = events;
             _promptService = promptService;
+            _paletteService = paletteService;
 
             _events.SubscribeOnUIThread(this);
         }
 
         public void CreateImage()
         {
-            _arrangerImage = new ArrangerImage();
-            _arrangerImage.RenderSubImage(_arranger, _cropX, _cropY, _cropWidth, _cropHeight);
+            _arrangerImage = new ArrangerImage(_arranger);
+            _arrangerImage.RenderSubImage(_cropX, _cropY, _cropWidth, _cropHeight);
             ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
             HasArranger = true;
         }
@@ -102,11 +121,16 @@ namespace TileShop.WPF.ViewModels
                 ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
         }
 
-        public void SetPixel(int x, int y, Color color)
+        public bool SetPixel(int x, int y, Color color)
         {
             var arrangerColor = new Rgba32(color.R, color.G, color.B, color.A);
-            _arrangerImage.SetPixel(x, y, arrangerColor);
-            Render();
+            if(_arrangerImage.TrySetPixel(x, y, arrangerColor))
+            {
+                Render();
+                return true;
+            }
+
+            return false;
         }
 
         public Color GetPixel(int x, int y)
@@ -153,7 +177,12 @@ namespace TileShop.WPF.ViewModels
 
         public override void OnMouseLeave(object sender, MouseCaptureArgs e)
         {
-
+            if (ActiveTool == PixelTool.Pencil && IsDrawing && _activePencilHistory?.ModifiedPoints.Count > 0)
+            {
+                IsDrawing = false;
+                History.Add(_activePencilHistory);
+                _activePencilHistory = null;
+            }
         }
 
         public override void OnMouseMove(object sender, MouseCaptureArgs e)
@@ -209,6 +238,17 @@ namespace TileShop.WPF.ViewModels
             _cropHeight = message.ArrangerTransferModel.Height;
 
             CreateImage();
+            Palettes.Clear();
+
+            var arrangerPalettes = _arranger.GetElementPalettes().OrderBy(x => x.Name).ToList();
+            foreach (var pal in arrangerPalettes)
+                Palettes.Add(PaletteModel.FromArrangerPalette(pal));
+
+            Palettes.Add(PaletteModel.FromArrangerPalette(_paletteService.DefaultPalette));
+
+            ActivePalette = Palettes.First();
+            PrimaryColor = ActivePalette.Colors[0];
+            SecondaryColor = ActivePalette.Colors[1];
 
             return Task.CompletedTask;
         }

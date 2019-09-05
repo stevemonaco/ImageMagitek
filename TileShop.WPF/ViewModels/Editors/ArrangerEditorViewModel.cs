@@ -15,7 +15,7 @@ namespace TileShop.WPF.ViewModels
     public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMouseCaptureProxy
     {
         protected Arranger _arranger;
-        protected ArrangerImage _arrangerImage = new ArrangerImage();
+        protected ArrangerImage _arrangerImage;
         protected IEventAggregator _events;
 
         protected ImageRgba32Source _arrangerSource;

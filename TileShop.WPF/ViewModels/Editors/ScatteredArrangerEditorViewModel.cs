@@ -37,7 +37,8 @@ namespace TileShop.WPF.ViewModels
             _arranger = arranger;
             _events = events;
 
-            _arrangerImage.Render(_arranger);
+            _arrangerImage = new ArrangerImage(_arranger);
+            _arrangerImage.Render();
             ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
             CreateGridlines();
 

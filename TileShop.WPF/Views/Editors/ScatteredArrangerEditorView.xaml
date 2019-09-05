@@ -33,6 +33,7 @@
             Grid.ColumnSpan="2"
             Margin="0,10,0,20"
             Orientation="Horizontal">
+            <ComboBox />
             <Slider
                 MinWidth="100"
                 Margin="10,0,10,0"
