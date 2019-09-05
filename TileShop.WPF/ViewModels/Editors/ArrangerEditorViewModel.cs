@@ -66,7 +66,7 @@ namespace TileShop.WPF.ViewModels
         public int MinZoom => 1;
         public int MaxZoom => 16;
 
-        protected void CreateGridlines()
+        protected virtual void CreateGridlines()
         {
             _gridlines = new BindableCollection<Gridline>();
             for (int x = 0; x < _arranger.ArrangerElementSize.Width; x++) // Vertical gridlines

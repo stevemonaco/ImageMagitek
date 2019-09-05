@@ -38,7 +38,18 @@
                 Margin="0,0,10,0"
                 Content="#"
                 IsChecked="{Binding ShowGridlines}" />
-            <Button x:Name="EditSelection" Visibility="{Binding Selection.CanShowGridlines}" />
+            <RadioButton
+                GroupName="Tools"
+                IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Pencil}"
+                Style="{StaticResource {x:Type ToggleButton}}">
+                <TextBlock>Pencil</TextBlock>
+            </RadioButton>
+            <RadioButton
+                GroupName="Tools"
+                IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ColorPicker}"
+                Style="{StaticResource {x:Type ToggleButton}}">
+                <TextBlock>Picker</TextBlock>
+            </RadioButton>
         </StackPanel>
 
         <!--  Image Display  -->
