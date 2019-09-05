@@ -16,11 +16,7 @@
         public $Type$ $Property$
         {
             get => $Field$;
-            set
-            {
-                $Field$ = value;
-                NotifyOfPropertyChange(() => $Property$);
-            }
+            set => Set(ref $Field$, value);
         }
 		$end$]]>
       </Code>
