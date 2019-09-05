@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -10,8 +11,8 @@ namespace ImageMagitek
 {
     public interface IArrangerImage<TPixel>
     {
-        void Render(Arranger arranger);
-        void RenderSubImage(Arranger arranger, int x, int y, int width, int height);
+        void Render();
+        void RenderSubImage(int x, int y, int width, int height);
         bool LoadImage(string imageFileName);
         bool SaveImage(Arranger arranger);
         TPixel GetPixel(int x, int y);
@@ -24,33 +25,40 @@ namespace ImageMagitek
     public class ArrangerImage : IArrangerImage<Rgba32>, IDisposable
     {
         public Image<Rgba32> Image { get; set; }
-        
+
+        private Arranger _arranger;
         private bool _needsRedraw = true;
         private bool _disposed = false;
         private BlankCodec _blankCodec = new BlankCodec();
+        private Rectangle _renderRect = new Rectangle(0, 0, 0, 0);
+
+        public ArrangerImage(Arranger arranger)
+        {
+            _arranger = arranger;
+        }
 
         /// <summary>
-        /// Renders an image using the specified arranger
+        /// Renders an image using the arranger
         /// Invalidate must be called to force a new render
         /// </summary>
-        /// <param name="arranger"></param>
-        public void Render(Arranger arranger)
+        public void Render()
         {
-            if (arranger is null)
-                throw new ArgumentNullException($"{nameof(Render)} parameter '{nameof(arranger)}' was null");
-            if (arranger.ArrangerPixelSize.Width <= 0 || arranger.ArrangerPixelSize.Height <= 0)
+            if (_arranger is null)
+                throw new ArgumentNullException($"{nameof(Render)} parameter '{nameof(_arranger)}' was null");
+            if (_arranger.ArrangerPixelSize.Width <= 0 || _arranger.ArrangerPixelSize.Height <= 0)
                 throw new InvalidOperationException($"{nameof(Render)}: arranger dimensions too small to render " + 
-                    $"({arranger.ArrangerPixelSize.Width}, {arranger.ArrangerPixelSize.Height})");
+                    $"({_arranger.ArrangerPixelSize.Width}, {_arranger.ArrangerPixelSize.Height})");
 
-            if (Image is null || arranger.ArrangerPixelSize.Height != Image.Height || arranger.ArrangerPixelSize.Width != Image.Width)
-                Image = new Image<Rgba32>(arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
+            if (Image is null || _arranger.ArrangerPixelSize.Height != Image.Height || _arranger.ArrangerPixelSize.Width != Image.Width)
+                Image = new Image<Rgba32>(_arranger.ArrangerPixelSize.Width, _arranger.ArrangerPixelSize.Height);
 
             if (!_needsRedraw)
                 return;
 
             // TODO: Consider using Tile Cache
+            _renderRect = new Rectangle(0, 0, _arranger.ArrangerPixelSize.Width, _arranger.ArrangerPixelSize.Height);
 
-            foreach (var el in arranger.EnumerateElements())
+            foreach (var el in _arranger.EnumerateElements())
             {
                 if (el.Codec is null)
                     _blankCodec.Decode(Image, el);
@@ -71,20 +79,21 @@ namespace ImageMagitek
         /// <param name="width"></param>
         /// <param name="height"></param>
         /// <returns></returns>
-        public void RenderSubImage(Arranger arranger, int x, int y, int width, int height)
+        public void RenderSubImage(int x, int y, int width, int height)
         {
-            if (x < 0 || y < 0 || x >= arranger.ArrangerPixelSize.Width || y >= arranger.ArrangerPixelSize.Height)
+            if (x < 0 || y < 0 || x >= _arranger.ArrangerPixelSize.Width || y >= _arranger.ArrangerPixelSize.Height)
                 throw new ArgumentOutOfRangeException($"{nameof(RenderSubImage)} parameters {nameof(x)} '{x}' and {nameof(y)} '{y}' are outside of the arranger bounds");
 
             if(width <= 0 || height <= 0)
                 throw new ArgumentOutOfRangeException($"{nameof(RenderSubImage)} parameters {nameof(width)} '{width}' and {nameof(height)} '{height}' must be greater than zero");
 
-            if(x+width > arranger.ArrangerPixelSize.Width || y+height > arranger.ArrangerPixelSize.Height)
-                throw new ArgumentException($"{nameof(RenderSubImage)} parameters ({x+width}, {y+height}) are outside of the arranger bounds ({arranger.ArrangerPixelSize.Width}, {arranger.ArrangerPixelSize.Height})");
+            if(x+width > _arranger.ArrangerPixelSize.Width || y+height > _arranger.ArrangerPixelSize.Height)
+                throw new ArgumentException($"{nameof(RenderSubImage)} parameters ({x+width}, {y+height}) are outside of the arranger bounds ({_arranger.ArrangerPixelSize.Width}, {_arranger.ArrangerPixelSize.Height})");
 
-            Render(arranger);
-            var cropRectangle = new Rectangle(x, y, width, height);
-            Image.Mutate(x => x.Crop(cropRectangle));
+            // Full render and crop required for linear layout selections
+            Render();
+            _renderRect = new Rectangle(x, y, width, height);
+            Image.Mutate(x => x.Crop(_renderRect));
         }
 
         public bool LoadImage(string imageFileName)
@@ -157,6 +166,28 @@ namespace ImageMagitek
                 throw new NullReferenceException($"{nameof(SetPixel)} property '{nameof(Image)}' was null");
 
             Image[x, y] = color;
+        }
+
+        public bool TrySetPixel(int x, int y, Rgba32 color)
+        {
+            if (Image is null)
+                throw new NullReferenceException($"{nameof(TrySetPixel)} property '{nameof(Image)}' was null");
+
+            var elem = GetElement(x, y);
+            var nc = new ColorRgba32(color.R, color.G, color.B, color.A);
+
+            if (!elem.Palette.ContainsNativeColor(nc))
+                return false;
+
+            SetPixel(x, y, color);
+            return true;
+        }
+
+        private ArrangerElement GetElement(int x, int y)
+        {
+            var elemX = (_renderRect.X + x) / _arranger.ElementPixelSize.Width;
+            var elemY = (_renderRect.Y + y) / _arranger.ElementPixelSize.Height;
+            return _arranger.GetElement(elemX, elemY);
         }
 
         public void Dispose()

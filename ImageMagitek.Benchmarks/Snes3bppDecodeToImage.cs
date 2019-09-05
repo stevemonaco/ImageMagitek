@@ -104,10 +104,10 @@ namespace ImageMagitek.Benchmarks
             for (int i = 0; i < 100; i++)
             {
                 var outputFileName = Path.Combine(outputDirectory, $"Native.{i}.bmp");
-                using var image = new ArrangerImage();
+                using var image = new ArrangerImage(arranger);
                 using var fs = File.Create(outputFileName, 32 * 1024, FileOptions.SequentialScan);
 
-                image.Render(arranger);
+                image.Render();
                 image.Image.SaveAsBmp(fs);
             }
         }
@@ -118,10 +118,10 @@ namespace ImageMagitek.Benchmarks
             for (int i = 0; i < 100; i++)
             {
                 var outputFileName = Path.Combine(outputDirectory, $"Generic.{i}.bmp");
-                using var image = new ArrangerImage();
+                using var image = new ArrangerImage(arranger);
                 using var fs = File.Create(outputFileName, 32 * 1024, FileOptions.SequentialScan);
 
-                image.Render(arranger);
+                image.Render();
                 image.Image.SaveAsBmp(fs);
             }
         }

@@ -42,10 +42,10 @@ namespace ImageMagitekConsole
             Console.WriteLine($"Exporting {arranger.Name} to {exportFileName}...");
             Directory.CreateDirectory(Path.GetDirectoryName(exportFileName));
 
-            using var image = new ArrangerImage();
+            using var image = new ArrangerImage(arranger);
             using var fs = File.Create(exportFileName, 32 * 1024, FileOptions.SequentialScan);
 
-            image.Render(arranger);
+            image.Render();
             image.Image.SaveAsBmp(fs);
 
             return true;
@@ -68,7 +68,7 @@ namespace ImageMagitekConsole
 
             ResourceTree.TryGetValue(arrangerKey, out ScatteredArranger arranger);
 
-            using var image = new ArrangerImage();
+            using var image = new ArrangerImage(arranger);
 
             image.LoadImage(imageFileName);
             image.SaveImage(arranger);
