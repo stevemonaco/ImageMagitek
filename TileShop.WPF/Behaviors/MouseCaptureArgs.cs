@@ -4,7 +4,7 @@ using System.Text;
 
 namespace TileShop.WPF.Behaviors
 {
-    public class MouseCaptureArgs
+    public struct MouseCaptureArgs
     {
         public double X { get; set; }
         public double Y { get; set; }
