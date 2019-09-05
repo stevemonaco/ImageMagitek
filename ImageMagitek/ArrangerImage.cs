@@ -136,7 +136,7 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="x">x-coordinate</param>
         /// <param name="y">y-coordinate</param>
-        /// <returns>Local color</returns>
+        /// <returns>Native color</returns>
         public Rgba32 GetPixel(int x, int y)
         {
             if (Image is null)
@@ -150,7 +150,7 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="x">x-coordinate of pixel</param>
         /// <param name="y">y-coordinate of pixel</param>
-        /// <param name="color">Local color to set</param>
+        /// <param name="color">Native color to set</param>
         public void SetPixel(int x, int y, Rgba32 color)
         {
             if (Image is null)
