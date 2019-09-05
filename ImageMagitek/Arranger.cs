@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using ImageMagitek.Colors;
 using ImageMagitek.Project;
 
 namespace ImageMagitek
@@ -159,6 +160,17 @@ namespace ImageMagitek
             for (int y = 0; y < ArrangerElementSize.Height; y++)
                 for (int x = 0; x < ArrangerElementSize.Width; x++)
                     yield return ElementGrid[x, y];
+        }
+
+        public HashSet<Palette> GetElementPalettes()
+        {
+            var set = new HashSet<Palette>();
+
+            for (int y = 0; y < ArrangerElementSize.Height; y++)
+                for (int x = 0; x < ArrangerElementSize.Width; x++)
+                    set.Add(ElementGrid[x, y].Palette);
+
+            return set;
         }
 
         public abstract IEnumerable<IProjectResource> LinkedResources();
