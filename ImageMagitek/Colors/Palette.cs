@@ -232,6 +232,9 @@ namespace ImageMagitek.Colors
             return Color.FromArgb((int)NativePalette[index].Color);
         }
 
+        public bool ContainsNativeColor(ColorRgba32 color) =>
+            NativePalette.Contains(color);
+
         /// <summary>
         /// Returns a palette index matching the specified Native ARGB32 color
         /// </summary>
