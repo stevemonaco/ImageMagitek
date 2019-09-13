@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using Caliburn.Micro;
 using Microsoft.Xaml.Behaviors;
+using System.Diagnostics;
 using TileShop.Shared.Services;
 using TileShop.WPF.Keybinding;
 using TileShop.WPF.Services;
@@ -57,6 +58,13 @@ namespace TileShop.WPF
 
             foreach (var type in viewModelTypes)
                 _container.RegisterPerRequest(type, type.ToString(), type);
+
+            var originalInvoke = ActionMessage.InvokeAction;
+            ActionMessage.InvokeAction = context =>
+            {
+                Debug.WriteLine($"Message: {context.Message} Target: {context.Target} View: {context.View}");
+                originalInvoke(context);
+            };
         }
 
         private void ConfigureKeybindTrigger()
