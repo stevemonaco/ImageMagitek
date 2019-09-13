@@ -1,1 +1,2 @@
 ﻿- Properly dispose of ArrangerImage instances in editors when closing
+- Add limits to colors shown in default palettes in pixel editor

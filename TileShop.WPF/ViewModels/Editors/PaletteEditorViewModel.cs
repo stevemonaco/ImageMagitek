@@ -16,8 +16,8 @@ namespace TileShop.WPF.ViewModels
         private Palette _palette;
         private IEventAggregator _events;
 
-        private BindableCollection<PaletteColorModel> _colors = new BindableCollection<PaletteColorModel>();
-        public BindableCollection<PaletteColorModel> Colors
+        private BindableCollection<ValidatedColorModel> _colors = new BindableCollection<ValidatedColorModel>();
+        public BindableCollection<ValidatedColorModel> Colors
         {
             get => _colors;
             set => Set(ref _colors, value);
@@ -31,19 +31,19 @@ namespace TileShop.WPF.ViewModels
             {
                 Set(ref _selectedIndex, value);
                 if(SelectedIndex >= 0)
-                    EditingItem = new PaletteColorModel(_palette.GetForeignColor(SelectedIndex), SelectedIndex);
+                    EditingItem = new ValidatedColorModel(_palette.GetForeignColor(SelectedIndex), SelectedIndex);
             }
         }
 
-        private PaletteColorModel _selectedItem;
-        public PaletteColorModel SelectedItem
+        private ValidatedColorModel _selectedItem;
+        public ValidatedColorModel SelectedItem
         {
             get => _selectedItem;
             set => Set(ref _selectedItem, value);
         }
 
-        private PaletteColorModel _editingItem;
-        public PaletteColorModel EditingItem
+        private ValidatedColorModel _editingItem;
+        public ValidatedColorModel EditingItem
         {
             get => _editingItem;
             set => Set(ref _editingItem, value);
@@ -58,7 +58,7 @@ namespace TileShop.WPF.ViewModels
             _events = events;
 
             for(int i = 0; i < _palette.Entries; i++)
-                Colors.Add(new PaletteColorModel(_palette.GetForeignColor(i), i));
+                Colors.Add(new ValidatedColorModel(_palette.GetForeignColor(i), i));
 
             SelectedIndex = 0;
         }
@@ -71,7 +71,7 @@ namespace TileShop.WPF.ViewModels
             return Task.CompletedTask;
         }
 
-        public void MouseOver(PaletteColorModel model)
+        public void MouseOver(ValidatedColorModel model)
         {
             string notifyMessage = $"Palette Index: {model.Index}";
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);

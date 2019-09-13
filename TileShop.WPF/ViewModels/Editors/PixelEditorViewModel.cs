@@ -31,7 +31,7 @@ namespace TileShop.WPF.ViewModels
         private int _cropHeight;
         private PencilHistoryAction _activePencilHistory;
 
-        public override string Name => "Pixel Editor";
+        public override string Name => HasArranger ? $"Pixel Editor - {_arranger.Name}" : "Pixel Editor";
 
         private BindableCollection<HistoryAction> _history = new BindableCollection<HistoryAction>();
         public BindableCollection<HistoryAction> History
@@ -96,6 +96,9 @@ namespace TileShop.WPF.ViewModels
             set => Set(ref _secondaryColor, value);
         }
 
+        public RelayCommand<Color> SetPrimaryColorCommand { get; }
+        public RelayCommand<Color> SetSecondaryColorCommand { get; }
+
         public override bool CanShowGridlines => HasArranger;
 
         public PixelEditorViewModel(IEventAggregator events, IUserPromptService promptService, IPaletteService paletteService)
@@ -105,6 +108,9 @@ namespace TileShop.WPF.ViewModels
             _paletteService = paletteService;
 
             _events.SubscribeOnUIThread(this);
+
+            SetPrimaryColorCommand = new RelayCommand<Color>(SetPrimaryColor);
+            SetSecondaryColorCommand = new RelayCommand<Color>(SetSecondaryColor);
         }
 
         public void CreateImage()
@@ -143,6 +149,9 @@ namespace TileShop.WPF.ViewModels
             newColor.A = arrangerColor.A;
             return newColor; 
         }
+
+        public void SetPrimaryColor(Color color) => PrimaryColor = color;
+        public void SetSecondaryColor(Color color) => SecondaryColor = color;
 
         public override void OnMouseDown(object sender, MouseCaptureArgs e)
         {
@@ -189,6 +198,9 @@ namespace TileShop.WPF.ViewModels
         {
             int x = (int)e.X / Zoom;
             int y = (int)e.Y / Zoom;
+
+            if (x < 0 || x >= _arranger.ArrangerPixelSize.Width || y < 0 || y >= _arranger.ArrangerPixelSize.Height)
+                return;
 
             if (IsDrawing && ActiveTool == PixelTool.Pencil && e.LeftButton)
             {

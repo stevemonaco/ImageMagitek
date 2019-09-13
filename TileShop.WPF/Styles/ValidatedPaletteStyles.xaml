@@ -4,7 +4,7 @@
     xmlns:local="clr-namespace:TileShop.WPF.Styles"
     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-    <Style x:Key="PaletteContainerTemplate" TargetType="{x:Type ListBoxItem}">
+    <Style x:Key="ValidatedPaletteItemContainerTemplate" TargetType="{x:Type ListBoxItem}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ListBoxItem}">

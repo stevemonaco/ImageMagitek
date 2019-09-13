@@ -9,7 +9,7 @@ using ImageMagitek.Colors;
 
 namespace TileShop.WPF.Models
 {
-    public class PaletteColorModel : INotifyPropertyChanged
+    public class ValidatedColorModel : INotifyPropertyChanged
     {
         private IColor32 _foreignColor;
 
@@ -114,7 +114,7 @@ namespace TileShop.WPF.Models
 
         public int Index { get; set; }
 
-        public PaletteColorModel(IColor32 foreignColor, int index)
+        public ValidatedColorModel(IColor32 foreignColor, int index)
         {
             _foreignColor = foreignColor;
             Index = index;
