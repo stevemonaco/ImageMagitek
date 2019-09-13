@@ -149,7 +149,7 @@ namespace ImageMagitek
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(GetElement)} property '{nameof(ElementGrid)}' was null");
 
-            if (arrangerPosX > ArrangerElementSize.Width || arrangerPosY > ArrangerElementSize.Height)
+            if (arrangerPosX >= ArrangerElementSize.Width || arrangerPosY >= ArrangerElementSize.Height)
                 throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({arrangerPosX}, {arrangerPosY})");
 
             return ElementGrid[arrangerPosX, arrangerPosY];
