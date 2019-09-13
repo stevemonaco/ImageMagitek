@@ -15,20 +15,30 @@ using TileShop.Shared.Services;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ProjectTreeViewModel : Screen, IHandle<OpenProjectEvent>
+    public class ProjectTreeViewModel : Screen, IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>
     {
         private IPathTree<IProjectResource> _tree;
         private IProjectTreeService _treeService;
         private IEventAggregator _events;
         private IFileSelectService _fileSelect;
+        private IUserPromptService _promptService;
 
-        public ProjectTreeViewModel(IProjectTreeService treeService, IFileSelectService fileSelect, IEventAggregator events)
+        public ProjectTreeViewModel(IProjectTreeService treeService, IFileSelectService fileSelect,
+            IEventAggregator events, IUserPromptService promptService)
         {
             _treeService = treeService;
             _fileSelect = fileSelect;
+            _promptService = promptService;
 
             _events = events;
             _events.SubscribeOnUIThread(this);
+        }
+
+        private string _activeProjectFileName;
+        public string ActiveProjectFileName
+        {
+            get => _activeProjectFileName;
+            set => Set(ref _activeProjectFileName, value);
         }
 
         public IEnumerable<Screen> RootItems
@@ -83,13 +93,44 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        public void SaveProject()
+        {
+            try
+            {
+                if (!_treeService.SaveProject(_tree, ActiveProjectFileName))
+                    _promptService.PromptUser($"An unspecified error occurred while saving the project tree to {ActiveProjectFileName}", "Error", UserPromptChoices.Ok);
+            }
+            catch(Exception ex)
+            {
+                _promptService.PromptUser($"Unable to save project {ActiveProjectFileName}\n{ex.Message}", "Error", UserPromptChoices.Ok);
+            }
+        }
+
+        public bool CanSaveProject => ActiveProjectFileName is object;
+
+        public Task HandleAsync(NewProjectEvent message, CancellationToken cancellationToken)
+        {
+            var projectFileName = _fileSelect.GetNewProjectFileNameByUser();
+
+            if (projectFileName is object)
+            {
+                _tree = new PathTree<IProjectResource>();
+                ActiveProjectFileName = projectFileName;
+                SaveProject();
+                NotifyOfPropertyChange(() => RootItems);
+            }
+
+            return Task.CompletedTask;
+        }
+
         public Task HandleAsync(OpenProjectEvent message, CancellationToken cancellationToken)
         {
-            var projectFileName = _fileSelect.GetProjectByUser();
+            var projectFileName = _fileSelect.GetProjectFileNameByUser();
 
             if (projectFileName is object)
             {
                 _tree = _treeService.ReadProject(projectFileName);
+                ActiveProjectFileName = projectFileName;
                 NotifyOfPropertyChange(() => RootItems);
             }
 

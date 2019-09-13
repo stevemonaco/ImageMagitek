@@ -7,12 +7,13 @@ namespace TileShop.WPF.Services
 {
     public interface IFileSelectService
     {
-        string GetProjectByUser();
+        string GetProjectFileNameByUser();
+        string GetNewProjectFileNameByUser();
     }
 
     public class FileSelectService : IFileSelectService
     {
-        public string GetProjectByUser()
+        public string GetProjectFileNameByUser()
         {
             var ofd = new OpenFileDialog();
 
@@ -20,10 +21,25 @@ namespace TileShop.WPF.Services
             ofd.ValidateNames = true;
             ofd.CheckFileExists = true;
             ofd.AddExtension = true;
-            ofd.Filter = "Image Files|*.xml";
+            ofd.Filter = "Project Files|*.xml";
 
             if (ofd.ShowDialog() == DialogResult.OK)
                 return ofd.FileName;
+
+            return null;
+        }
+
+        public string GetNewProjectFileNameByUser()
+        {
+            var sfd = new SaveFileDialog();
+
+            sfd.Title = "Create New Project File";
+            sfd.DefaultExt = ".xml";
+            sfd.Filter = "Project Files|*.xml";
+            sfd.ValidateNames = true;
+
+            if (sfd.ShowDialog() == DialogResult.OK)
+                return sfd.FileName;
 
             return null;
         }

@@ -14,6 +14,8 @@ namespace TileShop.WPF.ViewModels
             _events = events;
         }
 
+        public Task NewProject() => _events.PublishOnUIThreadAsync(new NewProjectEvent());
+
         public Task OpenProject() => _events.PublishOnUIThreadAsync(new OpenProjectEvent());
 
         public void ExitApplication()

@@ -11,6 +11,7 @@ namespace TileShop.Shared.Services
     public interface IProjectTreeService
     {
         IPathTree<IProjectResource> ReadProject(string projectFileName);
+        bool SaveProject(IPathTree<IProjectResource> tree, string projectFileName);
     }
 
     public class ProjectTreeService : IProjectTreeService
@@ -31,6 +32,18 @@ namespace TileShop.Shared.Services
 
             var deserializer = new XmlGameDescriptorReader(_codecService.CodecFactory);
             return deserializer.ReadProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
+        }
+
+        public bool SaveProject(IPathTree<IProjectResource> tree, string projectFileName)
+        {
+            if (tree is null)
+                throw new ArgumentNullException($"{nameof(SaveProject)} cannot have a null value for '{nameof(tree)}'");
+
+            if (string.IsNullOrWhiteSpace(projectFileName))
+                throw new ArgumentException($"{nameof(SaveProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
+
+            var serializer = new XmlGameDescriptorWriter();
+            return serializer.WriteProject(tree, projectFileName);
         }
     }
 }
