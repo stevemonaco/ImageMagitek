@@ -252,11 +252,13 @@ namespace TileShop.WPF.ViewModels
             CreateImage();
             Palettes.Clear();
 
-            var arrangerPalettes = _arranger.GetElementPalettes().OrderBy(x => x.Name).ToList();
-            foreach (var pal in arrangerPalettes)
+            var arrangerPalettes = _arranger.GetReferencedPalettes().OrderBy(x => x.Name);
+            
+            foreach(var pal in arrangerPalettes)
                 Palettes.Add(PaletteModel.FromArrangerPalette(pal));
 
             Palettes.Add(PaletteModel.FromArrangerPalette(_paletteService.DefaultPalette));
+            _arrangerImage.DefaultPalette = _paletteService.DefaultPalette;
 
             ActivePalette = Palettes.First();
             PrimaryColor = ActivePalette.Colors[0];

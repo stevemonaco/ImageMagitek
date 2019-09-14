@@ -76,6 +76,11 @@
                 Minimum="1"
                 Visibility="{Binding IsLinearLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding LinearArrangerHeight}" />
+            <Button
+                Margin="10,0,0,0"
+                cm:Message.Attach="EditSelection"
+                Content="Edit"
+                IsEnabled="{Binding Selection.HasSelection}" />
         </StackPanel>
 
         <!--  Image Display  -->

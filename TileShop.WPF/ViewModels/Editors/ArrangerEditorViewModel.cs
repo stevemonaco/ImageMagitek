@@ -9,6 +9,7 @@ using TileShop.WPF.Helpers;
 using System.Threading;
 using System.Threading.Tasks;
 using TileShop.WPF.Models;
+using TileShop.Shared.Models;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -33,6 +34,7 @@ namespace TileShop.WPF.ViewModels
         public bool IsTiledLayout => _arranger?.Layout == ArrangerLayout.TiledArranger;
 
         public virtual bool CanShowGridlines => _arranger?.Layout == ArrangerLayout.TiledArranger;
+
         protected bool _showGridlines = false;
         public bool ShowGridlines
         {
@@ -46,13 +48,14 @@ namespace TileShop.WPF.ViewModels
             get => _gridlines;
             set => Set(ref _gridlines, value);
         }
+
 #pragma warning disable CS0067
         // Unused events that are required to be present by the proxy
         public virtual event EventHandler Capture;
         public virtual event EventHandler Release;
 #pragma warning restore CS0067
 
-        private int _zoom = 1;
+        protected int _zoom = 1;
         public int Zoom
         {
             get => _zoom;
@@ -65,6 +68,39 @@ namespace TileShop.WPF.ViewModels
 
         public int MinZoom => 1;
         public int MaxZoom => 16;
+
+        public bool CanChangeSnapMode => _arranger is object ? _arranger.Layout == ArrangerLayout.TiledArranger : false;
+
+        protected EditMode _editMode = EditMode.ArrangeGraphics;
+        public EditMode EditMode
+        {
+            get => _editMode;
+            set => Set(ref _editMode, value);
+        }
+
+        protected ArrangerSelector _selection;
+        public ArrangerSelector Selection
+        {
+            get => _selection;
+            set => Set(ref _selection, value);
+        }
+
+        public virtual bool CanEditSelection => true;
+
+        public virtual void EditSelection()
+        {
+            ArrangerTransferModel transferModel;
+
+            if (Selection.SnapMode == SnapMode.Element)
+                transferModel = new ArrangerTransferModel(_arranger, Selection.SnappedX1, Selection.SnappedY1, Selection.SnappedWidth, Selection.SnappedHeight);
+            else
+                transferModel = new ArrangerTransferModel(_arranger, Selection.SnappedX1, Selection.SnappedY1, Selection.SnappedWidth, Selection.SnappedHeight);
+
+            var editEvent = new EditArrangerPixelsEvent(transferModel);
+            _events.PublishOnUIThreadAsync(editEvent);
+        }
+
+        public virtual void CancelSelection() => Selection?.CancelSelection();
 
         protected virtual void CreateGridlines()
         {
@@ -98,9 +134,27 @@ namespace TileShop.WPF.ViewModels
 
         public virtual void OnMouseMove(object sender, MouseCaptureArgs e)
         {
-            var notifyMessage = $"{_arranger.Name}: ({(int)e.X}, {(int)e.Y})";
-            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            _events.PublishOnUIThreadAsync(notifyEvent);
+            if (Selection.IsSelecting)
+                Selection.UpdateSelection(e.X / Zoom, e.Y / Zoom);
+
+            if (Selection.HasSelection)
+            {
+                string notifyMessage;
+                if (Selection.SnapMode == SnapMode.Element)
+                    notifyMessage = $"Element Selection: {Selection.SnappedWidth / _arranger.ElementPixelSize.Width} x {Selection.SnappedHeight / _arranger.ElementPixelSize.Height}" +
+                        $" at ({Selection.SnappedX1 / _arranger.ElementPixelSize.Width}, {Selection.SnappedY1 / _arranger.ElementPixelSize.Height})";
+                else
+                    notifyMessage = $"Pixel Selection: {Selection.SnappedWidth} x {Selection.SnappedHeight}" +
+                        $" at ({Selection.SnappedX1} x {Selection.SnappedY1})";
+                var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+                _events.PublishOnUIThreadAsync(notifyEvent);
+            }
+            else
+            {
+                var notifyMessage = $"{_arranger.Name}: ({(int)Math.Round(e.X / Zoom)}, {(int)Math.Round(e.Y / Zoom)})";
+                var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+                _events.PublishOnUIThreadAsync(notifyEvent);
+            }
         }
 
         public virtual void OnMouseLeave(object sender, MouseCaptureArgs e)
@@ -109,7 +163,28 @@ namespace TileShop.WPF.ViewModels
             _events.PublishOnUIThreadAsync(notifyEvent);
         }
 
-        public virtual void OnMouseUp(object sender, MouseCaptureArgs e) { }
-        public virtual void OnMouseDown(object sender, MouseCaptureArgs e) { }
+        public virtual void OnMouseUp(object sender, MouseCaptureArgs e)
+        {
+            Selection.StopSelection();
+        }
+
+        public virtual void OnMouseDown(object sender, MouseCaptureArgs e)
+        {
+            if (!Selection.HasSelection && e.LeftButton)
+            {
+                Selection.StartSelection(e.X / Zoom, e.Y / Zoom);
+            }
+            if (Selection.HasSelection && e.LeftButton)
+            {
+                if (Selection.IsPointInSelection(e.X / Zoom, e.Y / Zoom)) // Start drag
+                    return;
+                else // New selection
+                    Selection.StartSelection(e.X / Zoom, e.Y / Zoom);
+            }
+            if (Selection.HasSelection && e.RightButton)
+            {
+                Selection.CancelSelection();
+            }
+        }
     }
 }

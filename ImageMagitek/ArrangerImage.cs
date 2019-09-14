@@ -32,6 +32,8 @@ namespace ImageMagitek
         private BlankCodec _blankCodec = new BlankCodec();
         private Rectangle _renderRect = new Rectangle(0, 0, 0, 0);
 
+        public Palette DefaultPalette { get; set; }
+
         public ArrangerImage(Arranger arranger)
         {
             _arranger = arranger;
@@ -174,10 +176,29 @@ namespace ImageMagitek
                 throw new NullReferenceException($"{nameof(TrySetPixel)} property '{nameof(Image)}' was null");
 
             var elem = GetElement(x, y);
+
+            if (elem.Codec is BlankCodec)
+                return false;
+
+            if (elem.Codec.ColorType == PixelColorType.Indexed)
+                return TrySetIndexedPixel(elem, x, y, color);
+            
+            SetPixel(x, y, color);
+            return true;
+        }
+
+        private bool TrySetIndexedPixel(ArrangerElement element, int x, int y, Rgba32 color)
+        {
             var nc = new ColorRgba32(color.R, color.G, color.B, color.A);
 
-            if (!elem.Palette.ContainsNativeColor(nc))
-                return false;
+            var pal = element.Palette ?? DefaultPalette;
+
+            if (pal.ContainsNativeColor(nc))
+            {
+                var index = pal.GetIndexByNativeColor(nc, true);
+                if (index >= (1 << element.Codec.ColorDepth))
+                    return false;
+            }
 
             SetPixel(x, y, color);
             return true;

@@ -162,13 +162,18 @@ namespace ImageMagitek
                     yield return ElementGrid[x, y];
         }
 
-        public HashSet<Palette> GetElementPalettes()
+        public HashSet<Palette> GetReferencedPalettes()
         {
             var set = new HashSet<Palette>();
 
             for (int y = 0; y < ArrangerElementSize.Height; y++)
+            {
                 for (int x = 0; x < ArrangerElementSize.Width; x++)
-                    set.Add(ElementGrid[x, y].Palette);
+                {
+                    if (ElementGrid[x, y].Palette is object)
+                        set.Add(ElementGrid[x, y].Palette);
+                }
+            }
 
             return set;
         }

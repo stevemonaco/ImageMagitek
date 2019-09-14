@@ -16,6 +16,7 @@ namespace TileShop.WPF.ViewModels
     public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouseCaptureProxy
     {
         private ICodecService _codecService;
+        private FileBitAddress _address;
 
         private BindableCollection<string> _codecNames = new BindableCollection<string>();
         public BindableCollection<string> CodecNames
@@ -119,11 +120,13 @@ namespace TileShop.WPF.ViewModels
                 _tiledElementHeight = arranger.ElementPixelSize.Height;
                 _tiledArrangerHeight = arranger.ArrangerElementSize.Height;
                 _tiledArrangerWidth = arranger.ArrangerElementSize.Width;
+                Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Element);
             }
             else if(arranger.Layout == ArrangerLayout.LinearArranger)
             {
                 _linearArrangerHeight = arranger.ArrangerPixelSize.Height;
                 _linearArrangerWidth = arranger.ArrangerPixelSize.Width;
+                Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
             }
 
             Render();
@@ -174,12 +177,12 @@ namespace TileShop.WPF.ViewModels
         private void Move(ArrangerMoveType moveType)
         {
             var oldAddress = (_arranger as SequentialArranger).GetInitialSequentialFileAddress();
-            var address = (_arranger as SequentialArranger).Move(moveType);
+            _address = (_arranger as SequentialArranger).Move(moveType);
 
-            if (oldAddress != address)
+            if (oldAddress != _address)
                 Render();
 
-            string notifyMessage = $"File Offset: 0x{address.FileOffset:X}";
+            string notifyMessage = $"File Offset: 0x{_address.FileOffset:X}";
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
             _events.PublishOnUIThreadAsync(notifyEvent);
         }
@@ -232,29 +235,35 @@ namespace TileShop.WPF.ViewModels
 
         private void Render()
         {
+            CancelSelection();
             _arrangerImage.Invalidate();
             _arrangerImage.Render();
             ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
         }
 
-        public override void OnMouseDown(object sender, MouseCaptureArgs e)
-        {
-            //throw new NotImplementedException();
-        }
-
-        public override void OnMouseLeave(object sender, MouseCaptureArgs e)
-        {
-            //throw new NotImplementedException();
-        }
-
         public override void OnMouseMove(object sender, MouseCaptureArgs e)
         {
-            //throw new NotImplementedException();
-        }
+            if (Selection.IsSelecting)
+                Selection.UpdateSelection(e.X / Zoom, e.Y / Zoom);
 
-        public override void OnMouseUp(object sender, MouseCaptureArgs e)
-        {
-            //throw new NotImplementedException();
+            if (Selection.HasSelection)
+            {
+                string notifyMessage;
+                if (Selection.SnapMode == SnapMode.Element)
+                    notifyMessage = $"Element Selection: {Selection.SnappedWidth / _arranger.ElementPixelSize.Width} x {Selection.SnappedHeight / _arranger.ElementPixelSize.Height}" +
+                        $" at ({Selection.SnappedX1 / _arranger.ElementPixelSize.Width}, {Selection.SnappedY1 / _arranger.ElementPixelSize.Height})";
+                else
+                    notifyMessage = $"Pixel Selection: {Selection.SnappedWidth} x {Selection.SnappedHeight}" +
+                        $" at ({Selection.SnappedX1} x {Selection.SnappedY1})";
+                var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+                _events.PublishOnUIThreadAsync(notifyEvent);
+            }
+            else
+            {
+                string notifyMessage = $"File Offset: 0x{_address.FileOffset:X} ({(int)Math.Round(e.X / Zoom)}, {(int)Math.Round(e.Y / Zoom)})";
+                var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+                _events.PublishOnUIThreadAsync(notifyEvent);
+            }
         }
     }
 }
