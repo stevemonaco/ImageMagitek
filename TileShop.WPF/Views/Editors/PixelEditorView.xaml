@@ -79,6 +79,12 @@
                         Fill="{Binding SecondaryColor, Converter={StaticResource ColorToSolidColorBrushConverter}}" />
                 </Border>
             </Border>
+
+            <Button
+                Margin="10,0,0,0"
+                cm:Message.Attach="RemapColors"
+                Content="Remap"
+                IsEnabled="{Binding CanRemapColors}" />
         </StackPanel>
 
         <!--  Palette Display  -->

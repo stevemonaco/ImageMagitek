@@ -6,6 +6,11 @@ namespace TileShop.Shared.EventModels
 {
     public class SaveProjectEvent
     {
-        public string ProjectFileName { get; set; }
+        public bool SaveAsNewProject { get; set; }
+
+        public SaveProjectEvent(bool saveAsNewProject)
+        {
+            SaveAsNewProject = saveAsNewProject;
+        }
     }
 }

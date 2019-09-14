@@ -9,6 +9,7 @@ namespace TileShop.WPF.Services
     {
         string GetProjectFileNameByUser();
         string GetNewProjectFileNameByUser();
+        string GetExistingDataFileNameByUser();
     }
 
     public class FileSelectService : IFileSelectService
@@ -40,6 +41,20 @@ namespace TileShop.WPF.Services
 
             if (sfd.ShowDialog() == DialogResult.OK)
                 return sfd.FileName;
+
+            return null;
+        }
+
+        public string GetExistingDataFileNameByUser()
+        {
+            var ofd = new OpenFileDialog();
+
+            ofd.Title = "Select File";
+            ofd.ValidateNames = true;
+            ofd.CheckFileExists = true;
+
+            if (ofd.ShowDialog() == DialogResult.OK)
+                return ofd.FileName;
 
             return null;
         }

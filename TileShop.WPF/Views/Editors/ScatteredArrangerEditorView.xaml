@@ -44,7 +44,6 @@
                 cm:Message.Attach="EditSelection"
                 Content="Edit"
                 IsEnabled="{Binding Selection.HasSelection}" />
-
         </StackPanel>
 
         <!--  Image Display  -->

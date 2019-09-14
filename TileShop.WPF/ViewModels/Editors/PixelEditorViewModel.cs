@@ -113,6 +113,23 @@ namespace TileShop.WPF.ViewModels
             SetSecondaryColorCommand = new RelayCommand<Color>(SetSecondaryColor);
         }
 
+        public void RemapColors()
+        {
+
+        }
+
+        public bool CanRemapColors
+        {
+            get
+            {
+                var palettes = _arranger?.GetReferencedPalettes();
+                if (palettes?.Count <= 1)
+                    return _arranger.GetReferencedCodecs().All(x => x.ColorType == ImageMagitek.Codec.PixelColorType.Indexed);
+
+                return false;
+            }
+        }
+
         public void CreateImage()
         {
             _arrangerImage = new ArrangerImage(_arranger);
@@ -263,6 +280,8 @@ namespace TileShop.WPF.ViewModels
             ActivePalette = Palettes.First();
             PrimaryColor = ActivePalette.Colors[0];
             SecondaryColor = ActivePalette.Colors[1];
+
+            NotifyOfPropertyChange(() => CanRemapColors);
 
             return Task.CompletedTask;
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 
@@ -172,6 +173,24 @@ namespace ImageMagitek
                 {
                     if (ElementGrid[x, y].Palette is object)
                         set.Add(ElementGrid[x, y].Palette);
+                }
+            }
+
+            return set;
+        }
+
+        public HashSet<IGraphicsCodec> GetReferencedCodecs()
+        {
+            var set = new HashSet<IGraphicsCodec>();
+
+            for (int y = 0; y < ArrangerElementSize.Height; y++)
+            {
+                for (int x = 0; x < ArrangerElementSize.Width; x++)
+                {
+                    if (ElementGrid[x, y].Codec is BlankCodec)
+                        continue;
+
+                    set.Add(ElementGrid[x, y].Codec);
                 }
             }
 

@@ -12,10 +12,12 @@ using System.Threading.Tasks;
 using TileShop.WPF.Services;
 using System.Windows.Threading;
 using TileShop.Shared.Services;
+using System.IO;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ProjectTreeViewModel : Screen, IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>
+    public class ProjectTreeViewModel : Screen, IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>,
+        IHandle<AddDataFileEvent>, IHandle<SaveProjectEvent>, IHandle<CloseProjectEvent>
     {
         private IPathTree<IProjectResource> _tree;
         private IProjectTreeService _treeService;
@@ -93,20 +95,22 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void SaveProject()
+        private void SaveProject(string projectFileName)
         {
             try
             {
-                if (!_treeService.SaveProject(_tree, ActiveProjectFileName))
-                    _promptService.PromptUser($"An unspecified error occurred while saving the project tree to {ActiveProjectFileName}", "Error", UserPromptChoices.Ok);
+                if (!_treeService.SaveProject(_tree, projectFileName))
+                    _promptService.PromptUser($"An unspecified error occurred while saving the project tree to {projectFileName}", "Error", UserPromptChoices.Ok);
             }
             catch(Exception ex)
             {
-                _promptService.PromptUser($"Unable to save project {ActiveProjectFileName}\n{ex.Message}", "Error", UserPromptChoices.Ok);
+                _promptService.PromptUser($"Unable to save project {projectFileName}\n{ex.Message}", "Error", UserPromptChoices.Ok);
             }
         }
 
         public bool CanSaveProject => ActiveProjectFileName is object;
+
+        public bool HasProject => ActiveProjectFileName is object;
 
         public Task HandleAsync(NewProjectEvent message, CancellationToken cancellationToken)
         {
@@ -116,8 +120,9 @@ namespace TileShop.WPF.ViewModels
             {
                 _tree = new PathTree<IProjectResource>();
                 ActiveProjectFileName = projectFileName;
-                SaveProject();
+                SaveProject(ActiveProjectFileName);
                 NotifyOfPropertyChange(() => RootItems);
+                _events.PublishOnUIThreadAsync(new ProjectLoadedEvent());
             }
 
             return Task.CompletedTask;
@@ -132,8 +137,49 @@ namespace TileShop.WPF.ViewModels
                 _tree = _treeService.ReadProject(projectFileName);
                 ActiveProjectFileName = projectFileName;
                 NotifyOfPropertyChange(() => RootItems);
+                _events.PublishOnUIThreadAsync(new ProjectLoadedEvent(ActiveProjectFileName));
             }
 
+            return Task.CompletedTask;
+        }
+
+        public Task HandleAsync(AddDataFileEvent message, CancellationToken cancellationToken)
+        {
+            var dataFileName = _fileSelect.GetExistingDataFileNameByUser();
+
+            if (dataFileName is object)
+            {
+                DataFile df = new DataFile(Path.GetFileName(dataFileName), dataFileName);
+                _tree.Add(Path.GetFileName(dataFileName), df);
+                NotifyOfPropertyChange(() => RootItems);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task HandleAsync(SaveProjectEvent message, CancellationToken cancellationToken)
+        {
+            string projectFileName;
+
+            if (message.SaveAsNewProject)
+            {
+                projectFileName = _fileSelect.GetNewProjectFileNameByUser();
+
+                if (projectFileName is null)
+                    return Task.CompletedTask;
+            }
+            else
+                projectFileName = ActiveProjectFileName;
+
+            SaveProject(projectFileName);
+            ActiveProjectFileName = projectFileName;
+            _events.PublishOnUIThreadAsync(new ProjectUnloadedEvent());
+            _events.PublishOnUIThreadAsync(new ProjectLoadedEvent(ActiveProjectFileName));
+            return Task.CompletedTask;
+        }
+
+        public Task HandleAsync(CloseProjectEvent message, CancellationToken cancellationToken)
+        {
             return Task.CompletedTask;
         }
     }

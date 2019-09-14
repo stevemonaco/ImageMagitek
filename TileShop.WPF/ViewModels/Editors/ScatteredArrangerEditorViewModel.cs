@@ -8,6 +8,7 @@ using TileShop.WPF.Models;
 using System.Drawing;
 using GongSolutions.Wpf.DragDrop;
 using TileShop.Shared.Models;
+using System.Linq;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -31,8 +32,6 @@ namespace TileShop.WPF.ViewModels
             else
                 Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
         }
-
-
 
         public void DragOver(IDropInfo dropInfo)
         {

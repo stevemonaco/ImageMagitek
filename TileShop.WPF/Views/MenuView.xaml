@@ -12,17 +12,36 @@
         <MenuItem Header="_File">
             <MenuItem x:Name="NewProject" Header="_New Project" />
             <MenuItem x:Name="OpenProject" Header="Open _Project" />
-            <MenuItem x:Name="CloseProject" Header="_Close Project" />
+            <MenuItem
+                x:Name="CloseProject"
+                Header="_Close Project"
+                IsEnabled="{Binding HasProject}" />
             <Separator />
-            <MenuItem Header="_Save Project" />
-            <MenuItem Header="Save Project _As..." />
+            <MenuItem
+                x:Name="SaveProject"
+                Header="_Save Project"
+                IsEnabled="{Binding HasProject}" />
+            <MenuItem
+                x:Name="SaveProjectAs"
+                Header="Save Project _As..."
+                IsEnabled="{Binding HasProject}" />
             <Separator />
             <MenuItem x:Name="ExitApplication" Header="E_xit" />
         </MenuItem>
 
-        <MenuItem Header="_Project">
-            <MenuItem x:Name="AddPalette" Header="Add Palette Definition..." />
-            <MenuItem x:Name="AddScatteredArranger" Header="Add Scattered Arranger Definition..." />
+        <MenuItem Header="_Project" IsEnabled="{Binding HasProject}">
+            <MenuItem
+                x:Name="AddDataFile"
+                Header="Add Data File..."
+                IsEnabled="{Binding HasProject}" />
+            <MenuItem
+                x:Name="AddPalette"
+                Header="Add Palette Definition..."
+                IsEnabled="{Binding HasProject}" />
+            <MenuItem
+                x:Name="AddScatteredArranger"
+                Header="Add Scattered Arranger Definition..."
+                IsEnabled="{Binding HasProject}" />
         </MenuItem>
 
         <MenuItem Header="_Plugins" />
