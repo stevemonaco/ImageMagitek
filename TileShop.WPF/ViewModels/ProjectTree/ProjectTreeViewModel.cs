@@ -112,7 +112,7 @@ namespace TileShop.WPF.ViewModels
 
         public bool HasProject => ActiveProjectFileName is object;
 
-        public Task HandleAsync(NewProjectEvent message, CancellationToken cancellationToken)
+        public async Task HandleAsync(NewProjectEvent message, CancellationToken cancellationToken)
         {
             var projectFileName = _fileSelect.GetNewProjectFileNameByUser();
 
@@ -122,13 +122,11 @@ namespace TileShop.WPF.ViewModels
                 ActiveProjectFileName = projectFileName;
                 SaveProject(ActiveProjectFileName);
                 NotifyOfPropertyChange(() => RootItems);
-                _events.PublishOnUIThreadAsync(new ProjectLoadedEvent());
+                await _events.PublishOnUIThreadAsync(new ProjectLoadedEvent());
             }
-
-            return Task.CompletedTask;
         }
 
-        public Task HandleAsync(OpenProjectEvent message, CancellationToken cancellationToken)
+        public async Task HandleAsync(OpenProjectEvent message, CancellationToken cancellationToken)
         {
             var projectFileName = _fileSelect.GetProjectFileNameByUser();
 
@@ -137,10 +135,8 @@ namespace TileShop.WPF.ViewModels
                 _tree = _treeService.ReadProject(projectFileName);
                 ActiveProjectFileName = projectFileName;
                 NotifyOfPropertyChange(() => RootItems);
-                _events.PublishOnUIThreadAsync(new ProjectLoadedEvent(ActiveProjectFileName));
+                await _events.PublishOnUIThreadAsync(new ProjectLoadedEvent(ActiveProjectFileName));
             }
-
-            return Task.CompletedTask;
         }
 
         public Task HandleAsync(AddDataFileEvent message, CancellationToken cancellationToken)
@@ -157,7 +153,7 @@ namespace TileShop.WPF.ViewModels
             return Task.CompletedTask;
         }
 
-        public Task HandleAsync(SaveProjectEvent message, CancellationToken cancellationToken)
+        public async Task HandleAsync(SaveProjectEvent message, CancellationToken cancellationToken)
         {
             string projectFileName;
 
@@ -166,16 +162,15 @@ namespace TileShop.WPF.ViewModels
                 projectFileName = _fileSelect.GetNewProjectFileNameByUser();
 
                 if (projectFileName is null)
-                    return Task.CompletedTask;
+                    return;
             }
             else
                 projectFileName = ActiveProjectFileName;
 
             SaveProject(projectFileName);
             ActiveProjectFileName = projectFileName;
-            _events.PublishOnUIThreadAsync(new ProjectUnloadedEvent());
-            _events.PublishOnUIThreadAsync(new ProjectLoadedEvent(ActiveProjectFileName));
-            return Task.CompletedTask;
+            await _events.PublishOnUIThreadAsync(new ProjectUnloadedEvent());
+            await _events.PublishOnUIThreadAsync(new ProjectLoadedEvent(ActiveProjectFileName));
         }
 
         public Task HandleAsync(CloseProjectEvent message, CancellationToken cancellationToken)
