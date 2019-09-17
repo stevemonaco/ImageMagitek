@@ -170,6 +170,16 @@ namespace TileShop.WPF.ViewModels
         public void SetPrimaryColor(Color color) => PrimaryColor = color;
         public void SetSecondaryColor(Color color) => SecondaryColor = color;
 
+        public override bool SaveChanges()
+        {
+            return true;
+        }
+
+        public override bool DiscardChanges()
+        {
+            return true;
+        }
+
         public override void OnMouseDown(object sender, MouseCaptureArgs e)
         {
             int x = (int)e.X / Zoom;

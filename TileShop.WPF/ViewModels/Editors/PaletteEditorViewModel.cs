@@ -71,6 +71,16 @@ namespace TileShop.WPF.ViewModels
             return Task.CompletedTask;
         }
 
+        public override bool SaveChanges()
+        {
+            return true;
+        }
+
+        public override bool DiscardChanges()
+        {
+            return true;
+        }
+
         public void MouseOver(ValidatedColorModel model)
         {
             string notifyMessage = $"Palette Index: {model.Index}";

@@ -132,6 +132,16 @@ namespace TileShop.WPF.ViewModels
             Render();
         }
 
+        public override bool SaveChanges()
+        {
+            return true;
+        }
+
+        public override bool DiscardChanges()
+        {
+            return true;
+        }
+
         public void MoveByteDown() => Move(ArrangerMoveType.ByteDown);
         public void MoveByteUp() => Move(ArrangerMoveType.ByteUp);
         public void MoveRowDown() => Move(ArrangerMoveType.RowDown);

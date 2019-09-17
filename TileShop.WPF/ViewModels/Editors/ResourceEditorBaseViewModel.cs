@@ -10,5 +10,8 @@ namespace TileShop.WPF.ViewModels
     {
         public override string Name => Resource?.Name;
         public IProjectResource Resource { get; protected set; }
+
+        public abstract bool SaveChanges();
+        public abstract bool DiscardChanges();
     }
 }

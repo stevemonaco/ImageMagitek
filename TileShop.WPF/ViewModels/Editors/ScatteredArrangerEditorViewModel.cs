@@ -33,6 +33,16 @@ namespace TileShop.WPF.ViewModels
                 Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
         }
 
+        public override bool SaveChanges()
+        {
+            return true;
+        }
+
+        public override bool DiscardChanges()
+        {
+            return true;
+        }
+
         public void DragOver(IDropInfo dropInfo)
         {
             throw new NotImplementedException();
