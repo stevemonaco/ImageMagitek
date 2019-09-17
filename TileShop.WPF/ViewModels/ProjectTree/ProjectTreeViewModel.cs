@@ -108,9 +108,17 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public bool CanSaveProject => ActiveProjectFileName is object;
-
         public bool HasProject => ActiveProjectFileName is object;
+
+        private void Reset()
+        {
+            ActiveProjectFileName = null;
+            SelectedItem = null;
+            _tree = null;
+
+            NotifyOfPropertyChange(() => RootItems);
+            NotifyOfPropertyChange(() => HasProject);
+        }
 
         public async Task HandleAsync(NewProjectEvent message, CancellationToken cancellationToken)
         {
@@ -173,9 +181,11 @@ namespace TileShop.WPF.ViewModels
             await _events.PublishOnUIThreadAsync(new ProjectLoadedEvent(ActiveProjectFileName));
         }
 
-        public Task HandleAsync(CloseProjectEvent message, CancellationToken cancellationToken)
+        public async Task HandleAsync(CloseProjectEvent message, CancellationToken cancellationToken)
         {
-            return Task.CompletedTask;
+            await _events.PublishOnUIThreadAsync(new ProjectClosingEvent());
+            SaveProject(ActiveProjectFileName);
+            Reset();
         }
     }
 }
