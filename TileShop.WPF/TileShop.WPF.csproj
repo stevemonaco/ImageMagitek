@@ -17,9 +17,9 @@
 
   <ItemGroup>
     <PackageReference Include="Caliburn.Micro" Version="4.0.89-alpha" />
-    <PackageReference Include="Dirkster.AvalonDock" Version="3.5.12" />
-    <PackageReference Include="gong-wpf-dragdrop" Version="2.0.5" />
-    <PackageReference Include="MahApps.Metro" Version="2.0.0-alpha0455" />
+    <PackageReference Include="Dirkster.AvalonDock" Version="3.6.0" />
+    <PackageReference Include="gong-wpf-dragdrop" Version="2.1.0" />
+    <PackageReference Include="MahApps.Metro" Version="2.0.0-alpha0490" />
     <PackageReference Include="Monaco.PathTree" Version="0.1.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
     <PackageReference Include="System.Windows.Interactivity.WPF" Version="2.0.20525" />
