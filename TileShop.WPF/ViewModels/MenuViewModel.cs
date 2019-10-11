@@ -35,6 +35,8 @@ namespace TileShop.WPF.ViewModels
 
         public Task AddDataFile() => _events.PublishOnUIThreadAsync(new AddDataFileEvent());
 
+        public Task AddPalette() => _events.PublishOnUIThreadAsync(new AddPaletteEvent());
+
         public void ExitApplication()
         {
             //await TryCloseAsync();

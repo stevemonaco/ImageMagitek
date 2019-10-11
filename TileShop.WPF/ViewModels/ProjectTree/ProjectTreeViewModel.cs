@@ -13,24 +13,28 @@ using TileShop.WPF.Services;
 using System.Windows.Threading;
 using TileShop.Shared.Services;
 using System.IO;
+using TileShop.WPF.DialogModels;
+using System.Linq;
 
 namespace TileShop.WPF.ViewModels
 {
     public class ProjectTreeViewModel : Screen, IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>,
-        IHandle<AddDataFileEvent>, IHandle<SaveProjectEvent>, IHandle<CloseProjectEvent>
+        IHandle<AddDataFileEvent>, IHandle<SaveProjectEvent>, IHandle<CloseProjectEvent>, IHandle<AddPaletteEvent>
     {
         private IPathTree<IProjectResource> _tree;
         private IProjectTreeService _treeService;
         private IEventAggregator _events;
         private IFileSelectService _fileSelect;
         private IUserPromptService _promptService;
+        private IDialogService _dialogService;
 
         public ProjectTreeViewModel(IProjectTreeService treeService, IFileSelectService fileSelect,
-            IEventAggregator events, IUserPromptService promptService)
+            IEventAggregator events, IUserPromptService promptService, IDialogService dialogService)
         {
             _treeService = treeService;
             _fileSelect = fileSelect;
             _promptService = promptService;
+            _dialogService = dialogService;
 
             _events = events;
             _events.SubscribeOnUIThread(this);
@@ -186,6 +190,37 @@ namespace TileShop.WPF.ViewModels
             await _events.PublishOnUIThreadAsync(new ProjectClosingEvent());
             SaveProject(ActiveProjectFileName);
             Reset();
+        }
+
+        public Task HandleAsync(AddPaletteEvent message, CancellationToken cancellationToken)
+        {
+            var model = new AddPaletteDialogModel();
+
+            var dataFiles = _tree.EnumerateDepthFirst().Select(x => x.Value).OfType<DataFile>();
+            model.DataFiles.AddRange(dataFiles);
+            model.SelectedDataFile = model.DataFiles.FirstOrDefault();
+
+            model.ColorModels.AddRange(Palette.GetColorModelNames());
+            model.SelectedColorModel = model.ColorModels.First();
+            model.Entries = 1;
+
+            if (model.DataFiles.Count == 0)
+            {
+                _promptService.PromptUser("Project does not contain any data files to define a palette", "Project Error", UserPromptChoices.Ok);
+                return Task.CompletedTask;
+            }
+            
+            if(_dialogService.ShowAddPaletteDialog(model))
+            {
+                var pal = new Palette(model.PaletteName, Palette.StringToColorModel(model.SelectedColorModel), model.FileOffset,
+                    model.Entries, model.ZeroIndexTransparent, PaletteStorageSource.DataFile);
+                pal.DataFile = model.SelectedDataFile;
+
+                _tree.Add(pal.Name, pal);
+                NotifyOfPropertyChange(() => RootItems);
+            }
+
+            return Task.CompletedTask;
         }
     }
 }

@@ -39,7 +39,8 @@ namespace TileShop.WPF
             _container.Instance<IProjectTreeService>(projectService);
 
             _container.PerRequest<IFileSelectService, FileSelectService>()
-                .PerRequest<IUserPromptService, UserPromptService>();
+                .PerRequest<IUserPromptService, UserPromptService>()
+                .PerRequest<IDialogService, DialogService>();
         }
 
         protected override void Configure()
