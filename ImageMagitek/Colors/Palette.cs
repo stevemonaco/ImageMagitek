@@ -16,7 +16,7 @@ namespace ImageMagitek.Colors
     /// Storage source of the palette
     /// ProjectFile palettes are stored in the XML project file
     /// </summary>
-    public enum PaletteStorageSource { File = 0, ProjectFile, Json }
+    public enum PaletteStorageSource { DataFile = 0, ProjectFile, Json }
 
     /// <summary>
     /// Palette manages the loading of palettes and colors from a variety of color formats
@@ -98,7 +98,7 @@ namespace ImageMagitek.Colors
             ZeroIndexTransparent = zeroIndexTransparent;
             StorageSource = storageSource;
 
-            if(storageSource == PaletteStorageSource.File)
+            if(storageSource == PaletteStorageSource.DataFile)
             {
                 _nativePalette = new Lazy<ColorRgba32[]>(() => LoadNativePalette());
                 _foreignPalette = new Lazy<IColor32[]>(() => LoadForeignPalette());
@@ -147,7 +147,7 @@ namespace ImageMagitek.Colors
             ColorModel = model;
             ZeroIndexTransparent = zeroIndexTransparent;
             Entries = numEntries;
-            StorageSource = PaletteStorageSource.File;
+            StorageSource = PaletteStorageSource.DataFile;
 
             _nativePalette = new Lazy<ColorRgba32[]>(() => LoadNativePalette());
             _foreignPalette = new Lazy<IColor32[]>(() => LoadForeignPalette());
@@ -356,7 +356,7 @@ namespace ImageMagitek.Colors
         /// <returns>Success value</returns>
         public bool SavePalette()
         {
-            if(StorageSource == PaletteStorageSource.File)
+            if(StorageSource == PaletteStorageSource.DataFile)
                 PaletteBinarySerializer.WritePalette(DataFile, FileAddress, ForeignPalette);
 
             return true;
@@ -406,6 +406,27 @@ namespace ImageMagitek.Colors
                     return "NES";
                 default:
                     throw new ArgumentException($"{nameof(ColorModelToString)} {nameof(ColorModel)} '{model.ToString()}' is not supported");
+            }
+        }
+
+        public static ColorModel ColorModelFromString(string modelName)
+        {
+            switch (modelName)
+            {
+                case "RGB24":
+                    return ColorModel.RGB24;
+                case "ARGB32":
+                    return ColorModel.ARGB32;
+                case "BGR15":
+                    return ColorModel.BGR15;
+                case "ABGR16":
+                    return ColorModel.ABGR16;
+                case "RGB15":
+                    return ColorModel.RGB15;
+                case "NES":
+                    return ColorModel.NES;
+                default:
+                    throw new ArgumentException($"{nameof(ColorModelFromString)} {nameof(ColorModel)} '{modelName}' is not supported");
             }
         }
 
