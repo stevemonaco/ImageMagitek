@@ -38,10 +38,10 @@ namespace ImageMagitek.Colors.SerializationModels
             }
             else if (hexString.Length == 9)
             {
-                var A = byte.Parse(hexString.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
-                var R = byte.Parse(hexString.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber);
-                var G = byte.Parse(hexString.AsSpan(5, 2), System.Globalization.NumberStyles.HexNumber);
-                var B = byte.Parse(hexString.AsSpan(7, 2), System.Globalization.NumberStyles.HexNumber);
+                var R = byte.Parse(hexString.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
+                var G = byte.Parse(hexString.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber);
+                var B = byte.Parse(hexString.AsSpan(5, 2), System.Globalization.NumberStyles.HexNumber);
+                var A = byte.Parse(hexString.AsSpan(7, 2), System.Globalization.NumberStyles.HexNumber);
                 return new ColorRgba32(R, G, B, A);
             }
             else

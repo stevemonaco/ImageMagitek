@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ImageMagitek": {
+      "commandName": "Project",
+      "workingDirectory": "D:\\ImageMagitek"
+    }
+  }
+}

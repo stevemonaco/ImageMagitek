@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TileShop.WPF": {
+      "commandName": "Project",
+      "workingDirectory": "D:\\ImageMagitek"
+    }
+  }
+}

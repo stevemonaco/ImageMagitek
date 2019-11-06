@@ -35,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Assets\" />
+    <Folder Include="Assets\pal\" />
   </ItemGroup>
 
 </Project>

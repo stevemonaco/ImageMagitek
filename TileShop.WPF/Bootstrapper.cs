@@ -26,12 +26,12 @@ namespace TileShop.WPF
         private void ConfigureServices()
         {
             var paletteService = new PaletteService();
-            paletteService.LoadJsonPalettes(@"F:\Projects\ImageMagitek\pal");
+            paletteService.LoadJsonPalettes(@"D:\ImageMagitek\pal");
             paletteService.DefaultPalette = paletteService.Palettes.Where(x => x.Name.Contains("DefaultRgba32")).First();
             _container.Instance<IPaletteService>(paletteService);
 
             var codecService = new CodecService(paletteService.DefaultPalette);
-            codecService.LoadXmlCodecs(@"F:\Projects\ImageMagitek\codecs");
+            codecService.LoadXmlCodecs(@"D:\ImageMagitek\codecs");
 
             _container.Instance<ICodecService>(codecService);
 
