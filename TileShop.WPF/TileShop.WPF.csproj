@@ -38,4 +38,10 @@
     <Folder Include="Assets\pal\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Assets\pal\DefaultRgba32.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
