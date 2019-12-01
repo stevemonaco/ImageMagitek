@@ -224,7 +224,7 @@ namespace ImageMagitek
 
             if(disposing)
             {
-                Image.Dispose();
+                Image?.Dispose();
             }
 
             _disposed = true;
