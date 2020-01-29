@@ -24,6 +24,13 @@ namespace ImageMagitek
     public enum ArrangerLayout { TiledArranger = 0, LinearArranger };
 
     /// <summary>
+    /// Specifies how the pixels' colors are determined for the graphic
+    /// Indexed graphics have their full color determined by a palette
+    /// Direct graphics have their full color determined by the pixel image data alone
+    /// </summary>
+    public enum PixelColorType { Indexed = 0, Direct }
+
+    /// <summary>
     /// Move operations for sequential arrangers
     /// </summary>
     public enum ArrangerMoveType { ByteDown = 0, ByteUp, RowDown, RowUp, ColRight, ColLeft, PageDown, PageUp, Home, End, Absolute };
@@ -64,6 +71,12 @@ namespace ImageMagitek
         /// Gets the ArrangerLayout of the Arranger
         /// </summary>
         public ArrangerLayout Layout { get; protected set; }
+
+        /// <summary>
+        /// Gets the ColorType of the Arranger
+        /// </summary>
+        public PixelColorType ColorType { get; protected set; }
+
         public string Name { get; set; }
 
         public bool CanContainChildResources => false;

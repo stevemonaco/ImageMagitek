@@ -24,9 +24,11 @@ namespace ImageMagitek
     /// </summary>
     public class ArrangerImage : IArrangerImage<Rgba32>, IDisposable
     {
-        public Image<Rgba32> Image { get; set; }
+        public Image<Rgba32> Image { get; private set; }
 
         private Arranger _arranger;
+        private DirectImage _directImage;
+        private IndexedImage _indexedImage;
         private bool _needsRedraw = true;
         private bool _disposed = false;
         private BlankCodec _blankCodec = new BlankCodec();
@@ -37,6 +39,13 @@ namespace ImageMagitek
         public ArrangerImage(Arranger arranger)
         {
             _arranger = arranger;
+            if (_arranger.ColorType == PixelColorType.Direct)
+                _directImage = new DirectImage(_arranger.ArrangerPixelSize.Width, _arranger.ArrangerPixelSize.Height);
+            else if (_arranger.ColorType == PixelColorType.Indexed)
+                _indexedImage = new IndexedImage(_arranger.ArrangerPixelSize.Width, _arranger.ArrangerPixelSize.Height);
+            else
+                throw new NotSupportedException($"{nameof(ArrangerImage)} does not support a {nameof(PixelColorType)} of value {_arranger.ColorType}");
+
         }
 
         /// <summary>
@@ -63,9 +72,17 @@ namespace ImageMagitek
             foreach (var el in _arranger.EnumerateElements())
             {
                 if (el.Codec is null)
+                {
                     _blankCodec.Decode(Image, el);
-                else
-                    el.Codec.Decode(Image, el);
+                }
+                else if (el.Codec is IIndexedGraphicsCodec indexedCodec)
+                {
+                    indexedCodec.Decode(_indexedImage, el);
+                }
+                else if (el.Codec is IDirectGraphicsCodec directCodec)
+                {
+                    directCodec.Decode(_directImage, el);
+                }
             }
 
             _needsRedraw = false;
@@ -105,7 +122,7 @@ namespace ImageMagitek
         }
 
         /// <summary>
-        /// Saves the currently edited image to the underlying source using the specified arranger for placement and encoding
+        /// Saves the image to the underlying source using the specified arranger for placement and encoding
         /// </summary>
         /// <param name="arranger"></param>
         /// <returns></returns>
@@ -128,10 +145,50 @@ namespace ImageMagitek
                 throw new InvalidOperationException($"{nameof(SaveImage)} has mismatched dimensions: " + 
                     $"'{nameof(arranger)}' ({arranger.ArrangerPixelSize.Width}, {arranger.ArrangerPixelSize.Height}) '{nameof(Image)} ({Image.Width}, {Image.Height})'");
 
-            foreach(var el in arranger.EnumerateElements().Where(x => x.Codec != null))
-                el.Codec.Encode(Image, el);
+            //foreach(var el in arranger.EnumerateElements().Where(x => x.Codec != null))
+            //    el.Codec.Encode(Image, el);
+
+            if (arranger.ColorType == PixelColorType.Direct)
+            {
+                var saveImage = _directImage;
+                if (_arranger.ColorType == PixelColorType.Indexed)
+                    saveImage = ImageColorAdapter.ToDirect(_indexedImage, _arranger.GetReferencedPalettes().First());
+                SaveDirectImage(arranger, saveImage);
+            }
+            else if (arranger.ColorType == PixelColorType.Indexed)
+            {
+                var saveImage = _indexedImage;
+                if (_arranger.ColorType == PixelColorType.Direct)
+                    saveImage = ImageColorAdapter.ToIndexed(_directImage, arranger.GetReferencedPalettes().First());
+                SaveIndexedImage(arranger, saveImage);
+            }
+            else
+                throw new InvalidOperationException($"{nameof(SaveImage)} with arranger '{arranger.Name}' has an invalid {nameof(PixelColorType)}");
 
             return true;
+        }
+
+        public void SaveAsFile(string path)
+        {
+
+        }
+
+        private void SaveDirectImage(Arranger arranger, DirectImage directImage)
+        {
+            foreach(var el in arranger.EnumerateElements().Where(x => x.Codec is IDirectGraphicsCodec))
+            {
+                var codec = el.Codec as IDirectGraphicsCodec;
+                codec.Encode(directImage, el);
+            }
+        }
+
+        private void SaveIndexedImage(Arranger arranger, IndexedImage indexedImage)
+        {
+            foreach (var el in arranger.EnumerateElements().Where(x => x.Codec is IIndexedGraphicsCodec))
+            {
+                var codec = el.Codec as IIndexedGraphicsCodec;
+                codec.Encode(indexedImage, el);
+            }
         }
 
         /// <summary>

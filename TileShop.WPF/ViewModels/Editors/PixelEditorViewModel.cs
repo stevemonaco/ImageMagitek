@@ -124,7 +124,7 @@ namespace TileShop.WPF.ViewModels
             {
                 var palettes = _arranger?.GetReferencedPalettes();
                 if (palettes?.Count <= 1)
-                    return _arranger.GetReferencedCodecs().All(x => x.ColorType == ImageMagitek.Codec.PixelColorType.Indexed);
+                    return _arranger.GetReferencedCodecs().All(x => x.ColorType == PixelColorType.Indexed);
 
                 return false;
             }

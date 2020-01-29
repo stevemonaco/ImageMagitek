@@ -1,13 +1,12 @@
-﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using ImageMagitek.Colors;
+﻿using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
-using SixLabors.ImageSharp.Advanced;
 using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace ImageMagitek.Codec
 {
-    public sealed class Snes3bppCodec : IGraphicsCodec
+    public sealed class Snes3bppCodec : IIndexedGraphicsCodec
     {
         public string Name => "SNES 3bpp";
         public int Width { get; private set; } = 8;
@@ -35,7 +34,7 @@ namespace ImageMagitek.Codec
             _bitStream = BitStream.OpenRead(_buffer, StorageSize);
         }
 
-        public void Decode(Image<Rgba32> image, ArrangerElement el)
+        public void Decode(IndexedImage image, ArrangerElement el)
         {
             var fs = el.DataFile.Stream;
 
@@ -54,7 +53,7 @@ namespace ImageMagitek.Codec
             var offsetPlane2 = el.Width;
             var offsetPlane3 = el.Width * el.Height * 2;
 
-            for(int y = 0; y < el.Height; y++)
+            for (int y = 0; y < el.Height; y++)
             {
                 for (int x = 0; x < el.Width; x++)
                 {
@@ -66,7 +65,7 @@ namespace ImageMagitek.Codec
                     var bp3 = _bitStream.ReadBit();
 
                     var palIndex = (bp1 << 0) | (bp2 << 1) | (bp3 << 2);
-                    dest[destidx] = pal[palIndex].ToRgba32();
+                    dest[destidx] = (byte) palIndex;
                     destidx++;
 
                     offsetPlane1++;
@@ -80,7 +79,7 @@ namespace ImageMagitek.Codec
             }
         }
 
-        public void Encode(Image<Rgba32> image, ArrangerElement el)
+        public void Encode(IndexedImage image, ArrangerElement el)
         {
             var fs = el.DataFile.Stream;
 
@@ -99,9 +98,7 @@ namespace ImageMagitek.Codec
             {
                 for (int x = 0; x < el.Width; x++)
                 {
-                    var imageColor = image[x + el.X1, y + el.Y1];
-                    var nc = new ColorRgba32(imageColor.R, imageColor.G, imageColor.B, imageColor.A);
-                    byte index = pal.GetIndexByNativeColor(nc, true);
+                    var index = image.GetPixel(x + el.X1, y + el.Y1);
 
                     byte bp1 = (byte)(index & 1);
                     byte bp2 = (byte)((index >> 1) & 1);

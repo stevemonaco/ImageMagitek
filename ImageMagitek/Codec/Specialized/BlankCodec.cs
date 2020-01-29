@@ -1,10 +1,11 @@
-﻿using SixLabors.ImageSharp;
+﻿using ImageMagitek.Colors;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace ImageMagitek.Codec
 {
-    public sealed class BlankCodec : IGraphicsCodec
+    public sealed class BlankCodec : IGraphicsCodec, IDirectGraphicsCodec, IIndexedGraphicsCodec
     {
         public string Name => "Blank";
 
@@ -29,10 +30,8 @@ namespace ImageMagitek.Codec
         public void Decode(Image<Rgba32> image, ArrangerElement el)
         {
             var dest = image.GetPixelSpan();
-
             int destidx = image.Width * el.Y1 + el.X1;
 
-            // Copy data into image
             for (int y = 0; y < el.Height; y++)
             {
                 for (int x = 0; x < el.Width; x++, destidx++)
@@ -41,8 +40,37 @@ namespace ImageMagitek.Codec
             }
         }
 
-        public void Encode(Image<Rgba32> image, ArrangerElement el)
+        public void Encode(Image<Rgba32> image, ArrangerElement el) { }
+
+        public void Decode(DirectImage image, ArrangerElement el)
         {
+            var dest = image.GetPixelSpan();
+            int destidx = image.Width * el.Y1 + el.X1;
+            var color = new ColorRgba32(FillColor.R, FillColor.G, FillColor.B, FillColor.A);
+
+            for(int y = 0; y < el.Height; y++)
+            {
+                for (int x = 0; x < el.Width; x++, destidx++)
+                    dest[destidx] = color;
+                destidx += el.X1 + image.Width - (el.X2 + 1);
+            }
         }
+
+        public void Encode(DirectImage image, ArrangerElement el) { }
+
+        public void Decode(IndexedImage image, ArrangerElement el)
+        {
+            var dest = image.GetPixelSpan();
+            int destidx = image.Width * el.Y1 + el.X1;
+
+            for (int y = 0; y < el.Height; y++)
+            {
+                for (int x = 0; x < el.Width; x++, destidx++)
+                    dest[destidx] = 0;
+                destidx += el.X1 + image.Width - (el.X2 + 1);
+            }
+        }
+
+        public void Encode(IndexedImage image, ArrangerElement el) { }
     }
 }

@@ -1,7 +1,4 @@
-﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
-namespace ImageMagitek.Codec
+﻿namespace ImageMagitek.Codec
 {
     public interface IDirectGraphicsCodec : IGraphicsCodec
     {

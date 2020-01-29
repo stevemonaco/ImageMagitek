@@ -7,7 +7,7 @@
 - Write schema after new spec
 
 Usage improvements
-- Helper methods for simply defining and decoding/encoding small graphics
+- Helper methods for conveniently defining and decoding/encoding small graphics
 
 FileStream - Currently always opened
 - Create a FileStreamContext service to keep track of opened files for a given operation
@@ -21,6 +21,9 @@ Error handling
 
 Project
 - Implement renaming/moving logic
+
+Refactors
+- Arranger.GetReferenced* - Refactor to use Linq
 
 Tests
 - Graphics encoder/decoder tests

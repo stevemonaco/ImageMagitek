@@ -1,6 +1,6 @@
 ﻿using ImageMagitek.Colors;
 
-namespace ImageMagitek.Image
+namespace ImageMagitek
 {
     public class DirectImage : ImageBase<ColorRgba32>
     {

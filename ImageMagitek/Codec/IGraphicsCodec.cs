@@ -11,13 +11,6 @@ namespace ImageMagitek.Codec
     /// </summary>
     public enum ImageLayout { Tiled = 0, Linear }
 
-    /// <summary>
-    /// Specifies how the pixels' colors are determined for the graphic
-    /// Indexed graphics have their full color determined by a palette
-    /// Direct graphics have their full color determined by the pixel image data alone
-    /// </summary>
-    public enum PixelColorType { Indexed = 0, Direct }
-
     public interface IGraphicsCodec
     {
         string Name { get; }
@@ -29,8 +22,5 @@ namespace ImageMagitek.Codec
         int StorageSize { get; }
         int RowStride { get; }
         int ElementStride { get; }
-
-        void Decode(Image<Rgba32> image, ArrangerElement el);
-        void Encode(Image<Rgba32> image, ArrangerElement el);
     }
 }
