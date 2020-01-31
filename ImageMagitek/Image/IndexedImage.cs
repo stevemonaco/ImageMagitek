@@ -62,28 +62,19 @@ namespace ImageMagitek
             }
         }
 
-        public override bool SaveImage()
+        public override void SaveImage()
         {
-            bool success = false;
-            try
+            var buffer = new byte[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
+            
+            foreach (var el in Arranger.EnumerateElements().Where(x => x.Codec is IIndexedGraphicsCodec))
             {
-                var buffer = new byte[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
-                foreach (var el in Arranger.EnumerateElements().Where(x => x.Codec is IIndexedGraphicsCodec))
-                {
-                    Image.CopyToArray(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
-                    var codec = el.Codec as IIndexedGraphicsCodec;
-                    codec.Encode(el, buffer);                    
-                }
-                foreach (var fs in Arranger.EnumerateElements().Select(x => x.DataFile.Stream).Distinct())
-                    fs.Flush();
-                success = true;
-            }
-            finally
-            {
-                // TODO: Log
+                Image.CopyToArray(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
+                var codec = el.Codec as IIndexedGraphicsCodec;
+                codec.Encode(el, buffer);
             }
 
-            return success;
+            foreach (var fs in Arranger.EnumerateElements().Select(x => x.DataFile.Stream).Distinct())
+                fs.Flush();
         }
 
         public override void SetPixel(int x, int y, byte color)

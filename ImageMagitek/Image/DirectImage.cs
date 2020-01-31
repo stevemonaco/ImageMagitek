@@ -23,7 +23,8 @@ namespace ImageMagitek
 
         public override void ImportImage(string imagePath, IImageFileAdapter adapter)
         {
-            throw new NotImplementedException();
+            var importImage = adapter.LoadImage(imagePath);
+            importImage.CopyTo(Image, 0);
         }
 
         public override void Render()
@@ -56,28 +57,17 @@ namespace ImageMagitek
             }
         }
 
-        public override bool SaveImage()
+        public override void SaveImage()
         {
-            bool success = false;
-            try
+            var buffer = new ColorRgba32[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
+            foreach (var el in Arranger.EnumerateElements().Where(x => x.Codec is IDirectGraphicsCodec))
             {
-                var buffer = new ColorRgba32[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
-                foreach (var el in Arranger.EnumerateElements().Where(x => x.Codec is IDirectGraphicsCodec))
-                {
-                    Image.CopyToArray(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
-                    var codec = el.Codec as IDirectGraphicsCodec;
-                    codec.Encode(el, buffer);
-                }
-                foreach (var fs in Arranger.EnumerateElements().Select(x => x.DataFile.Stream).Distinct())
-                    fs.Flush();
-                success = true;
+                Image.CopyToArray(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
+                var codec = el.Codec as IDirectGraphicsCodec;
+                codec.Encode(el, buffer);
             }
-            finally
-            {
-                // TODO: Log
-            }
-
-            return success;
+            foreach (var fs in Arranger.EnumerateElements().Select(x => x.DataFile.Stream).Distinct())
+                fs.Flush();
         }
     }
 }

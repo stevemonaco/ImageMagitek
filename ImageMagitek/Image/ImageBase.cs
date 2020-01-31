@@ -16,7 +16,7 @@ namespace ImageMagitek
         public int Height => Arranger.ArrangerPixelSize.Height;
 
         public abstract void Render();
-        public abstract bool SaveImage();
+        public abstract void SaveImage();
         public abstract void ExportImage(string imagePath, IImageFileAdapter adapter);
         public abstract void ImportImage(string imagePath, IImageFileAdapter adapter);
 
