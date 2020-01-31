@@ -5,21 +5,25 @@ using SixLabors.ImageSharp;
 using ImageMagitek;
 using ImageMagitek.Project;
 using Monaco.PathTree;
+using ImageMagitek.Colors;
 
 namespace ImageMagitekConsole
 {
     public class CommandProcessor
     {
-        private readonly IPathTree<IProjectResource> ResourceTree;
+        private readonly IPathTree<IProjectResource> _resourceTree;
+        private readonly Palette _defaultPalette;
 
-        public CommandProcessor(IPathTree<IProjectResource> resourceTree)
+        public CommandProcessor(IPathTree<IProjectResource> resourceTree, Palette defaultPalette)
         {
-            ResourceTree = resourceTree;
+            _resourceTree = resourceTree;
+            _defaultPalette = defaultPalette;
+            
         }
 
         public bool PrintResources()
         {
-            foreach (var res in ResourceTree.EnumerateDepthFirst())
+            foreach (var res in _resourceTree.EnumerateDepthFirst())
             {
                 string key = res.PathKey;
                 int level = key.Split('\\').Length;
@@ -32,7 +36,7 @@ namespace ImageMagitekConsole
 
         public bool ExportArranger(string arrangerKey, string projectRoot)
         {
-            ResourceTree.TryGetNode(arrangerKey, out var node);
+            _resourceTree.TryGetNode(arrangerKey, out var node);
 
             var relativeFile = Path.Combine(node.Paths.ToArray());
             var exportFileName = Path.Combine(projectRoot, relativeFile + ".bmp");
@@ -42,18 +46,23 @@ namespace ImageMagitekConsole
             Console.WriteLine($"Exporting {arranger.Name} to {exportFileName}...");
             Directory.CreateDirectory(Path.GetDirectoryName(exportFileName));
 
-            using var image = new ArrangerImage(arranger);
-            using var fs = File.Create(exportFileName, 32 * 1024, FileOptions.SequentialScan);
-
-            image.Render();
-            image.Image.SaveAsBmp(fs);
+            if (arranger.ColorType == PixelColorType.Indexed)
+            {
+                var image = new IndexedImage(arranger, _defaultPalette);
+                image.ExportImage(exportFileName, new ImageFileAdapter());
+            }
+            else if (arranger.ColorType == PixelColorType.Direct)
+            {
+                var image = new DirectImage(arranger);
+                image.ExportImage(exportFileName, new ImageFileAdapter());
+            }
 
             return true;
         }
 
         public bool ExportAllArrangers(string projectRoot)
         {
-            foreach (var node in ResourceTree.EnumerateDepthFirst())
+            foreach (var node in _resourceTree.EnumerateDepthFirst())
             {
                 if(node.Value is ScatteredArranger)
                     ExportArranger(node.PathKey, projectRoot);
@@ -66,19 +75,27 @@ namespace ImageMagitekConsole
         {
             Console.WriteLine($"Importing {imageFileName} to {arrangerKey}...");
 
-            ResourceTree.TryGetValue(arrangerKey, out ScatteredArranger arranger);
-
-            using var image = new ArrangerImage(arranger);
-
-            image.LoadImage(imageFileName);
-            image.SaveImage(arranger);
+            _resourceTree.TryGetValue(arrangerKey, out ScatteredArranger arranger);
+            
+            if (arranger.ColorType == PixelColorType.Indexed)
+            {
+                var image = new IndexedImage(arranger, _defaultPalette);
+                image.ImportImage(imageFileName, new ImageFileAdapter());
+                image.SaveImage();
+            }
+            else if (arranger.ColorType == PixelColorType.Direct)
+            {
+                var image = new DirectImage(arranger);
+                image.ImportImage(imageFileName, new ImageFileAdapter());
+                image.SaveImage();
+            }
 
             return true;
         }
 
         public bool ImportAllImages(string projectRoot)
         {
-            foreach (var node in ResourceTree.EnumerateDepthFirst().Where(x => x.Value is ScatteredArranger))
+            foreach (var node in _resourceTree.EnumerateDepthFirst().Where(x => x.Value is ScatteredArranger))
             {
                 var arranger = node.Value as ScatteredArranger;
                 var relativeFile = Path.Combine(node.Paths.ToArray());
@@ -92,7 +109,7 @@ namespace ImageMagitekConsole
         public bool ResaveProject(string newProjectFile)
         {
             var writer = new XmlGameDescriptorWriter();
-            return writer.WriteProject(ResourceTree, newProjectFile);
+            return writer.WriteProject(_resourceTree, newProjectFile);
         }
     }
 }

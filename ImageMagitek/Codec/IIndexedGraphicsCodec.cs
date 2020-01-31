@@ -2,7 +2,7 @@
 {
     public interface IIndexedGraphicsCodec : IGraphicsCodec
     {
-        void Decode(IndexedImage image, ArrangerElement el);
-        void Encode(IndexedImage image, ArrangerElement el);
+        void Decode(ArrangerElement el, byte[,] imageBuffer);
+        void Encode(ArrangerElement el, byte[,] imageBuffer);
     }
 }

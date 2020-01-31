@@ -1,19 +1,19 @@
 {
   "profiles": {
-    "ImageMagitekConsole": {
-      "commandName": "Project",
-      "commandLineArgs": "ff2.xml ExportAll FF2Extract",
-      "workingDirectory": "D:\\ImageMagitek"
-    },
-    "ImageMagitekConsoleTest": {
-      "commandName": "Project",
-      "commandLineArgs": "ff2.xml ExportAll F:\\Projects\\ImageMagitek\\FF2Extract",
-      "workingDirectory": "F:\\Projects\\ImageMagitek"
-    },
     "ImageMagitekConsoleTestPSX": {
       "commandName": "Project",
       "commandLineArgs": "psx.xml ExportAll F:\\Projects\\ImageMagitek\\PSXExtract",
       "workingDirectory": "F:\\Projects\\ImageMagitek"
+    },
+    "FF2 ExportAll": {
+      "commandName": "Project",
+      "commandLineArgs": "ff2.xml ExportAll FF2Extract",
+      "workingDirectory": "D:\\ImageMagitek"
+    },
+    "FF2 ImportAll": {
+      "commandName": "Project",
+      "commandLineArgs": "ff2.xml ImportAll FF2Extract",
+      "workingDirectory": "D:\\ImageMagitek"
     }
   }
 }

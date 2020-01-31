@@ -42,35 +42,28 @@ namespace ImageMagitek.Codec
 
         public void Encode(Image<Rgba32> image, ArrangerElement el) { }
 
-        public void Decode(DirectImage image, ArrangerElement el)
+        public void Decode(ArrangerElement el, ColorRgba32[,] imageBuffer)
         {
-            var dest = image.GetPixelSpan();
-            int destidx = image.Width * el.Y1 + el.X1;
             var color = new ColorRgba32(FillColor.R, FillColor.G, FillColor.B, FillColor.A);
 
             for(int y = 0; y < el.Height; y++)
             {
-                for (int x = 0; x < el.Width; x++, destidx++)
-                    dest[destidx] = color;
-                destidx += el.X1 + image.Width - (el.X2 + 1);
+                for (int x = 0; x < el.Width; x++)
+                    imageBuffer[x, y] = color;
             }
         }
 
-        public void Encode(DirectImage image, ArrangerElement el) { }
+        public void Encode(ArrangerElement el, ColorRgba32[,] imageBuffer) { }
 
-        public void Decode(IndexedImage image, ArrangerElement el)
+        public void Decode(ArrangerElement el, byte[,] imageBuffer)
         {
-            var dest = image.GetPixelSpan();
-            int destidx = image.Width * el.Y1 + el.X1;
-
             for (int y = 0; y < el.Height; y++)
             {
-                for (int x = 0; x < el.Width; x++, destidx++)
-                    dest[destidx] = 0;
-                destidx += el.X1 + image.Width - (el.X2 + 1);
+                for (int x = 0; x < el.Width; x++)
+                    imageBuffer[x, y] = 0;
             }
         }
 
-        public void Encode(IndexedImage image, ArrangerElement el) { }
+        public void Encode(ArrangerElement el, byte[,] imageBuffer) { }
     }
 }

@@ -132,10 +132,11 @@ namespace TileShop.WPF.ViewModels
 
         public void CreateImage()
         {
-            _arrangerImage = new ArrangerImage(_arranger);
-            _arrangerImage.RenderSubImage(_cropX, _cropY, _cropWidth, _cropHeight);
-            ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
-            HasArranger = true;
+            throw new NotImplementedException();
+            //_arrangerImage = new ArrangerImage(_arranger);
+            //_arrangerImage.RenderSubImage(_cropX, _cropY, _cropWidth, _cropHeight);
+            //ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
+            //HasArranger = true;
         }
 
         public void Render()
@@ -158,7 +159,7 @@ namespace TileShop.WPF.ViewModels
 
         public Color GetPixel(int x, int y)
         {
-            var arrangerColor = _arrangerImage.GetPixel(x, y);
+            var arrangerColor = _arrangerImage.GetDirectPixel(x, y);
             var newColor = new Color();
             newColor.R = arrangerColor.R;
             newColor.G = arrangerColor.G;

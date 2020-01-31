@@ -9,11 +9,6 @@ namespace ImageMagitek
     public class ArrangerElement
     {
         /// <summary>
-        /// Gets or sets the parent Arranger for the Element
-        /// </summary>
-        public Arranger Parent { get; set; }
-
-        /// <summary>
         /// DataFile which contains the element's pixel data
         /// </summary>
         public DataFile DataFile { get; set; }
@@ -77,7 +72,6 @@ namespace ImageMagitek
         {
             ArrangerElement el = new ArrangerElement()
             {
-                Parent = Parent,
                 DataFile = DataFile,
                 FileAddress = FileAddress,
                 Width = Width,

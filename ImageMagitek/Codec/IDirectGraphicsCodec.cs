@@ -1,8 +1,10 @@
-﻿namespace ImageMagitek.Codec
+﻿using ImageMagitek.Colors;
+
+namespace ImageMagitek.Codec
 {
     public interface IDirectGraphicsCodec : IGraphicsCodec
     {
-        void Decode(DirectImage image, ArrangerElement el);
-        void Encode(DirectImage image, ArrangerElement el);
+        void Decode(ArrangerElement el, ColorRgba32[,] imageBuffer);
+        void Encode(ArrangerElement el, ColorRgba32[,] imageBuffer);
     }
 }

@@ -74,7 +74,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Codec\Specialized\Direct\" />
     <Folder Include="Schemas\" />
   </ItemGroup>
 

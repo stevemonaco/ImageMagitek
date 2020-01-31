@@ -40,7 +40,6 @@ namespace ImageMagitek
                 {
                     ArrangerElement el = new ArrangerElement()
                     {
-                        Parent = this,
                         X1 = x,
                         Y1 = y,
                         Width = elementWidth,
@@ -85,7 +84,6 @@ namespace ImageMagitek
                     {
                         ArrangerElement el = new ArrangerElement()
                         {
-                            Parent = this,
                             X1 = x * Width,
                             Y1 = y * Height,
                             Width = Width,

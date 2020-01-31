@@ -111,7 +111,6 @@ namespace ImageMagitek
                     ArrangerElement el = ElementGrid[j, i] ??
                         new ArrangerElement() { Codec = _codecs.CloneCodec(ActiveCodec) };
 
-                    el.Parent = this;
                     el.FileAddress = address;
                     el.X1 = x;
                     el.Y1 = y;

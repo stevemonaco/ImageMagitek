@@ -19,11 +19,11 @@ namespace ImageMagitek.Codec
             switch (codecName)
             {
                 case "SNES 3bpp":
-                    return new Snes3bppCodec(width, height, DefaultPalette);
+                    return new Snes3bppCodec(width, height);
                 case "PSX 4bpp":
-                    return new Psx4bppCodec(width, height, DefaultPalette);
+                    return new Psx4bppCodec(width, height);
                 case "PSX 8bpp":
-                    return new Psx8bppCodec(width, height, DefaultPalette);
+                    return new Psx8bppCodec(width, height);
                 case "PSX 16bpp":
                     return new Psx16bppCodec(width, height);
                 case "PSX 24bpp":

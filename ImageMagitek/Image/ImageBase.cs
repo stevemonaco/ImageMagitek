@@ -1,13 +1,24 @@
-﻿using System;
+﻿using ImageMagitek.Codec;
+using System;
 using System.Collections.Generic;
 
 namespace ImageMagitek
 {
+    /// <summary>
+    /// Provides an editing/viewing layer around an Arranger
+    /// </summary>
+    /// <typeparam name="TPixel"></typeparam>
     public abstract class ImageBase<TPixel> where TPixel: struct
     {
+        protected Arranger Arranger { get; set; }
         public TPixel[] Image { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public int Width => Arranger.ArrangerPixelSize.Width;
+        public int Height => Arranger.ArrangerPixelSize.Height;
+
+        public abstract void Render();
+        public abstract bool SaveImage();
+        public abstract void ExportImage(string imagePath, IImageFileAdapter adapter);
+        public abstract void ImportImage(string imagePath, IImageFileAdapter adapter);
 
         public virtual TPixel GetPixel(int x, int y)
         {
@@ -39,7 +50,7 @@ namespace ImageMagitek
             return new Span<TPixel>(Image, Width * y, Width);
         }
 
-        public virtual IEnumerable<TPixel> EnumeratePixels()
+        public virtual IEnumerable<TPixel> Pixels()
         {
             if (Image is null)
                 throw new NullReferenceException($"{nameof(GetPixel)} property '{nameof(Image)}' was null");

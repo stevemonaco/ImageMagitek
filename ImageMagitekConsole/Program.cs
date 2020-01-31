@@ -65,7 +65,7 @@ namespace ImageMagitekConsole
             var deserializer = new XmlGameDescriptorReader(new CodecFactory(formats, defaultPalette));
             var tree = deserializer.ReadProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
 
-            var processor = new CommandProcessor(tree);
+            var processor = new CommandProcessor(tree, defaultPalette);
 
             switch (command)
             {

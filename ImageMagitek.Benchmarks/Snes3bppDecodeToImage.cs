@@ -31,7 +31,7 @@ namespace ImageMagitek.Benchmarks
             var palFileName = Path.Combine(Directory.GetCurrentDirectory(), "Resources", paletteFileName);
             pal = PaletteJsonSerializer.ReadPalette(palFileName);
 
-            Codec = new Snes3bppCodec(8, 8, pal);
+            Codec = new Snes3bppCodec(8, 8);
             Setup(nativeFileName, "native");
         }
 
@@ -72,7 +72,6 @@ namespace ImageMagitek.Benchmarks
                         Codec = Codec,
                         DataFile = df,
                         Palette = pal,
-                        Parent = arranger,
                         FileAddress = 24 * x + 24 * x * y,
                         Height = 8,
                         Width = 8,

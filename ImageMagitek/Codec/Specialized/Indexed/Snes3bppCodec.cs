@@ -17,37 +17,30 @@ namespace ImageMagitek.Codec
         public int ColorDepth => 3;
         public int RowStride => 0;
         public int ElementStride => 0;
-        public Palette DefaultPalette { get; set; }
 
         private byte[] _buffer;
         private Memory<byte> _memoryBuffer;
         private BitStream _bitStream;
 
-        public Snes3bppCodec(int width, int height, Palette defaultPalette)
+        public Snes3bppCodec(int width, int height)
         {
             Width = width;
             Height = height;
-            DefaultPalette = defaultPalette;
 
             _buffer = new byte[(StorageSize + 7) / 8];
             _memoryBuffer = new Memory<byte>(_buffer);
             _bitStream = BitStream.OpenRead(_buffer, StorageSize);
         }
 
-        public void Decode(IndexedImage image, ArrangerElement el)
+        public void Decode(ArrangerElement el, byte[,] imageBuffer)
         {
             var fs = el.DataFile.Stream;
 
             if (el.FileAddress + StorageSize > fs.Length * 8) // Element would contain data past the end of the file
                 return;
 
-            var dest = image.GetPixelSpan();
-            int destidx = image.Width * el.Y1 + el.X1;
-
             _bitStream.SeekAbsolute(0);
             fs.ReadUnshifted(el.FileAddress, StorageSize, true, _memoryBuffer.Span);
-
-            var pal = el.Palette ?? DefaultPalette;
 
             var offsetPlane1 = 0;
             var offsetPlane2 = el.Width;
@@ -65,21 +58,19 @@ namespace ImageMagitek.Codec
                     var bp3 = _bitStream.ReadBit();
 
                     var palIndex = (bp1 << 0) | (bp2 << 1) | (bp3 << 2);
-                    dest[destidx] = (byte) palIndex;
-                    destidx++;
+                    imageBuffer[x, y] = (byte) palIndex;
 
                     offsetPlane1++;
                     offsetPlane2++;
                     offsetPlane3++;
                 }
 
-                destidx += el.X1 + image.Width - (el.X2 + 1);
                 offsetPlane1 += Width;
                 offsetPlane2 += Width;
             }
         }
 
-        public void Encode(IndexedImage image, ArrangerElement el)
+        public void Encode(ArrangerElement el, byte[,] imageBuffer)
         {
             var fs = el.DataFile.Stream;
 
@@ -92,13 +83,11 @@ namespace ImageMagitek.Codec
             var offsetPlane2 = el.Width;
             var offsetPlane3 = el.Width * el.Height * 2;
 
-            var pal = el.Palette ?? DefaultPalette;
-
             for (int y = 0; y < el.Height; y++)
             {
                 for (int x = 0; x < el.Width; x++)
                 {
-                    var index = image.GetPixel(x + el.X1, y + el.Y1);
+                    var index = imageBuffer[x, y];
 
                     byte bp1 = (byte)(index & 1);
                     byte bp2 = (byte)((index >> 1) & 1);

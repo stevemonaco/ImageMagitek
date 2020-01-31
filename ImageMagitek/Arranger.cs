@@ -153,7 +153,7 @@ namespace ImageMagitek
         }
 
         /// <summary>
-        /// Gets an Element from a position in the Arranger ElementGrid
+        /// Gets an Element from a position in the Arranger ElementGrid in element coordinates
         /// </summary>
         /// <param name="arrangerPosX">0-based x-coordinate of Element</param>
         /// <param name="arrangerPosY">0-based y-coordinate of Element</param>
@@ -167,6 +167,17 @@ namespace ImageMagitek
                 throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({arrangerPosX}, {arrangerPosY})");
 
             return ElementGrid[arrangerPosX, arrangerPosY];
+        }
+
+        public ArrangerElement GetElementAtPixel(int arrangerPosX, int arrangerPosY)
+        {
+            if (ElementGrid is null)
+                throw new NullReferenceException($"{nameof(GetElementAtPixel)} property '{nameof(ElementGrid)}' was null");
+
+            if (arrangerPosX >= ArrangerPixelSize.Width || arrangerPosY >= ArrangerPixelSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({arrangerPosX}, {arrangerPosY})");
+
+            return ElementGrid[arrangerPosX / ElementPixelSize.Width, arrangerPosY / ElementPixelSize.Height];
         }
 
         public IEnumerable<ArrangerElement> EnumerateElements()

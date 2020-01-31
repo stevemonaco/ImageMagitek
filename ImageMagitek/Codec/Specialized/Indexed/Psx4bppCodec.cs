@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
+using System.IO;
 using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 using SixLabors.ImageSharp;
@@ -10,9 +10,9 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace ImageMagitek.Codec
 {
-    public class Psx24bppCodec : IGraphicsCodec
+    public class Psx4bppCodec : IIndexedGraphicsCodec
     {
-        public string Name => "PSX 24bpp";
+        public string Name => "PSX 4bpp";
 
         public int Width { get; private set; } = 8;
 
@@ -20,11 +20,11 @@ namespace ImageMagitek.Codec
 
         public ImageLayout Layout => ImageLayout.Linear;
 
-        public PixelColorType ColorType => PixelColorType.Direct;
+        public PixelColorType ColorType => PixelColorType.Indexed;
 
-        public int ColorDepth => 24;
+        public int ColorDepth => 4;
 
-        public int StorageSize => Width * Height * 24;
+        public int StorageSize => Width * Height * 4;
 
         public int RowStride { get; private set; } = 0;
 
@@ -34,7 +34,7 @@ namespace ImageMagitek.Codec
         private Memory<byte> _memoryBuffer;
         private BitStream _bitStream;
 
-        public Psx24bppCodec(int width, int height)
+        public Psx4bppCodec(int width, int height)
         {
             Width = width;
             Height = height;
@@ -44,37 +44,31 @@ namespace ImageMagitek.Codec
             _bitStream = BitStream.OpenRead(_buffer, StorageSize);
         }
 
-        public void Decode(Image<Rgba32> image, ArrangerElement el)
+        public void Decode(ArrangerElement el, byte[,] imageBuffer)
         {
             var fs = el.DataFile.Stream;
 
             if (el.FileAddress + StorageSize > fs.Length * 8) // Element would contain data past the end of the file
                 return;
 
-            var dest = image.GetPixelSpan();
-            int destidx = image.Width * el.Y1 + el.X1;
-
             _bitStream.SeekAbsolute(0);
             fs.ReadUnshifted(el.FileAddress, StorageSize, true, _memoryBuffer.Span);
 
             for (int y = 0; y < el.Height; y++)
             {
-                for (int x = 0; x < el.Width; x++)
+                for (int x = 0; x < el.Width / 2; x++)
                 {
-                    byte r = _bitStream.ReadByte();
-                    byte g = _bitStream.ReadByte();
-                    byte b = _bitStream.ReadByte();
+                    var palIndex = (byte) _bitStream.ReadBits(4);
+                    imageBuffer[x+1, y] = palIndex;
 
-                    var nc = new ColorRgba32(r, g, b, 0xFF);
-                    dest[destidx] = nc.ToRgba32();
-                    destidx++;
+                    palIndex = (byte) _bitStream.ReadBits(4);
+                    imageBuffer[x, y] = palIndex;
+
                 }
-
-                destidx += RowStride + el.X1 + image.Width - (el.X2 + 1);
             }
         }
 
-        public void Encode(Image<Rgba32> image, ArrangerElement el)
+        public void Encode(ArrangerElement el, byte[,] imageBuffer)
         {
             var fs = el.DataFile.Stream;
 
@@ -83,21 +77,16 @@ namespace ImageMagitek.Codec
 
             fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
 
-            var src = image.GetPixelSpan();
-            int srcidx = image.Width * el.Y1 + el.X1;
-
             for (int y = 0; y < el.Height; y++)
             {
-                for (int x = 0; x < el.Width; x++)
+                for (int x = 0; x < el.Width / 2; x++)
                 {
-                    var imageColor = src[srcidx];
-                    fs.WriteByte(imageColor.R);
-                    fs.WriteByte(imageColor.G);
-                    fs.WriteByte(imageColor.B);
+                    byte indexLow = imageBuffer[x, y];
+                    byte indexHigh = imageBuffer[x+1, y];
 
-                    srcidx++;
+                    byte index = (byte)(indexLow | (indexHigh << 4));
+                    fs.WriteByte(index);
                 }
-                srcidx += RowStride + el.X1 + image.Width - (el.X2 + 1);
             }
 
             fs.Flush();
