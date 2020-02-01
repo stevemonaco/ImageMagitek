@@ -91,7 +91,7 @@ namespace ImageMagitek
 
         public bool TrySetPixel(int x, int y, ColorRgba32 color)
         {
-            var elem = Arranger.GetElement(x, y);
+            var elem = Arranger.GetElementAtPixel(x, y);
             if (!(elem.Codec is IIndexedGraphicsCodec))
                 return false;
 
@@ -108,6 +108,14 @@ namespace ImageMagitek
             var index = pal.GetIndexByNativeColor(color, true);
             Image[x + Width * y] = index;
             return true;
+        }
+
+        public ColorRgba32 GetPixel(int x, int y, Arranger arranger)
+        {
+            var pal = Arranger.GetElement(x, y).Palette ?? _defaultPalette;
+            var imageIndex = y * arranger.ArrangerPixelSize.Width + x;
+            var palIndex = Image[imageIndex];
+            return pal[palIndex];
         }
     }
 }
