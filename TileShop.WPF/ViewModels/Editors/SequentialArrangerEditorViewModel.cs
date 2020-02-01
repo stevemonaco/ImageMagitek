@@ -10,6 +10,7 @@ using TileShop.Shared.EventModels;
 using TileShop.Shared.Services;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Helpers;
+using TileShop.WPF.Imaging;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -108,7 +109,10 @@ namespace TileShop.WPF.ViewModels
             _arranger = arranger;
             _events = events;
             _codecService = codecService;
-            _arrangerImage = new ArrangerImage(arranger);
+            if (_arranger.ColorType == PixelColorType.Indexed)
+                _indexedImage = new IndexedImage(_arranger, null);
+            else if (_arranger.ColorType == PixelColorType.Direct)
+                _directImage = new DirectImage(_arranger);
 
             foreach (var name in codecService.GetSupportedCodecNames().OrderBy(x => x))
                 CodecNames.Add(name);
@@ -246,9 +250,17 @@ namespace TileShop.WPF.ViewModels
         private void Render()
         {
             CancelSelection();
-            _arrangerImage.Invalidate();
-            _arrangerImage.Render();
-            ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
+
+            if (_arranger.ColorType == PixelColorType.Indexed)
+            {
+                _indexedImage.Render();
+                ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, null);
+            }
+            else if (_arranger.ColorType == PixelColorType.Direct)
+            {
+                _directImage.Render();
+                ArrangerSource = new DirectImageSource(_directImage);
+            }
         }
 
         public override void OnMouseMove(object sender, MouseCaptureArgs e)

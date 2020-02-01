@@ -13,6 +13,7 @@ using TileShop.Shared.EventModels;
 using TileShop.Shared.Services;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Helpers;
+using TileShop.WPF.Imaging;
 using TileShop.WPF.Models;
 using TileShop.WPF.Services;
 using Point = System.Drawing.Point;
@@ -132,6 +133,7 @@ namespace TileShop.WPF.ViewModels
 
         public void CreateImage()
         {
+
             throw new NotImplementedException();
             //_arrangerImage = new ArrangerImage(_arranger);
             //_arrangerImage.RenderSubImage(_cropX, _cropY, _cropWidth, _cropHeight);
@@ -142,15 +144,29 @@ namespace TileShop.WPF.ViewModels
         public void Render()
         {
             if(HasArranger)
-                ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
+            {
+                if (_arranger.ColorType == PixelColorType.Indexed)
+                    ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, null);
+                else if (_arranger.ColorType == PixelColorType.Direct)
+                    ArrangerSource = new DirectImageSource(_directImage);
+            }
         }
 
         public bool SetPixel(int x, int y, Color color)
         {
-            var arrangerColor = new Rgba32(color.R, color.G, color.B, color.A);
-            if(_arrangerImage.TrySetPixel(x, y, arrangerColor))
+            var arrangerColor = new ColorRgba32(color.R, color.G, color.B, color.A);
+
+            if (_arranger.ColorType == PixelColorType.Indexed)
             {
-                Render();
+                if (_indexedImage.TrySetPixel(x, y, arrangerColor))
+                {
+                    Render();
+                    return true;
+                }
+            }
+            else if (_arranger.ColorType == PixelColorType.Direct)
+            {
+                _directImage.SetPixel(x, y, arrangerColor);
                 return true;
             }
 
@@ -159,13 +175,17 @@ namespace TileShop.WPF.ViewModels
 
         public Color GetPixel(int x, int y)
         {
-            var arrangerColor = _arrangerImage.GetDirectPixel(x, y);
-            var newColor = new Color();
-            newColor.R = arrangerColor.R;
-            newColor.G = arrangerColor.G;
-            newColor.B = arrangerColor.B;
-            newColor.A = arrangerColor.A;
-            return newColor; 
+            ColorRgba32 arrangerColor = new ColorRgba32(0);
+            if (_arranger.ColorType == PixelColorType.Indexed)
+            {
+                arrangerColor = _indexedImage.GetPixel(x, y, _arranger);
+            }
+            else if (_arranger.ColorType == PixelColorType.Direct)
+            {
+                arrangerColor = _directImage.GetPixel(x, y);
+            }
+
+            return Color.FromArgb(arrangerColor.A, arrangerColor.R, arrangerColor.G, arrangerColor.B);
         }
 
         public void SetPrimaryColor(Color color) => PrimaryColor = color;
@@ -258,14 +278,14 @@ namespace TileShop.WPF.ViewModels
 
         public Task HandleAsync(EditArrangerPixelsEvent message, CancellationToken cancellationToken)
         {
-            if(IsModified && HasArranger)
+            if (IsModified && HasArranger)
             {
                 var result = _promptService.PromptUser($"{_arranger.Name} has been modified and will be closed. Would you like to save the changes?",
                     "Save changes", UserPromptChoices.YesNoCancel);
 
                 if (result == UserPromptResult.Cancel)
                     return Task.CompletedTask;
-                else if(result == UserPromptResult.Yes)
+                else if (result == UserPromptResult.Yes)
                 {
                     // Save pixel data to arranger
                 }
@@ -277,16 +297,29 @@ namespace TileShop.WPF.ViewModels
             _cropWidth = message.ArrangerTransferModel.Width;
             _cropHeight = message.ArrangerTransferModel.Height;
 
-            CreateImage();
+            //CreateImage();
             Palettes.Clear();
 
             var arrangerPalettes = _arranger.GetReferencedPalettes().OrderBy(x => x.Name);
-            
-            foreach(var pal in arrangerPalettes)
+
+            foreach (var pal in arrangerPalettes)
                 Palettes.Add(PaletteModel.FromArrangerPalette(pal));
 
-            Palettes.Add(PaletteModel.FromArrangerPalette(_paletteService.DefaultPalette));
-            _arrangerImage.DefaultPalette = _paletteService.DefaultPalette;
+            var defaultPalette = _paletteService.DefaultPalette;
+            Palettes.Add(PaletteModel.FromArrangerPalette(defaultPalette));
+
+            if (_arranger.ColorType == PixelColorType.Indexed)
+            {
+                _indexedImage = new IndexedImage(_arranger, defaultPalette);
+                ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, defaultPalette);
+            }
+            else if (_arranger.ColorType == PixelColorType.Direct)
+            {
+                _directImage = new DirectImage(_arranger);
+                ArrangerSource = new DirectImageSource(_directImage);
+            }
+
+            HasArranger = true;
 
             ActivePalette = Palettes.First();
             PrimaryColor = ActivePalette.Colors[0];

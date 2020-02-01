@@ -5,56 +5,17 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Advanced;
 
-namespace TileShop.WPF.Helpers
+namespace TileShop.WPF.Imaging
 {
-    /// <summary>
-    /// Adapts ImageSharp Rgba32 to BitmapSource for WPF
-    /// </summary>
-    /// <remarks>
-    /// Implementation based upon: https://github.com/jongleur1983/SharpImageSource/blob/master/ImageSharp.WpfImageSource/ImageSharpImageSource.cs
-    /// Reference: http://www.i-programmer.info/programming/wpf-workings/822
-    /// Reference: https://blogs.msdn.microsoft.com/dwayneneed/2008/06/20/implementing-a-custom-bitmapsource/
-    /// </remarks>
-    public class ImageRgba32Source : BitmapSource
+    public abstract class BitmapSourceBase : BitmapSource
     {
-        private Image<Rgba32> _source;
-
-        public ImageRgba32Source(Image<Rgba32> source)
-        {
-            _source = source;
-        }
-
-        public ImageRgba32Source(int width, int height)
-        {
-            _source = new Image<Rgba32>(width, height);
-        }
-
-        protected override Freezable CreateInstanceCore()
-        {
-            var source = new Image<Rgba32>(16, 16);
-            return new ImageRgba32Source(source);
-        }
-
         public override PixelFormat Format => PixelFormats.Bgra32;
-        public override int PixelHeight => _source.Height;
-        public override int PixelWidth => _source.Width;
-        public override double DpiX => _source.MetaData.HorizontalResolution;
-        public override double DpiY => _source.MetaData.VerticalResolution;
-        public override BitmapPalette Palette => null;
-
+        public override double DpiX => 96;
+        public override double DpiY => 96;
         public override bool IsDownloading => false;
 
-#pragma warning disable CS0067
-        // Unused events that are required to be present, else System.NotImplementedException will be thrown by WPF/WIC
-        public override event EventHandler<ExceptionEventArgs> DecodeFailed;
-        public override event EventHandler DownloadCompleted;
-        public override event EventHandler<DownloadProgressEventArgs> DownloadProgress;
-        public override event EventHandler<ExceptionEventArgs> DownloadFailed;
-#pragma warning restore CS0067
+        protected abstract void CopyPixelsCore(Int32Rect sourceRect, int stride, int bufferSize, IntPtr buffer);
 
         public override void CopyPixels(Array pixels, int stride, int offset)
         {
@@ -62,11 +23,7 @@ namespace TileShop.WPF.Helpers
             base.CopyPixels(sourceRect, pixels, stride, offset);
         }
 
-        public override void CopyPixels(
-            Int32Rect sourceRect,
-            Array pixels,
-            int stride,
-            int offset)
+        public override void CopyPixels(Int32Rect sourceRect, Array pixels, int stride, int offset)
         {
             this.ValidateArrayAndGetInfo(
                 pixels,
@@ -82,7 +39,7 @@ namespace TileShop.WPF.Helpers
             // We accept arrays of arbitrary value types - but not reference types.
             if (elementType == null || !elementType.IsValueType)
             {
-                throw new ArgumentException("must be a valueType!", nameof(pixels));
+                throw new ArgumentException("must be a ValueType", nameof(pixels));
             }
 
             checked
@@ -111,11 +68,7 @@ namespace TileShop.WPF.Helpers
             }
         }
 
-        public override void CopyPixels(
-            Int32Rect sourceRect,
-            IntPtr buffer,
-            int bufferSize,
-            int stride)
+        public override void CopyPixels(Int32Rect sourceRect, IntPtr buffer, int bufferSize, int stride)
         {
             // WIC would specify NULL for the source rect to indicate that the
             // entire content should be copied.  WPF turns that into an empty
@@ -170,45 +123,10 @@ namespace TileShop.WPF.Helpers
             CopyPixelsCore(sourceRect, stride, bufferSize, buffer);
         }
 
-        private void CopyPixelsCore(
-            Int32Rect sourceRect,
-            int stride,
-            int bufferSize,
-            IntPtr buffer)
+        protected void ValidateArrayAndGetInfo(Array pixels, out int elementSize, out int sourceBufferSize, out Type elementType)
         {
-            if (_source is object)
-            {
-                unsafe
-                {
-                    byte* pBytes = (byte*)buffer.ToPointer();
-                    for (int y = 0; y < sourceRect.Height; y++)
-                    {
-                        var row = _source.GetPixelRowSpan(y);
-
-                        for (int x = 0; x < sourceRect.Width; x++)
-                        {
-                            pBytes[x*4] = row[x].B;
-                            pBytes[x*4 + 1] = row[x].G;
-                            pBytes[x*4 + 2] = row[x].R;
-                            pBytes[x*4 + 3] = row[x].A;
-                        }
-
-                        pBytes += stride;
-                    }
-                }
-            }
-        }
-
-        private void ValidateArrayAndGetInfo(
-            Array pixels,
-            out int elementSize,
-            out int sourceBufferSize,
-            out Type elementType)
-        {
-            if (pixels == null)
-            {
+            if (pixels is null)
                 throw new ArgumentNullException(nameof(pixels));
-            }
 
             if (pixels.Rank == 1)
             {
@@ -249,5 +167,13 @@ namespace TileShop.WPF.Helpers
                 throw new ArgumentException(nameof(pixels));
             }
         }
+
+#pragma warning disable CS0067
+        // Unused events that are required to be present, else System.NotImplementedException will be thrown by WPF/WIC
+        public override event EventHandler<ExceptionEventArgs> DecodeFailed;
+        public override event EventHandler DownloadCompleted;
+        public override event EventHandler<DownloadProgressEventArgs> DownloadProgress;
+        public override event EventHandler<ExceptionEventArgs> DownloadFailed;
+#pragma warning restore CS0067
     }
 }

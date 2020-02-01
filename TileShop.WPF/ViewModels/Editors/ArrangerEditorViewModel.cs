@@ -10,17 +10,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using TileShop.WPF.Models;
 using TileShop.Shared.Models;
+using TileShop.WPF.Imaging;
 
 namespace TileShop.WPF.ViewModels
 {
     public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMouseCaptureProxy
     {
         protected Arranger _arranger;
-        //protected ArrangerImage _arrangerImage;
+        protected IndexedImage _indexedImage;
+        protected DirectImage _directImage;
         protected IEventAggregator _events;
 
-        protected ImageRgba32Source _arrangerSource;
-        public ImageRgba32Source ArrangerSource
+        protected BitmapSourceBase _arrangerSource;
+        public BitmapSourceBase ArrangerSource
         {
             get => _arrangerSource;
             set

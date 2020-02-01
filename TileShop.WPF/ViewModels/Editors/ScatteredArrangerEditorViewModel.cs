@@ -9,6 +9,7 @@ using System.Drawing;
 using GongSolutions.Wpf.DragDrop;
 using TileShop.Shared.Models;
 using System.Linq;
+using TileShop.WPF.Imaging;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -22,9 +23,17 @@ namespace TileShop.WPF.ViewModels
             _arranger = arranger;
             _events = events;
 
-            _arrangerImage = new ArrangerImage(_arranger);
-            _arrangerImage.Render();
-            ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
+            if (arranger.ColorType == PixelColorType.Indexed)
+            {
+                _indexedImage = new IndexedImage(arranger);
+                ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, null);
+            }
+            else if (arranger.ColorType == PixelColorType.Direct)
+            {
+                _directImage = new DirectImage(arranger);
+                ArrangerSource = new DirectImageSource(_directImage);
+            }
+
             CreateGridlines();
 
             if (arranger.Layout == ArrangerLayout.TiledArranger)
