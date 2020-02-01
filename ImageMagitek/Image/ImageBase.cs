@@ -39,7 +39,7 @@ namespace ImageMagitek
             return new Span<TPixel>(Image);
         }
 
-        public virtual Span<TPixel> GetRowPixelSpan(int y)
+        public virtual Span<TPixel> GetPixelRowSpan(int y)
         {
             if (Image is null)
                 throw new NullReferenceException($"{nameof(GetPixel)} property '{nameof(Image)}' was null");
