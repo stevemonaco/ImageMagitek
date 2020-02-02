@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Services;
 using TileShop.WPF.Behaviors;
@@ -26,10 +27,10 @@ namespace TileShop.WPF.ViewModels
     {
         private IUserPromptService _promptService;
         private IPaletteService _paletteService;
-        private int _cropX;
-        private int _cropY;
-        private int _cropWidth;
-        private int _cropHeight;
+        private int _viewX;
+        private int _viewY;
+        private int _viewWidth;
+        private int _viewHeight;
         private PencilHistoryAction _activePencilHistory;
 
         public override string Name => HasArranger ? $"Pixel Editor - {_arranger.Name}" : "Pixel Editor";
@@ -292,12 +293,11 @@ namespace TileShop.WPF.ViewModels
             }
 
             _arranger = message.ArrangerTransferModel.Arranger;
-            _cropX = message.ArrangerTransferModel.X;
-            _cropY = message.ArrangerTransferModel.Y;
-            _cropWidth = message.ArrangerTransferModel.Width;
-            _cropHeight = message.ArrangerTransferModel.Height;
+            _viewX = message.ArrangerTransferModel.X;
+            _viewY = message.ArrangerTransferModel.Y;
+            _viewWidth = message.ArrangerTransferModel.Width;
+            _viewHeight = message.ArrangerTransferModel.Height;
 
-            //CreateImage();
             Palettes.Clear();
 
             var arrangerPalettes = _arranger.GetReferencedPalettes().OrderBy(x => x.Name);
@@ -311,7 +311,7 @@ namespace TileShop.WPF.ViewModels
             if (_arranger.ColorType == PixelColorType.Indexed)
             {
                 _indexedImage = new IndexedImage(_arranger, defaultPalette);
-                ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, defaultPalette);
+                ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, defaultPalette, _viewX, _viewY, _viewWidth, _viewHeight);
             }
             else if (_arranger.ColorType == PixelColorType.Direct)
             {

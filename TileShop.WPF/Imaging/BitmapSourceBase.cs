@@ -8,6 +8,14 @@ using System.Windows.Media.Imaging;
 
 namespace TileShop.WPF.Imaging
 {
+    /// <summary>
+    /// Abstract base class for adapting images to BitmapSource for WPF
+    /// </summary>
+    /// <remarks>
+    /// Implementation based upon: https://github.com/jongleur1983/SharpImageSource/blob/master/ImageSharp.WpfImageSource/ImageSharpImageSource.cs
+    /// Reference: http://www.i-programmer.info/programming/wpf-workings/822
+    /// Reference: https://blogs.msdn.microsoft.com/dwayneneed/2008/06/20/implementing-a-custom-bitmapsource/
+    /// </remarks>
     public abstract class BitmapSourceBase : BitmapSource
     {
         public override PixelFormat Format => PixelFormats.Bgra32;

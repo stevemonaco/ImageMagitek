@@ -13,22 +13,29 @@ namespace TileShop.WPF.Imaging
     {
         private DirectImage _image;
 
-        public DirectImageSource(DirectImage image)
+        public DirectImageSource(DirectImage image) : this(image, 0, 0, image.Width, image.Height)
+        {
+        }
+
+        public DirectImageSource(DirectImage image, int x, int y, int width, int height)
         {
             _image = image;
+            PixelWidth = width;
+            PixelHeight = height;
+            X = x;
+            Y = y;
         }
 
-        protected override Freezable CreateInstanceCore()
-        {
-            return new DirectImageSource(null);
-        }
+        protected override Freezable CreateInstanceCore() => new DirectImageSource(null);
 
         public override PixelFormat Format => PixelFormats.Bgra32;
-        public override int PixelHeight => _image.Height;
-        public override int PixelWidth => _image.Width;
+        public override int PixelWidth { get; }
+        public override int PixelHeight { get; }
         public override double DpiX => 96;
         public override double DpiY => 96;
         public override BitmapPalette Palette => null;
+        public int X { get; }
+        public int Y { get; }
 
         protected override void CopyPixelsCore(Int32Rect sourceRect, int stride, int bufferSize, IntPtr buffer)
         {
