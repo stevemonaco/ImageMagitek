@@ -10,6 +10,8 @@ using GongSolutions.Wpf.DragDrop;
 using TileShop.Shared.Models;
 using System.Linq;
 using TileShop.WPF.Imaging;
+using ImageMagitek.Colors;
+using TileShop.Shared.Services;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -17,16 +19,25 @@ namespace TileShop.WPF.ViewModels
 
     public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel, IDropTarget
     {
-        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events)
+        private IPaletteService _paletteService;
+        private Palette _defaultPalette;
+
+        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events) : this(arranger, events, null)
+        {
+        }
+
+        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IPaletteService paletteService)
         {
             Resource = arranger;
             _arranger = arranger;
             _events = events;
+            _paletteService = paletteService;
+            _defaultPalette = _paletteService?.DefaultPalette;
 
             if (arranger.ColorType == PixelColorType.Indexed)
             {
                 _indexedImage = new IndexedImage(arranger);
-                ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, null);
+                ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, _defaultPalette);
             }
             else if (arranger.ColorType == PixelColorType.Direct)
             {

@@ -54,7 +54,8 @@ namespace TileShop.WPF.Imaging
                         for (int x = 0; x < sourceRect.Width; x++)
                         {
                             var pal = _arranger.GetElementAtPixel(x + CropX, y + CropY).Palette ?? _defaultPalette;
-                            var color = pal[row[x + CropX]];
+                            var index = row[x + CropX];
+                            var color = pal[index];
                             pBytes[x * 4] = color.B;
                             pBytes[x * 4 + 1] = color.G;
                             pBytes[x * 4 + 2] = color.R;
