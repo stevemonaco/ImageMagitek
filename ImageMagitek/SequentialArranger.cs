@@ -10,21 +10,24 @@ namespace ImageMagitek
     public class SequentialArranger : Arranger
     {
         /// <summary>
-        /// Gets the filesize of the file associated with a Sequential Arranger
+        /// Gets the filesize of the file associated with a SequentialArranger
         /// </summary>
         public long FileSize { get; private set; }
 
         /// <summary>
-        /// Gets the current file address of the file associated with a Sequential Arranger
+        /// Gets the current file address of the file associated with a SequentialArranger
         /// </summary>
         public long FileAddress { get; private set; }
 
         /// <summary>
-        /// Number of bits required to be read from file sequentially
+        /// Number of bits required to be read from file sequentially to fully display the Arranger
         /// </summary>
         public long ArrangerBitSize { get; private set; }
         public override bool ShouldBeSerialized { get; set; } = true;
 
+        /// <summary>
+        /// Codec that is assigned to each ArrangerElement
+        /// </summary>
         public IGraphicsCodec ActiveCodec { get; private set; }
 
         private ICodecFactory _codecs;
@@ -35,6 +38,14 @@ namespace ImageMagitek
             Mode = ArrangerMode.SequentialArranger;
         }
 
+        /// <summary>
+        /// Constructs a new SequentialArranger
+        /// </summary>
+        /// <param name="arrangerWidth">Width of arranger in elements</param>
+        /// <param name="arrangerHeight">Height of arranger in elements</param>
+        /// <param name="dataFile">DataFile that each Element will be initialized with</param>
+        /// <param name="codecFactory">Factory responsible for creating new codecs</param>
+        /// <param name="codecName">Name of codec each Element will be initialized to</param>
         public SequentialArranger(int arrangerWidth, int arrangerHeight, DataFile dataFile, ICodecFactory codecFactory, string codecName)
         {
             Mode = ArrangerMode.SequentialArranger;
@@ -136,6 +147,10 @@ namespace ImageMagitek
             return address;
         }
 
+        /// <summary>
+        /// Changes each Element's codec and resizes the ElementPixelSize accordingly
+        /// </summary>
+        /// <param name="codec">New codec</param>
         public void ChangeCodec(IGraphicsCodec codec)
         {
             FileBitAddress address = GetInitialSequentialFileAddress();
@@ -178,39 +193,15 @@ namespace ImageMagitek
             this.Move(address);
         }
 
-        public override Arranger CloneArranger()
-        {
-            if (Layout == ArrangerLayout.TiledArranger || Layout == ArrangerLayout.LinearArranger)
-                return CloneArranger(0, 0, ArrangerPixelSize.Width, ArrangerPixelSize.Height);
-            else
-                throw new NotSupportedException($"{nameof(CloneArranger)} with {nameof(ArrangerLayout)} '{Layout}' is not supported");
-        }
-
         /// <summary>
-        /// Clones a subsection of the Arranger
+        /// Private method for cloning an Arranger
         /// </summary>
         /// <param name="posX">Left edge of Arranger in pixel coordinates</param>
         /// <param name="posY">Top edge of Arranger in pixel coordinates</param>
         /// <param name="width">Width of Arranger in pixels</param>
         /// <param name="height">Height of Arranger in pixels</param>
         /// <returns></returns>
-        public override Arranger CloneArranger(int posX, int posY, int width, int height)
-        {
-            if (posX < 0 || posX + width > ArrangerPixelSize.Width || posY < 0 || posY + height > ArrangerPixelSize.Height)
-                throw new ArgumentOutOfRangeException($"{nameof(CloneArranger)} parameters ({nameof(posX)}: {posX}, {nameof(posY)}: {posY}, {nameof(width)}: {width}, {nameof(height)}: {height})" +
-                    $" were outside of the bounds of arranger '{Name}' of size (width: {ArrangerPixelSize.Width}, height: {ArrangerPixelSize.Height})");
-
-            if (Layout == ArrangerLayout.LinearArranger)
-            {
-                if (posX != 0 || posY != 0 || width != ArrangerPixelSize.Width || height != ArrangerPixelSize.Height)
-                    throw new InvalidOperationException($"{nameof(CloneArranger)} of a LinearArranger must have the same dimensions as the original");
-                return CloneArrangerInternal(posX, posY, width, height);
-            }
-
-            return CloneArrangerInternal(posX, posY, width, height);
-        }
-
-        private Arranger CloneArrangerInternal(int posX, int posY, int width, int height)
+        protected override Arranger CloneArrangerCore(int posX, int posY, int width, int height)
         {
             var elemX = posX / ElementPixelSize.Width;
             var elemY = posY / ElementPixelSize.Height;
@@ -266,8 +257,7 @@ namespace ImageMagitek
                 set.Add(el.DataFile);
             }
 
-            foreach (var item in set)
-                yield return item;
+            return set;
         }
     }
 }

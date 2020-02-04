@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ImageMagitek.Project;
 
 namespace ImageMagitek
@@ -45,10 +46,7 @@ namespace ImageMagitek
                 Stream.Close();
         }
 
-        public IEnumerable<IProjectResource> LinkedResources()
-        {
-            yield break;
-        }
+        public IEnumerable<IProjectResource> LinkedResources() => Enumerable.Empty<IProjectResource>();
 
         public void Rename(string name) => Name = name;
     }

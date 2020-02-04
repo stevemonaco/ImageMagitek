@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
@@ -8,16 +9,16 @@ using ImageMagitek.Project;
 namespace ImageMagitek
 {
     /// <summary>
-    /// Mode for the arranger.
-    /// Sequential arrangers are for sequential file access
-    /// Scattered arrangers are for accessing many files and file offsets in a single arranger
-    /// Memory arrangers are used as a scratchpad (currently unimplemented)
+    /// Mode for the Arranger
+    /// SequentialArrangers are for simple sequential file access
+    /// ScatteredArrangers are capable of accessing many files, file offsets, palettes, and codecs in a single arranger
+    /// MemoryArrangers are used as a scratchpad (currently unimplemented)
     /// </summary>
     public enum ArrangerMode { SequentialArranger = 0, ScatteredArranger, MemoryArranger };
 
     /// <summary>
     /// Layout of graphics for the arranger
-    /// Each layout directs the UI to perform differently
+    /// Each layout directs Arranger element selection and Arranger cloning to perform differently
     /// TiledArranger will snap selection rectangles to tile boundaries
     /// LinearArranger will snap selection rectangles to pixel boundaries
     /// </summary>
@@ -36,23 +37,22 @@ namespace ImageMagitek
     public enum ArrangerMoveType { ByteDown = 0, ByteUp, RowDown, RowUp, ColRight, ColLeft, PageDown, PageUp, Home, End, Absolute };
 
     /// <summary>
-    /// Arranger for graphical screen elements
+    /// Arranger base class for graphical screen elements
     /// </summary>
     public abstract class Arranger : IProjectResource
     {
-        // General Arranger variables
         /// <summary>
         /// Gets individual Elements that compose the Arranger
         /// </summary>
         public ArrangerElement[,] ElementGrid { get; protected set; }
 
         /// <summary>
-        /// Gets the size of the entire Arranger in Elements
+        /// Gets the size of the entire Arranger in Element coordinates
         /// </summary>
         public Size ArrangerElementSize { get; protected set; }
 
         /// <summary>
-        /// Gets the Size of the entire Arranger in unzoomed pixels
+        /// Gets the Size of the entire Arranger in pixel coordinates
         /// </summary>
         public Size ArrangerPixelSize { get => new Size(ArrangerElementSize.Width * ElementPixelSize.Width, ArrangerElementSize.Height * ElementPixelSize.Height); }
 
@@ -93,56 +93,51 @@ namespace ImageMagitek
         }
 
         public abstract void Resize(int arrangerWidth, int arrangerHeight);
-        public abstract Arranger CloneArranger();
-        public abstract Arranger CloneArranger(int posX, int posY, int width, int height);
+        
+        /// <summary>
+        /// Clones the Arranger
+        /// </summary>
+        /// <returns></returns>
+        public virtual Arranger CloneArranger()
+        {
+            if (Layout == ArrangerLayout.TiledArranger || Layout == ArrangerLayout.LinearArranger)
+                return CloneArranger(0, 0, ArrangerPixelSize.Width, ArrangerPixelSize.Height);
+            else
+                throw new NotSupportedException($"{nameof(CloneArranger)} with {nameof(ArrangerLayout)} '{Layout}' is not supported");
+        }
 
         /// <summary>
-        /// Creates a new Scattered Arranger from an existing Arranger
+        /// Clones a subsection of the Arranger
         /// </summary>
-        /// <param name="subArrangerName">Arranger name for the newly created Arranger</param>
-        /// <param name="arrangerPosX">0-based top-most Element coordinate of parent Arranger selection to copy</param>
-        /// <param name="arrangerPosY">0-based left-most Element coordinate of parent Arranger selection to copy</param>
-        /// <param name="copyWidth">Width of selection to copy in Elements</param>
-        /// <param name="copyHeight">Height of selection to copy in Elements</param>
+        /// <param name="posX">Left edge of Arranger in pixel coordinates</param>
+        /// <param name="posY">Top edge of Arranger in pixel coordinates</param>
+        /// <param name="width">Width of Arranger in pixels</param>
+        /// <param name="height">Height of Arranger in pixels</param>
         /// <returns></returns>
-        //public virtual Arranger CreateSubArranger(string subArrangerName, int arrangerPosX, int arrangerPosY, int copyWidth, int copyHeight)
-        //{
-        //    if ((arrangerPosX < 0) || (arrangerPosX + copyWidth > ArrangerElementSize.Width))
-        //        throw new ArgumentOutOfRangeException(nameof(arrangerPosX));
+        public virtual Arranger CloneArranger(int posX, int posY, int width, int height)
+        {
+            if (posX < 0 || posX + width > ArrangerPixelSize.Width || posY < 0 || posY + height > ArrangerPixelSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(CloneArranger)} parameters ({nameof(posX)}: {posX}, {nameof(posY)}: {posY}, {nameof(width)}: {width}, {nameof(height)}: {height})" +
+                    $" were outside of the bounds of arranger '{Name}' of size (width: {ArrangerPixelSize.Width}, height: {ArrangerPixelSize.Height})");
 
-        //    if ((arrangerPosY < 0) || (arrangerPosY + copyHeight > ArrangerElementSize.Height))
-        //        throw new ArgumentOutOfRangeException(nameof(arrangerPosY));
+            if (Layout == ArrangerLayout.LinearArranger)
+            {
+                if (posX != 0 || posY != 0 || width != ArrangerPixelSize.Width || height != ArrangerPixelSize.Height)
+                    throw new InvalidOperationException($"{nameof(CloneArranger)} of a LinearArranger must have the same dimensions as the original");
+                return CloneArrangerCore(posX, posY, width, height);
+            }
 
-        //    Arranger subArranger = new ScatteredArranger()
-        //    {
-        //        Mode = ArrangerMode.ScatteredArranger, // Default to scattered arranger
-        //        Name = subArrangerName,
-        //        Layout = Layout,
-        //        ElementGrid = new ArrangerElement[copyWidth, copyHeight],
-        //        ArrangerElementSize = new Size(copyWidth, copyHeight),
-        //        ElementPixelSize = ElementPixelSize,
-        //    };
+            return CloneArrangerCore(posX, posY, width, height);
+        }
 
-        //    for (int srcy = arrangerPosY, desty = 0; srcy < arrangerPosY + copyHeight; srcy++, desty++)
-        //    {
-        //        for (int srcx = arrangerPosX, destx = 0; srcx < arrangerPosX + copyWidth; srcx++, destx++)
-        //        {
-        //            ArrangerElement el = GetElement(srcx, srcy).Clone();
-        //            el.X1 = destx * subArranger.ElementPixelSize.Width;
-        //            el.Y1 = desty * subArranger.ElementPixelSize.Height;
-        //            subArranger.SetElement(el, destx, desty);
-        //        }
-        //    }
-
-        //    return subArranger;
-        //}
+        protected abstract Arranger CloneArrangerCore(int posX, int posY, int width, int height);
 
         /// <summary>
         /// Sets Element to a position in the Arranger ElementGrid using a shallow copy
         /// </summary>
         /// <param name="element">Element to be placed into the ElementGrid</param>
-        /// <param name="arrangerPosX">0-based x-coordinate of Element</param>
-        /// <param name="arrangerPosY">0-based y-coordinate of Element</param>
+        /// <param name="arrangerPosX">x-coordinate in Element coordinates</param>
+        /// <param name="arrangerPosY">y-coordinate in Element coordinates</param>
         public void SetElement(ArrangerElement element, int arrangerPosX, int arrangerPosY)
         {
             if (ElementGrid is null)
@@ -155,10 +150,10 @@ namespace ImageMagitek
         }
 
         /// <summary>
-        /// Gets an Element from a position in the Arranger ElementGrid in element coordinates
+        /// Gets an Element from a position in the Arranger ElementGrid in Element coordinates
         /// </summary>
-        /// <param name="arrangerPosX">0-based x-coordinate of Element</param>
-        /// <param name="arrangerPosY">0-based y-coordinate of Element</param>
+        /// <param name="arrangerPosX">x-coordinate in Element coordinates</param>
+        /// <param name="arrangerPosY">y-coordinate in Element coordinates</param>
         /// <returns></returns>
         public ArrangerElement GetElement(int arrangerPosX, int arrangerPosY)
         {
@@ -171,6 +166,12 @@ namespace ImageMagitek
             return ElementGrid[arrangerPosX, arrangerPosY];
         }
 
+        /// <summary>
+        /// Gets an Element from a position in the Arranger in pixel coordinates
+        /// </summary>
+        /// <param name="arrangerPosX">x-coordinate in pixel coordinates</param>
+        /// <param name="arrangerPosY">x-coordinate in pixel coordinates</param>
+        /// <returns></returns>
         public ArrangerElement GetElementAtPixel(int arrangerPosX, int arrangerPosY)
         {
             if (ElementGrid is null)
@@ -182,6 +183,10 @@ namespace ImageMagitek
             return ElementGrid[arrangerPosX / ElementPixelSize.Width, arrangerPosY / ElementPixelSize.Height];
         }
 
+        /// <summary>
+        /// Returns the enumeration of all Elements in the grid in a left-to-right, row-by-row order
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<ArrangerElement> EnumerateElements()
         {
             for (int y = 0; y < ArrangerElementSize.Height; y++)
@@ -189,38 +194,30 @@ namespace ImageMagitek
                     yield return ElementGrid[x, y];
         }
 
+        /// <summary>
+        /// Returns the set of distinct Palettes contained by the Arranger's Elements
+        /// </summary>
+        /// <returns></returns>
         public HashSet<Palette> GetReferencedPalettes()
         {
-            var set = new HashSet<Palette>();
-
-            for (int y = 0; y < ArrangerElementSize.Height; y++)
-            {
-                for (int x = 0; x < ArrangerElementSize.Width; x++)
-                {
-                    if (ElementGrid[x, y].Palette is object)
-                        set.Add(ElementGrid[x, y].Palette);
-                }
-            }
-
-            return set;
+            return EnumerateElements()
+                .Select(x => x.Palette)
+                .OfType<Palette>()
+                .Distinct()
+                .ToHashSet();
         }
 
+        /// <summary>
+        /// Returns the set of distinct Codecs contained by the Arranger's Elements
+        /// </summary>
+        /// <returns></returns>
         public HashSet<IGraphicsCodec> GetReferencedCodecs()
         {
-            var set = new HashSet<IGraphicsCodec>();
-
-            for (int y = 0; y < ArrangerElementSize.Height; y++)
-            {
-                for (int x = 0; x < ArrangerElementSize.Width; x++)
-                {
-                    if (ElementGrid[x, y].Codec is BlankCodec)
-                        continue;
-
-                    set.Add(ElementGrid[x, y].Codec);
-                }
-            }
-
-            return set;
+            return EnumerateElements()
+                .Select(x => x.Codec)
+                .Where(x => !(x is BlankCodec))
+                .Distinct()
+                .ToHashSet();
         }
 
         public abstract IEnumerable<IProjectResource> LinkedResources();

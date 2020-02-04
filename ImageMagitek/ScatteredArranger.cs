@@ -98,39 +98,15 @@ namespace ImageMagitek
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
         }
 
-        public override Arranger CloneArranger()
-        {
-            if (Layout == ArrangerLayout.TiledArranger || Layout == ArrangerLayout.LinearArranger)
-                return CloneArranger(0, 0, ArrangerPixelSize.Width, ArrangerPixelSize.Height);
-            else
-                throw new NotSupportedException($"{nameof(CloneArranger)} with {nameof(ArrangerLayout)} '{Layout}' is not supported");
-        }
-
         /// <summary>
-        /// Clones a subsection of the Arranger
+        /// Private method for cloning an Arranger
         /// </summary>
         /// <param name="posX">Left edge of Arranger in pixel coordinates</param>
         /// <param name="posY">Top edge of Arranger in pixel coordinates</param>
         /// <param name="width">Width of Arranger in pixels</param>
         /// <param name="height">Height of Arranger in pixels</param>
         /// <returns></returns>
-        public override Arranger CloneArranger(int posX, int posY, int width, int height)
-        {
-            if (posX < 0 || posX + width >= ArrangerPixelSize.Width || posY < 0 || posY + height >= ArrangerPixelSize.Height)
-                throw new ArgumentOutOfRangeException($"{nameof(CloneArranger)} parameters ({nameof(posX)}: {posX}, {nameof(posY)}: {posY}, {nameof(width)}: {width}, {nameof(height)}: {height})" +
-                    $" were outside of the bounds of arranger '{Name}' of size (width: {ArrangerPixelSize.Width}, height: {ArrangerPixelSize.Height})");
-
-            if (Layout == ArrangerLayout.LinearArranger)
-            {
-                if (posX != 0 || posY != 0 || width != ArrangerPixelSize.Width || height != ArrangerPixelSize.Height)
-                    throw new InvalidOperationException($"{nameof(CloneArranger)} of a LinearArranger must have the same dimensions as the original");
-                return CloneArrangerInternal(posX, posY, width, height);
-            }
-
-            return CloneArrangerInternal(posX, posY, width, height);
-        }
-
-        private Arranger CloneArrangerInternal(int posX, int posY, int width, int height)
+        protected override Arranger CloneArrangerCore(int posX, int posY, int width, int height)
         {
             var elemX = posX / ElementPixelSize.Width;
             var elemY = posY / ElementPixelSize.Height;
@@ -163,8 +139,7 @@ namespace ImageMagitek
                 set.Add(el.DataFile);
             }
 
-            foreach (var item in set)
-                yield return item;
+            return set;
         }
     }
 }

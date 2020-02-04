@@ -26,7 +26,6 @@ Project
 - Implement renaming/moving logic
 
 Refactors
-- Arranger.GetReferenced* - Refactor to use Linq
 - ArrangerElement - Change to immutable, restrict access to Arranger.SetElement so that the Arranger can enforce rules
 
 Tests
