@@ -21,8 +21,8 @@ namespace TileShop.WPF.ViewModels
         protected DirectImage _directImage;
         protected IEventAggregator _events;
 
-        protected BitmapSourceBase _arrangerSource;
-        public BitmapSourceBase ArrangerSource
+        protected ArrangerBitmapSource _arrangerSource;
+        public ArrangerBitmapSource ArrangerSource
         {
             get => _arrangerSource;
             set
@@ -93,10 +93,23 @@ namespace TileShop.WPF.ViewModels
         {
             ArrangerTransferModel transferModel;
 
-            if (Selection.SnapMode == SnapMode.Element)
-                transferModel = new ArrangerTransferModel(_arranger, Selection.SnappedX1, Selection.SnappedY1, Selection.SnappedWidth, Selection.SnappedHeight);
+            if (Selection.SnapMode == SnapMode.Element && _arranger.Layout == ArrangerLayout.TiledArranger)
+            {
+                // Clone a subsection of the arranger and show the full subarranger
+                //int x = Selection.SnappedX1
+                //int y = Selection.SnappedY1;
+                //int width = Selection.SnappedWidth / _arranger.ElementPixelSize.Width;
+                //int height = Selection.SnappedHeight / _arranger.ElementPixelSize.Height;
+
+                var arranger = _arranger.CloneArranger(Selection.SnappedX1, Selection.SnappedY1, Selection.SnappedWidth, Selection.SnappedHeight);
+                transferModel = new ArrangerTransferModel(arranger, 0, 0, Selection.SnappedWidth, Selection.SnappedHeight);
+            }
             else
-                transferModel = new ArrangerTransferModel(_arranger, Selection.SnappedX1, Selection.SnappedY1, Selection.SnappedWidth, Selection.SnappedHeight);
+            {
+                // Clone the entire arranger and show a subsection of the cloned arranger
+                var arranger = _arranger.CloneArranger();
+                transferModel = new ArrangerTransferModel(arranger, Selection.SnappedX1, Selection.SnappedY1, Selection.SnappedWidth, Selection.SnappedHeight);
+            }
 
             var editEvent = new EditArrangerPixelsEvent(transferModel);
             _events.PublishOnUIThreadAsync(editEvent);

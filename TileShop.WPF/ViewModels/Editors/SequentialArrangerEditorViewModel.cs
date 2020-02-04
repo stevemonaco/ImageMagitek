@@ -17,6 +17,7 @@ namespace TileShop.WPF.ViewModels
     public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouseCaptureProxy
     {
         private ICodecService _codecService;
+        private IPaletteService _paletteService;
         private FileBitAddress _address;
 
         private BindableCollection<string> _codecNames = new BindableCollection<string>();
@@ -103,12 +104,14 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public SequentialArrangerEditorViewModel(SequentialArranger arranger, IEventAggregator events, ICodecService codecService)
+        public SequentialArrangerEditorViewModel(SequentialArranger arranger, IEventAggregator events, ICodecService codecService, IPaletteService paletteService)
         {
             Resource = arranger;
             _arranger = arranger;
             _events = events;
             _codecService = codecService;
+            _paletteService = paletteService;
+
             if (_arranger.ColorType == PixelColorType.Indexed)
                 _indexedImage = new IndexedImage(_arranger, null);
             else if (_arranger.ColorType == PixelColorType.Direct)
@@ -254,7 +257,7 @@ namespace TileShop.WPF.ViewModels
             if (_arranger.ColorType == PixelColorType.Indexed)
             {
                 _indexedImage.Render();
-                ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, null);
+                ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, _paletteService.DefaultPalette);
             }
             else if (_arranger.ColorType == PixelColorType.Direct)
             {

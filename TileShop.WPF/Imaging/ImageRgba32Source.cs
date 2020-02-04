@@ -26,6 +26,8 @@ namespace TileShop.WPF.Imaging
         public ImageRgba32Source(Image<Rgba32> source)
         {
             _source = source;
+            PixelWidth = _source.Width;
+            PixelHeight = _source.Height;
         }
 
         public ImageRgba32Source(int width, int height)
@@ -38,8 +40,8 @@ namespace TileShop.WPF.Imaging
         public override PixelFormat Format => PixelFormats.Bgra32;
         public override int PixelWidth { get; }
         public override int PixelHeight { get; }
-        public override double DpiX => 96;
-        public override double DpiY => 96;
+        public override double DpiX => _source.MetaData.HorizontalResolution;
+        public override double DpiY => _source.MetaData.VerticalResolution;
         public override BitmapPalette Palette => null;
 
         protected override void CopyPixelsCore(Int32Rect sourceRect, int stride, int bufferSize, IntPtr buffer)

@@ -175,7 +175,63 @@ namespace ImageMagitek
             }
 
             address = GetInitialSequentialFileAddress();
-            address = this.Move(address);
+            this.Move(address);
+        }
+
+        public override Arranger CloneArranger()
+        {
+            if (Layout == ArrangerLayout.TiledArranger || Layout == ArrangerLayout.LinearArranger)
+                return CloneArranger(0, 0, ArrangerPixelSize.Width, ArrangerPixelSize.Height);
+            else
+                throw new NotSupportedException($"{nameof(CloneArranger)} with {nameof(ArrangerLayout)} '{Layout}' is not supported");
+        }
+
+        /// <summary>
+        /// Clones a subsection of the Arranger
+        /// </summary>
+        /// <param name="posX">Left edge of Arranger in pixel coordinates</param>
+        /// <param name="posY">Top edge of Arranger in pixel coordinates</param>
+        /// <param name="width">Width of Arranger in pixels</param>
+        /// <param name="height">Height of Arranger in pixels</param>
+        /// <returns></returns>
+        public override Arranger CloneArranger(int posX, int posY, int width, int height)
+        {
+            if (posX < 0 || posX + width > ArrangerPixelSize.Width || posY < 0 || posY + height > ArrangerPixelSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(CloneArranger)} parameters ({nameof(posX)}: {posX}, {nameof(posY)}: {posY}, {nameof(width)}: {width}, {nameof(height)}: {height})" +
+                    $" were outside of the bounds of arranger '{Name}' of size (width: {ArrangerPixelSize.Width}, height: {ArrangerPixelSize.Height})");
+
+            if (Layout == ArrangerLayout.LinearArranger)
+            {
+                if (posX != 0 || posY != 0 || width != ArrangerPixelSize.Width || height != ArrangerPixelSize.Height)
+                    throw new InvalidOperationException($"{nameof(CloneArranger)} of a LinearArranger must have the same dimensions as the original");
+                return CloneArrangerInternal(posX, posY, width, height);
+            }
+
+            return CloneArrangerInternal(posX, posY, width, height);
+        }
+
+        private Arranger CloneArrangerInternal(int posX, int posY, int width, int height)
+        {
+            var elemX = posX / ElementPixelSize.Width;
+            var elemY = posY / ElementPixelSize.Height;
+            var elemsWidth = (width + ElementPixelSize.Width - 1) / ElementPixelSize.Width;
+            var elemsHeight = (height + ElementPixelSize.Height - 1) / ElementPixelSize.Height;
+
+            var arranger = new ScatteredArranger(Name, Layout, elemsWidth, elemsHeight, ElementPixelSize.Width, ElementPixelSize.Height);
+
+            for (int y = 0; y < elemsHeight; y++)
+            {
+                for (int x = 0; x < elemsWidth; x++)
+                {
+                    var el = GetElement(x + elemX, y + elemY).Clone();
+                    el.X1 = x * ElementPixelSize.Width;
+                    el.Y1 = y * ElementPixelSize.Height;
+                    el.Codec = _codecs.CloneCodec(ElementGrid[x + elemX, y + elemY].Codec);
+                    arranger.SetElement(el, x, y);
+                }
+            }
+
+            return arranger;
         }
 
         /// <summary>

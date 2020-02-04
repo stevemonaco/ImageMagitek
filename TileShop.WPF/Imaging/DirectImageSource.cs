@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 
 namespace TileShop.WPF.Imaging
 {
-    public class DirectImageSource : BitmapSourceBase
+    public class DirectImageSource : ArrangerBitmapSource
     {
         private DirectImage _image;
 
@@ -22,8 +22,8 @@ namespace TileShop.WPF.Imaging
             _image = image;
             PixelWidth = width;
             PixelHeight = height;
-            X = x;
-            Y = y;
+            CropX = x;
+            CropY = y;
         }
 
         protected override Freezable CreateInstanceCore() => new DirectImageSource(null);
@@ -34,8 +34,6 @@ namespace TileShop.WPF.Imaging
         public override double DpiX => 96;
         public override double DpiY => 96;
         public override BitmapPalette Palette => null;
-        public int X { get; }
-        public int Y { get; }
 
         protected override void CopyPixelsCore(Int32Rect sourceRect, int stride, int bufferSize, IntPtr buffer)
         {

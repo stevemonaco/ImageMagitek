@@ -12,7 +12,14 @@ namespace ImageMagitek
     {
         protected Arranger Arranger { get; set; }
         public TPixel[] Image { get; set; }
+
+        /// <summary>
+        /// Image width in pixels
+        /// </summary>
         public int Width => Arranger.ArrangerPixelSize.Width;
+        /// <summary>
+        /// Image height in pixels
+        /// </summary>
         public int Height => Arranger.ArrangerPixelSize.Height;
 
         public abstract void Render();
@@ -55,8 +62,7 @@ namespace ImageMagitek
             if (Image is null)
                 throw new NullReferenceException($"{nameof(GetPixel)} property '{nameof(Image)}' was null");
 
-            for (int i = 0; i < Width * Height; i++)
-                yield return Image[i];
+            return Image;
         }
 
         public virtual void SetPixel(int x, int y, TPixel color)

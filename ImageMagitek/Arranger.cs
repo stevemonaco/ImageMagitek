@@ -93,6 +93,8 @@ namespace ImageMagitek
         }
 
         public abstract void Resize(int arrangerWidth, int arrangerHeight);
+        public abstract Arranger CloneArranger();
+        public abstract Arranger CloneArranger(int posX, int posY, int width, int height);
 
         /// <summary>
         /// Creates a new Scattered Arranger from an existing Arranger
@@ -103,37 +105,37 @@ namespace ImageMagitek
         /// <param name="copyWidth">Width of selection to copy in Elements</param>
         /// <param name="copyHeight">Height of selection to copy in Elements</param>
         /// <returns></returns>
-        public Arranger CreateSubArranger(string subArrangerName, int arrangerPosX, int arrangerPosY, int copyWidth, int copyHeight)
-        {
-            if ((arrangerPosX < 0) || (arrangerPosX + copyWidth > ArrangerElementSize.Width))
-                throw new ArgumentOutOfRangeException();
+        //public virtual Arranger CreateSubArranger(string subArrangerName, int arrangerPosX, int arrangerPosY, int copyWidth, int copyHeight)
+        //{
+        //    if ((arrangerPosX < 0) || (arrangerPosX + copyWidth > ArrangerElementSize.Width))
+        //        throw new ArgumentOutOfRangeException(nameof(arrangerPosX));
 
-            if ((arrangerPosY < 0) || (arrangerPosY + copyHeight > ArrangerElementSize.Height))
-                throw new ArgumentOutOfRangeException();
+        //    if ((arrangerPosY < 0) || (arrangerPosY + copyHeight > ArrangerElementSize.Height))
+        //        throw new ArgumentOutOfRangeException(nameof(arrangerPosY));
 
-            Arranger subArranger = new ScatteredArranger()
-            {
-                Mode = ArrangerMode.ScatteredArranger, // Default to scattered arranger
-                Name = subArrangerName,
-                Layout = Layout,
-                ElementGrid = new ArrangerElement[copyWidth, copyHeight],
-                ArrangerElementSize = new Size(copyWidth, copyHeight),
-                ElementPixelSize = ElementPixelSize,
-            };
+        //    Arranger subArranger = new ScatteredArranger()
+        //    {
+        //        Mode = ArrangerMode.ScatteredArranger, // Default to scattered arranger
+        //        Name = subArrangerName,
+        //        Layout = Layout,
+        //        ElementGrid = new ArrangerElement[copyWidth, copyHeight],
+        //        ArrangerElementSize = new Size(copyWidth, copyHeight),
+        //        ElementPixelSize = ElementPixelSize,
+        //    };
 
-            for (int srcy = arrangerPosY, desty = 0; srcy < arrangerPosY + copyHeight; srcy++, desty++)
-            {
-                for (int srcx = arrangerPosX, destx = 0; srcx < arrangerPosX + copyWidth; srcx++, destx++)
-                {
-                    ArrangerElement el = GetElement(srcx, srcy).Clone();
-                    el.X1 = destx * subArranger.ElementPixelSize.Width;
-                    el.Y1 = desty * subArranger.ElementPixelSize.Height;
-                    subArranger.SetElement(el, destx, desty);
-                }
-            }
+        //    for (int srcy = arrangerPosY, desty = 0; srcy < arrangerPosY + copyHeight; srcy++, desty++)
+        //    {
+        //        for (int srcx = arrangerPosX, destx = 0; srcx < arrangerPosX + copyWidth; srcx++, destx++)
+        //        {
+        //            ArrangerElement el = GetElement(srcx, srcy).Clone();
+        //            el.X1 = destx * subArranger.ElementPixelSize.Width;
+        //            el.Y1 = desty * subArranger.ElementPixelSize.Height;
+        //            subArranger.SetElement(el, destx, desty);
+        //        }
+        //    }
 
-            return subArranger;
-        }
+        //    return subArranger;
+        //}
 
         /// <summary>
         /// Sets Element to a position in the Arranger ElementGrid using a shallow copy

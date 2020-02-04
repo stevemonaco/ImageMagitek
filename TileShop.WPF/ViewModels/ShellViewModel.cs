@@ -17,6 +17,7 @@ namespace TileShop.WPF.ViewModels
     {
         protected IEventAggregator _events;
         protected ICodecService _codecService;
+        protected IPaletteService _paletteService;
 
         private MenuViewModel _activeMenu;
         public MenuViewModel ActiveMenu
@@ -60,13 +61,14 @@ namespace TileShop.WPF.ViewModels
             set => Set(ref _activePixelEditor, value);
         }
 
-        public ShellViewModel(IEventAggregator events, ICodecService codecService,
+        public ShellViewModel(IEventAggregator events, ICodecService codecService, IPaletteService paletteService,
             MenuViewModel activeMenu, ProjectTreeViewModel activeTree, 
             StatusBarViewModel activeStatusBar, PixelEditorViewModel activePixelEditor)
         {
             _events = events;
             _events.SubscribeOnUIThread(this);
             _codecService = codecService;
+            _paletteService = paletteService;
 
             ActiveMenu = activeMenu;
             ActiveTree = activeTree;
@@ -91,11 +93,11 @@ namespace TileShop.WPF.ViewModels
                         newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _events);
                         break;
                     case SequentialArranger sequentialArranger:
-                        newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _codecService);
+                        newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _codecService, _paletteService);
                         break;
                     case DataFile dataFile:
                         var newArranger = new SequentialArranger(8, 16, dataFile, _codecService.CodecFactory, "SNES 3bpp");
-                        newDocument = new SequentialArrangerEditorViewModel(newArranger, _events, _codecService);
+                        newDocument = new SequentialArrangerEditorViewModel(newArranger, _events, _codecService, _paletteService);
                         break;
                     case ResourceFolder resourceFolder:
                         newDocument = null;

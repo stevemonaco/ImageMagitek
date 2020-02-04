@@ -132,24 +132,14 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void CreateImage()
-        {
-
-            throw new NotImplementedException();
-            //_arrangerImage = new ArrangerImage(_arranger);
-            //_arrangerImage.RenderSubImage(_cropX, _cropY, _cropWidth, _cropHeight);
-            //ArrangerSource = new ImageRgba32Source(_arrangerImage.Image);
-            //HasArranger = true;
-        }
-
         public void Render()
         {
             if(HasArranger)
             {
                 if (_arranger.ColorType == PixelColorType.Indexed)
-                    ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, null);
+                    ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, _paletteService.DefaultPalette, _viewX, _viewY, _viewWidth, _viewHeight);
                 else if (_arranger.ColorType == PixelColorType.Direct)
-                    ArrangerSource = new DirectImageSource(_directImage);
+                    ArrangerSource = new DirectImageSource(_directImage, _viewX, _viewY, _viewWidth, _viewHeight);
             }
         }
 
@@ -159,7 +149,7 @@ namespace TileShop.WPF.ViewModels
 
             if (_arranger.ColorType == PixelColorType.Indexed)
             {
-                if (_indexedImage.TrySetPixel(x, y, arrangerColor))
+                if (_indexedImage.TrySetPixel(x + _viewX, y + _viewY, arrangerColor))
                 {
                     Render();
                     return true;
@@ -167,7 +157,7 @@ namespace TileShop.WPF.ViewModels
             }
             else if (_arranger.ColorType == PixelColorType.Direct)
             {
-                _directImage.SetPixel(x, y, arrangerColor);
+                _directImage.SetPixel(x + _viewX, y + _viewY, arrangerColor);
                 return true;
             }
 

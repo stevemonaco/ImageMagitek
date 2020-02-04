@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 
 namespace TileShop.WPF.Imaging
 {
-    public class IndexedImageSource : BitmapSourceBase
+    public class IndexedImageSource : ArrangerBitmapSource
     {
         private IndexedImage _image;
         private Arranger _arranger;
@@ -27,8 +27,8 @@ namespace TileShop.WPF.Imaging
             _defaultPalette = defaultPalette;
             PixelWidth = width;
             PixelHeight = height;
-            X = x;
-            Y = y;
+            CropX = x;
+            CropY = y;
         }
 
         protected override Freezable CreateInstanceCore() => new DirectImageSource(null);
@@ -39,8 +39,6 @@ namespace TileShop.WPF.Imaging
         public override double DpiX => 96;
         public override double DpiY => 96;
         public override BitmapPalette Palette => null;
-        public int X { get; }
-        public int Y { get; }
 
         protected override void CopyPixelsCore(Int32Rect sourceRect, int stride, int bufferSize, IntPtr buffer)
         {
@@ -51,12 +49,12 @@ namespace TileShop.WPF.Imaging
                     byte* pBytes = (byte*)buffer.ToPointer();
                     for (int y = 0; y < sourceRect.Height; y++)
                     {
-                        var row = _image.GetPixelRowSpan(y);
+                        var row = _image.GetPixelRowSpan(y + CropY);
 
                         for (int x = 0; x < sourceRect.Width; x++)
                         {
-                            var pal = _arranger.GetElementAtPixel(x, y).Palette ?? _defaultPalette;
-                            var color = pal[row[x]];
+                            var pal = _arranger.GetElementAtPixel(x + CropX, y + CropY).Palette ?? _defaultPalette;
+                            var color = pal[row[x + CropX]];
                             pBytes[x * 4] = color.B;
                             pBytes[x * 4 + 1] = color.G;
                             pBytes[x * 4 + 2] = color.R;

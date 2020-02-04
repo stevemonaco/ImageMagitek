@@ -8,14 +8,18 @@ using System.Windows.Media.Imaging;
 
 namespace TileShop.WPF.Imaging
 {
-    public abstract class BitmapSourceBase : BitmapSource
+    /// <summary>
+    /// Abstract base class for adapting images to BitmapSource for WPF
+    /// </summary>
+    /// <remarks>
+    /// Implementation based upon: https://github.com/jongleur1983/SharpImageSource/blob/master/ImageSharp.WpfImageSource/ImageSharpImageSource.cs
+    /// Reference: http://www.i-programmer.info/programming/wpf-workings/822
+    /// Reference: https://blogs.msdn.microsoft.com/dwayneneed/2008/06/20/implementing-a-custom-bitmapsource/
+    /// </remarks>
+    public abstract class ArrangerBitmapSource : BitmapSourceBase
     {
-        public override PixelFormat Format => PixelFormats.Bgra32;
-        public override double DpiX => 96;
-        public override double DpiY => 96;
-        public override bool IsDownloading => false;
-
-        protected abstract void CopyPixelsCore(Int32Rect sourceRect, int stride, int bufferSize, IntPtr buffer);
+        public int CropX { get; protected set; }
+        public int CropY { get; protected set; }
 
         public override void CopyPixels(Array pixels, int stride, int offset)
         {
@@ -25,7 +29,11 @@ namespace TileShop.WPF.Imaging
 
         public override void CopyPixels(Int32Rect sourceRect, Array pixels, int stride, int offset)
         {
-            this.ValidateArrayAndGetInfo(pixels, out var elementSize, out var bufferSize, out var elementType);
+            this.ValidateArrayAndGetInfo(
+                pixels,
+                out var elementSize,
+                out var bufferSize,
+                out var elementType);
 
             if (offset < 0)
             {
@@ -118,58 +126,5 @@ namespace TileShop.WPF.Imaging
 
             CopyPixelsCore(sourceRect, stride, bufferSize, buffer);
         }
-
-        protected void ValidateArrayAndGetInfo(Array pixels, out int elementSize, out int sourceBufferSize, out Type elementType)
-        {
-            if (pixels is null)
-                throw new ArgumentNullException(nameof(pixels));
-
-            if (pixels.Rank == 1)
-            {
-                if (pixels.GetLength(0) <= 0)
-                {
-                    throw new ArgumentException(nameof(pixels));
-                }
-                else
-                {
-                    checked
-                    {
-                        object exemplar = pixels.GetValue(0);
-                        elementSize = Marshal.SizeOf(exemplar);
-                        sourceBufferSize = pixels.GetLength(0) * elementSize;
-                        elementType = exemplar.GetType();
-                    }
-                }
-            }
-            else if (pixels.Rank == 2)
-            {
-                if (pixels.GetLength(0) <= 0 || pixels.GetLength(1) <= 0)
-                {
-                    throw new ArgumentException(nameof(pixels));
-                }
-                else
-                {
-                    checked
-                    {
-                        object exemplar = pixels.GetValue(0, 0);
-                        elementSize = Marshal.SizeOf(exemplar);
-                        sourceBufferSize = pixels.GetLength(0) * pixels.GetLength(1) * elementSize;
-                        elementType = exemplar.GetType();
-                    }
-                }
-            }
-            else
-            {
-                throw new ArgumentException(nameof(pixels));
-            }
-        }
-
-#pragma warning disable CS0067
-        // Unused events that are required to be present, else System.NotImplementedException will be thrown by WPF/WIC
-        public override event EventHandler<ExceptionEventArgs> DecodeFailed;
-        public override event EventHandler DownloadCompleted;
-        public override event EventHandler<DownloadProgressEventArgs> DownloadProgress;
-        public override event EventHandler<ExceptionEventArgs> DownloadFailed;
-#pragma warning restore CS0067
     }
 }

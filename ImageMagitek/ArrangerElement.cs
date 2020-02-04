@@ -36,22 +36,22 @@ namespace ImageMagitek
         public Palette Palette { get; set; }
 
         /// <summary>
-        /// Left edge of the Element within the Arranger in unzoomed coordinates, inclusive
+        /// Left edge of the Element within the Arranger in pixel coordinates, inclusive
         /// </summary>
         public int X1 { get; set; }
 
         /// <summary>
-        /// Top edge of the Element within the Arranger in unzoomed coordinates, inclusive
+        /// Top edge of the Element within the Arranger in pixel coordinates, inclusive
         /// </summary>
         public int Y1 { get; set; }
 
         /// <summary>
-        /// Right edge of the Element within the Arranger in unzoomed coordinates, inclusive
+        /// Right edge of the Element within the Arranger in pixel coordinates, inclusive
         /// </summary>
         public int X2 { get => X1 + Width - 1; }
 
         /// <summary>
-        /// Bottom edge of the Element within the Arranger in unzoomed coordinates, inclusive
+        /// Bottom edge of the Element within the Arranger in pixel coordinates, inclusive
         /// </summary>
         public int Y2 { get => Y1 + Height - 1; }
 
@@ -73,6 +73,7 @@ namespace ImageMagitek
             ArrangerElement el = new ArrangerElement()
             {
                 DataFile = DataFile,
+                Codec = Codec,
                 FileAddress = FileAddress,
                 Width = Width,
                 Height = Height,
