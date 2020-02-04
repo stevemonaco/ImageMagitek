@@ -96,11 +96,6 @@ namespace TileShop.WPF.ViewModels
             if (Selection.SnapMode == SnapMode.Element && _arranger.Layout == ArrangerLayout.TiledArranger)
             {
                 // Clone a subsection of the arranger and show the full subarranger
-                //int x = Selection.SnappedX1
-                //int y = Selection.SnappedY1;
-                //int width = Selection.SnappedWidth / _arranger.ElementPixelSize.Width;
-                //int height = Selection.SnappedHeight / _arranger.ElementPixelSize.Height;
-
                 var arranger = _arranger.CloneArranger(Selection.SnappedX1, Selection.SnappedY1, Selection.SnappedWidth, Selection.SnappedHeight);
                 transferModel = new ArrangerTransferModel(arranger, 0, 0, Selection.SnappedWidth, Selection.SnappedHeight);
             }
