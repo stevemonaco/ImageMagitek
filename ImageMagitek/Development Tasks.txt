@@ -19,6 +19,9 @@ Error handling
 - Need a pattern to implement errors intended to notify users
 - Better error handling for serializers
 
+Documentation
+- Clean up code documentation between element and pixel coordinates
+
 Project
 - Implement renaming/moving logic
 
@@ -37,3 +40,4 @@ File reading
 Bugs
 - ReadUnshifted can crash during unaligned reads (reading too much data). Will need to fix as well as implement ReadShifted for non-byte sized elements.
 - CodecFactory / GeneralGraphicsCodec does not resize RowExtendedPixelPattern (tested via PSX 8bpp XML codec)
+- Fix palette within PixelEditorViewModel to limit range for default palettes
