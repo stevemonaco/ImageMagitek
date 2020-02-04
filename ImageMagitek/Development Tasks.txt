@@ -3,7 +3,8 @@
 - Flowtiles (?)
 - "Compiled" remap
 - Direct decoding/encoding
-- Consider moving flip/rotation functionality to elements rather than codecs
+- Separate GeneralGraphicsCodec into IDirectGraphicsCodec and IIndexedGraphicsCodec versions
+- Implement flip/rotation functionality as post-decode, pre-encode steps
 - Write schema after new spec
 
 Usage improvements
