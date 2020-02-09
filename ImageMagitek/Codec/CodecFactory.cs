@@ -24,21 +24,24 @@ namespace ImageMagitek.Codec
                     return new Psx4bppCodec(width, height);
                 case "PSX 8bpp":
                     return new Psx8bppCodec(width, height);
-                case "PSX 16bpp":
-                    return new Psx16bppCodec(width, height);
-                case "PSX 24bpp":
-                    return new Psx24bppCodec(width, height);
+                //case "PSX 16bpp":
+                //    return new Psx16bppCodec(width, height);
+                //case "PSX 24bpp":
+                //    return new Psx24bppCodec(width, height);
                 default:
-                    if (Formats.ContainsKey(codecName))
-                    {
-                        var format = Formats[codecName].Clone();
-                        format.Name = codecName;
-                        format.Width = width;
-                        format.Height = height;
+                    //if (Formats.ContainsKey(codecName))
+                    //{
+                    //    var format = Formats[codecName].Clone();
+                    //    format.Name = codecName;
+                    //    format.Width = width;
+                    //    format.Height = height;
 
-                        return new GeneralGraphicsCodec(format, DefaultPalette);
-                    }
-                    else
+                    //    if (format.ColorType == PixelColorType.Indexed)
+                    //        return new IndexedGraphicsCodec(format, DefaultPalette);
+
+                    //    return new GeneralGraphicsCodec(format, DefaultPalette);
+                    //}
+                    //else
                         throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{nameof(codecName)}'");
             }
         }

@@ -1,37 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.IO;
-using ImageMagitek.Colors;
-using ImageMagitek.ExtensionMethods;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace ImageMagitek.Codec
 {
-    public class Psx4bppCodec : IIndexedGraphicsCodec
+    public sealed class Psx4bppCodec : IndexedCodec
     {
-        public string Name => "PSX 4bpp";
+        public override string Name => "PSX 4bpp";
+        public override int Width { get; } = 8;
+        public override int Height { get; } = 8;
+        public override ImageLayout Layout => ImageLayout.Single;
+        public override int ColorDepth => 4;
+        public override int StorageSize => Width * Height * 4;
 
-        public int Width { get; private set; } = 8;
-
-        public int Height { get; private set; } = 8;
-
-        public ImageLayout Layout => ImageLayout.Linear;
-
-        public PixelColorType ColorType => PixelColorType.Indexed;
-
-        public int ColorDepth => 4;
-
-        public int StorageSize => Width * Height * 4;
-
-        public int RowStride { get; private set; } = 0;
-
-        public int ElementStride { get; private set; } = 0;
-
-        private byte[] _buffer;
-        private Memory<byte> _memoryBuffer;
         private BitStream _bitStream;
 
         public Psx4bppCodec(int width, int height)
@@ -39,57 +18,54 @@ namespace ImageMagitek.Codec
             Width = width;
             Height = height;
 
-            _buffer = new byte[(StorageSize + 7) / 8];
-            _memoryBuffer = new Memory<byte>(_buffer);
-            _bitStream = BitStream.OpenRead(_buffer, StorageSize);
+            _foreignBuffer = new byte[(StorageSize + 7) / 8];
+            _nativeBuffer = new byte[Width, Height];
+            _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
         }
 
-        public void Decode(ArrangerElement el, byte[,] imageBuffer)
+        public override byte[,] DecodeElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
         {
-            var fs = el.DataFile.Stream;
+            if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
+                throw new ArgumentException(nameof(encodedBuffer));
 
-            if (el.FileAddress + StorageSize > fs.Length * 8) // Element would contain data past the end of the file
-                return;
+            encodedBuffer.Slice(0, ForeignBuffer.Length).CopyTo(_foreignBuffer);
 
             _bitStream.SeekAbsolute(0);
-            fs.ReadUnshifted(el.FileAddress, StorageSize, true, _memoryBuffer.Span);
 
             for (int y = 0; y < el.Height; y++)
             {
-                for (int x = 0; x < el.Width / 2; x++)
+                for (int x = 0; x < el.Width / 2; x += 2)
                 {
-                    var palIndex = (byte) _bitStream.ReadBits(4);
-                    imageBuffer[x+1, y] = palIndex;
+                    var palIndex = (byte)_bitStream.ReadBits(4);
+                    _nativeBuffer[x + 1, y] = palIndex;
 
-                    palIndex = (byte) _bitStream.ReadBits(4);
-                    imageBuffer[x, y] = palIndex;
-
+                    palIndex = (byte)_bitStream.ReadBits(4);
+                    _nativeBuffer[x, y] = palIndex;
                 }
             }
+
+            return _nativeBuffer;
         }
 
-        public void Encode(ArrangerElement el, byte[,] imageBuffer)
+        public override ReadOnlySpan<byte> EncodeElement(ArrangerElement el, byte[,] imageBuffer)
         {
-            var fs = el.DataFile.Stream;
+            if (imageBuffer.GetLength(0) != Width || imageBuffer.GetLength(1) != Height)
+                throw new ArgumentException(nameof(imageBuffer));
 
-            if (el.FileAddress + StorageSize > fs.Length * 8) // Element would contain data past the end of the file
-                return;
-
-            fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
-
+            int dest = 0;
             for (int y = 0; y < el.Height; y++)
             {
-                for (int x = 0; x < el.Width / 2; x++)
+                for (int x = 0; x < el.Width / 2; x += 2, dest++)
                 {
                     byte indexLow = imageBuffer[x, y];
-                    byte indexHigh = imageBuffer[x+1, y];
+                    byte indexHigh = imageBuffer[x + 1, y];
 
                     byte index = (byte)(indexLow | (indexHigh << 4));
-                    fs.WriteByte(index);
+                    _foreignBuffer[dest] = index;
                 }
             }
 
-            fs.Flush();
+            return ForeignBuffer;
         }
     }
 }

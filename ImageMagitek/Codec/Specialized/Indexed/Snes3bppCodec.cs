@@ -6,20 +6,15 @@ using System.Text;
 
 namespace ImageMagitek.Codec
 {
-    public sealed class Snes3bppCodec : IIndexedGraphicsCodec
+    public sealed class Snes3bppCodec : IndexedCodec
     {
-        public string Name => "SNES 3bpp";
-        public int Width { get; private set; } = 8;
-        public int Height { get; private set; } = 8;
-        public int StorageSize => 3 * Width * Height;
-        public ImageLayout Layout => ImageLayout.Tiled;
-        public PixelColorType ColorType => PixelColorType.Indexed;
-        public int ColorDepth => 3;
-        public int RowStride => 0;
-        public int ElementStride => 0;
+        public override string Name => "SNES 3bpp";
+        public override int Width { get; } = 8;
+        public override int Height { get; } = 8;
+        public override int StorageSize => 3 * Width * Height;
+        public override ImageLayout Layout => ImageLayout.Tiled;
+        public override int ColorDepth => 3;
 
-        private byte[] _buffer;
-        private Memory<byte> _memoryBuffer;
         private BitStream _bitStream;
 
         public Snes3bppCodec(int width, int height)
@@ -27,28 +22,28 @@ namespace ImageMagitek.Codec
             Width = width;
             Height = height;
 
-            _buffer = new byte[(StorageSize + 7) / 8];
-            _memoryBuffer = new Memory<byte>(_buffer);
-            _bitStream = BitStream.OpenRead(_buffer, StorageSize);
+            _foreignBuffer = new byte[(StorageSize + 7) / 8];
+            _nativeBuffer = new byte[Width, Height];
+
+            _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
         }
 
-        public void Decode(ArrangerElement el, byte[,] imageBuffer)
+        public override byte[,] DecodeElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
         {
-            var fs = el.DataFile.Stream;
+            if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
+                throw new ArgumentException(nameof(encodedBuffer));
 
-            if (el.FileAddress + StorageSize > fs.Length * 8) // Element would contain data past the end of the file
-                return;
+            encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
 
-            _bitStream.SeekAbsolute(0);
-            fs.ReadUnshifted(el.FileAddress, StorageSize, true, _memoryBuffer.Span);
+            _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
 
             var offsetPlane1 = 0;
-            var offsetPlane2 = el.Width;
-            var offsetPlane3 = el.Width * el.Height * 2;
+            var offsetPlane2 = Width;
+            var offsetPlane3 = Width * Height * 2;
 
-            for (int y = 0; y < el.Height; y++)
+            for (int y = 0; y < Height; y++)
             {
-                for (int x = 0; x < el.Width; x++)
+                for (int x = 0; x < Width; x++)
                 {
                     _bitStream.SeekAbsolute(offsetPlane1);
                     var bp1 = _bitStream.ReadBit();
@@ -58,7 +53,7 @@ namespace ImageMagitek.Codec
                     var bp3 = _bitStream.ReadBit();
 
                     var palIndex = (bp1 << 0) | (bp2 << 1) | (bp3 << 2);
-                    imageBuffer[x, y] = (byte) palIndex;
+                    _nativeBuffer[x, y] = (byte) palIndex;
 
                     offsetPlane1++;
                     offsetPlane2++;
@@ -68,24 +63,24 @@ namespace ImageMagitek.Codec
                 offsetPlane1 += Width;
                 offsetPlane2 += Width;
             }
+
+            return _nativeBuffer;
         }
 
-        public void Encode(ArrangerElement el, byte[,] imageBuffer)
+        public override ReadOnlySpan<byte> EncodeElement(ArrangerElement el, byte[,] imageBuffer)
         {
-            var fs = el.DataFile.Stream;
-
-            if (el.FileAddress + StorageSize > fs.Length * 8) // Ensure there is enough data to decode
-                return;
+            if (imageBuffer.GetLength(0) != Width || imageBuffer.GetLength(1) != Height)
+                throw new ArgumentException(nameof(imageBuffer));
 
             var bs = BitStream.OpenWrite(StorageSize, 8);
 
             var offsetPlane1 = 0;
-            var offsetPlane2 = el.Width;
-            var offsetPlane3 = el.Width * el.Height * 2;
+            var offsetPlane2 = Width;
+            var offsetPlane3 = Width * Height * 2;
 
-            for (int y = 0; y < el.Height; y++)
+            for (int y = 0; y < Height; y++)
             {
-                for (int x = 0; x < el.Width; x++)
+                for (int x = 0; x < Width; x++)
                 {
                     var index = imageBuffer[x, y];
 
@@ -108,8 +103,7 @@ namespace ImageMagitek.Codec
                 offsetPlane2 += Width;
             }
 
-            fs.Seek(el.FileAddress.FileOffset, System.IO.SeekOrigin.Begin);
-            fs.Write(bs.Data, 0, bs.Data.Length);
+            return bs.Data;
         }
     }
 }

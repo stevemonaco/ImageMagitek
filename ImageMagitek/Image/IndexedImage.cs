@@ -41,20 +41,19 @@ namespace ImageMagitek
             if (Width * Height != Image.Length)
                 Image = new byte[Width * Height];
 
-            var buffer = new byte[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
-
             foreach (var el in Arranger.EnumerateElements())
             {
-                if (el.Codec is IIndexedGraphicsCodec codec)
+                if (el.Codec is IIndexedCodec codec)
                 {
-                    codec.Decode(el, buffer);
+                    var encodedBuffer = codec.ReadElement(el);
+                    var decodedImage = codec.DecodeElement(el, encodedBuffer);
 
                     for (int y = 0; y < Arranger.ElementPixelSize.Height; y++)
                     {
                         var destidx = (y + el.Y1) * Width + el.X1;
                         for (int x = 0; x < Arranger.ElementPixelSize.Width; x++)
                         {
-                            Image[destidx] = buffer[x, y];
+                            Image[destidx] = decodedImage[x, y];
                             destidx++;
                         }
                     }
@@ -66,11 +65,12 @@ namespace ImageMagitek
         {
             var buffer = new byte[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
             
-            foreach (var el in Arranger.EnumerateElements().Where(x => x.Codec is IIndexedGraphicsCodec))
+            foreach (var el in Arranger.EnumerateElements().Where(x => x.Codec is IIndexedCodec))
             {
                 Image.CopyToArray(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
-                var codec = el.Codec as IIndexedGraphicsCodec;
-                codec.Encode(el, buffer);
+                var codec = el.Codec as IIndexedCodec;
+                var encodedImage = codec.EncodeElement(el, buffer);
+                codec.WriteElement(el, encodedImage);
             }
 
             foreach (var fs in Arranger.EnumerateElements().Select(x => x.DataFile.Stream).Distinct())
@@ -92,7 +92,7 @@ namespace ImageMagitek
         public bool TrySetPixel(int x, int y, ColorRgba32 color)
         {
             var elem = Arranger.GetElementAtPixel(x, y);
-            if (!(elem.Codec is IIndexedGraphicsCodec))
+            if (!(elem.Codec is IIndexedCodec))
                 return false;
 
             var pal = elem.Palette ?? _defaultPalette;

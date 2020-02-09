@@ -36,20 +36,22 @@ namespace ImageMagitek
             if (Width * Height != Image.Length)
                 Image = new ColorRgba32[Width * Height];
 
-            var buffer = new ColorRgba32[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
+            //var buffer = new ColorRgba32[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
 
             foreach (var el in Arranger.EnumerateElements())
             {
-                if (el.Codec is IDirectGraphicsCodec codec)
+                if (el.Codec is IDirectCodec codec)
                 {
-                    codec.Decode(el, buffer);
+                    var readResult = codec.ReadElement(el);
+                    var decodeResult = codec.DecodeElement(el, readResult);
+                    //codec.Decode(el, buffer);
 
                     for (int y = 0; y < Arranger.ElementPixelSize.Height; y++)
                     {
                         var destidx = y * Width;
                         for (int x = 0; x < Arranger.ElementPixelSize.Width; x++)
                         {
-                            Image[destidx] = buffer[x, y];
+                            Image[destidx] = decodeResult[x, y];
                             destidx++;
                         }
                     }
@@ -60,11 +62,15 @@ namespace ImageMagitek
         public override void SaveImage()
         {
             var buffer = new ColorRgba32[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
-            foreach (var el in Arranger.EnumerateElements().Where(x => x.Codec is IDirectGraphicsCodec))
+            foreach (var el in Arranger.EnumerateElements().Where(x => x.Codec is IDirectCodec))
             {
                 Image.CopyToArray(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
-                var codec = el.Codec as IDirectGraphicsCodec;
-                codec.Encode(el, buffer);
+                var codec = el.Codec as IDirectCodec;
+
+                var encodeResult = codec.EncodeElement(el, buffer);
+                codec.WriteElement(el, encodeResult);
+
+                //codec.Encode(el, buffer);
             }
             foreach (var fs in Arranger.EnumerateElements().Select(x => x.DataFile.Stream).Distinct())
                 fs.Flush();

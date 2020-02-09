@@ -2,68 +2,92 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
+using System;
 
 namespace ImageMagitek.Codec
 {
-    public sealed class BlankCodec : IGraphicsCodec, IDirectGraphicsCodec, IIndexedGraphicsCodec
-    {
-        public string Name => "Blank";
+    //public sealed class BlankCodec : IDirectGraphicsCodec, IIndexedCodec
+    //{
+    //    public string Name => "Blank";
 
-        public int StorageSize => 0;
-        public int Width => 0;
-        public int Height => 0;
-        public ImageLayout Layout => ImageLayout.Tiled;
-        public PixelColorType ColorType => PixelColorType.Direct;
-        public int ColorDepth => 1;
-        public int RowStride => 0;
-        public int ElementStride => 0;
+    //    public int StorageSize => 0;
+    //    public int Width => 0;
+    //    public int Height => 0;
+    //    public ImageLayout Layout => ImageLayout.Tiled;
+    //    public PixelColorType ColorType => PixelColorType.Direct;
+    //    public int ColorDepth => 1;
+    //    public int RowStride => 0;
+    //    public int ElementStride => 0;
 
-        private Rgba32 FillColor = Rgba32.Black;
+    //    public ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
+    //    private byte[] _foreignBuffer;
+    //    public byte[,] NativeBuffer => throw new NotImplementedException();
 
-        public BlankCodec() { }
+    //    private Rgba32 _fillColor = Rgba32.Black;
+    //    private byte _fillIndex = 0;
 
-        public BlankCodec(Rgba32 fillColor)
-        {
-            FillColor = fillColor;
-        }
+    //    public BlankCodec() { }
 
-        public void Decode(Image<Rgba32> image, ArrangerElement el)
-        {
-            var dest = image.GetPixelSpan();
-            int destidx = image.Width * el.Y1 + el.X1;
+    //    public BlankCodec(Rgba32 fillColor, byte fillIndex)
+    //    {
+    //        _fillColor = fillColor;
+    //        _fillIndex = fillIndex;
+    //    }
 
-            for (int y = 0; y < el.Height; y++)
-            {
-                for (int x = 0; x < el.Width; x++, destidx++)
-                    dest[destidx] = FillColor;
-                destidx += el.X1 + image.Width - (el.X2 + 1);
-            }
-        }
+    //    public void Decode(Image<Rgba32> image, ArrangerElement el)
+    //    {
+    //        var dest = image.GetPixelSpan();
+    //        int destidx = image.Width * el.Y1 + el.X1;
 
-        public void Encode(Image<Rgba32> image, ArrangerElement el) { }
+    //        for (int y = 0; y < el.Height; y++)
+    //        {
+    //            for (int x = 0; x < el.Width; x++, destidx++)
+    //                dest[destidx] = _fillColor;
+    //            destidx += el.X1 + image.Width - (el.X2 + 1);
+    //        }
+    //    }
 
-        public void Decode(ArrangerElement el, ColorRgba32[,] imageBuffer)
-        {
-            var color = new ColorRgba32(FillColor.R, FillColor.G, FillColor.B, FillColor.A);
+    //    public void Encode(Image<Rgba32> image, ArrangerElement el) { }
 
-            for(int y = 0; y < el.Height; y++)
-            {
-                for (int x = 0; x < el.Width; x++)
-                    imageBuffer[x, y] = color;
-            }
-        }
+    //    public void Decode(ArrangerElement el, ColorRgba32[,] imageBuffer)
+    //    {
+    //        var color = new ColorRgba32(_fillColor.R, _fillColor.G, _fillColor.B, _fillColor.A);
 
-        public void Encode(ArrangerElement el, ColorRgba32[,] imageBuffer) { }
+    //        for(int y = 0; y < el.Height; y++)
+    //        {
+    //            for (int x = 0; x < el.Width; x++)
+    //                imageBuffer[x, y] = color;
+    //        }
+    //    }
 
-        public void Decode(ArrangerElement el, byte[,] imageBuffer)
-        {
-            for (int y = 0; y < el.Height; y++)
-            {
-                for (int x = 0; x < el.Width; x++)
-                    imageBuffer[x, y] = 0;
-            }
-        }
+    //    public void Encode(ArrangerElement el, ColorRgba32[,] imageBuffer) { }
 
-        public void Encode(ArrangerElement el, byte[,] imageBuffer) { }
-    }
+    //    public void Decode(ArrangerElement el, byte[,] imageBuffer)
+    //    {
+    //        for (int y = 0; y < el.Height; y++)
+    //        {
+    //            for (int x = 0; x < el.Width; x++)
+    //                imageBuffer[x, y] = _fillIndex;
+    //        }
+    //    }
+
+    //    public void Encode(ArrangerElement el, byte[,] imageBuffer) { }
+
+    //    public ReadOnlySpan<byte> ReadElement(ArrangerElement el)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public void WriteElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer) { }
+
+    //    public byte[,] DecodeElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public ReadOnlySpan<byte> EncodeElement(ArrangerElement el, byte[,] imageBuffer)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 }

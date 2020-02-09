@@ -35,10 +35,10 @@ namespace ImageMagitek.Codec
 
         /// <summary>
         /// Specifies how individual bits of each color are merged according to priority
-        ///   Ex: [3, 2, 0, 1] implies the first bit read will merge into bit 3,
-        ///   second bit read into bit 2, third bit read into bit 0, fourth bit read into bit 1
+        ///   Ex: [3, 2, 0, 1] implies the first bit read will merge into plane 3,
+        ///   second bit read into plane 2, third bit read into plane 0, fourth bit read into plane 1
         /// </summary>
-        public int[] MergePriority { get; set; }
+        public int[] MergePlanePriority { get; set; }
 
         /// <summary>
         /// Current width of the elements to encode/decode
@@ -117,8 +117,8 @@ namespace ImageMagitek.Codec
             clone.VFlip = VFlip;
             clone.Remap = Remap;
 
-            clone.MergePriority = new int[MergePriority.Length];
-            Array.Copy(MergePriority, clone.MergePriority, MergePriority.Length);
+            clone.MergePlanePriority = new int[MergePlanePriority.Length];
+            Array.Copy(MergePlanePriority, clone.MergePlanePriority, MergePlanePriority.Length);
 
             clone.ImageProperties = new List<ImageProperty>();
             foreach(var prop in ImageProperties)

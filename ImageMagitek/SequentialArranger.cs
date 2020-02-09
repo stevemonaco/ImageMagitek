@@ -158,7 +158,7 @@ namespace ImageMagitek
 
             ActiveCodec = codec;
 
-            if (codec.Layout == ImageLayout.Linear)
+            if (codec.Layout == ImageLayout.Single)
                 Layout = ArrangerLayout.LinearArranger;
             else if (codec.Layout == ImageLayout.Tiled)
                 Layout = ArrangerLayout.TiledArranger;

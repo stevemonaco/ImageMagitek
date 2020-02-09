@@ -230,7 +230,7 @@ namespace TileShop.WPF.ViewModels
                 codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, TiledElementWidth, TiledElementHeight);
                 (_arranger as SequentialArranger).ChangeCodec(codec);
             }
-            else if (codec.Layout == ImageMagitek.Codec.ImageLayout.Linear)
+            else if (codec.Layout == ImageMagitek.Codec.ImageLayout.Single)
             {
                 _arranger.Resize(1, 1);
                 codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, LinearArrangerWidth, LinearArrangerHeight);

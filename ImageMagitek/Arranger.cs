@@ -215,7 +215,7 @@ namespace ImageMagitek
         {
             return EnumerateElements()
                 .Select(x => x.Codec)
-                .Where(x => !(x is BlankCodec))
+                .Where(x => !(x is BlankIndexedCodec) && !(x is BlankDirectCodec ))
                 .Distinct()
                 .ToHashSet();
         }

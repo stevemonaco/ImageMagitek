@@ -28,6 +28,8 @@ Project
 
 Refactors
 - ArrangerElement - Change to immutable, restrict access to Arranger.SetElement so that the Arranger can enforce rules
+- Move ImageLayout from Codecs to Arranger
+- Remove Arranger from ArrangerMode enum items
 
 Tests
 - Graphics encoder/decoder tests
@@ -40,4 +42,5 @@ File reading
 Bugs
 - ReadUnshifted can crash during unaligned reads (reading too much data). Will need to fix as well as implement ReadShifted for non-byte sized elements.
 - CodecFactory / GeneralGraphicsCodec does not resize RowExtendedPixelPattern (tested via PSX 8bpp XML codec)
-- Fix palette within PixelEditorViewModel to limit range for default palettes
+- Fix palette within PixelEditorViewModel to limit available colors for default palettes
+- Fix XML reader from silently failing when reading <arranger> nodes with inconsistent element counts

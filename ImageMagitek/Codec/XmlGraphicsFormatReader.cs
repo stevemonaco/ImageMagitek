@@ -39,7 +39,7 @@ namespace ImageMagitek.Codec
             if (codecs.layout == "tiled")
                 format.Layout = ImageLayout.Tiled;
             else if (codecs.layout == "linear")
-                format.Layout = ImageLayout.Linear;
+                format.Layout = ImageLayout.Single;
             else
                 throw new XmlException($"Unsupported layout '{codecs.layout}'");
 
@@ -56,10 +56,10 @@ namespace ImageMagitek.Codec
             if (mergeInts.Length != format.ColorDepth)
                 throw new Exception("The number of entries in mergepriority does not match the colordepth");
 
-            format.MergePriority = new int[format.ColorDepth];
+            format.MergePlanePriority = new int[format.ColorDepth];
 
             for (int i = 0; i < mergeInts.Length; i++)
-                format.MergePriority[i] = int.Parse(mergeInts[i]);
+                format.MergePlanePriority[i] = int.Parse(mergeInts[i]);
 
             var images = xe.Descendants("image")
                          .Select(e => new

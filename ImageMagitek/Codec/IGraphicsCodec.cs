@@ -5,11 +5,11 @@ using SixLabors.ImageSharp.PixelFormats;
 namespace ImageMagitek.Codec
 {
     /// <summary>
-    /// Specifies how the graphical viewer will treat the graphic
-    /// Tiled graphics will render a grid of multiple images
-    /// Linear graphics will render a single image
+    /// Specifies how the graphical viewer should treat the graphic
+    /// Tiled is capable of rendering a grid of multiple images
+    /// Single will render a single image
     /// </summary>
-    public enum ImageLayout { Tiled = 0, Linear }
+    public enum ImageLayout { Tiled = 0, Single }
 
     public interface IGraphicsCodec
     {
