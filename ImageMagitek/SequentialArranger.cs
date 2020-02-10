@@ -35,7 +35,7 @@ namespace ImageMagitek
 
         public SequentialArranger()
         {
-            Mode = ArrangerMode.SequentialArranger;
+            Mode = ArrangerMode.Sequential;
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace ImageMagitek
         /// <param name="codecName">Name of codec each Element will be initialized to</param>
         public SequentialArranger(int arrangerWidth, int arrangerHeight, DataFile dataFile, ICodecFactory codecFactory, string codecName)
         {
-            Mode = ArrangerMode.SequentialArranger;
+            Mode = ArrangerMode.Sequential;
             FileSize = dataFile.Stream.Length;
             Name = dataFile.Name;
             _dataFile = dataFile;
@@ -67,7 +67,7 @@ namespace ImageMagitek
         /// <returns></returns>
         public override void Resize(int arrangerWidth, int arrangerHeight)
         {
-            if (Mode != ArrangerMode.SequentialArranger)
+            if (Mode != ArrangerMode.Sequential)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
             Resize(arrangerWidth, arrangerHeight, ElementGrid[0, 0].DataFile);
@@ -83,7 +83,7 @@ namespace ImageMagitek
         /// <returns></returns>
         private FileBitAddress Resize(int arrangerWidth, int arrangerHeight, DataFile dataFile)
         {
-            if (Mode != ArrangerMode.SequentialArranger)
+            if (Mode != ArrangerMode.Sequential)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
             FileBitAddress address;
@@ -159,9 +159,9 @@ namespace ImageMagitek
             ActiveCodec = codec;
 
             if (codec.Layout == ImageLayout.Single)
-                Layout = ArrangerLayout.LinearArranger;
+                Layout = ArrangerLayout.Single;
             else if (codec.Layout == ImageLayout.Tiled)
-                Layout = ArrangerLayout.TiledArranger;
+                Layout = ArrangerLayout.Tiled;
 
             ArrangerBitSize = ArrangerElementSize.Width * ArrangerElementSize.Height * codec.StorageSize;
 
@@ -234,7 +234,7 @@ namespace ImageMagitek
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(GetInitialSequentialFileAddress)} property '{nameof(ElementGrid)}' was null");
 
-            if (Mode != ArrangerMode.SequentialArranger)
+            if (Mode != ArrangerMode.Sequential)
                 throw new InvalidOperationException($"{nameof(GetInitialSequentialFileAddress)} property '{nameof(Mode)}' " + 
                     $"is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 

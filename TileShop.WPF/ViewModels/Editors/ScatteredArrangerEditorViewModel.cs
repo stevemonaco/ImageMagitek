@@ -47,7 +47,7 @@ namespace TileShop.WPF.ViewModels
 
             CreateGridlines();
 
-            if (arranger.Layout == ArrangerLayout.TiledArranger)
+            if (arranger.Layout == ArrangerLayout.Tiled)
                 Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Element);
             else
                 Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);

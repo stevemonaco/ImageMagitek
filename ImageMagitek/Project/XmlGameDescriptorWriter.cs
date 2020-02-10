@@ -167,9 +167,9 @@ namespace ImageMagitek.Project
             arrangerNode.Add(new XAttribute("width", arrangerModel.ElementPixelSize.Width));
             arrangerNode.Add(new XAttribute("height", arrangerModel.ElementPixelSize.Height));
 
-            if(arrangerModel.Layout == ArrangerLayout.TiledArranger)
+            if(arrangerModel.Layout == ArrangerLayout.Tiled)
                 arrangerNode.Add(new XAttribute("layout", "tiled"));
-            else if (arrangerModel.Layout == ArrangerLayout.LinearArranger)
+            else if (arrangerModel.Layout == ArrangerLayout.Single)
                 arrangerNode.Add(new XAttribute("layout", "linear"));
 
             arrangerNode.Add(new XAttribute("defaultformat", defaultFormat));

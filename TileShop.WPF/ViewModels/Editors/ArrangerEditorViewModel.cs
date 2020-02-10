@@ -32,10 +32,10 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public bool IsLinearLayout => _arranger?.Layout == ArrangerLayout.LinearArranger;
-        public bool IsTiledLayout => _arranger?.Layout == ArrangerLayout.TiledArranger;
+        public bool IsLinearLayout => _arranger?.Layout == ArrangerLayout.Single;
+        public bool IsTiledLayout => _arranger?.Layout == ArrangerLayout.Tiled;
 
-        public virtual bool CanShowGridlines => _arranger?.Layout == ArrangerLayout.TiledArranger;
+        public virtual bool CanShowGridlines => _arranger?.Layout == ArrangerLayout.Tiled;
 
         protected bool _showGridlines = false;
         public bool ShowGridlines
@@ -71,7 +71,7 @@ namespace TileShop.WPF.ViewModels
         public int MinZoom => 1;
         public int MaxZoom => 16;
 
-        public bool CanChangeSnapMode => _arranger is object ? _arranger.Layout == ArrangerLayout.TiledArranger : false;
+        public bool CanChangeSnapMode => _arranger is object ? _arranger.Layout == ArrangerLayout.Tiled : false;
 
         protected EditMode _editMode = EditMode.ArrangeGraphics;
         public EditMode EditMode
@@ -93,7 +93,7 @@ namespace TileShop.WPF.ViewModels
         {
             ArrangerTransferModel transferModel;
 
-            if (Selection.SnapMode == SnapMode.Element && _arranger.Layout == ArrangerLayout.TiledArranger)
+            if (Selection.SnapMode == SnapMode.Element && _arranger.Layout == ArrangerLayout.Tiled)
             {
                 // Clone a subsection of the arranger and show the full subarranger
                 var arranger = _arranger.CloneArranger(Selection.SnappedX1, Selection.SnappedY1, Selection.SnappedWidth, Selection.SnappedHeight);

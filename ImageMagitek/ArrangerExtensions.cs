@@ -34,7 +34,7 @@ namespace ImageMagitek
         /// <returns>Updated address of first element</returns>
         public static FileBitAddress Move(this SequentialArranger self, ArrangerMoveType moveType)
         {
-            if (self.Mode != ArrangerMode.SequentialArranger)
+            if (self.Mode != ArrangerMode.Sequential)
                 throw new InvalidOperationException($"{nameof(Move)}: Arranger {self.Name} is not in sequential mode");
 
             if (self.ElementGrid is null)
@@ -53,45 +53,45 @@ namespace ImageMagitek
                     newAddress -= 8;
                     break;
                 case ArrangerMoveType.RowDown:
-                    if(self.Layout == ArrangerLayout.TiledArranger)
+                    if(self.Layout == ArrangerLayout.Tiled)
                         delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize;
-                    else if(self.Layout == ArrangerLayout.LinearArranger)
+                    else if(self.Layout == ArrangerLayout.Single)
                         delta = self.ActiveCodec.StorageSize / self.ArrangerPixelSize.Height;
 
                     newAddress += delta;
                     break;
                 case ArrangerMoveType.RowUp:
-                    if (self.Layout == ArrangerLayout.TiledArranger)
+                    if (self.Layout == ArrangerLayout.Tiled)
                         delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize;
-                    else if (self.Layout == ArrangerLayout.LinearArranger)
+                    else if (self.Layout == ArrangerLayout.Single)
                         delta = self.ActiveCodec.StorageSize / self.ArrangerPixelSize.Height;
                     newAddress -= delta;
                     break;
                 case ArrangerMoveType.ColRight:
-                    if (self.Layout == ArrangerLayout.TiledArranger)
+                    if (self.Layout == ArrangerLayout.Tiled)
                         delta = self.ActiveCodec.StorageSize;
-                    else if (self.Layout == ArrangerLayout.LinearArranger)
+                    else if (self.Layout == ArrangerLayout.Single)
                         delta = 16 * self.ActiveCodec.StorageSize / ((self.ActiveCodec.RowStride + self.ActiveCodec.Width) * self.ActiveCodec.Height);
                     newAddress += delta;
                     break;
                 case ArrangerMoveType.ColLeft:
-                    if (self.Layout == ArrangerLayout.TiledArranger)
+                    if (self.Layout == ArrangerLayout.Tiled)
                         delta = self.ActiveCodec.StorageSize;
-                    else if (self.Layout == ArrangerLayout.LinearArranger)
+                    else if (self.Layout == ArrangerLayout.Single)
                         delta = 16 * self.ActiveCodec.StorageSize / ((self.ActiveCodec.RowStride + self.ActiveCodec.Width) * self.ActiveCodec.Height);
                     newAddress -= delta;
                     break;
                 case ArrangerMoveType.PageDown:
-                    if (self.Layout == ArrangerLayout.TiledArranger)
+                    if (self.Layout == ArrangerLayout.Tiled)
                         delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize * self.ArrangerElementSize.Height / 2;
-                    else if (self.Layout == ArrangerLayout.LinearArranger)
+                    else if (self.Layout == ArrangerLayout.Single)
                         delta = self.ActiveCodec.StorageSize / 2;
                     newAddress += delta;
                     break;
                 case ArrangerMoveType.PageUp:
-                    if (self.Layout == ArrangerLayout.TiledArranger)
+                    if (self.Layout == ArrangerLayout.Tiled)
                         delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize * self.ArrangerElementSize.Height / 2;
-                    else if (self.Layout == ArrangerLayout.LinearArranger)
+                    else if (self.Layout == ArrangerLayout.Single)
                         delta = self.ActiveCodec.StorageSize / 2;
                     newAddress -= delta;
                     break;
@@ -123,7 +123,7 @@ namespace ImageMagitek
         /// <returns></returns>
         public static FileBitAddress Move(this SequentialArranger self, FileBitAddress absoluteAddress)
         {
-            if (self.Mode != ArrangerMode.SequentialArranger)
+            if (self.Mode != ArrangerMode.Sequential)
                 throw new InvalidOperationException($"{nameof(Move)}: Arranger {self.Name} is not in sequential mode");
 
             if (self.ElementGrid is null)

@@ -121,7 +121,7 @@ namespace TileShop.WPF.ViewModels
                 CodecNames.Add(name);
             _selectedCodecName = arranger.ActiveCodec.Name;
 
-            if(arranger.Layout == ArrangerLayout.TiledArranger)
+            if(arranger.Layout == ArrangerLayout.Tiled)
             {
                 _tiledElementWidth = arranger.ElementPixelSize.Width;
                 _tiledElementHeight = arranger.ElementPixelSize.Height;
@@ -129,7 +129,7 @@ namespace TileShop.WPF.ViewModels
                 _tiledArrangerWidth = arranger.ArrangerElementSize.Width;
                 Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Element);
             }
-            else if(arranger.Layout == ArrangerLayout.LinearArranger)
+            else if(arranger.Layout == ArrangerLayout.Single)
             {
                 _linearArrangerHeight = arranger.ArrangerPixelSize.Height;
                 _linearArrangerWidth = arranger.ArrangerPixelSize.Width;

@@ -11,7 +11,7 @@ namespace ImageMagitek
 
         public ScatteredArranger()
         {
-            Mode = ArrangerMode.ScatteredArranger;
+            Mode = ArrangerMode.Scattered;
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace ImageMagitek
         public ScatteredArranger(string name, ArrangerLayout layout, int arrangerWidth, int arrangerHeight, int elementWidth, int elementHeight)
         {
             Name = name;
-            Mode = ArrangerMode.ScatteredArranger;
+            Mode = ArrangerMode.Scattered;
             Layout = layout;
             ElementGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
 
@@ -63,7 +63,7 @@ namespace ImageMagitek
         /// <param name="arrangerHeight">Height of Arranger in Elements</param>
         public override void Resize(int arrangerWidth, int arrangerHeight)
         {
-            if (Mode != ArrangerMode.ScatteredArranger)
+            if (Mode != ArrangerMode.Scattered)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
             ArrangerElement[,] newList = new ArrangerElement[arrangerWidth, arrangerHeight];
