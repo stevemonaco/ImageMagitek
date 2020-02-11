@@ -9,7 +9,7 @@ namespace ImageMagitek
     public class ArrangerElement
     {
         /// <summary>
-        /// DataFile which contains the element's pixel data
+        /// DataFile which contains the Element's pixel data
         /// </summary>
         public DataFile DataFile { get; }
 
@@ -18,6 +18,9 @@ namespace ImageMagitek
         /// </summary>
         public FileBitAddress FileAddress { get; }
 
+        /// <summary>
+        /// Codec used for encoding and decoding
+        /// </summary>
         public IGraphicsCodec Codec { get; }
 
         /// <summary>
@@ -77,12 +80,6 @@ namespace ImageMagitek
             Codec = codec;
             Palette = palette;
         }
-
-        /// <summary>
-        /// Creates a shallow clone
-        /// </summary>
-        /// <returns></returns>
-        //public ArrangerElement Clone() => new ArrangerElement(X1, Y1, DataFile, FileAddress, Codec, Palette);
 
         public ArrangerElement WithLocation(int x1, int y1) =>
             new ArrangerElement(x1, y1, DataFile, FileAddress, Codec, Palette);
