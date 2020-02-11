@@ -9,11 +9,6 @@ namespace ImageMagitek
     {
         public override bool ShouldBeSerialized { get; set; } = true;
 
-        public ScatteredArranger()
-        {
-            Mode = ArrangerMode.Scattered;
-        }
-
         /// <summary>
         /// Creates a new scattered arranger with default initialized elements
         /// </summary>

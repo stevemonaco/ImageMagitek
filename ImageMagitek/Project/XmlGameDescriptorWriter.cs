@@ -100,7 +100,7 @@ namespace ImageMagitek.Project
                         {
                             for (int y = 0; y < arrangerModel.ArrangerElementSize.Height; y++)
                             {
-                                var element = arranger.ElementGrid[x, y];
+                                var element = arranger.GetElement(x, y);
                                 var elementModel = arrangerModel.ElementGrid[x, y];
                                 elementModel.DataFileKey = resourceResolver[element.DataFile];
                                 elementModel.PaletteKey = resourceResolver[element.Palette];

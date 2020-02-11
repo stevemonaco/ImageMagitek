@@ -33,11 +33,6 @@ namespace ImageMagitek
         private ICodecFactory _codecs;
         private DataFile _dataFile;
 
-        public SequentialArranger()
-        {
-            Mode = ArrangerMode.Sequential;
-        }
-
         /// <summary>
         /// Constructs a new SequentialArranger
         /// </summary>
@@ -140,6 +135,27 @@ namespace ImageMagitek
             address = this.Move(address);
 
             return address;
+        }
+
+        /// <summary>
+        /// Sets Element to a position in the Arranger ElementGrid using a shallow copy
+        /// </summary>
+        /// <param name="element">Element to be placed into the ElementGrid</param>
+        /// <param name="posX">x-coordinate in Element coordinates</param>
+        /// <param name="posY">y-coordinate in Element coordinates</param>
+        public override void SetElement(ArrangerElement element, int posX, int posY)
+        {
+            if (ElementGrid is null)
+                throw new NullReferenceException($"{nameof(SetElement)} property '{nameof(ElementGrid)}' was null");
+
+            if (posX > ArrangerElementSize.Width || posY > ArrangerElementSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({posX}, {posY})");
+
+            if (element.Codec != null)
+                if (element.Codec.ColorType != ColorType || element.Codec.Name != ActiveCodec.Name)
+                    throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned to SequentialArranger '{Name}'");
+
+            ElementGrid[posX, posY] = element;
         }
 
         /// <summary>

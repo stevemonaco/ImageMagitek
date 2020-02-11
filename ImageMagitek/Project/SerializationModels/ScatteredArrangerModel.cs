@@ -22,7 +22,7 @@ namespace ImageMagitek.Project.SerializationModels
                 for (int y = 0; y < ElementGrid.GetLength(1); y++)
                 {
                     var el = ElementGrid[x, y].ToArrangerElement();
-                    arr.ElementGrid[x, y] = el;
+                    arr.SetElement(el, x, y);
                 }
             }
 
@@ -45,7 +45,7 @@ namespace ImageMagitek.Project.SerializationModels
             {
                 for (int y = 0; y < model.ElementGrid.GetLength(1); y++)
                 {
-                    model.ElementGrid[x, y] = ArrangerElementModel.FromArrangerElement(arranger.ElementGrid[x, y], x, y);
+                    model.ElementGrid[x, y] = ArrangerElementModel.FromArrangerElement(arranger.GetElement(x, y), x, y);
                 }
             }
 

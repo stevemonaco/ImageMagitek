@@ -37,9 +37,6 @@ namespace ImageMagitek
             if (self.Mode != ArrangerMode.Sequential)
                 throw new InvalidOperationException($"{nameof(Move)}: Arranger {self.Name} is not in sequential mode");
 
-            if (self.ElementGrid is null)
-                throw new NullReferenceException($"{nameof(Move)} property {nameof(self.ElementGrid)} was null");
-
             var initialAddress = self.GetInitialSequentialFileAddress();
             var newAddress = self.GetInitialSequentialFileAddress();
             FileBitAddress delta = 0;
@@ -126,9 +123,6 @@ namespace ImageMagitek
             if (arranger.Mode != ArrangerMode.Sequential)
                 throw new InvalidOperationException($"{nameof(Move)}: Arranger {arranger.Name} is not in sequential mode");
 
-            if (arranger.ElementGrid is null)
-                throw new NullReferenceException($"{nameof(Move)} property {nameof(arranger.ElementGrid)} was null");
-
             FileBitAddress address;
             FileBitAddress testaddress = absoluteAddress + arranger.ArrangerBitSize; // Tests the bounds of the arranger vs the file size
 
@@ -160,16 +154,16 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="Location">Point in zoomed coordinates</param>
         /// <returns>Element location</returns>
-        public static Point PointToElementLocation(this Arranger self, Point Location, int Zoom = 1)
+        public static Point PointToElementLocation(this Arranger arranger, Point Location, int Zoom = 1)
         {
             Point unzoomed = new Point(Location.X / Zoom, Location.Y / Zoom);
 
             // Search list for element
-            for (int y = 0; y < self.ArrangerElementSize.Height; y++)
+            for (int y = 0; y < arranger.ArrangerElementSize.Height; y++)
             {
-                for (int x = 0; x < self.ArrangerElementSize.Width; x++)
+                for (int x = 0; x < arranger.ArrangerElementSize.Width; x++)
                 {
-                    ArrangerElement el = self.ElementGrid[x, y];
+                    ArrangerElement el = arranger.GetElement(x, y);
                     if (unzoomed.X >= el.X1 && unzoomed.X <= el.X2 && unzoomed.Y >= el.Y1 && unzoomed.Y <= el.Y2)
                         return new Point(x, y);
                 }
@@ -189,7 +183,7 @@ namespace ImageMagitek
             Type T = typeof(ArrangerElement);
             PropertyInfo P = T.GetProperty(attributeName);
 
-            var query = from ArrangerElement el in arr.ElementGrid
+            var query = from ArrangerElement el in arr.EnumerateElements()
                         group el by P.GetValue(el) into grp
                         select new { key = grp.Key, count = grp.Count() };
 

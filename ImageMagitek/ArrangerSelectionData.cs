@@ -230,7 +230,7 @@ namespace ImageMagitek
             int y2 = partialRectangle.Bottom;
 
             // Expands rectangle to include the entirety of partially selected tiles
-            foreach (ArrangerElement el in Arranger.ElementGrid)
+            foreach (ArrangerElement el in Arranger.EnumerateElements())
             {
                 if (x1 > el.X1 && x1 <= el.X2)
                     x1 = el.X1;

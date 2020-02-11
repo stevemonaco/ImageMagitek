@@ -42,9 +42,9 @@ namespace ImageMagitek
     public abstract class Arranger : IProjectResource
     {
         /// <summary>
-        /// Gets individual Elements that compose the Arranger
+        /// Individual Elements that compose the Arranger
         /// </summary>
-        public ArrangerElement[,] ElementGrid { get; protected set; }
+        protected ArrangerElement[,] ElementGrid { get; set; }
 
         /// <summary>
         /// Gets the size of the entire Arranger in Element coordinates
@@ -137,13 +137,17 @@ namespace ImageMagitek
         /// <param name="element">Element to be placed into the ElementGrid</param>
         /// <param name="posX">x-coordinate in Element coordinates</param>
         /// <param name="posY">y-coordinate in Element coordinates</param>
-        public void SetElement(ArrangerElement element, int posX, int posY)
+        public virtual void SetElement(ArrangerElement element, int posX, int posY)
         {
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(SetElement)} property '{nameof(ElementGrid)}' was null");
 
             if (posX > ArrangerElementSize.Width || posY > ArrangerElementSize.Height)
                 throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({posX}, {posY})");
+
+            if (element.Codec != null)
+                if (element.Codec.ColorType != ColorType)
+                    throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' did not match the Arranger's {nameof(PixelColorType)}");
 
             ElementGrid[posX, posY] = element;
         }
