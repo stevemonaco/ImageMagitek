@@ -12,21 +12,6 @@ namespace ImageMagitek
     public static class ArrangerExtensions
     {
         /// <summary>
-        /// Gets a set of all distinct Palette keys used in an Arranger
-        /// </summary>
-        /// <param name="self"></param>
-        /// <returns></returns>
-        /*public static HashSet<string> GetPaletteKeySet(this Arranger self)
-        {
-            HashSet<string> palSet = new HashSet<string>();
-
-            foreach (var el in self.EnumerateElements())
-                palSet.Add(el.PaletteKey);
-
-            return palSet;
-        }*/
-
-        /// <summary>
         /// Moves a Sequential Arranger's file position and updates each Element
         /// Will not move outside of the bounds of the underlying file
         /// </summary>
