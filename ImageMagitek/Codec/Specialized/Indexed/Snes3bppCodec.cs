@@ -1,8 +1,4 @@
-﻿using ImageMagitek.Colors;
-using ImageMagitek.ExtensionMethods;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 
 namespace ImageMagitek.Codec
 {

@@ -1,8 +1,4 @@
-﻿using ImageMagitek.Colors;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
-namespace ImageMagitek.Codec
+﻿namespace ImageMagitek.Codec
 {
     /// <summary>
     /// Specifies how the graphical viewer should treat the graphic
