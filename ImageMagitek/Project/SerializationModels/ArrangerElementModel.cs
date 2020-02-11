@@ -9,15 +9,8 @@
         public int PositionX { get; set; }
         public int PositionY { get; set; }
 
-        public ArrangerElement ToArrangerElement()
-        {
-            return new ArrangerElement
-            {
-                FileAddress = FileAddress,
-                X1 = PositionX,
-                Y1 = PositionY
-            };
-        }
+        public ArrangerElement ToArrangerElement() =>
+            new ArrangerElement(PositionX, PositionY, null, FileAddress, null, null);
 
         public static ArrangerElementModel FromArrangerElement(ArrangerElement el)
         {
@@ -30,13 +23,13 @@
             };
         }
 
-        public static ArrangerElementModel FromArrangerElement(ArrangerElement el, int positionX, int positionY)
+        public static ArrangerElementModel FromArrangerElement(ArrangerElement el, int elemX, int elemY)
         {
             return new ArrangerElementModel()
             {
                 FileAddress = el.FileAddress,
-                PositionX = positionX,
-                PositionY = positionY,
+                PositionX = elemX,
+                PositionY = elemY,
                 CodecName = el.Codec.Name
             };
         }

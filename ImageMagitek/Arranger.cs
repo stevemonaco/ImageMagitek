@@ -57,8 +57,7 @@ namespace ImageMagitek
         public Size ArrangerPixelSize { get => new Size(ArrangerElementSize.Width * ElementPixelSize.Width, ArrangerElementSize.Height * ElementPixelSize.Height); }
 
         /// <summary>
-        /// Gets the size of an individual Element in unzoomed pixels
-        /// Only valid for Sequential Arranger
+        /// Gets the size of an individual Element in pixels
         /// </summary>
         public Size ElementPixelSize { get; protected set; }
 
@@ -109,25 +108,25 @@ namespace ImageMagitek
         /// <summary>
         /// Clones a subsection of the Arranger
         /// </summary>
-        /// <param name="posX">Left edge of Arranger in pixel coordinates</param>
-        /// <param name="posY">Top edge of Arranger in pixel coordinates</param>
+        /// <param name="pixelX">Left edge of Arranger in pixel coordinates</param>
+        /// <param name="pixelY">Top edge of Arranger in pixel coordinates</param>
         /// <param name="width">Width of Arranger in pixels</param>
         /// <param name="height">Height of Arranger in pixels</param>
         /// <returns></returns>
-        public virtual Arranger CloneArranger(int posX, int posY, int width, int height)
+        public virtual Arranger CloneArranger(int pixelX, int pixelY, int width, int height)
         {
-            if (posX < 0 || posX + width > ArrangerPixelSize.Width || posY < 0 || posY + height > ArrangerPixelSize.Height)
-                throw new ArgumentOutOfRangeException($"{nameof(CloneArranger)} parameters ({nameof(posX)}: {posX}, {nameof(posY)}: {posY}, {nameof(width)}: {width}, {nameof(height)}: {height})" +
+            if (pixelX < 0 || pixelX + width > ArrangerPixelSize.Width || pixelY < 0 || pixelY + height > ArrangerPixelSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(CloneArranger)} parameters ({nameof(pixelX)}: {pixelX}, {nameof(pixelY)}: {pixelY}, {nameof(width)}: {width}, {nameof(height)}: {height})" +
                     $" were outside of the bounds of arranger '{Name}' of size (width: {ArrangerPixelSize.Width}, height: {ArrangerPixelSize.Height})");
 
             if (Layout == ArrangerLayout.Single)
             {
-                if (posX != 0 || posY != 0 || width != ArrangerPixelSize.Width || height != ArrangerPixelSize.Height)
-                    throw new InvalidOperationException($"{nameof(CloneArranger)} of a LinearArranger must have the same dimensions as the original");
-                return CloneArrangerCore(posX, posY, width, height);
+                if (pixelX != 0 || pixelY != 0 || width != ArrangerPixelSize.Width || height != ArrangerPixelSize.Height)
+                    throw new InvalidOperationException($"{nameof(CloneArranger)} of an Arranger with ArrangerLayout of Single must have the same dimensions as the original");
+                return CloneArrangerCore(pixelX, pixelY, width, height);
             }
 
-            return CloneArrangerCore(posX, posY, width, height);
+            return CloneArrangerCore(pixelX, pixelY, width, height);
         }
 
         protected abstract Arranger CloneArrangerCore(int posX, int posY, int width, int height);
@@ -136,51 +135,50 @@ namespace ImageMagitek
         /// Sets Element to a position in the Arranger ElementGrid using a shallow copy
         /// </summary>
         /// <param name="element">Element to be placed into the ElementGrid</param>
-        /// <param name="arrangerPosX">x-coordinate in Element coordinates</param>
-        /// <param name="arrangerPosY">y-coordinate in Element coordinates</param>
-        public void SetElement(ArrangerElement element, int arrangerPosX, int arrangerPosY)
+        /// <param name="posX">x-coordinate in Element coordinates</param>
+        /// <param name="posY">y-coordinate in Element coordinates</param>
+        public void SetElement(ArrangerElement element, int posX, int posY)
         {
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(SetElement)} property '{nameof(ElementGrid)}' was null");
 
-            if (arrangerPosX > ArrangerElementSize.Width || arrangerPosY > ArrangerElementSize.Height)
-                throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({arrangerPosX}, {arrangerPosY})");
+            if (posX > ArrangerElementSize.Width || posY > ArrangerElementSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({posX}, {posY})");
 
-            ElementGrid[arrangerPosX, arrangerPosY] = element;
+            ElementGrid[posX, posY] = element;
         }
 
         /// <summary>
         /// Gets an Element from a position in the Arranger ElementGrid in Element coordinates
         /// </summary>
-        /// <param name="arrangerPosX">x-coordinate in Element coordinates</param>
-        /// <param name="arrangerPosY">y-coordinate in Element coordinates</param>
+        /// <param name="posX">x-coordinate in Element coordinates</param>
+        /// <param name="posY">y-coordinate in Element coordinates</param>
         /// <returns></returns>
-        public ArrangerElement GetElement(int arrangerPosX, int arrangerPosY)
+        public ArrangerElement GetElement(int posX, int posY)
         {
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(GetElement)} property '{nameof(ElementGrid)}' was null");
 
-            if (arrangerPosX >= ArrangerElementSize.Width || arrangerPosY >= ArrangerElementSize.Height)
-                throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({arrangerPosX}, {arrangerPosY})");
+            if (posX >= ArrangerElementSize.Width || posY >= ArrangerElementSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({posX}, {posY})");
 
-            return ElementGrid[arrangerPosX, arrangerPosY];
+            return ElementGrid[posX, posY];
         }
 
         /// <summary>
         /// Gets an Element from a position in the Arranger in pixel coordinates
         /// </summary>
-        /// <param name="arrangerPosX">x-coordinate in pixel coordinates</param>
-        /// <param name="arrangerPosY">x-coordinate in pixel coordinates</param>
-        /// <returns></returns>
-        public ArrangerElement GetElementAtPixel(int arrangerPosX, int arrangerPosY)
+        /// <param name="pixelX">x-coordinate in pixel coordinates</param>
+        /// <param name="pixelY">x-coordinate in pixel coordinates</param>
+        public ArrangerElement GetElementAtPixel(int pixelX, int pixelY)
         {
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(GetElementAtPixel)} property '{nameof(ElementGrid)}' was null");
 
-            if (arrangerPosX >= ArrangerPixelSize.Width || arrangerPosY >= ArrangerPixelSize.Height)
-                throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({arrangerPosX}, {arrangerPosY})");
+            if (pixelX >= ArrangerPixelSize.Width || pixelY >= ArrangerPixelSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({pixelX}, {pixelY})");
 
-            return ElementGrid[arrangerPosX / ElementPixelSize.Width, arrangerPosY / ElementPixelSize.Height];
+            return ElementGrid[pixelX / ElementPixelSize.Width, pixelY / ElementPixelSize.Height];
         }
 
         /// <summary>

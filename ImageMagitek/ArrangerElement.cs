@@ -11,39 +11,39 @@ namespace ImageMagitek
         /// <summary>
         /// DataFile which contains the element's pixel data
         /// </summary>
-        public DataFile DataFile { get; set; }
+        public DataFile DataFile { get; }
 
         /// <summary>
         /// FileAddress of Element
         /// </summary>
-        public FileBitAddress FileAddress { get; set; }
+        public FileBitAddress FileAddress { get; }
 
-        public IGraphicsCodec Codec { get; set; }
+        public IGraphicsCodec Codec { get; }
 
         /// <summary>
         /// Width of Element in pixels
         /// </summary>
-        public int Width { get; set; }
+        public int Width => Codec.Width;
 
         /// <summary>
         /// Height of Element in pixels
         /// </summary>
-        public int Height { get; set; }
+        public int Height => Codec.Height;
 
         /// <summary>
         /// Palette to apply to the element's pixel data
         /// </summary>
-        public Palette Palette { get; set; }
+        public Palette Palette { get; }
 
         /// <summary>
         /// Left edge of the Element within the Arranger in pixel coordinates, inclusive
         /// </summary>
-        public int X1 { get; set; }
+        public int X1 { get; }
 
         /// <summary>
         /// Top edge of the Element within the Arranger in pixel coordinates, inclusive
         /// </summary>
-        public int Y1 { get; set; }
+        public int Y1 { get; }
 
         /// <summary>
         /// Right edge of the Element within the Arranger in pixel coordinates, inclusive
@@ -58,31 +58,48 @@ namespace ImageMagitek
         public ArrangerElement()
         {
             FileAddress = new FileBitAddress(0, 0);
-            Width = 0;
-            Height = 0;
             X1 = 0;
             Y1 = 0;
+        }
+
+        public ArrangerElement(int x1, int y1)
+        {
+            X1 = x1;
+            Y1 = y1;
+        }
+
+        public ArrangerElement(int x1, int y1, DataFile dataFile, FileBitAddress address, IGraphicsCodec codec, Palette palette)
+        {
+            X1 = x1;
+            Y1 = y1;
+            DataFile = dataFile;
+            FileAddress = address;
+            Codec = codec;
+            Palette = palette;
         }
 
         /// <summary>
         /// Creates a shallow clone
         /// </summary>
         /// <returns></returns>
-        public ArrangerElement Clone()
-        {
-            ArrangerElement el = new ArrangerElement()
-            {
-                DataFile = DataFile,
-                Codec = Codec,
-                FileAddress = FileAddress,
-                Width = Width,
-                Height = Height,
-                Palette = Palette,
-                X1 = X1,
-                Y1 = Y1
-            };
+        //public ArrangerElement Clone() => new ArrangerElement(X1, Y1, DataFile, FileAddress, Codec, Palette);
 
-            return el;
-        }
+        public ArrangerElement WithLocation(int x1, int y1) =>
+            new ArrangerElement(x1, y1, DataFile, FileAddress, Codec, Palette);
+
+        public ArrangerElement WithFile(DataFile dataFile, FileBitAddress fileAddress) =>
+            new ArrangerElement(X1, Y1, dataFile, fileAddress, Codec, Palette);
+
+        public ArrangerElement WithPalette(Palette palette) =>
+            new ArrangerElement(X1, Y1, DataFile, FileAddress, Codec, palette);
+
+        public ArrangerElement WithAddress(FileBitAddress address) =>
+            new ArrangerElement(X1, Y1, DataFile, address, Codec, Palette);
+
+        public ArrangerElement WithCodec(IGraphicsCodec codec, int x1, int y1) =>
+            new ArrangerElement(x1, y1, DataFile, FileAddress, codec, Palette);
+
+        public ArrangerElement WithTarget(DataFile dataFile, FileBitAddress fileAddress, IGraphicsCodec codec, Palette palette) =>
+            new ArrangerElement(X1, Y1, dataFile, fileAddress, codec, palette);
     }
 }

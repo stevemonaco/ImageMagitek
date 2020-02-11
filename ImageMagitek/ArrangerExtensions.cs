@@ -121,33 +121,38 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="absoluteAddress">Specified address to move the arranger to</param>
         /// <returns></returns>
-        public static FileBitAddress Move(this SequentialArranger self, FileBitAddress absoluteAddress)
+        public static FileBitAddress Move(this SequentialArranger arranger, FileBitAddress absoluteAddress)
         {
-            if (self.Mode != ArrangerMode.Sequential)
-                throw new InvalidOperationException($"{nameof(Move)}: Arranger {self.Name} is not in sequential mode");
+            if (arranger.Mode != ArrangerMode.Sequential)
+                throw new InvalidOperationException($"{nameof(Move)}: Arranger {arranger.Name} is not in sequential mode");
 
-            if (self.ElementGrid is null)
-                throw new NullReferenceException($"{nameof(Move)} property {nameof(self.ElementGrid)} was null");
+            if (arranger.ElementGrid is null)
+                throw new NullReferenceException($"{nameof(Move)} property {nameof(arranger.ElementGrid)} was null");
 
             FileBitAddress address;
-            FileBitAddress testaddress = absoluteAddress + self.ArrangerBitSize; // Tests the bounds of the arranger vs the file size
+            FileBitAddress testaddress = absoluteAddress + arranger.ArrangerBitSize; // Tests the bounds of the arranger vs the file size
 
-            if (self.FileSize * 8 < self.ArrangerBitSize) // Arranger needs more bits than the entire file
+            if (arranger.FileSize * 8 < arranger.ArrangerBitSize) // Arranger needs more bits than the entire file
                 address = new FileBitAddress(0, 0);
-            else if (testaddress.Bits() > self.FileSize * 8)
-                address = new FileBitAddress(self.FileSize * 8 - self.ArrangerBitSize);
+            else if (testaddress.Bits() > arranger.FileSize * 8)
+                address = new FileBitAddress(arranger.FileSize * 8 - arranger.ArrangerBitSize);
             else
                 address = absoluteAddress;
 
-            int ElementStorageSize = self.ActiveCodec.StorageSize;
+            int ElementStorageSize = arranger.ActiveCodec.StorageSize;
 
-            foreach(var el in self.EnumerateElements())
+            for (int y = 0; y < arranger.ArrangerElementSize.Height; y++)
             {
-                el.FileAddress = address;
-                address += ElementStorageSize;
+                for (int x = 0; x < arranger.ArrangerElementSize.Width; x++)
+                {
+                    var el = arranger.GetElement(x, y);
+                    el = el.WithAddress(address);
+                    arranger.SetElement(el, x, y);
+                    address += ElementStorageSize;
+                }
             }
 
-            return self.ElementGrid[0, 0].FileAddress;
+            return arranger.GetElement(0, 0).FileAddress;
         }
 
         /// <summary>

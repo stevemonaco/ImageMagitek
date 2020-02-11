@@ -127,7 +127,7 @@ namespace ImageMagitek
             {
                 for (int xsrc = SelectedElements.X, xdest = 0; xdest < SelectionSize.Width; xdest++, xsrc++)
                 {
-                    ElementList[xdest, ydest] = Arranger.GetElement(xsrc, ysrc).Clone();
+                    ElementList[xdest, ydest] = Arranger.GetElement(xsrc, ysrc);
                 }
             }
 

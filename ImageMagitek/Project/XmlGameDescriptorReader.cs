@@ -77,10 +77,11 @@ namespace ImageMagitek.Project
                         if(!string.IsNullOrEmpty(modelArranger.ElementGrid[x, y].PaletteKey))
                             tree.TryGetValue<Palette>(modelArranger.ElementGrid[x, y].PaletteKey, out pal);
 
-                        var element = arranger.ElementGrid[x, y];
-                        element.DataFile = df;
-                        element.Palette = pal;
-                        element.Codec = _codecFactory.GetCodec(modelArranger.ElementGrid[x, y].CodecName, element.Width, element.Height);
+                        var element = arranger.GetElement(x, y);
+
+                        var codec = _codecFactory.GetCodec(modelArranger.ElementGrid[x, y].CodecName, arranger.ElementPixelSize.Width, arranger.ElementPixelSize.Height);
+                        element = element.WithTarget(df, element.FileAddress, codec, pal);
+                        arranger.SetElement(element, x, y);
                     }
                 }
 

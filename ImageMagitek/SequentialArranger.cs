@@ -112,33 +112,28 @@ namespace ImageMagitek
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
             ArrangerBitSize = arrangerWidth * arrangerHeight * ActiveCodec.StorageSize;
 
-            int y = 0;
+            int elY = 0;
 
-            for (int i = 0; i < arrangerHeight; i++)
+            for (int posY = 0; posY < arrangerHeight; posY++)
             {
-                int x = 0;
-                for (int j = 0; j < arrangerWidth; j++)
+                int elX = 0;
+                for (int posX = 0; posX < arrangerWidth; posX++)
                 {
-                    ArrangerElement el = ElementGrid[j, i] ??
-                        new ArrangerElement() { Codec = _codecs.CloneCodec(ActiveCodec) };
+                    ArrangerElement el = ElementGrid[posX, posY] ??
+                        new ArrangerElement(elX, elY, dataFile, address, _codecs.CloneCodec(ActiveCodec), null);
 
-                    el.FileAddress = address;
-                    el.X1 = x;
-                    el.Y1 = y;
-                    el.Width = ElementPixelSize.Width;
-                    el.Height = ElementPixelSize.Height;
-                    el.DataFile = dataFile;
-
-                    ElementGrid[j, i] = el;
+                    SetElement(el, posX, posY);
 
                     if (el.Codec.Layout == ImageLayout.Tiled)
                         address += ActiveCodec.StorageSize;
-                    else // Linear
+                    else if (el.Codec.Layout == ImageLayout.Single)
                         address += (ElementPixelSize.Width + ActiveCodec.RowStride) * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
+                    else
+                        throw new NotSupportedException();
 
-                    x += ElementPixelSize.Width;
+                    elX += ElementPixelSize.Width;
                 }
-                y += ElementPixelSize.Height;
+                elY += ElementPixelSize.Height;
             }
 
             address = GetInitialSequentialFileAddress();
@@ -165,28 +160,27 @@ namespace ImageMagitek
 
             ArrangerBitSize = ArrangerElementSize.Width * ArrangerElementSize.Height * codec.StorageSize;
 
-            int y = 0;
+            int elY = 0;
 
-            for (int i = 0; i < ArrangerElementSize.Height; i++)
+            for (int posY = 0; posY < ArrangerElementSize.Height; posY++)
             {
-                int x = 0;
-                for (int j = 0; j < ArrangerElementSize.Width; j++)
+                int elX = 0;
+                for (int posX = 0; posX < ArrangerElementSize.Width; posX++)
                 {
-                    ElementGrid[j, i].FileAddress = address;
-                    ElementGrid[j, i].X1 = x;
-                    ElementGrid[j, i].Y1 = y;
-                    ElementGrid[j, i].Width = ElementPixelSize.Width;
-                    ElementGrid[j, i].Height = ElementPixelSize.Height;
-                    ElementGrid[j, i].Codec = _codecs.CloneCodec(ActiveCodec);
+                    var el = GetElement(posX, posY);
+                    el = new ArrangerElement(elX, elY, el.DataFile, address, _codecs.CloneCodec(ActiveCodec), el.Palette);
+                    SetElement(el, posX, posY);
 
                     if (ActiveCodec.Layout == ImageLayout.Tiled)
                         address += ActiveCodec.StorageSize;
-                    else // Linear
+                    else if (ActiveCodec.Layout == ImageLayout.Single)
                         address += (ElementPixelSize.Width + ActiveCodec.RowStride) * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
+                    else
+                        throw new NotSupportedException();
 
-                    x += ElementPixelSize.Width;
+                    elX += ElementPixelSize.Width;
                 }
-                y += ElementPixelSize.Height;
+                elY += ElementPixelSize.Height;
             }
 
             address = GetInitialSequentialFileAddress();
@@ -214,10 +208,11 @@ namespace ImageMagitek
             {
                 for (int x = 0; x < elemsWidth; x++)
                 {
-                    var el = GetElement(x + elemX, y + elemY).Clone();
-                    el.X1 = x * ElementPixelSize.Width;
-                    el.Y1 = y * ElementPixelSize.Height;
-                    el.Codec = _codecs.CloneCodec(ElementGrid[x + elemX, y + elemY].Codec);
+                    var elX = x * ElementPixelSize.Width;
+                    var elY = y * ElementPixelSize.Height;
+                    var codec = _codecs.CloneCodec(ElementGrid[x + elemX, y + elemY].Codec);
+
+                    var el = GetElement(x + elemX, y + elemY).WithCodec(codec, elX, elY);
                     arranger.SetElement(el, x, y);
                 }
             }

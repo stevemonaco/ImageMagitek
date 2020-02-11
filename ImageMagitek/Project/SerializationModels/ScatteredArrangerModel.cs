@@ -22,9 +22,6 @@ namespace ImageMagitek.Project.SerializationModels
                 for (int y = 0; y < ElementGrid.GetLength(1); y++)
                 {
                     var el = ElementGrid[x, y].ToArrangerElement();
-                    el.Width = arr.ElementPixelSize.Width;
-                    el.Height = arr.ElementPixelSize.Height;
-
                     arr.ElementGrid[x, y] = el;
                 }
             }

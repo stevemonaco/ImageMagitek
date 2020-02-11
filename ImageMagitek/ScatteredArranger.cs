@@ -28,32 +28,25 @@ namespace ImageMagitek
             Name = name;
             Mode = ArrangerMode.Scattered;
             Layout = layout;
+
             ElementGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
-
-            int x = 0;
-            int y = 0;
-
-            for (int i = 0; i < arrangerHeight; i++)
-            {
-                x = 0;
-                for (int j = 0; j < arrangerWidth; j++)
-                {
-                    ArrangerElement el = new ArrangerElement()
-                    {
-                        X1 = x,
-                        Y1 = y,
-                        Width = elementWidth,
-                        Height = elementHeight,
-                    };
-                    ElementGrid[j, i] = el;
-
-                    x += elementWidth;
-                }
-                y += elementHeight;
-            }
-
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
             ElementPixelSize = new Size(elementWidth, elementHeight);
+
+            int elY = 0;
+
+            for (int posY = 0; posY < arrangerHeight; posY++)
+            {
+                int elX = 0;
+                for (int posX = 0; posX < arrangerWidth; posX++)
+                {
+                    var el = new ArrangerElement(elX, elY, null, 0, null, null);
+                    SetElement(el, posX, posY);
+
+                    elX += elementWidth;
+                }
+                elY += elementHeight;
+            }
         }
 
         /// <summary>
@@ -73,23 +66,16 @@ namespace ImageMagitek
             int Width = ElementPixelSize.Width;
             int Height = ElementPixelSize.Height;
 
-            for (int y = 0; y < arrangerHeight; y++)
+            for (int posY = 0; posY < arrangerHeight; posY++)
             {
-                for (int x = 0; x < arrangerWidth; x++)
+                for (int posX = 0; posX < arrangerWidth; posX++)
                 {
-                    if ((y < ArrangerElementSize.Height) && (x < ArrangerElementSize.Width)) // Copy from old arranger
-                        newList[x, y] = ElementGrid[x, y].Clone();
+                    if ((posY < ArrangerElementSize.Height) && (posX < ArrangerElementSize.Width)) // Copy from old arranger
+                        newList[posX, posY] = ElementGrid[posX, posY];
                     else // Create new blank element
                     {
-                        ArrangerElement el = new ArrangerElement()
-                        {
-                            X1 = x * Width,
-                            Y1 = y * Height,
-                            Width = Width,
-                            Height = Height,
-                        };
-
-                        newList[x, y] = el;
+                        ArrangerElement el = new ArrangerElement(posX * Width, posY * Height);
+                        newList[posX, posY] = el;
                     }
                 }
             }
@@ -119,9 +105,7 @@ namespace ImageMagitek
             {
                 for (int x = 0; x < elemsWidth; x++)
                 {
-                    var el = GetElement(x + elemX, y + elemY).Clone();
-                    el.X1 = x * ElementPixelSize.Width;
-                    el.Y1 = y * ElementPixelSize.Height;
+                    var el = GetElement(x + elemX, y + elemY).WithLocation(x * ElementPixelSize.Width, y * ElementPixelSize.Height);
                     arranger.SetElement(el, x, y);
                 }
             }
