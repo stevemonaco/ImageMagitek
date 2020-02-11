@@ -10,84 +10,70 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace ImageMagitek.Codec
 {
-    //public class Psx24bppCodec : IDirectGraphicsCodec
-    //{
-    //    public string Name => "PSX 24bpp";
+    public class Psx24bppCodec : DirectCodec
+    {
+        public override string Name => "PSX 24bpp";
+        public override int Width { get; } = 8;
+        public override int Height { get; } = 8;
+        public override ImageLayout Layout => ImageLayout.Single;
+        public override int ColorDepth => 24;
+        public override int StorageSize => Width * Height * 24;
 
-    //    public int Width { get; private set; } = 8;
+        private BitStream _bitStream;
 
-    //    public int Height { get; private set; } = 8;
+        public Psx24bppCodec(int width, int height)
+        {
+            Width = width;
+            Height = height;
 
-    //    public ImageLayout Layout => ImageLayout.Single;
+            _foreignBuffer = new byte[(StorageSize + 7) / 8];
+            _nativeBuffer = new ColorRgba32[Width, Height];
 
-    //    public PixelColorType ColorType => PixelColorType.Direct;
+            _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        }
 
-    //    public int ColorDepth => 24;
+        public override ColorRgba32[,] DecodeElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+        {
+            if (encodedBuffer.Length * 8 < StorageSize)
+                throw new ArgumentException(nameof(encodedBuffer));
 
-    //    public int StorageSize => Width * Height * 24;
+            encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
+            _bitStream.SeekAbsolute(0);
 
-    //    public int RowStride { get; private set; } = 0;
+            for (int y = 0; y < el.Height; y++)
+            {
+                for (int x = 0; x < el.Width; x++)
+                {
+                    byte r = _bitStream.ReadByte();
+                    byte g = _bitStream.ReadByte();
+                    byte b = _bitStream.ReadByte();
 
-    //    public int ElementStride { get; private set; } = 0;
+                    _nativeBuffer[x, y] = new ColorRgba32(r, g, b, 0xFF);
+                }
+            }
 
-    //    private byte[] _buffer;
-    //    private Memory<byte> _memoryBuffer;
-    //    private BitStream _bitStream;
+            return NativeBuffer;
+        }
 
-    //    public Psx24bppCodec(int width, int height)
-    //    {
-    //        Width = width;
-    //        Height = height;
+        public override ReadOnlySpan<byte> EncodeElement(ArrangerElement el, ColorRgba32[,] imageBuffer)
+        {
+            if (imageBuffer.GetLength(0) != Width || imageBuffer.GetLength(1) != Height)
+                throw new ArgumentException(nameof(imageBuffer));
 
-    //        _buffer = new byte[(StorageSize + 7) / 8];
-    //        _memoryBuffer = new Memory<byte>(_buffer);
-    //        _bitStream = BitStream.OpenRead(_buffer, StorageSize);
-    //    }
+            var bs = BitStream.OpenWrite(StorageSize, 8);
 
-    //    public void Decode(ArrangerElement el, ColorRgba32[,] imageBuffer)
-    //    {
-    //        var fs = el.DataFile.Stream;
+            for (int y = 0; y < el.Height; y++)
+            {
+                for (int x = 0; x < el.Width; x++)
+                {
+                    var imageColor = imageBuffer[x, y];
+                    bs.WriteByte(imageColor.R);
+                    bs.WriteByte(imageColor.G);
+                    bs.WriteByte(imageColor.B);
+                }
+            }
 
-    //        if (el.FileAddress + StorageSize > fs.Length * 8) // Element would contain data past the end of the file
-    //            return;
-
-    //        _bitStream.SeekAbsolute(0);
-    //        fs.ReadUnshifted(el.FileAddress, StorageSize, true, _memoryBuffer.Span);
-
-    //        for (int y = 0; y < el.Height; y++)
-    //        {
-    //            for (int x = 0; x < el.Width; x++)
-    //            {
-    //                byte r = _bitStream.ReadByte();
-    //                byte g = _bitStream.ReadByte();
-    //                byte b = _bitStream.ReadByte();
-
-    //                imageBuffer[x, y] = new ColorRgba32(r, g, b, 0xFF);
-    //            }
-    //        }
-    //    }
-
-    //    public void Encode(ArrangerElement el, ColorRgba32[,] imageBuffer)
-    //    {
-    //        var fs = el.DataFile.Stream;
-
-    //        if (el.FileAddress + StorageSize > fs.Length * 8) // Element would contain data past the end of the file
-    //            return;
-
-    //        fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
-
-    //        for (int y = 0; y < el.Height; y++)
-    //        {
-    //            for (int x = 0; x < el.Width; x++)
-    //            {
-    //                var imageColor = imageBuffer[x, y];
-    //                fs.WriteByte(imageColor.R);
-    //                fs.WriteByte(imageColor.G);
-    //                fs.WriteByte(imageColor.B);
-    //            }
-    //        }
-
-    //        fs.Flush();
-    //    }
-    //}
+            return bs.Data;
+        }
+    }
 }
