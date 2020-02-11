@@ -12,7 +12,6 @@ namespace ImageMagitek.Codec
         public override int ColorDepth => 0;
         public override int StorageSize => 0;
 
-        //private ColorRgba32 _fillColor = new ColorRgba32(0, 0, 0, 255);
         private byte _fillIndex = 0;
 
         public BlankIndexedCodec()
