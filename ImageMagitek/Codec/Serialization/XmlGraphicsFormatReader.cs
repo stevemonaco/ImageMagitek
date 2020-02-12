@@ -93,7 +93,6 @@ namespace ImageMagitek.Codec
                 }
 
                 ImageProperty ip = new ImageProperty(int.Parse(image.colordepth), bool.Parse(image.rowinterlace), rowPixelPattern);
-                ip.ExtendRowPattern(format.Width);
                 format.ImageProperties.Add(ip);
             }
 
