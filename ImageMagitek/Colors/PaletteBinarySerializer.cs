@@ -14,7 +14,7 @@ namespace ImageMagitek.Colors
             var color = ColorFactory.CreateColor(colorModel);
             int readSize = (color.Size + 7) / 8;
 
-            byte[] paletteData = df.Stream.ReadUnshifted(address, readSize * 8 * entries, true);
+            byte[] paletteData = df.Stream.ReadUnshifted(address, readSize * 8 * entries);
             BitStream bs = BitStream.OpenRead(paletteData, readSize * 8 * entries);
             var colors = new IColor32[entries];
 
