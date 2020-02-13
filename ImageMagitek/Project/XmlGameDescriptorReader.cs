@@ -72,7 +72,12 @@ namespace ImageMagitek.Project
                     for(int y = 0; y < arranger.ArrangerElementSize.Height; y++)
                     {
                         if (modelArranger.ElementGrid[x, y] is null)
+                        {
+                            var el = new ArrangerElement(x * arranger.ArrangerElementSize.Width, y * arranger.ArrangerElementSize.Height,
+                                null, 0, new BlankIndexedCodec(), null);
+                            arranger.SetElement(el, x, y);
                             continue;
+                        }
 
                         tree.TryGetValue<DataFile>(modelArranger.ElementGrid[x, y].DataFileKey, out var df);
 
