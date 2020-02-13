@@ -6,213 +6,333 @@ using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Codec
 {
-    //public class IndexedGraphicsCodec : IIndexedCodec
-    //{
-    //    public string Name { get; set; }
-    //    public GraphicsFormat Format { get; private set; }
-    //    public int StorageSize => Format.StorageSize;
-    //    public ImageLayout Layout => Format.Layout;
-    //    public PixelColorType ColorType => Format.ColorType;
-    //    public int ColorDepth => Format.ColorDepth;
-    //    public int Width => Format.Width;
-    //    public int Height => Format.Height;
-    //    public int RowStride => Format.RowStride;
-    //    public int ElementStride => Format.ElementStride;
-    //    public Palette DefaultPalette { get; set; }
+    public class IndexedGraphicsCodec : IIndexedCodec
+    {
+        public string Name { get; set; }
+        public GraphicsFormat Format { get; private set; }
+        public int StorageSize => Format.StorageSize;
+        public ImageLayout Layout => Format.Layout;
+        public PixelColorType ColorType => Format.ColorType;
+        public int ColorDepth => Format.ColorDepth;
+        public int Width => Format.Width;
+        public int Height => Format.Height;
+        public int RowStride => Format.RowStride;
+        public int ElementStride => Format.ElementStride;
+        public Palette DefaultPalette { get; set; }
 
-    //    /// <summary>
-    //    /// Preallocated buffer that separates and stores pixel color data
-    //    /// </summary>
-    //    private List<byte[]> ElementData;
+        public virtual ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
+        protected byte[] _foreignBuffer;
 
-    //    /// <summary>
-    //    /// Preallocated buffer that stores merged pixel color data
-    //    /// </summary>
-    //    private byte[] MergedData;
+        public virtual byte[,] NativeBuffer => _nativeBuffer;
+        protected byte[,] _nativeBuffer;
 
-    //    private Memory<byte> _bitStreamMemory;
-    //    private BitStream _bitStream;
+        /// <summary>
+        /// Preallocated buffer that separates and stores pixel color data
+        /// </summary>
+        private List<byte[]> ElementData;
 
-    //    public IndexedGraphicsCodec(GraphicsFormat format, Palette defaultPalette)
-    //    {
-    //        Format = format;
-    //        Name = format.Name;
-    //        DefaultPalette = defaultPalette;
-    //        AllocateBuffers();
-    //    }
+        /// <summary>
+        /// Preallocated buffer that stores merged pixel color data
+        /// </summary>
+        private byte[] MergedData;
 
-    //    private void AllocateBuffers()
-    //    {
-    //        ElementData = new List<byte[]>();
-    //        for (int i = 0; i < Format.ColorDepth; i++)
-    //        {
-    //            byte[] data = new byte[Format.Width * Format.Height];
-    //            ElementData.Add(data);
-    //        }
+        private BitStream _bitStream;
 
-    //        MergedData = new byte[Format.Width * Format.Height];
+        public IndexedGraphicsCodec(GraphicsFormat format, Palette defaultPalette)
+        {
+            Format = format;
+            Name = format.Name;
+            DefaultPalette = defaultPalette;
+            AllocateBuffers();
+        }
 
-    //        var memoryBuffer = new byte[(StorageSize + 7) / 8];
-    //        _bitStreamMemory = new Memory<byte>(memoryBuffer);
-    //        _bitStream = BitStream.OpenRead(memoryBuffer, StorageSize);
-    //    }
+        private void AllocateBuffers()
+        {
+            ElementData = new List<byte[]>();
+            for (int i = 0; i < Format.ColorDepth; i++)
+            {
+                byte[] data = new byte[Format.Width * Format.Height];
+                ElementData.Add(data);
+            }
 
-    //    /// <summary>
-    //    /// Decoding routine to decode indexed (palette-based) graphics
-    //    /// </summary>
-    //    /// <param name="el">Element to decode</param>
-    //    /// <param name="imageBuffer">Caller-allocated buffer to hold resultant indexed pixel data</param>
-    //    public unsafe void Decode(ArrangerElement el, byte[,] imageBuffer)
-    //    {
-    //        FileStream fs = el.DataFile.Stream;
+            MergedData = new byte[Format.Width * Format.Height];
 
-    //        Format.Resize(el.Width, el.Height);
+            _foreignBuffer = new byte[(StorageSize + 7) / 8];
+            _nativeBuffer = new byte[Width, Height];
 
-    //        if (el.FileAddress + Format.StorageSize > fs.Length * 8) // Element would contain data past the end of the file
-    //            return;
+            _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        }
 
-    //        _bitStream.SeekAbsolute(0);
-    //        fs.ReadUnshifted(el.FileAddress, Format.StorageSize, true, _bitStreamMemory.Span);
+        public byte[,] DecodeElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+        {
+            if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
+                throw new ArgumentException(nameof(encodedBuffer));
 
-    //        int plane = 0;
-    //        int pos;
+            encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
+            _bitStream.SeekAbsolute(0);
 
-    //        // Deinterlace into separate bitplanes
-    //        foreach (ImageProperty ip in Format.ImageProperties)
-    //        {
-    //            pos = 0;
-    //            if (ip.RowInterlace)
-    //            {
-    //                for (int y = 0; y < el.Height; y++)
-    //                {
-    //                    for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
-    //                    {
-    //                        pos = y * el.Height;
-    //                        for (int x = 0; x < el.Width; x++)
-    //                            ElementData[Format.MergePlanePriority[curPlane]][pos + ip.RowExtendedPixelPattern[x]] = (byte)_bitStream.ReadBit();
-    //                    }
-    //                }
-    //            }
-    //            else // Non-interlaced
-    //            {
-    //                for (int y = 0; y < el.Height; y++, pos += el.Width)
-    //                    for (int x = 0; x < el.Width; x++)
-    //                        for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
-    //                            ElementData[Format.MergePlanePriority[curPlane]][pos + ip.RowExtendedPixelPattern[x]] = (byte)_bitStream.ReadBit();
-    //            }
+            int plane = 0;
+            int pos;
 
-    //            plane += ip.ColorDepth;
-    //        }
+            // Deinterlace into separate bitplanes
+            foreach (ImageProperty ip in Format.ImageProperties)
+            {
+                pos = 0;
+                if (ip.RowInterlace)
+                {
+                    for (int y = 0; y < el.Height; y++)
+                    {
+                        for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
+                        {
+                            pos = y * el.Height;
+                            for (int x = 0; x < el.Width; x++)
+                                ElementData[Format.MergePlanePriority[curPlane]][pos + ip.RowPixelPattern[x]] = (byte)_bitStream.ReadBit();
+                        }
+                    }
+                }
+                else // Non-interlaced
+                {
+                    for (int y = 0; y < el.Height; y++, pos += el.Width)
+                        for (int x = 0; x < el.Width; x++)
+                            for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
+                                ElementData[Format.MergePlanePriority[curPlane]][pos + ip.RowPixelPattern[x]] = (byte)_bitStream.ReadBit();
+                }
 
-    //        // Merge into foreign pixel data
-    //        byte foreignPixelData;
+                plane += ip.ColorDepth;
+            }
 
-    //        for (pos = 0; pos < MergedData.Length; pos++)
-    //        {
-    //            foreignPixelData = 0;
-    //            for (int i = 0; i < Format.ColorDepth; i++)
-    //                foreignPixelData |= (byte)(ElementData[i][pos] << i); // Works for SNES image data and palettes, may need customization later
-    //            MergedData[pos] = foreignPixelData;
-    //        }
+            // Merge into foreign pixel data
+            byte foreignPixelData;
 
-    //        pos = 0;
-    //        for (int y = 0; y < Height; y++)
-    //            for (int x = 0; x < Width; x++, pos++)
-    //                imageBuffer[x, y] = MergedData[pos];
-    //    }
+            for (pos = 0; pos < MergedData.Length; pos++)
+            {
+                foreignPixelData = 0;
+                for (int i = 0; i < Format.ColorDepth; i++)
+                    foreignPixelData |= (byte)(ElementData[i][pos] << i); // Works for SNES image data and palettes, may need customization later
+                MergedData[pos] = foreignPixelData;
+            }
 
-    //    /// <summary>
-    //    /// Encoding routine to encode indexed (palette-based) graphics
-    //    /// </summary>
-    //    /// <param name="el">Element to encode</param>
-    //    /// <param name="imageBuffer">Contains indexed pixel data to encode</param>
-    //    public unsafe void Encode(ArrangerElement el, byte[,] imageBuffer)
-    //    {
-    //        int pos = 0;
-    //        for (int y = 0; y < Height; y++)
-    //            for (int x = 0; x < Width; x++, pos++)
-    //                MergedData[pos] = imageBuffer[x, y];
+            pos = 0;
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++, pos++)
+                    _nativeBuffer[x, y] = MergedData[pos];
 
-    //        // Loop over MergedData to split foreign colors into bit planes in ElementData
-    //        for (pos = 0; pos < MergedData.Length; pos++)
-    //        {
-    //            for (int i = 0; i < Format.ColorDepth; i++)
-    //                ElementData[i][pos] = (byte)((MergedData[pos] >> i) & 0x1);
-    //        }
+            return NativeBuffer;
+        }
 
-    //        // Loop over planes and write bits to data buffer with proper interlacing
-    //        BitStream bs = BitStream.OpenWrite(Format.StorageSize, 8);
-    //        int plane = 0;
+        /// <summary>
+        /// Decoding routine to decode indexed (palette-based) graphics
+        /// </summary>
+        /// <param name="el">Element to decode</param>
+        /// <param name="imageBuffer">Caller-allocated buffer to hold resultant indexed pixel data</param>
+        //public unsafe void Decode(ArrangerElement el, byte[,] imageBuffer)
+        //{
+        //    FileStream fs = el.DataFile.Stream;
 
-    //        foreach (ImageProperty ip in Format.ImageProperties)
-    //        {
-    //            pos = 0;
+        //    Format.Resize(el.Width, el.Height);
 
-    //            if (ip.RowInterlace)
-    //            {
-    //                for (int y = 0; y < Format.Height; y++)
-    //                {
-    //                    for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
-    //                    {
-    //                        pos = y * el.Height;
-    //                        for (int x = 0; x < Format.Width; x++, pos++)
-    //                        {
-    //                            int priorityPos = pos + ip.RowExtendedPixelPattern[x];
-    //                            bs.WriteBit(ElementData[curPlane][priorityPos]);
-    //                        }
+        //    if (el.FileAddress + Format.StorageSize > fs.Length * 8) // Element would contain data past the end of the file
+        //        return;
 
-    //                        //bs.WriteBit(ElementData[curPlane][pos]);
+        //    _bitStream.SeekAbsolute(0);
+        //    //fs.ReadUnshifted(el.FileAddress, Format.StorageSize, true, _bitStreamMemory.Span);
 
-    //                        //for (int x = 0; x < el.Width; x++)
-    //                        //    bs.WriteBit(el.ElementData[format.MergePriority[curPlane]][pos + ip.RowPixelPattern[x]]);
-    //                    }
-    //                }
-    //            }
-    //            else
-    //            {
-    //                for (int y = 0; y < Format.Height; y++, pos += Format.Width)
-    //                {
-    //                    for (int x = 0; x < Format.Width; x++)
-    //                        for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
-    //                        {
-    //                            bs.WriteBit(ElementData[curPlane][pos + ip.RowPixelPattern[x]]);
-    //                        }
-    //                }
+        //    int plane = 0;
+        //    int pos;
 
-    //                /*for (int y = 0; y < el.Height; y++, pos += el.Width)
-    //                {
-    //                    for (int x = 0; x < el.Width; x++)
-    //                        for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
-    //                            bs.WriteBit(el.ElementData[format.MergePriority[curPlane]][pos + ip.RowPixelPattern[x]]);
-    //                }*/
-    //            }
+        //    // Deinterlace into separate bitplanes
+        //    foreach (ImageProperty ip in Format.ImageProperties)
+        //    {
+        //        pos = 0;
+        //        if (ip.RowInterlace)
+        //        {
+        //            for (int y = 0; y < el.Height; y++)
+        //            {
+        //                for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
+        //                {
+        //                    pos = y * el.Height;
+        //                    for (int x = 0; x < el.Width; x++)
+        //                        ElementData[Format.MergePlanePriority[curPlane]][pos + ip.RowPixelPattern[x]] = (byte)_bitStream.ReadBit();
+        //                }
+        //            }
+        //        }
+        //        else // Non-interlaced
+        //        {
+        //            for (int y = 0; y < el.Height; y++, pos += el.Width)
+        //                for (int x = 0; x < el.Width; x++)
+        //                    for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
+        //                        ElementData[Format.MergePlanePriority[curPlane]][pos + ip.RowPixelPattern[x]] = (byte)_bitStream.ReadBit();
+        //        }
 
-    //            plane += ip.ColorDepth;
-    //        }
+        //        plane += ip.ColorDepth;
+        //    }
 
-    //        el.DataFile.Stream.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
-    //        BinaryWriter bw = new BinaryWriter(el.DataFile.Stream);
-    //        bw.Write(bs.Data, 0, bs.Data.Length); // TODO: Fix with a shifted, merged write
-    //    }
+        //    // Merge into foreign pixel data
+        //    byte foreignPixelData;
 
-    //    public ReadOnlySpan<byte> ReadElement(ArrangerElement el)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        //    for (pos = 0; pos < MergedData.Length; pos++)
+        //    {
+        //        foreignPixelData = 0;
+        //        for (int i = 0; i < Format.ColorDepth; i++)
+        //            foreignPixelData |= (byte)(ElementData[i][pos] << i); // Works for SNES image data and palettes, may need customization later
+        //        MergedData[pos] = foreignPixelData;
+        //    }
 
-    //    public void WriteElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        //    pos = 0;
+        //    for (int y = 0; y < Height; y++)
+        //        for (int x = 0; x < Width; x++, pos++)
+        //            imageBuffer[x, y] = MergedData[pos];
+        //}
 
-    //    public byte[,] DecodeElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
+        public ReadOnlySpan<byte> EncodeElement(ArrangerElement el, byte[,] imageBuffer)
+        {
+            if (imageBuffer.GetLength(0) != Width || imageBuffer.GetLength(1) != Height)
+                throw new ArgumentException(nameof(imageBuffer));
 
-    //    public ReadOnlySpan<byte> EncodeElement(ArrangerElement el, byte[,] imageBuffer)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
+            int pos = 0;
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++, pos++)
+                    MergedData[pos] = imageBuffer[x, y];
+
+            // Loop over MergedData to split foreign colors into bit planes in ElementData
+            for (pos = 0; pos < MergedData.Length; pos++)
+            {
+                for (int i = 0; i < Format.ColorDepth; i++)
+                    ElementData[i][pos] = (byte)((MergedData[pos] >> i) & 0x1);
+            }
+
+            // Loop over planes and write bits to data buffer with proper interlacing
+            var bs = BitStream.OpenWrite(StorageSize, 8);
+            int plane = 0;
+
+            foreach (ImageProperty ip in Format.ImageProperties)
+            {
+                pos = 0;
+
+                if (ip.RowInterlace)
+                {
+                    for (int y = 0; y < Format.Height; y++)
+                    {
+                        for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
+                        {
+                            pos = y * el.Height;
+                            for (int x = 0; x < Format.Width; x++, pos++)
+                            {
+                                int priorityPos = pos + ip.RowPixelPattern[x];
+                                bs.WriteBit(ElementData[curPlane][priorityPos]);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    for (int y = 0; y < Format.Height; y++, pos += Format.Width)
+                    {
+                        for (int x = 0; x < Format.Width; x++)
+                            for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
+                            {
+                                bs.WriteBit(ElementData[curPlane][pos + ip.RowPixelPattern[x]]);
+                            }
+                    }
+                }
+
+                plane += ip.ColorDepth;
+            }
+
+            return bs.Data;
+        }
+
+        /// <summary>
+        /// Encoding routine to encode indexed (palette-based) graphics
+        /// </summary>
+        /// <param name="el">Element to encode</param>
+        /// <param name="imageBuffer">Contains indexed pixel data to encode</param>
+        //public unsafe void Encode(ArrangerElement el, byte[,] imageBuffer)
+        //{
+        //    int pos = 0;
+        //    for (int y = 0; y < Height; y++)
+        //        for (int x = 0; x < Width; x++, pos++)
+        //            MergedData[pos] = imageBuffer[x, y];
+
+        //    // Loop over MergedData to split foreign colors into bit planes in ElementData
+        //    for (pos = 0; pos < MergedData.Length; pos++)
+        //    {
+        //        for (int i = 0; i < Format.ColorDepth; i++)
+        //            ElementData[i][pos] = (byte)((MergedData[pos] >> i) & 0x1);
+        //    }
+
+        //    // Loop over planes and write bits to data buffer with proper interlacing
+        //    BitStream bs = BitStream.OpenWrite(Format.StorageSize, 8);
+        //    int plane = 0;
+
+        //    foreach (ImageProperty ip in Format.ImageProperties)
+        //    {
+        //        pos = 0;
+
+        //        if (ip.RowInterlace)
+        //        {
+        //            for (int y = 0; y < Format.Height; y++)
+        //            {
+        //                for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
+        //                {
+        //                    pos = y * el.Height;
+        //                    for (int x = 0; x < Format.Width; x++, pos++)
+        //                    {
+        //                        int priorityPos = pos + ip.RowPixelPattern[x];
+        //                        bs.WriteBit(ElementData[curPlane][priorityPos]);
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            for (int y = 0; y < Format.Height; y++, pos += Format.Width)
+        //            {
+        //                for (int x = 0; x < Format.Width; x++)
+        //                    for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
+        //                    {
+        //                        bs.WriteBit(ElementData[curPlane][pos + ip.RowPixelPattern[x]]);
+        //                    }
+        //            }
+        //        }
+
+        //        plane += ip.ColorDepth;
+        //    }
+
+        //    el.DataFile.Stream.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
+        //    BinaryWriter bw = new BinaryWriter(el.DataFile.Stream);
+        //    bw.Write(bs.Data, 0, bs.Data.Length); // TODO: Fix with a shifted, merged write
+        //}
+
+        /// <summary>
+        /// Reads a contiguous block of encoded pixel data
+        /// </summary>
+        public virtual ReadOnlySpan<byte> ReadElement(ArrangerElement el)
+        {
+            var buffer = new byte[(StorageSize + 7) / 8];
+            var bitStream = BitStream.OpenRead(buffer, StorageSize);
+
+            var fs = el.DataFile.Stream;
+
+            // TODO: Add bit granularity to seek and read
+            if (el.FileAddress + StorageSize > fs.Length * 8)
+                return null;
+
+            bitStream.SeekAbsolute(0);
+            fs.ReadUnshifted(el.FileAddress, StorageSize, true, buffer);
+
+            return buffer;
+        }
+
+        /// <summary>
+        /// Writes a contiguous block of encoded pixel data
+        /// </summary>
+        public virtual void WriteElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+        {
+            // TODO: Add bit granularity to seek and read
+            var fs = el.DataFile.Stream;
+            fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
+            fs.Write(encodedBuffer);
+        }
+    }
 }

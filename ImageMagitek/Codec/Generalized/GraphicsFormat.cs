@@ -89,14 +89,8 @@ namespace ImageMagitek.Codec
 
         public void Resize(int width, int height)
         {
-            if (width != Width || height != Height)
-            {
-                Height = height;
-                Width = width;
-
-                for (int i = 0; i < ImageProperties.Count; i++)
-                    ImageProperties[i].ExtendRowPattern(Width);
-            }
+            Width = width;
+            Height = height;
         }
 
         public GraphicsFormat Clone()
@@ -123,8 +117,7 @@ namespace ImageMagitek.Codec
             clone.ImageProperties = new List<ImageProperty>();
             foreach(var prop in ImageProperties)
             {
-                var pattern = new int[prop.RowPixelPattern.Length];
-                Array.Copy(prop.RowPixelPattern, pattern, prop.RowPixelPattern.Length);
+                var pattern = new BroadcastList<int>(prop.RowPixelPattern);
 
                 var propclone = new ImageProperty(prop.ColorDepth, prop.RowInterlace, pattern);
                 clone.ImageProperties.Add(propclone);

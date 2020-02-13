@@ -1,5 +1,6 @@
-﻿using ImageMagitek.Colors;
+﻿using System;
 using System.Collections.Generic;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec
 {
@@ -29,19 +30,21 @@ namespace ImageMagitek.Codec
                 //case "PSX 24bpp":
                 //    return new Psx24bppCodec(width, height);
                 default:
-                    //if (Formats.ContainsKey(codecName))
-                    //{
-                    //    var format = Formats[codecName].Clone();
-                    //    format.Name = codecName;
-                    //    format.Width = width;
-                    //    format.Height = height;
+                    if (Formats.ContainsKey(codecName))
+                    {
+                        var format = Formats[codecName].Clone();
+                        format.Name = codecName;
+                        format.Width = width;
+                        format.Height = height;
 
-                    //    if (format.ColorType == PixelColorType.Indexed)
-                    //        return new IndexedGraphicsCodec(format, DefaultPalette);
+                        if (format.ColorType == PixelColorType.Indexed)
+                            return new IndexedGraphicsCodec(format, DefaultPalette);
+                        else if (format.ColorType == PixelColorType.Direct)
+                            throw new NotSupportedException();
 
-                    //    return new GeneralGraphicsCodec(format, DefaultPalette);
-                    //}
-                    //else
+                        throw new NotSupportedException();
+                    }
+                    else
                         throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{nameof(codecName)}'");
             }
         }
