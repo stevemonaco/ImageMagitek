@@ -21,8 +21,8 @@ namespace ImageMagitek.Project.SerializationModels
             {
                 for (int y = 0; y < ElementGrid.GetLength(1); y++)
                 {
-                    var el = ElementGrid[x, y].ToArrangerElement();
-                    arr.SetElement(el, x, y);
+                    if (ElementGrid[x, y] is ArrangerElementModel model)
+                        arr.SetElement(model.ToArrangerElement(), x, y);
                 }
             }
 

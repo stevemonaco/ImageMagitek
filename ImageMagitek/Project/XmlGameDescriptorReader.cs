@@ -71,6 +71,9 @@ namespace ImageMagitek.Project
                 {
                     for(int y = 0; y < arranger.ArrangerElementSize.Height; y++)
                     {
+                        if (modelArranger.ElementGrid[x, y] is null)
+                            continue;
+
                         tree.TryGetValue<DataFile>(modelArranger.ElementGrid[x, y].DataFileKey, out var df);
 
                         Palette pal = default;
