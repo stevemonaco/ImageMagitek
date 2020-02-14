@@ -13,14 +13,14 @@ namespace ImageMagitek
     {
         public string Location { get; private set; }
 
-        public FileStream Stream { get => _stream.Value; }
+        public Stream Stream { get => _stream.Value; }
         public string Name { get; set; }
 
         public bool CanContainChildResources => true;
 
         public bool ShouldBeSerialized { get; set; } = true;
 
-        Lazy<FileStream> _stream;
+        Lazy<Stream> _stream;
 
         public DataFile(string name): this(name, "")
         {
@@ -31,7 +31,7 @@ namespace ImageMagitek
             Name = name;
             Location = location;
 
-            _stream = new Lazy<FileStream>(() =>
+            _stream = new Lazy<Stream>(() =>
             {
                 if (string.IsNullOrWhiteSpace(Location))
                     throw new ArgumentException($"{nameof(DataFile)} parameter {nameof(Location)} was null or empty");
