@@ -1,13 +1,9 @@
-﻿using Caliburn.Micro;
+﻿using System;
+using System.Linq;
+using Stylet;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Services;
 
@@ -23,42 +19,42 @@ namespace TileShop.WPF.ViewModels
         public MenuViewModel ActiveMenu
         {
             get =>_activeMenu;
-            set => Set(ref _activeMenu, value);
+            set => SetAndNotify(ref _activeMenu, value);
         }
 
         private ProjectTreeViewModel _activeTree;
         public ProjectTreeViewModel ActiveTree
         {
             get => _activeTree;
-            set => Set(ref _activeTree, value);
+            set => SetAndNotify(ref _activeTree, value);
         }
 
         private StatusBarViewModel _activeStatusBar;
         public StatusBarViewModel ActiveStatusBar
         {
             get => _activeStatusBar;
-            set => Set(ref _activeStatusBar, value);
+            set => SetAndNotify(ref _activeStatusBar, value);
         }
 
         private BindableCollection<ResourceEditorBaseViewModel> _editors = new BindableCollection<ResourceEditorBaseViewModel>();
         public BindableCollection<ResourceEditorBaseViewModel> Editors
         {
             get => _editors;
-            set => Set(ref _editors, value);
+            set => SetAndNotify(ref _editors, value);
         }
 
         private ResourceEditorBaseViewModel _activeEditor;
         public ResourceEditorBaseViewModel ActiveEditor
         {
             get { return _activeEditor; }
-            set => Set(ref _activeEditor, value);
+            set => SetAndNotify(ref _activeEditor, value);
         }
 
         private PixelEditorViewModel _activePixelEditor;
         public PixelEditorViewModel ActivePixelEditor
         {
             get => _activePixelEditor;
-            set => Set(ref _activePixelEditor, value);
+            set => SetAndNotify(ref _activePixelEditor, value);
         }
 
         public ShellViewModel(IEventAggregator events, ICodecService codecService, IPaletteService paletteService,
@@ -66,7 +62,7 @@ namespace TileShop.WPF.ViewModels
             StatusBarViewModel activeStatusBar, PixelEditorViewModel activePixelEditor)
         {
             _events = events;
-            _events.SubscribeOnUIThread(this);
+            _events.Subscribe(this);
             _codecService = codecService;
             _paletteService = paletteService;
 
@@ -76,7 +72,7 @@ namespace TileShop.WPF.ViewModels
             ActivePixelEditor = activePixelEditor;
         }
 
-        public Task HandleAsync(ActivateEditorEvent message, CancellationToken cancellationToken)
+        public void Handle(ActivateEditorEvent message)
         {
             var openDocument = Editors.FirstOrDefault(x => ReferenceEquals(x.Resource, message.Resource));
 
@@ -114,8 +110,6 @@ namespace TileShop.WPF.ViewModels
             }
             else
                 ActiveEditor = openDocument;
-
-            return Task.CompletedTask;
         }
     }
 }

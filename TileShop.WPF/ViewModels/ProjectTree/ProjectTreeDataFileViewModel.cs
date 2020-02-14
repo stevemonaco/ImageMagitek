@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Caliburn.Micro;
+﻿using Stylet;
 using ImageMagitek.Project;
 using Monaco.PathTree;
 

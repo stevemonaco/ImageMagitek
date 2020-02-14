@@ -3,7 +3,6 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:behaviors="clr-namespace:TileShop.WPF.Behaviors"
-    xmlns:cm="http://caliburnmicro.com"
     xmlns:converters="clr-namespace:TileShop.WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dd="urn:gong-wpf-dragdrop"
@@ -12,10 +11,11 @@
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:TileShop.WPF.Models"
-    cm:Message.Attach="[Key Z] = [ZoomIn]; [Key X] = [ZoomOut]; [Key G] = [ToggleGridlineVisibility]; [Key Escape] = [CancelSelection]; [Event Closing] = [Action OnClose($eventArgs)]"
+    xmlns:s="https://github.com/canton7/Stylet"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
+    <!--  cm:Message.Attach="[Key Z] = [ZoomIn]; [Key X] = [ZoomOut]; [Key G] = [ToggleGridlineVisibility]; [Key Escape] = [CancelSelection]; [Event Closing] = [Action OnClose($eventArgs)]"  -->
     <Grid UseLayoutRounding="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -41,7 +41,7 @@
                 Minimum="{Binding MinZoom}"
                 Value="{Binding Zoom}" />
             <Button
-                cm:Message.Attach="EditSelection"
+                Click="{s:Action EditSelection}"
                 Content="Edit"
                 IsEnabled="{Binding Selection.HasSelection}" />
         </StackPanel>

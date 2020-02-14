@@ -1,4 +1,4 @@
-﻿using Caliburn.Micro;
+﻿using Stylet;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -10,7 +10,7 @@ namespace TileShop.WPF.ViewModels
         public virtual bool IsModified
         {
             get => _isModified;
-            set => Set(ref _isModified, value);
+            set => SetAndNotify(ref _isModified, value);
         }
     }
 }

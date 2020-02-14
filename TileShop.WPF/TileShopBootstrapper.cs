@@ -1,12 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
-using Caliburn.Micro;
 using Microsoft.Xaml.Behaviors;
-using System.Diagnostics;
+using Stylet;
+using Autofac;
 using TileShop.Shared.Services;
 using TileShop.WPF.Keybinding;
 using TileShop.WPF.Services;
@@ -14,16 +14,33 @@ using TileShop.WPF.ViewModels;
 
 namespace TileShop.WPF
 {
-    public class Bootstrapper : BootstrapperBase
+    public class TileShopBootstrapper : AutofacBootstrapper<ShellViewModel>
     {
-        private SimpleContainer _container = new SimpleContainer();
-
-        public Bootstrapper()
+        protected override void ConfigureIoC(ContainerBuilder builder)
         {
-            Initialize();
+            ConfigureServices(builder);
         }
 
-        private void ConfigureServices()
+        private void ConfigureServices(ContainerBuilder builder)
+        {
+            var paletteService = new PaletteService();
+            paletteService.LoadJsonPalettes(@"D:\ImageMagitek\pal");
+            paletteService.DefaultPalette = paletteService.Palettes.Where(x => x.Name.Contains("DefaultRgba32")).First();
+            builder.RegisterInstance<IPaletteService>(paletteService);
+
+            var codecService = new CodecService(paletteService.DefaultPalette);
+            codecService.LoadXmlCodecs(@"D:\ImageMagitek\codecs");
+            builder.RegisterInstance<ICodecService>(codecService);
+
+            var projectService = new ProjectTreeService(codecService);
+            builder.RegisterInstance<IProjectTreeService>(projectService);
+
+            builder.RegisterType<FileSelectService>().As<IFileSelectService>();
+            builder.RegisterType<UserPromptService>().As<IUserPromptService>();
+            builder.RegisterType<DialogService>().As<IDialogService>();
+        }
+
+        /*private void ConfigureServices()
         {
             var paletteService = new PaletteService();
             paletteService.LoadJsonPalettes(@"D:\ImageMagitek\pal");
@@ -105,26 +122,6 @@ namespace TileShop.WPF
                 else
                     return trigger;
             };
-        }
-
-        protected override void OnStartup(object sender, StartupEventArgs e)
-        {
-            DisplayRootViewFor<ShellViewModel>();
-        }
-
-        protected override object GetInstance(Type service, string key)
-        {
-            return _container.GetInstance(service, key);
-        }
-
-        protected override IEnumerable<object> GetAllInstances(Type service)
-        {
-            return _container.GetAllInstances(service);
-        }
-
-        protected override void BuildUp(object instance)
-        {
-            _container.BuildUp(instance);
-        }
+        }*/
     }
 }

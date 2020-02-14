@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Stylet;
 using Monaco.PathTree;
 using ImageMagitek.Project;
-using Caliburn.Micro;
 using ImageMagitek.Colors;
 using ImageMagitek;
 

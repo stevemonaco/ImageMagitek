@@ -3,15 +3,14 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ad="http://schemas.xceed.com/wpf/xaml/avalondock"
-    xmlns:cm="clr-namespace:Caliburn.Micro;assembly=Caliburn.Micro.Core"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:s="https://github.com/canton7/Stylet"
     xmlns:sel="clr-namespace:TileShop.WPF.Selectors"
     xmlns:v="clr-namespace:TileShop.WPF.Views"
     xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
-    xmlns:winformsIntegration="clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
     Title="TileShop"
     Width="1000"
     Height="600"
@@ -49,13 +48,13 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <ContentControl x:Name="ActiveMenu" Grid.Row="0" />
+        <ContentControl Grid.Row="0" s:View.Model="{Binding ActiveMenu}" />
 
         <ToolBarPanel Grid.Row="1" Visibility="Collapsed">
             <Button>Test Button</Button>
         </ToolBarPanel>
 
-        <ContentControl x:Name="ActiveStatusBar" Grid.Row="3" />
+        <ContentControl Grid.Row="3" s:View.Model="{Binding ActiveStatusBar}" />
 
         <ad:DockingManager
             x:Name="dockManager"

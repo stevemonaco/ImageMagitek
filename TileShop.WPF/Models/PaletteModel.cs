@@ -1,8 +1,5 @@
-﻿using Caliburn.Micro;
+﻿using Stylet;
 using ImageMagitek.Colors;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows.Media;
 
 namespace TileShop.WPF.Models
@@ -13,14 +10,14 @@ namespace TileShop.WPF.Models
         public string Name
         {
             get => _name;
-            set => Set(ref _name, value);
+            set => SetAndNotify(ref _name, value);
         }
 
         private BindableCollection<Color> _colors = new BindableCollection<Color>();
         public BindableCollection<Color> Colors
         {
             get => _colors;
-            set => Set(ref _colors, value);
+            set => SetAndNotify(ref _colors, value);
         }
 
         public static PaletteModel FromArrangerPalette(Palette pal)

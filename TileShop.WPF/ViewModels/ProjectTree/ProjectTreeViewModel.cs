@@ -1,9 +1,9 @@
-﻿using Caliburn.Micro;
-using ImageMagitek.Project;
+﻿using ImageMagitek.Project;
 using ImageMagitek;
 using Monaco.PathTree;
 using System;
 using System.Collections.Generic;
+using Stylet;
 using System.Text;
 using ImageMagitek.Colors;
 using TileShop.Shared.EventModels;
@@ -37,14 +37,14 @@ namespace TileShop.WPF.ViewModels
             _dialogService = dialogService;
 
             _events = events;
-            _events.SubscribeOnUIThread(this);
+            _events.Subscribe(this);
         }
 
         private string _activeProjectFileName;
         public string ActiveProjectFileName
         {
             get => _activeProjectFileName;
-            set => Set(ref _activeProjectFileName, value);
+            set => SetAndNotify(ref _activeProjectFileName, value);
         }
 
         public IEnumerable<Screen> RootItems
@@ -72,7 +72,7 @@ namespace TileShop.WPF.ViewModels
         public object SelectedItem
         {
             get => _selectedItem;
-            set => Set(ref _selectedItem, value);
+            set => SetAndNotify(ref _selectedItem, value);
         }
 
         public void ActivateSelectedItem()
@@ -83,16 +83,16 @@ namespace TileShop.WPF.ViewModels
             switch(SelectedItem)
             {
                 case ProjectTreePaletteViewModel pal:
-                    _events.PublishOnUIThreadAsync(new ActivateEditorEvent(pal.Node.Value));
+                    _events.PublishOnUIThread(new ActivateEditorEvent(pal.Node.Value));
                     break;
                 case ProjectTreeArrangerViewModel arranger:
-                    _events.PublishOnUIThreadAsync(new ActivateEditorEvent(arranger.Node.Value));
+                    _events.PublishOnUIThread(new ActivateEditorEvent(arranger.Node.Value));
                     break;
                 case ProjectTreeDataFileViewModel file:
-                    _events.PublishOnUIThreadAsync(new ActivateEditorEvent(file.Node.Value));
+                    _events.PublishOnUIThread(new ActivateEditorEvent(file.Node.Value));
                     break;
                 case ProjectTreeFolderViewModel folder:
-                    _events.PublishOnUIThreadAsync(new ActivateEditorEvent(folder.Node.Value));
+                    _events.PublishOnUIThread(new ActivateEditorEvent(folder.Node.Value));
                     break;
                 default:
                     throw new InvalidOperationException($"{nameof(ActivateSelectedItem)} was called with a {nameof(SelectedItem)} of type {SelectedItem.GetType()}");
@@ -124,7 +124,7 @@ namespace TileShop.WPF.ViewModels
             NotifyOfPropertyChange(() => HasProject);
         }
 
-        public async Task HandleAsync(NewProjectEvent message, CancellationToken cancellationToken)
+        public void Handle(NewProjectEvent message)
         {
             var projectFileName = _fileSelect.GetNewProjectFileNameByUser();
 
@@ -134,11 +134,11 @@ namespace TileShop.WPF.ViewModels
                 ActiveProjectFileName = projectFileName;
                 SaveProject(ActiveProjectFileName);
                 NotifyOfPropertyChange(() => RootItems);
-                await _events.PublishOnUIThreadAsync(new ProjectLoadedEvent());
+                _events.PublishOnUIThread(new ProjectLoadedEvent());
             }
         }
 
-        public async Task HandleAsync(OpenProjectEvent message, CancellationToken cancellationToken)
+        public void Handle(OpenProjectEvent message)
         {
             var projectFileName = _fileSelect.GetProjectFileNameByUser();
 
@@ -147,11 +147,11 @@ namespace TileShop.WPF.ViewModels
                 _tree = _treeService.ReadProject(projectFileName);
                 ActiveProjectFileName = projectFileName;
                 NotifyOfPropertyChange(() => RootItems);
-                await _events.PublishOnUIThreadAsync(new ProjectLoadedEvent(ActiveProjectFileName));
+                _events.PublishOnUIThread(new ProjectLoadedEvent(ActiveProjectFileName));
             }
         }
 
-        public Task HandleAsync(AddDataFileEvent message, CancellationToken cancellationToken)
+        public void Handle(AddDataFileEvent message)
         {
             var dataFileName = _fileSelect.GetExistingDataFileNameByUser();
 
@@ -161,11 +161,9 @@ namespace TileShop.WPF.ViewModels
                 _tree.Add(Path.GetFileName(dataFileName), df);
                 NotifyOfPropertyChange(() => RootItems);
             }
-
-            return Task.CompletedTask;
         }
 
-        public async Task HandleAsync(SaveProjectEvent message, CancellationToken cancellationToken)
+        public void Handle(SaveProjectEvent message)
         {
             string projectFileName;
 
@@ -181,18 +179,18 @@ namespace TileShop.WPF.ViewModels
 
             SaveProject(projectFileName);
             ActiveProjectFileName = projectFileName;
-            await _events.PublishOnUIThreadAsync(new ProjectUnloadedEvent());
-            await _events.PublishOnUIThreadAsync(new ProjectLoadedEvent(ActiveProjectFileName));
+            _events.PublishOnUIThread(new ProjectUnloadedEvent());
+            _events.PublishOnUIThread(new ProjectLoadedEvent(ActiveProjectFileName));
         }
 
-        public async Task HandleAsync(CloseProjectEvent message, CancellationToken cancellationToken)
+        public void Handle(CloseProjectEvent message)
         {
-            await _events.PublishOnUIThreadAsync(new ProjectClosingEvent());
+            _events.PublishOnUIThread(new ProjectClosingEvent());
             SaveProject(ActiveProjectFileName);
             Reset();
         }
 
-        public Task HandleAsync(AddPaletteEvent message, CancellationToken cancellationToken)
+        public void Handle(AddPaletteEvent message)
         {
             var model = new AddPaletteDialogModel();
 
@@ -207,7 +205,7 @@ namespace TileShop.WPF.ViewModels
             if (model.DataFiles.Count == 0)
             {
                 _promptService.PromptUser("Project does not contain any data files to define a palette", "Project Error", UserPromptChoices.Ok);
-                return Task.CompletedTask;
+                return;
             }
             
             if(_dialogService.ShowAddPaletteDialog(model))
@@ -220,7 +218,7 @@ namespace TileShop.WPF.ViewModels
                 NotifyOfPropertyChange(() => RootItems);
             }
 
-            return Task.CompletedTask;
+            return;
         }
     }
 }

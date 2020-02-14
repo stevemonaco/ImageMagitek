@@ -1,7 +1,5 @@
-﻿using Caliburn.Micro;
+﻿using Stylet;
 using TileShop.Shared.EventModels;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -13,30 +11,28 @@ namespace TileShop.WPF.ViewModels
         public string ActivityMessage
         {
             get => _activityMessage;
-            set => Set(ref _activityMessage, value);
+            set => SetAndNotify(ref _activityMessage, value);
         }
 
         private BindableCollection<string> _timedMessages;
         public BindableCollection<string> TimedMessages
         {
             get => _timedMessages;
-            set => Set(ref _timedMessages, value);
+            set => SetAndNotify(ref _timedMessages, value);
         } 
 
         public StatusBarViewModel(IEventAggregator events)
         {
             _events = events;
-            _events.SubscribeOnUIThread(this);
+            _events.Subscribe(this);
         }
 
-        public Task HandleAsync(NotifyStatusEvent notifyEvent, CancellationToken cancellationToken)
+        public void Handle(NotifyStatusEvent notifyEvent)
         {
             if (notifyEvent.DisplayDuration == NotifyStatusDuration.Indefinite)
                 ActivityMessage = notifyEvent.NotifyMessage;
             else if (notifyEvent.DisplayDuration == NotifyStatusDuration.Short)
                 TimedMessages.Add(notifyEvent.NotifyMessage);
-
-            return Task.CompletedTask;
         }
     }
 }

@@ -1,15 +1,10 @@
-﻿using Caliburn.Micro;
+﻿using Stylet;
 using ImageMagitek;
 using ImageMagitek.Colors;
-using SixLabors.ImageSharp.PixelFormats;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Services;
 using TileShop.WPF.Behaviors;
@@ -39,63 +34,63 @@ namespace TileShop.WPF.ViewModels
         public BindableCollection<HistoryAction> History
         {
             get => _history;
-            set => Set(ref _history, value);
+            set => SetAndNotify(ref _history, value);
         }
 
         private BindableCollection<PaletteModel> _palettes = new BindableCollection<PaletteModel>();
         public BindableCollection<PaletteModel> Palettes
         {
             get => _palettes;
-            set => Set(ref _palettes, value);
+            set => SetAndNotify(ref _palettes, value);
         }
 
         private PaletteModel _activePalette;
         public PaletteModel ActivePalette
         {
             get => _activePalette;
-            set => Set(ref _activePalette, value);
+            set => SetAndNotify(ref _activePalette, value);
         }
 
         private bool _hasArranger;
         public bool HasArranger
         {
             get => _hasArranger;
-            set => Set(ref _hasArranger, value);
+            set => SetAndNotify(ref _hasArranger, value);
         }
 
         private bool _isDrawing;
         public bool IsDrawing
         {
             get => _isDrawing;
-            set => Set(ref _isDrawing, value);
+            set => SetAndNotify(ref _isDrawing, value);
         }
 
         private PixelTool _activeTool = PixelTool.Pencil;
         public PixelTool ActiveTool
         {
             get => _activeTool;
-            set => Set(ref _activeTool, value);
+            set => SetAndNotify(ref _activeTool, value);
         }
 
         private Color _activeColor;
         public Color ActiveColor
         {
             get => _activeColor;
-            set => Set(ref _activeColor, value);
+            set => SetAndNotify(ref _activeColor, value);
         }
 
         private Color _primaryColor;
         public Color PrimaryColor
         {
             get => _primaryColor;
-            set => Set(ref _primaryColor, value);
+            set => SetAndNotify(ref _primaryColor, value);
         }
 
         private Color _secondaryColor;
         public Color SecondaryColor
         {
             get => _secondaryColor;
-            set => Set(ref _secondaryColor, value);
+            set => SetAndNotify(ref _secondaryColor, value);
         }
 
         public RelayCommand<Color> SetPrimaryColorCommand { get; }
@@ -109,7 +104,7 @@ namespace TileShop.WPF.ViewModels
             _promptService = promptService;
             _paletteService = paletteService;
 
-            _events.SubscribeOnUIThread(this);
+            _events.Subscribe(this);
 
             SetPrimaryColorCommand = new RelayCommand<Color>(SetPrimaryColor);
             SetSecondaryColorCommand = new RelayCommand<Color>(SetSecondaryColor);
@@ -267,7 +262,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public Task HandleAsync(EditArrangerPixelsEvent message, CancellationToken cancellationToken)
+        public void Handle(EditArrangerPixelsEvent message)
         {
             if (IsModified && HasArranger)
             {
@@ -275,7 +270,7 @@ namespace TileShop.WPF.ViewModels
                     "Save changes", UserPromptChoices.YesNoCancel);
 
                 if (result == UserPromptResult.Cancel)
-                    return Task.CompletedTask;
+                    return;
                 else if (result == UserPromptResult.Yes)
                 {
                     // Save pixel data to arranger
@@ -316,8 +311,6 @@ namespace TileShop.WPF.ViewModels
             SecondaryColor = ActivePalette.Colors[1];
 
             NotifyOfPropertyChange(() => CanRemapColors);
-
-            return Task.CompletedTask;
         }
     }
 }

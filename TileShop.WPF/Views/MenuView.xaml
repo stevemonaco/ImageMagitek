@@ -5,41 +5,42 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:s="https://github.com/canton7/Stylet"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
     <Menu FontSize="18">
         <MenuItem Header="_File">
-            <MenuItem x:Name="NewProject" Header="_New Project" />
-            <MenuItem x:Name="OpenProject" Header="Open _Project" />
+            <MenuItem Click="{s:Action NewProject}" Header="_New Project" />
+            <MenuItem Click="{s:Action OpenProject}" Header="Open _Project" />
             <MenuItem
-                x:Name="CloseProject"
+                Click="{s:Action CloseProject}"
                 Header="_Close Project"
                 IsEnabled="{Binding HasProject}" />
             <Separator />
             <MenuItem
-                x:Name="SaveProject"
+                Click="{s:Action SaveProject}"
                 Header="_Save Project"
                 IsEnabled="{Binding HasProject}" />
             <MenuItem
-                x:Name="SaveProjectAs"
+                Click="{s:Action SaveProjectAs}"
                 Header="Save Project _As..."
                 IsEnabled="{Binding HasProject}" />
             <Separator />
-            <MenuItem x:Name="ExitApplication" Header="E_xit" />
+            <MenuItem Click="{s:Action ExitApplication}" Header="E_xit" />
         </MenuItem>
 
         <MenuItem Header="_Project" IsEnabled="{Binding HasProject}">
             <MenuItem
-                x:Name="AddDataFile"
+                Click="{s:Action AddDataFile}"
                 Header="Add Data File..."
                 IsEnabled="{Binding HasProject}" />
             <MenuItem
-                x:Name="AddPalette"
+                Click="{s:Action AddPalette}"
                 Header="Add Palette Definition..."
                 IsEnabled="{Binding HasProject}" />
             <MenuItem
-                x:Name="AddScatteredArranger"
+                Click="{s:Action AddScatteredArranger}"
                 Header="Add Scattered Arranger Definition..."
                 IsEnabled="{Binding HasProject}" />
         </MenuItem>

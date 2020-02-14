@@ -1,11 +1,6 @@
-﻿using Caliburn.Micro;
+﻿using Stylet;
 using ImageMagitek.Colors;
-using ImageMagitek.Project;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Media;
 using TileShop.Shared.EventModels;
 using TileShop.WPF.Models;
 
@@ -20,7 +15,7 @@ namespace TileShop.WPF.ViewModels
         public BindableCollection<ValidatedColorModel> Colors
         {
             get => _colors;
-            set => Set(ref _colors, value);
+            set => SetAndNotify(ref _colors, value);
         }
 
         private int _selectedIndex;
@@ -29,7 +24,7 @@ namespace TileShop.WPF.ViewModels
             get => _selectedIndex;
             set
             {
-                Set(ref _selectedIndex, value);
+                SetAndNotify(ref _selectedIndex, value);
                 if(SelectedIndex >= 0)
                     EditingItem = new ValidatedColorModel(_palette.GetForeignColor(SelectedIndex), SelectedIndex);
             }
@@ -39,17 +34,17 @@ namespace TileShop.WPF.ViewModels
         public ValidatedColorModel SelectedItem
         {
             get => _selectedItem;
-            set => Set(ref _selectedItem, value);
+            set => SetAndNotify(ref _selectedItem, value);
         }
 
         private ValidatedColorModel _editingItem;
         public ValidatedColorModel EditingItem
         {
             get => _editingItem;
-            set => Set(ref _editingItem, value);
+            set => SetAndNotify(ref _editingItem, value);
         }
 
-        public override string DisplayName => Resource?.Name;
+        public new string DisplayName => Resource?.Name;
 
         public PaletteEditorViewModel(Palette palette, IEventAggregator events)
         {
@@ -85,7 +80,7 @@ namespace TileShop.WPF.ViewModels
         {
             string notifyMessage = $"Palette Index: {model.Index}";
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            _events.PublishOnUIThreadAsync(notifyEvent);
+            _events.PublishOnUIThread(notifyEvent);
         }
     }
 }

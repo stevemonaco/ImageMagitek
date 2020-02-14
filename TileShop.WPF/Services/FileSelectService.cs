@@ -1,4 +1,4 @@
-﻿using System.Windows.Forms;
+﻿using Microsoft.Win32;
 
 namespace TileShop.WPF.Services
 {
@@ -21,7 +21,7 @@ namespace TileShop.WPF.Services
             ofd.AddExtension = true;
             ofd.Filter = "Project Files|*.xml";
 
-            if (ofd.ShowDialog() == DialogResult.OK)
+            if (ofd.ShowDialog().Value)
                 return ofd.FileName;
 
             return null;
@@ -36,7 +36,7 @@ namespace TileShop.WPF.Services
             sfd.Filter = "Project Files|*.xml";
             sfd.ValidateNames = true;
 
-            if (sfd.ShowDialog() == DialogResult.OK)
+            if (sfd.ShowDialog().Value)
                 return sfd.FileName;
 
             return null;
@@ -50,7 +50,7 @@ namespace TileShop.WPF.Services
             ofd.ValidateNames = true;
             ofd.CheckFileExists = true;
 
-            if (ofd.ShowDialog() == DialogResult.OK)
+            if (ofd.ShowDialog().Value)
                 return ofd.FileName;
 
             return null;

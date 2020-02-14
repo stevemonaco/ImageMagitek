@@ -13,14 +13,14 @@ namespace TileShop.WPF.Models
         public Color PencilColor
         {
             get => _pencilColor;
-            set => Set(ref _pencilColor, value);
+            set => SetAndNotify(ref _pencilColor, value);
         }
 
         private HashSet<Point> _modifiedPoints = new HashSet<Point>(new PointComparer());
         public HashSet<Point> ModifiedPoints
         {
             get => _modifiedPoints;
-            set => Set(ref _modifiedPoints, value);
+            set => SetAndNotify(ref _modifiedPoints, value);
         }
 
         public bool Add(double x, double y) => ModifiedPoints.Add(new Point((int)x, (int)y));

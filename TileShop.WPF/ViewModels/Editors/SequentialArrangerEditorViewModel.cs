@@ -1,11 +1,7 @@
-﻿using Caliburn.Micro;
-using ImageMagitek;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
+using Stylet;
+using ImageMagitek;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Services;
 using TileShop.WPF.Behaviors;
@@ -24,7 +20,7 @@ namespace TileShop.WPF.ViewModels
         public BindableCollection<string> CodecNames
         {
             get => _codecNames;
-            set => Set(ref _codecNames, value);
+            set => SetAndNotify(ref _codecNames, value);
         }
 
         private string _selectedCodecName;
@@ -33,7 +29,7 @@ namespace TileShop.WPF.ViewModels
             get => _selectedCodecName;
             set
             {
-                Set(ref _selectedCodecName, value);
+                SetAndNotify(ref _selectedCodecName, value);
                 ChangeCodec();
             }
         }
@@ -44,7 +40,7 @@ namespace TileShop.WPF.ViewModels
             get => _tiledElementWidth;
             set
             {
-                Set(ref _tiledElementWidth, value);
+                SetAndNotify(ref _tiledElementWidth, value);
                 ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
             }
         }
@@ -55,7 +51,7 @@ namespace TileShop.WPF.ViewModels
             get => _tiledElementHeight;
             set
             {
-                Set(ref _tiledElementHeight, value);
+                SetAndNotify(ref _tiledElementHeight, value);
                 ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
             }
         }
@@ -66,7 +62,7 @@ namespace TileShop.WPF.ViewModels
             get => _tiledArrangerWidth;
             set
             {
-                Set(ref _tiledArrangerWidth, value);
+                SetAndNotify(ref _tiledArrangerWidth, value);
                 ResizeArranger(TiledArrangerWidth, TiledArrangerHeight);
             }
         }
@@ -77,7 +73,7 @@ namespace TileShop.WPF.ViewModels
             get => _tiledArrangerHeight;
             set
             {
-                Set(ref _tiledArrangerHeight, value);
+                SetAndNotify(ref _tiledArrangerHeight, value);
                 ResizeArranger(TiledArrangerWidth, TiledArrangerHeight);
             }
         }
@@ -88,7 +84,7 @@ namespace TileShop.WPF.ViewModels
             get => _linearArrangerWidth;
             set
             {
-                Set(ref _linearArrangerWidth, value);
+                SetAndNotify(ref _linearArrangerWidth, value);
                 ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
             }
         }
@@ -99,7 +95,7 @@ namespace TileShop.WPF.ViewModels
             get => _linearArrangerHeight;
             set
             {
-                Set(ref _linearArrangerHeight, value);
+                SetAndNotify(ref _linearArrangerHeight, value);
                 ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
             }
         }
@@ -201,7 +197,7 @@ namespace TileShop.WPF.ViewModels
 
             string notifyMessage = $"File Offset: 0x{_address.FileOffset:X}";
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            _events.PublishOnUIThreadAsync(notifyEvent);
+            _events.PublishOnUIThread(notifyEvent);
         }
 
         private void ResizeArranger(int arrangerWidth, int arrangerHeight)
@@ -281,13 +277,13 @@ namespace TileShop.WPF.ViewModels
                     notifyMessage = $"Pixel Selection: {Selection.SnappedWidth} x {Selection.SnappedHeight}" +
                         $" at ({Selection.SnappedX1} x {Selection.SnappedY1})";
                 var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-                _events.PublishOnUIThreadAsync(notifyEvent);
+                _events.PublishOnUIThread(notifyEvent);
             }
             else
             {
                 string notifyMessage = $"File Offset: 0x{_address.FileOffset:X} ({(int)Math.Round(e.X / Zoom)}, {(int)Math.Round(e.Y / Zoom)})";
                 var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-                _events.PublishOnUIThreadAsync(notifyEvent);
+                _events.PublishOnUIThread(notifyEvent);
             }
         }
     }

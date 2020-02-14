@@ -1,7 +1,4 @@
-﻿using Caliburn.Micro;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Windows.Media;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;

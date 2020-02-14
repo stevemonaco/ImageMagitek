@@ -1,14 +1,8 @@
-﻿using Caliburn.Micro;
+﻿using Stylet;
 using ImageMagitek;
 using System;
-using TileShop.WPF.Behaviors;
-using TileShop.Shared.EventModels;
 using TileShop.WPF.Helpers;
-using TileShop.WPF.Models;
-using System.Drawing;
 using GongSolutions.Wpf.DragDrop;
-using TileShop.Shared.Models;
-using System.Linq;
 using TileShop.WPF.Imaging;
 using ImageMagitek.Colors;
 using TileShop.Shared.Services;

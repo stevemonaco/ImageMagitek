@@ -1,8 +1,4 @@
-﻿using Caliburn.Micro;
-using ImageMagitek.Project;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using ImageMagitek.Project;
 
 namespace TileShop.WPF.ViewModels
 {

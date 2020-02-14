@@ -1,4 +1,4 @@
-﻿using Caliburn.Micro;
+﻿using Stylet;
 
 namespace TileShop.WPF.DialogModels
 {
@@ -8,35 +8,35 @@ namespace TileShop.WPF.DialogModels
         public string ArrangerName
         {
             get => _arrangerName;
-            set => Set(ref _arrangerName, value);
+            set => SetAndNotify(ref _arrangerName, value);
         }
 
         private int _arrangerElementWidth;
         public int ArrangerElementWidth
         {
             get => _arrangerElementWidth;
-            set => Set(ref _arrangerElementWidth, value);
+            set => SetAndNotify(ref _arrangerElementWidth, value);
         }
 
         private int _arrangerElementHeight;
         public int ArrangerElementHeight
         {
             get => _arrangerElementHeight;
-            set => Set(ref _arrangerElementHeight, value);
+            set => SetAndNotify(ref _arrangerElementHeight, value);
         }
 
         private int _elementPixelWidth;
         public int ElementPixelWidth
         {
             get => _elementPixelWidth;
-            set => Set(ref _elementPixelWidth, value);
+            set => SetAndNotify(ref _elementPixelWidth, value);
         }
 
         private int _elementPixelHeight;
         public int ElementPixelHeight
         {
             get => _elementPixelHeight;
-            set => Set(ref _elementPixelHeight, value);
+            set => SetAndNotify(ref _elementPixelHeight, value);
         }
     }
 }
