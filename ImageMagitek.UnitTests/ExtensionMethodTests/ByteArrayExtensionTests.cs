@@ -18,7 +18,8 @@ namespace ImageMagitek.UnitTests
         [TestCaseSource(typeof(ByteArrayExtensionTestCases), "ShiftRightCases")]
         public void ShiftRight_AsExpected(byte[] array, int count, byte[] expected)
         {
-            array.ShiftRight(count);
+            var span = new Span<byte>(array);
+            span.ShiftRight(count);
             CollectionAssert.AreEqual(expected, array);
         }
     }

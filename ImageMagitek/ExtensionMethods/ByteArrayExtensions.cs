@@ -34,7 +34,7 @@ namespace ImageMagitek.ExtensionMethods
         /// </summary>
         /// <param name="array">Array to shift</param>
         /// <param name="count">Number of times to right shift [0-7]</param>
-        public static void ShiftRight(this byte[] array, int count)
+        public static void ShiftRight(this Span<byte> array, int count)
         {
             if (count < 0 || count > 7)
                 throw new ArgumentOutOfRangeException($"{nameof(ShiftLeft)} parameter '{nameof(count)}' ({count}) is not within the valid range [0-7]");
