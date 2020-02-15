@@ -48,7 +48,6 @@
             mah:TextBoxHelper.Watermark="Search Project"
             Style="{DynamicResource MahApps.Styles.TextBox.Search}" />
 
-        <!--  :Message.Attach="[Event MouseDoubleClick] = [Action ActivateSelectedItem()]"  -->
         <TreeView
             Grid.Row="1"
             ItemTemplateSelector="{StaticResource projectTreeTemplateSelector}"
@@ -56,6 +55,11 @@
             <i:Interaction.Behaviors>
                 <behaviors:BindableSelectedItemBehavior SelectedItem="{Binding SelectedItem, Mode=TwoWay}" />
             </i:Interaction.Behaviors>
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseDoubleClick">
+                    <i:InvokeCommandAction Command="{s:Action ActivateSelectedItem}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
             <!--
             <TreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}">

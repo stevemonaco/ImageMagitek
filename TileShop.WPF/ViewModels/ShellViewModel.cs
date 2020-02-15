@@ -72,6 +72,8 @@ namespace TileShop.WPF.ViewModels
             ActivePixelEditor = activePixelEditor;
         }
 
+        public void Closing() { }
+
         public void Handle(ActivateEditorEvent message)
         {
             var openDocument = Editors.FirstOrDefault(x => ReferenceEquals(x.Resource, message.Resource));

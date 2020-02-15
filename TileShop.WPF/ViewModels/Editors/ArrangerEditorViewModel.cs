@@ -85,6 +85,11 @@ namespace TileShop.WPF.ViewModels
 
         public virtual bool CanEditSelection => true;
 
+        public virtual void Closing()
+        {
+            Console.WriteLine("lj;sadf");
+        }
+
         public virtual void EditSelection()
         {
             ArrangerTransferModel transferModel;

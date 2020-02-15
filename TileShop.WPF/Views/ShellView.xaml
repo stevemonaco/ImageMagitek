@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ad="http://schemas.xceed.com/wpf/xaml/avalondock"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -18,18 +19,24 @@
     TitleCharacterCasing="Normal"
     mc:Ignorable="d">
 
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Closing">
+            <i:InvokeCommandAction Command="{s:Action Closing}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
     <mah:MetroWindow.Resources>
         <DataTemplate x:Key="paletteEditorSelector" DataType="{x:Type vm:PaletteEditorViewModel}">
-            <v:PaletteEditorView />
+            <ContentControl s:View.Model="{Binding}" />
         </DataTemplate>
         <DataTemplate x:Key="scatteredArrangerEditorSelector" DataType="{x:Type vm:ScatteredArrangerEditorViewModel}">
-            <v:ScatteredArrangerEditorView />
+            <ContentControl s:View.Model="{Binding}" />
         </DataTemplate>
         <DataTemplate x:Key="sequentialArrangerEditorSelector" DataType="{x:Type vm:SequentialArrangerEditorViewModel}">
-            <v:SequentialArrangerEditorView />
+            <ContentControl s:View.Model="{Binding}" />
         </DataTemplate>
         <DataTemplate x:Key="dataFileEditorSelector" DataType="{x:Type vm:DataFileEditorViewModel}">
-            <v:DataFileEditorView />
+            <ContentControl s:View.Model="{Binding}" />
         </DataTemplate>
 
         <sel:EditorHostTemplateSelector
@@ -83,7 +90,7 @@
                                 CanClose="False"
                                 CanHide="False"
                                 ContentId="projectExplorer">
-                                <v:ProjectTreeView DataContext="{Binding ActiveTree}" />
+                                <ContentControl s:View.Model="{Binding ActiveTree}" />
                             </ad:LayoutAnchorable>
                         </ad:LayoutAnchorablePane>
                     </ad:LayoutPanel>
@@ -100,7 +107,7 @@
                                 CanClose="False"
                                 CanHide="True"
                                 ContentId="pixelEditor">
-                                <v:PixelEditorView DataContext="{Binding ActivePixelEditor}" />
+                                <ContentControl s:View.Model="{Binding ActivePixelEditor}" />
                             </ad:LayoutAnchorable>
                         </ad:LayoutAnchorablePane>
                     </ad:LayoutPanel>
