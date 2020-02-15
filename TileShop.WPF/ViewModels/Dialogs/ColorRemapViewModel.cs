@@ -26,9 +26,20 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _finalColors, value);
         }
 
-        public ColorRemapViewModel(Palette palette)
+        /// <summary>
+        /// ViewModel responsible for remapping Palette colors of an indexed image
+        /// </summary>
+        /// <param name="palette">Palette containing the colors</param>
+        public ColorRemapViewModel(Palette palette) : this(palette, palette.Entries) { }
+
+        /// <summary>
+        /// ViewModel responsible for remapping Palette colors of an indexed image
+        /// </summary>
+        /// <param name="palette">Palette containing the colors</param>
+        /// <param name="paletteEntries">Number of colors to remap starting with the 0-index</param>
+        public ColorRemapViewModel(Palette palette, int paletteEntries)
         {
-            for (int i = 0; i < palette.Entries; i++)
+            for (int i = 0; i < paletteEntries; i++)
             {
                 var nativeColor = ImageMagitek.Colors.ColorConverter.ToNative(palette[i]);
                 var color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);

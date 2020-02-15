@@ -10,10 +10,12 @@ using TileShop.WPF.Services;
 using TileShop.Shared.Services;
 using System.IO;
 using System.Linq;
+using GongSolutions.Wpf.DragDrop;
+using System.Windows;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ProjectTreeViewModel : Screen, IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>,
+    public class ProjectTreeViewModel : Screen, IDropTarget, IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>,
         IHandle<AddDataFileEvent>, IHandle<SaveProjectEvent>, IHandle<CloseProjectEvent>, IHandle<AddPaletteEvent>
     {
         private IPathTree<IProjectResource> _tree;
@@ -212,6 +214,37 @@ namespace TileShop.WPF.ViewModels
             }
 
             return;
+        }
+
+        public void DragOver(IDropInfo dropInfo)
+        {
+            var sourceNode = (dropInfo.Data as ProjectTreeNodeViewModel)?.Node;
+            var targetNode = (dropInfo.TargetItem as ProjectTreeFolderViewModel)?.Node;
+
+            bool isValid = true;
+
+            if (sourceNode is null || targetNode is null)
+                return;
+
+            if (ReferenceEquals(sourceNode, targetNode))
+                return;
+
+            if (sourceNode.Parent.PathKey == targetNode.PathKey)
+                return;
+
+            if (sourceNode is ResourceFolder && targetNode is ResourceFolder)
+            {
+                if (targetNode.Ancestors().Any(x => x.PathKey == sourceNode.PathKey))
+                    return;
+            }
+
+            dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+            dropInfo.Effects = DragDropEffects.Move;
+        }
+
+        public void Drop(IDropInfo dropInfo)
+        {
+            Console.WriteLine("ljasdf");
         }
     }
 }

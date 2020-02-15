@@ -13,6 +13,7 @@ using TileShop.WPF.Imaging;
 using TileShop.WPF.Models;
 using TileShop.WPF.Services;
 using Point = System.Drawing.Point;
+using System;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -114,10 +115,16 @@ namespace TileShop.WPF.ViewModels
 
         public void RemapColors()
         {
-            var remapViewModel = new ColorRemapViewModel(_arranger.GetReferencedPalettes().First());
+            var palette = _arranger.GetReferencedPalettes().FirstOrDefault();
+            if (palette is null)
+                palette = _paletteService.DefaultPalette;
+
+            var colors = Math.Min(256, 1 << _arranger.EnumerateElements().Select(x => x.Codec?.ColorDepth ?? 0).Max());
+
+            var remapViewModel = new ColorRemapViewModel(palette, colors);
             if(_windowManager.ShowDialog(remapViewModel) is true)
             {
-                var remap = remapViewModel.FinalColors.Select(x => (byte)x.Index).ToArray();
+                var remap = remapViewModel.FinalColors.Select(x => (byte)x.Index).ToList();
                 _indexedImage.RemapColors(remap);
                 Render();
             }
@@ -293,13 +300,22 @@ namespace TileShop.WPF.ViewModels
 
             Palettes.Clear();
 
-            var arrangerPalettes = _arranger.GetReferencedPalettes().OrderBy(x => x.Name);
+            var arrangerPalettes = _arranger.GetReferencedPalettes().OrderBy(x => x.Name).ToArray();
 
             foreach (var pal in arrangerPalettes)
-                Palettes.Add(PaletteModel.FromArrangerPalette(pal));
+            {
+                var colors = Math.Min(256, 1 << _arranger.EnumerateElements().Where(x => ReferenceEquals(pal, x.Palette)).Select(x => x.Codec?.ColorDepth ?? 0).Max());
+                Palettes.Add(PaletteModel.FromArrangerPalette(pal, colors));
+            }
 
+            var defaultPaletteElements = _arranger.EnumerateElements().Where(x => x.Palette is null).ToArray();
             var defaultPalette = _paletteService.DefaultPalette;
-            Palettes.Add(PaletteModel.FromArrangerPalette(defaultPalette));
+
+            if (defaultPaletteElements.Length > 0)
+            {
+                var defaultColors = Math.Min(256, 1 << defaultPaletteElements.Select(x => x.Codec?.ColorDepth ?? 0).Max());
+                Palettes.Add(PaletteModel.FromArrangerPalette(defaultPalette, defaultColors));
+            }
 
             if (_arranger.ColorType == PixelColorType.Indexed)
             {

@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:behaviors="clr-namespace:TileShop.WPF.Behaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dd="urn:gong-wpf-dragdrop"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
@@ -50,6 +51,9 @@
 
         <TreeView
             Grid.Row="1"
+            dd:DragDrop.DropHandler="{Binding}"
+            dd:DragDrop.IsDragSource="True"
+            dd:DragDrop.IsDropTarget="True"
             ItemTemplateSelector="{StaticResource projectTreeTemplateSelector}"
             ItemsSource="{Binding RootItems}">
             <i:Interaction.Behaviors>
@@ -60,13 +64,6 @@
                     <i:InvokeCommandAction Command="{s:Action ActivateSelectedItem}" />
                 </i:EventTrigger>
             </i:Interaction.Triggers>
-            <!--
-            <TreeView.ItemContainerStyle>
-                <Style TargetType="{x:Type TreeViewItem}">
-                    <Setter Property="cal:Message.Attach" Value="[Event MouseDoubleClick] = [Action ActivateEditor($dataContext)]" />
-                </Style>
-            </TreeView.ItemContainerStyle>
-            -->
         </TreeView>
 
     </Grid>

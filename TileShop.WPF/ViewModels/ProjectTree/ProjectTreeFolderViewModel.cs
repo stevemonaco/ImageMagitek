@@ -7,15 +7,12 @@ using ImageMagitek;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ProjectTreeFolderViewModel : Screen
+    public class ProjectTreeFolderViewModel : ProjectTreeNodeViewModel
     {
-        public IPathTreeNode<IProjectResource> Node { get; set; }
-
-        public string Name => Node.Name;
-
         public ProjectTreeFolderViewModel(IPathTreeNode<IProjectResource> node)
         {
             Node = node;
+            Name = node.Name;
         }
 
         public IEnumerable<Screen> Children

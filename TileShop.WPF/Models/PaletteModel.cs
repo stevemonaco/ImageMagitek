@@ -20,12 +20,14 @@ namespace TileShop.WPF.Models
             set => SetAndNotify(ref _colors, value);
         }
 
-        public static PaletteModel FromArrangerPalette(Palette pal)
+        public static PaletteModel FromArrangerPalette(Palette pal) => FromArrangerPalette(pal, pal.Entries);
+
+        public static PaletteModel FromArrangerPalette(Palette pal, int colorCount)
         {
             var model = new PaletteModel();
             model.Name = pal.Name;
 
-            for(int i = 0; i < pal.Entries; i++)
+            for (int i = 0; i < colorCount; i++)
             {
                 var color = new Color();
                 color.R = pal[i].R;

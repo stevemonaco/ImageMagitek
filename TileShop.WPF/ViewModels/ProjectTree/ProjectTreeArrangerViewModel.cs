@@ -4,15 +4,12 @@ using Monaco.PathTree;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ProjectTreeArrangerViewModel : Screen
+    public class ProjectTreeArrangerViewModel : ProjectTreeNodeViewModel
     {
-        public IPathTreeNode<IProjectResource> Node { get; set; }
-
-        public string Name => Node.Name;
-
         public ProjectTreeArrangerViewModel(IPathTreeNode<IProjectResource> node)
         {
             Node = node;
+            Name = node.Name;
         }
     }
 }
