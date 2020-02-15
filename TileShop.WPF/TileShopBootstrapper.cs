@@ -37,54 +37,9 @@ namespace TileShop.WPF
 
             builder.RegisterType<FileSelectService>().As<IFileSelectService>();
             builder.RegisterType<UserPromptService>().As<IUserPromptService>();
-            builder.RegisterType<DialogService>().As<IDialogService>();
         }
 
-        /*private void ConfigureServices()
-        {
-            var paletteService = new PaletteService();
-            paletteService.LoadJsonPalettes(@"D:\ImageMagitek\pal");
-            paletteService.DefaultPalette = paletteService.Palettes.Where(x => x.Name.Contains("DefaultRgba32")).First();
-            _container.Instance<IPaletteService>(paletteService);
-
-            var codecService = new CodecService(paletteService.DefaultPalette);
-            codecService.LoadXmlCodecs(@"D:\ImageMagitek\codecs");
-
-            _container.Instance<ICodecService>(codecService);
-
-            var projectService = new ProjectTreeService(codecService);
-            _container.Instance<IProjectTreeService>(projectService);
-
-            _container.PerRequest<IFileSelectService, FileSelectService>()
-                .PerRequest<IUserPromptService, UserPromptService>()
-                .PerRequest<IDialogService, DialogService>();
-        }
-
-        protected override void Configure()
-        {
-            _container.Instance(_container);
-
-            ConfigureServices();
-            ConfigureKeybindTrigger();
-
-            _container.Singleton<IWindowManager, WindowManager>()
-                .Singleton<IEventAggregator, EventAggregator>();
-
-            var viewModelTypes = GetType().Assembly.GetTypes()
-                .Where(x => x.IsClass)
-                .Where(x => x.Name.EndsWith("ViewModel"));
-
-            foreach (var type in viewModelTypes)
-                _container.RegisterPerRequest(type, type.ToString(), type);
-
-            var originalInvoke = ActionMessage.InvokeAction;
-            ActionMessage.InvokeAction = context =>
-            {
-                Debug.WriteLine($"Message: {context.Message} Target: {context.Target} View: {context.View}");
-                originalInvoke(context);
-            };
-        }
-
+        /*
         private void ConfigureKeybindTrigger()
         {
             var defaultCreateTrigger = Parser.CreateTrigger;

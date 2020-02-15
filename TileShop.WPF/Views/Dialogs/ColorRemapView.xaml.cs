@@ -1,5 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -14,11 +13,11 @@ using System.Windows.Shapes;
 namespace TileShop.WPF.Views
 {
     /// <summary>
-    /// Interaction logic for AddPaletteView.xaml
+    /// Interaction logic for ColorRemapView.xaml
     /// </summary>
-    public partial class AddPaletteView : MetroWindow
+    public partial class ColorRemapView : Window
     {
-        public AddPaletteView()
+        public ColorRemapView()
         {
             InitializeComponent();
         }

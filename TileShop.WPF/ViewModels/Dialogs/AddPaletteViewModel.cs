@@ -1,9 +1,9 @@
 ﻿using Stylet;
 using ImageMagitek;
 
-namespace TileShop.WPF.DialogModels
+namespace TileShop.WPF.ViewModels
 {
-    public class AddPaletteDialogModel : PropertyChangedBase
+    public class AddPaletteViewModel : Screen
     {
         private string _paletteName;
         public string PaletteName

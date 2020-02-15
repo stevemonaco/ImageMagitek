@@ -22,6 +22,7 @@ namespace TileShop.WPF.ViewModels
     {
         private IUserPromptService _promptService;
         private IPaletteService _paletteService;
+        private IWindowManager _windowManager;
         private int _viewX;
         private int _viewY;
         private int _viewWidth;
@@ -98,9 +99,10 @@ namespace TileShop.WPF.ViewModels
 
         public override bool CanShowGridlines => HasArranger;
 
-        public PixelEditorViewModel(IEventAggregator events, IUserPromptService promptService, IPaletteService paletteService)
+        public PixelEditorViewModel(IEventAggregator events, IWindowManager windowManager, IUserPromptService promptService, IPaletteService paletteService)
         {
             _events = events;
+            _windowManager = windowManager;
             _promptService = promptService;
             _paletteService = paletteService;
 
@@ -112,7 +114,13 @@ namespace TileShop.WPF.ViewModels
 
         public void RemapColors()
         {
-
+            var remapViewModel = new ColorRemapViewModel(_arranger.GetReferencedPalettes().First());
+            if(_windowManager.ShowDialog(remapViewModel) is true)
+            {
+                var remap = remapViewModel.FinalColors.Select(x => (byte)x.Index).ToArray();
+                _indexedImage.RemapColors(remap);
+                Render();
+            }
         }
 
         public bool CanRemapColors

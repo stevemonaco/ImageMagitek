@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
@@ -117,5 +118,14 @@ namespace ImageMagitek
             var palIndex = Image[imageIndex];
             return pal[palIndex];
         }
+
+        private int GetIndex(int x, int y) => Image[x + Width * y];
+
+        /// <summary>
+        /// Remaps the colors of the image to new colors
+        /// </summary>
+        /// <param name="remap">List containing remapped indices</param>
+        public void RemapColors(IList<byte> remap) =>
+            Image = Image.Select(x => remap[x]).ToArray();
     }
 }

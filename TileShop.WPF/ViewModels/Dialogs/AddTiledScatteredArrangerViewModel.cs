@@ -1,8 +1,8 @@
 ﻿using Stylet;
 
-namespace TileShop.WPF.DialogModels
+namespace TileShop.WPF.ViewModels
 {
-    public class AddTiledScatteredArrangerDialogModel : PropertyChangedBase
+    public class AddTiledScatteredArrangerViewModel : Screen
     {
         private string _arrangerName;
         public string ArrangerName

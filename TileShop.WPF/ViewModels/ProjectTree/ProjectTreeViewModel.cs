@@ -4,16 +4,11 @@ using Monaco.PathTree;
 using System;
 using System.Collections.Generic;
 using Stylet;
-using System.Text;
 using ImageMagitek.Colors;
 using TileShop.Shared.EventModels;
-using System.Threading;
-using System.Threading.Tasks;
 using TileShop.WPF.Services;
-using System.Windows.Threading;
 using TileShop.Shared.Services;
 using System.IO;
-using TileShop.WPF.DialogModels;
 using System.Linq;
 
 namespace TileShop.WPF.ViewModels
@@ -24,18 +19,16 @@ namespace TileShop.WPF.ViewModels
         private IPathTree<IProjectResource> _tree;
         private IProjectTreeService _treeService;
         private IEventAggregator _events;
+        private IWindowManager _windowManager;
         private IFileSelectService _fileSelect;
-        private IUserPromptService _promptService;
-        private IDialogService _dialogService;
 
         public ProjectTreeViewModel(IProjectTreeService treeService, IFileSelectService fileSelect,
-            IEventAggregator events, IUserPromptService promptService, IDialogService dialogService)
+            IEventAggregator events, IWindowManager windowManager)
         {
             _treeService = treeService;
             _fileSelect = fileSelect;
-            _promptService = promptService;
-            _dialogService = dialogService;
 
+            _windowManager = windowManager;
             _events = events;
             _events.Subscribe(this);
         }
@@ -104,11 +97,11 @@ namespace TileShop.WPF.ViewModels
             try
             {
                 if (!_treeService.SaveProject(_tree, projectFileName))
-                    _promptService.PromptUser($"An unspecified error occurred while saving the project tree to {projectFileName}", "Error", UserPromptChoices.Ok);
+                    _windowManager.ShowMessageBox($"An unspecified error occurred while saving the project tree to {projectFileName}");
             }
             catch(Exception ex)
             {
-                _promptService.PromptUser($"Unable to save project {projectFileName}\n{ex.Message}", "Error", UserPromptChoices.Ok);
+                _windowManager.ShowMessageBox($"Unable to save project {projectFileName}\n{ex.Message}");
             }
         }
 
@@ -192,7 +185,7 @@ namespace TileShop.WPF.ViewModels
 
         public void Handle(AddPaletteEvent message)
         {
-            var model = new AddPaletteDialogModel();
+            var model = new AddPaletteViewModel();
 
             var dataFiles = _tree.EnumerateDepthFirst().Select(x => x.Value).OfType<DataFile>();
             model.DataFiles.AddRange(dataFiles);
@@ -204,11 +197,11 @@ namespace TileShop.WPF.ViewModels
 
             if (model.DataFiles.Count == 0)
             {
-                _promptService.PromptUser("Project does not contain any data files to define a palette", "Project Error", UserPromptChoices.Ok);
+                _windowManager.ShowMessageBox("Project does not contain any data files to define a palette", "Project Error");
                 return;
             }
-            
-            if(_dialogService.ShowAddPaletteDialog(model))
+
+            if(_windowManager.ShowDialog(model) is true)
             {
                 var pal = new Palette(model.PaletteName, Palette.StringToColorModel(model.SelectedColorModel), model.FileOffset,
                     model.Entries, model.ZeroIndexTransparent, PaletteStorageSource.DataFile);

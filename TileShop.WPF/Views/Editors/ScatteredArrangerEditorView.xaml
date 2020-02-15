@@ -15,7 +15,6 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <!--  cm:Message.Attach="[Key Z] = [ZoomIn]; [Key X] = [ZoomOut]; [Key G] = [ToggleGridlineVisibility]; [Key Escape] = [CancelSelection]; [Event Closing] = [Action OnClose($eventArgs)]"  -->
     <Grid UseLayoutRounding="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -55,6 +54,14 @@
             VerticalAlignment="Top"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
+
+            <ScrollViewer.InputBindings>
+                <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
+                <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
+                <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
+                <KeyBinding Key="Escape" Command="{s:Action CancelSelection}" />
+            </ScrollViewer.InputBindings>
+
             <Grid>
                 <Grid.Resources>
                     <ScaleTransform x:Key="transform" ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />

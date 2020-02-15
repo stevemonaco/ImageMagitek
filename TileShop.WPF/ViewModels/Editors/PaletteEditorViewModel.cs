@@ -44,13 +44,13 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _editingItem, value);
         }
 
-        public new string DisplayName => Resource?.Name;
-
         public PaletteEditorViewModel(Palette palette, IEventAggregator events)
         {
             Resource = palette;
             _palette = palette;
             _events = events;
+
+            DisplayName = Resource?.Name;
 
             for(int i = 0; i < _palette.Entries; i++)
                 Colors.Add(new ValidatedColorModel(_palette.GetForeignColor(i), i));
