@@ -57,6 +57,8 @@ namespace TileShop.WPF.ViewModels
             _paletteService = paletteService;
             _defaultPalette = _paletteService?.DefaultPalette;
 
+            DisplayName = Resource?.Name ?? "Unnamed Arranger";
+
             RenderArranger();
             CreateGridlines();
 

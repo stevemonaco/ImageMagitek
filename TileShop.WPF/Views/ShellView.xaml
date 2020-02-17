@@ -49,24 +49,34 @@
         </DataTemplate>
 
         <Style x:Key="arrangerDocumentStyle" TargetType="{x:Type adc:LayoutDocumentItem}">
-            <Setter Property="Title" Value="{Binding Model.Name}" />
-            <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay}" />
-            <Setter Property="IsActive" Value="{Binding Model.IsEditorActive, Mode=TwoWay}" />
+            <Setter Property="Title" Value="{Binding Model.DisplayName}" />
             <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
+            <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay}" />
+            <Setter Property="IsActive" Value="{Binding Model.IsActive, Mode=TwoWay}" />
+            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
         </Style>
 
         <Style x:Key="paletteDocumentStyle" TargetType="{x:Type adc:LayoutDocumentItem}">
-            <Setter Property="Title" Value="{Binding Model.Name}" />
+            <Setter Property="Title" Value="{Binding Model.DisplayName}" />
             <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
+            <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay}" />
+            <Setter Property="IsActive" Value="{Binding Model.IsActive, Mode=TwoWay}" />
+            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
         </Style>
 
         <Style x:Key="pixelDocumentStyle" TargetType="{x:Type adc:LayoutItem}">
-            <Setter Property="Title" Value="{Binding Model.Name}" />
+            <Setter Property="Title" Value="{Binding Model.DisplayName}" />
             <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
+            <Setter Property="IsActive" Value="{Binding Model.IsActive}" />
+            <Setter Property="IsSelected" Value="{Binding Model.IsSelected}" />
+            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
         </Style>
 
         <Style x:Key="projectDocumentStyle" TargetType="{x:Type adc:LayoutItem}">
             <Setter Property="Title" Value="{Binding Model.DisplayName}" />
+            <Setter Property="IsActive" Value="{Binding Model.IsActive}" />
+            <Setter Property="IsSelected" Value="{Binding Model.IsSelected}" />
+            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
         </Style>
 
         <sel:EditorHostStyleSelector
@@ -124,7 +134,7 @@
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
                         <!-- <Image Margin="0,0,4,0" Source="{Binding IconSource}" /> -->
-                        <TextBlock Text="{Binding Content.Name}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Content.DisplayName}" TextTrimming="CharacterEllipsis" />
                         <TextBlock Text="*" Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
                     </StackPanel>
                 </DataTemplate>

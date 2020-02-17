@@ -108,6 +108,8 @@ namespace TileShop.WPF.ViewModels
             _codecService = codecService;
             _paletteService = paletteService;
 
+            DisplayName = Resource?.Name ?? "Unnamed Arranger";
+
             if (_arranger.ColorType == PixelColorType.Indexed)
                 _indexedImage = new IndexedImage(_arranger, null);
             else if (_arranger.ColorType == PixelColorType.Direct)

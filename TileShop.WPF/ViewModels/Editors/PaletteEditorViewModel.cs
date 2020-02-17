@@ -50,7 +50,7 @@ namespace TileShop.WPF.ViewModels
             _palette = palette;
             _events = events;
 
-            DisplayName = Resource?.Name;
+            DisplayName = Resource?.Name ?? "Unnamed Palette";
 
             for(int i = 0; i < _palette.Entries; i++)
                 Colors.Add(new ValidatedColorModel(_palette.GetForeignColor(i), i));

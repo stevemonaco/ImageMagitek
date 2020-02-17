@@ -35,6 +35,8 @@ namespace TileShop.WPF.ViewModels
 
         public void AddPalette() => _events.PublishOnUIThread(new AddPaletteEvent());
 
+        public void ShowWindow(ToolWindow toolWindow) => _events.PublishOnUIThread(new ShowToolWindowEvent(toolWindow));
+
         public void ExitApplication()
         {
             //await TryCloseAsync();

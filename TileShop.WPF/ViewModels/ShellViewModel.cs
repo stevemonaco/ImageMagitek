@@ -9,7 +9,7 @@ using TileShop.Shared.Services;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ShellViewModel : Conductor<object>, IHandle<ActivateEditorEvent>
+    public class ShellViewModel : Conductor<object>, IHandle<ActivateEditorEvent>, IHandle<ShowToolWindowEvent>
     {
         protected IEventAggregator _events;
         protected ICodecService _codecService;
@@ -50,8 +50,8 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _activeEditor, value);
         }
 
-        private BindableCollection<Screen> _tools = new BindableCollection<Screen>();
-        public BindableCollection<Screen> Tools
+        private BindableCollection<ToolViewModel> _tools = new BindableCollection<ToolViewModel>();
+        public BindableCollection<ToolViewModel> Tools
         {
             get => _tools;
             set => SetAndNotify(ref _tools, value);
@@ -122,6 +122,27 @@ namespace TileShop.WPF.ViewModels
             }
             else
                 ActiveEditor = openDocument;
+        }
+
+        public void Handle(ShowToolWindowEvent message)
+        {
+            switch (message.ToolWindow)
+            {
+                case ToolWindow.ProjectExplorer:
+                    _activeTree.IsActive = true;
+                    _activeTree.IsSelected = true;
+                    _activeTree.IsVisible = true;
+                    break;
+
+                case ToolWindow.PixelEditor:
+                    _activePixelEditor.IsActive = true;
+                    _activePixelEditor.IsSelected = true;
+                    _activePixelEditor.IsVisible = true;
+                    break;
+
+                default:
+                    throw new InvalidOperationException();
+            }
         }
     }
 }

@@ -30,8 +30,6 @@ namespace TileShop.WPF.ViewModels
         private int _viewHeight;
         private PencilHistoryAction _activePencilHistory;
 
-        public override string Name => HasArranger ? $"Pixel Editor - {_arranger.Name}" : "Pixel Editor";
-
         private BindableCollection<HistoryAction> _history = new BindableCollection<HistoryAction>();
         public BindableCollection<HistoryAction> History
         {
@@ -111,6 +109,7 @@ namespace TileShop.WPF.ViewModels
 
             SetPrimaryColorCommand = new RelayCommand<Color>(SetPrimaryColor);
             SetSecondaryColorCommand = new RelayCommand<Color>(SetSecondaryColor);
+            DisplayName = "Pixel Editor";
         }
 
         public void RemapColors()
@@ -332,12 +331,11 @@ namespace TileShop.WPF.ViewModels
             }
 
             HasArranger = true;
+            DisplayName = $"Pixel Editor - {_arranger.Name}";
 
             ActivePalette = Palettes.First();
             PrimaryColor = ActivePalette.Colors[0];
             SecondaryColor = ActivePalette.Colors[1];
-
-            NotifyOfPropertyChange(() => Name);
             NotifyOfPropertyChange(() => CanRemapColors);
         }
     }
