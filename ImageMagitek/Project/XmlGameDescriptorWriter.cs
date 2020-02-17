@@ -103,7 +103,9 @@ namespace ImageMagitek.Project
                                 var element = arranger.GetElement(x, y);
                                 var elementModel = arrangerModel.ElementGrid[x, y];
                                 elementModel.DataFileKey = resourceResolver[element.DataFile];
-                                elementModel.PaletteKey = resourceResolver[element.Palette];
+
+                                if (element.Palette is object)
+                                    elementModel.PaletteKey = resourceResolver[element.Palette];
                             }
                         }
                         modelTree.Add(node.PathKey, arrangerModel);
@@ -157,7 +159,6 @@ namespace ImageMagitek.Project
         private XElement Serialize(ScatteredArrangerModel arrangerModel)
         {
             var defaultFormat = arrangerModel.FindMostFrequentPropertyValue("CodecName");
-            var defaultPalette = arrangerModel.FindMostFrequentPropertyValue("PaletteKey");
             var defaultFile = arrangerModel.FindMostFrequentPropertyValue("DataFileKey");
 
             var arrangerNode = new XElement("arranger");
@@ -174,7 +175,6 @@ namespace ImageMagitek.Project
 
             arrangerNode.Add(new XAttribute("defaultformat", defaultFormat));
             arrangerNode.Add(new XAttribute("defaultdatafile", defaultFile));
-            arrangerNode.Add(new XAttribute("defaultpalette", defaultPalette));
 
             for(int y = 0; y < arrangerModel.ArrangerElementSize.Height; y++)
             {
@@ -193,7 +193,7 @@ namespace ImageMagitek.Project
                     if(el.DataFileKey != defaultFile)
                         elNode.Add(new XAttribute("datafile", el.DataFileKey));
 
-                    if(el.PaletteKey != defaultPalette)
+                    if(!string.IsNullOrWhiteSpace(el.PaletteKey))
                         elNode.Add(new XAttribute("palette", el.PaletteKey));
 
                     arrangerNode.Add(elNode);

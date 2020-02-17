@@ -13,6 +13,8 @@ namespace TileShop.WPF.Selectors
         public DataTemplate ScatteredArrangerEditorTemplate { get; set; }
         public DataTemplate SequentialArrangerEditorTemplate { get; set; }
         public DataTemplate DataFileEditorTemplate { get; set; }
+        public DataTemplate PixelEditorTemplate { get; set; }
+        public DataTemplate ProjectTreeTemplate { get; set; }
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
@@ -25,6 +27,8 @@ namespace TileShop.WPF.Selectors
                 ScatteredArrangerEditorViewModel _ => ScatteredArrangerEditorTemplate,
                 SequentialArrangerEditorViewModel _ => SequentialArrangerEditorTemplate,
                 DataFileEditorViewModel _ => DataFileEditorTemplate,
+                PixelEditorViewModel _ => PixelEditorTemplate,
+                ProjectTreeViewModel _ => ProjectTreeTemplate,
                 _ => base.SelectTemplate(item, container)
             };
         }

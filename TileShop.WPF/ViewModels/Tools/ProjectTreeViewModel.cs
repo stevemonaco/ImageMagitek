@@ -15,7 +15,7 @@ using System.Windows;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ProjectTreeViewModel : Screen, IDropTarget, IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>,
+    public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>,
         IHandle<AddDataFileEvent>, IHandle<SaveProjectEvent>, IHandle<CloseProjectEvent>, IHandle<AddPaletteEvent>
     {
         private IPathTree<IProjectResource> _tree;
@@ -24,9 +24,9 @@ namespace TileShop.WPF.ViewModels
         private IWindowManager _windowManager;
         private IFileSelectService _fileSelect;
 
-        public ProjectTreeViewModel(IProjectTreeService treeService, IFileSelectService fileSelect,
-            IEventAggregator events, IWindowManager windowManager)
+        public ProjectTreeViewModel(IProjectTreeService treeService, IFileSelectService fileSelect, IEventAggregator events, IWindowManager windowManager)
         {
+            DisplayName = "Project Tree";
             _treeService = treeService;
             _fileSelect = fileSelect;
 
@@ -221,30 +221,24 @@ namespace TileShop.WPF.ViewModels
             var sourceNode = (dropInfo.Data as ProjectTreeNodeViewModel)?.Node;
             var targetNode = (dropInfo.TargetItem as ProjectTreeFolderViewModel)?.Node;
 
-            bool isValid = true;
-
-            if (sourceNode is null || targetNode is null)
-                return;
-
-            if (ReferenceEquals(sourceNode, targetNode))
-                return;
-
-            if (sourceNode.Parent.PathKey == targetNode.PathKey)
-                return;
-
-            if (sourceNode is ResourceFolder && targetNode is ResourceFolder)
+            if (_treeService.CanMoveNode(sourceNode, targetNode))
             {
-                if (targetNode.Ancestors().Any(x => x.PathKey == sourceNode.PathKey))
-                    return;
+                dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+                dropInfo.Effects = DragDropEffects.Move;
             }
-
-            dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
-            dropInfo.Effects = DragDropEffects.Move;
         }
 
         public void Drop(IDropInfo dropInfo)
         {
-            Console.WriteLine("ljasdf");
+            var sourceNode = (dropInfo.Data as ProjectTreeNodeViewModel)?.Node;
+            var targetNode = (dropInfo.TargetItem as ProjectTreeFolderViewModel)?.Node;
+
+            if (sourceNode is object && targetNode is object)
+            {
+                SelectedItem = null;
+                _treeService.MoveNode(sourceNode, targetNode);
+                NotifyOfPropertyChange(() => RootItems);
+            }
         }
     }
 }

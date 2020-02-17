@@ -17,8 +17,6 @@ namespace TileShop.WPF.Selectors
             if (item == null || container is null)
                 return null;
 
-            var element = container as FrameworkElement;
-
             return item switch
             {
                 ProjectTreeFolderViewModel _ => TreeFolderTemplate,

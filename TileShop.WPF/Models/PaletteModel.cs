@@ -1,5 +1,6 @@
 ﻿using Stylet;
 using ImageMagitek.Colors;
+using System.Linq;
 using System.Windows.Media;
 
 namespace TileShop.WPF.Models
@@ -20,12 +21,14 @@ namespace TileShop.WPF.Models
             set => SetAndNotify(ref _colors, value);
         }
 
-        public static PaletteModel FromArrangerPalette(Palette pal) => FromArrangerPalette(pal, pal.Entries);
+        public Palette Palette { get; }
 
-        public static PaletteModel FromArrangerPalette(Palette pal, int colorCount)
+        public PaletteModel(Palette pal) : this(pal, pal.Entries) { }
+        
+        public PaletteModel(Palette pal, int colorCount)
         {
-            var model = new PaletteModel();
-            model.Name = pal.Name;
+            Name = pal.Name;
+            Palette = pal;
 
             for (int i = 0; i < colorCount; i++)
             {
@@ -35,11 +38,31 @@ namespace TileShop.WPF.Models
                 color.B = pal[i].B;
                 color.A = pal[i].A;
 
-                model.Colors.Add(color);
+                Colors.Add(color);
             }
-
-            return model;
         }
+
+        //public static PaletteModel FromArrangerPalette(Palette pal) => FromArrangerPalette(pal, pal.Entries);
+
+        //public static PaletteModel FromArrangerPalette(Palette pal, int colorCount)
+        //{
+        //    var model = new PaletteModel();
+        //    model.Name = pal.Name;
+        //    model.Palette = pal;
+
+        //    for (int i = 0; i < colorCount; i++)
+        //    {
+        //        var color = new Color();
+        //        color.R = pal[i].R;
+        //        color.G = pal[i].G;
+        //        color.B = pal[i].B;
+        //        color.A = pal[i].A;
+
+        //        model.Colors.Add(color);
+        //    }
+
+        //    return model;
+        //}
 
     }
 }

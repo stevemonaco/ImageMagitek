@@ -3,7 +3,10 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ad="http://schemas.xceed.com/wpf/xaml/avalondock"
+    xmlns:adc="clr-namespace:Xceed.Wpf.AvalonDock.Controls;assembly=Xceed.Wpf.AvalonDock"
+    xmlns:adl="clr-namespace:Xceed.Wpf.AvalonDock.Layout;assembly=Xceed.Wpf.AvalonDock"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dock="clr-namespace:TileShop.WPF.Docking"
     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
@@ -38,16 +41,52 @@
         <DataTemplate x:Key="dataFileEditorSelector" DataType="{x:Type vm:DataFileEditorViewModel}">
             <ContentControl s:View.Model="{Binding}" />
         </DataTemplate>
+        <DataTemplate x:Key="pixelEditorSelector" DataType="{x:Type vm:PixelEditorViewModel}">
+            <ContentControl s:View.Model="{Binding}" />
+        </DataTemplate>
+        <DataTemplate x:Key="projectTreeSelector" DataType="{x:Type vm:ProjectTreeViewModel}">
+            <ContentControl s:View.Model="{Binding}" />
+        </DataTemplate>
+
+        <Style x:Key="arrangerDocumentStyle" TargetType="{x:Type adc:LayoutDocumentItem}">
+            <Setter Property="Title" Value="{Binding Model.Name}" />
+            <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay}" />
+            <Setter Property="IsActive" Value="{Binding Model.IsEditorActive, Mode=TwoWay}" />
+            <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
+        </Style>
+
+        <Style x:Key="paletteDocumentStyle" TargetType="{x:Type adc:LayoutDocumentItem}">
+            <Setter Property="Title" Value="{Binding Model.Name}" />
+            <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
+        </Style>
+
+        <Style x:Key="pixelDocumentStyle" TargetType="{x:Type adc:LayoutItem}">
+            <Setter Property="Title" Value="{Binding Model.Name}" />
+            <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
+        </Style>
+
+        <Style x:Key="projectDocumentStyle" TargetType="{x:Type adc:LayoutItem}">
+            <Setter Property="Title" Value="{Binding Model.DisplayName}" />
+        </Style>
+
+        <sel:EditorHostStyleSelector
+            x:Key="editorStyleSelector"
+            ArrangerEditorStyle="{StaticResource arrangerDocumentStyle}"
+            PaletteEditorStyle="{StaticResource paletteDocumentStyle}"
+            PixelEditorStyle="{StaticResource pixelDocumentStyle}"
+            ProjectTreeStyle="{StaticResource projectDocumentStyle}" />
 
         <sel:EditorHostTemplateSelector
             x:Key="editorTemplateSelector"
             DataFileEditorTemplate="{StaticResource dataFileEditorSelector}"
             PaletteEditorTemplate="{StaticResource paletteEditorSelector}"
+            PixelEditorTemplate="{StaticResource pixelEditorSelector}"
+            ProjectTreeTemplate="{StaticResource projectTreeSelector}"
             ScatteredArrangerEditorTemplate="{StaticResource scatteredArrangerEditorSelector}"
             SequentialArrangerEditorTemplate="{StaticResource sequentialArrangerEditorSelector}" />
     </mah:MetroWindow.Resources>
 
-    <Grid>
+    <Grid x:Name="mainGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -55,20 +94,31 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <ContentControl Grid.Row="0" s:View.Model="{Binding ActiveMenu}" />
+        <ContentControl
+            x:Name="menuHost"
+            Grid.Row="0"
+            s:View.Model="{Binding ActiveMenu}" />
 
-        <ToolBarPanel Grid.Row="1" Visibility="Collapsed">
+        <ToolBarPanel
+            x:Name="toolBar"
+            Grid.Row="1"
+            Visibility="Collapsed">
             <Button>Test Button</Button>
         </ToolBarPanel>
 
-        <ContentControl Grid.Row="3" s:View.Model="{Binding ActiveStatusBar}" />
+        <ContentControl
+            x:Name="statusBarHost"
+            Grid.Row="3"
+            s:View.Model="{Binding ActiveStatusBar}" />
 
         <ad:DockingManager
             x:Name="dockManager"
             Grid.Row="2"
-            ActiveContent="{Binding ActiveEditor}"
+            ActiveContent="{Binding ActiveEditor, Mode=TwoWay}"
             AllowMixedOrientation="True"
+            AnchorablesSource="{Binding Tools}"
             DocumentsSource="{Binding Editors}"
+            LayoutItemContainerStyleSelector="{StaticResource editorStyleSelector}"
             LayoutItemTemplateSelector="{StaticResource editorTemplateSelector}">
             <ad:DockingManager.DocumentHeaderTemplate>
                 <DataTemplate>
@@ -80,11 +130,21 @@
                 </DataTemplate>
             </ad:DockingManager.DocumentHeaderTemplate>
 
+            <ad:DockingManager.LayoutUpdateStrategy>
+                <dock:LayoutInitializer />
+            </ad:DockingManager.LayoutUpdateStrategy>
+
             <ad:LayoutRoot>
-                <ad:LayoutPanel x:Name="documentsPane" Orientation="Horizontal">
+                <ad:LayoutPanel x:Name="rootPanel" Orientation="Horizontal">
+                    <adl:LayoutAnchorablePane Name="ProjectPane" DockWidth="200" />
+                    <adl:LayoutDocumentPane x:Name="documentsPane" />
+                    <adl:LayoutAnchorablePane Name="PixelPane" DockWidth="300" />
+
+                    <!--
                     <ad:LayoutPanel DockWidth="300">
                         <ad:LayoutAnchorablePane>
                             <ad:LayoutAnchorable
+                                x:Name="projectExplorer"
                                 Title="Project Explorer"
                                 AutoHideWidth="240"
                                 CanClose="False"
@@ -96,21 +156,17 @@
                     </ad:LayoutPanel>
 
                     <ad:LayoutDocumentPaneGroup>
-                        <ad:LayoutDocumentPane />
+                        <ad:LayoutDocumentPane x:Name="documentsPane" />
                     </ad:LayoutDocumentPaneGroup>
 
                     <ad:LayoutPanel DockWidth="400">
                         <ad:LayoutAnchorablePane>
-                            <ad:LayoutAnchorable
-                                Title="Pixel Editor"
-                                AutoHideWidth="240"
-                                CanClose="False"
-                                CanHide="True"
-                                ContentId="pixelEditor">
+                            <ad:LayoutAnchorable>
                                 <ContentControl s:View.Model="{Binding ActivePixelEditor}" />
                             </ad:LayoutAnchorable>
                         </ad:LayoutAnchorablePane>
                     </ad:LayoutPanel>
+                    -->
 
                 </ad:LayoutPanel>
 

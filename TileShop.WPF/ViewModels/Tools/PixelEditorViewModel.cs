@@ -127,6 +127,9 @@ namespace TileShop.WPF.ViewModels
                 var remap = remapViewModel.FinalColors.Select(x => (byte)x.Index).ToList();
                 _indexedImage.RemapColors(remap);
                 Render();
+
+                var remapAction = new ColorRemapHistoryAction(remapViewModel.InitialColors, remapViewModel.FinalColors);
+                History.Add(remapAction);
             }
         }
 
@@ -305,7 +308,7 @@ namespace TileShop.WPF.ViewModels
             foreach (var pal in arrangerPalettes)
             {
                 var colors = Math.Min(256, 1 << _arranger.EnumerateElements().Where(x => ReferenceEquals(pal, x.Palette)).Select(x => x.Codec?.ColorDepth ?? 0).Max());
-                Palettes.Add(PaletteModel.FromArrangerPalette(pal, colors));
+                Palettes.Add(new PaletteModel(pal, colors));
             }
 
             var defaultPaletteElements = _arranger.EnumerateElements().Where(x => x.Palette is null).ToArray();
@@ -314,7 +317,7 @@ namespace TileShop.WPF.ViewModels
             if (defaultPaletteElements.Length > 0)
             {
                 var defaultColors = Math.Min(256, 1 << defaultPaletteElements.Select(x => x.Codec?.ColorDepth ?? 0).Max());
-                Palettes.Add(PaletteModel.FromArrangerPalette(defaultPalette, defaultColors));
+                Palettes.Add(new PaletteModel(defaultPalette, defaultColors));
             }
 
             if (_arranger.ColorType == PixelColorType.Indexed)
@@ -334,6 +337,7 @@ namespace TileShop.WPF.ViewModels
             PrimaryColor = ActivePalette.Colors[0];
             SecondaryColor = ActivePalette.Colors[1];
 
+            NotifyOfPropertyChange(() => Name);
             NotifyOfPropertyChange(() => CanRemapColors);
         }
     }

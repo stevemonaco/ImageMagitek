@@ -50,6 +50,13 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _activeEditor, value);
         }
 
+        private BindableCollection<Screen> _tools = new BindableCollection<Screen>();
+        public BindableCollection<Screen> Tools
+        {
+            get => _tools;
+            set => SetAndNotify(ref _tools, value);
+        }
+
         private PixelEditorViewModel _activePixelEditor;
         public PixelEditorViewModel ActivePixelEditor
         {
@@ -70,6 +77,9 @@ namespace TileShop.WPF.ViewModels
             ActiveTree = activeTree;
             ActiveStatusBar = activeStatusBar;
             ActivePixelEditor = activePixelEditor;
+
+            Tools.Add(activeTree);
+            Tools.Add(activePixelEditor);
         }
 
         public void Closing() { }
