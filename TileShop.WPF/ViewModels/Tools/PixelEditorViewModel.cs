@@ -289,21 +289,21 @@ namespace TileShop.WPF.ViewModels
 
         public void Handle(EditArrangerPixelsEvent message)
         {
-            //if (IsModified && HasArranger && History.Count > 0)
-            //{
-            //    var result = _windowManager.ShowMessageBox($"The current image of '{_arranger.Name}' has been modified and will be closed. Would you like to save the changes?",
-            //        "Save changes", System.Windows.MessageBoxButton.YesNoCancel);
+            if (IsModified && HasArranger && History.Count > 0)
+            {
+                var result = _windowManager.ShowMessageBox($"'{DisplayName}' has been modified and will be closed. Save changes?",
+                    "Save changes", System.Windows.MessageBoxButton.YesNoCancel);
 
-            //    if (result == System.Windows.MessageBoxResult.No)
-            //    {
-            //        History.Clear();
-            //    }
+                if (result == System.Windows.MessageBoxResult.No)
+                {
+                    History.Clear();
+                }
 
-            //    if (result == System.Windows.MessageBoxResult.Cancel)
-            //        return;
-            //    else if (result == System.Windows.MessageBoxResult.Yes)
-            //        SaveChanges();
-            //}
+                if (result == System.Windows.MessageBoxResult.Cancel)
+                    return;
+                else if (result == System.Windows.MessageBoxResult.Yes)
+                    SaveChanges();
+            }
 
             _arranger = message.ArrangerTransferModel.Arranger;
             _viewX = message.ArrangerTransferModel.X;

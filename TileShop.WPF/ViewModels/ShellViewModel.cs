@@ -8,10 +8,12 @@ using ImageMagitek.Project;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Services;
 using Xceed.Wpf.AvalonDock;
+using System.ComponentModel;
+using System.Collections.Generic;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ShellViewModel : Conductor<object>, IHandle<ActivateEditorEvent>, IHandle<ShowToolWindowEvent>
+    public class ShellViewModel : Conductor<object>, IHandle<ActivateEditorEvent>, IHandle<ShowToolWindowEvent>, IHandle<ProjectClosingEvent>
     {
         protected readonly IEventAggregator _events;
         protected readonly ICodecService _codecService;
@@ -49,7 +51,7 @@ namespace TileShop.WPF.ViewModels
         private ToolViewModel _activeTool;
         public ToolViewModel ActiveTool
         {
-            get { return _activeTool; }
+            get => _activeTool;
             set => SetAndNotify(ref _activeTool, value);
         }
 
@@ -66,6 +68,11 @@ namespace TileShop.WPF.ViewModels
             get => _activePixelEditor;
             set => SetAndNotify(ref _activePixelEditor, value);
         }
+
+        private Dictionary<MessageBoxResult, string> messageBoxLabels = new Dictionary<MessageBoxResult, string> 
+        { 
+            { MessageBoxResult.Yes, "Save" }, { MessageBoxResult.No, "Discard" }, { MessageBoxResult.Cancel, "Cancel" } 
+        };
 
         public ShellViewModel(IEventAggregator events, IWindowManager windowManager, ICodecService codecService,
             IPaletteService paletteService, MenuViewModel activeMenu, ProjectTreeViewModel activeTree, 
@@ -86,9 +93,10 @@ namespace TileShop.WPF.ViewModels
             Tools.Add(activePixelEditor);
         }
 
-        public void Closing()
+        public void Closing(CancelEventArgs e)
         {
-
+            if (!TrySaveProject())
+                e.Cancel = true;
         }
 
         public void DocumentClosing(object sender, DocumentClosingEventArgs e)
@@ -97,7 +105,8 @@ namespace TileShop.WPF.ViewModels
             if (doc is null || !doc.IsModified)
                 return;
 
-            var result = _windowManager.ShowMessageBox($"{doc.DisplayName} has been changed. Save changes?", "Save changes", MessageBoxButton.YesNoCancel);
+            var result = _windowManager.ShowMessageBox($"{doc.DisplayName} has been modified. Save changes?", "Save changes",
+                MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
 
             if (result == MessageBoxResult.Yes)
                 doc.SaveChanges();
@@ -134,7 +143,7 @@ namespace TileShop.WPF.ViewModels
                     case SequentialArranger sequentialArranger:
                         newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _codecService, _paletteService);
                         break;
-                    case DataFile dataFile:
+                    case DataFile dataFile: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
                         var newArranger = new SequentialArranger(8, 16, dataFile, _codecService.CodecFactory, "SNES 3bpp");
                         newDocument = new SequentialArrangerEditorViewModel(newArranger, _events, _codecService, _paletteService);
                         break;
@@ -160,21 +169,76 @@ namespace TileShop.WPF.ViewModels
             switch (message.ToolWindow)
             {
                 case ToolWindow.ProjectExplorer:
-                    _activeTree.IsVisible = true;
-                    _activeTree.IsActive = true;
-                    _activeTree.IsSelected = true;
-                    //Tools.Remove(_activeTree);
-                    //Tools.Add(_activeTree);
+                    ActiveTree.IsVisible = true;
+                    ActiveTree.IsActive = true;
+                    ActiveTree.IsSelected = true;
+                    Tools.Remove(ActiveTree);
+                    Tools.Add(ActiveTree);
                     break;
 
                 case ToolWindow.PixelEditor:
-                    _activePixelEditor.IsActive = true;
-                    _activePixelEditor.IsSelected = true;
-                    _activePixelEditor.IsVisible = true;
+                    ActivePixelEditor.IsActive = true;
+                    ActivePixelEditor.IsSelected = true;
+                    ActivePixelEditor.IsVisible = true;
+                    Tools.Remove(ActivePixelEditor);
+                    Tools.Add(ActivePixelEditor);
                     break;
 
                 default:
                     throw new InvalidOperationException();
+            }
+        }
+
+        public void Handle(ProjectClosingEvent message) => TrySaveProject();
+
+        private bool TrySaveProject()
+        {
+            try
+            {
+                if (!TrySaveUserChanges(ActivePixelEditor))
+                    return false;
+                //Tools.Remove(ActivePixelEditor);
+
+                foreach (var editor in Editors)
+                {
+                    if (!TrySaveUserChanges(editor))
+                        return false;
+                    //Editors.Remove(editor);
+                }
+
+                if (!TrySaveUserChanges(ActiveTree))
+                    return false;
+                //Tools.Remove(ActiveTree);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _windowManager.ShowMessageBox(ex.Message);
+                // TODO: Log full exception here
+                return false;
+            }
+
+            bool TrySaveUserChanges(ToolViewModel model)
+            {
+                if (model.IsModified)
+                {
+                    var result = _windowManager.ShowMessageBox($"'{model.DisplayName}' has been modified and will be closed. Save changes?",
+                        "Save changes", System.Windows.MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
+
+                    if (result == System.Windows.MessageBoxResult.Yes)
+                    {
+                        model.SaveChanges();
+                        return true;
+                    }
+                    if (result == System.Windows.MessageBoxResult.No)
+                    {
+                        model.DiscardChanges();
+                        return true;
+                    }
+                    else if (result == System.Windows.MessageBoxResult.Cancel)
+                        return false;
+                }
+                return true;
             }
         }
     }

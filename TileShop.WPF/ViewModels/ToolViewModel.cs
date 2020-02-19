@@ -5,6 +5,9 @@ namespace TileShop.WPF.ViewModels
 {
     public abstract class ToolViewModel : PropertyChangedBase
     {
+        public abstract void SaveChanges();
+        public abstract void DiscardChanges();
+
         private string _displayName;
         public string DisplayName
         {

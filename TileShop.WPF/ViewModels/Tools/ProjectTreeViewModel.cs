@@ -42,7 +42,7 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _activeProjectFileName, value);
         }
 
-        public IEnumerable<Screen> RootItems
+        public IEnumerable<ProjectTreeNodeViewModel> RootItems
         {
             get
             {
@@ -63,8 +63,8 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private object _selectedItem;
-        public object SelectedItem
+        private ProjectTreeNodeViewModel _selectedItem;
+        public ProjectTreeNodeViewModel SelectedItem
         {
             get => _selectedItem;
             set => SetAndNotify(ref _selectedItem, value);
@@ -94,19 +94,6 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private void SaveProject(string projectFileName)
-        {
-            try
-            {
-                if (!_treeService.SaveProject(_tree, projectFileName))
-                    _windowManager.ShowMessageBox($"An unspecified error occurred while saving the project tree to {projectFileName}");
-            }
-            catch(Exception ex)
-            {
-                _windowManager.ShowMessageBox($"Unable to save project {projectFileName}\n{ex.Message}");
-            }
-        }
-
         public bool HasProject => ActiveProjectFileName is object;
 
         private void Reset()
@@ -127,7 +114,7 @@ namespace TileShop.WPF.ViewModels
             {
                 _tree = new PathTree<IProjectResource>();
                 ActiveProjectFileName = projectFileName;
-                SaveProject(ActiveProjectFileName);
+                TrySaveProject(ActiveProjectFileName);
                 NotifyOfPropertyChange(() => RootItems);
                 _events.PublishOnUIThread(new ProjectLoadedEvent());
             }
@@ -160,7 +147,7 @@ namespace TileShop.WPF.ViewModels
 
         public void Handle(SaveProjectEvent message)
         {
-            string projectFileName;
+            string projectFileName = ActiveProjectFileName;
 
             if (message.SaveAsNewProject)
             {
@@ -169,19 +156,21 @@ namespace TileShop.WPF.ViewModels
                 if (projectFileName is null)
                     return;
             }
-            else
-                projectFileName = ActiveProjectFileName;
 
-            SaveProject(projectFileName);
-            ActiveProjectFileName = projectFileName;
-            _events.PublishOnUIThread(new ProjectUnloadedEvent());
-            _events.PublishOnUIThread(new ProjectLoadedEvent(ActiveProjectFileName));
+            if (TrySaveProject(projectFileName))
+            {
+                ActiveProjectFileName = projectFileName;
+                _events.PublishOnUIThread(new ProjectUnloadedEvent());
+                _events.PublishOnUIThread(new ProjectLoadedEvent(ActiveProjectFileName));
+            }
         }
 
         public void Handle(CloseProjectEvent message)
         {
             _events.PublishOnUIThread(new ProjectClosingEvent());
-            SaveProject(ActiveProjectFileName);
+
+            if (IsModified)
+                TrySaveProject(ActiveProjectFileName);
             Reset();
         }
 
@@ -210,10 +199,9 @@ namespace TileShop.WPF.ViewModels
                 pal.DataFile = model.SelectedDataFile;
 
                 _tree.Add(pal.Name, pal);
+                IsModified = true;
                 NotifyOfPropertyChange(() => RootItems);
             }
-
-            return;
         }
 
         public void DragOver(IDropInfo dropInfo)
@@ -230,15 +218,52 @@ namespace TileShop.WPF.ViewModels
 
         public void Drop(IDropInfo dropInfo)
         {
-            var sourceNode = (dropInfo.Data as ProjectTreeNodeViewModel)?.Node;
-            var targetNode = (dropInfo.TargetItem as ProjectTreeFolderViewModel)?.Node;
+            var sourceModel = dropInfo.Data as ProjectTreeNodeViewModel;
+            var targetModel = dropInfo.TargetItem as ProjectTreeFolderViewModel;
+
+            var sourceNode = sourceModel?.Node ?? null;
+            var targetNode = targetModel?.Node ?? null;
 
             if (sourceNode is object && targetNode is object)
             {
                 SelectedItem = null;
                 _treeService.MoveNode(sourceNode, targetNode);
+                IsModified = true;
+
+                //sourceModel.Refresh();
+                //targetModel.Refresh();
+
                 NotifyOfPropertyChange(() => RootItems);
             }
+        }
+
+        public override void SaveChanges()
+        {
+            _treeService.SaveProject(_tree, ActiveProjectFileName);
+        }
+
+        private bool TrySaveProject(string projectFileName)
+        {
+            try
+            {
+                if (!_treeService.SaveProject(_tree, projectFileName))
+                {
+                    _windowManager.ShowMessageBox($"An unspecified error occurred while saving the project tree to {projectFileName}");
+                    return false;
+                }
+                IsModified = false;
+                return true;
+            }
+            catch(Exception ex)
+            {
+                _windowManager.ShowMessageBox($"Unable to save project '{projectFileName}'\n{ex.Message}\n{ex.StackTrace}");
+                return false;
+            }
+        }
+
+        public override void DiscardChanges()
+        {
+            throw new NotImplementedException();
         }
     }
 }

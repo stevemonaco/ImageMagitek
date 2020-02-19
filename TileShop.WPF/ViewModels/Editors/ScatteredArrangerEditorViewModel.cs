@@ -156,6 +156,8 @@ namespace TileShop.WPF.ViewModels
 
             _arranger.SetElement(el, elX, elY);
             RenderArranger();
+            IsModified = true;
+
             return true;
         }
 

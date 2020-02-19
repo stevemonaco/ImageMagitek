@@ -30,8 +30,12 @@ namespace ImageMagitek
         /// </summary>
         public IGraphicsCodec ActiveCodec { get; private set; }
 
+        /// <summary>
+        /// DataFile that is assigned to each ArrangerElement
+        /// </summary>
+        public DataFile ActiveDataFile { get; set; }
+
         private ICodecFactory _codecs;
-        private DataFile _dataFile;
 
         /// <summary>
         /// Constructs a new SequentialArranger
@@ -46,7 +50,7 @@ namespace ImageMagitek
             Mode = ArrangerMode.Sequential;
             FileSize = dataFile.Stream.Length;
             Name = dataFile.Name;
-            _dataFile = dataFile;
+            ActiveDataFile = dataFile;
             _codecs = codecFactory;
 
             ActiveCodec = _codecs.GetCodec(codecName);
