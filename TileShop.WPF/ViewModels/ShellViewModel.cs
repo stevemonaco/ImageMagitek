@@ -1,19 +1,22 @@
 ﻿using System;
 using System.Linq;
+using System.Windows;
 using Stylet;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Services;
+using Xceed.Wpf.AvalonDock;
 
 namespace TileShop.WPF.ViewModels
 {
     public class ShellViewModel : Conductor<object>, IHandle<ActivateEditorEvent>, IHandle<ShowToolWindowEvent>
     {
-        protected IEventAggregator _events;
-        protected ICodecService _codecService;
-        protected IPaletteService _paletteService;
+        protected readonly IEventAggregator _events;
+        protected readonly ICodecService _codecService;
+        protected readonly IPaletteService _paletteService;
+        private readonly IWindowManager _windowManager;
 
         private MenuViewModel _activeMenu;
         public MenuViewModel ActiveMenu
@@ -43,11 +46,11 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _editors, value);
         }
 
-        private ResourceEditorBaseViewModel _activeEditor;
-        public ResourceEditorBaseViewModel ActiveEditor
+        private ToolViewModel _activeTool;
+        public ToolViewModel ActiveTool
         {
-            get { return _activeEditor; }
-            set => SetAndNotify(ref _activeEditor, value);
+            get { return _activeTool; }
+            set => SetAndNotify(ref _activeTool, value);
         }
 
         private BindableCollection<ToolViewModel> _tools = new BindableCollection<ToolViewModel>();
@@ -64,14 +67,15 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _activePixelEditor, value);
         }
 
-        public ShellViewModel(IEventAggregator events, ICodecService codecService, IPaletteService paletteService,
-            MenuViewModel activeMenu, ProjectTreeViewModel activeTree, 
+        public ShellViewModel(IEventAggregator events, IWindowManager windowManager, ICodecService codecService,
+            IPaletteService paletteService, MenuViewModel activeMenu, ProjectTreeViewModel activeTree, 
             StatusBarViewModel activeStatusBar, PixelEditorViewModel activePixelEditor)
         {
             _events = events;
             _events.Subscribe(this);
             _codecService = codecService;
             _paletteService = paletteService;
+            _windowManager = windowManager;
 
             ActiveMenu = activeMenu;
             ActiveTree = activeTree;
@@ -82,7 +86,34 @@ namespace TileShop.WPF.ViewModels
             Tools.Add(activePixelEditor);
         }
 
-        public void Closing() { }
+        public void Closing()
+        {
+
+        }
+
+        public void DocumentClosing(object sender, DocumentClosingEventArgs e)
+        {
+            var doc = e.Document.Content as ResourceEditorBaseViewModel;
+            if (doc is null || !doc.IsModified)
+                return;
+
+            var result = _windowManager.ShowMessageBox($"{doc.DisplayName} has been changed. Save changes?", "Save changes", MessageBoxButton.YesNoCancel);
+
+            if (result == MessageBoxResult.Yes)
+                doc.SaveChanges();
+            else if (result == MessageBoxResult.No)
+                doc.DiscardChanges();
+            else if (result == MessageBoxResult.Cancel)
+                e.Cancel = true;
+        }
+
+        public void DocumentClosed(DocumentClosedEventArgs e)
+        {
+            var document = e.Document.Content as ResourceEditorBaseViewModel;
+
+            if (document is object)
+                Editors.Remove(document);
+        }
 
         public void Handle(ActivateEditorEvent message)
         {
@@ -117,11 +148,11 @@ namespace TileShop.WPF.ViewModels
                 if (newDocument is object)
                 {
                     Editors.Add(newDocument);
-                    ActiveEditor = newDocument;
+                    ActiveTool = newDocument;
                 }
             }
             else
-                ActiveEditor = openDocument;
+                ActiveTool = openDocument;
         }
 
         public void Handle(ShowToolWindowEvent message)
@@ -129,9 +160,11 @@ namespace TileShop.WPF.ViewModels
             switch (message.ToolWindow)
             {
                 case ToolWindow.ProjectExplorer:
+                    _activeTree.IsVisible = true;
                     _activeTree.IsActive = true;
                     _activeTree.IsSelected = true;
-                    _activeTree.IsVisible = true;
+                    //Tools.Remove(_activeTree);
+                    //Tools.Add(_activeTree);
                     break;
 
                 case ToolWindow.PixelEditor:

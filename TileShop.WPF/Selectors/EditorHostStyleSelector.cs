@@ -9,22 +9,17 @@ namespace TileShop.WPF.Selectors
 {
     public class EditorHostStyleSelector : StyleSelector
     {
-        public Style ArrangerEditorStyle { get; set; }
-        public Style PaletteEditorStyle { get; set; }
-        public Style DataFileEditorStyle { get; set; }
-        public Style PixelEditorStyle { get; set; }
-        public Style ProjectTreeStyle { get; set; }
+        public Style EditorStyle { get; set; }
+        public Style ToolStyle { get; set; }
 
-        public override Style SelectStyle(object item, DependencyObject container) =>
-            item switch
-            {
-                ScatteredArrangerEditorViewModel _ => ArrangerEditorStyle,
-                SequentialArrangerEditorViewModel _ => ArrangerEditorStyle,
-                PaletteEditorViewModel _ => PaletteEditorStyle,
-                DataFileEditorViewModel _ => DataFileEditorStyle,
-                PixelEditorViewModel _ => PixelEditorStyle,
-                ProjectTreeViewModel _ => ProjectTreeStyle,
-                _ => base.SelectStyle(item, container)
-            };
+        public override Style SelectStyle(object item, DependencyObject container)
+        {
+            if (item is ResourceEditorBaseViewModel && !(item is PixelEditorViewModel))
+                return EditorStyle;
+            else if (item is ToolViewModel)
+                return ToolStyle;
+            else
+                return base.SelectStyle(item, container);
+        }
     }
 }

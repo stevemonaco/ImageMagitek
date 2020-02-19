@@ -2,8 +2,6 @@
 using ImageMagitek;
 using ImageMagitek.Colors;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Media;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Services;
@@ -194,14 +192,24 @@ namespace TileShop.WPF.ViewModels
         public void SetPrimaryColor(Color color) => PrimaryColor = color;
         public void SetSecondaryColor(Color color) => SecondaryColor = color;
 
-        public override bool SaveChanges()
+        public override void SaveChanges()
         {
-            return true;
+            if (_arranger.ColorType == PixelColorType.Indexed)
+                _indexedImage.SaveImage();
+            else if (_arranger.ColorType == PixelColorType.Direct)
+                _directImage.SaveImage();
+            else
+                throw new NotSupportedException();
         }
 
-        public override bool DiscardChanges()
+        public override void DiscardChanges()
         {
-            return true;
+            if (_arranger.ColorType == PixelColorType.Indexed)
+                _indexedImage.Render();
+            else if (_arranger.ColorType == PixelColorType.Direct)
+                _directImage.Render();
+
+            History.Clear();
         }
 
         public override void OnMouseDown(object sender, MouseCaptureArgs e)
@@ -281,18 +289,21 @@ namespace TileShop.WPF.ViewModels
 
         public void Handle(EditArrangerPixelsEvent message)
         {
-            if (IsModified && HasArranger)
-            {
-                var result = _promptService.PromptUser($"{_arranger.Name} has been modified and will be closed. Would you like to save the changes?",
-                    "Save changes", UserPromptChoices.YesNoCancel);
+            //if (IsModified && HasArranger && History.Count > 0)
+            //{
+            //    var result = _windowManager.ShowMessageBox($"The current image of '{_arranger.Name}' has been modified and will be closed. Would you like to save the changes?",
+            //        "Save changes", System.Windows.MessageBoxButton.YesNoCancel);
 
-                if (result == UserPromptResult.Cancel)
-                    return;
-                else if (result == UserPromptResult.Yes)
-                {
-                    // Save pixel data to arranger
-                }
-            }
+            //    if (result == System.Windows.MessageBoxResult.No)
+            //    {
+            //        History.Clear();
+            //    }
+
+            //    if (result == System.Windows.MessageBoxResult.Cancel)
+            //        return;
+            //    else if (result == System.Windows.MessageBoxResult.Yes)
+            //        SaveChanges();
+            //}
 
             _arranger = message.ArrangerTransferModel.Arranger;
             _viewX = message.ArrangerTransferModel.X;
@@ -300,6 +311,7 @@ namespace TileShop.WPF.ViewModels
             _viewWidth = message.ArrangerTransferModel.Width;
             _viewHeight = message.ArrangerTransferModel.Height;
 
+            History.Clear();
             Palettes.Clear();
 
             var arrangerPalettes = _arranger.GetReferencedPalettes().OrderBy(x => x.Name).ToArray();

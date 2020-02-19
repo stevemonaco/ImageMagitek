@@ -77,14 +77,14 @@ namespace TileShop.WPF.ViewModels
 
         public void SetApplyPaletteMode() => ActiveTool = ScatteredArrangerTool.ApplyPalette;
 
-        public override bool SaveChanges()
+        public override void SaveChanges()
         {
-            return true;
+            throw new NotImplementedException();
         }
 
-        public override bool DiscardChanges()
+        public override void DiscardChanges()
         {
-            return true;
+            throw new NotImplementedException();
         }
 
         public override void OnMouseDown(object sender, MouseCaptureArgs e)
@@ -93,9 +93,9 @@ namespace TileShop.WPF.ViewModels
             int y = (int)e.Y / Zoom;
 
             if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton)
-                ApplyPalette(x, y, ActivePalette.Palette);
+                TryApplyPalette(x, y, ActivePalette.Palette);
             else if (ActiveTool == ScatteredArrangerTool.PickPalette && e.LeftButton)
-                PickPalette(x, y);
+                TryPickPalette(x, y);
             else
                 base.OnMouseDown(sender, e);
         }
@@ -106,7 +106,7 @@ namespace TileShop.WPF.ViewModels
             int y = (int)e.Y / Zoom;
 
             if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton)
-                ApplyPalette(x, y, ActivePalette.Palette);
+                TryApplyPalette(x, y, ActivePalette.Palette);
             else
                 base.OnMouseMove(sender, e);
         }
@@ -136,18 +136,18 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private void ApplyPalette(int pixelX, int pixelY, Palette palette)
+        private bool TryApplyPalette(int pixelX, int pixelY, Palette palette)
         {
             var elX = pixelX / _arranger.ElementPixelSize.Width;
             var elY = pixelY / _arranger.ElementPixelSize.Height;
 
             if (elX >= _arranger.ArrangerElementSize.Width || elY >= _arranger.ArrangerElementSize.Height)
-                return;
+                return false;
 
             var el = _arranger.GetElement(elX, elY);
 
             if (ReferenceEquals(palette, el.Palette))
-                return;
+                return false;
 
             if (ReferenceEquals(_defaultPalette, palette))
                 el = el.WithPalette(null);
@@ -156,19 +156,21 @@ namespace TileShop.WPF.ViewModels
 
             _arranger.SetElement(el, elX, elY);
             RenderArranger();
+            return true;
         }
 
-        private void PickPalette(int pixelX, int pixelY)
+        private bool TryPickPalette(int pixelX, int pixelY)
         {
             var elX = pixelX / _arranger.ElementPixelSize.Width;
             var elY = pixelY / _arranger.ElementPixelSize.Height;
 
             if (elX >= _arranger.ArrangerElementSize.Width || elY >= _arranger.ArrangerElementSize.Height)
-                return;
+                return false;
 
             var el = _arranger.GetElement(elX, elY);
 
             ActivePalette = Palettes.FirstOrDefault(x => ReferenceEquals(el.Palette, x.Palette)) ?? Palettes.First(x => ReferenceEquals(_defaultPalette, x.Palette));
+            return true;
         }
     }
 }

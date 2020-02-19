@@ -6,14 +6,14 @@ namespace TileShop.WPF.ViewModels
 {
     public class DataFileEditorViewModel : ResourceEditorBaseViewModel
     {
-        public override bool SaveChanges()
+        public override void DiscardChanges()
         {
-            return true;
+            throw new NotImplementedException();
         }
 
-        public override bool DiscardChanges()
+        public override void SaveChanges()
         {
-            return true;
+            throw new NotImplementedException();
         }
     }
 }

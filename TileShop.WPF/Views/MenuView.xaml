@@ -31,6 +31,7 @@
             <MenuItem Click="{s:Action ExitApplication}" Header="E_xit" />
         </MenuItem>
 
+        <!--
         <MenuItem Header="_View">
             <MenuItem
                 Command="{s:Action ShowWindow}"
@@ -41,6 +42,7 @@
                 CommandParameter="{x:Static event:ToolWindow.PixelEditor}"
                 Header="Pixel Editor" />
         </MenuItem>
+        -->
 
         <MenuItem Header="_Project" IsEnabled="{Binding HasProject}">
             <MenuItem

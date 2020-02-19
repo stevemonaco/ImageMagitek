@@ -137,14 +137,14 @@ namespace TileShop.WPF.ViewModels
             Render();
         }
 
-        public override bool SaveChanges()
+        public override void SaveChanges()
         {
-            return true;
+            throw new NotImplementedException();
         }
 
-        public override bool DiscardChanges()
+        public override void DiscardChanges()
         {
-            return true;
+            throw new NotImplementedException();
         }
 
         public void MoveByteDown() => Move(ArrangerMoveType.ByteDown);

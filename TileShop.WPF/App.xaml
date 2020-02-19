@@ -14,7 +14,7 @@
                             <local:TileShopBootstrapper />
                         </s:ApplicationLoader.Bootstrapper>
                     </s:ApplicationLoader>
-                    <!-- <local:Bootstrapper x:Key="Bootstrapper" /> -->
+
                     <!--  Brush from https://stackoverflow.com/questions/3827561/how-to-create-checker-board-pattern  -->
                     <DrawingBrush
                         x:Key="CheckeredBrush"
@@ -31,6 +31,8 @@
                     <converters:ColorToSolidColorBrushConverter x:Key="ColorToSolidColorBrushConverter" />
                     <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
                 </ResourceDictionary>
+
+                <ResourceDictionary Source="pack://application:,,,/Xceed.Wpf.AvalonDock.Themes.VS2013;component/LightTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml" />

@@ -5,6 +5,7 @@
     xmlns:ad="http://schemas.xceed.com/wpf/xaml/avalondock"
     xmlns:adc="clr-namespace:Xceed.Wpf.AvalonDock.Controls;assembly=Xceed.Wpf.AvalonDock"
     xmlns:adl="clr-namespace:Xceed.Wpf.AvalonDock.Layout;assembly=Xceed.Wpf.AvalonDock"
+    xmlns:con="clr-namespace:TileShop.WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dock="clr-namespace:TileShop.WPF.Docking"
     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
@@ -29,6 +30,8 @@
     </i:Interaction.Triggers>
 
     <mah:MetroWindow.Resources>
+        <con:ActiveDocumentConverter x:Key="ActiveDocumentConverter" />
+
         <DataTemplate x:Key="paletteEditorSelector" DataType="{x:Type vm:PaletteEditorViewModel}">
             <ContentControl s:View.Model="{Binding}" />
         </DataTemplate>
@@ -48,43 +51,26 @@
             <ContentControl s:View.Model="{Binding}" />
         </DataTemplate>
 
-        <Style x:Key="arrangerDocumentStyle" TargetType="{x:Type adc:LayoutDocumentItem}">
+        <Style x:Key="editorDocumentStyle" TargetType="{x:Type adc:LayoutDocumentItem}">
             <Setter Property="Title" Value="{Binding Model.DisplayName}" />
             <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
-            <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay}" />
-            <Setter Property="IsActive" Value="{Binding Model.IsActive, Mode=TwoWay}" />
-            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <Setter Property="IsActive" Value="{Binding Model.IsActive, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}, Mode=TwoWay}" />
         </Style>
 
-        <Style x:Key="paletteDocumentStyle" TargetType="{x:Type adc:LayoutDocumentItem}">
-            <Setter Property="Title" Value="{Binding Model.DisplayName}" />
-            <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
-            <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay}" />
-            <Setter Property="IsActive" Value="{Binding Model.IsActive, Mode=TwoWay}" />
-            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
-        </Style>
-
-        <Style x:Key="pixelDocumentStyle" TargetType="{x:Type adc:LayoutItem}">
+        <Style x:Key="toolDocumentStyle" TargetType="{x:Type ad:LayoutItem}">
             <Setter Property="Title" Value="{Binding Model.DisplayName}" />
             <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
             <Setter Property="IsActive" Value="{Binding Model.IsActive}" />
-            <Setter Property="IsSelected" Value="{Binding Model.IsSelected}" />
-            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
-        </Style>
-
-        <Style x:Key="projectDocumentStyle" TargetType="{x:Type adc:LayoutItem}">
-            <Setter Property="Title" Value="{Binding Model.DisplayName}" />
-            <Setter Property="IsActive" Value="{Binding Model.IsActive}" />
-            <Setter Property="IsSelected" Value="{Binding Model.IsSelected}" />
-            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}, Mode=TwoWay}" />
         </Style>
 
         <sel:EditorHostStyleSelector
             x:Key="editorStyleSelector"
-            ArrangerEditorStyle="{StaticResource arrangerDocumentStyle}"
-            PaletteEditorStyle="{StaticResource paletteDocumentStyle}"
-            PixelEditorStyle="{StaticResource pixelDocumentStyle}"
-            ProjectTreeStyle="{StaticResource projectDocumentStyle}" />
+            EditorStyle="{StaticResource editorDocumentStyle}"
+            ToolStyle="{StaticResource toolDocumentStyle}" />
 
         <sel:EditorHostTemplateSelector
             x:Key="editorTemplateSelector"
@@ -124,10 +110,12 @@
         <ad:DockingManager
             x:Name="dockManager"
             Grid.Row="2"
-            ActiveContent="{Binding ActiveEditor, Mode=TwoWay}"
+            ActiveContent="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource ActiveDocumentConverter}}"
             AllowMixedOrientation="True"
-            AnchorablesSource="{Binding Tools}"
-            DocumentsSource="{Binding Editors}"
+            AnchorablesSource="{Binding Tools, Mode=TwoWay}"
+            DocumentClosed="{s:Action DocumentClosed}"
+            DocumentClosing="{s:Action DocumentClosing}"
+            DocumentsSource="{Binding Editors, Mode=TwoWay}"
             LayoutItemContainerStyleSelector="{StaticResource editorStyleSelector}"
             LayoutItemTemplateSelector="{StaticResource editorTemplateSelector}">
             <ad:DockingManager.DocumentHeaderTemplate>
@@ -146,41 +134,12 @@
 
             <ad:LayoutRoot>
                 <ad:LayoutPanel x:Name="rootPanel" Orientation="Horizontal">
-                    <adl:LayoutAnchorablePane Name="ProjectPane" DockWidth="200" />
+                    <adl:LayoutAnchorablePane Name="ProjectPane" DockWidth="300" />
                     <adl:LayoutDocumentPane x:Name="documentsPane" />
-                    <adl:LayoutAnchorablePane Name="PixelPane" DockWidth="300" />
-
-                    <!--
-                    <ad:LayoutPanel DockWidth="300">
-                        <ad:LayoutAnchorablePane>
-                            <ad:LayoutAnchorable
-                                x:Name="projectExplorer"
-                                Title="Project Explorer"
-                                AutoHideWidth="240"
-                                CanClose="False"
-                                CanHide="False"
-                                ContentId="projectExplorer">
-                                <ContentControl s:View.Model="{Binding ActiveTree}" />
-                            </ad:LayoutAnchorable>
-                        </ad:LayoutAnchorablePane>
-                    </ad:LayoutPanel>
-
-                    <ad:LayoutDocumentPaneGroup>
-                        <ad:LayoutDocumentPane x:Name="documentsPane" />
-                    </ad:LayoutDocumentPaneGroup>
-
-                    <ad:LayoutPanel DockWidth="400">
-                        <ad:LayoutAnchorablePane>
-                            <ad:LayoutAnchorable>
-                                <ContentControl s:View.Model="{Binding ActivePixelEditor}" />
-                            </ad:LayoutAnchorable>
-                        </ad:LayoutAnchorablePane>
-                    </ad:LayoutPanel>
-                    -->
-
+                    <adl:LayoutAnchorablePane Name="PixelPane" DockWidth="400" />
                 </ad:LayoutPanel>
-
             </ad:LayoutRoot>
+
         </ad:DockingManager>
 
     </Grid>

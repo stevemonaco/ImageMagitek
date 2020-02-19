@@ -3,6 +3,7 @@ using ImageMagitek.Colors;
 using System.Threading.Tasks;
 using TileShop.Shared.EventModels;
 using TileShop.WPF.Models;
+using System;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -66,14 +67,14 @@ namespace TileShop.WPF.ViewModels
             return Task.CompletedTask;
         }
 
-        public override bool SaveChanges()
+        public override void SaveChanges()
         {
-            return true;
+            throw new NotImplementedException();
         }
 
-        public override bool DiscardChanges()
+        public override void DiscardChanges()
         {
-            return true;
+            throw new NotImplementedException();
         }
 
         public void MouseOver(ValidatedColorModel model)
