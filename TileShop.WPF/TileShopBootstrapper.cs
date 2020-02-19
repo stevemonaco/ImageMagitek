@@ -37,6 +37,8 @@ namespace TileShop.WPF
 
             builder.RegisterType<FileSelectService>().As<IFileSelectService>();
             builder.RegisterType<UserPromptService>().As<IUserPromptService>();
+
+            builder.RegisterType<MessageBoxView>().AsSelf();
         }
 
         /*
