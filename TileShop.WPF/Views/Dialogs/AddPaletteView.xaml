@@ -41,7 +41,7 @@
                         MinWidth="20"
                         Margin="10,0,0,0"
                         Maximum="256"
-                        Minimum="1"
+                        Minimum="2"
                         ToolTip="Number of Palette Entries"
                         Value="{Binding Entries}" />
                 </StackPanel>

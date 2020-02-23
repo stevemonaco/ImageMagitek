@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Project;
 using Monaco.PathTree;
@@ -11,17 +12,20 @@ namespace TileShop.Shared.Services
 {
     public interface IProjectTreeService
     {
-        IPathTree<IProjectResource> ReadProject(string projectFileName);
-        bool SaveProject(IPathTree<IProjectResource> tree, string projectFileName);
+        public IPathTree<IProjectResource> Tree { get; }
+
+        void NewProject();
+        IPathTree<IProjectResource> OpenProject(string projectFileName);
+        bool SaveProject(string projectFileName);
+        void UnloadProject();
 
         bool CanMoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode);
         void MoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode);
-        bool CanRenameNode(IPathTreeNode<IProjectResource> node, string name);
-        void RenameNode(IPathTreeNode<IProjectResource> node, string name);
     }
 
     public class ProjectTreeService : IProjectTreeService
     {
+        public IPathTree<IProjectResource> Tree { get; private set; }
         private CodecService _codecService;
 
         public ProjectTreeService(CodecService codecService)
@@ -29,27 +33,39 @@ namespace TileShop.Shared.Services
             _codecService = codecService;
         }
 
-        public IPathTree<IProjectResource> ReadProject(string projectFileName)
+        public void NewProject()
         {
-            if (string.IsNullOrWhiteSpace(projectFileName))
-                throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
-
-            IPathTree<IProjectResource> _tree = new PathTree<IProjectResource>();
-
-            var deserializer = new XmlGameDescriptorReader(_codecService.CodecFactory);
-            return deserializer.ReadProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
+            CloseResources();
+            Tree = new PathTree<IProjectResource>();
         }
 
-        public bool SaveProject(IPathTree<IProjectResource> tree, string projectFileName)
+        public IPathTree<IProjectResource> OpenProject(string projectFileName)
         {
-            if (tree is null)
-                throw new ArgumentNullException($"{nameof(SaveProject)} cannot have a null value for '{nameof(tree)}'");
+            if (string.IsNullOrWhiteSpace(projectFileName))
+                throw new ArgumentException($"{nameof(OpenProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
+
+            CloseResources();
+            var deserializer = new XmlGameDescriptorReader(_codecService.CodecFactory);
+            Tree = deserializer.ReadProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
+            return Tree;
+        }
+
+        public bool SaveProject(string projectFileName)
+        {
+            if (Tree is null)
+                throw new InvalidOperationException($"{nameof(SaveProject)} does not have a tree");
 
             if (string.IsNullOrWhiteSpace(projectFileName))
                 throw new ArgumentException($"{nameof(SaveProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
 
             var serializer = new XmlGameDescriptorWriter();
-            return serializer.WriteProject(tree, projectFileName);
+            return serializer.WriteProject(Tree, projectFileName);
+        }
+
+        public void UnloadProject()
+        {
+            CloseResources();
+            Tree = null;
         }
 
         public bool CanMoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode)
@@ -63,6 +79,12 @@ namespace TileShop.Shared.Services
             if (node.Parent.PathKey == parentNode.PathKey)
                 return false;
 
+            if (parentNode.ContainsChild(node.Name))
+                return false;
+
+            if (!parentNode.Value.CanContainChildResources)
+                return false;
+
             if (node is ResourceFolder && parentNode is ResourceFolder)
             {
                 if (parentNode.Ancestors().Any(x => x.PathKey == node.PathKey))
@@ -72,20 +94,56 @@ namespace TileShop.Shared.Services
             return true;
         }
 
-        public void MoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentFolder)
+        public void MoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode)
         {
             node.Parent.DetachChild(node.Name);
-            parentFolder.AttachChild(node);
+            parentNode.AttachChild(node);
         }
 
-        public bool CanRenameNode(IPathTreeNode<IProjectResource> node, string name)
+        public bool CanAddResource(IProjectResource resource)
         {
-            return false;
+            if (resource is null || Tree is null)
+                return false;
+
+            if (Tree.Children().Any(x => string.Equals(x.Name, resource.Name, StringComparison.OrdinalIgnoreCase)))
+                return false;
+
+            return true;
         }
 
-        public void RenameNode(IPathTreeNode<IProjectResource> node, string name)
+        public void AddResource(IProjectResource resource)
         {
-
+            Tree.Add(resource.Name, resource);
         }
+
+        public bool CanAddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode)
+        {
+            if (resource is null || parentNode is null)
+                return false;
+
+            if (parentNode.ContainsChild(resource.Name))
+                return false;
+
+            if (!parentNode.Value.CanContainChildResources)
+                return false;
+
+            return true;
+        }
+
+        public void AddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode)
+        {
+            parentNode.AddChild(resource.Name, resource);
+        }
+
+        private void CloseResources()
+        {
+            if (Tree is null)
+                return;
+
+            foreach (var file in Tree.EnumerateBreadthFirst().Select(x => x.Value).OfType<DataFile>())
+                file.Close();
+        }
+
+        public IEnumerable<IPathTreeNode<IProjectResource>> Nodes() => Tree.EnumerateBreadthFirst();
     }
 }

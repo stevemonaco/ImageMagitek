@@ -10,15 +10,18 @@ using TileShop.Shared.Services;
 using Xceed.Wpf.AvalonDock;
 using System.ComponentModel;
 using System.Collections.Generic;
+using TileShop.WPF.Services;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ShellViewModel : Conductor<object>, IHandle<ActivateEditorEvent>, IHandle<ShowToolWindowEvent>, IHandle<ProjectClosingEvent>
+    public class ShellViewModel : Conductor<object>, IHandle<ActivateEditorEvent>, IHandle<ShowToolWindowEvent>,
+        IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>, IHandle<SaveProjectEvent>, IHandle<CloseProjectEvent>
     {
         protected readonly IEventAggregator _events;
         protected readonly ICodecService _codecService;
         protected readonly IPaletteService _paletteService;
         private readonly IWindowManager _windowManager;
+        private readonly IFileSelectService _fileSelect;
 
         private MenuViewModel _activeMenu;
         public MenuViewModel ActiveMenu
@@ -75,7 +78,7 @@ namespace TileShop.WPF.ViewModels
         };
 
         public ShellViewModel(IEventAggregator events, IWindowManager windowManager, ICodecService codecService,
-            IPaletteService paletteService, MenuViewModel activeMenu, ProjectTreeViewModel activeTree, 
+            IPaletteService paletteService, IFileSelectService fileSelect, MenuViewModel activeMenu, ProjectTreeViewModel activeTree, 
             StatusBarViewModel activeStatusBar, PixelEditorViewModel activePixelEditor)
         {
             _events = events;
@@ -83,6 +86,7 @@ namespace TileShop.WPF.ViewModels
             _codecService = codecService;
             _paletteService = paletteService;
             _windowManager = windowManager;
+            _fileSelect = fileSelect;
 
             ActiveMenu = activeMenu;
             ActiveTree = activeTree;
@@ -95,7 +99,7 @@ namespace TileShop.WPF.ViewModels
 
         public void Closing(CancelEventArgs e)
         {
-            if (!TrySaveProject())
+            if (!RequestSaveAllUserChanges())
                 e.Cancel = true;
         }
 
@@ -118,17 +122,15 @@ namespace TileShop.WPF.ViewModels
 
         public void DocumentClosed(DocumentClosedEventArgs e)
         {
-            var document = e.Document.Content as ResourceEditorBaseViewModel;
-
-            if (document is object)
-                Editors.Remove(document);
+            if (e.Document.Content is ResourceEditorBaseViewModel editor)
+                Editors.Remove(editor);
         }
 
         public void Handle(ActivateEditorEvent message)
         {
-            var openDocument = Editors.FirstOrDefault(x => ReferenceEquals(x.Resource, message.Resource));
+            var openedDocument = Editors.FirstOrDefault(x => ReferenceEquals(x.Resource, message.Resource));
 
-            if (openDocument is null)
+            if (openedDocument is null)
             {
                 ResourceEditorBaseViewModel newDocument;
 
@@ -161,7 +163,7 @@ namespace TileShop.WPF.ViewModels
                 }
             }
             else
-                ActiveTool = openDocument;
+                ActiveTool = openedDocument;
         }
 
         public void Handle(ShowToolWindowEvent message)
@@ -189,26 +191,107 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void Handle(ProjectClosingEvent message) => TrySaveProject();
+        public void Handle(NewProjectEvent message)
+        {
+            if (!RequestSaveAllUserChanges())
+                return;
 
-        private bool TrySaveProject()
+            var projectFileName = _fileSelect.GetNewProjectFileNameByUser();
+
+            try
+            {
+                if (projectFileName is object)
+                {
+                    Editors.Clear();
+                    ActivePixelEditor.Reset();
+
+                    ActiveTree.NewProject(projectFileName);
+                    _events.PublishOnUIThread(new ProjectLoadedEvent());
+                }
+            }
+            catch (Exception ex)
+            {
+                _windowManager.ShowMessageBox($"Unable to create new project at location '{projectFileName}'\n{ex.Message}\n{ex.StackTrace}");
+                // TODO: Log
+            }
+
+        }
+
+        public void Handle(OpenProjectEvent message)
+        {
+            if (!RequestSaveAllUserChanges())
+                return;
+
+            var projectFileName = _fileSelect.GetProjectFileNameByUser();
+
+            try
+            {
+                if (projectFileName is object)
+                {
+                    Editors.Clear();
+                    ActivePixelEditor.Reset();
+
+                    ActiveTree.OpenProject(projectFileName);
+                    _events.PublishOnUIThread(new ProjectLoadedEvent(ActiveTree.ProjectFileName));
+                }
+            }
+            catch (Exception ex)
+            {
+                _windowManager.ShowMessageBox($"Unable to open project at location '{projectFileName}'\n{ex.Message}\n{ex.StackTrace}");
+                // TODO: Log
+            }
+        }
+
+        public void Handle(SaveProjectEvent message)
+        {
+            string projectFileName = ActiveTree.ProjectFileName;
+
+            if (message.SaveAsNewProject)
+            {
+                projectFileName = _fileSelect.GetNewProjectFileNameByUser();
+
+                if (projectFileName is null)
+                    return;
+
+                ActiveTree.ProjectFileName = projectFileName;
+            }
+
+            ActiveTree.TrySaveProject(projectFileName);
+        }
+
+        public void Handle(CloseProjectEvent message)
+        {
+            if (!RequestSaveAllUserChanges())
+                return;
+
+            //ActiveTree.TrySaveProject(ActiveTree.ProjectFileName);
+            Editors.Clear();
+            ActivePixelEditor.Reset();
+            ActiveTree.CloseProject();
+        }
+
+        private bool RequestSaveAllUserChanges()
         {
             try
             {
-                if (!TrySaveUserChanges(ActivePixelEditor))
+                if (!RequestSaveUserChanges(ActivePixelEditor))
                     return false;
-                //Tools.Remove(ActivePixelEditor);
+
+                ActivePixelEditor.Reset();
 
                 foreach (var editor in Editors)
                 {
-                    if (!TrySaveUserChanges(editor))
+                    if (!RequestSaveUserChanges(editor))
                         return false;
-                    //Editors.Remove(editor);
+
+                    //if (closeDocuments)
+                    //    Editors.Remove(editor);
                 }
 
-                if (!TrySaveUserChanges(ActiveTree))
+                if (!RequestSaveUserChanges(ActiveTree))
                     return false;
-                //Tools.Remove(ActiveTree);
+
+                //ActiveTree.Reset();
                 return true;
             }
             catch (Exception ex)
@@ -217,29 +300,29 @@ namespace TileShop.WPF.ViewModels
                 // TODO: Log full exception here
                 return false;
             }
+        }
 
-            bool TrySaveUserChanges(ToolViewModel model)
+        private bool RequestSaveUserChanges(ToolViewModel model)
+        {
+            if (model.IsModified)
             {
-                if (model.IsModified)
-                {
-                    var result = _windowManager.ShowMessageBox($"'{model.DisplayName}' has been modified and will be closed. Save changes?",
-                        "Save changes", System.Windows.MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
+                var result = _windowManager.ShowMessageBox($"'{model.DisplayName}' has been modified and will be closed. Save changes?",
+                    "Save changes", System.Windows.MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
 
-                    if (result == System.Windows.MessageBoxResult.Yes)
-                    {
-                        model.SaveChanges();
-                        return true;
-                    }
-                    if (result == System.Windows.MessageBoxResult.No)
-                    {
-                        model.DiscardChanges();
-                        return true;
-                    }
-                    else if (result == System.Windows.MessageBoxResult.Cancel)
-                        return false;
+                if (result == System.Windows.MessageBoxResult.Yes)
+                {
+                    model.SaveChanges();
+                    return true;
                 }
-                return true;
+                if (result == System.Windows.MessageBoxResult.No)
+                {
+                    model.DiscardChanges();
+                    return true;
+                }
+                else if (result == System.Windows.MessageBoxResult.Cancel)
+                    return false;
             }
+            return true;
         }
     }
 }

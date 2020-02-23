@@ -15,10 +15,9 @@ using System.Windows;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>,
-        IHandle<AddDataFileEvent>, IHandle<SaveProjectEvent>, IHandle<CloseProjectEvent>, IHandle<AddPaletteEvent>
+    public class ProjectTreeViewModel : ToolViewModel, IDropTarget, 
+        IHandle<AddDataFileEvent>, IHandle<AddPaletteEvent>
     {
-        private IPathTree<IProjectResource> _tree;
         private IProjectTreeService _treeService;
         private IEventAggregator _events;
         private IWindowManager _windowManager;
@@ -35,21 +34,21 @@ namespace TileShop.WPF.ViewModels
             _events.Subscribe(this);
         }
 
-        private string _activeProjectFileName;
-        public string ActiveProjectFileName
+        private string _ProjectFileName;
+        public string ProjectFileName
         {
-            get => _activeProjectFileName;
-            set => SetAndNotify(ref _activeProjectFileName, value);
+            get => _ProjectFileName;
+            set => SetAndNotify(ref _ProjectFileName, value);
         }
 
         public IEnumerable<ProjectTreeNodeViewModel> RootItems
         {
             get
             {
-                if (_tree is null)
+                if (_treeService.Tree is null)
                     yield break;
 
-                foreach (var node in _tree.Children())
+                foreach (var node in _treeService.Tree.Children())
                 {
                     if (node.Value is ResourceFolder)
                         yield return new ProjectTreeFolderViewModel(node);
@@ -94,43 +93,16 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public bool HasProject => ActiveProjectFileName is object;
+        public bool HasProject => ProjectFileName is object;
 
         private void Reset()
         {
-            ActiveProjectFileName = null;
+            ProjectFileName = null;
             SelectedItem = null;
-            _tree = null;
+            _treeService.UnloadProject();
 
             NotifyOfPropertyChange(() => RootItems);
             NotifyOfPropertyChange(() => HasProject);
-        }
-
-        public void Handle(NewProjectEvent message)
-        {
-            var projectFileName = _fileSelect.GetNewProjectFileNameByUser();
-
-            if (projectFileName is object)
-            {
-                _tree = new PathTree<IProjectResource>();
-                ActiveProjectFileName = projectFileName;
-                TrySaveProject(ActiveProjectFileName);
-                NotifyOfPropertyChange(() => RootItems);
-                _events.PublishOnUIThread(new ProjectLoadedEvent());
-            }
-        }
-
-        public void Handle(OpenProjectEvent message)
-        {
-            var projectFileName = _fileSelect.GetProjectFileNameByUser();
-
-            if (projectFileName is object)
-            {
-                _tree = _treeService.ReadProject(projectFileName);
-                ActiveProjectFileName = projectFileName;
-                NotifyOfPropertyChange(() => RootItems);
-                _events.PublishOnUIThread(new ProjectLoadedEvent(ActiveProjectFileName));
-            }
         }
 
         public void Handle(AddDataFileEvent message)
@@ -140,51 +112,22 @@ namespace TileShop.WPF.ViewModels
             if (dataFileName is object)
             {
                 DataFile df = new DataFile(Path.GetFileName(dataFileName), dataFileName);
-                _tree.Add(Path.GetFileName(dataFileName), df);
+                _treeService.Tree.Add(Path.GetFileName(dataFileName), df);
                 NotifyOfPropertyChange(() => RootItems);
             }
-        }
-
-        public void Handle(SaveProjectEvent message)
-        {
-            string projectFileName = ActiveProjectFileName;
-
-            if (message.SaveAsNewProject)
-            {
-                projectFileName = _fileSelect.GetNewProjectFileNameByUser();
-
-                if (projectFileName is null)
-                    return;
-            }
-
-            if (TrySaveProject(projectFileName))
-            {
-                ActiveProjectFileName = projectFileName;
-                _events.PublishOnUIThread(new ProjectUnloadedEvent());
-                _events.PublishOnUIThread(new ProjectLoadedEvent(ActiveProjectFileName));
-            }
-        }
-
-        public void Handle(CloseProjectEvent message)
-        {
-            _events.PublishOnUIThread(new ProjectClosingEvent());
-
-            if (IsModified)
-                TrySaveProject(ActiveProjectFileName);
-            Reset();
         }
 
         public void Handle(AddPaletteEvent message)
         {
             var model = new AddPaletteViewModel();
 
-            var dataFiles = _tree.EnumerateDepthFirst().Select(x => x.Value).OfType<DataFile>();
+            var dataFiles = _treeService.Tree.EnumerateDepthFirst().Select(x => x.Value).OfType<DataFile>();
             model.DataFiles.AddRange(dataFiles);
             model.SelectedDataFile = model.DataFiles.FirstOrDefault();
 
             model.ColorModels.AddRange(Palette.GetColorModelNames());
             model.SelectedColorModel = model.ColorModels.First();
-            model.Entries = 1;
+            model.Entries = 2;
 
             if (model.DataFiles.Count == 0)
             {
@@ -194,11 +137,11 @@ namespace TileShop.WPF.ViewModels
 
             if(_windowManager.ShowDialog(model) is true)
             {
-                var pal = new Palette(model.PaletteName, Palette.StringToColorModel(model.SelectedColorModel), model.FileOffset,
+                var pal = new Palette(model.PaletteName, Palette.StringToColorModel(model.SelectedColorModel), new FileBitAddress(model.FileOffset, 0),
                     model.Entries, model.ZeroIndexTransparent, PaletteStorageSource.DataFile);
                 pal.DataFile = model.SelectedDataFile;
 
-                _tree.Add(pal.Name, pal);
+                _treeService.Tree.Add(pal.Name, pal);
                 IsModified = true;
                 NotifyOfPropertyChange(() => RootItems);
             }
@@ -239,14 +182,32 @@ namespace TileShop.WPF.ViewModels
 
         public override void SaveChanges()
         {
-            _treeService.SaveProject(_tree, ActiveProjectFileName);
+            _treeService.SaveProject(ProjectFileName);
+            IsModified = false;
         }
 
-        private bool TrySaveProject(string projectFileName)
+        public void NewProject(string newFileName)
+        {
+            _treeService.NewProject();
+            ProjectFileName = newFileName;
+            _treeService.SaveProject(ProjectFileName);
+            NotifyOfPropertyChange(() => RootItems);
+        }
+
+        public void OpenProject(string projectFileName)
+        {
+            _treeService.OpenProject(projectFileName);
+            ProjectFileName = projectFileName;
+            NotifyOfPropertyChange(() => RootItems);
+        }
+
+        public void CloseProject() => Reset();
+
+        public bool TrySaveProject(string projectFileName)
         {
             try
             {
-                if (!_treeService.SaveProject(_tree, projectFileName))
+                if (!_treeService.SaveProject(projectFileName))
                 {
                     _windowManager.ShowMessageBox($"An unspecified error occurred while saving the project tree to {projectFileName}");
                     return false;

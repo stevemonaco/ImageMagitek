@@ -19,7 +19,6 @@ namespace TileShop.WPF.ViewModels
 
     public class PixelEditorViewModel : ArrangerEditorViewModel, IMouseCaptureProxy, IHandle<EditArrangerPixelsEvent>
     {
-        private IUserPromptService _promptService;
         private IPaletteService _paletteService;
         private IWindowManager _windowManager;
         private int _viewX;
@@ -96,11 +95,10 @@ namespace TileShop.WPF.ViewModels
 
         public override bool CanShowGridlines => HasArranger;
 
-        public PixelEditorViewModel(IEventAggregator events, IWindowManager windowManager, IUserPromptService promptService, IPaletteService paletteService)
+        public PixelEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService)
         {
             _events = events;
             _windowManager = windowManager;
-            _promptService = promptService;
             _paletteService = paletteService;
 
             _events.Subscribe(this);
@@ -210,6 +208,17 @@ namespace TileShop.WPF.ViewModels
                 _directImage.Render();
 
             History.Clear();
+        }
+
+        public void Reset()
+        {
+            History.Clear();
+            HasArranger = false;
+            _arranger = null;
+            Palettes.Clear();
+            ActivePalette = null;
+            PrimaryColor = Color.FromArgb(0, 0, 0, 0);
+            SecondaryColor = Color.FromArgb(0, 0, 0, 0);
         }
 
         public override void OnMouseDown(object sender, MouseCaptureArgs e)
