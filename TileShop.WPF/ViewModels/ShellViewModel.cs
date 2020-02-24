@@ -152,6 +152,9 @@ namespace TileShop.WPF.ViewModels
                     case ResourceFolder resourceFolder:
                         newDocument = null;
                         break;
+                    case ImageProject project:
+                        newDocument = null;
+                        break;
                     default:
                         throw new InvalidOperationException();
                 }

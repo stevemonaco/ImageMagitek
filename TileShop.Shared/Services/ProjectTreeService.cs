@@ -19,6 +19,9 @@ namespace TileShop.Shared.Services
         bool SaveProject(string projectFileName);
         void UnloadProject();
 
+        bool CanAddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode);
+        IPathTreeNode<IProjectResource> AddResource(IProjectResource resource);
+        IPathTreeNode<IProjectResource> AddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode);
         bool CanMoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode);
         void MoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode);
     }
@@ -111,9 +114,11 @@ namespace TileShop.Shared.Services
             return true;
         }
 
-        public void AddResource(IProjectResource resource)
+        public IPathTreeNode<IProjectResource> AddResource(IProjectResource resource)
         {
             Tree.Add(resource.Name, resource);
+            Tree.TryGetNode(resource.Name, out var node);
+            return node;
         }
 
         public bool CanAddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode)
@@ -130,9 +135,11 @@ namespace TileShop.Shared.Services
             return true;
         }
 
-        public void AddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode)
+        public IPathTreeNode<IProjectResource> AddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode)
         {
             parentNode.AddChild(resource.Name, resource);
+            parentNode.TryGetChild(resource.Name, out var addedNode);
+            return addedNode;
         }
 
         private void CloseResources()

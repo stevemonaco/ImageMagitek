@@ -82,15 +82,6 @@ namespace ImageMagitek
 
         public abstract bool ShouldBeSerialized { get; set; }
 
-        /// <summary>
-        /// Renames an Arranger to a new name
-        /// </summary>
-        /// <param name="name"></param>
-        public void Rename(string name)
-        {
-            Name = name;
-        }
-
         public abstract void Resize(int arrangerWidth, int arrangerHeight);
         
         /// <summary>

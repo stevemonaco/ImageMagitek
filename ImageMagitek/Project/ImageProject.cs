@@ -2,16 +2,10 @@
 
 namespace ImageMagitek.Project
 {
-    public class ResourceFolder : IProjectResource
+    public class ImageProject : IProjectResource
     {
-        public ResourceFolder() : this("") { }
-
-        public ResourceFolder(string name)
-        {
-            Name = name;
-        }
-
         public string Name { get; set; }
+        public string Root { get; set; }
 
         public bool CanContainChildResources => true;
 
@@ -20,6 +14,18 @@ namespace ImageMagitek.Project
         public IEnumerable<IProjectResource> LinkedResources()
         {
             yield break;
+        }
+
+        public ImageProject() : this("") { }
+
+        public ImageProject(string name)
+        {
+            Name = name;
+        }
+
+        public void Rename(string name)
+        {
+            Name = name;
         }
     }
 }

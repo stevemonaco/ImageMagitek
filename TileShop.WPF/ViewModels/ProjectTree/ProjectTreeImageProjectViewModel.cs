@@ -1,15 +1,16 @@
-﻿using System.Collections.Generic;
-using Stylet;
-using Monaco.PathTree;
-using ImageMagitek.Project;
+﻿using ImageMagitek;
 using ImageMagitek.Colors;
-using ImageMagitek;
+using ImageMagitek.Project;
+using Monaco.PathTree;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ProjectTreeFolderViewModel : ProjectTreeNodeViewModel
+    public class ProjectTreeImageProjectViewModel : ProjectTreeNodeViewModel
     {
-        public ProjectTreeFolderViewModel(IPathTreeNode<IProjectResource> node)
+        public ProjectTreeImageProjectViewModel(IPathTreeNode<IProjectResource> node)
         {
             Node = node;
             Name = node.Name;

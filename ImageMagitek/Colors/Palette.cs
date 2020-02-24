@@ -111,15 +111,6 @@ namespace ImageMagitek.Colors
         }
 
         /// <summary>
-        /// Renames a Palette to a new name
-        /// </summary>
-        /// <param name="name"></param>
-        public void Rename(string name)
-        {
-            Name = name;
-        }
-
-        /// <summary>
         /// Reloads the palette data from its underlying source
         /// </summary>
         /// <returns></returns>

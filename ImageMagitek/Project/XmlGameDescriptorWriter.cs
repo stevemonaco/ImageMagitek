@@ -73,6 +73,12 @@ namespace ImageMagitek.Project
 
             var modelTree = new PathTree<ProjectNodeModel>();
 
+            foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Value.ShouldBeSerialized && x.Value is ImageProject))
+            {
+                var projectModel = ImageProjectModel.FromImageProject(node.Value as ImageProject);
+                modelTree.Add(node.PathKey, projectModel);
+            }
+
             foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Value.ShouldBeSerialized && x.Value is ResourceFolder))
             {
                 var folderModel = ResourceFolderModel.FromResourceFolder(node.Value as ResourceFolder);

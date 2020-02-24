@@ -15,19 +15,44 @@
     xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     mc:Ignorable="d">
     <UserControl.Resources>
+        <Style x:Key="projectItemStyle" TargetType="{x:Type TreeViewItem}" />
+        <Style
+            x:Key="rootItemStyle"
+            BasedOn="{StaticResource projectItemStyle}"
+            TargetType="{x:Type TreeViewItem}">
+            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+        </Style>
+
+        <HierarchicalDataTemplate
+            x:Key="treeProjectSelector"
+            DataType="x:Type vm:ProjectTreeImageProjectViewModel"
+            ItemContainerStyle="{StaticResource projectItemStyle}"
+            ItemsSource="{Binding Children}">
+            <v:ProjectTreeImageProjectView />
+        </HierarchicalDataTemplate>
         <HierarchicalDataTemplate
             x:Key="treeFolderSelector"
             DataType="x:Type vm:ProjectTreeFolderViewModel"
+            ItemContainerStyle="{StaticResource projectItemStyle}"
             ItemsSource="{Binding Children}">
             <v:ProjectTreeFolderView />
         </HierarchicalDataTemplate>
-        <HierarchicalDataTemplate x:Key="treeArrangerSelector" DataType="x:Type vm:ProjectTreeArrangerViewModel">
+        <HierarchicalDataTemplate
+            x:Key="treeArrangerSelector"
+            DataType="x:Type vm:ProjectTreeArrangerViewModel"
+            ItemContainerStyle="{StaticResource projectItemStyle}">
             <v:ProjectTreeArrangerView />
         </HierarchicalDataTemplate>
-        <HierarchicalDataTemplate x:Key="treeDataFileSelector" DataType="x:Type vm:ProjectTreeDataFileViewModel">
+        <HierarchicalDataTemplate
+            x:Key="treeDataFileSelector"
+            DataType="x:Type vm:ProjectTreeDataFileViewModel"
+            ItemContainerStyle="{StaticResource projectItemStyle}">
             <v:ProjectTreeDataFileView />
         </HierarchicalDataTemplate>
-        <HierarchicalDataTemplate x:Key="treePaletteSelector" DataType="x:Type vm:ProjectTreePaletteViewModel">
+        <HierarchicalDataTemplate
+            x:Key="treePaletteSelector"
+            DataType="x:Type vm:ProjectTreePaletteViewModel"
+            ItemContainerStyle="{StaticResource projectItemStyle}">
             <v:ProjectTreePaletteView s:View.ActionTarget="{Binding}" />
         </HierarchicalDataTemplate>
         <sel:ProjectTreeTemplateSelector
@@ -35,7 +60,8 @@
             TreeArrangerTemplate="{StaticResource treeArrangerSelector}"
             TreeDataFileTemplate="{StaticResource treeDataFileSelector}"
             TreeFolderTemplate="{StaticResource treeFolderSelector}"
-            TreePaletteTemplate="{StaticResource treePaletteSelector}" />
+            TreePaletteTemplate="{StaticResource treePaletteSelector}"
+            TreeProjectTemplate="{StaticResource treeProjectSelector}" />
     </UserControl.Resources>
 
     <Grid>
@@ -44,16 +70,19 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!--
         <TextBox
             Grid.Row="0"
             mah:TextBoxHelper.Watermark="Search Project"
             Style="{DynamicResource MahApps.Styles.TextBox.Search}" />
+        -->
 
         <TreeView
             Grid.Row="1"
             dd:DragDrop.DropHandler="{Binding}"
             dd:DragDrop.IsDragSource="True"
             dd:DragDrop.IsDropTarget="True"
+            ItemContainerStyle="{StaticResource rootItemStyle}"
             ItemTemplateSelector="{StaticResource projectTreeTemplateSelector}"
             ItemsSource="{Binding RootItems}">
             <i:Interaction.Behaviors>

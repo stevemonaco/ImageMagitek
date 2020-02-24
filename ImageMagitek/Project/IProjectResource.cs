@@ -25,12 +25,6 @@ namespace ImageMagitek.Project
         /// </value>
         bool ShouldBeSerialized { get; set; }
 
-        /// <summary>
-        /// Rename a resource with a new name
-        /// </summary>
-        /// <param name="name">The new name.</param>
-        void Rename(string name);
-
         IEnumerable<IProjectResource> LinkedResources();
     }
 }

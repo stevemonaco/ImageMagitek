@@ -22,9 +22,7 @@ namespace ImageMagitek
 
         Lazy<Stream> _stream;
 
-        public DataFile(string name): this(name, "")
-        {
-        }
+        public DataFile(string name): this(name, "") { }
 
         public DataFile(string name, string location)
         {
@@ -47,7 +45,5 @@ namespace ImageMagitek
         }
 
         public IEnumerable<IProjectResource> LinkedResources() => Enumerable.Empty<IProjectResource>();
-
-        public void Rename(string name) => Name = name;
     }
 }

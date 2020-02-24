@@ -7,6 +7,7 @@ namespace TileShop.WPF.Selectors
 {
     public class ProjectTreeTemplateSelector : DataTemplateSelector
     {
+        public DataTemplate TreeProjectTemplate { get; set; }
         public DataTemplate TreeFolderTemplate { get; set; }
         public DataTemplate TreeArrangerTemplate { get; set; }
         public DataTemplate TreeDataFileTemplate { get; set; }
@@ -19,6 +20,7 @@ namespace TileShop.WPF.Selectors
 
             return item switch
             {
+                ProjectTreeImageProjectViewModel _ => TreeProjectTemplate,
                 ProjectTreeFolderViewModel _ => TreeFolderTemplate,
                 ProjectTreeDataFileViewModel _ => TreeDataFileTemplate,
                 ProjectTreeArrangerViewModel _ => TreeArrangerTemplate,

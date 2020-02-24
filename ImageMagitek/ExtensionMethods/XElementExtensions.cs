@@ -15,7 +15,7 @@ namespace ImageMagitek.ExtensionMethods
             string path = "";
 
             XElement currentNode = node;
-            while (currentNode.Parent != null && currentNode.Parent.Name == "folder")
+            while (currentNode.Parent != null && currentNode.Parent.Name != "gdf")
             {
                 currentNode = currentNode.Parent;
                 path = Path.Combine(currentNode.Attribute("name").Value, path);

@@ -37,6 +37,9 @@ namespace ImageMagitek.Project
             Directory.SetCurrentDirectory(baseDirectory);
             var tree = new PathTree<IProjectResource>();
 
+            var projectResource = DeserializeImageProject(projectNode).ToImageProject();
+            tree.Add(projectResource.Name, projectResource);
+
             foreach(var node in projectNode.Descendants("folder"))
             {
                 var res = DeserializeResourceFolder(node).ToResourceFolder();
@@ -98,6 +101,16 @@ namespace ImageMagitek.Project
             }
 
             return tree;
+        }
+
+        private ImageProjectModel DeserializeImageProject(XElement element)
+        {
+            var model = new ImageProjectModel();
+
+            model.Name = element.Attribute("name").Value;
+            model.Root = element.Attribute("root")?.Value ?? "";
+
+            return model;
         }
 
         private DataFileModel DeserializeDataFile(XElement element)
