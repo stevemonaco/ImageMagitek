@@ -10,6 +10,7 @@ namespace TileShop.Shared.ViewModels
     {
         public IPathTreeNode<IProjectResource> Node { get; set; }
         public Type Type { get; protected set; }
+        public abstract int SortPriority { get; }
 
         private BindableCollection<TreeNodeViewModel> _children = new BindableCollection<TreeNodeViewModel>();
         public BindableCollection<TreeNodeViewModel> Children

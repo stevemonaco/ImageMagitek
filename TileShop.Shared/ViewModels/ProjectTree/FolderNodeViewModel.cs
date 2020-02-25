@@ -10,6 +10,8 @@ namespace TileShop.Shared.ViewModels
 {
     public class FolderNodeViewModel : TreeNodeViewModel
     {
+        public override int SortPriority => 1;
+
         public FolderNodeViewModel(IPathTreeNode<IProjectResource> node)
         {
             Node = node;
