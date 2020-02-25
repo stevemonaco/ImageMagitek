@@ -25,10 +25,6 @@ namespace ImageMagitek.Project
             var xmlRoot = new XElement("gdf");
             xmlRoot.Add(new XAttribute("version", DescriptorVersion));
 
-            //var projectRoot = Serialize(tree)
-            //var projectRoot = new XElement("project");
-            //xmlRoot.Add(projectRoot);
-
             var modelTree = BuildModelTree(tree);
 
             foreach(var node in modelTree.EnumerateDepthFirst())
@@ -78,13 +74,6 @@ namespace ImageMagitek.Project
 
             var projectModel = ImageProjectModel.FromImageProject(tree.Root.Value as ImageProject);
             IPathTree<ProjectNodeModel> modelTree = new PathTree<ProjectNodeModel>(projectModel.Name, projectModel);
-
-            //foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Value.ShouldBeSerialized && x.Value is ImageProject))
-            //{
-            //    var projectModel = ImageProjectModel.FromImageProject(node.Value as ImageProject);
-            //    var rootNode = new PathTreeNode<ProjectNodeModel>(projectModel.Name, projectModel);
-            //    modelTree.Root = rootNode;
-            //}
 
             foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Value.ShouldBeSerialized && x.Value is ResourceFolder))
             {
