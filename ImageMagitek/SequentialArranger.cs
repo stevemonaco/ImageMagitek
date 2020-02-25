@@ -118,8 +118,7 @@ namespace ImageMagitek
                 int elX = 0;
                 for (int posX = 0; posX < arrangerWidth; posX++)
                 {
-                    ArrangerElement el = ElementGrid[posX, posY] ??
-                        new ArrangerElement(elX, elY, dataFile, address, _codecs.CloneCodec(ActiveCodec), null);
+                    ArrangerElement el = new ArrangerElement(elX, elY, dataFile, address, _codecs.CloneCodec(ActiveCodec), null);
 
                     SetElement(el, posX, posY);
 

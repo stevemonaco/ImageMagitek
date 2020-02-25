@@ -6,7 +6,7 @@ namespace ImageMagitek
     /// <summary>
     /// Contains all necessary data to encode/decode a single element in the arranger
     /// </summary>
-    public class ArrangerElement
+    public readonly struct ArrangerElement
     {
         /// <summary>
         /// DataFile which contains the Element's pixel data
@@ -58,17 +58,14 @@ namespace ImageMagitek
         /// </summary>
         public int Y2 { get => Y1 + Height - 1; }
 
-        public ArrangerElement()
-        {
-            FileAddress = new FileBitAddress(0, 0);
-            X1 = 0;
-            Y1 = 0;
-        }
-
         public ArrangerElement(int x1, int y1)
         {
             X1 = x1;
             Y1 = y1;
+            FileAddress = new FileBitAddress(0, 0);
+            DataFile = null;
+            Codec = null;
+            Palette = null;
         }
 
         public ArrangerElement(int x1, int y1, DataFile dataFile, FileBitAddress address, IGraphicsCodec codec, Palette palette)
