@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using GongSolutions.Wpf.DragDrop;
 using System.Windows;
+using TileShop.Shared.ViewModels;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -43,45 +44,15 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _ProjectFileName, value);
         }
 
-        private BindableCollection<ProjectTreeNodeViewModel> _rootItems = new BindableCollection<ProjectTreeNodeViewModel>();
-        public BindableCollection<ProjectTreeNodeViewModel> RootItems
+        private BindableCollection<ImageProjectNodeViewModel> _projectRoot = new BindableCollection<ImageProjectNodeViewModel>();
+        public BindableCollection<ImageProjectNodeViewModel> ProjectRoot
         {
-            get => _rootItems;
-            set => SetAndNotify(ref _rootItems, value);
+            get => _projectRoot;
+            set => SetAndNotify(ref _projectRoot, value);
         }
 
-        private ProjectTreeImageProjectViewModel _treeRoot;
-        public ProjectTreeImageProjectViewModel TreeRoot
-        {
-            get => _treeRoot;
-            set => SetAndNotify(ref _treeRoot, value);
-        }
-
-        //public IEnumerable<ProjectTreeNodeViewModel> RootItems
-        //{
-        //    get
-        //    {
-        //        if (_treeService.Tree is null)
-        //            yield break;
-
-        //        foreach (var node in _treeService.Tree.Children())
-        //        {
-        //            if (node.Value is ImageProject)
-        //                yield return new ProjectTreeImageProjectViewModel(node);
-        //            else if (node.Value is ResourceFolder)
-        //                yield return new ProjectTreeFolderViewModel(node);
-        //            else if (node.Value is Palette)
-        //                yield return new ProjectTreePaletteViewModel(node);
-        //            else if (node.Value is DataFile)
-        //                yield return new ProjectTreeDataFileViewModel(node);
-        //            else if (node.Value is Arranger)
-        //                yield return new ProjectTreeArrangerViewModel(node);
-        //        }
-        //    }
-        //}
-
-        private ProjectTreeNodeViewModel _selectedItem;
-        public ProjectTreeNodeViewModel SelectedItem
+        private TreeNodeViewModel _selectedItem;
+        public TreeNodeViewModel SelectedItem
         {
             get => _selectedItem;
             set => SetAndNotify(ref _selectedItem, value);
@@ -94,45 +65,23 @@ namespace TileShop.WPF.ViewModels
 
             switch(SelectedItem)
             {
-                case ProjectTreeImageProjectViewModel project:
+                case ImageProjectNodeViewModel project:
                     _events.PublishOnUIThread(new ActivateEditorEvent(project.Node.Value));
                     break;
-                case ProjectTreePaletteViewModel pal:
+                case PaletteNodeViewModel pal:
                     _events.PublishOnUIThread(new ActivateEditorEvent(pal.Node.Value));
                     break;
-                case ProjectTreeArrangerViewModel arranger:
+                case ArrangerNodeViewModel arranger:
                     _events.PublishOnUIThread(new ActivateEditorEvent(arranger.Node.Value));
                     break;
-                case ProjectTreeDataFileViewModel file:
+                case DataFileNodeViewModel file:
                     _events.PublishOnUIThread(new ActivateEditorEvent(file.Node.Value));
                     break;
-                case ProjectTreeFolderViewModel folder:
+                case FolderNodeViewModel folder:
                     _events.PublishOnUIThread(new ActivateEditorEvent(folder.Node.Value));
                     break;
                 default:
                     throw new InvalidOperationException($"{nameof(ActivateSelectedItem)} was called with a {nameof(SelectedItem)} of type {SelectedItem.GetType()}");
-            }
-        }
-
-        private void CreateTree()
-        {
-            RootItems = new BindableCollection<ProjectTreeNodeViewModel>();
-
-            if (_treeService.Tree is null)
-                return;
-
-            foreach (var node in _treeService.Tree.Children())
-            {
-                if (node.Value is ImageProject)
-                    RootItems.Add(new ProjectTreeImageProjectViewModel(node));
-                else if (node.Value is ResourceFolder)
-                    RootItems.Add(new ProjectTreeFolderViewModel(node));
-                else if (node.Value is Palette)
-                    RootItems.Add(new ProjectTreePaletteViewModel(node));
-                else if (node.Value is DataFile)
-                    RootItems.Add(new ProjectTreeDataFileViewModel(node));
-                else if (node.Value is Arranger)
-                    RootItems.Add(new ProjectTreeArrangerViewModel(node));
             }
         }
 
@@ -142,7 +91,7 @@ namespace TileShop.WPF.ViewModels
             SelectedItem = null;
             _treeService.UnloadProject();
 
-            CreateTree();
+            ProjectRoot.Clear();
             NotifyOfPropertyChange(() => HasProject);
         }
 
@@ -154,8 +103,8 @@ namespace TileShop.WPF.ViewModels
             {
                 DataFile df = new DataFile(Path.GetFileName(dataFileName), dataFileName);
                 var node = _treeService.AddResource(df);
-                var nodeVm = new ProjectTreeDataFileViewModel(node);
-                RootItems.Add(nodeVm);
+                var nodeVm = new DataFileNodeViewModel(node);
+                ProjectRoot.First().Children.Add(nodeVm);
                 IsModified = true;
             }
         }
@@ -185,16 +134,16 @@ namespace TileShop.WPF.ViewModels
                 pal.DataFile = model.SelectedDataFile;
 
                 var node = _treeService.AddResource(pal);
-                var nodeVm = new ProjectTreeDataFileViewModel(node);
-                RootItems.Add(nodeVm);
+                var nodeVm = new DataFileNodeViewModel(node);
+                ProjectRoot.First().Children.Add(nodeVm);
                 IsModified = true;
             }
         }
 
         public void DragOver(IDropInfo dropInfo)
         {
-            var sourceNode = (dropInfo.Data as ProjectTreeNodeViewModel)?.Node;
-            var targetNode = (dropInfo.TargetItem as ProjectTreeFolderViewModel)?.Node;
+            var sourceNode = (dropInfo.Data as TreeNodeViewModel)?.Node;
+            var targetNode = (dropInfo.TargetItem as FolderNodeViewModel)?.Node;
 
             if (_treeService.CanMoveNode(sourceNode, targetNode))
             {
@@ -205,8 +154,8 @@ namespace TileShop.WPF.ViewModels
 
         public void Drop(IDropInfo dropInfo)
         {
-            var sourceModel = dropInfo.Data as ProjectTreeNodeViewModel;
-            var targetModel = dropInfo.TargetItem as ProjectTreeFolderViewModel;
+            var sourceModel = dropInfo.Data as TreeNodeViewModel;
+            var targetModel = dropInfo.TargetItem as FolderNodeViewModel;
 
             var sourceNode = sourceModel?.Node ?? null;
             var targetNode = targetModel?.Node ?? null;
@@ -220,7 +169,7 @@ namespace TileShop.WPF.ViewModels
                 //sourceModel.Refresh();
                 //targetModel.Refresh();
 
-                NotifyOfPropertyChange(() => RootItems);
+                //NotifyOfPropertyChange(() => RootItems);
             }
         }
 
@@ -232,22 +181,20 @@ namespace TileShop.WPF.ViewModels
 
         public void NewProject(string newFileName)
         {
-            _treeService.NewProject();
+            var project = _treeService.NewProject(Path.GetFileName(newFileName));
+            _treeService.SaveProject(newFileName);
+
             ProjectFileName = newFileName;
-            _treeService.SaveProject(ProjectFileName);
-
-            foreach (var node in _treeService.Tree.EnumerateBreadthFirst())
-            {
-
-            }
-            NotifyOfPropertyChange(() => RootItems);
+            ProjectRoot.Clear();
+            ProjectRoot.Add(project);
         }
 
         public void OpenProject(string projectFileName)
         {
-            _treeService.OpenProject(projectFileName);
+            ProjectRoot.Clear();
+            var project = _treeService.OpenProject(projectFileName);
+            ProjectRoot.Add(project);
             ProjectFileName = projectFileName;
-            NotifyOfPropertyChange(() => RootItems);
         }
 
         public void CloseProject() => UnloadProject();

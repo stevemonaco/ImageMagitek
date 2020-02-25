@@ -2,11 +2,11 @@
 using ImageMagitek.Project;
 using Monaco.PathTree;
 
-namespace TileShop.WPF.ViewModels
+namespace TileShop.Shared.ViewModels
 {
-    public class ProjectTreePaletteViewModel : ProjectTreeNodeViewModel
+    public class ArrangerNodeViewModel : TreeNodeViewModel
     {
-        public ProjectTreePaletteViewModel(IPathTreeNode<IProjectResource> node)
+        public ArrangerNodeViewModel(IPathTreeNode<IProjectResource> node)
         {
             Node = node;
             Name = node.Name;

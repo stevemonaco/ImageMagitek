@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using TileShop.Shared.ViewModels;
 using TileShop.WPF.ViewModels;
 
 namespace TileShop.WPF.Selectors
@@ -20,11 +21,11 @@ namespace TileShop.WPF.Selectors
 
             return item switch
             {
-                ProjectTreeImageProjectViewModel _ => TreeProjectTemplate,
-                ProjectTreeFolderViewModel _ => TreeFolderTemplate,
-                ProjectTreeDataFileViewModel _ => TreeDataFileTemplate,
-                ProjectTreeArrangerViewModel _ => TreeArrangerTemplate,
-                ProjectTreePaletteViewModel _ => TreePaletteTemplate,
+                ImageProjectNodeViewModel _ => TreeProjectTemplate,
+                FolderNodeViewModel _ => TreeFolderTemplate,
+                DataFileNodeViewModel _ => TreeDataFileTemplate,
+                ArrangerNodeViewModel _ => TreeArrangerTemplate,
+                PaletteNodeViewModel _ => TreePaletteTemplate,
                 _ => throw new ArgumentException($"{nameof(SelectTemplate)} does not contain a template for type {item.GetType()}")
             };
         }

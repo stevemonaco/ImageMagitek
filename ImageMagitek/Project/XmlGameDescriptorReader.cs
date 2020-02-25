@@ -35,10 +35,9 @@ namespace ImageMagitek.Project
             XElement projectNode = doc.Element("project");
 
             Directory.SetCurrentDirectory(baseDirectory);
-            var tree = new PathTree<IProjectResource>();
 
             var projectResource = DeserializeImageProject(projectNode).ToImageProject();
-            tree.Add(projectResource.Name, projectResource);
+            var tree = new PathTree<IProjectResource>(projectResource.Name, projectResource);
 
             foreach(var node in projectNode.Descendants("folder"))
             {

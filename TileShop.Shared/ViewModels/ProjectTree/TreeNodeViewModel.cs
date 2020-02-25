@@ -2,13 +2,21 @@
 using ImageMagitek.Project;
 using Monaco.PathTree;
 using System;
+using System.Linq;
 
-namespace TileShop.WPF.ViewModels
+namespace TileShop.Shared.ViewModels
 {
-    public abstract class ProjectTreeNodeViewModel : Screen
+    public abstract class TreeNodeViewModel : Screen
     {
         public IPathTreeNode<IProjectResource> Node { get; set; }
         public Type Type { get; protected set; }
+
+        private BindableCollection<TreeNodeViewModel> _children = new BindableCollection<TreeNodeViewModel>();
+        public BindableCollection<TreeNodeViewModel> Children
+        {
+            get => _children;
+            set => SetAndNotify(ref _children, value);
+        }
 
         private bool _isExpanded;
         public bool IsExpanded

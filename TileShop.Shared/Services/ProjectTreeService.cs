@@ -7,6 +7,7 @@ using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Project;
 using Monaco.PathTree;
+using TileShop.Shared.ViewModels;
 
 namespace TileShop.Shared.Services
 {
@@ -14,8 +15,8 @@ namespace TileShop.Shared.Services
     {
         public IPathTree<IProjectResource> Tree { get; }
 
-        void NewProject();
-        IPathTree<IProjectResource> OpenProject(string projectFileName);
+        ImageProjectNodeViewModel NewProject(string projectName);
+        ImageProjectNodeViewModel OpenProject(string projectFileName);
         bool SaveProject(string projectFileName);
         void UnloadProject();
 
@@ -36,13 +37,15 @@ namespace TileShop.Shared.Services
             _codecService = codecService;
         }
 
-        public void NewProject()
+        public ImageProjectNodeViewModel NewProject(string projectName)
         {
             CloseResources();
-            Tree = new PathTree<IProjectResource>();
+            var project = new ImageProject(projectName);
+            Tree = new PathTree<IProjectResource>(projectName, project);
+            return new ImageProjectNodeViewModel(Tree.Root);
         }
 
-        public IPathTree<IProjectResource> OpenProject(string projectFileName)
+        public ImageProjectNodeViewModel OpenProject(string projectFileName)
         {
             if (string.IsNullOrWhiteSpace(projectFileName))
                 throw new ArgumentException($"{nameof(OpenProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
@@ -50,7 +53,7 @@ namespace TileShop.Shared.Services
             CloseResources();
             var deserializer = new XmlGameDescriptorReader(_codecService.CodecFactory);
             Tree = deserializer.ReadProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
-            return Tree;
+            return new ImageProjectNodeViewModel(Tree.Root);
         }
 
         public bool SaveProject(string projectFileName)
@@ -108,7 +111,7 @@ namespace TileShop.Shared.Services
             if (resource is null || Tree is null)
                 return false;
 
-            if (Tree.Children().Any(x => string.Equals(x.Name, resource.Name, StringComparison.OrdinalIgnoreCase)))
+            if (Tree.Root.Children().Any(x => string.Equals(x.Name, resource.Name, StringComparison.OrdinalIgnoreCase)))
                 return false;
 
             return true;
