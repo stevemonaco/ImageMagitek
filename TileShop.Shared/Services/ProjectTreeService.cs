@@ -119,8 +119,8 @@ namespace TileShop.Shared.Services
 
         public IPathTreeNode<IProjectResource> AddResource(IProjectResource resource)
         {
-            Tree.Add(resource.Name, resource);
-            Tree.TryGetNode(resource.Name, out var node);
+            var node = new PathTreeNode<IProjectResource>(resource.Name, resource);
+            Tree.Root.AttachChild(node);
             return node;
         }
 

@@ -24,8 +24,10 @@ namespace ImageMagitek.Project
 
             var xmlRoot = new XElement("gdf");
             xmlRoot.Add(new XAttribute("version", DescriptorVersion));
-            var projectRoot = new XElement("project");
-            xmlRoot.Add(projectRoot);
+
+            //var projectRoot = Serialize(tree)
+            //var projectRoot = new XElement("project");
+            //xmlRoot.Add(projectRoot);
 
             var modelTree = BuildModelTree(tree);
 
@@ -47,11 +49,14 @@ namespace ImageMagitek.Project
                     case ScatteredArrangerModel arrangerModel:
                         element = Serialize(arrangerModel);
                         break;
+                    case ImageProjectModel projectModel:
+                        element = Serialize(projectModel);
+                        break;
                     default:
                         throw new InvalidOperationException($"{nameof(WriteProject)}: unexpected node of type '{node.Value.GetType().ToString()}'");
                 }
 
-                AddResourceToXmlTree(projectRoot, element, node.Paths.ToArray());
+                AddResourceToXmlTree(xmlRoot, element, node.Paths.ToArray());
             }
 
             var xws = new XmlWriterSettings();
@@ -71,13 +76,15 @@ namespace ImageMagitek.Project
             foreach (var node in tree.EnumerateDepthFirst())
                 resourceResolver.Add(node.Value, node.PathKey);
 
-            var modelTree = new PathTree<ProjectNodeModel>();
+            var projectModel = ImageProjectModel.FromImageProject(tree.Root.Value as ImageProject);
+            IPathTree<ProjectNodeModel> modelTree = new PathTree<ProjectNodeModel>(projectModel.Name, projectModel);
 
-            foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Value.ShouldBeSerialized && x.Value is ImageProject))
-            {
-                var projectModel = ImageProjectModel.FromImageProject(node.Value as ImageProject);
-                modelTree.Add(node.PathKey, projectModel);
-            }
+            //foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Value.ShouldBeSerialized && x.Value is ImageProject))
+            //{
+            //    var projectModel = ImageProjectModel.FromImageProject(node.Value as ImageProject);
+            //    var rootNode = new PathTreeNode<ProjectNodeModel>(projectModel.Name, projectModel);
+            //    modelTree.Root = rootNode;
+            //}
 
             foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Value.ShouldBeSerialized && x.Value is ResourceFolder))
             {
@@ -134,6 +141,17 @@ namespace ImageMagitek.Project
             }
 
             nodeVisitor.Add(resourceNode);
+        }
+
+        private XElement Serialize(ImageProjectModel projectModel)
+        {
+            var element = new XElement("project");
+            element.Add(new XAttribute("name", projectModel.Name));
+
+            if (!string.IsNullOrEmpty(projectModel.Root))
+                element.Add(new XAttribute("root", projectModel.Root));
+
+            return element;
         }
 
         private XElement Serialize(ResourceFolderModel folderModel)
