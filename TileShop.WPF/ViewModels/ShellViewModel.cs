@@ -11,6 +11,7 @@ using Xceed.Wpf.AvalonDock;
 using System.ComponentModel;
 using System.Collections.Generic;
 using TileShop.WPF.Services;
+using TileShop.Shared.ViewModels;
 
 namespace TileShop.WPF.ViewModels
 {

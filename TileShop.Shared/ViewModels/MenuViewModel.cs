@@ -2,7 +2,7 @@
 using Stylet;
 using TileShop.Shared.EventModels;
 
-namespace TileShop.WPF.ViewModels
+namespace TileShop.Shared.ViewModels
 {
     public class MenuViewModel : Screen, IHandle<ProjectLoadedEvent>, IHandle<ProjectUnloadedEvent>
     {
