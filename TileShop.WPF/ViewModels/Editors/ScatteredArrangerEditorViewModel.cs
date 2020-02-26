@@ -1,14 +1,16 @@
-﻿using Stylet;
-using ImageMagitek;
-using System;
-using TileShop.WPF.Helpers;
+﻿using System;
+using System.Linq;
+using System.Windows;
+using Stylet;
 using GongSolutions.Wpf.DragDrop;
-using TileShop.WPF.Imaging;
+using ImageMagitek;
 using ImageMagitek.Colors;
 using TileShop.Shared.Services;
+using TileShop.WPF.Helpers;
+using TileShop.WPF.Imaging;
 using TileShop.WPF.Models;
-using System.Linq;
 using TileShop.WPF.Behaviors;
+using TileShop.Shared.Models;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -16,7 +18,7 @@ namespace TileShop.WPF.ViewModels
 
     public enum ScatteredArrangerTool { Select, ApplyPalette, PickPalette }
 
-    public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel, IDropTarget
+    public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel, IDropTarget, IDragSource
     {
         private IPaletteService _paletteService;
         private Palette _defaultPalette;
@@ -63,9 +65,9 @@ namespace TileShop.WPF.ViewModels
             CreateGridlines();
 
             if (arranger.Layout == ArrangerLayout.Tiled)
-                Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Element);
+                Selection = new ArrangerSelectionRegion(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Element);
             else
-                Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
+                Selection = new ArrangerSelectionRegion(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
 
             var arrangerPalettes = _arranger.GetReferencedPalettes().OrderBy(x => x.Name).ToList();
             arrangerPalettes.Add(_defaultPalette);
@@ -109,16 +111,6 @@ namespace TileShop.WPF.ViewModels
                 TryApplyPalette(x, y, ActivePalette.Palette);
             else
                 base.OnMouseMove(sender, e);
-        }
-
-        public void DragOver(IDropInfo dropInfo)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Drop(IDropInfo dropInfo)
-        {
-            throw new NotImplementedException();
         }
 
         private void RenderArranger()
@@ -174,5 +166,28 @@ namespace TileShop.WPF.ViewModels
             ActivePalette = Palettes.FirstOrDefault(x => ReferenceEquals(el.Palette, x.Palette)) ?? Palettes.First(x => ReferenceEquals(_defaultPalette, x.Palette));
             return true;
         }
+
+        public void DragOver(IDropInfo dropInfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Drop(IDropInfo dropInfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void StartDrag(IDragInfo dragInfo)
+        {
+            var transferModel = new ArrangerTransferModel(_arranger, Selection.SnappedX1, Selection.SnappedY1, Selection.SnappedWidth, Selection.SnappedHeight);
+            dragInfo.Data = transferModel;
+            dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
+        }
+
+        public bool CanStartDrag(IDragInfo dragInfo) => true;
+        public void Dropped(IDropInfo dropInfo) { }
+        public void DragDropOperationFinished(DragDropEffects operationResult, IDragInfo dragInfo) { }
+        public void DragCancelled() { }
+        public bool TryCatchOccurredException(Exception exception) => false;
     }
 }

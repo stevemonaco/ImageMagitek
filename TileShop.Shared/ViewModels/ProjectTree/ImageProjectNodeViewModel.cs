@@ -21,14 +21,21 @@ namespace TileShop.Shared.ViewModels
 
             foreach (var child in Node.Children())
             {
+                TreeNodeViewModel model;
+
                 if (child.Value is ResourceFolder)
-                    Children.Add(new FolderNodeViewModel(child));
+                    model = new FolderNodeViewModel(child);
                 else if (child.Value is Palette)
-                    Children.Add(new PaletteNodeViewModel(child));
+                    model = new PaletteNodeViewModel(child);
                 else if (child.Value is DataFile)
-                    Children.Add(new DataFileNodeViewModel(child));
+                    model = new DataFileNodeViewModel(child);
                 else if (child.Value is Arranger)
-                    Children.Add(new ArrangerNodeViewModel(child));
+                    model = new ArrangerNodeViewModel(child);
+                else
+                    continue;
+
+                model.ParentModel = this;
+                Children.Add(model);
             }
         }
     }

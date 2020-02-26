@@ -157,19 +157,11 @@ namespace TileShop.WPF.ViewModels
             var sourceModel = dropInfo.Data as TreeNodeViewModel;
             var targetModel = dropInfo.TargetItem as FolderNodeViewModel;
 
-            var sourceNode = sourceModel?.Node ?? null;
-            var targetNode = targetModel?.Node ?? null;
-
-            if (sourceNode is object && targetNode is object)
+            if (sourceModel is object && targetModel is object)
             {
-                SelectedItem = null;
-                _treeService.MoveNode(sourceNode, targetNode);
+                _treeService.MoveNode(sourceModel, targetModel);
                 IsModified = true;
-
-                //sourceModel.Refresh();
-                //targetModel.Refresh();
-
-                //NotifyOfPropertyChange(() => RootItems);
+                SelectedItem = sourceModel;
             }
         }
 
@@ -220,7 +212,6 @@ namespace TileShop.WPF.ViewModels
 
         public override void DiscardChanges()
         {
-            throw new NotImplementedException();
         }
     }
 }

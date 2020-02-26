@@ -9,6 +9,7 @@ namespace TileShop.Shared.ViewModels
     public abstract class TreeNodeViewModel : Screen
     {
         public IPathTreeNode<IProjectResource> Node { get; set; }
+        public TreeNodeViewModel ParentModel { get; set; }
         public Type Type { get; protected set; }
         public abstract int SortPriority { get; }
 

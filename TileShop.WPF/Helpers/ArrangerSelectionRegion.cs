@@ -8,7 +8,8 @@ using System.Text;
 namespace TileShop.WPF.Helpers
 {
     public enum SnapMode { Element, Pixel }
-    public class ArrangerSelector : INotifyPropertyChanged
+
+    public class ArrangerSelectionRegion : INotifyPropertyChanged
     {
         private double _x1;
         private double _x2;
@@ -20,7 +21,7 @@ namespace TileShop.WPF.Helpers
 
         private int _snappedX1;
         /// <summary>
-        /// Left edge of selection in arranger coordinates
+        /// Left edge of selection in element/pixel coordinates, depending on SnapMode
         /// </summary>
         public int SnappedX1
         {
@@ -30,7 +31,7 @@ namespace TileShop.WPF.Helpers
 
         private int _snappedX2;
         /// <summary>
-        /// Right edge of selection in arranger coordinates
+        /// Right edge of selection in element/pixel coordinates, depending on SnapMode
         /// </summary>
         public int SnappedX2
         {
@@ -40,7 +41,7 @@ namespace TileShop.WPF.Helpers
 
         private int _snappedY1;
         /// <summary>
-        /// Top edge of selection in arranger coordinates
+        /// Top edge of selection in element/pixel coordinates, depending on SnapMode
         /// </summary>
         public int SnappedY1
         {
@@ -50,7 +51,7 @@ namespace TileShop.WPF.Helpers
 
         private int _snappedY2;
         /// <summary>
-        /// Bottom edge of selection in arranger coordinates
+        /// Bottom edge of selection in element/pixel coordinates, depending on SnapMode
         /// </summary>
         public int SnappedY2
         {
@@ -59,7 +60,7 @@ namespace TileShop.WPF.Helpers
         }
 
         /// <summary>
-        /// Width of selection in arranger coordinates
+        /// Width of selection in element/pixel coordinates, depending on SnapMode
         /// </summary>
         public int SnappedWidth
         {
@@ -67,7 +68,7 @@ namespace TileShop.WPF.Helpers
         }
 
         /// <summary>
-        /// Height of selection in arranger coordinates
+        /// Height of selection in element/pixel coordinates, depending on SnapMode
         /// </summary>
         public int SnappedHeight
         {
@@ -99,7 +100,7 @@ namespace TileShop.WPF.Helpers
             }
         }
 
-        public ArrangerSelector(Size arrangerSize, Size elementSize, SnapMode snapMode)
+        public ArrangerSelectionRegion(Size arrangerSize, Size elementSize, SnapMode snapMode)
         {
             _arrangerSize = arrangerSize;
             _elementSize = elementSize;
@@ -109,8 +110,8 @@ namespace TileShop.WPF.Helpers
         /// <summary>
         /// Starts a new selection
         /// </summary>
-        /// <param name="x">X-coordinate of selection end point in arranger coordinates</param>
-        /// <param name="y">Y-coordinate of selection end point in arranger coordinates</param>
+        /// <param name="x">X-coordinate of selection end point in pixel coordinates</param>
+        /// <param name="y">Y-coordinate of selection end point in pixel coordinates</param>
         public void StartSelection(double x, double y)
         {
             _x1 = x;
@@ -145,8 +146,8 @@ namespace TileShop.WPF.Helpers
         /// <summary>
         /// Update the end point for the selection
         /// </summary>
-        /// <param name="x">X-coordinate of selection end point in arranger coordinates</param>
-        /// <param name="y">Y-coordinate of selection end point in arranger coordinates</param>
+        /// <param name="x">X-coordinate of selection end point in pixel coordinates</param>
+        /// <param name="y">Y-coordinate of selection end point in pixel coordinates</param>
         public void UpdateSelection(double x, double y)
         {
             if(IsSelecting)

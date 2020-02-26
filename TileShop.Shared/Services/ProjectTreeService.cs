@@ -24,6 +24,7 @@ namespace TileShop.Shared.Services
         IPathTreeNode<IProjectResource> AddResource(IProjectResource resource);
         IPathTreeNode<IProjectResource> AddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode);
         bool CanMoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode);
+        void MoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode);
         void MoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode);
     }
 
@@ -98,6 +99,21 @@ namespace TileShop.Shared.Services
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Moves the specified node to the parentNode
+        /// </summary>
+        /// <param name="node">Node to be moved</param>
+        /// <param name="parentNode">Parent to contain node after moving</param>
+        public void MoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode)
+        {
+            MoveNode(node.Node, parentNode.Node);
+
+            var oldParent = node.ParentModel;
+            oldParent.Children.Remove(node);
+            node.ParentModel = parentNode;
+            parentNode.Children.Add(node);
         }
 
         public void MoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode)

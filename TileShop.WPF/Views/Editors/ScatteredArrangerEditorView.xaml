@@ -129,6 +129,8 @@
                         Canvas.Top="{Binding SnappedY1}"
                         Width="{Binding SnappedWidth}"
                         Height="{Binding SnappedHeight}"
+                        dd:DragDrop.DragHandler="{Binding}"
+                        dd:DragDrop.IsDragSource="True"
                         Fill="{StaticResource arrangeSelectionFillBrush}"
                         Stroke="Black"
                         StrokeDashArray="3 2"

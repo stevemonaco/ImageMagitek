@@ -76,8 +76,8 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _editMode, value);
         }
 
-        protected ArrangerSelector _selection;
-        public ArrangerSelector Selection
+        protected ArrangerSelectionRegion _selection;
+        public ArrangerSelectionRegion Selection
         {
             get => _selection;
             set => SetAndNotify(ref _selection, value);
@@ -85,10 +85,21 @@ namespace TileShop.WPF.ViewModels
 
         public virtual bool CanEditSelection => true;
 
-        public virtual void Closing()
+        protected ArrangerSelectionRegion _dropSelection;
+        public ArrangerSelectionRegion DropSelection
         {
-            Console.WriteLine("lj;sadf");
+            get => _dropSelection;
+            set => SetAndNotify(ref _dropSelection, value);
         }
+
+        protected ArrangerTransferModel _arrangerTransfer;
+        public ArrangerTransferModel ArrangerTransfer
+        {
+            get => _arrangerTransfer;
+            set => SetAndNotify(ref _arrangerTransfer, value);
+        }
+
+        public virtual void Closing() { }
 
         public virtual void EditSelection()
         {

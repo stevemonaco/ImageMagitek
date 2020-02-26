@@ -164,6 +164,8 @@ namespace TileShop.WPF.Behaviors
                         continue;
                     }
 
+                    var initialExpanded = subContainer.IsExpanded;
+
                     // Search the next level for the object.
                     var resultContainer = GetTreeViewItem(subContainer, item);
                     if (resultContainer != null)
@@ -171,7 +173,7 @@ namespace TileShop.WPF.Behaviors
 
                     // The object is not under this TreeViewItem
                     // so collapse it.
-                    subContainer.SetCurrentValue(TreeViewItem.IsExpandedProperty, false);
+                    subContainer.SetCurrentValue(TreeViewItem.IsExpandedProperty, initialExpanded);
                 }
             }
 

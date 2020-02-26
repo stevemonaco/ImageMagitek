@@ -125,13 +125,13 @@ namespace TileShop.WPF.ViewModels
                 _tiledElementHeight = arranger.ElementPixelSize.Height;
                 _tiledArrangerHeight = arranger.ArrangerElementSize.Height;
                 _tiledArrangerWidth = arranger.ArrangerElementSize.Width;
-                Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Element);
+                Selection = new ArrangerSelectionRegion(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Element);
             }
             else if(arranger.Layout == ArrangerLayout.Single)
             {
                 _linearArrangerHeight = arranger.ArrangerPixelSize.Height;
                 _linearArrangerWidth = arranger.ArrangerPixelSize.Width;
-                Selection = new ArrangerSelector(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
+                Selection = new ArrangerSelectionRegion(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
             }
 
             Render();
