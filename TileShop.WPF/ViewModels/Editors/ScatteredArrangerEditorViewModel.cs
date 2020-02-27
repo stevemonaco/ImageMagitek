@@ -16,6 +16,8 @@ namespace TileShop.WPF.ViewModels
 {
     public enum EditMode { ArrangeGraphics, ModifyGraphics }
 
+    public enum DropCopyMode { Elements, Pixels }
+
     public enum ScatteredArrangerTool { Select, ApplyPalette, PickPalette }
 
     public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel, IDropTarget, IDragSource
@@ -49,6 +51,13 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        private DropCopyMode _dropCopy = DropCopyMode.Elements;
+        public DropCopyMode DropCopy
+        {
+            get => _dropCopy;
+            set => SetAndNotify(ref _dropCopy, value);
+        }
+
         public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events) : this(arranger, events, null) { }
 
         public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IPaletteService paletteService)
@@ -65,9 +74,15 @@ namespace TileShop.WPF.ViewModels
             CreateGridlines();
 
             if (arranger.Layout == ArrangerLayout.Tiled)
+            {
                 Selection = new ArrangerSelectionRegion(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Element);
-            else
+                DropCopy = DropCopyMode.Elements;
+            }
+            else if (arranger.Layout == ArrangerLayout.Single)
+            {
                 Selection = new ArrangerSelectionRegion(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
+                DropCopy = DropCopyMode.Pixels;
+            }
 
             var arrangerPalettes = _arranger.GetReferencedPalettes().OrderBy(x => x.Name).ToList();
             arrangerPalettes.Add(_defaultPalette);
@@ -169,12 +184,64 @@ namespace TileShop.WPF.ViewModels
 
         public void DragOver(IDropInfo dropInfo)
         {
-            throw new NotImplementedException();
+            if (dropInfo.Data is ArrangerTransferModel model)
+            {
+                if (CanAcceptTransfer(model))
+                {
+                    dropInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
+                    dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+                }
+            }
+        }
+
+        public bool CanAcceptTransfer(ArrangerTransferModel model)
+        {
+            bool canAccept = false;
+            bool isCompatibleSize = false;
+
+            // Source must fit onto the target
+            //if (model.Arranger.Layout == ArrangerLayout.Single)
+            //{
+            //    if (_arranger.ArrangerPixelSize.Width < model.Width || _arranger.ArrangerPixelSize.Height < model.Height)
+            //        return false;
+            //}
+            //else if (model.Arranger.Layout == ArrangerLayout.Tiled)
+            //{
+            //    if (_arranger.ArrangerPixelSize.Width < model.Width || _arranger.ArrangerPixelSize.Height < model.Height)
+            //}
+
+
+
+            //var sizeRules =
+            //    (SourceMode: model.Arranger.Mode, TargetMode: _arranger.Mode, CopyMode: DropCopy, 
+            //if (model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize)
+            //    isCompatibleSize = true;
+
+            //var copyRules = 
+            //    (SourceMode: model.Arranger.Mode, TargetMode: _arranger.Mode, CopyMode: DropCopy, SourceLayout: model.Arranger.Layout, TargetLayout: _arranger.Layout);
+
+            //switch(copyRules)
+            //{
+            //    case (ArrangerMode.Scattered, ArrangerMode.Scattered, DropCopyMode.Elements, ArrangerLayout.Tiled) 
+            //        when model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize:
+                    
+            //        canAccept = true;
+            //        break;
+
+            //    case (DropCopyMode.Pixels, ArrangerMode.Scattered, ArrangerMode.Scattered):
+            //        return true;
+            //}
+
+            //if (model.Arranger.Mode == ArrangerMode.Scattered)
+            //{
+            //    if (model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize)
+            //}
+
+            return canAccept;
         }
 
         public void Drop(IDropInfo dropInfo)
         {
-            throw new NotImplementedException();
         }
 
         public void StartDrag(IDragInfo dragInfo)

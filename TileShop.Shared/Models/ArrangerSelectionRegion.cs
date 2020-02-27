@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace TileShop.WPF.Helpers
+namespace TileShop.Shared.Models
 {
     public enum SnapMode { Element, Pixel }
 

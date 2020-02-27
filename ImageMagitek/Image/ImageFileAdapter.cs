@@ -62,7 +62,7 @@ namespace ImageMagitek
 
         public byte[] LoadImage(string imagePath, Arranger arranger, Palette defaultPalette)
         {
-            using var inputImage = Image.Load(imagePath);
+            using var inputImage = SixLabors.ImageSharp.Image.Load(imagePath);
             var width = inputImage.Width;
             var height = inputImage.Height;
 
@@ -86,7 +86,7 @@ namespace ImageMagitek
 
         public ColorRgba32[] LoadImage(string imagePath)
         {
-            using var inputImage = Image.Load(imagePath);
+            using var inputImage = SixLabors.ImageSharp.Image.Load(imagePath);
             var width = inputImage.Width;
             var height = inputImage.Height;
 

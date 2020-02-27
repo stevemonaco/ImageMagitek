@@ -1,4 +1,5 @@
 ﻿using ImageMagitek;
+using ImageMagitek.Colors;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -43,6 +44,48 @@ namespace TileShop.Shared.Models
         /// <param name="width">Width of arranger in elements/pixels</param>
         /// <param name="height">Height of arranger in elements/pixels</param>
         public ArrangerTransferModel(Arranger arranger, int x, int y, int width, int height)
+        {
+            Arranger = arranger;
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+        }
+    }
+
+    public class IndexedImageTransferModel : ArrangerTransferModel
+    {
+        public byte[,] Image { get; set; }
+
+        public IndexedImageTransferModel(Arranger arranger, int x, int y, int width, int height)
+        {
+            Arranger = arranger;
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+        }
+    }
+
+    public class DirectImageTransferModel : ArrangerTransferModel
+    {
+        public ColorRgba32[,] Image { get; set; }
+
+        public DirectImageTransferModel(Arranger arranger, int x, int y, int width, int height)
+        {
+            Arranger = arranger;
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+        }
+    }
+
+    public class ElementTransferModel : ArrangerTransferModel
+    {
+        public ArrangerElement[,] Image { get; set; }
+
+        public ElementTransferModel(Arranger arranger, int x, int y, int width, int height)
         {
             Arranger = arranger;
             X = x;

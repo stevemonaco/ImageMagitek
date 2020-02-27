@@ -4,8 +4,8 @@ using Stylet;
 using ImageMagitek;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Services;
+using TileShop.Shared.Models;
 using TileShop.WPF.Behaviors;
-using TileShop.WPF.Helpers;
 using TileShop.WPF.Imaging;
 
 namespace TileShop.WPF.ViewModels

@@ -75,6 +75,14 @@ namespace TileShop.Shared.Services
             Tree = null;
         }
 
+        public bool CanMoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode)
+        {
+            if (node is null || parentNode is null)
+                return false;
+
+            return CanMoveNode(node.Node, parentNode.Node);
+        }
+
         public bool CanMoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode)
         {
             if (node is null || parentNode is null)
