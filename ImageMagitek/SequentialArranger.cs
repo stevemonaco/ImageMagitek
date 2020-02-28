@@ -54,6 +54,7 @@ namespace ImageMagitek
             _codecs = codecFactory;
 
             ActiveCodec = _codecs.GetCodec(codecName);
+            ColorType = ActiveCodec.ColorType;
 
             Resize(arrangerWidth, arrangerHeight, dataFile);
         }
@@ -171,6 +172,7 @@ namespace ImageMagitek
             ElementPixelSize = new Size(codec.Width, codec.Height);
 
             ActiveCodec = codec;
+            ColorType = ActiveCodec.ColorType;
 
             if (codec.Layout == ImageLayout.Single)
                 Layout = ArrangerLayout.Single;
@@ -221,7 +223,7 @@ namespace ImageMagitek
             var elemsWidth = (width + ElementPixelSize.Width - 1) / ElementPixelSize.Width;
             var elemsHeight = (height + ElementPixelSize.Height - 1) / ElementPixelSize.Height;
 
-            var arranger = new ScatteredArranger(Name, Layout, elemsWidth, elemsHeight, ElementPixelSize.Width, ElementPixelSize.Height);
+            var arranger = new ScatteredArranger(Name, ColorType, Layout, elemsWidth, elemsHeight, ElementPixelSize.Width, ElementPixelSize.Height);
 
             for (int y = 0; y < elemsHeight; y++)
             {

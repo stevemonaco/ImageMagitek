@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using GongSolutions.Wpf.DragDrop;
 using System.Windows;
-using TileShop.Shared.ViewModels;
 
 namespace TileShop.WPF.ViewModels
 {

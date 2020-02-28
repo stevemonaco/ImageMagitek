@@ -4,7 +4,7 @@ using Monaco.PathTree;
 using System;
 using System.Linq;
 
-namespace TileShop.Shared.ViewModels
+namespace TileShop.WPF.ViewModels
 {
     public abstract class TreeNodeViewModel : Screen
     {

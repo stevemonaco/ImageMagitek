@@ -2,7 +2,7 @@
 using ImageMagitek.Project;
 using Monaco.PathTree;
 
-namespace TileShop.Shared.ViewModels
+namespace TileShop.WPF.ViewModels
 {
     public class PaletteNodeViewModel : TreeNodeViewModel
     {

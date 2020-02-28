@@ -12,10 +12,11 @@ namespace ImageMagitek.Project.SerializationModels
         public Size ArrangerElementSize { get; set; }
         public Size ElementPixelSize { get; set; }
         public ArrangerLayout Layout { get; set; }
+        public PixelColorType ColorType { get; set; }
 
         public ScatteredArranger ToScatteredArranger()
         {
-            var arr = new ScatteredArranger(Name, Layout, ArrangerElementSize.Width, ArrangerElementSize.Height, ElementPixelSize.Width, ElementPixelSize.Height);
+            var arr = new ScatteredArranger(Name, ColorType, Layout, ArrangerElementSize.Width, ArrangerElementSize.Height, ElementPixelSize.Width, ElementPixelSize.Height);
 
             for(int x = 0; x < ElementGrid.GetLength(0); x++)
             {
@@ -37,6 +38,7 @@ namespace ImageMagitek.Project.SerializationModels
                 ArrangerElementSize = arranger.ArrangerElementSize,
                 ElementPixelSize = arranger.ElementPixelSize,
                 Layout = arranger.Layout,
+                ColorType = arranger.ColorType
             };
 
             model.ElementGrid = new ArrangerElementModel[model.ArrangerElementSize.Width, model.ArrangerElementSize.Height];

@@ -14,7 +14,6 @@
     xmlns:sel="clr-namespace:TileShop.WPF.Selectors"
     xmlns:v="clr-namespace:TileShop.WPF.Views"
     xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
-    xmlns:vms="clr-namespace:TileShop.Shared.ViewModels;assembly=TileShop.Shared"
     mc:Ignorable="d">
     <UserControl.Resources>
         <converters:TreeNodeCollectionViewSource x:Key="SortedTreeViewSource" />

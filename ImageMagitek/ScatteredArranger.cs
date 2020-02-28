@@ -18,11 +18,18 @@ namespace ImageMagitek
         /// <param name="elementWidth">Width of each element in pixels</param>
         /// <param name="elementHeight">Height of each element in pixels</param>
         /// <returns></returns>
-        public ScatteredArranger(string name, ArrangerLayout layout, int arrangerWidth, int arrangerHeight, int elementWidth, int elementHeight)
+        public ScatteredArranger(string name, PixelColorType colorType, ArrangerLayout layout, int arrangerWidth, int arrangerHeight, int elementWidth, int elementHeight)
         {
             Name = name;
             Mode = ArrangerMode.Scattered;
             Layout = layout;
+            ColorType = colorType;
+
+            if (Layout == ArrangerLayout.Single && (arrangerWidth != 1 || arrangerHeight != 1))
+                throw new ArgumentException($"Arranger '{name}' with {ArrangerLayout.Single} does not have a width and height of 1");
+
+            if (arrangerWidth <= 0 || arrangerHeight <= 0 || elementWidth <= 0 | elementHeight <= 0)
+                throw new ArgumentOutOfRangeException($"Arranger '{name}' does not have positive sizes for arranger and elements");
 
             ElementGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
@@ -94,7 +101,7 @@ namespace ImageMagitek
             var elemsWidth = (width + ElementPixelSize.Width - 1) / ElementPixelSize.Width;
             var elemsHeight = (height + ElementPixelSize.Height - 1) / ElementPixelSize.Height;
 
-            var arranger = new ScatteredArranger(Name, Layout, elemsWidth, elemsHeight, ElementPixelSize.Width, ElementPixelSize.Height);
+            var arranger = new ScatteredArranger(Name, ColorType, Layout, elemsWidth, elemsHeight, ElementPixelSize.Width, ElementPixelSize.Height);
 
             for (int y = 0; y < elemsHeight; y++)
             {

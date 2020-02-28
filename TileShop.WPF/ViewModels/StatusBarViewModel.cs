@@ -1,7 +1,7 @@
 ﻿using Stylet;
 using TileShop.Shared.EventModels;
 
-namespace TileShop.Shared.ViewModels
+namespace TileShop.WPF.ViewModels
 {
     public class StatusBarViewModel : Screen, IHandle<NotifyStatusEvent>
     {

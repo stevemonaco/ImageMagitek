@@ -1,19 +1,18 @@
-﻿using ImageMagitek;
-using ImageMagitek.Colors;
-using ImageMagitek.Project;
+﻿using System.Collections.Generic;
+using Stylet;
 using Monaco.PathTree;
-using System;
-using System.Collections.Generic;
+using ImageMagitek.Project;
+using ImageMagitek.Colors;
+using ImageMagitek;
 using System.Linq;
-using System.Text;
 
-namespace TileShop.Shared.ViewModels
+namespace TileShop.WPF.ViewModels
 {
-    public class ImageProjectNodeViewModel : TreeNodeViewModel
+    public class FolderNodeViewModel : TreeNodeViewModel
     {
-        public override int SortPriority => 0;
+        public override int SortPriority => 1;
 
-        public ImageProjectNodeViewModel(IPathTreeNode<IProjectResource> node)
+        public FolderNodeViewModel(IPathTreeNode<IProjectResource> node)
         {
             Node = node;
             Name = node.Name;

@@ -33,11 +33,7 @@ namespace TileShop.WPF
         /// </summary>
         protected virtual void DefaultConfigureIoC(ContainerBuilder builder)
         {
-            var viewManagerConfig = new ViewManagerConfig()
-            {
-                ViewFactory = this.GetInstance,
-                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
-            };
+            var viewManagerConfig = ConfigureViewManagerConfig();
             builder.RegisterInstance<IViewManager>(new ViewManager(viewManagerConfig));
 
             builder.RegisterInstance<IWindowManagerConfig>(this).ExternallyOwned();
@@ -45,6 +41,15 @@ namespace TileShop.WPF
             builder.RegisterType<EventAggregator>().As<IEventAggregator>().SingleInstance();
             builder.RegisterType<MessageBoxViewModel>().As<IMessageBoxViewModel>().ExternallyOwned(); // Not singleton!
             builder.RegisterAssemblyTypes(this.GetType().Assembly).ExternallyOwned();
+        }
+
+        protected virtual ViewManagerConfig ConfigureViewManagerConfig()
+        {
+            return new ViewManagerConfig()
+            {
+                ViewFactory = this.GetInstance,
+                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
+            };
         }
 
         /// <summary>

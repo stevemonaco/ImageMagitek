@@ -161,6 +161,7 @@ namespace ImageMagitek.Project
             var defaultDataFile = element.Attribute("defaultdatafile").Value;
             var defaultPalette = element.Attribute("defaultpalette")?.Value ?? "";
             var layoutName = element.Attribute("layout").Value;
+            var colorType = element.Attribute("color")?.Value ?? "indexed";
             var elementList = element.Descendants("element");
 
             if (layoutName == "tiled")
@@ -169,6 +170,13 @@ namespace ImageMagitek.Project
                 model.Layout = ArrangerLayout.Single;
             else
                 throw new XmlException($"Unsupported arranger layout type ('{layoutName}') for arranger '{model.Name}'");
+
+            if (colorType == "indexed")
+                model.ColorType = PixelColorType.Indexed;
+            else if (colorType == "direct")
+                model.ColorType = PixelColorType.Direct;
+            else
+                throw new XmlException($"Unsupported pixel color type ('{colorType}') for arranger '{model.Name}'");
 
             model.ArrangerElementSize = new Size(elementsx, elementsy);
             model.ElementGrid = new ArrangerElementModel[elementsx, elementsy];

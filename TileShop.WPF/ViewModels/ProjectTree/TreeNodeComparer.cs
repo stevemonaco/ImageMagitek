@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TileShop.Shared.ViewModels.ProjectTree
+namespace TileShop.WPF.ViewModels
 {
     class TreeNodeComparer : IComparer<TreeNodeViewModel>
     {

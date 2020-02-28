@@ -16,7 +16,7 @@ namespace ImageMagitek.UnitTests
         public void Setup()
         {
             df = new DataFile("sourceDataFile", new MemoryStream());
-            sourceIndexed = new ScatteredArranger("source", ArrangerLayout.Tiled, 6, 6, 8, 8);
+            sourceIndexed = new ScatteredArranger("source", PixelColorType.Indexed, ArrangerLayout.Tiled, 6, 6, 8, 8);
 
             for (int y = 0; y < sourceIndexed.ArrangerElementSize.Height; y++)
             {
@@ -32,7 +32,7 @@ namespace ImageMagitek.UnitTests
         [Test]
         public void CopyElements_ValidIndexedToIndexed_ReturnsTrue()
         {
-            ScatteredArranger dest = new ScatteredArranger("dest", ArrangerLayout.Tiled, 4, 4, 8, 8);
+            ScatteredArranger dest = new ScatteredArranger("dest", PixelColorType.Indexed, ArrangerLayout.Tiled, 4, 4, 8, 8);
 
             ElementCopier.CopyElements(sourceIndexed, dest, new Point(2, 2), new Point(0, 0), 4, 4);
             var sourceItems = sourceIndexed.EnumerateElements(2, 2, 4, 4).ToList();

@@ -186,6 +186,11 @@ namespace ImageMagitek.Project
             else if (arrangerModel.Layout == ArrangerLayout.Single)
                 arrangerNode.Add(new XAttribute("layout", "linear"));
 
+            if (arrangerModel.ColorType == PixelColorType.Indexed)
+                arrangerNode.Add(new XAttribute("color", "indexed"));
+            else if (arrangerModel.ColorType == PixelColorType.Direct)
+                arrangerNode.Add(new XAttribute("color", "direct"));
+
             arrangerNode.Add(new XAttribute("defaultformat", defaultFormat));
             arrangerNode.Add(new XAttribute("defaultdatafile", defaultFile));
 

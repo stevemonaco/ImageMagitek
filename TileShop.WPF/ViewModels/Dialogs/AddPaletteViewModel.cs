@@ -1,7 +1,7 @@
 ﻿using Stylet;
 using ImageMagitek;
 
-namespace TileShop.Shared.ViewModels
+namespace TileShop.WPF.ViewModels
 {
     public class AddPaletteViewModel : Screen
     {

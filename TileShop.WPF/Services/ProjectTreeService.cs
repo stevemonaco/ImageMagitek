@@ -7,9 +7,10 @@ using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Project;
 using Monaco.PathTree;
-using TileShop.Shared.ViewModels;
+using TileShop.WPF.ViewModels;
+using TileShop.Shared.Services;
 
-namespace TileShop.Shared.Services
+namespace TileShop.WPF.Services
 {
     public interface IProjectTreeService
     {

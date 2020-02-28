@@ -2,17 +2,17 @@
 using ImageMagitek.Project;
 using Monaco.PathTree;
 
-namespace TileShop.Shared.ViewModels
+namespace TileShop.WPF.ViewModels
 {
-    public class ArrangerNodeViewModel : TreeNodeViewModel
+    public class DataFileNodeViewModel : TreeNodeViewModel
     {
         public override int SortPriority => 2;
 
-        public ArrangerNodeViewModel(IPathTreeNode<IProjectResource> node)
+        public DataFileNodeViewModel(IPathTreeNode<IProjectResource> node)
         {
             Node = node;
             Name = node.Name;
             Type = GetType();
-        }
+        } 
     }
 }

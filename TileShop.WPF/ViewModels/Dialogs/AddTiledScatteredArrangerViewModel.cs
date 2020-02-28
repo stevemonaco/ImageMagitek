@@ -1,6 +1,6 @@
 ﻿using Stylet;
 
-namespace TileShop.Shared.ViewModels
+namespace TileShop.WPF.ViewModels
 {
     public class AddTiledScatteredArrangerViewModel : Screen
     {
