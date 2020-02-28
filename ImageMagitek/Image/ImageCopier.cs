@@ -7,14 +7,29 @@ namespace ImageMagitek.Image
 {
     public static class ImageCopier
     {
-        public static bool CanCopy(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight, bool useExactRemap)
+        public static bool CanCopyPixels(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight, bool useIndexExactRemap)
         {
+            if (copyWidth > (source.Width - sourceStart.X))
+                return false;
+            if (copyHeight > (source.Height - sourceStart.Y))
+                return false;
+
+            if (copyWidth > (dest.Width - destStart.X))
+                return false;
+            if (copyHeight > (dest.Height - destStart.Y))
+                return false;
+
+            if (useIndexExactRemap)
+                return true;
+
+            // Check if color remap will succeed
+
             return true;
         }
 
-        public static void Copy(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight, bool useExactRemap)
+        public static void CopyPixels(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight, bool useExactIndexRemap)
         {
-            if (!CanCopy(source, dest, sourceStart, destStart, copyWidth, copyHeight, useExactRemap))
+            if (!CanCopyPixels(source, dest, sourceStart, destStart, copyWidth, copyHeight, useExactIndexRemap))
                 return;
 
             for (int y = 0; y < copyHeight; y++)
@@ -27,17 +42,17 @@ namespace ImageMagitek.Image
             }
         }
 
-        public static void Copy(IndexedImage source, DirectImage dest, Rectangle sourceRect, Rectangle destRect)
+        public static void CopyPixels(IndexedImage source, DirectImage dest, Rectangle sourceRect, Rectangle destRect)
         {
 
         }
 
-        public static void Copy(DirectImage source, IndexedImage dest, Rectangle sourceRect, Rectangle destRect, bool useExactRemap)
+        public static void CopyPixels(DirectImage source, IndexedImage dest, Rectangle sourceRect, Rectangle destRect, bool useExactRemap)
         {
 
         }
 
-        public static void Copy(DirectImage source, DirectImage dest, Rectangle sourceRect, Rectangle destRect)
+        public static void CopyPixels(DirectImage source, DirectImage dest, Rectangle sourceRect, Rectangle destRect)
         {
 
         }

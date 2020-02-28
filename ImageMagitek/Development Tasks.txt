@@ -1,7 +1,8 @@
-﻿Codec operations
-- Work to find increased orthogonality of methods
+﻿Improve and Simplify Generalized Codecs
+- Find increased orthogonality of methods
 - Flowtiles (?)
 - "Compiled" remap
+- Consider Iterator design for generic codecs
 - Direct decoding/encoding
 - Separate GeneralGraphicsCodec into IDirectGraphicsCodec and IIndexedGraphicsCodec versions
 - Implement flip/rotation functionality as post-decode, pre-encode steps
@@ -21,19 +22,21 @@ Error handling
 - Better error handling for serializers
 
 Documentation
-- Clean up code documentation between element and pixel coordinates
+x Clean up code documentation between element and pixel coordinates
 
 Project
-- Implement renaming/moving logic
+x Implement renaming/moving logic
 
 Refactors
 x ArrangerElement - Change to immutable, restrict access to Arranger.SetElement so that the Arranger can enforce rules
-- Followup ArrangerElement - Change to readonly struct
-- Move ImageLayout from Codecs to Arranger
-- Remove Arranger from ArrangerMode enum items
+x Followup ArrangerElement - Change to readonly struct
+x Move ImageLayout from Codecs to Arranger
+x Remove Arranger from ArrangerMode enum items
+- Require PixelColorType on arranger construction and enforce ArrangerElements
 
 Tests
 - Graphics encoder/decoder tests
+- Arranger/Image copy tests
 
 File reading
 - ReadUnshifted can crash during unaligned reads (reading too much data).
@@ -42,6 +45,4 @@ File reading
 
 Bugs
 - ReadUnshifted can crash during unaligned reads (reading too much data). Will need to fix as well as implement ReadShifted for non-byte sized elements.
-- CodecFactory / GeneralGraphicsCodec does not resize RowExtendedPixelPattern (tested via PSX 8bpp XML codec)
-- Fix palette within PixelEditorViewModel to limit available colors for default palettes
 - Fix XML reader from silently failing when reading <arranger> nodes with inconsistent element counts

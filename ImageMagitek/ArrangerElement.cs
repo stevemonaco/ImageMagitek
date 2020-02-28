@@ -90,6 +90,9 @@ namespace ImageMagitek
         public ArrangerElement WithAddress(FileBitAddress address) =>
             new ArrangerElement(X1, Y1, DataFile, address, Codec, Palette);
 
+        public ArrangerElement WithCodec(IGraphicsCodec codec) =>
+            new ArrangerElement(X1, Y1, DataFile, FileAddress, codec, Palette);
+
         public ArrangerElement WithCodec(IGraphicsCodec codec, int x1, int y1) =>
             new ArrangerElement(x1, y1, DataFile, FileAddress, codec, Palette);
 

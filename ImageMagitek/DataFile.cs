@@ -38,6 +38,12 @@ namespace ImageMagitek
             });
         }
 
+        public DataFile(string name, Stream stream)
+        {
+            Name = name;
+            _stream = new Lazy<Stream>(() => stream);
+        }
+
         public void Close()
         {
             if (Stream != null)

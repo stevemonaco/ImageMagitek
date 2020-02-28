@@ -123,7 +123,7 @@ namespace ImageMagitek
         protected abstract Arranger CloneArrangerCore(int posX, int posY, int width, int height);
 
         /// <summary>
-        /// Sets Element to a position in the Arranger ElementGrid using a shallow copy
+        /// Sets Element to a position in the Arranger ElementGrid
         /// </summary>
         /// <param name="element">Element to be placed into the ElementGrid</param>
         /// <param name="posX">x-coordinate in Element coordinates</param>
@@ -133,14 +133,15 @@ namespace ImageMagitek
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(SetElement)} property '{nameof(ElementGrid)}' was null");
 
-            if (posX > ArrangerElementSize.Width || posY > ArrangerElementSize.Height)
+            if (posX >= ArrangerElementSize.Width || posY >= ArrangerElementSize.Height)
                 throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({posX}, {posY})");
 
             if (element.Codec != null)
                 if (element.Codec.ColorType != ColorType)
                     throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' did not match the Arranger's {nameof(PixelColorType)}");
 
-            ElementGrid[posX, posY] = element;
+            var relocatedElement = element.WithLocation(posX * ElementPixelSize.Width, posY * ElementPixelSize.Height);
+            ElementGrid[posX, posY] = relocatedElement;
         }
 
         /// <summary>
@@ -180,11 +181,23 @@ namespace ImageMagitek
         /// Returns the enumeration of all Elements in the grid in a left-to-right, row-by-row order
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<ArrangerElement> EnumerateElements()
+        public IEnumerable<ArrangerElement> EnumerateElements() =>
+            EnumerateElements(0, 0, ArrangerElementSize.Width, ArrangerElementSize.Height);
+        //{
+        //    for (int y = 0; y < ArrangerElementSize.Height; y++)
+        //        for (int x = 0; x < ArrangerElementSize.Width; x++)
+        //            yield return ElementGrid[x, y];
+        //}
+
+        /// <summary>
+        /// Returns the enumeration of a subsection of Elements in the grid in a left-to-right, row-by-row order
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<ArrangerElement> EnumerateElements(int posX, int posY, int width, int height)
         {
-            for (int y = 0; y < ArrangerElementSize.Height; y++)
-                for (int x = 0; x < ArrangerElementSize.Width; x++)
-                    yield return ElementGrid[x, y];
+            for (int y = 0; y < height; y++)
+                for (int x = 0; x < width; x++)
+                    yield return ElementGrid[x+posX, y+posY];
         }
 
         /// <summary>
