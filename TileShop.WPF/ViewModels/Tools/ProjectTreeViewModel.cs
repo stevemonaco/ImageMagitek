@@ -16,7 +16,7 @@ using System.Windows;
 namespace TileShop.WPF.ViewModels
 {
     public class ProjectTreeViewModel : ToolViewModel, IDropTarget, 
-        IHandle<AddDataFileEvent>, IHandle<AddPaletteEvent>
+        IHandle<AddDataFileEvent>, IHandle<AddPaletteEvent>, IHandle<AddScatteredArrangerEvent>
     {
         private IProjectTreeService _treeService;
         private IEventAggregator _events;
@@ -134,6 +134,23 @@ namespace TileShop.WPF.ViewModels
 
                 var node = _treeService.AddResource(pal);
                 var nodeVm = new DataFileNodeViewModel(node);
+                ProjectRoot.First().Children.Add(nodeVm);
+                IsModified = true;
+            }
+        }
+
+        public void Handle(AddScatteredArrangerEvent message)
+        {
+            var model = new AddScatteredArrangerViewModel();
+
+            if (_windowManager.ShowDialog(model) is true)
+            {
+                var arranger = new ScatteredArranger(model.ArrangerName, model.ColorType, 
+                    model.Layout, model.ArrangerElementWidth, model.ArrangerElementHeight, 
+                    model.ElementPixelWidth, model.ElementPixelHeight);
+
+                var node = _treeService.AddResource(arranger);
+                var nodeVm = new ArrangerNodeViewModel(node);
                 ProjectRoot.First().Children.Add(nodeVm);
                 IsModified = true;
             }
