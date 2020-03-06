@@ -13,6 +13,7 @@ namespace ImageMagitek.UnitTests
         ScatteredArranger sourceIndexed;
         DataFile df;
 
+        [OneTimeSetUp]
         public void Setup()
         {
             df = new DataFile("sourceDataFile", new MemoryStream());
