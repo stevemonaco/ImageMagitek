@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Collections.Generic;
 using ImageMagitek.Project;
+using ImageMagitek.Codec;
 
 namespace ImageMagitek
 {
@@ -35,6 +36,12 @@ namespace ImageMagitek
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
             ElementPixelSize = new Size(elementWidth, elementHeight);
 
+            IGraphicsCodec codec = null;
+            if (colorType == PixelColorType.Direct)
+                codec = new BlankDirectCodec();
+            else if (colorType == PixelColorType.Indexed)
+                codec = new BlankIndexedCodec();
+
             int elY = 0;
 
             for (int posY = 0; posY < arrangerHeight; posY++)
@@ -42,7 +49,7 @@ namespace ImageMagitek
                 int elX = 0;
                 for (int posX = 0; posX < arrangerWidth; posX++)
                 {
-                    var el = new ArrangerElement(elX, elY, null, 0, null, null);
+                    var el = new ArrangerElement(elX, elY, null, 0, codec, null);
                     SetElement(el, posX, posY);
 
                     elX += elementWidth;

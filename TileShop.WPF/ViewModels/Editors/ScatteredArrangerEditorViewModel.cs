@@ -6,7 +6,6 @@ using GongSolutions.Wpf.DragDrop;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using TileShop.Shared.Services;
-using TileShop.WPF.Helpers;
 using TileShop.WPF.Imaging;
 using TileShop.WPF.Models;
 using TileShop.WPF.Behaviors;
@@ -14,10 +13,6 @@ using TileShop.Shared.Models;
 
 namespace TileShop.WPF.ViewModels
 {
-    public enum EditMode { ArrangeGraphics, ModifyGraphics }
-
-    public enum DropCopyMode { Elements, Pixels }
-
     public enum ScatteredArrangerTool { Select, ApplyPalette, PickPalette }
 
     public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel, IDropTarget, IDragSource
@@ -51,40 +46,37 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private DropCopyMode _dropCopy = DropCopyMode.Elements;
-        public DropCopyMode DropCopy
-        {
-            get => _dropCopy;
-            set => SetAndNotify(ref _dropCopy, value);
-        }
-
         public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events) : this(arranger, events, null) { }
 
         public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IPaletteService paletteService)
         {
             Resource = arranger;
-            _arranger = arranger;
             _events = events;
             _paletteService = paletteService;
             _defaultPalette = _paletteService?.DefaultPalette;
+
+            _workingArranger = arranger.CloneArranger();
 
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
             RenderArranger();
             CreateGridlines();
 
-            if (arranger.Layout == ArrangerLayout.Tiled)
-            {
-                Selection = new ArrangerSelectionRegion(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Element);
-                DropCopy = DropCopyMode.Elements;
-            }
-            else if (arranger.Layout == ArrangerLayout.Single)
-            {
-                Selection = new ArrangerSelectionRegion(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
-                DropCopy = DropCopyMode.Pixels;
-            }
+            Overlay = new ArrangerOverlay();
 
-            var arrangerPalettes = _arranger.GetReferencedPalettes().OrderBy(x => x.Name).ToList();
+            //Paste = new ArrangerPaste();
+            //if (arranger.Layout == ArrangerLayout.Tiled)
+            //{
+            //    Selection = new ArrangerSelectionRegion(_workingArranger.ArrangerPixelSize, _workingArranger.ElementPixelSize, SnapMode.Element);
+            //    Paste.PasteMode = PasteMode.Elements;
+            //}
+            //else if (arranger.Layout == ArrangerLayout.Single)
+            //{
+            //    Selection = new ArrangerSelectionRegion(_workingArranger.ArrangerPixelSize, _workingArranger.ElementPixelSize, SnapMode.Pixel);
+            //    Paste.PasteMode = PasteMode.Pixels;
+            //}
+
+            var arrangerPalettes = _workingArranger.GetReferencedPalettes().OrderBy(x => x.Name).ToList();
             arrangerPalettes.Add(_defaultPalette);
             Palettes = new BindableCollection<PaletteModel>(arrangerPalettes.Select(x => new PaletteModel(x)));
             ActivePalette = Palettes.First();
@@ -96,12 +88,18 @@ namespace TileShop.WPF.ViewModels
 
         public override void SaveChanges()
         {
-            throw new NotImplementedException();
+            if (_workingArranger.ColorType == PixelColorType.Indexed)
+                _indexedImage.SaveImage();
+            else if (_workingArranger.ColorType == PixelColorType.Direct)
+                _directImage.SaveImage();
+
+            // TODO: Save _workingArranger elements to project tree
         }
 
         public override void DiscardChanges()
         {
-            throw new NotImplementedException();
+            _workingArranger = (Resource as Arranger).CloneArranger();
+            RenderArranger();
         }
 
         public override void OnMouseDown(object sender, MouseCaptureArgs e)
@@ -130,28 +128,28 @@ namespace TileShop.WPF.ViewModels
 
         private void RenderArranger()
         {
-            if (_arranger.ColorType == PixelColorType.Indexed)
+            if (_workingArranger.ColorType == PixelColorType.Indexed)
             {
-                _indexedImage = new IndexedImage(_arranger);
-                ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, _defaultPalette);
+                _indexedImage = new IndexedImage(_workingArranger);
+                ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, _defaultPalette);
             }
-            else if (_arranger.ColorType == PixelColorType.Direct)
+            else if (_workingArranger.ColorType == PixelColorType.Direct)
             {
 
-                _directImage = new DirectImage(_arranger);
+                _directImage = new DirectImage(_workingArranger);
                 ArrangerSource = new DirectImageSource(_directImage);
             }
         }
 
         private bool TryApplyPalette(int pixelX, int pixelY, Palette palette)
         {
-            var elX = pixelX / _arranger.ElementPixelSize.Width;
-            var elY = pixelY / _arranger.ElementPixelSize.Height;
+            var elX = pixelX / _workingArranger.ElementPixelSize.Width;
+            var elY = pixelY / _workingArranger.ElementPixelSize.Height;
 
-            if (elX >= _arranger.ArrangerElementSize.Width || elY >= _arranger.ArrangerElementSize.Height)
+            if (elX >= _workingArranger.ArrangerElementSize.Width || elY >= _workingArranger.ArrangerElementSize.Height)
                 return false;
 
-            var el = _arranger.GetElement(elX, elY);
+            var el = _workingArranger.GetElement(elX, elY);
 
             if (ReferenceEquals(palette, el.Palette))
                 return false;
@@ -161,7 +159,10 @@ namespace TileShop.WPF.ViewModels
             else
                 el = el.WithPalette(palette);
 
-            _arranger.SetElement(el, elX, elY);
+            if (_workingArranger.GetElement(elX, elY).Palette == el.Palette)
+                return false;
+
+            _workingArranger.SetElement(el, elX, elY);
             RenderArranger();
             IsModified = true;
 
@@ -170,34 +171,23 @@ namespace TileShop.WPF.ViewModels
 
         private bool TryPickPalette(int pixelX, int pixelY)
         {
-            var elX = pixelX / _arranger.ElementPixelSize.Width;
-            var elY = pixelY / _arranger.ElementPixelSize.Height;
+            var elX = pixelX / _workingArranger.ElementPixelSize.Width;
+            var elY = pixelY / _workingArranger.ElementPixelSize.Height;
 
-            if (elX >= _arranger.ArrangerElementSize.Width || elY >= _arranger.ArrangerElementSize.Height)
+            if (elX >= _workingArranger.ArrangerElementSize.Width || elY >= _workingArranger.ArrangerElementSize.Height)
                 return false;
 
-            var el = _arranger.GetElement(elX, elY);
+            var el = _workingArranger.GetElement(elX, elY);
 
             ActivePalette = Palettes.FirstOrDefault(x => ReferenceEquals(el.Palette, x.Palette)) ?? Palettes.First(x => ReferenceEquals(_defaultPalette, x.Palette));
             return true;
         }
 
-        public void DragOver(IDropInfo dropInfo)
+        public override bool CanAcceptTransfer(ArrangerTransferModel model)
         {
-            if (dropInfo.Data is ArrangerTransferModel model)
-            {
-                if (CanAcceptTransfer(model))
-                {
-                    dropInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
-                    dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
-                }
-            }
-        }
-
-        public bool CanAcceptTransfer(ArrangerTransferModel model)
-        {
-            bool canAccept = false;
-            bool isCompatibleSize = false;
+            return true;
+            //bool canAccept = false;
+            //bool isCompatibleSize = false;
 
             // Source must fit onto the target
             //if (model.Arranger.Layout == ArrangerLayout.Single)
@@ -237,24 +227,7 @@ namespace TileShop.WPF.ViewModels
             //    if (model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize)
             //}
 
-            return canAccept;
+            //return canAccept;
         }
-
-        public void Drop(IDropInfo dropInfo)
-        {
-        }
-
-        public void StartDrag(IDragInfo dragInfo)
-        {
-            var transferModel = new ArrangerTransferModel(_arranger, Selection.SnappedX1, Selection.SnappedY1, Selection.SnappedWidth, Selection.SnappedHeight);
-            dragInfo.Data = transferModel;
-            dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
-        }
-
-        public bool CanStartDrag(IDragInfo dragInfo) => true;
-        public void Dropped(IDropInfo dropInfo) { }
-        public void DragDropOperationFinished(DragDropEffects operationResult, IDragInfo dragInfo) { }
-        public void DragCancelled() { }
-        public bool TryCatchOccurredException(Exception exception) => false;
     }
 }

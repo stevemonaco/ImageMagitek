@@ -161,6 +161,9 @@ namespace TileShop.WPF.ViewModels
             var sourceNode = (dropInfo.Data as TreeNodeViewModel)?.Node;
             var targetNode = (dropInfo.TargetItem as FolderNodeViewModel)?.Node;
 
+            if (sourceNode is null || targetNode is null)
+                return;
+
             if (_treeService.CanMoveNode(sourceNode, targetNode))
             {
                 dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;

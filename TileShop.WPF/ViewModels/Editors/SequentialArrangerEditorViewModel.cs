@@ -103,35 +103,37 @@ namespace TileShop.WPF.ViewModels
         public SequentialArrangerEditorViewModel(SequentialArranger arranger, IEventAggregator events, ICodecService codecService, IPaletteService paletteService)
         {
             Resource = arranger;
-            _arranger = arranger;
+            _workingArranger = arranger;
             _events = events;
             _codecService = codecService;
             _paletteService = paletteService;
 
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
-            if (_arranger.ColorType == PixelColorType.Indexed)
-                _indexedImage = new IndexedImage(_arranger, null);
-            else if (_arranger.ColorType == PixelColorType.Direct)
-                _directImage = new DirectImage(_arranger);
+            if (_workingArranger.ColorType == PixelColorType.Indexed)
+                _indexedImage = new IndexedImage(_workingArranger, null);
+            else if (_workingArranger.ColorType == PixelColorType.Direct)
+                _directImage = new DirectImage(_workingArranger);
 
             foreach (var name in codecService.GetSupportedCodecNames().OrderBy(x => x))
                 CodecNames.Add(name);
             _selectedCodecName = arranger.ActiveCodec.Name;
 
-            if(arranger.Layout == ArrangerLayout.Tiled)
+            Overlay = new ArrangerOverlay();
+
+            if (arranger.Layout == ArrangerLayout.Tiled)
             {
                 _tiledElementWidth = arranger.ElementPixelSize.Width;
                 _tiledElementHeight = arranger.ElementPixelSize.Height;
                 _tiledArrangerHeight = arranger.ArrangerElementSize.Height;
                 _tiledArrangerWidth = arranger.ArrangerElementSize.Width;
-                Selection = new ArrangerSelectionRegion(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Element);
+                //Selection = new ArrangerSelectionRegion(_workingArranger.ArrangerPixelSize, _workingArranger.ElementPixelSize, SnapMode.Element);
             }
             else if(arranger.Layout == ArrangerLayout.Single)
             {
                 _linearArrangerHeight = arranger.ArrangerPixelSize.Height;
                 _linearArrangerWidth = arranger.ArrangerPixelSize.Width;
-                Selection = new ArrangerSelectionRegion(_arranger.ArrangerPixelSize, _arranger.ElementPixelSize, SnapMode.Pixel);
+                //Selection = new ArrangerSelectionRegion(_workingArranger.ArrangerPixelSize, _workingArranger.ElementPixelSize, SnapMode.Pixel);
             }
 
             Render();
@@ -191,8 +193,8 @@ namespace TileShop.WPF.ViewModels
 
         private void Move(ArrangerMoveType moveType)
         {
-            var oldAddress = (_arranger as SequentialArranger).GetInitialSequentialFileAddress();
-            _address = (_arranger as SequentialArranger).Move(moveType);
+            var oldAddress = (_workingArranger as SequentialArranger).GetInitialSequentialFileAddress();
+            _address = (_workingArranger as SequentialArranger).Move(moveType);
 
             if (oldAddress != _address)
                 Render();
@@ -207,15 +209,15 @@ namespace TileShop.WPF.ViewModels
             if (arrangerWidth <= 0 || arrangerHeight <= 0)
                 return;
 
-            if (arrangerWidth == _arranger.ArrangerElementSize.Width && 
-                arrangerHeight == _arranger.ArrangerElementSize.Height && IsTiledLayout)
+            if (arrangerWidth == _workingArranger.ArrangerElementSize.Width && 
+                arrangerHeight == _workingArranger.ArrangerElementSize.Height && IsTiledLayout)
                 return;
 
-            if (arrangerWidth == _arranger.ArrangerPixelSize.Width &&
-                arrangerHeight == _arranger.ArrangerPixelSize.Height && IsLinearLayout)
+            if (arrangerWidth == _workingArranger.ArrangerPixelSize.Width &&
+                arrangerHeight == _workingArranger.ArrangerPixelSize.Height && IsLinearLayout)
                 return;
 
-            (_arranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
+            (_workingArranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
             Render();
         }
 
@@ -224,15 +226,15 @@ namespace TileShop.WPF.ViewModels
             var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName);
             if (codec.Layout == ImageMagitek.Codec.ImageLayout.Tiled)
             {
-                _arranger.Resize(TiledArrangerWidth, TiledArrangerHeight);
+                _workingArranger.Resize(TiledArrangerWidth, TiledArrangerHeight);
                 codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, TiledElementWidth, TiledElementHeight);
-                (_arranger as SequentialArranger).ChangeCodec(codec);
+                (_workingArranger as SequentialArranger).ChangeCodec(codec);
             }
             else if (codec.Layout == ImageMagitek.Codec.ImageLayout.Single)
             {
-                _arranger.Resize(1, 1);
+                _workingArranger.Resize(1, 1);
                 codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, LinearArrangerWidth, LinearArrangerHeight);
-                (_arranger as SequentialArranger).ChangeCodec(codec);
+                (_workingArranger as SequentialArranger).ChangeCodec(codec);
             }
 
             Render();
@@ -244,7 +246,7 @@ namespace TileShop.WPF.ViewModels
         private void ChangeCodecDimensions(int width, int height)
         {
             var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, width, height);
-            (_arranger as SequentialArranger).ChangeCodec(codec);
+            (_workingArranger as SequentialArranger).ChangeCodec(codec);
             Render();
         }
 
@@ -252,12 +254,12 @@ namespace TileShop.WPF.ViewModels
         {
             CancelSelection();
 
-            if (_arranger.ColorType == PixelColorType.Indexed)
+            if (_workingArranger.ColorType == PixelColorType.Indexed)
             {
                 _indexedImage.Render();
-                ArrangerSource = new IndexedImageSource(_indexedImage, _arranger, _paletteService.DefaultPalette);
+                ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, _paletteService.DefaultPalette);
             }
-            else if (_arranger.ColorType == PixelColorType.Direct)
+            else if (_workingArranger.ColorType == PixelColorType.Direct)
             {
                 _directImage.Render();
                 ArrangerSource = new DirectImageSource(_directImage);
@@ -266,18 +268,18 @@ namespace TileShop.WPF.ViewModels
 
         public override void OnMouseMove(object sender, MouseCaptureArgs e)
         {
-            if (Selection.IsSelecting)
-                Selection.UpdateSelection(e.X / Zoom, e.Y / Zoom);
-
-            if (Selection.HasSelection)
+            if (Overlay.State == OverlayState.Selecting)
+                Overlay.UpdateSelectionEndPoint(e.X / Zoom, e.Y / Zoom);
+            else if (Overlay.State == OverlayState.Selecting || Overlay.State == OverlayState.Selected)
             {
                 string notifyMessage;
-                if (Selection.SnapMode == SnapMode.Element)
-                    notifyMessage = $"Element Selection: {Selection.SnappedWidth / _arranger.ElementPixelSize.Width} x {Selection.SnappedHeight / _arranger.ElementPixelSize.Height}" +
-                        $" at ({Selection.SnappedX1 / _arranger.ElementPixelSize.Width}, {Selection.SnappedY1 / _arranger.ElementPixelSize.Height})";
+                var rect = Overlay.SelectionRect;
+                if (rect.SnapMode == SnapMode.Element)
+                    notifyMessage = $"Element Selection: {rect.SnappedWidth / _workingArranger.ElementPixelSize.Width} x {rect.SnappedHeight / _workingArranger.ElementPixelSize.Height}" +
+                        $" at ({rect.SnappedLeft / _workingArranger.ElementPixelSize.Width}, {rect.SnappedRight / _workingArranger.ElementPixelSize.Height})";
                 else
-                    notifyMessage = $"Pixel Selection: {Selection.SnappedWidth} x {Selection.SnappedHeight}" +
-                        $" at ({Selection.SnappedX1} x {Selection.SnappedY1})";
+                    notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight}" +
+                        $" at ({rect.SnappedLeft} x {rect.SnappedTop})";
                 var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
                 _events.PublishOnUIThread(notifyEvent);
             }
@@ -287,6 +289,29 @@ namespace TileShop.WPF.ViewModels
                 var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
                 _events.PublishOnUIThread(notifyEvent);
             }
+
+
+            //if (Selection.IsSelecting)
+            //    Selection.UpdateSelection(e.X / Zoom, e.Y / Zoom);
+
+            //if (Selection.HasSelection)
+            //{
+            //    string notifyMessage;
+            //    if (Selection.SnapMode == SnapMode.Element)
+            //        notifyMessage = $"Element Selection: {Selection.SnappedWidth / _workingArranger.ElementPixelSize.Width} x {Selection.SnappedHeight / _workingArranger.ElementPixelSize.Height}" +
+            //            $" at ({Selection.SnappedX1 / _workingArranger.ElementPixelSize.Width}, {Selection.SnappedY1 / _workingArranger.ElementPixelSize.Height})";
+            //    else
+            //        notifyMessage = $"Pixel Selection: {Selection.SnappedWidth} x {Selection.SnappedHeight}" +
+            //            $" at ({Selection.SnappedX1} x {Selection.SnappedY1})";
+            //    var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+            //    _events.PublishOnUIThread(notifyEvent);
+            //}
+            //else
+            //{
+            //    string notifyMessage = $"File Offset: 0x{_address.FileOffset:X} ({(int)Math.Round(e.X / Zoom)}, {(int)Math.Round(e.Y / Zoom)})";
+            //    var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+            //    _events.PublishOnUIThread(notifyEvent);
+            //}
         }
     }
 }

@@ -192,12 +192,37 @@ namespace ImageMagitek
         /// <summary>
         /// Returns the enumeration of a subsection of Elements in the grid in a left-to-right, row-by-row order
         /// </summary>
+        /// <param name="elemX">Starting x-coordinate in element coordinates</param>
+        /// <param name="elemY">Starting y-coordinate in element coordinates</param>
+        /// <param name="width">Number of elements to enumerate in x-direction</param>
+        /// <param name="height">Number of elements to enumerate in y-direction</param>
         /// <returns></returns>
-        public IEnumerable<ArrangerElement> EnumerateElements(int posX, int posY, int width, int height)
+        public IEnumerable<ArrangerElement> EnumerateElements(int elemX, int elemY, int width, int height)
         {
             for (int y = 0; y < height; y++)
                 for (int x = 0; x < width; x++)
-                    yield return ElementGrid[x+posX, y+posY];
+                    yield return ElementGrid[x+elemX, y+elemY];
+        }
+
+        /// <summary>
+        /// Returns the enumeration of a subsection of Elements in the grid in a left-to-right, row-by-row order
+        /// </summary>
+        /// <param name="x">Starting x-coordinate in pixel coordinates</param>
+        /// <param name="y">Starting y-coordinate in pixel coordinates</param>
+        /// <param name="width">Width of range in pixels</param>
+        /// <param name="height">Height of range in pixels</param>
+        /// <returns></returns>
+        public IEnumerable<ArrangerElement> EnumerateElementsByPixel(int pixelX, int pixelY, int width, int height)
+        {
+            for (int y = 0; y < ArrangerElementSize.Height; y++)
+            {
+                for (int x = 0; x < ArrangerElementSize.Width; x++)
+                {
+                    var el = GetElement(x, y);
+                    if (pixelX >= el.X1 && (pixelX + width) >= el.X2 && pixelY >= el.Y1 && (pixelY + height) >= el.Y2)
+                        yield return el;
+                }
+            }
         }
 
         /// <summary>

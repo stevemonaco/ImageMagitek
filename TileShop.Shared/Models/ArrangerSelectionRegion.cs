@@ -7,8 +7,6 @@ using System.Text;
 
 namespace TileShop.Shared.Models
 {
-    public enum SnapMode { Element, Pixel }
-
     public class ArrangerSelectionRegion : INotifyPropertyChanged
     {
         private double _x1;
@@ -21,7 +19,7 @@ namespace TileShop.Shared.Models
 
         private int _snappedX1;
         /// <summary>
-        /// Left edge of selection in element/pixel coordinates, depending on SnapMode
+        /// Left edge of selection in pixel coordinates
         /// </summary>
         public int SnappedX1
         {
@@ -31,7 +29,7 @@ namespace TileShop.Shared.Models
 
         private int _snappedX2;
         /// <summary>
-        /// Right edge of selection in element/pixel coordinates, depending on SnapMode
+        /// Right edge of selection in pixel coordinates
         /// </summary>
         public int SnappedX2
         {
@@ -41,7 +39,7 @@ namespace TileShop.Shared.Models
 
         private int _snappedY1;
         /// <summary>
-        /// Top edge of selection in element/pixel coordinates, depending on SnapMode
+        /// Top edge of selection in pixel coordinates
         /// </summary>
         public int SnappedY1
         {
@@ -51,7 +49,7 @@ namespace TileShop.Shared.Models
 
         private int _snappedY2;
         /// <summary>
-        /// Bottom edge of selection in element/pixel coordinates, depending on SnapMode
+        /// Bottom edge of selection in pixel coordinates
         /// </summary>
         public int SnappedY2
         {
@@ -60,7 +58,7 @@ namespace TileShop.Shared.Models
         }
 
         /// <summary>
-        /// Width of selection in element/pixel coordinates, depending on SnapMode
+        /// Width of selection in pixel coordinates
         /// </summary>
         public int SnappedWidth
         {
@@ -68,7 +66,7 @@ namespace TileShop.Shared.Models
         }
 
         /// <summary>
-        /// Height of selection in element/pixel coordinates, depending on SnapMode
+        /// Height of selection in pixel coordinates
         /// </summary>
         public int SnappedHeight
         {
@@ -140,8 +138,12 @@ namespace TileShop.Shared.Models
             HasSelection = false;
         }
 
-        public bool IsPointInSelection(double x, double y) =>
-            x >= SnappedX1 && x <= SnappedX2 && y >= SnappedY1 && y <= SnappedY2;
+        public bool IsPointInSelection(double x, double y)
+        {
+            if (HasSelection)
+                return (x >= SnappedX1) && (x <= SnappedX2) && (y >= SnappedY1) && (y <= SnappedY2);
+            return false;
+        }
 
         /// <summary>
         /// Update the end point for the selection
