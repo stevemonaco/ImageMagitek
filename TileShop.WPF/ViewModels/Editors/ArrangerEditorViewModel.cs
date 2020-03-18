@@ -251,12 +251,14 @@ namespace TileShop.WPF.ViewModels
 
         public virtual void Drop(IDropInfo dropInfo)
         {
-            Overlay.UpdatePastingStartPoint(dropInfo.DropPosition.X, dropInfo.DropPosition.Y);
-            Overlay.CompletePasting();
+            if (dropInfo.Data is ArrangerTransferModel)
+            {
+                Overlay.UpdatePastingStartPoint(dropInfo.DropPosition.X, dropInfo.DropPosition.Y, SnapMode);
+                Overlay.CompletePasting();
 
-            //Paste.SetDestinationStart(_workingArranger, (int)dropInfo.DropPosition.X, (int)dropInfo.DropPosition.Y);
-            //if (Paste.CanApply())
-            //    Paste.Apply();
+                //if (Paste.CanApply())
+                //    Paste.Apply();
+            }
         }
 
         public virtual void DragOver(IDropInfo dropInfo)
@@ -266,10 +268,10 @@ namespace TileShop.WPF.ViewModels
                 if (CanAcceptTransfer(model))
                 {
                     Overlay = new ArrangerOverlay();
+                    Overlay.StartSelection(model.Arranger, SnapMode.Pixel, model.X, model.Y);
+                    Overlay.UpdateSelectionEndPoint(model.X + model.Width, model.Y + model.Height);
+                    Overlay.CompleteSelection();
                     Overlay.StartPasting(_workingArranger, SnapMode, dropInfo.DropPosition.X, dropInfo.DropPosition.Y);
-
-                    //Paste.StartPaste(model.Arranger, model.X, model.Y, model.Width, model.Height);
-                    //Paste.SetDestinationStart(_workingArranger, (int)dropInfo.DropPosition.X, (int)dropInfo.DropPosition.Y);
 
                     dropInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
                     //dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;

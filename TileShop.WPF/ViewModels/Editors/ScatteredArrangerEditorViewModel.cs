@@ -64,18 +64,6 @@ namespace TileShop.WPF.ViewModels
 
             Overlay = new ArrangerOverlay();
 
-            //Paste = new ArrangerPaste();
-            //if (arranger.Layout == ArrangerLayout.Tiled)
-            //{
-            //    Selection = new ArrangerSelectionRegion(_workingArranger.ArrangerPixelSize, _workingArranger.ElementPixelSize, SnapMode.Element);
-            //    Paste.PasteMode = PasteMode.Elements;
-            //}
-            //else if (arranger.Layout == ArrangerLayout.Single)
-            //{
-            //    Selection = new ArrangerSelectionRegion(_workingArranger.ArrangerPixelSize, _workingArranger.ElementPixelSize, SnapMode.Pixel);
-            //    Paste.PasteMode = PasteMode.Pixels;
-            //}
-
             var arrangerPalettes = _workingArranger.GetReferencedPalettes().OrderBy(x => x.Name).ToList();
             arrangerPalettes.Add(_defaultPalette);
             Palettes = new BindableCollection<PaletteModel>(arrangerPalettes.Select(x => new PaletteModel(x)));

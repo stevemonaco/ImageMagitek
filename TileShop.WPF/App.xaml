@@ -30,6 +30,7 @@
                     <converters:SnapModeBooleanConverter x:Key="SnapModeBooleanConverter" />
                     <converters:ColorToSolidColorBrushConverter x:Key="ColorToSolidColorBrushConverter" />
                     <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
+                    <converters:OverlayStateVisibilityConverter x:Key="OverlayStateVisibilityConverter" />
                 </ResourceDictionary>
 
                 <ResourceDictionary Source="pack://application:,,,/Xceed.Wpf.AvalonDock.Themes.VS2013;component/LightTheme.xaml" />

@@ -8,6 +8,7 @@ using System.Text;
 namespace TileShop.Shared.Models
 {
     public enum SnapMode { Element, Pixel }
+    public enum ElementSnapRounding { Floor, Ceiling, Collapse, Expand }
     public class SnappedRectangle : INotifyPropertyChanged
     {
         private SnapMode _snapMode;
@@ -49,15 +50,7 @@ namespace TileShop.Shared.Models
             get => _left;
             set
             {
-                if (value > Right)
-                {
-                    SetField(ref _left, Right);
-                    SetField(ref _right, value);
-                }
-                else
-                {
-                    SetField(ref _left, value);
-                }
+                SetField(ref _left, value);
                 Snap();
             }
         }
@@ -68,15 +61,7 @@ namespace TileShop.Shared.Models
             get => _right;
             set
             {
-                if (value < Left)
-                {
-                    SetField(ref _right, Left);
-                    SetField(ref _left, value);
-                }
-                else
-                {
-                    SetField(ref _right, value);
-                }
+                SetField(ref _right, value);
                 Snap();
             }
         }
@@ -87,15 +72,7 @@ namespace TileShop.Shared.Models
             get => _top;
             set
             {
-                if (value > Bottom)
-                {
-                    SetField(ref _top, Bottom);
-                    SetField(ref _bottom, value);
-                }
-                else
-                {
-                    SetField(ref _top, value);
-                }
+                SetField(ref _top, value);
                 Snap();
             }
         }
@@ -106,15 +83,7 @@ namespace TileShop.Shared.Models
             get => _bottom;
             set
             {
-                if (value < Top)
-                {
-                    SetField(ref _bottom, Top);
-                    SetField(ref _top, value);
-                }
-                else
-                {
-                    SetField(ref _bottom, value);
-                }
+                SetField(ref _bottom, value);
                 Snap();
             }
         }
@@ -161,13 +130,16 @@ namespace TileShop.Shared.Models
             private set => SetField(ref _snappedHeight, value);
         }
 
+        public ElementSnapRounding SnapRounding { get; set; }
+
         public SnappedRectangle() : this(new Size(int.MaxValue, int.MaxValue), new Size(1, 1), SnapMode.Pixel) { }
 
-        public SnappedRectangle(Size maximumSize, Size elementSize, SnapMode snapMode)
+        public SnappedRectangle(Size maximumSize, Size elementSize, SnapMode snapMode, ElementSnapRounding snapRounding = ElementSnapRounding.Floor)
         {
             _maximumSize = maximumSize;
             _elementSize = elementSize;
             SnapMode = snapMode;
+            SnapRounding = snapRounding;
         }
 
         public void SetBounds(double left, double right, double top, double bottom)
@@ -233,10 +205,35 @@ namespace TileShop.Shared.Models
 
         private void SnapElements()
         {
-            SnappedLeft = (int)(Math.Floor(Math.Min(Left, Right) / _elementSize.Width) * _elementSize.Width);
-            SnappedRight = (int)(Math.Ceiling(Math.Max(Left, Right) / _elementSize.Width) * _elementSize.Width);
-            SnappedTop = (int)(Math.Floor(Math.Min(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
-            SnappedBottom = (int)(Math.Ceiling(Math.Max(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
+            if (SnapRounding == ElementSnapRounding.Floor)
+            {
+                SnappedLeft = (int)(Math.Floor(Math.Min(Left, Right) / _elementSize.Width) * _elementSize.Width);
+                SnappedRight = (int)(Math.Floor(Math.Max(Left, Right) / _elementSize.Width) * _elementSize.Width);
+                SnappedTop = (int)(Math.Floor(Math.Min(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
+                SnappedBottom = (int)(Math.Floor(Math.Max(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
+            }
+            else if (SnapRounding == ElementSnapRounding.Ceiling)
+            {
+                SnappedLeft = (int)(Math.Ceiling(Math.Min(Left, Right) / _elementSize.Width) * _elementSize.Width);
+                SnappedRight = (int)(Math.Ceiling(Math.Max(Left, Right) / _elementSize.Width) * _elementSize.Width);
+                SnappedTop = (int)(Math.Ceiling(Math.Min(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
+                SnappedBottom = (int)(Math.Ceiling(Math.Max(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
+            }
+            if (SnapRounding == ElementSnapRounding.Collapse)
+            {
+                SnappedLeft = (int)(Math.Ceiling(Math.Min(Left, Right) / _elementSize.Width) * _elementSize.Width);
+                SnappedRight = (int)(Math.Floor(Math.Max(Left, Right) / _elementSize.Width) * _elementSize.Width);
+                SnappedTop = (int)(Math.Ceiling(Math.Min(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
+                SnappedBottom = (int)(Math.Floor(Math.Max(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
+            }
+            else if (SnapRounding == ElementSnapRounding.Expand)
+            {
+                SnappedLeft = (int)(Math.Floor(Math.Min(Left, Right) / _elementSize.Width) * _elementSize.Width);
+                SnappedRight = (int)(Math.Ceiling(Math.Max(Left, Right) / _elementSize.Width) * _elementSize.Width);
+                SnappedTop = (int)(Math.Floor(Math.Min(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
+                SnappedBottom = (int)(Math.Ceiling(Math.Max(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
+            }
+
             SnappedWidth = SnappedRight - SnappedLeft;
             SnappedHeight = SnappedBottom - SnappedTop;
         }

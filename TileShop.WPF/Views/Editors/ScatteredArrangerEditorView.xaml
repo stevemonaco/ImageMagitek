@@ -149,7 +149,18 @@
                         Fill="{StaticResource editSelectionFillBrush}"
                         Stroke="Black"
                         StrokeDashArray="3 2"
-                        StrokeThickness="0.3" />
+                        StrokeThickness="0.3"
+                        Visibility="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Selection}" />
+                    <Rectangle
+                        Canvas.Left="{Binding Overlay.PasteRect.SnappedLeft}"
+                        Canvas.Top="{Binding Overlay.PasteRect.SnappedTop}"
+                        Width="{Binding Overlay.PasteRect.SnappedWidth}"
+                        Height="{Binding Overlay.PasteRect.SnappedHeight}"
+                        Fill="{StaticResource pasteSelectionFillBrush}"
+                        Stroke="Black"
+                        StrokeDashArray="3 2"
+                        StrokeThickness="0.3"
+                        Visibility="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Paste}" />
                 </Canvas>
 
                 <!--  Gridline Overlay  -->

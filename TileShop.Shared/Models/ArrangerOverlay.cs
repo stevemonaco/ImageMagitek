@@ -1,4 +1,5 @@
 ﻿using ImageMagitek;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -44,7 +45,7 @@ namespace TileShop.Shared.Models
             _copyArranger = copyArranger;
             State = OverlayState.Selecting;
 
-            SelectionRect = new SnappedRectangle(_copyArranger.ArrangerPixelSize, _copyArranger.ElementPixelSize, snapMode);
+            SelectionRect = new SnappedRectangle(_copyArranger.ArrangerPixelSize, _copyArranger.ElementPixelSize, snapMode, ElementSnapRounding.Expand);
             SelectionRect.SetBounds(x, x, y, y);
         }
 
@@ -87,23 +88,17 @@ namespace TileShop.Shared.Models
             {
                 _pasteArranger = pasteArranger;
                 State = OverlayState.Pasting;
-
-                PasteRect = new SnappedRectangle(_pasteArranger.ArrangerPixelSize, _pasteArranger.ArrangerElementSize, snapMode);
-                PasteRect.Left = x;
-                PasteRect.Right = x;
-                PasteRect.Right = x + SelectionRect.SnappedWidth;
-                PasteRect.Bottom = y + SelectionRect.SnappedHeight;
+                PasteRect = new SnappedRectangle(_pasteArranger.ArrangerPixelSize, _pasteArranger.ElementPixelSize, snapMode, ElementSnapRounding.Floor);
+                PasteRect.SetBounds(x, x + SelectionRect.SnappedWidth, y, y + SelectionRect.SnappedHeight);
             }
         }
 
-        public void UpdatePastingStartPoint(double x, double y)
+        public void UpdatePastingStartPoint(double x, double y, SnapMode snapMode)
         {
             if (State == OverlayState.Pasting)
             {
-                PasteRect.Left = x;
-                PasteRect.Top = y;
-                PasteRect.Right = x + SelectionRect.SnappedWidth;
-                PasteRect.Bottom = y + SelectionRect.SnappedHeight;
+                PasteRect.SnapMode = snapMode;
+                PasteRect.SetBounds(x, x + SelectionRect.SnappedWidth, y, y + SelectionRect.SnappedHeight);
             }
         }
 

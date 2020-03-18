@@ -17,19 +17,19 @@ namespace TileShop.Shared.Models
         public Arranger Arranger { get; set; }
 
         /// <summary>
-        /// Left edge of arranger in elements/pixels
+        /// Left edge of arranger in pixels
         /// </summary>
         public int X { get; set; }
         /// <summary>
-        /// Top edge of arranger in elements/pixels
+        /// Top edge of arranger in pixels
         /// </summary>
         public int Y { get; set; }
         /// <summary>
-        /// Width of arranger in elements/pixels
+        /// Width of arranger in pixels
         /// </summary>
         public int Width { get; set; }
         /// <summary>
-        /// Height of arranger in elements/pixels
+        /// Height of arranger in pixels
         /// </summary>
         public int Height { get; set; }
 
@@ -39,10 +39,10 @@ namespace TileShop.Shared.Models
         /// Model to transfer a subsection of an Arranger
         /// </summary>
         /// <param name="arranger">Arranger to be copied from</param>
-        /// <param name="x">Left edge of arranger in elements/pixels</param>
-        /// <param name="y">Top edge of arranger in elements/pixels</param>
-        /// <param name="width">Width of arranger in elements/pixels</param>
-        /// <param name="height">Height of arranger in elements/pixels</param>
+        /// <param name="x">Left edge of arranger in pixels</param>
+        /// <param name="y">Top edge of arranger in pixels</param>
+        /// <param name="width">Width of arranger in pixels</param>
+        /// <param name="height">Height of arranger in pixels</param>
         public ArrangerTransferModel(Arranger arranger, int x, int y, int width, int height)
         {
             Arranger = arranger;
