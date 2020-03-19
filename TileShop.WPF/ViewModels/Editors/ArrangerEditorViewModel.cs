@@ -242,12 +242,13 @@ namespace TileShop.WPF.ViewModels
             {
                 // Start drag for selection
             }
-            else if (Overlay.State == OverlayState.Pasting || Overlay.State == OverlayState.Pasted && 
+            else if ((Overlay.State == OverlayState.Pasting || Overlay.State == OverlayState.Pasted) && 
                 e.LeftButton && Overlay.PasteRect.ContainsPointSnapped(e.X / Zoom, e.Y / Zoom))
             {
                 // Start drag for paste
             }
-            else if (Overlay.State == OverlayState.Selected && e.RightButton)
+            else if ((Overlay.State == OverlayState.Selected || Overlay.State == OverlayState.Pasted || Overlay.State == OverlayState.Pasting) && 
+                e.RightButton)
             {
                 CancelOverlay();
                 NotifyOfPropertyChange(() => CanEditSelection);
