@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="Monaco.PathTree" Version="0.2.2" />
-    <PackageReference Include="morelinq" Version="3.1.1" />
+    <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="OneOf" Version="2.1.151" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />

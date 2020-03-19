@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using TileShop.WPF.ViewModels;
-using Xceed.Wpf.AvalonDock.Layout;
+using AvalonDock.Layout;
 
 namespace TileShop.WPF.Docking
 {

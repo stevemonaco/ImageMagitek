@@ -2,9 +2,7 @@
     x:Class="TileShop.WPF.Views.ShellView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:ad="http://schemas.xceed.com/wpf/xaml/avalondock"
-    xmlns:adc="clr-namespace:Xceed.Wpf.AvalonDock.Controls;assembly=Xceed.Wpf.AvalonDock"
-    xmlns:adl="clr-namespace:Xceed.Wpf.AvalonDock.Layout;assembly=Xceed.Wpf.AvalonDock"
+    xmlns:ad="https://github.com/Dirkster99/AvalonDock"
     xmlns:con="clr-namespace:TileShop.WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dock="clr-namespace:TileShop.WPF.Docking"
@@ -50,7 +48,7 @@
             <ContentControl s:View.Model="{Binding}" />
         </DataTemplate>
 
-        <Style x:Key="editorDocumentStyle" TargetType="{x:Type adc:LayoutDocumentItem}">
+        <Style x:Key="editorDocumentStyle" TargetType="{x:Type ad:LayoutDocumentItem}">
             <Setter Property="Title" Value="{Binding Model.DisplayName}" />
             <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
             <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -133,9 +131,9 @@
 
             <ad:LayoutRoot>
                 <ad:LayoutPanel x:Name="rootPanel" Orientation="Horizontal">
-                    <adl:LayoutAnchorablePane Name="ProjectPane" DockWidth="300" />
-                    <adl:LayoutDocumentPane x:Name="documentsPane" />
-                    <adl:LayoutAnchorablePane Name="PixelPane" DockWidth="400" />
+                    <ad:LayoutAnchorablePane Name="ProjectPane" DockWidth="300" />
+                    <ad:LayoutDocumentPane x:Name="documentsPane" />
+                    <ad:LayoutAnchorablePane Name="PixelPane" DockWidth="400" />
                 </ad:LayoutPanel>
             </ad:LayoutRoot>
 

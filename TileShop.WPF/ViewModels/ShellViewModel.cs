@@ -7,7 +7,7 @@ using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Services;
-using Xceed.Wpf.AvalonDock;
+using AvalonDock;
 using System.ComponentModel;
 using System.Collections.Generic;
 using TileShop.WPF.Services;
