@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Windows;
 using Stylet;
 using GongSolutions.Wpf.DragDrop;
 using ImageMagitek;
@@ -10,6 +9,7 @@ using TileShop.WPF.Imaging;
 using TileShop.WPF.Models;
 using TileShop.WPF.Behaviors;
 using TileShop.Shared.Models;
+using TileShop.Shared.EventModels;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -41,7 +41,7 @@ namespace TileShop.WPF.ViewModels
             set
             {
                 if (value != ScatteredArrangerTool.Select)
-                    CancelSelection();
+                    CancelOverlay();
                 SetAndNotify(ref _activeTool, value);
             }
         }
@@ -171,38 +171,49 @@ namespace TileShop.WPF.ViewModels
             return true;
         }
 
-        public override bool CanAcceptTransfer(ArrangerTransferModel model)
+        public override void CancelOverlay()
         {
-            return true;
+            CanPastePixels = false;
+            CanPasteElements = false;
+            Overlay.Cancel();
+        }
+
+        protected override bool CanAcceptTransfer(ArrangerTransferModel model)
+        {
+            CanPasteElements = CanAcceptElementTransfer(model);
+            CanPastePixels = CanAcceptPixelTransfer(model);
+
+            return CanPasteElements || CanPastePixels;
+
+
             //bool canAccept = false;
             //bool isCompatibleSize = false;
 
-            // Source must fit onto the target
+            //Source must fit onto the target
             //if (model.Arranger.Layout == ArrangerLayout.Single)
             //{
-            //    if (_arranger.ArrangerPixelSize.Width < model.Width || _arranger.ArrangerPixelSize.Height < model.Height)
+            //    if (_workingArranger.ArrangerPixelSize.Width < model.Width || _workingArranger.ArrangerPixelSize.Height < model.Height)
             //        return false;
             //}
             //else if (model.Arranger.Layout == ArrangerLayout.Tiled)
             //{
-            //    if (_arranger.ArrangerPixelSize.Width < model.Width || _arranger.ArrangerPixelSize.Height < model.Height)
+            //    if (_workingArranger.ArrangerPixelSize.Width < model.Width || _workingArranger.ArrangerPixelSize.Height < model.Height)
+            //        return false;
             //}
 
-
-
             //var sizeRules =
-            //    (SourceMode: model.Arranger.Mode, TargetMode: _arranger.Mode, CopyMode: DropCopy, 
+            //    (SourceMode: model.Arranger.Mode, TargetMode: _arranger.Mode, CopyMode: DropCopy,
             //if (model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize)
             //    isCompatibleSize = true;
 
-            //var copyRules = 
+            //var copyRules =
             //    (SourceMode: model.Arranger.Mode, TargetMode: _arranger.Mode, CopyMode: DropCopy, SourceLayout: model.Arranger.Layout, TargetLayout: _arranger.Layout);
 
-            //switch(copyRules)
+            //switch (copyRules)
             //{
-            //    case (ArrangerMode.Scattered, ArrangerMode.Scattered, DropCopyMode.Elements, ArrangerLayout.Tiled) 
+            //    case (ArrangerMode.Scattered, ArrangerMode.Scattered, DropCopyMode.Elements, ArrangerLayout.Tiled)
             //        when model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize:
-                    
+
             //        canAccept = true;
             //        break;
 
@@ -216,6 +227,48 @@ namespace TileShop.WPF.ViewModels
             //}
 
             //return canAccept;
+        }
+
+        private bool CanAcceptPixelTransfer(ArrangerTransferModel model) => true;
+
+        private bool CanAcceptElementTransfer(ArrangerTransferModel model)
+        {
+            // Ensure elements are an even multiple width/height
+            if (model.Width % _workingArranger.ElementPixelSize.Width != 0 || model.Height % _workingArranger.ElementPixelSize.Height != 0)
+                return false;
+
+            // Ensure start point is aligned to an element boundary
+            if (model.X % _workingArranger.ElementPixelSize.Width != 0 || model.Y % _workingArranger.ElementPixelSize.Height != 0)
+                return false;
+
+            return true;
+        }
+
+        public void ApplyPasteAsPixels()
+        {
+
+        }
+
+        public void ApplyPasteAsElements()
+        {
+            var sourceArranger = Overlay.CopyArranger;
+            var sourceStart = new System.Drawing.Point(Overlay.SelectionRect.SnappedLeft / sourceArranger.ElementPixelSize.Width,
+                Overlay.SelectionRect.SnappedTop / sourceArranger.ElementPixelSize.Height);
+            var destStart = new System.Drawing.Point(Overlay.PasteRect.SnappedLeft / _workingArranger.ElementPixelSize.Width,
+                Overlay.PasteRect.SnappedTop / _workingArranger.ElementPixelSize.Height);
+            int copyWidth = Overlay.SelectionRect.SnappedWidth / sourceArranger.ElementPixelSize.Width;
+            int copyHeight = Overlay.SelectionRect.SnappedHeight / sourceArranger.ElementPixelSize.Height;
+
+            var result = ElementCopier.CopyElements(sourceArranger, _workingArranger as ScatteredArranger, sourceStart, destStart, copyWidth, copyHeight);
+
+            var notifyEvent = result.Match(
+                success => new NotifyOperationEvent("Paste successfully applied"),
+                fail => new NotifyOperationEvent(fail.Reason)
+                );
+
+            _events.PublishOnUIThread(notifyEvent);
+            CancelOverlay();
+            RenderArranger();
         }
     }
 }

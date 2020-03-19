@@ -12,5 +12,25 @@
         <StatusBarItem>
             <TextBlock Text="{Binding ActivityMessage}" />
         </StatusBarItem>
+
+        <StatusBarItem Margin="20,0,0,0">
+            <TextBlock Text="{Binding OperationMessage, NotifyOnTargetUpdated=True}">
+                <TextBlock.Triggers>
+                    <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
+                                    <EasingDoubleKeyFrame KeyTime="0" Value="0" />
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.25" Value="1" />
+                                    <EasingDoubleKeyFrame KeyTime="0:0:14" Value="1" />
+                                    <EasingDoubleKeyFrame KeyTime="0:0:15" Value="0" />
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </TextBlock.Triggers>
+            </TextBlock>
+        </StatusBarItem>
+
     </StatusBar>
 </UserControl>

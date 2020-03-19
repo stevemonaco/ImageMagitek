@@ -114,6 +114,20 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _overlay, value);
         }
 
+        private bool _canPasteElements;
+        public bool CanPasteElements
+        {
+            get => _canPasteElements;
+            set => SetAndNotify(ref _canPasteElements, value);
+        }
+
+        private bool _canPastePixels;
+        public bool CanPastePixels
+        {
+            get => _canPastePixels;
+            set => SetAndNotify(ref _canPastePixels, value);
+        }
+
         protected ArrangerTransferModel _arrangerTransfer;
         public ArrangerTransferModel ArrangerTransfer
         {
@@ -145,7 +159,7 @@ namespace TileShop.WPF.ViewModels
             _events.PublishOnUIThread(editEvent);
         }
 
-        public virtual void CancelSelection() => Overlay.Cancel();
+        public virtual void CancelOverlay() => Overlay.Cancel();
 
         protected virtual void CreateGridlines()
         {
@@ -221,12 +235,12 @@ namespace TileShop.WPF.ViewModels
         {
             if (Overlay.State == OverlayState.Selected && e.LeftButton && Overlay.SelectionRect.ContainsPointSnapped(e.X / Zoom, e.Y / Zoom))
             {
-                // Start drag
+                // Start drag for selection
             }
             else if (Overlay.State == OverlayState.Pasting || Overlay.State == OverlayState.Pasted && 
                 e.LeftButton && Overlay.PasteRect.ContainsPointSnapped(e.X / Zoom, e.Y / Zoom))
             {
-
+                // Start drag for paste
             }
             else if (Overlay.State == OverlayState.Selected && e.RightButton)
             {
@@ -239,12 +253,13 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public virtual bool CanAcceptTransfer(ArrangerTransferModel model) => true;
+        protected virtual bool CanAcceptTransfer(ArrangerTransferModel model) => true;
 
         public virtual void Drop(IDropInfo dropInfo)
         {
-            if (dropInfo.Data is ArrangerTransferModel)
+            if (dropInfo.Data is ArrangerTransferModel model)
             {
+                model.DestinationArranger = _workingArranger;
                 Overlay.UpdatePastingStartPoint(dropInfo.DropPosition.X, dropInfo.DropPosition.Y, SnapMode);
                 Overlay.CompletePasting();
 
@@ -294,11 +309,26 @@ namespace TileShop.WPF.ViewModels
                 return false;
         }
 
-        public virtual void Dropped(IDropInfo dropInfo) { }
+        public virtual void Dropped(IDropInfo dropInfo)
+        {
+            if (dropInfo.Data is ArrangerTransferModel model)
+            {
+                if (!ReferenceEquals(model.DestinationArranger, _workingArranger))
+                {
+                    Overlay.Cancel();
+                    CanPasteElements = false;
+                    CanPastePixels = false;
+                }
+            }
+        }
+
         public virtual void DragDropOperationFinished(DragDropEffects operationResult, IDragInfo dragInfo) { }
+
         public virtual void DragCancelled()
         {
             Overlay.Cancel();
+            CanPasteElements = false;
+            CanPastePixels = false;
         }
         public virtual bool TryCatchOccurredException(Exception exception) => false;
     }

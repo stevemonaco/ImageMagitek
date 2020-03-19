@@ -72,16 +72,15 @@
                 Content="Edit"
                 IsEnabled="{Binding CanEditSelection}" />
 
-            <RadioButton
-                Content="ModifyElements"
-                GroupName="ModifyMode"
-                IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
-                Style="{StaticResource {x:Type ToggleButton}}" />
-            <RadioButton
-                Content="ModifyPixels"
-                GroupName="ModifyMode"
-                IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PickPalette}"
-                Style="{StaticResource {x:Type ToggleButton}}" />
+            <Button
+                Click="{s:Action ApplyPasteAsPixels}"
+                Content="PasteAsPixels"
+                Visibility="{Binding CanPastePixels, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
+
+            <Button
+                Click="{s:Action ApplyPasteAsElements}"
+                Content="PasteAsElements"
+                Visibility="{Binding CanPasteElements, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
         </StackPanel>
 
         <!--  Image Display  -->
@@ -98,7 +97,7 @@
                 <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
                 <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
                 <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
-                <KeyBinding Key="Escape" Command="{s:Action CancelSelection}" />
+                <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
             </ScrollViewer.InputBindings>
 
             <Grid>

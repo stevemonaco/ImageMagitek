@@ -79,6 +79,11 @@
                 Click="{s:Action EditSelection}"
                 Content="Edit"
                 IsEnabled="{Binding Selection.HasSelection}" />
+            <RadioButton
+                Content="PasteAsPixels"
+                GroupName="PasteAction"
+                Style="{StaticResource {x:Type ToggleButton}}"
+                Visibility="{Binding CanPastePixels, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
         </StackPanel>
 
         <!--  Image Display  -->
@@ -113,7 +118,7 @@
                 <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
                 <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
                 <KeyBinding Key="J" Command="{s:Action ShowJumpDialog}" />
-                <KeyBinding Key="Escape" Command="{s:Action CancelSelection}" />
+                <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
             </ScrollViewer.InputBindings>
 
             <Grid>

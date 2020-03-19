@@ -9,7 +9,7 @@ namespace TileShop.Shared.Models
     public enum OverlayState { None, Selecting, Selected, Pasting, Pasted }
     public class ArrangerOverlay : INotifyPropertyChanged
     {
-        private Arranger _copyArranger;
+        public Arranger CopyArranger { get; private set; }
         private Arranger _pasteArranger;
 
         private OverlayState _overlayState;
@@ -42,10 +42,10 @@ namespace TileShop.Shared.Models
         /// <param name="y">Y-coordinate of selection end point in pixel coordinates</param>
         public void StartSelection(Arranger copyArranger, SnapMode snapMode, double x, double y)
         {
-            _copyArranger = copyArranger;
+            CopyArranger = copyArranger;
             State = OverlayState.Selecting;
 
-            SelectionRect = new SnappedRectangle(_copyArranger.ArrangerPixelSize, _copyArranger.ElementPixelSize, snapMode, ElementSnapRounding.Expand);
+            SelectionRect = new SnappedRectangle(CopyArranger.ArrangerPixelSize, CopyArranger.ElementPixelSize, snapMode, ElementSnapRounding.Expand);
             SelectionRect.SetBounds(x, x, y, y);
         }
 

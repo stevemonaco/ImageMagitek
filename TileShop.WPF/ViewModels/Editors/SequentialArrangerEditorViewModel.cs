@@ -127,13 +127,11 @@ namespace TileShop.WPF.ViewModels
                 _tiledElementHeight = arranger.ElementPixelSize.Height;
                 _tiledArrangerHeight = arranger.ArrangerElementSize.Height;
                 _tiledArrangerWidth = arranger.ArrangerElementSize.Width;
-                //Selection = new ArrangerSelectionRegion(_workingArranger.ArrangerPixelSize, _workingArranger.ElementPixelSize, SnapMode.Element);
             }
             else if(arranger.Layout == ArrangerLayout.Single)
             {
                 _linearArrangerHeight = arranger.ArrangerPixelSize.Height;
                 _linearArrangerWidth = arranger.ArrangerPixelSize.Width;
-                //Selection = new ArrangerSelectionRegion(_workingArranger.ArrangerPixelSize, _workingArranger.ElementPixelSize, SnapMode.Pixel);
             }
 
             Render();
@@ -252,7 +250,7 @@ namespace TileShop.WPF.ViewModels
 
         private void Render()
         {
-            CancelSelection();
+            CancelOverlay();
 
             if (_workingArranger.ColorType == PixelColorType.Indexed)
             {
@@ -270,7 +268,8 @@ namespace TileShop.WPF.ViewModels
         {
             if (Overlay.State == OverlayState.Selecting)
                 Overlay.UpdateSelectionEndPoint(e.X / Zoom, e.Y / Zoom);
-            else if (Overlay.State == OverlayState.Selecting || Overlay.State == OverlayState.Selected)
+
+            if (Overlay.State == OverlayState.Selecting || Overlay.State == OverlayState.Selected)
             {
                 string notifyMessage;
                 var rect = Overlay.SelectionRect;
@@ -289,29 +288,66 @@ namespace TileShop.WPF.ViewModels
                 var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
                 _events.PublishOnUIThread(notifyEvent);
             }
+        }
 
+        public override void CancelOverlay()
+        {
+            CanPastePixels = false;
+            Overlay.Cancel();
+        }
 
-            //if (Selection.IsSelecting)
-            //    Selection.UpdateSelection(e.X / Zoom, e.Y / Zoom);
+        /// <summary>
+        /// Checks if the specified arranger can be copied into the current SequentialArranger
+        /// SequentialArrangers can only copy pixels
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        protected override bool CanAcceptTransfer(ArrangerTransferModel model)
+        {
+            CanPastePixels = true;
+            return true;
+            //bool canAccept = false;
+            //bool isCompatibleSize = false;
 
-            //if (Selection.HasSelection)
+            // Source must fit onto the target
+            //if (model.Arranger.Layout == ArrangerLayout.Single)
             //{
-            //    string notifyMessage;
-            //    if (Selection.SnapMode == SnapMode.Element)
-            //        notifyMessage = $"Element Selection: {Selection.SnappedWidth / _workingArranger.ElementPixelSize.Width} x {Selection.SnappedHeight / _workingArranger.ElementPixelSize.Height}" +
-            //            $" at ({Selection.SnappedX1 / _workingArranger.ElementPixelSize.Width}, {Selection.SnappedY1 / _workingArranger.ElementPixelSize.Height})";
-            //    else
-            //        notifyMessage = $"Pixel Selection: {Selection.SnappedWidth} x {Selection.SnappedHeight}" +
-            //            $" at ({Selection.SnappedX1} x {Selection.SnappedY1})";
-            //    var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            //    _events.PublishOnUIThread(notifyEvent);
+            //    if (_arranger.ArrangerPixelSize.Width < model.Width || _arranger.ArrangerPixelSize.Height < model.Height)
+            //        return false;
             //}
-            //else
+            //else if (model.Arranger.Layout == ArrangerLayout.Tiled)
             //{
-            //    string notifyMessage = $"File Offset: 0x{_address.FileOffset:X} ({(int)Math.Round(e.X / Zoom)}, {(int)Math.Round(e.Y / Zoom)})";
-            //    var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            //    _events.PublishOnUIThread(notifyEvent);
+            //    if (_arranger.ArrangerPixelSize.Width < model.Width || _arranger.ArrangerPixelSize.Height < model.Height)
             //}
+
+
+
+            //var sizeRules =
+            //    (SourceMode: model.Arranger.Mode, TargetMode: _arranger.Mode, CopyMode: DropCopy, 
+            //if (model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize)
+            //    isCompatibleSize = true;
+
+            //var copyRules = 
+            //    (SourceMode: model.Arranger.Mode, TargetMode: _arranger.Mode, CopyMode: DropCopy, SourceLayout: model.Arranger.Layout, TargetLayout: _arranger.Layout);
+
+            //switch(copyRules)
+            //{
+            //    case (ArrangerMode.Scattered, ArrangerMode.Scattered, DropCopyMode.Elements, ArrangerLayout.Tiled) 
+            //        when model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize:
+
+            //        canAccept = true;
+            //        break;
+
+            //    case (DropCopyMode.Pixels, ArrangerMode.Scattered, ArrangerMode.Scattered):
+            //        return true;
+            //}
+
+            //if (model.Arranger.Mode == ArrangerMode.Scattered)
+            //{
+            //    if (model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize)
+            //}
+
+            //return canAccept;
         }
     }
 }

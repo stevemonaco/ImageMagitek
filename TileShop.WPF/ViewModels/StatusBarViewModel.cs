@@ -3,7 +3,7 @@ using TileShop.Shared.EventModels;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class StatusBarViewModel : Screen, IHandle<NotifyStatusEvent>
+    public class StatusBarViewModel : Screen, IHandle<NotifyStatusEvent>, IHandle<NotifyOperationEvent>
     {
         private IEventAggregator _events;
 
@@ -14,12 +14,19 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _activityMessage, value);
         }
 
+        private string _operationMessage;
+        public string OperationMessage
+        {
+            get => _operationMessage;
+            set => SetAndNotify(ref _operationMessage, value);
+        }
+
         private BindableCollection<string> _timedMessages;
         public BindableCollection<string> TimedMessages
         {
             get => _timedMessages;
             set => SetAndNotify(ref _timedMessages, value);
-        } 
+        }
 
         public StatusBarViewModel(IEventAggregator events)
         {
@@ -33,6 +40,11 @@ namespace TileShop.WPF.ViewModels
                 ActivityMessage = notifyEvent.NotifyMessage;
             else if (notifyEvent.DisplayDuration == NotifyStatusDuration.Short)
                 TimedMessages.Add(notifyEvent.NotifyMessage);
+        }
+
+        public void Handle(NotifyOperationEvent notifyEvent)
+        {
+            OperationMessage = notifyEvent.NotifyMessage;
         }
     }
 }

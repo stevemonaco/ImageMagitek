@@ -7,41 +7,58 @@ namespace ImageMagitek
 {
     public class ElementCopier
     {
-        public static bool CanCopyElements(Arranger source, Arranger dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
+        public static MagitekResult CanCopyElements(Arranger source, Arranger dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
         {
             if (copyWidth > (source.ArrangerElementSize.Width - sourceStart.X))
-                return false;
+                return new MagitekResult.Failed($"Source arranger '{source.Name}' with width ({source.ArrangerElementSize.Width}) is insufficient to copy {copyWidth} elements starting from position {sourceStart.X}");
+
             if (copyHeight > (source.ArrangerElementSize.Height - sourceStart.Y))
-                return false;
+                return new MagitekResult.Failed($"Source arranger '{source.Name}' with height ({source.ArrangerElementSize.Height}) is insufficient to copy {copyHeight} elements starting from position {sourceStart.Y}");
 
             if (copyWidth > (dest.ArrangerElementSize.Width - destStart.X))
-                return false;
+                return new MagitekResult.Failed($"Destination arranger '{dest.Name}' with width ({dest.ArrangerElementSize.Width}) is insufficient to copy {copyWidth} elements starting from position {destStart.X}");
             if (copyHeight > (dest.ArrangerElementSize.Height - destStart.Y))
-                return false;
+                return new MagitekResult.Failed($"Destination arranger '{dest.Name}' with height ({dest.ArrangerElementSize.Height}) is insufficient to copy {copyHeight} elements starting from position {destStart.Y}");
 
             if (source.ElementPixelSize != dest.ElementPixelSize)
-                return false;
+                return new MagitekResult.Failed($"Source arranger '{dest.Name}' with element size ({source.ElementPixelSize.Width}, {source.ElementPixelSize.Height}) does not match destination arranger '{dest.Name}' with element size ({dest.ElementPixelSize.Width}, {dest.ElementPixelSize.Height})");
 
-            if (dest.Layout == ArrangerLayout.Single)
-                return false;
+            if (dest.Layout != ArrangerLayout.Tiled)
+                return new MagitekResult.Failed($"Destination arranger '{dest.Name}' is not a tiled layout");
 
             if (source.ColorType != dest.ColorType)
-                return false;
+                return new MagitekResult.Failed($"Source arranger '{source.Name}' ColorType {source.ColorType} does not match destination arranger ColorType {dest.ColorType}");
 
-            return true;
+            return new MagitekResult.Success();
         }
 
-        public static void CopyElements(Arranger source, ScatteredArranger dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
+        /// <summary>
+        /// Copies elements from the source Arranger to destination ScatteredArranger
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="dest"></param>
+        /// <param name="sourceStart">Starting point of source arranger in element coordinates</param>
+        /// <param name="destStart">Starting point of destination arranger in element coordinates</param>
+        /// <param name="copyWidth">Width of copy in elements</param>
+        /// <param name="copyHeight">Height of copy in elements</param>
+        public static MagitekResult CopyElements(Arranger source, ScatteredArranger dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
         {
-            if (!CanCopyElements(source, dest, sourceStart, destStart, copyWidth, copyHeight))
-                return;
+            var result = CanCopyElements(source, dest, sourceStart, destStart, copyWidth, copyHeight);
+            
+            if (result.IsT0)
+                CopyElementsInternal(source, dest, sourceStart, destStart, copyWidth, copyHeight);
 
-            for (int y = 0; y < copyHeight; y++)
+            return result;
+
+            void CopyElementsInternal(Arranger source, ScatteredArranger dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
             {
-                for (int x = 0; x < copyWidth; x++)
+                for (int y = 0; y < copyHeight; y++)
                 {
-                    var el = source.GetElement(x + sourceStart.X, y + sourceStart.Y);
-                    dest.SetElement(el, x + destStart.X, y + destStart.Y);
+                    for (int x = 0; x < copyWidth; x++)
+                    {
+                        var el = source.GetElement(x + sourceStart.X, y + sourceStart.Y);
+                        dest.SetElement(el, x + destStart.X, y + destStart.Y);
+                    }
                 }
             }
         }
