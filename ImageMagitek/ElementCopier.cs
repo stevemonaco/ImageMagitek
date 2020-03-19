@@ -17,6 +17,7 @@ namespace ImageMagitek
 
             if (copyWidth > (dest.ArrangerElementSize.Width - destStart.X))
                 return new MagitekResult.Failed($"Destination arranger '{dest.Name}' with width ({dest.ArrangerElementSize.Width}) is insufficient to copy {copyWidth} elements starting from position {destStart.X}");
+            
             if (copyHeight > (dest.ArrangerElementSize.Height - destStart.Y))
                 return new MagitekResult.Failed($"Destination arranger '{dest.Name}' with height ({dest.ArrangerElementSize.Height}) is insufficient to copy {copyHeight} elements starting from position {destStart.Y}");
 

@@ -171,13 +171,6 @@ namespace TileShop.WPF.ViewModels
             return true;
         }
 
-        public override void CancelOverlay()
-        {
-            CanPastePixels = false;
-            CanPasteElements = false;
-            Overlay.Cancel();
-        }
-
         protected override bool CanAcceptTransfer(ArrangerTransferModel model)
         {
             CanPasteElements = CanAcceptElementTransfer(model);

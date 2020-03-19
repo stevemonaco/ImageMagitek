@@ -290,12 +290,6 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public override void CancelOverlay()
-        {
-            CanPastePixels = false;
-            Overlay.Cancel();
-        }
-
         /// <summary>
         /// Checks if the specified arranger can be copied into the current SequentialArranger
         /// SequentialArrangers can only copy pixels

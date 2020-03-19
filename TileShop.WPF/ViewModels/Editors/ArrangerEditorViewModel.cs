@@ -159,7 +159,12 @@ namespace TileShop.WPF.ViewModels
             _events.PublishOnUIThread(editEvent);
         }
 
-        public virtual void CancelOverlay() => Overlay.Cancel();
+        public virtual void CancelOverlay()
+        {
+            Overlay.Cancel();
+            CanPasteElements = false;
+            CanPastePixels = false;
+        }
 
         protected virtual void CreateGridlines()
         {
@@ -244,7 +249,7 @@ namespace TileShop.WPF.ViewModels
             }
             else if (Overlay.State == OverlayState.Selected && e.RightButton)
             {
-                Overlay.Cancel();
+                CancelOverlay();
                 NotifyOfPropertyChange(() => CanEditSelection);
             }
             else if (e.LeftButton)
@@ -262,9 +267,6 @@ namespace TileShop.WPF.ViewModels
                 model.DestinationArranger = _workingArranger;
                 Overlay.UpdatePastingStartPoint(dropInfo.DropPosition.X, dropInfo.DropPosition.Y, SnapMode);
                 Overlay.CompletePasting();
-
-                //if (Paste.CanApply())
-                //    Paste.Apply();
             }
         }
 
@@ -296,7 +298,7 @@ namespace TileShop.WPF.ViewModels
             dragInfo.Data = transferModel;
             dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
 
-            Overlay.Cancel();
+            CancelOverlay();
         }
 
         public virtual bool CanStartDrag(IDragInfo dragInfo)
@@ -315,9 +317,7 @@ namespace TileShop.WPF.ViewModels
             {
                 if (!ReferenceEquals(model.DestinationArranger, _workingArranger))
                 {
-                    Overlay.Cancel();
-                    CanPasteElements = false;
-                    CanPastePixels = false;
+                    CancelOverlay();
                 }
             }
         }
@@ -326,7 +326,7 @@ namespace TileShop.WPF.ViewModels
 
         public virtual void DragCancelled()
         {
-            Overlay.Cancel();
+            CancelOverlay();
             CanPasteElements = false;
             CanPastePixels = false;
         }
