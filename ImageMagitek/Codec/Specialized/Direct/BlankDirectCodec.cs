@@ -6,7 +6,7 @@ namespace ImageMagitek.Codec
 {
     public class BlankDirectCodec : DirectCodec
     {
-        public override string Name => "Blank Indexed";
+        public override string Name => "Blank Direct";
         public override int Width { get; } = 8;
         public override int Height { get; } = 8;
         public override ImageLayout Layout => ImageLayout.Tiled;

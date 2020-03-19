@@ -104,7 +104,11 @@ namespace ImageMagitek.Project
                             {
                                 var element = arranger.GetElement(x, y);
                                 var elementModel = arrangerModel.ElementGrid[x, y];
-                                elementModel.DataFileKey = resourceResolver[element.DataFile];
+
+                                if (element.DataFile is object)
+                                    elementModel.DataFileKey = resourceResolver[element.DataFile];
+                                else
+                                    continue;
 
                                 if (element.Palette is object)
                                     elementModel.PaletteKey = resourceResolver[element.Palette];
@@ -172,7 +176,7 @@ namespace ImageMagitek.Project
         private XElement Serialize(ScatteredArrangerModel arrangerModel)
         {
             var defaultFormat = arrangerModel.FindMostFrequentPropertyValue("CodecName");
-            var defaultFile = arrangerModel.FindMostFrequentPropertyValue("DataFileKey");
+            var defaultFile = arrangerModel.FindMostFrequentPropertyValue("DataFileKey") ?? "";
 
             var arrangerNode = new XElement("arranger");
             arrangerNode.Add(new XAttribute("name", arrangerModel.Name));
@@ -200,13 +204,16 @@ namespace ImageMagitek.Project
                 {
                     var el = arrangerModel.ElementGrid[x, y];
 
+                    if (el.CodecName == "Blank Indexed" || el.CodecName == "Blank Direct")
+                        continue;
+
                     var elNode = new XElement("element");
                     elNode.Add(new XAttribute("fileoffset", $"{el.FileAddress.FileOffset:X}"));
                     elNode.Add(new XAttribute("posx", el.PositionX));
                     elNode.Add(new XAttribute("posy", el.PositionY));
 
                     if(el.CodecName != defaultFormat)
-                    elNode.Add(new XAttribute("format", el.CodecName));
+                        elNode.Add(new XAttribute("format", el.CodecName));
 
                     if(el.DataFileKey != defaultFile)
                         elNode.Add(new XAttribute("datafile", el.DataFileKey));
