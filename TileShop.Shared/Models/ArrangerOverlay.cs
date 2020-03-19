@@ -116,6 +116,14 @@ namespace TileShop.Shared.Models
             State = OverlayState.None;
         }
 
+        public void UpdateSnapMode(SnapMode snapMode)
+        {
+            if (State == OverlayState.Selecting || State == OverlayState.Selected)
+                SelectionRect.SnapMode = snapMode;
+            else if (State == OverlayState.Pasting || State == OverlayState.Pasted)
+                PasteRect.SnapMode = snapMode;
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

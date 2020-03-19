@@ -121,10 +121,8 @@
                 <Image
                     Grid.Row="0"
                     Grid.Column="0"
-                    Panel.ZIndex="3"
-                    dd:DragDrop.DragHandler="{Binding}"
+                    Panel.ZIndex="1"
                     dd:DragDrop.DropHandler="{Binding}"
-                    dd:DragDrop.IsDragSource="True"
                     dd:DragDrop.IsDropTarget="True"
                     LayoutTransform="{StaticResource transform}"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -138,14 +136,16 @@
                     Grid.Row="0"
                     Grid.Column="0"
                     Panel.ZIndex="2"
+                    dd:DragDrop.DragHandler="{Binding}"
+                    dd:DragDrop.DropHandler="{Binding}"
+                    dd:DragDrop.IsDragSource="True"
+                    dd:DragDrop.IsDropTarget="True"
                     LayoutTransform="{StaticResource transform}">
                     <Rectangle
                         Canvas.Left="{Binding Overlay.SelectionRect.SnappedLeft}"
                         Canvas.Top="{Binding Overlay.SelectionRect.SnappedTop}"
                         Width="{Binding Overlay.SelectionRect.SnappedWidth}"
                         Height="{Binding Overlay.SelectionRect.SnappedHeight}"
-                        dd:DragDrop.DragHandler="{Binding}"
-                        dd:DragDrop.IsDragSource="True"
                         Fill="{StaticResource editSelectionFillBrush}"
                         Stroke="Black"
                         StrokeDashArray="3 2"
@@ -156,6 +156,7 @@
                         Canvas.Top="{Binding Overlay.PasteRect.SnappedTop}"
                         Width="{Binding Overlay.PasteRect.SnappedWidth}"
                         Height="{Binding Overlay.PasteRect.SnappedHeight}"
+                        dd:DragDrop.IsDropTarget="True"
                         Fill="{StaticResource pasteSelectionFillBrush}"
                         Stroke="Black"
                         StrokeDashArray="3 2"
@@ -167,7 +168,7 @@
                 <ItemsControl
                     Grid.Row="0"
                     Grid.Column="0"
-                    Panel.ZIndex="1"
+                    Panel.ZIndex="4"
                     ItemsSource="{Binding Gridlines}"
                     Visibility="{Binding ShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}">
                     <ItemsControl.ItemsPanel>

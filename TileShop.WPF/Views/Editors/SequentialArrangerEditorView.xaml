@@ -120,9 +120,9 @@
                 <Grid.Resources>
                     <ScaleTransform x:Key="transform" ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />
                     <SolidColorBrush
-                        x:Key="arrangeSelectionFillBrush"
+                        x:Key="pasteSelectionFillBrush"
                         Opacity="0.5"
-                        Color="Maroon" />
+                        Color="Fuchsia" />
                     <SolidColorBrush
                         x:Key="editSelectionFillBrush"
                         Opacity="0.5"
@@ -134,39 +134,57 @@
                 </i:Interaction.Behaviors>
 
                 <!--  Arranger Image  -->
-
                 <Image
                     Grid.Row="0"
                     Grid.Column="0"
+                    Panel.ZIndex="1"
                     dd:DragDrop.DropHandler="{Binding}"
+                    dd:DragDrop.IsDropTarget="True"
                     LayoutTransform="{StaticResource transform}"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                     SnapsToDevicePixels="True"
                     Source="{Binding ArrangerSource}"
                     Stretch="None" />
 
-                <!--  Selection Overlay  -->
+                <!--  Selection and Paste Overlay  -->
                 <Canvas
+                    x:Name="overlayCanvas"
                     Grid.Row="0"
                     Grid.Column="0"
-                    DataContext="{Binding Selection, Mode=TwoWay}"
-                    LayoutTransform="{StaticResource transform}"
-                    Visibility="{Binding HasSelection, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}">
+                    Panel.ZIndex="2"
+                    dd:DragDrop.DragHandler="{Binding}"
+                    dd:DragDrop.DropHandler="{Binding}"
+                    dd:DragDrop.IsDragSource="True"
+                    dd:DragDrop.IsDropTarget="True"
+                    LayoutTransform="{StaticResource transform}">
                     <Rectangle
-                        Canvas.Left="{Binding SnappedX1}"
-                        Canvas.Top="{Binding SnappedY1}"
-                        Width="{Binding SnappedWidth}"
-                        Height="{Binding SnappedHeight}"
-                        Fill="{StaticResource arrangeSelectionFillBrush}"
+                        Canvas.Left="{Binding Overlay.SelectionRect.SnappedLeft}"
+                        Canvas.Top="{Binding Overlay.SelectionRect.SnappedTop}"
+                        Width="{Binding Overlay.SelectionRect.SnappedWidth}"
+                        Height="{Binding Overlay.SelectionRect.SnappedHeight}"
+                        Fill="{StaticResource editSelectionFillBrush}"
                         Stroke="Black"
                         StrokeDashArray="3 2"
-                        StrokeThickness="0.3" />
+                        StrokeThickness="0.3"
+                        Visibility="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Selection}" />
+                    <Rectangle
+                        Canvas.Left="{Binding Overlay.PasteRect.SnappedLeft}"
+                        Canvas.Top="{Binding Overlay.PasteRect.SnappedTop}"
+                        Width="{Binding Overlay.PasteRect.SnappedWidth}"
+                        Height="{Binding Overlay.PasteRect.SnappedHeight}"
+                        dd:DragDrop.IsDropTarget="True"
+                        Fill="{StaticResource pasteSelectionFillBrush}"
+                        Stroke="Black"
+                        StrokeDashArray="3 2"
+                        StrokeThickness="0.3"
+                        Visibility="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Paste}" />
                 </Canvas>
 
                 <!--  Gridline Overlay  -->
                 <ItemsControl
                     Grid.Row="0"
                     Grid.Column="0"
+                    Panel.ZIndex="4"
                     ItemsSource="{Binding Gridlines}"
                     Visibility="{Binding ShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}">
                     <ItemsControl.ItemsPanel>

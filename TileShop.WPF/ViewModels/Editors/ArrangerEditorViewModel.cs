@@ -85,7 +85,7 @@ namespace TileShop.WPF.ViewModels
         {
             get
             {
-                if (Overlay?.State == OverlayState.Selected)
+                if (Overlay.State == OverlayState.Selected)
                 {
                     var rect = Overlay.SelectionRect;
                     var elems = _workingArranger.EnumerateElementsByPixel(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
@@ -100,10 +100,14 @@ namespace TileShop.WPF.ViewModels
         public SnapMode SnapMode
         {
             get => _snapMode;
-            set => SetAndNotify(ref _snapMode, value);
+            set
+            {
+                SetAndNotify(ref _snapMode, value);
+                Overlay.UpdateSnapMode(SnapMode);
+            }
         }
 
-        private ArrangerOverlay _overlay;
+        private ArrangerOverlay _overlay = new ArrangerOverlay();
         public ArrangerOverlay Overlay
         {
             get => _overlay;
@@ -141,7 +145,7 @@ namespace TileShop.WPF.ViewModels
             _events.PublishOnUIThread(editEvent);
         }
 
-        public virtual void CancelSelection() => Overlay?.Cancel();
+        public virtual void CancelSelection() => Overlay.Cancel();
 
         protected virtual void CreateGridlines()
         {
@@ -175,10 +179,10 @@ namespace TileShop.WPF.ViewModels
 
         public virtual void OnMouseMove(object sender, MouseCaptureArgs e)
         {
-            if (Overlay?.State == OverlayState.Selecting)
+            if (Overlay.State == OverlayState.Selecting)
                 Overlay.UpdateSelectionEndPoint(e.X / Zoom, e.Y / Zoom);
 
-            if (Overlay?.State == OverlayState.Selecting || Overlay?.State == OverlayState.Selected)
+            if (Overlay.State == OverlayState.Selecting || Overlay.State == OverlayState.Selected)
             {
                 string notifyMessage;
                 var rect = Overlay.SelectionRect;
@@ -207,7 +211,7 @@ namespace TileShop.WPF.ViewModels
 
         public virtual void OnMouseUp(object sender, MouseCaptureArgs e)
         {
-            if (Overlay?.State == OverlayState.Selecting)
+            if (Overlay.State == OverlayState.Selecting)
                 Overlay.CompleteSelection();
 
             NotifyOfPropertyChange(() => CanEditSelection);
@@ -215,11 +219,16 @@ namespace TileShop.WPF.ViewModels
 
         public virtual void OnMouseDown(object sender, MouseCaptureArgs e)
         {
-            if (Overlay?.State == OverlayState.Selected && e.LeftButton && Overlay.SelectionRect.IsPointInRectangle(e.X / Zoom, e.Y / Zoom))
+            if (Overlay.State == OverlayState.Selected && e.LeftButton && Overlay.SelectionRect.ContainsPointSnapped(e.X / Zoom, e.Y / Zoom))
             {
                 // Start drag
             }
-            else if (Overlay?.State == OverlayState.Selected && e.RightButton)
+            else if (Overlay.State == OverlayState.Pasting || Overlay.State == OverlayState.Pasted && 
+                e.LeftButton && Overlay.PasteRect.ContainsPointSnapped(e.X / Zoom, e.Y / Zoom))
+            {
+
+            }
+            else if (Overlay.State == OverlayState.Selected && e.RightButton)
             {
                 Overlay.Cancel();
                 NotifyOfPropertyChange(() => CanEditSelection);
@@ -228,23 +237,6 @@ namespace TileShop.WPF.ViewModels
             {
                 Overlay.StartSelection(_workingArranger, SnapMode, e.X / Zoom, e.Y / Zoom);
             }
-
-            //if (!Selection.HasSelection && e.LeftButton)
-            //{
-            //    Selection.StartSelection(e.X / Zoom, e.Y / Zoom);
-            //}
-            //if (Selection.HasSelection && e.LeftButton)
-            //{
-            //    if (Selection.IsPointInSelection(e.X / Zoom, e.Y / Zoom)) // Start drag
-            //        return;
-            //    else // New selection
-            //        Selection.StartSelection(e.X / Zoom, e.Y / Zoom);
-            //}
-            //if (Selection.HasSelection && e.RightButton)
-            //{
-            //    Selection.CancelSelection();
-            //    NotifyOfPropertyChange(() => CanEditSelection);
-            //}
         }
 
         public virtual bool CanAcceptTransfer(ArrangerTransferModel model) => true;
@@ -267,14 +259,17 @@ namespace TileShop.WPF.ViewModels
             {
                 if (CanAcceptTransfer(model))
                 {
-                    Overlay = new ArrangerOverlay();
-                    Overlay.StartSelection(model.Arranger, SnapMode.Pixel, model.X, model.Y);
-                    Overlay.UpdateSelectionEndPoint(model.X + model.Width, model.Y + model.Height);
-                    Overlay.CompleteSelection();
-                    Overlay.StartPasting(_workingArranger, SnapMode, dropInfo.DropPosition.X, dropInfo.DropPosition.Y);
+                    if (Overlay.State != OverlayState.Pasting)
+                    {
+                        Overlay.StartSelection(model.Arranger, SnapMode.Pixel, model.X, model.Y);
+                        Overlay.UpdateSelectionEndPoint(model.X + model.Width, model.Y + model.Height);
+                        Overlay.CompleteSelection();
+                        Overlay.StartPasting(_workingArranger, SnapMode, dropInfo.DropPosition.X, dropInfo.DropPosition.Y);
+                    }
+                    else if (Overlay.State == OverlayState.Pasting)
+                        Overlay.UpdatePastingStartPoint(dropInfo.DropPosition.X, dropInfo.DropPosition.Y, SnapMode);
 
                     dropInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
-                    //dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
                 }
             }
         }
@@ -286,22 +281,24 @@ namespace TileShop.WPF.ViewModels
             dragInfo.Data = transferModel;
             dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
 
-            Overlay?.Cancel();
+            Overlay.Cancel();
         }
 
         public virtual bool CanStartDrag(IDragInfo dragInfo)
         {
-            if (Overlay is null)
+            if (Overlay.State == OverlayState.Selected)
+                return Overlay.SelectionRect.ContainsPointSnapped(dragInfo.DragStartPosition.X, dragInfo.DragStartPosition.Y);
+            else if (Overlay.State == OverlayState.Pasting || Overlay.State == OverlayState.Pasted)
+                return Overlay.PasteRect.ContainsPointSnapped(dragInfo.DragStartPosition.X, dragInfo.DragStartPosition.Y);
+            else
                 return false;
-
-            return Overlay.SelectionRect.IsPointInRectangle(dragInfo.DragStartPosition.X, dragInfo.DragStartPosition.Y) && Overlay.State == OverlayState.Selected;
         }
 
         public virtual void Dropped(IDropInfo dropInfo) { }
         public virtual void DragDropOperationFinished(DragDropEffects operationResult, IDragInfo dragInfo) { }
         public virtual void DragCancelled()
         {
-            Overlay?.Cancel();
+            Overlay.Cancel();
         }
         public virtual bool TryCatchOccurredException(Exception exception) => false;
     }

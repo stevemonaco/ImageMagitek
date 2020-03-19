@@ -192,8 +192,19 @@ namespace TileShop.Shared.Models
             Bottom = y;
         }
 
-        public bool IsPointInRectangle(double x, double y) =>
+        /// <summary>
+        /// Checks if the specified point is within the unsnapped bounds of the rectangle
+        /// </summary>
+        /// <returns>True if within snapped bounds</returns>
+        public bool ContainsPointUnsnapped(double x, double y) =>
             (x >= Left) && (x <= Right) && (y >= Top) && (y <= Bottom);
+
+        /// <summary>
+        /// Checks if the specified point is within the snapped bounds of the rectangle
+        /// </summary>
+        /// <returns>True if within snapped bounds</returns>
+        public bool ContainsPointSnapped(double x, double y) =>
+            (x >= SnappedLeft) && (x <= SnappedRight) && (y >= SnappedTop) && (y <= SnappedBottom);
 
         private void Snap()
         {
