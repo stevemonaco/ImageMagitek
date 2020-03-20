@@ -103,7 +103,9 @@ namespace TileShop.WPF.ViewModels
                 DataFile df = new DataFile(Path.GetFileName(dataFileName), dataFileName);
                 var node = _treeService.AddResource(df);
                 var nodeVm = new DataFileNodeViewModel(node);
-                ProjectRoot.First().Children.Add(nodeVm);
+                var parentModel = ProjectRoot.First();
+                nodeVm.ParentModel = parentModel;
+                parentModel.Children.Add(nodeVm);
                 IsModified = true;
             }
         }
@@ -133,8 +135,10 @@ namespace TileShop.WPF.ViewModels
                 pal.DataFile = model.SelectedDataFile;
 
                 var node = _treeService.AddResource(pal);
-                var nodeVm = new DataFileNodeViewModel(node);
-                ProjectRoot.First().Children.Add(nodeVm);
+                var nodeVm = new PaletteNodeViewModel(node);
+                var parentModel = ProjectRoot.First();
+                nodeVm.ParentModel = parentModel;
+                parentModel.Children.Add(nodeVm);
                 IsModified = true;
             }
         }
@@ -151,7 +155,9 @@ namespace TileShop.WPF.ViewModels
 
                 var node = _treeService.AddResource(arranger);
                 var nodeVm = new ArrangerNodeViewModel(node);
-                ProjectRoot.First().Children.Add(nodeVm);
+                var parentModel = ProjectRoot.First();
+                nodeVm.ParentModel = parentModel;
+                parentModel.Children.Add(nodeVm);
                 IsModified = true;
             }
         }
