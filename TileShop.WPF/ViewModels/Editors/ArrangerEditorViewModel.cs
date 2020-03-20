@@ -157,6 +157,7 @@ namespace TileShop.WPF.ViewModels
 
             var editEvent = new EditArrangerPixelsEvent(transferModel);
             _events.PublishOnUIThread(editEvent);
+            CancelOverlay();
         }
 
         public virtual void CancelOverlay()

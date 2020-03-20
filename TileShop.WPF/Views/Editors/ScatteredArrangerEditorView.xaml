@@ -57,6 +57,13 @@
                 Minimum="{Binding MinZoom}"
                 Value="{Binding Zoom}" />
 
+            <ToggleButton
+                Margin="0,0,10,0"
+                Content="#"
+                Focusable="False"
+                IsChecked="{Binding ShowGridlines}"
+                Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+
             <Separator />
 
             <ComboBox ItemsSource="{Binding Palettes}" SelectedItem="{Binding ActivePalette}">
@@ -129,6 +136,13 @@
                     Source="{Binding ArrangerSource}"
                     Stretch="None" />
 
+                <Rectangle
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Panel.ZIndex="0"
+                    Fill="{StaticResource CheckeredBrush}"
+                    LayoutTransform="{StaticResource transform}" />
+
                 <!--  Selection and Paste Overlay  -->
                 <Canvas
                     x:Name="overlayCanvas"
@@ -167,7 +181,7 @@
                 <ItemsControl
                     Grid.Row="0"
                     Grid.Column="0"
-                    Panel.ZIndex="4"
+                    Panel.ZIndex="3"
                     ItemsSource="{Binding Gridlines}"
                     Visibility="{Binding ShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}">
                     <ItemsControl.ItemsPanel>

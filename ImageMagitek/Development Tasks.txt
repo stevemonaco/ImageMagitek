@@ -46,3 +46,4 @@ File reading
 Bugs
 - ReadUnshifted can crash during unaligned reads (reading too much data). Will need to fix as well as implement ReadShifted for non-byte sized elements.
 - Fix XML reader from silently failing when reading <arranger> nodes with inconsistent element counts
+- Fix ScatteredArranger resize to allow pixel-based sizes

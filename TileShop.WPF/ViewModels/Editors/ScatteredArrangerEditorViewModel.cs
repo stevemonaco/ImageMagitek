@@ -10,12 +10,13 @@ using TileShop.WPF.Models;
 using TileShop.WPF.Behaviors;
 using TileShop.Shared.Models;
 using TileShop.Shared.EventModels;
+using System.Windows;
 
 namespace TileShop.WPF.ViewModels
 {
     public enum ScatteredArrangerTool { Select, ApplyPalette, PickPalette }
 
-    public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel, IDropTarget, IDragSource
+    public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     {
         private IPaletteService _paletteService;
         private Palette _defaultPalette;
@@ -85,11 +86,16 @@ namespace TileShop.WPF.ViewModels
             {
                 var treeArranger = Resource as Arranger;
                 if (_workingArranger.ElementPixelSize != treeArranger.ElementPixelSize)
-                    treeArranger.Resize(_workingArranger.ElementPixelSize.Width, _workingArranger.ElementPixelSize.Height);
-
-                for (int y = 0; y < _workingArranger.ElementPixelSize.Height; y++)
                 {
-                    for (int x = 0; x < _workingArranger.ElementPixelSize.Width; x++)
+                    if (treeArranger.Layout == ArrangerLayout.Tiled)
+                        treeArranger.Resize(_workingArranger.ArrangerElementSize.Width, _workingArranger.ArrangerElementSize.Height);
+                    else if (treeArranger.Layout == ArrangerLayout.Single)
+                        treeArranger.Resize(_workingArranger.ArrangerPixelSize.Width, _workingArranger.ArrangerPixelSize.Height);
+                }
+
+                for (int y = 0; y < _workingArranger.ArrangerElementSize.Height; y++)
+                {
+                    for (int x = 0; x < _workingArranger.ArrangerElementSize.Width; x++)
                     {
                         var el = _workingArranger.GetElement(x, y);
                         treeArranger.SetElement(el, x, y);
@@ -126,6 +132,31 @@ namespace TileShop.WPF.ViewModels
                 TryApplyPalette(x, y, ActivePalette.Palette);
             else
                 base.OnMouseMove(sender, e);
+        }
+
+        public override void DragOver(IDropInfo dropInfo)
+        {
+            if (dropInfo.Data is PaletteNodeViewModel model)
+            {
+                var pal = model.Node.Value as Palette;
+                dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+                dropInfo.Effects = DragDropEffects.Move | DragDropEffects.Link;
+                dropInfo.EffectText = $"Add palette {pal.Name}";
+            }
+            else
+                base.DragOver(dropInfo);
+        }
+
+        public override void Drop(IDropInfo dropInfo)
+        {
+            if (dropInfo.Data is PaletteNodeViewModel model)
+            {
+                var pal = model.Node.Value as Palette;
+                if (!Palettes.Any(x => ReferenceEquals(pal, x.Palette)))
+                    Palettes.Add(new PaletteModel(pal));
+            }
+            else
+                base.Drop(dropInfo);
         }
 
         private void RenderArranger()

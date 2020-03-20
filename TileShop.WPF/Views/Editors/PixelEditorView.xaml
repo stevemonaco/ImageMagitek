@@ -85,6 +85,13 @@
                 Click="{s:Action RemapColors}"
                 Content="Remap"
                 IsEnabled="{Binding CanRemapColors}" />
+
+            <Button
+                Margin="10,0,0,0"
+                Click="{s:Action SaveChanges}"
+                Content="Save"
+                IsEnabled="{Binding IsModified}"
+                ToolTip="Saves image to underlying file" />
         </StackPanel>
 
         <!--  Palette Display  -->
@@ -158,6 +165,7 @@
                 <Image
                     Grid.Row="0"
                     Grid.Column="0"
+                    Panel.ZIndex="1"
                     dd:DragDrop.DropHandler="{Binding}"
                     LayoutTransform="{StaticResource transform}"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
@@ -165,10 +173,18 @@
                     Source="{Binding ArrangerSource}"
                     Stretch="None" />
 
+                <Rectangle
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Panel.ZIndex="0"
+                    Fill="{StaticResource CheckeredBrush}"
+                    LayoutTransform="{StaticResource transform}" />
+
                 <!--  Gridline Overlay  -->
                 <ItemsControl
                     Grid.Row="0"
                     Grid.Column="0"
+                    Panel.ZIndex="2"
                     ItemsSource="{Binding Gridlines}"
                     Visibility="{Binding ShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}">
                     <ItemsControl.ItemsPanel>

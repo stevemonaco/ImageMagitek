@@ -59,7 +59,11 @@ namespace TileShop.WPF.Imaging
                             pBytes[x * 4] = color.B;
                             pBytes[x * 4 + 1] = color.G;
                             pBytes[x * 4 + 2] = color.R;
-                            pBytes[x * 4 + 3] = color.A;
+
+                            if (index == 0 && pal.ZeroIndexTransparent)
+                                pBytes[x * 4 + 3] = 0;
+                            else
+                                pBytes[x * 4 + 3] = color.A;
                         }
 
                         pBytes += stride;

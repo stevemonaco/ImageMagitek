@@ -17,7 +17,7 @@ namespace TileShop.WPF.ViewModels
 {
     public enum PixelTool { Pencil, ColorPicker }
 
-    public class PixelEditorViewModel : ArrangerEditorViewModel, IMouseCaptureProxy, IHandle<EditArrangerPixelsEvent>
+    public class PixelEditorViewModel : ArrangerEditorViewModel, IHandle<EditArrangerPixelsEvent>
     {
         private IPaletteService _paletteService;
         private IWindowManager _windowManager;
@@ -125,6 +125,7 @@ namespace TileShop.WPF.ViewModels
 
                 var remapAction = new ColorRemapHistoryAction(remapViewModel.InitialColors, remapViewModel.FinalColors);
                 History.Add(remapAction);
+                IsModified = true;
             }
         }
 
@@ -161,6 +162,7 @@ namespace TileShop.WPF.ViewModels
                 var notifyEvent = result.Match(
                     success =>
                     {
+                        IsModified = true;
                         Render();
                         return new NotifyOperationEvent("");
                     },
@@ -219,6 +221,7 @@ namespace TileShop.WPF.ViewModels
         {
             History.Clear();
             HasArranger = false;
+            IsModified = false;
             _workingArranger = null;
             Palettes.Clear();
             ActivePalette = null;

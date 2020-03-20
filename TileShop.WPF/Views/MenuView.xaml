@@ -59,6 +59,9 @@
                 IsEnabled="{Binding HasProject}" />
         </MenuItem>
 
+        <!--
         <MenuItem Header="_Plugins" />
+        -->
+
     </Menu>
 </UserControl>
