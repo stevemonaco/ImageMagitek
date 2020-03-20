@@ -24,21 +24,19 @@
         <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
     </UserControl.InputBindings>
 
-    <Grid UseLayoutRounding="True">
+    <Grid
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch"
+        UseLayoutRounding="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
 
         <!--  Toolbar  -->
         <StackPanel
             Grid.Row="0"
             Grid.Column="0"
-            Grid.ColumnSpan="2"
             Margin="0,10,0,20"
             Orientation="Horizontal">
 
@@ -119,13 +117,15 @@
         <ScrollViewer
             Grid.Row="1"
             Grid.Column="0"
-            Grid.ColumnSpan="2"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
-
-            <Grid>
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
                 <Grid.Resources>
                     <ScaleTransform x:Key="transform" ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />
                     <SolidColorBrush
@@ -226,7 +226,6 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-
             </Grid>
         </ScrollViewer>
 
