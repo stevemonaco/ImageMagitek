@@ -6,7 +6,6 @@
     xmlns:converters="clr-namespace:TileShop.WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dd="urn:gong-wpf-dragdrop"
-    xmlns:helpers="clr-namespace:TileShop.WPF.Helpers"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
@@ -16,14 +15,38 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
+
+    <UserControl.InputBindings>
+        <KeyBinding Key="OemPlus" Command="{s:Action MoveByteDown}" />
+        <KeyBinding Key="Add" Command="{s:Action MouseByteDown}" />
+        <KeyBinding Key="Subtract" Command="{s:Action MoveByteUp}" />
+        <KeyBinding Key="OemMinus" Command="{s:Action MoveByteUp}" />
+        <KeyBinding Key="Down" Command="{s:Action MoveRowDown}" />
+        <KeyBinding Key="Up" Command="{s:Action MoveRowUp}" />
+        <KeyBinding Key="Right" Command="{s:Action MoveColumnRight}" />
+        <KeyBinding Key="Left" Command="{s:Action MoveColumnLeft}" />
+        <KeyBinding Key="PageDown" Command="{s:Action MovePageDown}" />
+        <KeyBinding Key="PageUp" Command="{s:Action MovePageUp}" />
+        <KeyBinding Key="Home" Command="{s:Action MoveHome}" />
+        <KeyBinding Key="End" Command="{s:Action MoveEnd}" />
+        <KeyBinding Key="OemQuestion" Command="{s:Action ExpandWidth}" />
+        <KeyBinding Key="OemPeriod" Command="{s:Action ShrinkWidth}" />
+        <KeyBinding Key="L" Command="{s:Action ExpandHeight}" />
+        <KeyBinding Key="OemSemicolon" Command="{s:Action ShrinkHeight}" />
+        <KeyBinding Key="A" Command="{s:Action SelectNextCodec}" />
+        <KeyBinding Key="S" Command="{s:Action SelectPreviousCodec}" />
+        <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
+        <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
+        <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
+        <KeyBinding Key="J" Command="{s:Action ShowJumpDialog}" />
+        <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
+    </UserControl.InputBindings>
+
     <Grid UseLayoutRounding="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
 
         <!--  Toolbar  -->
         <StackPanel
@@ -31,6 +54,7 @@
             Grid.Column="0"
             Margin="0,10,0,20"
             Orientation="Horizontal">
+
             <ComboBox ItemsSource="{Binding CodecNames}" SelectedValue="{Binding SelectedCodecName}" />
             <Slider
                 MinWidth="100"
@@ -90,38 +114,10 @@
         <ScrollViewer
             Grid.Row="1"
             Grid.Column="0"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
 
-            <ScrollViewer.InputBindings>
-                <KeyBinding Key="OemPlus" Command="{s:Action MoveByteDown}" />
-                <KeyBinding Key="Add" Command="{s:Action MouseByteDown}" />
-                <KeyBinding Key="Subtract" Command="{s:Action MoveByteUp}" />
-                <KeyBinding Key="OemMinus" Command="{s:Action MoveByteUp}" />
-                <KeyBinding Key="Down" Command="{s:Action MoveRowDown}" />
-                <KeyBinding Key="Up" Command="{s:Action MoveRowUp}" />
-                <KeyBinding Key="Right" Command="{s:Action MoveColumnRight}" />
-                <KeyBinding Key="Left" Command="{s:Action MoveColumnLeft}" />
-                <KeyBinding Key="PageDown" Command="{s:Action MovePageDown}" />
-                <KeyBinding Key="PageUp" Command="{s:Action MovePageUp}" />
-                <KeyBinding Key="Home" Command="{s:Action MoveHome}" />
-                <KeyBinding Key="End" Command="{s:Action MoveEnd}" />
-                <KeyBinding Key="OemQuestion" Command="{s:Action ExpandWidth}" />
-                <KeyBinding Key="OemPeriod" Command="{s:Action ShrinkWidth}" />
-                <KeyBinding Key="L" Command="{s:Action ExpandHeight}" />
-                <KeyBinding Key="OemSemicolon" Command="{s:Action ShrinkHeight}" />
-                <KeyBinding Key="A" Command="{s:Action SelectNextCodec}" />
-                <KeyBinding Key="S" Command="{s:Action SelectPreviousCodec}" />
-                <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
-                <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
-                <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
-                <KeyBinding Key="J" Command="{s:Action ShowJumpDialog}" />
-                <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
-            </ScrollViewer.InputBindings>
-
-            <Grid>
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid.Resources>
                     <ScaleTransform x:Key="transform" ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />
                     <SolidColorBrush

@@ -152,7 +152,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public bool SetPixel(int x, int y, Color color)
+        public void SetPixel(int x, int y, Color color)
         {
             var arrangerColor = new ColorRgba32(color.R, color.G, color.B, color.A);
 
@@ -162,8 +162,11 @@ namespace TileShop.WPF.ViewModels
                 var notifyEvent = result.Match(
                     success =>
                     {
-                        IsModified = true;
-                        Render();
+                        if (_activePencilHistory.ModifiedPoints.Add(new Point(x, y)))
+                        {
+                            IsModified = true;
+                            Render();
+                        }
                         return new NotifyOperationEvent("");
                     },
                     fail => new NotifyOperationEvent(fail.Reason)
@@ -173,10 +176,7 @@ namespace TileShop.WPF.ViewModels
             else if (_workingArranger.ColorType == PixelColorType.Direct)
             {
                 _directImage.SetPixel(x + _viewX, y + _viewY, arrangerColor);
-                return true;
             }
-
-            return false;
         }
 
         public Color GetPixel(int x, int y)
@@ -242,16 +242,14 @@ namespace TileShop.WPF.ViewModels
 
             if(ActiveTool == PixelTool.Pencil && e.LeftButton)
             {
-                SetPixel(x, y, PrimaryColor);
                 _activePencilHistory = new PencilHistoryAction();
-                _activePencilHistory.ModifiedPoints.Add(new Point(x, y));
+                SetPixel(x, y, PrimaryColor);
                 IsDrawing = true;
             }
             else if(ActiveTool == PixelTool.Pencil && e.RightButton)
             {
-                SetPixel(x, y, SecondaryColor);
                 _activePencilHistory = new PencilHistoryAction();
-                _activePencilHistory.ModifiedPoints.Add(new Point(x, y));
+                SetPixel(x, y, SecondaryColor);
                 IsDrawing = true;
             }
             else if(ActiveTool == PixelTool.ColorPicker && e.LeftButton)
@@ -285,19 +283,9 @@ namespace TileShop.WPF.ViewModels
                 return;
 
             if (IsDrawing && ActiveTool == PixelTool.Pencil && e.LeftButton)
-            {
-                if(_activePencilHistory.Add(x, y))
-                {
-                    SetPixel(x, y, PrimaryColor);
-                }
-            }
+                SetPixel(x, y, PrimaryColor);
             else if(IsDrawing && ActiveTool == PixelTool.Pencil && e.RightButton)
-            {
-                if (_activePencilHistory.Add(e.X, e.Y))
-                {
-                    SetPixel(x, y, SecondaryColor);
-                }
-            }
+                SetPixel(x, y, PrimaryColor);
         }
 
         public override void OnMouseUp(object sender, MouseCaptureArgs e)
@@ -318,11 +306,8 @@ namespace TileShop.WPF.ViewModels
                     "Save changes", System.Windows.MessageBoxButton.YesNoCancel);
 
                 if (result == System.Windows.MessageBoxResult.No)
-                {
                     History.Clear();
-                }
-
-                if (result == System.Windows.MessageBoxResult.Cancel)
+                else if (result == System.Windows.MessageBoxResult.Cancel)
                     return;
                 else if (result == System.Windows.MessageBoxResult.Yes)
                     SaveChanges();

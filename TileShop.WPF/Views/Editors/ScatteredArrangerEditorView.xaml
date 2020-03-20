@@ -12,7 +12,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:TileShop.WPF.Models"
     xmlns:s="https://github.com/canton7/Stylet"
-    xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
@@ -119,6 +118,7 @@
             Grid.Column="0"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
+
             <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
