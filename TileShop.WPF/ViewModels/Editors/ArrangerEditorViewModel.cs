@@ -165,6 +165,7 @@ namespace TileShop.WPF.ViewModels
             Overlay.Cancel();
             CanPasteElements = false;
             CanPastePixels = false;
+            NotifyOfPropertyChange(nameof(CanEditSelection));
         }
 
         protected virtual void CreateGridlines()

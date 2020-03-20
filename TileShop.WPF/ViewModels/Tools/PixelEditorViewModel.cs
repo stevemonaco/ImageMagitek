@@ -199,12 +199,18 @@ namespace TileShop.WPF.ViewModels
 
         public override void SaveChanges()
         {
-            if (_workingArranger.ColorType == PixelColorType.Indexed)
-                _indexedImage.SaveImage();
-            else if (_workingArranger.ColorType == PixelColorType.Direct)
-                _directImage.SaveImage();
-            else
-                throw new NotSupportedException();
+            try
+            {
+                if (_workingArranger.ColorType == PixelColorType.Indexed)
+                    _indexedImage.SaveImage();
+                else if (_workingArranger.ColorType == PixelColorType.Direct)
+                    _directImage.SaveImage();
+                IsModified = false;
+            }
+            catch (Exception ex)
+            {
+                _windowManager.ShowMessageBox($"Could not save the pixel arranger contents\n{ex.Message}\n{ex.StackTrace}", "Save Error");
+            }
         }
 
         public override void DiscardChanges()

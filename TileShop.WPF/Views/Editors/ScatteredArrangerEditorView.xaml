@@ -38,17 +38,20 @@
                 Content="Select"
                 GroupName="Tools"
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
-                Style="{StaticResource {x:Type ToggleButton}}" />
+                Style="{StaticResource {x:Type ToggleButton}}"
+                ToolTip="Click and drag across Arranger to select a region" />
             <RadioButton
                 Content="ApplyPal"
                 GroupName="Tools"
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
-                Style="{StaticResource {x:Type ToggleButton}}" />
+                Style="{StaticResource {x:Type ToggleButton}}"
+                ToolTip="Click on Arranger element to apply the current palette" />
             <RadioButton
                 Content="PickPal"
                 GroupName="Tools"
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PickPalette}"
-                Style="{StaticResource {x:Type ToggleButton}}" />
+                Style="{StaticResource {x:Type ToggleButton}}"
+                ToolTip="Click on an Arranger element to pick its associated palette" />
 
             <Slider
                 MinWidth="100"
@@ -67,6 +70,7 @@
             <Button
                 Click="{s:Action ResizeArranger}"
                 Content="Resize"
+                ToolTip="Resizes the Arranger"
                 Visibility="{Binding IsTiledArranger}" />
 
             <Separator />
@@ -82,7 +86,15 @@
             <Button
                 Click="{s:Action EditSelection}"
                 Content="Edit"
-                IsEnabled="{Binding CanEditSelection}" />
+                IsEnabled="{Binding CanEditSelection}"
+                ToolTip="Opens selection in the pixel editor" />
+
+            <Button
+                Margin="10,0,0,0"
+                Click="{s:Action SaveChanges}"
+                Content="Save"
+                IsEnabled="{Binding IsModified}"
+                ToolTip="Saves arranger properties to in-memory project" />
 
             <Button
                 Click="{s:Action ApplyPasteAsPixels}"
