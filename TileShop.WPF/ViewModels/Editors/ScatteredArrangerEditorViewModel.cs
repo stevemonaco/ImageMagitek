@@ -81,7 +81,21 @@ namespace TileShop.WPF.ViewModels
             else if (_workingArranger.ColorType == PixelColorType.Direct)
                 _directImage.SaveImage();
 
-            // TODO: Save _workingArranger elements to project tree
+            if (_workingArranger.Layout == ArrangerLayout.Tiled)
+            {
+                var treeArranger = Resource as Arranger;
+                if (_workingArranger.ElementPixelSize != treeArranger.ElementPixelSize)
+                    treeArranger.Resize(_workingArranger.ElementPixelSize.Width, _workingArranger.ElementPixelSize.Height);
+
+                for (int y = 0; y < _workingArranger.ElementPixelSize.Height; y++)
+                {
+                    for (int x = 0; x < _workingArranger.ElementPixelSize.Width; x++)
+                    {
+                        var el = _workingArranger.GetElement(x, y);
+                        treeArranger.SetElement(el, x, y);
+                    }
+                }
+            }
         }
 
         public override void DiscardChanges()
@@ -259,6 +273,7 @@ namespace TileShop.WPF.ViewModels
                 fail => new NotifyOperationEvent(fail.Reason)
                 );
 
+            IsModified = true;
             _events.PublishOnUIThread(notifyEvent);
             CancelOverlay();
             RenderArranger();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
@@ -77,7 +78,7 @@ namespace ImageMagitek
                 codec.WriteElement(el, encodedImage);
             }
 
-            foreach (var fs in Arranger.EnumerateElements().Select(x => x.DataFile.Stream).Distinct())
+            foreach (var fs in Arranger.EnumerateElements().Select(x => x.DataFile?.Stream).OfType<Stream>().Distinct())
                 fs.Flush();
         }
 

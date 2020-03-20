@@ -81,7 +81,9 @@ namespace ImageMagitek.Project
                             continue;
                         }
 
-                        tree.TryGetValue<DataFile>(modelArranger.ElementGrid[x, y].DataFileKey, out var df);
+                        DataFile df = default;
+                        if (!string.IsNullOrWhiteSpace(modelArranger.ElementGrid[x, y].DataFileKey))
+                            tree.TryGetValue<DataFile>(modelArranger.ElementGrid[x, y].DataFileKey, out df);
 
                         Palette pal = default;
                         if(!string.IsNullOrEmpty(modelArranger.ElementGrid[x, y].PaletteKey))
@@ -190,14 +192,14 @@ namespace ImageMagitek.Project
                 posy = int.Parse(e.Attribute("posy").Value),
                 format = e.Attribute("format"),
                 palette = e.Attribute("palette"),
-                file = e.Attribute("file")
+                datafile = e.Attribute("datafile")
             });
 
             foreach (var xmlElement in xmlElements)
             {
                 var el = new ArrangerElementModel();
 
-                el.DataFileKey = xmlElement.file?.Value ?? defaultDataFile;
+                el.DataFileKey = xmlElement.datafile?.Value ?? defaultDataFile;
                 el.PaletteKey = xmlElement.palette?.Value ?? defaultPalette;
                 el.CodecName = xmlElement.format?.Value ?? defaultFormat;
                 el.PositionX = xmlElement.posx * width;
