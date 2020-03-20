@@ -11,6 +11,7 @@ using TileShop.WPF.Behaviors;
 using TileShop.Shared.Models;
 using TileShop.Shared.EventModels;
 using System.Windows;
+using TileShop.WPF.ViewModels.Dialogs;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -18,6 +19,7 @@ namespace TileShop.WPF.ViewModels
 
     public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     {
+        private IWindowManager _windowManager;
         private IPaletteService _paletteService;
         private Palette _defaultPalette;
 
@@ -47,12 +49,14 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events) : this(arranger, events, null) { }
+        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IWindowManager windowManager) : 
+            this(arranger, events, windowManager, null) { }
 
-        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IPaletteService paletteService)
+        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService)
         {
             Resource = arranger;
             _events = events;
+            _windowManager = windowManager;
             _paletteService = paletteService;
             _defaultPalette = _paletteService?.DefaultPalette;
 
@@ -214,6 +218,18 @@ namespace TileShop.WPF.ViewModels
 
             ActivePalette = Palettes.FirstOrDefault(x => ReferenceEquals(el.Palette, x.Palette)) ?? Palettes.First(x => ReferenceEquals(_defaultPalette, x.Palette));
             return true;
+        }
+
+        public void ResizeArranger()
+        {
+            var model = new ResizeTiledScatteredArrangerViewModel(_windowManager, _workingArranger.ArrangerElementSize.Width, _workingArranger.ArrangerElementSize.Height);
+
+            if (_windowManager.ShowDialog(model) is true)
+            {
+                CancelOverlay();
+                _workingArranger.Resize(model.Width, model.Height);
+                RenderArranger();
+            }
         }
 
         protected override bool CanAcceptTransfer(ArrangerTransferModel model)

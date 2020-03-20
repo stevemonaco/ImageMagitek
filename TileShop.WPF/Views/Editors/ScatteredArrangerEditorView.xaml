@@ -64,6 +64,11 @@
                 IsChecked="{Binding ShowGridlines}"
                 Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
 
+            <Button
+                Click="{s:Action ResizeArranger}"
+                Content="Resize"
+                Visibility="{Binding IsTiledArranger}" />
+
             <Separator />
 
             <ComboBox ItemsSource="{Binding Palettes}" SelectedItem="{Binding ActivePalette}">
