@@ -157,11 +157,16 @@ namespace TileShop.WPF.ViewModels
 
             if (_workingArranger.ColorType == PixelColorType.Indexed)
             {
-                if (_indexedImage.TrySetPixel(x + _viewX, y + _viewY, arrangerColor))
-                {
-                    Render();
-                    return true;
-                }
+                var result = _indexedImage.TrySetPixel(x + _viewX, y + _viewY, arrangerColor);
+                var notifyEvent = result.Match(
+                    success =>
+                    {
+                        Render();
+                        return new NotifyOperationEvent("");
+                    },
+                    fail => new NotifyOperationEvent(fail.Reason)
+                    );
+                _events.PublishOnUIThread(notifyEvent);
             }
             else if (_workingArranger.ColorType == PixelColorType.Direct)
             {

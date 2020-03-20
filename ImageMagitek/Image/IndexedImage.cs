@@ -107,25 +107,23 @@ namespace ImageMagitek
         /// <param name="y">y-coordinate in pixel coordinates</param>
         /// <param name="color">Palette index of color</param>
         /// <returns>True if set, false if not set</returns>
-        public bool TrySetPixel(int x, int y, ColorRgba32 color)
+        public MagitekResult TrySetPixel(int x, int y, ColorRgba32 color)
         {
             var elem = Arranger.GetElementAtPixel(x, y);
             if (!(elem.Codec is IIndexedCodec))
-                return false;
+                return new MagitekResult.Failed($"Failed to set pixel at ({x}, {y}) because the element's codec is not an indexed color type");
 
             var pal = elem.Palette ?? _defaultPalette;
 
             if (pal is null)
-                return false;
-                //throw new NullReferenceException($"{nameof(TrySetPixel)} at ({x}, {y}) with arranger '{Arranger.Name}' has no palette specified and no default palette");
+                return new MagitekResult.Failed($"Failed to set pixel at ({x}, {y}) because arranger '{Arranger.Name}' has no palette specified and no default palette");
 
             if (!pal.ContainsNativeColor(color))
-                return false;
-                //throw new ArgumentException($"{nameof(TrySetPixel)} with arranger '{Arranger.Name}' and palette '{pal.Name}' does not contain the native color ({color.R}, {color.G}, {color.B}, {color.A})");
+                return new MagitekResult.Failed($"Failed to set pixel at ({x}, {y}) because the palette '{pal.Name}' does not contain the native color ({color.R}, {color.G}, {color.B}, {color.A})");
 
             var index = pal.GetIndexByNativeColor(color, true);
             Image[x + Width * y] = index;
-            return true;
+            return new MagitekResult.Success();
         }
 
         /// <summary>

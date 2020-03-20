@@ -106,20 +106,22 @@ namespace ImageMagitek.Project
 
         private ImageProjectModel DeserializeImageProject(XElement element)
         {
-            var model = new ImageProjectModel();
-
-            model.Name = element.Attribute("name").Value;
-            model.Root = element.Attribute("root")?.Value ?? "";
+            var model = new ImageProjectModel
+            {
+                Name = element.Attribute("name").Value,
+                Root = element.Attribute("root")?.Value ?? ""
+            };
 
             return model;
         }
 
         private DataFileModel DeserializeDataFile(XElement element)
         {
-            var model = new DataFileModel();
-
-            model.Name = element.Attribute("name").Value;
-            model.Location = element.Attribute("location").Value;
+            var model = new DataFileModel
+            {
+                Name = element.Attribute("name").Value,
+                Location = element.Attribute("location").Value
+            };
 
             return model;
         }
@@ -145,8 +147,11 @@ namespace ImageMagitek.Project
 
         private ResourceFolderModel DeserializeResourceFolder(XElement element)
         {
-            var model = new ResourceFolderModel();
-            model.Name = element.Attribute("name").Value;
+            var model = new ResourceFolderModel
+            {
+                Name = element.Attribute("name").Value
+            };
+
             return model;
         }
 
