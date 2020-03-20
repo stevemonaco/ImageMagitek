@@ -33,15 +33,16 @@ namespace TileShop.WPF.Behaviors
 
         private static void OnProxyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (e.OldValue is IMouseCaptureProxy)
+            if (e.OldValue is IMouseCaptureProxy oldValueProxy)
             {
-                (e.OldValue as IMouseCaptureProxy).Capture -= OnCapture;
-                (e.OldValue as IMouseCaptureProxy).Release -= OnRelease;
+                oldValueProxy.Capture -= OnCapture;
+                oldValueProxy.Release -= OnRelease;
             }
-            if (e.NewValue is IMouseCaptureProxy)
+
+            if (e.NewValue is IMouseCaptureProxy newValueProxy)
             {
-                (e.NewValue as IMouseCaptureProxy).Capture += OnCapture;
-                (e.NewValue as IMouseCaptureProxy).Release += OnRelease;
+                newValueProxy.Capture += OnCapture;
+                newValueProxy.Release += OnRelease;
             }
         }
 
@@ -60,19 +61,20 @@ namespace TileShop.WPF.Behaviors
         protected override void OnAttached()
         {
             base.OnAttached();
-            this.AssociatedObject.PreviewMouseDown += OnMouseDown;
-            this.AssociatedObject.PreviewMouseMove += OnMouseMove;
-            this.AssociatedObject.PreviewMouseUp += OnMouseUp;
-            this.AssociatedObject.MouseLeave += OnMouseLeave;
+            AssociatedObject.PreviewMouseDown += OnMouseDown;
+            AssociatedObject.PreviewMouseMove += OnMouseMove;
+            AssociatedObject.PreviewMouseUp += OnMouseUp;
+            AssociatedObject.MouseLeave += OnMouseLeave;
+            AssociatedObject.MouseWheel += OnMouseWheel;
         }
 
         protected override void OnDetaching()
         {
             base.OnDetaching();
-            this.AssociatedObject.PreviewMouseDown -= OnMouseDown;
-            this.AssociatedObject.PreviewMouseMove -= OnMouseMove;
-            this.AssociatedObject.PreviewMouseUp -= OnMouseUp;
-            this.AssociatedObject.MouseLeave -= OnMouseLeave;
+            AssociatedObject.PreviewMouseDown -= OnMouseDown;
+            AssociatedObject.PreviewMouseMove -= OnMouseMove;
+            AssociatedObject.PreviewMouseUp -= OnMouseUp;
+            AssociatedObject.MouseLeave -= OnMouseLeave;
         }
 
         private void OnMouseDown(object sender, MouseButtonEventArgs e)
@@ -80,7 +82,7 @@ namespace TileShop.WPF.Behaviors
             var proxy = GetProxy(this);
             if (proxy != null)
             {
-                var pos = e.GetPosition(this.AssociatedObject);
+                var pos = e.GetPosition(AssociatedObject);
                 var args = new MouseCaptureArgs
                 {
                     X = pos.X,
@@ -97,7 +99,7 @@ namespace TileShop.WPF.Behaviors
             var proxy = GetProxy(this);
             if (proxy != null)
             {
-                var pos = e.GetPosition(this.AssociatedObject);
+                var pos = e.GetPosition(AssociatedObject);
                 var args = new MouseCaptureArgs
                 {
                     X = pos.X,
@@ -114,7 +116,7 @@ namespace TileShop.WPF.Behaviors
             var proxy = GetProxy(this);
             if (proxy != null)
             {
-                var pos = e.GetPosition(this.AssociatedObject);
+                var pos = e.GetPosition(AssociatedObject);
                 var args = new MouseCaptureArgs
                 {
                     X = pos.X,
@@ -131,7 +133,7 @@ namespace TileShop.WPF.Behaviors
             var proxy = GetProxy(this);
             if (proxy != null)
             {
-                var pos = e.GetPosition(this.AssociatedObject);
+                var pos = e.GetPosition(AssociatedObject);
                 var args = new MouseCaptureArgs
                 {
                     X = pos.X,
@@ -143,5 +145,25 @@ namespace TileShop.WPF.Behaviors
             }
         }
 
+        private void OnMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            var proxy = GetProxy(this);
+            if (proxy != null)
+            {
+                if (e.Delta != 0)
+                {
+                    var pos = e.GetPosition(AssociatedObject);
+                    var args = new MouseCaptureArgs
+                    {
+                        X = pos.X,
+                        Y = pos.Y,
+                        LeftButton = (e.LeftButton == MouseButtonState.Pressed),
+                        RightButton = (e.RightButton == MouseButtonState.Pressed),
+                        WheelDelta = e.Delta
+                    };
+                    proxy.OnMouseWheel(this, args);
+                }
+            }
+        }
     }
 }

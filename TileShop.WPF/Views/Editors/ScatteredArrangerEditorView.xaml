@@ -16,6 +16,14 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
+
+    <UserControl.InputBindings>
+        <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
+        <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
+        <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
+        <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
+    </UserControl.InputBindings>
+
     <Grid UseLayoutRounding="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -116,13 +124,6 @@
             VerticalAlignment="Top"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
-
-            <ScrollViewer.InputBindings>
-                <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
-                <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
-                <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
-                <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
-            </ScrollViewer.InputBindings>
 
             <Grid>
                 <Grid.Resources>

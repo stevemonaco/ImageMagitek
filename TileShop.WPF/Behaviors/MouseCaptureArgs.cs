@@ -10,5 +10,6 @@ namespace TileShop.WPF.Behaviors
         public double Y { get; set; }
         public bool LeftButton { get; set; }
         public bool RightButton { get; set; }
+        public int WheelDelta { get; set; }
     }
 }

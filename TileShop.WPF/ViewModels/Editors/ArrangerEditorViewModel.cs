@@ -261,6 +261,8 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        public virtual void OnMouseWheel(object sender, MouseCaptureArgs e) { }
+
         protected virtual bool CanAcceptTransfer(ArrangerTransferModel model) => true;
 
         public virtual void Drop(IDropInfo dropInfo)

@@ -13,5 +13,6 @@ namespace TileShop.WPF.Behaviors
         void OnMouseLeave(object sender, MouseCaptureArgs e);
         void OnMouseMove(object sender, MouseCaptureArgs e);
         void OnMouseUp(object sender, MouseCaptureArgs e);
+        void OnMouseWheel(object sender, MouseCaptureArgs e);
     }
 }
