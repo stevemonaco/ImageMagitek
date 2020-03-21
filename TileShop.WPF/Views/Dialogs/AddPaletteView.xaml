@@ -13,6 +13,7 @@
     Height="240"
     MinWidth="220"
     behaviors:DialogCloser.DialogResult="{Binding DialogResult}"
+    TitleCharacterCasing="Normal"
     mc:Ignorable="d">
     <Grid Margin="5">
         <Grid.RowDefinitions>
@@ -64,7 +65,8 @@
                     Margin="0,5,0,0"
                     mah:TextBoxHelper.UseFloatingWatermark="True"
                     mah:TextBoxHelper.Watermark="File Offset"
-                    Text="{Binding FileOffset}" />
+                    Text="{Binding FileOffset}"
+                    ToolTip="File offset of palette data in decimal" />
 
                 <ItemsControl ItemsSource="{Binding ValidationErrors}">
                     <ItemsControl.ItemTemplate>

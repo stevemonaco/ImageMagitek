@@ -12,6 +12,7 @@
     Height="395"
     d:DesignHeight="300"
     d:DesignWidth="400"
+    TitleCharacterCasing="Normal"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
@@ -21,14 +22,14 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0">
-            <TextBlock
-                Margin="0,10,0,0"
-                HorizontalAlignment="Center"
-                Text="Arranger Name" />
+
             <TextBox
                 Width="250"
                 Margin="0,10,0,0"
                 HorizontalAlignment="Center"
+                mah:TextBoxHelper.UseFloatingWatermark="True"
+                mah:TextBoxHelper.Watermark="Arranger Name"
+                mah:TextBoxHelper.WatermarkAlignment="Center"
                 Text="{Binding ArrangerName}" />
 
             <TextBlock
