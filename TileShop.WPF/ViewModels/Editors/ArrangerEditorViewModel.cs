@@ -10,6 +10,8 @@ using System.Linq;
 using ImageMagitek.Codec;
 using GongSolutions.Wpf.DragDrop;
 using System.Windows;
+using TileShop.Shared.Services;
+using ImageMagitek.Colors;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -20,7 +22,11 @@ namespace TileShop.WPF.ViewModels
         protected Arranger _workingArranger;
         protected IndexedImage _indexedImage;
         protected DirectImage _directImage;
+        protected Palette _defaultPalette;
+
         protected IEventAggregator _events;
+        protected IPaletteService _paletteService;
+        protected IWindowManager _windowManager;
 
         protected ArrangerBitmapSource _arrangerSource;
         public ArrangerBitmapSource ArrangerSource
@@ -133,6 +139,14 @@ namespace TileShop.WPF.ViewModels
         {
             get => _arrangerTransfer;
             set => SetAndNotify(ref _arrangerTransfer, value);
+        }
+
+        public ArrangerEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) 
+        {
+            _events = events;
+            _windowManager = windowManager;
+            _paletteService = paletteService;
+            _defaultPalette = _paletteService?.DefaultPalette;
         }
 
         public virtual void Closing() { }

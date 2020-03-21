@@ -19,8 +19,6 @@ namespace TileShop.WPF.ViewModels
 
     public class PixelEditorViewModel : ArrangerEditorViewModel, IHandle<EditArrangerPixelsEvent>
     {
-        private IPaletteService _paletteService;
-        private IWindowManager _windowManager;
         private int _viewX;
         private int _viewY;
         private int _viewWidth;
@@ -95,12 +93,9 @@ namespace TileShop.WPF.ViewModels
 
         public override bool CanShowGridlines => HasArranger;
 
-        public PixelEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService)
+        public PixelEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) :
+            base(events, windowManager, paletteService)
         {
-            _events = events;
-            _windowManager = windowManager;
-            _paletteService = paletteService;
-
             _events.Subscribe(this);
 
             SetPrimaryColorCommand = new RelayCommand<Color>(SetPrimaryColor);
@@ -313,7 +308,7 @@ namespace TileShop.WPF.ViewModels
                     SaveChanges();
             }
 
-            _workingArranger = message.ArrangerTransferModel.Arranger;
+            _workingArranger = message.ArrangerTransferModel.Arranger.CloneArranger();
             _viewX = message.ArrangerTransferModel.X;
             _viewY = message.ArrangerTransferModel.Y;
             _viewWidth = message.ArrangerTransferModel.Width;

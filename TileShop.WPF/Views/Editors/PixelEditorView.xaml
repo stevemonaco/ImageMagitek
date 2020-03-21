@@ -144,11 +144,9 @@
             Grid.Row="2"
             Grid.Column="0"
             Grid.ColumnSpan="2"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
-            <Grid>
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>

@@ -143,11 +143,11 @@ namespace TileShop.WPF.ViewModels
                         newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _events, _windowManager, _paletteService);
                         break;
                     case SequentialArranger sequentialArranger:
-                        newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _codecService, _paletteService);
+                        newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _windowManager, _codecService, _paletteService);
                         break;
                     case DataFile dataFile: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
                         var newArranger = new SequentialArranger(8, 16, dataFile, _codecService.CodecFactory, "SNES 3bpp");
-                        newDocument = new SequentialArrangerEditorViewModel(newArranger, _events, _codecService, _paletteService);
+                        newDocument = new SequentialArrangerEditorViewModel(newArranger, _events, _windowManager, _codecService, _paletteService);
                         break;
                     case ResourceFolder resourceFolder:
                         newDocument = null;

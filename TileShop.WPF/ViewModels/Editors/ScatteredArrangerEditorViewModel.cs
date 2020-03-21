@@ -19,10 +19,6 @@ namespace TileShop.WPF.ViewModels
 
     public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     {
-        private IWindowManager _windowManager;
-        private IPaletteService _paletteService;
-        private Palette _defaultPalette;
-
         private BindableCollection<PaletteModel> _palettes = new BindableCollection<PaletteModel>();
         public BindableCollection<PaletteModel> Palettes
         {
@@ -49,25 +45,15 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IWindowManager windowManager) : 
-            this(arranger, events, windowManager, null) { }
-
-        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService)
+        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) :
+            base(events, windowManager, paletteService)
         {
             Resource = arranger;
-            _events = events;
-            _windowManager = windowManager;
-            _paletteService = paletteService;
-            _defaultPalette = _paletteService?.DefaultPalette;
-
             _workingArranger = arranger.CloneArranger();
-
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
             RenderArranger();
             CreateGridlines();
-
-            Overlay = new ArrangerOverlay();
 
             var arrangerPalettes = _workingArranger.GetReferencedPalettes().OrderBy(x => x.Name).ToList();
             arrangerPalettes.Add(_defaultPalette);
@@ -165,6 +151,8 @@ namespace TileShop.WPF.ViewModels
 
         private void RenderArranger()
         {
+            CancelOverlay();
+
             if (_workingArranger.ColorType == PixelColorType.Indexed)
             {
                 _indexedImage = new IndexedImage(_workingArranger);
@@ -226,7 +214,6 @@ namespace TileShop.WPF.ViewModels
 
             if (_windowManager.ShowDialog(model) is true)
             {
-                CancelOverlay();
                 _workingArranger.Resize(model.Width, model.Height);
                 RenderArranger();
             }
@@ -322,7 +309,6 @@ namespace TileShop.WPF.ViewModels
 
             IsModified = true;
             _events.PublishOnUIThread(notifyEvent);
-            CancelOverlay();
             RenderArranger();
         }
     }

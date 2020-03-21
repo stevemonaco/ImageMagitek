@@ -13,7 +13,6 @@ namespace TileShop.WPF.ViewModels
     public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouseCaptureProxy
     {
         private ICodecService _codecService;
-        private IPaletteService _paletteService;
         private FileBitAddress _address;
 
         private BindableCollection<string> _codecNames = new BindableCollection<string>();
@@ -100,14 +99,13 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public SequentialArrangerEditorViewModel(SequentialArranger arranger, IEventAggregator events, ICodecService codecService, IPaletteService paletteService)
+        public SequentialArrangerEditorViewModel(SequentialArranger arranger, IEventAggregator events, IWindowManager windowManager, 
+            ICodecService codecService, IPaletteService paletteService) :
+            base(events, windowManager, paletteService)
         {
             Resource = arranger;
-            _workingArranger = arranger;
-            _events = events;
+            _workingArranger = arranger.CloneArranger();
             _codecService = codecService;
-            _paletteService = paletteService;
-
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
             if (_workingArranger.ColorType == PixelColorType.Indexed)
@@ -118,8 +116,6 @@ namespace TileShop.WPF.ViewModels
             foreach (var name in codecService.GetSupportedCodecNames().OrderBy(x => x))
                 CodecNames.Add(name);
             _selectedCodecName = arranger.ActiveCodec.Name;
-
-            Overlay = new ArrangerOverlay();
 
             if (arranger.Layout == ArrangerLayout.Tiled)
             {
@@ -134,7 +130,8 @@ namespace TileShop.WPF.ViewModels
                 _linearArrangerWidth = arranger.ArrangerPixelSize.Width;
             }
 
-            Render();
+            CreateGridlines();
+            RenderArranger();
         }
 
         public override void SaveChanges()
@@ -195,7 +192,7 @@ namespace TileShop.WPF.ViewModels
             _address = (_workingArranger as SequentialArranger).Move(moveType);
 
             if (oldAddress != _address)
-                Render();
+                RenderArranger();
 
             string notifyMessage = $"File Offset: 0x{_address.FileOffset:X}";
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
@@ -216,7 +213,7 @@ namespace TileShop.WPF.ViewModels
                 return;
 
             (_workingArranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
-            Render();
+            RenderArranger();
         }
 
         private void ChangeCodec()
@@ -235,7 +232,7 @@ namespace TileShop.WPF.ViewModels
                 (_workingArranger as SequentialArranger).ChangeCodec(codec);
             }
 
-            Render();
+            RenderArranger();
 
             NotifyOfPropertyChange(() => IsTiledLayout);
             NotifyOfPropertyChange(() => IsLinearLayout);
@@ -245,10 +242,10 @@ namespace TileShop.WPF.ViewModels
         {
             var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, width, height);
             (_workingArranger as SequentialArranger).ChangeCodec(codec);
-            Render();
+            RenderArranger();
         }
 
-        private void Render()
+        private void RenderArranger()
         {
             CancelOverlay();
 
