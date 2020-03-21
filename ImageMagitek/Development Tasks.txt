@@ -18,7 +18,7 @@ FileStream - Currently always opened
 - FileStreamContext will dispose of opened FileStreams
 
 Error handling
-- Need a pattern to implement errors intended to notify users
+x Need a pattern to implement errors intended to notify users
 - Better error handling for serializers
 
 Documentation

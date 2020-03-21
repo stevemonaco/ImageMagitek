@@ -1,21 +1,22 @@
 ﻿- Major features to implement
 	- Saving
-		- Check all editors for saved
+		x Check all editors for saved
 	- Modal dialogs
-		- Initial WPF implementation, then consider port to ForgeForms when it is available for .NET Core 3
+		N/A Initial WPF implementation, then consider port to ForgeForms when it is available for .NET Core 3
 	- ProjectTree
-		- Drag and Drop
+		x Drag and Drop
 		- Context Menu -> Add / Remove / Export / Import
 	- Arranger
-		- Drag and Drop
+		x Drag and Drop
 		- Context Menu -> Copy / Paste / New Scattered Arranger from Selection
-		- Add Palette / Apply Palette for Tiled Scattered Arrangers
+		x Add Palette / Apply Palette for Tiled Scattered Arrangers
+		- Add SnapMode toggle so users can copy/paste pixels precisely on tiled arrangers
 	- Pixel Editor
 		- Undo / Redo, Save-aware
 	- Hex/Decimal Numeric Input TextBox
 
-- Properly dispose of ArrangerImage instances in editors when closing
-- Add limits to colors shown in default palettes in pixel editor
+N/A Properly dispose of ArrangerImage instances in editors when closing
+x Add limits to colors shown in default palettes in pixel editor
 
 - Considerations
 	- Add Gu.Wpf.NumericInput instead of writing a numeric textbox from scratch
