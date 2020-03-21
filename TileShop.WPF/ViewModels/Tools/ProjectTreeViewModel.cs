@@ -84,6 +84,27 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        public void CreateNewFolder(TreeNodeViewModel parentNodeModel)
+        {
+            if (_treeService.CreateNewFolder(parentNodeModel) is TreeNodeViewModel model)
+            {
+                SelectedItem = model;
+                IsModified = true;
+            }
+        }
+
+        public void DeleteNode(TreeNodeViewModel nodeModel)
+        {
+            var labels = new Dictionary<MessageBoxResult, string> { { MessageBoxResult.OK, "Remove" }, { MessageBoxResult.Cancel, "Cancel" } };
+            var response = _windowManager.ShowMessageBox($"'{nodeModel.Name}' will be permanently removed from the project and all references to it will be reset to default",
+                "Remove item?", MessageBoxButton.OKCancel, MessageBoxImage.Warning, buttonLabels: labels);
+
+            if (response == MessageBoxResult.OK)
+            {
+                
+            }
+        }
+
         private void UnloadProject()
         {
             ProjectFileName = null;
@@ -164,16 +185,13 @@ namespace TileShop.WPF.ViewModels
 
         public void DragOver(IDropInfo dropInfo)
         {
-            var sourceNode = (dropInfo.Data as TreeNodeViewModel)?.Node;
-            var targetNode = (dropInfo.TargetItem as FolderNodeViewModel)?.Node;
-
-            if (sourceNode is null || targetNode is null)
-                return;
-
-            if (_treeService.CanMoveNode(sourceNode, targetNode))
+            if (dropInfo.Data is TreeNodeViewModel sourceModel && dropInfo.TargetItem is TreeNodeViewModel targetModel)
             {
-                dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
-                dropInfo.Effects = DragDropEffects.Move;
+                if (_treeService.CanMoveNode(sourceModel, targetModel))
+                {
+                    dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+                    dropInfo.Effects = DragDropEffects.Move;
+                }
             }
         }
 

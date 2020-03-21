@@ -5,10 +5,20 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:s="https://github.com/canton7/Stylet"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
     <StackPanel Orientation="Horizontal">
-        <TextBlock Text="{Binding Name}" />
+        <TextBlock Text="{Binding Name}">
+            <TextBlock.ContextMenu>
+                <ContextMenu>
+                    <MenuItem
+                        Command="{s:Action RemoveNode}"
+                        CommandParameter="{Binding}"
+                        Header="Remove" />
+                </ContextMenu>
+            </TextBlock.ContextMenu>
+        </TextBlock>
     </StackPanel>
 </UserControl>

@@ -21,12 +21,14 @@ namespace TileShop.WPF.Services
         bool SaveProject(string projectFileName);
         void UnloadProject();
 
-        bool CanAddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode);
+        FolderNodeViewModel CreateNewFolder(TreeNodeViewModel parentNodeModel);
+
         IPathTreeNode<IProjectResource> AddResource(IProjectResource resource);
         IPathTreeNode<IProjectResource> AddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode);
-        bool CanMoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode);
+        bool CanAddResource(IProjectResource resource);
+
+        bool CanMoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode);
         void MoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode);
-        void MoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode);
     }
 
     public class ProjectTreeService : IProjectTreeService
@@ -76,6 +78,43 @@ namespace TileShop.WPF.Services
             Tree = null;
         }
 
+        /// <summary>
+        /// Creates a new folder with a default name under the given parentNodeModel
+        /// </summary>
+        /// <param name="parentNodeModel">Parent of the new folder</param>
+        /// <returns>The new folder</returns>
+        public FolderNodeViewModel CreateNewFolder(TreeNodeViewModel parentNodeModel)
+        {
+            var parentNode = parentNodeModel.Node;
+
+            if (FindNewChildResourceName(parentNode, "New Folder") is string name)
+            {
+                var folder = new ResourceFolder(name);
+                var folderNode = AddResource(folder, parentNode);
+                var folderVm = new FolderNodeViewModel(folderNode)
+                {
+                    ParentModel = parentNodeModel
+                };
+
+                parentNodeModel.Children.Add(folderVm);
+                return folderVm;
+            }
+            else
+                return null;
+        }
+
+        public bool DeleteNode(TreeNodeViewModel nodeModel)
+        {
+            return false;
+        }
+
+        private string FindNewChildResourceName(IPathTreeNode<IProjectResource> node, string baseName)
+        {
+            return new string[] { baseName }
+                .Concat(Enumerable.Range(1, 999).Select(x => $"{baseName} ({x})"))
+                .FirstOrDefault(x => !node.ContainsChild(x));
+        }
+
         public bool CanMoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode)
         {
             if (node is null || parentNode is null)
@@ -84,7 +123,7 @@ namespace TileShop.WPF.Services
             return CanMoveNode(node.Node, parentNode.Node);
         }
 
-        public bool CanMoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode)
+        private bool CanMoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode)
         {
             if (node is null || parentNode is null)
                 return false;
@@ -125,7 +164,7 @@ namespace TileShop.WPF.Services
             parentNode.Children.Add(node);
         }
 
-        public void MoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode)
+        private void MoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode)
         {
             node.Parent.DetachChild(node.Name);
             parentNode.AttachChild(node);
