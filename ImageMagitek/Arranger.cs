@@ -252,5 +252,55 @@ namespace ImageMagitek
         }
 
         public abstract IEnumerable<IProjectResource> LinkedResources();
+
+        public bool UnlinkResource(IProjectResource resource)
+        {
+            if (resource is Palette palette)
+                return UnlinkPalette(palette);
+            else if (resource is DataFile df)
+                return UnlinkDataFile(df);
+            else
+                return false;
+        }
+
+        private bool UnlinkPalette(Palette palette)
+        {
+            var isModified = false;
+
+            for (int y = 0; y < ArrangerElementSize.Height; y++)
+            {
+                for (int x = 0; x < ArrangerElementSize.Width; x++)
+                {
+                    var el = GetElement(x, y);
+                    if (ReferenceEquals(palette, el.Palette))
+                    {
+                        SetElement(el.WithPalette(default), x, y);
+                        isModified = true;
+                    }
+                }
+            }
+
+            return isModified;
+        }
+
+        private bool UnlinkDataFile(DataFile dataFile)
+        {
+            var isModified = false;
+
+            for (int y = 0; y < ArrangerElementSize.Height; y++)
+            {
+                for (int x = 0; x < ArrangerElementSize.Width; x++)
+                {
+                    var el = GetElement(x, y);
+                    if (ReferenceEquals(dataFile, el.DataFile))
+                    {
+                        SetElement(new ArrangerElement(el.X1, el.Y1), x, y);
+                        isModified = true;
+                    }
+                }
+            }
+
+            return isModified;
+        }
     }
 }

@@ -105,8 +105,7 @@ namespace TileShop.WPF.ViewModels
 
         public void DocumentClosing(object sender, DocumentClosingEventArgs e)
         {
-            var doc = e.Document.Content as ResourceEditorBaseViewModel;
-            if (doc is null || !doc.IsModified)
+            if (!(e.Document.Content is ResourceEditorBaseViewModel doc) || !doc.IsModified)
                 return;
 
             var result = _windowManager.ShowMessageBox($"{doc.DisplayName} has been modified. Save changes?", "Save changes",
@@ -267,7 +266,6 @@ namespace TileShop.WPF.ViewModels
             if (!RequestSaveAllUserChanges())
                 return;
 
-            //ActiveTree.TrySaveProject(ActiveTree.ProjectFileName);
             Editors.Clear();
             ActivePixelEditor.Reset();
             ActiveTree.CloseProject();
@@ -286,16 +284,9 @@ namespace TileShop.WPF.ViewModels
                 {
                     if (!RequestSaveUserChanges(editor))
                         return false;
-
-                    //if (closeDocuments)
-                    //    Editors.Remove(editor);
                 }
 
-                if (!RequestSaveUserChanges(ActiveTree))
-                    return false;
-
-                //ActiveTree.Reset();
-                return true;
+                return RequestSaveUserChanges(ActiveTree);
             }
             catch (Exception ex)
             {

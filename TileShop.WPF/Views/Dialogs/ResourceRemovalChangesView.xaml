@@ -1,0 +1,83 @@
+﻿<mah:MetroWindow
+    x:Class="TileShop.WPF.Views.Dialogs.ResourceRemovalChangesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:TileShop.WPF.Views.Dialogs"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:s="https://github.com/canton7/Stylet"
+    Title="Resource Removal Changes"
+    Width="800"
+    Height="450"
+    Background="LightGray"
+    TitleCharacterCasing="Normal"
+    mc:Ignorable="d">
+    <Grid Margin="10,0,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <ScrollViewer
+            Grid.Row="0"
+            HorizontalScrollBarVisibility="Hidden"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center">
+                <TextBlock Text="{Binding RemovedItem.ResourceName, StringFormat=\'{0}\' will be permanently removed from the project and all references to it will be reset to default}" TextWrapping="WrapWithOverflow" />
+                <TextBlock
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    FontWeight="Bold"
+                    Text="Removed Items" />
+
+                <ListView Margin="10" ItemsSource="{Binding RemovedItems}">
+                    <ListView.View>
+                        <GridView AllowsColumnReorder="False">
+                            <GridViewColumn DisplayMemberBinding="{Binding ResourceName}" Header="Resource Name" />
+                            <GridViewColumn DisplayMemberBinding="{Binding ResourcePath}" Header="Resource Path" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+
+                <TextBlock
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    FontWeight="Bold"
+                    Text="Changed Items"
+                    Visibility="{Binding HasChangedItems, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <ListView
+                    Margin="10"
+                    ItemsSource="{Binding ChangedItems}"
+                    Visibility="{Binding HasChangedItems, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn DisplayMemberBinding="{Binding ResourceName}" Header="Resource Name" />
+                            <GridViewColumn DisplayMemberBinding="{Binding ResourcePath}" Header="Resource Path" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel
+            Grid.Row="1"
+            Margin="0,10,0,10"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Horizontal">
+            <Button
+                Width="80"
+                Click="{s:Action Remove}"
+                Content="Remove"
+                IsDefault="True" />
+            <Button
+                Width="80"
+                Margin="5,0,0,0"
+                Click="{s:Action Cancel}"
+                Content="Cancel"
+                IsCancel="True" />
+        </StackPanel>
+
+    </Grid>
+</mah:MetroWindow>

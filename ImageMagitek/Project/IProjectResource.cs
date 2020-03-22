@@ -25,6 +25,17 @@ namespace ImageMagitek.Project
         /// </value>
         bool ShouldBeSerialized { get; set; }
 
+        /// <summary>
+        /// Unlinks the referenced resource and resets dependents to defaults
+        /// </summary>
+        /// <param name="resource"></param>
+        /// <returns></returns>
+        bool UnlinkResource(IProjectResource resource);
+
+        /// <summary>
+        /// Gets all resource references
+        /// </summary>
+        /// <returns></returns>
         IEnumerable<IProjectResource> LinkedResources();
     }
 }

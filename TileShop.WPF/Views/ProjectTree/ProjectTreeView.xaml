@@ -45,7 +45,8 @@
             <v:ProjectTreeDataFileView />
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate x:Key="treePaletteSelector" DataType="x:Type vms:PaletteNodeViewModel">
-            <v:ProjectTreePaletteView s:View.ActionTarget="{Binding}" />
+            <v:ProjectTreePaletteView />
+            <!--  s:View.ActionTarget="{Binding}"  -->
         </HierarchicalDataTemplate>
         <sel:ProjectTreeTemplateSelector
             x:Key="projectTreeTemplateSelector"

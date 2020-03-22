@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace ImageMagitek.Project
 {
@@ -11,11 +12,6 @@ namespace ImageMagitek.Project
 
         public bool ShouldBeSerialized { get; set; } = true;
 
-        public IEnumerable<IProjectResource> LinkedResources()
-        {
-            yield break;
-        }
-
         public ImageProject() : this("") { }
 
         public ImageProject(string name)
@@ -27,5 +23,9 @@ namespace ImageMagitek.Project
         {
             Name = name;
         }
+
+        public bool UnlinkResource(IProjectResource resource) => false;
+
+        public IEnumerable<IProjectResource> LinkedResources() => Enumerable.Empty<IProjectResource>();
     }
 }

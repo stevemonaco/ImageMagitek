@@ -426,6 +426,8 @@ namespace ImageMagitek.Colors
             return Enum.GetNames(typeof(ColorModel)).Cast<string>().ToList();
         }
 
+        public bool UnlinkResource(IProjectResource resource) => false;
+
         public IEnumerable<IProjectResource> LinkedResources()
         {
             yield return DataFile;

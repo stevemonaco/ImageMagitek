@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using GongSolutions.Wpf.DragDrop;
 using System.Windows;
+using TileShop.WPF.ViewModels.Dialogs;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -93,15 +94,26 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void DeleteNode(TreeNodeViewModel nodeModel)
+        public void RemoveNode(TreeNodeViewModel nodeModel)
         {
-            var labels = new Dictionary<MessageBoxResult, string> { { MessageBoxResult.OK, "Remove" }, { MessageBoxResult.Cancel, "Cancel" } };
-            var response = _windowManager.ShowMessageBox($"'{nodeModel.Name}' will be permanently removed from the project and all references to it will be reset to default",
-                "Remove item?", MessageBoxButton.OKCancel, MessageBoxImage.Warning, buttonLabels: labels);
+            var changes = _treeService.GetResourceRemovalChanges(nodeModel);
+            var removedItem = changes.First(x => ReferenceEquals(x.Resource, nodeModel.Node.Value));
 
-            if (response == MessageBoxResult.OK)
+            var changeVm = new ResourceRemovalChangesViewModel(removedItem, changes);
+
+            var result = _windowManager.ShowDialog(changeVm);
+
+            if (result is true)
             {
-                
+                foreach (var item in changes.Where(x => x.Removed))
+                {
+
+                }
+
+                foreach (var item in changes.Where(x => !x.Removed))
+                {
+
+                }
             }
         }
 
