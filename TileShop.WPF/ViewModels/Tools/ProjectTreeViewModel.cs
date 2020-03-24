@@ -14,6 +14,7 @@ using GongSolutions.Wpf.DragDrop;
 using System.Windows;
 using TileShop.WPF.ViewModels.Dialogs;
 using TileShop.WPF.EventModels;
+using System.Windows.Threading;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -99,6 +100,33 @@ namespace TileShop.WPF.ViewModels
         {
             var eventModel = new RequestRemoveTreeNodeEvent(nodeModel);
             _events.PublishOnUIThread(eventModel);
+        }
+
+        public void RequestRenameNode(Tuple<string, object> renameTuple)
+        {
+            if (renameTuple.Item1 is string name && renameTuple.Item2 is TreeNodeViewModel model)
+            {
+                if (model.ParentModel.Node.ContainsChild(name))
+                {
+                    _windowManager.ShowMessageBox($"Parent item already contains an item named '{name}'", icon: MessageBoxImage.Error);
+                }
+                else
+                {
+                    model.Name = name;
+                    IsModified = true;
+                }
+            }
+        }
+
+        public void StartRenameNode(TreeNodeViewModel nodeModel)
+        {
+            if (nodeModel is object)
+            {
+                Dispatcher.CurrentDispatcher.BeginInvoke(
+                    DispatcherPriority.Normal, 
+                    new Action(() => nodeModel.RequestEditMode(InplaceEditBoxLib.Events.RequestEditEvent.StartEditMode))
+                );
+            }
         }
 
         public void ApplyRemovalChanges(ResourceRemovalChangesViewModel changes)

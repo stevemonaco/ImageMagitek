@@ -18,7 +18,9 @@
     <UserControl.Resources>
         <converters:TreeNodeCollectionViewSource x:Key="SortedTreeViewSource" />
 
-        <Style x:Key="projectItemStyle" TargetType="{x:Type TreeViewItem}" />
+        <Style x:Key="projectItemStyle" TargetType="{x:Type TreeViewItem}">
+            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+        </Style>
         <Style
             x:Key="rootItemStyle"
             BasedOn="{StaticResource projectItemStyle}"
@@ -78,9 +80,18 @@
             ItemContainerStyle="{StaticResource rootItemStyle}"
             ItemTemplateSelector="{StaticResource projectTreeTemplateSelector}"
             ItemsSource="{Binding ProjectRoot}">
+
+            <TreeView.InputBindings>
+                <KeyBinding
+                    Key="F2"
+                    Command="{Binding StartRenameCommand}"
+                    CommandParameter="{Binding SelectedItem}" />
+            </TreeView.InputBindings>
+
             <i:Interaction.Behaviors>
                 <behaviors:BindableSelectedItemBehavior SelectedItem="{Binding SelectedItem, Mode=TwoWay}" />
             </i:Interaction.Behaviors>
+
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="MouseDoubleClick">
                     <i:InvokeCommandAction Command="{s:Action ActivateSelectedItem}" />

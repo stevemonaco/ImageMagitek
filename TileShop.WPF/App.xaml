@@ -25,12 +25,14 @@
                             <GeometryDrawing Brush="LightGray" Geometry="M0,0 H1 V1 H2 V2 H1 V1 H0Z" />
                         </DrawingBrush.Drawing>
                     </DrawingBrush>
+
                     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
                     <converters:EditModeBooleanConverter x:Key="EditModeBooleanConverter" />
                     <converters:SnapModeBooleanConverter x:Key="SnapModeBooleanConverter" />
                     <converters:ColorToSolidColorBrushConverter x:Key="ColorToSolidColorBrushConverter" />
                     <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
                     <converters:OverlayStateVisibilityConverter x:Key="OverlayStateVisibilityConverter" />
+                    <converters:StringNodeToTupleConverter x:Key="StringNodeToTupleConverter" />
                 </ResourceDictionary>
 
                 <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/LightTheme.xaml" />
