@@ -227,8 +227,17 @@ namespace TileShop.WPF.ViewModels
 
         public override void SaveChanges()
         {
-            _treeService.SaveProject(ProjectFileName);
-            IsModified = false;
+            try
+            {
+                if (_treeService.SaveProject(ProjectFileName))
+                    IsModified = false;
+                else
+                    _windowManager.ShowMessageBox($"An unspecified error occurred while saving the project tree to {ProjectFileName}");                
+            }
+            catch (Exception ex)
+            {
+                _windowManager.ShowMessageBox($"Unable to save project '{ProjectFileName}'\n{ex.Message}\n{ex.StackTrace}");
+            }
         }
 
         public void NewProject(string newFileName)
@@ -250,25 +259,6 @@ namespace TileShop.WPF.ViewModels
         }
 
         public void CloseProject() => UnloadProject();
-
-        public bool TrySaveProject(string projectFileName)
-        {
-            try
-            {
-                if (!_treeService.SaveProject(projectFileName))
-                {
-                    _windowManager.ShowMessageBox($"An unspecified error occurred while saving the project tree to {projectFileName}");
-                    return false;
-                }
-                IsModified = false;
-                return true;
-            }
-            catch(Exception ex)
-            {
-                _windowManager.ShowMessageBox($"Unable to save project '{projectFileName}'\n{ex.Message}\n{ex.StackTrace}");
-                return false;
-            }
-        }
 
         public override void DiscardChanges()
         {

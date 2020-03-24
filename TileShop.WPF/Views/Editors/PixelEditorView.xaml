@@ -39,6 +39,7 @@
             Grid.Column="0"
             Grid.ColumnSpan="2"
             Margin="0,0,0,10"
+            IsEnabled="{Binding HasArranger}"
             Orientation="Horizontal">
             <ComboBox ItemsSource="{Binding Palettes}" SelectedValue="{Binding ActivePalette}">
                 <ComboBox.ItemTemplate>

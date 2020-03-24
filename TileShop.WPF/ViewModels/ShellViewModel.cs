@@ -251,11 +251,9 @@ namespace TileShop.WPF.ViewModels
 
         public void Handle(SaveProjectEvent message)
         {
-            string projectFileName = ActiveTree.ProjectFileName;
-
             if (message.SaveAsNewProject)
             {
-                projectFileName = _fileSelect.GetNewProjectFileNameByUser();
+                var projectFileName = _fileSelect.GetNewProjectFileNameByUser();
 
                 if (projectFileName is null)
                     return;
@@ -263,7 +261,7 @@ namespace TileShop.WPF.ViewModels
                 ActiveTree.ProjectFileName = projectFileName;
             }
 
-            ActiveTree.TrySaveProject(projectFileName);
+            ActiveTree.SaveChanges();
         }
 
         public void Handle(CloseProjectEvent message)
@@ -333,25 +331,23 @@ namespace TileShop.WPF.ViewModels
 
             if (result is true)
             {
-                if (ActivePixelEditor.IsModified || Editors.Any(x => x.IsModified))
+                var modifiedEditors = Editors.Where(x => x.IsModified).Concat(Tools.OfType<PixelEditorViewModel>().Where(x => x.IsModified));
+
+                if (modifiedEditors.Any())
                 {
                     var boxResult = _windowManager.ShowMessageBox("The project contains modified items which must be saved or discarded before removing any items", "Save changes",
                         MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
 
                     if (boxResult == MessageBoxResult.Yes)
                     {
-                        ActivePixelEditor.SaveChanges();
-
-                        foreach (var editor in Editors)
+                        foreach (var editor in modifiedEditors)
                             editor.SaveChanges();
 
                         ActiveTree.SaveChanges();
                     }
                     else if (boxResult == MessageBoxResult.No)
                     {
-                        ActivePixelEditor.DiscardChanges();
-
-                        foreach (var editor in Editors)
+                        foreach (var editor in modifiedEditors)
                             editor.DiscardChanges();
 
                         ActiveTree.SaveChanges();
@@ -364,7 +360,7 @@ namespace TileShop.WPF.ViewModels
                 Editors.Clear();
 
                 ActiveTree.ApplyRemovalChanges(changeVm);
-                ActiveTree.IsModified = true;
+                ActiveTree.SaveChanges();
             }
         }
     }

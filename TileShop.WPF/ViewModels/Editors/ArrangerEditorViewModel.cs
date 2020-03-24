@@ -179,11 +179,14 @@ namespace TileShop.WPF.ViewModels
             Overlay.Cancel();
             CanPasteElements = false;
             CanPastePixels = false;
-            NotifyOfPropertyChange(nameof(CanEditSelection));
+            NotifyOfPropertyChange(() => CanEditSelection);
         }
 
         protected virtual void CreateGridlines()
         {
+            if (_workingArranger is null)
+                return;
+
             _gridlines = new BindableCollection<Gridline>();
             for (int x = 0; x < _workingArranger.ArrangerElementSize.Width; x++) // Vertical gridlines
             {

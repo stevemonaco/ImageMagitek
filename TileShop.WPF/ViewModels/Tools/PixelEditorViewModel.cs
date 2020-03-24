@@ -226,8 +226,10 @@ namespace TileShop.WPF.ViewModels
             History.Clear();
             HasArranger = false;
             IsModified = false;
+            ArrangerSource = null;
             _workingArranger = null;
             Palettes.Clear();
+            NotifyOfPropertyChange(() => CanRemapColors);
             ActivePalette = null;
             PrimaryColor = Color.FromArgb(0, 0, 0, 0);
             SecondaryColor = Color.FromArgb(0, 0, 0, 0);
