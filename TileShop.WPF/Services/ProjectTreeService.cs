@@ -10,8 +10,9 @@ using Monaco.PathTree;
 using TileShop.WPF.ViewModels;
 using TileShop.Shared.Services;
 using Stylet;
-using TileShop.Shared.Models;
+using TileShop.WPF.Models;
 using ImageMagitek.Colors;
+using TileShop.WPF.ViewModels.Dialogs;
 
 namespace TileShop.WPF.Services
 {
@@ -33,7 +34,7 @@ namespace TileShop.WPF.Services
         bool CanMoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode);
         void MoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode);
 
-        IList<ResourceRemovalChange> GetResourceRemovalChanges(TreeNodeViewModel removeNodeModel);
+        ResourceRemovalChangesViewModel GetResourceRemovalChanges(TreeNodeViewModel rootNodeModel, TreeNodeViewModel removeNodeModel);
     }
 
     public class ProjectTreeService : IProjectTreeService
@@ -113,37 +114,38 @@ namespace TileShop.WPF.Services
             return true;
         }
 
-        public IList<ResourceRemovalChange> GetResourceRemovalChanges(TreeNodeViewModel removeNodeModel)
+        public ResourceRemovalChangesViewModel GetResourceRemovalChanges(TreeNodeViewModel rootNodeModel, TreeNodeViewModel removeNodeModel)
         {
-            if (removeNodeModel is ImageProjectNodeViewModel)
-                return new List<ResourceRemovalChange>();
+            if (removeNodeModel.Node is ImageProjectNodeViewModel)
+                return null;
 
-            var removeNode = removeNodeModel.Node;
+            var rootRemovalChange = new ResourceRemovalChange(removeNodeModel, true, false, false);
+            var changes = new ResourceRemovalChangesViewModel(rootRemovalChange);
 
-            var removedDict = removeNode
-                .SelfAndDescendantsDepthFirst()
-                .Select(x => new ResourceRemovalChange(x.Value, x.Value.Name, x.PathKey, true, false, false))
+            //var removeNode = removeNodeModel.Node;
+
+            var removedDict = SelfAndDescendants(removeNodeModel)
+                .Select(x => new ResourceRemovalChange(x, true, false, false))
                 .ToDictionary(key => key.Resource, val => val);
 
             // Palettes with removed DataFiles must be checked early, so that Arrangers are effected in the main loop by removed Palettes
-            var removedPaletteNodes = Tree
-                .EnumerateDepthFirst()
-                .Where(x => x.Value is Palette)
-                .Where(x => removedDict.ContainsKey((x.Value as Palette).DataFile));
+            var removedPaletteNodes = SelfAndDescendants(rootNodeModel)
+                .Where(x => x.Node.Value is Palette)
+                .Where(x => removedDict.ContainsKey((x.Node.Value as Palette).DataFile));
 
             foreach (var palNode in removedPaletteNodes)
-                removedDict[palNode.Value] = new ResourceRemovalChange(palNode.Value, palNode.Value.Name, palNode.PathKey, true, false, false);
+                removedDict[palNode.Node.Value] = new ResourceRemovalChange(palNode, true, false, false);
 
-            var changes = removedDict.Values.ToList();
+            changes.RemovedResources.AddRange(removedDict.Values);
 
-            foreach (var node in Tree.EnumerateDepthFirst().Where(x => !removedDict.ContainsKey(x.Value)))
+            foreach (var node in SelfAndDescendants(rootNodeModel).Where(x => !removedDict.ContainsKey(x.Node.Value)))
             {
                 var removed = false;
                 var lostElements = false;
                 var lostPalette = false;
-                var resource = node.Value;
+                var resource = node.Node.Value;
 
-                foreach (var linkedResource in resource.LinkedResources())
+                foreach (var linkedResource in resource.LinkedResources)
                 {
                     if (removedDict.ContainsKey(linkedResource))
                     {
@@ -156,10 +158,13 @@ namespace TileShop.WPF.Services
 
                 if (removed || lostPalette || lostElements)
                 {
-                    var change = new ResourceRemovalChange(resource, resource.Name, node.PathKey, removed, lostPalette, lostElements);
-                    changes.Add(change);
+                    var change = new ResourceRemovalChange(node, removed, lostPalette, lostElements);
+                    changes.ChangedResources.Add(change);
                 }
             }
+
+            changes.HasRemovedResources = changes.RemovedResources.Count > 0;
+            changes.HasChangedResources = changes.ChangedResources.Count > 0;
 
             return changes;
         }
@@ -275,5 +280,25 @@ namespace TileShop.WPF.Services
         }
 
         public IEnumerable<IPathTreeNode<IProjectResource>> Nodes() => Tree.EnumerateBreadthFirst();
+
+        /// <summary>
+        /// Depth-first tree traversal, returning leaf nodes before nodes higher in the hierarchy
+        /// </summary>
+        /// <param name="treeNode"></param>
+        /// <returns></returns>
+        private IEnumerable<TreeNodeViewModel> SelfAndDescendants(TreeNodeViewModel treeNode)
+        {
+            var nodeStack = new Stack<TreeNodeViewModel>();
+
+            nodeStack.Push(treeNode);
+
+            while (nodeStack.Count > 0)
+            {
+                var node = nodeStack.Pop();
+                yield return node;
+                foreach (var child in node.Children)
+                    nodeStack.Push(child);
+            }
+        }
     }
 }

@@ -1,15 +1,18 @@
 ﻿using ImageMagitek.Project;
-using System;
+using Monaco.PathTree;
+using Stylet;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Text;
+using TileShop.WPF.ViewModels;
 
-namespace TileShop.Shared.Models
+namespace TileShop.WPF.Models
 {
     public class ResourceRemovalChange : INotifyPropertyChanged
     {
-        public IProjectResource Resource { get; set; }
+        public IProjectResource Resource { get; }
+        public TreeNodeViewModel ModelNode { get; }
+        public IPathTreeNode<IProjectResource> ResourceNode { get; }
 
         private string _resourceName;
         public string ResourceName
@@ -46,11 +49,13 @@ namespace TileShop.Shared.Models
             set => SetField(ref _lostElement, value);
         }
 
-        public ResourceRemovalChange(IProjectResource resource, string name, string path, bool removed, bool lostPalette, bool lostElement)
+        public ResourceRemovalChange(TreeNodeViewModel modelNode, bool removed, bool lostPalette, bool lostElement)
         {
-            Resource = resource;
-            ResourceName = name;
-            ResourcePath = path;
+            ModelNode = modelNode;
+            ResourceNode = modelNode.Node;
+            Resource = ResourceNode.Value;
+            ResourceName = Resource.Name;
+            ResourcePath = ResourceNode.PathKey;
             Removed = removed;
             LostPalette = lostPalette;
             LostElement = lostElement;

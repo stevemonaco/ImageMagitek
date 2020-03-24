@@ -13,6 +13,7 @@ using System.Linq;
 using GongSolutions.Wpf.DragDrop;
 using System.Windows;
 using TileShop.WPF.ViewModels.Dialogs;
+using TileShop.WPF.EventModels;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -37,11 +38,11 @@ namespace TileShop.WPF.ViewModels
 
         public bool HasProject => ProjectFileName is object;
 
-        private string _ProjectFileName;
+        private string _projectFileName;
         public string ProjectFileName
         {
-            get => _ProjectFileName;
-            set => SetAndNotify(ref _ProjectFileName, value);
+            get => _projectFileName;
+            set => SetAndNotify(ref _projectFileName, value);
         }
 
         private BindableCollection<ImageProjectNodeViewModel> _projectRoot = new BindableCollection<ImageProjectNodeViewModel>();
@@ -94,26 +95,30 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void RemoveNode(TreeNodeViewModel nodeModel)
+        public void RequestRemoveNode(TreeNodeViewModel nodeModel)
         {
-            var changes = _treeService.GetResourceRemovalChanges(nodeModel);
-            var removedItem = changes.First(x => ReferenceEquals(x.Resource, nodeModel.Node.Value));
+            var eventModel = new RequestRemoveTreeNodeEvent(nodeModel);
+            _events.PublishOnUIThread(eventModel);
+        }
 
-            var changeVm = new ResourceRemovalChangesViewModel(removedItem, changes);
-
-            var result = _windowManager.ShowDialog(changeVm);
-
-            if (result is true)
+        public void ApplyRemovalChanges(ResourceRemovalChangesViewModel changes)
+        {
+            foreach (var item in changes.ChangedResources)
             {
-                foreach (var item in changes.Where(x => x.Removed))
+                foreach (var removeItem in changes.RemovedResources)
                 {
-
+                    item.Resource.UnlinkResource(removeItem.Resource);
                 }
+            }
 
-                foreach (var item in changes.Where(x => !x.Removed))
-                {
+            foreach (var item in changes.RemovedResources)
+            {
+                var parent = item.ModelNode.ParentModel;
+                parent.Children.Remove(item.ModelNode);
 
-                }
+                var resourceNode = item.Resource;
+                var resourceParent = item.ResourceNode.Parent;
+                resourceParent.RemoveChild(resourceNode.Name);
             }
         }
 

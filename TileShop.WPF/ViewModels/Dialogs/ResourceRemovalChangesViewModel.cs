@@ -1,48 +1,48 @@
 ﻿using Stylet;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using TileShop.Shared.Models;
+using TileShop.WPF.Models;
 
 namespace TileShop.WPF.ViewModels.Dialogs
 {
     public class ResourceRemovalChangesViewModel : Screen
     {
-        private ResourceRemovalChange _removedItem;
-        public ResourceRemovalChange RemovedItem
+        private ResourceRemovalChange _removedResource;
+        public ResourceRemovalChange RemovedResource
         {
-            get => _removedItem;
-            set => SetAndNotify(ref _removedItem, value);
+            get => _removedResource;
+            set => SetAndNotify(ref _removedResource, value);
         }
 
-        private BindableCollection<ResourceRemovalChange> _removedItems;
-        public BindableCollection<ResourceRemovalChange> RemovedItems
+        private BindableCollection<ResourceRemovalChange> _removedResources = new BindableCollection<ResourceRemovalChange>();
+        public BindableCollection<ResourceRemovalChange> RemovedResources
         {
-            get => _removedItems;
-            set => SetAndNotify(ref _removedItems, value);
+            get => _removedResources;
+            set => SetAndNotify(ref _removedResources, value);
         }
 
-        private BindableCollection<ResourceRemovalChange> _changedItems;
-        public BindableCollection<ResourceRemovalChange> ChangedItems
+        private BindableCollection<ResourceRemovalChange> _changedResources = new BindableCollection<ResourceRemovalChange>();
+        public BindableCollection<ResourceRemovalChange> ChangedResources
         {
-            get => _changedItems;
-            set => SetAndNotify(ref _changedItems, value);
+            get => _changedResources;
+            set => SetAndNotify(ref _changedResources, value);
         }
 
-        private bool _hasChangedItems;
-        public bool HasChangedItems
+        private bool _hasRemovedResources;
+        public bool HasRemovedResources
         {
-            get => _hasChangedItems;
-            set => SetAndNotify(ref _hasChangedItems, value);
+            get => _hasRemovedResources;
+            set => SetAndNotify(ref _hasRemovedResources, value);
         }
 
-        public ResourceRemovalChangesViewModel(ResourceRemovalChange removedItem, IEnumerable<ResourceRemovalChange> changes)
+        private bool _hasChangedResources;
+        public bool HasChangedResources
         {
-            RemovedItem = removedItem;
-            RemovedItems = new BindableCollection<ResourceRemovalChange>(changes.Where(x => x.Removed == true));
-            ChangedItems = new BindableCollection<ResourceRemovalChange>(changes.Where(x => x.Removed == false));
-            HasChangedItems = ChangedItems.Count > 0 ? true : false;
+            get => _hasChangedResources;
+            set => SetAndNotify(ref _hasChangedResources, value);
+        }
+
+        public ResourceRemovalChangesViewModel(ResourceRemovalChange removedResource)
+        {
+            RemovedResource = removedResource;
         }
 
         public void Remove() => RequestClose(true);

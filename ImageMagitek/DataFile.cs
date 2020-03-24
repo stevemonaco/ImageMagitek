@@ -51,6 +51,13 @@ namespace ImageMagitek
         }
 
         public bool UnlinkResource(IProjectResource resource) => false;
-        public IEnumerable<IProjectResource> LinkedResources() => Enumerable.Empty<IProjectResource>();
+
+        public IEnumerable<IProjectResource> LinkedResources
+        {
+            get
+            {
+                return Enumerable.Empty<IProjectResource>();
+            }
+        }
     }
 }

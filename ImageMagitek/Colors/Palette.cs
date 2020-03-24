@@ -428,9 +428,12 @@ namespace ImageMagitek.Colors
 
         public bool UnlinkResource(IProjectResource resource) => false;
 
-        public IEnumerable<IProjectResource> LinkedResources()
+        public IEnumerable<IProjectResource> LinkedResources
         {
-            yield return DataFile;
+            get
+            {
+                yield return DataFile;
+            }
         }
     }
 }

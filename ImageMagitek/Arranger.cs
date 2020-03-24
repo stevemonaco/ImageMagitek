@@ -251,7 +251,7 @@ namespace ImageMagitek
                 .ToHashSet();
         }
 
-        public abstract IEnumerable<IProjectResource> LinkedResources();
+        public abstract IEnumerable<IProjectResource> LinkedResources { get; }
 
         public bool UnlinkResource(IProjectResource resource)
         {
@@ -294,7 +294,7 @@ namespace ImageMagitek
                     var el = GetElement(x, y);
                     if (ReferenceEquals(dataFile, el.DataFile))
                     {
-                        SetElement(new ArrangerElement(el.X1, el.Y1), x, y);
+                        SetElement(el.WithFile(default, 0), x, y);
                         isModified = true;
                     }
                 }

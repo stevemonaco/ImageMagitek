@@ -13,7 +13,7 @@
         <TextBlock.ContextMenu>
             <ContextMenu>
                 <MenuItem
-                    Command="{s:Action RemoveNode}"
+                    Command="{s:Action RequestRemoveNode}"
                     CommandParameter="{Binding}"
                     Header="Remove" />
             </ContextMenu>

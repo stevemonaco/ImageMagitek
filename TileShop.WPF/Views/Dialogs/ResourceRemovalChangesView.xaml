@@ -8,12 +8,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
     Title="Resource Removal Changes"
-    Width="800"
-    Height="450"
     Background="LightGray"
+    SizeToContent="WidthAndHeight"
     TitleCharacterCasing="Normal"
     mc:Ignorable="d">
-    <Grid Margin="10,0,0,0">
+    <Grid Margin="10,0,10,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
@@ -24,18 +23,22 @@
             HorizontalScrollBarVisibility="Hidden"
             VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center">
-                <TextBlock Text="{Binding RemovedItem.ResourceName, StringFormat=\'{0}\' will be permanently removed from the project and all references to it will be reset to default}" TextWrapping="WrapWithOverflow" />
+                <TextBlock Text="{Binding RemovedResource.ResourceName, StringFormat=\'{0}\' will be permanently removed and all references will be reset to default}" TextWrapping="WrapWithOverflow" />
+
                 <TextBlock
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
                     FontWeight="Bold"
-                    Text="Removed Items" />
-
-                <ListView Margin="10" ItemsSource="{Binding RemovedItems}">
+                    Text="Removed Items"
+                    Visibility="{Binding HasRemovedResources, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <ListView
+                    Margin="10"
+                    ItemsSource="{Binding RemovedResources}"
+                    Visibility="{Binding HasRemovedResources, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ListView.View>
                         <GridView AllowsColumnReorder="False">
-                            <GridViewColumn DisplayMemberBinding="{Binding ResourceName}" Header="Resource Name" />
-                            <GridViewColumn DisplayMemberBinding="{Binding ResourcePath}" Header="Resource Path" />
+                            <GridViewColumn DisplayMemberBinding="{Binding ResourceName}" Header="Name" />
+                            <GridViewColumn DisplayMemberBinding="{Binding ResourcePath}" Header="Path" />
                         </GridView>
                     </ListView.View>
                 </ListView>
@@ -45,15 +48,15 @@
                     HorizontalAlignment="Center"
                     FontWeight="Bold"
                     Text="Changed Items"
-                    Visibility="{Binding HasChangedItems, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding HasChangedResources, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <ListView
                     Margin="10"
-                    ItemsSource="{Binding ChangedItems}"
-                    Visibility="{Binding HasChangedItems, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    ItemsSource="{Binding ChangedResources}"
+                    Visibility="{Binding HasChangedResources, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn DisplayMemberBinding="{Binding ResourceName}" Header="Resource Name" />
-                            <GridViewColumn DisplayMemberBinding="{Binding ResourcePath}" Header="Resource Path" />
+                            <GridViewColumn DisplayMemberBinding="{Binding ResourceName}" Header="Name" />
+                            <GridViewColumn DisplayMemberBinding="{Binding ResourcePath}" Header="Path" />
                         </GridView>
                     </ListView.View>
                 </ListView>

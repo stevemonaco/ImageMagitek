@@ -263,17 +263,23 @@ namespace ImageMagitek
         /// <returns></returns>
         public string GetSequentialGraphicsFormat() => ActiveCodec.Name;
 
-        public override IEnumerable<IProjectResource> LinkedResources()
+        public override IEnumerable<IProjectResource> LinkedResources
         {
-            var set = new HashSet<IProjectResource>();
-
-            foreach (var el in EnumerateElements())
+            get
             {
-                set.Add(el.Palette);
-                set.Add(el.DataFile);
-            }
+                var set = new HashSet<IProjectResource>();
 
-            return set;
+                foreach (var el in EnumerateElements())
+                {
+                    if (el.Palette is object)
+                        set.Add(el.Palette);
+
+                    if (el.DataFile is object)
+                        set.Add(el.DataFile);
+                }
+
+                return set;
+            }
         }
     }
 }

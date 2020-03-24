@@ -11,17 +11,21 @@ using AvalonDock;
 using System.ComponentModel;
 using System.Collections.Generic;
 using TileShop.WPF.Services;
+using TileShop.WPF.EventModels;
+using TileShop.WPF.ViewModels.Dialogs;
 
 namespace TileShop.WPF.ViewModels
 {
     public class ShellViewModel : Conductor<object>, IHandle<ActivateEditorEvent>, IHandle<ShowToolWindowEvent>,
-        IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>, IHandle<SaveProjectEvent>, IHandle<CloseProjectEvent>
+        IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>, IHandle<SaveProjectEvent>, IHandle<CloseProjectEvent>,
+        IHandle<RequestRemoveTreeNodeEvent>
     {
         protected readonly IEventAggregator _events;
         protected readonly ICodecService _codecService;
         protected readonly IPaletteService _paletteService;
         private readonly IWindowManager _windowManager;
         private readonly IFileSelectService _fileSelect;
+        private readonly IProjectTreeService _treeService;
 
         private MenuViewModel _activeMenu;
         public MenuViewModel ActiveMenu
@@ -78,8 +82,8 @@ namespace TileShop.WPF.ViewModels
         };
 
         public ShellViewModel(IEventAggregator events, IWindowManager windowManager, ICodecService codecService,
-            IPaletteService paletteService, IFileSelectService fileSelect, MenuViewModel activeMenu, ProjectTreeViewModel activeTree, 
-            StatusBarViewModel activeStatusBar, PixelEditorViewModel activePixelEditor)
+            IPaletteService paletteService, IFileSelectService fileSelect, IProjectTreeService treeService, MenuViewModel activeMenu,
+            ProjectTreeViewModel activeTree, StatusBarViewModel activeStatusBar, PixelEditorViewModel activePixelEditor)
         {
             _events = events;
             _events.Subscribe(this);
@@ -87,6 +91,7 @@ namespace TileShop.WPF.ViewModels
             _paletteService = paletteService;
             _windowManager = windowManager;
             _fileSelect = fileSelect;
+            _treeService = treeService;
 
             ActiveMenu = activeMenu;
             ActiveTree = activeTree;
@@ -317,6 +322,50 @@ namespace TileShop.WPF.ViewModels
                     return false;
             }
             return true;
+        }
+
+        public void Handle(RequestRemoveTreeNodeEvent message)
+        {
+            var changeVm = _treeService.GetResourceRemovalChanges(ActiveTree.ProjectRoot.First(), message.TreeNode);
+
+            bool? result;
+            result = _windowManager.ShowDialog(changeVm);
+
+            if (result is true)
+            {
+                if (ActivePixelEditor.IsModified || Editors.Any(x => x.IsModified))
+                {
+                    var boxResult = _windowManager.ShowMessageBox("The project contains modified items which must be saved or discarded before removing any items", "Save changes",
+                        MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
+
+                    if (boxResult == MessageBoxResult.Yes)
+                    {
+                        ActivePixelEditor.SaveChanges();
+
+                        foreach (var editor in Editors)
+                            editor.SaveChanges();
+
+                        ActiveTree.SaveChanges();
+                    }
+                    else if (boxResult == MessageBoxResult.No)
+                    {
+                        ActivePixelEditor.DiscardChanges();
+
+                        foreach (var editor in Editors)
+                            editor.DiscardChanges();
+
+                        ActiveTree.SaveChanges();
+                    }
+                    else if (boxResult == MessageBoxResult.Cancel)
+                        return;
+                }
+
+                ActivePixelEditor.Reset();
+                Editors.Clear();
+
+                ActiveTree.ApplyRemovalChanges(changeVm);
+                ActiveTree.IsModified = true;
+            }
         }
     }
 }

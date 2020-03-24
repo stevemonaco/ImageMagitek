@@ -19,7 +19,7 @@
                     <DrawingBrush
                         x:Key="CheckeredBrush"
                         TileMode="Tile"
-                        Viewport="0,0,12,12"
+                        Viewport="0,0,16,16"
                         ViewportUnits="Absolute">
                         <DrawingBrush.Drawing>
                             <GeometryDrawing Brush="LightGray" Geometry="M0,0 H1 V1 H2 V2 H1 V1 H0Z" />

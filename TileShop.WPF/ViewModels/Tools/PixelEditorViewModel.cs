@@ -210,6 +210,9 @@ namespace TileShop.WPF.ViewModels
 
         public override void DiscardChanges()
         {
+            if (!HasArranger)
+                return;
+
             if (_workingArranger.ColorType == PixelColorType.Indexed)
                 _indexedImage.Render();
             else if (_workingArranger.ColorType == PixelColorType.Direct)

@@ -36,6 +36,6 @@ namespace ImageMagitek.Project
         /// Gets all resource references
         /// </summary>
         /// <returns></returns>
-        IEnumerable<IProjectResource> LinkedResources();
+        IEnumerable<IProjectResource> LinkedResources { get; }
     }
 }
