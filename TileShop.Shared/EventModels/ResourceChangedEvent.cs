@@ -2,14 +2,15 @@
 
 namespace TileShop.Shared.EventModels
 {
-    public enum ResourceChangeEffect { Project, File }
+    public enum ResourceModifyEffect { Project, File }
+    public enum ResourceChangeAction { Modified, Saved, Renamed, Moved }
 
     public class ResourceChangedEvent
     {
         public IProjectResource Resource { get; }
-        public ResourceChangeEffect Effect { get; }
+        public ResourceModifyEffect Effect { get; }
 
-        public ResourceChangedEvent(IProjectResource resource, ResourceChangeEffect effect)
+        public ResourceChangedEvent(IProjectResource resource, ResourceModifyEffect effect)
         {
             Resource = resource;
             Effect = effect;

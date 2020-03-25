@@ -118,14 +118,27 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void StartRenameNode(TreeNodeViewModel nodeModel)
+        public void RenameNode(TreeNodeViewModel nodeModel)
         {
-            if (nodeModel is object)
+            var dialogModel = new RenameNodeViewModel(nodeModel);
+            var result = _windowManager.ShowDialog(dialogModel);
+
+            if (result is true)
             {
-                Dispatcher.CurrentDispatcher.BeginInvoke(
-                    DispatcherPriority.Normal, 
-                    new Action(() => nodeModel.RequestEditMode(InplaceEditBoxLib.Events.RequestEditEvent.StartEditMode))
-                );
+                var newName = dialogModel.Name;
+
+                if (nodeModel.ParentModel is object && nodeModel.ParentModel.Node.ContainsChild(newName))
+                {
+                    _windowManager.ShowMessageBox($"Parent item already contains an item named '{newName}'", icon: MessageBoxImage.Error);
+                }
+                else
+                {
+                    nodeModel.Node.Rename(newName);
+                    nodeModel.Node.Value.Name = newName;
+                    nodeModel.Name = newName;
+
+                    IsModified = true;
+                }
             }
         }
 

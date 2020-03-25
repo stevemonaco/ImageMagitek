@@ -19,10 +19,9 @@
     <PackageReference Include="Autofac" Version="5.1.2" />
     <PackageReference Include="Dirkster.AvalonDock" Version="4.0.0" />
     <PackageReference Include="Dirkster.AvalonDock.Themes.VS2013" Version="4.0.0" />
-    <PackageReference Include="Dirkster.InplaceEditBoxLib" Version="1.4.0" />
     <PackageReference Include="gong-wpf-dragdrop" Version="2.2.0" />
     <PackageReference Include="MahApps.Metro" Version="2.0.0-alpha0748" />
-    <PackageReference Include="Monaco.PathTree" Version="0.2.2" />
+    <PackageReference Include="Monaco.PathTree" Version="0.3.0" />
     <PackageReference Include="OneOf" Version="2.1.151" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
     <PackageReference Include="Stylet" Version="1.3.1" />

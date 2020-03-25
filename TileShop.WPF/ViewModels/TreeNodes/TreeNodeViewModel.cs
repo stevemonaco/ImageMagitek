@@ -1,15 +1,11 @@
-﻿using Stylet;
+﻿using System;
+using Stylet;
 using ImageMagitek.Project;
 using Monaco.PathTree;
-using System;
-using System.Linq;
-using InplaceEditBoxLib.Events;
-using static System.Net.Mime.MediaTypeNames;
-using System.Windows.Threading;
 
 namespace TileShop.WPF.ViewModels
 {
-    public abstract class TreeNodeViewModel : Screen, InplaceEditBoxLib.Interfaces.IEditBox
+    public abstract class TreeNodeViewModel : Screen
     {
         public IPathTreeNode<IProjectResource> Node { get; set; }
         public TreeNodeViewModel ParentModel { get; set; }
@@ -42,19 +38,6 @@ namespace TileShop.WPF.ViewModels
         {
             get => _name;
             set => SetAndNotify(ref _name, value);
-        }
-
-        public event UserNotification.Events.ShowNotificationEventHandler ShowNotificationMessage;
-        public event RequestEditEventHandler RequestEdit;
-        public virtual bool RequestEditMode(RequestEditEvent request)
-        {
-            if (RequestEdit != null)
-            {
-                Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => RequestEdit(this, new RequestEdit(request))));
-                return true;
-            }
-
-            return false;
         }
     }
 }
