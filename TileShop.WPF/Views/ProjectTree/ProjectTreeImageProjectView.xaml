@@ -27,6 +27,10 @@
                     Command="{s:Action CreateNewFolder}"
                     CommandParameter="{Binding}"
                     Header="New Folder" />
+                <MenuItem
+                    Command="{s:Action RenameNode}"
+                    CommandParameter="{Binding}"
+                    Header="Rename" />
             </ContextMenu>
         </TextBlock.ContextMenu>
     </TextBlock>

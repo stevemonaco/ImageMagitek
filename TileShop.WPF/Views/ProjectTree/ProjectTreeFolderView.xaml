@@ -32,6 +32,10 @@
                     Command="{s:Action RequestRemoveNode}"
                     CommandParameter="{Binding}"
                     Header="Remove" />
+                <MenuItem
+                    Command="{s:Action RenameNode}"
+                    CommandParameter="{Binding}"
+                    Header="Rename" />
             </ContextMenu>
         </TextBlock.ContextMenu>
     </TextBlock>

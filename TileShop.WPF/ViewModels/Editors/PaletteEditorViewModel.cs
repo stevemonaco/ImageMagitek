@@ -50,6 +50,7 @@ namespace TileShop.WPF.ViewModels
             Resource = palette;
             _palette = palette;
             _events = events;
+            events.Subscribe(this);
 
             DisplayName = Resource?.Name ?? "Unnamed Palette";
 
@@ -69,12 +70,14 @@ namespace TileShop.WPF.ViewModels
 
         public override void SaveChanges()
         {
-            throw new NotImplementedException();
+            _palette.SavePalette();
+            IsModified = false;
         }
 
         public override void DiscardChanges()
         {
-            throw new NotImplementedException();
+            _palette.Reload();
+            IsModified = false;
         }
 
         public void MouseOver(ValidatedColorModel model)

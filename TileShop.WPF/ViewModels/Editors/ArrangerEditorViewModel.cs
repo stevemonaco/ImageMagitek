@@ -144,6 +144,7 @@ namespace TileShop.WPF.ViewModels
         public ArrangerEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) 
         {
             _events = events;
+            _events.Subscribe(this);
             _windowManager = windowManager;
             _paletteService = paletteService;
             _defaultPalette = _paletteService?.DefaultPalette;

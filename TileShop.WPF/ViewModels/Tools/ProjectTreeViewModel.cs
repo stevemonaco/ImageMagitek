@@ -125,6 +125,7 @@ namespace TileShop.WPF.ViewModels
 
             if (result is true)
             {
+                var oldName = nodeModel.Name;
                 var newName = dialogModel.Name;
 
                 if (nodeModel.ParentModel is object && nodeModel.ParentModel.Node.ContainsChild(newName))
@@ -138,6 +139,8 @@ namespace TileShop.WPF.ViewModels
                     nodeModel.Name = newName;
 
                     IsModified = true;
+                    var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Value, newName, oldName);
+                    _events.PublishOnUIThread(renameEvent);
                 }
             }
         }
