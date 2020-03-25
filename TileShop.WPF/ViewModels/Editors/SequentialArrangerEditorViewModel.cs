@@ -104,7 +104,7 @@ namespace TileShop.WPF.ViewModels
             base(events, windowManager, paletteService)
         {
             Resource = arranger;
-            _workingArranger = arranger.CloneArranger();
+            _workingArranger = arranger;
             _codecService = codecService;
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 

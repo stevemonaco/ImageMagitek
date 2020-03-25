@@ -81,13 +81,6 @@
             ItemTemplateSelector="{StaticResource projectTreeTemplateSelector}"
             ItemsSource="{Binding ProjectRoot}">
 
-            <TreeView.InputBindings>
-                <KeyBinding
-                    Key="F2"
-                    Command="{Binding StartRenameCommand}"
-                    CommandParameter="{Binding SelectedItem}" />
-            </TreeView.InputBindings>
-
             <i:Interaction.Behaviors>
                 <behaviors:BindableSelectedItemBehavior SelectedItem="{Binding SelectedItem, Mode=TwoWay}" />
             </i:Interaction.Behaviors>

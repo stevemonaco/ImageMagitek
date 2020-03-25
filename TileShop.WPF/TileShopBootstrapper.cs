@@ -4,6 +4,7 @@ using Autofac;
 using TileShop.Shared.Services;
 using TileShop.WPF.Services;
 using TileShop.WPF.ViewModels;
+using System.IO;
 
 namespace TileShop.WPF
 {
@@ -17,12 +18,12 @@ namespace TileShop.WPF
         private void ConfigureServices(ContainerBuilder builder)
         {
             var paletteService = new PaletteService();
-            paletteService.LoadJsonPalettes(@"D:\ImageMagitek\pal");
+            paletteService.LoadJsonPalettes($"{Directory.GetCurrentDirectory()}\\pal");
             paletteService.DefaultPalette = paletteService.Palettes.Where(x => x.Name.Contains("DefaultRgba32")).First();
             builder.RegisterInstance<IPaletteService>(paletteService);
 
             var codecService = new CodecService(paletteService.DefaultPalette);
-            codecService.LoadXmlCodecs(@"D:\ImageMagitek\codecs");
+            codecService.LoadXmlCodecs($"{Directory.GetCurrentDirectory()}\\codecs");
             builder.RegisterInstance<ICodecService>(codecService);
 
             var projectService = new ProjectTreeService(codecService);

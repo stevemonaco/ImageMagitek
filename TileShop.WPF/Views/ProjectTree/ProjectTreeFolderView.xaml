@@ -26,7 +26,7 @@
                 <MenuItem
                     Command="{s:Action CreateNewFolder}"
                     CommandParameter="{Binding}"
-                    Header="Test" />
+                    Header="New folder" />
                 <Separator />
                 <MenuItem
                     Command="{s:Action RequestRemoveNode}"

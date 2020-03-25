@@ -16,13 +16,6 @@
     d:DesignWidth="800"
     mc:Ignorable="d">
 
-    <UserControl.InputBindings>
-        <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
-        <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
-        <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
-        <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
-    </UserControl.InputBindings>
-
     <Grid
         HorizontalAlignment="Stretch"
         VerticalAlignment="Stretch"
@@ -63,6 +56,7 @@
                 Margin="10,0,10,0"
                 Maximum="{Binding MaxZoom}"
                 Minimum="{Binding MinZoom}"
+                ToolTip="Zoom"
                 Value="{Binding Zoom}" />
 
             <ToggleButton
@@ -70,13 +64,14 @@
                 Content="#"
                 Focusable="False"
                 IsChecked="{Binding ShowGridlines}"
+                ToolTip="Toggle gridline visibility"
                 Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
 
             <Button
                 Click="{s:Action ResizeArranger}"
                 Content="Resize"
                 ToolTip="Resizes the Arranger"
-                Visibility="{Binding IsTiledArranger}" />
+                Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
             <Separator />
 
@@ -104,11 +99,13 @@
             <Button
                 Click="{s:Action ApplyPasteAsPixels}"
                 Content="PasteAsPixels"
+                ToolTip="Pastes pixels directly to file"
                 Visibility="{Binding CanPastePixels, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
 
             <Button
                 Click="{s:Action ApplyPasteAsElements}"
                 Content="PasteAsElements"
+                ToolTip="Pastes elements to arranger"
                 Visibility="{Binding CanPasteElements, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
         </StackPanel>
 
@@ -118,6 +115,13 @@
             Grid.Column="0"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
+
+            <ScrollViewer.InputBindings>
+                <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
+                <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
+                <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
+                <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
+            </ScrollViewer.InputBindings>
 
             <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid.RowDefinitions>
