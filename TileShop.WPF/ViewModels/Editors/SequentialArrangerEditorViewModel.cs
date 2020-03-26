@@ -109,7 +109,7 @@ namespace TileShop.WPF.ViewModels
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
             if (_workingArranger.ColorType == PixelColorType.Indexed)
-                _indexedImage = new IndexedImage(_workingArranger, null);
+                _indexedImage = new IndexedImage(_workingArranger, _defaultPalette);
             else if (_workingArranger.ColorType == PixelColorType.Direct)
                 _directImage = new DirectImage(_workingArranger);
 
@@ -131,17 +131,17 @@ namespace TileShop.WPF.ViewModels
             }
 
             CreateGridlines();
-            RenderArranger();
+            Render();
         }
 
         public override void SaveChanges()
         {
-            throw new NotImplementedException();
+            IsModified = false;
         }
 
         public override void DiscardChanges()
         {
-            throw new NotImplementedException();
+            IsModified = false;
         }
 
         public void MoveByteDown() => Move(ArrangerMoveType.ByteDown);
@@ -192,7 +192,7 @@ namespace TileShop.WPF.ViewModels
             _address = (_workingArranger as SequentialArranger).Move(moveType);
 
             if (oldAddress != _address)
-                RenderArranger();
+                Render();
 
             string notifyMessage = $"File Offset: 0x{_address.FileOffset:X}";
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
@@ -213,7 +213,7 @@ namespace TileShop.WPF.ViewModels
                 return;
 
             (_workingArranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
-            RenderArranger();
+            Render();
         }
 
         private void ChangeCodec()
@@ -232,7 +232,7 @@ namespace TileShop.WPF.ViewModels
                 (_workingArranger as SequentialArranger).ChangeCodec(codec);
             }
 
-            RenderArranger();
+            Render();
 
             NotifyOfPropertyChange(() => IsTiledLayout);
             NotifyOfPropertyChange(() => IsLinearLayout);
@@ -242,10 +242,10 @@ namespace TileShop.WPF.ViewModels
         {
             var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, width, height);
             (_workingArranger as SequentialArranger).ChangeCodec(codec);
-            RenderArranger();
+            Render();
         }
 
-        private void RenderArranger()
+        protected override void Render()
         {
             CancelOverlay();
 

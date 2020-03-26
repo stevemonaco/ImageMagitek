@@ -12,6 +12,7 @@ using TileShop.Shared.Models;
 using TileShop.Shared.EventModels;
 using System.Windows;
 using TileShop.WPF.ViewModels.Dialogs;
+using ImageMagitek.Image;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -52,7 +53,7 @@ namespace TileShop.WPF.ViewModels
             _workingArranger = arranger.CloneArranger();
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
-            RenderArranger();
+            Render();
             CreateGridlines();
 
             var arrangerPalettes = _workingArranger.GetReferencedPalettes().OrderBy(x => x.Name).ToList();
@@ -75,7 +76,7 @@ namespace TileShop.WPF.ViewModels
             if (_workingArranger.Layout == ArrangerLayout.Tiled)
             {
                 var treeArranger = Resource as Arranger;
-                if (_workingArranger.ElementPixelSize != treeArranger.ElementPixelSize)
+                if (_workingArranger.ArrangerElementSize != treeArranger.ArrangerElementSize)
                 {
                     if (treeArranger.Layout == ArrangerLayout.Tiled)
                         treeArranger.Resize(_workingArranger.ArrangerElementSize.Width, _workingArranger.ArrangerElementSize.Height);
@@ -92,12 +93,15 @@ namespace TileShop.WPF.ViewModels
                     }
                 }
             }
+
+            IsModified = false;
         }
 
         public override void DiscardChanges()
         {
             _workingArranger = (Resource as Arranger).CloneArranger();
-            RenderArranger();
+            Render();
+            IsModified = false;
         }
 
         public override void OnMouseDown(object sender, MouseCaptureArgs e)
@@ -149,7 +153,7 @@ namespace TileShop.WPF.ViewModels
                 base.Drop(dropInfo);
         }
 
-        private void RenderArranger()
+        protected override void Render()
         {
             CancelOverlay();
 
@@ -188,7 +192,7 @@ namespace TileShop.WPF.ViewModels
                 return false;
 
             _workingArranger.SetElement(el, elX, elY);
-            RenderArranger();
+            Render();
             IsModified = true;
 
             return true;
@@ -215,7 +219,7 @@ namespace TileShop.WPF.ViewModels
             if (_windowManager.ShowDialog(model) is true)
             {
                 _workingArranger.Resize(model.Width, model.Height);
-                RenderArranger();
+                Render();
             }
         }
 
@@ -225,49 +229,6 @@ namespace TileShop.WPF.ViewModels
             CanPastePixels = CanAcceptPixelTransfer(model);
 
             return CanPasteElements || CanPastePixels;
-
-
-            //bool canAccept = false;
-            //bool isCompatibleSize = false;
-
-            //Source must fit onto the target
-            //if (model.Arranger.Layout == ArrangerLayout.Single)
-            //{
-            //    if (_workingArranger.ArrangerPixelSize.Width < model.Width || _workingArranger.ArrangerPixelSize.Height < model.Height)
-            //        return false;
-            //}
-            //else if (model.Arranger.Layout == ArrangerLayout.Tiled)
-            //{
-            //    if (_workingArranger.ArrangerPixelSize.Width < model.Width || _workingArranger.ArrangerPixelSize.Height < model.Height)
-            //        return false;
-            //}
-
-            //var sizeRules =
-            //    (SourceMode: model.Arranger.Mode, TargetMode: _arranger.Mode, CopyMode: DropCopy,
-            //if (model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize)
-            //    isCompatibleSize = true;
-
-            //var copyRules =
-            //    (SourceMode: model.Arranger.Mode, TargetMode: _arranger.Mode, CopyMode: DropCopy, SourceLayout: model.Arranger.Layout, TargetLayout: _arranger.Layout);
-
-            //switch (copyRules)
-            //{
-            //    case (ArrangerMode.Scattered, ArrangerMode.Scattered, DropCopyMode.Elements, ArrangerLayout.Tiled)
-            //        when model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize:
-
-            //        canAccept = true;
-            //        break;
-
-            //    case (DropCopyMode.Pixels, ArrangerMode.Scattered, ArrangerMode.Scattered):
-            //        return true;
-            //}
-
-            //if (model.Arranger.Mode == ArrangerMode.Scattered)
-            //{
-            //    if (model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize)
-            //}
-
-            //return canAccept;
         }
 
         private bool CanAcceptPixelTransfer(ArrangerTransferModel model) => true;
@@ -285,11 +246,6 @@ namespace TileShop.WPF.ViewModels
             return true;
         }
 
-        public void ApplyPasteAsPixels()
-        {
-
-        }
-
         public void ApplyPasteAsElements()
         {
             var sourceArranger = Overlay.CopyArranger;
@@ -303,13 +259,16 @@ namespace TileShop.WPF.ViewModels
             var result = ElementCopier.CopyElements(sourceArranger, _workingArranger as ScatteredArranger, sourceStart, destStart, copyWidth, copyHeight);
 
             var notifyEvent = result.Match(
-                success => new NotifyOperationEvent("Paste successfully applied"),
+                success =>
+                {
+                    IsModified = true;
+                    Render();
+                    return new NotifyOperationEvent("Paste successfully applied");
+                },
                 fail => new NotifyOperationEvent(fail.Reason)
                 );
 
-            IsModified = true;
             _events.PublishOnUIThread(notifyEvent);
-            RenderArranger();
         }
     }
 }

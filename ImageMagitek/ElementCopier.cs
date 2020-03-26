@@ -46,7 +46,7 @@ namespace ImageMagitek
         {
             var result = CanCopyElements(source, dest, sourceStart, destStart, copyWidth, copyHeight);
             
-            if (result.IsT0)
+            if (result.Value is MagitekResult.Success)
                 CopyElementsInternal(source, dest, sourceStart, destStart, copyWidth, copyHeight);
 
             return result;

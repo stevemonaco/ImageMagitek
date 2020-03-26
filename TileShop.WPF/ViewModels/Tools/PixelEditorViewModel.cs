@@ -136,7 +136,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void Render()
+        protected override void Render()
         {
             if(HasArranger)
             {
@@ -179,7 +179,7 @@ namespace TileShop.WPF.ViewModels
             ColorRgba32 arrangerColor = new ColorRgba32(0);
             if (_workingArranger.ColorType == PixelColorType.Indexed)
             {
-                arrangerColor = _indexedImage.GetPixel(x, y, _workingArranger);
+                arrangerColor = _indexedImage.GetPixelColor(x, y);
             }
             else if (_workingArranger.ColorType == PixelColorType.Direct)
             {

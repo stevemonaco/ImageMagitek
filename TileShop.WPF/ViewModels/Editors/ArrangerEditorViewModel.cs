@@ -12,6 +12,7 @@ using GongSolutions.Wpf.DragDrop;
 using System.Windows;
 using TileShop.Shared.Services;
 using ImageMagitek.Colors;
+using ImageMagitek.Image;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -150,6 +151,8 @@ namespace TileShop.WPF.ViewModels
             _defaultPalette = _paletteService?.DefaultPalette;
         }
 
+        protected abstract void Render();
+
         public virtual void Closing() { }
 
         public virtual void EditSelection()
@@ -210,6 +213,53 @@ namespace TileShop.WPF.ViewModels
                 _workingArranger.ArrangerPixelSize.Width * Zoom, _workingArranger.ArrangerPixelSize.Height * Zoom));
 
             NotifyOfPropertyChange(() => Gridlines);
+        }
+
+        public virtual void ApplyPasteAsPixels()
+        {
+            var sourceStart = new System.Drawing.Point(Overlay.SelectionRect.SnappedLeft, Overlay.SelectionRect.SnappedTop);
+            var destStart = new System.Drawing.Point(Overlay.PasteRect.SnappedLeft, Overlay.PasteRect.SnappedTop);
+            int copyWidth = Overlay.SelectionRect.SnappedWidth;
+            int copyHeight = Overlay.SelectionRect.SnappedHeight;
+
+            MagitekResult result;
+
+            if (Overlay.CopyArranger.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Indexed)
+            {
+                var sourceImage = new IndexedImage(Overlay.CopyArranger, _defaultPalette);
+                sourceImage.Render();
+                result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight, ImageCopyOperation.ExactIndex);
+            }
+            else if (Overlay.CopyArranger.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Direct)
+            {
+                result = new MagitekResult.Failed("");
+            }
+            else if (Overlay.CopyArranger.ColorType == PixelColorType.Direct && _workingArranger.ColorType == PixelColorType.Indexed)
+            {
+                result = new MagitekResult.Failed("");
+            }
+            else if (Overlay.CopyArranger.ColorType == PixelColorType.Direct && _workingArranger.ColorType == PixelColorType.Direct)
+            {
+                result = new MagitekResult.Failed("");
+            }
+            else
+                throw new InvalidOperationException($"{nameof(ApplyPasteAsPixels)} attempted to copy from an arranger of type {Overlay.CopyArranger.ColorType} to {_workingArranger.ColorType}");
+
+            var notifyEvent = result.Match(
+                success =>
+                {
+                    if (_workingArranger.ColorType == PixelColorType.Indexed)
+                        _indexedImage.SaveImage();
+                    else if (_workingArranger.ColorType == PixelColorType.Direct)
+                        _directImage.SaveImage();
+
+                    Render();
+                    return new NotifyOperationEvent("Paste successfully applied");
+                },
+                fail => new NotifyOperationEvent(fail.Reason)
+                );
+
+            _events.PublishOnUIThread(notifyEvent);
         }
 
         public void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);

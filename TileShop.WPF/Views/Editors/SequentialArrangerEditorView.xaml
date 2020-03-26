@@ -90,10 +90,9 @@
                 Content="Edit"
                 IsEnabled="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Selection}"
                 ToolTip="Opens selection in the pixel editor" />
-            <RadioButton
+            <Button
+                Command="{s:Action ApplyPasteAsPixels}"
                 Content="PasteAsPixels"
-                GroupName="PasteAction"
-                Style="{StaticResource {x:Type ToggleButton}}"
                 ToolTip="Paste pixels directly to file"
                 Visibility="{Binding CanPastePixels, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
         </StackPanel>

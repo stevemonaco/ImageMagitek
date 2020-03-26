@@ -93,9 +93,14 @@ namespace ImageMagitek
             if (x >= Width || y >= Height || x < 0 || y < 0)
                 throw new ArgumentOutOfRangeException($"{nameof(SetPixel)} ({nameof(x)}: {x}, {nameof(y)}: {y}) were outside the image bounds ({nameof(Width)}: {Width}, {nameof(Height)}: {Height}");
 
-            var pal = Arranger.GetElement(x, y).Palette;
+            var el = Arranger.GetElementAtPixel(x, y);
+            var codecColors = 1 << el.Codec.ColorDepth;
+            var pal = Arranger.GetElementAtPixel(x, y).Palette ?? _defaultPalette;
+
             if (color >= pal.Entries)
                 throw new ArgumentOutOfRangeException($"{nameof(SetPixel)} ({nameof(color)} ({color}): exceeded the number of entries in palette '{pal.Name}' ({pal.Entries})");
+            if (color >= codecColors)
+                throw new ArgumentOutOfRangeException($"{nameof(SetPixel)} ({nameof(color)} ({color}): index exceeded the max number of colors in codec '{el.Codec.Name}' ({codecColors})");
 
             Image[x + Width * y] = color;
         }
@@ -109,22 +114,59 @@ namespace ImageMagitek
         /// <returns>True if set, false if not set</returns>
         public MagitekResult TrySetPixel(int x, int y, ColorRgba32 color)
         {
+            var result = CanSetPixel(x, y, color);
+
+            if (result.Value is MagitekResult.Success)
+                SetPixel(x, y, color);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Sets a pixel's palette index at the specified pixel coordinate
+        /// </summary>
+        /// <param name="x">x-coordinate in pixel coordinates</param>
+        /// <param name="y">y-coordinate in pixel coordinates</param>
+        /// <param name="color">Palette index of color</param>
+        public void SetPixel(int x, int y, ColorRgba32 color)
+        {
+            var elem = Arranger.GetElementAtPixel(x, y);
+            var pal = elem.Palette ?? _defaultPalette;
+
+            var index = pal.GetIndexByNativeColor(color, true);
+            Image[x + Width * y] = index;
+        }
+
+        /// <summary>
+        /// Determines if a color can be set to an existing pixel's palette index at the specified pixel coordinate
+        /// </summary>
+        /// <param name="x">x-coordinate in pixel coordinates</param>
+        /// <param name="y">y-coordinate in pixel coordinates</param>
+        /// <param name="color">Palette index of color</param>
+        public MagitekResult CanSetPixel(int x, int y, ColorRgba32 color)
+        {
             var elem = Arranger.GetElementAtPixel(x, y);
             if (!(elem.Codec is IIndexedCodec))
-                return new MagitekResult.Failed($"Failed to set pixel at ({x}, {y}) because the element's codec is not an indexed color type");
+                return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the element's codec is not an indexed color type");
 
             var pal = elem.Palette ?? _defaultPalette;
 
             if (pal is null)
-                return new MagitekResult.Failed($"Failed to set pixel at ({x}, {y}) because arranger '{Arranger.Name}' has no palette specified and no default palette");
+                return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because arranger '{Arranger.Name}' has no palette specified and no default palette");
 
             if (!pal.ContainsNativeColor(color))
-                return new MagitekResult.Failed($"Failed to set pixel at ({x}, {y}) because the palette '{pal.Name}' does not contain the native color ({color.R}, {color.G}, {color.B}, {color.A})");
+                return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the palette '{pal.Name}' does not contain the native color ({color.R}, {color.G}, {color.B}, {color.A})");
 
-            var index = pal.GetIndexByNativeColor(color, true);
-            Image[x + Width * y] = index;
             return new MagitekResult.Success();
         }
+
+        /// <summary>
+        /// Gets the ArrangerElement at the specified pixel coordinate
+        /// </summary>
+        /// <param name="x">x-coordinate in pixel coordinates</param>
+        /// <param name="y">y-coordinate in pixel coordinates</param>
+        /// <returns></returns>
+        public ArrangerElement GetElement(int x, int y) => Arranger.GetElementAtPixel(x, y);
 
         /// <summary>
         /// Gets the pixel's native color at the specified pixel coordinate
@@ -132,7 +174,7 @@ namespace ImageMagitek
         /// <param name="x">x-coordinate in pixel coordinates</param>
         /// <param name="y">y-coordinate in pixel coordinates</param>
         /// <param name="arranger"></param>
-        public ColorRgba32 GetPixel(int x, int y, Arranger arranger)
+        public ColorRgba32 GetPixelColor(int x, int y)
         {
             var pal = Arranger.GetElementAtPixel(x, y).Palette ?? _defaultPalette;
             var palIndex = Image[x + Width * y];
