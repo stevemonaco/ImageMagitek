@@ -1,8 +1,5 @@
-﻿using Stylet;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows;
+﻿using System.Windows;
+using Stylet;
 
 namespace TileShop.WPF.ViewModels.Dialogs
 {

@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Windows;
 using System.Linq;
 using Stylet;
 using GongSolutions.Wpf.DragDrop;
@@ -10,10 +10,7 @@ using TileShop.WPF.Models;
 using TileShop.WPF.Behaviors;
 using TileShop.Shared.Models;
 using TileShop.Shared.EventModels;
-using System.Windows;
 using TileShop.WPF.ViewModels.Dialogs;
-using ImageMagitek.Image;
-using ImageMagitek.Codec;
 
 namespace TileShop.WPF.ViewModels
 {

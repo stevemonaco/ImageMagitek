@@ -1,11 +1,8 @@
-﻿using GongSolutions.Wpf.DragDrop;
-using ImageMagitek.Colors;
-using Stylet;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
+using GongSolutions.Wpf.DragDrop;
+using Stylet;
+using ImageMagitek.Colors;
 using TileShop.WPF.Models;
 
 namespace TileShop.WPF.ViewModels

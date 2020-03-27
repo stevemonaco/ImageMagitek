@@ -1,11 +1,9 @@
-﻿using ImageMagitek;
-using ImageMagitek.Colors;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using ImageMagitek;
+using ImageMagitek.Colors;
 
 namespace TileShop.WPF.Imaging
 {

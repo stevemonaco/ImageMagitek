@@ -1,8 +1,7 @@
-﻿using ImageMagitek;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using ImageMagitek;
 
 namespace TileShop.Shared.Models
 {

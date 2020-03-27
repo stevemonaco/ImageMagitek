@@ -1,20 +1,15 @@
-﻿using ImageMagitek.Project;
-using ImageMagitek;
-using Monaco.PathTree;
-using System;
-using System.Collections.Generic;
-using Stylet;
-using ImageMagitek.Colors;
-using TileShop.Shared.EventModels;
-using TileShop.WPF.Services;
-using TileShop.Shared.Services;
+﻿using System;
+using System.Windows;
 using System.IO;
 using System.Linq;
 using GongSolutions.Wpf.DragDrop;
-using System.Windows;
+using Stylet;
+using TileShop.Shared.EventModels;
+using TileShop.WPF.Services;
 using TileShop.WPF.ViewModels.Dialogs;
 using TileShop.WPF.EventModels;
-using System.Windows.Threading;
+using ImageMagitek;
+using ImageMagitek.Colors;
 
 namespace TileShop.WPF.ViewModels
 {

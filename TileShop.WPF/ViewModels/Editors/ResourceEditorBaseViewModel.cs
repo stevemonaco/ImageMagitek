@@ -1,5 +1,5 @@
-﻿using ImageMagitek.Project;
-using Stylet;
+﻿using Stylet;
+using ImageMagitek.Project;
 using TileShop.Shared.EventModels;
 
 namespace TileShop.WPF.ViewModels

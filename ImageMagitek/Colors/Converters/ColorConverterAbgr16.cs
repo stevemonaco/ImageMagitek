@@ -1,9 +1,4 @@
-﻿using System;
-using System.Numerics;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ImageMagitek.Colors
+﻿namespace ImageMagitek.Colors
 {
     public enum AlphaBitTransparency { Transparent, BlackTransparent, SemiTransparent, Opaque }
     public sealed class ColorConverterAbgr16 : IColorConverter<ColorAbgr16>

@@ -1,9 +1,9 @@
-﻿using ImageMagitek.ExtensionMethods;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Colors
 {

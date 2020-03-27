@@ -1,9 +1,8 @@
 ﻿using Stylet;
-using ImageMagitek.Colors;
 using System.Threading.Tasks;
 using TileShop.Shared.EventModels;
 using TileShop.WPF.Models;
-using System;
+using ImageMagitek.Colors;
 
 namespace TileShop.WPF.ViewModels
 {

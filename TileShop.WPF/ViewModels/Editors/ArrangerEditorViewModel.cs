@@ -1,16 +1,16 @@
-﻿using ImageMagitek;
-using System;
+﻿using System;
+using System.Windows;
+using System.Linq;
 using Stylet;
 using TileShop.WPF.Behaviors;
 using TileShop.Shared.EventModels;
 using TileShop.WPF.Models;
 using TileShop.Shared.Models;
 using TileShop.WPF.Imaging;
-using System.Linq;
-using ImageMagitek.Codec;
 using GongSolutions.Wpf.DragDrop;
-using System.Windows;
 using TileShop.Shared.Services;
+using ImageMagitek;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Image;
 

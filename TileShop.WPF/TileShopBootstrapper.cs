@@ -1,10 +1,10 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using Stylet;
 using Autofac;
 using TileShop.Shared.Services;
 using TileShop.WPF.Services;
 using TileShop.WPF.ViewModels;
-using System.IO;
 
 namespace TileShop.WPF
 {

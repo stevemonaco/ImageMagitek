@@ -1,11 +1,5 @@
 ﻿using ImageMagitek;
 using ImageMagitek.Colors;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace TileShop.Shared.Models
 {
@@ -16,6 +10,9 @@ namespace TileShop.Shared.Models
         /// </summary>
         public Arranger Arranger { get; set; }
 
+        /// <summary>
+        /// Arranger to be pasted unto
+        /// </summary>
         public Arranger DestinationArranger { get; set; }
 
         /// <summary>

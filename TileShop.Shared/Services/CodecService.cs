@@ -1,10 +1,8 @@
-﻿using ImageMagitek.Codec;
-using ImageMagitek.Colors;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 
 namespace TileShop.Shared.Services
 {

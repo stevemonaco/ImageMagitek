@@ -1,5 +1,4 @@
-﻿using Stylet;
-using ImageMagitek.Project;
+﻿using ImageMagitek.Project;
 using Monaco.PathTree;
 
 namespace TileShop.WPF.ViewModels

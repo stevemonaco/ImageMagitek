@@ -1,7 +1,5 @@
-﻿using ImageMagitek.Colors;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek
 {

@@ -1,18 +1,17 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using Stylet;
+using AvalonDock;
+using TileShop.Shared.EventModels;
+using TileShop.Shared.Services;
+using TileShop.WPF.Services;
+using TileShop.WPF.EventModels;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
-using TileShop.Shared.EventModels;
-using TileShop.Shared.Services;
-using AvalonDock;
-using System.ComponentModel;
-using System.Collections.Generic;
-using TileShop.WPF.Services;
-using TileShop.WPF.EventModels;
-using TileShop.WPF.ViewModels.Dialogs;
 
 namespace TileShop.WPF.ViewModels
 {

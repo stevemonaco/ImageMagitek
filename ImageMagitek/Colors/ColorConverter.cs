@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using ImageMagitek.Colors.Converters;
 
 namespace ImageMagitek.Colors

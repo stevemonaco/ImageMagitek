@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using ImageMagitek.Project;
 using ImageMagitek.Codec;
-using ImageMagitek.Colors;
 
 namespace ImageMagitek
 {

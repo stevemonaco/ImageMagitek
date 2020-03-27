@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using ImageMagitek;
-using ImageMagitek.Codec;
 using ImageMagitek.Project;
 using Monaco.PathTree;
 using TileShop.WPF.ViewModels;
 using TileShop.Shared.Services;
-using Stylet;
 using TileShop.WPF.Models;
 using ImageMagitek.Colors;
 using TileShop.WPF.ViewModels.Dialogs;

@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using Stylet;
-using Monaco.PathTree;
+﻿using Monaco.PathTree;
+using ImageMagitek;
 using ImageMagitek.Project;
 using ImageMagitek.Colors;
-using ImageMagitek;
-using System.Linq;
 
 namespace TileShop.WPF.ViewModels
 {

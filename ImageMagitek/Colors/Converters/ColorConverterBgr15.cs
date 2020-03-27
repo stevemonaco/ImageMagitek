@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ImageMagitek.Colors.Converters
+﻿namespace ImageMagitek.Colors.Converters
 {
     public sealed class ColorConverterBgr15 : IColorConverter<ColorBgr15>
     {
