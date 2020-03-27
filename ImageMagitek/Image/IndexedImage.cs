@@ -157,7 +157,7 @@ namespace ImageMagitek
             if (!pal.ContainsNativeColor(color))
                 return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the palette '{pal.Name}' does not contain the native color ({color.R}, {color.G}, {color.B}, {color.A})");
 
-            return new MagitekResult.Success();
+            return MagitekResult.SuccessResult;
         }
 
         /// <summary>

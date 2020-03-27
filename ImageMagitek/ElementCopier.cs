@@ -30,7 +30,7 @@ namespace ImageMagitek
             if (source.ColorType != dest.ColorType)
                 return new MagitekResult.Failed($"Source arranger '{source.Name}' ColorType {source.ColorType} does not match destination arranger ColorType {dest.ColorType}");
 
-            return new MagitekResult.Success();
+            return MagitekResult.SuccessResult;
         }
 
         /// <summary>

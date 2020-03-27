@@ -228,19 +228,27 @@ namespace TileShop.WPF.ViewModels
             {
                 var sourceImage = new IndexedImage(Overlay.CopyArranger, _defaultPalette);
                 sourceImage.Render();
-                result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight, ImageCopyOperation.ExactIndex);
+                result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
+                    ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
             }
             else if (Overlay.CopyArranger.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Direct)
             {
-                result = new MagitekResult.Failed("");
+                var sourceImage = new IndexedImage(Overlay.CopyArranger, _defaultPalette);
+                sourceImage.Render();
+                result = ImageCopier.CopyPixels(sourceImage, _directImage, sourceStart, destStart, copyWidth, copyHeight);
             }
             else if (Overlay.CopyArranger.ColorType == PixelColorType.Direct && _workingArranger.ColorType == PixelColorType.Indexed)
             {
-                result = new MagitekResult.Failed("");
+                var sourceImage = new DirectImage(Overlay.CopyArranger);
+                sourceImage.Render();
+                result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
+                    ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
             }
             else if (Overlay.CopyArranger.ColorType == PixelColorType.Direct && _workingArranger.ColorType == PixelColorType.Direct)
             {
-                result = new MagitekResult.Failed("");
+                var sourceImage = new DirectImage(Overlay.CopyArranger);
+                sourceImage.Render();
+                result = ImageCopier.CopyPixels(sourceImage, _directImage, sourceStart, destStart, copyWidth, copyHeight);
             }
             else
                 throw new InvalidOperationException($"{nameof(ApplyPasteAsPixels)} attempted to copy from an arranger of type {Overlay.CopyArranger.ColorType} to {_workingArranger.ColorType}");
@@ -310,12 +318,12 @@ namespace TileShop.WPF.ViewModels
         {
             if (Overlay.State == OverlayState.Selected && e.LeftButton && Overlay.SelectionRect.ContainsPointSnapped(e.X / Zoom, e.Y / Zoom))
             {
-                // Start drag for selection
+                // Start drag for selection (Handled by DragDrop in View)
             }
             else if ((Overlay.State == OverlayState.Pasting || Overlay.State == OverlayState.Pasted) && 
                 e.LeftButton && Overlay.PasteRect.ContainsPointSnapped(e.X / Zoom, e.Y / Zoom))
             {
-                // Start drag for paste
+                // Start drag for paste (Handled by DragDrop in View)
             }
             else if ((Overlay.State == OverlayState.Selected || Overlay.State == OverlayState.Pasted || Overlay.State == OverlayState.Pasting) && 
                 e.RightButton)

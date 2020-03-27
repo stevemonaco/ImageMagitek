@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ImageMagitek.Image
 {
-    public enum ImageCopyOperation { ExactIndex, RemapByPalette, RemapByAnyIndex }
+    public enum ImageRemapOperation { RemapByExactIndex, RemapByExactPaletteColors, RemapByAnyIndex }
 
     public static class ImageCopier
     {
@@ -25,10 +25,10 @@ namespace ImageMagitek.Image
             if (copyHeight > (dest.Height - destStart.Y))
                 return new MagitekResult.Failed($"Destination image with height ({dest.Height}) is insufficient to copy {copyHeight} pixels starting from position {destStart.Y}");
 
-            return new MagitekResult.Success();
+            return MagitekResult.SuccessResult;
         }
 
-        private static MagitekResult CanExactIndexRemapPixels(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
+        private static MagitekResult CanRemapByExactIndex(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
         {
             for (int y = 0; y < copyHeight; y++)
             {
@@ -40,7 +40,43 @@ namespace ImageMagitek.Image
                 }
             }
 
-            return new MagitekResult.Success();
+            return MagitekResult.SuccessResult;
+        }
+
+        private static MagitekResult CanRemapByExactPaletteColors(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
+        {
+            for (int y = 0; y < copyHeight; y++)
+            {
+                for (int x = 0; x < copyWidth; x++)
+                {
+                    var color = source.GetPixelColor(x + sourceStart.X, y + sourceStart.Y);
+                    if (dest.CanSetPixel(x + destStart.X, y + destStart.Y, color).Value is MagitekResult.Failed)
+                    {
+                        var palName = dest.GetElementAtPixel(x + destStart.X, y + destStart.Y).Palette?.Name ?? "Default";
+                        return new MagitekResult.Failed($"Destination image at (x: {destStart.X}, y: {destStart.Y}) with element palette '{palName}' could not be set to the source color ({color.A}, {color.R}, {color.G}, {color.B})");
+                    }
+                }
+            }
+
+            return MagitekResult.SuccessResult;
+        }
+
+        private static MagitekResult CanRemapByExactPaletteColors(DirectImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
+        {
+            for (int y = 0; y < copyHeight; y++)
+            {
+                for (int x = 0; x < copyWidth; x++)
+                {
+                    var color = source.GetPixel(x + sourceStart.X, y + sourceStart.Y);
+                    if (dest.CanSetPixel(x + destStart.X, y + destStart.Y, color).Value is MagitekResult.Failed)
+                    {
+                        var palName = dest.GetElementAtPixel(x + destStart.X, y + destStart.Y).Palette?.Name ?? "Default";
+                        return new MagitekResult.Failed($"Destination image at (x: {destStart.X}, y: {destStart.Y}) with element palette '{palName}' could not be set to the source color ({color.A}, {color.R}, {color.G}, {color.B})");
+                    }
+                }
+            }
+
+            return MagitekResult.SuccessResult;
         }
 
         private static MagitekResult CanExactColorRemapPixels(DirectImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
@@ -49,17 +85,29 @@ namespace ImageMagitek.Image
             {
                 for (int x = 0; x < copyWidth; x++)
                 {
-                    var color = source.GetPixel(sourceStart.X + x, sourceStart.Y + y);
-                    var result = dest.CanSetPixel(sourceStart.X + x, sourceStart.Y + y, color);
+                    var color = source.GetPixel(x + sourceStart.X, y + sourceStart.Y);
+                    var result = dest.CanSetPixel(x + destStart.X, y + destStart.Y, color);
                     if (result.Value is MagitekResult.Failed)
                         return result;
                 }
             }
 
-            return new MagitekResult.Success();
+            return MagitekResult.SuccessResult;
         }
 
-        private static void ApplyExactIndexRemapPixels(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
+        //private static MagitekResult CanRemapByAnyIndex(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
+        //{
+        //    for (int y = 0; y < copyHeight; y++)
+        //    {
+        //        for (int x = 0; x < copyWidth; x++)
+        //        {
+        //        }
+        //    }
+
+        //    return MagitekResult.SuccessResult;
+        //}
+
+        private static void ApplyRemapByExactIndex(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
         {
             for (int y = 0; y < copyHeight; y++)
             {
@@ -71,14 +119,38 @@ namespace ImageMagitek.Image
             }
         }
 
+        private static void ApplyRemapByExactPaletteColors(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
+        {
+            for (int y = 0; y < copyHeight; y++)
+            {
+                for (int x = 0; x < copyWidth; x++)
+                {
+                    var color = source.GetPixelColor(x + sourceStart.X, y + sourceStart.Y);
+                    dest.SetPixel(x + destStart.X, y + destStart.Y, color);
+                }
+            }
+        }
+
+        private static void ApplyRemapByExactPaletteColors(DirectImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
+        {
+            for (int y = 0; y < copyHeight; y++)
+            {
+                for (int x = 0; x < copyWidth; x++)
+                {
+                    var color = source.GetPixel(x + sourceStart.X, y + sourceStart.Y);
+                    dest.SetPixel(x + destStart.X, y + destStart.Y, color);
+                }
+            }
+        }
+
         private static void ApplyExactColorRemapPixels(DirectImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
         {
             for (int y = 0; y < copyHeight; y++)
             {
                 for (int x = 0; x < copyWidth; x++)
                 {
-                    var color = source.GetPixel(sourceStart.X + x, sourceStart.Y + y);
-                    dest.SetPixel(sourceStart.X + x, sourceStart.Y + y, color);
+                    var color = source.GetPixel(x + sourceStart.X, y + sourceStart.Y);
+                    dest.SetPixel(x + destStart.X, y + destStart.Y, color);
                 }
             }
         }
@@ -90,7 +162,7 @@ namespace ImageMagitek.Image
             return elems.Any(x => x.Codec is BlankIndexedCodec || x.Codec is BlankDirectCodec);
         }
 
-        public static MagitekResult CopyPixels(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight, params ImageCopyOperation[] operationAttempts)
+        public static MagitekResult CopyPixels(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight, params ImageRemapOperation[] operationAttempts)
         {
             var dimensionResult = CanCopyPixelDimensions(source, dest, sourceStart, destStart, copyWidth, copyHeight);
 
@@ -105,21 +177,29 @@ namespace ImageMagitek.Image
 
             foreach (var operation in operationAttempts)
             {
-                if (operation == ImageCopyOperation.ExactIndex)
+                if (operation == ImageRemapOperation.RemapByExactIndex)
                 {
-                    if (CanExactIndexRemapPixels(source, dest, sourceStart, destStart, copyWidth, copyHeight).Value is MagitekResult.Success)
+                    if (CanRemapByExactIndex(source, dest, sourceStart, destStart, copyWidth, copyHeight).Value is MagitekResult.Success)
                     {
-                        ApplyExactIndexRemapPixels(source, dest, sourceStart, destStart, copyWidth, copyHeight);
-                        return new MagitekResult.Success();
+                        ApplyRemapByExactIndex(source, dest, sourceStart, destStart, copyWidth, copyHeight);
+                        return MagitekResult.SuccessResult;
                     }
                 }
-                else if (operation == ImageCopyOperation.RemapByPalette)
+                else if (operation == ImageRemapOperation.RemapByExactPaletteColors)
                 {
-
+                    if (CanRemapByExactPaletteColors(source, dest, sourceStart, destStart, copyWidth, copyHeight).Value is MagitekResult.Success)
+                    {
+                        ApplyRemapByExactPaletteColors(source, dest, sourceStart, destStart, copyWidth, copyHeight);
+                        return MagitekResult.SuccessResult;
+                    }
                 }
-                else if (operation == ImageCopyOperation.RemapByAnyIndex)
+                else if (operation == ImageRemapOperation.RemapByAnyIndex)
                 {
-
+                    //if (CanRemapByAnyIndex(source, dest, sourceStart, destStart, copyWidth, copyHeight).Value is MagitekResult.Success)
+                    //{
+                    //    ApplyRemapByAnyIndex(source, dest, sourceStart, destStart, copyWidth, copyHeight);
+                    //    return MagitekResult.SuccessResult;
+                    //}
                 }
             }
 
@@ -148,10 +228,10 @@ namespace ImageMagitek.Image
                 }
             }
 
-            return new MagitekResult.Success();
+            return MagitekResult.SuccessResult;
         }
 
-        public static MagitekResult CopyPixels(DirectImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight, params ImageCopyOperation[] operationAttempts)
+        public static MagitekResult CopyPixels(DirectImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight, params ImageRemapOperation[] operationAttempts)
         {
             var dimensionResult = CanCopyPixelDimensions(source, dest, sourceStart, destStart, copyWidth, copyHeight);
 
@@ -166,25 +246,29 @@ namespace ImageMagitek.Image
 
             foreach (var operation in operationAttempts)
             {
-                if (operation == ImageCopyOperation.ExactIndex)
+                if (operation == ImageRemapOperation.RemapByExactIndex)
                 {
                     if (CanExactColorRemapPixels(source, dest, sourceStart, destStart, copyWidth, copyHeight).Value is MagitekResult.Success)
                     {
                         ApplyExactColorRemapPixels(source, dest, sourceStart, destStart, copyWidth, copyHeight);
-                        return new MagitekResult.Success();
+                        return MagitekResult.SuccessResult;
                     }
                 }
-                else if (operation == ImageCopyOperation.RemapByPalette)
+                else if (operation == ImageRemapOperation.RemapByExactPaletteColors)
                 {
-
+                    if (CanRemapByExactPaletteColors(source, dest, sourceStart, destStart, copyWidth, copyHeight).Value is MagitekResult.Success)
+                    {
+                        ApplyRemapByExactPaletteColors(source, dest, sourceStart, destStart, copyWidth, copyHeight);
+                        return MagitekResult.SuccessResult;
+                    }
                 }
-                else if (operation == ImageCopyOperation.RemapByAnyIndex)
+                else if (operation == ImageRemapOperation.RemapByAnyIndex)
                 {
 
                 }
             }
 
-            return new MagitekResult.Success();
+            return new MagitekResult.Failed($"Image cannot be copied as no suitable copy method was found");
         }
 
         public static MagitekResult CopyPixels(DirectImage source, DirectImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
@@ -209,7 +293,7 @@ namespace ImageMagitek.Image
                 }
             }
 
-            return new MagitekResult.Success();
+            return MagitekResult.SuccessResult;
         }
     }
 }
