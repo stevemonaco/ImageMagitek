@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ImageMagitek.Codec;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -33,7 +34,7 @@ namespace ImageMagitek.Image
             {
                 for (int x = 0; x < copyWidth; x++)
                 {
-                    var element = source.GetElement(sourceStart.X + x, sourceStart.Y + y);
+                    var element = source.GetElementAtPixel(sourceStart.X + x, sourceStart.Y + y);
                     if ((1 << element.Codec.ColorDepth) < dest.GetPixel(destStart.X + x, destStart.Y + y))
                         return new MagitekResult.Failed($"Destination image contains a palette index too large to map to the source image pixels at destination position ({destStart.X + x}, {destStart.Y + y}) and source position ({sourceStart.X + x}, {sourceStart.Y + y})");
                 }
@@ -82,12 +83,25 @@ namespace ImageMagitek.Image
             }
         }
 
+        private static bool ImageRegionContainsInvalidElements<TPixel>(ImageBase<TPixel> image, Point start, int width, int height)
+            where TPixel : struct
+        {
+            var elems = image.GetElementsByPixel(start.X, start.Y, width, height);
+            return elems.Any(x => x.Codec is BlankIndexedCodec || x.Codec is BlankDirectCodec);
+        }
+
         public static MagitekResult CopyPixels(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight, params ImageCopyOperation[] operationAttempts)
         {
             var dimensionResult = CanCopyPixelDimensions(source, dest, sourceStart, destStart, copyWidth, copyHeight);
 
-            if (dimensionResult.IsT1)
+            if (dimensionResult.Value is MagitekResult.Failed)
                 return dimensionResult;
+
+            if (ImageRegionContainsInvalidElements(source, sourceStart, copyWidth, copyHeight))
+                return new MagitekResult.Failed($"Source image copy region contains blank elements");
+
+            if (ImageRegionContainsInvalidElements(dest, destStart, copyWidth, copyHeight))
+                return new MagitekResult.Failed($"Destination image paste region contains blank elements");
 
             foreach (var operation in operationAttempts)
             {
@@ -116,8 +130,14 @@ namespace ImageMagitek.Image
         {
             var dimensionResult = CanCopyPixelDimensions(source, dest, sourceStart, destStart, copyWidth, copyHeight);
 
-            if (dimensionResult.IsT1)
+            if (dimensionResult.Value is MagitekResult.Failed)
                 return dimensionResult;
+
+            if (ImageRegionContainsInvalidElements(source, sourceStart, copyWidth, copyHeight))
+                return new MagitekResult.Failed($"Source image copy region contains blank elements");
+
+            if (ImageRegionContainsInvalidElements(dest, destStart, copyWidth, copyHeight))
+                return new MagitekResult.Failed($"Destination image paste region contains blank elements");
 
             for (int y = 0; y < copyHeight; y++)
             {
@@ -135,8 +155,14 @@ namespace ImageMagitek.Image
         {
             var dimensionResult = CanCopyPixelDimensions(source, dest, sourceStart, destStart, copyWidth, copyHeight);
 
-            if (dimensionResult.IsT1)
+            if (dimensionResult.Value is MagitekResult.Failed)
                 return dimensionResult;
+
+            if (ImageRegionContainsInvalidElements(source, sourceStart, copyWidth, copyHeight))
+                return new MagitekResult.Failed($"Source image copy region contains blank elements");
+
+            if (ImageRegionContainsInvalidElements(dest, destStart, copyWidth, copyHeight))
+                return new MagitekResult.Failed($"Destination image paste region contains blank elements");
 
             foreach (var operation in operationAttempts)
             {
@@ -165,8 +191,14 @@ namespace ImageMagitek.Image
         {
             var dimensionResult = CanCopyPixelDimensions(source, dest, sourceStart, destStart, copyWidth, copyHeight);
 
-            if (dimensionResult.IsT1)
+            if (dimensionResult.Value is MagitekResult.Failed)
                 return dimensionResult;
+
+            if (ImageRegionContainsInvalidElements(source, sourceStart, copyWidth, copyHeight))
+                return new MagitekResult.Failed($"Source image copy region contains blank elements");
+
+            if (ImageRegionContainsInvalidElements(dest, destStart, copyWidth, copyHeight))
+                return new MagitekResult.Failed($"Destination image paste region contains blank elements");
 
             for (int y = 0; y < copyHeight; y++)
             {

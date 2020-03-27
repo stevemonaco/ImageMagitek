@@ -161,19 +161,10 @@ namespace ImageMagitek
         }
 
         /// <summary>
-        /// Gets the ArrangerElement at the specified pixel coordinate
-        /// </summary>
-        /// <param name="x">x-coordinate in pixel coordinates</param>
-        /// <param name="y">y-coordinate in pixel coordinates</param>
-        /// <returns></returns>
-        public ArrangerElement GetElement(int x, int y) => Arranger.GetElementAtPixel(x, y);
-
-        /// <summary>
         /// Gets the pixel's native color at the specified pixel coordinate
         /// </summary>
         /// <param name="x">x-coordinate in pixel coordinates</param>
         /// <param name="y">y-coordinate in pixel coordinates</param>
-        /// <param name="arranger"></param>
         public ColorRgba32 GetPixelColor(int x, int y)
         {
             var pal = Arranger.GetElementAtPixel(x, y).Palette ?? _defaultPalette;

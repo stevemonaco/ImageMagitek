@@ -84,7 +84,13 @@ namespace ImageMagitek
                         newList[posX, posY] = ElementGrid[posX, posY];
                     else // Create new blank element
                     {
-                        ArrangerElement el = new ArrangerElement(posX * Width, posY * Height);
+                        IGraphicsCodec codec = null;
+                        if (ColorType == PixelColorType.Direct)
+                            codec = new BlankDirectCodec();
+                        else if (ColorType == PixelColorType.Indexed)
+                            codec = new BlankIndexedCodec();
+
+                        ArrangerElement el = new ArrangerElement(posX * Width, posY * Height, null, 0, codec, null);
                         newList[posX, posY] = el;
                     }
                 }

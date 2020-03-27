@@ -13,6 +13,7 @@ using TileShop.Shared.EventModels;
 using System.Windows;
 using TileShop.WPF.ViewModels.Dialogs;
 using ImageMagitek.Image;
+using ImageMagitek.Codec;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -143,9 +144,9 @@ namespace TileShop.WPF.ViewModels
 
         public override void Drop(IDropInfo dropInfo)
         {
-            if (dropInfo.Data is PaletteNodeViewModel model)
+            if (dropInfo.Data is PaletteNodeViewModel palModel)
             {
-                var pal = model.Node.Value as Palette;
+                var pal = palModel.Node.Value as Palette;
                 if (!Palettes.Any(x => ReferenceEquals(pal, x.Palette)))
                     Palettes.Add(new PaletteModel(pal));
             }
@@ -231,7 +232,19 @@ namespace TileShop.WPF.ViewModels
             return CanPasteElements || CanPastePixels;
         }
 
-        private bool CanAcceptPixelTransfer(ArrangerTransferModel model) => true;
+        private bool CanAcceptPixelTransfer(ArrangerTransferModel model)
+        {
+            return true;
+            //if (IsLinearLayout)
+            //    return true;
+            //else if (IsTiledLayout)
+            //{
+            //    var elems = _workingArranger.EnumerateElementsByPixel(model.X, model.Y, model.Width, model.Height);
+            //    return !elems.Any(x => x.Codec is BlankIndexedCodec || x.Codec is BlankDirectCodec);
+            //}
+
+            //return false;
+        }
 
         private bool CanAcceptElementTransfer(ArrangerTransferModel model)
         {

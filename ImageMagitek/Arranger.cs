@@ -214,15 +214,17 @@ namespace ImageMagitek
         /// <returns></returns>
         public IEnumerable<ArrangerElement> EnumerateElementsByPixel(int pixelX, int pixelY, int width, int height)
         {
-            for (int y = 0; y < ArrangerElementSize.Height; y++)
-            {
-                for (int x = 0; x < ArrangerElementSize.Width; x++)
-                {
-                    var el = GetElement(x, y);
-                    if (pixelX >= el.X1 && (pixelX + width) >= el.X2 && pixelY >= el.Y1 && (pixelY + height) >= el.Y2)
-                        yield return el;
-                }
-            }
+            if (width <= 0 || height <= 0)
+                yield break;
+
+            int elemX = pixelX / ElementPixelSize.Width;
+            int elemY = pixelY / ElementPixelSize.Height;
+            int elemX2 = (pixelX + width) / ElementPixelSize.Width;
+            int elemY2 = (pixelY + height) / ElementPixelSize.Height;
+
+            for (int y = elemY; y < elemY2; y++)
+                for (int x = elemX; x < elemX2; x++)
+                    yield return GetElement(x, y);
         }
 
         /// <summary>
