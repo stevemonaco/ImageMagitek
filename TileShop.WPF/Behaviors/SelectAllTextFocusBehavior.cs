@@ -8,6 +8,10 @@ using System.Windows.Interactivity;
 
 namespace TileShop.WPF.Behaviors
 {
+    /// <summary>
+    /// Behavior to select all text upon focus to allow immediate overwriting by user
+    /// </summary>
+    /// <remarks>Implementation from https://www.codeproject.com/Tips/1249276/WPF-Select-All-Focus-Behavior</remarks>
     public class SelectAllFocusBehavior : Behavior<TextBox>
     {
         public static bool GetEnable(FrameworkElement frameworkElement) => 
