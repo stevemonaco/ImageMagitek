@@ -14,9 +14,10 @@
     xmlns:sel="clr-namespace:TileShop.WPF.Selectors"
     xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     Title="TileShop"
-    Width="1000"
+    Width="800"
     Height="600"
     ResizeMode="CanResizeWithGrip"
+    SaveWindowPosition="True"
     TitleCharacterCasing="Normal"
     mc:Ignorable="d">
 

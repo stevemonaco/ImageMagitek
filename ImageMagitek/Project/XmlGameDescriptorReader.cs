@@ -173,7 +173,7 @@ namespace ImageMagitek.Project
 
             if (layoutName == "tiled")
                 model.Layout = ArrangerLayout.Tiled;
-            else if (layoutName == "linear")
+            else if (layoutName == "single")
                 model.Layout = ArrangerLayout.Single;
             else
                 throw new XmlException($"Unsupported arranger layout type ('{layoutName}') for arranger '{model.Name}'");

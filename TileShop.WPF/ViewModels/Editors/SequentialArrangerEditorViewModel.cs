@@ -123,11 +123,13 @@ namespace TileShop.WPF.ViewModels
                 _tiledElementHeight = arranger.ElementPixelSize.Height;
                 _tiledArrangerHeight = arranger.ArrangerElementSize.Height;
                 _tiledArrangerWidth = arranger.ArrangerElementSize.Width;
+                SnapMode = SnapMode.Element;
             }
             else if(arranger.Layout == ArrangerLayout.Single)
             {
                 _linearArrangerHeight = arranger.ArrangerPixelSize.Height;
                 _linearArrangerWidth = arranger.ArrangerPixelSize.Width;
+                SnapMode = SnapMode.Pixel;
             }
 
             CreateGridlines();
@@ -154,6 +156,7 @@ namespace TileShop.WPF.ViewModels
         public void MovePageUp() => Move(ArrangerMoveType.PageUp);
         public void MoveHome() => Move(ArrangerMoveType.Home);
         public void MoveEnd() => Move(ArrangerMoveType.End);
+
         public void ExpandWidth()
         {
             if (IsTiledLayout)
@@ -186,10 +189,32 @@ namespace TileShop.WPF.ViewModels
                 LinearArrangerWidth = Math.Clamp(LinearArrangerWidth - 8, 1, int.MaxValue);
         }
 
+        public void JumpToOffset()
+        {
+            var model = new JumpToOffsetViewModel();
+            var result = _windowManager.ShowDialog(model);
+
+            if (result is true)
+                Move(model.Offset * 8);
+        }
+
         private void Move(ArrangerMoveType moveType)
         {
             var oldAddress = (_workingArranger as SequentialArranger).GetInitialSequentialFileAddress();
             _address = (_workingArranger as SequentialArranger).Move(moveType);
+
+            if (oldAddress != _address)
+                Render();
+
+            string notifyMessage = $"File Offset: 0x{_address.FileOffset:X}";
+            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+            _events.PublishOnUIThread(notifyEvent);
+        }
+
+        private void Move(long offset)
+        {
+            var oldAddress = (_workingArranger as SequentialArranger).GetInitialSequentialFileAddress();
+            _address = (_workingArranger as SequentialArranger).Move(offset);
 
             if (oldAddress != _address)
                 Render();
@@ -224,12 +249,14 @@ namespace TileShop.WPF.ViewModels
                 _workingArranger.Resize(TiledArrangerWidth, TiledArrangerHeight);
                 codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, TiledElementWidth, TiledElementHeight);
                 (_workingArranger as SequentialArranger).ChangeCodec(codec);
+                SnapMode = SnapMode.Element;
             }
             else if (codec.Layout == ImageMagitek.Codec.ImageLayout.Single)
             {
                 _workingArranger.Resize(1, 1);
                 codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, LinearArrangerWidth, LinearArrangerHeight);
                 (_workingArranger as SequentialArranger).ChangeCodec(codec);
+                SnapMode = SnapMode.Pixel;
             }
 
             Render();
@@ -296,49 +323,8 @@ namespace TileShop.WPF.ViewModels
         protected override bool CanAcceptTransfer(ArrangerTransferModel model)
         {
             CanPastePixels = true;
+            CanPasteElements = false;
             return true;
-            //bool canAccept = false;
-            //bool isCompatibleSize = false;
-
-            // Source must fit onto the target
-            //if (model.Arranger.Layout == ArrangerLayout.Single)
-            //{
-            //    if (_arranger.ArrangerPixelSize.Width < model.Width || _arranger.ArrangerPixelSize.Height < model.Height)
-            //        return false;
-            //}
-            //else if (model.Arranger.Layout == ArrangerLayout.Tiled)
-            //{
-            //    if (_arranger.ArrangerPixelSize.Width < model.Width || _arranger.ArrangerPixelSize.Height < model.Height)
-            //}
-
-
-
-            //var sizeRules =
-            //    (SourceMode: model.Arranger.Mode, TargetMode: _arranger.Mode, CopyMode: DropCopy, 
-            //if (model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize)
-            //    isCompatibleSize = true;
-
-            //var copyRules = 
-            //    (SourceMode: model.Arranger.Mode, TargetMode: _arranger.Mode, CopyMode: DropCopy, SourceLayout: model.Arranger.Layout, TargetLayout: _arranger.Layout);
-
-            //switch(copyRules)
-            //{
-            //    case (ArrangerMode.Scattered, ArrangerMode.Scattered, DropCopyMode.Elements, ArrangerLayout.Tiled) 
-            //        when model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize:
-
-            //        canAccept = true;
-            //        break;
-
-            //    case (DropCopyMode.Pixels, ArrangerMode.Scattered, ArrangerMode.Scattered):
-            //        return true;
-            //}
-
-            //if (model.Arranger.Mode == ArrangerMode.Scattered)
-            //{
-            //    if (model.Arranger.ArrangerElementSize == _arranger.ArrangerElementSize)
-            //}
-
-            //return canAccept;
         }
     }
 }

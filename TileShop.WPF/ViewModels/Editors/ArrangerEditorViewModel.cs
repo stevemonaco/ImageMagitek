@@ -77,7 +77,7 @@ namespace TileShop.WPF.ViewModels
         }
 
         public int MinZoom => 1;
-        public int MaxZoom => 16;
+        public int MaxZoom { get; protected set; } = 16;
 
         public bool CanChangeSnapMode => _workingArranger is object ? _workingArranger.Layout == ArrangerLayout.Tiled : false;
 

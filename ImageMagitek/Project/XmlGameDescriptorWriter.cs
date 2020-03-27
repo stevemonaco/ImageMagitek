@@ -188,7 +188,7 @@ namespace ImageMagitek.Project
             if(arrangerModel.Layout == ArrangerLayout.Tiled)
                 arrangerNode.Add(new XAttribute("layout", "tiled"));
             else if (arrangerModel.Layout == ArrangerLayout.Single)
-                arrangerNode.Add(new XAttribute("layout", "linear"));
+                arrangerNode.Add(new XAttribute("layout", "single"));
 
             if (arrangerModel.ColorType == PixelColorType.Indexed)
                 arrangerNode.Add(new XAttribute("color", "indexed"));

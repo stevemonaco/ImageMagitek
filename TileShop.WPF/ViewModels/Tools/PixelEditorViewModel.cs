@@ -100,6 +100,9 @@ namespace TileShop.WPF.ViewModels
             SetPrimaryColorCommand = new RelayCommand<Color>(SetPrimaryColor);
             SetSecondaryColorCommand = new RelayCommand<Color>(SetSecondaryColor);
             DisplayName = "Pixel Editor";
+
+            Zoom = 3;
+            MaxZoom = 32;
         }
 
         public void RemapColors()

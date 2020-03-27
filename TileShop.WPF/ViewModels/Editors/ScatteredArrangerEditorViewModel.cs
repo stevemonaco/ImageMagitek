@@ -54,6 +54,11 @@ namespace TileShop.WPF.ViewModels
             Render();
             CreateGridlines();
 
+            if (arranger.Layout == ArrangerLayout.Single)
+                SnapMode = SnapMode.Pixel;
+            else if (arranger.Layout == ArrangerLayout.Tiled)
+                SnapMode = SnapMode.Element;
+
             var arrangerPalettes = _workingArranger.GetReferencedPalettes().OrderBy(x => x.Name).ToList();
             arrangerPalettes.Add(_defaultPalette);
             Palettes = new BindableCollection<PaletteModel>(arrangerPalettes.Select(x => new PaletteModel(x)));
