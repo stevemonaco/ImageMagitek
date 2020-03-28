@@ -173,6 +173,46 @@ namespace ImageMagitek
         }
 
         /// <summary>
+        /// Tries to set the palette to the ArrangerElement containing the specified pixel coordinate
+        /// </summary>
+        /// <param name="x">x-coordinate in pixel coordinates</param>
+        /// <param name="y">y-coordinate in pixel coordinates</param>
+        /// <param name="pal">Palette to be set, if possible</param>
+        /// <returns></returns>
+        public MagitekResult TrySetPalette(int x, int y, Palette pal)
+        {
+            if (x >= Arranger.ArrangerPixelSize.Width || y >= Arranger.ArrangerPixelSize.Height)
+                return new MagitekResult.Failed($"Cannot assign the palette because the location ({x}, {y}) is outside of the arranger " +
+                    $"'{Arranger.Name}' bounds  ({Arranger.ArrangerPixelSize.Width}, {Arranger.ArrangerPixelSize.Height})");
+
+            var el = Arranger.GetElementAtPixel(x, y);
+
+            if (ReferenceEquals(pal, el.Palette))
+                return MagitekResult.SuccessResult;
+
+            int maxIndex = 0;
+
+            for (int pixelY = el.Y1; pixelY <= el.Y2; pixelY++)
+                for (int pixelX = el.X1; pixelX <= el.X2; pixelX++)
+                    maxIndex = Math.Max(maxIndex, GetPixel(pixelX, pixelY));
+
+            if (maxIndex < pal.Entries)
+            {
+                var location = Arranger.PointToElementLocation(new System.Drawing.Point(x, y));
+
+                if (ReferenceEquals(_defaultPalette, pal))
+                    el = el.WithPalette(null);
+                else
+                    el = el.WithPalette(pal);
+
+                Arranger.SetElement(el, location.X, location.Y);
+                return MagitekResult.SuccessResult;
+            }
+            else
+                return new MagitekResult.Failed($"Cannot assign the palette '{pal.Name}' because the element contains a palette index ({maxIndex}) outside of the palette");
+        }
+
+        /// <summary>
         /// Remaps the colors of the image to new colors
         /// </summary>
         /// <param name="remap">List containing remapped indices</param>

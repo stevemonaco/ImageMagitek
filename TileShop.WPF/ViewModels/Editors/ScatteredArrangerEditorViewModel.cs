@@ -173,32 +173,26 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private bool TryApplyPalette(int pixelX, int pixelY, Palette palette)
+        private void TryApplyPalette(int pixelX, int pixelY, Palette palette)
         {
-            var elX = pixelX / _workingArranger.ElementPixelSize.Width;
-            var elY = pixelY / _workingArranger.ElementPixelSize.Height;
+            if (pixelX >= _workingArranger.ArrangerPixelSize.Width || pixelY >= _workingArranger.ArrangerPixelSize.Height)
+                return;
 
-            if (elX >= _workingArranger.ArrangerElementSize.Width || elY >= _workingArranger.ArrangerElementSize.Height)
-                return false;
-
-            var el = _workingArranger.GetElement(elX, elY);
+            var el = _workingArranger.GetElementAtPixel(pixelX, pixelY);
 
             if (ReferenceEquals(palette, el.Palette))
-                return false;
+                return;
 
-            if (ReferenceEquals(_defaultPalette, palette))
-                el = el.WithPalette(null);
-            else
-                el = el.WithPalette(palette);
+            var result = _indexedImage.TrySetPalette(pixelX, pixelY, palette);
 
-            if (_workingArranger.GetElement(elX, elY).Palette == el.Palette)
-                return false;
-
-            _workingArranger.SetElement(el, elX, elY);
-            Render();
-            IsModified = true;
-
-            return true;
+            result.Switch(
+                success =>
+                {
+                    Render();
+                    IsModified = true;
+                },
+                fail => _events.PublishOnUIThread(new NotifyOperationEvent(fail.Reason))
+                );
         }
 
         private bool TryPickPalette(int pixelX, int pixelY)
@@ -222,6 +216,7 @@ namespace TileShop.WPF.ViewModels
             if (_windowManager.ShowDialog(model) is true)
             {
                 _workingArranger.Resize(model.Width, model.Height);
+                IsModified = true;
                 Render();
             }
         }
