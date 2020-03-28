@@ -22,16 +22,35 @@ namespace TileShop.WPF.Docking
 				projectPane.Children.Add(anchorableToShow);
 				return true;
 			}
+			else if (anchorableToShow.Content is ProjectTreeViewModel)
+			{
+				var pane = new LayoutAnchorablePane(anchorableToShow)
+				{
+					DockWidth = new System.Windows.GridLength(300)
+				};
+
+				layout.RootPanel.Children.Insert(0, pane);
+				return true;
+			}
 
 			var pixelPane = layout.Descendents().OfType<LayoutAnchorablePane>().FirstOrDefault(x => x.Name == "PixelPane");
-			if (projectPane != null && anchorableToShow.Content is PixelEditorViewModel)
+			if (pixelPane != null && anchorableToShow.Content is PixelEditorViewModel)
 			{
 				pixelPane.Children.Add(anchorableToShow);
 				return true;
 			}
+			else if (anchorableToShow.Content is PixelEditorViewModel)
+			{
+				var pane = new LayoutAnchorablePane(anchorableToShow)
+				{
+					DockWidth = new System.Windows.GridLength(400)
+				};
+
+				layout.RootPanel.Children.Add(pane);
+				return true;
+			}
 
 			return false;
-
 		}
 
 

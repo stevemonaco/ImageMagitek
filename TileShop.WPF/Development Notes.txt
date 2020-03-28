@@ -5,7 +5,7 @@
 		N/A Initial WPF implementation, then consider port to ForgeForms when it is available for .NET Core 3
 	- ProjectTree
 		x Drag and Drop
-		- Context Menu -> Add / Remove / Export / Import
+		x Context Menu -> Add / Remove / Export / Import
 	- Arranger
 		x Drag and Drop
 		- Context Menu -> Copy / Paste / New Scattered Arranger from Selection

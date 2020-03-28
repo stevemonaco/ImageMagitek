@@ -93,12 +93,12 @@
             Grid.Row="0"
             s:View.Model="{Binding ActiveMenu}" />
 
-        <ToolBarPanel
+        <!--<ToolBarPanel
             x:Name="toolBar"
             Grid.Row="1"
             Visibility="Collapsed">
             <Button>Test Button</Button>
-        </ToolBarPanel>
+        </ToolBarPanel>-->
 
         <ContentControl
             x:Name="statusBarHost"

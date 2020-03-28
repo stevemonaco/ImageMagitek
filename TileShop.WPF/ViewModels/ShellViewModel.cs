@@ -177,11 +177,14 @@ namespace TileShop.WPF.ViewModels
             switch (message.ToolWindow)
             {
                 case ToolWindow.ProjectExplorer:
-                    ActiveTree.IsVisible = true;
-                    ActiveTree.IsActive = true;
-                    ActiveTree.IsSelected = true;
-                    Tools.Remove(ActiveTree);
-                    Tools.Add(ActiveTree);
+                    if (!ActiveTree.IsVisible)
+                    {
+                        ActiveTree.IsVisible = true;
+                        ActiveTree.IsActive = true;
+                        ActiveTree.IsSelected = true;
+                        Tools.Remove(ActiveTree);
+                        Tools.Add(ActiveTree);
+                    }
                     break;
 
                 case ToolWindow.PixelEditor:
