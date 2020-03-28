@@ -9,7 +9,8 @@ using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Colors
 {
-    public enum ColorModel { RGBA32 = 0, RGB24, ARGB32, BGR15, ABGR16, RGB15, NES }
+    //public enum ColorModel { RGBA32 = 0, RGB24, ARGB32, BGR15, ABGR16, RGB15, NES }
+    public enum ColorModel { RGBA32 = 0, BGR15 = 3, ABGR16 = 4 }
 
     /// <summary>
     /// Storage source of the palette
@@ -361,18 +362,20 @@ namespace ImageMagitek.Colors
         {
             switch(ColorModelName)
             {
-                case "RGB24":
-                    return ColorModel.RGB24;
-                case "ARGB32":
-                    return ColorModel.ARGB32;
+                //case "RGB24":
+                //    return ColorModel.RGB24;
+                //case "ARGB32":
+                //    return ColorModel.ARGB32;
+                case "RGBA32":
+                    return ColorModel.RGBA32;
                 case "BGR15":
                     return ColorModel.BGR15;
                 case "ABGR16":
                     return ColorModel.ABGR16;
-                case "RGB15":
-                    return ColorModel.RGB15;
-                case "NES":
-                    return ColorModel.NES;
+                //case "RGB15":
+                //    return ColorModel.RGB15;
+                //case "NES":
+                //    return ColorModel.NES;
                 default:
                     throw new ArgumentException($"{nameof(StringToColorModel)} {nameof(ColorModel)} '{ColorModelName}' is not supported");
             }
@@ -382,41 +385,22 @@ namespace ImageMagitek.Colors
         {
             switch (model)
             {
-                case ColorModel.RGB24:
-                    return "RGB24";
-                case ColorModel.ARGB32:
-                    return "ARGB32";
+                //case ColorModel.RGB24:
+                //    return "RGB24";
+                //case ColorModel.ARGB32:
+                //    return "ARGB32";
                 case ColorModel.BGR15:
                     return "BGR15";
                 case ColorModel.ABGR16:
                     return "ABGR16";
-                case ColorModel.RGB15:
-                    return "RGB15";
-                case ColorModel.NES:
-                    return "NES";
+                case ColorModel.RGBA32:
+                    return "RGBA32";
+                //case ColorModel.RGB15:
+                //    return "RGB15";
+                //case ColorModel.NES:
+                //    return "NES";
                 default:
                     throw new ArgumentException($"{nameof(ColorModelToString)} {nameof(ColorModel)} '{model.ToString()}' is not supported");
-            }
-        }
-
-        public static ColorModel ColorModelFromString(string modelName)
-        {
-            switch (modelName)
-            {
-                case "RGB24":
-                    return ColorModel.RGB24;
-                case "ARGB32":
-                    return ColorModel.ARGB32;
-                case "BGR15":
-                    return ColorModel.BGR15;
-                case "ABGR16":
-                    return ColorModel.ABGR16;
-                case "RGB15":
-                    return ColorModel.RGB15;
-                case "NES":
-                    return ColorModel.NES;
-                default:
-                    throw new ArgumentException($"{nameof(ColorModelFromString)} {nameof(ColorModel)} '{modelName}' is not supported");
             }
         }
 

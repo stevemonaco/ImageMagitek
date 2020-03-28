@@ -29,20 +29,20 @@ namespace ImageMagitek.Colors
         {
             switch (colorModel)
             {
+                case ColorModel.RGBA32:
+                    return new ColorRgba32(color.Color);
                 case ColorModel.BGR15:
                     return Bgr15.ToForeignColor(color);
                 case ColorModel.ABGR16:
                     return Abgr16.ToForeignColor(color);
-                case ColorModel.RGB24:
-                    throw new NotImplementedException();
-                case ColorModel.ARGB32:
-                    throw new NotImplementedException();
-                case ColorModel.RGBA32:
-                    return new ColorRgba32(color.Color);
-                case ColorModel.RGB15:
-                    throw new NotImplementedException();
-                case ColorModel.NES:
-                    throw new NotImplementedException();
+                //case ColorModel.RGB24:
+                //    throw new NotImplementedException();
+                //case ColorModel.ARGB32:
+                //    throw new NotImplementedException();
+                //case ColorModel.RGB15:
+                //    throw new NotImplementedException();
+                //case ColorModel.NES:
+                //    throw new NotImplementedException();
                 default:
                     throw new NotImplementedException();
             }

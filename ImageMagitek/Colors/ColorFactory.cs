@@ -8,12 +8,12 @@ namespace ImageMagitek.Colors
         {
             switch (model)
             {
-                case ColorModel.RGB24:
-                    break;
+                //case ColorModel.RGB24:
+                //    break;
                 case ColorModel.RGBA32:
                     return new ColorRgba32(color);
-                case ColorModel.ARGB32:
-                    break;
+                //case ColorModel.ARGB32:
+                //    break;
                 case ColorModel.BGR15:
                     var colorBgr15 = new ColorBgr15();
                     colorBgr15.Color = color;
@@ -22,10 +22,10 @@ namespace ImageMagitek.Colors
                     var colorAbgr16 = new ColorAbgr16();
                     colorAbgr16.Color = color;
                     return colorAbgr16;
-                case ColorModel.RGB15:
-                    break;
-                case ColorModel.NES:
-                    break;
+                //case ColorModel.RGB15:
+                //    break;
+                //case ColorModel.NES:
+                //    break;
             }
             throw new NotImplementedException();
         }
