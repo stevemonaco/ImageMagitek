@@ -7,6 +7,7 @@ namespace TileShop.WPF.Services
         string GetProjectFileNameByUser();
         string GetNewProjectFileNameByUser();
         string GetExistingDataFileNameByUser();
+        string GetExportArrangerFileNameByUser(string defaultName);
     }
 
     public class FileSelectService : IFileSelectService
@@ -52,6 +53,22 @@ namespace TileShop.WPF.Services
 
             if (ofd.ShowDialog().Value)
                 return ofd.FileName;
+
+            return null;
+        }
+
+        public string GetExportArrangerFileNameByUser(string defaultName)
+        {
+            var sfd = new SaveFileDialog();
+
+            sfd.FileName = defaultName;
+            sfd.Title = "Export Arranger As";
+            sfd.ValidateNames = true;
+            sfd.DefaultExt = ".bmp";
+            sfd.Filter = "Bitmap Image|*.bmp";
+
+            if (sfd.ShowDialog() is true)
+                return sfd.FileName;
 
             return null;
         }

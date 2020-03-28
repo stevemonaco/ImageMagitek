@@ -24,6 +24,10 @@
         <TextBlock.ContextMenu>
             <ContextMenu>
                 <MenuItem
+                    Command="{s:Action ExportArrangerAs}"
+                    CommandParameter="{Binding}"
+                    Header="Export As..." />
+                <MenuItem
                     Command="{s:Action RequestRemoveNode}"
                     CommandParameter="{Binding}"
                     Header="Remove" />

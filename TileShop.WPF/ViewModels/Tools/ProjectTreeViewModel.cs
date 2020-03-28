@@ -10,6 +10,7 @@ using TileShop.WPF.ViewModels.Dialogs;
 using TileShop.WPF.EventModels;
 using ImageMagitek;
 using ImageMagitek.Colors;
+using TileShop.Shared.Services;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -17,14 +18,17 @@ namespace TileShop.WPF.ViewModels
         IHandle<AddDataFileEvent>, IHandle<AddPaletteEvent>, IHandle<AddScatteredArrangerEvent>
     {
         private IProjectTreeService _treeService;
+        private IPaletteService _paletteService;
+        private IFileSelectService _fileSelect;
         private IEventAggregator _events;
         private IWindowManager _windowManager;
-        private IFileSelectService _fileSelect;
 
-        public ProjectTreeViewModel(IProjectTreeService treeService, IFileSelectService fileSelect, IEventAggregator events, IWindowManager windowManager)
+        public ProjectTreeViewModel(IProjectTreeService treeService, IPaletteService paletteService,
+            IFileSelectService fileSelect, IEventAggregator events, IWindowManager windowManager)
         {
             DisplayName = "Project Tree";
             _treeService = treeService;
+            _paletteService = paletteService;
             _fileSelect = fileSelect;
 
             _windowManager = windowManager;
@@ -88,6 +92,29 @@ namespace TileShop.WPF.ViewModels
             {
                 SelectedItem = model;
                 IsModified = true;
+            }
+        }
+
+        public void ExportArrangerAs(TreeNodeViewModel nodeModel)
+        {
+            if (nodeModel is ArrangerNodeViewModel arrNodeModel)
+            {
+                var arranger = arrNodeModel.Node.Value as ScatteredArranger;
+                var exportFileName = _fileSelect.GetExportArrangerFileNameByUser($"{arranger.Name}.bmp");
+
+                if (exportFileName is object)
+                {
+                    if (arranger.ColorType == PixelColorType.Indexed)
+                    {
+                        var image = new IndexedImage(arranger, _paletteService.DefaultPalette);
+                        image.ExportImage(exportFileName, new ImageFileAdapter());
+                    }
+                    else if (arranger.ColorType == PixelColorType.Direct)
+                    {
+                        var image = new DirectImage(arranger);
+                        image.ExportImage(exportFileName, new ImageFileAdapter());
+                    }
+                }
             }
         }
 
