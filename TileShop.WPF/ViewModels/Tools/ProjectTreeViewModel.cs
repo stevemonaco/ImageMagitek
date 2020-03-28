@@ -253,10 +253,9 @@ namespace TileShop.WPF.ViewModels
 
         public void Drop(IDropInfo dropInfo)
         {
-            var sourceModel = dropInfo.Data as TreeNodeViewModel;
             var targetModel = dropInfo.TargetItem as TreeNodeViewModel;
 
-            if (sourceModel is object && (targetModel is ImageProjectNodeViewModel || targetModel is FolderNodeViewModel))
+            if (dropInfo.Data is TreeNodeViewModel sourceModel && (targetModel is ImageProjectNodeViewModel || targetModel is FolderNodeViewModel))
             {
                 _treeService.MoveNode(sourceModel, targetModel);
                 IsModified = true;
