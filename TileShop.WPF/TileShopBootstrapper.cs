@@ -5,6 +5,7 @@ using Autofac;
 using TileShop.Shared.Services;
 using TileShop.WPF.Services;
 using TileShop.WPF.ViewModels;
+using Serilog;
 
 namespace TileShop.WPF
 {
@@ -12,6 +13,7 @@ namespace TileShop.WPF
     {
         protected override void ConfigureIoC(ContainerBuilder builder)
         {
+            ConfigureLogging(builder);
             ConfigureServices(builder);
         }
 
@@ -33,6 +35,21 @@ namespace TileShop.WPF
             builder.RegisterType<UserPromptService>().As<IUserPromptService>();
 
             builder.RegisterType<MessageBoxView>().AsSelf();
+        }
+
+        private void ConfigureLogging(ContainerBuilder builder)
+        {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Error()
+                .WriteTo.File("crashlog.txt", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+
+            Application.Dispatcher.UnhandledException += Dispatcher_UnhandledException;
+        }
+
+        private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            Log.Fatal(e.Exception, "Unhandled exception");
         }
     }
 }

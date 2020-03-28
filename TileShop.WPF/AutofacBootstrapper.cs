@@ -64,13 +64,7 @@ namespace TileShop.WPF
 
         protected override void Launch()
         {
-            base.Application.Dispatcher.UnhandledException += Dispatcher_UnhandledException;
             base.DisplayRootView(this.RootViewModel);
-        }
-
-        private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
-        {
-            throw new NotImplementedException();
         }
 
         public override void Dispose()
