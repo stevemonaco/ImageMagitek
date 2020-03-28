@@ -120,6 +120,7 @@ namespace ImageMagitek
             bs.Data = Buffer;
 
             bs.BitIndex = FirstByteBits;
+            bs.BitsRemaining = DataBits;
             bs.Index = 0;
             bs.Access = BitStreamAccess.Write;
             bs.StreamStartOffset = 8 - FirstByteBits;

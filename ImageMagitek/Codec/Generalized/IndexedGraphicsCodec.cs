@@ -216,7 +216,7 @@ namespace ImageMagitek.Codec
                         for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
                         {
                             pos = y * el.Height;
-                            for (int x = 0; x < Format.Width; x++, pos++)
+                            for (int x = 0; x < Format.Width; x++)
                             {
                                 int priorityPos = pos + ip.RowPixelPattern[x];
                                 bs.WriteBit(ElementData[curPlane][priorityPos]);
