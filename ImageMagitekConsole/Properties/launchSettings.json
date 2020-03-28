@@ -7,8 +7,8 @@
     },
     "FF2 ExportAll": {
       "commandName": "Project",
-      "commandLineArgs": "ff2.xml ExportAll FF2Extract",
-      "workingDirectory": "D:\\ImageMagitek"
+      "commandLineArgs": "ff2extended.xml ExportAll FF2ExtractExtended",
+      "workingDirectory": "D:\\ImageMagitekTest"
     },
     "FF2 ImportAll": {
       "commandName": "Project",
