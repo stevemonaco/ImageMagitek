@@ -14,7 +14,7 @@ namespace ImageMagitek.Project
 {
     public class XmlGameDescriptorReader : IGameDescriptorReader
     {
-        public string DescriptorVersion => "0.1";
+        public string DescriptorVersion => "0.8";
         private ICodecFactory _codecFactory;
 
         public XmlGameDescriptorReader(ICodecFactory CodecFactory)
@@ -134,7 +134,7 @@ namespace ImageMagitek.Project
             var fileOffset = long.Parse(element.Attribute("fileoffset").Value, System.Globalization.NumberStyles.HexNumber);
             model.DataFileKey = element.Attribute("datafile").Value;
             model.Entries = int.Parse(element.Attribute("entries").Value);
-            model.ColorModel = Palette.StringToColorModel(element.Attribute("format").Value);
+            model.ColorModel = Palette.StringToColorModel(element.Attribute("color").Value);
             model.ZeroIndexTransparent = bool.Parse(element.Attribute("zeroindextransparent").Value);
 
             if (element.Attribute("bitoffset") is null)
@@ -164,7 +164,7 @@ namespace ImageMagitek.Project
             var elementsy = int.Parse(element.Attribute("elementsy").Value); // Height of arranger in elements
             var width = int.Parse(element.Attribute("width").Value); // Width of element in pixels
             var height = int.Parse(element.Attribute("height").Value); // Height of element in pixels
-            var defaultFormat = element.Attribute("defaultformat").Value;
+            var defaultFormat = element.Attribute("defaultcodec").Value;
             var defaultDataFile = element.Attribute("defaultdatafile").Value;
             var defaultPalette = element.Attribute("defaultpalette")?.Value ?? "";
             var layoutName = element.Attribute("layout").Value;
@@ -195,7 +195,7 @@ namespace ImageMagitek.Project
                 bitoffset = e.Attribute("bitoffset"),
                 posx = int.Parse(e.Attribute("posx").Value),
                 posy = int.Parse(e.Attribute("posy").Value),
-                format = e.Attribute("format"),
+                format = e.Attribute("codec"),
                 palette = e.Attribute("palette"),
                 datafile = e.Attribute("datafile")
             });

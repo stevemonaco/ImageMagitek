@@ -12,7 +12,7 @@ namespace ImageMagitek.Project
 {
     public class XmlGameDescriptorWriter : IGameDescriptorWriter
     {
-        public string DescriptorVersion => "0.1";
+        public string DescriptorVersion => "0.8";
 
         public bool WriteProject(IPathTree<IProjectResource> tree, string fileName)
         {
@@ -166,7 +166,7 @@ namespace ImageMagitek.Project
             element.Add(new XAttribute("name", paletteModel.Name));
             element.Add(new XAttribute("fileoffset", $"{paletteModel.FileAddress.FileOffset:X}"));
             element.Add(new XAttribute("datafile", paletteModel.DataFileKey));
-            element.Add(new XAttribute("format", paletteModel.ColorModel.ToString()));
+            element.Add(new XAttribute("color", paletteModel.ColorModel.ToString()));
             element.Add(new XAttribute("entries", paletteModel.Entries));
             element.Add(new XAttribute("zeroindextransparent", paletteModel.ZeroIndexTransparent));
 
@@ -175,7 +175,7 @@ namespace ImageMagitek.Project
 
         private XElement Serialize(ScatteredArrangerModel arrangerModel)
         {
-            var defaultFormat = arrangerModel.FindMostFrequentPropertyValue("CodecName");
+            var defaultCodec = arrangerModel.FindMostFrequentPropertyValue("CodecName");
             var defaultFile = arrangerModel.FindMostFrequentPropertyValue("DataFileKey") ?? "";
 
             var arrangerNode = new XElement("arranger");
@@ -195,7 +195,7 @@ namespace ImageMagitek.Project
             else if (arrangerModel.ColorType == PixelColorType.Direct)
                 arrangerNode.Add(new XAttribute("color", "direct"));
 
-            arrangerNode.Add(new XAttribute("defaultformat", defaultFormat));
+            arrangerNode.Add(new XAttribute("defaultcodec", defaultCodec));
             arrangerNode.Add(new XAttribute("defaultdatafile", defaultFile));
 
             for(int y = 0; y < arrangerModel.ArrangerElementSize.Height; y++)
@@ -212,8 +212,8 @@ namespace ImageMagitek.Project
                     elNode.Add(new XAttribute("posx", el.PositionX));
                     elNode.Add(new XAttribute("posy", el.PositionY));
 
-                    if(el.CodecName != defaultFormat)
-                        elNode.Add(new XAttribute("format", el.CodecName));
+                    if(el.CodecName != defaultCodec)
+                        elNode.Add(new XAttribute("codec", el.CodecName));
 
                     if(el.DataFileKey != defaultFile)
                         elNode.Add(new XAttribute("datafile", el.DataFileKey));
