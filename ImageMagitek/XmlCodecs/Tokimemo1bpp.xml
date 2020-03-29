@@ -1,0 +1,17 @@
+<!-- Font offset is 0x3E8000 -->
+<format name="Tokimemo 1bpp">
+    <codec>
+        <colortype>indexed</colortype>
+        <colordepth>1</colordepth>
+        <layout>tiled</layout>
+        <defaultheight>14</defaultheight>
+        <defaultwidth>16</defaultwidth>
+        <fixedsize>false</fixedsize>
+		<mergepriority>0</mergepriority>
+    </codec>
+    <image>
+        <colordepth>1</colordepth>
+		<rowpixelpattern>8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7</rowpixelpattern>
+        <rowinterlace>false</rowinterlace>
+    </image>
+</format>
