@@ -188,7 +188,7 @@ namespace TileShop.WPF.ViewModels
 
         protected virtual void CreateGridlines()
         {
-            if (_workingArranger is null)
+            if (_workingArranger is null || !CanShowGridlines)
                 return;
 
             _gridlines = new BindableCollection<Gridline>();
@@ -272,7 +272,12 @@ namespace TileShop.WPF.ViewModels
 
         public void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);
         public void ZoomOut() => Zoom = Math.Clamp(Zoom - 1, MinZoom, MaxZoom);
-        public void ToggleGridlineVisibility() => ShowGridlines ^= true;
+        
+        public void ToggleGridlineVisibility()
+        {
+            if (CanShowGridlines)
+                ShowGridlines ^= true;
+        }
 
         public virtual void OnMouseMove(object sender, MouseCaptureArgs e)
         {

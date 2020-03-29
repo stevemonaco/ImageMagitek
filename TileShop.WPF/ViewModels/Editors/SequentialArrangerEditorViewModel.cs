@@ -253,6 +253,7 @@ namespace TileShop.WPF.ViewModels
             }
             else if (codec.Layout == ImageMagitek.Codec.ImageLayout.Single)
             {
+                ShowGridlines = false;
                 _workingArranger.Resize(1, 1);
                 codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, LinearArrangerWidth, LinearArrangerHeight);
                 (_workingArranger as SequentialArranger).ChangeCodec(codec);
@@ -263,6 +264,7 @@ namespace TileShop.WPF.ViewModels
 
             NotifyOfPropertyChange(() => IsTiledLayout);
             NotifyOfPropertyChange(() => IsLinearLayout);
+            NotifyOfPropertyChange(() => CanShowGridlines);
         }
 
         private void ChangeCodecDimensions(int width, int height)

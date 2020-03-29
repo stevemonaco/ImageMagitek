@@ -48,6 +48,11 @@ namespace ImageMagitek
                 if (el.Codec is IIndexedCodec codec)
                 {
                     var encodedBuffer = codec.ReadElement(el);
+
+                    // TODO: Detect reads past end of file gracefully
+                    if (encodedBuffer.Length == 0)
+                        continue;
+                        
                     var decodedImage = codec.DecodeElement(el, encodedBuffer);
 
                     for (int y = 0; y < Arranger.ElementPixelSize.Height; y++)
