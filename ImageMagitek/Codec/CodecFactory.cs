@@ -7,6 +7,9 @@ namespace ImageMagitek.Codec
     public class CodecFactory : ICodecFactory
     {
         private readonly Dictionary<string, GraphicsFormat> _formats;
+        private const int _defaultWidth = 8;
+        private const int _defaultHeight = 8;
+
         public Palette DefaultPalette { get; set; }
 
         public CodecFactory(Dictionary<string, GraphicsFormat> formats, Palette defaultPalette)
@@ -15,10 +18,48 @@ namespace ImageMagitek.Codec
             DefaultPalette = defaultPalette;
         }
 
-        public IGraphicsCodec GetCodec(string codecName, int width = 8, int height = 8, int rowStride = 0)
+        public IGraphicsCodec GetCodec(string codecName)
         {
             switch (codecName)
             {
+                //case "NES 1bpp":
+                //    return new Nes1bppCodec(_defaultWidth, _defaultHeight);
+                case "SNES 3bpp":
+                    return new Snes3bppCodec(_defaultWidth, _defaultHeight);
+                case "PSX 4bpp":
+                    return new Psx4bppCodec(_defaultWidth, _defaultHeight);
+                case "PSX 8bpp":
+                    return new Psx8bppCodec(_defaultWidth, _defaultHeight);
+                //case "PSX 16bpp":
+                //    return new Psx16bppCodec(width, height);
+                //case "PSX 24bpp":
+                //    return new Psx24bppCodec(width, height);
+                default:
+                    if (_formats.ContainsKey(codecName))
+                    {
+                        var format = _formats[codecName].Clone();
+                        format.Name = codecName;
+                        format.Width = format.DefaultWidth;
+                        format.Height = format.DefaultHeight;
+
+                        if (format.ColorType == PixelColorType.Indexed)
+                            return new IndexedGraphicsCodec(format, DefaultPalette);
+                        else if (format.ColorType == PixelColorType.Direct)
+                            throw new NotSupportedException();
+
+                        throw new NotSupportedException();
+                    }
+                    else
+                        throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{nameof(codecName)}'");
+            }
+        }
+
+        public IGraphicsCodec GetCodec(string codecName, int width, int height, int rowStride = 0)
+        {
+            switch (codecName)
+            {
+                //case "NES 1bpp":
+                //    return new Nes1bppCodec(width, height);
                 case "SNES 3bpp":
                     return new Snes3bppCodec(width, height);
                 case "PSX 4bpp":
@@ -56,6 +97,7 @@ namespace ImageMagitek.Codec
 
         public IEnumerable<string> GetSupportedCodecNames()
         {
+            //yield return "NES 1bpp";
             yield return "SNES 3bpp";
             yield return "PSX 4bpp";
             yield return "PSX 8bpp";

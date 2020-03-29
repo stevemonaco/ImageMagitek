@@ -219,29 +219,29 @@ namespace TileShop.Shared.Models
             {
                 SnappedLeft = (int)(Math.Floor(Math.Min(Left, Right) / _elementSize.Width) * _elementSize.Width);
                 SnappedRight = (int)(Math.Floor(Math.Max(Left, Right) / _elementSize.Width) * _elementSize.Width);
-                SnappedTop = (int)(Math.Floor(Math.Min(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
-                SnappedBottom = (int)(Math.Floor(Math.Max(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
+                SnappedTop = (int)(Math.Floor(Math.Min(Top, Bottom) / _elementSize.Height) * _elementSize.Height);
+                SnappedBottom = (int)(Math.Floor(Math.Max(Top, Bottom) / _elementSize.Height) * _elementSize.Height);
             }
             else if (SnapRounding == ElementSnapRounding.Ceiling)
             {
                 SnappedLeft = (int)(Math.Ceiling(Math.Min(Left, Right) / _elementSize.Width) * _elementSize.Width);
                 SnappedRight = (int)(Math.Ceiling(Math.Max(Left, Right) / _elementSize.Width) * _elementSize.Width);
-                SnappedTop = (int)(Math.Ceiling(Math.Min(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
-                SnappedBottom = (int)(Math.Ceiling(Math.Max(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
+                SnappedTop = (int)(Math.Ceiling(Math.Min(Top, Bottom) / _elementSize.Height) * _elementSize.Height);
+                SnappedBottom = (int)(Math.Ceiling(Math.Max(Top, Bottom) / _elementSize.Height) * _elementSize.Height);
             }
             if (SnapRounding == ElementSnapRounding.Collapse)
             {
                 SnappedLeft = (int)(Math.Ceiling(Math.Min(Left, Right) / _elementSize.Width) * _elementSize.Width);
                 SnappedRight = (int)(Math.Floor(Math.Max(Left, Right) / _elementSize.Width) * _elementSize.Width);
-                SnappedTop = (int)(Math.Ceiling(Math.Min(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
-                SnappedBottom = (int)(Math.Floor(Math.Max(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
+                SnappedTop = (int)(Math.Ceiling(Math.Min(Top, Bottom) / _elementSize.Height) * _elementSize.Height);
+                SnappedBottom = (int)(Math.Floor(Math.Max(Top, Bottom) / _elementSize.Height) * _elementSize.Height);
             }
             else if (SnapRounding == ElementSnapRounding.Expand)
             {
                 SnappedLeft = (int)(Math.Floor(Math.Min(Left, Right) / _elementSize.Width) * _elementSize.Width);
                 SnappedRight = (int)(Math.Ceiling(Math.Max(Left, Right) / _elementSize.Width) * _elementSize.Width);
-                SnappedTop = (int)(Math.Floor(Math.Min(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
-                SnappedBottom = (int)(Math.Ceiling(Math.Max(Top, Bottom) / _elementSize.Width) * _elementSize.Width);
+                SnappedTop = (int)(Math.Floor(Math.Min(Top, Bottom) / _elementSize.Height) * _elementSize.Height);
+                SnappedBottom = (int)(Math.Ceiling(Math.Max(Top, Bottom) / _elementSize.Height) * _elementSize.Height);
             }
 
             SnappedWidth = SnappedRight - SnappedLeft;

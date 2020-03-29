@@ -241,13 +241,26 @@ namespace TileShop.WPF.ViewModels
             Render();
         }
 
+        public void SelectNextCodec()
+        {
+            var index = CodecNames.IndexOf(SelectedCodecName) + 1;
+            SelectedCodecName = CodecNames[index % CodecNames.Count];
+        }
+
+        public void SelectPreviousCodec()
+        {
+            var index = CodecNames.IndexOf(SelectedCodecName) - 1;
+            if (index < 0)
+                index = CodecNames.Count - 1;
+            SelectedCodecName = CodecNames[index];
+        }
+
         private void ChangeCodec()
         {
             var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName);
             if (codec.Layout == ImageMagitek.Codec.ImageLayout.Tiled)
             {
                 _workingArranger.Resize(TiledArrangerWidth, TiledArrangerHeight);
-                codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, TiledElementWidth, TiledElementHeight);
                 (_workingArranger as SequentialArranger).ChangeCodec(codec);
                 SnapMode = SnapMode.Element;
             }

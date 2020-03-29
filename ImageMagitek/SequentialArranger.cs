@@ -55,6 +55,8 @@ namespace ImageMagitek
             ActiveCodec = _codecs.GetCodec(codecName);
             ColorType = ActiveCodec.ColorType;
 
+            ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);
+
             Resize(arrangerWidth, arrangerHeight, dataFile);
         }
 
