@@ -7,7 +7,7 @@
         <defaultheight>14</defaultheight>
         <defaultwidth>16</defaultwidth>
         <fixedsize>false</fixedsize>
-		<mergepriority>0</mergepriority>
+        <mergepriority>0</mergepriority>
     </codec>
     <image>
         <colordepth>1</colordepth>
