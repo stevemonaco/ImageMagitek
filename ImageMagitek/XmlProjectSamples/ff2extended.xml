@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<gdf version="0.1">
+<gdf version="0.8">
 	<project name="FF2">
 		<folder name="Character Battle Sprites">
 			<arranger name="Adult Rydia Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
