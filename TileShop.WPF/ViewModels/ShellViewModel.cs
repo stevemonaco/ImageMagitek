@@ -12,6 +12,8 @@ using TileShop.WPF.EventModels;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
+using TileShop.WPF.Configuration;
+using System.IO;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -19,9 +21,10 @@ namespace TileShop.WPF.ViewModels
         IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>, IHandle<SaveProjectEvent>, IHandle<CloseProjectEvent>,
         IHandle<RequestRemoveTreeNodeEvent>
     {
-        protected readonly IEventAggregator _events;
-        protected readonly ICodecService _codecService;
-        protected readonly IPaletteService _paletteService;
+        private readonly AppSettings _settings;
+        private readonly IEventAggregator _events;
+        private readonly ICodecService _codecService;
+        private readonly IPaletteService _paletteService;
         private readonly IWindowManager _windowManager;
         private readonly IFileSelectService _fileSelect;
         private readonly IProjectTreeService _treeService;
@@ -80,10 +83,11 @@ namespace TileShop.WPF.ViewModels
             { MessageBoxResult.Yes, "Save" }, { MessageBoxResult.No, "Discard" }, { MessageBoxResult.Cancel, "Cancel" } 
         };
 
-        public ShellViewModel(IEventAggregator events, IWindowManager windowManager, ICodecService codecService,
+        public ShellViewModel(AppSettings settings, IEventAggregator events, IWindowManager windowManager, ICodecService codecService,
             IPaletteService paletteService, IFileSelectService fileSelect, IProjectTreeService treeService, MenuViewModel activeMenu,
             ProjectTreeViewModel activeTree, StatusBarViewModel activeStatusBar, PixelEditorViewModel activePixelEditor)
         {
+            _settings = settings;
             _events = events;
             _events.Subscribe(this);
             _codecService = codecService;
@@ -149,7 +153,16 @@ namespace TileShop.WPF.ViewModels
                         newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _windowManager, _codecService, _paletteService);
                         break;
                     case DataFile dataFile: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
-                        var newArranger = new SequentialArranger(8, 16, dataFile, _codecService.CodecFactory, "SNES 3bpp");
+                        var extension = Path.GetExtension(dataFile.Location);
+                        string codecName;
+                        if (_settings.ExtensionCodecAssociations.ContainsKey(extension))
+                            codecName = _settings.ExtensionCodecAssociations[extension];
+                        else if (_settings.ExtensionCodecAssociations.ContainsKey("default"))
+                            codecName = _settings.ExtensionCodecAssociations["default"];
+                        else
+                            codecName = "NES 1bpp";
+
+                        var newArranger = new SequentialArranger(8, 16, dataFile, _codecService.CodecFactory, codecName);
                         newDocument = new SequentialArrangerEditorViewModel(newArranger, _events, _windowManager, _codecService, _paletteService);
                         break;
                     case ResourceFolder resourceFolder:

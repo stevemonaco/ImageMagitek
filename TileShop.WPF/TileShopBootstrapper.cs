@@ -6,6 +6,10 @@ using TileShop.Shared.Services;
 using TileShop.WPF.Services;
 using TileShop.WPF.ViewModels;
 using Serilog;
+using TileShop.WPF.Configuration;
+using System.Collections.Generic;
+using System.Text.Json;
+using System;
 
 namespace TileShop.WPF
 {
@@ -14,18 +18,19 @@ namespace TileShop.WPF
         protected override void ConfigureIoC(ContainerBuilder builder)
         {
             ConfigureLogging(builder);
+            ReadConfiguration("appsettings.json", builder);
             ConfigureServices(builder);
         }
 
         private void ConfigureServices(ContainerBuilder builder)
         {
             var paletteService = new PaletteService();
-            paletteService.LoadJsonPalettes($"{Directory.GetCurrentDirectory()}\\pal");
+            paletteService.LoadJsonPalettes("pal");
             paletteService.DefaultPalette = paletteService.Palettes.Where(x => x.Name.Contains("DefaultRgba32")).First();
             builder.RegisterInstance<IPaletteService>(paletteService);
 
             var codecService = new CodecService(paletteService.DefaultPalette);
-            codecService.LoadXmlCodecs($"{Directory.GetCurrentDirectory()}\\codecs");
+            codecService.LoadXmlCodecs("codecs");
             builder.RegisterInstance<ICodecService>(codecService);
 
             var projectService = new ProjectTreeService(codecService);
@@ -45,6 +50,27 @@ namespace TileShop.WPF
                 .CreateLogger();
 
             Application.Dispatcher.UnhandledException += Dispatcher_UnhandledException;
+        }
+
+        private void ReadConfiguration(string jsonFileName, ContainerBuilder builder)
+        {
+            try
+            {
+                var json = File.ReadAllText(jsonFileName);
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                var settings = JsonSerializer.Deserialize<AppSettings>(json, options);
+                builder.RegisterInstance<AppSettings>(settings);
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, $"Failed to read the configuration file '{jsonFileName}'");
+                throw;
+            }
         }
 
         private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)

@@ -17,6 +17,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Assets\pal\**" />
+    <EmbeddedResource Remove="Assets\pal\**" />
+    <None Remove="Assets\pal\**" />
+    <Page Remove="Assets\pal\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Autofac" Version="5.1.2" />
     <PackageReference Include="Dirkster.AvalonDock" Version="4.0.0" />
     <PackageReference Include="Dirkster.AvalonDock.Themes.VS2013" Version="4.0.0" />
@@ -38,10 +45,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
     <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Assets\pal\" />
   </ItemGroup>
 
 </Project>
