@@ -42,9 +42,13 @@ namespace ImageMagitek
             {
                 if (el.Codec is IDirectCodec codec)
                 {
-                    var readResult = codec.ReadElement(el);
-                    var decodeResult = codec.DecodeElement(el, readResult);
-                    //codec.Decode(el, buffer);
+                    var encodedBuffer = codec.ReadElement(el);
+
+                    // TODO: Detect reads past end of file gracefully
+                    if (encodedBuffer.Length == 0)
+                        continue;
+
+                    var decodeResult = codec.DecodeElement(el, encodedBuffer);
 
                     for (int y = 0; y < Arranger.ElementPixelSize.Height; y++)
                     {
