@@ -2,7 +2,7 @@
 <gdf version="0.1">
 	<project name="FF2">
 		<folder name="Character Battle Sprites">
-			<arranger name="Adult Rydia Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Adult Rydia Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D5800" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal11" />
 				<element fileoffset="D5820" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal11" />
 				<element fileoffset="D58C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal11" />
@@ -61,7 +61,7 @@
 				<element fileoffset="D5D00" posx="5" posy="5" palette="/FF2/Character Palettes/CharBattlePal11" />
 				<element fileoffset="D5D20" posx="6" posy="5" palette="/FF2/Character Palettes/CharBattlePal11" />
 			</arranger>
-			<arranger name="Anna Battle" elementsx="6" elementsy="3" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Anna Battle" elementsx="6" elementsy="3" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D7960" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal15" />
 				<element fileoffset="D7980" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal15" />
 				<element fileoffset="D7960" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal15" />
@@ -81,7 +81,7 @@
 				<element fileoffset="D7AE0" posx="4" posy="2" palette="/FF2/Character Palettes/CharBattlePal15" />
 				<element fileoffset="D7B00" posx="5" posy="2" palette="/FF2/Character Palettes/CharBattlePal15" />
 			</arranger>
-			<arranger name="Cecil Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Cecil Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D0000" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal0" />
 				<element fileoffset="D0020" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal0" />
 				<element fileoffset="D00C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal0" />
@@ -140,7 +140,7 @@
 				<element fileoffset="D0500" posx="5" posy="5" palette="/FF2/Character Palettes/CharBattlePal0" />
 				<element fileoffset="D0520" posx="6" posy="5" palette="/FF2/Character Palettes/CharBattlePal0" />
 			</arranger>
-			<arranger name="Cecil Paladin Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Cecil Paladin Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D4800" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal9" />
 				<element fileoffset="D4820" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal9" />
 				<element fileoffset="D48C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal9" />
@@ -199,7 +199,7 @@
 				<element fileoffset="D4D00" posx="5" posy="5" palette="/FF2/Character Palettes/CharBattlePal9" />
 				<element fileoffset="D4D20" posx="6" posy="5" palette="/FF2/Character Palettes/CharBattlePal9" />
 			</arranger>
-			<arranger name="Cid Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Cid Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D5000" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal10" />
 				<element fileoffset="D5020" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal10" />
 				<element fileoffset="D50C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal10" />
@@ -258,7 +258,7 @@
 				<element fileoffset="D5440" posx="5" posy="5" palette="/FF2/Character Palettes/CharBattlePal10" />
 				<element fileoffset="D5460" posx="6" posy="5" palette="/FF2/Character Palettes/CharBattlePal10" />
 			</arranger>
-			<arranger name="Edge Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Edge Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D6000" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal12" />
 				<element fileoffset="D6020" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal12" />
 				<element fileoffset="D60C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal12" />
@@ -317,7 +317,7 @@
 				<element fileoffset="D6500" posx="5" posy="5" palette="/FF2/Character Palettes/CharBattlePal12" />
 				<element fileoffset="D6520" posx="6" posy="5" palette="/FF2/Character Palettes/CharBattlePal12" />
 			</arranger>
-			<arranger name="Edward Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Edward Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D2000" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal4" />
 				<element fileoffset="D2020" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal4" />
 				<element fileoffset="D20C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal4" />
@@ -376,7 +376,7 @@
 				<element fileoffset="D27A0" posx="5" posy="5" palette="/FF2/Character Palettes/CharBattlePal4" />
 				<element fileoffset="D27C0" posx="6" posy="5" palette="/FF2/Character Palettes/CharBattlePal4" />
 			</arranger>
-			<arranger name="FuSoYa Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="FuSoYa Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D6800" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal13" />
 				<element fileoffset="D6820" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal13" />
 				<element fileoffset="D68C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal13" />
@@ -435,7 +435,7 @@
 				<element fileoffset="D6D00" posx="5" posy="5" palette="/FF2/Character Palettes/CharBattlePal13" />
 				<element fileoffset="D6D20" posx="6" posy="5" palette="/FF2/Character Palettes/CharBattlePal13" />
 			</arranger>
-			<arranger name="Golbez Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Golbez Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D7600" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal14" />
 				<element fileoffset="D7620" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal14" />
 				<element fileoffset="D7700" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal14" />
@@ -467,7 +467,7 @@
 				<element fileoffset="D7860" posx="3" posy="5" palette="/FF2/Character Palettes/CharBattlePal14" />
 				<element fileoffset="D7880" posx="4" posy="5" palette="/FF2/Character Palettes/CharBattlePal14" />
 			</arranger>
-			<arranger name="Kain Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Kain Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D0800" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal1" />
 				<element fileoffset="D0820" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal1" />
 				<element fileoffset="D08C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal1" />
@@ -526,7 +526,7 @@
 				<element fileoffset="D0D00" posx="5" posy="5" palette="/FF2/Character Palettes/CharBattlePal1" />
 				<element fileoffset="D0D20" posx="6" posy="5" palette="/FF2/Character Palettes/CharBattlePal1" />
 			</arranger>
-			<arranger name="Palom Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Palom Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D3800" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal7" />
 				<element fileoffset="D3820" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal7" />
 				<element fileoffset="D38C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal7" />
@@ -585,7 +585,7 @@
 				<element fileoffset="D3D00" posx="5" posy="5" palette="/FF2/Character Palettes/CharBattlePal7" />
 				<element fileoffset="D3D20" posx="6" posy="5" palette="/FF2/Character Palettes/CharBattlePal7" />
 			</arranger>
-			<arranger name="Pig Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Pig Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D7000" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal0" />
 				<element fileoffset="D7020" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal0" />
 				<element fileoffset="D70C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal0" />
@@ -629,7 +629,7 @@
 				<element fileoffset="D7500" posx="3" posy="5" palette="/FF2/Character Palettes/CharBattlePal0" />
 				<element fileoffset="D7520" posx="4" posy="5" palette="/FF2/Character Palettes/CharBattlePal0" />
 			</arranger>
-			<arranger name="Porom Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Porom Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D4000" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal8" />
 				<element fileoffset="D4020" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal8" />
 				<element fileoffset="D40C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal8" />
@@ -688,7 +688,7 @@
 				<element fileoffset="D4500" posx="5" posy="5" palette="/FF2/Character Palettes/CharBattlePal8" />
 				<element fileoffset="D4520" posx="6" posy="5" palette="/FF2/Character Palettes/CharBattlePal8" />
 			</arranger>
-			<arranger name="Rosa Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Rosa Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D2800" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal5" />
 				<element fileoffset="D2820" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal5" />
 				<element fileoffset="D28C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal5" />
@@ -747,7 +747,7 @@
 				<element fileoffset="D2D00" posx="5" posy="5" palette="/FF2/Character Palettes/CharBattlePal5" />
 				<element fileoffset="D2D20" posx="6" posy="5" palette="/FF2/Character Palettes/CharBattlePal5" />
 			</arranger>
-			<arranger name="Tellah Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Tellah Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D1800" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal3" />
 				<element fileoffset="D1820" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal3" />
 				<element fileoffset="D18C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal3" />
@@ -806,7 +806,7 @@
 				<element fileoffset="D1FA0" posx="5" posy="5" palette="/FF2/Character Palettes/CharBattlePal3" />
 				<element fileoffset="D1FC0" posx="6" posy="5" palette="/FF2/Character Palettes/CharBattlePal3" />
 			</arranger>
-			<arranger name="Young Rydia Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 4bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Young Rydia Battle" elementsx="10" elementsy="6" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D1000" posx="0" posy="0" palette="/FF2/Character Palettes/CharBattlePal2" />
 				<element fileoffset="D1020" posx="1" posy="0" palette="/FF2/Character Palettes/CharBattlePal2" />
 				<element fileoffset="D10C0" posx="2" posy="0" palette="/FF2/Character Palettes/CharBattlePal2" />
@@ -867,7 +867,7 @@
 			</arranger>
 		</folder>
 		<folder name="Character Overworld Sprites">
-			<arranger name="Adult Rydia Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Adult Rydia Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="DA100" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal1" />
 				<element fileoffset="DA118" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal1" />
 				<element fileoffset="DA160" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal1" />
@@ -901,7 +901,7 @@
 				<element fileoffset="DA3D0" posx="6" posy="3" palette="/FF2/Character Palettes/CharMapPal1" />
 				<element fileoffset="DA3E8" posx="7" posy="3" palette="/FF2/Character Palettes/CharMapPal1" />
 			</arranger>
-			<arranger name="All Characters Map" elementsx="16" elementsy="28" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="All Characters Map" elementsx="16" elementsy="28" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D8000" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="D8018" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="D8060" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
@@ -1351,7 +1351,7 @@
 				<element fileoffset="DA9D0" posx="14" posy="27" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="DA9E8" posx="15" posy="27" palette="/FF2/Character Palettes/CharMapPal0" />
 			</arranger>
-			<arranger name="Cecil Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Cecil Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D8000" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="D8018" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="D8060" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
@@ -1385,7 +1385,7 @@
 				<element fileoffset="D82D0" posx="6" posy="3" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="D82E8" posx="7" posy="3" palette="/FF2/Character Palettes/CharMapPal0" />
 			</arranger>
-			<arranger name="Cid Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Cid Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D9E00" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="D9E18" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="D9E60" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
@@ -1419,7 +1419,7 @@
 				<element fileoffset="DA0D0" posx="6" posy="3" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="DA0E8" posx="7" posy="3" palette="/FF2/Character Palettes/CharMapPal0" />
 			</arranger>
-			<arranger name="Edge Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Edge Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="DA400" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="DA418" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="DA460" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
@@ -1453,7 +1453,7 @@
 				<element fileoffset="DA6D0" posx="6" posy="3" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="DA6E8" posx="7" posy="3" palette="/FF2/Character Palettes/CharMapPal0" />
 			</arranger>
-			<arranger name="Edward Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Edward Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D8C00" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal2" />
 				<element fileoffset="D8C18" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal2" />
 				<element fileoffset="D8C60" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal2" />
@@ -1487,7 +1487,7 @@
 				<element fileoffset="D8ED0" posx="6" posy="3" palette="/FF2/Character Palettes/CharMapPal2" />
 				<element fileoffset="D8EE8" posx="7" posy="3" palette="/FF2/Character Palettes/CharMapPal2" />
 			</arranger>
-			<arranger name="FuSoYa Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="FuSoYa Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="DA700" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="DA718" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="DA760" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
@@ -1521,7 +1521,7 @@
 				<element fileoffset="DA9D0" posx="6" posy="3" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="DA9E8" posx="7" posy="3" palette="/FF2/Character Palettes/CharMapPal0" />
 			</arranger>
-			<arranger name="Kain Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Kain Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D8300" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="D8318" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="D8360" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
@@ -1555,7 +1555,7 @@
 				<element fileoffset="D85D0" posx="6" posy="3" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="D85E8" posx="7" posy="3" palette="/FF2/Character Palettes/CharMapPal0" />
 			</arranger>
-			<arranger name="Paladin Cecil Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Paladin Cecil Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D9B00" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal3" />
 				<element fileoffset="D9B18" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal3" />
 				<element fileoffset="D9B60" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal3" />
@@ -1589,7 +1589,7 @@
 				<element fileoffset="D9DD0" posx="6" posy="3" palette="/FF2/Character Palettes/CharMapPal3" />
 				<element fileoffset="D9DE8" posx="7" posy="3" palette="/FF2/Character Palettes/CharMapPal3" />
 			</arranger>
-			<arranger name="Palom Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Palom Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D9500" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal1" />
 				<element fileoffset="D9518" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal1" />
 				<element fileoffset="D9560" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal1" />
@@ -1623,7 +1623,7 @@
 				<element fileoffset="D97D0" posx="6" posy="3" palette="/FF2/Character Palettes/CharMapPal1" />
 				<element fileoffset="D97E8" posx="7" posy="3" palette="/FF2/Character Palettes/CharMapPal1" />
 			</arranger>
-			<arranger name="Porom Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Porom Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D9800" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal1" />
 				<element fileoffset="D9818" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal1" />
 				<element fileoffset="D9860" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal1" />
@@ -1657,7 +1657,7 @@
 				<element fileoffset="D9AD0" posx="6" posy="3" palette="/FF2/Character Palettes/CharMapPal1" />
 				<element fileoffset="D9AE8" posx="7" posy="3" palette="/FF2/Character Palettes/CharMapPal1" />
 			</arranger>
-			<arranger name="Rosa Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Rosa Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D8F00" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal2" />
 				<element fileoffset="D8F18" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal2" />
 				<element fileoffset="D8F60" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal2" />
@@ -1691,7 +1691,7 @@
 				<element fileoffset="D91D0" posx="6" posy="3" palette="/FF2/Character Palettes/CharMapPal2" />
 				<element fileoffset="D91E8" posx="7" posy="3" palette="/FF2/Character Palettes/CharMapPal2" />
 			</arranger>
-			<arranger name="Tellah Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Tellah Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D8900" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal2" />
 				<element fileoffset="D8918" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal2" />
 				<element fileoffset="D8960" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal2" />
@@ -1725,7 +1725,7 @@
 				<element fileoffset="D8BD0" posx="6" posy="3" palette="/FF2/Character Palettes/CharMapPal2" />
 				<element fileoffset="D8BE8" posx="7" posy="3" palette="/FF2/Character Palettes/CharMapPal2" />
 			</arranger>
-			<arranger name="Yang Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Yang Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D9200" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="D9218" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="D9260" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal0" />
@@ -1759,7 +1759,7 @@
 				<element fileoffset="D94D0" posx="6" posy="3" palette="/FF2/Character Palettes/CharMapPal0" />
 				<element fileoffset="D94E8" posx="7" posy="3" palette="/FF2/Character Palettes/CharMapPal0" />
 			</arranger>
-			<arranger name="Young Rydia Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Young Rydia Map" elementsx="8" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="D8600" posx="0" posy="0" palette="/FF2/Character Palettes/CharMapPal1" />
 				<element fileoffset="D8618" posx="1" posy="0" palette="/FF2/Character Palettes/CharMapPal1" />
 				<element fileoffset="D8660" posx="2" posy="0" palette="/FF2/Character Palettes/CharMapPal1" />
@@ -1795,75 +1795,75 @@
 			</arranger>
 		</folder>
 		<folder name="Character Palettes">
-			<palette name="CharBattlePal0" fileoffset="E7D00" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal1" fileoffset="E7D20" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal10" fileoffset="E7E40" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal11" fileoffset="E7E60" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal12" fileoffset="E7E80" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal13" fileoffset="E7EA0" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal14" fileoffset="E7EC0" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal15" fileoffset="E7EE0" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal2" fileoffset="E7D40" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal3" fileoffset="E7D60" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal4" fileoffset="E7D80" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal5" fileoffset="E7DA0" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal6" fileoffset="E7DC0" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal7" fileoffset="E7DE0" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal8" fileoffset="E7E00" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharBattlePal9" fileoffset="E7E20" datafile="/FF2/FF2" format="BGR15" entries="16" zeroindextransparent="true" />
-			<palette name="CharMapPal0" fileoffset="68000" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharMapPal1" fileoffset="68010" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharMapPal2" fileoffset="68020" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharMapPal3" fileoffset="68030" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharMapPal4" fileoffset="68040" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharMapPal5" fileoffset="68050" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharMapPal6" fileoffset="68060" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharMapPal7" fileoffset="68070" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal0" fileoffset="686D0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal1" fileoffset="686E0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal10" fileoffset="68770" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal11" fileoffset="68780" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal12" fileoffset="68790" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal13" fileoffset="687A0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal14" fileoffset="687B0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal15" fileoffset="687C0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal2" fileoffset="686F0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal3" fileoffset="68700" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal4" fileoffset="68710" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal5" fileoffset="68720" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal6" fileoffset="68730" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal7" fileoffset="68740" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal8" fileoffset="68750" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="CharPortraitPal9" fileoffset="68760" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharBattlePal0" fileoffset="E7D00" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal1" fileoffset="E7D20" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal10" fileoffset="E7E40" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal11" fileoffset="E7E60" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal12" fileoffset="E7E80" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal13" fileoffset="E7EA0" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal14" fileoffset="E7EC0" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal15" fileoffset="E7EE0" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal2" fileoffset="E7D40" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal3" fileoffset="E7D60" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal4" fileoffset="E7D80" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal5" fileoffset="E7DA0" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal6" fileoffset="E7DC0" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal7" fileoffset="E7DE0" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal8" fileoffset="E7E00" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharBattlePal9" fileoffset="E7E20" datafile="/FF2/FF2" color="BGR15" entries="16" zeroindextransparent="true" />
+			<palette name="CharMapPal0" fileoffset="68000" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharMapPal1" fileoffset="68010" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharMapPal2" fileoffset="68020" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharMapPal3" fileoffset="68030" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharMapPal4" fileoffset="68040" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharMapPal5" fileoffset="68050" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharMapPal6" fileoffset="68060" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharMapPal7" fileoffset="68070" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal0" fileoffset="686D0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal1" fileoffset="686E0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal10" fileoffset="68770" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal11" fileoffset="68780" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal12" fileoffset="68790" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal13" fileoffset="687A0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal14" fileoffset="687B0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal15" fileoffset="687C0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal2" fileoffset="686F0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal3" fileoffset="68700" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal4" fileoffset="68710" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal5" fileoffset="68720" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal6" fileoffset="68730" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal7" fileoffset="68740" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal8" fileoffset="68750" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="CharPortraitPal9" fileoffset="68760" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
 		</folder>
 		<folder name="Enemy Palettes">
-			<palette name="EnemyPal0" fileoffset="E6E00" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal1" fileoffset="E6E10" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal10" fileoffset="E6EA0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal11" fileoffset="E6EB0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal12" fileoffset="E6EC0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal13" fileoffset="E6ED0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal14" fileoffset="E6EE0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal15" fileoffset="E6EF0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal16" fileoffset="E6F00" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal17" fileoffset="E6F10" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal18" fileoffset="E6F20" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal19" fileoffset="E6F30" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal2" fileoffset="E6E20" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal20" fileoffset="E6F40" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal21" fileoffset="E6F50" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal22" fileoffset="E6F60" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal23" fileoffset="E6F70" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal3" fileoffset="E6E30" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal4" fileoffset="E6E40" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal5" fileoffset="E6E50" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal6" fileoffset="E6E60" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal7" fileoffset="E6E70" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal8" fileoffset="E6E80" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="EnemyPal9" fileoffset="E6E90" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal0" fileoffset="E6E00" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal1" fileoffset="E6E10" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal10" fileoffset="E6EA0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal11" fileoffset="E6EB0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal12" fileoffset="E6EC0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal13" fileoffset="E6ED0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal14" fileoffset="E6EE0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal15" fileoffset="E6EF0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal16" fileoffset="E6F00" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal17" fileoffset="E6F10" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal18" fileoffset="E6F20" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal19" fileoffset="E6F30" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal2" fileoffset="E6E20" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal20" fileoffset="E6F40" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal21" fileoffset="E6F50" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal22" fileoffset="E6F60" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal23" fileoffset="E6F70" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal3" fileoffset="E6E30" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal4" fileoffset="E6E40" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal5" fileoffset="E6E50" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal6" fileoffset="E6E60" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal7" fileoffset="E6E70" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal8" fileoffset="E6E80" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="EnemyPal9" fileoffset="E6E90" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
 		</folder>
 		<folder name="Enemy Sprites">
-			<arranger name="Enemies2" elementsx="4" elementsy="2" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Enemies2" elementsx="4" elementsy="2" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="48000" posx="0" posy="0" />
 				<element fileoffset="48018" posx="1" posy="0" />
 				<element fileoffset="48060" posx="2" posy="0" />
@@ -1873,7 +1873,7 @@
 				<element fileoffset="48090" posx="2" posy="1" />
 				<element fileoffset="480A8" posx="3" posy="1" />
 			</arranger>
-			<arranger name="Enemies4" elementsx="20" elementsy="8" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Enemies4" elementsx="20" elementsy="8" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="480C0" posx="0" posy="0" />
 				<element fileoffset="480D8" posx="1" posy="0" />
 				<element fileoffset="480F0" posx="2" posy="0" />
@@ -2019,7 +2019,7 @@
 				<element fileoffset="48E10" posx="14" posy="7" />
 				<element fileoffset="48E28" posx="15" posy="7" />
 			</arranger>
-			<arranger name="Enemies6" elementsx="24" elementsy="32" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Enemies6" elementsx="24" elementsy="32" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="48E40" posx="0" posy="0" />
 				<element fileoffset="48E58" posx="1" posy="0" />
 				<element fileoffset="48E70" posx="2" posy="0" />
@@ -2705,7 +2705,7 @@
 				<element fileoffset="4C0B0" posx="16" posy="31" />
 				<element fileoffset="4C0C8" posx="17" posy="31" />
 			</arranger>
-			<arranger name="Enemies8" elementsx="48" elementsy="12" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="Enemies8" elementsx="48" elementsy="12" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="4CE60" posx="0" posy="0" />
 				<element fileoffset="4CE78" posx="1" posy="0" />
 				<element fileoffset="4CE90" posx="2" posy="0" />
@@ -3238,33 +3238,33 @@
 		</folder>
 		<datafile name="FF2" location="ff2.sfc" />
 		<folder name="NPC Palettes">
-			<palette name="NpcMapPal0" fileoffset="680C0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal1" fileoffset="680D0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal10" fileoffset="68160" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal11" fileoffset="68170" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal12" fileoffset="68180" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal13" fileoffset="68190" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal14" fileoffset="681A0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal15" fileoffset="681B0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal16" fileoffset="681C0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal17" fileoffset="681D0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal18" fileoffset="681E0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal19" fileoffset="681F0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal2" fileoffset="680E0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal20" fileoffset="68200" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal21" fileoffset="68210" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal22" fileoffset="68220" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal23" fileoffset="68230" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal3" fileoffset="680F0" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal4" fileoffset="68100" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal5" fileoffset="68110" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal6" fileoffset="68120" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal7" fileoffset="68130" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal8" fileoffset="68140" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
-			<palette name="NpcMapPal9" fileoffset="68150" datafile="/FF2/FF2" format="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal0" fileoffset="680C0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal1" fileoffset="680D0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal10" fileoffset="68160" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal11" fileoffset="68170" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal12" fileoffset="68180" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal13" fileoffset="68190" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal14" fileoffset="681A0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal15" fileoffset="681B0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal16" fileoffset="681C0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal17" fileoffset="681D0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal18" fileoffset="681E0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal19" fileoffset="681F0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal2" fileoffset="680E0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal20" fileoffset="68200" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal21" fileoffset="68210" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal22" fileoffset="68220" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal23" fileoffset="68230" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal3" fileoffset="680F0" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal4" fileoffset="68100" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal5" fileoffset="68110" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal6" fileoffset="68120" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal7" fileoffset="68130" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal8" fileoffset="68140" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
+			<palette name="NpcMapPal9" fileoffset="68150" datafile="/FF2/FF2" color="BGR15" entries="8" zeroindextransparent="true" />
 		</folder>
 		<folder name="NPC Sprites">
-			<arranger name="NPCMap" elementsx="28" elementsy="32" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+			<arranger name="NPCMap" elementsx="28" elementsy="32" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 				<element fileoffset="DAA00" posx="0" posy="0" palette="/FF2/NPC Palettes/NpcMapPal1" />
 				<element fileoffset="DAA18" posx="1" posy="0" palette="/FF2/NPC Palettes/NpcMapPal1" />
 				<element fileoffset="DB000" posx="2" posy="0" palette="/FF2/NPC Palettes/NpcMapPal1" />
@@ -4163,7 +4163,7 @@
 				<element fileoffset="DFDE8" posx="27" posy="31" palette="/FF2/NPC Palettes/NpcMapPal1" />
 			</arranger>
 		</folder>
-		<arranger name="Portraits" elementsx="28" elementsy="8" width="8" height="8" layout="tiled" color="indexed" defaultformat="SNES 3bpp" defaultdatafile="/FF2/FF2">
+		<arranger name="Portraits" elementsx="28" elementsy="8" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2">
 			<element fileoffset="ED3C0" posx="0" posy="0" palette="/FF2/Character Palettes/CharPortraitPal0" />
 			<element fileoffset="ED3D8" posx="1" posy="0" palette="/FF2/Character Palettes/CharPortraitPal0" />
 			<element fileoffset="ED3F0" posx="2" posy="0" palette="/FF2/Character Palettes/CharPortraitPal0" />
