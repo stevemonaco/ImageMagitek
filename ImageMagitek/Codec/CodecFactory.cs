@@ -6,12 +6,12 @@ namespace ImageMagitek.Codec
 {
     public class CodecFactory : ICodecFactory
     {
-        private Dictionary<string, GraphicsFormat> Formats;
+        private readonly Dictionary<string, GraphicsFormat> _formats;
         public Palette DefaultPalette { get; set; }
 
         public CodecFactory(Dictionary<string, GraphicsFormat> formats, Palette defaultPalette)
         {
-            Formats = formats ?? new Dictionary<string, GraphicsFormat>();
+            _formats = formats ?? new Dictionary<string, GraphicsFormat>();
             DefaultPalette = defaultPalette;
         }
 
@@ -30,9 +30,9 @@ namespace ImageMagitek.Codec
                 //case "PSX 24bpp":
                 //    return new Psx24bppCodec(width, height);
                 default:
-                    if (Formats.ContainsKey(codecName))
+                    if (_formats.ContainsKey(codecName))
                     {
-                        var format = Formats[codecName].Clone();
+                        var format = _formats[codecName].Clone();
                         format.Name = codecName;
                         format.Width = width;
                         format.Height = height;
@@ -59,10 +59,10 @@ namespace ImageMagitek.Codec
             yield return "SNES 3bpp";
             yield return "PSX 4bpp";
             yield return "PSX 8bpp";
-            yield return "PSX 16bpp";
-            yield return "PSX 24bpp";
+            //yield return "PSX 16bpp";
+            //yield return "PSX 24bpp";
 
-            foreach (var format in Formats.Values)
+            foreach (var format in _formats.Values)
                 yield return format.Name;
         }
     }
