@@ -61,12 +61,11 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _fileOffset, value);
         }
 
-        public BindableCollection<string> _validationErrors = new BindableCollection<string>();
-        private BindableCollection<string> ValidationErrors;
-        public BindableCollection<string> MyProperty
+        private BindableCollection<string> _validationErrors = new BindableCollection<string>();
+        public BindableCollection<string> ValidationErrors
         {
-            get => ValidationErrors;
-            set => SetAndNotify(ref ValidationErrors, value);
+            get => _validationErrors;
+            set => SetAndNotify(ref _validationErrors, value);
         }
 
         private bool? _dialogResult;

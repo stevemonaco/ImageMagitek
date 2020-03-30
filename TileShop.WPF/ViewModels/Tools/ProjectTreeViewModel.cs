@@ -11,6 +11,7 @@ using TileShop.WPF.EventModels;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using TileShop.Shared.Services;
+using Jot;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -22,14 +23,16 @@ namespace TileShop.WPF.ViewModels
         private IFileSelectService _fileSelect;
         private IEventAggregator _events;
         private IWindowManager _windowManager;
+        private Tracker _tracker;
 
         public ProjectTreeViewModel(IProjectTreeService treeService, IPaletteService paletteService,
-            IFileSelectService fileSelect, IEventAggregator events, IWindowManager windowManager)
+            IFileSelectService fileSelect, IEventAggregator events, IWindowManager windowManager, Tracker tracker)
         {
             DisplayName = "Project Tree";
             _treeService = treeService;
             _paletteService = paletteService;
             _fileSelect = fileSelect;
+            _tracker = tracker;
 
             _windowManager = windowManager;
             _events = events;
@@ -221,10 +224,9 @@ namespace TileShop.WPF.ViewModels
             var dataFiles = _treeService.Tree.EnumerateDepthFirst().Select(x => x.Value).OfType<DataFile>();
             model.DataFiles.AddRange(dataFiles);
             model.SelectedDataFile = model.DataFiles.FirstOrDefault();
-
             model.ColorModels.AddRange(Palette.GetColorModelNames());
-            model.SelectedColorModel = model.ColorModels.First();
-            model.Entries = 2;
+
+            _tracker.Track(model);
 
             if (model.DataFiles.Count == 0)
             {
@@ -244,12 +246,14 @@ namespace TileShop.WPF.ViewModels
                 nodeVm.ParentModel = parentModel;
                 parentModel.Children.Add(nodeVm);
                 IsModified = true;
+                _tracker.Persist(model);
             }
         }
 
         public void Handle(AddScatteredArrangerEvent message)
         {
             var model = new AddScatteredArrangerViewModel();
+            _tracker.Track(model);
 
             if (_windowManager.ShowDialog(model) is true)
             {
@@ -263,6 +267,8 @@ namespace TileShop.WPF.ViewModels
                 nodeVm.ParentModel = parentModel;
                 parentModel.Children.Add(nodeVm);
                 IsModified = true;
+
+                _tracker.Persist(model);
             }
         }
 

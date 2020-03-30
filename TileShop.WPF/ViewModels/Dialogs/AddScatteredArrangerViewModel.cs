@@ -12,42 +12,42 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _arrangerName, value);
         }
 
-        private PixelColorType _colorType = PixelColorType.Indexed;
+        private PixelColorType _colorType;
         public PixelColorType ColorType
         {
             get => _colorType;
             set => SetAndNotify(ref _colorType, value);
         }
 
-        private ArrangerLayout _layout = ArrangerLayout.Tiled;
+        private ArrangerLayout _layout;
         public ArrangerLayout Layout
         {
             get => _layout;
             set => SetAndNotify(ref _layout, value);
         }
 
-        private int _arrangerElementWidth = 8;
+        private int _arrangerElementWidth;
         public int ArrangerElementWidth
         {
             get => _arrangerElementWidth;
             set => SetAndNotify(ref _arrangerElementWidth, value);
         }
 
-        private int _arrangerElementHeight = 16;
+        private int _arrangerElementHeight;
         public int ArrangerElementHeight
         {
             get => _arrangerElementHeight;
             set => SetAndNotify(ref _arrangerElementHeight, value);
         }
 
-        private int _elementPixelWidth = 8;
+        private int _elementPixelWidth;
         public int ElementPixelWidth
         {
             get => _elementPixelWidth;
             set => SetAndNotify(ref _elementPixelWidth, value);
         }
 
-        private int _elementPixelHeight = 8;
+        private int _elementPixelHeight;
         public int ElementPixelHeight
         {
             get => _elementPixelHeight;
