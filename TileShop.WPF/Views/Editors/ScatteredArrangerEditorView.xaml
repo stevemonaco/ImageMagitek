@@ -33,11 +33,15 @@
             Orientation="Horizontal">
 
             <RadioButton
-                Content="Select"
+                Width="32"
+                Height="32"
+                HorizontalContentAlignment="Center"
                 GroupName="Tools"
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
                 Style="{StaticResource {x:Type ToggleButton}}"
-                ToolTip="Click and drag across Arranger to select a region" />
+                ToolTip="Click and drag across Arranger to select a region">
+                <Image Source="{StaticResource iconCursor}" />
+            </RadioButton>
             <RadioButton
                 Content="ApplyPal"
                 GroupName="Tools"
@@ -60,18 +64,22 @@
                 Value="{Binding Zoom}" />
 
             <ToggleButton
+                Width="32"
+                Height="32"
                 Margin="0,0,10,0"
-                Content="#"
                 Focusable="False"
                 IsChecked="{Binding ShowGridlines}"
                 ToolTip="Toggle gridline visibility"
-                Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+                <Image Source="{StaticResource iconGrid}" />
+            </ToggleButton>
 
             <Button
                 Click="{s:Action ResizeArranger}"
-                Content="Resize"
                 ToolTip="Resizes the Arranger"
-                Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Image Source="{StaticResource iconResize}" />
+            </Button>
 
             <Separator />
 
@@ -84,17 +92,25 @@
             </ComboBox>
 
             <Button
+                Width="32"
+                Height="32"
                 Click="{s:Action EditSelection}"
-                Content="Edit"
                 IsEnabled="{Binding CanEditSelection}"
-                ToolTip="Opens selection in the pixel editor" />
+                ToolTip="Opens selection in the pixel editor">
+                <Image RenderTransformOrigin="0.5, 0.5" Source="{StaticResource iconEdit}">
+                    <Image.RenderTransform>
+                        <ScaleTransform ScaleX="1" ScaleY="-1" />
+                    </Image.RenderTransform>
+                </Image>
+            </Button>
 
             <Button
                 Margin="10,0,0,0"
                 Click="{s:Action SaveChanges}"
-                Content="Save"
                 IsEnabled="{Binding IsModified}"
-                ToolTip="Saves arranger properties to in-memory project" />
+                ToolTip="Saves arranger properties to in-memory project">
+                <Image Source="{StaticResource iconSave}" />
+            </Button>
 
             <Button
                 Click="{s:Action ApplyPasteAsPixels}"

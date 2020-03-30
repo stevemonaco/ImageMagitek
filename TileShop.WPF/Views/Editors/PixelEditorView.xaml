@@ -54,28 +54,40 @@
                 Maximum="{Binding MaxZoom}"
                 Minimum="{Binding MinZoom}"
                 Value="{Binding Zoom}" />
-            <ToggleButton
-                Margin="0,0,10,0"
-                Content="#"
-                IsChecked="{Binding ShowGridlines}" />
+            <ToggleButton Margin="0,0,10,0" IsChecked="{Binding ShowGridlines}">
+                <Image Source="{StaticResource iconGrid}" />
+            </ToggleButton>
+
             <RadioButton
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
                 GroupName="Tools"
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Pencil}"
-                Style="{StaticResource {x:Type ToggleButton}}">
-                <TextBlock>Pencil</TextBlock>
+                Style="{StaticResource {x:Type ToggleButton}}"
+                ToolTip="Pencil Tool">
+                <Image Height="24" Source="{StaticResource iconPencil}" />
             </RadioButton>
             <RadioButton
                 GroupName="Tools"
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ColorPicker}"
-                Style="{StaticResource {x:Type ToggleButton}}">
-                <TextBlock>Picker</TextBlock>
+                Style="{StaticResource {x:Type ToggleButton}}"
+                ToolTip="Color Picker Tool">
+                <Image
+                    Height="24"
+                    RenderTransformOrigin="0.5,0.5"
+                    Source="{StaticResource iconColorPicker}">
+                    <Image.RenderTransform>
+                        <ScaleTransform ScaleX="1" ScaleY="-1" />
+                    </Image.RenderTransform>
+                </Image>
             </RadioButton>
             <Border BorderBrush="Black" BorderThickness="1">
                 <Border BorderBrush="White" BorderThickness="1">
                     <Rectangle
                         Width="15"
                         Height="15"
-                        Fill="{Binding PrimaryColor, Converter={StaticResource ColorToSolidColorBrushConverter}}" />
+                        Fill="{Binding PrimaryColor, Converter={StaticResource ColorToSolidColorBrushConverter}}"
+                        ToolTip="Primary Color" />
                 </Border>
             </Border>
             <Border BorderBrush="Black" BorderThickness="1">
@@ -83,7 +95,8 @@
                     <Rectangle
                         Width="15"
                         Height="15"
-                        Fill="{Binding SecondaryColor, Converter={StaticResource ColorToSolidColorBrushConverter}}" />
+                        Fill="{Binding SecondaryColor, Converter={StaticResource ColorToSolidColorBrushConverter}}"
+                        ToolTip="Secondary Color" />
                 </Border>
             </Border>
 
@@ -96,9 +109,10 @@
             <Button
                 Margin="10,0,0,0"
                 Click="{s:Action SaveChanges}"
-                Content="Save"
                 IsEnabled="{Binding IsModified}"
-                ToolTip="Saves image to underlying file" />
+                ToolTip="Saves image to underlying file">
+                <Image Source="{StaticResource iconSave}" />
+            </Button>
         </StackPanel>
 
         <!--  Palette Display  -->

@@ -1,4 +1,7 @@
 ﻿- Major features to implement
+	- Validation
+		- Add validation to AddScatteredArranger (empty/null name, name already existing, etc)
+		- Add validation when adding files of same name (conflict)
 	- Saving
 		x Check all editors for saved
 	- Modal dialogs

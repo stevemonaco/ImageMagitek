@@ -35,6 +35,8 @@
                     <converters:StringNodeToTupleConverter x:Key="StringNodeToTupleConverter" />
                 </ResourceDictionary>
 
+                <ResourceDictionary Source="/TileShop;component/Styles/Icons.xaml" />
+
                 <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/LightTheme.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />

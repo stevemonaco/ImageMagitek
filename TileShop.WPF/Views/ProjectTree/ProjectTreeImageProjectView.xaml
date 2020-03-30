@@ -11,27 +11,31 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <TextBlock Text="{Binding Name}">
-        <i:Interaction.Triggers>
-            <i:EventTrigger EventName="PreviewMouseRightButtonDown">
-                <ei:ChangePropertyAction
-                    PropertyName="IsSelected"
-                    TargetObject="{Binding}"
-                    Value="true" />
-            </i:EventTrigger>
-        </i:Interaction.Triggers>
+    <StackPanel Orientation="Horizontal">
+        <Image Source="{StaticResource iconNodeProject}" />
+        <TextBlock Text="{Binding Name}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="PreviewMouseRightButtonDown">
+                    <ei:ChangePropertyAction
+                        PropertyName="IsSelected"
+                        TargetObject="{Binding}"
+                        Value="true" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
 
-        <TextBlock.ContextMenu>
-            <ContextMenu>
-                <MenuItem
-                    Command="{s:Action CreateNewFolder}"
-                    CommandParameter="{Binding}"
-                    Header="New Folder" />
-                <MenuItem
-                    Command="{s:Action RenameNode}"
-                    CommandParameter="{Binding}"
-                    Header="Rename" />
-            </ContextMenu>
-        </TextBlock.ContextMenu>
-    </TextBlock>
+            <TextBlock.ContextMenu>
+                <ContextMenu>
+                    <MenuItem
+                        Command="{s:Action CreateNewFolder}"
+                        CommandParameter="{Binding}"
+                        Header="New Folder" />
+                    <MenuItem
+                        Command="{s:Action RenameNode}"
+                        CommandParameter="{Binding}"
+                        Header="Rename" />
+                </ContextMenu>
+            </TextBlock.ContextMenu>
+        </TextBlock>
+    </StackPanel>
+
 </UserControl>
