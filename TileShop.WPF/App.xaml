@@ -32,6 +32,7 @@
                     <converters:ColorToSolidColorBrushConverter x:Key="ColorToSolidColorBrushConverter" />
                     <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
                     <converters:OverlayStateVisibilityConverter x:Key="OverlayStateVisibilityConverter" />
+                    <converters:ArrangerLayoutToVisibilityConverter x:Key="ArrangerLayoutVisibilityConverter" />
                     <converters:StringNodeToTupleConverter x:Key="StringNodeToTupleConverter" />
                 </ResourceDictionary>
 

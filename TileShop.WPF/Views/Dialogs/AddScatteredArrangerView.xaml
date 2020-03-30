@@ -84,25 +84,28 @@
                 </RadioButton>
             </StackPanel>
 
-            <TextBlock
-                Margin="0,10,0,0"
-                HorizontalAlignment="Center"
-                Text="Arranger Size" />
+            <StackPanel Visibility="{Binding Layout, Mode=TwoWay, Converter={StaticResource ArrangerLayoutVisibilityConverter}, ConverterParameter=Tiled}">
+                <TextBlock
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Text="Arranger Size" />
 
-            <StackPanel
-                Margin="0,10,0,0"
-                HorizontalAlignment="Center"
-                Orientation="Horizontal">
-                <TextBox
-                    Width="40"
-                    Text="{Binding ArrangerElementWidth}"
-                    ToolTip="Width of arranger in number of elements" />
-                <TextBox
-                    Width="40"
-                    Margin="10,0,0,0"
-                    Text="{Binding ArrangerElementHeight}"
-                    ToolTip="Height of arranger in number of elements" />
+                <StackPanel
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+                    <TextBox
+                        Width="40"
+                        Text="{Binding ArrangerElementWidth}"
+                        ToolTip="Width of arranger in number of elements" />
+                    <TextBox
+                        Width="40"
+                        Margin="10,0,0,0"
+                        Text="{Binding ArrangerElementHeight}"
+                        ToolTip="Height of arranger in number of elements" />
+                </StackPanel>
             </StackPanel>
+
 
             <TextBlock
                 Margin="0,10,0,0"
