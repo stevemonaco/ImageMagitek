@@ -29,26 +29,29 @@
         <StackPanel
             Grid.Row="0"
             Grid.Column="0"
-            Margin="0,10,0,20"
+            Margin="0,5,0,10"
             Orientation="Horizontal">
 
             <RadioButton
-                Width="32"
-                Height="32"
                 HorizontalContentAlignment="Center"
                 GroupName="Tools"
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
                 Style="{StaticResource {x:Type ToggleButton}}"
                 ToolTip="Click and drag across Arranger to select a region">
-                <Image Source="{StaticResource iconCursor}" />
+                <Image
+                    Width="20"
+                    Height="20"
+                    Source="{StaticResource iconCursor}" />
             </RadioButton>
             <RadioButton
+                VerticalContentAlignment="Center"
                 Content="ApplyPal"
                 GroupName="Tools"
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
                 Style="{StaticResource {x:Type ToggleButton}}"
                 ToolTip="Click on Arranger element to apply the current palette" />
             <RadioButton
+                VerticalContentAlignment="Center"
                 Content="PickPal"
                 GroupName="Tools"
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PickPalette}"
@@ -64,14 +67,15 @@
                 Value="{Binding Zoom}" />
 
             <ToggleButton
-                Width="32"
-                Height="32"
                 Margin="0,0,10,0"
                 Focusable="False"
                 IsChecked="{Binding ShowGridlines}"
                 ToolTip="Toggle gridline visibility"
                 Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
-                <Image Source="{StaticResource iconGrid}" />
+                <Image
+                    Width="20"
+                    Height="20"
+                    Source="{StaticResource iconGrid}" />
             </ToggleButton>
 
             <Button
@@ -92,12 +96,14 @@
             </ComboBox>
 
             <Button
-                Width="32"
-                Height="32"
                 Click="{s:Action EditSelection}"
                 IsEnabled="{Binding CanEditSelection}"
                 ToolTip="Opens selection in the pixel editor">
-                <Image RenderTransformOrigin="0.5, 0.5" Source="{StaticResource iconEdit}">
+                <Image
+                    Width="20"
+                    Height="20"
+                    RenderTransformOrigin="0.5, 0.5"
+                    Source="{StaticResource iconEdit}">
                     <Image.RenderTransform>
                         <ScaleTransform ScaleX="1" ScaleY="-1" />
                     </Image.RenderTransform>
@@ -109,7 +115,10 @@
                 Click="{s:Action SaveChanges}"
                 IsEnabled="{Binding IsModified}"
                 ToolTip="Saves arranger properties to in-memory project">
-                <Image Source="{StaticResource iconSave}" />
+                <Image
+                    Width="20"
+                    Height="20"
+                    Source="{StaticResource iconSave}" />
             </Button>
 
             <Button

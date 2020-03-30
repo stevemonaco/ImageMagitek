@@ -16,7 +16,10 @@
             Width="12"
             Height="12"
             Source="{StaticResource iconNodePalette}" />
-        <TextBlock Focusable="True" Text="{Binding Name}">
+        <TextBlock
+            Margin="4,0,0,0"
+            Focusable="True"
+            Text="{Binding Name}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="PreviewMouseRightButtonDown">
                     <ei:ChangePropertyAction

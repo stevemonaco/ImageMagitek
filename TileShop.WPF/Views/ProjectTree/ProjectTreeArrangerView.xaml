@@ -21,7 +21,7 @@
                 <ScaleTransform ScaleX="1" ScaleY="-1" />
             </Image.RenderTransform>
         </Image>
-        <TextBlock Text="{Binding Name}">
+        <TextBlock Margin="4,0,0,0" Text="{Binding Name}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="PreviewMouseRightButtonDown">
                     <ei:ChangePropertyAction

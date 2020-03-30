@@ -33,15 +33,16 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!--  Toolbar  -->
         <StackPanel
             Grid.Row="0"
             Grid.Column="0"
             Grid.ColumnSpan="2"
-            Margin="0,0,0,10"
             IsEnabled="{Binding HasArranger}"
             Orientation="Horizontal">
-            <ComboBox ItemsSource="{Binding Palettes}" SelectedValue="{Binding ActivePalette}">
+            <ComboBox
+                Height="20"
+                ItemsSource="{Binding Palettes}"
+                SelectedValue="{Binding ActivePalette}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Name}" />
@@ -54,9 +55,14 @@
                 Maximum="{Binding MaxZoom}"
                 Minimum="{Binding MinZoom}"
                 Value="{Binding Zoom}" />
-            <ToggleButton Margin="0,0,10,0" IsChecked="{Binding ShowGridlines}">
-                <Image Source="{StaticResource iconGrid}" />
+            <ToggleButton IsChecked="{Binding ShowGridlines}" ToolTip="Toggle gridline visibility">
+                <Image Height="20" Source="{StaticResource iconGrid}" />
             </ToggleButton>
+
+            <Border
+                Margin="5,4,5,4"
+                BorderBrush="SlateGray"
+                BorderThickness="1" />
 
             <RadioButton
                 HorizontalContentAlignment="Center"
@@ -65,7 +71,7 @@
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Pencil}"
                 Style="{StaticResource {x:Type ToggleButton}}"
                 ToolTip="Pencil Tool">
-                <Image Height="24" Source="{StaticResource iconPencil}" />
+                <Image Height="20" Source="{StaticResource iconPencil}" />
             </RadioButton>
             <RadioButton
                 GroupName="Tools"
@@ -73,7 +79,7 @@
                 Style="{StaticResource {x:Type ToggleButton}}"
                 ToolTip="Color Picker Tool">
                 <Image
-                    Height="24"
+                    Height="20"
                     RenderTransformOrigin="0.5,0.5"
                     Source="{StaticResource iconColorPicker}">
                     <Image.RenderTransform>
@@ -81,20 +87,20 @@
                     </Image.RenderTransform>
                 </Image>
             </RadioButton>
-            <Border BorderBrush="Black" BorderThickness="1">
-                <Border BorderBrush="White" BorderThickness="1">
+            <Border BorderBrush="Black" BorderThickness="2">
+                <Border BorderBrush="White" BorderThickness="2">
                     <Rectangle
-                        Width="15"
-                        Height="15"
+                        Width="24"
+                        Height="24"
                         Fill="{Binding PrimaryColor, Converter={StaticResource ColorToSolidColorBrushConverter}}"
                         ToolTip="Primary Color" />
                 </Border>
             </Border>
-            <Border BorderBrush="Black" BorderThickness="1">
-                <Border BorderBrush="White" BorderThickness="1">
+            <Border BorderBrush="Black" BorderThickness="2">
+                <Border BorderBrush="White" BorderThickness="2">
                     <Rectangle
-                        Width="15"
-                        Height="15"
+                        Width="24"
+                        Height="24"
                         Fill="{Binding SecondaryColor, Converter={StaticResource ColorToSolidColorBrushConverter}}"
                         ToolTip="Secondary Color" />
                 </Border>
@@ -103,15 +109,17 @@
             <Button
                 Margin="10,0,0,0"
                 Click="{s:Action RemapColors}"
-                Content="Remap"
-                IsEnabled="{Binding CanRemapColors}" />
+                IsEnabled="{Binding CanRemapColors}"
+                ToolTip="Remap Palette Colors">
+                <Image Height="20" Source="{StaticResource iconRemap}" />
+            </Button>
 
             <Button
                 Margin="10,0,0,0"
                 Click="{s:Action SaveChanges}"
                 IsEnabled="{Binding IsModified}"
                 ToolTip="Saves image to underlying file">
-                <Image Source="{StaticResource iconSave}" />
+                <Image Height="20" Source="{StaticResource iconSave}" />
             </Button>
         </StackPanel>
 
@@ -119,7 +127,7 @@
         <ItemsControl
             Grid.Row="1"
             Grid.ColumnSpan="2"
-            Margin="0,0,0,10"
+            Margin="0,0,0,5"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             ItemsSource="{Binding ActivePalette.Colors}"
@@ -131,11 +139,14 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Border BorderBrush="Black" BorderThickness="1">
+                    <Border
+                        Margin="1"
+                        BorderBrush="Black"
+                        BorderThickness="1">
                         <Border BorderBrush="White" BorderThickness="1">
                             <Rectangle
-                                Width="15"
-                                Height="15"
+                                Width="24"
+                                Height="24"
                                 Fill="{Binding Converter={StaticResource ColorToSolidColorBrushConverter}}">
                                 <Rectangle.InputBindings>
                                     <MouseBinding

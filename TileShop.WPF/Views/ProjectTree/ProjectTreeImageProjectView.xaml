@@ -13,7 +13,7 @@
     mc:Ignorable="d">
     <StackPanel Orientation="Horizontal">
         <Image Source="{StaticResource iconNodeProject}" />
-        <TextBlock Text="{Binding Name}">
+        <TextBlock Margin="4,0,0,0" Text="{Binding Name}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="PreviewMouseRightButtonDown">
                     <ei:ChangePropertyAction
