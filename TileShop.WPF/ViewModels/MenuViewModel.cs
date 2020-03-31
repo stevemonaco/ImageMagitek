@@ -40,11 +40,7 @@ namespace TileShop.WPF.ViewModels
 
         public void ShowWindow(ToolWindow toolWindow) => _events.PublishOnUIThread(new ShowToolWindowEvent(toolWindow));
 
-        public void ExitApplication()
-        {
-            //await TryCloseAsync();
-            Environment.Exit(0);
-        }
+        public void ExitApplication() => _events.PublishOnUIThread(new RequestApplicationExitEvent());
 
         public void Handle(ProjectLoadedEvent message)
         {

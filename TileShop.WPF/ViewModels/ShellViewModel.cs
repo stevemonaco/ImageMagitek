@@ -19,7 +19,7 @@ namespace TileShop.WPF.ViewModels
 {
     public class ShellViewModel : Conductor<object>, IHandle<ActivateEditorEvent>, IHandle<ShowToolWindowEvent>,
         IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>, IHandle<SaveProjectEvent>, IHandle<CloseProjectEvent>,
-        IHandle<RequestRemoveTreeNodeEvent>
+        IHandle<RequestRemoveTreeNodeEvent>, IHandle<RequestApplicationExitEvent>
     {
         private readonly AppSettings _settings;
         private readonly IEventAggregator _events;
@@ -109,6 +109,8 @@ namespace TileShop.WPF.ViewModels
         {
             if (!RequestSaveAllUserChanges())
                 e.Cancel = true;
+
+            _treeService.UnloadProject();
         }
 
         public void DocumentClosing(object sender, DocumentClosingEventArgs e)
@@ -376,6 +378,15 @@ namespace TileShop.WPF.ViewModels
 
                 ActiveTree.ApplyRemovalChanges(changeVm);
                 ActiveTree.SaveChanges();
+            }
+        }
+
+        public void Handle(RequestApplicationExitEvent message)
+        {
+            if (RequestSaveAllUserChanges())
+            {
+                _treeService.UnloadProject();
+                Environment.Exit(0);
             }
         }
     }

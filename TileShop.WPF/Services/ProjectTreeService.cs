@@ -240,6 +240,7 @@ namespace TileShop.WPF.Services
                 DataFile _ => new DataFileNodeViewModel(childNode, parentModel),
                 ScatteredArranger _ => new ArrangerNodeViewModel(childNode, parentModel),
                 Palette _ => new PaletteNodeViewModel(childNode, parentModel),
+                ResourceFolder _ => new FolderNodeViewModel(childNode, parentModel),
                 _ => throw new ArgumentException($"{nameof(AddResource)}: Cannot add a resource of type '{resource.GetType()}'")
             };
 

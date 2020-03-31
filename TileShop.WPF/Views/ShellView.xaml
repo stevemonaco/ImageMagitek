@@ -16,16 +16,11 @@
     Title="TileShop"
     Width="800"
     Height="600"
+    Closing="{s:Action Closing}"
     ResizeMode="CanResizeWithGrip"
     SaveWindowPosition="True"
     TitleCharacterCasing="Normal"
     mc:Ignorable="d">
-
-    <i:Interaction.Triggers>
-        <i:EventTrigger EventName="Closing">
-            <i:InvokeCommandAction Command="{s:Action Closing}" />
-        </i:EventTrigger>
-    </i:Interaction.Triggers>
 
     <mah:MetroWindow.Resources>
         <con:ActiveDocumentConverter x:Key="ActiveDocumentConverter" />
