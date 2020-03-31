@@ -24,9 +24,11 @@ namespace TileShop.WPF.Services
 
         FolderNodeViewModel CreateNewFolder(TreeNodeViewModel parentNodeModel);
 
-        IPathTreeNode<IProjectResource> AddResource(IProjectResource resource);
-        IPathTreeNode<IProjectResource> AddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode);
-        bool CanAddResource(IProjectResource resource);
+        TreeNodeViewModel AddResource(TreeNodeViewModel parentModel, IProjectResource resource);
+
+        //IPathTreeNode<IProjectResource> AddResource(IProjectResource resource);
+        //IPathTreeNode<IProjectResource> AddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode);
+        //bool CanAddResource(IProjectResource resource);
 
         bool CanMoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode);
         void MoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode);
@@ -85,7 +87,7 @@ namespace TileShop.WPF.Services
         /// Creates a new folder with a default name under the given parentNodeModel
         /// </summary>
         /// <param name="parentNodeModel">Parent of the new folder</param>
-        /// <returns>The new folder</returns>
+        /// <returns>The new folder or null if it cannot be created</returns>
         public FolderNodeViewModel CreateNewFolder(TreeNodeViewModel parentNodeModel)
         {
             var parentNode = parentNodeModel.Node;
@@ -239,7 +241,26 @@ namespace TileShop.WPF.Services
             return true;
         }
 
-        public IPathTreeNode<IProjectResource> AddResource(IProjectResource resource)
+        public TreeNodeViewModel AddResource(TreeNodeViewModel parentModel, IProjectResource resource)
+        {
+            var parentNode = parentModel.Node;
+            var childNode = new PathTreeNode<IProjectResource>(resource.Name, resource);
+            parentNode.AttachChild(childNode);
+
+            TreeNodeViewModel childModel = resource switch
+            {
+                DataFile _ => new DataFileNodeViewModel(childNode, parentModel),
+                ScatteredArranger _ => new ArrangerNodeViewModel(childNode, parentModel),
+                Palette _ => new PaletteNodeViewModel(childNode, parentModel),
+                _ => throw new ArgumentException($"{nameof(AddResource)}: Cannot add a resource of type '{resource.GetType()}'")
+            };
+
+            parentModel.Children.Add(childModel);
+
+            return childModel;
+        }
+
+        private IPathTreeNode<IProjectResource> AddResource(IProjectResource resource)
         {
             var node = new PathTreeNode<IProjectResource>(resource.Name, resource);
             Tree.Root.AttachChild(node);

@@ -9,7 +9,11 @@ namespace TileShop.WPF.ViewModels
     {
         public override int SortPriority => 1;
 
-        public FolderNodeViewModel(IPathTreeNode<IProjectResource> node)
+        public FolderNodeViewModel(IPathTreeNode<IProjectResource> node) : this(node, null)
+        {
+        }
+
+        public FolderNodeViewModel(IPathTreeNode<IProjectResource> node, TreeNodeViewModel parent)
         {
             Node = node;
             Name = node.Name;
@@ -20,19 +24,20 @@ namespace TileShop.WPF.ViewModels
                 TreeNodeViewModel model;
 
                 if (child.Value is ResourceFolder)
-                    model = new FolderNodeViewModel(child);
+                    model = new FolderNodeViewModel(child, this);
                 else if (child.Value is Palette)
-                    model = new PaletteNodeViewModel(child);
+                    model = new PaletteNodeViewModel(child, this);
                 else if (child.Value is DataFile)
-                    model = new DataFileNodeViewModel(child);
+                    model = new DataFileNodeViewModel(child, this);
                 else if (child.Value is Arranger)
-                    model = new ArrangerNodeViewModel(child);
+                    model = new ArrangerNodeViewModel(child, this);
                 else
                     continue;
 
-                model.ParentModel = this;
                 Children.Add(model);
             }
+
+            ParentModel = parent;
         }
     }
 }

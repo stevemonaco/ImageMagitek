@@ -1,6 +1,7 @@
 ﻿using System;
 using Stylet;
 using TileShop.Shared.EventModels;
+using TileShop.WPF.EventModels;
 
 namespace TileShop.WPF.ViewModels
 {

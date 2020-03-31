@@ -47,15 +47,15 @@
         <MenuItem Header="_Project" IsEnabled="{Binding HasProject}">
             <MenuItem
                 Click="{s:Action AddDataFile}"
-                Header="Add Data File..."
-                IsEnabled="{Binding HasProject}" />
-            <MenuItem
-                Click="{s:Action AddPalette}"
-                Header="Add Palette Definition..."
+                Header="Add Existing Data File..."
                 IsEnabled="{Binding HasProject}" />
             <MenuItem
                 Click="{s:Action AddScatteredArranger}"
-                Header="Add Scattered Arranger Definition..."
+                Header="Add New Scattered Arranger Definition..."
+                IsEnabled="{Binding HasProject}" />
+            <MenuItem
+                Click="{s:Action AddPalette}"
+                Header="Add New Palette Definition..."
                 IsEnabled="{Binding HasProject}" />
         </MenuItem>
 

@@ -34,9 +34,21 @@
             <TextBlock.ContextMenu>
                 <ContextMenu>
                     <MenuItem
-                        Command="{s:Action CreateNewFolder}"
+                        Command="{s:Action AddNewFolder}"
                         CommandParameter="{Binding}"
-                        Header="New folder" />
+                        Header="Add New Folder" />
+                    <MenuItem
+                        Command="{s:Action AddNewDataFile}"
+                        CommandParameter="{Binding}"
+                        Header="Add Existing Data File" />
+                    <MenuItem
+                        Command="{s:Action AddNewScatteredArranger}"
+                        CommandParameter="{Binding}"
+                        Header="Add New Scattered Arranger" />
+                    <MenuItem
+                        Command="{s:Action AddNewPalette}"
+                        CommandParameter="{Binding}"
+                        Header="Add New Palette" />
                     <Separator />
                     <MenuItem
                         Command="{s:Action RequestRemoveNode}"

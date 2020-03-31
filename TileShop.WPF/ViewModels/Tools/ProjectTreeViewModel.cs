@@ -89,7 +89,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void CreateNewFolder(TreeNodeViewModel parentNodeModel)
+        public void AddNewFolder(TreeNodeViewModel parentNodeModel)
         {
             if (_treeService.CreateNewFolder(parentNodeModel) is TreeNodeViewModel model)
             {
@@ -97,6 +97,15 @@ namespace TileShop.WPF.ViewModels
                 IsModified = true;
             }
         }
+
+        public void AddNewDataFile(TreeNodeViewModel parentNodeModel) =>
+            _events.PublishOnUIThread(new AddDataFileEvent(parentNodeModel));
+
+        public void AddNewPalette(TreeNodeViewModel parentNodeModel) =>
+            _events.PublishOnUIThread(new AddPaletteEvent(parentNodeModel));
+
+        public void AddNewScatteredArranger(TreeNodeViewModel parentNodeModel) =>
+            _events.PublishOnUIThread(new AddScatteredArrangerEvent(parentNodeModel));
 
         public void ExportArrangerAs(TreeNodeViewModel nodeModel)
         {
@@ -207,18 +216,23 @@ namespace TileShop.WPF.ViewModels
 
             if (dataFileName is object)
             {
+                var parentModel = message.Parent ?? ProjectRoot.First();
+                if (parentModel.Children.Any(x => x.Name == dataFileName))
+                {
+                    _windowManager.ShowDialog($"'{parentModel.Name}' already contains a resource named '{dataFileName}'");
+                    return;
+                }
+
                 DataFile df = new DataFile(Path.GetFileName(dataFileName), dataFileName);
-                var node = _treeService.AddResource(df);
-                var nodeVm = new DataFileNodeViewModel(node);
-                var parentModel = ProjectRoot.First();
-                nodeVm.ParentModel = parentModel;
-                parentModel.Children.Add(nodeVm);
+                _treeService.AddResource(parentModel, df);
                 IsModified = true;
             }
         }
 
         public void Handle(AddPaletteEvent message)
         {
+            var parentModel = message.Parent ?? ProjectRoot.First();
+
             var model = new AddPaletteViewModel();
 
             var dataFiles = _treeService.Tree.EnumerateDepthFirst().Select(x => x.Value).OfType<DataFile>();
@@ -240,11 +254,7 @@ namespace TileShop.WPF.ViewModels
                     model.Entries, model.ZeroIndexTransparent, PaletteStorageSource.DataFile);
                 pal.DataFile = model.SelectedDataFile;
 
-                var node = _treeService.AddResource(pal);
-                var nodeVm = new PaletteNodeViewModel(node);
-                var parentModel = ProjectRoot.First();
-                nodeVm.ParentModel = parentModel;
-                parentModel.Children.Add(nodeVm);
+                _treeService.AddResource(parentModel, pal);
                 IsModified = true;
                 _tracker.Persist(model);
             }
@@ -252,7 +262,8 @@ namespace TileShop.WPF.ViewModels
 
         public void Handle(AddScatteredArrangerEvent message)
         {
-            var model = new AddScatteredArrangerViewModel();
+            var parentModel = message.Parent ?? ProjectRoot.First();
+            var model = new AddScatteredArrangerViewModel(parentModel.Children.Select(x => x.Name));
             _tracker.Track(model);
 
             if (_windowManager.ShowDialog(model) is true)
@@ -261,13 +272,8 @@ namespace TileShop.WPF.ViewModels
                     model.Layout, model.ArrangerElementWidth, model.ArrangerElementHeight, 
                     model.ElementPixelWidth, model.ElementPixelHeight);
 
-                var node = _treeService.AddResource(arranger);
-                var nodeVm = new ArrangerNodeViewModel(node);
-                var parentModel = ProjectRoot.First();
-                nodeVm.ParentModel = parentModel;
-                parentModel.Children.Add(nodeVm);
+                _treeService.AddResource(parentModel, arranger);
                 IsModified = true;
-
                 _tracker.Persist(model);
             }
         }

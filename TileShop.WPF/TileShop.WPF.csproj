@@ -49,4 +49,8 @@
     <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Validation\" />
+  </ItemGroup>
+
 </Project>

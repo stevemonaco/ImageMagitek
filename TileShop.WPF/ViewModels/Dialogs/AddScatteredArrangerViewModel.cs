@@ -1,5 +1,6 @@
 ﻿using ImageMagitek;
 using Stylet;
+using System.Collections.Generic;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -52,6 +53,20 @@ namespace TileShop.WPF.ViewModels
         {
             get => _elementPixelHeight;
             set => SetAndNotify(ref _elementPixelHeight, value);
+        }
+
+        private BindableCollection<string> _existingResourceNames = new BindableCollection<string>();
+        public BindableCollection<string> ExistingResourceNames
+        {
+            get => _existingResourceNames;
+            set => SetAndNotify(ref _existingResourceNames, value);
+        }
+
+        public AddScatteredArrangerViewModel() { }
+
+        public AddScatteredArrangerViewModel(IEnumerable<string> existingResourceNames)
+        {
+            ExistingResourceNames.AddRange(existingResourceNames);
         }
 
         public void Add()

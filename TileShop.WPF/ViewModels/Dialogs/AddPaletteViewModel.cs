@@ -1,5 +1,6 @@
 ﻿using Stylet;
 using ImageMagitek;
+using System.Collections.Generic;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -68,11 +69,25 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _validationErrors, value);
         }
 
+        private BindableCollection<string> _existingResourceNames = new BindableCollection<string>();
+        public BindableCollection<string> ExistingResourceNames
+        {
+            get => _existingResourceNames;
+            set => SetAndNotify(ref _existingResourceNames, value);
+        }
+
         private bool? _dialogResult;
         public bool? DialogResult
         {
             get => _dialogResult;
             set => SetAndNotify(ref _dialogResult, value);
+        }
+
+        public AddPaletteViewModel() { }
+        
+        public AddPaletteViewModel(IEnumerable<string> existingResourceNames)
+        {
+            ExistingResourceNames.AddRange(existingResourceNames);
         }
 
         public void Add() => DialogResult = true;
