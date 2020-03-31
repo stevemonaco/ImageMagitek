@@ -9,129 +9,140 @@
     xmlns:s="https://github.com/canton7/Stylet"
     Title="Add Scattered Arranger"
     Width="300"
-    Height="395"
+    Height="410"
     d:DesignHeight="300"
     d:DesignWidth="400"
     TitleCharacterCasing="Normal"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0">
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBox
+                    Width="250"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    mah:TextBoxHelper.UseFloatingWatermark="True"
+                    mah:TextBoxHelper.Watermark="Arranger Name"
+                    mah:TextBoxHelper.WatermarkAlignment="Center"
+                    Text="{Binding ArrangerName, UpdateSourceTrigger=PropertyChanged}"
+                    TextChanged="{s:Action ValidateModel}" />
 
-            <TextBox
-                Width="250"
-                Margin="0,10,0,0"
-                HorizontalAlignment="Center"
-                mah:TextBoxHelper.UseFloatingWatermark="True"
-                mah:TextBoxHelper.Watermark="Arranger Name"
-                mah:TextBoxHelper.WatermarkAlignment="Center"
-                Text="{Binding ArrangerName}" />
-
-            <TextBlock
-                Margin="0,10,0,0"
-                HorizontalAlignment="Center"
-                Text="Arranger Layout" />
-
-            <StackPanel
-                Margin="0,10,0,0"
-                HorizontalAlignment="Center"
-                Orientation="Horizontal">
-                <RadioButton
-                    GroupName="Layout"
-                    IsChecked="{Binding Layout, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Tiled}"
-                    Style="{StaticResource {x:Type ToggleButton}}"
-                    ToolTip="Allows many elements within the arranger, suitable for tile-based graphics">
-                    <TextBlock>Tiled</TextBlock>
-                </RadioButton>
-                <RadioButton
-                    Margin="10,0,0,0"
-                    GroupName="Layout"
-                    IsChecked="{Binding Layout, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Single}"
-                    Style="{StaticResource {x:Type ToggleButton}}"
-                    ToolTip="Restricts the arranger to a single element, suitable for pixel-based graphics">
-                    <TextBlock>Single</TextBlock>
-                </RadioButton>
-            </StackPanel>
-
-            <TextBlock
-                Margin="0,10,0,0"
-                HorizontalAlignment="Center"
-                Text="Color Mapping" />
-
-            <StackPanel
-                Margin="0,10,0,0"
-                HorizontalAlignment="Center"
-                Orientation="Horizontal">
-                <RadioButton
-                    GroupName="ColorType"
-                    IsChecked="{Binding ColorType, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Indexed}"
-                    Style="{StaticResource {x:Type ToggleButton}}"
-                    ToolTip="All image pixels require a palette to display colors. The default palette will be used until a user-defined palette is applied.">
-                    <TextBlock>Indexed</TextBlock>
-                </RadioButton>
-                <RadioButton
-                    Margin="10,0,0,0"
-                    GroupName="ColorType"
-                    IsChecked="{Binding ColorType, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Direct}"
-                    Style="{StaticResource {x:Type ToggleButton}}"
-                    ToolTip="All image pixels contain full color information and require no palette to display colors">
-                    <TextBlock>Direct</TextBlock>
-                </RadioButton>
-            </StackPanel>
-
-            <StackPanel Visibility="{Binding Layout, Mode=TwoWay, Converter={StaticResource ArrangerLayoutVisibilityConverter}, ConverterParameter=Tiled}">
                 <TextBlock
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
-                    Text="Arranger Size" />
+                    Text="Arranger Layout" />
 
                 <StackPanel
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
                     Orientation="Horizontal">
+                    <RadioButton
+                        Content="Tiled"
+                        GroupName="Layout"
+                        IsChecked="{Binding Layout, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Tiled}"
+                        Style="{StaticResource {x:Type ToggleButton}}"
+                        ToolTip="Allows many elements within the arranger, suitable for tile-based graphics" />
+                    <RadioButton
+                        Margin="10,0,0,0"
+                        Content="Single"
+                        GroupName="Layout"
+                        IsChecked="{Binding Layout, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Single}"
+                        Style="{StaticResource {x:Type ToggleButton}}"
+                        ToolTip="Restricts the arranger to a single element, suitable for pixel-based graphics" />
+                </StackPanel>
+
+                <TextBlock
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Text="Color Mapping" />
+
+                <StackPanel
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+                    <RadioButton
+                        Content="Indexed"
+                        GroupName="ColorType"
+                        IsChecked="{Binding ColorType, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Indexed}"
+                        Style="{StaticResource {x:Type ToggleButton}}"
+                        ToolTip="All image pixels require a palette to display colors. The default palette will be used until a user-defined palette is applied." />
+                    <RadioButton
+                        Margin="10,0,0,0"
+                        Content="Direct"
+                        GroupName="ColorType"
+                        IsChecked="{Binding ColorType, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Direct}"
+                        Style="{StaticResource {x:Type ToggleButton}}"
+                        ToolTip="All image pixels contain full color information and require no palette to display colors" />
+                </StackPanel>
+
+                <StackPanel Visibility="{Binding Layout, Mode=TwoWay, Converter={StaticResource ArrangerLayoutVisibilityConverter}, ConverterParameter=Tiled}">
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Center"
+                        Text="Arranger Size" />
+
+                    <StackPanel
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal">
+                        <TextBox
+                            Width="40"
+                            Text="{Binding ArrangerElementWidth}"
+                            ToolTip="Width of arranger in number of elements" />
+                        <TextBox
+                            Width="40"
+                            Margin="10,0,0,0"
+                            Text="{Binding ArrangerElementHeight}"
+                            ToolTip="Height of arranger in number of elements" />
+                    </StackPanel>
+                </StackPanel>
+
+
+                <TextBlock
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Text="Element Size" />
+
+                <StackPanel
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+
                     <TextBox
                         Width="40"
-                        Text="{Binding ArrangerElementWidth}"
-                        ToolTip="Width of arranger in number of elements" />
+                        Text="{Binding ElementPixelWidth}"
+                        ToolTip="Width of each element in pixels" />
                     <TextBox
                         Width="40"
                         Margin="10,0,0,0"
-                        Text="{Binding ArrangerElementHeight}"
-                        ToolTip="Height of arranger in number of elements" />
+                        Text="{Binding ElementPixelHeight}"
+                        ToolTip="Height of each element in pixels" />
                 </StackPanel>
+
+                <ItemsControl
+                    Margin="0,5,0,5"
+                    HorizontalAlignment="Center"
+                    ItemsSource="{Binding ValidationErrors}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock
+                                FontWeight="Bold"
+                                Foreground="Red"
+                                Text="{Binding}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
-
-
-            <TextBlock
-                Margin="0,10,0,0"
-                HorizontalAlignment="Center"
-                Text="Element Size" />
-
-            <StackPanel
-                Margin="0,10,0,0"
-                HorizontalAlignment="Center"
-                Orientation="Horizontal">
-
-                <TextBox
-                    Width="40"
-                    Text="{Binding ElementPixelWidth}"
-                    ToolTip="Width of each element in pixels" />
-                <TextBox
-                    Width="40"
-                    Margin="10,0,0,0"
-                    Text="{Binding ElementPixelHeight}"
-                    ToolTip="Height of each element in pixels" />
-            </StackPanel>
-        </StackPanel>
+        </ScrollViewer>
 
         <StackPanel
-            Grid.Row="2"
-            Margin="0,10,0,10"
+            Grid.Row="1"
+            Margin="0,5,0,10"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Orientation="Horizontal">
@@ -139,7 +150,8 @@
                 Width="80"
                 Click="{s:Action Add}"
                 Content="Add"
-                IsDefault="True" />
+                IsDefault="True"
+                IsEnabled="{Binding CanAdd}" />
             <Button
                 Width="80"
                 Margin="5,0,0,0"
@@ -147,5 +159,6 @@
                 Content="Cancel"
                 IsCancel="True" />
         </StackPanel>
+
     </Grid>
 </mah:MetroWindow>

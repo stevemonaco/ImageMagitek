@@ -62,6 +62,20 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _existingResourceNames, value);
         }
 
+        private BindableCollection<string> _validationErrors = new BindableCollection<string>();
+        public BindableCollection<string> ValidationErrors
+        {
+            get => _validationErrors;
+            set => SetAndNotify(ref _validationErrors, value);
+        }
+
+        private bool _canAdd;
+        public bool CanAdd
+        {
+            get => _canAdd;
+            set => SetAndNotify(ref _canAdd, value);
+        }
+
         public AddScatteredArrangerViewModel() { }
 
         public AddScatteredArrangerViewModel(IEnumerable<string> existingResourceNames)
@@ -81,5 +95,18 @@ namespace TileShop.WPF.ViewModels
         }
 
         public void Cancel() => RequestClose(false);
+
+        public void ValidateModel()
+        {
+            ValidationErrors.Clear();
+
+            if (string.IsNullOrWhiteSpace(ArrangerName))
+                ValidationErrors.Add($"Name is invalid");
+
+            if (ExistingResourceNames.Contains(ArrangerName))
+                ValidationErrors.Add($"Name already exists");
+
+            CanAdd = ValidationErrors.Count == 0;
+        }
     }
 }

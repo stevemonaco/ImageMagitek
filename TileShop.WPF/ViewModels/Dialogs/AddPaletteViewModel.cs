@@ -62,6 +62,13 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _fileOffset, value);
         }
 
+        private BindableCollection<string> _existingResourceNames = new BindableCollection<string>();
+        public BindableCollection<string> ExistingResourceNames
+        {
+            get => _existingResourceNames;
+            set => SetAndNotify(ref _existingResourceNames, value);
+        }
+
         private BindableCollection<string> _validationErrors = new BindableCollection<string>();
         public BindableCollection<string> ValidationErrors
         {
@@ -69,11 +76,11 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _validationErrors, value);
         }
 
-        private BindableCollection<string> _existingResourceNames = new BindableCollection<string>();
-        public BindableCollection<string> ExistingResourceNames
+        private bool _canAdd;
+        public bool CanAdd
         {
-            get => _existingResourceNames;
-            set => SetAndNotify(ref _existingResourceNames, value);
+            get => _canAdd;
+            set => SetAndNotify(ref _canAdd, value);
         }
 
         public AddPaletteViewModel() { }
@@ -86,5 +93,18 @@ namespace TileShop.WPF.ViewModels
         public void Add() => RequestClose(true);
 
         public void Cancel() => RequestClose(false);
+
+        public void ValidateModel()
+        {
+            ValidationErrors.Clear();
+
+            if (string.IsNullOrWhiteSpace(PaletteName))
+                ValidationErrors.Add($"Name is invalid");
+
+            if (ExistingResourceNames.Contains(PaletteName))
+                ValidationErrors.Add($"Name already exists");
+
+            CanAdd = ValidationErrors.Count == 0;
+        }
     }
 }

@@ -217,13 +217,15 @@ namespace TileShop.WPF.ViewModels
             if (dataFileName is object)
             {
                 var parentModel = message.Parent ?? ProjectRoot.First();
-                if (parentModel.Children.Any(x => x.Name == dataFileName))
+                var dfName = Path.GetFileName(dataFileName);
+
+                if (parentModel.Children.Any(x => x.Name == dfName))
                 {
-                    _windowManager.ShowDialog($"'{parentModel.Name}' already contains a resource named '{dataFileName}'");
+                    _windowManager.ShowMessageBox($"'{parentModel.Name}' already contains a resource named '{dfName}'", "Error");
                     return;
                 }
 
-                DataFile df = new DataFile(Path.GetFileName(dataFileName), dataFileName);
+                var df = new DataFile(dfName, dataFileName);
                 var node = _treeService.AddResource(parentModel, df);
                 SelectedItem = node;
                 IsModified = true;
@@ -233,8 +235,7 @@ namespace TileShop.WPF.ViewModels
         public void Handle(AddPaletteEvent message)
         {
             var parentModel = message.Parent ?? ProjectRoot.First();
-
-            var model = new AddPaletteViewModel();
+            var model = new AddPaletteViewModel(parentModel.Children.Select(x => x.Name));
 
             var dataFiles = _treeService.Tree.EnumerateDepthFirst().Select(x => x.Value).OfType<DataFile>();
             model.DataFiles.AddRange(dataFiles);

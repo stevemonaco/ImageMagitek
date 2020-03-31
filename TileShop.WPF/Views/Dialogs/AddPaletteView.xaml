@@ -10,7 +10,7 @@
     xmlns:s="https://github.com/canton7/Stylet"
     Title="Add a New Palette"
     Width="440"
-    Height="240"
+    Height="270"
     MinWidth="220"
     TitleCharacterCasing="Normal"
     mc:Ignorable="d">
@@ -28,7 +28,8 @@
                 <TextBox
                     mah:TextBoxHelper.UseFloatingWatermark="True"
                     mah:TextBoxHelper.Watermark="Palette Name"
-                    Text="{Binding PaletteName}" />
+                    Text="{Binding PaletteName, UpdateSourceTrigger=PropertyChanged}"
+                    TextChanged="{s:Action ValidateModel}" />
 
                 <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
                     <ComboBox
@@ -67,10 +68,17 @@
                     Text="{Binding FileOffset}"
                     ToolTip="File offset of palette data in decimal" />
 
-                <ItemsControl ItemsSource="{Binding ValidationErrors}">
+                <ItemsControl
+                    Grid.Row="1"
+                    Margin="0,5,0,5"
+                    HorizontalAlignment="Center"
+                    ItemsSource="{Binding ValidationErrors}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding}" />
+                            <TextBlock
+                                FontWeight="Bold"
+                                Foreground="Red"
+                                Text="{Binding}" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -87,7 +95,8 @@
                 Width="80"
                 Click="{s:Action Add}"
                 Content="Add"
-                IsDefault="True" />
+                IsDefault="True"
+                IsEnabled="{Binding CanAdd}" />
             <Button
                 Width="80"
                 Margin="5,0,0,0"
