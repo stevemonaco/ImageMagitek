@@ -6,7 +6,7 @@
     <LangVersion>8.0</LangVersion>
     <UseWPF>true</UseWPF>
     <AssemblyName>TileShop</AssemblyName>
-    <Version>0.8</Version>
+    <Version>0.85</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
