@@ -245,6 +245,7 @@ namespace TileShop.WPF.ViewModels
                 return;
 
             (_workingArranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
+            CreateGridlines();
             Render();
         }
 
@@ -280,6 +281,7 @@ namespace TileShop.WPF.ViewModels
                 SnapMode = SnapMode.Pixel;
             }
 
+            CreateGridlines();
             Render();
 
             NotifyOfPropertyChange(() => IsTiledLayout);
@@ -291,6 +293,7 @@ namespace TileShop.WPF.ViewModels
         {
             var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, width, height);
             (_workingArranger as SequentialArranger).ChangeCodec(codec);
+            CreateGridlines();
             Render();
         }
 
