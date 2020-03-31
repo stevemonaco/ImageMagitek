@@ -12,7 +12,6 @@
     Width="440"
     Height="240"
     MinWidth="220"
-    behaviors:DialogCloser.DialogResult="{Binding DialogResult}"
     TitleCharacterCasing="Normal"
     mc:Ignorable="d">
     <Grid Margin="5">

@@ -76,13 +76,6 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _existingResourceNames, value);
         }
 
-        private bool? _dialogResult;
-        public bool? DialogResult
-        {
-            get => _dialogResult;
-            set => SetAndNotify(ref _dialogResult, value);
-        }
-
         public AddPaletteViewModel() { }
         
         public AddPaletteViewModel(IEnumerable<string> existingResourceNames)
@@ -90,8 +83,8 @@ namespace TileShop.WPF.ViewModels
             ExistingResourceNames.AddRange(existingResourceNames);
         }
 
-        public void Add() => DialogResult = true;
+        public void Add() => RequestClose(true);
 
-        public void Cancel() => DialogResult = false;
+        public void Cancel() => RequestClose(false);
     }
 }
