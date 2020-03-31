@@ -29,8 +29,10 @@
                 behavior:SelectAllFocusBehavior.Enable="True"
                 FontSize="20"
                 TabIndex="0"
-                Text="{Binding Offset}"
-                ToolTip="File offset in decimal" />
+                Text="{Binding Offset, UpdateSourceTrigger=PropertyChanged}"
+                TextChanged="{s:Action ValidateModel}" />
+            <ToggleButton Content="{Binding NumericBase, Converter={StaticResource NumericBaseToStringConverter}}" IsChecked="{Binding NumericBase, Converter={StaticResource NumericBaseBooleanConverter}}" />
+
             <Button
                 Margin="5,0,0,0"
                 Command="{s:Action Cancel}"

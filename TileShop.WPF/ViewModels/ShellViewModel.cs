@@ -14,6 +14,7 @@ using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using TileShop.WPF.Configuration;
 using System.IO;
+using Jot;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -26,6 +27,7 @@ namespace TileShop.WPF.ViewModels
         private readonly ICodecService _codecService;
         private readonly IPaletteService _paletteService;
         private readonly IWindowManager _windowManager;
+        private readonly Tracker _tracker;
         private readonly IFileSelectService _fileSelect;
         private readonly IProjectTreeService _treeService;
 
@@ -83,9 +85,9 @@ namespace TileShop.WPF.ViewModels
             { MessageBoxResult.Yes, "Save" }, { MessageBoxResult.No, "Discard" }, { MessageBoxResult.Cancel, "Cancel" } 
         };
 
-        public ShellViewModel(AppSettings settings, IEventAggregator events, IWindowManager windowManager, ICodecService codecService,
-            IPaletteService paletteService, IFileSelectService fileSelect, IProjectTreeService treeService, MenuViewModel activeMenu,
-            ProjectTreeViewModel activeTree, StatusBarViewModel activeStatusBar, PixelEditorViewModel activePixelEditor)
+        public ShellViewModel(AppSettings settings, IEventAggregator events, IWindowManager windowManager, Tracker tracker,
+            ICodecService codecService, IPaletteService paletteService, IFileSelectService fileSelect, IProjectTreeService treeService,
+            MenuViewModel activeMenu, ProjectTreeViewModel activeTree, StatusBarViewModel activeStatusBar, PixelEditorViewModel activePixelEditor)
         {
             _settings = settings;
             _events = events;
@@ -93,6 +95,7 @@ namespace TileShop.WPF.ViewModels
             _codecService = codecService;
             _paletteService = paletteService;
             _windowManager = windowManager;
+            _tracker = tracker;
             _fileSelect = fileSelect;
             _treeService = treeService;
 
@@ -152,7 +155,7 @@ namespace TileShop.WPF.ViewModels
                         newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _events, _windowManager, _paletteService);
                         break;
                     case SequentialArranger sequentialArranger:
-                        newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _windowManager, _codecService, _paletteService);
+                        newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _windowManager, _tracker, _codecService, _paletteService);
                         break;
                     case DataFile dataFile: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
                         var extension = Path.GetExtension(dataFile.Location);
@@ -165,7 +168,7 @@ namespace TileShop.WPF.ViewModels
                             codecName = "NES 1bpp";
 
                         var newArranger = new SequentialArranger(8, 16, dataFile, _codecService.CodecFactory, codecName);
-                        newDocument = new SequentialArrangerEditorViewModel(newArranger, _events, _windowManager, _codecService, _paletteService);
+                        newDocument = new SequentialArrangerEditorViewModel(newArranger, _events, _windowManager, _tracker, _codecService, _paletteService);
                         break;
                     case ResourceFolder resourceFolder:
                         newDocument = null;

@@ -34,6 +34,8 @@
                     <converters:OverlayStateVisibilityConverter x:Key="OverlayStateVisibilityConverter" />
                     <converters:ArrangerLayoutToVisibilityConverter x:Key="ArrangerLayoutVisibilityConverter" />
                     <converters:StringNodeToTupleConverter x:Key="StringNodeToTupleConverter" />
+                    <converters:NumericBaseToStringConverter x:Key="NumericBaseToStringConverter" />
+                    <converters:NumericBaseBooleanConverter x:Key="NumericBaseBooleanConverter" />
                 </ResourceDictionary>
 
                 <ResourceDictionary Source="/TileShop;component/Styles/Icons.xaml" />

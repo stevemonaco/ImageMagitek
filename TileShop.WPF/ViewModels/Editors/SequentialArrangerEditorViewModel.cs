@@ -7,12 +7,14 @@ using TileShop.Shared.Services;
 using TileShop.Shared.Models;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Imaging;
+using Jot;
 
 namespace TileShop.WPF.ViewModels
 {
     public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouseCaptureProxy
     {
-        private ICodecService _codecService;
+        private readonly ICodecService _codecService;
+        private readonly Tracker _tracker;
         private FileBitAddress _address;
 
         private BindableCollection<string> _codecNames = new BindableCollection<string>();
@@ -100,12 +102,13 @@ namespace TileShop.WPF.ViewModels
         }
 
         public SequentialArrangerEditorViewModel(SequentialArranger arranger, IEventAggregator events, IWindowManager windowManager, 
-            ICodecService codecService, IPaletteService paletteService) :
+            Tracker tracker, ICodecService codecService, IPaletteService paletteService) :
             base(events, windowManager, paletteService)
         {
             Resource = arranger;
             _workingArranger = arranger;
             _codecService = codecService;
+            _tracker = tracker;
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
             if (_workingArranger.ColorType == PixelColorType.Indexed)
@@ -192,10 +195,14 @@ namespace TileShop.WPF.ViewModels
         public void JumpToOffset()
         {
             var model = new JumpToOffsetViewModel();
+            _tracker.Track(model);
             var result = _windowManager.ShowDialog(model);
 
             if (result is true)
-                Move(model.Offset * 8);
+            {
+                Move(model.Result * 8);
+                _tracker.Persist(model);
+            }
         }
 
         private void Move(ArrangerMoveType moveType)

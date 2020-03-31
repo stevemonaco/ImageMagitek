@@ -83,6 +83,10 @@ namespace TileShop.WPF
                 .Property(p => p.FileOffset, 0)
                 .Property(p => p.ZeroIndexTransparent, true);
 
+            _tracker.Configure<JumpToOffsetViewModel>()
+                .Property(p => p.NumericBase, NumericBase.Decimal)
+                .Property(p => p.Offset, string.Empty);
+
             builder.RegisterInstance(_tracker);
         }
 
