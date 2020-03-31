@@ -23,12 +23,7 @@ namespace TileShop.WPF.Services
         void UnloadProject();
 
         FolderNodeViewModel CreateNewFolder(TreeNodeViewModel parentNodeModel);
-
         TreeNodeViewModel AddResource(TreeNodeViewModel parentModel, IProjectResource resource);
-
-        //IPathTreeNode<IProjectResource> AddResource(IProjectResource resource);
-        //IPathTreeNode<IProjectResource> AddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode);
-        //bool CanAddResource(IProjectResource resource);
 
         bool CanMoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode);
         void MoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode);
@@ -95,14 +90,9 @@ namespace TileShop.WPF.Services
             if (FindNewChildResourceName(parentNode, "New Folder") is string name)
             {
                 var folder = new ResourceFolder(name);
-                var folderNode = AddResource(folder, parentNode);
-                var folderVm = new FolderNodeViewModel(folderNode)
-                {
-                    ParentModel = parentNodeModel
-                };
+                var node = AddResource(parentNodeModel, folder) as FolderNodeViewModel;
 
-                parentNodeModel.Children.Add(folderVm);
-                return folderVm;
+                return node;
             }
             else
                 return null;
@@ -120,8 +110,6 @@ namespace TileShop.WPF.Services
 
             var rootRemovalChange = new ResourceRemovalChange(removeNodeModel, true, false, false);
             var changes = new ResourceRemovalChangesViewModel(rootRemovalChange);
-
-            //var removeNode = removeNodeModel.Node;
 
             var removedDict = SelfAndDescendants(removeNodeModel)
                 .Select(x => new ResourceRemovalChange(x, true, false, false))
@@ -258,34 +246,6 @@ namespace TileShop.WPF.Services
             parentModel.Children.Add(childModel);
 
             return childModel;
-        }
-
-        private IPathTreeNode<IProjectResource> AddResource(IProjectResource resource)
-        {
-            var node = new PathTreeNode<IProjectResource>(resource.Name, resource);
-            Tree.Root.AttachChild(node);
-            return node;
-        }
-
-        public bool CanAddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode)
-        {
-            if (resource is null || parentNode is null)
-                return false;
-
-            if (parentNode.ContainsChild(resource.Name))
-                return false;
-
-            if (!parentNode.Value.CanContainChildResources)
-                return false;
-
-            return true;
-        }
-
-        public IPathTreeNode<IProjectResource> AddResource(IProjectResource resource, IPathTreeNode<IProjectResource> parentNode)
-        {
-            parentNode.AddChild(resource.Name, resource);
-            parentNode.TryGetChild(resource.Name, out var addedNode);
-            return addedNode;
         }
 
         private void CloseResources()

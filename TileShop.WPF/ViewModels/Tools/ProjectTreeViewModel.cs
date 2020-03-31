@@ -224,7 +224,8 @@ namespace TileShop.WPF.ViewModels
                 }
 
                 DataFile df = new DataFile(Path.GetFileName(dataFileName), dataFileName);
-                _treeService.AddResource(parentModel, df);
+                var node = _treeService.AddResource(parentModel, df);
+                SelectedItem = node;
                 IsModified = true;
             }
         }
@@ -254,7 +255,8 @@ namespace TileShop.WPF.ViewModels
                     model.Entries, model.ZeroIndexTransparent, PaletteStorageSource.DataFile);
                 pal.DataFile = model.SelectedDataFile;
 
-                _treeService.AddResource(parentModel, pal);
+                var node = _treeService.AddResource(parentModel, pal);
+                SelectedItem = node;
                 IsModified = true;
                 _tracker.Persist(model);
             }
@@ -272,7 +274,8 @@ namespace TileShop.WPF.ViewModels
                     model.Layout, model.ArrangerElementWidth, model.ArrangerElementHeight, 
                     model.ElementPixelWidth, model.ElementPixelHeight);
 
-                _treeService.AddResource(parentModel, arranger);
+                var node = _treeService.AddResource(parentModel, arranger);
+                SelectedItem = node;
                 IsModified = true;
                 _tracker.Persist(model);
             }
