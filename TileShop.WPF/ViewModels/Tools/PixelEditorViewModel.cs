@@ -358,6 +358,7 @@ namespace TileShop.WPF.ViewModels
             ActivePalette = Palettes.First();
             PrimaryColor = ActivePalette.Colors[0];
             SecondaryColor = ActivePalette.Colors[1];
+            CreateGridlines();
             NotifyOfPropertyChange(() => CanRemapColors);
         }
     }
