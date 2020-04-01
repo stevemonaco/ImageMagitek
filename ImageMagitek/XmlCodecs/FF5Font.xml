@@ -1,4 +1,4 @@
-<format name="FF5 Font">
+<format name="FF5 Font" version="0.8">
     <codec>
         <colortype>indexed</colortype>
         <colordepth>1</colordepth>

@@ -1,4 +1,4 @@
-<format name="SNES Mode7">
+<format name="SNES Mode7" version="0.8">
     <codec>
         <colortype>indexed</colortype>
         <colordepth>8</colordepth>

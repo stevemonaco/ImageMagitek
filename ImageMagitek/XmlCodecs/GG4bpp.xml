@@ -1,4 +1,4 @@
-<format name="Game Gear 4bpp">
+<format name="Game Gear 4bpp" version="0.8">
     <codec>
         <colortype>indexed</colortype>
         <colordepth>4</colordepth>

@@ -1,4 +1,4 @@
-<format name="Genesis 4bpp">
+<format name="Genesis 4bpp" version="0.8">
     <codec>
         <colortype>indexed</colortype>
         <colordepth>4</colordepth>
