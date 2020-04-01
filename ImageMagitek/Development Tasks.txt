@@ -32,7 +32,7 @@ x ArrangerElement - Change to immutable, restrict access to Arranger.SetElement 
 x Followup ArrangerElement - Change to readonly struct
 x Move ImageLayout from Codecs to Arranger
 x Remove Arranger from ArrangerMode enum items
-- Require PixelColorType on arranger construction and enforce ArrangerElements
+x Require PixelColorType on arranger construction and enforce ArrangerElements
 
 Tests
 - Graphics encoder/decoder tests
@@ -44,6 +44,7 @@ File reading
 - ReadShifted needs implemented for non-byte sized elements.
 
 Bugs
-- ReadUnshifted can crash during unaligned reads (reading too much data). Will need to fix as well as implement ReadShifted for non-byte sized elements.
-- Fix XML reader from silently failing when reading <arranger> nodes with inconsistent element counts
-- Fix ScatteredArranger resize to allow pixel-based sizes
+x ReadUnshifted can crash during unaligned reads (reading too much data).
+- Will need to fix as well as implement ReadShifted for non-byte sized elements.
+x Fix XML reader from silently failing when reading <arranger> nodes with inconsistent element counts
+- Fix ScatteredArranger resize to allow pixel-based sizes and not just element-based sizes
