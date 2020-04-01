@@ -19,27 +19,22 @@ namespace TileShop.WPF
     public class TileShopBootstrapper : AutofacBootstrapper<ShellViewModel>
     {
         private Tracker _tracker = new Tracker();
+        private IPaletteService _paletteService;
+        private ICodecService _codecService;
 
         protected override void ConfigureIoC(ContainerBuilder builder)
         {
-            ConfigureLogging(builder);
+            ConfigureLogging("errorlog.txt", builder);
             ReadConfiguration("appsettings.json", builder);
+            ReadPalettes("pal", builder);
+            ReadCodecs("codecs", builder);
             ConfigureServices(builder);
             ConfigureJotTracker(builder);
         }
 
         private void ConfigureServices(ContainerBuilder builder)
         {
-            var paletteService = new PaletteService();
-            paletteService.LoadJsonPalettes("pal");
-            paletteService.DefaultPalette = paletteService.Palettes.Where(x => x.Name.Contains("DefaultRgba32")).First();
-            builder.RegisterInstance<IPaletteService>(paletteService);
-
-            var codecService = new CodecService(paletteService.DefaultPalette);
-            codecService.LoadXmlCodecs("codecs");
-            builder.RegisterInstance<ICodecService>(codecService);
-
-            var projectService = new ProjectTreeService(codecService);
+            var projectService = new ProjectTreeService(_codecService);
             builder.RegisterInstance<IProjectTreeService>(projectService);
 
             builder.RegisterType<FileSelectService>().As<IFileSelectService>();
@@ -56,11 +51,11 @@ namespace TileShop.WPF
                 builder.RegisterType(vmType).OnActivated(x => _tracker.Track(x));
         }
 
-        private void ConfigureLogging(ContainerBuilder builder)
+        private void ConfigureLogging(string logName, ContainerBuilder builder)
         {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Error()
-                .WriteTo.File("crashlog.txt", rollingInterval: RollingInterval.Day)
+                .WriteTo.File(logName, rollingInterval: RollingInterval.Day)
                 .CreateLogger();
 
             Application.Dispatcher.UnhandledException += Dispatcher_UnhandledException;
@@ -109,6 +104,21 @@ namespace TileShop.WPF
                 Log.Fatal(ex, $"Failed to read the configuration file '{jsonFileName}'");
                 throw;
             }
+        }
+
+        private void ReadPalettes(string palettesPath, ContainerBuilder builder)
+        {
+            _paletteService = new PaletteService();
+            _paletteService.LoadJsonPalettes(palettesPath);
+            _paletteService.DefaultPalette = _paletteService.Palettes.Where(x => x.Name.Contains("DefaultRgba32")).First();
+            builder.RegisterInstance<IPaletteService>(_paletteService);
+        }
+
+        private void ReadCodecs(string codecsPath, ContainerBuilder builder)
+        {
+            _codecService = new CodecService(_paletteService.DefaultPalette);
+            _codecService.LoadXmlCodecs(codecsPath);
+            builder.RegisterInstance<ICodecService>(_codecService);
         }
 
         private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)

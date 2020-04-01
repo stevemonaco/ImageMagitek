@@ -2,6 +2,9 @@
 using System.Xml;
 using System.Linq;
 using System.Xml.Linq;
+using System.IO;
+using System.Xml.Schema;
+using System.Collections.Generic;
 
 namespace ImageMagitek.Codec
 {
@@ -11,11 +14,28 @@ namespace ImageMagitek.Codec
         {
             var format = new GraphicsFormat();
 
-            XElement xe = XElement.Load(fileName);
+            using var stream = File.OpenRead(fileName);
+            using var schemaStream = File.OpenRead(Path.Combine("schema", "CodecSchema.xsd"));
 
-            format.Name = xe.Attribute("name").Value;
+            var schemas = new XmlSchemaSet();
+            schemas.Add("", XmlReader.Create(schemaStream));
+            var doc = XDocument.Load(stream, LoadOptions.SetLineInfo);
 
-            var codecs = xe.Descendants("codec")
+            var validationErrors = new List<string>();
+
+            doc.Validate(schemas, (o, e) =>
+            {
+                validationErrors.Add(e.Message);
+            });
+
+            if (validationErrors.Any())
+                return null;
+
+            XElement formatNode = doc.Element("format");
+
+            format.Name = formatNode.Attribute("name").Value;
+
+            var codecs = formatNode.Descendants("codec")
                 .Select(e => new
                 {
                     colortype = e.Descendants("colortype").First().Value,
@@ -61,7 +81,7 @@ namespace ImageMagitek.Codec
             for (int i = 0; i < mergeInts.Length; i++)
                 format.MergePlanePriority[i] = int.Parse(mergeInts[i]);
 
-            var images = xe.Descendants("image")
+            var images = formatNode.Descendants("image")
                          .Select(e => new
                          {
                              colordepth = e.Descendants("colordepth").First().Value,
