@@ -43,7 +43,7 @@ namespace ImageMagitek.ExtensionMethods
             // Mask bits skipped on the last byte
             int lastBits = (readBytes * 8) - readBits - skipBits;
             mask = 0xFF ^ ((1 << lastBits) - 1);
-            readBuffer[readBytes - 1] = (byte)(readBuffer[readBytes - 1] & mask);
+            readBuffer[^1] = (byte)(readBuffer[^1] & mask);
         }
 
         public static byte[] ReadShifted(this Stream stream, FileBitAddress address, int readBits)
@@ -66,40 +66,48 @@ namespace ImageMagitek.ExtensionMethods
             if (skipBits > 7 || skipBits < 0)
                 throw new ArgumentOutOfRangeException($"{nameof(ReadUnshifted)} parameter '{nameof(skipBits)}' ({skipBits}) is not within the valid range [0-7]");
 
-            int readBytes = (skipBits + readBits + 7) / 8;
-
-            if (buffer.Length < readBytes)
-                throw new ArgumentException($"{nameof(ReadUnshifted)} parameter '{nameof(buffer)}' has insufficient length ({buffer.Length}) than required ({readBytes})");
-
             if (skipBits == 0)
             {
                 stream.ReadUnshifted(skipBits, readBits, buffer);
                 return;
             }
 
-            if (readBits + skipBits <= 8)
-            {
-                var fullByte = stream.ReadByte() << skipBits;
-                var mask = ((1 << readBits) - 1) << (8 - readBits);
-                buffer[0] = (byte)(fullByte & mask);
-                return;
-            }
+            int totalReadBytes = (skipBits + readBits + 7) / 8;
+            int firstReadBytes = (readBits + 7) / 8;
 
-            var readBuffer = buffer.Slice(0, readBytes - 1);
-            stream.Read(readBuffer);
-            buffer.ShiftLeft(skipBits);
+            if (buffer.Length < firstReadBytes)
+                throw new ArgumentException($"{nameof(ReadUnshifted)} parameter '{nameof(buffer)}' has insufficient length ({buffer.Length}) than required ({firstReadBytes})");
 
-            int lastBits = readBits - Math.Max(readBuffer.Length * 8 - skipBits, 0);
-            if (lastBits < 8 && lastBits > 0)
+            if (totalReadBytes == 1)
             {
+                var readBuffer = buffer.Slice(0, totalReadBytes);
                 var lastByte = stream.ReadByte();
-                var left = lastByte >> (8 - skipBits);
-                int rightBits = lastBits - skipBits;
-                int rightMask = ((1 << lastBits) - 1) << (8 - lastBits);
-                var right = (lastByte << skipBits) & rightMask;
-                var leftIndex = Math.Max(buffer.Length - 2, 0);
-                buffer[leftIndex] |= (byte)left;
-                buffer[buffer.Length - 1] = (byte)right;
+                lastByte = (lastByte >> (8 - (skipBits + readBits)));
+                lastByte = (lastByte << (8 - readBits));
+                buffer[0] = (byte) lastByte;
+            }
+            else if (totalReadBytes == firstReadBytes)
+            {
+                var readBuffer = buffer.Slice(0, totalReadBytes);
+                stream.Read(readBuffer);
+                buffer.ShiftLeft(skipBits);
+
+                var lastBits = (skipBits + readBits) - ((totalReadBytes - 1) * 8);
+                var mask = ((1 << lastBits) - 1) << (8 - lastBits);
+                buffer[totalReadBytes - 1] = (byte) (buffer[totalReadBytes - 1] & mask);
+            }
+            else
+            {
+                var readBuffer = buffer.Slice(0, firstReadBytes);
+                stream.Read(readBuffer);
+                buffer.ShiftLeft(skipBits);
+
+                var lastByte = stream.ReadByte();
+                var lastBits = (skipBits + readBits) - (firstReadBytes * 8);
+                lastByte = lastByte >> (8 - lastBits);
+                lastByte = lastByte << (skipBits - lastBits);
+
+                buffer[firstReadBytes - 1] |= (byte) lastByte;
             }
         }
     }
