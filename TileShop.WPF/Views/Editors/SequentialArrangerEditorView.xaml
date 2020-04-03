@@ -53,16 +53,17 @@
                 Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
             -->
 
-            <!--
+
             <mah:NumericUpDown
                 Minimum="1"
+                ToolTip="Element width in pixels"
                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding TiledElementWidth}" />
             <mah:NumericUpDown
                 Minimum="1"
+                ToolTip="Element height in pixels"
                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding TiledElementHeight}" />
-            -->
 
             <mah:NumericUpDown
                 Minimum="1"

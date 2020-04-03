@@ -42,7 +42,7 @@ namespace ImageMagitek.Codec
                 return null;
 
             bitStream.SeekAbsolute(0);
-            fs.ReadUnshifted(el.FileAddress, StorageSize, buffer);
+            fs.ReadShifted(el.FileAddress, StorageSize, buffer);
 
             return buffer;
         }
