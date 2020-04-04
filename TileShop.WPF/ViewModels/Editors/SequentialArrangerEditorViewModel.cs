@@ -268,17 +268,28 @@ namespace TileShop.WPF.ViewModels
             var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName);
             if (codec.Layout == ImageMagitek.Codec.ImageLayout.Tiled)
             {
+                _tiledElementHeight = codec.Height;
+                _tiledElementWidth = codec.Width;
+
                 _workingArranger.Resize(TiledArrangerWidth, TiledArrangerHeight);
                 (_workingArranger as SequentialArranger).ChangeCodec(codec);
                 SnapMode = SnapMode.Element;
+
+                NotifyOfPropertyChange(() => TiledElementHeight);
+                NotifyOfPropertyChange(() => TiledElementWidth);
             }
             else if (codec.Layout == ImageMagitek.Codec.ImageLayout.Single)
             {
                 ShowGridlines = false;
                 _workingArranger.Resize(1, 1);
                 codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, LinearArrangerWidth, LinearArrangerHeight);
+                _linearArrangerHeight = codec.Height;
+                _linearArrangerWidth = codec.Width;
+
                 (_workingArranger as SequentialArranger).ChangeCodec(codec);
                 SnapMode = SnapMode.Pixel;
+                NotifyOfPropertyChange(() => LinearArrangerHeight);
+                NotifyOfPropertyChange(() => LinearArrangerWidth);
             }
 
             CreateGridlines();
