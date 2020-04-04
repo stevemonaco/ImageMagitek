@@ -34,7 +34,7 @@ namespace ImageMagitek.Codec
 
             for (int y = 0; y < el.Height; y++)
             {
-                for (int x = 0; x < el.Width / 2; x += 2)
+                for (int x = 0; x < el.Width; x += 2)
                 {
                     var palIndex = (byte)_bitStream.ReadBits(4);
                     _nativeBuffer[x + 1, y] = palIndex;
@@ -55,7 +55,7 @@ namespace ImageMagitek.Codec
             int dest = 0;
             for (int y = 0; y < el.Height; y++)
             {
-                for (int x = 0; x < el.Width / 2; x += 2, dest++)
+                for (int x = 0; x < el.Width; x += 2, dest++)
                 {
                     byte indexLow = imageBuffer[x, y];
                     byte indexHigh = imageBuffer[x + 1, y];
