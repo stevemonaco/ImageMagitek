@@ -6,7 +6,7 @@ namespace ImageMagitek.ExtensionMethods
     /// <summary>
     /// Adds additional methods to Stream related to bitwise reading
     /// </summary>
-    public static class StreamExtensionMethods
+    public static class StreamReadExtensionMethods
     {
         public static byte[] ReadUnshifted(this Stream stream, FileBitAddress address, int readBits)
         {

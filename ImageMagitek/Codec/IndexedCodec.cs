@@ -54,8 +54,7 @@ namespace ImageMagitek.Codec
         {
             // TODO: Add bit granularity to seek and read
             var fs = el.DataFile.Stream;
-            fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
-            fs.Write(encodedBuffer);
+            fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
         }
     }
 }
