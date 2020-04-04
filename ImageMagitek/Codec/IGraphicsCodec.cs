@@ -18,5 +18,13 @@
         int StorageSize { get; }
         int RowStride { get; }
         int ElementStride { get; }
+
+        int DefaultWidth { get; }
+        int DefaultHeight { get; }
+        bool CanResize { get; }
+        int WidthResizeIncrement { get; }
+        int HeightResizeIncrement { get; }
+        int GetPreferredWidth(int width);
+        int GetPreferredHeight(int height);
     }
 }

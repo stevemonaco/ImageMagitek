@@ -5,11 +5,19 @@ namespace ImageMagitek.Codec
     public sealed class Psx8bppCodec : IndexedCodec
     {
         public override string Name => "PSX 8bpp";
-        public override int Width { get; } = 8;
-        public override int Height { get; } = 8;
+        public override int Width { get; }
+        public override int Height { get; }
         public override ImageLayout Layout => ImageLayout.Single;
         public override int ColorDepth => 8;
         public override int StorageSize => Width * Height * 8;
+
+        public override int DefaultWidth => 64;
+        public override int DefaultHeight => 64;
+        public override int RowStride => 0;
+        public override int ElementStride => 0;
+        public override int WidthResizeIncrement => 1;
+        public override int HeightResizeIncrement => 1;
+        public override bool CanResize => true;
 
         public Psx8bppCodec(int width, int height)
         {

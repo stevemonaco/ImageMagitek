@@ -5,11 +5,19 @@ namespace ImageMagitek.Codec
     public sealed class Psx4bppCodec : IndexedCodec
     {
         public override string Name => "PSX 4bpp";
-        public override int Width { get; } = 8;
-        public override int Height { get; } = 8;
+        public override int Width { get; }
+        public override int Height { get; }
+
         public override ImageLayout Layout => ImageLayout.Single;
         public override int ColorDepth => 4;
         public override int StorageSize => Width * Height * 4;
+        public override int DefaultWidth => 64;
+        public override int DefaultHeight => 64;
+        public override int RowStride => 0;
+        public override int ElementStride => 0;
+        public override int WidthResizeIncrement => 2;
+        public override int HeightResizeIncrement => 1;
+        public override bool CanResize => true;
 
         private BitStream _bitStream;
 

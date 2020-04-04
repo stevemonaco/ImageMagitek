@@ -12,6 +12,14 @@ namespace ImageMagitek.Codec
         public override int ColorDepth => 16;
         public override int StorageSize => Width * Height * 16;
 
+        public override int RowStride => 0;
+        public override int ElementStride => 0;
+        public override bool CanResize => true;
+        public override int WidthResizeIncrement => 1;
+        public override int HeightResizeIncrement => 1;
+        public override int DefaultWidth => 64;
+        public override int DefaultHeight => 64;
+
         private BitStream _bitStream;
 
         public Psx16bppCodec(int width, int height)

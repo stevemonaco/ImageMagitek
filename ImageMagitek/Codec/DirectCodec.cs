@@ -16,13 +16,20 @@ namespace ImageMagitek.Codec
         public PixelColorType ColorType => PixelColorType.Direct;
         public abstract int ColorDepth { get; }
         public abstract int StorageSize { get; }
-        public int RowStride { get; }
-        public int ElementStride { get; }
+        public abstract int RowStride { get; }
+        public abstract int ElementStride { get; }
 
         public virtual ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
         protected byte[] _foreignBuffer;
 
         public virtual ColorRgba32[,] NativeBuffer => _nativeBuffer;
+
+        public abstract bool CanResize { get; }
+        public abstract int WidthResizeIncrement { get; }
+        public abstract int HeightResizeIncrement { get; }
+        public abstract int DefaultWidth { get; }
+        public abstract int DefaultHeight { get; }
+
         protected ColorRgba32[,] _nativeBuffer;
 
         public abstract ColorRgba32[,] DecodeElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer);
@@ -58,6 +65,16 @@ namespace ImageMagitek.Codec
             var fs = el.DataFile.Stream;
             fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
             fs.Write(encodedBuffer);
+        }
+
+        public int GetPreferredWidth(int width)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int GetPreferredHeight(int height)
+        {
+            throw new NotImplementedException();
         }
     }
 }

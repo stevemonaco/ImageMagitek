@@ -15,8 +15,14 @@ namespace ImageMagitek.Codec
         public PixelColorType ColorType => PixelColorType.Indexed;
         public abstract int ColorDepth { get; }
         public abstract int StorageSize { get; }
-        public int RowStride { get; }
-        public int ElementStride { get; }
+        public abstract int RowStride { get; }
+        public abstract int ElementStride { get; }
+
+        public abstract int DefaultWidth { get; }
+        public abstract int DefaultHeight { get; }
+        public abstract bool CanResize { get; }
+        public abstract int WidthResizeIncrement { get; }
+        public abstract int HeightResizeIncrement { get; }
 
         public virtual ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
         protected byte[] _foreignBuffer;
@@ -56,5 +62,9 @@ namespace ImageMagitek.Codec
             var fs = el.DataFile.Stream;
             fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
         }
+
+        public virtual int GetPreferredWidth(int width) => width;
+
+        public virtual int GetPreferredHeight(int height) => height;
     }
 }

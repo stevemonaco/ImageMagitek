@@ -24,6 +24,13 @@ namespace ImageMagitek.Codec
         protected byte[] _foreignBuffer;
 
         public virtual byte[,] NativeBuffer => _nativeBuffer;
+
+        public int DefaultWidth { get; }
+        public int DefaultHeight { get; }
+        public bool CanResize { get; }
+        public int WidthResizeIncrement { get; }
+        public int HeightResizeIncrement { get; }
+
         protected byte[,] _nativeBuffer;
 
         /// <summary>
@@ -339,6 +346,16 @@ namespace ImageMagitek.Codec
         {
             var fs = el.DataFile.Stream;
             fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
+        }
+
+        public int GetPreferredWidth(int width)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int GetPreferredHeight(int height)
+        {
+            throw new NotImplementedException();
         }
     }
 }
