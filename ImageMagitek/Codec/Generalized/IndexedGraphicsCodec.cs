@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 
@@ -24,6 +25,13 @@ namespace ImageMagitek.Codec
         protected byte[] _foreignBuffer;
 
         public virtual byte[,] NativeBuffer => _nativeBuffer;
+
+        public int DefaultWidth => Format.DefaultWidth;
+        public int DefaultHeight => Format.DefaultHeight;
+        public bool CanResize => !Format.FixedSize;
+        public int WidthResizeIncrement { get; }
+        public int HeightResizeIncrement => 1;
+
         protected byte[,] _nativeBuffer;
 
         /// <summary>
@@ -44,6 +52,10 @@ namespace ImageMagitek.Codec
             Name = format.Name;
             DefaultPalette = defaultPalette;
             AllocateBuffers();
+
+            // Consider implementing resize increment with more accurate LCM approach
+            // https://stackoverflow.com/questions/147515/least-common-multiple-for-3-or-more-numbers
+            WidthResizeIncrement = format.ImageProperties.Max(x => x.RowPixelPattern.Count);
         }
 
         private void AllocateBuffers()
@@ -72,50 +84,62 @@ namespace ImageMagitek.Codec
             _bitStream.SeekAbsolute(0);
 
             int plane = 0;
-            int pos;
+            int scanlinePosition;
 
             // Deinterlace into separate bitplanes
             foreach (ImageProperty ip in Format.ImageProperties)
             {
-                pos = 0;
                 if (ip.RowInterlace)
                 {
                     for (int y = 0; y < el.Height; y++)
                     {
                         for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
                         {
-                            pos = y * el.Height;
+                            scanlinePosition = y * el.Width;
                             for (int x = 0; x < el.Width; x++)
-                                ElementData[Format.MergePlanePriority[curPlane]][pos + ip.RowPixelPattern[x]] = (byte)_bitStream.ReadBit();
+                            {
+                                var mergePlane = Format.MergePlanePriority[curPlane];
+                                var pixelPosition = scanlinePosition + ip.RowPixelPattern[x];
+                                ElementData[mergePlane][pixelPosition] = (byte)_bitStream.ReadBit();
+                            }
                         }
                     }
                 }
                 else // Non-interlaced
                 {
-                    for (int y = 0; y < el.Height; y++, pos += el.Width)
+                    for (int y = 0; y < el.Height; y++)
+                    {
                         for (int x = 0; x < el.Width; x++)
+                        {
+                            scanlinePosition = y * el.Width;
                             for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
-                                ElementData[Format.MergePlanePriority[curPlane]][pos + ip.RowPixelPattern[x]] = (byte)_bitStream.ReadBit();
+                            {
+                                var mergePlane = Format.MergePlanePriority[curPlane];
+                                int pixelPosition = scanlinePosition + ip.RowPixelPattern[x];
+                                ElementData[mergePlane][pixelPosition] = (byte)_bitStream.ReadBit();
+                            }
+                        }
+                    }
                 }
 
                 plane += ip.ColorDepth;
             }
 
-            // Merge into foreign pixel data
+            // Merge into foreign pixel data 
             byte foreignPixelData;
 
-            for (pos = 0; pos < MergedData.Length; pos++)
+            for (scanlinePosition = 0; scanlinePosition < MergedData.Length; scanlinePosition++)
             {
                 foreignPixelData = 0;
                 for (int i = 0; i < Format.ColorDepth; i++)
-                    foreignPixelData |= (byte)(ElementData[i][pos] << i); // Works for SNES image data and palettes, may need customization later
-                MergedData[pos] = foreignPixelData;
+                    foreignPixelData |= (byte)(ElementData[i][scanlinePosition] << i); // Works for SNES image data and palettes, may need customization later
+                MergedData[scanlinePosition] = foreignPixelData;
             }
 
-            pos = 0;
+            scanlinePosition = 0;
             for (int y = 0; y < Height; y++)
-                for (int x = 0; x < Width; x++, pos++)
-                    _nativeBuffer[x, y] = MergedData[pos];
+                for (int x = 0; x < Width; x++, scanlinePosition++)
+                    _nativeBuffer[x, y] = MergedData[scanlinePosition];
 
             return NativeBuffer;
         }
@@ -310,16 +334,12 @@ namespace ImageMagitek.Codec
         public virtual ReadOnlySpan<byte> ReadElement(ArrangerElement el)
         {
             var buffer = new byte[(StorageSize + 7) / 8];
-            var bitStream = BitStream.OpenRead(buffer, StorageSize);
-
             var fs = el.DataFile.Stream;
 
-            // TODO: Add bit granularity to seek and read
             if (el.FileAddress + StorageSize > fs.Length * 8)
                 return null;
 
-            bitStream.SeekAbsolute(0);
-            fs.ReadUnshifted(el.FileAddress, StorageSize, buffer);
+            fs.ReadShifted(el.FileAddress, StorageSize, buffer);
 
             return buffer;
         }
@@ -329,10 +349,24 @@ namespace ImageMagitek.Codec
         /// </summary>
         public virtual void WriteElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
         {
-            // TODO: Add bit granularity to seek and read
             var fs = el.DataFile.Stream;
-            fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
-            fs.Write(encodedBuffer);
+            fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
+        }
+
+        public int GetPreferredWidth(int width)
+        {
+            if (!CanResize)
+                return DefaultWidth;
+
+            return Math.Clamp(width - width % WidthResizeIncrement, WidthResizeIncrement, int.MaxValue);
+        }
+
+        public int GetPreferredHeight(int height)
+        {
+            if (!CanResize)
+                return DefaultHeight;
+
+            return Math.Clamp(height - height % HeightResizeIncrement, HeightResizeIncrement, int.MaxValue);
         }
     }
 }

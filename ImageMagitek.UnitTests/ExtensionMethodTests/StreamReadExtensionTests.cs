@@ -5,9 +5,9 @@ using NUnit.Framework;
 namespace ImageMagitek.UnitTests
 {
     [TestFixture]
-    public class StreamExtensionTests
+    public class StreamReadExtensionTests
     {
-        [TestCaseSource(typeof(StreamExtensionTestCases), "ReadUnshiftedCases")]
+        [TestCaseSource(typeof(StreamReadExtensionTestCases), "ReadUnshiftedCases")]
         public void ReadUnshifted_AsExpected(byte[] data, FileBitAddress offset, int numBits, byte[] expected)
         {
             var stream = new MemoryStream(data);
@@ -17,7 +17,7 @@ namespace ImageMagitek.UnitTests
             CollectionAssert.AreEqual(expected, actual);
         }
 
-        [TestCaseSource(typeof(StreamExtensionTestCases), "ReadShiftedCases")]
+        [TestCaseSource(typeof(StreamReadExtensionTestCases), "ReadShiftedCases")]
         public void ReadShifted_AsExpected(byte[] data, FileBitAddress offset, int numBits, byte[] expected)
         {
             var stream = new MemoryStream(data);

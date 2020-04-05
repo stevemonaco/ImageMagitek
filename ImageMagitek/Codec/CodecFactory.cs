@@ -7,8 +7,6 @@ namespace ImageMagitek.Codec
     public class CodecFactory : ICodecFactory
     {
         private readonly Dictionary<string, GraphicsFormat> _formats;
-        private const int _defaultWidth = 8;
-        private const int _defaultHeight = 8;
 
         public Palette DefaultPalette { get; set; }
 
@@ -25,11 +23,11 @@ namespace ImageMagitek.Codec
                 //case "NES 1bpp":
                 //    return new Nes1bppCodec(_defaultWidth, _defaultHeight);
                 case "SNES 3bpp":
-                    return new Snes3bppCodec(_defaultWidth, _defaultHeight);
+                    return new Snes3bppCodec();
                 case "PSX 4bpp":
-                    return new Psx4bppCodec(_defaultWidth, _defaultHeight);
+                    return new Psx4bppCodec();
                 case "PSX 8bpp":
-                    return new Psx8bppCodec(_defaultWidth, _defaultHeight);
+                    return new Psx8bppCodec();
                 //case "PSX 16bpp":
                 //    return new Psx16bppCodec(width, height);
                 //case "PSX 24bpp":

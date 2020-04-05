@@ -9,6 +9,8 @@ using System.Drawing;
 using Monaco.PathTree;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using System.Xml.Schema;
+using System.Collections.Generic;
 
 namespace ImageMagitek.Project
 {
@@ -29,10 +31,24 @@ namespace ImageMagitek.Project
             if (string.IsNullOrWhiteSpace(baseDirectory))
                 throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(baseDirectory)}'");
 
-            var stream = File.OpenRead(fileName);
+            using var stream = File.OpenRead(fileName);
+            using var schemaStream = File.OpenRead(Path.Combine(baseDirectory, "schema", "GameDescriptorSchema.xsd"));
 
-            XElement doc = XElement.Load(stream);
-            XElement projectNode = doc.Element("project");
+            var schemas = new XmlSchemaSet();
+            schemas.Add("", XmlReader.Create(schemaStream));
+            var doc = XDocument.Load(stream, LoadOptions.SetLineInfo);
+
+            var validationErrors = new List<string>();
+
+            doc.Validate(schemas, (o, e) =>
+            {
+                validationErrors.Add(e.Message);
+            });
+
+            if (validationErrors.Any())
+                return null;
+            
+            XElement projectNode = doc.Element("gdf").Element("project");
 
             Directory.SetCurrentDirectory(baseDirectory);
 

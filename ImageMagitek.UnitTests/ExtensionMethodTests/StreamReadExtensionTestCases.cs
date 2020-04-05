@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace ImageMagitek.UnitTests
 {
-    public class StreamExtensionTestCases
+    public class StreamReadExtensionTestCases
     {
         public static byte[] singleArray = new byte[] { 0b10011101 };
         public static byte[] largeArray = new byte[] { 0b10110011, 0b11111111, 0b01010101, 0b11001100, 0b10000001 };
@@ -42,6 +42,7 @@ namespace ImageMagitek.UnitTests
 
                 yield return new TestCaseData(largeArray, new FileBitAddress(4, 0), 8, new byte[] { 0b10000001 });
                 yield return new TestCaseData(largeArray, new FileBitAddress(4, 1), 7, new byte[] { 0b00000010 });
+                yield return new TestCaseData(largeArray, new FileBitAddress(3, 1), 8, new byte[] { 0b10011001 });
                 yield return new TestCaseData(largeArray, new FileBitAddress(4, 7), 1, new byte[] { 0b10000000 });
 
                 yield return new TestCaseData(largeArray, new FileBitAddress(2, 1), 14, new byte[] { 0b10101011, 0b10011000 });

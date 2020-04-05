@@ -1,12 +1,13 @@
 ﻿- Major features to implement
-	- Validation
-		- Add validation to AddScatteredArranger (empty/null name, name already existing, etc)
-		- Add validation when adding files of same name (conflict)
-	- Saving
+	x Validation
+		x Add validation to AddScatteredArranger (empty/null name, name already existing, etc)
+		x Add validation when adding files of same name (conflict)
+	x Saving
 		x Check all editors for saved
 	- Modal dialogs
 		N/A Initial WPF implementation, then consider port to ForgeForms when it is available for .NET Core 3
-	- ProjectTree
+		x Implemented modals with Stylet
+	x ProjectTree
 		x Drag and Drop
 		x Context Menu -> Add / Remove / Export / Import
 	- Arranger
@@ -15,12 +16,11 @@
 		x Add Palette / Apply Palette for Tiled Scattered Arrangers
 		- Add SnapMode toggle so users can copy/paste pixels precisely on tiled arrangers
 	- Pixel Editor
-		- Undo / Redo, Save-aware
+		- Undo / Redo
+		x Save-aware
 	- Hex/Decimal Numeric Input TextBox
+		- Create reusable implementation
+		- Improve visuals
 
 N/A Properly dispose of ArrangerImage instances in editors when closing
 x Add limits to colors shown in default palettes in pixel editor
-
-- Considerations
-	- Add Gu.Wpf.NumericInput instead of writing a numeric textbox from scratch
-		- Will need forked and additions to optionally allow hex

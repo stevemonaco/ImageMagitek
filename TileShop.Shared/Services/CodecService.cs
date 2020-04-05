@@ -16,12 +16,12 @@ namespace TileShop.Shared.Services
 
     public class CodecService : ICodecService
     {
+        private Palette _defaultPalette;
         public ICodecFactory CodecFactory { get; set; }
-        public Palette DefaultPalette { get; private set; }
 
         public CodecService(Palette defaultPalette)
         {
-            DefaultPalette = defaultPalette;
+            _defaultPalette = defaultPalette;
         }
 
         public void LoadXmlCodecs(string codecsPath)
@@ -34,7 +34,7 @@ namespace TileShop.Shared.Services
                 formats.Add(format.Name, format);
             }
 
-            CodecFactory = new CodecFactory(formats, DefaultPalette);
+            CodecFactory = new CodecFactory(formats, _defaultPalette);
         }
 
         public IEnumerable<string> GetSupportedCodecNames() => CodecFactory.GetSupportedCodecNames();

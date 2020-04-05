@@ -10,7 +10,6 @@
     xmlns:s="https://github.com/canton7/Stylet"
     Title="Jump to Offset"
     BorderThickness="0"
-    FocusManager.FocusedElement="{Binding ElementName=jumpBox}"
     GlowBrush="Black"
     ResizeMode="NoResize"
     SizeToContent="WidthAndHeight"
@@ -22,12 +21,16 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal">
+        <StackPanel
+            Grid.Row="0"
+            FocusManager.FocusedElement="{Binding ElementName=jumpBox}"
+            Orientation="Horizontal">
             <TextBox
                 x:Name="jumpBox"
                 MinWidth="100"
                 behavior:SelectAllFocusBehavior.Enable="True"
                 FontSize="20"
+                IsTabStop="True"
                 TabIndex="0"
                 Text="{Binding Offset, UpdateSourceTrigger=PropertyChanged}"
                 TextChanged="{s:Action ValidateModel}" />

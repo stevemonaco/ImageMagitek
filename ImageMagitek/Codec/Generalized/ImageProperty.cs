@@ -10,13 +10,13 @@ namespace ImageMagitek.Codec
         /// <summary>
         /// Placement pattern of pixels within a row
         /// </summary>
-        public BroadcastList<int> RowPixelPattern { get; private set; }
+        public RepeatList RowPixelPattern { get; private set; }
 
         public ImageProperty(int colorDepth, bool rowInterlace, IEnumerable<int> rowPixelPattern)
         {
             ColorDepth = colorDepth;
             RowInterlace = rowInterlace;
-            RowPixelPattern = new BroadcastList<int>(rowPixelPattern);
+            RowPixelPattern = new RepeatList(rowPixelPattern);
         }
     }
 }

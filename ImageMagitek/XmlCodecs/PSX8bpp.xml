@@ -1,4 +1,4 @@
-<format name="PSX 8bpp">
+<format name="PSX 8bpp" version="0.8">
     <codec>
         <colortype>indexed</colortype>
         <colordepth>8</colordepth>

@@ -1,4 +1,4 @@
-<format name="NES 1bpp">
+<format name="NES 1bpp" version="0.8">
     <codec>
         <colortype>indexed</colortype>
         <colordepth>1</colordepth>

@@ -5,19 +5,38 @@ namespace ImageMagitek.Codec
     public sealed class Psx4bppCodec : IndexedCodec
     {
         public override string Name => "PSX 4bpp";
-        public override int Width { get; } = 8;
-        public override int Height { get; } = 8;
+        public override int Width { get; }
+        public override int Height { get; }
+
         public override ImageLayout Layout => ImageLayout.Single;
         public override int ColorDepth => 4;
         public override int StorageSize => Width * Height * 4;
+        public override int DefaultWidth => 64;
+        public override int DefaultHeight => 64;
+        public override int RowStride => 0;
+        public override int ElementStride => 0;
+        public override int WidthResizeIncrement => 2;
+        public override int HeightResizeIncrement => 1;
+        public override bool CanResize => true;
 
         private BitStream _bitStream;
+
+        public Psx4bppCodec()
+        {
+            Width = DefaultWidth;
+            Height = DefaultHeight;
+            Initialize();
+        }
 
         public Psx4bppCodec(int width, int height)
         {
             Width = width;
             Height = height;
+            Initialize();
+        }
 
+        private void Initialize()
+        {
             _foreignBuffer = new byte[(StorageSize + 7) / 8];
             _nativeBuffer = new byte[Width, Height];
             _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
@@ -34,7 +53,7 @@ namespace ImageMagitek.Codec
 
             for (int y = 0; y < el.Height; y++)
             {
-                for (int x = 0; x < el.Width / 2; x += 2)
+                for (int x = 0; x < el.Width; x += 2)
                 {
                     var palIndex = (byte)_bitStream.ReadBits(4);
                     _nativeBuffer[x + 1, y] = palIndex;
@@ -55,7 +74,7 @@ namespace ImageMagitek.Codec
             int dest = 0;
             for (int y = 0; y < el.Height; y++)
             {
-                for (int x = 0; x < el.Width / 2; x += 2, dest++)
+                for (int x = 0; x < el.Width; x += 2, dest++)
                 {
                     byte indexLow = imageBuffer[x, y];
                     byte indexHigh = imageBuffer[x + 1, y];

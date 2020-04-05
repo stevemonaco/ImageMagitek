@@ -34,9 +34,9 @@ namespace TileShop.WPF.Services
     public class ProjectTreeService : IProjectTreeService
     {
         public IPathTree<IProjectResource> Tree { get; private set; }
-        private CodecService _codecService;
+        private ICodecService _codecService;
 
-        public ProjectTreeService(CodecService codecService)
+        public ProjectTreeService(ICodecService codecService)
         {
             _codecService = codecService;
         }

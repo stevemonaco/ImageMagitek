@@ -15,8 +15,14 @@ namespace ImageMagitek.Codec
         public PixelColorType ColorType => PixelColorType.Indexed;
         public abstract int ColorDepth { get; }
         public abstract int StorageSize { get; }
-        public int RowStride { get; }
-        public int ElementStride { get; }
+        public abstract int RowStride { get; }
+        public abstract int ElementStride { get; }
+
+        public abstract int DefaultWidth { get; }
+        public abstract int DefaultHeight { get; }
+        public abstract bool CanResize { get; }
+        public abstract int WidthResizeIncrement { get; }
+        public abstract int HeightResizeIncrement { get; }
 
         public virtual ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
         protected byte[] _foreignBuffer;
@@ -42,7 +48,7 @@ namespace ImageMagitek.Codec
                 return null;
 
             bitStream.SeekAbsolute(0);
-            fs.ReadUnshifted(el.FileAddress, StorageSize, buffer);
+            fs.ReadShifted(el.FileAddress, StorageSize, buffer);
 
             return buffer;
         }
@@ -54,8 +60,23 @@ namespace ImageMagitek.Codec
         {
             // TODO: Add bit granularity to seek and read
             var fs = el.DataFile.Stream;
-            fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
-            fs.Write(encodedBuffer);
+            fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
+        }
+
+        public virtual int GetPreferredWidth(int width)
+        {
+            if (!CanResize)
+                return DefaultWidth;
+
+            return Math.Clamp(width - width % WidthResizeIncrement, WidthResizeIncrement, int.MaxValue);
+        }
+
+        public virtual int GetPreferredHeight(int height)
+        {
+            if (!CanResize)
+                return DefaultHeight;
+
+            return Math.Clamp(height - height % HeightResizeIncrement, HeightResizeIncrement, int.MaxValue);
         }
     }
 }

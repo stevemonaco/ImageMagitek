@@ -287,7 +287,7 @@ namespace TileShop.WPF.ViewModels
             if (IsDrawing && ActiveTool == PixelTool.Pencil && e.LeftButton)
                 SetPixel(x, y, PrimaryColor);
             else if(IsDrawing && ActiveTool == PixelTool.Pencil && e.RightButton)
-                SetPixel(x, y, PrimaryColor);
+                SetPixel(x, y, SecondaryColor);
         }
 
         public override void OnMouseUp(object sender, MouseCaptureArgs e)
@@ -358,6 +358,7 @@ namespace TileShop.WPF.ViewModels
             ActivePalette = Palettes.First();
             PrimaryColor = ActivePalette.Colors[0];
             SecondaryColor = ActivePalette.Colors[1];
+            CreateGridlines();
             NotifyOfPropertyChange(() => CanRemapColors);
         }
     }
