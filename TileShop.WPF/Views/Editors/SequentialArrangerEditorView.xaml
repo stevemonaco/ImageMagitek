@@ -53,18 +53,22 @@
                 Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
             -->
 
-
             <mah:NumericUpDown
-                Minimum="1"
+                ChangeValueOnTextChanged="False"
+                Interval="{Binding WidthIncrement}"
+                IsEnabled="{Binding CanResize}"
+                Minimum="{Binding WidthIncrement}"
                 ToolTip="Element width in pixels"
                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding TiledElementWidth}" />
             <mah:NumericUpDown
-                Minimum="1"
+                ChangeValueOnTextChanged="False"
+                Interval="{Binding HeightIncrement}"
+                IsEnabled="{Binding CanResize}"
+                Minimum="{Binding HeightIncrement}"
                 ToolTip="Element height in pixels"
                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding TiledElementHeight}" />
-
             <mah:NumericUpDown
                 Minimum="1"
                 ToolTip="Arranger width in elements"
@@ -75,13 +79,20 @@
                 ToolTip="Arranger height in elements"
                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding TiledArrangerHeight}" />
+
             <mah:NumericUpDown
-                Minimum="1"
+                ChangeValueOnTextChanged="False"
+                Interval="{Binding WidthIncrement}"
+                IsEnabled="{Binding CanResize}"
+                Minimum="{Binding WidthIncrement}"
                 ToolTip="Arranger width in pixels"
                 Visibility="{Binding IsLinearLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding LinearArrangerWidth}" />
             <mah:NumericUpDown
-                Minimum="1"
+                ChangeValueOnTextChanged="False"
+                Interval="{Binding HeightIncrement}"
+                IsEnabled="{Binding CanResize}"
+                Minimum="{Binding HeightIncrement}"
                 ToolTip="Arranger height in pixels"
                 Visibility="{Binding IsLinearLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding LinearArrangerHeight}" />

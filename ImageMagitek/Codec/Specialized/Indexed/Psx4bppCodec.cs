@@ -21,11 +21,22 @@ namespace ImageMagitek.Codec
 
         private BitStream _bitStream;
 
+        public Psx4bppCodec()
+        {
+            Width = DefaultWidth;
+            Height = DefaultHeight;
+            Initialize();
+        }
+
         public Psx4bppCodec(int width, int height)
         {
             Width = width;
             Height = height;
+            Initialize();
+        }
 
+        private void Initialize()
+        {
             _foreignBuffer = new byte[(StorageSize + 7) / 8];
             _nativeBuffer = new byte[Width, Height];
             _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);

@@ -23,11 +23,21 @@ namespace ImageMagitek.Codec
 
         private BitStream _bitStream;
 
+        public Nes1bppCodec()
+        {
+            Width = DefaultWidth;
+            Height = DefaultHeight;
+            Initialize();
+        }
+
         public Nes1bppCodec(int width, int height)
         {
             Width = width;
             Height = height;
+        }
 
+        private void Initialize()
+        {
             _foreignBuffer = new byte[(StorageSize + 7) / 8];
             _nativeBuffer = new byte[Width, Height];
         }

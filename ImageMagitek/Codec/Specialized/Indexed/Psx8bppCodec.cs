@@ -19,11 +19,22 @@ namespace ImageMagitek.Codec
         public override int HeightResizeIncrement => 1;
         public override bool CanResize => true;
 
+        public Psx8bppCodec()
+        {
+            Width = DefaultWidth;
+            Height = DefaultHeight;
+            Initialize();
+        }
+
         public Psx8bppCodec(int width, int height)
         {
             Width = width;
             Height = height;
+            Initialize();
+        }
 
+        private void Initialize()
+        {
             _foreignBuffer = new byte[(StorageSize + 7) / 8];
             _nativeBuffer = new byte[Width, Height];
         }

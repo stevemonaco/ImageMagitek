@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 
@@ -25,11 +26,11 @@ namespace ImageMagitek.Codec
 
         public virtual byte[,] NativeBuffer => _nativeBuffer;
 
-        public int DefaultWidth { get; }
-        public int DefaultHeight { get; }
-        public bool CanResize { get; }
+        public int DefaultWidth => Format.DefaultWidth;
+        public int DefaultHeight => Format.DefaultHeight;
+        public bool CanResize => !Format.FixedSize;
         public int WidthResizeIncrement { get; }
-        public int HeightResizeIncrement { get; }
+        public int HeightResizeIncrement => 1;
 
         protected byte[,] _nativeBuffer;
 
@@ -51,6 +52,10 @@ namespace ImageMagitek.Codec
             Name = format.Name;
             DefaultPalette = defaultPalette;
             AllocateBuffers();
+
+            // Consider implementing resize increment with more accurate LCM approach
+            // https://stackoverflow.com/questions/147515/least-common-multiple-for-3-or-more-numbers
+            WidthResizeIncrement = format.ImageProperties.Max(x => x.RowPixelPattern.Count);
         }
 
         private void AllocateBuffers()
@@ -84,29 +89,29 @@ namespace ImageMagitek.Codec
             // Deinterlace into separate bitplanes
             foreach (ImageProperty ip in Format.ImageProperties)
             {
-                scanlinePosition = 0;
                 if (ip.RowInterlace)
                 {
                     for (int y = 0; y < el.Height; y++)
                     {
                         for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
                         {
-                            scanlinePosition = y * el.Height;
+                            scanlinePosition = y * el.Width;
                             for (int x = 0; x < el.Width; x++)
                             {
                                 var mergePlane = Format.MergePlanePriority[curPlane];
                                 var pixelPosition = scanlinePosition + ip.RowPixelPattern[x];
-                                ElementData[mergePlane][scanlinePosition + ip.RowPixelPattern[x]] = (byte)_bitStream.ReadBit();
+                                ElementData[mergePlane][pixelPosition] = (byte)_bitStream.ReadBit();
                             }
                         }
                     }
                 }
                 else // Non-interlaced
                 {
-                    for (int y = 0; y < el.Height; y++, scanlinePosition += el.Width)
+                    for (int y = 0; y < el.Height; y++)
                     {
                         for (int x = 0; x < el.Width; x++)
                         {
+                            scanlinePosition = y * el.Width;
                             for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
                             {
                                 var mergePlane = Format.MergePlanePriority[curPlane];
@@ -350,12 +355,18 @@ namespace ImageMagitek.Codec
 
         public int GetPreferredWidth(int width)
         {
-            throw new NotImplementedException();
+            if (!CanResize)
+                return DefaultWidth;
+
+            return Math.Clamp(width - width % WidthResizeIncrement, WidthResizeIncrement, int.MaxValue);
         }
 
         public int GetPreferredHeight(int height)
         {
-            throw new NotImplementedException();
+            if (!CanResize)
+                return DefaultHeight;
+
+            return Math.Clamp(height - height % HeightResizeIncrement, HeightResizeIncrement, int.MaxValue);
         }
     }
 }

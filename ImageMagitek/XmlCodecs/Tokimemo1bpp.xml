@@ -6,7 +6,7 @@
         <layout>tiled</layout>
         <defaultheight>14</defaultheight>
         <defaultwidth>16</defaultwidth>
-        <fixedsize>false</fixedsize>
+        <fixedsize>true</fixedsize>
 		<mergepriority>0</mergepriority>
     </codec>
     <image>

@@ -63,6 +63,9 @@ namespace ImageMagitek.Codec
             else
                 throw new XmlException($"Unsupported layout '{codecs.layout}'");
 
+            if (codecs.fixedsize == "true")
+                format.FixedSize = true;
+
             format.DefaultWidth = int.Parse(codecs.width);
             format.DefaultHeight = int.Parse(codecs.height);
             format.Width = format.DefaultWidth;
@@ -93,10 +96,10 @@ namespace ImageMagitek.Codec
             {
                 int[] rowPixelPattern;
 
-                if (image.rowpixelpattern.Count() > 0) // Parse rowpixelpattern
+                if (image.rowpixelpattern.Any()) // Parse rowpixelpattern
                 {
                     string order = image.rowpixelpattern.First().Value;
-                    order.Replace(" ", "");
+                    order = order.Replace(" ", "");
                     string[] orderInts = order.Split(',');
 
                     rowPixelPattern = new int[orderInts.Length];
@@ -104,12 +107,12 @@ namespace ImageMagitek.Codec
                     for (int i = 0; i < orderInts.Length; i++)
                         rowPixelPattern[i] = int.Parse(orderInts[i]);
                 }
-                else // Create a default rowpixelpattern in numeric order for the entire row
+                else // Create a default rowpixelpattern
                 {
-                    rowPixelPattern = new int[format.Width];
+                    rowPixelPattern = new int[1];
 
-                    for (int i = 0; i < format.Width; i++)
-                        rowPixelPattern[i] = i;
+                    //for (int i = 0; i < format.Width; i++)
+                    //    rowPixelPattern[i] = i;
                 }
 
                 ImageProperty ip = new ImageProperty(int.Parse(image.colordepth), bool.Parse(image.rowinterlace), rowPixelPattern);

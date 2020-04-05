@@ -63,8 +63,20 @@ namespace ImageMagitek.Codec
             fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
         }
 
-        public virtual int GetPreferredWidth(int width) => width;
+        public virtual int GetPreferredWidth(int width)
+        {
+            if (!CanResize)
+                return DefaultWidth;
 
-        public virtual int GetPreferredHeight(int height) => height;
+            return Math.Clamp(width - width % WidthResizeIncrement, WidthResizeIncrement, int.MaxValue);
+        }
+
+        public virtual int GetPreferredHeight(int height)
+        {
+            if (!CanResize)
+                return DefaultHeight;
+
+            return Math.Clamp(height - height % HeightResizeIncrement, HeightResizeIncrement, int.MaxValue);
+        }
     }
 }

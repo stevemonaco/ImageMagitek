@@ -35,24 +35,26 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private int _tiledElementWidth = 8;
+        private int _tiledElementWidth;
         public int TiledElementWidth
         {
             get => _tiledElementWidth;
             set
             {
-                SetAndNotify(ref _tiledElementWidth, value);
+                var proferredWidth = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
+                SetAndNotify(ref _tiledElementWidth, proferredWidth);
                 ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
             }
         }
 
-        private int _tiledElementHeight = 8;
+        private int _tiledElementHeight;
         public int TiledElementHeight
         {
             get => _tiledElementHeight;
             set
             {
-                SetAndNotify(ref _tiledElementHeight, value);
+                var preferredHeight = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredHeight(value);
+                SetAndNotify(ref _tiledElementHeight, preferredHeight);
                 ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
             }
         }
@@ -79,26 +81,49 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private int _linearArrangerWidth = 256;
+        private int _linearArrangerWidth;
         public int LinearArrangerWidth
         {
             get => _linearArrangerWidth;
             set
             {
-                SetAndNotify(ref _linearArrangerWidth, value);
+                var proferredWidth = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
+                SetAndNotify(ref _linearArrangerWidth, proferredWidth);
                 ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
             }
         }
 
-        private int _linearArrangerHeight = 256;
+        private int _linearArrangerHeight;
         public int LinearArrangerHeight
         {
             get => _linearArrangerHeight;
             set
             {
-                SetAndNotify(ref _linearArrangerHeight, value);
+                var proferredHeight = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredHeight(value);
+                SetAndNotify(ref _linearArrangerHeight, proferredHeight);
                 ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
             }
+        }
+
+        private bool _canResize;
+        public bool CanResize
+        {
+            get => _canResize;
+            set => SetAndNotify(ref _canResize, value);
+        }
+
+        private int _widthIncrement;
+        public int WidthIncrement
+        {
+            get => _widthIncrement;
+            set => SetAndNotify(ref _widthIncrement, value);
+        }
+
+        private int _heightIncrement;
+        public int HeightIncrement
+        {
+            get => _heightIncrement;
+            set => SetAndNotify(ref _heightIncrement, value);
         }
 
         public SequentialArrangerEditorViewModel(SequentialArranger arranger, IEventAggregator events, IWindowManager windowManager, 
@@ -135,6 +160,10 @@ namespace TileShop.WPF.ViewModels
                 SnapMode = SnapMode.Pixel;
             }
 
+            CanResize = arranger.ActiveCodec.CanResize;
+            WidthIncrement = arranger.ActiveCodec.WidthResizeIncrement;
+            HeightIncrement = arranger.ActiveCodec.HeightResizeIncrement;
+
             CreateGridlines();
             Render();
         }
@@ -165,7 +194,7 @@ namespace TileShop.WPF.ViewModels
             if (IsTiledLayout)
                 TiledArrangerWidth++;
             else
-                LinearArrangerWidth += 8;
+                LinearArrangerWidth += WidthIncrement;
         }
 
         public void ExpandHeight()
@@ -173,7 +202,7 @@ namespace TileShop.WPF.ViewModels
             if (IsTiledLayout)
                 TiledArrangerHeight++;
             else
-                LinearArrangerHeight += 8;
+                LinearArrangerHeight += HeightIncrement;
         }
 
         public void ShrinkWidth()
@@ -181,7 +210,7 @@ namespace TileShop.WPF.ViewModels
             if (IsTiledLayout)
                 TiledArrangerWidth = Math.Clamp(TiledArrangerWidth - 1, 1, int.MaxValue);
             else
-                LinearArrangerHeight = Math.Clamp(LinearArrangerHeight - 8, 1, int.MaxValue);
+                LinearArrangerHeight = Math.Clamp(LinearArrangerHeight - WidthIncrement, WidthIncrement, int.MaxValue);
         }
 
         public void ShrinkHeight()
@@ -189,7 +218,7 @@ namespace TileShop.WPF.ViewModels
             if (IsTiledLayout)
                 TiledArrangerHeight = Math.Clamp(TiledArrangerHeight - 1, 1, int.MaxValue);
             else
-                LinearArrangerWidth = Math.Clamp(LinearArrangerWidth - 8, 1, int.MaxValue);
+                LinearArrangerWidth = Math.Clamp(LinearArrangerWidth - HeightIncrement, HeightIncrement, int.MaxValue);
         }
 
         public void JumpToOffset()
@@ -282,7 +311,6 @@ namespace TileShop.WPF.ViewModels
             {
                 ShowGridlines = false;
                 _workingArranger.Resize(1, 1);
-                codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, LinearArrangerWidth, LinearArrangerHeight);
                 _linearArrangerHeight = codec.Height;
                 _linearArrangerWidth = codec.Width;
 
@@ -292,6 +320,9 @@ namespace TileShop.WPF.ViewModels
                 NotifyOfPropertyChange(() => LinearArrangerWidth);
             }
 
+            CanResize = codec.CanResize;
+            WidthIncrement = codec.WidthResizeIncrement;
+            HeightIncrement = codec.HeightResizeIncrement;
             CreateGridlines();
             Render();
 
