@@ -24,11 +24,18 @@ namespace TileShop.WPF.ViewModels
         private int _viewHeight;
         private PencilHistoryAction _activePencilHistory;
 
-        private BindableCollection<HistoryAction> _history = new BindableCollection<HistoryAction>();
-        public BindableCollection<HistoryAction> History
+        private BindableCollection<HistoryAction> _undoHistory = new BindableCollection<HistoryAction>();
+        public BindableCollection<HistoryAction> UndoHistory
         {
-            get => _history;
-            set => SetAndNotify(ref _history, value);
+            get => _undoHistory;
+            set => SetAndNotify(ref _undoHistory, value);
+        }
+
+        private BindableCollection<HistoryAction> _redoHistory = new BindableCollection<HistoryAction>();
+        public BindableCollection<HistoryAction> RedoHistory
+        {
+            get => _redoHistory;
+            set => SetAndNotify(ref _redoHistory, value);
         }
 
         private BindableCollection<PaletteModel> _palettes = new BindableCollection<PaletteModel>();
@@ -121,7 +128,7 @@ namespace TileShop.WPF.ViewModels
                 Render();
 
                 var remapAction = new ColorRemapHistoryAction(remapViewModel.InitialColors, remapViewModel.FinalColors);
-                History.Add(remapAction);
+                UndoHistory.Add(remapAction);
                 IsModified = true;
             }
         }
@@ -194,6 +201,78 @@ namespace TileShop.WPF.ViewModels
         public void SetPrimaryColor(Color color) => PrimaryColor = color;
         public void SetSecondaryColor(Color color) => SecondaryColor = color;
 
+        public void ApplyAction(HistoryAction action)
+        {
+            if (action is PencilHistoryAction pencilAction)
+            {
+                if (_workingArranger.ColorType == PixelColorType.Indexed)
+                {
+                    foreach (var point in pencilAction.ModifiedPoints)
+                    {
+                        var color = new ColorRgba32(pencilAction.PencilColor.R, pencilAction.PencilColor.G, pencilAction.PencilColor.B, pencilAction.PencilColor.A);
+                        _indexedImage.SetPixel(point.X, point.Y, color);
+                    }
+                }
+                else if (_workingArranger.ColorType == PixelColorType.Direct)
+                {
+                    foreach (var point in pencilAction.ModifiedPoints)
+                    {
+                        var color = new ColorRgba32(pencilAction.PencilColor.R, pencilAction.PencilColor.G, pencilAction.PencilColor.B, pencilAction.PencilColor.A);
+                        _directImage.SetPixel(point.X, point.Y, color);
+                    }
+                }
+            }
+            else if (action is ColorRemapHistoryAction remapAction)
+            {
+                _indexedImage.RemapColors(remapAction.FinalColors.Select(x => (byte) x.Index).ToList());
+            }
+        }
+
+        public bool CanUndo { get => UndoHistory.Count > 0; }
+        public bool CanRedo { get => RedoHistory.Count > 0; }
+
+        public void AddHistoryAction(HistoryAction action)
+        {
+            UndoHistory.Add(action);
+            RedoHistory.Clear();
+            NotifyOfPropertyChange(() => CanUndo);
+            NotifyOfPropertyChange(() => CanRedo);
+        }
+
+        public void Undo()
+        {
+            var lastAction = UndoHistory[^1];
+            UndoHistory.RemoveAt(UndoHistory.Count - 1);
+            RedoHistory.Add(lastAction);
+            NotifyOfPropertyChange(() => CanUndo);
+            NotifyOfPropertyChange(() => CanRedo);
+
+            IsModified = UndoHistory.Count > 0;
+
+            if (_workingArranger.ColorType == PixelColorType.Indexed)
+                _indexedImage.Render();
+            else if (_workingArranger.ColorType == PixelColorType.Direct)
+                _directImage.Render();
+
+            foreach (var action in UndoHistory)
+                ApplyAction(action);
+
+            Render();
+        }
+
+        public void Redo()
+        {
+            var redoAction = RedoHistory[^1];
+            RedoHistory.RemoveAt(RedoHistory.Count - 1);
+            UndoHistory.Add(redoAction);
+            NotifyOfPropertyChange(() => CanUndo);
+            NotifyOfPropertyChange(() => CanRedo);
+
+            ApplyAction(redoAction);
+            IsModified = true;
+            Render();
+        }
+
         public override void SaveChanges()
         {
             try
@@ -220,12 +299,15 @@ namespace TileShop.WPF.ViewModels
             else if (_workingArranger.ColorType == PixelColorType.Direct)
                 _directImage.Render();
 
-            History.Clear();
+            UndoHistory.Clear();
         }
 
         public void Reset()
         {
-            History.Clear();
+            UndoHistory.Clear();
+            RedoHistory.Clear();
+            NotifyOfPropertyChange(() => CanUndo);
+            NotifyOfPropertyChange(() => CanRedo);
             HasArranger = false;
             IsModified = false;
             ArrangerSource = null;
@@ -271,8 +353,7 @@ namespace TileShop.WPF.ViewModels
             if (ActiveTool == PixelTool.Pencil && IsDrawing && _activePencilHistory?.ModifiedPoints.Count > 0)
             {
                 IsDrawing = false;
-                History.Add(_activePencilHistory);
-                _activePencilHistory = null;
+                AddHistoryAction(_activePencilHistory);
             }
         }
 
@@ -295,20 +376,20 @@ namespace TileShop.WPF.ViewModels
             if(ActiveTool == PixelTool.Pencil && IsDrawing && _activePencilHistory?.ModifiedPoints.Count > 0)
             {
                 IsDrawing = false;
-                History.Add(_activePencilHistory);
+                AddHistoryAction(_activePencilHistory);
                 _activePencilHistory = null;
             }
         }
 
         public void Handle(EditArrangerPixelsEvent message)
         {
-            if (IsModified && HasArranger && History.Count > 0)
+            if (IsModified && HasArranger && UndoHistory.Count > 0)
             {
                 var result = _windowManager.ShowMessageBox($"'{DisplayName}' has been modified and will be closed. Save changes?",
                     "Save changes", System.Windows.MessageBoxButton.YesNoCancel);
 
                 if (result == System.Windows.MessageBoxResult.No)
-                    History.Clear();
+                    UndoHistory.Clear();
                 else if (result == System.Windows.MessageBoxResult.Cancel)
                     return;
                 else if (result == System.Windows.MessageBoxResult.Yes)
@@ -321,7 +402,7 @@ namespace TileShop.WPF.ViewModels
             _viewWidth = message.ArrangerTransferModel.Width;
             _viewHeight = message.ArrangerTransferModel.Height;
 
-            History.Clear();
+            UndoHistory.Clear();
             Palettes.Clear();
 
             var arrangerPalettes = _workingArranger.GetReferencedPalettes().OrderBy(x => x.Name).ToArray();

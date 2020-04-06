@@ -108,6 +108,28 @@
 
             <Button
                 Margin="10,0,0,0"
+                Click="{s:Action Undo}"
+                IsEnabled="{Binding CanUndo}"
+                ToolTip="Undo">
+                <Image
+                    Width="20"
+                    Height="20"
+                    Source="{StaticResource iconUndo}" />
+            </Button>
+
+            <Button
+                Margin="10,0,0,0"
+                Click="{s:Action Redo}"
+                IsEnabled="{Binding CanRedo}"
+                ToolTip="Redo">
+                <Image
+                    Width="20"
+                    Height="20"
+                    Source="{StaticResource iconRedo}" />
+            </Button>
+
+            <Button
+                Margin="10,0,0,0"
                 Click="{s:Action RemapColors}"
                 IsEnabled="{Binding CanRemapColors}"
                 ToolTip="Remap Palette Colors">
