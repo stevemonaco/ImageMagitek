@@ -34,12 +34,12 @@ namespace TileShop.WPF.Docking
 			}
 
 			var pixelPane = layout.Descendents().OfType<LayoutAnchorablePane>().FirstOrDefault(x => x.Name == "PixelPane");
-			if (pixelPane != null && anchorableToShow.Content is PixelEditorViewModel)
+			if (pixelPane != null && anchorableToShow.Content is ArrangerEditorViewModel)
 			{
 				pixelPane.Children.Add(anchorableToShow);
 				return true;
 			}
-			else if (anchorableToShow.Content is PixelEditorViewModel)
+			else if (anchorableToShow.Content is ArrangerEditorViewModel)
 			{
 				var pane = new LayoutAnchorablePane(anchorableToShow)
 				{
