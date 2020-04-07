@@ -155,6 +155,12 @@ namespace TileShop.WPF.ViewModels
 
         public virtual void Closing() { }
 
+        public virtual void RequestEditSelection()
+        {
+            if (CanEditSelection)
+                EditSelection();
+        }
+
         public virtual void EditSelection()
         {
             ArrangerTransferModel transferModel;
@@ -176,6 +182,14 @@ namespace TileShop.WPF.ViewModels
             var editEvent = new EditArrangerPixelsEvent(transferModel);
             _events.PublishOnUIThread(editEvent);
             CancelOverlay();
+        }
+
+        public virtual void SelectAll()
+        {
+            CancelOverlay();
+            Overlay.StartSelection(_workingArranger, SnapMode, 0, 0);
+            Overlay.UpdateSelectionEndPoint(_workingArranger.ArrangerPixelSize.Width, _workingArranger.ArrangerPixelSize.Height);
+            Overlay.CompleteSelection();
         }
 
         public virtual void CancelOverlay()

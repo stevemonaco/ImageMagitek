@@ -140,14 +140,19 @@
                 <KeyBinding Key="End" Command="{s:Action MoveEnd}" />
                 <KeyBinding Key="OemQuestion" Command="{s:Action ExpandWidth}" />
                 <KeyBinding Key="OemPeriod" Command="{s:Action ShrinkWidth}" />
-                <KeyBinding Key="L" Command="{s:Action ExpandHeight}" />
-                <KeyBinding Key="OemSemicolon" Command="{s:Action ShrinkHeight}" />
-                <KeyBinding Key="A" Command="{s:Action SelectNextCodec}" />
-                <KeyBinding Key="S" Command="{s:Action SelectPreviousCodec}" />
+                <KeyBinding Key="L" Command="{s:Action ShrinkHeight}" />
+                <KeyBinding Key="OemSemicolon" Command="{s:Action ExpandHeight}" />
+                <KeyBinding Key="F" Command="{s:Action SelectNextCodec}" />
+                <KeyBinding Key="D" Command="{s:Action SelectPreviousCodec}" />
                 <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
                 <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
                 <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
                 <KeyBinding Key="J" Command="{s:Action JumpToOffset}" />
+                <KeyBinding Key="E" Command="{s:Action RequestEditSelection}" />
+                <KeyBinding
+                    Key="A"
+                    Command="{s:Action SelectAll}"
+                    Modifiers="Ctrl" />
                 <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
             </ScrollViewer.InputBindings>
 

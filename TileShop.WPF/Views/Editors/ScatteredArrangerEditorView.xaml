@@ -145,6 +145,11 @@
                 <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
                 <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
                 <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
+                <KeyBinding Key="E" Command="{s:Action RequestEditSelection}" />
+                <KeyBinding
+                    Key="A"
+                    Command="{s:Action SelectAll}"
+                    Modifiers="Ctrl" />
                 <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
             </ScrollViewer.InputBindings>
 
