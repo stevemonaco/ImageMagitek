@@ -36,6 +36,10 @@
                     <converters:StringNodeToTupleConverter x:Key="StringNodeToTupleConverter" />
                     <converters:NumericBaseToStringConverter x:Key="NumericBaseToStringConverter" />
                     <converters:NumericBaseBooleanConverter x:Key="NumericBaseBooleanConverter" />
+                    <converters:PaletteModelIndexToSolidColorBrushConverter x:Key="PaletteIndexToColorConverter" />
+                    <converters:ColorRgba32ToColorConverter x:Key="ColorRgba32ToColorConverter" />
+                    <converters:PaletteEntryToIndexConverter x:Key="PaletteEntryToIndexConverter" />
+                    <converters:PaletteEntryToSolidColorBrushConverter x:Key="PaletteEntryToSolidColorBrushConverter" />
                 </ResourceDictionary>
 
                 <ResourceDictionary Source="/TileShop;component/Styles/Icons.xaml" />

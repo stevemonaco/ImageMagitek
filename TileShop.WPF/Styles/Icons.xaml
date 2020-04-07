@@ -108,6 +108,45 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
+    <DrawingImage x:Key="iconUndo">
+        <DrawingImage.Drawing>
+            <GeometryDrawing>
+                <GeometryDrawing.Brush>
+                    <SolidColorBrush Color="Black" />
+                </GeometryDrawing.Brush>
+                <GeometryDrawing.Geometry>
+                    M12.5,8C9.85,8 7.45,9 5.6,10.6L2,7V16H11L7.38,12.38C8.77,11.22 10.54,10.5 12.5,10.5C16.04,10.5 19.05,12.81 20.1,16L22.47,15.22C21.08,11.03 17.15,8 12.5,8Z
+                </GeometryDrawing.Geometry>
+            </GeometryDrawing>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+    <DrawingImage x:Key="iconRedo">
+        <DrawingImage.Drawing>
+            <GeometryDrawing>
+                <GeometryDrawing.Brush>
+                    <SolidColorBrush Color="Black" />
+                </GeometryDrawing.Brush>
+                <GeometryDrawing.Geometry>
+                    M18.4,10.6C16.55,9 14.15,8 11.5,8C6.85,8 2.92,11.03 1.54,15.22L3.9,16C4.95,12.81 7.95,10.5 11.5,10.5C13.45,10.5 15.23,11.22 16.62,12.38L13,16H22V7L18.4,10.6Z
+                </GeometryDrawing.Geometry>
+            </GeometryDrawing>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
+    <DrawingImage x:Key="iconRefresh">
+        <DrawingImage.Drawing>
+            <GeometryDrawing>
+                <GeometryDrawing.Brush>
+                    <SolidColorBrush Color="Black" />
+                </GeometryDrawing.Brush>
+                <GeometryDrawing.Geometry>
+                    M507.5 264.25A25 25 0 0 1 476.25 248A178.5 178.5 0 0 0 304.5 125A177.5 177.5 0 0 0 125 300A177.5 177.5 0 0 0 304.5 475A181.5 181.5 0 0 0 420.75 433.25L366.5 442.25A25 25 0 0 1 337.75 421.5A25 25 0 0 1 358.5 392.75L464.4999999999999 375.25H468.75A25 25 0 0 1 477.25 376.7500000000001A8.25 8.25 0 0 1 479.7500000000001 378.2500000000001A19.5 19.5 0 0 1 484.75 381.0000000000001L487 383.75C487 385.0000000000001 489.25 386 490.25 387.5000000000001S490.25 390 491.5 391.0000000000001A33.5 33.5 0 0 1 493.25 395.5000000000001L512 495.5000000000001A25 25 0 0 1 462 505.0000000000001L455.25 468.7500000000001A230.25 230.25 0 0 1 304.5 525A227.49999999999997 227.49999999999997 0 0 1 75 300A227.49999999999997 227.49999999999997 0 0 1 304.5 75A227.99999999999997 227.99999999999997 0 0 1 525 233A25 25 0 0 1 507.5 264.25z
+                </GeometryDrawing.Geometry>
+            </GeometryDrawing>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+
 
     <!--  Tree Node Icons  -->
     <DrawingImage x:Key="iconNodeProject">

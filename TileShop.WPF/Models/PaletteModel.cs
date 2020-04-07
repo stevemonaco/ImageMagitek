@@ -1,6 +1,7 @@
 ﻿using System.Windows.Media;
 using Stylet;
 using ImageMagitek.Colors;
+using System;
 
 namespace TileShop.WPF.Models
 {
@@ -13,8 +14,8 @@ namespace TileShop.WPF.Models
             set => SetAndNotify(ref _name, value);
         }
 
-        private BindableCollection<Color> _colors = new BindableCollection<Color>();
-        public BindableCollection<Color> Colors
+        private BindableCollection<PaletteEntry> _colors = new BindableCollection<PaletteEntry>();
+        public BindableCollection<PaletteEntry> Colors
         {
             get => _colors;
             set => SetAndNotify(ref _colors, value);
@@ -24,44 +25,26 @@ namespace TileShop.WPF.Models
 
         public PaletteModel(Palette pal) : this(pal, pal.Entries) { }
         
-        public PaletteModel(Palette pal, int colorCount)
+        public PaletteModel(Palette pal, int maxColors)
         {
             Name = pal.Name;
             Palette = pal;
 
+            int colorCount = Math.Min(pal.Entries, maxColors);
+
             for (int i = 0; i < colorCount; i++)
             {
-                var color = new Color();
-                color.R = pal[i].R;
-                color.G = pal[i].G;
-                color.B = pal[i].B;
-                color.A = pal[i].A;
+                var color = new Color
+                {
+                    R = pal[i].R,
+                    G = pal[i].G,
+                    B = pal[i].B,
+                    A = pal[i].A
+                };
 
-                Colors.Add(color);
+                var entry = new PaletteEntry((byte) i, color);
+                Colors.Add(entry);
             }
         }
-
-        //public static PaletteModel FromArrangerPalette(Palette pal) => FromArrangerPalette(pal, pal.Entries);
-
-        //public static PaletteModel FromArrangerPalette(Palette pal, int colorCount)
-        //{
-        //    var model = new PaletteModel();
-        //    model.Name = pal.Name;
-        //    model.Palette = pal;
-
-        //    for (int i = 0; i < colorCount; i++)
-        //    {
-        //        var color = new Color();
-        //        color.R = pal[i].R;
-        //        color.G = pal[i].G;
-        //        color.B = pal[i].B;
-        //        color.A = pal[i].A;
-
-        //        model.Colors.Add(color);
-        //    }
-
-        //    return model;
-        //}
-
     }
 }

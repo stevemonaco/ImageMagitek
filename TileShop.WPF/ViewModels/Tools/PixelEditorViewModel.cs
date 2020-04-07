@@ -16,33 +16,27 @@ namespace TileShop.WPF.ViewModels
 {
     public enum PixelTool { Pencil, ColorPicker }
 
-    public class PixelEditorViewModel : ArrangerEditorViewModel, IHandle<EditArrangerPixelsEvent>
+    public abstract class PixelEditorViewModel<TColor> : ArrangerEditorViewModel
+        where TColor : struct
     {
-        private int _viewX;
-        private int _viewY;
-        private int _viewWidth;
-        private int _viewHeight;
-        private PencilHistoryAction _activePencilHistory;
+        protected int _viewX;
+        protected int _viewY;
+        protected int _viewWidth;
+        protected int _viewHeight;
+        protected PencilHistoryAction<TColor> _activePencilHistory;
 
-        private BindableCollection<HistoryAction> _history = new BindableCollection<HistoryAction>();
-        public BindableCollection<HistoryAction> History
+        private BindableCollection<HistoryAction> _undoHistory = new BindableCollection<HistoryAction>();
+        public BindableCollection<HistoryAction> UndoHistory
         {
-            get => _history;
-            set => SetAndNotify(ref _history, value);
+            get => _undoHistory;
+            set => SetAndNotify(ref _undoHistory, value);
         }
 
-        private BindableCollection<PaletteModel> _palettes = new BindableCollection<PaletteModel>();
-        public BindableCollection<PaletteModel> Palettes
+        private BindableCollection<HistoryAction> _redoHistory = new BindableCollection<HistoryAction>();
+        public BindableCollection<HistoryAction> RedoHistory
         {
-            get => _palettes;
-            set => SetAndNotify(ref _palettes, value);
-        }
-
-        private PaletteModel _activePalette;
-        public PaletteModel ActivePalette
-        {
-            get => _activePalette;
-            set => SetAndNotify(ref _activePalette, value);
+            get => _redoHistory;
+            set => SetAndNotify(ref _redoHistory, value);
         }
 
         private bool _hasArranger;
@@ -66,175 +60,92 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _activeTool, value);
         }
 
-        private Color _activeColor;
-        public Color ActiveColor
+        private TColor _activeColor;
+        public TColor ActiveColor
         {
             get => _activeColor;
             set => SetAndNotify(ref _activeColor, value);
         }
 
-        private Color _primaryColor;
-        public Color PrimaryColor
+        private TColor _primaryColor;
+        public TColor PrimaryColor
         {
             get => _primaryColor;
             set => SetAndNotify(ref _primaryColor, value);
         }
 
-        private Color _secondaryColor;
-        public Color SecondaryColor
+        private TColor _secondaryColor;
+        public TColor SecondaryColor
         {
             get => _secondaryColor;
             set => SetAndNotify(ref _secondaryColor, value);
         }
 
-        public RelayCommand<Color> SetPrimaryColorCommand { get; }
-        public RelayCommand<Color> SetSecondaryColorCommand { get; }
+        public RelayCommand<TColor> SetPrimaryColorCommand { get; }
+        public RelayCommand<TColor> SetSecondaryColorCommand { get; }
 
         public override bool CanShowGridlines => HasArranger;
 
         public PixelEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) :
             base(events, windowManager, paletteService)
         {
-            _events.Subscribe(this);
-
-            SetPrimaryColorCommand = new RelayCommand<Color>(SetPrimaryColor);
-            SetSecondaryColorCommand = new RelayCommand<Color>(SetSecondaryColor);
+            SetPrimaryColorCommand = new RelayCommand<TColor>(SetPrimaryColor);
+            SetSecondaryColorCommand = new RelayCommand<TColor>(SetSecondaryColor);
             DisplayName = "Pixel Editor";
 
             Zoom = 3;
             MaxZoom = 32;
         }
 
-        public void RemapColors()
+        protected abstract void ReloadImage();
+        public abstract void SetPixel(int x, int y, TColor color);
+        public abstract TColor GetPixel(int x, int y);
+
+        public void SetPrimaryColor(TColor color) => PrimaryColor = color;
+        public void SetSecondaryColor(TColor color) => SecondaryColor = color;
+
+        public abstract void ApplyAction(HistoryAction action);
+
+        public bool CanUndo { get => UndoHistory.Count > 0; }
+        public bool CanRedo { get => RedoHistory.Count > 0; }
+
+        public virtual void AddHistoryAction(HistoryAction action)
         {
-            var palette = _workingArranger.GetReferencedPalettes().FirstOrDefault();
-            if (palette is null)
-                palette = _paletteService.DefaultPalette;
-
-            var colors = Math.Min(256, 1 << _workingArranger.EnumerateElements().Select(x => x.Codec?.ColorDepth ?? 0).Max());
-
-            var remapViewModel = new ColorRemapViewModel(palette, colors);
-            if(_windowManager.ShowDialog(remapViewModel) is true)
-            {
-                var remap = remapViewModel.FinalColors.Select(x => (byte)x.Index).ToList();
-                _indexedImage.RemapColors(remap);
-                Render();
-
-                var remapAction = new ColorRemapHistoryAction(remapViewModel.InitialColors, remapViewModel.FinalColors);
-                History.Add(remapAction);
-                IsModified = true;
-            }
+            UndoHistory.Add(action);
+            RedoHistory.Clear();
+            NotifyOfPropertyChange(() => CanUndo);
+            NotifyOfPropertyChange(() => CanRedo);
         }
 
-        public bool CanRemapColors
+        public virtual void Undo()
         {
-            get
-            {
-                var palettes = _workingArranger?.GetReferencedPalettes();
-                if (palettes?.Count <= 1)
-                    return _workingArranger.GetReferencedCodecs().All(x => x.ColorType == PixelColorType.Indexed);
+            var lastAction = UndoHistory[^1];
+            UndoHistory.RemoveAt(UndoHistory.Count - 1);
+            RedoHistory.Add(lastAction);
+            NotifyOfPropertyChange(() => CanUndo);
+            NotifyOfPropertyChange(() => CanRedo);
 
-                return false;
-            }
+            IsModified = UndoHistory.Count > 0;
+
+            ReloadImage();
+
+            foreach (var action in UndoHistory)
+                ApplyAction(action);
+
+            Render();
         }
 
-        protected override void Render()
+        public virtual void Redo()
         {
-            if(HasArranger)
-            {
-                if (_workingArranger.ColorType == PixelColorType.Indexed)
-                    ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, _paletteService.DefaultPalette, _viewX, _viewY, _viewWidth, _viewHeight);
-                else if (_workingArranger.ColorType == PixelColorType.Direct)
-                    ArrangerSource = new DirectImageSource(_directImage, _viewX, _viewY, _viewWidth, _viewHeight);
-            }
-        }
+            var redoAction = RedoHistory[^1];
+            RedoHistory.RemoveAt(RedoHistory.Count - 1);
+            UndoHistory.Add(redoAction);
+            NotifyOfPropertyChange(() => CanUndo);
+            NotifyOfPropertyChange(() => CanRedo);
 
-        public void SetPixel(int x, int y, Color color)
-        {
-            var arrangerColor = new ColorRgba32(color.R, color.G, color.B, color.A);
-
-            if (_workingArranger.ColorType == PixelColorType.Indexed)
-            {
-                var result = _indexedImage.TrySetPixel(x + _viewX, y + _viewY, arrangerColor);
-                var notifyEvent = result.Match(
-                    success =>
-                    {
-                        if (_activePencilHistory.ModifiedPoints.Add(new Point(x, y)))
-                        {
-                            IsModified = true;
-                            Render();
-                        }
-                        return new NotifyOperationEvent("");
-                    },
-                    fail => new NotifyOperationEvent(fail.Reason)
-                    );
-                _events.PublishOnUIThread(notifyEvent);
-            }
-            else if (_workingArranger.ColorType == PixelColorType.Direct)
-            {
-                _directImage.SetPixel(x + _viewX, y + _viewY, arrangerColor);
-            }
-        }
-
-        public Color GetPixel(int x, int y)
-        {
-            ColorRgba32 arrangerColor = new ColorRgba32(0);
-            if (_workingArranger.ColorType == PixelColorType.Indexed)
-            {
-                arrangerColor = _indexedImage.GetPixelColor(x, y);
-            }
-            else if (_workingArranger.ColorType == PixelColorType.Direct)
-            {
-                arrangerColor = _directImage.GetPixel(x, y);
-            }
-
-            return Color.FromArgb(arrangerColor.A, arrangerColor.R, arrangerColor.G, arrangerColor.B);
-        }
-
-        public void SetPrimaryColor(Color color) => PrimaryColor = color;
-        public void SetSecondaryColor(Color color) => SecondaryColor = color;
-
-        public override void SaveChanges()
-        {
-            try
-            {
-                if (_workingArranger.ColorType == PixelColorType.Indexed)
-                    _indexedImage.SaveImage();
-                else if (_workingArranger.ColorType == PixelColorType.Direct)
-                    _directImage.SaveImage();
-                IsModified = false;
-            }
-            catch (Exception ex)
-            {
-                _windowManager.ShowMessageBox($"Could not save the pixel arranger contents\n{ex.Message}\n{ex.StackTrace}", "Save Error");
-            }
-        }
-
-        public override void DiscardChanges()
-        {
-            if (!HasArranger)
-                return;
-
-            if (_workingArranger.ColorType == PixelColorType.Indexed)
-                _indexedImage.Render();
-            else if (_workingArranger.ColorType == PixelColorType.Direct)
-                _directImage.Render();
-
-            History.Clear();
-        }
-
-        public void Reset()
-        {
-            History.Clear();
-            HasArranger = false;
-            IsModified = false;
-            ArrangerSource = null;
-            _workingArranger = null;
-            Palettes.Clear();
-            NotifyOfPropertyChange(() => CanRemapColors);
-            ActivePalette = null;
-            PrimaryColor = Color.FromArgb(0, 0, 0, 0);
-            SecondaryColor = Color.FromArgb(0, 0, 0, 0);
+            ApplyAction(redoAction);
+            IsModified = true;
+            Render();
         }
 
         public override void OnMouseDown(object sender, MouseCaptureArgs e)
@@ -242,24 +153,24 @@ namespace TileShop.WPF.ViewModels
             int x = (int)e.X / Zoom;
             int y = (int)e.Y / Zoom;
 
-            if(ActiveTool == PixelTool.Pencil && e.LeftButton)
+            if (ActiveTool == PixelTool.Pencil && e.LeftButton)
             {
-                _activePencilHistory = new PencilHistoryAction();
+                _activePencilHistory = new PencilHistoryAction<TColor>(PrimaryColor);
                 SetPixel(x, y, PrimaryColor);
                 IsDrawing = true;
             }
-            else if(ActiveTool == PixelTool.Pencil && e.RightButton)
+            else if (ActiveTool == PixelTool.Pencil && e.RightButton)
             {
-                _activePencilHistory = new PencilHistoryAction();
+                _activePencilHistory = new PencilHistoryAction<TColor>(SecondaryColor);
                 SetPixel(x, y, SecondaryColor);
                 IsDrawing = true;
             }
-            else if(ActiveTool == PixelTool.ColorPicker && e.LeftButton)
+            else if (ActiveTool == PixelTool.ColorPicker && e.LeftButton)
             {
                 PrimaryColor = GetPixel(x, y);
                 ActiveColor = PrimaryColor;
             }
-            else if(ActiveTool == PixelTool.ColorPicker && e.RightButton)
+            else if (ActiveTool == PixelTool.ColorPicker && e.RightButton)
             {
                 SecondaryColor = GetPixel(x, y);
                 ActiveColor = SecondaryColor;
@@ -271,8 +182,7 @@ namespace TileShop.WPF.ViewModels
             if (ActiveTool == PixelTool.Pencil && IsDrawing && _activePencilHistory?.ModifiedPoints.Count > 0)
             {
                 IsDrawing = false;
-                History.Add(_activePencilHistory);
-                _activePencilHistory = null;
+                AddHistoryAction(_activePencilHistory);
             }
         }
 
@@ -286,80 +196,18 @@ namespace TileShop.WPF.ViewModels
 
             if (IsDrawing && ActiveTool == PixelTool.Pencil && e.LeftButton)
                 SetPixel(x, y, PrimaryColor);
-            else if(IsDrawing && ActiveTool == PixelTool.Pencil && e.RightButton)
+            else if (IsDrawing && ActiveTool == PixelTool.Pencil && e.RightButton)
                 SetPixel(x, y, SecondaryColor);
         }
 
         public override void OnMouseUp(object sender, MouseCaptureArgs e)
         {
-            if(ActiveTool == PixelTool.Pencil && IsDrawing && _activePencilHistory?.ModifiedPoints.Count > 0)
+            if (ActiveTool == PixelTool.Pencil && IsDrawing && _activePencilHistory?.ModifiedPoints.Count > 0)
             {
                 IsDrawing = false;
-                History.Add(_activePencilHistory);
+                AddHistoryAction(_activePencilHistory);
                 _activePencilHistory = null;
             }
-        }
-
-        public void Handle(EditArrangerPixelsEvent message)
-        {
-            if (IsModified && HasArranger && History.Count > 0)
-            {
-                var result = _windowManager.ShowMessageBox($"'{DisplayName}' has been modified and will be closed. Save changes?",
-                    "Save changes", System.Windows.MessageBoxButton.YesNoCancel);
-
-                if (result == System.Windows.MessageBoxResult.No)
-                    History.Clear();
-                else if (result == System.Windows.MessageBoxResult.Cancel)
-                    return;
-                else if (result == System.Windows.MessageBoxResult.Yes)
-                    SaveChanges();
-            }
-
-            _workingArranger = message.ArrangerTransferModel.Arranger.CloneArranger();
-            _viewX = message.ArrangerTransferModel.X;
-            _viewY = message.ArrangerTransferModel.Y;
-            _viewWidth = message.ArrangerTransferModel.Width;
-            _viewHeight = message.ArrangerTransferModel.Height;
-
-            History.Clear();
-            Palettes.Clear();
-
-            var arrangerPalettes = _workingArranger.GetReferencedPalettes().OrderBy(x => x.Name).ToArray();
-
-            foreach (var pal in arrangerPalettes)
-            {
-                var colors = Math.Min(256, 1 << _workingArranger.EnumerateElements().Where(x => ReferenceEquals(pal, x.Palette)).Select(x => x.Codec?.ColorDepth ?? 0).Max());
-                Palettes.Add(new PaletteModel(pal, colors));
-            }
-
-            var defaultPaletteElements = _workingArranger.EnumerateElements().Where(x => x.Palette is null).ToArray();
-            var defaultPalette = _paletteService.DefaultPalette;
-
-            if (defaultPaletteElements.Length > 0)
-            {
-                var defaultColors = Math.Min(256, 1 << defaultPaletteElements.Select(x => x.Codec?.ColorDepth ?? 0).Max());
-                Palettes.Add(new PaletteModel(defaultPalette, defaultColors));
-            }
-
-            if (_workingArranger.ColorType == PixelColorType.Indexed)
-            {
-                _indexedImage = new IndexedImage(_workingArranger, defaultPalette);
-                ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, defaultPalette, _viewX, _viewY, _viewWidth, _viewHeight);
-            }
-            else if (_workingArranger.ColorType == PixelColorType.Direct)
-            {
-                _directImage = new DirectImage(_workingArranger);
-                ArrangerSource = new DirectImageSource(_directImage);
-            }
-
-            HasArranger = true;
-            DisplayName = $"Pixel Editor - {_workingArranger.Name}";
-
-            ActivePalette = Palettes.First();
-            PrimaryColor = ActivePalette.Colors[0];
-            SecondaryColor = ActivePalette.Colors[1];
-            CreateGridlines();
-            NotifyOfPropertyChange(() => CanRemapColors);
         }
     }
 }

@@ -5,12 +5,13 @@ using Color = System.Windows.Media.Color;
 
 namespace TileShop.WPF.Models
 {
-    public class PencilHistoryAction : HistoryAction
+    public class PencilHistoryAction<TColor> : HistoryAction
+        where TColor : struct
     {
         public override string Name => "Pencil";
 
-        private Color _pencilColor;
-        public Color PencilColor
+        private TColor _pencilColor;
+        public TColor PencilColor
         {
             get => _pencilColor;
             set => SetAndNotify(ref _pencilColor, value);
@@ -21,6 +22,11 @@ namespace TileShop.WPF.Models
         {
             get => _modifiedPoints;
             set => SetAndNotify(ref _modifiedPoints, value);
+        }
+
+        public PencilHistoryAction(TColor pencilColor)
+        {
+            _pencilColor = pencilColor;
         }
 
         public bool Add(double x, double y) => ModifiedPoints.Add(new Point((int)x, (int)y));

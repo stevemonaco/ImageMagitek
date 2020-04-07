@@ -20,7 +20,7 @@ namespace TileShop.WPF.ViewModels
 {
     public class ShellViewModel : Conductor<object>, IHandle<ActivateEditorEvent>, IHandle<ShowToolWindowEvent>,
         IHandle<OpenProjectEvent>, IHandle<NewProjectEvent>, IHandle<SaveProjectEvent>, IHandle<CloseProjectEvent>,
-        IHandle<RequestRemoveTreeNodeEvent>, IHandle<RequestApplicationExitEvent>
+        IHandle<EditArrangerPixelsEvent>, IHandle<RequestRemoveTreeNodeEvent>, IHandle<RequestApplicationExitEvent>
     {
         private readonly AppSettings _settings;
         private readonly IEventAggregator _events;
@@ -73,8 +73,8 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _tools, value);
         }
 
-        private PixelEditorViewModel _activePixelEditor;
-        public PixelEditorViewModel ActivePixelEditor
+        private ArrangerEditorViewModel _activePixelEditor;
+        public ArrangerEditorViewModel ActivePixelEditor
         {
             get => _activePixelEditor;
             set => SetAndNotify(ref _activePixelEditor, value);
@@ -87,7 +87,7 @@ namespace TileShop.WPF.ViewModels
 
         public ShellViewModel(AppSettings settings, IEventAggregator events, IWindowManager windowManager, Tracker tracker,
             ICodecService codecService, IPaletteService paletteService, IFileSelectService fileSelect, IProjectTreeService treeService,
-            MenuViewModel activeMenu, ProjectTreeViewModel activeTree, StatusBarViewModel activeStatusBar, PixelEditorViewModel activePixelEditor)
+            MenuViewModel activeMenu, ProjectTreeViewModel activeTree, StatusBarViewModel activeStatusBar)
         {
             _settings = settings;
             _events = events;
@@ -102,10 +102,8 @@ namespace TileShop.WPF.ViewModels
             ActiveMenu = activeMenu;
             ActiveTree = activeTree;
             ActiveStatusBar = activeStatusBar;
-            ActivePixelEditor = activePixelEditor;
 
             Tools.Add(activeTree);
-            Tools.Add(activePixelEditor);
         }
 
         public void Closing(CancelEventArgs e)
@@ -206,11 +204,14 @@ namespace TileShop.WPF.ViewModels
                     break;
 
                 case ToolWindow.PixelEditor:
-                    ActivePixelEditor.IsActive = true;
-                    ActivePixelEditor.IsSelected = true;
-                    ActivePixelEditor.IsVisible = true;
-                    Tools.Remove(ActivePixelEditor);
-                    Tools.Add(ActivePixelEditor);
+                    if (ActivePixelEditor is object)
+                    {
+                        ActivePixelEditor.IsActive = true;
+                        ActivePixelEditor.IsSelected = true;
+                        ActivePixelEditor.IsVisible = true;
+                        Tools.Remove(ActivePixelEditor);
+                        Tools.Add(ActivePixelEditor);
+                    }
                     break;
 
                 default:
@@ -230,7 +231,7 @@ namespace TileShop.WPF.ViewModels
                 if (projectFileName is object)
                 {
                     Editors.Clear();
-                    ActivePixelEditor.Reset();
+                    ActivePixelEditor = null;
 
                     ActiveTree.NewProject(projectFileName);
                     _events.PublishOnUIThread(new ProjectLoadedEvent());
@@ -256,7 +257,7 @@ namespace TileShop.WPF.ViewModels
                 if (projectFileName is object)
                 {
                     Editors.Clear();
-                    ActivePixelEditor.Reset();
+                    ActivePixelEditor = null;
 
                     ActiveTree.OpenProject(projectFileName);
                     _events.PublishOnUIThread(new ProjectLoadedEvent(ActiveTree.ProjectFileName));
@@ -290,7 +291,7 @@ namespace TileShop.WPF.ViewModels
                 return;
 
             Editors.Clear();
-            ActivePixelEditor.Reset();
+            ActivePixelEditor = null;
             ActiveTree.CloseProject();
         }
 
@@ -298,10 +299,13 @@ namespace TileShop.WPF.ViewModels
         {
             try
             {
-                if (!RequestSaveUserChanges(ActivePixelEditor))
-                    return false;
+                if (ActivePixelEditor is object)
+                {
+                    if (!RequestSaveUserChanges(ActivePixelEditor))
+                        return false;
+                }
 
-                ActivePixelEditor.Reset();
+                ActivePixelEditor = null;
 
                 foreach (var editor in Editors)
                 {
@@ -351,7 +355,7 @@ namespace TileShop.WPF.ViewModels
 
             if (result is true)
             {
-                var modifiedEditors = Editors.Where(x => x.IsModified).Concat(Tools.OfType<PixelEditorViewModel>().Where(x => x.IsModified));
+                var modifiedEditors = Editors.Where(x => x.IsModified).Concat(Tools.OfType<ArrangerEditorViewModel>().Where(x => x.IsModified));
 
                 if (modifiedEditors.Any())
                 {
@@ -376,7 +380,7 @@ namespace TileShop.WPF.ViewModels
                         return;
                 }
 
-                ActivePixelEditor.Reset();
+                ActivePixelEditor = null;
                 Editors.Clear();
 
                 ActiveTree.ApplyRemovalChanges(changeVm);
@@ -390,6 +394,32 @@ namespace TileShop.WPF.ViewModels
             {
                 _treeService.UnloadProject();
                 Environment.Exit(0);
+            }
+        }
+
+        public void Handle(EditArrangerPixelsEvent message)
+        {
+            if (ActivePixelEditor?.IsModified is true)
+            {
+                if (!RequestSaveUserChanges(ActivePixelEditor))
+                    return;
+            }
+
+            if (ActivePixelEditor is object)
+                Tools.Remove(ActivePixelEditor);
+
+            var model = message.ArrangerTransferModel;
+            if (model.Arranger.ColorType == PixelColorType.Indexed)
+            {
+                var editor = new IndexedPixelEditorViewModel(model.Arranger, model.X, model.Y, model.Width, model.Height,
+                    _events, _windowManager, _paletteService);
+
+                ActivePixelEditor = editor;
+                Tools.Add(ActivePixelEditor);
+            }
+            else if (model.Arranger.ColorType == PixelColorType.Direct)
+            {
+
             }
         }
     }

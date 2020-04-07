@@ -1,11 +1,12 @@
 ﻿<UserControl
-    x:Class="TileShop.WPF.Views.PixelEditorView"
+    x:Class="TileShop.WPF.Views.IndexedPixelEditorView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:behaviors="clr-namespace:TileShop.WPF.Behaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dd="urn:gong-wpf-dragdrop"
     xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+    xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:TileShop.WPF.Models"
     xmlns:s="https://github.com/canton7/Stylet"
@@ -37,7 +38,6 @@
             Grid.Row="0"
             Grid.Column="0"
             Grid.ColumnSpan="2"
-            IsEnabled="{Binding HasArranger}"
             Orientation="Horizontal">
             <ComboBox
                 Height="20"
@@ -92,8 +92,14 @@
                     <Rectangle
                         Width="24"
                         Height="24"
-                        Fill="{Binding PrimaryColor, Converter={StaticResource ColorToSolidColorBrushConverter}}"
-                        ToolTip="Primary Color" />
+                        ToolTip="Primary Color">
+                        <Rectangle.Fill>
+                            <MultiBinding Converter="{StaticResource PaletteIndexToColorConverter}">
+                                <Binding Path="ActivePalette" />
+                                <Binding Path="PrimaryColor" />
+                            </MultiBinding>
+                        </Rectangle.Fill>
+                    </Rectangle>
                 </Border>
             </Border>
             <Border BorderBrush="Black" BorderThickness="2">
@@ -101,8 +107,14 @@
                     <Rectangle
                         Width="24"
                         Height="24"
-                        Fill="{Binding SecondaryColor, Converter={StaticResource ColorToSolidColorBrushConverter}}"
-                        ToolTip="Secondary Color" />
+                        ToolTip="Secondary Color">
+                        <Rectangle.Fill>
+                            <MultiBinding Converter="{StaticResource PaletteIndexToColorConverter}">
+                                <Binding Path="ActivePalette" />
+                                <Binding Path="SecondaryColor" />
+                            </MultiBinding>
+                        </Rectangle.Fill>
+                    </Rectangle>
                 </Border>
             </Border>
 
@@ -169,15 +181,15 @@
                             <Rectangle
                                 Width="24"
                                 Height="24"
-                                Fill="{Binding Converter={StaticResource ColorToSolidColorBrushConverter}}">
+                                Fill="{Binding Converter={StaticResource PaletteEntryToSolidColorBrushConverter}}">
                                 <Rectangle.InputBindings>
                                     <MouseBinding
                                         Command="{Binding DataContext.SetPrimaryColorCommand, ElementName=pixelEditor}"
-                                        CommandParameter="{Binding}"
+                                        CommandParameter="{Binding Converter={StaticResource PaletteEntryToIndexConverter}}"
                                         MouseAction="LeftClick" />
                                     <MouseBinding
                                         Command="{Binding DataContext.SetSecondaryColorCommand, ElementName=pixelEditor}"
-                                        CommandParameter="{Binding}"
+                                        CommandParameter="{Binding Converter={StaticResource PaletteEntryToIndexConverter}}"
                                         MouseAction="RightClick" />
                                 </Rectangle.InputBindings>
                             </Rectangle>

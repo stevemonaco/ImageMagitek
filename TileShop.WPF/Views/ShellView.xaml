@@ -37,7 +37,7 @@
         <DataTemplate x:Key="dataFileEditorSelector" DataType="{x:Type vm:DataFileEditorViewModel}">
             <ContentControl s:View.Model="{Binding}" />
         </DataTemplate>
-        <DataTemplate x:Key="pixelEditorSelector" DataType="{x:Type vm:PixelEditorViewModel}">
+        <DataTemplate x:Key="pixelEditorSelector" DataType="{x:Type vm:IndexedPixelEditorViewModel}">
             <ContentControl s:View.Model="{Binding}" />
         </DataTemplate>
         <DataTemplate x:Key="projectTreeSelector" DataType="{x:Type vm:ProjectTreeViewModel}">

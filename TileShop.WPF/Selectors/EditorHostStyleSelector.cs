@@ -11,7 +11,7 @@ namespace TileShop.WPF.Selectors
 
         public override Style SelectStyle(object item, DependencyObject container)
         {
-            if (item is ResourceEditorBaseViewModel && !(item is PixelEditorViewModel))
+            if (item is ResourceEditorBaseViewModel && !(item is IndexedPixelEditorViewModel) && !(item is DirectPixelEditorViewModel))
                 return EditorStyle;
             else if (item is ToolViewModel)
                 return ToolStyle;

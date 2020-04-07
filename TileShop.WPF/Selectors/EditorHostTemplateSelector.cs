@@ -24,7 +24,8 @@ namespace TileShop.WPF.Selectors
                 ScatteredArrangerEditorViewModel _ => ScatteredArrangerEditorTemplate,
                 SequentialArrangerEditorViewModel _ => SequentialArrangerEditorTemplate,
                 DataFileEditorViewModel _ => DataFileEditorTemplate,
-                PixelEditorViewModel _ => PixelEditorTemplate,
+                IndexedPixelEditorViewModel _ => PixelEditorTemplate,
+                DirectPixelEditorViewModel _ => PixelEditorTemplate,
                 ProjectTreeViewModel _ => ProjectTreeTemplate,
                 _ => base.SelectTemplate(item, container)
             };
