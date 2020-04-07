@@ -13,6 +13,7 @@ namespace ImageMagitek.Project
     public class XmlGameDescriptorWriter : IGameDescriptorWriter
     {
         public string DescriptorVersion => "0.8";
+        private string _baseDirectory;
 
         public bool WriteProject(IPathTree<IProjectResource> tree, string fileName)
         {
@@ -21,6 +22,8 @@ namespace ImageMagitek.Project
 
             if (string.IsNullOrWhiteSpace(fileName))
                 throw new ArgumentException($"{nameof(WriteProject)} property '{nameof(fileName)}' was null or empty");
+
+            _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(fileName));
 
             var xmlRoot = new XElement("gdf");
             xmlRoot.Add(new XAttribute("version", DescriptorVersion));
@@ -49,7 +52,7 @@ namespace ImageMagitek.Project
                         element = Serialize(projectModel);
                         break;
                     default:
-                        throw new InvalidOperationException($"{nameof(WriteProject)}: unexpected node of type '{node.Value.GetType().ToString()}'");
+                        throw new InvalidOperationException($"{nameof(WriteProject)}: unexpected node of type '{node.Value.GetType()}'");
                 }
 
                 AddResourceToXmlTree(xmlRoot, element, node.Paths.ToArray());
@@ -156,7 +159,10 @@ namespace ImageMagitek.Project
         {
             var element = new XElement("datafile");
             element.Add(new XAttribute("name", dataFileModel.Name));
-            element.Add(new XAttribute("location", dataFileModel.Location));
+
+            //var relativeUri = new Uri(dataFileModel.Location).MakeRelativeUri(new Uri(_baseDirectory));
+            var relativePath = Path.GetRelativePath(_baseDirectory, dataFileModel.Location);
+            element.Add(new XAttribute("location", relativePath));
             return element;
         }
 

@@ -35,9 +35,11 @@ namespace TileShop.WPF.Services
     {
         public IPathTree<IProjectResource> Tree { get; private set; }
         private ICodecService _codecService;
+        private readonly string _schemaFileName;
 
-        public ProjectTreeService(ICodecService codecService)
+        public ProjectTreeService(string schemaFileName, ICodecService codecService)
         {
+            _schemaFileName = schemaFileName;
             _codecService = codecService;
         }
 
@@ -55,8 +57,8 @@ namespace TileShop.WPF.Services
                 throw new ArgumentException($"{nameof(OpenProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
 
             CloseResources();
-            var deserializer = new XmlGameDescriptorReader(_codecService.CodecFactory);
-            Tree = deserializer.ReadProject(projectFileName, Path.GetDirectoryName(Path.GetFullPath(projectFileName)));
+            var deserializer = new XmlGameDescriptorReader(_schemaFileName, _codecService.CodecFactory);
+            Tree = deserializer.ReadProject(projectFileName);
             return new ImageProjectNodeViewModel(Tree.Root);
         }
 
