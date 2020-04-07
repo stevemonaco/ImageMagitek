@@ -40,7 +40,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public bool IsLinearLayout => _workingArranger?.Layout == ArrangerLayout.Single;
+        public bool IsSingleLayout => _workingArranger?.Layout == ArrangerLayout.Single;
         public bool IsTiledLayout => _workingArranger?.Layout == ArrangerLayout.Tiled;
 
         public virtual bool CanShowGridlines => _workingArranger?.Layout == ArrangerLayout.Tiled;
@@ -344,12 +344,12 @@ namespace TileShop.WPF.ViewModels
             {
                 // Start drag for paste (Handled by DragDrop in View)
             }
-            else if ((Overlay.State == OverlayState.Selected || Overlay.State == OverlayState.Pasted || Overlay.State == OverlayState.Pasting) && 
-                e.RightButton)
-            {
-                CancelOverlay();
-                NotifyOfPropertyChange(() => CanEditSelection);
-            }
+            //else if ((Overlay.State == OverlayState.Selected || Overlay.State == OverlayState.Pasted || Overlay.State == OverlayState.Pasting) && 
+            //    e.RightButton)
+            //{
+            //    CancelOverlay();
+            //    NotifyOfPropertyChange(() => CanEditSelection);
+            //}
             else if (e.LeftButton)
             {
                 Overlay.StartSelection(_workingArranger, SnapMode, e.X / Zoom, e.Y / Zoom);

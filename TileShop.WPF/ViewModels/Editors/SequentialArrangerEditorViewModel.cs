@@ -8,6 +8,7 @@ using TileShop.Shared.Models;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Imaging;
 using Jot;
+using TileShop.WPF.EventModels;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -234,6 +235,29 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        public void NewScatteredArrangerFromSelection()
+        {
+            if (SnapMode == SnapMode.Element)
+            {
+                int x = Overlay.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
+                int y = Overlay.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
+                int width = Overlay.SelectionRect.SnappedWidth / _workingArranger.ElementPixelSize.Width;
+                int height = Overlay.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
+                var model = new AddScatteredArrangerFromExistingEvent(_workingArranger, x, y, width, height);
+                _events.PublishOnUIThread(model);
+            }
+            else
+            {
+                _windowManager.ShowMessageBox("Selection must be performed in element snap mode to create a new Scattered Arranger", "Error");
+            }
+        }
+
+        public void NewScatteredArrangerFromImage()
+        {
+            var model = new AddScatteredArrangerFromExistingEvent(_workingArranger, 0, 0, 1, 1);
+            _events.PublishOnUIThread(model);
+        }
+
         private void Move(ArrangerMoveType moveType)
         {
             var oldAddress = (_workingArranger as SequentialArranger).GetInitialSequentialFileAddress();
@@ -270,7 +294,7 @@ namespace TileShop.WPF.ViewModels
                 return;
 
             if (arrangerWidth == _workingArranger.ArrangerPixelSize.Width &&
-                arrangerHeight == _workingArranger.ArrangerPixelSize.Height && IsLinearLayout)
+                arrangerHeight == _workingArranger.ArrangerPixelSize.Height && IsSingleLayout)
                 return;
 
             (_workingArranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
@@ -327,7 +351,7 @@ namespace TileShop.WPF.ViewModels
             Render();
 
             NotifyOfPropertyChange(() => IsTiledLayout);
-            NotifyOfPropertyChange(() => IsLinearLayout);
+            NotifyOfPropertyChange(() => IsSingleLayout);
             NotifyOfPropertyChange(() => CanShowGridlines);
         }
 

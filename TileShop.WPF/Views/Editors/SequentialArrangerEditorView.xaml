@@ -86,7 +86,7 @@
                 IsEnabled="{Binding CanResize}"
                 Minimum="{Binding WidthIncrement}"
                 ToolTip="Arranger width in pixels"
-                Visibility="{Binding IsLinearLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                Visibility="{Binding IsSingleLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding LinearArrangerWidth}" />
             <mah:NumericUpDown
                 ChangeValueOnTextChanged="False"
@@ -94,7 +94,7 @@
                 IsEnabled="{Binding CanResize}"
                 Minimum="{Binding HeightIncrement}"
                 ToolTip="Arranger height in pixels"
-                Visibility="{Binding IsLinearLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                Visibility="{Binding IsSingleLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding LinearArrangerHeight}" />
 
             <Button
@@ -168,6 +168,21 @@
                         Opacity="0.5"
                         Color="LawnGreen" />
                 </Grid.Resources>
+
+                <Grid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{s:Action SelectAll}" Header="Select All" />
+                        <MenuItem
+                            Command="{s:Action NewScatteredArrangerFromSelection}"
+                            Header="New ScatteredArranger From Selection..."
+                            IsEnabled="{Binding Overlay.State, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Selected}"
+                            Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                        <MenuItem
+                            Command="{s:Action NewScatteredArrangerFromImage}"
+                            Header="New ScatteredArranger From Image..."
+                            Visibility="{Binding IsSingleLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                    </ContextMenu>
+                </Grid.ContextMenu>
 
                 <i:Interaction.Behaviors>
                     <behaviors:MouseCaptureBehavior Proxy="{Binding}" />

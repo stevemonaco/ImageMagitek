@@ -2,6 +2,7 @@
 using System.Windows;
 using System.IO;
 using System.Linq;
+using System.Drawing;
 using GongSolutions.Wpf.DragDrop;
 using Stylet;
 using TileShop.Shared.EventModels;
@@ -12,11 +13,12 @@ using ImageMagitek;
 using ImageMagitek.Colors;
 using TileShop.Shared.Services;
 using Jot;
+using Point = System.Drawing.Point;
 
 namespace TileShop.WPF.ViewModels
 {
     public class ProjectTreeViewModel : ToolViewModel, IDropTarget, 
-        IHandle<AddDataFileEvent>, IHandle<AddPaletteEvent>, IHandle<AddScatteredArrangerEvent>
+        IHandle<AddDataFileEvent>, IHandle<AddPaletteEvent>, IHandle<AddScatteredArrangerEvent>, IHandle<AddScatteredArrangerFromExistingEvent>
     {
         private IProjectTreeService _treeService;
         private IPaletteService _paletteService;
@@ -279,6 +281,26 @@ namespace TileShop.WPF.ViewModels
                 SelectedItem = node;
                 IsModified = true;
                 _tracker.Persist(model);
+            }
+        }
+
+        public void Handle(AddScatteredArrangerFromExistingEvent message)
+        {
+            var parentModel = ProjectRoot.First();
+            var model = new NameResourceViewModel();
+            var arranger = message.Arranger;
+
+            if (_windowManager.ShowDialog(model) is true)
+            {
+                var newArranger = new ScatteredArranger(model.ResourceName, arranger.ColorType, arranger.Layout, message.Width, message.Height, arranger.ElementPixelSize.Width, arranger.ElementPixelSize.Height);
+                var source = new Point(message.ElementX, message.ElementY);
+                var dest = new Point(0, 0);
+
+                var result = ElementCopier.CopyElements(arranger, newArranger, source, dest, message.Width, message.Height);
+
+                var node = _treeService.AddResource(parentModel, newArranger);
+                SelectedItem = node;
+                IsModified = true;
             }
         }
 
