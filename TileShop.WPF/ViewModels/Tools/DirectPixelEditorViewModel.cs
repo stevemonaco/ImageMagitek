@@ -37,7 +37,6 @@ namespace TileShop.WPF.ViewModels
             _directImage = new DirectImage(_workingArranger);
             ArrangerSource = new DirectImageSource(_directImage, _viewX, _viewY, _viewWidth, _viewHeight);
 
-            HasArranger = true;
             DisplayName = $"Pixel Editor - {_workingArranger.Name}";
 
             PrimaryColor = new ColorRgba32(255, 255, 255, 255);

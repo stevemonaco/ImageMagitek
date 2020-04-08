@@ -72,10 +72,10 @@ namespace TileShop.WPF.ViewModels
 
             DisplayName = $"Pixel Editor - {_workingArranger.Name}";
 
+            CreateGridlines();
             ActivePalette = Palettes.First();
             PrimaryColor = 0;
             SecondaryColor = 1;
-            CreateGridlines();
             NotifyOfPropertyChange(() => CanRemapColors);
         }
 

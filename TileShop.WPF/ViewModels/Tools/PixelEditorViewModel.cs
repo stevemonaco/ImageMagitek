@@ -39,13 +39,6 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _redoHistory, value);
         }
 
-        private bool _hasArranger;
-        public bool HasArranger
-        {
-            get => _hasArranger;
-            set => SetAndNotify(ref _hasArranger, value);
-        }
-
         private bool _isDrawing;
         public bool IsDrawing
         {
@@ -83,8 +76,6 @@ namespace TileShop.WPF.ViewModels
 
         public RelayCommand<TColor> SetPrimaryColorCommand { get; }
         public RelayCommand<TColor> SetSecondaryColorCommand { get; }
-
-        public override bool CanShowGridlines => HasArranger;
 
         public PixelEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) :
             base(events, windowManager, paletteService)
