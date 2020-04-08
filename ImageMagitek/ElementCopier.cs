@@ -20,8 +20,8 @@ namespace ImageMagitek
 
             if (source.ElementPixelSize != dest.ElementPixelSize)
                 return new MagitekResult.Failed($"Source arranger '{dest.Name}' with element size ({source.ElementPixelSize.Width}, {source.ElementPixelSize.Height}) does not match destination arranger '{dest.Name}' with element size ({dest.ElementPixelSize.Width}, {dest.ElementPixelSize.Height})");
-
-            if (dest.Layout != ArrangerLayout.Tiled)
+            
+            if (dest.Layout != ArrangerLayout.Tiled && (copyWidth != 1 || copyHeight != 1))
                 return new MagitekResult.Failed($"Destination arranger '{dest.Name}' is not a tiled layout");
 
             if (source.ColorType != dest.ColorType)

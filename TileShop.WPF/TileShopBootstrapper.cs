@@ -28,15 +28,13 @@ namespace TileShop.WPF
             ReadConfiguration("appsettings.json", builder);
             ReadPalettes("pal", builder);
             ReadCodecs("codecs", builder);
+            ConfigureTreeService(Path.Combine("schema", "GameDescriptorSchema.xsd"), builder);
             ConfigureServices(builder);
             ConfigureJotTracker(builder);
         }
 
         private void ConfigureServices(ContainerBuilder builder)
         {
-            var projectService = new ProjectTreeService(_codecService);
-            builder.RegisterInstance<IProjectTreeService>(projectService);
-
             builder.RegisterType<FileSelectService>().As<IFileSelectService>();
             builder.RegisterType<UserPromptService>().As<IUserPromptService>();
 
@@ -49,6 +47,12 @@ namespace TileShop.WPF
 
             foreach (var vmType in vmTypes)
                 builder.RegisterType(vmType).OnActivated(x => _tracker.Track(x));
+        }
+
+        private void ConfigureTreeService(string schemaFileName, ContainerBuilder builder)
+        {
+            var projectService = new ProjectTreeService(schemaFileName, _codecService);
+            builder.RegisterInstance<IProjectTreeService>(projectService);
         }
 
         private void ConfigureLogging(string logName, ContainerBuilder builder)

@@ -40,7 +40,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public bool IsLinearLayout => _workingArranger?.Layout == ArrangerLayout.Single;
+        public bool IsSingleLayout => _workingArranger?.Layout == ArrangerLayout.Single;
         public bool IsTiledLayout => _workingArranger?.Layout == ArrangerLayout.Tiled;
 
         public virtual bool CanShowGridlines => _workingArranger?.Layout == ArrangerLayout.Tiled;
@@ -95,6 +95,9 @@ namespace TileShop.WPF.ViewModels
                 if (Overlay.State == OverlayState.Selected)
                 {
                     var rect = Overlay.SelectionRect;
+                    if (rect.SnappedWidth == 0 || rect.SnappedHeight == 0)
+                        return false;
+
                     var elems = _workingArranger.EnumerateElementsByPixel(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
                     return !elems.Any(x => x.DataFile is null || x.Codec is BlankIndexedCodec || x.Codec is BlankDirectCodec);
                 }
@@ -155,8 +158,17 @@ namespace TileShop.WPF.ViewModels
 
         public virtual void Closing() { }
 
+        public virtual void RequestEditSelection()
+        {
+            if (CanEditSelection)
+                EditSelection();
+        }
+
         public virtual void EditSelection()
         {
+            if (!CanEditSelection)
+                return;
+
             ArrangerTransferModel transferModel;
             var rect = Overlay.SelectionRect;
 
@@ -176,6 +188,14 @@ namespace TileShop.WPF.ViewModels
             var editEvent = new EditArrangerPixelsEvent(transferModel);
             _events.PublishOnUIThread(editEvent);
             CancelOverlay();
+        }
+
+        public virtual void SelectAll()
+        {
+            CancelOverlay();
+            Overlay.StartSelection(_workingArranger, SnapMode, 0, 0);
+            Overlay.UpdateSelectionEndPoint(_workingArranger.ArrangerPixelSize.Width, _workingArranger.ArrangerPixelSize.Height);
+            Overlay.CompleteSelection();
         }
 
         public virtual void CancelOverlay()
@@ -314,7 +334,11 @@ namespace TileShop.WPF.ViewModels
         public virtual void OnMouseUp(object sender, MouseCaptureArgs e)
         {
             if (Overlay.State == OverlayState.Selecting)
+            {
                 Overlay.CompleteSelection();
+                if (Overlay.SelectionRect.SnappedWidth == 0 || Overlay.SelectionRect.SnappedHeight == 0)
+                    Overlay.Cancel();
+            }
 
             NotifyOfPropertyChange(() => CanEditSelection);
         }
@@ -330,12 +354,12 @@ namespace TileShop.WPF.ViewModels
             {
                 // Start drag for paste (Handled by DragDrop in View)
             }
-            else if ((Overlay.State == OverlayState.Selected || Overlay.State == OverlayState.Pasted || Overlay.State == OverlayState.Pasting) && 
-                e.RightButton)
-            {
-                CancelOverlay();
-                NotifyOfPropertyChange(() => CanEditSelection);
-            }
+            //else if ((Overlay.State == OverlayState.Selected || Overlay.State == OverlayState.Pasted || Overlay.State == OverlayState.Pasting) && 
+            //    e.RightButton)
+            //{
+            //    CancelOverlay();
+            //    NotifyOfPropertyChange(() => CanEditSelection);
+            //}
             else if (e.LeftButton)
             {
                 Overlay.StartSelection(_workingArranger, SnapMode, e.X / Zoom, e.Y / Zoom);

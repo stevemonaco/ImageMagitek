@@ -253,6 +253,10 @@ namespace TileShop.WPF.ViewModels
             if (model.X % _workingArranger.ElementPixelSize.Width != 0 || model.Y % _workingArranger.ElementPixelSize.Height != 0)
                 return false;
 
+            // Cannot copy into a single arranger
+            if (_workingArranger.Layout == ArrangerLayout.Single)
+                return false;
+
             return true;
         }
 

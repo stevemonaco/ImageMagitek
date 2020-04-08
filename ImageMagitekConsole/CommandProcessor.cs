@@ -80,7 +80,7 @@ namespace ImageMagitekConsole
             if (arranger.ColorType == PixelColorType.Indexed)
             {
                 var image = new IndexedImage(arranger, _defaultPalette);
-                image.ImportImage(imageFileName, new ImageFileAdapter());
+                image.ImportImage(imageFileName, new ImageFileAdapter(), ColorMatchStrategy.Exact);
                 image.SaveImage();
             }
             else if (arranger.ColorType == PixelColorType.Direct)

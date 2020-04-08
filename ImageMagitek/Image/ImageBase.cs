@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ImageMagitek.Colors;
+using System;
 using System.Collections.Generic;
 
 namespace ImageMagitek
@@ -24,7 +25,6 @@ namespace ImageMagitek
         public abstract void Render();
         public abstract void SaveImage();
         public abstract void ExportImage(string imagePath, IImageFileAdapter adapter);
-        public abstract void ImportImage(string imagePath, IImageFileAdapter adapter);
 
         public virtual TPixel GetPixel(int x, int y)
         {

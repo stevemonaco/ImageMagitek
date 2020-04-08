@@ -17,6 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ColorMinePortable" Version="2.0.1" />
     <PackageReference Include="Monaco.PathTree" Version="0.3.0" />
     <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="OneOf" Version="2.1.151" />

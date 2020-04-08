@@ -17,30 +17,35 @@ namespace ImageMagitek.Project
     public class XmlGameDescriptorReader : IGameDescriptorReader
     {
         public string DescriptorVersion => "0.8";
-        private ICodecFactory _codecFactory;
 
-        public XmlGameDescriptorReader(ICodecFactory CodecFactory)
+        private readonly ICodecFactory _codecFactory;
+        private string _baseDirectory;
+        private XmlSchemaSet _schemas = new XmlSchemaSet();
+
+        public XmlGameDescriptorReader(string schemaFileName, ICodecFactory CodecFactory)
         {
             _codecFactory = CodecFactory;
+
+            if (!string.IsNullOrWhiteSpace(schemaFileName))
+            {
+                using var schemaStream = File.OpenRead(schemaFileName);
+                _schemas.Add("", XmlReader.Create(schemaStream));
+            }
         }
 
-        public IPathTree<IProjectResource> ReadProject(string fileName, string baseDirectory)
+        public IPathTree<IProjectResource> ReadProject(string projectFileName)
         {
-            if (string.IsNullOrWhiteSpace(fileName))
-                throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(fileName)}'");
-            if (string.IsNullOrWhiteSpace(baseDirectory))
-                throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(baseDirectory)}'");
+            if (string.IsNullOrWhiteSpace(projectFileName))
+                throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
 
-            using var stream = File.OpenRead(fileName);
-            using var schemaStream = File.OpenRead(Path.Combine(baseDirectory, "schema", "GameDescriptorSchema.xsd"));
+            using var stream = File.OpenRead(projectFileName);
+            _baseDirectory = Path.GetDirectoryName(stream.Name);
 
-            var schemas = new XmlSchemaSet();
-            schemas.Add("", XmlReader.Create(schemaStream));
             var doc = XDocument.Load(stream, LoadOptions.SetLineInfo);
 
             var validationErrors = new List<string>();
 
-            doc.Validate(schemas, (o, e) =>
+            doc.Validate(_schemas, (o, e) =>
             {
                 validationErrors.Add(e.Message);
             });
@@ -49,8 +54,6 @@ namespace ImageMagitek.Project
                 return null;
             
             XElement projectNode = doc.Element("gdf").Element("project");
-
-            Directory.SetCurrentDirectory(baseDirectory);
 
             var projectResource = DeserializeImageProject(projectNode).ToImageProject();
             var tree = new PathTree<IProjectResource>(projectResource.Name, projectResource);
@@ -136,7 +139,7 @@ namespace ImageMagitek.Project
             var model = new DataFileModel
             {
                 Name = element.Attribute("name").Value,
-                Location = element.Attribute("location").Value
+                Location = Path.Combine(_baseDirectory, element.Attribute("location").Value)
             };
 
             return model;
