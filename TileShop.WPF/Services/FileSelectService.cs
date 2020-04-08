@@ -8,19 +8,21 @@ namespace TileShop.WPF.Services
         string GetNewProjectFileNameByUser();
         string GetExistingDataFileNameByUser();
         string GetExportArrangerFileNameByUser(string defaultName);
+        string GetImportArrangerFileNameByUser();
     }
 
     public class FileSelectService : IFileSelectService
     {
         public string GetProjectFileNameByUser()
         {
-            var ofd = new OpenFileDialog();
-
-            ofd.Title = "Select Project File";
-            ofd.ValidateNames = true;
-            ofd.CheckFileExists = true;
-            ofd.AddExtension = true;
-            ofd.Filter = "Project Files|*.xml";
+            var ofd = new OpenFileDialog
+            {
+                Title = "Select Project File",
+                ValidateNames = true,
+                CheckFileExists = true,
+                AddExtension = true,
+                Filter = "Project Files|*.xml"
+            };
 
             if (ofd.ShowDialog().Value)
                 return ofd.FileName;
@@ -30,12 +32,13 @@ namespace TileShop.WPF.Services
 
         public string GetNewProjectFileNameByUser()
         {
-            var sfd = new SaveFileDialog();
-
-            sfd.Title = "Create New Project File";
-            sfd.DefaultExt = ".xml";
-            sfd.Filter = "Project Files|*.xml";
-            sfd.ValidateNames = true;
+            var sfd = new SaveFileDialog
+            {
+                Title = "Create New Project File",
+                DefaultExt = ".xml",
+                Filter = "Project Files|*.xml",
+                ValidateNames = true
+            };
 
             if (sfd.ShowDialog().Value)
                 return sfd.FileName;
@@ -45,11 +48,12 @@ namespace TileShop.WPF.Services
 
         public string GetExistingDataFileNameByUser()
         {
-            var ofd = new OpenFileDialog();
-
-            ofd.Title = "Select File";
-            ofd.ValidateNames = true;
-            ofd.CheckFileExists = true;
+            var ofd = new OpenFileDialog
+            {
+                Title = "Select File",
+                ValidateNames = true,
+                CheckFileExists = true
+            };
 
             if (ofd.ShowDialog().Value)
                 return ofd.FileName;
@@ -59,16 +63,34 @@ namespace TileShop.WPF.Services
 
         public string GetExportArrangerFileNameByUser(string defaultName)
         {
-            var sfd = new SaveFileDialog();
-
-            sfd.FileName = defaultName;
-            sfd.Title = "Export Arranger As";
-            sfd.ValidateNames = true;
-            sfd.DefaultExt = ".bmp";
-            sfd.Filter = "Bitmap Image|*.bmp";
+            var sfd = new SaveFileDialog
+            {
+                FileName = defaultName,
+                Title = "Export Arranger As",
+                ValidateNames = true,
+                DefaultExt = ".png",
+                Filter = "PNG Image|*.png"
+            };
 
             if (sfd.ShowDialog() is true)
                 return sfd.FileName;
+
+            return null;
+        }
+
+        public string GetImportArrangerFileNameByUser()
+        {
+            var ofd = new OpenFileDialog
+            {
+                Title = "Import Image to Arranger",
+                ValidateNames = true,
+                DefaultExt = ".png",
+                Filter = "PNG Image|*.png",
+                CheckFileExists = true
+            };
+
+            if (ofd.ShowDialog().Value)
+                return ofd.FileName;
 
             return null;
         }

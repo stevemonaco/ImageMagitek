@@ -28,10 +28,20 @@ namespace ImageMagitek
         public override void ExportImage(string imagePath, IImageFileAdapter adapter) =>
             adapter.SaveImage(Image, Arranger, _defaultPalette, imagePath);
 
-        public override void ImportImage(string imagePath, IImageFileAdapter adapter)
+        public void ImportImage(string imagePath, IImageFileAdapter adapter, ColorMatchStrategy matchStrategy)
         {
-            var importImage = adapter.LoadImage(imagePath, Arranger, _defaultPalette);
+            var importImage = adapter.LoadImage(imagePath, Arranger, _defaultPalette, matchStrategy);
             importImage.CopyTo(Image, 0);
+        }
+
+        public MagitekResult TryImportImage(string imagePath, IImageFileAdapter adapter, ColorMatchStrategy matchStrategy)
+        {
+            var result = adapter.TryLoadImage(imagePath, Arranger, _defaultPalette, matchStrategy, out var importImage);
+
+            if (result.Value is MagitekResult.Success)
+                importImage.CopyTo(Image, 0);
+
+            return result;
         }
 
         public override void Render()
@@ -138,7 +148,7 @@ namespace ImageMagitek
             var elem = Arranger.GetElementAtPixel(x, y);
             var pal = elem.Palette ?? _defaultPalette;
 
-            var index = pal.GetIndexByNativeColor(color, true);
+            var index = pal.GetIndexByNativeColor(color, ColorMatchStrategy.Exact);
             Image[x + Width * y] = index;
         }
 

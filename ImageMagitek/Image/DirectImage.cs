@@ -21,7 +21,7 @@ namespace ImageMagitek
         public override void ExportImage(string imagePath, IImageFileAdapter adapter) =>
             adapter.SaveImage(Image, Width, Height, imagePath);
 
-        public override void ImportImage(string imagePath, IImageFileAdapter adapter)
+        public void ImportImage(string imagePath, IImageFileAdapter adapter)
         {
             var importImage = adapter.LoadImage(imagePath);
             importImage.CopyTo(Image, 0);

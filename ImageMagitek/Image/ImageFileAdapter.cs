@@ -10,7 +10,8 @@ namespace ImageMagitek
     {
         void SaveImage(byte[] image, Arranger arranger, Palette defaultPalette, string imagePath);
         void SaveImage(ColorRgba32[] image, int width, int height, string imagePath);
-        byte[] LoadImage(string imagePath, Arranger arranger, Palette defaultPalette);
+        byte[] LoadImage(string imagePath, Arranger arranger, Palette defaultPalette, ColorMatchStrategy matchStrategy);
+        MagitekResult TryLoadImage(string imagePath, Arranger arranger, Palette defaultPalette, ColorMatchStrategy matchStrategy, out byte[] image);
         ColorRgba32[] LoadImage(string imagePath);
     }
 
@@ -59,7 +60,7 @@ namespace ImageMagitek
             outputImage.SaveAsPng(outputStream);
         }
 
-        public byte[] LoadImage(string imagePath, Arranger arranger, Palette defaultPalette)
+        public byte[] LoadImage(string imagePath, Arranger arranger, Palette defaultPalette, ColorMatchStrategy matchStrategy)
         {
             using var inputImage = SixLabors.ImageSharp.Image.Load(imagePath);
             var width = inputImage.Width;
@@ -75,12 +76,50 @@ namespace ImageMagitek
                 {
                     var pal = arranger.GetElementAtPixel(x, y).Palette ?? defaultPalette;
                     var color = new ColorRgba32(span[index].PackedValue);
-                    var palIndex = pal.GetIndexByNativeColor(color, true);
+                    var palIndex = pal.GetIndexByNativeColor(color, matchStrategy);
                     outputImage[index] = palIndex;
                 }
             }
 
             return outputImage;
+        }
+
+        public MagitekResult TryLoadImage(string imagePath, Arranger arranger, Palette defaultPalette, ColorMatchStrategy matchStrategy, out byte[] image)
+        {
+            using var inputImage = SixLabors.ImageSharp.Image.Load(imagePath);
+            var width = inputImage.Width;
+            var height = inputImage.Height;
+
+            if (width != arranger.ArrangerPixelSize.Width || height != arranger.ArrangerPixelSize.Height)
+            {
+                image = default;
+                return new MagitekResult.Failed($"Arranger dimensions ({arranger.ArrangerPixelSize.Width}, {arranger.ArrangerPixelSize.Height})" +
+                    $" do not match image dimensions ({width}, {height})");
+            }
+
+            image = new byte[width * height];
+            var span = inputImage.GetPixelSpan();
+            int index = 0;
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++, index++)
+                {
+                    var pal = arranger.GetElementAtPixel(x, y).Palette ?? defaultPalette;
+                    var color = new ColorRgba32(span[index].PackedValue);
+
+                    if (pal.TryGetIndexByNativeColor(color, matchStrategy, out var palIndex))
+                    {
+                        image[index] = palIndex;
+                    }
+                    else
+                    {
+                        return new MagitekResult.Failed($"Could not match image color (R: {color.R}, G: {color.G}, B: {color.B}, A: {color.A}) within palette '{pal.Name}'");
+                    }
+                }
+            }
+
+            return MagitekResult.SuccessResult;
         }
 
         public ColorRgba32[] LoadImage(string imagePath)

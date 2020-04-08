@@ -95,6 +95,9 @@ namespace TileShop.WPF.ViewModels
                 if (Overlay.State == OverlayState.Selected)
                 {
                     var rect = Overlay.SelectionRect;
+                    if (rect.SnappedWidth == 0 || rect.SnappedHeight == 0)
+                        return false;
+
                     var elems = _workingArranger.EnumerateElementsByPixel(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
                     return !elems.Any(x => x.DataFile is null || x.Codec is BlankIndexedCodec || x.Codec is BlankDirectCodec);
                 }
@@ -163,6 +166,9 @@ namespace TileShop.WPF.ViewModels
 
         public virtual void EditSelection()
         {
+            if (!CanEditSelection)
+                return;
+
             ArrangerTransferModel transferModel;
             var rect = Overlay.SelectionRect;
 
@@ -328,7 +334,11 @@ namespace TileShop.WPF.ViewModels
         public virtual void OnMouseUp(object sender, MouseCaptureArgs e)
         {
             if (Overlay.State == OverlayState.Selecting)
+            {
                 Overlay.CompleteSelection();
+                if (Overlay.SelectionRect.SnappedWidth == 0 || Overlay.SelectionRect.SnappedHeight == 0)
+                    Overlay.Cancel();
+            }
 
             NotifyOfPropertyChange(() => CanEditSelection);
         }

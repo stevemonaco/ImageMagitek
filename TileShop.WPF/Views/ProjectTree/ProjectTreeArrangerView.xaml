@@ -38,6 +38,11 @@
                         CommandParameter="{Binding}"
                         Header="Export As..." />
                     <MenuItem
+                        Command="{s:Action ImportImageAs}"
+                        CommandParameter="{Binding}"
+                        Header="Import From..." />
+                    <Separator />
+                    <MenuItem
                         Command="{s:Action RequestRemoveNode}"
                         CommandParameter="{Binding}"
                         Header="Remove" />

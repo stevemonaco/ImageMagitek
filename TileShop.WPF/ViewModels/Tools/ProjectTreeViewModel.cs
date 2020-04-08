@@ -114,7 +114,7 @@ namespace TileShop.WPF.ViewModels
             if (nodeModel is ArrangerNodeViewModel arrNodeModel)
             {
                 var arranger = arrNodeModel.Node.Value as ScatteredArranger;
-                var exportFileName = _fileSelect.GetExportArrangerFileNameByUser($"{arranger.Name}.bmp");
+                var exportFileName = _fileSelect.GetExportArrangerFileNameByUser($"{arranger.Name}.png");
 
                 if (exportFileName is object)
                 {
@@ -129,6 +129,36 @@ namespace TileShop.WPF.ViewModels
                         image.ExportImage(exportFileName, new ImageFileAdapter());
                     }
                 }
+            }
+        }
+
+        public void ImportImageAs(TreeNodeViewModel nodeModel)
+        {
+            if (nodeModel is ArrangerNodeViewModel arrNodeModel)
+            {
+                //var arranger = arrNodeModel.Node.Value as ScatteredArranger;
+                //var importFileName = _fileSelect.GetImportArrangerFileNameByUser();
+
+                //if (importFileName is object)
+                //{
+                //    if (arranger.ColorType == PixelColorType.Indexed)
+                //    {
+                //        var image = new IndexedImage(arranger, _paletteService.DefaultPalette);
+                //        image.ImportImage(importFileName, new ImageFileAdapter(), ColorMatchStrategy.Exact);
+                //        image.SaveImage();
+                //    }
+                //    else if (arranger.ColorType == PixelColorType.Direct)
+                //    {
+                //        var image = new DirectImage(arranger);
+                //        image.ImportImage(importFileName, new ImageFileAdapter());
+                //        image.SaveImage();
+                //    }
+                //}
+
+                var arranger = arrNodeModel.Node.Value as ScatteredArranger;
+                var model = new ImportImageViewModel(arranger, _paletteService, _fileSelect);
+
+                _windowManager.ShowDialog(model);
             }
         }
 
@@ -298,9 +328,15 @@ namespace TileShop.WPF.ViewModels
 
                 var result = ElementCopier.CopyElements(arranger, newArranger, source, dest, message.Width, message.Height);
 
-                var node = _treeService.AddResource(parentModel, newArranger);
-                SelectedItem = node;
-                IsModified = true;
+                result.Switch(
+                    success =>
+                    {
+                        var node = _treeService.AddResource(parentModel, newArranger);
+                        SelectedItem = node;
+                        IsModified = true;
+                    },
+                    fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Error")
+                );
             }
         }
 
