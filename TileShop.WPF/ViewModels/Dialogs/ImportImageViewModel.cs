@@ -139,7 +139,7 @@ namespace TileShop.WPF.ViewModels
                 fail =>
                 {
                     CanImport = false;
-                    ImageFileName = string.Empty;
+                    ImageFileName = fileName;
                     ImportedSource = null;
                     ImportError = fail.Reason;
                 });
@@ -150,9 +150,9 @@ namespace TileShop.WPF.ViewModels
 
         public void ConfirmImport()
         {
-            if (IsTiledArranger)
+            if (_arranger.ColorType == PixelColorType.Indexed)
                 _importedIndexed.SaveImage();
-            else if (IsSingleArranger)
+            else if (_arranger.ColorType == PixelColorType.Direct)
                 _importedDirect.SaveImage();
 
             RequestClose(true);
