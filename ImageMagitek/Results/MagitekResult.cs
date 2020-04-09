@@ -29,27 +29,4 @@ namespace ImageMagitek
             public Failed(string reason) => Reason = reason;
         }
     }
-
-    //public enum ImageCopyOperation { None, ExactIndex, RemapByPalette, RemapByAnyIndex }
-    //public abstract class ImageCopyResult<TCopyOperation> : 
-    //    OneOfBase<ImageCopyResult<TImage, TCopyOperation>.Success, ImageCopyResult<TImage, TCopyOperation>.Failed>
-    //{
-    //    public class Success : ImageCopyResult<TImage, TCopyOperation>
-    //    {
-    //        public TImage Result { get; }
-    //        public TCopyOperation Operation { get; }
-
-    //        public Success(TImage result, TCopyOperation operation)
-    //        {
-    //            Result = result;
-    //            Operation = operation;
-    //        }
-    //    }
-
-    //    public class Failed : ImageCopyResult<TImage, TCopyOperation>
-    //    {
-    //        public string Reason { get; }
-    //        public Failed(string reason) => Reason = reason;
-    //    }
-    //}
 }
