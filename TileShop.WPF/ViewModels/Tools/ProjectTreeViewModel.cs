@@ -14,6 +14,7 @@ using ImageMagitek.Colors;
 using TileShop.Shared.Services;
 using Jot;
 using Point = System.Drawing.Point;
+using System.Collections.Generic;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -392,9 +393,20 @@ namespace TileShop.WPF.ViewModels
         public void OpenProject(string projectFileName)
         {
             ProjectRoot.Clear();
-            var project = _treeService.OpenProject(projectFileName);
-            ProjectRoot.Add(project);
-            ProjectFileName = projectFileName;
+            var result = _treeService.OpenProject(projectFileName);
+
+            result.Switch(
+                success =>
+                {
+                    ProjectRoot.Add(new ImageProjectNodeViewModel(_treeService.Tree.Root));
+                    ProjectFileName = projectFileName;
+                },
+                fail =>
+                {
+                    var message = $"Project '{projectFileName}' contained {fail.Reasons.Count} errors{Environment.NewLine}" +
+                        string.Join(Environment.NewLine, fail.Reasons);
+                    _windowManager.ShowMessageBox(message, "Project Validation Error");
+                });
         }
 
         public void CloseProject() => UnloadProject();

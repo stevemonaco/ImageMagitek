@@ -15,10 +15,10 @@ namespace TileShop.WPF.Services
 {
     public interface IProjectTreeService
     {
-        public IPathTree<IProjectResource> Tree { get; }
+        IPathTree<IProjectResource> Tree { get; }
 
         ImageProjectNodeViewModel NewProject(string projectName);
-        ImageProjectNodeViewModel OpenProject(string projectFileName);
+        MagitekResults<IPathTree<IProjectResource>> OpenProject(string projectFileName);
         bool SaveProject(string projectFileName);
         void UnloadProject();
 
@@ -51,15 +51,19 @@ namespace TileShop.WPF.Services
             return new ImageProjectNodeViewModel(Tree.Root);
         }
 
-        public ImageProjectNodeViewModel OpenProject(string projectFileName)
+        public MagitekResults<IPathTree<IProjectResource>> OpenProject(string projectFileName)
         {
             if (string.IsNullOrWhiteSpace(projectFileName))
                 throw new ArgumentException($"{nameof(OpenProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
 
             CloseResources();
             var deserializer = new XmlGameDescriptorReader(_schemaFileName, _codecService.CodecFactory);
-            Tree = deserializer.ReadProject(projectFileName);
-            return new ImageProjectNodeViewModel(Tree.Root);
+            var result = deserializer.ReadProject(projectFileName);
+
+            if (result.Value is MagitekResults<IPathTree<IProjectResource>>.Success success)
+                Tree = success.Result;
+
+            return result;
         }
 
         public bool SaveProject(string projectFileName)

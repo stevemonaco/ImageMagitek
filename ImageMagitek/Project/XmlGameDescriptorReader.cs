@@ -33,7 +33,7 @@ namespace ImageMagitek.Project
             }
         }
 
-        public IPathTree<IProjectResource> ReadProject(string projectFileName)
+        public MagitekResults<IPathTree<IProjectResource>> ReadProject(string projectFileName)
         {
             if (string.IsNullOrWhiteSpace(projectFileName))
                 throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
@@ -51,7 +51,7 @@ namespace ImageMagitek.Project
             });
 
             if (validationErrors.Any())
-                return null;
+                return new MagitekResults<IPathTree<IProjectResource>>.Failed(validationErrors);
             
             XElement projectNode = doc.Element("gdf").Element("project");
 
@@ -120,7 +120,7 @@ namespace ImageMagitek.Project
                 tree.Add(path, arranger);
             }
 
-            return tree;
+            return new MagitekResults<IPathTree<IProjectResource>>.Success(tree);
         }
 
         private ImageProjectModel DeserializeImageProject(XElement element)

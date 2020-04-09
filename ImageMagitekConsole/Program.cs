@@ -6,14 +6,17 @@ using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
+using Monaco.PathTree;
 
 namespace ImageMagitekConsole
 {
+    public enum ExitCode { Success = 0, InvalidCommandArguments = -1, ProjectValidationError = -2 }
+
     class Program
     {
         static readonly HashSet<string> Commands = new HashSet<string> { "export", "exportall", "import", "importall", "print", "resave" };
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             Console.WriteLine("ImageMagitek v0.06");
             if (args.Length < 2)
@@ -28,7 +31,7 @@ namespace ImageMagitekConsole
             if (!Commands.Contains(command))
             {
                 Console.WriteLine($"Invalid command {command}");
-                return;
+                return (int) ExitCode.InvalidCommandArguments;
             }
 
             string projectRoot = null;
@@ -64,7 +67,23 @@ namespace ImageMagitekConsole
 
             var schemaFileName = Path.Combine(Directory.GetCurrentDirectory(), "schema", "GameDescriptorValidator.xsd");
             var deserializer = new XmlGameDescriptorReader(schemaFileName, new CodecFactory(formats, defaultPalette));
-            var tree = deserializer.ReadProject(projectFileName);
+
+            //IPathTree<IProjectResource> tree = default;
+            var result = deserializer.ReadProject(projectFileName);
+
+            IPathTree<IProjectResource> tree = result.Match(
+                success => success.Result,
+                fail =>
+                {
+                    Console.WriteLine($"'{projectFileName}' could not be parsed and contained {fail.Reasons.Count} errors");
+                    foreach (var error in fail.Reasons)
+                        Console.WriteLine(error);
+                    return default;
+                }
+                );
+
+            if (tree is null)
+                return (int) ExitCode.ProjectValidationError;
 
             var processor = new CommandProcessor(tree, defaultPalette);
 
@@ -92,6 +111,8 @@ namespace ImageMagitekConsole
                     processor.ResaveProject(newFileName);
                     break;
             }
+
+            return (int) ExitCode.Success;
         }
     }
 }
