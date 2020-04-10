@@ -110,9 +110,6 @@ namespace ImageMagitek.Codec
                 else // Create a default rowpixelpattern
                 {
                     rowPixelPattern = new int[1];
-
-                    //for (int i = 0; i < format.Width; i++)
-                    //    rowPixelPattern[i] = i;
                 }
 
                 ImageProperty ip = new ImageProperty(int.Parse(image.colordepth), bool.Parse(image.rowinterlace), rowPixelPattern);
