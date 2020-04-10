@@ -7,10 +7,12 @@
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
+    Title="Name Resource"
     d:DesignHeight="450"
     d:DesignWidth="800"
     FocusManager.FocusedElement="{Binding ElementName=nameBox}"
     SizeToContent="WidthAndHeight"
+    TitleCharacterCasing="Normal"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
