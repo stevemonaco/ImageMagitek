@@ -14,7 +14,9 @@ namespace ImageMagitekConsole
 
     class Program
     {
-        static readonly HashSet<string> Commands = new HashSet<string> { "export", "exportall", "import", "importall", "print", "resave" };
+        static readonly HashSet<string> _commands = new HashSet<string> { "export", "exportall", "import", "importall", "print", "resave" };
+        static readonly string _projectSchemaFileName = Path.Combine("schema", "GameDescriptorSchema.xsd");
+        static readonly string _codecSchemaFileName = Path.Combine("schema", "CodecSchema.xsd");
 
         static int Main(string[] args)
         {
@@ -28,7 +30,7 @@ namespace ImageMagitekConsole
             string projectFileName = args[0];
 
             var command = args[1].ToLower();
-            if (!Commands.Contains(command))
+            if (!_commands.Contains(command))
             {
                 Console.WriteLine($"Invalid command {command}");
                 return (int) ExitCode.InvalidCommandArguments;
@@ -46,11 +48,19 @@ namespace ImageMagitekConsole
             // Load default graphic formats and palettes
             var codecPath = Path.Combine(Directory.GetCurrentDirectory(), "codecs");
             var formats = new Dictionary<string, GraphicsFormat>();
-            var serializer = new XmlGraphicsFormatReader();
+            var serializer = new XmlGraphicsFormatReader(_codecSchemaFileName);
             foreach (var formatFileName in Directory.GetFiles(codecPath).Where(x => x.EndsWith(".xml")))
             {
-                var format = serializer.LoadFromFile(formatFileName);
-                formats.Add(format.Name, format);
+                var codecResult = serializer.LoadFromFile(formatFileName);
+                codecResult.Switch(success =>
+                {
+                    formats.Add(success.Result.Name, success.Result);
+                },
+                fail =>
+                {
+                    Console.WriteLine($"Codec '{formatFileName}' contained {fail.Reasons.Count} error(s):");
+                    Console.WriteLine(string.Join(Environment.NewLine, fail.Reasons));
+                });
             }
 
             var palPath = Path.Combine(Directory.GetCurrentDirectory(), "pal");
@@ -69,9 +79,9 @@ namespace ImageMagitekConsole
             var deserializer = new XmlGameDescriptorReader(schemaFileName, new CodecFactory(formats, defaultPalette));
 
             //IPathTree<IProjectResource> tree = default;
-            var result = deserializer.ReadProject(projectFileName);
+            var projectResult = deserializer.ReadProject(projectFileName);
 
-            IPathTree<IProjectResource> tree = result.Match(
+            IPathTree<IProjectResource> tree = projectResult.Match(
                 success => success.Result,
                 fail =>
                 {

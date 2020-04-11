@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 
@@ -11,30 +12,48 @@ namespace TileShop.Shared.Services
         ICodecFactory CodecFactory { get; set; }
 
         IEnumerable<string> GetSupportedCodecNames();
-        void LoadXmlCodecs(string codecsPath);
+        MagitekResults LoadXmlCodecs(string codecsPath);
     }
 
     public class CodecService : ICodecService
     {
-        private Palette _defaultPalette;
         public ICodecFactory CodecFactory { get; set; }
 
-        public CodecService(Palette defaultPalette)
+        private readonly string _schemaFileName;
+        private readonly Palette _defaultPalette;
+
+        public CodecService(string schemaFileName, Palette defaultPalette)
         {
+            _schemaFileName = schemaFileName;
             _defaultPalette = defaultPalette;
         }
 
-        public void LoadXmlCodecs(string codecsPath)
+        public MagitekResults LoadXmlCodecs(string codecsPath)
         {
             var formats = new Dictionary<string, GraphicsFormat>();
-            var serializer = new XmlGraphicsFormatReader();
+            var serializer = new XmlGraphicsFormatReader(_schemaFileName);
+            var errors = new List<string>();
+
             foreach (var formatFileName in Directory.GetFiles(codecsPath).Where(x => x.EndsWith(".xml")))
             {
-                var format = serializer.LoadFromFile(formatFileName);
-                formats.Add(format.Name, format);
+                var result = serializer.LoadFromFile(formatFileName);
+
+                result.Switch(success =>
+                    {
+                        formats.Add(success.Result.Name, success.Result);
+                    },
+                    fail =>
+                    {
+                        errors.AddRange(fail.Reasons);
+                    });
             }
 
             CodecFactory = new CodecFactory(formats, _defaultPalette);
+
+            if (errors.Any())
+                return new MagitekResults.Failed(errors);
+            else
+                return MagitekResults.SuccessResults;
         }
 
         public IEnumerable<string> GetSupportedCodecNames() => CodecFactory.GetSupportedCodecNames();

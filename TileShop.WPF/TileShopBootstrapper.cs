@@ -1,18 +1,17 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Windows;
+using Serilog;
 using Stylet;
 using Autofac;
-using TileShop.Shared.Services;
-using TileShop.WPF.Services;
-using TileShop.WPF.ViewModels;
-using Serilog;
-using TileShop.WPF.Configuration;
-using System.Collections.Generic;
-using System.Text.Json;
-using System;
 using Jot;
 using ImageMagitek;
-using System.Windows;
+using TileShop.Shared.Services;
+using TileShop.WPF.Configuration;
+using TileShop.WPF.Services;
+using TileShop.WPF.ViewModels;
 
 namespace TileShop.WPF
 {
@@ -22,13 +21,20 @@ namespace TileShop.WPF
         private IPaletteService _paletteService;
         private ICodecService _codecService;
 
+        private readonly string _logFileName = "errorlog.txt";
+        private readonly string _configName = "appsettings.json";
+        private readonly string _palPath = "pal";
+        private readonly string _codecPath = "codecs";
+        private readonly string _projectSchemaName = Path.Combine("schema", "GameDescriptorSchema.xsd");
+        private readonly string _codecSchemaName = Path.Combine("schema", "CodecSchema.xsd");
+
         protected override void ConfigureIoC(ContainerBuilder builder)
         {
-            ConfigureLogging("errorlog.txt", builder);
-            ReadConfiguration("appsettings.json", builder);
-            ReadPalettes("pal", builder);
-            ReadCodecs("codecs", builder);
-            ConfigureTreeService(Path.Combine("schema", "GameDescriptorSchema.xsd"), builder);
+            ConfigureLogging(_logFileName, builder);
+            ReadConfiguration(_configName, builder);
+            ReadPalettes(_palPath, builder);
+            ReadCodecs(_codecPath, _codecSchemaName, builder);
+            ConfigureTreeService(_projectSchemaName, builder);
             ConfigureServices(builder);
             ConfigureJotTracker(builder);
         }
@@ -115,14 +121,20 @@ namespace TileShop.WPF
             _paletteService = new PaletteService();
             _paletteService.LoadJsonPalettes(palettesPath);
             _paletteService.DefaultPalette = _paletteService.Palettes.Where(x => x.Name.Contains("DefaultRgba32")).First();
-            builder.RegisterInstance<IPaletteService>(_paletteService);
+            builder.RegisterInstance(_paletteService);
         }
 
-        private void ReadCodecs(string codecsPath, ContainerBuilder builder)
+        private void ReadCodecs(string codecsPath, string schemaFileName, ContainerBuilder builder)
         {
-            _codecService = new CodecService(_paletteService.DefaultPalette);
-            _codecService.LoadXmlCodecs(codecsPath);
-            builder.RegisterInstance<ICodecService>(_codecService);
+            _codecService = new CodecService(schemaFileName, _paletteService.DefaultPalette);
+            var result = _codecService.LoadXmlCodecs(codecsPath);
+
+            if (result.Value is MagitekResults.Failed fail)
+            {
+                Log.Error(string.Join(Environment.NewLine, fail.Reasons));
+            }
+
+            builder.RegisterInstance(_codecService);
         }
 
         private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
