@@ -32,14 +32,14 @@ namespace ImageMagitek.Codec
 
         protected ColorRgba32[,] _nativeBuffer;
 
-        public abstract ColorRgba32[,] DecodeElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer);
+        public abstract ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer);
 
-        public abstract ReadOnlySpan<byte> EncodeElement(ArrangerElement el, ColorRgba32[,] imageBuffer);
+        public abstract ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, ColorRgba32[,] imageBuffer);
 
         /// <summary>
         /// Reads a contiguous block of encoded pixel data
         /// </summary>
-        public virtual ReadOnlySpan<byte> ReadElement(ArrangerElement el)
+        public virtual ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
         {
             var buffer = new byte[(StorageSize + 7) / 8];
             var bitStream = BitStream.OpenRead(buffer, StorageSize);
@@ -59,7 +59,7 @@ namespace ImageMagitek.Codec
         /// <summary>
         /// Writes a contiguous block of encoded pixel data
         /// </summary>
-        public virtual void WriteElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+        public virtual void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
         {
             // TODO: Add bit granularity to seek and read
             var fs = el.DataFile.Stream;

@@ -33,7 +33,7 @@ namespace ImageMagitek.Codec
             _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
         }
 
-        public override ColorRgba32[,] DecodeElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+        public override ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
         {
             if (encodedBuffer.Length * 8 < StorageSize)
                 throw new ArgumentException(nameof(encodedBuffer));
@@ -55,7 +55,7 @@ namespace ImageMagitek.Codec
             return NativeBuffer;
         }
 
-        public override ReadOnlySpan<byte> EncodeElement(ArrangerElement el, ColorRgba32[,] imageBuffer)
+        public override ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, ColorRgba32[,] imageBuffer)
         {
             if (imageBuffer.GetLength(0) != Width || imageBuffer.GetLength(1) != Height)
                 throw new ArgumentException(nameof(imageBuffer));

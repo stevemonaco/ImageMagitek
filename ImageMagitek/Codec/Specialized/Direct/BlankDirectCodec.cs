@@ -32,7 +32,7 @@ namespace ImageMagitek.Codec
             _foreignBuffer = Enumerable.Empty<byte>().ToArray();
         }
 
-        public override ColorRgba32[,] DecodeElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+        public override ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
         {
             if (_nativeBuffer?.GetLength(0) != el.Width || _nativeBuffer?.GetLength(1) != el.Height)
             {
@@ -46,8 +46,8 @@ namespace ImageMagitek.Codec
             return NativeBuffer;
         }
 
-        public override ReadOnlySpan<byte> EncodeElement(ArrangerElement el, ColorRgba32[,] imageBuffer) => ForeignBuffer;
-        public override ReadOnlySpan<byte> ReadElement(ArrangerElement el) => ForeignBuffer;
-        public override void WriteElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer) { }
+        public override ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, ColorRgba32[,] imageBuffer) => ForeignBuffer;
+        public override ReadOnlySpan<byte> ReadElement(in ArrangerElement el) => ForeignBuffer;
+        public override void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer) { }
     }
 }

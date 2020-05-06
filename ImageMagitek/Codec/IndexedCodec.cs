@@ -30,13 +30,13 @@ namespace ImageMagitek.Codec
         public virtual byte[,] NativeBuffer => _nativeBuffer;
         protected byte[,] _nativeBuffer;
 
-        public abstract byte[,] DecodeElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer);
-        public abstract ReadOnlySpan<byte> EncodeElement(ArrangerElement el, byte[,] imageBuffer);
+        public abstract byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer);
+        public abstract ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer);
 
         /// <summary>
         /// Reads a contiguous block of encoded pixel data
         /// </summary>
-        public virtual ReadOnlySpan<byte> ReadElement(ArrangerElement el)
+        public virtual ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
         {
             var buffer = new byte[(StorageSize + 7) / 8];
             var bitStream = BitStream.OpenRead(buffer, StorageSize);
@@ -56,7 +56,7 @@ namespace ImageMagitek.Codec
         /// <summary>
         /// Writes a contiguous block of encoded pixel data
         /// </summary>
-        public virtual void WriteElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+        public virtual void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
         {
             // TODO: Add bit granularity to seek and read
             var fs = el.DataFile.Stream;

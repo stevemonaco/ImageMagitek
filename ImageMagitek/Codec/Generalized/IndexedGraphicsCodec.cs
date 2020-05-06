@@ -75,7 +75,7 @@ namespace ImageMagitek.Codec
             _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
         }
 
-        public byte[,] DecodeElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+        public byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
         {
             if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
                 throw new ArgumentException(nameof(encodedBuffer));
@@ -208,7 +208,7 @@ namespace ImageMagitek.Codec
         //            imageBuffer[x, y] = MergedData[pos];
         //}
 
-        public ReadOnlySpan<byte> EncodeElement(ArrangerElement el, byte[,] imageBuffer)
+        public ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer)
         {
             if (imageBuffer.GetLength(0) != Width || imageBuffer.GetLength(1) != Height)
                 throw new ArgumentException(nameof(imageBuffer));
@@ -331,7 +331,7 @@ namespace ImageMagitek.Codec
         /// <summary>
         /// Reads a contiguous block of encoded pixel data
         /// </summary>
-        public virtual ReadOnlySpan<byte> ReadElement(ArrangerElement el)
+        public virtual ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
         {
             var buffer = new byte[(StorageSize + 7) / 8];
             var fs = el.DataFile.Stream;
@@ -347,7 +347,7 @@ namespace ImageMagitek.Codec
         /// <summary>
         /// Writes a contiguous block of encoded pixel data
         /// </summary>
-        public virtual void WriteElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+        public virtual void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
         {
             var fs = el.DataFile.Stream;
             fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);

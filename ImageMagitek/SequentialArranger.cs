@@ -148,7 +148,7 @@ namespace ImageMagitek
         /// <param name="element">Element to be placed into the ElementGrid</param>
         /// <param name="posX">x-coordinate in Element coordinates</param>
         /// <param name="posY">y-coordinate in Element coordinates</param>
-        public override void SetElement(ArrangerElement element, int posX, int posY)
+        public override void SetElement(in ArrangerElement element, int posX, int posY)
         {
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(SetElement)} property '{nameof(ElementGrid)}' was null");
