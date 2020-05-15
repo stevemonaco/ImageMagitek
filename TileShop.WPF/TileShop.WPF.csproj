@@ -19,9 +19,13 @@
 
   <ItemGroup>
     <Compile Remove="Assets\pal\**" />
+    <Compile Remove="Validation\**" />
     <EmbeddedResource Remove="Assets\pal\**" />
+    <EmbeddedResource Remove="Validation\**" />
     <None Remove="Assets\pal\**" />
+    <None Remove="Validation\**" />
     <Page Remove="Assets\pal\**" />
+    <Page Remove="Validation\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,10 +51,6 @@
   <ItemGroup>
     <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
     <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Validation\" />
   </ItemGroup>
 
 </Project>
