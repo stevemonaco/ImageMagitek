@@ -1,5 +1,5 @@
 ﻿<UserControl
-    x:Class="TileShop.WPF.Views.ProjectTreeDataFileView"
+    x:Class="TileShop.WPF.Views.ArrangerNodeView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -12,7 +12,15 @@
     d:DesignWidth="800"
     mc:Ignorable="d">
     <StackPanel Orientation="Horizontal">
-        <Image Source="{StaticResource iconNodeFile}" />
+        <Image
+            Width="12"
+            Height="12"
+            RenderTransformOrigin="0.5,0.5"
+            Source="{StaticResource iconNodeArranger}">
+            <Image.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="-1" />
+            </Image.RenderTransform>
+        </Image>
         <TextBlock Margin="4,0,0,0" Text="{Binding Name}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="PreviewMouseRightButtonDown">
@@ -26,6 +34,15 @@
             <TextBlock.ContextMenu>
                 <ContextMenu>
                     <MenuItem
+                        Command="{s:Action ExportArrangerAs}"
+                        CommandParameter="{Binding}"
+                        Header="Export As..." />
+                    <MenuItem
+                        Command="{s:Action ImportImageAs}"
+                        CommandParameter="{Binding}"
+                        Header="Import From..." />
+                    <Separator />
+                    <MenuItem
                         Command="{s:Action RequestRemoveNode}"
                         CommandParameter="{Binding}"
                         Header="Remove" />
@@ -37,5 +54,4 @@
             </TextBlock.ContextMenu>
         </TextBlock>
     </StackPanel>
-
 </UserControl>

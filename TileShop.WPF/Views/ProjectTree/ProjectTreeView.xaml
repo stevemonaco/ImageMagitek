@@ -32,23 +32,22 @@
             x:Key="treeProjectSelector"
             DataType="x:Type vms:ImageProjectNodeViewModel"
             ItemsSource="{Binding Children, Converter={StaticResource SortedTreeViewSource}}">
-            <v:ProjectTreeImageProjectView />
+            <ContentControl s:View.Model="{Binding}" />
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate
             x:Key="treeFolderSelector"
             DataType="x:Type vms:FolderNodeViewModel"
             ItemsSource="{Binding Children, Converter={StaticResource SortedTreeViewSource}}">
-            <v:ProjectTreeFolderView />
+            <ContentControl s:View.Model="{Binding}" />
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate x:Key="treeArrangerSelector" DataType="x:Type vms:ArrangerNodeViewModel">
-            <v:ProjectTreeArrangerView />
+            <ContentControl s:View.Model="{Binding}" />
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate x:Key="treeDataFileSelector" DataType="x:Type vms:DataFileNodeViewModel">
-            <v:ProjectTreeDataFileView />
+            <ContentControl s:View.Model="{Binding}" />
         </HierarchicalDataTemplate>
         <HierarchicalDataTemplate x:Key="treePaletteSelector" DataType="x:Type vms:PaletteNodeViewModel">
-            <v:ProjectTreePaletteView />
-            <!--  s:View.ActionTarget="{Binding}"  -->
+            <ContentControl s:View.Model="{Binding}" />
         </HierarchicalDataTemplate>
         <sel:ProjectTreeTemplateSelector
             x:Key="projectTreeTemplateSelector"
