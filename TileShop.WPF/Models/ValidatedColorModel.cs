@@ -101,12 +101,7 @@ namespace TileShop.WPF.Models
 
         public bool CanSaveColor
         {
-            get
-            {
-                if (WorkingColor.Color == _foreignColor.Color)
-                    return false;
-                return true;
-            }
+            get => WorkingColor.Color != _foreignColor.Color;
         }
 
         public int Index { get; set; }
