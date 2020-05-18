@@ -184,11 +184,13 @@
                                 Fill="{Binding Converter={StaticResource PaletteEntryToSolidColorBrushConverter}}">
                                 <Rectangle.InputBindings>
                                     <MouseBinding
-                                        Command="{Binding DataContext.SetPrimaryColorCommand, ElementName=pixelEditor}"
+                                        s:View.ActionTarget="{Binding DataContext, ElementName=pixelEditor}"
+                                        Command="{s:Action SetPrimaryColor}"
                                         CommandParameter="{Binding Converter={StaticResource PaletteEntryToIndexConverter}}"
                                         MouseAction="LeftClick" />
                                     <MouseBinding
-                                        Command="{Binding DataContext.SetSecondaryColorCommand, ElementName=pixelEditor}"
+                                        s:View.ActionTarget="{Binding DataContext, ElementName=pixelEditor}"
+                                        Command="{s:Action SetSecondaryColor}"
                                         CommandParameter="{Binding Converter={StaticResource PaletteEntryToIndexConverter}}"
                                         MouseAction="RightClick" />
                                 </Rectangle.InputBindings>

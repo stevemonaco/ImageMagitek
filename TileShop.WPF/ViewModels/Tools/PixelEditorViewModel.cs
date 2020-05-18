@@ -74,14 +74,9 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _secondaryColor, value);
         }
 
-        public RelayCommand<TColor> SetPrimaryColorCommand { get; }
-        public RelayCommand<TColor> SetSecondaryColorCommand { get; }
-
         public PixelEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) :
             base(events, windowManager, paletteService)
         {
-            SetPrimaryColorCommand = new RelayCommand<TColor>(SetPrimaryColor);
-            SetSecondaryColorCommand = new RelayCommand<TColor>(SetSecondaryColor);
             DisplayName = "Pixel Editor";
 
             Zoom = 3;
