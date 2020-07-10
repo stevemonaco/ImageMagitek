@@ -56,7 +56,7 @@
                 Minimum="{Binding MinZoom}"
                 Value="{Binding Zoom}" />
             <ToggleButton IsChecked="{Binding ShowGridlines}" ToolTip="Toggle gridline visibility">
-                <Image Height="20" Source="{StaticResource iconGrid}" />
+                <Image Style="{StaticResource iconGrid}" />
             </ToggleButton>
 
             <Border

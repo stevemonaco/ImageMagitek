@@ -8,7 +8,7 @@
 
     <!--  Editor Icons  -->
     <Style x:Key="iconPencil" TargetType="Image">
-        <!--<Setter Property="Width" Value="12" />-->
+        <Setter Property="Width" Value="20" />
         <Setter Property="Height" Value="20" />
         <Setter Property="Source">
             <Setter.Value>
@@ -26,7 +26,7 @@
     </Style>
 
     <Style x:Key="iconColorPicker" TargetType="Image">
-        <!--<Setter Property="Width" Value="12" />-->
+        <Setter Property="Width" Value="20" />
         <Setter Property="Height" Value="20" />
         <Setter Property="Source">
             <Setter.Value>
@@ -146,7 +146,7 @@
     </Style>
 
     <Style x:Key="iconRemap" TargetType="Image">
-        <!--<Setter Property="Width" Value="20" />-->
+        <Setter Property="Width" Value="20" />
         <Setter Property="Height" Value="20" />
         <Setter Property="Source">
             <Setter.Value>
