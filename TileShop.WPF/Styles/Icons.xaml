@@ -1,5 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <SolidColorBrush x:Key="iconBrush" Color="Black" />
+
     <!--  Editor Icons  -->
     <DrawingImage x:Key="iconPencil">
         <DrawingImage.Drawing>
@@ -144,33 +146,48 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-
     <!--  Tree Node Icons  -->
-    <DrawingImage x:Key="iconNodeProject">
-        <DrawingImage.Drawing>
-            <GeometryDrawing>
-                <GeometryDrawing.Brush>
-                    <SolidColorBrush Color="Black" />
-                </GeometryDrawing.Brush>
-                <GeometryDrawing.Geometry>
-                    M10 12h3V2h-3v10zm-4-2h3V2H6v8zm-4 4h3V2H2v12zm-1 1h13V1H1v14zM14 0H1a1 1 0 00-1 1v14a1 1 0 001 1h13a1 1 0 001-1V1a1 1 0 00-1-1z
-                </GeometryDrawing.Geometry>
-            </GeometryDrawing>
-        </DrawingImage.Drawing>
-    </DrawingImage>
+    <Style x:Key="iconNodeProjectSmall" TargetType="Image">
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Brush="{DynamicResource iconBrush}">
+                            <GeometryDrawing.Geometry>
+                                M10 12h3V2h-3v10zm-4-2h3V2H6v8zm-4 4h3V2H2v12zm-1 1h13V1H1v14zM14 0H1a1 1 0 00-1 1v14a1 1 0 001 1h13a1 1 0 001-1V1a1 1 0 00-1-1z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
-    <DrawingImage x:Key="iconNodeFolder">
-        <DrawingImage.Drawing>
-            <GeometryDrawing>
-                <GeometryDrawing.Brush>
-                    <SolidColorBrush Color="Black" />
-                </GeometryDrawing.Brush>
-                <GeometryDrawing.Geometry>
-                    M625 550q52 0 88.5 -36.5t36.5 -88.5v-333q0 -52 -36.5 -88.5t-88.5 -36.5h-500q-52 0 -88.5 36.5t-36.5 88.5v416q0 52 36.5 88.5t88.5 36.5h167q34 0 58.5 -24.5t24.5 -58.5h250zM125 550q-17 0 -29.5 -12.5t-12.5 -29.5v-83h584q0 17 -12.5 29.5t-29.5 12.5h-250 q-35 0 -59 24.5t-24 58.5h-167zM625 50q17 0 29.5 12.5t12.5 29.5v291h-584v-291q0 -17 12.5 -29.5t29.5 -12.5h500z
-                </GeometryDrawing.Geometry>
-            </GeometryDrawing>
-        </DrawingImage.Drawing>
-    </DrawingImage>
+    <Style x:Key="iconNodeFolderSmall" TargetType="Image">
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Brush="{DynamicResource iconBrush}">
+                            <GeometryDrawing.Geometry>
+                                M625 550q52 0 88.5 -36.5t36.5 -88.5v-333q0 -52 -36.5 -88.5t-88.5 -36.5h-500q-52 0 -88.5 36.5t-36.5 88.5v416q0 52 36.5 88.5t88.5 36.5h167q34 0 58.5 -24.5t24.5 -58.5h250zM125 550q-17 0 -29.5 -12.5t-12.5 -29.5v-83h584q0 17 -12.5 29.5t-29.5 12.5h-250 q-35 0 -59 24.5t-24 58.5h-167zM625 50q17 0 29.5 12.5t12.5 29.5v291h-584v-291q0 -17 12.5 -29.5t29.5 -12.5h500z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <ScaleTransform ScaleX="1" ScaleY="-1" />
+            </Setter.Value>
+        </Setter>
+    </Style>
 
     <DrawingImage x:Key="iconNodeFolderOpen">
         <DrawingImage.Drawing>
@@ -185,46 +202,67 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="iconNodeFile">
-        <DrawingImage.Drawing>
-            <GeometryDrawing>
-                <GeometryDrawing.Brush>
-                    <SolidColorBrush Color="Black" />
-                </GeometryDrawing.Brush>
-                <GeometryDrawing.Geometry>
-                    M4 12h1v1H2v-1h1v-2H2V9h2v3zm8-7.5V14c0 .55-.45 1-1 1H1c-.55 0-1-.45-1-1V2c0-.55.45-1 1-1h7.5L12 4.5zM11 5L8 2H1v12h10V5zM8 4H6v1h1v2H6v1h3V7H8V4zM2 4h3v4H2V4zm1 3h1V5H3v2zm3 2h3v4H6V9zm1 3h1v-2H7v2z
-                </GeometryDrawing.Geometry>
-            </GeometryDrawing>
-        </DrawingImage.Drawing>
-    </DrawingImage>
+    <Style x:Key="iconNodeFileSmall" TargetType="Image">
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Brush="{DynamicResource iconBrush}">
+                            <GeometryDrawing.Geometry>
+                                M4 12h1v1H2v-1h1v-2H2V9h2v3zm8-7.5V14c0 .55-.45 1-1 1H1c-.55 0-1-.45-1-1V2c0-.55.45-1 1-1h7.5L12 4.5zM11 5L8 2H1v12h10V5zM8 4H6v1h1v2H6v1h3V7H8V4zM2 4h3v4H2V4zm1 3h1V5H3v2zm3 2h3v4H6V9zm1 3h1v-2H7v2z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
-    <DrawingImage x:Key="iconNodePalette">
-        <DrawingImage.Drawing>
-            <GeometryDrawing>
-                <GeometryDrawing.Brush>
-                    <SolidColorBrush Color="Black" />
-                </GeometryDrawing.Brush>
-                <GeometryDrawing.Geometry>
-                    M256 64C150.401 64 64 150.401 64 256c0 105.604 86.401 192 192 192 18.136 0 32-13.864 32-32 0-8.531-3.198-16-8.531-21.333-5.333-5.334-8.531-12.803-8.531-21.334 0-18.135 13.864-32 32-32h38.396c58.667 0 106.667-48 106.667-106.666C448 140.802 361.604 64 256 64zM138.667 256c-18.136 0-32-13.864-32-32s13.864-32 32-32c18.135 0 32 13.864 32 32s-13.865 32-32 32zm64-85.333c-18.136 0-32-13.865-32-32 0-18.136 13.864-32 32-32 18.135 0 32 13.864 32 32 0 18.135-13.865 32-32 32zm106.666 0c-18.135 0-32-13.865-32-32 0-18.136 13.865-32 32-32 18.136 0 32 13.864 32 32 0 18.135-13.864 32-32 32zm64 85.333c-18.135 0-32-13.864-32-32s13.865-32 32-32c18.136 0 32 13.864 32 32s-13.864 32-32 32z
-                </GeometryDrawing.Geometry>
-            </GeometryDrawing>
-        </DrawingImage.Drawing>
-    </DrawingImage>
+    <Style x:Key="iconNodePaletteSmall" TargetType="Image">
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Brush="{DynamicResource iconBrush}">
+                            <GeometryDrawing.Geometry>
+                                M256 64C150.401 64 64 150.401 64 256c0 105.604 86.401 192 192 192 18.136 0 32-13.864 32-32 0-8.531-3.198-16-8.531-21.333-5.333-5.334-8.531-12.803-8.531-21.334 0-18.135 13.864-32 32-32h38.396c58.667 0 106.667-48 106.667-106.666C448 140.802 361.604 64 256 64zM138.667 256c-18.136 0-32-13.864-32-32s13.864-32 32-32c18.135 0 32 13.864 32 32s-13.865 32-32 32zm64-85.333c-18.136 0-32-13.865-32-32 0-18.136 13.864-32 32-32 18.135 0 32 13.864 32 32 0 18.135-13.865 32-32 32zm106.666 0c-18.135 0-32-13.865-32-32 0-18.136 13.865-32 32-32 18.136 0 32 13.864 32 32 0 18.135-13.864 32-32 32zm64 85.333c-18.135 0-32-13.864-32-32s13.865-32 32-32c18.136 0 32 13.864 32 32s-13.864 32-32 32z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
-    <DrawingImage x:Key="iconNodeArranger">
-        <DrawingImage.Drawing>
-            <GeometryDrawing>
-                <GeometryDrawing.Brush>
-                    <SolidColorBrush Color="Black" />
-                </GeometryDrawing.Brush>
-                <GeometryDrawing.Geometry>
-                    M167 446q0 104 104 104t104 -104t-104 -104t-104 104zM583 383q33 0 62 -49q41 -74 63 -201h-583l13 42q14 43 44.5 84t67.5 41q43 0 101 -31q20 -11 45 -11q30 0 69 44q46 52 73 68q22 13 45 13zM0 592q0 34 24 58.5t59 24.5h667q34 0 58.5 -24.5t24.5 -58.5v-500 q0 -35 -24.5 -59.5t-58.5 -24.5h-667q-34 0 -58.5 24.5t-24.5 59.5v500zM750 92v500h-667v-500h667z
-                </GeometryDrawing.Geometry>
-            </GeometryDrawing>
-        </DrawingImage.Drawing>
-    </DrawingImage>
+    <Style x:Key="iconNodeArrangerSmall" TargetType="Image">
+        <Setter Property="Width" Value="12" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Brush="{DynamicResource iconBrush}">
+                            <GeometryDrawing.Geometry>
+                                M167 446q0 104 104 104t104 -104t-104 -104t-104 104zM583 383q33 0 62 -49q41 -74 63 -201h-583l13 42q14 43 44.5 84t67.5 41q43 0 101 -31q20 -11 45 -11q30 0 69 44q46 52 73 68q22 13 45 13zM0 592q0 34 24 58.5t59 24.5h667q34 0 58.5 -24.5t24.5 -58.5v-500 q0 -35 -24.5 -59.5t-58.5 -24.5h-667q-34 0 -58.5 24.5t-24.5 59.5v500zM750 92v500h-667v-500h667z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <ScaleTransform ScaleX="1" ScaleY="-1" />
+            </Setter.Value>
+        </Setter>
+    </Style>
 
-    <DrawingImage x:Key="iconNodeFileImage">
+    <!--<DrawingImage x:Key="iconNodeFileImage">
         <DrawingImage.Drawing>
             <GeometryDrawing>
                 <GeometryDrawing.Brush>
@@ -235,6 +273,6 @@
                 </GeometryDrawing.Geometry>
             </GeometryDrawing>
         </DrawingImage.Drawing>
-    </DrawingImage>
+    </DrawingImage>-->
 
 </ResourceDictionary>

@@ -16,15 +16,7 @@
     </UserControl.Resources>
 
     <StackPanel Orientation="Horizontal">
-        <Image
-            Width="12"
-            Height="12"
-            RenderTransformOrigin="0.5,0.5"
-            Source="{StaticResource iconNodeArranger}">
-            <Image.RenderTransform>
-                <ScaleTransform ScaleX="1" ScaleY="-1" />
-            </Image.RenderTransform>
-        </Image>
+        <Image Style="{StaticResource iconNodeArrangerSmall}" />
         <TextBlock Margin="4,0,0,0" Text="{Binding Name}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="PreviewMouseRightButtonDown">

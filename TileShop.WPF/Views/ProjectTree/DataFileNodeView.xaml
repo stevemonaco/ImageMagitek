@@ -16,7 +16,7 @@
     </UserControl.Resources>
 
     <StackPanel Orientation="Horizontal">
-        <Image Source="{StaticResource iconNodeFile}" />
+        <Image Style="{StaticResource iconNodeFileSmall}" />
         <TextBlock Margin="4,0,0,0" Text="{Binding Name}">
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="PreviewMouseRightButtonDown">

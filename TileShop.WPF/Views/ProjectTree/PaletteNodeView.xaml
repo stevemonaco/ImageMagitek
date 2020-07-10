@@ -16,10 +16,7 @@
     </UserControl.Resources>
 
     <StackPanel Orientation="Horizontal">
-        <Image
-            Width="12"
-            Height="12"
-            Source="{StaticResource iconNodePalette}" />
+        <Image Style="{StaticResource iconNodePaletteSmall}" />
         <TextBlock
             Margin="4,0,0,0"
             Focusable="True"
