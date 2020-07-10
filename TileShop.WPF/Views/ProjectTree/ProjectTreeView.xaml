@@ -6,7 +6,7 @@
     xmlns:converters="clr-namespace:TileShop.WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dd="urn:gong-wpf-dragdrop"
-    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -28,34 +28,28 @@
             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
         </Style>
 
-        <HierarchicalDataTemplate
-            x:Key="treeProjectSelector"
-            DataType="x:Type vms:ImageProjectNodeViewModel"
-            ItemsSource="{Binding Children, Converter={StaticResource SortedTreeViewSource}}">
+        <HierarchicalDataTemplate x:Key="projectNodeTemplate" ItemsSource="{Binding Children, Converter={StaticResource SortedTreeViewSource}}">
             <ContentControl s:View.Model="{Binding}" />
         </HierarchicalDataTemplate>
-        <HierarchicalDataTemplate
-            x:Key="treeFolderSelector"
-            DataType="x:Type vms:FolderNodeViewModel"
-            ItemsSource="{Binding Children, Converter={StaticResource SortedTreeViewSource}}">
+        <HierarchicalDataTemplate x:Key="folderNodeTemplate" ItemsSource="{Binding Children, Converter={StaticResource SortedTreeViewSource}}">
             <ContentControl s:View.Model="{Binding}" />
         </HierarchicalDataTemplate>
-        <HierarchicalDataTemplate x:Key="treeArrangerSelector" DataType="x:Type vms:ArrangerNodeViewModel">
+        <HierarchicalDataTemplate x:Key="arrangerNodeTemplate">
             <ContentControl s:View.Model="{Binding}" />
         </HierarchicalDataTemplate>
-        <HierarchicalDataTemplate x:Key="treeDataFileSelector" DataType="x:Type vms:DataFileNodeViewModel">
+        <HierarchicalDataTemplate x:Key="dataFileNodeTemplate">
             <ContentControl s:View.Model="{Binding}" />
         </HierarchicalDataTemplate>
-        <HierarchicalDataTemplate x:Key="treePaletteSelector" DataType="x:Type vms:PaletteNodeViewModel">
+        <HierarchicalDataTemplate x:Key="paletteNodeTemplate">
             <ContentControl s:View.Model="{Binding}" />
         </HierarchicalDataTemplate>
         <sel:ProjectTreeTemplateSelector
             x:Key="projectTreeTemplateSelector"
-            TreeArrangerTemplate="{StaticResource treeArrangerSelector}"
-            TreeDataFileTemplate="{StaticResource treeDataFileSelector}"
-            TreeFolderTemplate="{StaticResource treeFolderSelector}"
-            TreePaletteTemplate="{StaticResource treePaletteSelector}"
-            TreeProjectTemplate="{StaticResource treeProjectSelector}" />
+            TreeArrangerTemplate="{StaticResource arrangerNodeTemplate}"
+            TreeDataFileTemplate="{StaticResource dataFileNodeTemplate}"
+            TreeFolderTemplate="{StaticResource folderNodeTemplate}"
+            TreePaletteTemplate="{StaticResource paletteNodeTemplate}"
+            TreeProjectTemplate="{StaticResource projectNodeTemplate}" />
     </UserControl.Resources>
 
     <Grid>

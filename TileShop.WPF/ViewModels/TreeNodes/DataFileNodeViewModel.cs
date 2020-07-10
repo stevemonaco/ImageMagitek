@@ -7,10 +7,6 @@ namespace TileShop.WPF.ViewModels
     {
         public override int SortPriority => 2;
 
-        public DataFileNodeViewModel(IPathTreeNode<IProjectResource> node) : this(node, null)
-        {
-        }
-
         public DataFileNodeViewModel(IPathTreeNode<IProjectResource> node, TreeNodeViewModel parent)
         {
             Node = node;
