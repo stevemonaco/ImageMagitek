@@ -43,7 +43,7 @@
                 IsChecked="{Binding ShowGridlines}"
                 ToolTip="Toggle gridline visibility"
                 Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
-                <Image Height="20" Source="{StaticResource iconGrid}" />
+                <Image Style="{StaticResource iconGrid}" />
             </ToggleButton>
             <!--
             <ToggleButton
@@ -102,14 +102,7 @@
                 Click="{s:Action EditSelection}"
                 IsEnabled="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Selection}"
                 ToolTip="Opens selection in the pixel editor">
-                <Image
-                    Height="20"
-                    RenderTransformOrigin="0.5,0.5"
-                    Source="{StaticResource iconEdit}">
-                    <Image.RenderTransform>
-                        <ScaleTransform ScaleX="1" ScaleY="-1" />
-                    </Image.RenderTransform>
-                </Image>
+                <Image Style="{StaticResource iconEdit}" />
             </Button>
             <Button
                 Command="{s:Action ApplyPasteAsPixels}"
