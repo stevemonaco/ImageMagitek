@@ -3,7 +3,6 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:behaviors="clr-namespace:TileShop.WPF.Behaviors"
-    xmlns:converters="clr-namespace:TileShop.WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dd="urn:gong-wpf-dragdrop"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
@@ -12,6 +11,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:TileShop.WPF.Models"
     xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
@@ -29,6 +29,7 @@
             Orientation="Horizontal">
 
             <ComboBox ItemsSource="{Binding CodecNames}" SelectedValue="{Binding SelectedCodecName}" />
+
             <Slider
                 MinWidth="100"
                 Margin="10,0,10,0"
@@ -53,47 +54,78 @@
                 Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
             -->
 
-            <mah:NumericUpDown
-                ChangeValueOnTextChanged="False"
-                Interval="{Binding WidthIncrement}"
+            <!--  Resize Element Dimensions in Pixels  -->
+            <ui:NumberBox
                 IsEnabled="{Binding CanResize}"
+                LargeChange="{Binding WidthIncrement}"
                 Minimum="{Binding WidthIncrement}"
+                SmallChange="{Binding WidthIncrement}"
+                SpinButtonPlacementMode="Inline"
+                Style="{StaticResource tsNumberBox}"
                 ToolTip="Element width in pixels"
+                ValidationMode="InvalidInputOverwritten"
                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding TiledElementWidth}" />
-            <mah:NumericUpDown
-                ChangeValueOnTextChanged="False"
-                Interval="{Binding HeightIncrement}"
+
+            <ui:NumberBox
                 IsEnabled="{Binding CanResize}"
+                LargeChange="{Binding HeightIncrement}"
                 Minimum="{Binding HeightIncrement}"
+                SmallChange="{Binding HeightIncrement}"
+                SpinButtonPlacementMode="Inline"
+                Style="{StaticResource tsNumberBox}"
                 ToolTip="Element height in pixels"
+                ValidationMode="InvalidInputOverwritten"
                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding TiledElementHeight}" />
-            <mah:NumericUpDown
+
+            <!--  Resize Arranger Dimensions in Elements  -->
+            <ui:NumberBox
+                IsEnabled="{Binding CanResize}"
+                LargeChange="1"
                 Minimum="1"
+                SmallChange="1"
+                SpinButtonPlacementMode="Inline"
+                Style="{StaticResource tsNumberBox}"
                 ToolTip="Arranger width in elements"
+                ValidationMode="InvalidInputOverwritten"
                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding TiledArrangerWidth}" />
-            <mah:NumericUpDown
+
+            <ui:NumberBox
+                IsEnabled="{Binding CanResize}"
+                LargeChange="1"
                 Minimum="1"
+                SmallChange="1"
+                SpinButtonPlacementMode="Inline"
+                Style="{StaticResource tsNumberBox}"
                 ToolTip="Arranger height in elements"
+                ValidationMode="InvalidInputOverwritten"
                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding TiledArrangerHeight}" />
 
-            <mah:NumericUpDown
-                ChangeValueOnTextChanged="False"
-                Interval="{Binding WidthIncrement}"
+            <!--  Resize Arranger Dimensions in Pixels  -->
+            <ui:NumberBox
                 IsEnabled="{Binding CanResize}"
+                LargeChange="{Binding WidthIncrement}"
                 Minimum="{Binding WidthIncrement}"
+                SmallChange="{Binding WidthIncrement}"
+                SpinButtonPlacementMode="Inline"
+                Style="{StaticResource tsNumberBox}"
                 ToolTip="Arranger width in pixels"
+                ValidationMode="InvalidInputOverwritten"
                 Visibility="{Binding IsSingleLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding LinearArrangerWidth}" />
-            <mah:NumericUpDown
-                ChangeValueOnTextChanged="False"
-                Interval="{Binding HeightIncrement}"
+
+            <ui:NumberBox
                 IsEnabled="{Binding CanResize}"
+                LargeChange="{Binding HeightIncrement}"
                 Minimum="{Binding HeightIncrement}"
+                SmallChange="{Binding HeightIncrement}"
+                SpinButtonPlacementMode="Inline"
+                Style="{StaticResource tsNumberBox}"
                 ToolTip="Arranger height in pixels"
+                ValidationMode="InvalidInputOverwritten"
                 Visibility="{Binding IsSingleLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                 Value="{Binding LinearArrangerHeight}" />
 

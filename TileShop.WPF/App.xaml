@@ -4,7 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:TileShop.WPF.Converters"
     xmlns:local="clr-namespace:TileShop.WPF"
-    xmlns:s="https://github.com/canton7/Stylet">
+    xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:ui="http://schemas.modernwpf.com/2019">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -42,12 +43,19 @@
                     <converters:PaletteEntryToSolidColorBrushConverter x:Key="PaletteEntryToSolidColorBrushConverter" />
                 </ResourceDictionary>
 
+                <ui:ThemeResources />
+                <ui:XamlControlsResources />
+
                 <ResourceDictionary Source="/TileShop;component/Styles/Icons.xaml" />
+                <ResourceDictionary Source="/TileShop;component/Styles/NumberBox.xaml" />
+                <ResourceDictionary Source="/ModernWpf;component/Styles/TreeView.xaml" />
 
                 <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/LightTheme.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+
+                <!--<ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml" />-->
+
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

@@ -8,17 +8,17 @@
     xmlns:dd="urn:gong-wpf-dragdrop"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
-    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:sel="clr-namespace:TileShop.WPF.Selectors"
-    xmlns:v="clr-namespace:TileShop.WPF.Views"
-    xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     mc:Ignorable="d">
     <UserControl.Resources>
         <converters:TreeNodeCollectionViewSource x:Key="SortedTreeViewSource" />
 
-        <Style x:Key="projectItemStyle" TargetType="{x:Type TreeViewItem}">
+        <Style
+            x:Key="projectItemStyle"
+            BasedOn="{StaticResource DefaultTreeViewItemStyle}"
+            TargetType="{x:Type TreeViewItem}">
             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
         </Style>
         <Style

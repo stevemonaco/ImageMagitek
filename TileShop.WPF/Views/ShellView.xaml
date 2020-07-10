@@ -1,4 +1,4 @@
-﻿<mah:MetroWindow
+﻿<Window
     x:Class="TileShop.WPF.Views.ShellView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,23 +6,21 @@
     xmlns:con="clr-namespace:TileShop.WPF.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dock="clr-namespace:TileShop.WPF.Docking"
-    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
-    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:sel="clr-namespace:TileShop.WPF.Selectors"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
     xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     Title="TileShop"
     Width="800"
     Height="600"
+    ui:WindowHelper.UseModernWindowStyle="True"
     Closing="{s:Action Closing}"
     ResizeMode="CanResizeWithGrip"
-    SaveWindowPosition="True"
-    TitleCharacterCasing="Normal"
     mc:Ignorable="d">
 
-    <mah:MetroWindow.Resources>
+    <Window.Resources>
         <con:ActiveDocumentConverter x:Key="ActiveDocumentConverter" />
 
         <DataTemplate x:Key="paletteEditorSelector" DataType="{x:Type vm:PaletteEditorViewModel}">
@@ -73,7 +71,7 @@
             ProjectTreeTemplate="{StaticResource projectTreeSelector}"
             ScatteredArrangerEditorTemplate="{StaticResource scatteredArrangerEditorSelector}"
             SequentialArrangerEditorTemplate="{StaticResource sequentialArrangerEditorSelector}" />
-    </mah:MetroWindow.Resources>
+    </Window.Resources>
 
     <Grid x:Name="mainGrid">
         <Grid.RowDefinitions>
@@ -136,4 +134,4 @@
         </ad:DockingManager>
 
     </Grid>
-</mah:MetroWindow>
+</Window>

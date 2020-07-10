@@ -214,8 +214,8 @@
 
     <!--  Tree Node Icons  -->
     <Style x:Key="iconNodeProjectSmall" TargetType="Image">
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Height" Value="12" />
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
         <Setter Property="Source">
             <Setter.Value>
                 <DrawingImage>
@@ -232,8 +232,8 @@
     </Style>
 
     <Style x:Key="iconNodeFolderSmall" TargetType="Image">
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Height" Value="12" />
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
         <Setter Property="Source">
             <Setter.Value>
                 <DrawingImage>
@@ -269,8 +269,8 @@
     </DrawingImage>
 
     <Style x:Key="iconNodeFileSmall" TargetType="Image">
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Height" Value="12" />
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
         <Setter Property="Source">
             <Setter.Value>
                 <DrawingImage>
@@ -287,8 +287,8 @@
     </Style>
 
     <Style x:Key="iconNodePaletteSmall" TargetType="Image">
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Height" Value="12" />
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
         <Setter Property="Source">
             <Setter.Value>
                 <DrawingImage>
@@ -305,8 +305,8 @@
     </Style>
 
     <Style x:Key="iconNodeArrangerSmall" TargetType="Image">
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Height" Value="12" />
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
         <Setter Property="Source">
             <Setter.Value>
                 <DrawingImage>
