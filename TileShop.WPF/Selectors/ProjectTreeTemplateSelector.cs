@@ -7,11 +7,11 @@ namespace TileShop.WPF.Selectors
 {
     public class ProjectTreeTemplateSelector : DataTemplateSelector
     {
-        public DataTemplate TreeProjectTemplate { get; set; }
-        public DataTemplate TreeFolderTemplate { get; set; }
-        public DataTemplate TreeArrangerTemplate { get; set; }
-        public DataTemplate TreeDataFileTemplate { get; set; }
-        public DataTemplate TreePaletteTemplate { get; set; }
+        public DataTemplate ProjectNodeTemplate { get; set; }
+        public DataTemplate FolderNodeTemplate { get; set; }
+        public DataTemplate ArrangerNodeTemplate { get; set; }
+        public DataTemplate DataFileNodeTemplate { get; set; }
+        public DataTemplate PaletteNodeTemplate { get; set; }
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
@@ -20,11 +20,11 @@ namespace TileShop.WPF.Selectors
 
             return item switch
             {
-                ImageProjectNodeViewModel _ => TreeProjectTemplate,
-                FolderNodeViewModel _ => TreeFolderTemplate,
-                DataFileNodeViewModel _ => TreeDataFileTemplate,
-                ArrangerNodeViewModel _ => TreeArrangerTemplate,
-                PaletteNodeViewModel _ => TreePaletteTemplate,
+                ImageProjectNodeViewModel _ => ProjectNodeTemplate,
+                FolderNodeViewModel _ => FolderNodeTemplate,
+                DataFileNodeViewModel _ => DataFileNodeTemplate,
+                ArrangerNodeViewModel _ => ArrangerNodeTemplate,
+                PaletteNodeViewModel _ => PaletteNodeTemplate,
                 _ => throw new ArgumentException($"{nameof(SelectTemplate)} does not contain a template for type {item.GetType()}")
             };
         }

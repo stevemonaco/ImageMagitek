@@ -28,28 +28,20 @@
             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
         </Style>
 
-        <HierarchicalDataTemplate x:Key="projectNodeTemplate" ItemsSource="{Binding Children, Converter={StaticResource SortedTreeViewSource}}">
+        <HierarchicalDataTemplate x:Key="parentNodeTemplate" ItemsSource="{Binding Children, Converter={StaticResource SortedTreeViewSource}}">
             <ContentControl s:View.Model="{Binding}" />
         </HierarchicalDataTemplate>
-        <HierarchicalDataTemplate x:Key="folderNodeTemplate" ItemsSource="{Binding Children, Converter={StaticResource SortedTreeViewSource}}">
+        <HierarchicalDataTemplate x:Key="childlessNodeTemplate">
             <ContentControl s:View.Model="{Binding}" />
         </HierarchicalDataTemplate>
-        <HierarchicalDataTemplate x:Key="arrangerNodeTemplate">
-            <ContentControl s:View.Model="{Binding}" />
-        </HierarchicalDataTemplate>
-        <HierarchicalDataTemplate x:Key="dataFileNodeTemplate">
-            <ContentControl s:View.Model="{Binding}" />
-        </HierarchicalDataTemplate>
-        <HierarchicalDataTemplate x:Key="paletteNodeTemplate">
-            <ContentControl s:View.Model="{Binding}" />
-        </HierarchicalDataTemplate>
+
         <sel:ProjectTreeTemplateSelector
             x:Key="projectTreeTemplateSelector"
-            TreeArrangerTemplate="{StaticResource arrangerNodeTemplate}"
-            TreeDataFileTemplate="{StaticResource dataFileNodeTemplate}"
-            TreeFolderTemplate="{StaticResource folderNodeTemplate}"
-            TreePaletteTemplate="{StaticResource paletteNodeTemplate}"
-            TreeProjectTemplate="{StaticResource projectNodeTemplate}" />
+            ArrangerNodeTemplate="{StaticResource childlessNodeTemplate}"
+            DataFileNodeTemplate="{StaticResource childlessNodeTemplate}"
+            FolderNodeTemplate="{StaticResource parentNodeTemplate}"
+            PaletteNodeTemplate="{StaticResource childlessNodeTemplate}"
+            ProjectNodeTemplate="{StaticResource parentNodeTemplate}" />
     </UserControl.Resources>
 
     <Grid>
