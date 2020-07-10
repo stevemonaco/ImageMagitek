@@ -16,6 +16,37 @@
     d:DesignWidth="800"
     mc:Ignorable="d">
 
+    <UserControl.InputBindings>
+        <KeyBinding Key="OemPlus" Command="{s:Action MoveByteDown}" />
+        <KeyBinding Key="Add" Command="{s:Action MouseByteDown}" />
+        <KeyBinding Key="Subtract" Command="{s:Action MoveByteUp}" />
+        <KeyBinding Key="OemMinus" Command="{s:Action MoveByteUp}" />
+        <KeyBinding Key="Down" Command="{s:Action MoveRowDown}" />
+        <KeyBinding Key="Up" Command="{s:Action MoveRowUp}" />
+        <KeyBinding Key="Right" Command="{s:Action MoveColumnRight}" />
+        <KeyBinding Key="Left" Command="{s:Action MoveColumnLeft}" />
+        <KeyBinding Key="PageDown" Command="{s:Action MovePageDown}" />
+        <KeyBinding Key="PageUp" Command="{s:Action MovePageUp}" />
+        <KeyBinding Key="Home" Command="{s:Action MoveHome}" />
+        <KeyBinding Key="End" Command="{s:Action MoveEnd}" />
+        <KeyBinding Key="OemQuestion" Command="{s:Action ExpandWidth}" />
+        <KeyBinding Key="OemPeriod" Command="{s:Action ShrinkWidth}" />
+        <KeyBinding Key="L" Command="{s:Action ShrinkHeight}" />
+        <KeyBinding Key="OemSemicolon" Command="{s:Action ExpandHeight}" />
+        <KeyBinding Key="F" Command="{s:Action SelectNextCodec}" />
+        <KeyBinding Key="D" Command="{s:Action SelectPreviousCodec}" />
+        <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
+        <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
+        <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
+        <KeyBinding Key="J" Command="{s:Action JumpToOffset}" />
+        <KeyBinding Key="E" Command="{s:Action RequestEditSelection}" />
+        <KeyBinding
+            Key="A"
+            Command="{s:Action SelectAll}"
+            Modifiers="Ctrl" />
+        <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
+    </UserControl.InputBindings>
+
     <Grid UseLayoutRounding="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -33,14 +64,12 @@
             <Slider
                 MinWidth="100"
                 Margin="10,0,10,0"
-                Focusable="False"
                 Maximum="{Binding MaxZoom}"
                 Minimum="{Binding MinZoom}"
                 ToolTip="Zoom"
                 Value="{Binding Zoom}" />
             <ToggleButton
                 Margin="0,0,10,0"
-                Focusable="False"
                 IsChecked="{Binding ShowGridlines}"
                 ToolTip="Toggle gridline visibility"
                 Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
@@ -147,39 +176,9 @@
         <ScrollViewer
             Grid.Row="1"
             Grid.Column="0"
+            Focusable="True"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
-
-            <ScrollViewer.InputBindings>
-                <KeyBinding Key="OemPlus" Command="{s:Action MoveByteDown}" />
-                <KeyBinding Key="Add" Command="{s:Action MouseByteDown}" />
-                <KeyBinding Key="Subtract" Command="{s:Action MoveByteUp}" />
-                <KeyBinding Key="OemMinus" Command="{s:Action MoveByteUp}" />
-                <KeyBinding Key="Down" Command="{s:Action MoveRowDown}" />
-                <KeyBinding Key="Up" Command="{s:Action MoveRowUp}" />
-                <KeyBinding Key="Right" Command="{s:Action MoveColumnRight}" />
-                <KeyBinding Key="Left" Command="{s:Action MoveColumnLeft}" />
-                <KeyBinding Key="PageDown" Command="{s:Action MovePageDown}" />
-                <KeyBinding Key="PageUp" Command="{s:Action MovePageUp}" />
-                <KeyBinding Key="Home" Command="{s:Action MoveHome}" />
-                <KeyBinding Key="End" Command="{s:Action MoveEnd}" />
-                <KeyBinding Key="OemQuestion" Command="{s:Action ExpandWidth}" />
-                <KeyBinding Key="OemPeriod" Command="{s:Action ShrinkWidth}" />
-                <KeyBinding Key="L" Command="{s:Action ShrinkHeight}" />
-                <KeyBinding Key="OemSemicolon" Command="{s:Action ExpandHeight}" />
-                <KeyBinding Key="F" Command="{s:Action SelectNextCodec}" />
-                <KeyBinding Key="D" Command="{s:Action SelectPreviousCodec}" />
-                <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
-                <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
-                <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
-                <KeyBinding Key="J" Command="{s:Action JumpToOffset}" />
-                <KeyBinding Key="E" Command="{s:Action RequestEditSelection}" />
-                <KeyBinding
-                    Key="A"
-                    Command="{s:Action SelectAll}"
-                    Modifiers="Ctrl" />
-                <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
-            </ScrollViewer.InputBindings>
 
             <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid.Resources>
