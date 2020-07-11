@@ -10,6 +10,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:TileShop.WPF.Models"
     xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
@@ -36,48 +37,77 @@
         <StackPanel
             Grid.Row="0"
             Grid.Column="0"
-            Margin="0,5,0,10"
+            Margin="5,5,0,10"
             Orientation="Horizontal">
 
-            <RadioButton
-                HorizontalContentAlignment="Center"
-                GroupName="Tools"
-                IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
-                Style="{StaticResource {x:Type ToggleButton}}"
-                ToolTip="Click and drag across Arranger to select a region">
-                <Image Style="{StaticResource iconCursor}" />
-            </RadioButton>
-            <RadioButton
-                VerticalContentAlignment="Center"
-                Content="ApplyPal"
-                GroupName="Tools"
-                IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
-                Style="{StaticResource {x:Type ToggleButton}}"
-                ToolTip="Click on an Arranger element to apply the current palette" />
-            <RadioButton
-                VerticalContentAlignment="Center"
-                Content="PickPal"
-                GroupName="Tools"
-                IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PickPalette}"
-                Style="{StaticResource {x:Type ToggleButton}}"
-                ToolTip="Click on an Arranger element to pick its associated palette" />
+            <StackPanel>
+                <TextBlock HorizontalAlignment="Center" Text="Tools" />
 
-            <Slider
-                MinWidth="100"
-                Margin="10,0,10,0"
-                Maximum="{Binding MaxZoom}"
-                Minimum="{Binding MinZoom}"
-                ToolTip="Zoom"
-                Value="{Binding Zoom}" />
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton
+                        HorizontalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
+                        Style="{StaticResource {x:Type ToggleButton}}"
+                        ToolTip="Click and drag across Arranger to select a region">
+                        <Image Style="{StaticResource iconCursor}" />
+                    </RadioButton>
+                    <RadioButton
+                        Margin="2,0,0,0"
+                        VerticalContentAlignment="Center"
+                        Content="ApplyPal"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
+                        Style="{StaticResource {x:Type ToggleButton}}"
+                        ToolTip="Click on an Arranger element to apply the current palette" />
+                    <RadioButton
+                        Margin="2,0,0,0"
+                        VerticalContentAlignment="Center"
+                        Content="PickPal"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PickPalette}"
+                        Style="{StaticResource {x:Type ToggleButton}}"
+                        ToolTip="Click on an Arranger element to pick its associated palette" />
+                </StackPanel>
+            </StackPanel>
 
-            <ToggleButton
-                Margin="0,0,10,0"
-                Focusable="False"
-                IsChecked="{Binding ShowGridlines}"
-                ToolTip="Toggle gridline visibility"
-                Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
-                <Image Style="{StaticResource iconGrid}" />
-            </ToggleButton>
+            <Separator Margin="5,0,5,0" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+
+            <StackPanel>
+                <TextBlock HorizontalAlignment="Center" Text="Palette" />
+                <ComboBox ItemsSource="{Binding Palettes}" SelectedItem="{Binding ActivePalette}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Margin="10,0,10,0">
+                <TextBlock HorizontalAlignment="Center" Text="Zoom" />
+                <Slider
+                    MinWidth="100"
+                    Maximum="{Binding MaxZoom}"
+                    Minimum="{Binding MinZoom}"
+                    ToolTip="Zoom"
+                    Value="{Binding Zoom}" />
+            </StackPanel>
+
+            <StackPanel Margin="0,0,10,0">
+                <ToggleButton
+                    Focusable="False"
+                    IsChecked="{Binding ShowGridlines}"
+                    ToolTip="Toggle gridline visibility"
+                    Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+                    <StackPanel>
+                        <TextBlock Text="Grid" />
+                        <Image Style="{StaticResource iconGrid}" />
+                    </StackPanel>
+                </ToggleButton>
+            </StackPanel>
+
+            <Separator Margin="5,0,5,0" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
 
             <Button
                 Click="{s:Action ResizeArranger}"
@@ -85,14 +115,6 @@
                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Image Style="{StaticResource iconResize}" />
             </Button>
-
-            <ComboBox ItemsSource="{Binding Palettes}" SelectedItem="{Binding ActivePalette}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Name}" />
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
 
             <Button
                 Click="{s:Action EditSelection}"
@@ -130,7 +152,10 @@
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
 
-            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Grid
+                Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer}}, Converter={StaticResource ScrollViewerToMarginStringConverter}}"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>

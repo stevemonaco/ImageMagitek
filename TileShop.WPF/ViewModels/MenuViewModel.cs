@@ -1,5 +1,6 @@
-﻿using System;
+﻿using ModernWpf;
 using Stylet;
+using System.Windows.Threading;
 using TileShop.Shared.EventModels;
 using TileShop.WPF.EventModels;
 
@@ -41,6 +42,18 @@ namespace TileShop.WPF.ViewModels
         public void ShowWindow(ToolWindow toolWindow) => _events.PublishOnUIThread(new ShowToolWindowEvent(toolWindow));
 
         public void ExitApplication() => _events.PublishOnUIThread(new RequestApplicationExitEvent());
+
+        public void ToggleTheme()
+        {
+            Dispatcher.CurrentDispatcher.Invoke(() =>
+            {
+                if (ThemeManager.Current.ActualApplicationTheme == ApplicationTheme.Dark)
+                    ThemeManager.Current.SetCurrentValue(ThemeManager.ApplicationThemeProperty, ApplicationTheme.Light);
+                else if (ThemeManager.Current.ActualApplicationTheme == ApplicationTheme.Light)
+                    ThemeManager.Current.SetCurrentValue(ThemeManager.ApplicationThemeProperty, ApplicationTheme.Dark);
+
+            });
+        }
 
         public void Handle(ProjectLoadedEvent message)
         {

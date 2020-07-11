@@ -7,61 +7,79 @@
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <Menu FontSize="18">
-        <MenuItem Header="_File">
-            <MenuItem Click="{s:Action NewProject}" Header="_New Project" />
-            <MenuItem Click="{s:Action OpenProject}" Header="Open _Project" />
-            <MenuItem
-                Click="{s:Action CloseProject}"
-                Header="_Close Project"
-                IsEnabled="{Binding HasProject}" />
-            <Separator />
-            <MenuItem
-                Click="{s:Action SaveProject}"
-                Header="_Save Project"
-                IsEnabled="{Binding HasProject}" />
-            <MenuItem
-                Click="{s:Action SaveProjectAs}"
-                Header="Save Project _As..."
-                IsEnabled="{Binding HasProject}" />
-            <Separator />
-            <MenuItem Click="{s:Action ExitApplication}" Header="E_xit" />
-        </MenuItem>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="auto" />
+        </Grid.ColumnDefinitions>
+        <Menu>
+            <MenuItem Header="_File">
+                <MenuItem Click="{s:Action NewProject}" Header="_New Project" />
+                <MenuItem Click="{s:Action OpenProject}" Header="Open _Project" />
+                <MenuItem
+                    Click="{s:Action CloseProject}"
+                    Header="_Close Project"
+                    IsEnabled="{Binding HasProject}" />
+                <Separator />
+                <MenuItem
+                    Click="{s:Action SaveProject}"
+                    Header="_Save Project"
+                    IsEnabled="{Binding HasProject}" />
+                <MenuItem
+                    Click="{s:Action SaveProjectAs}"
+                    Header="Save Project _As..."
+                    IsEnabled="{Binding HasProject}" />
+                <Separator />
+                <MenuItem Click="{s:Action ExitApplication}" Header="E_xit" />
+            </MenuItem>
 
 
-        <MenuItem Header="_View">
-            <MenuItem
-                Command="{s:Action ShowWindow}"
-                CommandParameter="{x:Static event:ToolWindow.PixelEditor}"
-                Header="Pixel Editor" />
-            <MenuItem
-                Command="{s:Action ShowWindow}"
-                CommandParameter="{x:Static event:ToolWindow.ProjectExplorer}"
-                Header="Project Explorer" />
-        </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem
+                    Command="{s:Action ShowWindow}"
+                    CommandParameter="{x:Static event:ToolWindow.PixelEditor}"
+                    Header="Pixel Editor" />
+                <MenuItem
+                    Command="{s:Action ShowWindow}"
+                    CommandParameter="{x:Static event:ToolWindow.ProjectExplorer}"
+                    Header="Project Explorer" />
+            </MenuItem>
 
 
-        <MenuItem Header="_Project" IsEnabled="{Binding HasProject}">
-            <MenuItem
-                Click="{s:Action AddDataFile}"
-                Header="Add Existing Data File..."
-                IsEnabled="{Binding HasProject}" />
-            <MenuItem
-                Click="{s:Action AddScatteredArranger}"
-                Header="Add New Scattered Arranger Definition..."
-                IsEnabled="{Binding HasProject}" />
-            <MenuItem
-                Click="{s:Action AddPalette}"
-                Header="Add New Palette Definition..."
-                IsEnabled="{Binding HasProject}" />
-        </MenuItem>
+            <MenuItem Header="_Project" IsEnabled="{Binding HasProject}">
+                <MenuItem
+                    Click="{s:Action AddDataFile}"
+                    Header="Add Existing Data File..."
+                    IsEnabled="{Binding HasProject}" />
+                <MenuItem
+                    Click="{s:Action AddScatteredArranger}"
+                    Header="Add New Scattered Arranger Definition..."
+                    IsEnabled="{Binding HasProject}" />
+                <MenuItem
+                    Click="{s:Action AddPalette}"
+                    Header="Add New Palette Definition..."
+                    IsEnabled="{Binding HasProject}" />
+            </MenuItem>
 
-        <!--
+            <!--
         <MenuItem Header="_Plugins" />
-        -->
+            -->
+        </Menu>
 
-    </Menu>
+        <ui:CommandBar
+            Grid.Column="1"
+            Margin="0,0,12,0"
+            Background="Transparent"
+            DefaultLabelPosition="Right">
+            <ui:AppBarButton Click="{s:Action ToggleTheme}" Label="Toggle Theme">
+                <ui:AppBarButton.Icon>
+                    <ui:FontIcon Margin="0,-2,0,0" Glyph="&#xE771;" />
+                </ui:AppBarButton.Icon>
+            </ui:AppBarButton>
+        </ui:CommandBar>
+    </Grid>
 </UserControl>

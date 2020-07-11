@@ -15,6 +15,7 @@
     Title="TileShop"
     Width="800"
     Height="600"
+    ui:ThemeManager.IsThemeAware="True"
     ui:WindowHelper.UseModernWindowStyle="True"
     Closing="{s:Action Closing}"
     ResizeMode="CanResizeWithGrip"

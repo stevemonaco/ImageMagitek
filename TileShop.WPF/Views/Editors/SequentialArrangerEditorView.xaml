@@ -180,7 +180,10 @@
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
 
-            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Grid
+                Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer}}, Converter={StaticResource ScrollViewerToMarginStringConverter}}"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top">
                 <Grid.Resources>
                     <ScaleTransform x:Key="transform" ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />
                     <SolidColorBrush
