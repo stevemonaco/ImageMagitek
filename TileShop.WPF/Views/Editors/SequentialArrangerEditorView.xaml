@@ -164,7 +164,7 @@
                 <Button
                     Margin="10,0,0,0"
                     Click="{s:Action EditSelection}"
-                    IsEnabled="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Selection}"
+                    IsEnabled="{Binding CanEditSelection}"
                     ToolTip="Opens selection in the pixel editor">
                     <Image Style="{StaticResource iconEdit}" />
                 </Button>

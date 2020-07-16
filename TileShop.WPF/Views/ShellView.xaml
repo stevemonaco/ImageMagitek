@@ -11,6 +11,7 @@
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:sel="clr-namespace:TileShop.WPF.Selectors"
     xmlns:ui="http://schemas.modernwpf.com/2019"
+    xmlns:v="clr-namespace:TileShop.WPF.Views"
     xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     Title="TileShop"
     Width="800"
@@ -72,6 +73,45 @@
             ProjectTreeTemplate="{StaticResource projectTreeSelector}"
             ScatteredArrangerEditorTemplate="{StaticResource scatteredArrangerEditorSelector}"
             SequentialArrangerEditorTemplate="{StaticResource sequentialArrangerEditorSelector}" />
+
+        <sel:DocumentHeaderTemplateSelector x:Key="documentHeaderTemplateSelector">
+            <sel:DocumentHeaderTemplateSelector.PaletteDocumentHeaderTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Margin="0,0,6,0" Style="{StaticResource iconNodePaletteSmall}" />
+                        <TextBlock Text="{Binding Content.DisplayName}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="*" Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                    </StackPanel>
+                </DataTemplate>
+            </sel:DocumentHeaderTemplateSelector.PaletteDocumentHeaderTemplate>
+            <sel:DocumentHeaderTemplateSelector.DataFileDocumentHeaderTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Margin="0,0,6,0" Style="{StaticResource iconNodeFileSmall}" />
+                        <TextBlock Text="{Binding Content.DisplayName}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="*" Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                    </StackPanel>
+                </DataTemplate>
+            </sel:DocumentHeaderTemplateSelector.DataFileDocumentHeaderTemplate>
+            <sel:DocumentHeaderTemplateSelector.ScatteredArrangerDocumentHeaderTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Margin="0,0,6,0" Style="{StaticResource iconNodeArrangerSmall}" />
+                        <TextBlock Text="{Binding Content.DisplayName}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="*" Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                    </StackPanel>
+                </DataTemplate>
+            </sel:DocumentHeaderTemplateSelector.ScatteredArrangerDocumentHeaderTemplate>
+            <sel:DocumentHeaderTemplateSelector.SequentialArrangerDocumentHeaderTemplate>
+                <DataTemplate>
+                    <StackPanel Height="30" Orientation="Horizontal">
+                        <Image Margin="0,0,6,0" Style="{StaticResource iconNodeFileSmall}" />
+                        <TextBlock Text="{Binding Content.DisplayName}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="*" Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                    </StackPanel>
+                </DataTemplate>
+            </sel:DocumentHeaderTemplateSelector.SequentialArrangerDocumentHeaderTemplate>
+        </sel:DocumentHeaderTemplateSelector>
     </Window.Resources>
 
     <Grid x:Name="mainGrid">
@@ -107,18 +147,10 @@
             AnchorablesSource="{Binding Tools, Mode=TwoWay}"
             DocumentClosed="{s:Action DocumentClosed}"
             DocumentClosing="{s:Action DocumentClosing}"
+            DocumentHeaderTemplateSelector="{StaticResource documentHeaderTemplateSelector}"
             DocumentsSource="{Binding Editors, Mode=TwoWay}"
             LayoutItemContainerStyleSelector="{StaticResource editorStyleSelector}"
             LayoutItemTemplateSelector="{StaticResource editorTemplateSelector}">
-            <ad:DockingManager.DocumentHeaderTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <!-- <Image Margin="0,0,4,0" Source="{Binding IconSource}" /> -->
-                        <TextBlock Text="{Binding Content.DisplayName}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="*" Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
-                    </StackPanel>
-                </DataTemplate>
-            </ad:DockingManager.DocumentHeaderTemplate>
 
             <ad:DockingManager.LayoutUpdateStrategy>
                 <dock:LayoutInitializer />

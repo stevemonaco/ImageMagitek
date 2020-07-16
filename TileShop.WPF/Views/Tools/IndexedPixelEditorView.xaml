@@ -39,10 +39,7 @@
             Grid.Column="0"
             Grid.ColumnSpan="2"
             Orientation="Horizontal">
-            <ComboBox
-                Height="20"
-                ItemsSource="{Binding Palettes}"
-                SelectedValue="{Binding ActivePalette}">
+            <ComboBox ItemsSource="{Binding Palettes}" SelectedValue="{Binding ActivePalette}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Name}" />
