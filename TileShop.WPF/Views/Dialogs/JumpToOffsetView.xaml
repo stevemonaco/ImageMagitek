@@ -8,31 +8,41 @@
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     Title="Jump to Offset"
+    Width="260"
+    Height="80"
     ui:ThemeManager.IsThemeAware="True"
     ui:WindowHelper.UseModernWindowStyle="True"
     BorderThickness="0"
     ResizeMode="NoResize"
-    SizeToContent="WidthAndHeight"
     mc:Ignorable="d">
-    <Grid>
+    <Grid FocusManager.FocusedElement="{Binding ElementName=jumpBox}">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBox
+            x:Name="jumpBox"
+            Grid.Column="0"
+            MinWidth="120"
+            behavior:SelectAllFocusBehavior.Enable="True"
+            FontSize="20"
+            IsTabStop="True"
+            TabIndex="0"
+            Text="{Binding Offset, UpdateSourceTrigger=PropertyChanged}"
+            TextChanged="{s:Action ValidateModel}" />
 
         <StackPanel
-            Grid.Row="0"
-            FocusManager.FocusedElement="{Binding ElementName=jumpBox}"
+            Margin="5,0,5,0"
+            Grid.Column="2"
+            HorizontalAlignment="Right"
             Orientation="Horizontal">
-            <TextBox
-                x:Name="jumpBox"
-                MinWidth="100"
-                behavior:SelectAllFocusBehavior.Enable="True"
-                FontSize="20"
-                IsTabStop="True"
-                TabIndex="0"
-                Text="{Binding Offset, UpdateSourceTrigger=PropertyChanged}"
-                TextChanged="{s:Action ValidateModel}" />
+
             <ToggleButton Content="{Binding NumericBase, Converter={StaticResource NumericBaseToStringConverter}}" IsChecked="{Binding NumericBase, Converter={StaticResource NumericBaseBooleanConverter}}" />
 
             <Button
@@ -43,6 +53,7 @@
                 Foreground="Red"
                 IsCancel="True" />
             <Button
+                Margin="5,0,0,0"
                 Command="{s:Action Jump}"
                 Content="✓"
                 FontSize="20"

@@ -82,28 +82,46 @@
         <sel:DocumentHeaderTemplateSelector x:Key="documentHeaderTemplateSelector">
             <sel:DocumentHeaderTemplateSelector.PaletteDocumentHeaderTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Height="30" Orientation="Horizontal">
                         <Image Margin="0,0,6,0" Style="{StaticResource iconNodePaletteSmall}" />
-                        <TextBlock Text="{Binding Content.DisplayName}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="*" Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{Binding Content.DisplayName}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="*"
+                            Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
                     </StackPanel>
                 </DataTemplate>
             </sel:DocumentHeaderTemplateSelector.PaletteDocumentHeaderTemplate>
             <sel:DocumentHeaderTemplateSelector.DataFileDocumentHeaderTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Height="30" Orientation="Horizontal">
                         <Image Margin="0,0,6,0" Style="{StaticResource iconNodeFileSmall}" />
-                        <TextBlock Text="{Binding Content.DisplayName}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="*" Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{Binding Content.DisplayName}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="*"
+                            Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
                     </StackPanel>
                 </DataTemplate>
             </sel:DocumentHeaderTemplateSelector.DataFileDocumentHeaderTemplate>
             <sel:DocumentHeaderTemplateSelector.ScatteredArrangerDocumentHeaderTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Height="30" Orientation="Horizontal">
                         <Image Margin="0,0,6,0" Style="{StaticResource iconNodeArrangerSmall}" />
-                        <TextBlock Text="{Binding Content.DisplayName}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="*" Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{Binding Content.DisplayName}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="*"
+                            Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
                     </StackPanel>
                 </DataTemplate>
             </sel:DocumentHeaderTemplateSelector.ScatteredArrangerDocumentHeaderTemplate>
@@ -111,8 +129,14 @@
                 <DataTemplate>
                     <StackPanel Height="30" Orientation="Horizontal">
                         <Image Margin="0,0,6,0" Style="{StaticResource iconNodeFileSmall}" />
-                        <TextBlock Text="{Binding Content.DisplayName}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="*" Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{Binding Content.DisplayName}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="*"
+                            Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
                     </StackPanel>
                 </DataTemplate>
             </sel:DocumentHeaderTemplateSelector.SequentialArrangerDocumentHeaderTemplate>
