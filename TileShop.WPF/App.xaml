@@ -67,18 +67,10 @@
                     <converters:ScrollViewerToMarginStringConverter x:Key="ScrollViewerToMarginStringConverter" />
                 </ResourceDictionary>
 
-                <!--<ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/LightTheme.xaml" />-->
-                <!--<ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/DarkTheme.xaml" />-->
-
                 <!--  TileShop Control Styles  -->
-
                 <ResourceDictionary Source="/TileShop;component/Styles/Icons.xaml" />
                 <ResourceDictionary Source="/TileShop;component/Styles/NumberBox.xaml" />
                 <ResourceDictionary Source="/ModernWpf;component/Styles/TreeView.xaml" />
-
-                <!--<ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml" />-->
 
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

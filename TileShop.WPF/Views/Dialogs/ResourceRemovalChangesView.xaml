@@ -1,16 +1,15 @@
-﻿<mah:MetroWindow
+﻿<Window
     x:Class="TileShop.WPF.Views.Dialogs.ResourceRemovalChangesView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:TileShop.WPF.Views.Dialogs"
-    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
     Title="Resource Removal Changes"
-    Background="LightGray"
+    ui:ThemeManager.IsThemeAware="True"
+    ui:WindowHelper.UseModernWindowStyle="True"
     SizeToContent="WidthAndHeight"
-    TitleCharacterCasing="Normal"
     mc:Ignorable="d">
     <Grid Margin="10,0,10,0">
         <Grid.RowDefinitions>
@@ -83,4 +82,4 @@
         </StackPanel>
 
     </Grid>
-</mah:MetroWindow>
+</Window>
