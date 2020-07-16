@@ -54,128 +54,134 @@
         </Grid.RowDefinitions>
 
         <!--  Toolbar  -->
-        <StackPanel
+        <Border
             Grid.Row="0"
             Grid.Column="0"
-            Orientation="Horizontal">
+            BorderBrush="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+            BorderThickness="0,0,0,2">
 
-            <ComboBox ItemsSource="{Binding CodecNames}" SelectedValue="{Binding SelectedCodecName}" />
+            <StackPanel Orientation="Horizontal">
 
-            <Slider
-                MinWidth="100"
-                Margin="10,0,10,0"
-                Maximum="{Binding MaxZoom}"
-                Minimum="{Binding MinZoom}"
-                ToolTip="Zoom"
-                Value="{Binding Zoom}" />
-            <ToggleButton
-                Margin="0,0,10,0"
-                IsChecked="{Binding ShowGridlines}"
-                ToolTip="Toggle gridline visibility"
-                Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
-                <Image Style="{StaticResource iconGrid}" />
-            </ToggleButton>
-            <!--
+                <ComboBox ItemsSource="{Binding CodecNames}" SelectedValue="{Binding SelectedCodecName}" />
+
+                <Slider
+                    MinWidth="100"
+                    Margin="10,0,10,0"
+                    Maximum="{Binding MaxZoom}"
+                    Minimum="{Binding MinZoom}"
+                    ToolTip="Zoom"
+                    Value="{Binding Zoom}" />
+                <ToggleButton
+                    Margin="0,0,10,0"
+                    IsChecked="{Binding ShowGridlines}"
+                    ToolTip="Toggle gridline visibility"
+                    Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+                    <Image Style="{StaticResource iconGrid}" />
+                </ToggleButton>
+                <!--
             <ToggleButton
                 Margin="0,0,10,0"
                 Content="Snap"
                 IsChecked="{Binding Selection.SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
                 Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
-            -->
+                -->
 
-            <!--  Resize Element Dimensions in Pixels  -->
-            <ui:NumberBox
-                IsEnabled="{Binding CanResize}"
-                LargeChange="{Binding WidthIncrement}"
-                Minimum="{Binding WidthIncrement}"
-                SmallChange="{Binding WidthIncrement}"
-                SpinButtonPlacementMode="Inline"
-                Style="{StaticResource tsNumberBox}"
-                ToolTip="Element width in pixels"
-                ValidationMode="InvalidInputOverwritten"
-                Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
-                Value="{Binding TiledElementWidth}" />
+                <!--  Resize Element Dimensions in Pixels  -->
+                <ui:NumberBox
+                    IsEnabled="{Binding CanResize}"
+                    LargeChange="{Binding WidthIncrement}"
+                    Minimum="{Binding WidthIncrement}"
+                    SmallChange="{Binding WidthIncrement}"
+                    SpinButtonPlacementMode="Inline"
+                    Style="{StaticResource tsNumberBox}"
+                    ToolTip="Element width in pixels"
+                    ValidationMode="InvalidInputOverwritten"
+                    Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                    Value="{Binding TiledElementWidth}" />
 
-            <ui:NumberBox
-                IsEnabled="{Binding CanResize}"
-                LargeChange="{Binding HeightIncrement}"
-                Minimum="{Binding HeightIncrement}"
-                SmallChange="{Binding HeightIncrement}"
-                SpinButtonPlacementMode="Inline"
-                Style="{StaticResource tsNumberBox}"
-                ToolTip="Element height in pixels"
-                ValidationMode="InvalidInputOverwritten"
-                Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
-                Value="{Binding TiledElementHeight}" />
+                <ui:NumberBox
+                    IsEnabled="{Binding CanResize}"
+                    LargeChange="{Binding HeightIncrement}"
+                    Minimum="{Binding HeightIncrement}"
+                    SmallChange="{Binding HeightIncrement}"
+                    SpinButtonPlacementMode="Inline"
+                    Style="{StaticResource tsNumberBox}"
+                    ToolTip="Element height in pixels"
+                    ValidationMode="InvalidInputOverwritten"
+                    Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                    Value="{Binding TiledElementHeight}" />
 
-            <!--  Resize Arranger Dimensions in Elements  -->
-            <ui:NumberBox
-                IsEnabled="{Binding CanResize}"
-                LargeChange="1"
-                Minimum="1"
-                SmallChange="1"
-                SpinButtonPlacementMode="Inline"
-                Style="{StaticResource tsNumberBox}"
-                ToolTip="Arranger width in elements"
-                ValidationMode="InvalidInputOverwritten"
-                Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
-                Value="{Binding TiledArrangerWidth}" />
+                <!--  Resize Arranger Dimensions in Elements  -->
+                <ui:NumberBox
+                    IsEnabled="{Binding CanResize}"
+                    LargeChange="1"
+                    Minimum="1"
+                    SmallChange="1"
+                    SpinButtonPlacementMode="Inline"
+                    Style="{StaticResource tsNumberBox}"
+                    ToolTip="Arranger width in elements"
+                    ValidationMode="InvalidInputOverwritten"
+                    Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                    Value="{Binding TiledArrangerWidth}" />
 
-            <ui:NumberBox
-                IsEnabled="{Binding CanResize}"
-                LargeChange="1"
-                Minimum="1"
-                SmallChange="1"
-                SpinButtonPlacementMode="Inline"
-                Style="{StaticResource tsNumberBox}"
-                ToolTip="Arranger height in elements"
-                ValidationMode="InvalidInputOverwritten"
-                Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
-                Value="{Binding TiledArrangerHeight}" />
+                <ui:NumberBox
+                    IsEnabled="{Binding CanResize}"
+                    LargeChange="1"
+                    Minimum="1"
+                    SmallChange="1"
+                    SpinButtonPlacementMode="Inline"
+                    Style="{StaticResource tsNumberBox}"
+                    ToolTip="Arranger height in elements"
+                    ValidationMode="InvalidInputOverwritten"
+                    Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                    Value="{Binding TiledArrangerHeight}" />
 
-            <!--  Resize Arranger Dimensions in Pixels  -->
-            <ui:NumberBox
-                IsEnabled="{Binding CanResize}"
-                LargeChange="{Binding WidthIncrement}"
-                Minimum="{Binding WidthIncrement}"
-                SmallChange="{Binding WidthIncrement}"
-                SpinButtonPlacementMode="Inline"
-                Style="{StaticResource tsNumberBox}"
-                ToolTip="Arranger width in pixels"
-                ValidationMode="InvalidInputOverwritten"
-                Visibility="{Binding IsSingleLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
-                Value="{Binding LinearArrangerWidth}" />
+                <!--  Resize Arranger Dimensions in Pixels  -->
+                <ui:NumberBox
+                    IsEnabled="{Binding CanResize}"
+                    LargeChange="{Binding WidthIncrement}"
+                    Minimum="{Binding WidthIncrement}"
+                    SmallChange="{Binding WidthIncrement}"
+                    SpinButtonPlacementMode="Inline"
+                    Style="{StaticResource tsNumberBox}"
+                    ToolTip="Arranger width in pixels"
+                    ValidationMode="InvalidInputOverwritten"
+                    Visibility="{Binding IsSingleLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                    Value="{Binding LinearArrangerWidth}" />
 
-            <ui:NumberBox
-                IsEnabled="{Binding CanResize}"
-                LargeChange="{Binding HeightIncrement}"
-                Minimum="{Binding HeightIncrement}"
-                SmallChange="{Binding HeightIncrement}"
-                SpinButtonPlacementMode="Inline"
-                Style="{StaticResource tsNumberBox}"
-                ToolTip="Arranger height in pixels"
-                ValidationMode="InvalidInputOverwritten"
-                Visibility="{Binding IsSingleLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
-                Value="{Binding LinearArrangerHeight}" />
+                <ui:NumberBox
+                    IsEnabled="{Binding CanResize}"
+                    LargeChange="{Binding HeightIncrement}"
+                    Minimum="{Binding HeightIncrement}"
+                    SmallChange="{Binding HeightIncrement}"
+                    SpinButtonPlacementMode="Inline"
+                    Style="{StaticResource tsNumberBox}"
+                    ToolTip="Arranger height in pixels"
+                    ValidationMode="InvalidInputOverwritten"
+                    Visibility="{Binding IsSingleLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
+                    Value="{Binding LinearArrangerHeight}" />
 
-            <Button
-                Margin="10,0,0,0"
-                Click="{s:Action EditSelection}"
-                IsEnabled="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Selection}"
-                ToolTip="Opens selection in the pixel editor">
-                <Image Style="{StaticResource iconEdit}" />
-            </Button>
-            <Button
-                Command="{s:Action ApplyPasteAsPixels}"
-                Content="PasteAsPixels"
-                ToolTip="Paste pixels directly to file"
-                Visibility="{Binding CanPastePixels, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
-        </StackPanel>
+                <Button
+                    Margin="10,0,0,0"
+                    Click="{s:Action EditSelection}"
+                    IsEnabled="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Selection}"
+                    ToolTip="Opens selection in the pixel editor">
+                    <Image Style="{StaticResource iconEdit}" />
+                </Button>
+                <Button
+                    Command="{s:Action ApplyPasteAsPixels}"
+                    Content="PasteAsPixels"
+                    ToolTip="Paste pixels directly to file"
+                    Visibility="{Binding CanPastePixels, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
+            </StackPanel>
+        </Border>
 
+        <!--  Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"  -->
         <!--  Image Display  -->
         <ScrollViewer
             Grid.Row="1"
             Grid.Column="0"
+            Background="{DynamicResource SystemControlTransparentBrush}"
             Focusable="True"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
@@ -186,14 +192,6 @@
                 VerticalAlignment="Top">
                 <Grid.Resources>
                     <ScaleTransform x:Key="transform" ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />
-                    <SolidColorBrush
-                        x:Key="pasteSelectionFillBrush"
-                        Opacity="0.5"
-                        Color="Fuchsia" />
-                    <SolidColorBrush
-                        x:Key="editSelectionFillBrush"
-                        Opacity="0.5"
-                        Color="LawnGreen" />
                 </Grid.Resources>
 
                 <Grid.ContextMenu>
@@ -279,7 +277,7 @@
                             <Line
                                 RenderOptions.EdgeMode="Aliased"
                                 SnapsToDevicePixels="True"
-                                Stroke="Black"
+                                Stroke="{DynamicResource gridLineBrush}"
                                 StrokeThickness="1"
                                 UseLayoutRounding="True"
                                 X1="{Binding X1}"

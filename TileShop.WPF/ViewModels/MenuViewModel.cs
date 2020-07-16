@@ -51,7 +51,6 @@ namespace TileShop.WPF.ViewModels
                     ThemeManager.Current.SetCurrentValue(ThemeManager.ApplicationThemeProperty, ApplicationTheme.Light);
                 else if (ThemeManager.Current.ActualApplicationTheme == ApplicationTheme.Light)
                     ThemeManager.Current.SetCurrentValue(ThemeManager.ApplicationThemeProperty, ApplicationTheme.Dark);
-
             });
         }
 

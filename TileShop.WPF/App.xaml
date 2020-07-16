@@ -9,6 +9,29 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!--  Color Theming  -->
+                <ui:ThemeResources>
+                    <ui:ThemeResources.ThemeDictionaries>
+                        <ResourceDictionary x:Key="Light">
+                            <ResourceDictionary.MergedDictionaries>
+                                <ui:ColorPaletteResources AltHigh="LightGray" TargetTheme="Light" />
+                                <ResourceDictionary Source="/Themes/Light.xaml" />
+                                <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/LightTheme.xaml" />
+                            </ResourceDictionary.MergedDictionaries>
+                        </ResourceDictionary>
+
+                        <ResourceDictionary x:Key="Dark">
+                            <ResourceDictionary.MergedDictionaries>
+                                <ui:ColorPaletteResources AltHigh="#FF2B2B2B" TargetTheme="Dark" />
+                                <ResourceDictionary Source="/Themes/Dark.xaml" />
+                                <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/DarkTheme.xaml" />
+                            </ResourceDictionary.MergedDictionaries>
+                        </ResourceDictionary>
+                    </ui:ThemeResources.ThemeDictionaries>
+                </ui:ThemeResources>
+                <ui:XamlControlsResources />
+
+                <!--  TileShop Resources  -->
                 <ResourceDictionary>
                     <s:ApplicationLoader x:Key="Bootstrapper">
                         <s:ApplicationLoader.Bootstrapper>
@@ -44,15 +67,14 @@
                     <converters:ScrollViewerToMarginStringConverter x:Key="ScrollViewerToMarginStringConverter" />
                 </ResourceDictionary>
 
-                <ui:ThemeResources />
-                <ui:XamlControlsResources />
+                <!--<ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/LightTheme.xaml" />-->
+                <!--<ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/DarkTheme.xaml" />-->
+
+                <!--  TileShop Control Styles  -->
 
                 <ResourceDictionary Source="/TileShop;component/Styles/Icons.xaml" />
                 <ResourceDictionary Source="/TileShop;component/Styles/NumberBox.xaml" />
                 <ResourceDictionary Source="/ModernWpf;component/Styles/TreeView.xaml" />
-
-                <!--<ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/LightTheme.xaml" />-->
-                <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/DarkTheme.xaml" />
 
                 <!--<ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
