@@ -247,7 +247,7 @@
                             <Line
                                 RenderOptions.EdgeMode="Aliased"
                                 SnapsToDevicePixels="True"
-                                Stroke="Black"
+                                Stroke="{DynamicResource gridLineBrush}"
                                 StrokeThickness="1"
                                 UseLayoutRounding="True"
                                 X1="{Binding X1}"
