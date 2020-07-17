@@ -18,7 +18,6 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  Selected color display  -->
         <Grid Grid.Row="0" Margin="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" />
@@ -37,6 +36,22 @@
                 <RowDefinition Height="auto" />
             </Grid.RowDefinitions>
 
+            <!--  Selected color display  -->
+            <Button
+                Grid.Row="0"
+                Grid.RowSpan="4"
+                Grid.Column="0"
+                Height="50"
+                MinWidth="50"
+                Margin="5,0,5,0"
+                Click="{s:Action SaveColor}"
+                IsEnabled="{Binding SelectedColor.CanSaveColor}">
+                <StackPanel>
+                    <TextBlock HorizontalAlignment="Center" Text="Save" />
+                    <TextBlock HorizontalAlignment="Center" Text="Color" />
+                </StackPanel>
+            </Button>
+
             <Border
                 Grid.Row="0"
                 Grid.RowSpan="4"
@@ -45,118 +60,105 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 BorderBrush="Black"
-                BorderThickness="2"
-                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}">
+                BorderThickness="2">
 
-                <Rectangle Width="50" Height="50">
+                <Rectangle Width="45" Height="45">
                     <Rectangle.Fill>
-                        <SolidColorBrush Color="{Binding Color}" />
+                        <SolidColorBrush Color="{Binding SelectedColor.Color}" />
                     </Rectangle.Fill>
                 </Rectangle>
             </Border>
-
-            <Button
-                Grid.Row="0"
-                Grid.RowSpan="4"
-                Grid.Column="0"
-                Height="50"
-                MinWidth="50"
-                Margin="0,0,20,0"
-                Click="{s:Action SaveColor}"
-                Content="Save&#x0d;&#x0a;Color"
-                IsEnabled="{Binding EditingItem.CanSaveColor}" />
 
             <Slider
                 Grid.Row="0"
                 Grid.Column="2"
                 Margin="0,0,10,5"
-                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
                 Foreground="Red"
-                Maximum="{Binding RedMax, UpdateSourceTrigger=PropertyChanged}"
+                Maximum="{Binding SelectedColor.RedMax, UpdateSourceTrigger=PropertyChanged}"
                 Minimum="0"
                 Style="{DynamicResource MahApps.Styles.Slider.Flat}"
-                Value="{Binding Red, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Value="{Binding SelectedColor.Red, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
             <Slider
                 Grid.Row="1"
                 Grid.Column="2"
                 Margin="0,0,10,5"
-                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
                 Foreground="Green"
-                Maximum="{Binding GreenMax}"
+                Maximum="{Binding SelectedColor.GreenMax}"
                 Minimum="0"
                 Style="{DynamicResource MahApps.Styles.Slider.Flat}"
-                Value="{Binding Green, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Value="{Binding SelectedColor.Green, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
             <Slider
                 Grid.Row="2"
                 Grid.Column="2"
                 Margin="0,0,10,5"
-                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
                 Foreground="Blue"
-                Maximum="{Binding BlueMax}"
+                Maximum="{Binding SelectedColor.BlueMax}"
                 Minimum="0"
                 Style="{DynamicResource MahApps.Styles.Slider.Flat}"
-                Value="{Binding Blue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Value="{Binding SelectedColor.Blue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
             <Slider
                 Grid.Row="3"
                 Grid.Column="2"
                 Margin="0,0,10,0"
-                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
                 Foreground="{StaticResource CheckeredBrush}"
-                Maximum="{Binding AlphaMax}"
+                Maximum="{Binding SelectedColor.AlphaMax}"
                 Minimum="0"
                 Style="{DynamicResource MahApps.Styles.Slider.Flat}"
-                Value="{Binding Alpha, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                Value="{Binding SelectedColor.Alpha, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
             <TextBlock
                 Grid.Row="0"
                 Grid.Column="3"
+                MinWidth="25"
                 VerticalAlignment="Center"
-                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
-                Text="{Binding Red}" />
+                Text="{Binding SelectedColor.Red}" />
             <TextBlock
                 Grid.Row="1"
                 Grid.Column="3"
+                MinWidth="25"
                 VerticalAlignment="Center"
-                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
-                Text="{Binding Green}" />
+                Text="{Binding SelectedColor.Green}" />
             <TextBlock
                 Grid.Row="2"
                 Grid.Column="3"
+                MinWidth="25"
                 VerticalAlignment="Center"
-                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
-                Text="{Binding Blue}" />
+                Text="{Binding SelectedColor.Blue}" />
             <TextBlock
                 Grid.Row="3"
                 Grid.Column="3"
+                MinWidth="25"
                 VerticalAlignment="Center"
-                DataContext="{Binding EditingItem, UpdateSourceTrigger=PropertyChanged}"
-                Text="{Binding Alpha}" />
+                Text="{Binding SelectedColor.Alpha}" />
 
             <Button
                 Grid.Row="0"
                 Grid.RowSpan="4"
                 Grid.Column="4"
-                Height="50"
                 MinWidth="50"
-                Margin="20,0,0,0"
+                Margin="10,0,0,0"
                 VerticalAlignment="Center"
                 Command="{s:Action SaveChanges}"
-                Content="Save&#x0d;&#x0a;Palette"
-                IsEnabled="{Binding IsModified}" />
+                IsEnabled="{Binding IsModified}">
+                <StackPanel>
+                    <TextBlock HorizontalAlignment="Center" Text="Save" />
+                    <TextBlock HorizontalAlignment="Center" Text="Changes" />
+                </StackPanel>
+            </Button>
         </Grid>
 
         <!--  Palette Display  -->
         <ListBox
             Grid.Row="1"
+            Margin="5,0,0,0"
             ItemContainerStyle="{StaticResource ValidatedPaletteItemContainerTemplate}"
             ItemTemplate="{StaticResource ValidatedPaletteItemTemplate}"
             ItemsSource="{Binding Colors}"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-            SelectedIndex="{Binding SelectedIndex}"
-            SelectedItem="{Binding SelectedItem}">
+            SelectedItem="{Binding SelectedColor}">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel IsItemsHost="True" Orientation="Horizontal" />

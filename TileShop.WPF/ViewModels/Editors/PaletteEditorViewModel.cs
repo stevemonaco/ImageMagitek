@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using TileShop.Shared.EventModels;
 using TileShop.WPF.Models;
 using ImageMagitek.Colors;
+using System.Linq;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -18,30 +19,11 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _colors, value);
         }
 
-        private int _selectedIndex;
-        public int SelectedIndex
+        private ValidatedColorModel _selectedColor;
+        public ValidatedColorModel SelectedColor
         {
-            get => _selectedIndex;
-            set
-            {
-                SetAndNotify(ref _selectedIndex, value);
-                if(SelectedIndex >= 0)
-                    EditingItem = new ValidatedColorModel(_palette.GetForeignColor(SelectedIndex), SelectedIndex);
-            }
-        }
-
-        private ValidatedColorModel _selectedItem;
-        public ValidatedColorModel SelectedItem
-        {
-            get => _selectedItem;
-            set => SetAndNotify(ref _selectedItem, value);
-        }
-
-        private ValidatedColorModel _editingItem;
-        public ValidatedColorModel EditingItem
-        {
-            get => _editingItem;
-            set => SetAndNotify(ref _editingItem, value);
+            get => _selectedColor;
+            set => SetAndNotify(ref _selectedColor, value);
         }
 
         public PaletteEditorViewModel(Palette palette, IEventAggregator events)
@@ -56,15 +38,14 @@ namespace TileShop.WPF.ViewModels
             for(int i = 0; i < _palette.Entries; i++)
                 Colors.Add(new ValidatedColorModel(_palette.GetForeignColor(i), i));
 
-            SelectedIndex = 0;
+            SelectedColor = Colors.First();
         }
 
-        public Task SaveColor()
+        public void SaveColor()
         {
-            _palette.SetForeignColor(SelectedIndex, EditingItem.WorkingColor);
+            SelectedColor.SaveColor();
+            _palette.SetForeignColor(SelectedColor.Index, SelectedColor.WorkingColor);
             IsModified = true;
-
-            return Task.CompletedTask;
         }
 
         public override void SaveChanges()

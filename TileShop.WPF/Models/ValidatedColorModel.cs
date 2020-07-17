@@ -104,7 +104,12 @@ namespace TileShop.WPF.Models
             get => WorkingColor.Color != _foreignColor.Color;
         }
 
-        public int Index { get; set; }
+        private int _index;
+        public int Index
+        {
+            get => _index;
+            set => SetField(ref _index, value);
+        }
 
         public ValidatedColorModel(IColor32 foreignColor, int index)
         {
@@ -122,6 +127,12 @@ namespace TileShop.WPF.Models
             GreenMax = foreignColor.GreenMax;
             BlueMax = foreignColor.BlueMax;
             AlphaMax = foreignColor.AlphaMax;
+        }
+
+        public void SaveColor()
+        {
+            _foreignColor = ColorFactory.CloneColor(WorkingColor);
+            OnPropertyChanged(nameof(CanSaveColor));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
