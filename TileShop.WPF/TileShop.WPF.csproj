@@ -54,4 +54,15 @@
     <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ViewModels\Dialogs\" />
+    <Folder Include="ViewModels\Editors\" />
+    <Folder Include="ViewModels\Tools\" />
+    <Folder Include="ViewModels\TreeNodes\" />
+    <Folder Include="Views\Dialogs\" />
+    <Folder Include="Views\Editors\" />
+    <Folder Include="Views\ProjectTree\" />
+    <Folder Include="Views\Tools\" />
+  </ItemGroup>
+
 </Project>
