@@ -113,31 +113,43 @@
                 Click="{s:Action ResizeArranger}"
                 ToolTip="Resizes the Arranger"
                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <Image Style="{StaticResource iconResize}" />
+                <StackPanel>
+                    <TextBlock Text="Resize" />
+                    <Image Style="{StaticResource iconResize}" />
+                </StackPanel>
             </Button>
 
             <Button
+                Margin="5,0,0,0"
                 Click="{s:Action EditSelection}"
                 IsEnabled="{Binding CanEditSelection}"
                 ToolTip="Opens selection in the pixel editor">
-                <Image Style="{StaticResource iconEdit}" />
+                <StackPanel>
+                    <TextBlock Text="Edit" />
+                    <Image Style="{StaticResource iconEdit}" />
+                </StackPanel>
             </Button>
 
             <Button
-                Margin="10,0,0,0"
+                Margin="5,0,0,0"
                 Click="{s:Action SaveChanges}"
                 IsEnabled="{Binding IsModified}"
                 ToolTip="Saves arranger properties to in-memory project">
-                <Image Style="{StaticResource iconSave}" />
+                <StackPanel>
+                    <TextBlock Text="Save" />
+                    <Image Style="{StaticResource iconSave}" />
+                </StackPanel>
             </Button>
 
             <Button
+                Margin="5,0,0,0"
                 Click="{s:Action ApplyPasteAsPixels}"
                 Content="PasteAsPixels"
                 ToolTip="Pastes pixels directly to file"
                 Visibility="{Binding CanPastePixels, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
 
             <Button
+                Margin="5,0,0,0"
                 Click="{s:Action ApplyPasteAsElements}"
                 Content="PasteAsElements"
                 ToolTip="Pastes elements to arranger"

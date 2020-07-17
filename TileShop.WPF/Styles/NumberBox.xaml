@@ -83,6 +83,7 @@
                         <TextBox
                             x:Name="InputBox"
                             Grid.Row="1"
+                            VerticalContentAlignment="Center"
                             ui:ControlHelper.CornerRadius="{TemplateBinding CornerRadius}"
                             ui:ControlHelper.PlaceholderText="{TemplateBinding PlaceholderText}"
                             SelectionBrush="{TemplateBinding SelectionBrush}" />
@@ -133,21 +134,27 @@
                             Grid.Column="1"
                             Orientation="Vertical">
                             <!--  Content="&#xE70E;"  -->
+                            <!--  Content="&#xE710;"  -->
                             <RepeatButton
                                 x:Name="UpSpinButton"
+                                Padding="2"
                                 ui:ControlHelper.CornerRadius="0"
-                                Content="&#xE710;"
-                                FontSize="{TemplateBinding FontSize}"
+                                BorderThickness="0,1,1,0"
+                                Content="&#xE70E;"
+                                FontSize="12"
                                 Style="{StaticResource tsNumberBoxSpinButtonStyle}"
                                 Visibility="Collapsed" />
 
                             <!--  Content="&#xE70D;"  -->
+                            <!--  Content="&#xE738;"  -->
                             <RepeatButton
                                 x:Name="DownSpinButton"
+                                Padding="2"
                                 ui:ControlHelper.CornerRadius="{TemplateBinding CornerRadius,
                                                                                 Converter={StaticResource RightCornerRadiusFilterConverter}}"
-                                Content="&#xE738;"
-                                FontSize="{TemplateBinding FontSize}"
+                                BorderThickness="0,1,1,1"
+                                Content="&#xE70D;"
+                                FontSize="12"
                                 Style="{StaticResource tsNumberBoxSpinButtonStyle}"
                                 Visibility="Collapsed" />
                         </StackPanel>
