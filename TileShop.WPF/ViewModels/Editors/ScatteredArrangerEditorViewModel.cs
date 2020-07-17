@@ -14,7 +14,7 @@ using TileShop.WPF.ViewModels.Dialogs;
 
 namespace TileShop.WPF.ViewModels
 {
-    public enum ScatteredArrangerTool { Select, ApplyPalette, PickPalette }
+    public enum ScatteredArrangerTool { Select, ApplyPalette, PickPalette, InspectElement }
 
     public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     {
@@ -127,6 +127,10 @@ namespace TileShop.WPF.ViewModels
 
             if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton)
                 TryApplyPalette(x, y, ActivePalette.Palette);
+            else if (ActiveTool == ScatteredArrangerTool.InspectElement)
+            {
+
+            }
             else
                 base.OnMouseMove(sender, e);
         }

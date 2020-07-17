@@ -55,19 +55,30 @@
                     <RadioButton
                         Margin="2,0,0,0"
                         VerticalContentAlignment="Center"
-                        Content="ApplyPal"
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
                         Style="{StaticResource {x:Type ToggleButton}}"
-                        ToolTip="Click on an Arranger element to apply the current palette" />
+                        ToolTip="Click on an Arranger element to apply the current palette">
+                        <Image Style="{StaticResource iconPaletteBrush}" />
+                    </RadioButton>
                     <RadioButton
                         Margin="2,0,0,0"
                         VerticalContentAlignment="Center"
-                        Content="PickPal"
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PickPalette}"
                         Style="{StaticResource {x:Type ToggleButton}}"
-                        ToolTip="Click on an Arranger element to pick its associated palette" />
+                        ToolTip="Click on an Arranger element to pick its associated palette">
+                        <Image Style="{StaticResource iconPalettePicker}" />
+                    </RadioButton>
+                    <RadioButton
+                        Margin="2,0,0,0"
+                        HorizontalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=InspectElement}"
+                        Style="{StaticResource {x:Type ToggleButton}}"
+                        ToolTip="Hover Arranger elements to inspect their properties">
+                        <Image Style="{StaticResource iconEye}" />
+                    </RadioButton>
                 </StackPanel>
             </StackPanel>
 
@@ -84,6 +95,14 @@
                 </ComboBox>
             </StackPanel>
 
+            <Button
+                Margin="5,0,0,0"
+                VerticalAlignment="Bottom"
+                VerticalContentAlignment="Center"
+                ToolTip="Associate Palette from Project with Arranger">
+                <Image Style="{StaticResource iconPlusCircle}" />
+            </Button>
+
             <StackPanel Margin="10,0,10,0">
                 <TextBlock HorizontalAlignment="Center" Text="Zoom" />
                 <Slider
@@ -94,7 +113,7 @@
                     Value="{Binding Zoom}" />
             </StackPanel>
 
-            <StackPanel Margin="0,0,10,0">
+            <StackPanel>
                 <ToggleButton
                     Focusable="False"
                     IsChecked="{Binding ShowGridlines}"
@@ -154,6 +173,12 @@
                 Content="PasteAsElements"
                 ToolTip="Pastes elements to arranger"
                 Visibility="{Binding CanPasteElements, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
+            <ui:AppBarElementContainer>
+                <ui:SimpleStackPanel Orientation="Horizontal">
+                    <ui:AppBarButton Content="Test"  />
+                    <ui:AppBarSeparator />
+                </ui:SimpleStackPanel>
+            </ui:AppBarElementContainer>
         </StackPanel>
 
         <!--  Image Display  -->

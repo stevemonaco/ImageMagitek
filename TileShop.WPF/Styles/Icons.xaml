@@ -42,6 +42,102 @@
         </Setter>
     </Style>
 
+    <Style x:Key="iconPaletteBrush" TargetType="Image">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Brush="{DynamicResource iconBrush}">
+                            <GeometryDrawing.Geometry>
+                                M727 641q39 -39 19 -90q-108 -271 -390 -438q-13 -8 -23 -10q-13 -83 -75.5 -136.5t-147.5 -53.5q-19 0 -37 3l-61 9l-9 61q-16 101 44 178q54 69 144 83q4 14 8 22q167 282 438 390q15 6 31 6q35 0 59 -24zM110 -3q57 0 97 35.5t46 90.5l-43 43q-62 -7 -98.5 -55 t-26.5 -113q8 -1 25 -1zM314 184q30 17 74 49q-67 67 -68 69q-28 -39 -49 -75zM422 258q170 132 247 324q-194 -77 -325 -248z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <ScaleTransform ScaleX="1" ScaleY="-1" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="iconPalettePicker" TargetType="Image">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Brush="{DynamicResource iconBrush}">
+                            <GeometryDrawing.Geometry>
+                                M718 627q47 -47 47.5 -122.5t-50.5 -116.5q-42 -33 -152 -74l67 -67q12 -12 12 -29.5t-12 -29.5t-29 -12q-18 0 -30 12l-12 12l-218 -218q-25 -25 -63 -40q-1 -1 -23.5 -8.5t-62 -16t-72.5 -8.5q-62 0 -91 29q-19 19 -25.5 51.5t-3 64.5t11.5 63.5t13.5 48.5t7.5 20 q15 38 41 64l218 218l-13 12q-12 12 -12 29.5t12 29.5t29.5 12t29.5 -12l68 -68q42 112 73 152q41 52 118 52q73 0 121 -48zM88 -3q19 -16 108 6l-101 101q-22 -89 -7 -107zM241 17q27 10 41 24l218 218l-149 149l-218 -218q-14 -14 -24 -40z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <ScaleTransform ScaleX="1" ScaleY="-1" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="iconEye" TargetType="Image">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Brush="{DynamicResource iconBrush}">
+                            <GeometryDrawing.Geometry>
+                                M500 187.5C187.5 187.5 0 498.1 0 498.1C0 498.1 187.5 812.5 500 812.5C812.5 812.5 1000 500 1000 500C1000 500 812.5 187.5 500 187.5ZM500 750C226.6 750 78.1 500 78.1 500C78.1 500 226.6 250 500 250C773.4 250 921.9 500 921.9 500C921.9 500 773.4 750 500 750ZM687.5 500C687.5 603.6 603.6 687.5 500 687.5C396.4 687.5 312.5 603.6 312.5 500C312.5 396.4 396.4 312.5 500 312.5C603.6 312.5 687.5 396.4 687.5 500Z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <ScaleTransform ScaleX="1" ScaleY="-1" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="iconPlusCircle" TargetType="Image">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Pen="{DynamicResource iconPen}">
+                            <GeometryDrawing.Geometry>
+                                m 8,12 h 8 M 12,8 v 8 M 22,12 A 10,10 0 0 1 12,22 10,10 0 0 1 2,12 10,10 0 0 1 12,2 10,10 0 0 1 22,12 Z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <ScaleTransform ScaleX="1" ScaleY="-1" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="iconGrid" TargetType="Image">
         <Setter Property="Width" Value="20" />
         <Setter Property="Height" Value="20" />
