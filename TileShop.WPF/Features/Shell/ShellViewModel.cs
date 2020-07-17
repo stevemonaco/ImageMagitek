@@ -328,19 +328,19 @@ namespace TileShop.WPF.ViewModels
             if (model.IsModified)
             {
                 var result = _windowManager.ShowMessageBox($"'{model.DisplayName}' has been modified and will be closed. Save changes?",
-                    "Save changes", System.Windows.MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
+                    "Save changes", MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
 
-                if (result == System.Windows.MessageBoxResult.Yes)
+                if (result == MessageBoxResult.Yes)
                 {
                     model.SaveChanges();
                     return true;
                 }
-                if (result == System.Windows.MessageBoxResult.No)
+                if (result == MessageBoxResult.No)
                 {
                     model.DiscardChanges();
                     return true;
                 }
-                else if (result == System.Windows.MessageBoxResult.Cancel)
+                else if (result == MessageBoxResult.Cancel)
                     return false;
             }
             return true;
