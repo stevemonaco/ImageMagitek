@@ -6,14 +6,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dd="urn:gong-wpf-dragdrop"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:local="clr-namespace:TileShop.WPF.Views"
-    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:TileShop.WPF.Models"
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     d:DesignHeight="450"
     d:DesignWidth="800"
+    Focusable="True"
     mc:Ignorable="d">
 
     <UserControl.InputBindings>
@@ -181,7 +180,6 @@
             </StackPanel>
         </Border>
 
-        <!--  Background="{DynamicResource SystemControlPageBackgroundChromeLowBrush}"  -->
         <!--  Image Display  -->
         <ScrollViewer
             Grid.Row="1"
@@ -190,6 +188,17 @@
             Focusable="True"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
+
+            <ScrollViewer.InputBindings>
+                <KeyBinding Key="Down" Command="{s:Action MoveRowDown}" />
+                <KeyBinding Key="Up" Command="{s:Action MoveRowUp}" />
+                <KeyBinding Key="Right" Command="{s:Action MoveColumnRight}" />
+                <KeyBinding Key="Left" Command="{s:Action MoveColumnLeft}" />
+                <KeyBinding Key="PageDown" Command="{s:Action MovePageDown}" />
+                <KeyBinding Key="PageUp" Command="{s:Action MovePageUp}" />
+                <KeyBinding Key="Home" Command="{s:Action MoveHome}" />
+                <KeyBinding Key="End" Command="{s:Action MoveEnd}" />
+            </ScrollViewer.InputBindings>
 
             <Grid
                 Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer}}, Converter={StaticResource ScrollViewerToMarginStringConverter}}"

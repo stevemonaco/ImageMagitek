@@ -6,7 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dd="urn:gong-wpf-dragdrop"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:TileShop.WPF.Models"
     xmlns:s="https://github.com/canton7/Stylet"
@@ -160,25 +159,24 @@
                 </StackPanel>
             </Button>
 
-            <Button
-                Margin="5,0,0,0"
-                Click="{s:Action ApplyPasteAsPixels}"
-                Content="PasteAsPixels"
-                ToolTip="Pastes pixels directly to file"
-                Visibility="{Binding CanPastePixels, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
-
-            <Button
-                Margin="5,0,0,0"
-                Click="{s:Action ApplyPasteAsElements}"
-                Content="PasteAsElements"
-                ToolTip="Pastes elements to arranger"
-                Visibility="{Binding CanPasteElements, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
-            <ui:AppBarElementContainer>
-                <ui:SimpleStackPanel Orientation="Horizontal">
-                    <ui:AppBarButton Content="Test"  />
-                    <ui:AppBarSeparator />
-                </ui:SimpleStackPanel>
-            </ui:AppBarElementContainer>
+            <Button Margin="5,0,0,0">
+                <ui:FlyoutService.Flyout>
+                    <ui:MenuFlyout>
+                        <MenuItem
+                            Click="{s:Action ApplyPasteAsElements}"
+                            Header="As Elements"
+                            IsEnabled="{Binding CanPasteElements}" />
+                        <MenuItem
+                            Click="{s:Action ApplyPasteAsPixels}"
+                            Header="As Pixels"
+                            IsEnabled="{Binding CanPastePixels}" />
+                    </ui:MenuFlyout>
+                </ui:FlyoutService.Flyout>
+                <StackPanel>
+                    <TextBlock Text="Paste" />
+                    <Image Style="{StaticResource iconPaste}" />
+                </StackPanel>
+            </Button>
         </StackPanel>
 
         <!--  Image Display  -->
