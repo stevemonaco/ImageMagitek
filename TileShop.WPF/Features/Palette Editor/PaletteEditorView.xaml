@@ -3,7 +3,6 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
     d:DesignHeight="450"
@@ -76,7 +75,6 @@
                 Foreground="Red"
                 Maximum="{Binding SelectedColor.RedMax, UpdateSourceTrigger=PropertyChanged}"
                 Minimum="0"
-                Style="{DynamicResource MahApps.Styles.Slider.Flat}"
                 Value="{Binding SelectedColor.Red, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
             <Slider
@@ -86,7 +84,6 @@
                 Foreground="Green"
                 Maximum="{Binding SelectedColor.GreenMax}"
                 Minimum="0"
-                Style="{DynamicResource MahApps.Styles.Slider.Flat}"
                 Value="{Binding SelectedColor.Green, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
             <Slider
@@ -96,7 +93,6 @@
                 Foreground="Blue"
                 Maximum="{Binding SelectedColor.BlueMax}"
                 Minimum="0"
-                Style="{DynamicResource MahApps.Styles.Slider.Flat}"
                 Value="{Binding SelectedColor.Blue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
             <Slider
@@ -106,7 +102,6 @@
                 Foreground="{StaticResource CheckeredBrush}"
                 Maximum="{Binding SelectedColor.AlphaMax}"
                 Minimum="0"
-                Style="{DynamicResource MahApps.Styles.Slider.Flat}"
                 Value="{Binding SelectedColor.Alpha, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
             <TextBlock
