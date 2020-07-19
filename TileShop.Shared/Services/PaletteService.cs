@@ -7,28 +7,63 @@ namespace TileShop.Shared.Services
 {
     public interface IPaletteService
     {
-        Palette DefaultPalette { get; set; }
-        List<Palette> Palettes { get; set; }
+        Palette DefaultPalette { get; }
+        List<Palette> DefaultPalettes { get; }
+        Palette NesPalette { get; }
 
-        void LoadJsonPalettes(string palettesPath);
+        void LoadDefaultPalette(string paletteFileName);
+        void SetDefaultPalette(Palette pal);
+        void LoadNesPalette(string nesPaletteFileName);
     }
 
     public class PaletteService : IPaletteService
     {
-        public Palette DefaultPalette { get; set; }
-        public List<Palette> Palettes { get; set; } = new List<Palette>();
+        public Palette DefaultPalette { get; private set; }
+        public List<Palette> DefaultPalettes { get; } = new List<Palette>();
+        public Palette NesPalette { get; private set; }
 
-        public void LoadJsonPalettes(string palettesPath)
+        /// <summary>
+        /// Loads a palette from a JSON file and adds it to DefaultPalettes
+        /// </summary>
+        /// <param name="paletteFileName"></param>
+        public void LoadDefaultPalette(string paletteFileName)
         {
-            if (!Directory.Exists(palettesPath))
-                throw new DirectoryNotFoundException($"{nameof(LoadJsonPalettes)}: Could not locate directory {palettesPath}");
+            if (!File.Exists(paletteFileName))
+                throw new FileNotFoundException($"{nameof(LoadDefaultPalette)}: Could not locate file {paletteFileName}");
 
-            foreach (var paletteFileName in Directory.GetFiles(palettesPath).Where(x => x.EndsWith(".json")))
-            {
-                string json = File.ReadAllText(paletteFileName);
-                var pal = PaletteJsonSerializer.ReadPalette(json);
-                Palettes.Add(pal);
-            }
+            string json = File.ReadAllText(paletteFileName);
+            var pal = PaletteJsonSerializer.ReadPalette(json);
+            DefaultPalettes.Add(pal);
+        }
+
+        /// <summary>
+        /// Loads a palette from a JSON file and sets it as the NesPalette
+        /// </summary>
+        /// <param name="nesPaletteFileName"></param>
+        public void LoadNesPalette(string nesPaletteFileName)
+        {
+            if (!File.Exists(nesPaletteFileName))
+                throw new FileNotFoundException($"{nameof(LoadNesPalette)}: Could not locate file {nesPaletteFileName}");
+
+            NesPalette = LoadJsonPalette(nesPaletteFileName);
+        }
+
+        private Palette LoadJsonPalette(string paletteFileName)
+        {
+            string json = File.ReadAllText(paletteFileName);
+            return PaletteJsonSerializer.ReadPalette(json);
+        }
+
+        /// <summary>
+        /// Sets the provided palette to the DefaultPalette and adds it to DefaultPalettes if not already present
+        /// </summary>
+        /// <param name="pal"></param>
+        public void SetDefaultPalette(Palette pal)
+        {
+            if (!DefaultPalettes.Contains(pal))
+                DefaultPalettes.Add(pal);
+
+            DefaultPalette = pal;
         }
     }
 }

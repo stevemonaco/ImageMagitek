@@ -17,6 +17,7 @@ namespace TileShop.WPF
 {
     public class TileShopBootstrapper : AutofacBootstrapper<ShellViewModel>
     {
+        private AppSettings _settings;
         private Tracker _tracker = new Tracker();
         private IPaletteService _paletteService;
         private ICodecService _codecService;
@@ -32,7 +33,7 @@ namespace TileShop.WPF
         {
             ConfigureLogging(_logFileName, builder);
             ReadConfiguration(_configName, builder);
-            ReadPalettes(_palPath, builder);
+            ReadPalettes(_palPath, _settings, builder);
             ReadCodecs(_codecPath, _codecSchemaName, builder);
             ConfigureTreeService(_projectSchemaName, builder);
             ConfigureServices(builder);
@@ -105,8 +106,8 @@ namespace TileShop.WPF
                     PropertyNameCaseInsensitive = true
                 };
 
-                var settings = JsonSerializer.Deserialize<AppSettings>(json, options);
-                builder.RegisterInstance(settings);
+                _settings = JsonSerializer.Deserialize<AppSettings>(json, options);
+                builder.RegisterInstance(_settings);
             }
             catch (Exception ex)
             {
@@ -115,11 +116,20 @@ namespace TileShop.WPF
             }
         }
 
-        private void ReadPalettes(string palettesPath, ContainerBuilder builder)
+        private void ReadPalettes(string palettesPath, AppSettings settings, ContainerBuilder builder)
         {
             _paletteService = new PaletteService();
-            _paletteService.LoadJsonPalettes(palettesPath);
-            _paletteService.DefaultPalette = _paletteService.Palettes.Where(x => x.Name.Contains("DefaultRgba32")).First();
+
+            foreach (var paletteName in settings.DefaultPalettes)
+            {
+                var paletteFileName = Path.Combine(palettesPath, $"{paletteName}.json");
+                _paletteService.LoadDefaultPalette(paletteFileName);
+            }
+            _paletteService.SetDefaultPalette(_paletteService.DefaultPalettes.First());
+
+            var nesPaletteFileName = Path.Combine(palettesPath, $"{settings.NesPalette}.json");
+            _paletteService.LoadNesPalette(nesPaletteFileName);
+
             builder.RegisterInstance(_paletteService);
         }
 
