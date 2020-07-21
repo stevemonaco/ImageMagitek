@@ -8,7 +8,7 @@ namespace ImageMagitek.Services
 {
     public interface ICodecService
     {
-        ICodecFactory CodecFactory { get; set; }
+        ICodecFactory CodecFactory { get; }
 
         IEnumerable<string> GetSupportedCodecNames();
         MagitekResults LoadXmlCodecs(string codecsPath);
@@ -16,7 +16,7 @@ namespace ImageMagitek.Services
 
     public class CodecService : ICodecService
     {
-        public ICodecFactory CodecFactory { get; set; }
+        public ICodecFactory CodecFactory { get; private set; }
 
         private readonly string _schemaFileName;
         private readonly Palette _defaultPalette;
