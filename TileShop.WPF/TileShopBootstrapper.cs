@@ -43,7 +43,6 @@ namespace TileShop.WPF
         private void ConfigureServices(ContainerBuilder builder)
         {
             builder.RegisterType<FileSelectService>().As<IFileSelectService>();
-            builder.RegisterType<UserPromptService>().As<IUserPromptService>();
             builder.RegisterType<ViewModels.MessageBoxViewModel>().As<IMessageBoxViewModel>();
         }
 
