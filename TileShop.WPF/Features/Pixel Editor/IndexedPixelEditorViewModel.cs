@@ -1,12 +1,10 @@
-﻿using ImageMagitek;
-using ImageMagitek.Colors;
-using Stylet;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
+using Stylet;
+using ImageMagitek;
+using ImageMagitek.Colors;
+using ImageMagitek.Services;
 using TileShop.Shared.EventModels;
-using TileShop.Shared.Services;
 using TileShop.WPF.Imaging;
 using TileShop.WPF.Models;
 using Point = System.Drawing.Point;

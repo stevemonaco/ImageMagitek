@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using ImageMagitek;
 using ImageMagitek.Project;
-using Monaco.PathTree;
-using TileShop.WPF.ViewModels;
-using TileShop.Shared.Services;
-using TileShop.WPF.Models;
 using ImageMagitek.Colors;
+using ImageMagitek.Services;
+using TileShop.WPF.ViewModels;
+using TileShop.WPF.Models;
 using TileShop.WPF.ViewModels.Dialogs;
+using Monaco.PathTree;
 
 namespace TileShop.WPF.Services
 {

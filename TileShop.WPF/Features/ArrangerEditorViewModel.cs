@@ -8,7 +8,7 @@ using TileShop.WPF.Models;
 using TileShop.Shared.Models;
 using TileShop.WPF.Imaging;
 using GongSolutions.Wpf.DragDrop;
-using TileShop.Shared.Services;
+using ImageMagitek.Services;
 using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;

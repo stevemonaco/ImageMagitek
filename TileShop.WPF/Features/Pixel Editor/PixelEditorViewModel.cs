@@ -1,16 +1,7 @@
-﻿using System;
-using System.Linq;
-using System.Windows.Media;
-using Stylet;
-using TileShop.Shared.EventModels;
-using TileShop.Shared.Services;
+﻿using Stylet;
+using ImageMagitek.Services;
 using TileShop.WPF.Behaviors;
-using TileShop.WPF.Helpers;
-using TileShop.WPF.Imaging;
 using TileShop.WPF.Models;
-using ImageMagitek;
-using ImageMagitek.Colors;
-using Point = System.Drawing.Point;
 
 namespace TileShop.WPF.ViewModels
 {

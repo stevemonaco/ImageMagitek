@@ -8,7 +8,7 @@ using Stylet;
 using Autofac;
 using Jot;
 using ImageMagitek;
-using TileShop.Shared.Services;
+using ImageMagitek.Services;
 using TileShop.WPF.Configuration;
 using TileShop.WPF.Services;
 using TileShop.WPF.ViewModels;

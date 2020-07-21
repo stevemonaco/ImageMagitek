@@ -4,7 +4,7 @@ using Stylet;
 using GongSolutions.Wpf.DragDrop;
 using ImageMagitek;
 using ImageMagitek.Colors;
-using TileShop.Shared.Services;
+using ImageMagitek.Services;
 using TileShop.WPF.Imaging;
 using TileShop.WPF.Models;
 using TileShop.WPF.Behaviors;

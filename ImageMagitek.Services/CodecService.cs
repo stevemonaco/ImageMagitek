@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 
-namespace TileShop.Shared.Services
+namespace ImageMagitek.Services
 {
     public interface ICodecService
     {

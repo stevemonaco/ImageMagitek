@@ -1,11 +1,9 @@
-﻿using ImageMagitek;
-using ImageMagitek.Colors;
-using Stylet;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 using System.Windows.Media.Imaging;
-using TileShop.Shared.Services;
+using Stylet;
+using ImageMagitek;
+using ImageMagitek.Colors;
+using ImageMagitek.Services;
 using TileShop.WPF.Imaging;
 using TileShop.WPF.Services;
 

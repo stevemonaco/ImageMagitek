@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using ImageMagitek.Colors;
 
-namespace TileShop.Shared.Services
+namespace ImageMagitek.Services
 {
     public interface IPaletteService
     {

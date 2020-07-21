@@ -2,13 +2,13 @@
 using System.Linq;
 using Stylet;
 using ImageMagitek;
+using ImageMagitek.Services;
 using TileShop.Shared.EventModels;
-using TileShop.Shared.Services;
 using TileShop.Shared.Models;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Imaging;
-using Jot;
 using TileShop.WPF.EventModels;
+using Jot;
 
 namespace TileShop.WPF.ViewModels
 {

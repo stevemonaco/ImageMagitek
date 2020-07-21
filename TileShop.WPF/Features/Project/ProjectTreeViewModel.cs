@@ -2,7 +2,6 @@
 using System.Windows;
 using System.IO;
 using System.Linq;
-using System.Drawing;
 using GongSolutions.Wpf.DragDrop;
 using Stylet;
 using TileShop.Shared.EventModels;
@@ -11,10 +10,9 @@ using TileShop.WPF.ViewModels.Dialogs;
 using TileShop.WPF.EventModels;
 using ImageMagitek;
 using ImageMagitek.Colors;
-using TileShop.Shared.Services;
+using ImageMagitek.Services;
 using Jot;
 using Point = System.Drawing.Point;
-using System.Collections.Generic;
 
 namespace TileShop.WPF.ViewModels
 {
