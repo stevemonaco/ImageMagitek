@@ -13,6 +13,7 @@ using ImageMagitek.Colors;
 using ImageMagitek.Services;
 using Jot;
 using Point = System.Drawing.Point;
+using ImageMagitek.Project;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -25,6 +26,8 @@ namespace TileShop.WPF.ViewModels
         private IEventAggregator _events;
         private IWindowManager _windowManager;
         private Tracker _tracker;
+
+        private ProjectTree _activeTree;
 
         public ProjectTreeViewModel(IProjectTreeService treeService, IPaletteService paletteService,
             IFileSelectService fileSelect, IEventAggregator events, IWindowManager windowManager, Tracker tracker)
@@ -235,7 +238,7 @@ namespace TileShop.WPF.ViewModels
         {
             ProjectFileName = null;
             SelectedItem = null;
-            _treeService.UnloadProject();
+            _treeService.CloseProject(_activeTree);
 
             ProjectRoot.Clear();
             NotifyOfPropertyChange(() => HasProject);
@@ -367,10 +370,11 @@ namespace TileShop.WPF.ViewModels
         {
             try
             {
-                if (_treeService.SaveProject(ProjectFileName))
-                    IsModified = false;
-                else
-                    _windowManager.ShowMessageBox($"An unspecified error occurred while saving the project tree to {ProjectFileName}");                
+                _treeService.SaveProject(_activeTree, ProjectFileName)
+                    .Switch(
+                        success => IsModified = false,
+                        failed => _windowManager.ShowMessageBox($"An unspecified error occurred while saving the project tree to {ProjectFileName}")
+                    );
             }
             catch (Exception ex)
             {
@@ -378,25 +382,32 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void NewProject(string newFileName)
+        public MagitekResult NewProject(string newFileName)
         {
-            var project = _treeService.NewProject(Path.GetFileName(newFileName));
-            _treeService.SaveProject(newFileName);
+            // var saveResult = _treeService.SaveProject(_activeTree, newFileName);
 
-            ProjectFileName = newFileName;
-            ProjectRoot.Clear();
-            ProjectRoot.Add(project);
+            var newResult = _treeService.NewProject(Path.GetFileName(newFileName));
+
+            return newResult.Match<MagitekResult>(
+                success =>
+                {
+                    ProjectFileName = newFileName;
+                    ProjectRoot.Clear();
+                    ProjectRoot.Add(success.Result);
+                    return new MagitekResult.Success();
+                },
+                fail => new MagitekResult.Failed(fail.Reason));
         }
 
         public void OpenProject(string projectFileName)
         {
             ProjectRoot.Clear();
-            var result = _treeService.OpenProject(projectFileName);
+            var openResult = _treeService.OpenProject(projectFileName);
 
-            result.Switch(
+            openResult.Switch(
                 success =>
                 {
-                    ProjectRoot.Add(new ImageProjectNodeViewModel(_treeService.Tree.Root));
+                    ProjectRoot.Add(success.Result);
                     ProjectFileName = projectFileName;
                 },
                 fail =>

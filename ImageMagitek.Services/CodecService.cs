@@ -55,6 +55,6 @@ namespace ImageMagitek.Services
                 return MagitekResults.SuccessResults;
         }
 
-        public IEnumerable<string> GetSupportedCodecNames() => CodecFactory.GetSupportedCodecNames();
+        public IEnumerable<string> GetSupportedCodecNames() => CodecFactory?.GetSupportedCodecNames();
     }
 }

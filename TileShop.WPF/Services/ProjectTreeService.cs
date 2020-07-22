@@ -16,10 +16,13 @@ namespace TileShop.WPF.Services
     {
         IPathTree<IProjectResource> Tree { get; }
 
-        ImageProjectNodeViewModel NewProject(string projectName);
-        MagitekResults<IPathTree<IProjectResource>> OpenProject(string projectFileName);
-        bool SaveProject(string projectFileName);
-        void UnloadProject();
+        MagitekResult ApplySchemaDefinition(string schemaFileName);
+
+        MagitekResult<ImageProjectNodeViewModel> NewProject(string projectName);
+        MagitekResults<ImageProjectNodeViewModel> OpenProject(string projectFileName);
+        MagitekResult SaveProject(ProjectTree projectTree, string projectFileName);
+        void CloseProject(ProjectTree projectTree);
+        void CloseProjects();
 
         FolderNodeViewModel CreateNewFolder(TreeNodeViewModel parentNodeModel);
         TreeNodeViewModel AddResource(TreeNodeViewModel parentModel, IProjectResource resource);
@@ -34,53 +37,86 @@ namespace TileShop.WPF.Services
     {
         public IPathTree<IProjectResource> Tree { get; private set; }
         private ICodecService _codecService;
+        private ISolutionService _solutionService;
         private readonly string _schemaFileName;
 
         public ProjectTreeService(string schemaFileName, ICodecService codecService)
         {
             _schemaFileName = schemaFileName;
             _codecService = codecService;
+
+            _solutionService = new SolutionService(codecService, Enumerable.Empty<IProjectResource>());
         }
 
-        public ImageProjectNodeViewModel NewProject(string projectName)
+        //public ImageProjectNodeViewModel NewProject(string projectName)
+        //{
+        //    var project = new ImageProject(projectName);
+        //    Tree = new PathTree<IProjectResource>(projectName, project);
+        //    return new ImageProjectNodeViewModel(Tree.Root);
+        //}
+
+        public MagitekResult<ImageProjectNodeViewModel> NewProject(string projectName)
         {
-            CloseResources();
-            var project = new ImageProject(projectName);
-            Tree = new PathTree<IProjectResource>(projectName, project);
-            return new ImageProjectNodeViewModel(Tree.Root);
+            var newResult = _solutionService.NewProject(projectName);
+            return newResult.Match<MagitekResult<ImageProjectNodeViewModel>>(
+                success =>
+                {
+                    var imageVm = new ImageProjectNodeViewModel(success.Result.Tree.Root);
+                    return new MagitekResult<ImageProjectNodeViewModel>.Success(imageVm);
+                },
+                fail => new MagitekResult<ImageProjectNodeViewModel>.Failed(fail.Reason));
         }
 
-        public MagitekResults<IPathTree<IProjectResource>> OpenProject(string projectFileName)
+        public MagitekResult ApplySchemaDefinition(string schemaFileName) => 
+            _solutionService.ApplySchemaDefinition(schemaFileName);
+
+        public MagitekResults<ImageProjectNodeViewModel> OpenProject(string projectFileName)
         {
-            if (string.IsNullOrWhiteSpace(projectFileName))
-                throw new ArgumentException($"{nameof(OpenProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
-
-            CloseResources();
-            var deserializer = new XmlGameDescriptorReader(_schemaFileName, _codecService.CodecFactory);
-            var result = deserializer.ReadProject(projectFileName);
-
-            if (result.Value is MagitekResults<IPathTree<IProjectResource>>.Success success)
-                Tree = success.Result;
-
-            return result;
+            var newResult = _solutionService.OpenProject(projectFileName);
+            return newResult.Match<MagitekResults<ImageProjectNodeViewModel>>(
+                success =>
+                {
+                    var imageVm = new ImageProjectNodeViewModel(success.Result.Tree.Root);
+                    return new MagitekResults<ImageProjectNodeViewModel>.Success(imageVm);
+                },
+                fail => new MagitekResults<ImageProjectNodeViewModel>.Failed(fail.Reasons));
         }
+        //{
 
-        public bool SaveProject(string projectFileName)
+
+        //    if (string.IsNullOrWhiteSpace(projectFileName))
+        //        throw new ArgumentException($"{nameof(OpenProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
+
+        //    CloseResources();
+        //    var deserializer = new XmlGameDescriptorReader(_schemaFileName, _codecService.CodecFactory);
+        //    var result = deserializer.ReadProject(projectFileName);
+
+        //    if (result.Value is MagitekResults<IPathTree<IProjectResource>>.Success success)
+        //        Tree = success.Result;
+
+        //    return result;
+        //}
+
+        public MagitekResult SaveProject(ProjectTree projectTree, string projectFileName) => 
+            _solutionService.SaveProject(projectTree, projectFileName);
+        //{
+        //    if (Tree is null)
+        //        throw new InvalidOperationException($"{nameof(SaveProject)} does not have a tree");
+
+        //    if (string.IsNullOrWhiteSpace(projectFileName))
+        //        throw new ArgumentException($"{nameof(SaveProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
+
+        //    var serializer = new XmlGameDescriptorWriter();
+        //    return serializer.WriteProject(Tree, projectFileName);
+        //}
+
+        public void CloseProject(ProjectTree projectTree) => 
+            _solutionService.CloseProject(projectTree);
+
+        public void CloseProjects()
         {
-            if (Tree is null)
-                throw new InvalidOperationException($"{nameof(SaveProject)} does not have a tree");
-
-            if (string.IsNullOrWhiteSpace(projectFileName))
-                throw new ArgumentException($"{nameof(SaveProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
-
-            var serializer = new XmlGameDescriptorWriter();
-            return serializer.WriteProject(Tree, projectFileName);
-        }
-
-        public void UnloadProject()
-        {
-            CloseResources();
-            Tree = null;
+            foreach (var project in _solutionService.ProjectTrees.Values)
+                _solutionService.CloseProject(project);
         }
 
         /// <summary>
@@ -252,15 +288,6 @@ namespace TileShop.WPF.Services
             parentModel.Children.Add(childModel);
 
             return childModel;
-        }
-
-        private void CloseResources()
-        {
-            if (Tree is null)
-                return;
-
-            foreach (var file in Tree.EnumerateBreadthFirst().Select(x => x.Value).OfType<DataFile>())
-                file.Close();
         }
 
         public IEnumerable<IPathTreeNode<IProjectResource>> Nodes() => Tree.EnumerateBreadthFirst();

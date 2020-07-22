@@ -111,7 +111,7 @@ namespace TileShop.WPF.ViewModels
             if (!RequestSaveAllUserChanges())
                 e.Cancel = true;
 
-            _treeService.UnloadProject();
+            _treeService.CloseProjects();
         }
 
         public void DocumentClosing(object sender, DocumentClosingEventArgs e)
@@ -392,7 +392,7 @@ namespace TileShop.WPF.ViewModels
         {
             if (RequestSaveAllUserChanges())
             {
-                _treeService.UnloadProject();
+                _treeService.CloseProjects();
                 Environment.Exit(0);
             }
         }

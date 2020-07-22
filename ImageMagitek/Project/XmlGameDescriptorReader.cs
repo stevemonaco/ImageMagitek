@@ -18,22 +18,23 @@ namespace ImageMagitek.Project
     {
         public string DescriptorVersion => "0.8";
 
+        private readonly XmlSchemaSet _schemaSet;
         private readonly ICodecFactory _codecFactory;
         private string _baseDirectory;
-        private XmlSchemaSet _schemas = new XmlSchemaSet();
 
-        public XmlGameDescriptorReader(string schemaFileName, ICodecFactory CodecFactory)
+        public XmlGameDescriptorReader(ICodecFactory CodecFactory)
         {
+            _schemaSet = new XmlSchemaSet();
             _codecFactory = CodecFactory;
-
-            if (!string.IsNullOrWhiteSpace(schemaFileName))
-            {
-                using var schemaStream = File.OpenRead(schemaFileName);
-                _schemas.Add("", XmlReader.Create(schemaStream));
-            }
         }
 
-        public MagitekResults<IPathTree<IProjectResource>> ReadProject(string projectFileName)
+        public XmlGameDescriptorReader(XmlSchemaSet schemaSet, ICodecFactory CodecFactory)
+        {
+            _schemaSet = schemaSet;
+            _codecFactory = CodecFactory;
+        }
+
+        public MagitekResults<ProjectTree> ReadProject(string projectFileName)
         {
             if (string.IsNullOrWhiteSpace(projectFileName))
                 throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
@@ -43,22 +44,25 @@ namespace ImageMagitek.Project
 
             var doc = XDocument.Load(stream, LoadOptions.SetLineInfo);
 
-            var validationErrors = new List<string>();
-
-            doc.Validate(_schemas, (o, e) =>
+            if (_schemaSet is object)
             {
-                validationErrors.Add(e.Message);
-            });
+                var validationErrors = new List<string>();
 
-            if (validationErrors.Any())
-                return new MagitekResults<IPathTree<IProjectResource>>.Failed(validationErrors);
-            
+                doc.Validate(_schemaSet, (o, e) =>
+                {
+                    validationErrors.Add(e.Message);
+                });
+
+                if (validationErrors.Any())
+                    return new MagitekResults<ProjectTree>.Failed(validationErrors);
+            }
+
             XElement projectNode = doc.Element("gdf").Element("project");
 
             var projectResource = DeserializeImageProject(projectNode).ToImageProject();
             var tree = new PathTree<IProjectResource>(projectResource.Name, projectResource);
 
-            foreach(var node in projectNode.Descendants("folder"))
+            foreach (var node in projectNode.Descendants("folder"))
             {
                 var res = DeserializeResourceFolder(node).ToResourceFolder();
                 var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
@@ -88,9 +92,9 @@ namespace ImageMagitek.Project
                 var modelArranger = DeserializeScatteredArranger(node);
                 var arranger = modelArranger.ToScatteredArranger();
 
-                for(int x = 0; x < arranger.ArrangerElementSize.Width; x++)
+                for (int x = 0; x < arranger.ArrangerElementSize.Width; x++)
                 {
-                    for(int y = 0; y < arranger.ArrangerElementSize.Height; y++)
+                    for (int y = 0; y < arranger.ArrangerElementSize.Height; y++)
                     {
                         if (modelArranger.ElementGrid[x, y] is null)
                         {
@@ -105,7 +109,7 @@ namespace ImageMagitek.Project
                             tree.TryGetValue<DataFile>(modelArranger.ElementGrid[x, y].DataFileKey, out df);
 
                         Palette pal = default;
-                        if(!string.IsNullOrEmpty(modelArranger.ElementGrid[x, y].PaletteKey))
+                        if (!string.IsNullOrEmpty(modelArranger.ElementGrid[x, y].PaletteKey))
                             tree.TryGetValue<Palette>(modelArranger.ElementGrid[x, y].PaletteKey, out pal);
 
                         var element = arranger.GetElement(x, y);
@@ -120,7 +124,7 @@ namespace ImageMagitek.Project
                 tree.Add(path, arranger);
             }
 
-            return new MagitekResults<IPathTree<IProjectResource>>.Success(tree);
+            return new MagitekResults<ProjectTree>.Success(new ProjectTree(tree));
         }
 
         private ImageProjectModel DeserializeImageProject(XElement element)

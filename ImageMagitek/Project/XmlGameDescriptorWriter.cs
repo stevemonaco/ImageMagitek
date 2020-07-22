@@ -15,7 +15,7 @@ namespace ImageMagitek.Project
         public string DescriptorVersion => "0.8";
         private string _baseDirectory;
 
-        public bool WriteProject(IPathTree<IProjectResource> tree, string fileName)
+        public MagitekResult WriteProject(ProjectTree tree, string fileName)
         {
             if (tree is null)
                 throw new ArgumentNullException($"{nameof(WriteProject)} property '{nameof(tree)}' was null");
@@ -58,19 +58,29 @@ namespace ImageMagitek.Project
                 AddResourceToXmlTree(xmlRoot, element, node.Paths.ToArray());
             }
 
-            var xws = new XmlWriterSettings();
-            xws.Indent = true;
-            xws.IndentChars = "\t";
+            var xws = new XmlWriterSettings
+            {
+                Indent = true,
+                IndentChars = "\t"
+            };
 
-            using var fs = new FileStream(fileName, FileMode.Create);
-            using var xw = XmlWriter.Create(fs, xws);
-            xmlRoot.Save(xw);
+            try
+            {
+                using var fs = new FileStream(fileName, FileMode.Create);
+                using var xw = XmlWriter.Create(fs, xws);
+                xmlRoot.Save(xw);
 
-            return true;
+                return MagitekResult.SuccessResult;
+            }
+            catch (Exception ex)
+            {
+                return new MagitekResult.Failed($"{ex.Message}");
+            }
         }
 
-        private IPathTree<ProjectNodeModel> BuildModelTree(IPathTree<IProjectResource> tree)
+        private IPathTree<ProjectNodeModel> BuildModelTree(ProjectTree projectTree)
         {
+            var tree = projectTree.Tree;
             var resourceResolver = new Dictionary<IProjectResource, string>();
             foreach (var node in tree.EnumerateDepthFirst())
                 resourceResolver.Add(node.Value, node.PathKey);
@@ -160,7 +170,6 @@ namespace ImageMagitek.Project
             var element = new XElement("datafile");
             element.Add(new XAttribute("name", dataFileModel.Name));
 
-            //var relativeUri = new Uri(dataFileModel.Location).MakeRelativeUri(new Uri(_baseDirectory));
             var relativePath = Path.GetRelativePath(_baseDirectory, dataFileModel.Location);
             element.Add(new XAttribute("location", relativePath));
             return element;
@@ -217,6 +226,9 @@ namespace ImageMagitek.Project
                     elNode.Add(new XAttribute("fileoffset", $"{el.FileAddress.FileOffset:X}"));
                     elNode.Add(new XAttribute("posx", el.PositionX));
                     elNode.Add(new XAttribute("posy", el.PositionY));
+
+                    if (el.FileAddress.BitOffset != 0)
+                        elNode.Add(new XAttribute("bitoffset", el.FileAddress.BitOffset));
 
                     if(el.CodecName != defaultCodec)
                         elNode.Add(new XAttribute("codec", el.CodecName));

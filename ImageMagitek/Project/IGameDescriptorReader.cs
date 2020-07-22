@@ -5,6 +5,6 @@ namespace ImageMagitek.Project
     public interface IGameDescriptorReader
     {
         string DescriptorVersion { get; }
-        MagitekResults<IPathTree<IProjectResource>> ReadProject(string projectFileName);
+        MagitekResults<ProjectTree> ReadProject(string projectFileName);
     }
 }

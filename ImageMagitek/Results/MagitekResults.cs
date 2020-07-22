@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using OneOf;
-using System;
-using System.Text;
 
 namespace ImageMagitek
 {
@@ -34,6 +32,7 @@ namespace ImageMagitek
 
             public Failed() => Reasons = new List<string>();
             public Failed(IEnumerable<string> reasons) => Reasons = new List<string>(reasons);
+            public Failed(string reason) => Reasons = new List<string> { reason };
         }
     }
 }

@@ -15,7 +15,7 @@ namespace ImageMagitek
         }
     }
 
-    public abstract class MagitekResult<T> : OneOfBase<MagitekResult<T>.Success, MagitekResult.Failed>
+    public abstract class MagitekResult<T> : OneOfBase<MagitekResult<T>.Success, MagitekResult<T>.Failed>
     {
         public class Success : MagitekResult<T>
         {
