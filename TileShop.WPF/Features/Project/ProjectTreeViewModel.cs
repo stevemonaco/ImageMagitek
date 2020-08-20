@@ -346,11 +346,14 @@ namespace TileShop.WPF.ViewModels
         {
             if (dropInfo.Data is TreeNodeViewModel sourceModel && dropInfo.TargetItem is TreeNodeViewModel targetModel)
             {
-                if (_treeService.CanMoveNode(sourceModel, targetModel))
-                {
-                    dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
-                    dropInfo.Effects = DragDropEffects.Move;
-                }
+                _treeService.CanMoveNode(sourceModel, targetModel).Switch(
+                    success =>
+                    {
+                        dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+                        dropInfo.Effects = DragDropEffects.Move;
+                    },
+                    fail => { }
+                );
             }
         }
 
@@ -384,8 +387,6 @@ namespace TileShop.WPF.ViewModels
 
         public MagitekResult NewProject(string newFileName)
         {
-            // var saveResult = _treeService.SaveProject(_activeTree, newFileName);
-
             var newResult = _treeService.NewProject(Path.GetFileName(newFileName));
 
             return newResult.Match<MagitekResult>(
@@ -401,7 +402,6 @@ namespace TileShop.WPF.ViewModels
 
         public void OpenProject(string projectFileName)
         {
-            ProjectRoot.Clear();
             var openResult = _treeService.OpenProject(projectFileName);
 
             openResult.Switch(
@@ -414,7 +414,7 @@ namespace TileShop.WPF.ViewModels
                 {
                     var message = $"Project '{projectFileName}' contained {fail.Reasons.Count} errors{Environment.NewLine}" +
                         string.Join(Environment.NewLine, fail.Reasons);
-                    _windowManager.ShowMessageBox(message, "Project Validation Error");
+                    _windowManager.ShowMessageBox(message, "Project Open Error");
                 });
         }
 

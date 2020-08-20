@@ -27,7 +27,7 @@ namespace TileShop.WPF.Services
         FolderNodeViewModel CreateNewFolder(TreeNodeViewModel parentNodeModel);
         TreeNodeViewModel AddResource(TreeNodeViewModel parentModel, IProjectResource resource);
 
-        bool CanMoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode);
+        MagitekResult CanMoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode);
         void MoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode);
 
         ResourceRemovalChangesViewModel GetResourceRemovalChanges(TreeNodeViewModel rootNodeModel, TreeNodeViewModel removeNodeModel);
@@ -68,7 +68,7 @@ namespace TileShop.WPF.Services
         }
 
         public MagitekResult ApplySchemaDefinition(string schemaFileName) => 
-            _solutionService.ApplySchemaDefinition(schemaFileName);
+            _solutionService.LoadSchemaDefinition(schemaFileName);
 
         public MagitekResults<ImageProjectNodeViewModel> OpenProject(string projectFileName)
         {
@@ -204,38 +204,15 @@ namespace TileShop.WPF.Services
                 .FirstOrDefault(x => !node.ContainsChild(x));
         }
 
-        public bool CanMoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode)
+        public MagitekResult CanMoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode)
         {
-            if (node is null || parentNode is null)
-                return false;
+            if (node is null)
+                throw new ArgumentNullException($"{nameof(CanMoveNode)} parameter '{node}' was null");
 
-            return CanMoveNode(node.Node, parentNode.Node);
-        }
+            if (parentNode is null)
+                throw new ArgumentNullException($"{nameof(CanMoveNode)} parameter '{parentNode}' was null");
 
-        private bool CanMoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode)
-        {
-            if (node is null || parentNode is null)
-                return false;
-
-            if (ReferenceEquals(node, parentNode))
-                return false;
-
-            if (node.Parent.PathKey == parentNode.PathKey)
-                return false;
-
-            if (parentNode.ContainsChild(node.Name))
-                return false;
-
-            if (!parentNode.Value.CanContainChildResources)
-                return false;
-
-            if (node is ResourceFolder && parentNode is ResourceFolder)
-            {
-                if (parentNode.Ancestors().Any(x => x.PathKey == node.PathKey))
-                    return false;
-            }
-
-            return true;
+            return _solutionService.CanMoveNode(node.Node, parentNode.Node);
         }
 
         /// <summary>
@@ -245,18 +222,12 @@ namespace TileShop.WPF.Services
         /// <param name="parentNode">Parent to contain node after moving</param>
         public void MoveNode(TreeNodeViewModel node, TreeNodeViewModel parentNode)
         {
-            MoveNode(node.Node, parentNode.Node);
+            _solutionService.MoveNode(node.Node, parentNode.Node);
 
             var oldParent = node.ParentModel;
             oldParent.Children.Remove(node);
             node.ParentModel = parentNode;
             parentNode.Children.Add(node);
-        }
-
-        private void MoveNode(IPathTreeNode<IProjectResource> node, IPathTreeNode<IProjectResource> parentNode)
-        {
-            node.Parent.DetachChild(node.Name);
-            parentNode.AttachChild(node);
         }
 
         public bool CanAddResource(IProjectResource resource)
