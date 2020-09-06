@@ -29,7 +29,7 @@ namespace TileShop.WPF.ViewModels
         private readonly IWindowManager _windowManager;
         private readonly Tracker _tracker;
         private readonly IFileSelectService _fileSelect;
-        private readonly IProjectTreeService _treeService;
+        private readonly IProjectService _projectService;
 
         private MenuViewModel _activeMenu;
         public MenuViewModel ActiveMenu
@@ -86,7 +86,7 @@ namespace TileShop.WPF.ViewModels
         };
 
         public ShellViewModel(AppSettings settings, IEventAggregator events, IWindowManager windowManager, Tracker tracker,
-            ICodecService codecService, IPaletteService paletteService, IFileSelectService fileSelect, IProjectTreeService treeService,
+            ICodecService codecService, IPaletteService paletteService, IFileSelectService fileSelect, IProjectService projectService,
             MenuViewModel activeMenu, ProjectTreeViewModel activeTree, StatusBarViewModel activeStatusBar)
         {
             _settings = settings;
@@ -97,7 +97,7 @@ namespace TileShop.WPF.ViewModels
             _windowManager = windowManager;
             _tracker = tracker;
             _fileSelect = fileSelect;
-            _treeService = treeService;
+            _projectService = projectService;
 
             ActiveMenu = activeMenu;
             ActiveTree = activeTree;
@@ -111,7 +111,7 @@ namespace TileShop.WPF.ViewModels
             if (!RequestSaveAllUserChanges())
                 e.Cancel = true;
 
-            _treeService.CloseProjects();
+            _projectService.CloseProjects(false);
         }
 
         public void DocumentClosing(object sender, DocumentClosingEventArgs e)
@@ -259,8 +259,8 @@ namespace TileShop.WPF.ViewModels
                     Editors.Clear();
                     ActivePixelEditor = null;
 
-                    ActiveTree.OpenProject(projectFileName);
-                    _events.PublishOnUIThread(new ProjectLoadedEvent(ActiveTree.ProjectFileName));
+                    if(ActiveTree.OpenProject(projectFileName))
+                        _events.PublishOnUIThread(new ProjectLoadedEvent(projectFileName));
                 }
             }
             catch (Exception ex)
@@ -279,10 +279,10 @@ namespace TileShop.WPF.ViewModels
                 if (projectFileName is null)
                     return;
 
-                ActiveTree.ProjectFileName = projectFileName;
+                //ActiveTree.ProjectFileName = projectFileName;
             }
 
-            ActiveTree.SaveChanges();
+            //ActiveTree.SaveChanges();
         }
 
         public void Handle(CloseProjectEvent message)
@@ -348,7 +348,9 @@ namespace TileShop.WPF.ViewModels
 
         public void Handle(RequestRemoveTreeNodeEvent message)
         {
-            var changeVm = _treeService.GetResourceRemovalChanges(ActiveTree.ProjectRoot.First(), message.TreeNode);
+            var removeNode = message.TreeNode.Node;
+            var projectTree = _projectService.GetContainingProject(removeNode);
+            var changeVm = projectTree.GetResourceRemovalChanges(removeNode);
 
             bool? result;
             result = _windowManager.ShowDialog(changeVm);
@@ -383,8 +385,8 @@ namespace TileShop.WPF.ViewModels
                 ActivePixelEditor = null;
                 Editors.Clear();
 
-                ActiveTree.ApplyRemovalChanges(changeVm);
-                ActiveTree.SaveChanges();
+                //ActiveTree.ApplyRemovalChanges(changeVm);
+                //ActiveTree.SaveChanges();
             }
         }
 
@@ -392,7 +394,7 @@ namespace TileShop.WPF.ViewModels
         {
             if (RequestSaveAllUserChanges())
             {
-                _treeService.CloseProjects();
+                _projectService.CloseProjects(false);
                 Environment.Exit(0);
             }
         }

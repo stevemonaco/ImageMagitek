@@ -14,26 +14,27 @@ using ImageMagitek.Services;
 using Jot;
 using Point = System.Drawing.Point;
 using ImageMagitek.Project;
+using Monaco.PathTree;
 
 namespace TileShop.WPF.ViewModels
 {
     public class ProjectTreeViewModel : ToolViewModel, IDropTarget, 
         IHandle<AddDataFileEvent>, IHandle<AddPaletteEvent>, IHandle<AddScatteredArrangerEvent>, IHandle<AddScatteredArrangerFromExistingEvent>
     {
-        private IProjectTreeService _treeService;
+        private IProjectService _projectService;
         private IPaletteService _paletteService;
         private IFileSelectService _fileSelect;
         private IEventAggregator _events;
         private IWindowManager _windowManager;
         private Tracker _tracker;
 
-        private ProjectTree _activeTree;
+        //private ProjectTree _activeTree;
 
-        public ProjectTreeViewModel(IProjectTreeService treeService, IPaletteService paletteService,
+        public ProjectTreeViewModel(IProjectService solutionService, IPaletteService paletteService,
             IFileSelectService fileSelect, IEventAggregator events, IWindowManager windowManager, Tracker tracker)
         {
             DisplayName = "Project Tree";
-            _treeService = treeService;
+            _projectService = solutionService;
             _paletteService = paletteService;
             _fileSelect = fileSelect;
             _tracker = tracker;
@@ -43,20 +44,13 @@ namespace TileShop.WPF.ViewModels
             _events.Subscribe(this);
         }
 
-        public bool HasProject => ProjectFileName is object;
+        public bool HasProject => Projects.Any();
 
-        private string _projectFileName;
-        public string ProjectFileName
+        private BindableCollection<ImageProjectNodeViewModel> _projects = new BindableCollection<ImageProjectNodeViewModel>();
+        public BindableCollection<ImageProjectNodeViewModel> Projects
         {
-            get => _projectFileName;
-            set => SetAndNotify(ref _projectFileName, value);
-        }
-
-        private BindableCollection<ImageProjectNodeViewModel> _projectRoot = new BindableCollection<ImageProjectNodeViewModel>();
-        public BindableCollection<ImageProjectNodeViewModel> ProjectRoot
-        {
-            get => _projectRoot;
-            set => SetAndNotify(ref _projectRoot, value);
+            get => _projects;
+            set => SetAndNotify(ref _projects, value);
         }
 
         private TreeNodeViewModel _selectedItem;
@@ -95,9 +89,12 @@ namespace TileShop.WPF.ViewModels
 
         public void AddNewFolder(TreeNodeViewModel parentNodeModel)
         {
-            if (_treeService.CreateNewFolder(parentNodeModel) is TreeNodeViewModel model)
+            var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
+
+            if (projectTree.CreateNewFolder(parentNodeModel.Node, "New Folder", false).Value is ResourceNode resourceNode)
             {
-                SelectedItem = model;
+                var folderVM = new FolderNodeViewModel(resourceNode, parentNodeModel);
+                SelectedItem = folderVM;
                 IsModified = true;
             }
         }
@@ -234,13 +231,11 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private void UnloadProject()
+        private void UnloadProjects()
         {
-            ProjectFileName = null;
             SelectedItem = null;
-            _treeService.CloseProject(_activeTree);
-
-            ProjectRoot.Clear();
+            _projectService.CloseProjects(false);
+            Projects.Clear();
             NotifyOfPropertyChange(() => HasProject);
         }
 
@@ -250,8 +245,9 @@ namespace TileShop.WPF.ViewModels
 
             if (dataFileName is object)
             {
-                var parentModel = message.Parent ?? ProjectRoot.First();
+                var parentModel = message.Parent ?? Projects.First();
                 var dfName = Path.GetFileName(dataFileName);
+                var projectTree = _projectService.GetContainingProject(parentModel.Node);
 
                 if (parentModel.Children.Any(x => x.Name == dfName))
                 {
@@ -260,67 +256,97 @@ namespace TileShop.WPF.ViewModels
                 }
 
                 var df = new DataFile(dfName, dataFileName);
-                var node = _treeService.AddResource(parentModel, df);
-                SelectedItem = node;
-                IsModified = true;
+                var result = projectTree.AddResource(parentModel.Node, df);
+
+                result.Switch(success =>
+                {
+                    var dfVM = new DataFileNodeViewModel(success.Result, parentModel);
+                    SelectedItem = dfVM;
+                    IsModified = true;
+                },
+                fail =>
+                {
+                    _windowManager.ShowMessageBox(fail.Reason, "Resource Error");
+                });
             }
         }
 
         public void Handle(AddPaletteEvent message)
         {
-            var parentModel = message.Parent ?? ProjectRoot.First();
-            var model = new AddPaletteViewModel(parentModel.Children.Select(x => x.Name));
+            var parentModel = message.Parent ?? Projects.First();
+            var dialogModel = new AddPaletteViewModel(parentModel.Children.Select(x => x.Name));
 
-            var dataFiles = _treeService.Tree.EnumerateDepthFirst().Select(x => x.Value).OfType<DataFile>();
-            model.DataFiles.AddRange(dataFiles);
-            model.SelectedDataFile = model.DataFiles.FirstOrDefault();
-            model.ColorModels.AddRange(Palette.GetColorModelNames());
+            var projectTree = _projectService.GetContainingProject(parentModel.Node);
+            var dataFiles = projectTree.Tree.EnumerateDepthFirst().Select(x => x.Value).OfType<DataFile>();
+            dialogModel.DataFiles.AddRange(dataFiles);
+            dialogModel.SelectedDataFile = dialogModel.DataFiles.FirstOrDefault();
+            dialogModel.ColorModels.AddRange(Palette.GetColorModelNames());
 
-            _tracker.Track(model);
+            _tracker.Track(dialogModel);
 
-            if (model.DataFiles.Count == 0)
+            if (dialogModel.DataFiles.Count == 0)
             {
                 _windowManager.ShowMessageBox("Project does not contain any data files to define a palette", "Project Error");
                 return;
             }
 
-            if(_windowManager.ShowDialog(model) is true)
+            if(_windowManager.ShowDialog(dialogModel) is true)
             {
-                var pal = new Palette(model.PaletteName, Palette.StringToColorModel(model.SelectedColorModel), new FileBitAddress(model.FileOffset, 0),
-                    model.Entries, model.ZeroIndexTransparent, PaletteStorageSource.DataFile);
-                pal.DataFile = model.SelectedDataFile;
+                var pal = new Palette(dialogModel.PaletteName, Palette.StringToColorModel(dialogModel.SelectedColorModel), new FileBitAddress(dialogModel.FileOffset, 0),
+                    dialogModel.Entries, dialogModel.ZeroIndexTransparent, PaletteStorageSource.DataFile);
+                pal.DataFile = dialogModel.SelectedDataFile;
 
-                var node = _treeService.AddResource(parentModel, pal);
-                SelectedItem = node;
-                IsModified = true;
-                _tracker.Persist(model);
+                var result = projectTree.AddResource(parentModel.Node, pal);
+
+                result.Switch(success =>
+                {
+                    var palVM = new PaletteNodeViewModel(success.Result, parentModel);
+                    SelectedItem = palVM;
+                    IsModified = true;
+                    _tracker.Persist(dialogModel);
+                },
+                fail =>
+                {
+                    _windowManager.ShowMessageBox(fail.Reason, "Resource Error");
+                });
             }
         }
 
         public void Handle(AddScatteredArrangerEvent message)
         {
-            var parentModel = message.Parent ?? ProjectRoot.First();
-            var model = new AddScatteredArrangerViewModel(parentModel.Children.Select(x => x.Name));
-            _tracker.Track(model);
+            var parentModel = message.Parent ?? Projects.First();
+            var dialogModel = new AddScatteredArrangerViewModel(parentModel.Children.Select(x => x.Name));
+            var projectTree = _projectService.GetContainingProject(parentModel.Node);
+            _tracker.Track(dialogModel);
 
-            if (_windowManager.ShowDialog(model) is true)
+            if (_windowManager.ShowDialog(dialogModel) is true)
             {
-                var arranger = new ScatteredArranger(model.ArrangerName, model.ColorType, 
-                    model.Layout, model.ArrangerElementWidth, model.ArrangerElementHeight, 
-                    model.ElementPixelWidth, model.ElementPixelHeight);
+                var arranger = new ScatteredArranger(dialogModel.ArrangerName, dialogModel.ColorType, 
+                    dialogModel.Layout, dialogModel.ArrangerElementWidth, dialogModel.ArrangerElementHeight, 
+                    dialogModel.ElementPixelWidth, dialogModel.ElementPixelHeight);
 
-                var node = _treeService.AddResource(parentModel, arranger);
-                SelectedItem = node;
-                IsModified = true;
-                _tracker.Persist(model);
+                var result = projectTree.AddResource(parentModel.Node, arranger);
+
+                result.Switch(success =>
+                {
+                    var arrangerVM = new ArrangerNodeViewModel(success.Result, parentModel);
+                    SelectedItem = arrangerVM;
+                    IsModified = true;
+                    _tracker.Persist(dialogModel);
+                },
+                fail =>
+                {
+                    _windowManager.ShowMessageBox(fail.Reason, "Resource Error");
+                });
             }
         }
 
         public void Handle(AddScatteredArrangerFromExistingEvent message)
         {
-            var parentModel = ProjectRoot.First();
+            var parentModel = Projects.First();
             var model = new NameResourceViewModel();
             var arranger = message.Arranger;
+            var projectTree = _projectService.GetContainingProject(parentModel.Node);
 
             if (_windowManager.ShowDialog(model) is true)
             {
@@ -333,8 +359,9 @@ namespace TileShop.WPF.ViewModels
                 result.Switch(
                     success =>
                     {
-                        var node = _treeService.AddResource(parentModel, newArranger);
-                        SelectedItem = node;
+                        var result = projectTree.AddResource(parentModel.Node, newArranger);
+                        var arrangerVM = new ArrangerNodeViewModel(result.AsT0.Result, parentModel);
+                        SelectedItem = arrangerVM;
                         IsModified = true;
                     },
                     fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Error")
@@ -346,7 +373,8 @@ namespace TileShop.WPF.ViewModels
         {
             if (dropInfo.Data is TreeNodeViewModel sourceModel && dropInfo.TargetItem is TreeNodeViewModel targetModel)
             {
-                _treeService.CanMoveNode(sourceModel, targetModel).Switch(
+                var projectTree = _projectService.GetContainingProject(sourceModel.Node);
+                projectTree.CanMoveNode(sourceModel.Node, targetModel.Node).Switch(
                     success =>
                     {
                         dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
@@ -363,9 +391,18 @@ namespace TileShop.WPF.ViewModels
 
             if (dropInfo.Data is TreeNodeViewModel sourceModel && (targetModel is ImageProjectNodeViewModel || targetModel is FolderNodeViewModel))
             {
-                _treeService.MoveNode(sourceModel, targetModel);
-                IsModified = true;
-                SelectedItem = sourceModel;
+                var projectTree = _projectService.GetContainingProject(sourceModel.Node);
+
+                var result = projectTree.MoveNode(sourceModel.Node, targetModel.Node);
+
+                result.Switch(
+                    success =>
+                    {
+                        IsModified = true;
+                        SelectedItem = sourceModel;
+                    },
+                    fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Move Error")
+                    );
             }
         }
 
@@ -373,52 +410,59 @@ namespace TileShop.WPF.ViewModels
         {
             try
             {
-                _treeService.SaveProject(_activeTree, ProjectFileName)
-                    .Switch(
-                        success => IsModified = false,
-                        failed => _windowManager.ShowMessageBox($"An unspecified error occurred while saving the project tree to {ProjectFileName}")
-                    );
+                foreach (var project in Projects)
+                {
+                    var projectTree = _projectService.GetContainingProject(project.Node);
+
+                    _projectService.SaveProject(projectTree)
+                         .Switch(
+                             success => IsModified = false,
+                             fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
+                         );
+                }
             }
             catch (Exception ex)
             {
-                _windowManager.ShowMessageBox($"Unable to save project '{ProjectFileName}'\n{ex.Message}\n{ex.StackTrace}");
+                _windowManager.ShowMessageBox($"Unable to save project:\n{ex.Message}\n{ex.StackTrace}");
             }
         }
 
         public MagitekResult NewProject(string newFileName)
         {
-            var newResult = _treeService.NewProject(Path.GetFileName(newFileName));
+            var newResult = _projectService.NewProject(Path.GetFileName(newFileName));
 
             return newResult.Match<MagitekResult>(
                 success =>
                 {
-                    ProjectFileName = newFileName;
-                    ProjectRoot.Clear();
-                    ProjectRoot.Add(success.Result);
+                    Projects.Clear();
+                    var projectVM = new ImageProjectNodeViewModel(success.Result.Tree.Root as ResourceNode);
+                    Projects.Add(projectVM);
                     return new MagitekResult.Success();
                 },
                 fail => new MagitekResult.Failed(fail.Reason));
         }
 
-        public void OpenProject(string projectFileName)
+        public bool OpenProject(string projectFileName)
         {
-            var openResult = _treeService.OpenProject(projectFileName);
+            var openResult = _projectService.OpenProjectFile(projectFileName);
 
-            openResult.Switch(
+            return openResult.Match(
                 success =>
                 {
-                    ProjectRoot.Add(success.Result);
-                    ProjectFileName = projectFileName;
+                    var projectVM = new ImageProjectNodeViewModel(success.Result.Tree.Root as ResourceNode);
+                    Projects.Add(projectVM);
+                    return true;
                 },
                 fail =>
                 {
                     var message = $"Project '{projectFileName}' contained {fail.Reasons.Count} errors{Environment.NewLine}" +
                         string.Join(Environment.NewLine, fail.Reasons);
                     _windowManager.ShowMessageBox(message, "Project Open Error");
+                    return false;
                 });
         }
 
-        public void CloseProject() => UnloadProject();
+        public void CloseProject() => UnloadProjects();
 
         public override void DiscardChanges()
         {

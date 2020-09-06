@@ -1,7 +1,6 @@
 ﻿using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
-using Monaco.PathTree;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -9,13 +8,13 @@ namespace TileShop.WPF.ViewModels
     {
         public override int SortPriority => 0;
 
-        public ImageProjectNodeViewModel(IPathTreeNode<IProjectResource> node)
+        public ImageProjectNodeViewModel(ResourceNode node)
         {
             Node = node;
             Name = node.Name;
             Type = GetType();
 
-            foreach (var child in Node.Children())
+            foreach (var child in Node.Children)
             {
                 TreeNodeViewModel model;
 

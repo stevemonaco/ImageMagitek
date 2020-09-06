@@ -7,7 +7,7 @@ namespace TileShop.WPF.ViewModels
     {
         public override int SortPriority => 2;
 
-        public ArrangerNodeViewModel(IPathTreeNode<IProjectResource> node, TreeNodeViewModel parent)
+        public ArrangerNodeViewModel(ResourceNode node, TreeNodeViewModel parent)
         {
             Node = node;
             Name = node.Name;

@@ -64,7 +64,7 @@
             dd:DragDrop.IsDropTarget="True"
             ItemContainerStyle="{StaticResource rootItemStyle}"
             ItemTemplateSelector="{StaticResource projectTreeTemplateSelector}"
-            ItemsSource="{Binding ProjectRoot}">
+            ItemsSource="{Binding Projects}">
 
             <i:Interaction.Behaviors>
                 <behaviors:BindableSelectedItemBehavior SelectedItem="{Binding SelectedItem, Mode=TwoWay}" />

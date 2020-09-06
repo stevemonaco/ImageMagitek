@@ -35,7 +35,7 @@ namespace TileShop.WPF
             ReadConfiguration(_configName, builder);
             ReadPalettes(_palPath, _settings, builder);
             ReadCodecs(_codecPath, _codecSchemaName, builder);
-            ConfigureTreeService(_projectSchemaName, builder);
+            ConfigureSolutionService(_projectSchemaName, builder);
             ConfigureServices(builder);
             ConfigureJotTracker(builder);
         }
@@ -54,10 +54,11 @@ namespace TileShop.WPF
                 builder.RegisterType(vmType).OnActivated(x => _tracker.Track(x));
         }
 
-        private void ConfigureTreeService(string schemaFileName, ContainerBuilder builder)
+        private void ConfigureSolutionService(string schemaFileName, ContainerBuilder builder)
         {
-            var projectService = new ProjectTreeService(schemaFileName, _codecService);
-            builder.RegisterInstance<IProjectTreeService>(projectService);
+            var solutionService = new ProjectService(_codecService);
+            solutionService.LoadSchemaDefinition(schemaFileName);
+            builder.RegisterInstance<IProjectService>(solutionService);
         }
 
         private void ConfigureLogging(string logName, ContainerBuilder builder)

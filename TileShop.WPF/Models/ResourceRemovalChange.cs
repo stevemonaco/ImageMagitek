@@ -11,7 +11,7 @@ namespace TileShop.WPF.Models
     {
         public IProjectResource Resource { get; }
         public TreeNodeViewModel ModelNode { get; }
-        public IPathTreeNode<IProjectResource> ResourceNode { get; }
+        public ResourceNode ResourceNode { get; }
 
         private string _resourceName;
         public string ResourceName

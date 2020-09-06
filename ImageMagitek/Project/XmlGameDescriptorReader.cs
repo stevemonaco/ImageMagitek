@@ -33,7 +33,7 @@ namespace ImageMagitek.Project
             _schemaSet = schemaSet;
             _codecFactory = CodecFactory;
         }
-
+        
         public MagitekResults<ProjectTree> ReadProject(string projectFileName)
         {
             if (string.IsNullOrWhiteSpace(projectFileName))
@@ -60,20 +60,27 @@ namespace ImageMagitek.Project
             XElement projectNode = doc.Element("gdf").Element("project");
 
             var projectResource = DeserializeImageProject(projectNode).ToImageProject();
-            var tree = new PathTree<IProjectResource>(projectResource.Name, projectResource);
+            var tree = new PathTree<IProjectResource>(new ProjectNode(projectResource.Name, projectResource));
 
             foreach (var node in projectNode.Descendants("folder"))
             {
                 var res = DeserializeResourceFolder(node).ToResourceFolder();
                 var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
-                tree.Add(path, res);
+                
+                var folderNode = new FolderNode(res.Name, res);
+                tree.TryGetNode(node.NodePath(), out var parentNode);
+                parentNode.AttachChild(folderNode);
             }
 
             foreach (var node in projectNode.Descendants("datafile"))
             {
                 var res = DeserializeDataFile(node).ToDataFile();
-                var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
-                tree.Add(path, res);
+                //var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
+                //tree.Add(path, res);
+
+                var dfNode = new DataFileNode(res.Name, res);
+                tree.TryGetNode(node.NodePath(), out var parentNode);
+                parentNode.AttachChild(dfNode);
             }
 
             foreach (var node in projectNode.Descendants("palette"))
@@ -83,8 +90,12 @@ namespace ImageMagitek.Project
                 tree.TryGetValue<DataFile>(model.DataFileKey, out var df);
                 pal.DataFile = df;
                 pal.LazyLoadPalette(pal.DataFile, pal.FileAddress, pal.ColorModel, pal.ZeroIndexTransparent, pal.Entries);
-                var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
-                tree.Add(path, pal);
+                //var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
+                //tree.Add(path, pal);
+
+                var palNode = new PaletteNode(pal.Name, pal);
+                tree.TryGetNode(node.NodePath(), out var parentNode);
+                parentNode.AttachChild(palNode);
             }
 
             foreach (var node in projectNode.Descendants("arranger"))
@@ -120,11 +131,15 @@ namespace ImageMagitek.Project
                     }
                 }
 
-                var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
-                tree.Add(path, arranger);
+                //var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
+                //tree.Add(path, arranger);
+
+                var arrangerNode = new ArrangerNode(arranger.Name, arranger);
+                tree.TryGetNode(node.NodePath(), out var parentNode);
+                parentNode.AttachChild(arrangerNode);
             }
 
-            return new MagitekResults<ProjectTree>.Success(new ProjectTree(tree));
+            return new MagitekResults<ProjectTree>.Success(new ProjectTree(tree, projectFileName));
         }
 
         private ImageProjectModel DeserializeImageProject(XElement element)
