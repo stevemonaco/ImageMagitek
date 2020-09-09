@@ -49,8 +49,8 @@ namespace TileShop.WPF.ViewModels
 
         public bool HasProject => Projects.Any();
 
-        private BindableCollection<ImageProjectNodeViewModel> _projects = new BindableCollection<ImageProjectNodeViewModel>();
-        public BindableCollection<ImageProjectNodeViewModel> Projects
+        private BindableCollection<ProjectNodeViewModel> _projects = new BindableCollection<ProjectNodeViewModel>();
+        public BindableCollection<ProjectNodeViewModel> Projects
         {
             get => _projects;
             set => SetAndNotify(ref _projects, value);
@@ -490,7 +490,7 @@ namespace TileShop.WPF.ViewModels
                     _projectService.NewProject(Path.GetFullPath(projectFileName)).Switch(
                         success =>
                         {
-                            var projectVM = new ImageProjectNodeViewModel((ProjectNode)success.Result.Tree.Root);
+                            var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Tree.Root);
                             Projects.Add(projectVM);
                             _events.PublishOnUIThread(new ProjectLoadedEvent());
                         },
@@ -516,7 +516,7 @@ namespace TileShop.WPF.ViewModels
             return openResult.Match(
                 success =>
                 {
-                    var projectVM = new ImageProjectNodeViewModel((ProjectNode)success.Result.Tree.Root);
+                    var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Tree.Root);
                     Projects.Add(projectVM);
                     NotifyOfPropertyChange(() => HasProject);
                     return true;
@@ -530,7 +530,7 @@ namespace TileShop.WPF.ViewModels
                 });
         }
 
-        public bool CloseProject(ImageProjectNodeViewModel projectVM)
+        public bool CloseProject(ProjectNodeViewModel projectVM)
         {
             var projectTree = _projectService.GetContainingProject(projectVM.Node);
 

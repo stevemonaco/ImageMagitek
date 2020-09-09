@@ -20,7 +20,7 @@ namespace TileShop.WPF.Selectors
 
             return item switch
             {
-                ImageProjectNodeViewModel _ => ProjectNodeTemplate,
+                ProjectNodeViewModel _ => ProjectNodeTemplate,
                 FolderNodeViewModel _ => FolderNodeTemplate,
                 DataFileNodeViewModel _ => DataFileNodeTemplate,
                 ArrangerNodeViewModel _ => ArrangerNodeTemplate,

@@ -4,11 +4,11 @@ using ImageMagitek.Project;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ImageProjectNodeViewModel : ResourceNodeViewModel
+    public class ProjectNodeViewModel : ResourceNodeViewModel
     {
         public override int SortPriority => 0;
 
-        public ImageProjectNodeViewModel(ResourceNode node)
+        public ProjectNodeViewModel(ResourceNode node)
         {
             Node = node;
             Name = node.Name;
