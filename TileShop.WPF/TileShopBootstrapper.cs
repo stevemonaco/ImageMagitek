@@ -52,6 +52,12 @@ namespace TileShop.WPF
 
             foreach (var vmType in vmTypes)
                 builder.RegisterType(vmType).OnActivated(x => _tracker.Track(x));
+
+            builder.RegisterType<EditorsViewModel>().SingleInstance();
+            builder.RegisterType<ShellViewModel>().SingleInstance();
+            builder.RegisterType<ProjectTreeViewModel>().SingleInstance();
+            builder.RegisterType<MenuViewModel>().SingleInstance();
+            builder.RegisterType<StatusBarViewModel>().SingleInstance();
         }
 
         private void ConfigureSolutionService(string schemaFileName, ContainerBuilder builder)

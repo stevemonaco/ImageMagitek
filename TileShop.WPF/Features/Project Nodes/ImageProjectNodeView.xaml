@@ -49,7 +49,14 @@
                         Command="{s:Action AddNewPalette}"
                         CommandParameter="{Binding}"
                         Header="Add New Palette" />
+
                     <Separator />
+
+                    <MenuItem
+                        s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
+                        Command="{s:Action CloseProject}"
+                        CommandParameter="{Binding}"
+                        Header="Close Project" />
                     <MenuItem
                         s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
                         Command="{s:Action RenameNode}"

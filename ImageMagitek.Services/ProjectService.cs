@@ -22,8 +22,8 @@ namespace ImageMagitek.Services
         MagitekResults<ProjectTree> OpenProjectFile(string projectFileName);
         MagitekResult SaveProject(ProjectTree projectTree);
         MagitekResult SaveProjectAs(ProjectTree projectTree, string projectFileName);
-        void CloseProject(ProjectTree projectTree, bool save);
-        void CloseProjects(bool save);
+        void CloseProject(ProjectTree projectTree);
+        void CloseProjects();
 
         ProjectTree GetContainingProject(ResourceNode node);
     }
@@ -52,13 +52,15 @@ namespace ImageMagitek.Services
 
         public bool TryAddDefaultResource(IProjectResource resource) => _resources.Add(resource);
 
-        public MagitekResult<ProjectTree> NewProject(string projectName)
+        public MagitekResult<ProjectTree> NewProject(string projectFileName)
         {
-            if (_projects.Any(x => string.Equals(x.Name, projectName, StringComparison.OrdinalIgnoreCase)))
-                return new MagitekResult<ProjectTree>.Failed($"{projectName} already exists in the solution");
+            if (_projects.Any(x => string.Equals(x.Name, projectFileName, StringComparison.OrdinalIgnoreCase)))
+                return new MagitekResult<ProjectTree>.Failed($"{projectFileName} already exists in the solution");
 
-            var project = new PathTree<IProjectResource>(projectName, new ImageProject(projectName));
-            var projectTree = new ProjectTree(project);
+            var projectName = Path.GetFileNameWithoutExtension(projectFileName);
+            var projectNode = new ProjectNode(projectName, new ImageProject(projectName));
+            var projectTree = new ProjectTree(new PathTree<IProjectResource>(projectNode));
+            projectTree.FileLocation = projectFileName;
             _projects.Add(projectTree);
             return new MagitekResult<ProjectTree>.Success(projectTree);
         }
@@ -97,7 +99,16 @@ namespace ImageMagitek.Services
             try
             {
                 var deserializer = new XmlGameDescriptorReader(_schemas, _codecService.CodecFactory);
-                return deserializer.ReadProject(projectFileName);
+                var result = deserializer.ReadProject(projectFileName);
+
+                return result.Match(
+                    success =>
+                    {
+                        Projects.Add(success.Result);
+                        return result;
+                    },
+                    fail => result
+                );
             }
             catch (Exception ex)
             {
@@ -147,16 +158,13 @@ namespace ImageMagitek.Services
             }
         }
 
-        public void CloseProject(ProjectTree projectTree, bool save)
+        public void CloseProject(ProjectTree projectTree)
         {
             if (projectTree is null)
                 throw new InvalidOperationException($"{nameof(CloseProject)} parameter '{nameof(projectTree)}' was null");
 
             if (_projects.Contains(projectTree))
             {
-                if (save)
-                    SaveProject(projectTree);
-
                 foreach (var file in projectTree.Tree.EnumerateBreadthFirst().Select(x => x.Value).OfType<DataFile>())
                     file.Close();
 
@@ -164,13 +172,10 @@ namespace ImageMagitek.Services
             }
         }
 
-        public void CloseProjects(bool save)
+        public void CloseProjects()
         {
             foreach (var projectTree in _projects)
             {
-                if (save)
-                    SaveProject(projectTree);
-
                 foreach (var file in projectTree.Tree.EnumerateDepthFirst().Select(x => x.Value).OfType<DataFile>())
                     file.Close();
             }

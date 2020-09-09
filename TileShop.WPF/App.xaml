@@ -51,6 +51,7 @@
                     </DrawingBrush>
 
                     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+                    <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
                     <converters:EditModeBooleanConverter x:Key="EditModeBooleanConverter" />
                     <converters:SnapModeBooleanConverter x:Key="SnapModeBooleanConverter" />
                     <converters:ColorToSolidColorBrushConverter x:Key="ColorToSolidColorBrushConverter" />

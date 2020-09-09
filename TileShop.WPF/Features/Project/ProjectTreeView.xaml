@@ -67,7 +67,7 @@
             ItemsSource="{Binding Projects}">
 
             <i:Interaction.Behaviors>
-                <behaviors:BindableSelectedItemBehavior SelectedItem="{Binding SelectedItem, Mode=TwoWay}" />
+                <behaviors:BindableSelectedItemBehavior SelectedItem="{Binding SelectedNode, Mode=TwoWay}" />
             </i:Interaction.Behaviors>
 
             <i:Interaction.Triggers>

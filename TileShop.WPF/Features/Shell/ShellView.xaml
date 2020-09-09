@@ -157,13 +157,13 @@
         <ad:DockingManager
             x:Name="dockManager"
             Grid.Row="2"
-            ActiveContent="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource ActiveDocumentConverter}}"
+            ActiveContent="{Binding Editors.ActiveEditor, Mode=TwoWay, Converter={StaticResource ActiveDocumentConverter}}"
             AllowMixedOrientation="True"
             AnchorablesSource="{Binding Tools, Mode=TwoWay}"
             DocumentClosed="{s:Action DocumentClosed}"
             DocumentClosing="{s:Action DocumentClosing}"
             DocumentHeaderTemplateSelector="{StaticResource documentHeaderTemplateSelector}"
-            DocumentsSource="{Binding Editors, Mode=TwoWay}"
+            DocumentsSource="{Binding Editors.Editors, Mode=TwoWay}"
             LayoutItemContainerStyleSelector="{StaticResource editorStyleSelector}"
             LayoutItemTemplateSelector="{StaticResource editorTemplateSelector}">
 

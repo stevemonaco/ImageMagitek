@@ -11,6 +11,7 @@
         public bool Removed { get; set; }
         public bool LostPalette { get; set; }
         public bool LostElement { get; set; }
+        public bool IsChanged { get; set; }
 
         public ResourceChange(ResourceNode resourceNode, bool removed, bool lostPalette, bool lostElement)
         {
@@ -21,6 +22,7 @@
             Removed = removed;
             LostPalette = lostPalette;
             LostElement = lostElement;
+            IsChanged = LostPalette || LostElement;
         }
     }
 }

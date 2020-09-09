@@ -6,7 +6,7 @@ using Monaco.PathTree;
 
 namespace ImageMagitek.Project
 {
-    public class ProjectTree // : PathTree<ImageProject>
+    public class ProjectTree
     {
         public IPathTree<IProjectResource> Tree { get; }
         public ImageProject Project => Tree?.Root?.Value as ImageProject;
@@ -38,8 +38,11 @@ namespace ImageMagitek.Project
         /// </summary>
         /// <param name="resource">Resource to search</param>
         /// <returns></returns>
-        public bool ContainsResource(IProjectResource resource) =>
-            Tree.Root.SelfAndDescendantsBreadthFirst().Any(x => ReferenceEquals(x, resource));
+        public bool ContainsResource(IProjectResource resource)
+        {
+            var nodes = Tree.Root.SelfAndDescendantsDepthFirst();
+            return nodes.Any(x => ReferenceEquals(x.Value, resource));
+        }
 
         /// <summary>
         /// Compares the node's root ancestor with the project root to determine if the tree contains the node
@@ -47,19 +50,20 @@ namespace ImageMagitek.Project
         /// <param name="node">Node to search</param>
         /// <returns></returns>
         public bool ContainsNode(ResourceNode node) =>
-            ReferenceEquals(node.Ancestors().Last(), Tree.Root);
+            ReferenceEquals(node.SelfAndAncestors().Last(), Tree.Root);
 
-        public MagitekResult<ResourceFolder> CreateNewFolder(ResourceNode parentNode, string name, bool useExactName)
+        public MagitekResult<ResourceNode> CreateNewFolder(ResourceNode parentNode, string name, bool useExactName)
         {
             if (!parentNode.ContainsChild(name) || !useExactName && parentNode.Value.CanContainChildResources)
             {
                 var childName = FindFirstNewChildResourceName(parentNode, name);
                 var folder = new ResourceFolder(childName);
-                parentNode.AddChild(childName, folder);
-                return new MagitekResult<ResourceFolder>.Success(folder);
+                var folderNode = new FolderNode(folder.Name, folder);
+                parentNode.AttachChild(folderNode);
+                return new MagitekResult<ResourceNode>.Success(folderNode);
             }
             else // if (parentNode.ContainsChild(name) && useExactName)
-                return new MagitekResult<ResourceFolder>.Failed($"Could not create folder '{name}' under parent '{parentNode.Name}'");
+                return new MagitekResult<ResourceNode>.Failed($"Could not create folder '{name}' under parent '{parentNode.Name}'");
         }
 
         public MagitekResult<ResourceNode> AddResource(ResourceNode parentNode, IProjectResource resource)
@@ -81,7 +85,7 @@ namespace ImageMagitek.Project
                 {
                     parentNode.AddChild(resource.Name, resource);
                     parentNode.TryGetChild(resource.Name, out var childNode);
-                    return new MagitekResult<ResourceNode>.Success(childNode as ResourceNode);
+                    return new MagitekResult<ResourceNode>.Success(childNode);
                 }
                 else
                 {
@@ -144,16 +148,20 @@ namespace ImageMagitek.Project
                 );
         }
 
-        public IEnumerable<ResourceChange> GetResourceRemovalChanges(ResourceNode removeNode)
+        /// <summary>
+        /// Returns a preview changed resources if the specified node is removed
+        /// </summary>
+        /// <param name="removeNode"></param>
+        /// <returns></returns>
+        public IEnumerable<ResourceChange> GetSecondaryResourceRemovalChanges(ResourceNode removeNode)
         {
             if (removeNode is null)
-                throw new ArgumentNullException($"{nameof(GetResourceRemovalChanges)} parameter '{removeNode}' was null");
+                throw new ArgumentNullException($"{nameof(GetSecondaryResourceRemovalChanges)} parameter '{removeNode}' was null");
 
             if (!ContainsNode(removeNode))
-                throw new ArgumentException($"{nameof(GetResourceRemovalChanges)} value '{removeNode.Name}' was not found in the project tree");
+                throw new ArgumentException($"{nameof(GetSecondaryResourceRemovalChanges)} value '{removeNode.Name}' was not found in the project tree");
 
             var rootRemovalChange = new ResourceChange(removeNode, true, false, false);
-            yield return rootRemovalChange;
 
             var removedDict = removeNode.SelfAndDescendantsDepthFirst()
                 .Cast<ResourceNode>()
@@ -189,8 +197,13 @@ namespace ImageMagitek.Project
                     {
                         if (linkedResource is Palette && resource is Arranger)
                             lostPalette = true;
-                        else if (linkedResource is DataFile && resource is Arranger)
+
+                        if (linkedResource is DataFile && resource is Arranger arranger)
+                        {
                             lostElements = true;
+                            if (arranger.EnumerateElements().All(x => removedDict.ContainsKey(linkedResource) || x.DataFile is null))
+                                removed = true;
+                        }
                     }
                 }
 
@@ -200,14 +213,28 @@ namespace ImageMagitek.Project
                     yield return change;
                 }
             }
+        }
 
-            //changes.HasRemovedResources = changes.RemovedResources.Count > 0;
-            //changes.HasChangedResources = changes.ChangedResources.Count > 0;
+        public void ApplyRemovalChanges(IList<ResourceChange> changes)
+        {
+            foreach (var item in changes.Where(x => x.IsChanged))
+            {
+                foreach (var removeItem in changes.Where(x => x.Removed))
+                {
+                    item.Resource.UnlinkResource(removeItem.Resource);
+                }
+            }
+
+            foreach (var item in changes.Where(x => x.Removed))
+            {
+                var resourceParent = item.ResourceNode.Parent;
+                resourceParent.RemoveChild(item.Resource.Name);
+            }
         }
 
         private string FindFirstNewChildResourceName(ResourceNode node, string baseName)
         {
-            if (node.ContainsChild(baseName))
+            if (!node.ContainsChild(baseName))
                 return baseName;
             else
                 return new string[] { baseName }

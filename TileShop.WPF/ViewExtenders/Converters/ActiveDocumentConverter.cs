@@ -9,7 +9,7 @@ namespace TileShop.WPF.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is ToolViewModel)
+            if (value is ResourceEditorBaseViewModel)
                 return value;
 
             return Binding.DoNothing;
@@ -17,7 +17,7 @@ namespace TileShop.WPF.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is ToolViewModel)
+            if (value is ResourceEditorBaseViewModel)
                 return value;
 
             return Binding.DoNothing;

@@ -20,19 +20,33 @@
             <MenuItem Header="_File">
                 <MenuItem Click="{s:Action NewProject}" Header="_New Project" />
                 <MenuItem Click="{s:Action OpenProject}" Header="Open _Project" />
-                <MenuItem
-                    Click="{s:Action CloseProject}"
-                    Header="_Close Project"
-                    IsEnabled="{Binding HasProject}" />
                 <Separator />
                 <MenuItem
-                    Click="{s:Action SaveProject}"
-                    Header="_Save Project"
-                    IsEnabled="{Binding HasProject}" />
+                    Click="{s:Action CloseEditor}"
+                    Header="{Binding Editors.ActiveEditor.DisplayName}"
+                    HeaderStringFormat="Close \'{0}\'"
+                    Visibility="{Binding Editors.ActiveEditor, Converter={StaticResource NullToVisibilityConverter}}" />
+
+                <!--  InputGestureText="Ctrl+X"  -->
+
                 <MenuItem
-                    Click="{s:Action SaveProjectAs}"
-                    Header="Save Project _As..."
-                    IsEnabled="{Binding HasProject}" />
+                    Click="{s:Action CloseAllProjects}"
+                    Header="_Close All Projects"
+                    IsEnabled="{Binding ProjectTree.HasProject}" />
+                <Separator />
+
+                <MenuItem
+                    Click="{s:Action SaveAll}"
+                    Header="Save All"
+                    IsEnabled="{Binding ProjectTree.HasProject}" />
+
+                <MenuItem
+                    Click="{s:Action SaveEditor}"
+                    Header="{Binding Editors.ActiveEditor.DisplayName}"
+                    HeaderStringFormat="Save \'{0}\'"
+                    IsEnabled="{Binding Editors.ActiveEditor.IsModified}"
+                    Visibility="{Binding Editors.ActiveEditor, Converter={StaticResource NullToVisibilityConverter}}" />
+
                 <Separator />
                 <MenuItem Click="{s:Action ExitApplication}" Header="E_xit" />
             </MenuItem>
@@ -50,20 +64,22 @@
             </MenuItem>
 
 
+            <!--
             <MenuItem Header="_Project" IsEnabled="{Binding HasProject}">
                 <MenuItem
                     Click="{s:Action AddDataFile}"
                     Header="Add Existing Data File..."
-                    IsEnabled="{Binding HasProject}" />
+                    IsEnabled="{Binding ProjectTree.HasProject}" />
                 <MenuItem
                     Click="{s:Action AddScatteredArranger}"
                     Header="Add New Scattered Arranger Definition..."
-                    IsEnabled="{Binding HasProject}" />
+                    IsEnabled="{Binding ProjectTree.HasProject}" />
                 <MenuItem
                     Click="{s:Action AddPalette}"
                     Header="Add New Palette Definition..."
-                    IsEnabled="{Binding HasProject}" />
+                    IsEnabled="{Binding ProjectTree.HasProject}" />
             </MenuItem>
+            -->
 
             <!--
         <MenuItem Header="_Plugins" />

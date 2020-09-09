@@ -8,7 +8,7 @@ namespace ImageMagitek.Project
     {
         public IProjectResource Resource { get; set; }
 
-        public new ResourceNode Parent { get; set; }
+        public new ResourceNode Parent { get => (ResourceNode) base.Parent; set => base.Parent = value; }
 
         protected ResourceNode(string name, IProjectResource resource) : base(name, resource)
         {
@@ -20,7 +20,7 @@ namespace ImageMagitek.Project
             base.AttachChild(new ResourceNode(name, value));
         }
 
-        public new IEnumerable<ResourceNode> Children { get => _children.Values.Cast<ResourceNode>(); }
+        public new IEnumerable<ResourceNode> Children { get => _children?.Values.Cast<ResourceNode>() ?? Enumerable.Empty<ResourceNode>(); }
 
         public new ResourceNode DetachChild(string name) => (ResourceNode)base.DetachChild(name);
 
@@ -42,7 +42,7 @@ namespace ImageMagitek.Project
     public class ResourceNode<T> : ResourceNode
         where T : IProjectResource
     {
-        public new T Resource { get; set; }
+        public new T Resource { get => (T) base.Resource; set => base.Resource = value; }
 
         public ResourceNode(string name, T resource) : base(name, resource) { }
     }

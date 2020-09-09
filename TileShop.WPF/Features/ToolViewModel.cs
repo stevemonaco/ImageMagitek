@@ -3,17 +3,10 @@ using System.Windows.Media;
 
 namespace TileShop.WPF.ViewModels
 {
-    public abstract class ToolViewModel : PropertyChangedBase
+    public abstract class ToolViewModel : Screen
     {
         public abstract void SaveChanges();
         public abstract void DiscardChanges();
-
-        private string _displayName;
-        public string DisplayName
-        {
-            get => _displayName;
-            set => SetAndNotify(ref _displayName, value);
-        }
 
         private bool _isModified;
         public bool IsModified
