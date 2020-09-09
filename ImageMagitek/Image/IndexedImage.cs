@@ -53,7 +53,7 @@ namespace ImageMagitek
             if (Width * Height != Image.Length)
                 Image = new byte[Width * Height];
 
-            foreach (var el in Arranger.EnumerateElements())
+            foreach (var el in Arranger.EnumerateElements().Where(x => x.DataFile is object))
             {
                 if (el.Codec is IIndexedCodec codec)
                 {
