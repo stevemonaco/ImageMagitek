@@ -5,15 +5,15 @@ using Monaco.PathTree;
 
 namespace TileShop.WPF.ViewModels
 {
-    public abstract class TreeNodeViewModel : Screen
+    public abstract class ResourceNodeViewModel : Screen
     {
         public ResourceNode Node { get; set; }
-        public TreeNodeViewModel ParentModel { get; set; }
+        public ResourceNodeViewModel ParentModel { get; set; }
         public Type Type { get; protected set; }
         public abstract int SortPriority { get; }
 
-        private BindableCollection<TreeNodeViewModel> _children = new BindableCollection<TreeNodeViewModel>();
-        public BindableCollection<TreeNodeViewModel> Children
+        private BindableCollection<ResourceNodeViewModel> _children = new BindableCollection<ResourceNodeViewModel>();
+        public BindableCollection<ResourceNodeViewModel> Children
         {
             get => _children;
             set => SetAndNotify(ref _children, value);

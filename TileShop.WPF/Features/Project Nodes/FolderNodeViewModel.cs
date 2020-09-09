@@ -4,11 +4,11 @@ using ImageMagitek.Colors;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class FolderNodeViewModel : TreeNodeViewModel
+    public class FolderNodeViewModel : ResourceNodeViewModel
     {
         public override int SortPriority => 1;
 
-        public FolderNodeViewModel(ResourceNode node, TreeNodeViewModel parent)
+        public FolderNodeViewModel(ResourceNode node, ResourceNodeViewModel parent)
         {
             Node = node;
             Name = node.Name;
@@ -16,7 +16,7 @@ namespace TileShop.WPF.ViewModels
 
             foreach (var child in Node.Children)
             {
-                TreeNodeViewModel model;
+                ResourceNodeViewModel model;
 
                 if (child.Value is ResourceFolder)
                     model = new FolderNodeViewModel(child, this);

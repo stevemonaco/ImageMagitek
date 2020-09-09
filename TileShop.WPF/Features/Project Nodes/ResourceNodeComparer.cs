@@ -2,9 +2,9 @@
 
 namespace TileShop.WPF.ViewModels
 {
-    class TreeNodeComparer : IComparer<TreeNodeViewModel>
+    class ResourceNodeComparer : IComparer<ResourceNodeViewModel>
     {
-        public int Compare(TreeNodeViewModel x, TreeNodeViewModel y)
+        public int Compare(ResourceNodeViewModel x, ResourceNodeViewModel y)
         {
             if (x is FolderNodeViewModel && y is FolderNodeViewModel)
                 return string.Compare(x.Node.Name, y.Node.Name);

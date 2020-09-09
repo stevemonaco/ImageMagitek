@@ -4,11 +4,11 @@ namespace TileShop.WPF.EventModels
 {
     public class AddPaletteEvent
     {
-        public TreeNodeViewModel Parent { get; set; }
+        public ResourceNodeViewModel Parent { get; set; }
 
         public AddPaletteEvent() { }
 
-        public AddPaletteEvent(TreeNodeViewModel parent)
+        public AddPaletteEvent(ResourceNodeViewModel parent)
         {
             Parent = parent;
         }

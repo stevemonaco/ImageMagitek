@@ -36,7 +36,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private int _tiledElementWidth;
+        private int _tiledElementWidth = 8;
         public int TiledElementWidth
         {
             get => _tiledElementWidth;
@@ -48,7 +48,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private int _tiledElementHeight;
+        private int _tiledElementHeight = 8;
         public int TiledElementHeight
         {
             get => _tiledElementHeight;
@@ -82,7 +82,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private int _linearArrangerWidth;
+        private int _linearArrangerWidth = 256;
         public int LinearArrangerWidth
         {
             get => _linearArrangerWidth;
@@ -94,7 +94,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private int _linearArrangerHeight;
+        private int _linearArrangerHeight = 256;
         public int LinearArrangerHeight
         {
             get => _linearArrangerHeight;
@@ -113,14 +113,14 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _canResize, value);
         }
 
-        private int _widthIncrement;
+        private int _widthIncrement = 1;
         public int WidthIncrement
         {
             get => _widthIncrement;
             set => SetAndNotify(ref _widthIncrement, value);
         }
 
-        private int _heightIncrement;
+        private int _heightIncrement = 1;
         public int HeightIncrement
         {
             get => _heightIncrement;

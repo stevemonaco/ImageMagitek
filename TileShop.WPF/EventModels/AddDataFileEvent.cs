@@ -4,11 +4,11 @@ namespace TileShop.WPF.EventModels
 {
     public class AddDataFileEvent
     {
-        public TreeNodeViewModel Parent { get; set; }
+        public ResourceNodeViewModel Parent { get; set; }
 
         public AddDataFileEvent() { }
 
-        public AddDataFileEvent(TreeNodeViewModel parent)
+        public AddDataFileEvent(ResourceNodeViewModel parent)
         {
             Parent = parent;
         }

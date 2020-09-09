@@ -12,7 +12,7 @@ namespace TileShop.WPF.Converters
             if (values?.Length != 2)
                 return Binding.DoNothing;
 
-            if (values[0] is string item1 && values[1] is TreeNodeViewModel item2)
+            if (values[0] is string item1 && values[1] is ResourceNodeViewModel item2)
                 return (item1, item2);
             else
                 return Binding.DoNothing;

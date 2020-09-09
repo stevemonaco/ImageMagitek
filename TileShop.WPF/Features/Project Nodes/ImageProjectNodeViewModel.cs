@@ -4,7 +4,7 @@ using ImageMagitek.Project;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ImageProjectNodeViewModel : TreeNodeViewModel
+    public class ImageProjectNodeViewModel : ResourceNodeViewModel
     {
         public override int SortPriority => 0;
 
@@ -16,7 +16,7 @@ namespace TileShop.WPF.ViewModels
 
             foreach (var child in Node.Children)
             {
-                TreeNodeViewModel model;
+                ResourceNodeViewModel model;
 
                 if (child.Value is ResourceFolder)
                     model = new FolderNodeViewModel(child, this);

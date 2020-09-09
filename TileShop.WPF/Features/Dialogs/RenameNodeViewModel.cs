@@ -4,7 +4,7 @@ namespace TileShop.WPF.ViewModels
 {
     public class RenameNodeViewModel : Screen
     {
-        private TreeNodeViewModel _nodeModel;
+        private ResourceNodeViewModel _nodeModel;
 
         private string _name;
         public string Name
@@ -13,7 +13,7 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _name, value);
         }
 
-        public RenameNodeViewModel(TreeNodeViewModel nodeModel)
+        public RenameNodeViewModel(ResourceNodeViewModel nodeModel)
         {
             _nodeModel = nodeModel;
             Name = nodeModel.Name;

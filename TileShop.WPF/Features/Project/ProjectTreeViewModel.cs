@@ -56,8 +56,8 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _projects, value);
         }
 
-        private TreeNodeViewModel _selectedNode;
-        public TreeNodeViewModel SelectedNode
+        private ResourceNodeViewModel _selectedNode;
+        public ResourceNodeViewModel SelectedNode
         {
             get => _selectedNode;
             set => SetAndNotify(ref _selectedNode, value);
@@ -74,7 +74,7 @@ namespace TileShop.WPF.ViewModels
                 _editors.ActivateEditor(SelectedNode.Node.Value);
         }
 
-        public void AddNewFolder(TreeNodeViewModel parentNodeModel)
+        public void AddNewFolder(ResourceNodeViewModel parentNodeModel)
         {
             var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
 
@@ -92,7 +92,7 @@ namespace TileShop.WPF.ViewModels
                 });
         }
 
-        public void AddNewDataFile(TreeNodeViewModel parentNodeModel)
+        public void AddNewDataFile(ResourceNodeViewModel parentNodeModel)
         {
             var dataFileName = _fileSelect.GetExistingDataFileNameByUser();
 
@@ -124,7 +124,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void AddNewPalette(TreeNodeViewModel parentNodeModel)
+        public void AddNewPalette(ResourceNodeViewModel parentNodeModel)
         {
             var dialogModel = new AddPaletteViewModel(parentNodeModel.Children.Select(x => x.Name));
 
@@ -165,7 +165,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void AddNewScatteredArranger(TreeNodeViewModel parentNodeModel)
+        public void AddNewScatteredArranger(ResourceNodeViewModel parentNodeModel)
         {
             var dialogModel = new AddScatteredArrangerViewModel(parentNodeModel.Children.Select(x => x.Name));
             var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
@@ -194,7 +194,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void ExportArrangerAs(TreeNodeViewModel nodeModel)
+        public void ExportArrangerAs(ResourceNodeViewModel nodeModel)
         {
             if (nodeModel is ArrangerNodeViewModel arrNodeModel)
             {
@@ -217,7 +217,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void ImportImageAs(TreeNodeViewModel nodeModel)
+        public void ImportImageAs(ResourceNodeViewModel nodeModel)
         {
             if (nodeModel is ArrangerNodeViewModel arrNodeModel)
             {
@@ -247,7 +247,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void RequestRemoveNode(TreeNodeViewModel nodeModel)
+        public void RequestRemoveNode(ResourceNodeViewModel nodeModel)
         {
             var removeNode = nodeModel.Node;
             var projectTree = _projectService.GetContainingProject(removeNode);
@@ -293,9 +293,9 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private void SynchronizeTree(TreeNodeViewModel projectVm)
+        private void SynchronizeTree(ResourceNodeViewModel projectVm)
         {
-            var vmStack = new Stack<TreeNodeViewModel>();
+            var vmStack = new Stack<ResourceNodeViewModel>();
             vmStack.Push(projectVm);
 
             while (vmStack.Count > 0)
@@ -310,7 +310,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        private void SynchronizeNode(ResourceNode resourceNode, TreeNodeViewModel vmNode)
+        private void SynchronizeNode(ResourceNode resourceNode, ResourceNodeViewModel vmNode)
         {
             if (resourceNode.Children is null)
                 return;
@@ -322,16 +322,16 @@ namespace TileShop.WPF.ViewModels
             SynchronizeDeletions(resourceNode, vmNode);
             SynchronizeInsertions(resourceNode, vmNode);
 
-            void SynchronizeDeletions(ResourceNode resourceNode, TreeNodeViewModel vmNode)
+            void SynchronizeDeletions(ResourceNode resourceNode, ResourceNodeViewModel vmNode)
             {
-                List<TreeNodeViewModel> removedItems = default;
+                List<ResourceNodeViewModel> removedItems = default;
 
                 foreach (var vm in vmNode.Children)
                 {
                     if (!resourceNode.Children.Any(x => ReferenceEquals(x, vm.Node)))
                     {
                         if (removedItems is null)
-                            removedItems = new List<TreeNodeViewModel>();
+                            removedItems = new List<ResourceNodeViewModel>();
 
                         removedItems.Add(vm);
                     }
@@ -344,13 +344,13 @@ namespace TileShop.WPF.ViewModels
                 }
             }
 
-            void SynchronizeInsertions(ResourceNode resourceNode, TreeNodeViewModel vmNode)
+            void SynchronizeInsertions(ResourceNode resourceNode, ResourceNodeViewModel vmNode)
             {
                 foreach (var node in resourceNode.Children)
                 {
                     if (!vmNode.Children.Any(x => ReferenceEquals(node, x.Node)))
                     {
-                        TreeNodeViewModel newNode = node switch
+                        ResourceNodeViewModel newNode = node switch
                         {
                             FolderNode _ => new FolderNodeViewModel(node, vmNode),
                             PaletteNode _ => new PaletteNodeViewModel(node, vmNode),
@@ -366,7 +366,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void RenameNode(TreeNodeViewModel nodeModel)
+        public void RenameNode(ResourceNodeViewModel nodeModel)
         {
             var dialogModel = new RenameNodeViewModel(nodeModel);
             var result = _windowManager.ShowDialog(dialogModel);
@@ -423,7 +423,7 @@ namespace TileShop.WPF.ViewModels
 
         public void DragOver(IDropInfo dropInfo)
         {
-            if (dropInfo.Data is TreeNodeViewModel sourceModel && dropInfo.TargetItem is TreeNodeViewModel targetModel)
+            if (dropInfo.Data is ResourceNodeViewModel sourceModel && dropInfo.TargetItem is ResourceNodeViewModel targetModel)
             {
                 var projectTree = _projectService.GetContainingProject(sourceModel.Node);
                 projectTree.CanMoveNode(sourceModel.Node, targetModel.Node).Switch(
@@ -439,9 +439,9 @@ namespace TileShop.WPF.ViewModels
 
         public void Drop(IDropInfo dropInfo)
         {
-            var targetModel = dropInfo.TargetItem as TreeNodeViewModel;
+            var targetModel = dropInfo.TargetItem as ResourceNodeViewModel;
 
-            if (dropInfo.Data is TreeNodeViewModel sourceModel && (targetModel is TreeNodeViewModel || targetModel is FolderNodeViewModel))
+            if (dropInfo.Data is ResourceNodeViewModel sourceModel && (targetModel is ResourceNodeViewModel || targetModel is FolderNodeViewModel))
             {
                 var projectTree = _projectService.GetContainingProject(sourceModel.Node);
 
