@@ -1,20 +1,29 @@
-﻿using ImageMagitek;
-using ImageMagitek.Colors;
-using ImageMagitek.Project;
-using ImageMagitek.Services;
-using Jot;
-using Stylet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using ImageMagitek;
+using ImageMagitek.Colors;
+using ImageMagitek.Project;
+using ImageMagitek.Services;
+using TileShop.Shared.EventModels;
 using TileShop.WPF.Configuration;
+using Jot;
+using Stylet;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class EditorsViewModel : PropertyChangedBase
+    public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsEvent>
     {
+        private readonly IWindowManager _windowManager;
+        private readonly Tracker _tracker;
+        private readonly ICodecService _codecService;
+        private readonly IPaletteService _paletteService;
+        private readonly IProjectService _projectService;
+        private readonly AppSettings _settings;
+        private readonly IEventAggregator _events;
+
         private BindableCollection<ResourceEditorBaseViewModel> _editors = new BindableCollection<ResourceEditorBaseViewModel>();
         public BindableCollection<ResourceEditorBaseViewModel> Editors
         {
@@ -23,17 +32,24 @@ namespace TileShop.WPF.ViewModels
         }
 
         private ResourceEditorBaseViewModel _activeEditor;
-        private readonly IWindowManager _windowManager;
-        private readonly Tracker _tracker;
-        private readonly ICodecService _codecService;
-        private readonly IPaletteService _paletteService;
-        private readonly AppSettings _settings;
-        private readonly IEventAggregator _events;
-
         public ResourceEditorBaseViewModel ActiveEditor
         {
             get => _activeEditor;
             set => SetAndNotify(ref _activeEditor, value);
+        }
+
+        private ArrangerEditorViewModel _activePixelEditor;
+        public ArrangerEditorViewModel ActivePixelEditor
+        {
+            get => _activePixelEditor;
+            set => SetAndNotify(ref _activePixelEditor, value);
+        }
+
+        private ShellViewModel _shell;
+        public ShellViewModel Shell
+        {
+            get => _shell;
+            set => SetAndNotify(ref _shell, value);
         }
 
         private readonly Dictionary<MessageBoxResult, string> messageBoxLabels = new Dictionary<MessageBoxResult, string>
@@ -42,7 +58,7 @@ namespace TileShop.WPF.ViewModels
         };
 
         public EditorsViewModel(AppSettings settings, IEventAggregator events, IWindowManager windowManager, Tracker tracker,
-            ICodecService codecService, IPaletteService paletteService)
+            ICodecService codecService, IPaletteService paletteService, IProjectService projectService)
         {
             _settings = settings;
             _events = events;
@@ -50,37 +66,28 @@ namespace TileShop.WPF.ViewModels
             _tracker = tracker;
             _codecService = codecService;
             _paletteService = paletteService;
+            _projectService = projectService;
+
+            _events.Subscribe(this);
         }
 
         public void CloseEditor(ResourceEditorBaseViewModel editor)
         {
-            if (Editors.Contains(editor) && editor.IsModified)
+            if (editor.IsModified)
             {
-                var result = _windowManager.ShowMessageBox($"{editor.DisplayName} has been modified. Save changes?", "Save changes",
-                    MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
-
-                if (result == MessageBoxResult.Yes)
+                if (RequestSaveUserChanges(editor, true))
                 {
-                    editor.SaveChanges();
-                    Editors.Remove(editor);
-                    ActiveEditor = Editors.FirstOrDefault();
+                    var projectTree = _projectService.GetContainingProject(editor.Resource);
+                    _projectService.SaveProject(projectTree);
                 }
-                else if (result == MessageBoxResult.No)
-                {
-                    editor.DiscardChanges();
-                    Editors.Remove(editor);
-                    ActiveEditor = Editors.FirstOrDefault();
-                }
-                else if (result == MessageBoxResult.Cancel)
+                else
                 {
                     return;
                 }
             }
-            else if (Editors.Contains(editor))
-            {
-                Editors.Remove(editor);
-                ActiveEditor = Editors.FirstOrDefault();
-            }
+
+            Editors.Remove(editor);
+            ActiveEditor = Editors.FirstOrDefault();
         }
 
         public void ActivateEditor(IProjectResource resource)
@@ -133,6 +140,87 @@ namespace TileShop.WPF.ViewModels
             }
             else
                 ActiveEditor = openedDocument;
+        }
+
+        public bool RequestSaveAllUserChanges()
+        {
+            try
+            {
+                var savedProjects = new HashSet<ProjectTree>();
+
+                foreach (var editor in Editors.Where(x => x.IsModified))
+                {
+                    if (!RequestSaveUserChanges(editor, false))
+                        return false;
+                    savedProjects.Add(_projectService.GetContainingProject(editor.Resource));
+                }
+
+                foreach (var project in savedProjects)
+                    _projectService.SaveProject(project);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _windowManager.ShowMessageBox(ex.Message);
+                // TODO: Log full exception here
+                return false;
+            }
+        }
+
+        public bool RequestSaveUserChanges(ResourceEditorBaseViewModel editor, bool saveTree)
+        {
+            if (editor.IsModified)
+            {
+                var result = _windowManager.ShowMessageBox($"'{editor.DisplayName}' has been modified and will be closed. Save changes?",
+                    "Save changes", MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
+
+                var projectTree = _projectService.GetContainingProject(editor.Resource);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    editor.SaveChanges();
+                    if (saveTree)
+                        _projectService.SaveProject(projectTree);
+                        
+                    return true;
+                }
+                if (result == MessageBoxResult.No)
+                {
+                    editor.DiscardChanges();
+                    return true;
+                }
+                else if (result == MessageBoxResult.Cancel)
+                    return false;
+            }
+            return true;
+        }
+
+        public void Handle(EditArrangerPixelsEvent message)
+        {
+            if (ActivePixelEditor?.IsModified is true)
+            {
+                if (!RequestSaveUserChanges(ActivePixelEditor, false))
+                    return;
+            }
+
+            if (ActivePixelEditor is object)
+                Shell.Tools.Remove(ActivePixelEditor);
+
+            var model = message.ArrangerTransferModel;
+
+            if (model.Arranger.ColorType == PixelColorType.Indexed)
+            {
+                var editor = new IndexedPixelEditorViewModel(model.Arranger, model.X, model.Y, model.Width, model.Height,
+                    _events, _windowManager, _paletteService);
+
+                ActivePixelEditor = editor;
+                Shell.Tools.Add(ActivePixelEditor);
+            }
+            else if (model.Arranger.ColorType == PixelColorType.Direct)
+            {
+
+            }
         }
     }
 }

@@ -12,6 +12,8 @@ using ImageMagitek.Services;
 using TileShop.WPF.Configuration;
 using TileShop.WPF.Services;
 using TileShop.WPF.ViewModels;
+using ModernWpf;
+using System.Windows.Threading;
 
 namespace TileShop.WPF
 {
@@ -73,12 +75,13 @@ namespace TileShop.WPF
                 .MinimumLevel.Error()
                 .WriteTo.File(logName, rollingInterval: RollingInterval.Day)
                 .CreateLogger();
-
-            Application.Dispatcher.UnhandledException += Dispatcher_UnhandledException;
         }
 
         private void ConfigureJotTracker(ContainerBuilder builder)
         {
+            _tracker.Configure<ShellViewModel>()
+                .Property(p => p.Theme, ApplicationTheme.Light);
+
             _tracker.Configure<AddScatteredArrangerViewModel>()
                 .Property(p => p.ArrangerElementWidth, 8)
                 .Property(p => p.ArrangerElementHeight, 16)
@@ -152,9 +155,13 @@ namespace TileShop.WPF
             builder.RegisterInstance(_codecService);
         }
 
-        private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        protected override void OnUnhandledException(DispatcherUnhandledExceptionEventArgs e)
         {
-            Log.Fatal(e.Exception, "Unhandled exception");
+            base.OnUnhandledException(e);
+
+            Log.Error(e.Exception, "Unhandled exception");
+            _container?.Resolve<IWindowManager>()?.ShowMessageBox($"{e.Exception.Message}", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            e.Handled = true;
         }
     }
 }

@@ -1,9 +1,6 @@
 ﻿using ModernWpf;
 using Stylet;
-using System;
-using System.Windows.Threading;
 using TileShop.Shared.EventModels;
-using TileShop.WPF.EventModels;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -49,23 +46,16 @@ namespace TileShop.WPF.ViewModels
 
         public void SaveEditor() => Editors.ActiveEditor?.SaveChanges();
 
-        //public void AddDataFile() => _events.PublishOnUIThread(new AddDataFileEvent());
-        //public void AddPalette() => _events.PublishOnUIThread(new AddPaletteEvent());
-        //public void AddScatteredArranger() => _events.PublishOnUIThread(new AddScatteredArrangerEvent());
-
         public void ShowWindow(ToolWindow toolWindow) => _events.PublishOnUIThread(new ShowToolWindowEvent(toolWindow));
 
         public void ExitApplication() => _events.PublishOnUIThread(new RequestApplicationExitEvent());
 
         public void ToggleTheme()
         {
-            Dispatcher.CurrentDispatcher.Invoke(() =>
-            {
-                if (ThemeManager.Current.ActualApplicationTheme == ApplicationTheme.Dark)
-                    ThemeManager.Current.SetCurrentValue(ThemeManager.ApplicationThemeProperty, ApplicationTheme.Light);
-                else if (ThemeManager.Current.ActualApplicationTheme == ApplicationTheme.Light)
-                    ThemeManager.Current.SetCurrentValue(ThemeManager.ApplicationThemeProperty, ApplicationTheme.Dark);
-            });
+            if (Shell.Theme == ApplicationTheme.Dark)
+                Shell.Theme = ApplicationTheme.Light;
+            else if (Shell.Theme == ApplicationTheme.Light)
+                Shell.Theme = ApplicationTheme.Dark;
         }
     }
 }

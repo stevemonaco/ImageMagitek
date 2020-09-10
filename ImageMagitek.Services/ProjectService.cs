@@ -26,6 +26,7 @@ namespace ImageMagitek.Services
         void CloseProjects();
 
         ProjectTree GetContainingProject(ResourceNode node);
+        ProjectTree GetContainingProject(IProjectResource resource);
     }
 
     public class ProjectService : IProjectService
@@ -186,6 +187,12 @@ namespace ImageMagitek.Services
         {
             return _projects.FirstOrDefault(x => x.ContainsNode(node)) ??
                 throw new ArgumentException($"{nameof(GetContainingProject)} could not locate the node '{node.PathKey}'");
+        }
+
+        public ProjectTree GetContainingProject(IProjectResource resource)
+        {
+            return _projects.FirstOrDefault(x => x.ContainsResource(resource)) ??
+                throw new ArgumentException($"{nameof(GetContainingProject)} could not locate the resource '{resource.Name}'");
         }
     }
 }

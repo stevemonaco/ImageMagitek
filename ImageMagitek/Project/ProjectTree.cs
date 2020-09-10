@@ -40,8 +40,8 @@ namespace ImageMagitek.Project
         /// <returns></returns>
         public bool ContainsResource(IProjectResource resource)
         {
-            var nodes = Tree.Root.SelfAndDescendantsDepthFirst();
-            return nodes.Any(x => ReferenceEquals(x.Value, resource));
+            return Tree.Root.SelfAndDescendantsDepthFirst()
+                .Any(x => ReferenceEquals(x.Value, resource));
         }
 
         /// <summary>

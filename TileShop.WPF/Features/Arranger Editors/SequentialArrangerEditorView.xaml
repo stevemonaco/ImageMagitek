@@ -61,7 +61,10 @@
 
             <StackPanel Orientation="Horizontal">
 
-                <ComboBox ItemsSource="{Binding CodecNames}" SelectedValue="{Binding SelectedCodecName}" />
+                <ComboBox
+                    MinWidth="180"
+                    ItemsSource="{Binding CodecNames}"
+                    SelectedValue="{Binding SelectedCodecName}" />
 
                 <Slider
                     MinWidth="100"

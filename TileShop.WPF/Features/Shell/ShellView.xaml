@@ -11,8 +11,6 @@
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:sel="clr-namespace:TileShop.WPF.Selectors"
     xmlns:ui="http://schemas.modernwpf.com/2019"
-    xmlns:v="clr-namespace:TileShop.WPF.Views"
-    xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     Title="TileShop"
     Width="800"
     Height="600"

@@ -59,8 +59,7 @@
         <Grid
             Grid.Row="1"
             Grid.Column="0"
-            Grid.ColumnSpan="3"
-            Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+            Grid.ColumnSpan="3">
             <ItemsControl
                 Margin="43,0,0,0"
                 HorizontalAlignment="Right"

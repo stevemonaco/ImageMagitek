@@ -386,7 +386,8 @@ namespace TileShop.WPF.ViewModels
                     nodeModel.Node.Value.Name = newName;
                     nodeModel.Name = newName;
 
-                    IsModified = true;
+                    var projectTree = _projectService.GetContainingProject(nodeModel.Node);
+                    _projectService.SaveProject(projectTree);
                     var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Value, newName, oldName);
                     _events.PublishOnUIThread(renameEvent);
                 }
@@ -450,8 +451,8 @@ namespace TileShop.WPF.ViewModels
                 result.Switch(
                     success =>
                     {
-                        IsModified = true;
                         SelectedNode = sourceModel;
+                        _projectService.SaveProject(projectTree);
                     },
                     fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Move Resource Error")
                     );
@@ -544,9 +545,13 @@ namespace TileShop.WPF.ViewModels
                     var remainingEditors = _editors.Editors
                         .Where(x => !removedEditors.Contains(x));
 
+                    if (!removedEditors.All(x => _editors.RequestSaveUserChanges(x, false)))
+                        return false;
+
                     _editors.Editors = new BindableCollection<ResourceEditorBaseViewModel>(remainingEditors);
                     _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
 
+                    _projectService.SaveProject(projectTree);
                     _projectService.CloseProject(projectTree);
                     Projects.Remove(projectVM);
                     NotifyOfPropertyChange(() => HasProject);
