@@ -513,6 +513,29 @@ namespace TileShop.WPF.ViewModels
                 });
         }
 
+        public bool SaveProjectAs(ProjectNodeViewModel projectVM)
+        {
+            var projectTree = _projectService.GetContainingProject(projectVM.Node);
+
+            var newFileName = _fileSelect.GetNewProjectFileNameByUser();
+
+            if (newFileName is null)
+                return false;
+
+            projectTree.FileLocation = newFileName;
+
+            return _projectService.SaveProject(projectTree).Match(
+                success =>
+                {
+                    return true;
+                },
+                fail =>
+                {
+                    _windowManager.ShowMessageBox(fail.Reason, "Project Save Error");
+                    return false;
+                });
+        }
+
         public bool CloseProject(ProjectNodeViewModel projectVM)
         {
             var projectTree = _projectService.GetContainingProject(projectVM.Node);

@@ -54,6 +54,11 @@
 
                     <MenuItem
                         s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
+                        Command="{s:Action SaveProjectAs}"
+                        CommandParameter="{Binding}"
+                        Header="Save Project As..." />
+                    <MenuItem
+                        s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
                         Command="{s:Action CloseProject}"
                         CommandParameter="{Binding}"
                         Header="Close Project" />

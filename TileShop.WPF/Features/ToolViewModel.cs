@@ -8,6 +8,13 @@ namespace TileShop.WPF.ViewModels
         public abstract void SaveChanges();
         public abstract void DiscardChanges();
 
+        private bool _isActive;
+        public new bool IsActive
+        {
+            get => _isActive;
+            set => SetAndNotify(ref _isActive, value);
+        }
+
         private bool _isModified;
         public bool IsModified
         {

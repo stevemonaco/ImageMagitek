@@ -57,7 +57,6 @@
 
         <TreeView
             Grid.Row="1"
-            Padding="20"
             dd:DragDrop.DropHandler="{Binding}"
             dd:DragDrop.IsDragSource="True"
             dd:DragDrop.IsDropTarget="True"
