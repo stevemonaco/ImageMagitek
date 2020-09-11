@@ -451,6 +451,9 @@ namespace TileShop.WPF.ViewModels
                 result.Switch(
                     success =>
                     {
+                        sourceModel.ParentModel.Children.Remove(sourceModel);
+                        sourceModel.ParentModel = targetModel;
+                        targetModel.Children.Add(sourceModel);
                         SelectedNode = sourceModel;
                         _projectService.SaveProject(projectTree);
                     },

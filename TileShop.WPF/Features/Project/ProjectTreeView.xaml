@@ -11,6 +11,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:sel="clr-namespace:TileShop.WPF.Selectors"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
     mc:Ignorable="d">
     <UserControl.Resources>
         <converters:TreeNodeCollectionViewSource x:Key="SortedTreeViewSource" />
@@ -20,12 +21,9 @@
             BasedOn="{StaticResource DefaultTreeViewItemStyle}"
             TargetType="{x:Type TreeViewItem}">
             <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-        </Style>
-        <Style
-            x:Key="rootItemStyle"
-            BasedOn="{StaticResource projectItemStyle}"
-            TargetType="{x:Type TreeViewItem}">
             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="AllowDrop" Value="True" />
         </Style>
 
         <HierarchicalDataTemplate x:Key="parentNodeTemplate" ItemsSource="{Binding Children, Converter={StaticResource SortedTreeViewSource}}">
@@ -59,10 +57,11 @@
 
         <TreeView
             Grid.Row="1"
+            Padding="20"
             dd:DragDrop.DropHandler="{Binding}"
             dd:DragDrop.IsDragSource="True"
             dd:DragDrop.IsDropTarget="True"
-            ItemContainerStyle="{StaticResource rootItemStyle}"
+            ItemContainerStyle="{StaticResource projectItemStyle}"
             ItemTemplateSelector="{StaticResource projectTreeTemplateSelector}"
             ItemsSource="{Binding Projects}">
 

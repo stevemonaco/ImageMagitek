@@ -35,7 +35,7 @@
     <PackageReference Include="gong-wpf-dragdrop" Version="2.2.0" />
     <PackageReference Include="Jot" Version="2.1.7" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.19" />
-    <PackageReference Include="ModernWpfUI" Version="0.9.1" />
+    <PackageReference Include="ModernWpfUI" Version="0.9.2-preview.200831.1" />
     <PackageReference Include="Monaco.PathTree" Version="0.4.1" />
     <PackageReference Include="OneOf" Version="2.1.155" />
     <PackageReference Include="Serilog" Version="2.9.0" />

@@ -16,7 +16,7 @@ namespace ImageMagitek
         public Stream Stream { get => _stream.Value; }
         public string Name { get; set; }
 
-        public bool CanContainChildResources => true;
+        public bool CanContainChildResources => false;
 
         public bool ShouldBeSerialized { get; set; } = true;
 
