@@ -48,7 +48,7 @@ namespace TileShop.WPF.ViewModels
 
         public void ShowWindow(ToolWindow toolWindow) => _events.PublishOnUIThread(new ShowToolWindowEvent(toolWindow));
 
-        public void ExitApplication() => _events.PublishOnUIThread(new RequestApplicationExitEvent());
+        public void ExitApplication() => Shell.RequestApplicationExit();
 
         public void ChangeToLightTheme() => Shell.Theme = ApplicationTheme.Light;
 

@@ -11,7 +11,7 @@ using ModernWpf;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ShellViewModel : Conductor<object>, IHandle<ShowToolWindowEvent>, IHandle<RequestApplicationExitEvent>
+    public class ShellViewModel : Conductor<object>, IHandle<ShowToolWindowEvent>
     {
         private readonly Tracker _tracker;
         private readonly IEventAggregator _events;
@@ -145,7 +145,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void Handle(RequestApplicationExitEvent message)
+        public void RequestApplicationExit()
         {
             if (Editors.RequestSaveAllUserChanges())
             {
