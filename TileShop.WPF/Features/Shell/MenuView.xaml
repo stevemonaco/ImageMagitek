@@ -61,8 +61,12 @@
                     Command="{s:Action ShowWindow}"
                     CommandParameter="{x:Static event:ToolWindow.ProjectExplorer}"
                     Header="Project Explorer" />
+                <Separator />
+                <MenuItem Header="Set _Theme">
+                    <MenuItem Command="{s:Action ChangeToLightTheme}" Header="Light Theme" />
+                    <MenuItem Command="{s:Action ChangeToDarkTheme}" Header="Dark Theme" />
+                </MenuItem>
             </MenuItem>
-
 
             <!--
             <MenuItem Header="_Project" IsEnabled="{Binding HasProject}">
@@ -84,18 +88,9 @@
             <!--
         <MenuItem Header="_Plugins" />
             -->
+
         </Menu>
 
-        <ui:CommandBar
-            Grid.Column="1"
-            Margin="0,0,12,0"
-            Background="Transparent"
-            DefaultLabelPosition="Right">
-            <ui:AppBarButton Click="{s:Action ToggleTheme}" Label="Toggle Theme">
-                <ui:AppBarButton.Icon>
-                    <ui:FontIcon Margin="0,-2,0,0" Glyph="&#xE771;" />
-                </ui:AppBarButton.Icon>
-            </ui:AppBarButton>
-        </ui:CommandBar>
+
     </Grid>
 </UserControl>

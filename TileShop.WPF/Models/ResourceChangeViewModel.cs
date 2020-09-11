@@ -1,9 +1,5 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using ImageMagitek.Project;
+﻿using ImageMagitek.Project;
 using Stylet;
-using TileShop.WPF.ViewModels;
 
 namespace TileShop.WPF.Models
 {

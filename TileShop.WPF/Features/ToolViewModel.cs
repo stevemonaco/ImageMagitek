@@ -29,13 +29,6 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _isSelected, value);
         }
 
-        private bool _isActive;
-        public bool IsActive
-        {
-            get => _isActive;
-            set => SetAndNotify(ref _isActive, value);
-        }
-
         private ImageSource _iconSource;
         public ImageSource IconSource
         {

@@ -1,7 +1,5 @@
-﻿using System;
-using Stylet;
+﻿using Stylet;
 using ImageMagitek.Project;
-using Monaco.PathTree;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -9,7 +7,6 @@ namespace TileShop.WPF.ViewModels
     {
         public ResourceNode Node { get; set; }
         public ResourceNodeViewModel ParentModel { get; set; }
-        public Type Type { get; protected set; }
         public abstract int SortPriority { get; }
 
         private BindableCollection<ResourceNodeViewModel> _children = new BindableCollection<ResourceNodeViewModel>();

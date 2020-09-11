@@ -12,7 +12,6 @@ namespace TileShop.WPF.ViewModels
         {
             Node = node;
             Name = node.Name;
-            Type = GetType();
 
             foreach (var child in Node.Children)
             {

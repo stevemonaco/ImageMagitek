@@ -50,12 +50,8 @@ namespace TileShop.WPF.ViewModels
 
         public void ExitApplication() => _events.PublishOnUIThread(new RequestApplicationExitEvent());
 
-        public void ToggleTheme()
-        {
-            if (Shell.Theme == ApplicationTheme.Dark)
-                Shell.Theme = ApplicationTheme.Light;
-            else if (Shell.Theme == ApplicationTheme.Light)
-                Shell.Theme = ApplicationTheme.Dark;
-        }
+        public void ChangeToLightTheme() => Shell.Theme = ApplicationTheme.Light;
+
+        public void ChangeToDarkTheme() => Shell.Theme = ApplicationTheme.Dark;
     }
 }

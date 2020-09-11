@@ -1,5 +1,4 @@
 ﻿using ImageMagitek.Project;
-using Monaco.PathTree;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -11,7 +10,6 @@ namespace TileShop.WPF.ViewModels
         {
             Node = node;
             Name = node.Name;
-            Type = GetType();
             ParentModel = parent;
         }
     }

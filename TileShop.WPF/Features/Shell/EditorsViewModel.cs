@@ -11,6 +11,7 @@ using TileShop.Shared.EventModels;
 using TileShop.WPF.Configuration;
 using Jot;
 using Stylet;
+using Serilog;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -163,7 +164,7 @@ namespace TileShop.WPF.ViewModels
             catch (Exception ex)
             {
                 _windowManager.ShowMessageBox(ex.Message);
-                // TODO: Log full exception here
+                Log.Error(ex, "Unhandled exception");
                 return false;
             }
         }

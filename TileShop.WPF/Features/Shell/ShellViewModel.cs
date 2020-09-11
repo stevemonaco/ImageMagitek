@@ -124,7 +124,6 @@ namespace TileShop.WPF.ViewModels
                     if (!ActiveTree.IsVisible)
                     {
                         ActiveTree.IsVisible = true;
-                        ActiveTree.IsActive = true;
                         ActiveTree.IsSelected = true;
                         Tools.Remove(ActiveTree);
                         Tools.Add(ActiveTree);
@@ -134,7 +133,6 @@ namespace TileShop.WPF.ViewModels
                 case ToolWindow.PixelEditor:
                     if (Editors.ActivePixelEditor is object)
                     {
-                        Editors.ActivePixelEditor.IsActive = true;
                         Editors.ActivePixelEditor.IsSelected = true;
                         Editors.ActivePixelEditor.IsVisible = true;
                         Tools.Remove(Editors.ActivePixelEditor);
