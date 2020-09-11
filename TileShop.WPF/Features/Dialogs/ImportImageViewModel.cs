@@ -99,6 +99,13 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        protected override void OnViewLoaded()
+        {
+            base.OnViewLoaded();
+
+            BrowseForImportFile();
+        }
+
         public void BrowseForImportFile()
         {
             var fileName = _fileSelect.GetImportArrangerFileNameByUser();

@@ -219,30 +219,9 @@ namespace TileShop.WPF.ViewModels
 
         public void ImportImageAs(ResourceNodeViewModel nodeModel)
         {
-            if (nodeModel is ArrangerNodeViewModel arrNodeModel)
+            if (nodeModel is ArrangerNodeViewModel arrNodeModel && arrNodeModel.Node.Value is ScatteredArranger arranger)
             {
-                //var arranger = arrNodeModel.Node.Value as ScatteredArranger;
-                //var importFileName = _fileSelect.GetImportArrangerFileNameByUser();
-
-                //if (importFileName is object)
-                //{
-                //    if (arranger.ColorType == PixelColorType.Indexed)
-                //    {
-                //        var image = new IndexedImage(arranger, _paletteService.DefaultPalette);
-                //        image.ImportImage(importFileName, new ImageFileAdapter(), ColorMatchStrategy.Exact);
-                //        image.SaveImage();
-                //    }
-                //    else if (arranger.ColorType == PixelColorType.Direct)
-                //    {
-                //        var image = new DirectImage(arranger);
-                //        image.ImportImage(importFileName, new ImageFileAdapter());
-                //        image.SaveImage();
-                //    }
-                //}
-
-                var arranger = arrNodeModel.Node.Value as ScatteredArranger;
                 var model = new ImportImageViewModel(arranger, _paletteService, _fileSelect);
-
                 _windowManager.ShowDialog(model);
             }
         }
