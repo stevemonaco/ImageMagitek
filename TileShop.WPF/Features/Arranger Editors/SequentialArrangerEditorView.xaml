@@ -227,7 +227,7 @@
                 </Grid.ContextMenu>
 
                 <i:Interaction.Behaviors>
-                    <behaviors:MouseCaptureBehavior Proxy="{Binding}" />
+                    <behaviors:MouseCaptureBehavior Proxy="{Binding}" RequireCtrlForMouseWheel="True" />
                 </i:Interaction.Behaviors>
 
                 <!--  Arranger Image  -->

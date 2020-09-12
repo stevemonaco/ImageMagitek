@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Xaml.Behaviors;
 
@@ -28,6 +29,16 @@ namespace TileShop.WPF.Behaviors
         {
             return (IMouseCaptureProxy)source.GetValue(ProxyProperty);
         }
+
+        public bool RequireCtrlForMouseWheel
+        {
+            get { return (bool)GetValue(RequireCtrlForMouseWheelProperty); }
+            set { SetValue(RequireCtrlForMouseWheelProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for RequireCtrlForMouseWheel.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty RequireCtrlForMouseWheelProperty =
+            DependencyProperty.RegisterAttached(nameof(RequireCtrlForMouseWheel), typeof(bool), typeof(MouseCaptureBehavior));
 
         private static void OnProxyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -146,9 +157,9 @@ namespace TileShop.WPF.Behaviors
         private void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
             var proxy = GetProxy(this);
-            if (proxy != null)
+            if (proxy != null && e.Delta != 0)
             {
-                if (e.Delta != 0)
+                if (!RequireCtrlForMouseWheel || (RequireCtrlForMouseWheel && Keyboard.Modifiers == ModifierKeys.Control))
                 {
                     var pos = e.GetPosition(AssociatedObject);
                     var args = new MouseCaptureArgs

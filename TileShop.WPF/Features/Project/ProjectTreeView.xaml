@@ -70,7 +70,7 @@
 
             <i:Interaction.Triggers>
                 <i:EventTrigger EventName="MouseDoubleClick">
-                    <i:InvokeCommandAction Command="{s:Action ActivateSelectedItem}" />
+                    <i:InvokeCommandAction Command="{s:Action ActivateSelectedNode}" />
                 </i:EventTrigger>
             </i:Interaction.Triggers>
         </TreeView>

@@ -15,33 +15,33 @@
         <h:BindingProxy x:Key="treeProxy" Data="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:ProjectTreeView}}, Path=DataContext}" />
     </UserControl.Resources>
 
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="PreviewMouseRightButtonDown">
+            <i:ChangePropertyAction
+                PropertyName="IsSelected"
+                TargetObject="{Binding}"
+                Value="true" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
     <StackPanel Orientation="Horizontal">
         <Image Style="{StaticResource iconNodeFileSmall}" />
-        <TextBlock Margin="4,0,0,0" Text="{Binding Name}">
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="PreviewMouseRightButtonDown">
-                    <i:ChangePropertyAction
-                        PropertyName="IsSelected"
-                        TargetObject="{Binding}"
-                        Value="true" />
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
+        <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
 
-            <TextBlock.ContextMenu>
-                <ContextMenu>
-                    <MenuItem
-                        s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
-                        Command="{s:Action RequestRemoveNode}"
-                        CommandParameter="{Binding}"
-                        Header="Remove" />
-                    <MenuItem
-                        s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
-                        Command="{s:Action RenameNode}"
-                        CommandParameter="{Binding}"
-                        Header="Rename" />
-                </ContextMenu>
-            </TextBlock.ContextMenu>
-        </TextBlock>
+        <StackPanel.ContextMenu>
+            <ContextMenu>
+                <MenuItem
+                    s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
+                    Command="{s:Action RequestRemoveNode}"
+                    CommandParameter="{Binding}"
+                    Header="Remove" />
+                <MenuItem
+                    s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
+                    Command="{s:Action RenameNode}"
+                    CommandParameter="{Binding}"
+                    Header="Rename" />
+            </ContextMenu>
+        </StackPanel.ContextMenu>
     </StackPanel>
 
 </UserControl>

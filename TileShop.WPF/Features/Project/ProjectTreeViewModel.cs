@@ -68,10 +68,16 @@ namespace TileShop.WPF.ViewModels
             { MessageBoxResult.Yes, "Save" }, { MessageBoxResult.No, "Discard" }, { MessageBoxResult.Cancel, "Cancel" }
         };
 
-        public void ActivateSelectedItem()
+        public void ActivateSelectedNode()
         {
-            if (SelectedNode is object)
+            if (SelectedNode is ProjectNodeViewModel || SelectedNode is FolderNodeViewModel)
+            {
+                SelectedNode.IsExpanded ^= true;
+            }
+            else
+            {
                 _editors.ActivateEditor(SelectedNode.Node.Value);
+            }
         }
 
         public void AddNewFolder(ResourceNodeViewModel parentNodeModel)

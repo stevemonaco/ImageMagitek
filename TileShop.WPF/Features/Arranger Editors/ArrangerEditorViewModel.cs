@@ -366,7 +366,13 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public virtual void OnMouseWheel(object sender, MouseCaptureArgs e) { }
+        public virtual void OnMouseWheel(object sender, MouseCaptureArgs e) 
+        {
+            if (e.WheelDelta > 0)
+                ZoomIn();
+            else
+                ZoomOut();
+        }
 
         protected virtual bool CanAcceptTransfer(ArrangerTransferModel model) => true;
 
