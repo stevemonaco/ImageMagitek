@@ -75,6 +75,46 @@ namespace ImageMagitek
         }
 
         /// <summary>
+        /// Moves the sequential arranger to the specified address
+        /// If the arranger will overflow the file, then seek only to the furthest offset
+        /// </summary>
+        /// <param name="absoluteAddress">Specified address to move the arranger to</param>
+        /// <returns></returns>
+        public FileBitAddress Move(FileBitAddress absoluteAddress)
+        {
+            if (Mode != ArrangerMode.Sequential)
+                throw new InvalidOperationException($"{nameof(Move)}: Arranger {Name} is not in sequential mode");
+
+            FileBitAddress address;
+            FileBitAddress testaddress = absoluteAddress + ArrangerBitSize; // Tests the bounds of the arranger vs the file size
+
+            if (FileSize * 8 < ArrangerBitSize) // Arranger needs more bits than the entire file
+                address = new FileBitAddress(0, 0);
+            else if (testaddress.Bits() > FileSize * 8)
+                address = new FileBitAddress(FileSize * 8 - ArrangerBitSize);
+            else
+                address = absoluteAddress;
+
+            int ElementStorageSize = ActiveCodec.StorageSize;
+
+            for (int y = 0; y < ArrangerElementSize.Height; y++)
+            {
+                for (int x = 0; x < ArrangerElementSize.Width; x++)
+                {
+                    var el = GetElement(x, y);
+                    el = el.WithAddress(address);
+                    SetElement(el, x, y);
+                    address += ElementStorageSize;
+                }
+            }
+
+            //FileAddress = GetElement(0, 0).FileAddress.FileOffset * 8;
+            FileAddress = GetInitialSequentialFileAddress().FileOffset * 8;
+
+            return FileAddress;
+        }
+
+        /// <summary>
         /// Resizes a Sequential Arranger with a new number of elements
         /// </summary>
         /// <param name="arrangerWidth">Width of Arranger in Elements</param>
@@ -87,14 +127,13 @@ namespace ImageMagitek
             if (Mode != ArrangerMode.Sequential)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
-            FileBitAddress address;
+            FileBitAddress address = 0;
 
             ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);
 
             if (ElementGrid is null) // New Arranger being initially sized
             {
                 ElementGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
-                address = 0;
             }
             else // Arranger being resized with existing elements
             {
@@ -164,10 +203,18 @@ namespace ImageMagitek
         }
 
         /// <summary>
-        /// Changes each Element's codec and resizes the ElementPixelSize accordingly
+        /// Changes each Element's codec
         /// </summary>
         /// <param name="codec">New codec</param>
-        public void ChangeCodec(IGraphicsCodec codec)
+        public void ChangeCodec(IGraphicsCodec codec) => ChangeCodec(codec, ArrangerElementSize.Width, ArrangerElementSize.Height);
+
+        /// <summary>
+        /// Changes each Element's codec and resizes the Arranger accordingly
+        /// </summary>
+        /// <param name="codec">New codec</param>
+        /// <param name="arrangerWidth">Arranger Width in Elements</param>
+        /// <param name="arrangerHeight">Arranger Height in Elements</param>
+        public void ChangeCodec(IGraphicsCodec codec, int arrangerWidth, int arrangerHeight)
         {
             FileBitAddress address = GetInitialSequentialFileAddress();
             ElementPixelSize = new Size(codec.Width, codec.Height);
@@ -179,6 +226,9 @@ namespace ImageMagitek
                 Layout = ArrangerLayout.Single;
             else if (codec.Layout == ImageLayout.Tiled)
                 Layout = ArrangerLayout.Tiled;
+
+            if (ArrangerElementSize.Width != arrangerWidth || ArrangerElementSize.Height != arrangerHeight)
+                Resize(arrangerWidth, arrangerHeight);
 
             ArrangerBitSize = ArrangerElementSize.Width * ArrangerElementSize.Height * codec.StorageSize;
 
@@ -208,6 +258,7 @@ namespace ImageMagitek
             address = GetInitialSequentialFileAddress();
             this.Move(address);
         }
+
 
         /// <summary>
         /// Private method for cloning an Arranger

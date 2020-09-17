@@ -324,8 +324,7 @@ namespace TileShop.WPF.ViewModels
                 _tiledElementHeight = codec.Height;
                 _tiledElementWidth = codec.Width;
 
-                _workingArranger.Resize(TiledArrangerWidth, TiledArrangerHeight);
-                (_workingArranger as SequentialArranger).ChangeCodec(codec);
+                (_workingArranger as SequentialArranger).ChangeCodec(codec, TiledArrangerWidth, TiledArrangerHeight);
                 SnapMode = SnapMode.Element;
 
                 NotifyOfPropertyChange(() => TiledElementHeight);
@@ -334,16 +333,16 @@ namespace TileShop.WPF.ViewModels
             else if (codec.Layout == ImageMagitek.Codec.ImageLayout.Single)
             {
                 ShowGridlines = false;
-                _workingArranger.Resize(1, 1);
                 _linearArrangerHeight = codec.Height;
                 _linearArrangerWidth = codec.Width;
 
-                (_workingArranger as SequentialArranger).ChangeCodec(codec);
+                (_workingArranger as SequentialArranger).ChangeCodec(codec, 1, 1);
                 SnapMode = SnapMode.Pixel;
                 NotifyOfPropertyChange(() => LinearArrangerHeight);
                 NotifyOfPropertyChange(() => LinearArrangerWidth);
             }
 
+            _address = (_workingArranger as SequentialArranger).FileAddress;
             CanResize = codec.CanResize;
             WidthIncrement = codec.WidthResizeIncrement;
             HeightIncrement = codec.HeightResizeIncrement;
@@ -353,6 +352,10 @@ namespace TileShop.WPF.ViewModels
             NotifyOfPropertyChange(() => IsTiledLayout);
             NotifyOfPropertyChange(() => IsSingleLayout);
             NotifyOfPropertyChange(() => CanShowGridlines);
+
+            string notifyMessage = $"File Offset: 0x{_address.FileOffset:X}";
+            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+            _events.PublishOnUIThread(notifyEvent);
         }
 
         private void ChangeCodecDimensions(int width, int height)
