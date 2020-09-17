@@ -3,17 +3,18 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Threading;
 using Serilog;
 using Stylet;
 using Autofac;
 using Jot;
+using ModernWpf;
 using ImageMagitek;
 using ImageMagitek.Services;
 using TileShop.WPF.Configuration;
 using TileShop.WPF.Services;
 using TileShop.WPF.ViewModels;
-using ModernWpf;
-using System.Windows.Threading;
+using TileShop.WPF.Views;
 
 namespace TileShop.WPF
 {
@@ -48,15 +49,25 @@ namespace TileShop.WPF
             builder.RegisterType<ViewModels.MessageBoxViewModel>().As<IMessageBoxViewModel>();
         }
 
+        protected override void ConfigureViews(ContainerBuilder builder)
+        {
+            var viewTypes = GetType().Assembly.GetTypes().Where(x => x.Name.EndsWith("View"));
+
+            foreach (var viewType in viewTypes)
+                builder.RegisterType(viewType);
+
+            builder.RegisterType<ShellView>().OnActivated(x => _tracker.Track(x.Instance));
+        }
+
         protected override void ConfigureViewModels(ContainerBuilder builder)
         {
             var vmTypes = GetType().Assembly.GetTypes().Where(x => x.Name.EndsWith("ViewModel"));
 
             foreach (var vmType in vmTypes)
-                builder.RegisterType(vmType).OnActivated(x => _tracker.Track(x));
+                builder.RegisterType(vmType);
 
+            builder.RegisterType<ShellViewModel>().SingleInstance().OnActivated(x => _tracker.Track(x.Instance));
             builder.RegisterType<EditorsViewModel>().SingleInstance();
-            builder.RegisterType<ShellViewModel>().SingleInstance();
             builder.RegisterType<ProjectTreeViewModel>().SingleInstance();
             builder.RegisterType<MenuViewModel>().SingleInstance();
             builder.RegisterType<StatusBarViewModel>().SingleInstance();
@@ -79,6 +90,12 @@ namespace TileShop.WPF
 
         private void ConfigureJotTracker(ContainerBuilder builder)
         {
+            _tracker.Configure<ShellView>()
+                .Id(w => w.Name)
+                .Properties(w => new { w.Top, w.Width, w.Height, w.Left, w.WindowState })
+                .PersistOn(nameof(Window.Closing))
+                .StopTrackingOn(nameof(Window.Closing));
+
             _tracker.Configure<ShellViewModel>()
                 .Property(p => p.Theme, ApplicationTheme.Light);
 
