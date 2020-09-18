@@ -13,6 +13,7 @@
     xmlns:ui="http://schemas.modernwpf.com/2019"
     Title="TileShop"
     ui:ThemeManager.IsThemeAware="True"
+    ui:TitleBar.ExtendViewIntoTitleBar="True"
     ui:WindowHelper.UseModernWindowStyle="True"
     Closing="{s:Action Closing}"
     ResizeMode="CanResizeWithGrip"
@@ -139,43 +140,54 @@
         </sel:DocumentHeaderTemplateSelector>
     </Window.Resources>
 
-    <Grid x:Name="mainGrid">
+    <Grid x:Name="shellGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <ContentControl Grid.Row="0" s:View.Model="{Binding ActiveMenu}" />
-        <ContentControl Grid.Row="3" s:View.Model="{Binding ActiveStatusBar}" />
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <local:AppIconView Padding="2,0,2,0" />
+            <ContentControl s:View.Model="{Binding ActiveMenu}" WindowChrome.IsHitTestVisibleInChrome="True" />
+        </StackPanel>
 
-        <ad:DockingManager
-            x:Name="dockManager"
-            Grid.Row="2"
-            ActiveContent="{Binding Editors.ActiveEditor, Mode=TwoWay, Converter={StaticResource ActiveDocumentConverter}}"
-            AllowMixedOrientation="True"
-            AnchorablesSource="{Binding Tools, Mode=TwoWay}"
-            DocumentClosed="{s:Action DocumentClosed}"
-            DocumentClosing="{s:Action DocumentClosing}"
-            DocumentHeaderTemplateSelector="{StaticResource documentHeaderTemplateSelector}"
-            DocumentsSource="{Binding Editors.Editors, Mode=TwoWay}"
-            LayoutItemContainerStyleSelector="{StaticResource editorStyleSelector}"
-            LayoutItemTemplateSelector="{StaticResource editorTemplateSelector}">
+        <Grid x:Name="mainGrid" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
 
-            <ad:DockingManager.LayoutUpdateStrategy>
-                <dock:LayoutInitializer />
-            </ad:DockingManager.LayoutUpdateStrategy>
+            <ContentControl Grid.Row="3" s:View.Model="{Binding ActiveStatusBar}" />
 
-            <ad:LayoutRoot>
-                <ad:LayoutPanel x:Name="rootPanel" Orientation="Horizontal">
-                    <ad:LayoutAnchorablePane Name="projectPane" DockWidth="300" />
-                    <ad:LayoutDocumentPane x:Name="documentsPane" />
-                    <ad:LayoutAnchorablePane Name="pixelPane" DockWidth="400" />
-                </ad:LayoutPanel>
-            </ad:LayoutRoot>
+            <ad:DockingManager
+                x:Name="dockManager"
+                Grid.Row="2"
+                ActiveContent="{Binding Editors.ActiveEditor, Mode=TwoWay, Converter={StaticResource ActiveDocumentConverter}}"
+                AllowMixedOrientation="True"
+                AnchorablesSource="{Binding Tools, Mode=TwoWay}"
+                DocumentClosed="{s:Action DocumentClosed}"
+                DocumentClosing="{s:Action DocumentClosing}"
+                DocumentHeaderTemplateSelector="{StaticResource documentHeaderTemplateSelector}"
+                DocumentsSource="{Binding Editors.Editors, Mode=TwoWay}"
+                LayoutItemContainerStyleSelector="{StaticResource editorStyleSelector}"
+                LayoutItemTemplateSelector="{StaticResource editorTemplateSelector}">
 
-        </ad:DockingManager>
+                <ad:DockingManager.LayoutUpdateStrategy>
+                    <dock:LayoutInitializer />
+                </ad:DockingManager.LayoutUpdateStrategy>
 
+                <ad:LayoutRoot>
+                    <ad:LayoutPanel x:Name="rootPanel" Orientation="Horizontal">
+                        <ad:LayoutAnchorablePane Name="projectPane" DockWidth="300" />
+                        <ad:LayoutDocumentPane x:Name="documentsPane" />
+                        <ad:LayoutAnchorablePane Name="pixelPane" DockWidth="400" />
+                    </ad:LayoutPanel>
+                </ad:LayoutRoot>
+
+            </ad:DockingManager>
+
+        </Grid>
     </Grid>
 </Window>
