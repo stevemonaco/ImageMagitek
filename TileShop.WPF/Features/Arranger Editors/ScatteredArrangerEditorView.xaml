@@ -19,6 +19,7 @@
         <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
         <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
         <KeyBinding Key="E" Command="{s:Action RequestEditSelection}" />
+        <KeyBinding Key="Delete" Command="{s:Action DeleteSelection}" />
         <KeyBinding
             Key="A"
             Command="{s:Action SelectAll}"

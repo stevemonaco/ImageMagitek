@@ -74,7 +74,7 @@ namespace TileShop.WPF.ViewModels
             {
                 SelectedNode.IsExpanded ^= true;
             }
-            else
+            else if (SelectedNode?.Node?.Value is object)
             {
                 _editors.ActivateEditor(SelectedNode.Node.Value);
             }

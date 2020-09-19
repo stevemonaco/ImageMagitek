@@ -83,7 +83,10 @@ namespace ImageMagitek
         public abstract bool ShouldBeSerialized { get; set; }
 
         public abstract void Resize(int arrangerWidth, int arrangerHeight);
-        
+
+        private readonly BlankDirectCodec _blankDirectCodec = new BlankDirectCodec();
+        private readonly BlankIndexedCodec _blankIndexedCodec = new BlankIndexedCodec();
+
         /// <summary>
         /// Clones the Arranger
         /// </summary>
@@ -145,6 +148,29 @@ namespace ImageMagitek
         }
 
         /// <summary>
+        /// Resets the Element to a default state at the given position in the Arranger ElementGrid
+        /// </summary>
+        /// <param name="posX"></param>
+        /// <param name="posY"></param>
+        public virtual void ResetElement(int posX, int posY)
+        {
+            if (ElementGrid is null)
+                throw new NullReferenceException($"{nameof(ResetElement)} property '{nameof(ElementGrid)}' was null");
+
+            if (posX >= ArrangerElementSize.Width || posY >= ArrangerElementSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(ResetElement)} parameter was out of range: ({posX}, {posY})");
+
+            var el = GetElement(posX, posY);
+
+            if (ColorType == PixelColorType.Indexed)
+                el = new ArrangerElement(el.X1, el.Y1, null, 0, _blankIndexedCodec, null);
+            else if (ColorType == PixelColorType.Direct)
+                el = new ArrangerElement(el.X1, el.Y1, null, 0, _blankDirectCodec, null);
+
+            SetElement(el, posX, posY);
+        }
+
+        /// <summary>
         /// Gets an Element from a position in the Arranger ElementGrid in Element coordinates
         /// </summary>
         /// <param name="posX">x-coordinate in Element coordinates</param>
@@ -156,7 +182,7 @@ namespace ImageMagitek
                 throw new NullReferenceException($"{nameof(GetElement)} property '{nameof(ElementGrid)}' was null");
 
             if (posX >= ArrangerElementSize.Width || posY >= ArrangerElementSize.Height)
-                throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({posX}, {posY})");
+                throw new ArgumentOutOfRangeException($"{nameof(GetElement)} parameter was out of range: ({posX}, {posY})");
 
             return ElementGrid[posX, posY];
         }
@@ -172,7 +198,7 @@ namespace ImageMagitek
                 throw new NullReferenceException($"{nameof(GetElementAtPixel)} property '{nameof(ElementGrid)}' was null");
 
             if (pixelX >= ArrangerPixelSize.Width || pixelY >= ArrangerPixelSize.Height)
-                throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({pixelX}, {pixelY})");
+                throw new ArgumentOutOfRangeException($"{nameof(GetElementAtPixel)} parameter was out of range: ({pixelX}, {pixelY})");
 
             return ElementGrid[pixelX / ElementPixelSize.Width, pixelY / ElementPixelSize.Height];
         }

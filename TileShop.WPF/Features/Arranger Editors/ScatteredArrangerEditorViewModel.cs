@@ -302,5 +302,27 @@ namespace TileShop.WPF.ViewModels
 
             _events.PublishOnUIThread(notifyEvent);
         }
+
+        public void DeleteSelection()
+        {
+            if (Overlay.State == OverlayState.Selected && _workingArranger.Layout == ArrangerLayout.Tiled)
+            {
+                int startX = Overlay.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
+                int startY = Overlay.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
+                int width = Overlay.SelectionRect.SnappedWidth / _workingArranger.ElementPixelSize.Height;
+                int height = Overlay.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Width;
+
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        _workingArranger.ResetElement(x + startX, y + startY);
+                    }
+                }
+
+                IsModified = true;
+                Render();
+            }
+        }
     }
 }
