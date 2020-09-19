@@ -397,10 +397,12 @@ namespace TileShop.WPF.ViewModels
                 result.Switch(
                     success =>
                     {
-                        var result = projectTree.AddResource(parentModel.Node, newArranger);
-                        var arrangerVM = new ArrangerNodeViewModel(result.AsT0.Result, parentModel);
+                        var nodeResult = projectTree.AddResource(parentModel.Node, newArranger);
+                        var arrangerVM = new ArrangerNodeViewModel(nodeResult.AsT0.Result, parentModel);
+                        parentModel.Children.Add(arrangerVM);
                         SelectedNode = arrangerVM;
                         IsModified = true;
+                        _editors.ActivateEditor(newArranger);
                     },
                     fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Error")
                 );

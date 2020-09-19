@@ -9,6 +9,7 @@ using TileShop.WPF.Behaviors;
 using TileShop.WPF.Imaging;
 using TileShop.WPF.EventModels;
 using Jot;
+using TileShop.WPF.Models;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -36,14 +37,32 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        private BindableCollection<PaletteModel> _palettes = new BindableCollection<PaletteModel>();
+        public BindableCollection<PaletteModel> Palettes
+        {
+            get => _palettes;
+            set => SetAndNotify(ref _palettes, value);
+        }
+
+        private PaletteModel _selectedPalette;
+        public PaletteModel SelectedPalette
+        {
+            get => _selectedPalette;
+            set
+            {
+                SetAndNotify(ref _selectedPalette, value);
+                ChangePalette(SelectedPalette);
+            }
+        }
+
         private int _tiledElementWidth = 8;
         public int TiledElementWidth
         {
             get => _tiledElementWidth;
             set
             {
-                var proferredWidth = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
-                SetAndNotify(ref _tiledElementWidth, proferredWidth);
+                var preferredWidth = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
+                SetAndNotify(ref _tiledElementWidth, preferredWidth);
                 ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
             }
         }
@@ -88,8 +107,8 @@ namespace TileShop.WPF.ViewModels
             get => _linearArrangerWidth;
             set
             {
-                var proferredWidth = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
-                SetAndNotify(ref _linearArrangerWidth, proferredWidth);
+                var preferredWidth = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
+                SetAndNotify(ref _linearArrangerWidth, preferredWidth);
                 ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
             }
         }
@@ -100,8 +119,8 @@ namespace TileShop.WPF.ViewModels
             get => _linearArrangerHeight;
             set
             {
-                var proferredHeight = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredHeight(value);
-                SetAndNotify(ref _linearArrangerHeight, proferredHeight);
+                var preferredHeight = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredHeight(value);
+                SetAndNotify(ref _linearArrangerHeight, preferredHeight);
                 ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
             }
         }
@@ -138,7 +157,7 @@ namespace TileShop.WPF.ViewModels
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
             if (_workingArranger.ColorType == PixelColorType.Indexed)
-                _indexedImage = new IndexedImage(_workingArranger, _defaultPalette);
+                _indexedImage = new IndexedImage(_workingArranger, _paletteService?.DefaultPalette);
             else if (_workingArranger.ColorType == PixelColorType.Direct)
                 _directImage = new DirectImage(_workingArranger);
 
@@ -164,6 +183,9 @@ namespace TileShop.WPF.ViewModels
             CanResize = arranger.ActiveCodec.CanResize;
             WidthIncrement = arranger.ActiveCodec.WidthResizeIncrement;
             HeightIncrement = arranger.ActiveCodec.HeightResizeIncrement;
+
+            Palettes = new BindableCollection<PaletteModel>(_paletteService.GlobalPalettes.Select(x => new PaletteModel(x)));
+            SelectedPalette = Palettes.First();
 
             CreateGridlines();
             Render();
@@ -356,6 +378,12 @@ namespace TileShop.WPF.ViewModels
             string notifyMessage = $"File Offset: 0x{_address.FileOffset:X}";
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
             _events.PublishOnUIThread(notifyEvent);
+        }
+
+        private void ChangePalette(PaletteModel pal)
+        {
+            (_workingArranger as SequentialArranger).ChangePalette(pal.Palette);
+            Render();
         }
 
         private void ChangeCodecDimensions(int width, int height)

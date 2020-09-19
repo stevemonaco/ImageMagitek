@@ -66,6 +66,14 @@
                     ItemsSource="{Binding CodecNames}"
                     SelectedValue="{Binding SelectedCodecName}" />
 
+                <ComboBox ItemsSource="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
                 <Slider
                     MinWidth="100"
                     Margin="10,0,10,0"

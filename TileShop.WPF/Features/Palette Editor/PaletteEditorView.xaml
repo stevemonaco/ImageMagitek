@@ -140,7 +140,7 @@
                 IsEnabled="{Binding IsModified}">
                 <StackPanel>
                     <TextBlock HorizontalAlignment="Center" Text="Save" />
-                    <TextBlock HorizontalAlignment="Center" Text="Changes" />
+                    <TextBlock HorizontalAlignment="Center" Text="Palette" />
                 </StackPanel>
             </Button>
         </Grid>

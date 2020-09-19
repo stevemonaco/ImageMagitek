@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ImageMagitek.Colors;
 
 namespace ImageMagitek.Services
@@ -7,10 +8,10 @@ namespace ImageMagitek.Services
     public interface IPaletteService
     {
         Palette DefaultPalette { get; }
-        List<Palette> DefaultPalettes { get; }
+        List<Palette> GlobalPalettes { get; }
         Palette NesPalette { get; }
 
-        void LoadDefaultPalette(string paletteFileName);
+        void LoadGlobalPalette(string paletteFileName);
         void SetDefaultPalette(Palette pal);
         void LoadNesPalette(string nesPaletteFileName);
     }
@@ -18,21 +19,24 @@ namespace ImageMagitek.Services
     public class PaletteService : IPaletteService
     {
         public Palette DefaultPalette { get; private set; }
-        public List<Palette> DefaultPalettes { get; } = new List<Palette>();
+        public List<Palette> GlobalPalettes { get; } = new List<Palette>();
         public Palette NesPalette { get; private set; }
 
         /// <summary>
-        /// Loads a palette from a JSON file and adds it to DefaultPalettes
+        /// Loads a palette from a JSON file and adds it to GlobalPalettes
         /// </summary>
         /// <param name="paletteFileName"></param>
-        public void LoadDefaultPalette(string paletteFileName)
+        public void LoadGlobalPalette(string paletteFileName)
         {
             if (!File.Exists(paletteFileName))
-                throw new FileNotFoundException($"{nameof(LoadDefaultPalette)}: Could not locate file {paletteFileName}");
+                throw new FileNotFoundException($"{nameof(LoadGlobalPalette)}: Could not locate file {paletteFileName}");
 
             string json = File.ReadAllText(paletteFileName);
             var pal = PaletteJsonSerializer.ReadPalette(json);
-            DefaultPalettes.Add(pal);
+            GlobalPalettes.Add(pal);
+
+            if (GlobalPalettes.Count == 1)
+                DefaultPalette = GlobalPalettes.First();
         }
 
         /// <summary>
@@ -59,8 +63,8 @@ namespace ImageMagitek.Services
         /// <param name="pal"></param>
         public void SetDefaultPalette(Palette pal)
         {
-            if (!DefaultPalettes.Contains(pal))
-                DefaultPalettes.Add(pal);
+            if (!GlobalPalettes.Contains(pal))
+                GlobalPalettes.Add(pal);
 
             DefaultPalette = pal;
         }

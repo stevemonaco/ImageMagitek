@@ -13,7 +13,19 @@ namespace ImageMagitek.Project
     public class XmlGameDescriptorWriter : IGameDescriptorWriter
     {
         public string DescriptorVersion => "0.8";
+        private readonly List<IProjectResource> _globalResources;
+        private readonly Palette _defaultPalette;
         private string _baseDirectory;
+
+        public XmlGameDescriptorWriter() : this(Enumerable.Empty<IProjectResource>())
+        {
+        }
+
+        public XmlGameDescriptorWriter(IEnumerable<IProjectResource> globalResources)
+        {
+            _globalResources = globalResources.ToList();
+            _defaultPalette = globalResources.OfType<Palette>().FirstOrDefault();
+        }
 
         public MagitekResult WriteProject(ProjectTree tree, string fileName)
         {
@@ -123,8 +135,15 @@ namespace ImageMagitek.Project
                                 else
                                     continue;
 
+                                string paletteKey = default;
+
                                 if (element.Palette is object)
-                                    elementModel.PaletteKey = resourceResolver[element.Palette];
+                                {
+                                    if (!resourceResolver.TryGetValue(element.Palette, out paletteKey))
+                                        paletteKey = _globalResources.OfType<Palette>().FirstOrDefault(x => ReferenceEquals(element.Palette, x))?.Name;
+                                }
+                                
+                                elementModel.PaletteKey = paletteKey;
                             }
                         }
                         modelTree.Add(node.PathKey, arrangerModel);

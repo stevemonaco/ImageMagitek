@@ -23,7 +23,6 @@ namespace TileShop.WPF.ViewModels
         protected Arranger _workingArranger;
         protected IndexedImage _indexedImage;
         protected DirectImage _directImage;
-        protected Palette _defaultPalette;
 
         protected IEventAggregator _events;
         protected IPaletteService _paletteService;
@@ -151,7 +150,6 @@ namespace TileShop.WPF.ViewModels
             _events.Subscribe(this);
             _windowManager = windowManager;
             _paletteService = paletteService;
-            _defaultPalette = _paletteService?.DefaultPalette;
         }
 
         protected abstract void Render();
@@ -246,14 +244,14 @@ namespace TileShop.WPF.ViewModels
 
             if (Overlay.CopyArranger.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Indexed)
             {
-                var sourceImage = new IndexedImage(Overlay.CopyArranger, _defaultPalette);
+                var sourceImage = new IndexedImage(Overlay.CopyArranger, _paletteService?.DefaultPalette);
                 sourceImage.Render();
                 result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
                     ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
             }
             else if (Overlay.CopyArranger.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Direct)
             {
-                var sourceImage = new IndexedImage(Overlay.CopyArranger, _defaultPalette);
+                var sourceImage = new IndexedImage(Overlay.CopyArranger, _paletteService?.DefaultPalette);
                 sourceImage.Render();
                 result = ImageCopier.CopyPixels(sourceImage, _directImage, sourceStart, destStart, copyWidth, copyHeight);
             }

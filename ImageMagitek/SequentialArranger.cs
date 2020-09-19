@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using ImageMagitek.Project;
 using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek
 {
@@ -259,6 +260,21 @@ namespace ImageMagitek
             this.Move(address);
         }
 
+        /// <summary>
+        /// Changes each element's palette to the provided palette
+        /// </summary>
+        /// <param name="pal">New palette</param>
+        public void ChangePalette(Palette pal)
+        {
+            for (int y = 0; y < ArrangerElementSize.Height; y++)
+            {
+                for (int x = 0; x < ArrangerElementSize.Width; x++)
+                {
+                    var el = GetElement(x, y).WithPalette(pal);
+                    SetElement(el, x, y);
+                }
+            }
+        }
 
         /// <summary>
         /// Private method for cloning an Arranger

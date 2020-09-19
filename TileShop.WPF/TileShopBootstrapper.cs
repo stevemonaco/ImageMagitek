@@ -75,7 +75,8 @@ namespace TileShop.WPF
 
         private void ConfigureSolutionService(string schemaFileName, ContainerBuilder builder)
         {
-            var solutionService = new ProjectService(_codecService);
+            var defaultResources = _paletteService.GlobalPalettes;
+            var solutionService = new ProjectService(_codecService, defaultResources);
             solutionService.LoadSchemaDefinition(schemaFileName);
             builder.RegisterInstance<IProjectService>(solutionService);
         }
@@ -146,12 +147,12 @@ namespace TileShop.WPF
         {
             _paletteService = new PaletteService();
 
-            foreach (var paletteName in settings.DefaultPalettes)
+            foreach (var paletteName in settings.GlobalPalettes)
             {
                 var paletteFileName = Path.Combine(palettesPath, $"{paletteName}.json");
-                _paletteService.LoadDefaultPalette(paletteFileName);
+                _paletteService.LoadGlobalPalette(paletteFileName);
             }
-            _paletteService.SetDefaultPalette(_paletteService.DefaultPalettes.First());
+            _paletteService.SetDefaultPalette(_paletteService.GlobalPalettes.First());
 
             var nesPaletteFileName = Path.Combine(palettesPath, $"{settings.NesPalette}.json");
             _paletteService.LoadNesPalette(nesPaletteFileName);

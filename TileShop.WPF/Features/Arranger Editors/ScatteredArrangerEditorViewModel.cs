@@ -59,9 +59,14 @@ namespace TileShop.WPF.ViewModels
             else if (arranger.Layout == ArrangerLayout.Tiled)
                 SnapMode = SnapMode.Element;
 
-            var arrangerPalettes = _workingArranger.GetReferencedPalettes().OrderBy(x => x.Name).ToList();
-            arrangerPalettes.Add(_defaultPalette);
-            Palettes = new BindableCollection<PaletteModel>(arrangerPalettes.Select(x => new PaletteModel(x)));
+            var palettes = _workingArranger.GetReferencedPalettes();
+            palettes.ExceptWith(_paletteService.GlobalPalettes);
+
+            var palModels = palettes.OrderBy(x => x.Name)
+                .Concat(_paletteService.GlobalPalettes.OrderBy(x => x.Name))
+                .Select(x => new PaletteModel(x));
+
+            Palettes = new BindableCollection<PaletteModel>(palModels);
             ActivePalette = Palettes.First();
         }
 
@@ -167,7 +172,7 @@ namespace TileShop.WPF.ViewModels
             if (_workingArranger.ColorType == PixelColorType.Indexed)
             {
                 _indexedImage = new IndexedImage(_workingArranger);
-                ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, _defaultPalette);
+                ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, _paletteService?.DefaultPalette);
             }
             else if (_workingArranger.ColorType == PixelColorType.Direct)
             {
@@ -209,7 +214,9 @@ namespace TileShop.WPF.ViewModels
 
             var el = _workingArranger.GetElement(elX, elY);
 
-            ActivePalette = Palettes.FirstOrDefault(x => ReferenceEquals(el.Palette, x.Palette)) ?? Palettes.First(x => ReferenceEquals(_defaultPalette, x.Palette));
+            ActivePalette = Palettes.FirstOrDefault(x => ReferenceEquals(el.Palette, x.Palette)) ??
+                Palettes.First(x => ReferenceEquals(_paletteService?.DefaultPalette, x.Palette));
+
             return true;
         }
 
