@@ -11,6 +11,7 @@ using TileShop.WPF.Behaviors;
 using TileShop.Shared.Models;
 using TileShop.Shared.EventModels;
 using TileShop.WPF.ViewModels.Dialogs;
+using System;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -124,22 +125,28 @@ namespace TileShop.WPF.ViewModels
                 TryApplyPalette(x, y, SelectedPalette.Palette);
             else if (ActiveTool == ScatteredArrangerTool.PickPalette && e.LeftButton)
                 TryPickPalette(x, y);
-            else
+            else if (ActiveTool == ScatteredArrangerTool.Select)
                 base.OnMouseDown(sender, e);
         }
 
         public override void OnMouseMove(object sender, MouseCaptureArgs e)
         {
-            int x = (int)e.X / Zoom;
-            int y = (int)e.Y / Zoom;
+            int x = Math.Clamp((int)e.X / Zoom, 0, _workingArranger.ArrangerPixelSize.Width - 1);
+            int y = Math.Clamp((int)e.Y / Zoom, 0, _workingArranger.ArrangerPixelSize.Height - 1);
 
             if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton)
                 TryApplyPalette(x, y, SelectedPalette.Palette);
             else if (ActiveTool == ScatteredArrangerTool.InspectElement)
             {
+                var elX = x / _workingArranger.ElementPixelSize.Width;
+                var elY = y / _workingArranger.ElementPixelSize.Height;
+                var el = _workingArranger.GetElement(elX, elY);
 
+                string notifyMessage = $"Element ({elX}, {elY}): Palette {el.Palette?.Name ?? "Default"}, DataFile {el.DataFile?.Location ?? "None"}, FileOffset 0x{el.FileAddress.FileOffset:X}.{(el.FileAddress.BitOffset != 0 ? el.FileAddress.BitOffset.ToString() : "")}";
+                var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+                _events.PublishOnUIThread(notifyEvent);
             }
-            else
+            else if (ActiveTool == ScatteredArrangerTool.Select)
                 base.OnMouseMove(sender, e);
         }
 
