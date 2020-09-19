@@ -79,7 +79,11 @@ namespace TileShop.WPF.ViewModels
                 if (RequestSaveUserChanges(editor, true))
                 {
                     var projectTree = _projectService.GetContainingProject(editor.Resource);
-                    _projectService.SaveProject(projectTree);
+                    _projectService.SaveProject(projectTree)
+                    .Switch(
+                        success => { },
+                        fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
+                    );
                 }
                 else
                 {
@@ -105,7 +109,7 @@ namespace TileShop.WPF.ViewModels
                         newDocument = new PaletteEditorViewModel(pal, _events);
                         break;
                     case ScatteredArranger scatteredArranger:
-                        newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _events, _windowManager, _paletteService);
+                        newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _events, _windowManager, _paletteService, _projectService);
                         break;
                     case SequentialArranger sequentialArranger:
                         newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _windowManager, _tracker, _codecService, _paletteService);
@@ -156,8 +160,14 @@ namespace TileShop.WPF.ViewModels
                     savedProjects.Add(_projectService.GetContainingProject(editor.Resource));
                 }
 
-                foreach (var project in savedProjects)
-                    _projectService.SaveProject(project);
+                foreach (var projectTree in savedProjects)
+                {
+                    _projectService.SaveProject(projectTree)
+                     .Switch(
+                         success => { },
+                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
+                     );
+                }
 
                 return true;
             }
@@ -182,7 +192,13 @@ namespace TileShop.WPF.ViewModels
                 {
                     editor.SaveChanges();
                     if (saveTree)
-                        _projectService.SaveProject(projectTree);
+                    {
+                        _projectService.SaveProject(projectTree)
+                         .Switch(
+                             success => { },
+                             fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
+                         );
+                    }
                         
                     return true;
                 }

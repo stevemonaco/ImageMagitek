@@ -33,6 +33,8 @@ namespace TileShop.WPF.ViewModels
         }
 
         private ScatteredArrangerTool _activeTool = ScatteredArrangerTool.Select;
+        private readonly IProjectService _projectService;
+
         public ScatteredArrangerTool ActiveTool
         {
             get => _activeTool;
@@ -44,8 +46,8 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) :
-            base(events, windowManager, paletteService)
+        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IWindowManager windowManager, 
+            IPaletteService paletteService, IProjectService projectService) : base(events, windowManager, paletteService)
         {
             Resource = arranger;
             _workingArranger = arranger.CloneArranger();
@@ -68,6 +70,7 @@ namespace TileShop.WPF.ViewModels
 
             Palettes = new BindableCollection<PaletteModel>(palModels);
             ActivePalette = Palettes.First();
+            _projectService = projectService;
         }
 
         public void SetSelectToolMode() => ActiveTool = ScatteredArrangerTool.Select;
@@ -76,11 +79,6 @@ namespace TileShop.WPF.ViewModels
 
         public override void SaveChanges()
         {
-            if (_workingArranger.ColorType == PixelColorType.Indexed)
-                _indexedImage.SaveImage();
-            else if (_workingArranger.ColorType == PixelColorType.Direct)
-                _directImage.SaveImage();
-
             if (_workingArranger.Layout == ArrangerLayout.Tiled)
             {
                 var treeArranger = Resource as Arranger;
@@ -102,7 +100,12 @@ namespace TileShop.WPF.ViewModels
                 }
             }
 
-            IsModified = false;
+            var projectTree = _projectService.GetContainingProject(Resource);
+            _projectService.SaveProject(projectTree)
+                 .Switch(
+                     success => IsModified = false,
+                     fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
+                 );
         }
 
         public override void DiscardChanges()
