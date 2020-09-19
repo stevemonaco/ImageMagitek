@@ -85,7 +85,7 @@
 
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Palette" />
-                <ComboBox ItemsSource="{Binding Palettes}" SelectedItem="{Binding ActivePalette}">
+                <ComboBox ItemsSource="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Name}" />

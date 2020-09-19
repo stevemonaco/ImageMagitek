@@ -25,11 +25,11 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _palettes, value);
         }
 
-        private PaletteModel _activePalette;
-        public PaletteModel ActivePalette
+        private PaletteModel _selectedPalette;
+        public PaletteModel SelectedPalette
         {
-            get => _activePalette;
-            set => SetAndNotify(ref _activePalette, value);
+            get => _selectedPalette;
+            set => SetAndNotify(ref _selectedPalette, value);
         }
 
         private ScatteredArrangerTool _activeTool = ScatteredArrangerTool.Select;
@@ -69,7 +69,7 @@ namespace TileShop.WPF.ViewModels
                 .Select(x => new PaletteModel(x));
 
             Palettes = new BindableCollection<PaletteModel>(palModels);
-            ActivePalette = Palettes.First();
+            SelectedPalette = Palettes.First();
             _projectService = projectService;
         }
 
@@ -121,7 +121,7 @@ namespace TileShop.WPF.ViewModels
             int y = (int)e.Y / Zoom;
 
             if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton)
-                TryApplyPalette(x, y, ActivePalette.Palette);
+                TryApplyPalette(x, y, SelectedPalette.Palette);
             else if (ActiveTool == ScatteredArrangerTool.PickPalette && e.LeftButton)
                 TryPickPalette(x, y);
             else
@@ -134,7 +134,7 @@ namespace TileShop.WPF.ViewModels
             int y = (int)e.Y / Zoom;
 
             if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton)
-                TryApplyPalette(x, y, ActivePalette.Palette);
+                TryApplyPalette(x, y, SelectedPalette.Palette);
             else if (ActiveTool == ScatteredArrangerTool.InspectElement)
             {
 
@@ -158,11 +158,15 @@ namespace TileShop.WPF.ViewModels
 
         public override void Drop(IDropInfo dropInfo)
         {
-            if (dropInfo.Data is PaletteNodeViewModel palModel)
+            if (dropInfo.Data is PaletteNodeViewModel palNodeVM)
             {
-                var pal = palModel.Node.Value as Palette;
+                var pal = palNodeVM.Node.Value as Palette;
                 if (!Palettes.Any(x => ReferenceEquals(pal, x.Palette)))
-                    Palettes.Add(new PaletteModel(pal));
+                {
+                    var palModel = new PaletteModel(pal);
+                    Palettes.Add(palModel);
+                    SelectedPalette = palModel;
+                }
             }
             else
                 base.Drop(dropInfo);
@@ -217,7 +221,7 @@ namespace TileShop.WPF.ViewModels
 
             var el = _workingArranger.GetElement(elX, elY);
 
-            ActivePalette = Palettes.FirstOrDefault(x => ReferenceEquals(el.Palette, x.Palette)) ??
+            SelectedPalette = Palettes.FirstOrDefault(x => ReferenceEquals(el.Palette, x.Palette)) ??
                 Palettes.First(x => ReferenceEquals(_paletteService?.DefaultPalette, x.Palette));
 
             return true;
