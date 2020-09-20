@@ -36,11 +36,6 @@
                 <Separator />
 
                 <MenuItem
-                    Click="{s:Action SaveAll}"
-                    Header="Save All"
-                    IsEnabled="{Binding ProjectTree.HasProject}" />
-
-                <MenuItem
                     Click="{s:Action SaveEditor}"
                     Header="{Binding Editors.ActiveEditor.DisplayName}"
                     HeaderStringFormat="Save \'{0}\'"
