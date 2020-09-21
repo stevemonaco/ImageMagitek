@@ -24,7 +24,7 @@
                 <MenuItem
                     Click="{s:Action CloseEditor}"
                     Header="{Binding Editors.ActiveEditor.DisplayName}"
-                    HeaderStringFormat="Close \'{0}\'"
+                    HeaderStringFormat="Close '{0}'"
                     Visibility="{Binding Editors.ActiveEditor, Converter={StaticResource NullToVisibilityConverter}}" />
 
                 <!--  InputGestureText="Ctrl+X"  -->
@@ -33,12 +33,13 @@
                     Click="{s:Action CloseAllProjects}"
                     Header="_Close All Projects"
                     IsEnabled="{Binding ProjectTree.HasProject}" />
-                <Separator />
+
+                <Separator Visibility="{Binding Editors.ActiveEditor, Converter={StaticResource NullToVisibilityConverter}}" />
 
                 <MenuItem
                     Click="{s:Action SaveEditor}"
                     Header="{Binding Editors.ActiveEditor.DisplayName}"
-                    HeaderStringFormat="Save \'{0}\'"
+                    HeaderStringFormat="Save '{0}'"
                     IsEnabled="{Binding Editors.ActiveEditor.IsModified}"
                     Visibility="{Binding Editors.ActiveEditor, Converter={StaticResource NullToVisibilityConverter}}" />
 
