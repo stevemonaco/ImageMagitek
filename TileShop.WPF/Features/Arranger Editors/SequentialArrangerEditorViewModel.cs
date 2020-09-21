@@ -325,6 +325,16 @@ namespace TileShop.WPF.ViewModels
 
             (_workingArranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
             CreateGridlines();
+
+            if (_workingArranger.ColorType == PixelColorType.Indexed)
+            {
+                _indexedImage = new IndexedImage(_workingArranger);
+                BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
+            }
+            else if (_workingArranger.ColorType == PixelColorType.Direct)
+            {
+            }
+
             Render();
         }
 

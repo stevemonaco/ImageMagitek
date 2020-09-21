@@ -14,6 +14,20 @@ namespace TileShop.WPF.Imaging
             protected set => SetAndNotify(ref _bitmap, value);
         }
 
+        private int _top;
+        public int Top
+        {
+            get => _top;
+            set => SetAndNotify(ref _top, value);
+        }
+
+        private int _left;
+        public int Left
+        {
+            get => _left;
+            set => SetAndNotify(ref _left, value);
+        }
+
         private int _width;
         public int Width
         {
@@ -34,6 +48,8 @@ namespace TileShop.WPF.Imaging
 
         public abstract void Invalidate();
         public abstract void Invalidate(Rectangle redrawRect);
+        public abstract void Invalidate(int x, int y, int width, int height);
+
         protected abstract void Render(int x, int y, int width, int height);
     }
 }

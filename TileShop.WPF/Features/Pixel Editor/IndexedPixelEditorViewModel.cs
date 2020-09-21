@@ -78,8 +78,7 @@ namespace TileShop.WPF.ViewModels
             NotifyOfPropertyChange(() => CanRemapColors);
         }
 
-        protected override void Render() { }
-            //ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, _paletteService.DefaultPalette, _viewX, _viewY, _viewWidth, _viewHeight);
+        protected override void Render() => BitmapAdapter.Invalidate();
 
         protected override void ReloadImage() => _indexedImage.Render();
 

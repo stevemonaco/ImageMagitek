@@ -13,6 +13,8 @@ namespace TileShop.WPF.Imaging
         public IndexedBitmapAdapter(IndexedImage image)
         {
             Image = image;
+            Left = 0;
+            Top = 0;
             Width = Image.Width;
             Height = Image.Height;
 
@@ -20,18 +22,33 @@ namespace TileShop.WPF.Imaging
             Invalidate();
         }
 
+        /// <summary>
+        /// Creates an IndexedBitmapAdapter with a crop-transformed subsection of an IndexedArranger
+        /// </summary>
+        public IndexedBitmapAdapter(IndexedImage image, int left, int top, int width, int height)
+        {
+            Image = image;
+            Left = left;
+            Top = top;
+            Width = width;
+            Height = height;
+
+            Bitmap = new WriteableBitmap(Width, Height, DpiX, DpiY, PixelFormat, null);
+            Invalidate();
+        }
+
+        /// <summary>
+        /// Invalidates and redraws the entirety of the Bitmap
+        /// </summary>
         public override void Invalidate()
         {
-            if (Image.Width != Bitmap.PixelWidth || Image.Height != Bitmap.PixelHeight)
-            {
-                Bitmap = new WriteableBitmap(Image.Width, Image.Height, DpiX, DpiY, PixelFormat, null);
-                Width = Image.Width;
-                Height = Image.Height;
-            }
-
             Render(0, 0, Image.Width, Image.Height);
         }
 
+        /// <summary>
+        /// Invalidates and redraws a subregion of the Bitmap
+        /// </summary>
+        /// <param name="redrawRect"></param>
         public override void Invalidate(Rectangle redrawRect)
         {
             var imageRect = new Rectangle(0, 0, Image.Width, Image.Height);
@@ -47,7 +64,30 @@ namespace TileShop.WPF.Imaging
             }
         }
 
-        protected override void Render(int x, int y, int width, int height)
+        /// <summary>
+        /// Invalidates and redraws a region of the Bitmap
+        /// </summary>
+        /// <param name="x">Left coordinate in crop-transformed coordinates</param>
+        /// <param name="y">Top coordinate in crop-transformed coordinates</param>
+        /// <param name="width">Width of region</param>
+        /// <param name="height">Height of region</param>
+        public override void Invalidate(int x, int y, int width, int height)
+        {
+            var imageRect = new Rectangle(0, 0, Image.Width, Image.Height);
+            var bitmapRect = new Rectangle(0, 0, Bitmap.PixelWidth, Bitmap.PixelHeight);
+            var redrawRect = new Rectangle(x, y, width, height);
+
+            if (imageRect.Contains(redrawRect) && bitmapRect.Contains(redrawRect))
+            {
+                Render(x, y, width, height);
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException($"{nameof(Invalidate)}: Parameter '{nameof(redrawRect)}' {redrawRect} was not contained within '{nameof(Image)}' (0, 0, {Image.Width}, {Image.Height}) and '{nameof(Bitmap)}' (0, 0, {Bitmap.Width}, {Bitmap.Height})");
+            }
+        }
+
+        protected override void Render(int xStart, int yStart, int width, int height)
         {
             try
             {
@@ -56,22 +96,31 @@ namespace TileShop.WPF.Imaging
 
                 unsafe
                 {
-                    for (int yDelta = 0; yDelta < height; yDelta++)
+                    for (int y = yStart; y < yStart + height; y++)
                     {
-                        var destBuffer = (uint*)Bitmap.BackBuffer.ToPointer();
-                        destBuffer += (y + yDelta) * Bitmap.BackBufferStride / 4 + x;
+                        var dest = (byte*)Bitmap.BackBuffer.ToPointer();
+                        dest += y * Bitmap.BackBufferStride + xStart * 4;
+                        var row = Image.GetPixelRowSpan(y + Top);
 
-                        for (int xDelta = 0; xDelta < width; xDelta++)
+                        for (int x = xStart; x < xStart + width; x++)
                         {
-                            var srcColor = Image.GetPixelColor(x + xDelta, y + yDelta);
-                            uint destColor = (uint)(srcColor.B << 0) | (uint)(srcColor.G << 8) | (uint)(srcColor.R << 16) | (uint)(srcColor.A << 24);
-                            *destBuffer = destColor;
-                            destBuffer++;
+                            var pal = Image.GetElementAtPixel(x + Left, y + Top).Palette;
+                            var index = row[x + Left];
+                            var color = pal[index];
+
+                            dest[x * 4] = color.B;
+                            dest[x * 4 + 1] = color.G;
+                            dest[x * 4 + 2] = color.R;
+
+                            if (index == 0 && pal.ZeroIndexTransparent)
+                                dest[x * 4 + 3] = 0;
+                            else
+                                dest[x * 4 + 3] = color.A;
                         }
                     }
                 }
 
-                Bitmap.AddDirtyRect(new System.Windows.Int32Rect(x, y, width, height));
+                Bitmap.AddDirtyRect(new System.Windows.Int32Rect(xStart, yStart, width, height));
             }
             finally
             {
