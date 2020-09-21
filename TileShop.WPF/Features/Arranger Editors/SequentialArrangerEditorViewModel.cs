@@ -156,15 +156,8 @@ namespace TileShop.WPF.ViewModels
             _tracker = tracker;
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
-            if (_workingArranger.ColorType == PixelColorType.Indexed)
-            {
-                _indexedImage = new IndexedImage(_workingArranger);
-                BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
-            }
-            else if (_workingArranger.ColorType == PixelColorType.Direct)
-            {
-                _directImage = new DirectImage(_workingArranger);
-            }
+            CreateImages();
+            CreateGridlines();
 
             foreach (var name in codecService.GetSupportedCodecNames().OrderBy(x => x))
                 CodecNames.Add(name);
@@ -191,8 +184,6 @@ namespace TileShop.WPF.ViewModels
 
             Palettes = new BindableCollection<PaletteModel>(_paletteService.GlobalPalettes.Select(x => new PaletteModel(x)));
             SelectedPalette = Palettes.First();
-
-            CreateGridlines();
         }
 
         public override void SaveChanges()
@@ -324,18 +315,8 @@ namespace TileShop.WPF.ViewModels
                 return;
 
             (_workingArranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
+            CreateImages();
             CreateGridlines();
-
-            if (_workingArranger.ColorType == PixelColorType.Indexed)
-            {
-                _indexedImage = new IndexedImage(_workingArranger);
-                BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
-            }
-            else if (_workingArranger.ColorType == PixelColorType.Direct)
-            {
-            }
-
-            Render();
         }
 
         public void SelectNextCodec()
@@ -383,7 +364,7 @@ namespace TileShop.WPF.ViewModels
             WidthIncrement = codec.WidthResizeIncrement;
             HeightIncrement = codec.HeightResizeIncrement;
             CreateGridlines();
-            Render();
+            CreateImages();
 
             NotifyOfPropertyChange(() => IsTiledLayout);
             NotifyOfPropertyChange(() => IsSingleLayout);
@@ -404,8 +385,24 @@ namespace TileShop.WPF.ViewModels
         {
             var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, width, height);
             (_workingArranger as SequentialArranger).ChangeCodec(codec);
+            CreateImages();
             CreateGridlines();
-            Render();
+        }
+
+        private void CreateImages()
+        {
+            CancelOverlay();
+
+            if (_workingArranger.ColorType == PixelColorType.Indexed)
+            {
+                _indexedImage = new IndexedImage(_workingArranger);
+                BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
+            }
+            else if (_workingArranger.ColorType == PixelColorType.Direct)
+            {
+                _directImage = new DirectImage(_workingArranger);
+                BitmapAdapter = new DirectBitmapAdapter(_directImage);
+            }
         }
 
         protected override void Render()
@@ -420,7 +417,7 @@ namespace TileShop.WPF.ViewModels
             else if (_workingArranger.ColorType == PixelColorType.Direct)
             {
                 _directImage.Render();
-                //ArrangerSource = new DirectImageSource(_directImage);
+                BitmapAdapter.Invalidate();
             }
         }
 

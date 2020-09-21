@@ -5,11 +5,11 @@ using ImageMagitek;
 
 namespace TileShop.WPF.Imaging
 {
-    public class IndexedBitmapAdapter : BitmapAdapter
+    public class DirectBitmapAdapter : BitmapAdapter
     {
-        public IndexedImage Image { get; }
+        public DirectImage Image { get; }
 
-        public IndexedBitmapAdapter(IndexedImage image)
+        public DirectBitmapAdapter(DirectImage image)
         {
             Image = image;
             Left = 0;
@@ -24,7 +24,7 @@ namespace TileShop.WPF.Imaging
         /// <summary>
         /// Creates an IndexedBitmapAdapter with a crop-transformed subsection of an IndexedArranger
         /// </summary>
-        public IndexedBitmapAdapter(IndexedImage image, int left, int top, int width, int height)
+        public DirectBitmapAdapter(DirectImage image, int left, int top, int width, int height)
         {
             Image = image;
             Left = left;
@@ -104,17 +104,12 @@ namespace TileShop.WPF.Imaging
                         for (int x = xStart; x < xStart + width; x++)
                         {
                             var pal = Image.GetElementAtPixel(x + Left, y + Top).Palette;
-                            var index = row[x + Left];
-                            var color = pal[index];
+                            var color = row[x + Left];
 
                             dest[x * 4] = color.B;
                             dest[x * 4 + 1] = color.G;
                             dest[x * 4 + 2] = color.R;
-
-                            if (index == 0 && pal.ZeroIndexTransparent)
-                                dest[x * 4 + 3] = 0;
-                            else
-                                dest[x * 4 + 3] = color.A;
+                            dest[x * 4 + 3] = color.A;                                
                         }
                     }
                 }

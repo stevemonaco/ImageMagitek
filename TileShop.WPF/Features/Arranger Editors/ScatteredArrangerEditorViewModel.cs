@@ -54,7 +54,7 @@ namespace TileShop.WPF.ViewModels
             _workingArranger = arranger.CloneArranger();
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
-            Render();
+            CreateImages();
             CreateGridlines();
 
             if (arranger.Layout == ArrangerLayout.Single)
@@ -112,7 +112,7 @@ namespace TileShop.WPF.ViewModels
         public override void DiscardChanges()
         {
             _workingArranger = (Resource as Arranger).CloneArranger();
-            Render();
+            CreateImages();
             IsModified = false;
         }
 
@@ -179,7 +179,7 @@ namespace TileShop.WPF.ViewModels
                 base.Drop(dropInfo);
         }
 
-        protected override void Render()
+        private void CreateImages()
         {
             CancelOverlay();
 
@@ -190,9 +190,25 @@ namespace TileShop.WPF.ViewModels
             }
             else if (_workingArranger.ColorType == PixelColorType.Direct)
             {
-
                 _directImage = new DirectImage(_workingArranger);
-                //ArrangerSource = new DirectImageSource(_directImage);
+                BitmapAdapter = new DirectBitmapAdapter(_directImage);
+            }
+        }
+
+        protected override void Render()
+        {
+            CancelOverlay();
+
+            if (_workingArranger.ColorType == PixelColorType.Indexed)
+            {
+                _indexedImage.Render();
+                BitmapAdapter.Invalidate();
+            }
+            else if (_workingArranger.ColorType == PixelColorType.Direct)
+            {
+
+                _directImage.Render();
+                BitmapAdapter.Invalidate();
             }
         }
 
@@ -241,8 +257,9 @@ namespace TileShop.WPF.ViewModels
             if (_windowManager.ShowDialog(model) is true)
             {
                 _workingArranger.Resize(model.Width, model.Height);
+                CreateImages();
+
                 IsModified = true;
-                Render();
             }
         }
 

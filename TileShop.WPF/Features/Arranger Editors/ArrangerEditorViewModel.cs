@@ -11,7 +11,6 @@ using GongSolutions.Wpf.DragDrop;
 using ImageMagitek.Services;
 using ImageMagitek;
 using ImageMagitek.Codec;
-using ImageMagitek.Colors;
 using ImageMagitek.Image;
 
 namespace TileShop.WPF.ViewModels
@@ -27,17 +26,6 @@ namespace TileShop.WPF.ViewModels
         protected IEventAggregator _events;
         protected IPaletteService _paletteService;
         protected IWindowManager _windowManager;
-
-        //protected ArrangerBitmapSource _arrangerSource;
-        //public ArrangerBitmapSource ArrangerSource
-        //{
-        //    get => _arrangerSource;
-        //    set
-        //    {
-        //        _arrangerSource = value;
-        //        NotifyOfPropertyChange(() => ArrangerSource);
-        //    }
-        //}
 
         private BitmapAdapter _bitmapAdapter;
         public BitmapAdapter BitmapAdapter
