@@ -209,11 +209,6 @@ namespace ImageMagitek
         /// <returns></returns>
         public IEnumerable<ArrangerElement> EnumerateElements() =>
             EnumerateElements(0, 0, ArrangerElementSize.Width, ArrangerElementSize.Height);
-        //{
-        //    for (int y = 0; y < ArrangerElementSize.Height; y++)
-        //        for (int x = 0; x < ArrangerElementSize.Width; x++)
-        //            yield return ElementGrid[x, y];
-        //}
 
         /// <summary>
         /// Returns the enumeration of a subsection of Elements in the grid in a left-to-right, row-by-row order
