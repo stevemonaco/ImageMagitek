@@ -10,33 +10,28 @@ namespace ImageMagitek
 {
     public class IndexedImage : ImageBase<byte>
     {
-        private Palette _defaultPalette;
-
-        public IndexedImage(Arranger arranger) : this(arranger, null) { }
-
-        public IndexedImage(Arranger arranger, Palette defaultPalette)
+        public IndexedImage(Arranger arranger)
         {
             if (arranger is null)
                 throw new ArgumentNullException($"{nameof(IndexedImage)}.Ctor parameter '{nameof(arranger)}' was null");
 
             Arranger = arranger;
             Image = new byte[Width * Height];
-            _defaultPalette = defaultPalette;
             Render();
         }
 
         public override void ExportImage(string imagePath, IImageFileAdapter adapter) =>
-            adapter.SaveImage(Image, Arranger, _defaultPalette, imagePath);
+            adapter.SaveImage(Image, Arranger, imagePath);
 
         public void ImportImage(string imagePath, IImageFileAdapter adapter, ColorMatchStrategy matchStrategy)
         {
-            var importImage = adapter.LoadImage(imagePath, Arranger, _defaultPalette, matchStrategy);
+            var importImage = adapter.LoadImage(imagePath, Arranger, matchStrategy);
             importImage.CopyTo(Image, 0);
         }
 
         public MagitekResult TryImportImage(string imagePath, IImageFileAdapter adapter, ColorMatchStrategy matchStrategy)
         {
-            var result = adapter.TryLoadImage(imagePath, Arranger, _defaultPalette, matchStrategy, out var importImage);
+            var result = adapter.TryLoadImage(imagePath, Arranger, matchStrategy, out var importImage);
 
             if (result.Value is MagitekResult.Success)
                 importImage.CopyTo(Image, 0);
@@ -110,7 +105,7 @@ namespace ImageMagitek
 
             var el = Arranger.GetElementAtPixel(x, y);
             var codecColors = 1 << el.Codec.ColorDepth;
-            var pal = Arranger.GetElementAtPixel(x, y).Palette ?? _defaultPalette;
+            var pal = Arranger.GetElementAtPixel(x, y).Palette;
 
             if (color >= pal.Entries)
                 throw new ArgumentOutOfRangeException($"{nameof(SetPixel)} ({nameof(color)} ({color}): exceeded the number of entries in palette '{pal.Name}' ({pal.Entries})");
@@ -146,7 +141,7 @@ namespace ImageMagitek
         public void SetPixel(int x, int y, ColorRgba32 color)
         {
             var elem = Arranger.GetElementAtPixel(x, y);
-            var pal = elem.Palette ?? _defaultPalette;
+            var pal = elem.Palette;
 
             var index = pal.GetIndexByNativeColor(color, ColorMatchStrategy.Exact);
             Image[x + Width * y] = index;
@@ -164,7 +159,7 @@ namespace ImageMagitek
             if (!(elem.Codec is IIndexedCodec))
                 return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the element's codec is not an indexed color type");
 
-            var pal = elem.Palette ?? _defaultPalette;
+            var pal = elem.Palette;
 
             if (pal is null)
                 return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because arranger '{Arranger.Name}' has no palette specified and no default palette");
@@ -182,7 +177,7 @@ namespace ImageMagitek
         /// <param name="y">y-coordinate in pixel coordinates</param>
         public ColorRgba32 GetPixelColor(int x, int y)
         {
-            var pal = Arranger.GetElementAtPixel(x, y).Palette ?? _defaultPalette;
+            var pal = Arranger.GetElementAtPixel(x, y).Palette;
             var palIndex = Image[x + Width * y];
             return pal[palIndex];
         }
@@ -215,10 +210,7 @@ namespace ImageMagitek
             {
                 var location = Arranger.PointToElementLocation(new System.Drawing.Point(x, y));
 
-                if (ReferenceEquals(_defaultPalette, pal))
-                    el = el.WithPalette(null);
-                else
-                    el = el.WithPalette(pal);
+                el = el.WithPalette(pal);
 
                 Arranger.SetElement(el, location.X, location.Y);
                 return MagitekResult.SuccessResult;

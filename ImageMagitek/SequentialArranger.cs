@@ -12,28 +12,28 @@ namespace ImageMagitek
         /// <summary>
         /// Gets the filesize of the file associated with a SequentialArranger
         /// </summary>
-        public long FileSize { get; private set; }
+        public long FileSize { get; protected set; }
 
         /// <summary>
         /// Gets the current file address of the file associated with a SequentialArranger
         /// </summary>
-        public long FileAddress { get; private set; }
+        public long FileAddress { get; protected set; }
 
         /// <summary>
         /// Number of bits required to be read from file sequentially to fully display the Arranger
         /// </summary>
-        public long ArrangerBitSize { get; private set; }
+        public long ArrangerBitSize { get; protected set; }
         public override bool ShouldBeSerialized { get; set; } = true;
 
         /// <summary>
         /// Codec that is assigned to each ArrangerElement
         /// </summary>
-        public IGraphicsCodec ActiveCodec { get; private set; }
+        public IGraphicsCodec ActiveCodec { get; protected set; }
 
         /// <summary>
         /// DataFile that is assigned to each ArrangerElement
         /// </summary>
-        public DataFile ActiveDataFile { get; set; }
+        public DataFile ActiveDataFile { get; protected set; }
 
         private ICodecFactory _codecs;
 
@@ -42,10 +42,11 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="arrangerWidth">Width of arranger in elements</param>
         /// <param name="arrangerHeight">Height of arranger in elements</param>
-        /// <param name="dataFile">DataFile that each Element will be initialized with</param>
+        /// <param name="dataFile">DataFile assigned to each Element</param>
+        /// /// <param name="pal">Palette assigned to each Element</param>
         /// <param name="codecFactory">Factory responsible for creating new codecs</param>
         /// <param name="codecName">Name of codec each Element will be initialized to</param>
-        public SequentialArranger(int arrangerWidth, int arrangerHeight, DataFile dataFile, ICodecFactory codecFactory, string codecName)
+        public SequentialArranger(int arrangerWidth, int arrangerHeight, DataFile dataFile, Palette pal, ICodecFactory codecFactory, string codecName)
         {
             Mode = ArrangerMode.Sequential;
             FileSize = dataFile.Stream.Length;
@@ -58,21 +59,7 @@ namespace ImageMagitek
 
             ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);
 
-            Resize(arrangerWidth, arrangerHeight, dataFile);
-        }
-
-        /// <summary>
-        /// Resizes a Sequential Arranger to the specified number of Elements and repopulates Element data
-        /// </summary>
-        /// <param name="arrangerWidth">Width of Arranger in Elements</param>
-        /// <param name="arrangerHeight">Height of Arranger in Elements</param>
-        /// <returns></returns>
-        public override void Resize(int arrangerWidth, int arrangerHeight)
-        {
-            if (Mode != ArrangerMode.Sequential)
-                throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
-
-            Resize(arrangerWidth, arrangerHeight, ElementGrid[0, 0].DataFile);
+            Resize(arrangerWidth, arrangerHeight, dataFile, pal);
         }
 
         /// <summary>
@@ -109,10 +96,23 @@ namespace ImageMagitek
                 }
             }
 
-            //FileAddress = GetElement(0, 0).FileAddress.FileOffset * 8;
             FileAddress = GetInitialSequentialFileAddress().FileOffset * 8;
 
             return FileAddress;
+        }
+
+        /// <summary>
+        /// Resizes a Sequential Arranger to the specified number of Elements and repopulates Element data
+        /// </summary>
+        /// <param name="arrangerWidth">Width of Arranger in Elements</param>
+        /// <param name="arrangerHeight">Height of Arranger in Elements</param>
+        /// <returns></returns>
+        public override void Resize(int arrangerWidth, int arrangerHeight)
+        {
+            if (Mode != ArrangerMode.Sequential)
+                throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
+
+            Resize(arrangerWidth, arrangerHeight, ElementGrid[0, 0].DataFile, ElementGrid[0, 0].Palette);
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace ImageMagitek
         /// <param name="dataFileKey">DataFile key in IResourceManager</param>
         /// <param name="codecName">Codec name for encoding/decoding Elements</param>
         /// <returns></returns>
-        private FileBitAddress Resize(int arrangerWidth, int arrangerHeight, DataFile dataFile)
+        private FileBitAddress Resize(int arrangerWidth, int arrangerHeight, DataFile dataFile, Palette pal)
         {
             if (Mode != ArrangerMode.Sequential)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
@@ -160,7 +160,7 @@ namespace ImageMagitek
                 int elX = 0;
                 for (int posX = 0; posX < arrangerWidth; posX++)
                 {
-                    ArrangerElement el = new ArrangerElement(elX, elY, dataFile, address, _codecs.CloneCodec(ActiveCodec), null);
+                    ArrangerElement el = new ArrangerElement(elX, elY, dataFile, address, _codecs.CloneCodec(ActiveCodec), pal);
 
                     SetElement(el, posX, posY);
 

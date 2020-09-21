@@ -211,7 +211,7 @@ namespace TileShop.WPF.ViewModels
                 {
                     if (arranger.ColorType == PixelColorType.Indexed)
                     {
-                        var image = new IndexedImage(arranger, _paletteService.DefaultPalette);
+                        var image = new IndexedImage(arranger);
                         image.ExportImage(exportFileName, new ImageFileAdapter());
                     }
                     else if (arranger.ColorType == PixelColorType.Direct)

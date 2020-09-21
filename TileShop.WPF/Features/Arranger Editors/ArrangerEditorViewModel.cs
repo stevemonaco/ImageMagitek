@@ -28,16 +28,24 @@ namespace TileShop.WPF.ViewModels
         protected IPaletteService _paletteService;
         protected IWindowManager _windowManager;
 
-        protected ArrangerBitmapSource _arrangerSource;
-        public ArrangerBitmapSource ArrangerSource
+        //protected ArrangerBitmapSource _arrangerSource;
+        //public ArrangerBitmapSource ArrangerSource
+        //{
+        //    get => _arrangerSource;
+        //    set
+        //    {
+        //        _arrangerSource = value;
+        //        NotifyOfPropertyChange(() => ArrangerSource);
+        //    }
+        //}
+
+        private BitmapAdapter _bitmapAdapter;
+        public BitmapAdapter BitmapAdapter
         {
-            get => _arrangerSource;
-            set
-            {
-                _arrangerSource = value;
-                NotifyOfPropertyChange(() => ArrangerSource);
-            }
+            get => _bitmapAdapter;
+            set => SetAndNotify(ref _bitmapAdapter, value);
         }
+
 
         public bool IsSingleLayout => _workingArranger?.Layout == ArrangerLayout.Single;
         public bool IsTiledLayout => _workingArranger?.Layout == ArrangerLayout.Tiled;
@@ -244,14 +252,14 @@ namespace TileShop.WPF.ViewModels
 
             if (Overlay.CopyArranger.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Indexed)
             {
-                var sourceImage = new IndexedImage(Overlay.CopyArranger, _paletteService?.DefaultPalette);
+                var sourceImage = new IndexedImage(Overlay.CopyArranger);
                 sourceImage.Render();
                 result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
                     ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
             }
             else if (Overlay.CopyArranger.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Direct)
             {
-                var sourceImage = new IndexedImage(Overlay.CopyArranger, _paletteService?.DefaultPalette);
+                var sourceImage = new IndexedImage(Overlay.CopyArranger);
                 sourceImage.Render();
                 result = ImageCopier.CopyPixels(sourceImage, _directImage, sourceStart, destStart, copyWidth, copyHeight);
             }

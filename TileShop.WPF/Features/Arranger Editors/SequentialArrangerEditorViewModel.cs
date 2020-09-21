@@ -157,9 +157,14 @@ namespace TileShop.WPF.ViewModels
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
             if (_workingArranger.ColorType == PixelColorType.Indexed)
-                _indexedImage = new IndexedImage(_workingArranger, _paletteService?.DefaultPalette);
+            {
+                _indexedImage = new IndexedImage(_workingArranger);
+                BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
+            }
             else if (_workingArranger.ColorType == PixelColorType.Direct)
+            {
                 _directImage = new DirectImage(_workingArranger);
+            }
 
             foreach (var name in codecService.GetSupportedCodecNames().OrderBy(x => x))
                 CodecNames.Add(name);
@@ -188,7 +193,6 @@ namespace TileShop.WPF.ViewModels
             SelectedPalette = Palettes.First();
 
             CreateGridlines();
-            Render();
         }
 
         public override void SaveChanges()
@@ -401,12 +405,12 @@ namespace TileShop.WPF.ViewModels
             if (_workingArranger.ColorType == PixelColorType.Indexed)
             {
                 _indexedImage.Render();
-                ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, _paletteService.DefaultPalette);
+                BitmapAdapter.Invalidate();
             }
             else if (_workingArranger.ColorType == PixelColorType.Direct)
             {
                 _directImage.Render();
-                ArrangerSource = new DirectImageSource(_directImage);
+                //ArrangerSource = new DirectImageSource(_directImage);
             }
         }
 

@@ -124,7 +124,7 @@ namespace TileShop.WPF.ViewModels
                         else
                             codecName = "NES 1bpp";
 
-                        var newArranger = new SequentialArranger(8, 16, dataFile, _codecService.CodecFactory, codecName);
+                        var newArranger = new SequentialArranger(8, 16, dataFile, _paletteService.DefaultPalette, _codecService.CodecFactory, codecName);
                         newDocument = new SequentialArrangerEditorViewModel(newArranger, _events, _windowManager, _tracker, _codecService, _paletteService);
                         break;
                     case ResourceFolder resourceFolder:

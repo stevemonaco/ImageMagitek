@@ -215,7 +215,7 @@
                     LayoutTransform="{StaticResource transform}"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                     SnapsToDevicePixels="True"
-                    Source="{Binding ArrangerSource}"
+                    Source="{Binding BitmapAdapter.Bitmap}"
                     Stretch="None" />
 
                 <Rectangle

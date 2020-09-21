@@ -65,8 +65,9 @@ namespace TileShop.WPF.ViewModels
                 Palettes.Add(new PaletteModel(defaultPalette, defaultColors));
             }
 
-            _indexedImage = new IndexedImage(_workingArranger, defaultPalette);
-            ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, defaultPalette, _viewX, _viewY, _viewWidth, _viewHeight);
+            _indexedImage = new IndexedImage(_workingArranger);
+            BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
+            //ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, defaultPalette, _viewX, _viewY, _viewWidth, _viewHeight);
 
             DisplayName = $"Pixel Editor - {_workingArranger.Name}";
 
@@ -77,8 +78,8 @@ namespace TileShop.WPF.ViewModels
             NotifyOfPropertyChange(() => CanRemapColors);
         }
 
-        protected override void Render() =>
-            ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, _paletteService.DefaultPalette, _viewX, _viewY, _viewWidth, _viewHeight);
+        protected override void Render() { }
+            //ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, _paletteService.DefaultPalette, _viewX, _viewY, _viewWidth, _viewHeight);
 
         protected override void ReloadImage() => _indexedImage.Render();
 

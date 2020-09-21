@@ -186,13 +186,13 @@ namespace TileShop.WPF.ViewModels
             if (_workingArranger.ColorType == PixelColorType.Indexed)
             {
                 _indexedImage = new IndexedImage(_workingArranger);
-                ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, _paletteService?.DefaultPalette);
+                BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
             }
             else if (_workingArranger.ColorType == PixelColorType.Direct)
             {
 
                 _directImage = new DirectImage(_workingArranger);
-                ArrangerSource = new DirectImageSource(_directImage);
+                //ArrangerSource = new DirectImageSource(_directImage);
             }
         }
 

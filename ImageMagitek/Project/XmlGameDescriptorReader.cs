@@ -113,7 +113,7 @@ namespace ImageMagitek.Project
                         if (modelArranger.ElementGrid[x, y] is null)
                         {
                             var el = new ArrangerElement(x * arranger.ArrangerElementSize.Width, y * arranger.ArrangerElementSize.Height,
-                                null, 0, new BlankIndexedCodec(), null);
+                                null, 0, new BlankIndexedCodec(), ResolvePalette(tree, null));
                             arranger.SetElement(el, x, y);
                             continue;
                         }

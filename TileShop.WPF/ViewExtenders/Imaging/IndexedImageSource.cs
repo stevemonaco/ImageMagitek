@@ -11,18 +11,16 @@ namespace TileShop.WPF.Imaging
     {
         private IndexedImage _image;
         private Arranger _arranger;
-        private Palette _defaultPalette;
 
-        public IndexedImageSource(IndexedImage image, Arranger arranger, Palette defaultPalette) :
-            this(image, arranger, defaultPalette, 0, 0, image.Width, image.Height)
+        public IndexedImageSource(IndexedImage image, Arranger arranger) :
+            this(image, arranger, 0, 0, image.Width, image.Height)
         {
         }
 
-        public IndexedImageSource(IndexedImage image, Arranger arranger, Palette defaultPalette, int x, int y, int width, int height)
+        public IndexedImageSource(IndexedImage image, Arranger arranger, int x, int y, int width, int height)
         {
             _image = image;
             _arranger = arranger;
-            _defaultPalette = defaultPalette;
             PixelWidth = width;
             PixelHeight = height;
             CropX = x;
@@ -51,7 +49,7 @@ namespace TileShop.WPF.Imaging
 
                         for (int x = 0; x < sourceRect.Width; x++)
                         {
-                            var pal = _arranger.GetElementAtPixel(x + CropX, y + CropY).Palette ?? _defaultPalette;
+                            var pal = _arranger.GetElementAtPixel(x + CropX, y + CropY).Palette;
                             var index = row[x + CropX];
                             var color = pal[index];
                             pBytes[x * 4] = color.B;

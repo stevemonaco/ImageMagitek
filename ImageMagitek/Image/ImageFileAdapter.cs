@@ -8,16 +8,16 @@ namespace ImageMagitek
 {
     public interface IImageFileAdapter
     {
-        void SaveImage(byte[] image, Arranger arranger, Palette defaultPalette, string imagePath);
+        void SaveImage(byte[] image, Arranger arranger, string imagePath);
         void SaveImage(ColorRgba32[] image, int width, int height, string imagePath);
-        byte[] LoadImage(string imagePath, Arranger arranger, Palette defaultPalette, ColorMatchStrategy matchStrategy);
-        MagitekResult TryLoadImage(string imagePath, Arranger arranger, Palette defaultPalette, ColorMatchStrategy matchStrategy, out byte[] image);
+        byte[] LoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy);
+        MagitekResult TryLoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy, out byte[] image);
         ColorRgba32[] LoadImage(string imagePath);
     }
 
     public class ImageFileAdapter : IImageFileAdapter
     {
-        public void SaveImage(byte[] image, Arranger arranger, Palette defaultPalette, string imagePath)
+        public void SaveImage(byte[] image, Arranger arranger, string imagePath)
         {
             var width = arranger.ArrangerPixelSize.Width;
             var height = arranger.ArrangerPixelSize.Height;
@@ -30,7 +30,7 @@ namespace ImageMagitek
             {
                 for (int x = 0; x < width; x++, destidx++, srcidx++)
                 {
-                    var pal = arranger.GetElementAtPixel(x, y).Palette ?? defaultPalette;
+                    var pal = arranger.GetElementAtPixel(x, y).Palette;
                     var index = image[srcidx];
                     var color = pal[index];
                     span[destidx] = color.ToRgba32();
@@ -60,7 +60,7 @@ namespace ImageMagitek
             outputImage.SaveAsPng(outputStream);
         }
 
-        public byte[] LoadImage(string imagePath, Arranger arranger, Palette defaultPalette, ColorMatchStrategy matchStrategy)
+        public byte[] LoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy)
         {
             using var inputImage = SixLabors.ImageSharp.Image.Load(imagePath);
             var width = inputImage.Width;
@@ -74,7 +74,7 @@ namespace ImageMagitek
             {
                 for (int x = 0; x < width; x++, index++)
                 {
-                    var pal = arranger.GetElementAtPixel(x, y).Palette ?? defaultPalette;
+                    var pal = arranger.GetElementAtPixel(x, y).Palette;
                     var color = new ColorRgba32(span[index].PackedValue);
                     var palIndex = pal.GetIndexByNativeColor(color, matchStrategy);
                     outputImage[index] = palIndex;
@@ -84,7 +84,7 @@ namespace ImageMagitek
             return outputImage;
         }
 
-        public MagitekResult TryLoadImage(string imagePath, Arranger arranger, Palette defaultPalette, ColorMatchStrategy matchStrategy, out byte[] image)
+        public MagitekResult TryLoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy, out byte[] image)
         {
             using var inputImage = SixLabors.ImageSharp.Image.Load(imagePath);
             var width = inputImage.Width;
@@ -105,7 +105,7 @@ namespace ImageMagitek
             {
                 for (int x = 0; x < width; x++, index++)
                 {
-                    var pal = arranger.GetElementAtPixel(x, y).Palette ?? defaultPalette;
+                    var pal = arranger.GetElementAtPixel(x, y).Palette;
                     var color = new ColorRgba32(span[index].PackedValue);
 
                     if (pal.TryGetIndexByNativeColor(color, matchStrategy, out var palIndex))

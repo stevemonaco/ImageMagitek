@@ -89,8 +89,8 @@ namespace TileShop.WPF.ViewModels
 
             if (_arranger.ColorType == PixelColorType.Indexed)
             {
-                _originalIndexed = new IndexedImage(_arranger, _paletteService.DefaultPalette);
-                OriginalSource = new IndexedImageSource(_originalIndexed, _arranger, _paletteService.DefaultPalette);
+                _originalIndexed = new IndexedImage(_arranger);
+                OriginalSource = new IndexedImageSource(_originalIndexed, _arranger);
             }
             else if (_arranger.ColorType == PixelColorType.Direct)
             {
@@ -129,7 +129,7 @@ namespace TileShop.WPF.ViewModels
         private void ImportIndexed(string fileName)
         {
             var matchStrategy = UseExactMatching ? ColorMatchStrategy.Exact : ColorMatchStrategy.Nearest;
-            _importedIndexed = new IndexedImage(_arranger, _paletteService.DefaultPalette);
+            _importedIndexed = new IndexedImage(_arranger);
 
             var result = _importedIndexed.TryImportImage(fileName, new ImageFileAdapter(), matchStrategy);
 
@@ -139,7 +139,7 @@ namespace TileShop.WPF.ViewModels
                     ImageFileName = fileName;
                     ImportError = string.Empty;
                     CanImport = true;
-                    ImportedSource = new IndexedImageSource(_importedIndexed, _arranger, _paletteService.DefaultPalette);
+                    ImportedSource = new IndexedImageSource(_importedIndexed, _arranger);
                 },
                 fail =>
                 {

@@ -33,7 +33,7 @@ namespace TileShop.WPF.ViewModels
             _viewHeight = viewHeight;
 
             _directImage = new DirectImage(_workingArranger);
-            ArrangerSource = new DirectImageSource(_directImage, _viewX, _viewY, _viewWidth, _viewHeight);
+            //ArrangerSource = new DirectImageSource(_directImage, _viewX, _viewY, _viewWidth, _viewHeight);
 
             DisplayName = $"Pixel Editor - {_workingArranger.Name}";
 
@@ -42,8 +42,8 @@ namespace TileShop.WPF.ViewModels
             CreateGridlines();
         }
 
-        protected override void Render() =>
-            ArrangerSource = new DirectImageSource(_directImage, _viewX, _viewY, _viewWidth, _viewHeight);
+        protected override void Render() { }
+            //ArrangerSource = new DirectImageSource(_directImage, _viewX, _viewY, _viewWidth, _viewHeight);
 
         protected override void ReloadImage() => _directImage.Render();
 
