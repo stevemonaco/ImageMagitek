@@ -14,7 +14,7 @@ namespace ImageMagitek.Project
     {
         public string DescriptorVersion => "0.8";
         private readonly List<IProjectResource> _globalResources;
-        private readonly Palette _defaultPalette;
+        private readonly Palette _globalDefaultPalette;
         private string _baseDirectory;
 
         public XmlGameDescriptorWriter() : this(Enumerable.Empty<IProjectResource>())
@@ -24,7 +24,7 @@ namespace ImageMagitek.Project
         public XmlGameDescriptorWriter(IEnumerable<IProjectResource> globalResources)
         {
             _globalResources = globalResources.ToList();
-            _defaultPalette = globalResources.OfType<Palette>().FirstOrDefault();
+            _globalDefaultPalette = globalResources.OfType<Palette>().FirstOrDefault();
         }
 
         public MagitekResult WriteProject(ProjectTree tree, string fileName)
@@ -137,15 +137,25 @@ namespace ImageMagitek.Project
 
                                 string paletteKey = default;
 
-                                if (element.Palette is object)
+                                if (ReferenceEquals(element.Palette, _globalDefaultPalette))
+                                {
+                                    elementModel.UsesGlobalDefaultPalette = true;
+                                    paletteKey = _globalDefaultPalette.Name;
+                                }
+                                else if (element.Palette is object)
                                 {
                                     if (!resourceResolver.TryGetValue(element.Palette, out paletteKey))
-                                        paletteKey = _globalResources.OfType<Palette>().FirstOrDefault(x => ReferenceEquals(element.Palette, x))?.Name;
+                                    {
+                                        paletteKey = _globalResources.OfType<Palette>()
+                                            .Skip(1)
+                                            .FirstOrDefault(x => ReferenceEquals(element.Palette, x))?.Name;
+                                    }
                                 }
-                                
+
                                 elementModel.PaletteKey = paletteKey;
                             }
                         }
+
                         modelTree.Add(node.PathKey, arrangerModel);
                         break;
                 }
@@ -209,8 +219,33 @@ namespace ImageMagitek.Project
 
         private XElement Serialize(ScatteredArrangerModel arrangerModel)
         {
-            var defaultCodec = arrangerModel.FindMostFrequentPropertyValue("CodecName");
-            var defaultFile = arrangerModel.FindMostFrequentPropertyValue("DataFileKey") ?? "";
+            var mostUsedCodecName = arrangerModel.FindMostFrequentPropertyValue("CodecName");
+            var mostUsedFileKey = arrangerModel.FindMostFrequentPropertyValue("DataFileKey") ?? "";
+            string mostUsedPaletteKey = default;
+            bool defaultGlobalPaletteIsMostFrequentPalette = false;
+
+            var mostUsedNonDefaultPalette = arrangerModel.EnumerateElements()
+                .Where(x => !x.UsesGlobalDefaultPalette)
+                .GroupBy(x => x.PaletteKey)
+                .Select(x => new { PaletteKey = x.Key, Count = x.Count() })
+                .OrderByDescending(x => x.Count)
+                .FirstOrDefault();
+
+            if (mostUsedNonDefaultPalette is null)
+            {
+                defaultGlobalPaletteIsMostFrequentPalette = true;
+                mostUsedPaletteKey = _globalDefaultPalette.Name;
+            }    
+            else if (mostUsedNonDefaultPalette.Count < arrangerModel.EnumerateElements().Count(x => x.UsesGlobalDefaultPalette))
+            {
+                defaultGlobalPaletteIsMostFrequentPalette = true;
+                mostUsedPaletteKey = _globalDefaultPalette.Name;
+            }
+            else
+            {
+                mostUsedPaletteKey = mostUsedNonDefaultPalette.PaletteKey;
+            }
+
 
             var arrangerNode = new XElement("arranger");
             arrangerNode.Add(new XAttribute("name", arrangerModel.Name));
@@ -229,10 +264,13 @@ namespace ImageMagitek.Project
             else if (arrangerModel.ColorType == PixelColorType.Direct)
                 arrangerNode.Add(new XAttribute("color", "direct"));
 
-            arrangerNode.Add(new XAttribute("defaultcodec", defaultCodec));
-            arrangerNode.Add(new XAttribute("defaultdatafile", defaultFile));
+            arrangerNode.Add(new XAttribute("defaultcodec", mostUsedCodecName));
+            arrangerNode.Add(new XAttribute("defaultdatafile", mostUsedFileKey));
 
-            for(int y = 0; y < arrangerModel.ArrangerElementSize.Height; y++)
+            if (mostUsedPaletteKey is object)
+                arrangerNode.Add(new XAttribute("defaultpalette", mostUsedPaletteKey));
+
+            for (int y = 0; y < arrangerModel.ArrangerElementSize.Height; y++)
             {
                 for(int x = 0; x < arrangerModel.ArrangerElementSize.Width; x++)
                 {
@@ -249,14 +287,24 @@ namespace ImageMagitek.Project
                     if (el.FileAddress.BitOffset != 0)
                         elNode.Add(new XAttribute("bitoffset", el.FileAddress.BitOffset));
 
-                    if(el.CodecName != defaultCodec)
+                    if(el.CodecName != mostUsedCodecName)
                         elNode.Add(new XAttribute("codec", el.CodecName));
 
-                    if(el.DataFileKey != defaultFile)
+                    if(el.DataFileKey != mostUsedFileKey)
                         elNode.Add(new XAttribute("datafile", el.DataFileKey));
 
-                    if(!string.IsNullOrWhiteSpace(el.PaletteKey))
+                    if (defaultGlobalPaletteIsMostFrequentPalette && !el.UsesGlobalDefaultPalette)
+                    {
                         elNode.Add(new XAttribute("palette", el.PaletteKey));
+                    }
+                    else if (!defaultGlobalPaletteIsMostFrequentPalette && el.UsesGlobalDefaultPalette)
+                    {
+                        elNode.Add(new XAttribute("palette", _globalDefaultPalette.Name));
+                    }
+                    else if (el.PaletteKey != mostUsedPaletteKey)
+                    {
+                        elNode.Add(new XAttribute("palette", el.PaletteKey));
+                    }
 
                     arrangerNode.Add(elNode);
                 }

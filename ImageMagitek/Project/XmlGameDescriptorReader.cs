@@ -232,9 +232,9 @@ namespace ImageMagitek.Project
             var elementsy = int.Parse(element.Attribute("elementsy").Value); // Height of arranger in elements
             var width = int.Parse(element.Attribute("width").Value); // Width of element in pixels
             var height = int.Parse(element.Attribute("height").Value); // Height of element in pixels
-            var defaultFormat = element.Attribute("defaultcodec").Value;
-            var defaultDataFile = element.Attribute("defaultdatafile").Value;
-            var defaultPalette = element.Attribute("defaultpalette")?.Value ?? "";
+            var defaultCodecName = element.Attribute("defaultcodec").Value;
+            var defaultDataFileKey = element.Attribute("defaultdatafile").Value;
+            var defaultPaletteKey = element.Attribute("defaultpalette")?.Value ?? "";
             var layoutName = element.Attribute("layout").Value;
             var colorType = element.Attribute("color")?.Value ?? "indexed";
             var elementList = element.Descendants("element");
@@ -272,9 +272,9 @@ namespace ImageMagitek.Project
             {
                 var el = new ArrangerElementModel();
 
-                el.DataFileKey = xmlElement.datafile?.Value ?? defaultDataFile;
-                el.PaletteKey = xmlElement.palette?.Value ?? defaultPalette;
-                el.CodecName = xmlElement.format?.Value ?? defaultFormat;
+                el.DataFileKey = xmlElement.datafile?.Value ?? defaultDataFileKey;
+                el.PaletteKey = xmlElement.palette?.Value ?? defaultPaletteKey;
+                el.CodecName = xmlElement.format?.Value ?? defaultCodecName;
                 el.PositionX = xmlElement.posx * width;
                 el.PositionY = xmlElement.posy * height;
 
