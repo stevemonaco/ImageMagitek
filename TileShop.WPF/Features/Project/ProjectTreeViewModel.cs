@@ -580,6 +580,9 @@ namespace TileShop.WPF.ViewModels
                     _editors.Editors = new BindableCollection<ResourceEditorBaseViewModel>(remainingEditors);
                     _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
 
+                    if (!_editors.ClosePixelEditor())
+                        return false;
+
                     _projectService.SaveProject(projectTree)
                      .Switch(
                          success => IsModified = false,

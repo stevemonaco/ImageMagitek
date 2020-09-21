@@ -72,7 +72,7 @@ namespace TileShop.WPF.ViewModels
             _events.Subscribe(this);
         }
 
-        public void CloseEditor(ResourceEditorBaseViewModel editor)
+        public bool CloseEditor(ResourceEditorBaseViewModel editor)
         {
             if (editor.IsModified)
             {
@@ -87,12 +87,30 @@ namespace TileShop.WPF.ViewModels
                 }
                 else
                 {
-                    return;
+                    return false;
                 }
             }
 
             Editors.Remove(editor);
             ActiveEditor = Editors.FirstOrDefault();
+            return true;
+        }
+
+        public bool ClosePixelEditor()
+        {
+            if (ActivePixelEditor is null)
+                return true;
+
+            if (ActivePixelEditor.IsModified)
+            {
+                if (!RequestSavePixelEditorChanges())
+                    return false;
+            }
+
+            Shell.Tools.Remove(ActivePixelEditor);
+            ActivePixelEditor = default;
+
+            return true;
         }
 
         public void ActivateEditor(IProjectResource resource)
@@ -179,6 +197,12 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        /// <summary>
+        /// Requests to the user if they want to save the specified editor and saves if necessary
+        /// </summary>
+        /// <param name="editor">Editor to save</param>
+        /// <param name="saveTree">The project tree is also saved upon a Save confirmation</param>
+        /// <returns>True if saved/discarded, false if cancelled</returns>
         public bool RequestSaveUserChanges(ResourceEditorBaseViewModel editor, bool saveTree)
         {
             if (editor.IsModified)
@@ -205,6 +229,36 @@ namespace TileShop.WPF.ViewModels
                 if (result == MessageBoxResult.No)
                 {
                     editor.DiscardChanges();
+                    return true;
+                }
+                else if (result == MessageBoxResult.Cancel)
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Requests to the user if they want to save the ActivePixelEditor
+        /// </summary>
+        /// <returns>True if saved/discarded, false if cancelled</returns>
+        public bool RequestSavePixelEditorChanges()
+        {
+            if (ActivePixelEditor is null)
+                return true;
+
+            if (ActivePixelEditor.IsModified)
+            {
+                var result = _windowManager.ShowMessageBox($"'{ActivePixelEditor.DisplayName}' has been modified and will be closed. Save changes?",
+                    "Save changes", MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    ActivePixelEditor.SaveChanges();
+                    return true;
+                }
+                if (result == MessageBoxResult.No)
+                {
+                    ActivePixelEditor.DiscardChanges();
                     return true;
                 }
                 else if (result == MessageBoxResult.Cancel)
