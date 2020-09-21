@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Resources\Palettes\DefaultRgba32.json">
+    <None Update="Assets\Palettes\DefaultRgba32.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="XmlCodecs\FF5Font.xml">
