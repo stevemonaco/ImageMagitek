@@ -28,15 +28,15 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _imageFileName, value);
         }
 
-        private BitmapSource _originalSource;
-        public BitmapSource OriginalSource
+        private BitmapAdapter _originalSource;
+        public BitmapAdapter OriginalSource
         {
             get => _originalSource;
             set => SetAndNotify(ref _originalSource, value);
         }
 
-        private BitmapSource _importedSource;
-        public BitmapSource ImportedSource
+        private BitmapAdapter _importedSource;
+        public BitmapAdapter ImportedSource
         {
             get => _importedSource;
             set => SetAndNotify(ref _importedSource, value);
@@ -90,12 +90,12 @@ namespace TileShop.WPF.ViewModels
             if (_arranger.ColorType == PixelColorType.Indexed)
             {
                 _originalIndexed = new IndexedImage(_arranger);
-                OriginalSource = new IndexedImageSource(_originalIndexed, _arranger);
+                OriginalSource = new IndexedBitmapAdapter(_originalIndexed);
             }
             else if (_arranger.ColorType == PixelColorType.Direct)
             {
                 _originalDirect = new DirectImage(_arranger);
-                OriginalSource = new DirectImageSource(_originalDirect);
+                OriginalSource = new DirectBitmapAdapter(_originalDirect);
             }
         }
 
@@ -120,7 +120,7 @@ namespace TileShop.WPF.ViewModels
                 {
                     _importedDirect = new DirectImage(_arranger);
                     _importedDirect.ImportImage(ImageFileName, new ImageFileAdapter());
-                    ImportedSource = new DirectImageSource(_importedDirect);
+                    ImportedSource = new DirectBitmapAdapter(_importedDirect);
                     CanImport = true;
                 }
             }
@@ -139,7 +139,7 @@ namespace TileShop.WPF.ViewModels
                     ImageFileName = fileName;
                     ImportError = string.Empty;
                     CanImport = true;
-                    ImportedSource = new IndexedImageSource(_importedIndexed, _arranger);
+                    ImportedSource = new IndexedBitmapAdapter(_importedIndexed);
                 },
                 fail =>
                 {

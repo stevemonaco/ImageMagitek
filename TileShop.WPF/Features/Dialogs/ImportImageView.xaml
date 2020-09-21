@@ -49,7 +49,7 @@
                             LayoutTransform="{StaticResource transform}"
                             RenderOptions.BitmapScalingMode="NearestNeighbor"
                             SnapsToDevicePixels="True"
-                            Source="{Binding OriginalSource}" />
+                            Source="{Binding OriginalSource.Bitmap}" />
 
                         <Rectangle
                             Grid.Row="0"
@@ -71,7 +71,7 @@
                             LayoutTransform="{StaticResource transform}"
                             RenderOptions.BitmapScalingMode="NearestNeighbor"
                             SnapsToDevicePixels="True"
-                            Source="{Binding ImportedSource}" />
+                            Source="{Binding ImportedSource.Bitmap}" />
 
                         <Rectangle
                             Grid.Row="0"
