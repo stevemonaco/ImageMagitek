@@ -12,6 +12,7 @@ using TileShop.Shared.Models;
 using TileShop.Shared.EventModels;
 using TileShop.WPF.ViewModels.Dialogs;
 using System;
+using Monaco.PathTree;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -260,6 +261,22 @@ namespace TileShop.WPF.ViewModels
                 CreateImages();
 
                 IsModified = true;
+            }
+        }
+
+        public void AssociatePalette()
+        {
+            var projectTree = _projectService.GetContainingProject(Resource);
+            var palettes = projectTree.Tree.EnumerateDepthFirst()
+                .Where(x => x.Value is Palette)
+                .Select(x => new AssociatePaletteModel(x.Value as Palette, x.PathKey));
+
+            var model = new AssociatePaletteViewModel(palettes);
+
+            if (_windowManager.ShowDialog(model) is true)
+            {
+                var palModel = new PaletteModel(model.SelectedPalette.Palette, model.SelectedPalette.Palette.Entries);
+                Palettes.Add(palModel);
             }
         }
 

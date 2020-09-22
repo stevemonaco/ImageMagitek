@@ -99,7 +99,8 @@
                 Margin="5,0,0,0"
                 VerticalAlignment="Bottom"
                 VerticalContentAlignment="Center"
-                ToolTip="Associate Palette from Project with Arranger">
+                Click="{s:Action AssociatePalette}"
+                ToolTip="Asssociate a Palette from this Project with this Arranger">
                 <Image Style="{StaticResource iconPlusCircle}" />
             </Button>
 
