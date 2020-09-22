@@ -1,0 +1,16 @@
+<format name="GBA 4bpp" version="0.8">
+    <codec>
+        <colortype>indexed</colortype>
+        <colordepth>4</colordepth>
+        <layout>tiled</layout>
+        <defaultheight>8</defaultheight>
+        <defaultwidth>8</defaultwidth>
+        <fixedsize>false</fixedsize>
+		<mergepriority>3, 2, 1, 0</mergepriority>
+    </codec>
+    <image>
+        <colordepth>4</colordepth>
+        <rowinterlace>false</rowinterlace>
+		<rowpixelpattern>1, 0</rowpixelpattern>
+    </image>
+</format>
