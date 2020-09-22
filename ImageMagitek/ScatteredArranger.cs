@@ -65,6 +65,9 @@ namespace ImageMagitek
         /// <param name="arrangerHeight">Height of Arranger in Elements</param>
         public override void Resize(int arrangerWidth, int arrangerHeight)
         {
+            if (arrangerWidth < 1 || arrangerHeight < 1)
+                throw new ArgumentOutOfRangeException($"{nameof(Resize)}: {nameof(arrangerWidth)} ({arrangerWidth}) and {nameof(arrangerHeight)} ({arrangerHeight}) must be larger than 0");
+
             if (Mode != ArrangerMode.Scattered)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
