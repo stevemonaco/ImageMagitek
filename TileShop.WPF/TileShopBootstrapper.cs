@@ -85,7 +85,7 @@ namespace TileShop.WPF
         {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Error()
-                .WriteTo.File(logName, rollingInterval: RollingInterval.Day)
+                .WriteTo.File(logName, rollingInterval: RollingInterval.Month)
                 .CreateLogger();
         }
 
