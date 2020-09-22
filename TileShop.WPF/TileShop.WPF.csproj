@@ -18,17 +18,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Assets\pal\**" />
-    <Compile Remove="Validation\**" />
-    <EmbeddedResource Remove="Assets\pal\**" />
-    <EmbeddedResource Remove="Validation\**" />
-    <None Remove="Assets\pal\**" />
-    <None Remove="Validation\**" />
-    <Page Remove="Assets\pal\**" />
-    <Page Remove="Validation\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Autofac" Version="5.2.0" />
     <PackageReference Include="Dirkster.AvalonDock" Version="4.40.0" />
     <PackageReference Include="Dirkster.AvalonDock.Themes.VS2013" Version="4.40.0" />
@@ -52,6 +41,12 @@
     <ProjectReference Include="..\ImageMagitek.Services\ImageMagitek.Services.csproj" />
     <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
     <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

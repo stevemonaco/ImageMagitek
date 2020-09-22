@@ -28,49 +28,58 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Assets\Palettes\DefaultRgba32.json">
+    <None Update="_codecs\Tokimemo1bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\FF5Font.xml">
+    <None Update="_palettes\DefaultRgba32.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\Gen4bpp.xml">
+    <None Update="_codecs\FF5Font.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\GG4bpp.xml">
+    <None Update="_codecs\Gen4bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\NES1bpp.xml">
+    <None Update="_codecs\GG4bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\NES2bpp.xml">
+    <None Update="_codecs\NES1bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\NGPC2bpp.xml">
+    <None Update="_codecs\NES2bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\PSX4bpp.xml">
+    <None Update="_codecs\NGPC2bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\PSX8bpp.xml">
+    <None Update="_codecs\PSX4bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\SNES2bpp.xml">
+    <None Update="_codecs\PSX8bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\SNES3bpp.xml">
+    <None Update="_codecs\SNES2bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\SNES4bpp.xml">
+    <None Update="_codecs\SNES3bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\SNES8bpp.xml">
+    <None Update="_codecs\SNES4bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\SNESMode7.xml">
+    <None Update="_codecs\SNES8bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\VB2bpp.xml">
+    <None Update="_codecs\SNESMode7.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="_codecs\VB2bpp.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="_schemas\CodecSchema.xsd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="_schemas\GameDescriptorSchema.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -27,10 +27,10 @@ namespace TileShop.WPF
 
         private readonly string _logFileName = "errorlog.txt";
         private readonly string _configName = "appsettings.json";
-        private readonly string _palPath = "pal";
-        private readonly string _codecPath = "codecs";
-        private readonly string _projectSchemaName = Path.Combine("schema", "GameDescriptorSchema.xsd");
-        private readonly string _codecSchemaName = Path.Combine("schema", "CodecSchema.xsd");
+        private readonly string _palPath = "_palettes";
+        private readonly string _codecPath = "_codecs";
+        private readonly string _projectSchemaName = Path.Combine("_schemas", "GameDescriptorSchema.xsd");
+        private readonly string _codecSchemaName = Path.Combine("_schemas", "CodecSchema.xsd");
 
         protected override void ConfigureIoC(ContainerBuilder builder)
         {
