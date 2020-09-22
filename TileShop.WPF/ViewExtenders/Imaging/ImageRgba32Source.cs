@@ -37,8 +37,8 @@ namespace TileShop.WPF.Imaging
         public override PixelFormat Format => PixelFormats.Bgra32;
         public override int PixelWidth { get; }
         public override int PixelHeight { get; }
-        public override double DpiX => _source.MetaData.HorizontalResolution;
-        public override double DpiY => _source.MetaData.VerticalResolution;
+        public override double DpiX => _source.Metadata.HorizontalResolution;
+        public override double DpiY => _source.Metadata.VerticalResolution;
         public override BitmapPalette Palette => null;
 
         protected override void CopyPixelsCore(Int32Rect sourceRect, int stride, int bufferSize, IntPtr buffer)
