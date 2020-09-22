@@ -85,7 +85,8 @@ namespace TileShop.WPF
         {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Error()
-                .WriteTo.File(logName, rollingInterval: RollingInterval.Month)
+                .WriteTo.File(logName, rollingInterval: RollingInterval.Month,
+                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}")
                 .CreateLogger();
         }
 
