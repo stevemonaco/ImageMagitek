@@ -36,7 +36,11 @@ namespace ImageMagitek.Codec
             });
 
             if (validationErrors.Any())
+            {
+                validationErrors.Insert(0, $"Codec '{fileName}' failed to be validated");
                 return new MagitekResults<GraphicsFormat>.Failed(validationErrors);
+            }
+
 
             XElement formatNode = doc.Element("format");
 
@@ -59,7 +63,7 @@ namespace ImageMagitek.Codec
             else if (codecs.colortype == "direct")
                 format.ColorType = PixelColorType.Direct;
             else
-                throw new XmlException($"Unsupported colortype '{codecs.colortype}'");
+                throw new XmlException($"Unsupported colortype '{codecs.colortype}' while parsing codec '{fileName}'");
 
             format.ColorDepth = int.Parse(codecs.colordepth);
 
@@ -68,7 +72,7 @@ namespace ImageMagitek.Codec
             else if (codecs.layout == "linear")
                 format.Layout = ImageLayout.Single;
             else
-                throw new XmlException($"Unsupported layout '{codecs.layout}'");
+                throw new XmlException($"Unsupported layout '{codecs.layout}' while parsing codec '{fileName}'");
 
             if (codecs.fixedsize == "true")
                 format.FixedSize = true;
@@ -84,7 +88,7 @@ namespace ImageMagitek.Codec
             string[] mergeInts = mergestring.Split(',');
 
             if (mergeInts.Length != format.ColorDepth)
-                throw new Exception("The number of entries in mergepriority does not match the colordepth");
+                throw new Exception("The number of entries in mergepriority does not match the colordepth while parsing codec '{fileName}'");
 
             format.MergePlanePriority = new int[format.ColorDepth];
 
