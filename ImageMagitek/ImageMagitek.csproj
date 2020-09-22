@@ -18,65 +18,77 @@
 
   <ItemGroup>
     <PackageReference Include="ColorMinePortable" Version="2.0.1" />
-    <PackageReference Include="Monaco.PathTree" Version="0.3.0" />
+    <PackageReference Include="Monaco.PathTree" Version="0.4.1" />
     <PackageReference Include="morelinq" Version="3.3.2" />
-    <PackageReference Include="OneOf" Version="2.1.151" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
+    <PackageReference Include="OneOf" Version="2.1.155" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.1" />
     <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
-    <PackageReference Include="System.Memory" Version="4.5.3" />
-    <PackageReference Include="System.Text.Json" Version="4.7.1" />
+    <PackageReference Include="System.Memory" Version="4.5.4" />
+    <PackageReference Include="System.Text.Json" Version="4.7.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Resources\Palettes\DefaultRgba32.json">
+    <None Update="_codecs\Tokimemo1bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\FF5Font.xml">
+    <None Update="_palettes\DefaultNes.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\Gen4bpp.xml">
+    <None Update="_palettes\DefaultRgba32.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\GG4bpp.xml">
+    <None Update="_codecs\FF5Font.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\NES1bpp.xml">
+    <None Update="_codecs\Gen4bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\NES2bpp.xml">
+    <None Update="_codecs\GG4bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\NGPC2bpp.xml">
+    <None Update="_codecs\NES1bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\PSX4bpp.xml">
+    <None Update="_codecs\NES2bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\PSX8bpp.xml">
+    <None Update="_codecs\NGPC2bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\SNES2bpp.xml">
+    <None Update="_codecs\PSX4bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\SNES3bpp.xml">
+    <None Update="_codecs\PSX8bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\SNES4bpp.xml">
+    <None Update="_codecs\SNES2bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\SNES8bpp.xml">
+    <None Update="_codecs\SNES3bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\SNESMode7.xml">
+    <None Update="_codecs\SNES4bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="XmlCodecs\VB2bpp.xml">
+    <None Update="_codecs\SNES8bpp.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="_codecs\SNESMode7.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="_codecs\VB2bpp.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="_schemas\CodecSchema.xsd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="_schemas\GameDescriptorSchema.xsd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="XmlProjectSamples\" />
+    <Folder Include="_xmlProjectSamples\" />
   </ItemGroup>
 
 </Project>

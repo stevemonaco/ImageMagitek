@@ -10,26 +10,33 @@ namespace ImageMagitek.Codec
 {
     public class XmlGraphicsFormatReader : IGraphicsFormatReader
     {
-        public GraphicsFormat LoadFromFile(string fileName)
+        private XmlSchemaSet _schemas = new XmlSchemaSet();
+
+        public XmlGraphicsFormatReader(string schemaFileName)
+        {
+            if (!string.IsNullOrWhiteSpace(schemaFileName))
+            {
+                using var schemaStream = File.OpenRead(schemaFileName);
+                _schemas.Add("", XmlReader.Create(schemaStream));
+            }
+        }
+
+        public MagitekResults<GraphicsFormat> LoadFromFile(string fileName)
         {
             var format = new GraphicsFormat();
 
             using var stream = File.OpenRead(fileName);
-            using var schemaStream = File.OpenRead(Path.Combine("schema", "CodecSchema.xsd"));
-
-            var schemas = new XmlSchemaSet();
-            schemas.Add("", XmlReader.Create(schemaStream));
             var doc = XDocument.Load(stream, LoadOptions.SetLineInfo);
 
             var validationErrors = new List<string>();
 
-            doc.Validate(schemas, (o, e) =>
+            doc.Validate(_schemas, (o, e) =>
             {
                 validationErrors.Add(e.Message);
             });
 
             if (validationErrors.Any())
-                return null;
+                return new MagitekResults<GraphicsFormat>.Failed(validationErrors);
 
             XElement formatNode = doc.Element("format");
 
@@ -110,16 +117,13 @@ namespace ImageMagitek.Codec
                 else // Create a default rowpixelpattern
                 {
                     rowPixelPattern = new int[1];
-
-                    //for (int i = 0; i < format.Width; i++)
-                    //    rowPixelPattern[i] = i;
                 }
 
                 ImageProperty ip = new ImageProperty(int.Parse(image.colordepth), bool.Parse(image.rowinterlace), rowPixelPattern);
                 format.ImageProperties.Add(ip);
             }
 
-            return format;
+            return new MagitekResults<GraphicsFormat>.Success(format);
         }
     }
 }

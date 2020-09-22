@@ -9,10 +9,12 @@
         public int PositionX { get; set; }
         public int PositionY { get; set; }
 
+        public bool UsesGlobalDefaultPalette { get; set; }
+
         public ArrangerElement ToArrangerElement() =>
             new ArrangerElement(PositionX, PositionY, null, FileAddress, null, null);
 
-        public static ArrangerElementModel FromArrangerElement(ArrangerElement el)
+        public static ArrangerElementModel FromArrangerElement(in ArrangerElement el)
         {
             return new ArrangerElementModel()
             {
@@ -23,7 +25,7 @@
             };
         }
 
-        public static ArrangerElementModel FromArrangerElement(ArrangerElement el, int elemX, int elemY)
+        public static ArrangerElementModel FromArrangerElement(in ArrangerElement el, int elemX, int elemY)
         {
             return new ArrangerElementModel()
             {

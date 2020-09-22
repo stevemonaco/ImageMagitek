@@ -17,13 +17,13 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="moveType">Type of move requested</param>
         /// <returns>Updated address of first element</returns>
-        public static FileBitAddress Move(this SequentialArranger self, ArrangerMoveType moveType)
+        public static FileBitAddress Move(this SequentialArranger arranger, ArrangerMoveType moveType)
         {
-            if (self.Mode != ArrangerMode.Sequential)
-                throw new InvalidOperationException($"{nameof(Move)}: Arranger {self.Name} is not in sequential mode");
+            if (arranger.Mode != ArrangerMode.Sequential)
+                throw new InvalidOperationException($"{nameof(Move)}: Arranger {arranger.Name} is not in sequential mode");
 
-            var initialAddress = self.GetInitialSequentialFileAddress();
-            var newAddress = self.GetInitialSequentialFileAddress();
+            var initialAddress = arranger.GetInitialSequentialFileAddress();
+            var newAddress = arranger.GetInitialSequentialFileAddress();
             FileBitAddress delta = 0;
 
             switch (moveType) // Calculate the new address based on the movement command. Negative and post-EOF addresses are handled after the switch
@@ -35,103 +35,66 @@ namespace ImageMagitek
                     newAddress -= 8;
                     break;
                 case ArrangerMoveType.RowDown:
-                    if(self.Layout == ArrangerLayout.Tiled)
-                        delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize;
-                    else if(self.Layout == ArrangerLayout.Single)
-                        delta = self.ActiveCodec.StorageSize / self.ArrangerPixelSize.Height;
+                    if(arranger.Layout == ArrangerLayout.Tiled)
+                        delta = arranger.ArrangerElementSize.Width * arranger.ActiveCodec.StorageSize;
+                    else if(arranger.Layout == ArrangerLayout.Single)
+                        delta = arranger.ActiveCodec.StorageSize / arranger.ArrangerPixelSize.Height;
 
                     newAddress += delta;
                     break;
                 case ArrangerMoveType.RowUp:
-                    if (self.Layout == ArrangerLayout.Tiled)
-                        delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize;
-                    else if (self.Layout == ArrangerLayout.Single)
-                        delta = self.ActiveCodec.StorageSize / self.ArrangerPixelSize.Height;
+                    if (arranger.Layout == ArrangerLayout.Tiled)
+                        delta = arranger.ArrangerElementSize.Width * arranger.ActiveCodec.StorageSize;
+                    else if (arranger.Layout == ArrangerLayout.Single)
+                        delta = arranger.ActiveCodec.StorageSize / arranger.ArrangerPixelSize.Height;
                     newAddress -= delta;
                     break;
                 case ArrangerMoveType.ColRight:
-                    if (self.Layout == ArrangerLayout.Tiled)
-                        delta = self.ActiveCodec.StorageSize;
-                    else if (self.Layout == ArrangerLayout.Single)
-                        delta = 16 * self.ActiveCodec.StorageSize / ((self.ActiveCodec.RowStride + self.ActiveCodec.Width) * self.ActiveCodec.Height);
+                    if (arranger.Layout == ArrangerLayout.Tiled)
+                        delta = arranger.ActiveCodec.StorageSize;
+                    else if (arranger.Layout == ArrangerLayout.Single)
+                        delta = 16 * arranger.ActiveCodec.StorageSize / ((arranger.ActiveCodec.RowStride + arranger.ActiveCodec.Width) * arranger.ActiveCodec.Height);
                     newAddress += delta;
                     break;
                 case ArrangerMoveType.ColLeft:
-                    if (self.Layout == ArrangerLayout.Tiled)
-                        delta = self.ActiveCodec.StorageSize;
-                    else if (self.Layout == ArrangerLayout.Single)
-                        delta = 16 * self.ActiveCodec.StorageSize / ((self.ActiveCodec.RowStride + self.ActiveCodec.Width) * self.ActiveCodec.Height);
+                    if (arranger.Layout == ArrangerLayout.Tiled)
+                        delta = arranger.ActiveCodec.StorageSize;
+                    else if (arranger.Layout == ArrangerLayout.Single)
+                        delta = 16 * arranger.ActiveCodec.StorageSize / ((arranger.ActiveCodec.RowStride + arranger.ActiveCodec.Width) * arranger.ActiveCodec.Height);
                     newAddress -= delta;
                     break;
                 case ArrangerMoveType.PageDown:
-                    if (self.Layout == ArrangerLayout.Tiled)
-                        delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize * self.ArrangerElementSize.Height / 2;
-                    else if (self.Layout == ArrangerLayout.Single)
-                        delta = self.ActiveCodec.StorageSize / 2;
+                    if (arranger.Layout == ArrangerLayout.Tiled)
+                        delta = arranger.ArrangerElementSize.Width * arranger.ActiveCodec.StorageSize * arranger.ArrangerElementSize.Height / 2;
+                    else if (arranger.Layout == ArrangerLayout.Single)
+                        delta = arranger.ActiveCodec.StorageSize / 2;
                     newAddress += delta;
                     break;
                 case ArrangerMoveType.PageUp:
-                    if (self.Layout == ArrangerLayout.Tiled)
-                        delta = self.ArrangerElementSize.Width * self.ActiveCodec.StorageSize * self.ArrangerElementSize.Height / 2;
-                    else if (self.Layout == ArrangerLayout.Single)
-                        delta = self.ActiveCodec.StorageSize / 2;
+                    if (arranger.Layout == ArrangerLayout.Tiled)
+                        delta = arranger.ArrangerElementSize.Width * arranger.ActiveCodec.StorageSize * arranger.ArrangerElementSize.Height / 2;
+                    else if (arranger.Layout == ArrangerLayout.Single)
+                        delta = arranger.ActiveCodec.StorageSize / 2;
                     newAddress -= delta;
                     break;
                 case ArrangerMoveType.Home:
                     newAddress = 0;
                     break;
                 case ArrangerMoveType.End:
-                    newAddress = new FileBitAddress(self.FileSize * 8 - self.ArrangerBitSize);
+                    newAddress = new FileBitAddress(arranger.FileSize * 8 - arranger.ArrangerBitSize);
                     break;
             }
 
-            if (newAddress + self.ArrangerBitSize > self.FileSize * 8) // Calculated address is past EOF (first)
-                newAddress = new FileBitAddress(self.FileSize * 8 - self.ArrangerBitSize);
+            if (newAddress + arranger.ArrangerBitSize > arranger.FileSize * 8) // Calculated address is past EOF (first)
+                newAddress = new FileBitAddress(arranger.FileSize * 8 - arranger.ArrangerBitSize);
 
             if (newAddress < 0) // Calculated address is before start of file (second)
                 newAddress = 0;
 
             if(initialAddress != newAddress)
-                self.Move(newAddress);
+                arranger.Move(newAddress);
 
             return newAddress;
-        }
-
-        /// <summary>
-        /// Moves the sequential arranger to the specified address
-        /// If the arranger will overflow the file, then seek only to the furthest offset
-        /// </summary>
-        /// <param name="absoluteAddress">Specified address to move the arranger to</param>
-        /// <returns></returns>
-        public static FileBitAddress Move(this SequentialArranger arranger, FileBitAddress absoluteAddress)
-        {
-            if (arranger.Mode != ArrangerMode.Sequential)
-                throw new InvalidOperationException($"{nameof(Move)}: Arranger {arranger.Name} is not in sequential mode");
-
-            FileBitAddress address;
-            FileBitAddress testaddress = absoluteAddress + arranger.ArrangerBitSize; // Tests the bounds of the arranger vs the file size
-
-            if (arranger.FileSize * 8 < arranger.ArrangerBitSize) // Arranger needs more bits than the entire file
-                address = new FileBitAddress(0, 0);
-            else if (testaddress.Bits() > arranger.FileSize * 8)
-                address = new FileBitAddress(arranger.FileSize * 8 - arranger.ArrangerBitSize);
-            else
-                address = absoluteAddress;
-
-            int ElementStorageSize = arranger.ActiveCodec.StorageSize;
-
-            for (int y = 0; y < arranger.ArrangerElementSize.Height; y++)
-            {
-                for (int x = 0; x < arranger.ArrangerElementSize.Width; x++)
-                {
-                    var el = arranger.GetElement(x, y);
-                    el = el.WithAddress(address);
-                    arranger.SetElement(el, x, y);
-                    address += ElementStorageSize;
-                }
-            }
-
-            return arranger.GetElement(0, 0).FileAddress;
         }
 
         /// <summary>

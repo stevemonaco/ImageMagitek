@@ -42,7 +42,7 @@ namespace ImageMagitek.Codec
             _nativeBuffer = new byte[Width, Height];
         }
 
-        public override byte[,] DecodeElement(ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+        public override byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
         {
             if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
                 throw new ArgumentException(nameof(encodedBuffer));
@@ -63,7 +63,7 @@ namespace ImageMagitek.Codec
             return _nativeBuffer;
         }
 
-        public override ReadOnlySpan<byte> EncodeElement(ArrangerElement el, byte[,] imageBuffer)
+        public override ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer)
         {
             if (imageBuffer.GetLength(0) != Width || imageBuffer.GetLength(1) != Height)
                 throw new ArgumentException(nameof(imageBuffer));

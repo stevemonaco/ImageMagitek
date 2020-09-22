@@ -4,10 +4,34 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:TileShop.WPF.Converters"
     xmlns:local="clr-namespace:TileShop.WPF"
-    xmlns:s="https://github.com/canton7/Stylet">
+    xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:ui="http://schemas.modernwpf.com/2019">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!--  Color Theming  -->
+                <ui:ThemeResources>
+                    <ui:ThemeResources.ThemeDictionaries>
+                        <ResourceDictionary x:Key="Light">
+                            <ResourceDictionary.MergedDictionaries>
+                                <ui:ColorPaletteResources AltHigh="LightGray" TargetTheme="Light" />
+                                <ResourceDictionary Source="/Styles/Theming/TileShop.Light.xaml" />
+                                <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/LightTheme.xaml" />
+                            </ResourceDictionary.MergedDictionaries>
+                        </ResourceDictionary>
+
+                        <ResourceDictionary x:Key="Dark">
+                            <ResourceDictionary.MergedDictionaries>
+                                <ui:ColorPaletteResources AltHigh="#FF2B2B2B" TargetTheme="Dark" />
+                                <ResourceDictionary Source="/Styles/Theming/TileShop.Dark.xaml" />
+                                <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/DarkTheme.xaml" />
+                            </ResourceDictionary.MergedDictionaries>
+                        </ResourceDictionary>
+                    </ui:ThemeResources.ThemeDictionaries>
+                </ui:ThemeResources>
+                <ui:XamlControlsResources />
+
+                <!--  TileShop Resources  -->
                 <ResourceDictionary>
                     <s:ApplicationLoader x:Key="Bootstrapper">
                         <s:ApplicationLoader.Bootstrapper>
@@ -27,6 +51,7 @@
                     </DrawingBrush>
 
                     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+                    <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
                     <converters:EditModeBooleanConverter x:Key="EditModeBooleanConverter" />
                     <converters:SnapModeBooleanConverter x:Key="SnapModeBooleanConverter" />
                     <converters:ColorToSolidColorBrushConverter x:Key="ColorToSolidColorBrushConverter" />
@@ -40,14 +65,14 @@
                     <converters:ColorRgba32ToColorConverter x:Key="ColorRgba32ToColorConverter" />
                     <converters:PaletteEntryToIndexConverter x:Key="PaletteEntryToIndexConverter" />
                     <converters:PaletteEntryToSolidColorBrushConverter x:Key="PaletteEntryToSolidColorBrushConverter" />
+                    <converters:ScrollViewerToMarginStringConverter x:Key="ScrollViewerToMarginStringConverter" />
                 </ResourceDictionary>
 
+                <!--  TileShop Control Styles  -->
                 <ResourceDictionary Source="/TileShop;component/Styles/Icons.xaml" />
+                <ResourceDictionary Source="/TileShop;component/Styles/NumberBox.xaml" />
+                <ResourceDictionary Source="/ModernWpf;component/Styles/TreeView.xaml" />
 
-                <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/LightTheme.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Light.Blue.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

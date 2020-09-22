@@ -38,7 +38,7 @@ namespace ImageMagitek
 
             //var buffer = new ColorRgba32[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
 
-            foreach (var el in Arranger.EnumerateElements())
+            foreach (var el in Arranger.EnumerateElements().Where(x => x.DataFile is object))
             {
                 if (el.Codec is IDirectCodec codec)
                 {

@@ -1,39 +1,39 @@
 ﻿using System.IO;
 using ImageMagitek.Colors;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace ImageMagitek
 {
     public interface IImageFileAdapter
     {
-        void SaveImage(byte[] image, Arranger arranger, Palette defaultPalette, string imagePath);
+        void SaveImage(byte[] image, Arranger arranger, string imagePath);
         void SaveImage(ColorRgba32[] image, int width, int height, string imagePath);
-        byte[] LoadImage(string imagePath, Arranger arranger, Palette defaultPalette, ColorMatchStrategy matchStrategy);
-        MagitekResult TryLoadImage(string imagePath, Arranger arranger, Palette defaultPalette, ColorMatchStrategy matchStrategy, out byte[] image);
+        byte[] LoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy);
+        MagitekResult TryLoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy, out byte[] image);
         ColorRgba32[] LoadImage(string imagePath);
     }
 
     public class ImageFileAdapter : IImageFileAdapter
     {
-        public void SaveImage(byte[] image, Arranger arranger, Palette defaultPalette, string imagePath)
+        public void SaveImage(byte[] image, Arranger arranger, string imagePath)
         {
             var width = arranger.ArrangerPixelSize.Width;
             var height = arranger.ArrangerPixelSize.Height;
             using var outputImage = new Image<Rgba32>(width, height);
-            var span = outputImage.GetPixelSpan();
-            var destidx = 0;
+
             var srcidx = 0;
 
             for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < width; x++, destidx++, srcidx++)
+                var span = outputImage.GetPixelRowSpan(y);
+
+                for (int x = 0; x < width; x++, srcidx++)
                 {
-                    var pal = arranger.GetElementAtPixel(x, y).Palette ?? defaultPalette;
+                    var pal = arranger.GetElementAtPixel(x, y).Palette;
                     var index = image[srcidx];
                     var color = pal[index];
-                    span[destidx] = color.ToRgba32();
+                    span[x] = color.ToRgba32();
                 }
             }
 
@@ -44,15 +44,14 @@ namespace ImageMagitek
         public void SaveImage(ColorRgba32[] image, int width, int height, string imagePath)
         {
             using var outputImage = new Image<Rgba32>(width, height);
-            var span = outputImage.GetPixelSpan();
-            var destidx = 0;
             var srcidx = 0;
 
             for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < width; x++, destidx++, srcidx++)
+                var span = outputImage.GetPixelRowSpan(y);
+                for (int x = 0; x < width; x++, srcidx++)
                 {
-                    span[destidx] = image[srcidx].ToRgba32();
+                    span[x] = image[srcidx].ToRgba32();
                 }
             }
 
@@ -60,33 +59,33 @@ namespace ImageMagitek
             outputImage.SaveAsPng(outputStream);
         }
 
-        public byte[] LoadImage(string imagePath, Arranger arranger, Palette defaultPalette, ColorMatchStrategy matchStrategy)
+        public byte[] LoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy)
         {
-            using var inputImage = SixLabors.ImageSharp.Image.Load(imagePath);
+            using var inputImage = SixLabors.ImageSharp.Image.Load<Rgba32>(imagePath);
             var width = inputImage.Width;
             var height = inputImage.Height;
 
             var outputImage = new byte[width * height];
-            var span = inputImage.GetPixelSpan();
-            int index = 0;
+            int destidx = 0;
 
             for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < width; x++, index++)
+                var span = inputImage.GetPixelRowSpan(y);
+                for (int x = 0; x < width; x++, destidx++)
                 {
-                    var pal = arranger.GetElementAtPixel(x, y).Palette ?? defaultPalette;
-                    var color = new ColorRgba32(span[index].PackedValue);
+                    var pal = arranger.GetElementAtPixel(x, y).Palette;
+                    var color = new ColorRgba32(span[x].PackedValue);
                     var palIndex = pal.GetIndexByNativeColor(color, matchStrategy);
-                    outputImage[index] = palIndex;
+                    outputImage[destidx] = palIndex;
                 }
             }
 
             return outputImage;
         }
 
-        public MagitekResult TryLoadImage(string imagePath, Arranger arranger, Palette defaultPalette, ColorMatchStrategy matchStrategy, out byte[] image)
+        public MagitekResult TryLoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy, out byte[] image)
         {
-            using var inputImage = SixLabors.ImageSharp.Image.Load(imagePath);
+            using var inputImage = SixLabors.ImageSharp.Image.Load<Rgba32>(imagePath);
             var width = inputImage.Width;
             var height = inputImage.Height;
 
@@ -98,19 +97,19 @@ namespace ImageMagitek
             }
 
             image = new byte[width * height];
-            var span = inputImage.GetPixelSpan();
-            int index = 0;
+            int destidx = 0;
 
             for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < width; x++, index++)
+                var span = inputImage.GetPixelRowSpan(y);
+                for (int x = 0; x < width; x++, destidx++)
                 {
-                    var pal = arranger.GetElementAtPixel(x, y).Palette ?? defaultPalette;
-                    var color = new ColorRgba32(span[index].PackedValue);
+                    var pal = arranger.GetElementAtPixel(x, y).Palette;
+                    var color = new ColorRgba32(span[x].PackedValue);
 
                     if (pal.TryGetIndexByNativeColor(color, matchStrategy, out var palIndex))
                     {
-                        image[index] = palIndex;
+                        image[destidx] = palIndex;
                     }
                     else
                     {
@@ -124,20 +123,20 @@ namespace ImageMagitek
 
         public ColorRgba32[] LoadImage(string imagePath)
         {
-            using var inputImage = SixLabors.ImageSharp.Image.Load(imagePath);
+            using var inputImage = SixLabors.ImageSharp.Image.Load<Rgba32>(imagePath);
             var width = inputImage.Width;
             var height = inputImage.Height;
 
             var outputImage = new ColorRgba32[width * height];
-            var span = inputImage.GetPixelSpan();
-            int index = 0;
+            int destidx = 0;
 
             for (int y = 0; y < height; y++)
             {
+                var span = inputImage.GetPixelRowSpan(y);
                 for (int x = 0; x < width; x++)
                 {
-                    var color = new ColorRgba32(span[index].PackedValue);
-                    outputImage[index] = color;
+                    var color = new ColorRgba32(span[x].PackedValue);
+                    outputImage[destidx] = color;
                 }
             }
 

@@ -6,14 +6,19 @@ using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
+using Monaco.PathTree;
 
 namespace ImageMagitekConsole
 {
+    public enum ExitCode { Success = 0, InvalidCommandArguments = -1, ProjectValidationError = -2 }
+
     class Program
     {
-        static readonly HashSet<string> Commands = new HashSet<string> { "export", "exportall", "import", "importall", "print", "resave" };
+        static readonly HashSet<string> _commands = new HashSet<string> { "export", "exportall", "import", "importall", "print", "resave" };
+        static readonly string _projectSchemaFileName = Path.Combine("schema", "GameDescriptorSchema.xsd");
+        static readonly string _codecSchemaFileName = Path.Combine("schema", "CodecSchema.xsd");
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             Console.WriteLine("ImageMagitek v0.06");
             if (args.Length < 2)
@@ -25,10 +30,10 @@ namespace ImageMagitekConsole
             string projectFileName = args[0];
 
             var command = args[1].ToLower();
-            if (!Commands.Contains(command))
+            if (!_commands.Contains(command))
             {
                 Console.WriteLine($"Invalid command {command}");
-                return;
+                return (int) ExitCode.InvalidCommandArguments;
             }
 
             string projectRoot = null;
@@ -43,11 +48,19 @@ namespace ImageMagitekConsole
             // Load default graphic formats and palettes
             var codecPath = Path.Combine(Directory.GetCurrentDirectory(), "codecs");
             var formats = new Dictionary<string, GraphicsFormat>();
-            var serializer = new XmlGraphicsFormatReader();
+            var serializer = new XmlGraphicsFormatReader(_codecSchemaFileName);
             foreach (var formatFileName in Directory.GetFiles(codecPath).Where(x => x.EndsWith(".xml")))
             {
-                var format = serializer.LoadFromFile(formatFileName);
-                formats.Add(format.Name, format);
+                var codecResult = serializer.LoadFromFile(formatFileName);
+                codecResult.Switch(success =>
+                {
+                    formats.Add(success.Result.Name, success.Result);
+                },
+                fail =>
+                {
+                    Console.WriteLine($"Codec '{formatFileName}' contained {fail.Reasons.Count} error(s):");
+                    Console.WriteLine(string.Join(Environment.NewLine, fail.Reasons));
+                });
             }
 
             var palPath = Path.Combine(Directory.GetCurrentDirectory(), "pal");
@@ -64,7 +77,23 @@ namespace ImageMagitekConsole
 
             var schemaFileName = Path.Combine(Directory.GetCurrentDirectory(), "schema", "GameDescriptorValidator.xsd");
             var deserializer = new XmlGameDescriptorReader(schemaFileName, new CodecFactory(formats, defaultPalette));
-            var tree = deserializer.ReadProject(projectFileName);
+
+            //IPathTree<IProjectResource> tree = default;
+            var projectResult = deserializer.ReadProject(projectFileName);
+
+            IPathTree<IProjectResource> tree = projectResult.Match(
+                success => success.Result,
+                fail =>
+                {
+                    Console.WriteLine($"'{projectFileName}' could not be parsed and contained {fail.Reasons.Count} errors");
+                    foreach (var error in fail.Reasons)
+                        Console.WriteLine(error);
+                    return default;
+                }
+                );
+
+            if (tree is null)
+                return (int) ExitCode.ProjectValidationError;
 
             var processor = new CommandProcessor(tree, defaultPalette);
 
@@ -92,6 +121,8 @@ namespace ImageMagitekConsole
                     processor.ResaveProject(newFileName);
                     break;
             }
+
+            return (int) ExitCode.Success;
         }
     }
 }

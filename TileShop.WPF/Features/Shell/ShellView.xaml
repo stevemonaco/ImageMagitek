@@ -1,0 +1,193 @@
+﻿<Window
+    x:Class="TileShop.WPF.Views.ShellView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ad="https://github.com/Dirkster99/AvalonDock"
+    xmlns:con="clr-namespace:TileShop.WPF.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dock="clr-namespace:TileShop.WPF.Docking"
+    xmlns:local="clr-namespace:TileShop.WPF.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:sel="clr-namespace:TileShop.WPF.Selectors"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
+    Title="TileShop"
+    ui:ThemeManager.IsThemeAware="True"
+    ui:TitleBar.ExtendViewIntoTitleBar="True"
+    ui:WindowHelper.UseModernWindowStyle="True"
+    Closing="{s:Action Closing}"
+    ResizeMode="CanResizeWithGrip"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+        <con:ActiveDocumentConverter x:Key="ActiveDocumentConverter" />
+
+        <sel:EditorHostStyleSelector x:Key="editorStyleSelector">
+            <sel:EditorHostStyleSelector.EditorStyle>
+                <Style TargetType="{x:Type ad:LayoutDocumentItem}">
+                    <Setter Property="Title" Value="{Binding Model.DisplayName}" />
+                    <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
+                    <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Setter Property="IsActive" Value="{Binding Model.IsActive, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Setter Property="Visibility" Value="{Binding Model.IsVisible, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}, Mode=TwoWay}" />
+                </Style>
+            </sel:EditorHostStyleSelector.EditorStyle>
+            <sel:EditorHostStyleSelector.ToolStyle>
+                <Style TargetType="{x:Type ad:LayoutItem}">
+                    <Setter Property="Title" Value="{Binding Model.DisplayName}" />
+                    <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
+                    <Setter Property="IsActive" Value="{Binding Model.IsActive}" />
+                    <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Setter Property="Visibility" Value="{Binding Model.IsVisible, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter={x:Static Visibility.Hidden}, Mode=TwoWay}" />
+                </Style>
+            </sel:EditorHostStyleSelector.ToolStyle>
+        </sel:EditorHostStyleSelector>
+
+        <sel:EditorHostTemplateSelector x:Key="editorTemplateSelector">
+            <sel:EditorHostTemplateSelector.DataFileEditorTemplate>
+                <DataTemplate>
+                    <ContentControl s:View.Model="{Binding}" />
+                </DataTemplate>
+            </sel:EditorHostTemplateSelector.DataFileEditorTemplate>
+            <sel:EditorHostTemplateSelector.PaletteEditorTemplate>
+                <DataTemplate>
+                    <ContentControl s:View.Model="{Binding}" />
+                </DataTemplate>
+            </sel:EditorHostTemplateSelector.PaletteEditorTemplate>
+            <sel:EditorHostTemplateSelector.PixelEditorTemplate>
+                <DataTemplate>
+                    <ContentControl s:View.Model="{Binding}" />
+                </DataTemplate>
+            </sel:EditorHostTemplateSelector.PixelEditorTemplate>
+            <sel:EditorHostTemplateSelector.ProjectTreeTemplate>
+                <DataTemplate>
+                    <ContentControl s:View.Model="{Binding}" />
+                </DataTemplate>
+            </sel:EditorHostTemplateSelector.ProjectTreeTemplate>
+            <sel:EditorHostTemplateSelector.ScatteredArrangerEditorTemplate>
+                <DataTemplate>
+                    <ContentControl s:View.Model="{Binding}" />
+                </DataTemplate>
+            </sel:EditorHostTemplateSelector.ScatteredArrangerEditorTemplate>
+            <sel:EditorHostTemplateSelector.SequentialArrangerEditorTemplate>
+                <DataTemplate>
+                    <ContentControl s:View.Model="{Binding}" />
+                </DataTemplate>
+            </sel:EditorHostTemplateSelector.SequentialArrangerEditorTemplate>
+        </sel:EditorHostTemplateSelector>
+
+        <sel:DocumentHeaderTemplateSelector x:Key="documentHeaderTemplateSelector">
+            <sel:DocumentHeaderTemplateSelector.PaletteDocumentHeaderTemplate>
+                <DataTemplate>
+                    <StackPanel Height="30" Orientation="Horizontal">
+                        <Image Margin="0,0,6,0" Style="{StaticResource iconNodePaletteSmall}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{Binding Content.DisplayName}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="*"
+                            Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                    </StackPanel>
+                </DataTemplate>
+            </sel:DocumentHeaderTemplateSelector.PaletteDocumentHeaderTemplate>
+            <sel:DocumentHeaderTemplateSelector.DataFileDocumentHeaderTemplate>
+                <DataTemplate>
+                    <StackPanel Height="30" Orientation="Horizontal">
+                        <Image Margin="0,0,6,0" Style="{StaticResource iconNodeFileSmall}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{Binding Content.DisplayName}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="*"
+                            Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                    </StackPanel>
+                </DataTemplate>
+            </sel:DocumentHeaderTemplateSelector.DataFileDocumentHeaderTemplate>
+            <sel:DocumentHeaderTemplateSelector.ScatteredArrangerDocumentHeaderTemplate>
+                <DataTemplate>
+                    <StackPanel Height="30" Orientation="Horizontal">
+                        <Image Margin="0,0,6,0" Style="{StaticResource iconNodeArrangerSmall}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{Binding Content.DisplayName}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="*"
+                            Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                    </StackPanel>
+                </DataTemplate>
+            </sel:DocumentHeaderTemplateSelector.ScatteredArrangerDocumentHeaderTemplate>
+            <sel:DocumentHeaderTemplateSelector.SequentialArrangerDocumentHeaderTemplate>
+                <DataTemplate>
+                    <StackPanel Height="30" Orientation="Horizontal">
+                        <Image Margin="0,0,6,0" Style="{StaticResource iconNodeFileSmall}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{Binding Content.DisplayName}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="*"
+                            Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                    </StackPanel>
+                </DataTemplate>
+            </sel:DocumentHeaderTemplateSelector.SequentialArrangerDocumentHeaderTemplate>
+        </sel:DocumentHeaderTemplateSelector>
+    </Window.Resources>
+
+    <Grid x:Name="shellGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <local:AppIconView Padding="2,0,2,0" />
+            <ContentControl s:View.Model="{Binding ActiveMenu}" WindowChrome.IsHitTestVisibleInChrome="True" />
+        </StackPanel>
+
+        <Grid x:Name="mainGrid" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+
+            <ContentControl Grid.Row="3" s:View.Model="{Binding ActiveStatusBar}" />
+
+            <ad:DockingManager
+                x:Name="dockManager"
+                Grid.Row="2"
+                ActiveContent="{Binding Editors.ActiveEditor, Mode=TwoWay, Converter={StaticResource ActiveDocumentConverter}}"
+                AllowMixedOrientation="True"
+                AnchorablesSource="{Binding Tools, Mode=TwoWay}"
+                DocumentClosed="{s:Action DocumentClosed}"
+                DocumentClosing="{s:Action DocumentClosing}"
+                DocumentHeaderTemplateSelector="{StaticResource documentHeaderTemplateSelector}"
+                DocumentsSource="{Binding Editors.Editors, Mode=TwoWay}"
+                LayoutItemContainerStyleSelector="{StaticResource editorStyleSelector}"
+                LayoutItemTemplateSelector="{StaticResource editorTemplateSelector}">
+
+                <ad:DockingManager.LayoutUpdateStrategy>
+                    <dock:LayoutInitializer />
+                </ad:DockingManager.LayoutUpdateStrategy>
+
+                <ad:LayoutRoot>
+                    <ad:LayoutPanel x:Name="rootPanel" Orientation="Horizontal">
+                        <ad:LayoutAnchorablePane Name="projectPane" DockWidth="300" />
+                        <ad:LayoutDocumentPane x:Name="documentsPane" />
+                        <ad:LayoutAnchorablePane Name="pixelPane" DockWidth="400" />
+                    </ad:LayoutPanel>
+                </ad:LayoutRoot>
+
+            </ad:DockingManager>
+
+        </Grid>
+    </Grid>
+</Window>

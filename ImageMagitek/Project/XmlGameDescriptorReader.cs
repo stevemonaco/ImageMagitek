@@ -18,22 +18,29 @@ namespace ImageMagitek.Project
     {
         public string DescriptorVersion => "0.8";
 
+        private readonly XmlSchemaSet _schemaSet;
         private readonly ICodecFactory _codecFactory;
+        private readonly List<IProjectResource> _globalResources;
         private string _baseDirectory;
-        private XmlSchemaSet _schemas = new XmlSchemaSet();
 
-        public XmlGameDescriptorReader(string schemaFileName, ICodecFactory CodecFactory)
+        public XmlGameDescriptorReader(ICodecFactory codecFactory) : 
+            this(new XmlSchemaSet(), codecFactory, Enumerable.Empty<IProjectResource>())
         {
-            _codecFactory = CodecFactory;
-
-            if (!string.IsNullOrWhiteSpace(schemaFileName))
-            {
-                using var schemaStream = File.OpenRead(schemaFileName);
-                _schemas.Add("", XmlReader.Create(schemaStream));
-            }
         }
 
-        public IPathTree<IProjectResource> ReadProject(string projectFileName)
+        public XmlGameDescriptorReader(XmlSchemaSet schemaSet, ICodecFactory codecFactory) : 
+            this(schemaSet, codecFactory, Enumerable.Empty<IProjectResource>())
+        {
+        }
+
+        public XmlGameDescriptorReader(XmlSchemaSet schemaSet, ICodecFactory codecFactory, IEnumerable<IProjectResource> globalResources)
+        {
+            _schemaSet = schemaSet;
+            _codecFactory = codecFactory;
+            _globalResources = globalResources.ToList();
+        }
+        
+        public MagitekResults<ProjectTree> ReadProject(string projectFileName)
         {
             if (string.IsNullOrWhiteSpace(projectFileName))
                 throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
@@ -43,33 +50,42 @@ namespace ImageMagitek.Project
 
             var doc = XDocument.Load(stream, LoadOptions.SetLineInfo);
 
-            var validationErrors = new List<string>();
-
-            doc.Validate(_schemas, (o, e) =>
+            if (_schemaSet is object)
             {
-                validationErrors.Add(e.Message);
-            });
+                var validationErrors = new List<string>();
 
-            if (validationErrors.Any())
-                return null;
-            
+                doc.Validate(_schemaSet, (o, e) =>
+                {
+                    validationErrors.Add(e.Message);
+                });
+
+                if (validationErrors.Any())
+                    return new MagitekResults<ProjectTree>.Failed(validationErrors);
+            }
+
             XElement projectNode = doc.Element("gdf").Element("project");
+            var projectErrors = new List<string>();
 
             var projectResource = DeserializeImageProject(projectNode).ToImageProject();
-            var tree = new PathTree<IProjectResource>(projectResource.Name, projectResource);
+            var tree = new PathTree<IProjectResource>(new ProjectNode(projectResource.Name, projectResource));
 
-            foreach(var node in projectNode.Descendants("folder"))
+            foreach (var node in projectNode.Descendants("folder"))
             {
                 var res = DeserializeResourceFolder(node).ToResourceFolder();
                 var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
-                tree.Add(path, res);
+                
+                var folderNode = new FolderNode(res.Name, res);
+                tree.TryGetNode(node.NodePath(), out var parentNode);
+                parentNode.AttachChild(folderNode);
             }
 
             foreach (var node in projectNode.Descendants("datafile"))
             {
                 var res = DeserializeDataFile(node).ToDataFile();
-                var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
-                tree.Add(path, res);
+
+                var dfNode = new DataFileNode(res.Name, res);
+                tree.TryGetNode(node.NodePath(), out var parentNode);
+                parentNode.AttachChild(dfNode);
             }
 
             foreach (var node in projectNode.Descendants("palette"))
@@ -79,8 +95,10 @@ namespace ImageMagitek.Project
                 tree.TryGetValue<DataFile>(model.DataFileKey, out var df);
                 pal.DataFile = df;
                 pal.LazyLoadPalette(pal.DataFile, pal.FileAddress, pal.ColorModel, pal.ZeroIndexTransparent, pal.Entries);
-                var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
-                tree.Add(path, pal);
+
+                var palNode = new PaletteNode(pal.Name, pal);
+                tree.TryGetNode(node.NodePath(), out var parentNode);
+                parentNode.AttachChild(palNode);
             }
 
             foreach (var node in projectNode.Descendants("arranger"))
@@ -88,14 +106,14 @@ namespace ImageMagitek.Project
                 var modelArranger = DeserializeScatteredArranger(node);
                 var arranger = modelArranger.ToScatteredArranger();
 
-                for(int x = 0; x < arranger.ArrangerElementSize.Width; x++)
+                for (int x = 0; x < arranger.ArrangerElementSize.Width; x++)
                 {
-                    for(int y = 0; y < arranger.ArrangerElementSize.Height; y++)
+                    for (int y = 0; y < arranger.ArrangerElementSize.Height; y++)
                     {
                         if (modelArranger.ElementGrid[x, y] is null)
                         {
                             var el = new ArrangerElement(x * arranger.ArrangerElementSize.Width, y * arranger.ArrangerElementSize.Height,
-                                null, 0, new BlankIndexedCodec(), null);
+                                null, 0, new BlankIndexedCodec(), ResolvePalette(tree, null));
                             arranger.SetElement(el, x, y);
                             continue;
                         }
@@ -104,9 +122,13 @@ namespace ImageMagitek.Project
                         if (!string.IsNullOrWhiteSpace(modelArranger.ElementGrid[x, y].DataFileKey))
                             tree.TryGetValue<DataFile>(modelArranger.ElementGrid[x, y].DataFileKey, out df);
 
-                        Palette pal = default;
-                        if(!string.IsNullOrEmpty(modelArranger.ElementGrid[x, y].PaletteKey))
-                            tree.TryGetValue<Palette>(modelArranger.ElementGrid[x, y].PaletteKey, out pal);
+                        var paletteKey = modelArranger.ElementGrid[x, y].PaletteKey;
+                        Palette pal = ResolvePalette(tree, paletteKey);
+                        if (pal is null)
+                        {
+                            projectErrors.Add($"Could not resolve palette '{paletteKey}' referenced by arranger '{arranger.Name}'");
+                            continue;
+                        }
 
                         var element = arranger.GetElement(x, y);
 
@@ -116,11 +138,38 @@ namespace ImageMagitek.Project
                     }
                 }
 
-                var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
-                tree.Add(path, arranger);
+                var arrangerNode = new ArrangerNode(arranger.Name, arranger);
+                tree.TryGetNode(node.NodePath(), out var parentNode);
+                parentNode.AttachChild(arrangerNode);
             }
 
-            return tree;
+            if (projectErrors.Count > 0)
+                return new MagitekResults<ProjectTree>.Failed(projectErrors);
+
+            return new MagitekResults<ProjectTree>.Success(new ProjectTree(tree, projectFileName));
+        }
+
+        /// <summary>
+        /// Resolves a palette resource using the supplied project tree and falls back to a default palette if available
+        /// </summary>
+        /// <param name="tree"></param>
+        /// <param name="paletteKey"></param>
+        /// <returns></returns>
+        private Palette ResolvePalette(PathTree<IProjectResource> tree, string paletteKey)
+        {
+            Palette pal = default;
+
+            if (string.IsNullOrEmpty(paletteKey))
+            {
+                pal = _globalResources.OfType<Palette>().FirstOrDefault();
+            }
+            else if (!tree.TryGetValue<Palette>(paletteKey, out pal))
+            {
+                var name = paletteKey.Split(tree.PathSeparators).Last();
+                pal = _globalResources.OfType<Palette>().FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return pal;
         }
 
         private ImageProjectModel DeserializeImageProject(XElement element)
@@ -183,9 +232,9 @@ namespace ImageMagitek.Project
             var elementsy = int.Parse(element.Attribute("elementsy").Value); // Height of arranger in elements
             var width = int.Parse(element.Attribute("width").Value); // Width of element in pixels
             var height = int.Parse(element.Attribute("height").Value); // Height of element in pixels
-            var defaultFormat = element.Attribute("defaultcodec").Value;
-            var defaultDataFile = element.Attribute("defaultdatafile").Value;
-            var defaultPalette = element.Attribute("defaultpalette")?.Value ?? "";
+            var defaultCodecName = element.Attribute("defaultcodec").Value;
+            var defaultDataFileKey = element.Attribute("defaultdatafile").Value;
+            var defaultPaletteKey = element.Attribute("defaultpalette")?.Value ?? "";
             var layoutName = element.Attribute("layout").Value;
             var colorType = element.Attribute("color")?.Value ?? "indexed";
             var elementList = element.Descendants("element");
@@ -223,9 +272,9 @@ namespace ImageMagitek.Project
             {
                 var el = new ArrangerElementModel();
 
-                el.DataFileKey = xmlElement.datafile?.Value ?? defaultDataFile;
-                el.PaletteKey = xmlElement.palette?.Value ?? defaultPalette;
-                el.CodecName = xmlElement.format?.Value ?? defaultFormat;
+                el.DataFileKey = xmlElement.datafile?.Value ?? defaultDataFileKey;
+                el.PaletteKey = xmlElement.palette?.Value ?? defaultPaletteKey;
+                el.CodecName = xmlElement.format?.Value ?? defaultCodecName;
                 el.PositionX = xmlElement.posx * width;
                 el.PositionY = xmlElement.posy * height;
 

@@ -1,0 +1,75 @@
+﻿<UserControl
+    x:Class="TileShop.WPF.Views.ProjectNodeView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:h="clr-namespace:TileShop.WPF.Helpers"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:local="clr-namespace:TileShop.WPF.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:s="https://github.com/canton7/Stylet"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <h:BindingProxy x:Key="treeProxy" Data="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:ProjectTreeView}}, Path=DataContext}" />
+    </UserControl.Resources>
+
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="PreviewMouseRightButtonDown">
+            <i:ChangePropertyAction
+                PropertyName="IsSelected"
+                TargetObject="{Binding}"
+                Value="true" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
+    <StackPanel Orientation="Horizontal">
+        <Image Style="{StaticResource iconNodeProjectSmall}" />
+        <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
+
+        <StackPanel.ContextMenu>
+            <ContextMenu>
+                <MenuItem
+                    s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
+                    Command="{s:Action AddNewFolder}"
+                    CommandParameter="{Binding}"
+                    Header="Add New Folder" />
+                <MenuItem
+                    s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
+                    Command="{s:Action AddNewDataFile}"
+                    CommandParameter="{Binding}"
+                    Header="Add Existing Data File" />
+                <MenuItem
+                    s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
+                    Command="{s:Action AddNewScatteredArranger}"
+                    CommandParameter="{Binding}"
+                    Header="Add New Scattered Arranger" />
+                <MenuItem
+                    s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
+                    Command="{s:Action AddNewPalette}"
+                    CommandParameter="{Binding}"
+                    Header="Add New Palette" />
+
+                <Separator />
+
+                <MenuItem
+                    s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
+                    Command="{s:Action SaveProjectAs}"
+                    CommandParameter="{Binding}"
+                    Header="Save Project As..." />
+                <MenuItem
+                    s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
+                    Command="{s:Action CloseProject}"
+                    CommandParameter="{Binding}"
+                    Header="Close Project" />
+                <MenuItem
+                    s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
+                    Command="{s:Action RenameNode}"
+                    CommandParameter="{Binding}"
+                    Header="Rename Project" />
+            </ContextMenu>
+        </StackPanel.ContextMenu>
+    </StackPanel>
+
+</UserControl>

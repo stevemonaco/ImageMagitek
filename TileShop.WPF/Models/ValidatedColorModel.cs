@@ -1,12 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Windows.Media;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿using System.Windows.Media;
 using ImageMagitek.Colors;
+using Stylet;
 
 namespace TileShop.WPF.Models
 {
-    public class ValidatedColorModel : INotifyPropertyChanged
+    public class ValidatedColorModel : PropertyChangedBase
     {
         private IColor32 _foreignColor;
 
@@ -16,7 +14,7 @@ namespace TileShop.WPF.Models
         public Color Color
         {
             get => _color;
-            set => SetField(ref _color, value);
+            set => SetAndNotify(ref _color, value);
         }
 
         public int Red
@@ -75,41 +73,41 @@ namespace TileShop.WPF.Models
         public int RedMax
         {
             get => _redMax;
-            set => SetField(ref _redMax, value);
+            set => SetAndNotify(ref _redMax, value);
         }
 
         private int _greenMax;
         public int GreenMax
         {
             get => _greenMax;
-            set => SetField(ref _greenMax, value);
+            set => SetAndNotify(ref _greenMax, value);
         }
 
         private int _blueMax;
         public int BlueMax
         {
             get => _blueMax;
-            set => SetField(ref _blueMax, value);
+            set => SetAndNotify(ref _blueMax, value);
         }
 
         private int _alphaMax;
         public int AlphaMax
         {
             get => _alphaMax;
-            set => SetField(ref _alphaMax, value);
+            set => SetAndNotify(ref _alphaMax, value);
         }
 
         public bool CanSaveColor
         {
-            get
-            {
-                if (WorkingColor.Color == _foreignColor.Color)
-                    return false;
-                return true;
-            }
+            get => WorkingColor.Color != _foreignColor.Color;
         }
 
-        public int Index { get; set; }
+        private int _index;
+        public int Index
+        {
+            get => _index;
+            set => SetAndNotify(ref _index, value);
+        }
 
         public ValidatedColorModel(IColor32 foreignColor, int index)
         {
@@ -129,18 +127,10 @@ namespace TileShop.WPF.Models
             AlphaMax = foreignColor.AlphaMax;
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        public void SaveColor()
         {
-            if (EqualityComparer<T>.Default.Equals(field, value))
-                return false;
-
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
+            _foreignColor = ColorFactory.CloneColor(WorkingColor);
+            OnPropertyChanged(nameof(CanSaveColor));
         }
     }
 }

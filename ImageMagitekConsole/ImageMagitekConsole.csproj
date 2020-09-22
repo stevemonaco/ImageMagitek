@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Monaco.PathTree" Version="0.3.0" />
-    <PackageReference Include="OneOf" Version="2.1.151" />
+    <PackageReference Include="Monaco.PathTree" Version="0.4.1" />
+    <PackageReference Include="OneOf" Version="2.1.155" />
   </ItemGroup>
 
   <ItemGroup>
