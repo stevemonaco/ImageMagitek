@@ -31,6 +31,9 @@
     <None Update="_codecs\Tokimemo1bpp.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="_palettes\DefaultNes.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="_palettes\DefaultRgba32.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
