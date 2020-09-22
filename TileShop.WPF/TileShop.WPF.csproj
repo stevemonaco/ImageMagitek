@@ -6,7 +6,11 @@
     <LangVersion>8.0</LangVersion>
     <UseWPF>true</UseWPF>
     <AssemblyName>TileShop</AssemblyName>
-    <Version>0.93</Version>
+    <Version>0.95</Version>
+    <Authors>Steve Monaco</Authors>
+    <PackageProjectUrl>https://github.com/stevemonaco/ImageMagitek</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/stevemonaco/ImageMagitek</RepositoryUrl>
+    <Copyright>2020</Copyright>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
