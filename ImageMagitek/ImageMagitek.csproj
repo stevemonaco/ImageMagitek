@@ -85,7 +85,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="XmlProjectSamples\" />
+    <Folder Include="_xmlProjectSamples\" />
   </ItemGroup>
 
 </Project>
