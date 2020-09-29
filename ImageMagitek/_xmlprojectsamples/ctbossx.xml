@@ -1,32 +1,32 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <gdf version="0.8">
 	<project name="CT">
+		<datafile name="BOSSX" location="BOSSX.TIM" />
+		<arranger name="BOSSX.TIM.0" elementsx="1" elementsy="1" width="768" height="512" layout="single" color="indexed" defaultcodec="PSX 8bpp" defaultdatafile="/CT/BOSSX" defaultpalette="/CT/Boss Palettes/BOSSX.TIM.0.CLUT.0">
+			<element fileoffset="C20" posx="0" posy="0" />
+		</arranger>
+		<arranger name="BOSSX.TIM.1" elementsx="1" elementsy="1" width="768" height="512" layout="single" color="indexed" defaultcodec="PSX 8bpp" defaultdatafile="/CT/BOSSX" defaultpalette="/CT/Boss Palettes/BOSSX.TIM.0.CLUT.1">
+			<element fileoffset="C20" posx="0" posy="0" />
+		</arranger>
+		<arranger name="BOSSX.TIM.2" elementsx="1" elementsy="1" width="768" height="512" layout="single" color="indexed" defaultcodec="PSX 8bpp" defaultdatafile="/CT/BOSSX" defaultpalette="/CT/Boss Palettes/BOSSX.TIM.0.CLUT.2">
+			<element fileoffset="C20" posx="0" posy="0" />
+		</arranger>
+		<arranger name="BOSSX.TIM.3" elementsx="1" elementsy="1" width="768" height="512" layout="single" color="indexed" defaultcodec="PSX 8bpp" defaultdatafile="/CT/BOSSX" defaultpalette="/CT/Boss Palettes/BOSSX.TIM.0.CLUT.3">
+			<element fileoffset="C20" posx="0" posy="0" />
+		</arranger>
+		<arranger name="BOSSX.TIM.4" elementsx="1" elementsy="1" width="768" height="512" layout="single" color="indexed" defaultcodec="PSX 8bpp" defaultdatafile="/CT/BOSSX" defaultpalette="/CT/Boss Palettes/BOSSX.TIM.0.CLUT.4">
+			<element fileoffset="C20" posx="0" posy="0" />
+		</arranger>
+		<arranger name="BOSSX.TIM.5" elementsx="1" elementsy="1" width="768" height="512" layout="single" color="indexed" defaultcodec="PSX 8bpp" defaultdatafile="/CT/BOSSX" defaultpalette="/CT/Boss Palettes/BOSSX.TIM.0.CLUT.5">
+			<element fileoffset="C20" posx="0" posy="0" />
+		</arranger>
 		<folder name="Boss Palettes">
-		    <palette name="BOSSX.TIM.0.CLUT.0" fileoffset="14" datafile="/CT/BOSSX" color="BGR15" entries="256" zeroindextransparent="true" />
+			<palette name="BOSSX.TIM.0.CLUT.0" fileoffset="14" datafile="/CT/BOSSX" color="BGR15" entries="256" zeroindextransparent="true" />
 			<palette name="BOSSX.TIM.0.CLUT.1" fileoffset="214" datafile="/CT/BOSSX" color="BGR15" entries="256" zeroindextransparent="true" />
 			<palette name="BOSSX.TIM.0.CLUT.2" fileoffset="414" datafile="/CT/BOSSX" color="BGR15" entries="256" zeroindextransparent="true" />
 			<palette name="BOSSX.TIM.0.CLUT.3" fileoffset="614" datafile="/CT/BOSSX" color="BGR15" entries="256" zeroindextransparent="true" />
 			<palette name="BOSSX.TIM.0.CLUT.4" fileoffset="814" datafile="/CT/BOSSX" color="BGR15" entries="256" zeroindextransparent="true" />
 			<palette name="BOSSX.TIM.0.CLUT.5" fileoffset="A14" datafile="/CT/BOSSX" color="BGR15" entries="256" zeroindextransparent="true" />
 		</folder>
-		<datafile name="BOSSX" location="BOSSX.TIM" />
-		<arranger name="BOSSX.TIM.0" elementsx="1" elementsy="1" width="768" height="512" layout="single" defaultpalette="/CT/Boss Palettes/BOSSX.TIM.0.CLUT.0" defaultcodec="PSX 8bpp" defaultdatafile="/CT/BOSSX">
-			<element fileoffset="C20" posx="0" posy="0" />
-		</arranger>
-		<arranger name="BOSSX.TIM.1" elementsx="1" elementsy="1" width="768" height="512" layout="single" defaultpalette="/CT/Boss Palettes/BOSSX.TIM.0.CLUT.1" defaultcodec="PSX 8bpp" defaultdatafile="/CT/BOSSX">
-			<element fileoffset="C20" posx="0" posy="0" />
-		</arranger>
-		<arranger name="BOSSX.TIM.2" elementsx="1" elementsy="1" width="768" height="512" layout="single" defaultpalette="/CT/Boss Palettes/BOSSX.TIM.0.CLUT.2" defaultcodec="PSX 8bpp" defaultdatafile="/CT/BOSSX">
-			<element fileoffset="C20" posx="0" posy="0" />
-		</arranger>
-		<arranger name="BOSSX.TIM.3" elementsx="1" elementsy="1" width="768" height="512" layout="single" defaultpalette="/CT/Boss Palettes/BOSSX.TIM.0.CLUT.3" defaultcodec="PSX 8bpp" defaultdatafile="/CT/BOSSX">
-			<element fileoffset="C20" posx="0" posy="0" />
-		</arranger>
-		<arranger name="BOSSX.TIM.4" elementsx="1" elementsy="1" width="768" height="512" layout="single" defaultpalette="/CT/Boss Palettes/BOSSX.TIM.0.CLUT.4" defaultcodec="PSX 8bpp" defaultdatafile="/CT/BOSSX">
-			<element fileoffset="C20" posx="0" posy="0" />
-		</arranger>
-		<arranger name="BOSSX.TIM.5" elementsx="1" elementsy="1" width="768" height="512" layout="single" defaultpalette="/CT/Boss Palettes/BOSSX.TIM.0.CLUT.5" defaultcodec="PSX 8bpp" defaultdatafile="/CT/BOSSX">
-			<element fileoffset="C20" posx="0" posy="0" />
-		</arranger>
 	</project>
 </gdf>
