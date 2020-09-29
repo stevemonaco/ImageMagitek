@@ -225,6 +225,7 @@ namespace ImageMagitek.Project.Serialization
 
             var mostUsedNonDefaultPalette = arrangerModel.EnumerateElements()
                 .Where(x => !x.UsesGlobalDefaultPalette)
+                .Where(x => !string.IsNullOrEmpty(x.DataFileKey))
                 .GroupBy(x => x.PaletteKey)
                 .Select(x => new { PaletteKey = x.Key, Count = x.Count() })
                 .OrderByDescending(x => x.Count)
@@ -244,7 +245,6 @@ namespace ImageMagitek.Project.Serialization
             {
                 mostUsedPaletteKey = mostUsedNonDefaultPalette.PaletteKey;
             }
-
 
             var arrangerNode = new XElement("arranger");
             arrangerNode.Add(new XAttribute("name", arrangerModel.Name));
