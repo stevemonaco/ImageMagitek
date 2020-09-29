@@ -137,25 +137,7 @@ namespace TileShop.WPF.ViewModels
 
             if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton)
             {
-                if (Overlay.SelectionRect.ContainsPointSnapped(x, y))
-                {
-                    int top = Overlay.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
-                    int bottom = Overlay.SelectionRect.SnappedBottom / _workingArranger.ElementPixelSize.Height;
-                    int left = Overlay.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
-                    int right = Overlay.SelectionRect.SnappedRight / _workingArranger.ElementPixelSize.Width;
-
-                    for (int posY = top; posY < bottom; posY++)
-                    {
-                        for (int posX = left; posX < right; posX++)
-                        {
-                            TryApplyPalette(posX * _workingArranger.ElementPixelSize.Width, posY * _workingArranger.ElementPixelSize.Height, SelectedPalette.Palette);
-                        }
-                    }
-                }
-                else
-                {
-                    TryApplyPalette(x, y, SelectedPalette.Palette);
-                }
+                TryApplyPalette(x, y, SelectedPalette.Palette);
             }
             else if (ActiveTool == ScatteredArrangerTool.InspectElement)
             {
