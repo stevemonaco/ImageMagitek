@@ -74,6 +74,9 @@ namespace TileShop.WPF.ViewModels
 
         public bool CloseEditor(ResourceEditorBaseViewModel editor)
         {
+            if (editor == ActivePixelEditor)
+                return ClosePixelEditor();
+
             if (editor.IsModified)
             {
                 if (RequestSaveUserChanges(editor, true))
@@ -93,6 +96,7 @@ namespace TileShop.WPF.ViewModels
 
             Editors.Remove(editor);
             ActiveEditor = Editors.FirstOrDefault();
+
             return true;
         }
 
