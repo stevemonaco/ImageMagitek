@@ -5,7 +5,7 @@ using System.Linq;
 using MoreLinq;
 using System.Collections.Generic;
 
-namespace ImageMagitek.Project.SerializationModels
+namespace ImageMagitek.Project.Serialization
 {
     internal class ScatteredArrangerModel : ProjectNodeModel
     {
@@ -14,22 +14,6 @@ namespace ImageMagitek.Project.SerializationModels
         public Size ElementPixelSize { get; set; }
         public ArrangerLayout Layout { get; set; }
         public PixelColorType ColorType { get; set; }
-
-        public ScatteredArranger ToScatteredArranger()
-        {
-            var arr = new ScatteredArranger(Name, ColorType, Layout, ArrangerElementSize.Width, ArrangerElementSize.Height, ElementPixelSize.Width, ElementPixelSize.Height);
-
-            for(int x = 0; x < ElementGrid.GetLength(0); x++)
-            {
-                for (int y = 0; y < ElementGrid.GetLength(1); y++)
-                {
-                    if (ElementGrid[x, y] is ArrangerElementModel model)
-                        arr.SetElement(model.ToArrangerElement(), x, y);
-                }
-            }
-
-            return arr;
-        }
 
         public static ScatteredArrangerModel FromScatteredArranger(ScatteredArranger arranger)
         {

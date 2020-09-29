@@ -5,6 +5,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Schema;
 using ImageMagitek.Project;
+using ImageMagitek.Project.Serialization;
 using Monaco.PathTree;
 
 namespace ImageMagitek.Services

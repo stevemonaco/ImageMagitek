@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ImageMagitek.Project.SerializationModels
+namespace ImageMagitek.Project.Serialization
 {
     public abstract class ProjectNodeModel
     {

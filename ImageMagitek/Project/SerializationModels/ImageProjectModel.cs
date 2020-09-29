@@ -1,4 +1,4 @@
-﻿namespace ImageMagitek.Project.SerializationModels
+﻿namespace ImageMagitek.Project.Serialization
 {
     internal class ImageProjectModel : ProjectNodeModel
     {

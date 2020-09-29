@@ -50,7 +50,7 @@ namespace ImageMagitek
                 for (int posX = 0; posX < arrangerWidth; posX++)
                 {
                     var el = new ArrangerElement(elX, elY, null, 0, codec, null);
-                    SetElement(el, posX, posY);
+                    ElementGrid[posX, posY] = el;
 
                     elX += elementWidth;
                 }
@@ -65,13 +65,35 @@ namespace ImageMagitek
         /// <param name="arrangerHeight">Height of Arranger in Elements</param>
         public override void Resize(int arrangerWidth, int arrangerHeight)
         {
+            int Width = ElementPixelSize.Width;
+            int Height = ElementPixelSize.Height;
+
+            Resize(arrangerWidth, arrangerHeight, (x, y) =>
+            {
+                IGraphicsCodec codec = null;
+                if (ColorType == PixelColorType.Direct)
+                    codec = new BlankDirectCodec();
+                else if (ColorType == PixelColorType.Indexed)
+                    codec = new BlankIndexedCodec();
+                return new ArrangerElement(x * Width, y * Height, null, 0, codec, null);
+            });
+        }
+
+        /// <summary>
+        /// Resizes a ScatteredArranger to the specified number of elements and default initializes any new elements
+        /// </summary>
+        /// <param name="arrangerWidth">Width of Arranger in Elements</param>
+        /// <param name="arrangerHeight">Height of Arranger in Elements</param>
+        /// <param name="elementFactory">Method to create new elements with given the x and y positions in element coordinates</param>
+        public override void Resize(int arrangerWidth, int arrangerHeight, Func<int, int, ArrangerElement> elementFactory)
+        {
             if (arrangerWidth < 1 || arrangerHeight < 1)
                 throw new ArgumentOutOfRangeException($"{nameof(Resize)}: {nameof(arrangerWidth)} ({arrangerWidth}) and {nameof(arrangerHeight)} ({arrangerHeight}) must be larger than 0");
 
             if (Mode != ArrangerMode.Scattered)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
-            ArrangerElement[,] newList = new ArrangerElement[arrangerWidth, arrangerHeight];
+            ArrangerElement[,] newGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
 
             int xCopy = Math.Min(arrangerWidth, ArrangerElementSize.Width);
             int yCopy = Math.Min(arrangerHeight, ArrangerElementSize.Height);
@@ -82,23 +104,18 @@ namespace ImageMagitek
             {
                 for (int posX = 0; posX < arrangerWidth; posX++)
                 {
-                    if ((posY < ArrangerElementSize.Height) && (posX < ArrangerElementSize.Width)) // Copy from old arranger
-                        newList[posX, posY] = ElementGrid[posX, posY];
+                    if ((posY < ArrangerElementSize.Height) && (posX < ArrangerElementSize.Width)) // Copy from old grid
+                    {
+                        newGrid[posX, posY] = ElementGrid[posX, posY];
+                    }
                     else // Create new blank element
                     {
-                        IGraphicsCodec codec = null;
-                        if (ColorType == PixelColorType.Direct)
-                            codec = new BlankDirectCodec();
-                        else if (ColorType == PixelColorType.Indexed)
-                            codec = new BlankIndexedCodec();
-
-                        ArrangerElement el = new ArrangerElement(posX * Width, posY * Height, null, 0, codec, null);
-                        newList[posX, posY] = el;
+                        newGrid[posX, posY] = elementFactory(posX, posY);
                     }
                 }
             }
 
-            ElementGrid = newList;
+            ElementGrid = newGrid;
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
         }
 

@@ -3,7 +3,6 @@ using System.IO;
 using System.Xml;
 using System.Xml.Linq;
 using System.Linq;
-using ImageMagitek.Project.SerializationModels;
 using ImageMagitek.ExtensionMethods;
 using System.Drawing;
 using Monaco.PathTree;
@@ -12,7 +11,7 @@ using ImageMagitek.Colors;
 using System.Xml.Schema;
 using System.Collections.Generic;
 
-namespace ImageMagitek.Project
+namespace ImageMagitek.Project.Serialization
 {
     public class XmlGameDescriptorReader : IGameDescriptorReader
     {
@@ -21,6 +20,7 @@ namespace ImageMagitek.Project
         private readonly XmlSchemaSet _schemaSet;
         private readonly ICodecFactory _codecFactory;
         private readonly List<IProjectResource> _globalResources;
+        private readonly Palette _globalDefaultPalette;
         private string _baseDirectory;
 
         public XmlGameDescriptorReader(ICodecFactory codecFactory) : 
@@ -38,6 +38,7 @@ namespace ImageMagitek.Project
             _schemaSet = schemaSet;
             _codecFactory = codecFactory;
             _globalResources = globalResources.ToList();
+            _globalDefaultPalette = _globalResources.OfType<Palette>().First();
         }
         
         public MagitekResults<ProjectTree> ReadProject(string projectFileName)
@@ -66,110 +67,41 @@ namespace ImageMagitek.Project
             XElement projectNode = doc.Element("gdf").Element("project");
             var projectErrors = new List<string>();
 
-            var projectResource = DeserializeImageProject(projectNode).ToImageProject();
-            var tree = new PathTree<IProjectResource>(new ProjectNode(projectResource.Name, projectResource));
+            var projectModel = DeserializeImageProject(projectNode);
+            var builder = new ProjectTreeBuilder(_codecFactory, _globalResources);
+            builder.AddProject(projectModel);
 
             foreach (var node in projectNode.Descendants("folder"))
             {
-                var res = DeserializeResourceFolder(node).ToResourceFolder();
-                var path = Path.Combine(node.NodePath(), node.Attribute("name").Value);
-                
-                var folderNode = new FolderNode(res.Name, res);
-                tree.TryGetNode(node.NodePath(), out var parentNode);
-                parentNode.AttachChild(folderNode);
+                var folderModel = DeserializeResourceFolder(node);
+                builder.AddFolder(folderModel, node.NodePath());
             }
 
             foreach (var node in projectNode.Descendants("datafile"))
             {
-                var res = DeserializeDataFile(node).ToDataFile();
-
-                var dfNode = new DataFileNode(res.Name, res);
-                tree.TryGetNode(node.NodePath(), out var parentNode);
-                parentNode.AttachChild(dfNode);
+                var dfModel = DeserializeDataFile(node);
+                builder.AddDataFile(dfModel, node.NodePath());
             }
 
             foreach (var node in projectNode.Descendants("palette"))
             {
-                var model = DeserializePalette(node);
-                var pal = model.ToPalette();
-                tree.TryGetValue<DataFile>(model.DataFileKey, out var df);
-                pal.DataFile = df;
-                pal.LazyLoadPalette(pal.DataFile, pal.FileAddress, pal.ColorModel, pal.ZeroIndexTransparent, pal.Entries);
-
-                var palNode = new PaletteNode(pal.Name, pal);
-                tree.TryGetNode(node.NodePath(), out var parentNode);
-                parentNode.AttachChild(palNode);
+                var paletteModel = DeserializePalette(node);
+                builder.AddPalette(paletteModel, node.NodePath());
             }
 
             foreach (var node in projectNode.Descendants("arranger"))
             {
-                var modelArranger = DeserializeScatteredArranger(node);
-                var arranger = modelArranger.ToScatteredArranger();
-
-                for (int x = 0; x < arranger.ArrangerElementSize.Width; x++)
-                {
-                    for (int y = 0; y < arranger.ArrangerElementSize.Height; y++)
-                    {
-                        if (modelArranger.ElementGrid[x, y] is null)
-                        {
-                            var el = new ArrangerElement(x * arranger.ArrangerElementSize.Width, y * arranger.ArrangerElementSize.Height,
-                                null, 0, new BlankIndexedCodec(), ResolvePalette(tree, null));
-                            arranger.SetElement(el, x, y);
-                            continue;
-                        }
-
-                        DataFile df = default;
-                        if (!string.IsNullOrWhiteSpace(modelArranger.ElementGrid[x, y].DataFileKey))
-                            tree.TryGetValue<DataFile>(modelArranger.ElementGrid[x, y].DataFileKey, out df);
-
-                        var paletteKey = modelArranger.ElementGrid[x, y].PaletteKey;
-                        Palette pal = ResolvePalette(tree, paletteKey);
-                        if (pal is null)
-                        {
-                            projectErrors.Add($"Could not resolve palette '{paletteKey}' referenced by arranger '{arranger.Name}'");
-                            continue;
-                        }
-
-                        var element = arranger.GetElement(x, y);
-
-                        var codec = _codecFactory.GetCodec(modelArranger.ElementGrid[x, y].CodecName, arranger.ElementPixelSize.Width, arranger.ElementPixelSize.Height);
-                        element = element.WithTarget(df, element.FileAddress, codec, pal);
-                        arranger.SetElement(element, x, y);
-                    }
-                }
-
-                var arrangerNode = new ArrangerNode(arranger.Name, arranger);
-                tree.TryGetNode(node.NodePath(), out var parentNode);
-                parentNode.AttachChild(arrangerNode);
+                var arrangerModel = DeserializeScatteredArranger(node);
+                builder.AddScatteredArranger(arrangerModel, node.NodePath());
             }
 
             if (projectErrors.Count > 0)
                 return new MagitekResults<ProjectTree>.Failed(projectErrors);
 
-            return new MagitekResults<ProjectTree>.Success(new ProjectTree(tree, projectFileName));
-        }
+            var tree = builder.Tree;
+            var projectTree = new ProjectTree(tree, projectFileName);
 
-        /// <summary>
-        /// Resolves a palette resource using the supplied project tree and falls back to a default palette if available
-        /// </summary>
-        /// <param name="tree"></param>
-        /// <param name="paletteKey"></param>
-        /// <returns></returns>
-        private Palette ResolvePalette(PathTree<IProjectResource> tree, string paletteKey)
-        {
-            Palette pal = default;
-
-            if (string.IsNullOrEmpty(paletteKey))
-            {
-                pal = _globalResources.OfType<Palette>().FirstOrDefault();
-            }
-            else if (!tree.TryGetValue<Palette>(paletteKey, out pal))
-            {
-                var name = paletteKey.Split(tree.PathSeparators).Last();
-                pal = _globalResources.OfType<Palette>().FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
-            }
-
-            return pal;
+            return new MagitekResults<ProjectTree>.Success(projectTree);
         }
 
         private ImageProjectModel DeserializeImageProject(XElement element)
