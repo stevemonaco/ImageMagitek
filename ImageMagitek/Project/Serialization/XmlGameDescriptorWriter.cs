@@ -4,11 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
-using ImageMagitek.Project.SerializationModels;
 using ImageMagitek.Colors;
 using Monaco.PathTree;
 
-namespace ImageMagitek.Project
+namespace ImageMagitek.Project.Serialization
 {
     public class XmlGameDescriptorWriter : IGameDescriptorWriter
     {
@@ -226,6 +225,7 @@ namespace ImageMagitek.Project
 
             var mostUsedNonDefaultPalette = arrangerModel.EnumerateElements()
                 .Where(x => !x.UsesGlobalDefaultPalette)
+                .Where(x => !string.IsNullOrEmpty(x.DataFileKey))
                 .GroupBy(x => x.PaletteKey)
                 .Select(x => new { PaletteKey = x.Key, Count = x.Count() })
                 .OrderByDescending(x => x.Count)
@@ -245,7 +245,6 @@ namespace ImageMagitek.Project
             {
                 mostUsedPaletteKey = mostUsedNonDefaultPalette.PaletteKey;
             }
-
 
             var arrangerNode = new XElement("arranger");
             arrangerNode.Add(new XAttribute("name", arrangerModel.Name));

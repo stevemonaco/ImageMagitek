@@ -42,7 +42,7 @@ namespace TileShop.WPF.ViewModels
             get => _activeTool;
             set
             {
-                if (value != ScatteredArrangerTool.Select)
+                if (value != ScatteredArrangerTool.Select && value != ScatteredArrangerTool.ApplyPalette)
                     CancelOverlay();
                 SetAndNotify(ref _activeTool, value);
             }
@@ -136,7 +136,27 @@ namespace TileShop.WPF.ViewModels
             int y = Math.Clamp((int)e.Y / Zoom, 0, _workingArranger.ArrangerPixelSize.Height - 1);
 
             if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton)
-                TryApplyPalette(x, y, SelectedPalette.Palette);
+            {
+                if (Overlay.SelectionRect.ContainsPointSnapped(x, y))
+                {
+                    int top = Overlay.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
+                    int bottom = Overlay.SelectionRect.SnappedBottom / _workingArranger.ElementPixelSize.Height;
+                    int left = Overlay.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
+                    int right = Overlay.SelectionRect.SnappedRight / _workingArranger.ElementPixelSize.Width;
+
+                    for (int posY = top; posY < bottom; posY++)
+                    {
+                        for (int posX = left; posX < right; posX++)
+                        {
+                            TryApplyPalette(posX * _workingArranger.ElementPixelSize.Width, posY * _workingArranger.ElementPixelSize.Height, SelectedPalette.Palette);
+                        }
+                    }
+                }
+                else
+                {
+                    TryApplyPalette(x, y, SelectedPalette.Palette);
+                }
+            }
             else if (ActiveTool == ScatteredArrangerTool.InspectElement)
             {
                 var elX = x / _workingArranger.ElementPixelSize.Width;
@@ -148,7 +168,9 @@ namespace TileShop.WPF.ViewModels
                 _events.PublishOnUIThread(notifyEvent);
             }
             else if (ActiveTool == ScatteredArrangerTool.Select)
+            {
                 base.OnMouseMove(sender, e);
+            }
         }
 
         public override void DragOver(IDropInfo dropInfo)
@@ -215,24 +237,58 @@ namespace TileShop.WPF.ViewModels
 
         private void TryApplyPalette(int pixelX, int pixelY, Palette palette)
         {
-            if (pixelX >= _workingArranger.ArrangerPixelSize.Width || pixelY >= _workingArranger.ArrangerPixelSize.Height)
-                return;
+            bool needsRender = false;
+            if (Overlay.State == OverlayState.Selected && Overlay.SelectionRect.ContainsPointSnapped(pixelX, pixelY))
+            {
+                int top = Overlay.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
+                int bottom = Overlay.SelectionRect.SnappedBottom / _workingArranger.ElementPixelSize.Height;
+                int left = Overlay.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
+                int right = Overlay.SelectionRect.SnappedRight / _workingArranger.ElementPixelSize.Width;
 
-            var el = _workingArranger.GetElementAtPixel(pixelX, pixelY);
-
-            if (ReferenceEquals(palette, el.Palette))
-                return;
-
-            var result = _indexedImage.TrySetPalette(pixelX, pixelY, palette);
-
-            result.Switch(
-                success =>
+                for (int posY = top; posY < bottom; posY++)
                 {
-                    Render();
-                    IsModified = true;
-                },
-                fail => _events.PublishOnUIThread(new NotifyOperationEvent(fail.Reason))
-                );
+                    for (int posX = left; posX < right; posX++)
+                    {
+                        if (TryApplySinglePalette(posX * _workingArranger.ElementPixelSize.Width, posY * _workingArranger.ElementPixelSize.Height, SelectedPalette.Palette, false))
+                            needsRender = true;
+                    }
+                }
+            }
+            else
+            {
+                if (TryApplySinglePalette(pixelX, pixelY, palette, true))
+                    needsRender = true;
+            }
+
+            if (needsRender)
+                Render();
+
+            bool TryApplySinglePalette(int pixelX, int pixelY, Palette palette, bool notify)
+            {
+                if (pixelX >= _workingArranger.ArrangerPixelSize.Width || pixelY >= _workingArranger.ArrangerPixelSize.Height)
+                    return false;
+
+                var el = _workingArranger.GetElementAtPixel(pixelX, pixelY);
+
+                if (ReferenceEquals(palette, el.Palette))
+                    return false;
+
+                var result = _indexedImage.TrySetPalette(pixelX, pixelY, palette);
+
+                return result.Match(
+                    success =>
+                    {
+                        Render();
+                        IsModified = true;
+                        return true;
+                    },
+                    fail =>
+                    {
+                        if (notify)
+                            _events.PublishOnUIThread(new NotifyOperationEvent(fail.Reason));
+                        return false;
+                    });
+            }
         }
 
         private bool TryPickPalette(int pixelX, int pixelY)

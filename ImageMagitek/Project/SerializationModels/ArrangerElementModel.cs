@@ -1,4 +1,4 @@
-﻿namespace ImageMagitek.Project.SerializationModels
+﻿namespace ImageMagitek.Project.Serialization
 {
     internal class ArrangerElementModel
     {
@@ -10,9 +10,6 @@
         public int PositionY { get; set; }
 
         public bool UsesGlobalDefaultPalette { get; set; }
-
-        public ArrangerElement ToArrangerElement() =>
-            new ArrangerElement(PositionX, PositionY, null, FileAddress, null, null);
 
         public static ArrangerElementModel FromArrangerElement(in ArrangerElement el)
         {

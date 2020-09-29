@@ -88,6 +88,7 @@ namespace TileShop.WPF.ViewModels
             if (Editors.RequestSaveAllUserChanges())
             {
                 _projectService.CloseProjects();
+                _tracker.PersistAll();
             }
             else
             {
@@ -147,6 +148,7 @@ namespace TileShop.WPF.ViewModels
             if (Editors.RequestSaveAllUserChanges())
             {
                 _projectService.CloseProjects();
+                _tracker.PersistAll();
                 Environment.Exit(0);
             }
         }

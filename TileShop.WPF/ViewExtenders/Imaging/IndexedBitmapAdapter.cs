@@ -2,6 +2,8 @@
 using System.Drawing;
 using System.Windows.Media.Imaging;
 using ImageMagitek;
+using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 
 namespace TileShop.WPF.Imaging
 {
@@ -103,18 +105,30 @@ namespace TileShop.WPF.Imaging
 
                         for (int x = xStart; x < xStart + width; x++)
                         {
-                            var pal = Image.GetElementAtPixel(x + Left, y + Top).Palette;
-                            var index = row[x + Left];
-                            var color = pal[index];
+                            var el = Image.GetElementAtPixel(x + Left, y + Top);
+                            var pal = el.Palette;
 
-                            dest[x * 4] = color.B;
-                            dest[x * 4 + 1] = color.G;
-                            dest[x * 4 + 2] = color.R;
-
-                            if (index == 0 && pal.ZeroIndexTransparent)
+                            if (el.Codec is BlankIndexedCodec blankIndexedCodec)
+                            {
+                                dest[x * 4] = 0;
+                                dest[x * 4 + 1] = 0;
+                                dest[x * 4 + 2] = 0;
                                 dest[x * 4 + 3] = 0;
-                            else
-                                dest[x * 4 + 3] = color.A;
+                            }
+                            else if (pal is object)
+                            {
+                                var index = row[x + Left];
+                                var color = pal[index];
+
+                                dest[x * 4] = color.B;
+                                dest[x * 4 + 1] = color.G;
+                                dest[x * 4 + 2] = color.R;
+
+                                if (index == 0 && pal.ZeroIndexTransparent)
+                                    dest[x * 4 + 3] = 0;
+                                else
+                                    dest[x * 4 + 3] = color.A;
+                            }
                         }
                     }
                 }

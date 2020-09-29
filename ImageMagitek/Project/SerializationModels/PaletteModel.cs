@@ -1,6 +1,6 @@
 ﻿using ImageMagitek.Colors;
 
-namespace ImageMagitek.Project.SerializationModels
+namespace ImageMagitek.Project.Serialization
 {
     internal class PaletteModel : ProjectNodeModel
     {
@@ -10,8 +10,6 @@ namespace ImageMagitek.Project.SerializationModels
         public int Entries { get; set; }
         public bool ZeroIndexTransparent { get; set; }
         public PaletteStorageSource StorageSource { get; set; }
-
-        public Palette ToPalette() => new Palette(Name, ColorModel, FileAddress, Entries, ZeroIndexTransparent, StorageSource);
 
         public static PaletteModel FromPalette(Palette pal)
         {

@@ -25,11 +25,11 @@
             HorizontalAlignment="Center"
             Orientation="Horizontal">
             <TextBox
-                Width="40"
+                MinWidth="100"
                 Text="{Binding Width}"
                 ToolTip="Width of arranger in number of elements" />
             <TextBox
-                Width="40"
+                MinWidth="100"
                 Margin="10,0,0,0"
                 Text="{Binding Height}"
                 ToolTip="Height of arranger in number of elements" />

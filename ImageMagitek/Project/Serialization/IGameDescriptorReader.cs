@@ -1,6 +1,6 @@
 ﻿using Monaco.PathTree;
 
-namespace ImageMagitek.Project
+namespace ImageMagitek.Project.Serialization
 {
     public interface IGameDescriptorReader
     {

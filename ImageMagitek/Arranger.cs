@@ -83,6 +83,7 @@ namespace ImageMagitek
         public abstract bool ShouldBeSerialized { get; set; }
 
         public abstract void Resize(int arrangerWidth, int arrangerHeight);
+        public abstract void Resize(int arrangerWidth, int arrangerHeight, Func<int, int, ArrangerElement> elementFactory);
 
         private readonly BlankDirectCodec _blankDirectCodec = new BlankDirectCodec();
         private readonly BlankIndexedCodec _blankIndexedCodec = new BlankIndexedCodec();
@@ -139,9 +140,12 @@ namespace ImageMagitek
             if (posX >= ArrangerElementSize.Width || posY >= ArrangerElementSize.Height)
                 throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({posX}, {posY})");
 
-            if (element.Codec != null)
+            if (element.Codec is object)
                 if (element.Codec.ColorType != ColorType)
                     throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' did not match the Arranger's {nameof(PixelColorType)}");
+
+            //if (ColorType == PixelColorType.Indexed && element.Palette is null && element.DataFile is object)
+            //    throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' does not contain a palette");
 
             var relocatedElement = element.WithLocation(posX * ElementPixelSize.Width, posY * ElementPixelSize.Height);
             ElementGrid[posX, posY] = relocatedElement;
@@ -163,9 +167,9 @@ namespace ImageMagitek
             var el = GetElement(posX, posY);
 
             if (ColorType == PixelColorType.Indexed)
-                el = new ArrangerElement(el.X1, el.Y1, null, 0, _blankIndexedCodec, null);
+                el = el.WithTarget(null, 0, _blankIndexedCodec, el.Palette);
             else if (ColorType == PixelColorType.Direct)
-                el = new ArrangerElement(el.X1, el.Y1, null, 0, _blankDirectCodec, null);
+                el = el = el.WithTarget(null, 0, _blankDirectCodec, null);
 
             SetElement(el, posX, posY);
         }
