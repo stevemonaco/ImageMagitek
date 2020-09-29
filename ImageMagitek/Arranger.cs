@@ -201,7 +201,7 @@ namespace ImageMagitek
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(GetElementAtPixel)} property '{nameof(ElementGrid)}' was null");
 
-            if (pixelX >= ArrangerPixelSize.Width || pixelY >= ArrangerPixelSize.Height)
+            if (pixelX >= ArrangerPixelSize.Width || pixelY >= ArrangerPixelSize.Height || pixelX < 0 || pixelY < 0)
                 throw new ArgumentOutOfRangeException($"{nameof(GetElementAtPixel)} parameter was out of range: ({pixelX}, {pixelY})");
 
             return ElementGrid[pixelX / ElementPixelSize.Width, pixelY / ElementPixelSize.Height];

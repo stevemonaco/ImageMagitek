@@ -106,18 +106,26 @@ namespace ImageMagitek
         {
             Point unzoomed = new Point(Location.X / Zoom, Location.Y / Zoom);
 
-            // Search list for element
-            for (int y = 0; y < arranger.ArrangerElementSize.Height; y++)
-            {
-                for (int x = 0; x < arranger.ArrangerElementSize.Width; x++)
-                {
-                    ArrangerElement el = arranger.GetElement(x, y);
-                    if (unzoomed.X >= el.X1 && unzoomed.X <= el.X2 && unzoomed.Y >= el.Y1 && unzoomed.Y <= el.Y2)
-                        return new Point(x, y);
-                }
-            }
+            if (unzoomed.X < 0 || unzoomed.X >= arranger.ArrangerPixelSize.Width || unzoomed.Y < 0 || unzoomed.Y >= arranger.ArrangerPixelSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(PointToElementLocation)} Location ({Location.X}, {Location.Y}) is out of range");
 
-            throw new ArgumentOutOfRangeException($"{nameof(PointToElementLocation)} Location ({Location.X}, {Location.Y}) is out of range");
+            int elX = unzoomed.X / arranger.ArrangerElementSize.Width;
+            int elY = unzoomed.Y / arranger.ArrangerElementSize.Height;
+
+            return new Point(elX, elY);
+
+            //// Search list for element
+            //for (int y = 0; y < arranger.ArrangerElementSize.Height; y++)
+            //{
+            //    for (int x = 0; x < arranger.ArrangerElementSize.Width; x++)
+            //    {
+            //        ArrangerElement el = arranger.GetElement(x, y);
+            //        if (unzoomed.X >= el.X1 && unzoomed.X <= el.X2 && unzoomed.Y >= el.Y1 && unzoomed.Y <= el.Y2)
+            //            return new Point(x, y);
+            //    }
+            //}
+
+            //throw new ArgumentOutOfRangeException($"{nameof(PointToElementLocation)} Location ({Location.X}, {Location.Y}) is out of range");
         }
 
         /// <summary>
