@@ -139,7 +139,7 @@
             <Setter.Value>
                 <DrawingImage>
                     <DrawingImage.Drawing>
-                        <GeometryDrawing Pen="{DynamicResource iconPen}">
+                        <GeometryDrawing Pen="{DynamicResource iconPenThick}">
                             <GeometryDrawing.Geometry>
                                 m 8,12 h 8 M 12,8 v 8 M 22,12 A 10,10 0 0 1 12,22 10,10 0 0 1 2,12 10,10 0 0 1 12,2 10,10 0 0 1 22,12 Z
                             </GeometryDrawing.Geometry>
