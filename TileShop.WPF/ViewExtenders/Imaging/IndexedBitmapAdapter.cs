@@ -101,11 +101,11 @@ namespace TileShop.WPF.Imaging
                     {
                         var dest = (byte*)Bitmap.BackBuffer.ToPointer();
                         dest += y * Bitmap.BackBufferStride + xStart * 4;
-                        var row = Image.GetPixelRowSpan(y + Top);
+                        var src = Image.GetPixelRowSpan(y + Top);
 
-                        for (int x = xStart; x < xStart + width; x++)
+                        for (int x = 0; x < width; x++)
                         {
-                            var el = Image.GetElementAtPixel(x + Left, y + Top);
+                            var el = Image.GetElementAtPixel(x + xStart + Left, y + Top);
                             var pal = el.Palette;
 
                             if (el.Codec is BlankIndexedCodec blankIndexedCodec)
@@ -117,7 +117,7 @@ namespace TileShop.WPF.Imaging
                             }
                             else if (pal is object)
                             {
-                                var index = row[x + Left];
+                                var index = src[x + xStart + Left];
                                 var color = pal[index];
 
                                 dest[x * 4] = color.B;
@@ -133,7 +133,8 @@ namespace TileShop.WPF.Imaging
                     }
                 }
 
-                Bitmap.AddDirtyRect(new System.Windows.Int32Rect(xStart, yStart, width, height));
+                Bitmap.AddDirtyRect(new System.Windows.Int32Rect(0, 0, Image.Width, Image.Height));
+                //Bitmap.AddDirtyRect(new System.Windows.Int32Rect(xStart, yStart, width, height));
             }
             finally
             {
