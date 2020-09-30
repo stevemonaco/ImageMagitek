@@ -67,7 +67,6 @@ namespace TileShop.WPF.ViewModels
 
             _indexedImage = new IndexedImage(_workingArranger);
             BitmapAdapter = new IndexedBitmapAdapter(_indexedImage, _viewX, _viewY, _viewWidth, _viewHeight);
-            //ArrangerSource = new IndexedImageSource(_indexedImage, _workingArranger, defaultPalette, _viewX, _viewY, _viewWidth, _viewHeight);
 
             DisplayName = $"Pixel Editor - {_workingArranger.Name}";
 
@@ -104,39 +103,19 @@ namespace TileShop.WPF.ViewModels
             NotifyOfPropertyChange(() => CanRedo);
         }
 
-        public void TrySetPixelColor(int x, int y, ColorRgba32 color)
-        {
-            var result = _indexedImage.TrySetPixel(x, y, color);
-            var notifyEvent = result.Match(
-                success =>
-                {
-                    if (_activePencilHistory.ModifiedPoints.Add(new Point(x, y)))
-                    {
-                        IsModified = true;
-                        //Render();
-                        BitmapAdapter.Invalidate(x, y, 1, 1);
-                    }
-                    return new NotifyOperationEvent("");
-                },
-                fail => new NotifyOperationEvent(fail.Reason)
-                );
-            _events.PublishOnUIThread(notifyEvent);
-        }
-
         public override void SetPixel(int x, int y, byte color)
         {
             var modelColor = ActivePalette.Colors[color].Color;
             var palColor = new ColorRgba32(modelColor.R, modelColor.G, modelColor.B, modelColor.A);
-            var result = _indexedImage.TrySetPixel(x, y, palColor);
+            var result = _indexedImage.TrySetPixel(x + _viewX, y + _viewY, palColor);
 
             var notifyEvent = result.Match(
                 success =>
                 {
-                    if (_activePencilHistory.ModifiedPoints.Add(new Point(x, y)))
+                    if (_activePencilHistory.ModifiedPoints.Add(new Point(x + _viewX, y + _viewY)))
                     {
                         IsModified = true;
                         BitmapAdapter.Invalidate(x, y, 1, 1);
-                        //Render();
                     }
                     return new NotifyOperationEvent("");
                 },
@@ -145,7 +124,7 @@ namespace TileShop.WPF.ViewModels
             _events.PublishOnUIThread(notifyEvent);
         }
 
-        public override byte GetPixel(int x, int y) => _indexedImage.GetPixel(x, y);
+        public override byte GetPixel(int x, int y) => _indexedImage.GetPixel(x + _viewX, y + _viewY);
 
         public override void ApplyAction(HistoryAction action)
         {

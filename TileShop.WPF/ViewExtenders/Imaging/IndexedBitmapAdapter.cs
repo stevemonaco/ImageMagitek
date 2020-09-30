@@ -43,7 +43,7 @@ namespace TileShop.WPF.Imaging
         /// </summary>
         public override void Invalidate()
         {
-            Render(0, 0, Image.Width, Image.Height);
+            Render(0, 0, Width, Height);
         }
 
         /// <summary>
@@ -133,8 +133,8 @@ namespace TileShop.WPF.Imaging
                     }
                 }
 
-                Bitmap.AddDirtyRect(new System.Windows.Int32Rect(0, 0, Image.Width, Image.Height));
-                //Bitmap.AddDirtyRect(new System.Windows.Int32Rect(xStart, yStart, width, height));
+                //Bitmap.AddDirtyRect(new System.Windows.Int32Rect(0, 0, Bitmap.PixelWidth, Bitmap.PixelHeight));
+                Bitmap.AddDirtyRect(new System.Windows.Int32Rect(xStart, yStart, width, height));
             }
             finally
             {
