@@ -235,6 +235,7 @@
                     Grid.Row="0"
                     Grid.Column="0"
                     Panel.ZIndex="2"
+                    IsHitTestVisible="False"
                     ItemsSource="{Binding Gridlines}"
                     Visibility="{Binding ShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}">
                     <ItemsControl.ItemsPanel>

@@ -247,6 +247,7 @@
                         StrokeDashArray="3 2"
                         StrokeThickness="0.3"
                         Visibility="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Selection}" />
+
                     <Rectangle
                         Canvas.Left="{Binding Overlay.PasteRect.SnappedLeft}"
                         Canvas.Top="{Binding Overlay.PasteRect.SnappedTop}"
@@ -265,6 +266,7 @@
                     Grid.Row="0"
                     Grid.Column="0"
                     Panel.ZIndex="3"
+                    IsHitTestVisible="False"
                     ItemsSource="{Binding Gridlines}"
                     Visibility="{Binding ShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}">
                     <ItemsControl.ItemsPanel>
