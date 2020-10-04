@@ -14,13 +14,30 @@ namespace ImageMagitek
         public TPixel[] Image { get; set; }
 
         /// <summary>
-        /// Image width in pixels
+        /// Width of subsection in pixels
         /// </summary>
-        public int Width => Arranger.ArrangerPixelSize.Width;
+        public int Width { get; protected set; }
         /// <summary>
-        /// Image height in pixels
+        /// Height of subsection in pixels
         /// </summary>
-        public int Height => Arranger.ArrangerPixelSize.Height;
+        public int Height { get; protected set; }
+
+        /// <summary>
+        /// Left edge of subsection in pixel-coordinates
+        /// </summary>
+        public int Left { get; protected set; }
+        /// <summary>
+        /// Top edge of subsection in pixel-coordinates
+        /// </summary>
+        public int Top { get; protected set; }
+        /// <summary>
+        /// Right edge of subsection in pixel-coordinates, inclusive
+        /// </summary>
+        public int Right { get => Left + Width; }
+        /// <summary>
+        /// Bottom edge of subsection in pixel-coordinates, inclusive
+        /// </summary>
+        public int Bottom { get => Top + Height; }
 
         public abstract void Render();
         public abstract void SaveImage();

@@ -244,8 +244,8 @@ namespace ImageMagitek
 
             int elemX = pixelX / ElementPixelSize.Width;
             int elemY = pixelY / ElementPixelSize.Height;
-            int elemX2 = (pixelX + width) / ElementPixelSize.Width;
-            int elemY2 = (pixelY + height) / ElementPixelSize.Height;
+            int elemX2 = (pixelX + width + ElementPixelSize.Width - 1) / ElementPixelSize.Width;
+            int elemY2 = (pixelY + height + ElementPixelSize.Height - 1) / ElementPixelSize.Height;
 
             for (int y = elemY; y < elemY2; y++)
                 for (int x = elemX; x < elemX2; x++)

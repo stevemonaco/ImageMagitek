@@ -14,25 +14,8 @@ namespace TileShop.WPF.Imaging
         public IndexedBitmapAdapter(IndexedImage image)
         {
             Image = image;
-            Left = 0;
-            Top = 0;
             Width = Image.Width;
             Height = Image.Height;
-
-            Bitmap = new WriteableBitmap(Width, Height, DpiX, DpiY, PixelFormat, null);
-            Invalidate();
-        }
-
-        /// <summary>
-        /// Creates an IndexedBitmapAdapter with a crop-transformed subsection of an IndexedArranger
-        /// </summary>
-        public IndexedBitmapAdapter(IndexedImage image, int left, int top, int width, int height)
-        {
-            Image = image;
-            Left = left;
-            Top = top;
-            Width = width;
-            Height = height;
 
             Bitmap = new WriteableBitmap(Width, Height, DpiX, DpiY, PixelFormat, null);
             Invalidate();
@@ -68,8 +51,8 @@ namespace TileShop.WPF.Imaging
         /// <summary>
         /// Invalidates and redraws a region of the Bitmap
         /// </summary>
-        /// <param name="x">Left coordinate in crop-transformed coordinates</param>
-        /// <param name="y">Top coordinate in crop-transformed coordinates</param>
+        /// <param name="x">Left coordinate in pixel coordinates</param>
+        /// <param name="y">Top coordinate in pixel coordinates</param>
         /// <param name="width">Width of region</param>
         /// <param name="height">Height of region</param>
         public override void Invalidate(int x, int y, int width, int height)
@@ -101,11 +84,11 @@ namespace TileShop.WPF.Imaging
                     {
                         var dest = (byte*)Bitmap.BackBuffer.ToPointer();
                         dest += y * Bitmap.BackBufferStride + xStart * 4;
-                        var src = Image.GetPixelRowSpan(y + Top);
+                        var src = Image.GetPixelRowSpan(y);
 
                         for (int x = 0; x < width; x++)
                         {
-                            var el = Image.GetElementAtPixel(x + xStart + Left, y + Top);
+                            var el = Image.GetElementAtPixel(x + xStart, y);
                             var pal = el.Palette;
 
                             if (el.Codec is BlankIndexedCodec blankIndexedCodec)
@@ -117,7 +100,7 @@ namespace TileShop.WPF.Imaging
                             }
                             else if (pal is object)
                             {
-                                var index = src[x + xStart + Left];
+                                var index = src[x + xStart];
                                 var color = pal[index];
 
                                 dest[x * 4] = color.B;
@@ -133,7 +116,6 @@ namespace TileShop.WPF.Imaging
                     }
                 }
 
-                //Bitmap.AddDirtyRect(new System.Windows.Int32Rect(0, 0, Bitmap.PixelWidth, Bitmap.PixelHeight));
                 Bitmap.AddDirtyRect(new System.Windows.Int32Rect(xStart, yStart, width, height));
             }
             finally

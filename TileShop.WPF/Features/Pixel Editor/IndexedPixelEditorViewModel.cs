@@ -65,8 +65,8 @@ namespace TileShop.WPF.ViewModels
                 Palettes.Add(new PaletteModel(defaultPalette, defaultColors));
             }
 
-            _indexedImage = new IndexedImage(_workingArranger);
-            BitmapAdapter = new IndexedBitmapAdapter(_indexedImage, _viewX, _viewY, _viewWidth, _viewHeight);
+            _indexedImage = new IndexedImage(_workingArranger, _viewX, _viewY, _viewWidth, _viewHeight);
+            BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
 
             DisplayName = $"Pixel Editor - {_workingArranger.Name}";
 
@@ -107,12 +107,12 @@ namespace TileShop.WPF.ViewModels
         {
             var modelColor = ActivePalette.Colors[color].Color;
             var palColor = new ColorRgba32(modelColor.R, modelColor.G, modelColor.B, modelColor.A);
-            var result = _indexedImage.TrySetPixel(x + _viewX, y + _viewY, palColor);
+            var result = _indexedImage.TrySetPixel(x, y, palColor);
 
             var notifyEvent = result.Match(
                 success =>
                 {
-                    if (_activePencilHistory.ModifiedPoints.Add(new Point(x + _viewX, y + _viewY)))
+                    if (_activePencilHistory.ModifiedPoints.Add(new Point(x, y)))
                     {
                         IsModified = true;
                         BitmapAdapter.Invalidate(x, y, 1, 1);
@@ -124,7 +124,7 @@ namespace TileShop.WPF.ViewModels
             _events.PublishOnUIThread(notifyEvent);
         }
 
-        public override byte GetPixel(int x, int y) => _indexedImage.GetPixel(x + _viewX, y + _viewY);
+        public override byte GetPixel(int x, int y) => _indexedImage.GetPixel(x, y);
 
         public override void ApplyAction(HistoryAction action)
         {
