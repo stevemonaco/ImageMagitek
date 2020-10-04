@@ -24,7 +24,7 @@ namespace ImageMagitek
         }
 
         /// <summary>
-        /// Created an IndexedImage with a subsection of an Arranger
+        /// Creates an IndexedImage with a subsection of an Arranger
         /// </summary>
         /// <param name="arranger">Source Arranger</param>
         /// <param name="x">Left-edge of subsection in pixel coordinates</param>

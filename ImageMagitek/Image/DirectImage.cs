@@ -8,12 +8,33 @@ namespace ImageMagitek
 {
     public class DirectImage : ImageBase<ColorRgba32>
     {
-        public DirectImage(Arranger arranger)
+        public DirectImage(Arranger arranger) :
+            this(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height)
+        {
+        }
+
+        /// <summary>
+        /// Creates a DirectImage with a subsection of an Arranger
+        /// </summary>
+        /// <param name="arranger">Source Arranger</param>
+        /// <param name="x">Left-edge of subsection in pixel coordinates</param>
+        /// <param name="y">Top-edge of subsection in pixel coordinates</param>
+        /// <param name="width">Width of subsection in pixel coordinates</param>
+        /// <param name="height">Height of subsection in pixel coordinates</param>
+        public DirectImage(Arranger arranger, int x, int y, int width, int height)
         {
             if (arranger is null)
                 throw new ArgumentNullException($"{nameof(DirectImage)}.Ctor parameter '{nameof(arranger)}' was null");
 
+            if (arranger.ColorType != PixelColorType.Direct)
+                throw new ArgumentException($"{nameof(DirectImage)}.Ctor: Arranger '{arranger.Name}' has an invalid color type '{arranger.ColorType}'");
+
             Arranger = arranger;
+            Left = x;
+            Top = y;
+            Width = width;
+            Height = height;
+
             Image = new ColorRgba32[Width * Height];
             Render();
         }
