@@ -220,12 +220,12 @@ namespace TileShop.WPF.ViewModels
         private void TryApplyPalette(int pixelX, int pixelY, Palette palette)
         {
             bool needsRender = false;
-            if (Overlay.State == OverlayState.Selected && Overlay.SelectionRect.ContainsPointSnapped(pixelX, pixelY))
+            if (Selection.HasSelection && Selection.SelectionRect.ContainsPointSnapped(pixelX, pixelY))
             {
-                int top = Overlay.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
-                int bottom = Overlay.SelectionRect.SnappedBottom / _workingArranger.ElementPixelSize.Height;
-                int left = Overlay.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
-                int right = Overlay.SelectionRect.SnappedRight / _workingArranger.ElementPixelSize.Width;
+                int top = Selection.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
+                int bottom = Selection.SelectionRect.SnappedBottom / _workingArranger.ElementPixelSize.Height;
+                int left = Selection.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
+                int right = Selection.SelectionRect.SnappedRight / _workingArranger.ElementPixelSize.Width;
 
                 for (int posY = top; posY < bottom; posY++)
                 {
@@ -359,15 +359,26 @@ namespace TileShop.WPF.ViewModels
 
         public void ApplyPasteAsElements()
         {
-            var sourceArranger = Overlay.CopyArranger;
-            var sourceStart = new System.Drawing.Point(Overlay.SelectionRect.SnappedLeft / sourceArranger.ElementPixelSize.Width,
-                Overlay.SelectionRect.SnappedTop / sourceArranger.ElementPixelSize.Height);
-            var destStart = new System.Drawing.Point(Overlay.PasteRect.SnappedLeft / _workingArranger.ElementPixelSize.Width,
-                Overlay.PasteRect.SnappedTop / _workingArranger.ElementPixelSize.Height);
-            int copyWidth = Overlay.SelectionRect.SnappedWidth / sourceArranger.ElementPixelSize.Width;
-            int copyHeight = Overlay.SelectionRect.SnappedHeight / sourceArranger.ElementPixelSize.Height;
+            var elementCopy = Paste?.Copy as ElementCopy;
 
-            var result = ElementCopier.CopyElements(sourceArranger, _workingArranger as ScatteredArranger, sourceStart, destStart, copyWidth, copyHeight);
+            if (elementCopy is null)
+            {
+                var reason = new NotifyOperationEvent($"No valid Paste selection");
+                _events.PublishOnUIThread(reason);
+                return;
+            }
+
+            var sourceArranger = Paste.Copy.Source;
+            var rect = Paste.Rect;
+
+            var sourceStart = new System.Drawing.Point(rect.SnappedLeft / sourceArranger.ElementPixelSize.Width,
+                rect.SnappedTop / sourceArranger.ElementPixelSize.Height);
+            var destStart = new System.Drawing.Point(rect.SnappedLeft / _workingArranger.ElementPixelSize.Width,
+                rect.SnappedTop / _workingArranger.ElementPixelSize.Height);
+            int copyWidth = Paste.Copy.Width;
+            int copyHeight = Paste.Copy.Height;
+
+            var result = ElementCopier.CopyElements(Paste.Copy as ElementCopy, _workingArranger as ScatteredArranger, destStart);
 
             var notifyEvent = result.Match(
                 success =>
@@ -384,12 +395,12 @@ namespace TileShop.WPF.ViewModels
 
         public void DeleteSelection()
         {
-            if (Overlay.State == OverlayState.Selected && _workingArranger.Layout == ArrangerLayout.Tiled)
+            if (Selection.HasSelection)
             {
-                int startX = Overlay.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
-                int startY = Overlay.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
-                int width = Overlay.SelectionRect.SnappedWidth / _workingArranger.ElementPixelSize.Height;
-                int height = Overlay.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Width;
+                int startX = Selection.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
+                int startY = Selection.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
+                int width = Selection.SelectionRect.SnappedWidth / _workingArranger.ElementPixelSize.Height;
+                int height = Selection.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Width;
 
                 for (int y = 0; y < height; y++)
                 {

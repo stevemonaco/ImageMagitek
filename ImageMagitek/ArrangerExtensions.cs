@@ -11,6 +11,39 @@ namespace ImageMagitek
     /// </summary>
     public static class ArrangerExtensions
     {
+        public static ElementCopy CopyElements(this Arranger arranger, int x, int y, int width, int height)
+        {
+            return new ElementCopy(arranger, x, y, width, height);
+        }
+
+        public static IndexedPixelCopy CopyPixelsIndexed(this Arranger arranger, int x, int y, int width, int height)
+        {
+            if (arranger.ColorType == PixelColorType.Indexed)
+            {
+                return new IndexedPixelCopy(arranger, x, y, width, height);
+            }
+            else
+            {
+                throw new ArgumentException($"{nameof(CopyPixelsIndexed)}: Cannot copy from arranger '{arranger.Name}' with {nameof(PixelColorType)} '{arranger.ColorType}'");
+            }
+        }
+
+        public static DirectPixelCopy CopyPixelsDirect(this Arranger arranger, int x, int y, int width, int height)
+        {
+            if (arranger.ColorType == PixelColorType.Indexed)
+            {
+                throw new NotImplementedException($"{nameof(CopyPixelsDirect)}: Cannot copy from arranger '{arranger.Name}' with {nameof(PixelColorType)} '{arranger.ColorType}'");
+            }
+            else if (arranger.ColorType == PixelColorType.Direct)
+            {
+                return new DirectPixelCopy(arranger, x, y, width, height);
+            }
+            else
+            {
+                throw new ArgumentException($"{nameof(CopyPixelsIndexed)}: Cannot copy from arranger '{arranger.Name}' with {nameof(PixelColorType)} '{arranger.ColorType}'");
+            }
+        }
+
         /// <summary>
         /// Moves a Sequential Arranger's file position and updates each Element
         /// Will not move outside of the bounds of the underlying file
@@ -113,19 +146,6 @@ namespace ImageMagitek
             int elY = unzoomed.Y / arranger.ArrangerElementSize.Height;
 
             return new Point(elX, elY);
-
-            //// Search list for element
-            //for (int y = 0; y < arranger.ArrangerElementSize.Height; y++)
-            //{
-            //    for (int x = 0; x < arranger.ArrangerElementSize.Width; x++)
-            //    {
-            //        ArrangerElement el = arranger.GetElement(x, y);
-            //        if (unzoomed.X >= el.X1 && unzoomed.X <= el.X2 && unzoomed.Y >= el.Y1 && unzoomed.Y <= el.Y2)
-            //            return new Point(x, y);
-            //    }
-            //}
-
-            //throw new ArgumentOutOfRangeException($"{nameof(PointToElementLocation)} Location ({Location.X}, {Location.Y}) is out of range");
         }
 
         /// <summary>

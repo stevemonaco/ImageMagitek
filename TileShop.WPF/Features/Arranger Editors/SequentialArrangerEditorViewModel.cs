@@ -256,10 +256,10 @@ namespace TileShop.WPF.ViewModels
         {
             if (SnapMode == SnapMode.Element)
             {
-                int x = Overlay.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
-                int y = Overlay.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
-                int width = Overlay.SelectionRect.SnappedWidth / _workingArranger.ElementPixelSize.Width;
-                int height = Overlay.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
+                int x = Selection.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
+                int y = Selection.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
+                int width = Selection.SelectionRect.SnappedWidth / _workingArranger.ElementPixelSize.Width;
+                int height = Selection.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
                 var model = new AddScatteredArrangerFromExistingEvent(_workingArranger, x, y, width, height);
                 _events.PublishOnUIThread(model);
             }
@@ -423,13 +423,13 @@ namespace TileShop.WPF.ViewModels
 
         public override void OnMouseMove(object sender, MouseCaptureArgs e)
         {
-            if (Overlay.State == OverlayState.Selecting)
-                Overlay.UpdateSelectionEndPoint(e.X / Zoom, e.Y / Zoom);
+                
 
-            if (Overlay.State == OverlayState.Selecting || Overlay.State == OverlayState.Selected)
+            if (IsSelecting)
             {
+                Selection.UpdateSelectionEndpoint(e.X / Zoom, e.Y / Zoom);
                 string notifyMessage;
-                var rect = Overlay.SelectionRect;
+                var rect = Selection.SelectionRect;
                 if (rect.SnapMode == SnapMode.Element)
                     notifyMessage = $"Element Selection: {rect.SnappedWidth / _workingArranger.ElementPixelSize.Width} x {rect.SnappedHeight / _workingArranger.ElementPixelSize.Height}" +
                         $" at ({rect.SnappedLeft / _workingArranger.ElementPixelSize.Width}, {rect.SnappedRight / _workingArranger.ElementPixelSize.Height})";
