@@ -66,5 +66,20 @@ namespace TileShop.WPF.ViewModels
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
             _events.PublishOnUIThread(notifyEvent);
         }
+
+        public override void Undo()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override void Redo()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override void ApplyHistoryAction(HistoryAction action)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

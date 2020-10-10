@@ -126,7 +126,7 @@ namespace TileShop.WPF.ViewModels
 
         public override byte GetPixel(int x, int y) => _indexedImage.GetPixel(x, y);
 
-        public override void ApplyAction(HistoryAction action)
+        public override void ApplyHistoryAction(HistoryAction action)
         {
             if (action is PencilHistoryAction<byte> pencilAction)
             {

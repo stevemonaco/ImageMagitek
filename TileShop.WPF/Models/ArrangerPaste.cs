@@ -8,7 +8,7 @@ using TileShop.WPF.Imaging;
 
 namespace TileShop.WPF.Models
 {
-    public class ArrangerPaste
+    public class ArrangerPaste : INotifyPropertyChanged
     {
         public ArrangerCopy Copy { get; private set; }
         public int DeltaX { get; set; }

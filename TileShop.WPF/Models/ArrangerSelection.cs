@@ -6,7 +6,7 @@ using TileShop.Shared.Models;
 
 namespace TileShop.WPF.Models
 {
-    public class ArrangerSelection
+    public class ArrangerSelection : INotifyPropertyChanged
     {
         public Arranger Arranger { get; private set; }
 

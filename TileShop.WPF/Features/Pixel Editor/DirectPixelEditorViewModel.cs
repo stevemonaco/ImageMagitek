@@ -47,17 +47,6 @@ namespace TileShop.WPF.ViewModels
 
         protected override void ReloadImage() => _directImage.Render();
 
-        public override void ApplyAction(HistoryAction action)
-        {
-            if (action is PencilHistoryAction<ColorRgba32> pencilAction)
-            {
-                foreach (var point in pencilAction.ModifiedPoints)
-                {
-                    _directImage.SetPixel(point.X, point.Y, pencilAction.PencilColor);
-                }
-            }
-        }
-
         public override void SaveChanges()
         {
             try
@@ -85,6 +74,17 @@ namespace TileShop.WPF.ViewModels
         public override void SetPixel(int x, int y, ColorRgba32 color)
         {
             _directImage.SetPixel(x + _viewX, y + _viewY, color);
+        }
+
+        public override void ApplyHistoryAction(HistoryAction action)
+        {
+            if (action is PencilHistoryAction<ColorRgba32> pencilAction)
+            {
+                foreach (var point in pencilAction.ModifiedPoints)
+                {
+                    _directImage.SetPixel(point.X, point.Y, pencilAction.PencilColor);
+                }
+            }
         }
     }
 }

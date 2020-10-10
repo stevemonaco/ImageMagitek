@@ -447,17 +447,19 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        /// <summary>
-        /// Checks if the specified arranger can be copied into the current SequentialArranger
-        /// SequentialArrangers can only copy pixels
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        protected override bool CanAcceptTransfer(ArrangerTransferModel model)
+        public override void Undo()
         {
-            CanPastePixels = true;
-            CanPasteElements = false;
-            return true;
+            throw new NotImplementedException();
+        }
+
+        public override void Redo()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void ApplyHistoryAction(HistoryAction action)
+        {
+            throw new NotImplementedException();
         }
     }
 }

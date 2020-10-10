@@ -16,20 +16,6 @@ namespace TileShop.WPF.ViewModels
         protected int _viewHeight;
         protected PencilHistoryAction<TColor> _activePencilHistory;
 
-        private BindableCollection<HistoryAction> _undoHistory = new BindableCollection<HistoryAction>();
-        public BindableCollection<HistoryAction> UndoHistory
-        {
-            get => _undoHistory;
-            set => SetAndNotify(ref _undoHistory, value);
-        }
-
-        private BindableCollection<HistoryAction> _redoHistory = new BindableCollection<HistoryAction>();
-        public BindableCollection<HistoryAction> RedoHistory
-        {
-            get => _redoHistory;
-            set => SetAndNotify(ref _redoHistory, value);
-        }
-
         private bool _isDrawing;
         public bool IsDrawing
         {
@@ -81,20 +67,7 @@ namespace TileShop.WPF.ViewModels
         public void SetPrimaryColor(TColor color) => PrimaryColor = color;
         public void SetSecondaryColor(TColor color) => SecondaryColor = color;
 
-        public abstract void ApplyAction(HistoryAction action);
-
-        public bool CanUndo { get => UndoHistory.Count > 0; }
-        public bool CanRedo { get => RedoHistory.Count > 0; }
-
-        public virtual void AddHistoryAction(HistoryAction action)
-        {
-            UndoHistory.Add(action);
-            RedoHistory.Clear();
-            NotifyOfPropertyChange(() => CanUndo);
-            NotifyOfPropertyChange(() => CanRedo);
-        }
-
-        public virtual void Undo()
+        public override void Undo()
         {
             var lastAction = UndoHistory[^1];
             UndoHistory.RemoveAt(UndoHistory.Count - 1);
@@ -107,12 +80,12 @@ namespace TileShop.WPF.ViewModels
             ReloadImage();
 
             foreach (var action in UndoHistory)
-                ApplyAction(action);
+                ApplyHistoryAction(action);
 
             Render();
         }
 
-        public virtual void Redo()
+        public override void Redo()
         {
             var redoAction = RedoHistory[^1];
             RedoHistory.RemoveAt(RedoHistory.Count - 1);
@@ -120,7 +93,7 @@ namespace TileShop.WPF.ViewModels
             NotifyOfPropertyChange(() => CanUndo);
             NotifyOfPropertyChange(() => CanRedo);
 
-            ApplyAction(redoAction);
+            ApplyHistoryAction(redoAction);
             IsModified = true;
             Render();
         }

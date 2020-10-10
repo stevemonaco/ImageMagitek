@@ -34,7 +34,6 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _bitmapAdapter, value);
         }
 
-
         public bool IsSingleLayout => _workingArranger?.Layout == ArrangerLayout.Single;
         public bool IsTiledLayout => _workingArranger?.Layout == ArrangerLayout.Tiled;
 
@@ -238,7 +237,12 @@ namespace TileShop.WPF.ViewModels
             NotifyOfPropertyChange(() => Gridlines);
         }
 
-        public virtual void ApplyPasteAsPixels()
+        public virtual void ApplyPasteOperation()
+        {
+            ApplyPasteAsPixels();
+        }
+
+        private void ApplyPasteAsPixels()
         {
             var sourceStart = new System.Drawing.Point(Paste.Rect.SnappedLeft, Paste.Rect.SnappedTop);
             var destStart = new System.Drawing.Point(Paste.Rect.SnappedLeft, Paste.Rect.SnappedTop);
@@ -298,6 +302,7 @@ namespace TileShop.WPF.ViewModels
                 ShowGridlines ^= true;
         }
 
+        #region Mouse Actions
         public virtual void OnMouseMove(object sender, MouseCaptureArgs e)
         {
             if (IsSelecting)
@@ -347,11 +352,14 @@ namespace TileShop.WPF.ViewModels
 
         public virtual void OnMouseDown(object sender, MouseCaptureArgs e)
         {
-            int x = (int) (e.X / Zoom);
-            int y = (int) (e.Y / Zoom);
+            int x = (int)(e.X / Zoom);
+            int y = (int)(e.Y / Zoom);
 
             if (e.LeftButton && Paste is object && !Paste.Rect.ContainsPointSnapped(x, y))
+            {
+                ApplyPasteOperation();
                 Paste = null;
+            }
 
             if (Selection?.HasSelection is true && e.LeftButton && Selection.SelectionRect.ContainsPointSnapped(x, y))
             {
@@ -381,9 +389,9 @@ namespace TileShop.WPF.ViewModels
             else
                 ZoomOut();
         }
+        #endregion
 
-        protected virtual bool CanAcceptTransfer(ArrangerTransferModel model) => true;
-
+        #region Drag and Drop Implementation
         public virtual void Drop(IDropInfo dropInfo)
         {
             if (dropInfo.Data is ArrangerPaste paste)
@@ -480,5 +488,6 @@ namespace TileShop.WPF.ViewModels
             CancelOverlay();
         }
         public virtual bool TryCatchOccurredException(Exception exception) => false;
+        #endregion
     }
 }

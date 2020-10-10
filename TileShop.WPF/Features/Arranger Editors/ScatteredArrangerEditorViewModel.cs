@@ -117,6 +117,7 @@ namespace TileShop.WPF.ViewModels
             IsModified = false;
         }
 
+        #region Mouse Actions
         public override void OnMouseDown(object sender, MouseCaptureArgs e)
         {
             int x = (int)e.X / Zoom;
@@ -154,7 +155,9 @@ namespace TileShop.WPF.ViewModels
                 base.OnMouseMove(sender, e);
             }
         }
+        #endregion
 
+        #region Drag and Drop Overrides
         public override void DragOver(IDropInfo dropInfo)
         {
             if (dropInfo.Data is PaletteNodeViewModel model)
@@ -183,6 +186,7 @@ namespace TileShop.WPF.ViewModels
             else
                 base.Drop(dropInfo);
         }
+        #endregion
 
         private void CreateImages()
         {
@@ -318,46 +322,55 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        protected override bool CanAcceptTransfer(ArrangerTransferModel model)
-        {
-            CanPasteElements = CanAcceptElementTransfer(model);
-            CanPastePixels = CanAcceptPixelTransfer(model);
+        //protected override bool CanAcceptTransfer(ArrangerTransferModel model)
+        //{
+        //    CanPasteElements = CanAcceptElementTransfer(model);
+        //    CanPastePixels = CanAcceptPixelTransfer(model);
 
-            return CanPasteElements || CanPastePixels;
+        //    return CanPasteElements || CanPastePixels;
+        //}
+
+        //private bool CanAcceptPixelTransfer(ArrangerTransferModel model)
+        //{
+        //    return true;
+        //    //if (IsLinearLayout)
+        //    //    return true;
+        //    //else if (IsTiledLayout)
+        //    //{
+        //    //    var elems = _workingArranger.EnumerateElementsByPixel(model.X, model.Y, model.Width, model.Height);
+        //    //    return !elems.Any(x => x.Codec is BlankIndexedCodec || x.Codec is BlankDirectCodec);
+        //    //}
+
+        //    //return false;
+        //}
+
+        //private bool CanAcceptElementTransfer(ArrangerTransferModel model)
+        //{
+        //    // Ensure elements are an even multiple width/height
+        //    if (model.Width % _workingArranger.ElementPixelSize.Width != 0 || model.Height % _workingArranger.ElementPixelSize.Height != 0)
+        //        return false;
+
+        //    // Ensure start point is aligned to an element boundary
+        //    if (model.X % _workingArranger.ElementPixelSize.Width != 0 || model.Y % _workingArranger.ElementPixelSize.Height != 0)
+        //        return false;
+
+        //    // Cannot copy into a single arranger
+        //    if (_workingArranger.Layout == ArrangerLayout.Single)
+        //        return false;
+
+        //    return true;
+        //}
+
+        public void ConfirmPendingOperation()
+        {
+            if (Paste?.Copy is ElementCopy)
+                ApplyPasteOperation();
         }
 
-        private bool CanAcceptPixelTransfer(ArrangerTransferModel model)
-        {
-            return true;
-            //if (IsLinearLayout)
-            //    return true;
-            //else if (IsTiledLayout)
-            //{
-            //    var elems = _workingArranger.EnumerateElementsByPixel(model.X, model.Y, model.Width, model.Height);
-            //    return !elems.Any(x => x.Codec is BlankIndexedCodec || x.Codec is BlankDirectCodec);
-            //}
-
-            //return false;
-        }
-
-        private bool CanAcceptElementTransfer(ArrangerTransferModel model)
-        {
-            // Ensure elements are an even multiple width/height
-            if (model.Width % _workingArranger.ElementPixelSize.Width != 0 || model.Height % _workingArranger.ElementPixelSize.Height != 0)
-                return false;
-
-            // Ensure start point is aligned to an element boundary
-            if (model.X % _workingArranger.ElementPixelSize.Width != 0 || model.Y % _workingArranger.ElementPixelSize.Height != 0)
-                return false;
-
-            // Cannot copy into a single arranger
-            if (_workingArranger.Layout == ArrangerLayout.Single)
-                return false;
-
-            return true;
-        }
-
-        public void ApplyPasteAsElements()
+        /// <summary>
+        /// Applies the paste as elements
+        /// </summary>
+        public override void ApplyPasteOperation()
         {
             var elementCopy = Paste?.Copy as ElementCopy;
 
@@ -383,6 +396,7 @@ namespace TileShop.WPF.ViewModels
             var notifyEvent = result.Match(
                 success =>
                 {
+                    AddHistoryAction(new PasteArrangerHistoryAction(Paste, destStart));
                     IsModified = true;
                     Render();
                     return new NotifyOperationEvent("Paste successfully applied");
@@ -393,26 +407,78 @@ namespace TileShop.WPF.ViewModels
             _events.PublishOnUIThread(notifyEvent);
         }
 
-        public void DeleteSelection()
+        public void DeleteElementSelection()
         {
             if (Selection.HasSelection)
             {
-                int startX = Selection.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
-                int startY = Selection.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
-                int width = Selection.SelectionRect.SnappedWidth / _workingArranger.ElementPixelSize.Height;
-                int height = Selection.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Width;
-
-                for (int y = 0; y < height; y++)
-                {
-                    for (int x = 0; x < width; x++)
-                    {
-                        _workingArranger.ResetElement(x + startX, y + startY);
-                    }
-                }
+                DeleteElementSelection(Selection.SelectionRect);
+                AddHistoryAction(new DeleteElementSelectionHistoryAction(Selection.SelectionRect));
 
                 IsModified = true;
                 Render();
             }
         }
+
+        private void DeleteElementSelection(SnappedRectangle rect)
+        {
+            int startX = rect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
+            int startY = rect.SnappedTop / _workingArranger.ElementPixelSize.Height;
+            int width = rect.SnappedWidth / _workingArranger.ElementPixelSize.Height;
+            int height = rect.SnappedHeight / _workingArranger.ElementPixelSize.Width;
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    _workingArranger.ResetElement(x + startX, y + startY);
+                }
+            }
+        }
+
+        #region Undo Redo Actions
+        public override void ApplyHistoryAction(HistoryAction action)
+        {
+            if (action is PasteArrangerHistoryAction pasteAction)
+            {
+                ElementCopier.CopyElements(pasteAction.Paste.Copy as ElementCopy, _workingArranger as ScatteredArranger, pasteAction.Location);
+            }
+            else if (action is DeleteElementSelectionHistoryAction deleteSelectionAction)
+            {
+                DeleteElementSelection(deleteSelectionAction.Rect);
+            }
+        }
+
+        public override void Undo()
+        {
+            var lastAction = UndoHistory[^1];
+            UndoHistory.RemoveAt(UndoHistory.Count - 1);
+            RedoHistory.Add(lastAction);
+            NotifyOfPropertyChange(() => CanUndo);
+            NotifyOfPropertyChange(() => CanRedo);
+
+            IsModified = UndoHistory.Count > 0;
+
+            _workingArranger = (Resource as Arranger).CloneArranger();
+            CreateImages();
+
+            foreach (var action in UndoHistory)
+                ApplyHistoryAction(action);
+
+            Render();
+        }
+
+        public override void Redo()
+        {
+            var redoAction = RedoHistory[^1];
+            RedoHistory.RemoveAt(RedoHistory.Count - 1);
+            UndoHistory.Add(redoAction);
+            NotifyOfPropertyChange(() => CanUndo);
+            NotifyOfPropertyChange(() => CanRedo);
+
+            ApplyHistoryAction(redoAction);
+            IsModified = true;
+            Render();
+        }
+        #endregion
     }
 }
