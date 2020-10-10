@@ -183,11 +183,6 @@
                     ToolTip="Opens selection in the pixel editor">
                     <Image Style="{StaticResource iconEdit}" />
                 </Button>
-                <Button
-                    Command="{s:Action ApplyPasteAsPixels}"
-                    Content="PasteAsPixels"
-                    ToolTip="Paste pixels directly to file"
-                    Visibility="{Binding CanPastePixels, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}" />
             </StackPanel>
         </Border>
 
@@ -243,8 +238,6 @@
                     Grid.Row="0"
                     Grid.Column="0"
                     Panel.ZIndex="1"
-                    dd:DragDrop.DropHandler="{Binding}"
-                    dd:DragDrop.IsDropTarget="True"
                     LayoutTransform="{StaticResource transform}"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                     SnapsToDevicePixels="True"
@@ -258,31 +251,18 @@
                     Grid.Column="0"
                     Panel.ZIndex="2"
                     dd:DragDrop.DragHandler="{Binding}"
-                    dd:DragDrop.DropHandler="{Binding}"
                     dd:DragDrop.IsDragSource="True"
-                    dd:DragDrop.IsDropTarget="True"
                     LayoutTransform="{StaticResource transform}">
                     <Rectangle
-                        Canvas.Left="{Binding Overlay.SelectionRect.SnappedLeft}"
-                        Canvas.Top="{Binding Overlay.SelectionRect.SnappedTop}"
-                        Width="{Binding Overlay.SelectionRect.SnappedWidth}"
-                        Height="{Binding Overlay.SelectionRect.SnappedHeight}"
+                        Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
+                        Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
+                        Width="{Binding Selection.SelectionRect.SnappedWidth}"
+                        Height="{Binding Selection.SelectionRect.SnappedHeight}"
                         Fill="{StaticResource editSelectionFillBrush}"
                         Stroke="Black"
                         StrokeDashArray="3 2"
                         StrokeThickness="0.3"
-                        Visibility="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Selection}" />
-                    <Rectangle
-                        Canvas.Left="{Binding Overlay.PasteRect.SnappedLeft}"
-                        Canvas.Top="{Binding Overlay.PasteRect.SnappedTop}"
-                        Width="{Binding Overlay.PasteRect.SnappedWidth}"
-                        Height="{Binding Overlay.PasteRect.SnappedHeight}"
-                        dd:DragDrop.IsDropTarget="True"
-                        Fill="{StaticResource pasteSelectionFillBrush}"
-                        Stroke="Black"
-                        StrokeDashArray="3 2"
-                        StrokeThickness="0.3"
-                        Visibility="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Paste}" />
+                        Visibility="{Binding Selection.HasSelection, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </Canvas>
 
                 <!--  Gridline Overlay  -->

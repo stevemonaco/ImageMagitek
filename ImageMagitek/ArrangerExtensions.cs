@@ -11,9 +11,23 @@ namespace ImageMagitek
     /// </summary>
     public static class ArrangerExtensions
     {
+        public static ElementCopy CopyElements(this Arranger arranger)
+        {
+            int width = arranger.ArrangerElementSize.Width;
+            int height = arranger.ArrangerElementSize.Height;
+            return arranger.CopyElements(0, 0, width, height);
+        }
+
         public static ElementCopy CopyElements(this Arranger arranger, int x, int y, int width, int height)
         {
             return new ElementCopy(arranger, x, y, width, height);
+        }
+
+        public static IndexedPixelCopy CopyPixelsIndexed(this Arranger arranger)
+        {
+            int width = arranger.ArrangerPixelSize.Width;
+            int height = arranger.ArrangerPixelSize.Height;
+            return arranger.CopyPixelsIndexed(0, 0, width, height);
         }
 
         public static IndexedPixelCopy CopyPixelsIndexed(this Arranger arranger, int x, int y, int width, int height)
@@ -26,6 +40,13 @@ namespace ImageMagitek
             {
                 throw new ArgumentException($"{nameof(CopyPixelsIndexed)}: Cannot copy from arranger '{arranger.Name}' with {nameof(PixelColorType)} '{arranger.ColorType}'");
             }
+        }
+
+        public static DirectPixelCopy CopyPixelsDirect(this Arranger arranger)
+        {
+            int width = arranger.ArrangerPixelSize.Width;
+            int height = arranger.ArrangerPixelSize.Height;
+            return arranger.CopyPixelsDirect(0, 0, width, height);
         }
 
         public static DirectPixelCopy CopyPixelsDirect(this Arranger arranger, int x, int y, int width, int height)
@@ -133,23 +154,21 @@ namespace ImageMagitek
         /// <summary>
         /// Translates a point to an element location in the underlying arranger
         /// </summary>
-        /// <param name="Location">Point in zoomed coordinates</param>
-        /// <returns>Element location</returns>
-        public static Point PointToElementLocation(this Arranger arranger, Point Location, int Zoom = 1)
+        /// <param name="location">Point in pixel coordinates</param>
+        /// <returns>Element location in element coordinates</returns>
+        public static Point PointToElementLocation(this Arranger arranger, Point location)
         {
-            Point unzoomed = new Point(Location.X / Zoom, Location.Y / Zoom);
+            if (location.X < 0 || location.X >= arranger.ArrangerPixelSize.Width || location.Y < 0 || location.Y >= arranger.ArrangerPixelSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(PointToElementLocation)} Location ({location.X}, {location.Y}) is out of range");
 
-            if (unzoomed.X < 0 || unzoomed.X >= arranger.ArrangerPixelSize.Width || unzoomed.Y < 0 || unzoomed.Y >= arranger.ArrangerPixelSize.Height)
-                throw new ArgumentOutOfRangeException($"{nameof(PointToElementLocation)} Location ({Location.X}, {Location.Y}) is out of range");
-
-            int elX = unzoomed.X / arranger.ArrangerElementSize.Width;
-            int elY = unzoomed.Y / arranger.ArrangerElementSize.Height;
+            int elX = location.X / arranger.ElementPixelSize.Width;
+            int elY = location.Y / arranger.ElementPixelSize.Height;
 
             return new Point(elX, elY);
         }
 
         /// <summary>
-        /// Find most frequent of an attribute within an arranger's elements
+        /// Find most frequent occurrence of an attribute within an arranger's elements
         /// </summary>
         /// <param name="arr">Arranger to search</param>
         /// <param name="attributeName">Name of the attribute to find most frequent value of</param>

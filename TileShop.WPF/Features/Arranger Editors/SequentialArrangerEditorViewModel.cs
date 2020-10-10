@@ -178,6 +178,7 @@ namespace TileShop.WPF.ViewModels
                 SnapMode = SnapMode.Pixel;
             }
 
+            CanChangeSnapMode = true;
             CanResize = arranger.ActiveCodec.CanResize;
             WidthIncrement = arranger.ActiveCodec.WidthResizeIncrement;
             HeightIncrement = arranger.ActiveCodec.HeightResizeIncrement;
@@ -423,8 +424,6 @@ namespace TileShop.WPF.ViewModels
 
         public override void OnMouseMove(object sender, MouseCaptureArgs e)
         {
-                
-
             if (IsSelecting)
             {
                 Selection.UpdateSelectionEndpoint(e.X / Zoom, e.Y / Zoom);
@@ -447,19 +446,26 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        #region Unsupported Operations due to SequentialArrangerEditor being read-only
         public override void Undo()
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override void Redo()
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override void ApplyHistoryAction(HistoryAction action)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
+
+        public override void ApplyPaste(ArrangerPaste paste)
+        {
+            throw new NotSupportedException();
+        }
+        #endregion
     }
 }

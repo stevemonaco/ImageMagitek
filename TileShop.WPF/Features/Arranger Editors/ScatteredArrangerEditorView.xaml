@@ -43,6 +43,7 @@
             Panel.ZIndex="0"
             Orientation="Horizontal">
 
+            <!--  Tools  -->
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Tools" />
 
@@ -130,6 +131,19 @@
                 </ToggleButton>
             </StackPanel>
 
+            <StackPanel Margin="5,0,0,0">
+                <ToggleButton
+                    Focusable="False"
+                    IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
+                    ToolTip="Snap Selection to Elements"
+                    Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel>
+                        <TextBlock Text="Snap" />
+                        <Image Style="{StaticResource iconSnap}" />
+                    </StackPanel>
+                </ToggleButton>
+            </StackPanel>
+
             <Separator Margin="5,0,5,0" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
 
             <Button
@@ -185,25 +199,6 @@
                     <Image Style="{StaticResource iconSave}" />
                 </StackPanel>
             </Button>
-
-            <Button Margin="5,0,0,0">
-                <ui:FlyoutService.Flyout>
-                    <ui:MenuFlyout>
-                        <MenuItem
-                            Click="{s:Action ApplyPasteAsElements}"
-                            Header="As Elements"
-                            IsEnabled="{Binding CanPasteElements}" />
-                        <MenuItem
-                            Click="{s:Action ApplyPasteAsPixels}"
-                            Header="As Pixels"
-                            IsEnabled="{Binding CanPastePixels}" />
-                    </ui:MenuFlyout>
-                </ui:FlyoutService.Flyout>
-                <StackPanel>
-                    <TextBlock Text="Paste" />
-                    <Image Style="{StaticResource iconPaste}" />
-                </StackPanel>
-            </Button>
         </StackPanel>
 
         <!--  Image Display  -->
@@ -232,9 +227,8 @@
                     <behaviors:MouseCaptureBehavior Proxy="{Binding}" RequireCtrlForMouseWheel="True" />
                 </i:Interaction.Behaviors>
 
+                <!--  Arranged Image  -->
                 <Image
-                    Grid.Row="0"
-                    Grid.Column="0"
                     Panel.ZIndex="1"
                     dd:DragDrop.DropHandler="{Binding}"
                     dd:DragDrop.IsDropTarget="True"
@@ -244,9 +238,8 @@
                     Source="{Binding BitmapAdapter.Bitmap}"
                     Stretch="None" />
 
+                <!--  Checkered Background  -->
                 <Rectangle
-                    Grid.Row="0"
-                    Grid.Column="0"
                     Panel.ZIndex="0"
                     Fill="{StaticResource CheckeredBrush}"
                     LayoutTransform="{StaticResource transform}" />
@@ -254,8 +247,6 @@
                 <!--  Selection and Paste Overlay  -->
                 <Canvas
                     x:Name="overlayCanvas"
-                    Grid.Row="0"
-                    Grid.Column="0"
                     MaxWidth="{Binding BitmapAdapter.Width}"
                     MaxHeight="{Binding BitmapAdapter.Height}"
                     Panel.ZIndex="2"
@@ -265,6 +256,7 @@
                     dd:DragDrop.IsDropTarget="True"
                     ClipToBounds="True"
                     LayoutTransform="{StaticResource transform}">
+
                     <Rectangle
                         Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
                         Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"

@@ -73,7 +73,7 @@ namespace TileShop.WPF.ViewModels
         public int MinZoom => 1;
         public int MaxZoom { get; protected set; } = 16;
 
-        public bool CanChangeSnapMode => _workingArranger is object ? _workingArranger.Layout == ArrangerLayout.Tiled : false;
+        public bool CanChangeSnapMode { get; protected set; }
 
         protected EditMode _editMode = EditMode.ArrangeGraphics;
         public EditMode EditMode
@@ -107,7 +107,8 @@ namespace TileShop.WPF.ViewModels
             set
             {
                 SetAndNotify(ref _snapMode, value);
-                Selection.SnapMode = SnapMode;
+                if (Selection is object)
+                    Selection.SnapMode = SnapMode;
             }
         }
 
@@ -118,13 +119,6 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _selection, value);
         }
 
-        private ArrangerPaste _paste;
-        public ArrangerPaste Paste
-        {
-            get => _paste;
-            set => SetAndNotify(ref _paste, value);
-        }
-
         private bool _isSelecting;
         public bool IsSelecting
         {
@@ -132,18 +126,14 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _isSelecting, value);
         }
 
-        private bool _canPasteElements;
-        public bool CanPasteElements
-        {
-            get => _canPasteElements;
-            set => SetAndNotify(ref _canPasteElements, value);
-        }
+        public bool CanAcceptPixelPastes { get; set; }
+        public bool CanAcceptElementPastes { get; set; }
 
-        private bool _canPastePixels;
-        public bool CanPastePixels
+        private ArrangerPaste _paste;
+        public ArrangerPaste Paste
         {
-            get => _canPastePixels;
-            set => SetAndNotify(ref _canPastePixels, value);
+            get => _paste;
+            set => SetAndNotify(ref _paste, value);
         }
 
         public ArrangerEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) 
@@ -203,8 +193,6 @@ namespace TileShop.WPF.ViewModels
             Selection = new ArrangerSelection(_workingArranger, SnapMode);
             Paste = null;
 
-            CanPasteElements = false;
-            CanPastePixels = false;
             NotifyOfPropertyChange(() => CanEditSelection);
         }
 
@@ -237,61 +225,58 @@ namespace TileShop.WPF.ViewModels
             NotifyOfPropertyChange(() => Gridlines);
         }
 
-        public virtual void ApplyPasteOperation()
-        {
-            ApplyPasteAsPixels();
-        }
+        public abstract void ApplyPaste(ArrangerPaste paste);
 
-        private void ApplyPasteAsPixels()
-        {
-            var sourceStart = new System.Drawing.Point(Paste.Rect.SnappedLeft, Paste.Rect.SnappedTop);
-            var destStart = new System.Drawing.Point(Paste.Rect.SnappedLeft, Paste.Rect.SnappedTop);
-            int copyWidth = Paste.Rect.SnappedWidth;
-            int copyHeight = Paste.Rect.SnappedHeight;
+        //private void ApplyPasteAsPixels()
+        //{
+        //    var sourceStart = new System.Drawing.Point(Paste.Rect.SnappedLeft, Paste.Rect.SnappedTop);
+        //    var destStart = new System.Drawing.Point(Paste.Rect.SnappedLeft, Paste.Rect.SnappedTop);
+        //    int copyWidth = Paste.Rect.SnappedWidth;
+        //    int copyHeight = Paste.Rect.SnappedHeight;
 
-            MagitekResult result;
+        //    MagitekResult result;
 
-            if (Paste.Copy.Source.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Indexed)
-            {
-                var sourceImage = (Paste.OverlayImage as IndexedBitmapAdapter).Image;
-                result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
-                    ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
-            }
-            else if (Paste.Copy.Source.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Direct)
-            {
-                var sourceImage = (Paste.OverlayImage as IndexedBitmapAdapter).Image;
-                result = ImageCopier.CopyPixels(sourceImage, _directImage, sourceStart, destStart, copyWidth, copyHeight);
-            }
-            else if (Paste.Copy.Source.ColorType == PixelColorType.Direct && _workingArranger.ColorType == PixelColorType.Indexed)
-            {
-                var sourceImage = (Paste.OverlayImage as DirectBitmapAdapter).Image;
-                result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
-                    ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
-            }
-            else if (Paste.Copy.Source.ColorType == PixelColorType.Direct && _workingArranger.ColorType == PixelColorType.Direct)
-            {
-                var sourceImage = (Paste.OverlayImage as DirectBitmapAdapter).Image;
-                result = ImageCopier.CopyPixels(sourceImage, _directImage, sourceStart, destStart, copyWidth, copyHeight);
-            }
-            else
-                throw new InvalidOperationException($"{nameof(ApplyPasteAsPixels)} attempted to copy from an arranger of type {Paste.Copy.Source.ColorType} to {_workingArranger.ColorType}");
+        //    if (Paste.Copy.Source.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Indexed)
+        //    {
+        //        var sourceImage = (Paste.OverlayImage as IndexedBitmapAdapter).Image;
+        //        result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
+        //            ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
+        //    }
+        //    else if (Paste.Copy.Source.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Direct)
+        //    {
+        //        var sourceImage = (Paste.OverlayImage as IndexedBitmapAdapter).Image;
+        //        result = ImageCopier.CopyPixels(sourceImage, _directImage, sourceStart, destStart, copyWidth, copyHeight);
+        //    }
+        //    else if (Paste.Copy.Source.ColorType == PixelColorType.Direct && _workingArranger.ColorType == PixelColorType.Indexed)
+        //    {
+        //        var sourceImage = (Paste.OverlayImage as DirectBitmapAdapter).Image;
+        //        result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
+        //            ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
+        //    }
+        //    else if (Paste.Copy.Source.ColorType == PixelColorType.Direct && _workingArranger.ColorType == PixelColorType.Direct)
+        //    {
+        //        var sourceImage = (Paste.OverlayImage as DirectBitmapAdapter).Image;
+        //        result = ImageCopier.CopyPixels(sourceImage, _directImage, sourceStart, destStart, copyWidth, copyHeight);
+        //    }
+        //    else
+        //        throw new InvalidOperationException($"{nameof(ApplyPasteAsPixels)} attempted to copy from an arranger of type {Paste.Copy.Source.ColorType} to {_workingArranger.ColorType}");
 
-            var notifyEvent = result.Match(
-                success =>
-                {
-                    if (_workingArranger.ColorType == PixelColorType.Indexed)
-                        _indexedImage.SaveImage();
-                    else if (_workingArranger.ColorType == PixelColorType.Direct)
-                        _directImage.SaveImage();
+        //    var notifyEvent = result.Match(
+        //        success =>
+        //        {
+        //            if (_workingArranger.ColorType == PixelColorType.Indexed)
+        //                _indexedImage.SaveImage();
+        //            else if (_workingArranger.ColorType == PixelColorType.Direct)
+        //                _directImage.SaveImage();
 
-                    Render();
-                    return new NotifyOperationEvent("Paste successfully applied");
-                },
-                fail => new NotifyOperationEvent(fail.Reason)
-                );
+        //            Render();
+        //            return new NotifyOperationEvent("Paste successfully applied");
+        //        },
+        //        fail => new NotifyOperationEvent(fail.Reason)
+        //        );
 
-            _events.PublishOnUIThread(notifyEvent);
-        }
+        //    _events.PublishOnUIThread(notifyEvent);
+        //}
 
         public void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);
         public void ZoomOut() => Zoom = Math.Clamp(Zoom - 1, MinZoom, MaxZoom);
@@ -357,7 +342,7 @@ namespace TileShop.WPF.ViewModels
 
             if (e.LeftButton && Paste is object && !Paste.Rect.ContainsPointSnapped(x, y))
             {
-                ApplyPasteOperation();
+                ApplyPaste(Paste);
                 Paste = null;
             }
 
@@ -382,7 +367,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public virtual void OnMouseWheel(object sender, MouseCaptureArgs e) 
+        public virtual void OnMouseWheel(object sender, MouseCaptureArgs e)
         {
             if (e.WheelDelta > 0)
                 ZoomIn();
@@ -405,8 +390,14 @@ namespace TileShop.WPF.ViewModels
         {
             if (dropInfo.Data is ArrangerPaste paste)
             {
+                if (paste.Copy is ElementCopy && !CanAcceptElementPastes)
+                    return;
+
+                if ((paste.Copy is IndexedPixelCopy || paste.Copy is DirectPixelCopy) && !CanAcceptPixelPastes)
+                    return;
+
                 if (!ReferenceEquals(dropInfo.DragInfo.SourceItem, this))
-                    (dropInfo.DragInfo.SourceItem as ArrangerEditorViewModel).CancelOverlay(); //.Paste = null;
+                    (dropInfo.DragInfo.SourceItem as ArrangerEditorViewModel).CancelOverlay();
 
                 if (Paste != paste)
                 {
@@ -414,9 +405,6 @@ namespace TileShop.WPF.ViewModels
                     Paste.DeltaX = paste.DeltaX;
                     Paste.DeltaY = paste.DeltaY;
                 }
-
-                CanPasteElements = true;
-                CanPastePixels = true;
 
                 Paste.MoveTo((int)dropInfo.DropPosition.X, (int)dropInfo.DropPosition.Y);
                 dropInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
@@ -459,6 +447,7 @@ namespace TileShop.WPF.ViewModels
             {
                 Paste.DeltaX = (int)dragInfo.DragStartPosition.X - Paste.Rect.SnappedLeft;
                 Paste.DeltaY = (int)dragInfo.DragStartPosition.Y - Paste.Rect.SnappedTop;
+                Paste.SnapMode = SnapMode;
 
                 dragInfo.Data = Paste;
                 dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;

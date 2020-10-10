@@ -7,12 +7,10 @@ namespace TileShop.WPF.Models
         public override string Name => "Paste Arranger";
 
         public ArrangerPaste Paste { get; }
-        public Point Location { get; set; }
 
-        public PasteArrangerHistoryAction(ArrangerPaste paste, Point location)
+        public PasteArrangerHistoryAction(ArrangerPaste paste)
         {
             Paste = paste;
-            Location = location;
         }
     }
 }

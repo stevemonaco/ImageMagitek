@@ -21,6 +21,8 @@
         <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
         <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
         <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
+        <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
+        <KeyBinding Key="Return" Command="{s:Action ConfirmPendingOperation}" />
     </UserControl.InputBindings>
 
     <Grid x:Name="pixelEditor" UseLayoutRounding="True">
@@ -34,11 +36,8 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <StackPanel
-            Grid.Row="0"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
-            Orientation="Horizontal">
+        <!--  Toolbar  -->
+        <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal">
             <ComboBox ItemsSource="{Binding Palettes}" SelectedValue="{Binding ActivePalette}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
@@ -61,6 +60,16 @@
                 BorderBrush="SlateGray"
                 BorderThickness="1" />
 
+            <!--  Tools  -->
+            <RadioButton
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
+                GroupName="Tools"
+                IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
+                Style="{StaticResource {x:Type ToggleButton}}"
+                ToolTip="Select Tool">
+                <Image Style="{StaticResource iconCursor}" />
+            </RadioButton>
             <RadioButton
                 HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center"
@@ -198,43 +207,83 @@
                 </Grid.RowDefinitions>
                 <Grid.Resources>
                     <ScaleTransform x:Key="transform" ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />
-                    <SolidColorBrush
-                        x:Key="arrangeSelectionFillBrush"
-                        Opacity="0.5"
-                        Color="Maroon" />
-                    <SolidColorBrush
-                        x:Key="editSelectionFillBrush"
-                        Opacity="0.5"
-                        Color="LawnGreen" />
                 </Grid.Resources>
 
                 <i:Interaction.Behaviors>
                     <behaviors:MouseCaptureBehavior Proxy="{Binding}" />
                 </i:Interaction.Behaviors>
 
+                <!--  Editable Image  -->
                 <Image
-                    Grid.Row="0"
-                    Grid.Column="0"
                     Panel.ZIndex="1"
                     dd:DragDrop.DropHandler="{Binding}"
+                    dd:DragDrop.IsDropTarget="True"
                     LayoutTransform="{StaticResource transform}"
                     RenderOptions.BitmapScalingMode="NearestNeighbor"
                     SnapsToDevicePixels="True"
                     Source="{Binding BitmapAdapter.Bitmap}"
                     Stretch="None" />
 
+                <!--  Checkered Background  -->
                 <Rectangle
-                    Grid.Row="0"
-                    Grid.Column="0"
                     Panel.ZIndex="0"
                     Fill="{StaticResource CheckeredBrush}"
                     LayoutTransform="{StaticResource transform}" />
+
+                <!--  Selection and Paste Overlay  -->
+                <Canvas
+                    x:Name="overlayCanvas"
+                    MaxWidth="{Binding BitmapAdapter.Width}"
+                    MaxHeight="{Binding BitmapAdapter.Height}"
+                    Panel.ZIndex="2"
+                    dd:DragDrop.DragHandler="{Binding}"
+                    dd:DragDrop.DropHandler="{Binding}"
+                    dd:DragDrop.IsDragSource="True"
+                    dd:DragDrop.IsDropTarget="True"
+                    ClipToBounds="True"
+                    LayoutTransform="{StaticResource transform}">
+
+                    <Rectangle
+                        Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
+                        Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
+                        Width="{Binding Selection.SelectionRect.SnappedWidth}"
+                        Height="{Binding Selection.SelectionRect.SnappedHeight}"
+                        ClipToBounds="False"
+                        Fill="{StaticResource editSelectionFillBrush}"
+                        SnapsToDevicePixels="True"
+                        Stroke="Black"
+                        StrokeDashArray="3 2"
+                        StrokeThickness="1"
+                        Visibility="{Binding Selection.HasSelection, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+
+                    <Rectangle
+                        Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+                        Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+                        Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+                        Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+                        Fill="{StaticResource editSelectionFillBrush}"
+                        IsHitTestVisible="False"
+                        SnapsToDevicePixels="True"
+                        Stroke="Black"
+                        StrokeDashArray="3 2"
+                        StrokeThickness="1" />
+
+                    <Image
+                        Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+                        Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+                        Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+                        Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        SnapsToDevicePixels="True"
+                        Source="{Binding Paste.OverlayImage.Bitmap}"
+                        Stretch="None" />
+                </Canvas>
 
                 <!--  Gridline Overlay  -->
                 <ItemsControl
                     Grid.Row="0"
                     Grid.Column="0"
-                    Panel.ZIndex="2"
+                    Panel.ZIndex="5"
                     IsHitTestVisible="False"
                     ItemsSource="{Binding Gridlines}"
                     Visibility="{Binding ShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}">

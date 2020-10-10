@@ -187,7 +187,7 @@ namespace ImageMagitek
         /// <param name="color">Palette index of color</param>
         public void SetPixel(int x, int y, ColorRgba32 color)
         {
-            var elem = Arranger.GetElementAtPixel(x, y);
+            var elem = Arranger.GetElementAtPixel(x + Left, y + Top);
             var pal = elem.Palette;
 
             var index = pal.GetIndexByNativeColor(color, ColorMatchStrategy.Exact);
@@ -205,7 +205,7 @@ namespace ImageMagitek
             if (x >= Width || y >= Height || x < 0 || y < 0)
                 return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because because it is outside of the Arranger");
 
-            var elem = Arranger.GetElementAtPixel(x, y);
+            var elem = Arranger.GetElementAtPixel(x + Left, y + Top);
             if (!(elem.Codec is IIndexedCodec))
                 return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the element's codec is not an indexed color type");
 
@@ -227,7 +227,7 @@ namespace ImageMagitek
         /// <param name="y">y-coordinate in pixel coordinates</param>
         public ColorRgba32 GetPixelColor(int x, int y)
         {
-            var pal = Arranger.GetElementAtPixel(x, y).Palette;
+            var pal = Arranger.GetElementAtPixel(x + Left, y + Top).Palette;
             var palIndex = Image[x + Width * y];
             return pal[palIndex];
         }
@@ -241,11 +241,11 @@ namespace ImageMagitek
         /// <returns></returns>
         public MagitekResult TrySetPalette(int x, int y, Palette pal)
         {
-            if (x >= Arranger.ArrangerPixelSize.Width || y >= Arranger.ArrangerPixelSize.Height)
+            if (x + Left >= Arranger.ArrangerPixelSize.Width || y + Top >= Arranger.ArrangerPixelSize.Height)
                 return new MagitekResult.Failed($"Cannot assign the palette because the location ({x}, {y}) is outside of the arranger " +
                     $"'{Arranger.Name}' bounds  ({Arranger.ArrangerPixelSize.Width}, {Arranger.ArrangerPixelSize.Height})");
 
-            var el = Arranger.GetElementAtPixel(x, y);
+            var el = Arranger.GetElementAtPixel(x + Left, y + Top);
 
             if (ReferenceEquals(pal, el.Palette))
                 return MagitekResult.SuccessResult;
@@ -258,7 +258,7 @@ namespace ImageMagitek
 
             if (maxIndex < pal.Entries)
             {
-                var location = Arranger.PointToElementLocation(new System.Drawing.Point(x, y));
+                var location = Arranger.PointToElementLocation(new Point(x + Left, y + Top));
 
                 el = el.WithPalette(pal);
 

@@ -1,4 +1,5 @@
 ﻿using ImageMagitek.Colors;
+using System;
 
 namespace ImageMagitek
 {
@@ -69,6 +70,30 @@ namespace ImageMagitek
             Height = height;
 
             Image = new DirectImage(Source, X, Y, Width, Height);
+        }
+    }
+
+    public static class ElementCopyExtensions
+    {
+        public static ArrangerCopy ToPixelCopy(this ElementCopy copy)
+        {
+            int x = copy.X * copy.Source.ElementPixelSize.Width;
+            int y = copy.Y * copy.Source.ElementPixelSize.Height;
+            int width = copy.Width * copy.Source.ElementPixelSize.Width;
+            int height = copy.Height * copy.Source.ElementPixelSize.Height;
+
+            if (copy.Source.ColorType == PixelColorType.Indexed)
+            {
+                return copy.Source.CopyPixelsIndexed(x, y, width, height);
+            }
+            else if (copy.Source.ColorType == PixelColorType.Direct)
+            {
+                return copy.Source.CopyPixelsDirect(x, y, width, height);
+            }
+            else
+            {
+                throw new InvalidOperationException($"{nameof(ToPixelCopy)}: Arranger {copy.Source.Name} has an invalid color type {copy.Source.ColorType}");
+            }
         }
     }
 }

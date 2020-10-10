@@ -306,18 +306,23 @@
         </Setter>
     </Style>
 
-    <DrawingImage x:Key="iconRefresh">
-        <DrawingImage.Drawing>
-            <GeometryDrawing>
-                <GeometryDrawing.Brush>
-                    <SolidColorBrush Color="Black" />
-                </GeometryDrawing.Brush>
-                <GeometryDrawing.Geometry>
-                    M507.5 264.25A25 25 0 0 1 476.25 248A178.5 178.5 0 0 0 304.5 125A177.5 177.5 0 0 0 125 300A177.5 177.5 0 0 0 304.5 475A181.5 181.5 0 0 0 420.75 433.25L366.5 442.25A25 25 0 0 1 337.75 421.5A25 25 0 0 1 358.5 392.75L464.4999999999999 375.25H468.75A25 25 0 0 1 477.25 376.7500000000001A8.25 8.25 0 0 1 479.7500000000001 378.2500000000001A19.5 19.5 0 0 1 484.75 381.0000000000001L487 383.75C487 385.0000000000001 489.25 386 490.25 387.5000000000001S490.25 390 491.5 391.0000000000001A33.5 33.5 0 0 1 493.25 395.5000000000001L512 495.5000000000001A25 25 0 0 1 462 505.0000000000001L455.25 468.7500000000001A230.25 230.25 0 0 1 304.5 525A227.49999999999997 227.49999999999997 0 0 1 75 300A227.49999999999997 227.49999999999997 0 0 1 304.5 75A227.99999999999997 227.99999999999997 0 0 1 525 233A25 25 0 0 1 507.5 264.25z
-                </GeometryDrawing.Geometry>
-            </GeometryDrawing>
-        </DrawingImage.Drawing>
-    </DrawingImage>
+    <Style x:Key="iconSnap" TargetType="Image">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Brush="{DynamicResource iconBrush}">
+                            <GeometryDrawing.Geometry>
+                                M1000 500L812.5 312.5V437.5H750V250H562.5V187.5H687.5L500 0L312.5 187.5H437.5V250H250V437.5H187.5V312.5L0 500L187.5 687.5V562.5H250V750H437.5V812.5H312.5L500 1000L687.5 812.5H562.5V750H750V562.5H812.5V687.5L1000 500ZM687.5 687.5H312.5V312.5H687.5V687.5Z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
     <!--  Tree Node Icons  -->
     <Style x:Key="iconNodeProjectSmall" TargetType="Image">

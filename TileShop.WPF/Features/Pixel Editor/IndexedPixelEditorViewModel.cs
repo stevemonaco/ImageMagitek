@@ -8,6 +8,8 @@ using TileShop.Shared.EventModels;
 using TileShop.WPF.Imaging;
 using TileShop.WPF.Models;
 using Point = System.Drawing.Point;
+using ImageMagitek.Image;
+using TileShop.Shared.Models;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -69,6 +71,8 @@ namespace TileShop.WPF.ViewModels
             BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
 
             DisplayName = $"Pixel Editor - {_workingArranger.Name}";
+            SnapMode = SnapMode.Pixel;
+            Selection = new ArrangerSelection(arranger, SnapMode);
 
             CreateGridlines();
             ActivePalette = Palettes.First();
@@ -81,11 +85,77 @@ namespace TileShop.WPF.ViewModels
 
         protected override void ReloadImage() => _indexedImage.Render();
 
+        public void ConfirmPendingOperation()
+        {
+            if (Paste?.Copy is ElementCopy || Paste?.Copy is IndexedPixelCopy || Paste?.Copy is DirectPixelCopy)
+                ApplyPaste(Paste);
+        }
+
+        public override void ApplyPaste(ArrangerPaste paste)
+        {
+            var notifyEvent = ApplyPasteInternal(paste).Match(
+                success =>
+                {
+                    AddHistoryAction(new PasteArrangerHistoryAction(Paste));
+
+                    IsModified = true;
+                    CancelOverlay();
+                    BitmapAdapter.Invalidate();
+
+                    return new NotifyOperationEvent("Paste successfully applied");
+                },
+                fail => new NotifyOperationEvent(fail.Reason)
+                );
+
+            _events.PublishOnUIThread(notifyEvent);
+        }
+
+        private MagitekResult ApplyPasteInternal(ArrangerPaste paste)
+        {
+            int destX = Math.Max(0, paste.Rect.SnappedLeft);
+            int destY = Math.Max(0, paste.Rect.SnappedTop);
+            int sourceX = paste.Rect.SnappedLeft >= 0 ? 0 : -paste.Rect.SnappedLeft;
+            int sourceY = paste.Rect.SnappedTop >= 0 ? 0 : -paste.Rect.SnappedTop;
+
+            var destStart = new Point(destX, destY);
+            var sourceStart = new Point(sourceX, sourceY);
+
+            ArrangerCopy copy;
+
+            if (paste?.Copy is ElementCopy elementCopy)
+                copy = elementCopy.ToPixelCopy();
+            else
+                copy = paste?.Copy;
+
+            if (copy is IndexedPixelCopy indexedCopy)
+            {
+                int copyWidth = Math.Min(copy.Width - sourceX, _indexedImage.Width - destX);
+                int copyHeight = Math.Min(copy.Height - sourceY, _indexedImage.Height - destY);
+
+                return ImageCopier.CopyPixels(indexedCopy.Image, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
+                    PixelRemapOperation.RemapByExactPaletteColors, PixelRemapOperation.RemapByExactIndex);
+            }
+            //else if (Paste?.Copy is DirectPixelCopy directCopy)
+            //{
+            //var sourceImage = (Paste.OverlayImage as DirectBitmapAdapter).Image;
+            //result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
+            //    ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
+            //}
+            else
+                throw new InvalidOperationException($"{nameof(ApplyPaste)} attempted to copy from an arranger of type {paste.Copy.Source.ColorType} to {_workingArranger.ColorType}");
+        }
+
         public override void SaveChanges()
         {
             try
             {
                 _indexedImage.SaveImage();
+
+                UndoHistory.Clear();
+                RedoHistory.Clear();
+                NotifyOfPropertyChange(() => CanUndo);
+                NotifyOfPropertyChange(() => CanRedo);
+
                 IsModified = false;
             }
             catch (Exception ex)
@@ -136,6 +206,10 @@ namespace TileShop.WPF.ViewModels
             else if (action is ColorRemapHistoryAction remapAction)
             {
                 _indexedImage.RemapColors(remapAction.FinalColors.Select(x => (byte)x.Index).ToList());
+            }
+            else if (action is PasteArrangerHistoryAction pasteAction)
+            {
+                ApplyPasteInternal(pasteAction.Paste);
             }
         }
 

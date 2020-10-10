@@ -5,7 +5,7 @@ using TileShop.WPF.Models;
 
 namespace TileShop.WPF.ViewModels
 {
-    public enum PixelTool { Pencil, ColorPicker }
+    public enum PixelTool { Select, Pencil, ColorPicker }
 
     public abstract class PixelEditorViewModel<TColor> : ArrangerEditorViewModel
         where TColor : struct
@@ -55,6 +55,8 @@ namespace TileShop.WPF.ViewModels
             base(events, windowManager, paletteService)
         {
             DisplayName = "Pixel Editor";
+            CanAcceptElementPastes = true;
+            CanAcceptPixelPastes = true;
 
             Zoom = 3;
             MaxZoom = 32;
@@ -103,6 +105,9 @@ namespace TileShop.WPF.ViewModels
             int x = (int)e.X / Zoom;
             int y = (int)e.Y / Zoom;
 
+            if (ActiveTool != PixelTool.Select && Paste?.Rect.ContainsPointSnapped(x, y) is true)
+                return;
+
             if (ActiveTool == PixelTool.Pencil && e.LeftButton)
             {
                 _activePencilHistory = new PencilHistoryAction<TColor>(PrimaryColor);
@@ -125,6 +130,8 @@ namespace TileShop.WPF.ViewModels
                 SecondaryColor = GetPixel(x, y);
                 ActiveColor = SecondaryColor;
             }
+            else if (ActiveTool == PixelTool.Select)
+                base.OnMouseDown(sender, e);
         }
 
         public override void OnMouseLeave(object sender, MouseCaptureArgs e)
@@ -134,6 +141,8 @@ namespace TileShop.WPF.ViewModels
                 IsDrawing = false;
                 AddHistoryAction(_activePencilHistory);
             }
+            else
+                base.OnMouseLeave(sender, e);
         }
 
         public override void OnMouseMove(object sender, MouseCaptureArgs e)
@@ -148,6 +157,8 @@ namespace TileShop.WPF.ViewModels
                 SetPixel(x, y, PrimaryColor);
             else if (IsDrawing && ActiveTool == PixelTool.Pencil && e.RightButton)
                 SetPixel(x, y, SecondaryColor);
+            else
+                base.OnMouseMove(sender, e);
         }
 
         public override void OnMouseUp(object sender, MouseCaptureArgs e)
@@ -158,6 +169,8 @@ namespace TileShop.WPF.ViewModels
                 AddHistoryAction(_activePencilHistory);
                 _activePencilHistory = null;
             }
+            else
+                base.OnMouseUp(sender, e);
         }
     }
 }

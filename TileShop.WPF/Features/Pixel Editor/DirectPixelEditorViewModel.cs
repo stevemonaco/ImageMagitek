@@ -32,8 +32,8 @@ namespace TileShop.WPF.ViewModels
             _viewWidth = viewWidth;
             _viewHeight = viewHeight;
 
-            _directImage = new DirectImage(_workingArranger);
-            //ArrangerSource = new DirectImageSource(_directImage, _viewX, _viewY, _viewWidth, _viewHeight);
+            _directImage = new DirectImage(_workingArranger, _viewX, _viewY, _viewWidth, _viewHeight);
+            BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
 
             DisplayName = $"Pixel Editor - {_workingArranger.Name}";
 
@@ -85,6 +85,11 @@ namespace TileShop.WPF.ViewModels
                     _directImage.SetPixel(point.X, point.Y, pencilAction.PencilColor);
                 }
             }
+        }
+
+        public override void ApplyPaste(ArrangerPaste paste)
+        {
+            throw new NotImplementedException();
         }
     }
 }

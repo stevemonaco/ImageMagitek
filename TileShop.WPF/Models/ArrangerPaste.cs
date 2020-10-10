@@ -18,7 +18,12 @@ namespace TileShop.WPF.Models
         public SnapMode SnapMode
         {
             get => _snapMode;
-            set => SetField(ref _snapMode, value);
+            set
+            {
+                SetField(ref _snapMode, value);
+                if (Rect is object)
+                    Rect.SnapMode = value;
+            }
         }
 
         private BitmapAdapter _overlayImage;

@@ -13,6 +13,7 @@ using TileShop.Shared.EventModels;
 using TileShop.WPF.ViewModels.Dialogs;
 using System;
 using Monaco.PathTree;
+using Point = System.Drawing.Point;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -35,6 +36,7 @@ namespace TileShop.WPF.ViewModels
         }
 
         private ScatteredArrangerTool _activeTool = ScatteredArrangerTool.Select;
+        private ApplyPaletteHistoryAction _applyPaletteHistory;
         private readonly IProjectService _projectService;
 
         public ScatteredArrangerTool ActiveTool
@@ -48,7 +50,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IWindowManager windowManager, 
+        public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IWindowManager windowManager,
             IPaletteService paletteService, IProjectService projectService) : base(events, windowManager, paletteService)
         {
             Resource = arranger;
@@ -59,9 +61,15 @@ namespace TileShop.WPF.ViewModels
             CreateGridlines();
 
             if (arranger.Layout == ArrangerLayout.Single)
+            {
                 SnapMode = SnapMode.Pixel;
+            }
             else if (arranger.Layout == ArrangerLayout.Tiled)
+            {
                 SnapMode = SnapMode.Element;
+                CanChangeSnapMode = true;
+                CanAcceptElementPastes = true;
+            }
 
             var palettes = _workingArranger.GetReferencedPalettes();
             palettes.ExceptWith(_paletteService.GlobalPalettes);
@@ -105,7 +113,15 @@ namespace TileShop.WPF.ViewModels
             var projectTree = _projectService.GetContainingProject(Resource);
             _projectService.SaveProject(projectTree)
                  .Switch(
-                     success => IsModified = false,
+                     success =>
+                     {
+                         UndoHistory.Clear();
+                         RedoHistory.Clear();
+                         NotifyOfPropertyChange(() => CanUndo);
+                         NotifyOfPropertyChange(() => CanRedo);
+
+                         IsModified = false;
+                     },
                      fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
                  );
         }
@@ -124,11 +140,36 @@ namespace TileShop.WPF.ViewModels
             int y = (int)e.Y / Zoom;
 
             if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton)
+            {
+                _applyPaletteHistory = new ApplyPaletteHistoryAction(SelectedPalette.Palette);
                 TryApplyPalette(x, y, SelectedPalette.Palette);
+            }
             else if (ActiveTool == ScatteredArrangerTool.PickPalette && e.LeftButton)
                 TryPickPalette(x, y);
             else if (ActiveTool == ScatteredArrangerTool.Select)
                 base.OnMouseDown(sender, e);
+        }
+
+        public override void OnMouseUp(object sender, MouseCaptureArgs e)
+        {
+            if (ActiveTool == ScatteredArrangerTool.ApplyPalette && _applyPaletteHistory?.ModifiedElements.Count > 0)
+            {
+                AddHistoryAction(_applyPaletteHistory);
+                _applyPaletteHistory = null;
+            }
+            else
+                base.OnMouseUp(sender, e);
+        }
+
+        public override void OnMouseLeave(object sender, MouseCaptureArgs e)
+        {
+            if (ActiveTool == ScatteredArrangerTool.ApplyPalette && _applyPaletteHistory?.ModifiedElements.Count > 0)
+            {
+                AddHistoryAction(_applyPaletteHistory);
+                _applyPaletteHistory = null;
+            }
+            else
+                base.OnMouseLeave(sender, e);
         }
 
         public override void OnMouseMove(object sender, MouseCaptureArgs e)
@@ -235,8 +276,12 @@ namespace TileShop.WPF.ViewModels
                 {
                     for (int posX = left; posX < right; posX++)
                     {
-                        if (TryApplySinglePalette(posX * _workingArranger.ElementPixelSize.Width, posY * _workingArranger.ElementPixelSize.Height, SelectedPalette.Palette, false))
+                        int applyPixelX = posX * _workingArranger.ElementPixelSize.Width;
+                        int applyPixelY = posY * _workingArranger.ElementPixelSize.Height;
+                        if (TryApplySinglePalette(applyPixelX, applyPixelY, SelectedPalette.Palette, false))
+                        {
                             needsRender = true;
+                        }
                     }
                 }
             }
@@ -264,6 +309,7 @@ namespace TileShop.WPF.ViewModels
                 return result.Match(
                     success =>
                     {
+                        _applyPaletteHistory.Add(pixelX, pixelY);
                         Render();
                         IsModified = true;
                         return true;
@@ -301,6 +347,7 @@ namespace TileShop.WPF.ViewModels
             {
                 _workingArranger.Resize(model.Width, model.Height);
                 CreateImages();
+                AddHistoryAction(new ResizeArrangerHistoryAction(model.Width, model.Height));
 
                 IsModified = true;
             }
@@ -364,39 +411,18 @@ namespace TileShop.WPF.ViewModels
         public void ConfirmPendingOperation()
         {
             if (Paste?.Copy is ElementCopy)
-                ApplyPasteOperation();
+                ApplyPaste(Paste);
         }
 
         /// <summary>
         /// Applies the paste as elements
         /// </summary>
-        public override void ApplyPasteOperation()
+        public override void ApplyPaste(ArrangerPaste paste)
         {
-            var elementCopy = Paste?.Copy as ElementCopy;
-
-            if (elementCopy is null)
-            {
-                var reason = new NotifyOperationEvent($"No valid Paste selection");
-                _events.PublishOnUIThread(reason);
-                return;
-            }
-
-            var sourceArranger = Paste.Copy.Source;
-            var rect = Paste.Rect;
-
-            var sourceStart = new System.Drawing.Point(rect.SnappedLeft / sourceArranger.ElementPixelSize.Width,
-                rect.SnappedTop / sourceArranger.ElementPixelSize.Height);
-            var destStart = new System.Drawing.Point(rect.SnappedLeft / _workingArranger.ElementPixelSize.Width,
-                rect.SnappedTop / _workingArranger.ElementPixelSize.Height);
-            int copyWidth = Paste.Copy.Width;
-            int copyHeight = Paste.Copy.Height;
-
-            var result = ElementCopier.CopyElements(Paste.Copy as ElementCopy, _workingArranger as ScatteredArranger, destStart);
-
-            var notifyEvent = result.Match(
+            var notifyEvent = ApplyPasteInternal(paste).Match(
                 success =>
                 {
-                    AddHistoryAction(new PasteArrangerHistoryAction(Paste, destStart));
+                    AddHistoryAction(new PasteArrangerHistoryAction(paste));
                     IsModified = true;
                     Render();
                     return new NotifyOperationEvent("Paste successfully applied");
@@ -405,6 +431,41 @@ namespace TileShop.WPF.ViewModels
                 );
 
             _events.PublishOnUIThread(notifyEvent);
+        }
+
+        private MagitekResult ApplyPasteInternal(ArrangerPaste paste)
+        {
+            var elementCopy = paste?.Copy as ElementCopy;
+
+            if (elementCopy is null)
+                return new MagitekResult.Failed("No valid Paste selection");
+
+            var sourceArranger = paste.Copy.Source;
+            var rect = paste.Rect;
+
+            var destElemWidth = sourceArranger.ElementPixelSize.Width;
+            var destElemHeight = sourceArranger.ElementPixelSize.Width;
+
+            //var sourceStart = new Point(rect.SnappedLeft / sourceArranger.ElementPixelSize.Width,
+            //    rect.SnappedTop / sourceArranger.ElementPixelSize.Height);
+            //var destStart = new Point(rect.SnappedLeft / _workingArranger.ElementPixelSize.Width,
+            //    rect.SnappedTop / _workingArranger.ElementPixelSize.Height);
+            //int copyWidth = paste.Copy.Width;
+            //int copyHeight = paste.Copy.Height;
+
+            int destX = Math.Max(0, rect.SnappedLeft / destElemWidth);
+            int destY = Math.Max(0, rect.SnappedTop / destElemHeight);
+            int sourceX = rect.SnappedLeft / destElemWidth >= 0 ? 0 : -rect.SnappedLeft / destElemWidth;
+            int sourceY = rect.SnappedTop / destElemWidth >= 0 ? 0 : -rect.SnappedTop / destElemWidth;
+
+            var destStart = new Point(destX, destY);
+            var sourceStart = new Point(sourceX, sourceY);
+
+            int copyWidth = Math.Min(elementCopy.Width - sourceX, _workingArranger.ArrangerElementSize.Width - destX);
+            int copyHeight = Math.Min(elementCopy.Height - sourceY, _workingArranger.ArrangerElementSize.Height - destY);
+
+            //return ElementCopier.CopyElements(paste.Copy as ElementCopy, _workingArranger as ScatteredArranger, destStart);
+            return ElementCopier.CopyElements(elementCopy, _workingArranger as ScatteredArranger, sourceStart, destStart, copyWidth, copyHeight);
         }
 
         public void DeleteElementSelection()
@@ -440,11 +501,26 @@ namespace TileShop.WPF.ViewModels
         {
             if (action is PasteArrangerHistoryAction pasteAction)
             {
-                ElementCopier.CopyElements(pasteAction.Paste.Copy as ElementCopy, _workingArranger as ScatteredArranger, pasteAction.Location);
+                ApplyPasteInternal(pasteAction.Paste);
+                //int x = pasteAction.Paste.Rect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
+                //int y = pasteAction.Paste.Rect.SnappedTop / _workingArranger.ElementPixelSize.Height;
+                //ElementCopier.CopyElements(pasteAction.Paste.Copy as ElementCopy, _workingArranger as ScatteredArranger, new Point(x, y));
             }
             else if (action is DeleteElementSelectionHistoryAction deleteSelectionAction)
             {
                 DeleteElementSelection(deleteSelectionAction.Rect);
+            }
+            else if (action is ApplyPaletteHistoryAction applyPaletteAction)
+            {
+                foreach (var location in applyPaletteAction.ModifiedElements)
+                {
+                    _indexedImage.TrySetPalette(location.X, location.Y, applyPaletteAction.Palette);
+                }
+            }
+            else if (action is ResizeArrangerHistoryAction resizeAction)
+            {
+                _workingArranger.Resize(resizeAction.Width, resizeAction.Height);
+                CreateImages();
             }
         }
 
