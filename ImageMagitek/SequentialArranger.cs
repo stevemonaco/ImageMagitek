@@ -102,9 +102,9 @@ namespace ImageMagitek
                 }
             }
 
-            FileAddress = GetInitialSequentialFileAddress().FileOffset * 8;
+            FileAddress = GetInitialSequentialFileAddress().FileOffset;
 
-            return FileAddress;
+            return new FileBitAddress(FileAddress, 0);
         }
 
         /// <summary>

@@ -17,7 +17,6 @@ namespace TileShop.WPF.ViewModels
     {
         private readonly ICodecService _codecService;
         private readonly Tracker _tracker;
-        private FileBitAddress _address;
 
         private BindableCollection<string> _codecNames = new BindableCollection<string>();
         public BindableCollection<string> CodecNames
@@ -146,6 +145,31 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _heightIncrement, value);
         }
 
+        private long _fileOffset;
+        public long FileOffset
+        {
+            get => _fileOffset;
+            set
+            {
+                if (SetAndNotify(ref _fileOffset, value))
+                    Move(_fileOffset);
+            }
+        }
+
+        private long _maxFileDecodingOffset;
+        public long MaxFileDecodingOffset
+        {
+            get => _maxFileDecodingOffset;
+            set => SetAndNotify(ref _maxFileDecodingOffset, value);
+        }
+
+        private int _arrangerPageSize;
+        public int ArrangerPageSize
+        {
+            get => _arrangerPageSize;
+            set => SetAndNotify(ref _arrangerPageSize, value);
+        }
+
         public SequentialArrangerEditorViewModel(SequentialArranger arranger, IEventAggregator events, IWindowManager windowManager, 
             Tracker tracker, ICodecService codecService, IPaletteService paletteService) :
             base(events, windowManager, paletteService)
@@ -185,6 +209,9 @@ namespace TileShop.WPF.ViewModels
 
             Palettes = new BindableCollection<PaletteModel>(_paletteService.GlobalPalettes.Select(x => new PaletteModel(x)));
             SelectedPalette = Palettes.First();
+
+            ArrangerPageSize = (int) (_workingArranger as SequentialArranger).ArrangerBitSize / 8;
+            MaxFileDecodingOffset = (_workingArranger as SequentialArranger).FileSize - ArrangerPageSize;
         }
 
         public override void SaveChanges()
@@ -248,7 +275,7 @@ namespace TileShop.WPF.ViewModels
 
             if (result is true)
             {
-                Move(model.Result * 8);
+                Move(model.Result);
                 _tracker.Persist(model);
             }
         }
@@ -279,27 +306,27 @@ namespace TileShop.WPF.ViewModels
         private void Move(ArrangerMoveType moveType)
         {
             var oldAddress = (_workingArranger as SequentialArranger).GetInitialSequentialFileAddress();
-            _address = (_workingArranger as SequentialArranger).Move(moveType);
+            var newAddress = (_workingArranger as SequentialArranger).Move(moveType);
 
-            if (oldAddress != _address)
+            if (oldAddress != newAddress)
+            {
+                _fileOffset = newAddress.FileOffset;
+                NotifyOfPropertyChange(() => FileOffset);
                 Render();
-
-            string notifyMessage = $"File Offset: 0x{_address.FileOffset:X}";
-            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            _events.PublishOnUIThread(notifyEvent);
+            }
         }
 
         private void Move(long offset)
         {
             var oldAddress = (_workingArranger as SequentialArranger).GetInitialSequentialFileAddress();
-            _address = (_workingArranger as SequentialArranger).Move(offset);
+            var newAddress = (_workingArranger as SequentialArranger).Move(new FileBitAddress(offset, 0));
 
-            if (oldAddress != _address)
+            if (oldAddress != newAddress)
+            {
+                _fileOffset = newAddress.FileOffset;
+                NotifyOfPropertyChange(() => FileOffset);
                 Render();
-
-            string notifyMessage = $"File Offset: 0x{_address.FileOffset:X}";
-            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            _events.PublishOnUIThread(notifyEvent);
+            }
         }
 
         private void ResizeArranger(int arrangerWidth, int arrangerHeight)
@@ -318,6 +345,8 @@ namespace TileShop.WPF.ViewModels
             (_workingArranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
             CreateImages();
             CreateGridlines();
+            ArrangerPageSize = (int)(_workingArranger as SequentialArranger).ArrangerBitSize / 8;
+            MaxFileDecodingOffset = (_workingArranger as SequentialArranger).FileSize - ArrangerPageSize;
         }
 
         public void SelectNextCodec()
@@ -356,24 +385,24 @@ namespace TileShop.WPF.ViewModels
 
                 (_workingArranger as SequentialArranger).ChangeCodec(codec, 1, 1);
                 SnapMode = SnapMode.Pixel;
+
                 NotifyOfPropertyChange(() => LinearArrangerHeight);
                 NotifyOfPropertyChange(() => LinearArrangerWidth);
             }
 
-            _address = (_workingArranger as SequentialArranger).FileAddress;
+            _fileOffset = (_workingArranger as SequentialArranger).FileAddress;
+            ArrangerPageSize = (int)(_workingArranger as SequentialArranger).ArrangerBitSize / 8;
+            MaxFileDecodingOffset = (_workingArranger as SequentialArranger).FileSize - ArrangerPageSize;
             CanResize = codec.CanResize;
             WidthIncrement = codec.WidthResizeIncrement;
             HeightIncrement = codec.HeightResizeIncrement;
             CreateGridlines();
             CreateImages();
 
+            NotifyOfPropertyChange(() => FileOffset);
             NotifyOfPropertyChange(() => IsTiledLayout);
             NotifyOfPropertyChange(() => IsSingleLayout);
             NotifyOfPropertyChange(() => CanShowGridlines);
-
-            string notifyMessage = $"File Offset: 0x{_address.FileOffset:X}";
-            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            _events.PublishOnUIThread(notifyEvent);
         }
 
         private void ChangePalette(PaletteModel pal)
@@ -422,29 +451,29 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public override void OnMouseMove(object sender, MouseCaptureArgs e)
-        {
-            if (IsSelecting)
-            {
-                Selection.UpdateSelectionEndpoint(e.X / Zoom, e.Y / Zoom);
-                string notifyMessage;
-                var rect = Selection.SelectionRect;
-                if (rect.SnapMode == SnapMode.Element)
-                    notifyMessage = $"Element Selection: {rect.SnappedWidth / _workingArranger.ElementPixelSize.Width} x {rect.SnappedHeight / _workingArranger.ElementPixelSize.Height}" +
-                        $" at ({rect.SnappedLeft / _workingArranger.ElementPixelSize.Width}, {rect.SnappedRight / _workingArranger.ElementPixelSize.Height})";
-                else
-                    notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight}" +
-                        $" at ({rect.SnappedLeft} x {rect.SnappedTop})";
-                var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-                _events.PublishOnUIThread(notifyEvent);
-            }
-            else
-            {
-                string notifyMessage = $"File Offset: 0x{_address.FileOffset:X} ({(int)Math.Round(e.X / Zoom)}, {(int)Math.Round(e.Y / Zoom)})";
-                var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-                _events.PublishOnUIThread(notifyEvent);
-            }
-        }
+        //public override void OnMouseMove(object sender, MouseCaptureArgs e)
+        //{
+        //    if (IsSelecting)
+        //    {
+        //        Selection.UpdateSelectionEndpoint(e.X / Zoom, e.Y / Zoom);
+        //        string notifyMessage;
+        //        var rect = Selection.SelectionRect;
+        //        if (rect.SnapMode == SnapMode.Element)
+        //            notifyMessage = $"Element Selection: {rect.SnappedWidth / _workingArranger.ElementPixelSize.Width} x {rect.SnappedHeight / _workingArranger.ElementPixelSize.Height}" +
+        //                $" at ({rect.SnappedLeft / _workingArranger.ElementPixelSize.Width}, {rect.SnappedRight / _workingArranger.ElementPixelSize.Height})";
+        //        else
+        //            notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight}" +
+        //                $" at ({rect.SnappedLeft} x {rect.SnappedTop})";
+        //        var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+        //        _events.PublishOnUIThread(notifyEvent);
+        //    }
+        //    else
+        //    {
+        //        string notifyMessage = $"File Offset: 0x{_address.FileOffset:X} ({(int)Math.Round(e.X / Zoom)}, {(int)Math.Round(e.Y / Zoom)})";
+        //        var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+        //        _events.PublishOnUIThread(notifyEvent);
+        //    }
+        //}
 
         #region Unsupported Operations due to SequentialArrangerEditor being read-only
         public override void Undo()
