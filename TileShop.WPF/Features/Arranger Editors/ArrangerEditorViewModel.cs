@@ -381,6 +381,7 @@ namespace TileShop.WPF.ViewModels
         {
             if (dropInfo.Data is ArrangerPaste paste)
             {
+                paste.SnapMode = SnapMode;
                 Paste = paste;
                 Paste.MoveTo((int)dropInfo.DropPosition.X, (int)dropInfo.DropPosition.Y);
             }

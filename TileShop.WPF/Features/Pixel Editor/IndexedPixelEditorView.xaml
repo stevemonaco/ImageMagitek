@@ -261,6 +261,7 @@
                         Canvas.Top="{Binding Paste.Rect.SnappedTop}"
                         Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
                         Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+                        Panel.ZIndex="4"
                         Fill="{StaticResource editSelectionFillBrush}"
                         IsHitTestVisible="False"
                         SnapsToDevicePixels="True"
