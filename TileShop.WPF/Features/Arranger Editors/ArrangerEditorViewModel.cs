@@ -248,7 +248,7 @@ namespace TileShop.WPF.ViewModels
                         $" at ({rect.SnappedLeft / _workingArranger.ElementPixelSize.Width}, {rect.SnappedRight / _workingArranger.ElementPixelSize.Height})";
                 else
                     notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight}" +
-                        $" at ({rect.SnappedLeft} x {rect.SnappedTop})";
+                        $" at ({rect.SnappedLeft}, {rect.SnappedTop})";
                 var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
                 _events.PublishOnUIThread(notifyEvent);
             }
