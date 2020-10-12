@@ -51,10 +51,7 @@ namespace TileShop.WPF.ViewModels
 
         public void DragOver(IDropInfo dropInfo)
         {
-            var sourceItem = dropInfo.Data as RemappableColorModel;
-            var targetItem = dropInfo.TargetItem as RemappableColorModel;
-
-            if (sourceItem is object && targetItem is object)
+            if (dropInfo.Data is RemappableColorModel && dropInfo.TargetItem is RemappableColorModel)
             {
                 dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
                 dropInfo.Effects = DragDropEffects.Copy;

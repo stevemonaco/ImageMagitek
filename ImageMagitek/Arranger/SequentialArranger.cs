@@ -41,7 +41,7 @@ namespace ImageMagitek
         /// </summary>
         public Palette ActivePalette { get; protected set; }
 
-        private ICodecFactory _codecs;
+        private readonly ICodecFactory _codecs;
 
         /// <summary>
         /// Constructs a new SequentialArranger
@@ -119,7 +119,7 @@ namespace ImageMagitek
         public override void Resize(int arrangerWidth, int arrangerHeight)
         {
             if (Mode != ArrangerMode.Sequential)
-                throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
+                throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode})");
 
             FileBitAddress address = FileAddress;
 

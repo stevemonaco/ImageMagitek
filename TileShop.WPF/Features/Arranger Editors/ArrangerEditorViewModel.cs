@@ -342,9 +342,11 @@ namespace TileShop.WPF.ViewModels
 
                 if (Paste != paste)
                 {
-                    Paste = new ArrangerPaste(paste.Copy, SnapMode);
-                    Paste.DeltaX = paste.DeltaX;
-                    Paste.DeltaY = paste.DeltaY;
+                    Paste = new ArrangerPaste(paste.Copy, SnapMode)
+                    {
+                        DeltaX = paste.DeltaX,
+                        DeltaY = paste.DeltaY
+                    };
                 }
 
                 Paste.MoveTo((int)dropInfo.DropPosition.X, (int)dropInfo.DropPosition.Y);
@@ -376,9 +378,11 @@ namespace TileShop.WPF.ViewModels
                     copy = _workingArranger.CopyPixelsDirect(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
                 }
 
-                var paste = new ArrangerPaste(copy, SnapMode);
-                paste.DeltaX = (int) dragInfo.DragStartPosition.X - Selection.SelectionRect.SnappedLeft;
-                paste.DeltaY = (int) dragInfo.DragStartPosition.Y - Selection.SelectionRect.SnappedTop;
+                var paste = new ArrangerPaste(copy, SnapMode)
+                {
+                    DeltaX = (int)dragInfo.DragStartPosition.X - Selection.SelectionRect.SnappedLeft,
+                    DeltaY = (int)dragInfo.DragStartPosition.Y - Selection.SelectionRect.SnappedTop
+                };
                 dragInfo.Data = paste;
                 dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
 

@@ -10,23 +10,23 @@ namespace ImageMagitek.UnitTests
     [TestFixture]
     public class ElementCopierTests
     {
-        ScatteredArranger sourceIndexed;
-        DataFile df;
+        ScatteredArranger _sourceIndexed;
+        DataFile _df;
 
         [OneTimeSetUp]
         public void Setup()
         {
-            df = new DataFile("sourceDataFile", new MemoryStream());
-            sourceIndexed = new ScatteredArranger("source", PixelColorType.Indexed, ArrangerLayout.Tiled, 6, 6, 8, 8);
+            _df = new DataFile("sourceDataFile", new MemoryStream());
+            _sourceIndexed = new ScatteredArranger("source", PixelColorType.Indexed, ArrangerLayout.Tiled, 6, 6, 8, 8);
 
-            for (int y = 0; y < sourceIndexed.ArrangerElementSize.Height; y++)
+            for (int y = 0; y < _sourceIndexed.ArrangerElementSize.Height; y++)
             {
-                for (int x = 0; x < sourceIndexed.ArrangerElementSize.Width; x++)
+                for (int x = 0; x < _sourceIndexed.ArrangerElementSize.Width; x++)
                 {
-                    if (sourceIndexed.GetElement(x, y) is ArrangerElement element)
+                    if (_sourceIndexed.GetElement(x, y) is ArrangerElement element)
                     {
-                        element = element.WithTarget(df, new FileBitAddress(x * y), new Snes3bppCodec(8, 8), null);
-                        sourceIndexed.SetElement(element, x, y);
+                        element = element.WithTarget(_df, new FileBitAddress(x * y), new Snes3bppCodec(8, 8), null);
+                        _sourceIndexed.SetElement(element, x, y);
                     }
                 }
             }

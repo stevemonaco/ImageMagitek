@@ -63,7 +63,7 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _selectedNode, value);
         }
 
-        private readonly Dictionary<MessageBoxResult, string> messageBoxLabels = new Dictionary<MessageBoxResult, string>
+        private readonly Dictionary<MessageBoxResult, string> _messageBoxLabels = new Dictionary<MessageBoxResult, string>
         {
             { MessageBoxResult.Yes, "Save" }, { MessageBoxResult.No, "Discard" }, { MessageBoxResult.Cancel, "Cancel" }
         };
@@ -251,7 +251,7 @@ namespace TileShop.WPF.ViewModels
                 if (modifiedEditors.Any())
                 {
                     var boxResult = _windowManager.ShowMessageBox("The project contains modified items which must be saved or discarded before removing any items", "Save changes",
-                        MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
+                        MessageBoxButton.YesNoCancel, buttonLabels: _messageBoxLabels);
 
                     if (boxResult == MessageBoxResult.Yes)
                     {

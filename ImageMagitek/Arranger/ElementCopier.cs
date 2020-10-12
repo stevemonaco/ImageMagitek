@@ -55,7 +55,7 @@ namespace ImageMagitek
 
             return result;
 
-            void CopyElementsInternal(ElementCopy source, ScatteredArranger dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
+            static void CopyElementsInternal(ElementCopy source, ScatteredArranger dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
             {
                 for (int y = 0; y < copyHeight; y++)
                 {
