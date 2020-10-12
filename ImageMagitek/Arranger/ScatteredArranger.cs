@@ -39,33 +39,11 @@ namespace ImageMagitek
         }
 
         /// <summary>
-        /// Resizes a scattered arranger to the specified number of elements and default initializes any new elements
+        /// Resizes a ScatteredArranger to the specified number of elements
         /// </summary>
         /// <param name="arrangerWidth">Width of Arranger in Elements</param>
         /// <param name="arrangerHeight">Height of Arranger in Elements</param>
         public override void Resize(int arrangerWidth, int arrangerHeight)
-        {
-            int Width = ElementPixelSize.Width;
-            int Height = ElementPixelSize.Height;
-
-            Resize(arrangerWidth, arrangerHeight, (x, y) =>
-            {
-                IGraphicsCodec codec = null;
-                if (ColorType == PixelColorType.Direct)
-                    codec = new BlankDirectCodec();
-                else if (ColorType == PixelColorType.Indexed)
-                    codec = new BlankIndexedCodec();
-                return new ArrangerElement(x * Width, y * Height, null, 0, codec, null);
-            });
-        }
-
-        /// <summary>
-        /// Resizes a ScatteredArranger to the specified number of elements and default initializes any new elements
-        /// </summary>
-        /// <param name="arrangerWidth">Width of Arranger in Elements</param>
-        /// <param name="arrangerHeight">Height of Arranger in Elements</param>
-        /// <param name="elementFactory">Method to create new elements with given the x and y positions in element coordinates</param>
-        public override void Resize(int arrangerWidth, int arrangerHeight, Func<int, int, ArrangerElement> elementFactory)
         {
             if (arrangerWidth < 1 || arrangerHeight < 1)
                 throw new ArgumentOutOfRangeException($"{nameof(Resize)}: {nameof(arrangerWidth)} ({arrangerWidth}) and {nameof(arrangerHeight)} ({arrangerHeight}) must be larger than 0");

@@ -112,44 +112,16 @@ namespace ImageMagitek
         }
 
         /// <summary>
-        /// Resizes a Sequential Arranger to the specified number of Elements and repopulates Element data
+        /// Resizes a SequentialArranger to the specified number of elements
         /// </summary>
         /// <param name="arrangerWidth">Width of Arranger in Elements</param>
         /// <param name="arrangerHeight">Height of Arranger in Elements</param>
-        /// <returns></returns>
         public override void Resize(int arrangerWidth, int arrangerHeight)
         {
             if (Mode != ArrangerMode.Sequential)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
-            var address = FileAddress;
-            Resize(arrangerWidth, arrangerHeight, (x, y) =>
-            {
-                var el = new ArrangerElement(x * ElementPixelSize.Width, y * ElementPixelSize.Height, ActiveDataFile, address, ActiveCodec, ActivePalette);
-
-                if (el.Codec.Layout == ImageLayout.Tiled)
-                    address += ActiveCodec.StorageSize;
-                else if (el.Codec.Layout == ImageLayout.Single)
-                    address += (ElementPixelSize.Width + ActiveCodec.RowStride) * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
-                else
-                    throw new NotSupportedException();
-
-                return el;
-            });
-        }
-
-        /// <summary>
-        /// Resizes a SequentialArranger to the specified number of elements and default initializes any new elements
-        /// </summary>
-        /// <param name="arrangerWidth">Width of Arranger in Elements</param>
-        /// <param name="arrangerHeight">Height of Arranger in Elements</param>
-        /// <param name="elementFactory">Method to create new elements with given the x and y positions in element coordinates</param>
-        public override void Resize(int arrangerWidth, int arrangerHeight, Func<int, int, ArrangerElement> elementFactory)
-        {
-            if (Mode != ArrangerMode.Sequential)
-                throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
-
-            FileBitAddress address = 0;
+            FileBitAddress address = FileAddress;
 
             ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);
 
@@ -178,7 +150,15 @@ namespace ImageMagitek
             {
                 for (int posX = 0; posX < arrangerWidth; posX++)
                 {
-                    var el = elementFactory(posX, posY);
+                    var el = new ArrangerElement(posX * ElementPixelSize.Width, posY * ElementPixelSize.Height, ActiveDataFile, address, ActiveCodec, ActivePalette);
+
+                    if (el.Codec.Layout == ImageLayout.Tiled)
+                        address += ActiveCodec.StorageSize;
+                    else if (el.Codec.Layout == ImageLayout.Single)
+                        address += (ElementPixelSize.Width + ActiveCodec.RowStride) * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
+                    else
+                        throw new NotSupportedException();
+
                     SetElement(el, posX, posY);
                 }
             }

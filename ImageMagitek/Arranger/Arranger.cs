@@ -83,10 +83,6 @@ namespace ImageMagitek
         public abstract bool ShouldBeSerialized { get; set; }
 
         public abstract void Resize(int arrangerWidth, int arrangerHeight);
-        public abstract void Resize(int arrangerWidth, int arrangerHeight, Func<int, int, ArrangerElement> elementFactory);
-
-        private readonly BlankDirectCodec _blankDirectCodec = new BlankDirectCodec();
-        private readonly BlankIndexedCodec _blankIndexedCodec = new BlankIndexedCodec();
 
         /// <summary>
         /// Clones the Arranger
