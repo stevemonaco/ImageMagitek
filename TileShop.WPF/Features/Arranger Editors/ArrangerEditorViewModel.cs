@@ -92,7 +92,7 @@ namespace TileShop.WPF.ViewModels
                     if (rect.SnappedWidth == 0 || rect.SnappedHeight == 0)
                         return false;
 
-                    return _workingArranger.EnumerateElementsByPixel(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight)
+                    return !_workingArranger.EnumerateElementsByPixel(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight)
                         .Any(x => x is null || x?.DataFile is null || x?.Codec is BlankIndexedCodec || x?.Codec is BlankDirectCodec);
                 }
                     
