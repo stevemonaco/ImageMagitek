@@ -59,7 +59,7 @@ namespace ImageMagitek
 
             //var buffer = new ColorRgba32[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
 
-            foreach (var el in Arranger.EnumerateElements().Where(x => x.DataFile is object))
+            foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.DataFile is object))
             {
                 if (el.Codec is IDirectCodec codec)
                 {
@@ -87,7 +87,7 @@ namespace ImageMagitek
         public override void SaveImage()
         {
             var buffer = new ColorRgba32[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
-            foreach (var el in Arranger.EnumerateElements().Where(x => x.Codec is IDirectCodec))
+            foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IDirectCodec))
             {
                 Image.CopyToArray(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
                 var codec = el.Codec as IDirectCodec;
@@ -97,7 +97,7 @@ namespace ImageMagitek
 
                 //codec.Encode(el, buffer);
             }
-            foreach (var fs in Arranger.EnumerateElements().Select(x => x.DataFile.Stream).Distinct())
+            foreach (var fs in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.DataFile.Stream).Distinct())
                 fs.Flush();
         }
     }

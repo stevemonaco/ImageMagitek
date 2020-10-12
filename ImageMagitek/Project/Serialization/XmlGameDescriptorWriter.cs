@@ -126,32 +126,34 @@ namespace ImageMagitek.Project.Serialization
                         {
                             for (int y = 0; y < arrangerModel.ArrangerElementSize.Height; y++)
                             {
-                                var element = arranger.GetElement(x, y);
-                                var elementModel = arrangerModel.ElementGrid[x, y];
-
-                                if (element.DataFile is object)
-                                    elementModel.DataFileKey = resourceResolver[element.DataFile];
-                                else
-                                    continue;
-
-                                string paletteKey = default;
-
-                                if (ReferenceEquals(element.Palette, _globalDefaultPalette))
+                                if (arranger.GetElement(x, y) is ArrangerElement element)
                                 {
-                                    elementModel.UsesGlobalDefaultPalette = true;
-                                    paletteKey = _globalDefaultPalette.Name;
-                                }
-                                else if (element.Palette is object)
-                                {
-                                    if (!resourceResolver.TryGetValue(element.Palette, out paletteKey))
+                                    var elementModel = arrangerModel.ElementGrid[x, y];
+
+                                    if (element.DataFile is object)
+                                        elementModel.DataFileKey = resourceResolver[element.DataFile];
+                                    else
+                                        continue;
+
+                                    string paletteKey = default;
+
+                                    if (ReferenceEquals(element.Palette, _globalDefaultPalette))
                                     {
-                                        paletteKey = _globalResources.OfType<Palette>()
-                                            .Skip(1)
-                                            .FirstOrDefault(x => ReferenceEquals(element.Palette, x))?.Name;
+                                        elementModel.UsesGlobalDefaultPalette = true;
+                                        paletteKey = _globalDefaultPalette.Name;
                                     }
-                                }
+                                    else if (element.Palette is object)
+                                    {
+                                        if (!resourceResolver.TryGetValue(element.Palette, out paletteKey))
+                                        {
+                                            paletteKey = _globalResources.OfType<Palette>()
+                                                .Skip(1)
+                                                .FirstOrDefault(x => ReferenceEquals(element.Palette, x))?.Name;
+                                        }
+                                    }
 
-                                elementModel.PaletteKey = paletteKey;
+                                    elementModel.PaletteKey = paletteKey;
+                                }
                             }
                         }
 

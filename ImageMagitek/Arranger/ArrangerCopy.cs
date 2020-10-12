@@ -14,7 +14,9 @@ namespace ImageMagitek
 
     public class ElementCopy : ArrangerCopy
     {
-        public ArrangerElement[,] Elements { get; }
+        public ArrangerElement?[,] Elements { get; }
+        public int ElementWidth { get; }
+        public int ElementHeight { get; }
 
         /// <summary>
         /// Creates a copy of an Arranger's ArrangerElements
@@ -22,20 +24,23 @@ namespace ImageMagitek
         /// <param name="source"></param>
         /// <param name="elementX">Starting x-coordinate of copy in element coordinates</param>
         /// <param name="elementY">Starting y-coordinate of copy in element coordinates</param>
-        /// <param name="width">Width of copy in element coordinates</param>
-        /// <param name="height">Height of copy in element coordinates</param>
-        public ElementCopy(Arranger source, int elementX, int elementY, int width, int height)
+        /// <param name="copyWidth">Width of copy in element coordinates</param>
+        /// <param name="copyHeight">Height of copy in element coordinates</param>
+        public ElementCopy(Arranger source, int elementX, int elementY, int copyWidth, int copyHeight)
         {
             Source = source;
             X = elementX;
             Y = elementY;
-            Width = width;
-            Height = height;
-            Elements = new ArrangerElement[width, height];
+            Width = copyWidth;
+            Height = copyHeight;
+            ElementWidth = source.ElementPixelSize.Width;
+            ElementHeight = source.ElementPixelSize.Height;
 
-            for (int y = 0; y < height; y++)
+            Elements = new ArrangerElement?[copyWidth, copyHeight];
+
+            for (int y = 0; y < copyHeight; y++)
             {
-                for (int x = 0; x < width; x++)
+                for (int x = 0; x < copyWidth; x++)
                     Elements[x, y] = source.GetElement(x + elementX, y + elementY);
             }
         }

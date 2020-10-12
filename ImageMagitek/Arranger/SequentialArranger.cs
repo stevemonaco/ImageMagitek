@@ -4,6 +4,7 @@ using System.Drawing;
 using ImageMagitek.Project;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using System.Linq;
 
 namespace ImageMagitek
 {
@@ -96,9 +97,12 @@ namespace ImageMagitek
                 for (int x = 0; x < ArrangerElementSize.Width; x++)
                 {
                     var el = GetElement(x, y);
-                    el = el.WithAddress(address);
-                    SetElement(el, x, y);
-                    address += ElementStorageSize;
+                    if (el is ArrangerElement element)
+                    {
+                        element = element.WithAddress(address);
+                        SetElement(element, x, y);
+                        address += ElementStorageSize;
+                    }
                 }
             }
 
@@ -151,12 +155,12 @@ namespace ImageMagitek
 
             if (ElementGrid is null) // New Arranger being initially sized
             {
-                ElementGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
+                ElementGrid = new ArrangerElement?[arrangerWidth, arrangerHeight];
             }
             else // Arranger being resized with existing elements
             {
                 var oldElementGrid = ElementGrid;
-                ElementGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
+                ElementGrid = new ArrangerElement?[arrangerWidth, arrangerHeight];
                 var elemsX = Math.Min(ArrangerElementSize.Width, arrangerWidth);
                 var elemsY = Math.Min(ArrangerElementSize.Height, arrangerHeight);
 
@@ -189,7 +193,7 @@ namespace ImageMagitek
         /// <param name="element">Element to be placed into the ElementGrid</param>
         /// <param name="posX">x-coordinate in Element coordinates</param>
         /// <param name="posY">y-coordinate in Element coordinates</param>
-        public override void SetElement(in ArrangerElement element, int posX, int posY)
+        public override void SetElement(in ArrangerElement? element, int posX, int posY)
         {
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(SetElement)} property '{nameof(ElementGrid)}' was null");
@@ -197,11 +201,15 @@ namespace ImageMagitek
             if (posX > ArrangerElementSize.Width || posY > ArrangerElementSize.Height)
                 throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({posX}, {posY})");
 
-            if (element.Codec != null)
-                if (element.Codec.ColorType != ColorType || element.Codec.Name != ActiveCodec.Name)
+            if (element is ArrangerElement)
+            {
+                if (element?.Codec.ColorType != ColorType || element?.Codec.Name != ActiveCodec.Name)
                     throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned to SequentialArranger '{Name}'");
 
-            ElementGrid[posX, posY] = element;
+                ElementGrid[posX, posY] = element;
+            }
+            else
+                ElementGrid[posX, posY] = element;
         }
 
         /// <summary>
@@ -241,16 +249,18 @@ namespace ImageMagitek
                 int elX = 0;
                 for (int posX = 0; posX < ArrangerElementSize.Width; posX++)
                 {
-                    var el = GetElement(posX, posY);
-                    el = new ArrangerElement(elX, elY, el.DataFile, address, _codecs.CloneCodec(ActiveCodec), el.Palette);
-                    SetElement(el, posX, posY);
+                    if (GetElement(posX, posY) is ArrangerElement el)
+                    {
+                        el = new ArrangerElement(elX, elY, el.DataFile, address, _codecs.CloneCodec(ActiveCodec), el.Palette);
+                        SetElement(el, posX, posY);
 
-                    if (ActiveCodec.Layout == ImageLayout.Tiled)
-                        address += ActiveCodec.StorageSize;
-                    else if (ActiveCodec.Layout == ImageLayout.Single)
-                        address += (ElementPixelSize.Width + ActiveCodec.RowStride) * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
-                    else
-                        throw new NotSupportedException();
+                        if (ActiveCodec.Layout == ImageLayout.Tiled)
+                            address += ActiveCodec.StorageSize;
+                        else if (ActiveCodec.Layout == ImageLayout.Single)
+                            address += (ElementPixelSize.Width + ActiveCodec.RowStride) * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
+                        else
+                            throw new NotSupportedException();
+                    }
 
                     elX += ElementPixelSize.Width;
                 }
@@ -272,8 +282,11 @@ namespace ImageMagitek
             {
                 for (int x = 0; x < ArrangerElementSize.Width; x++)
                 {
-                    var el = GetElement(x, y).WithPalette(pal);
-                    SetElement(el, x, y);
+                    if (GetElement(x, y) is ArrangerElement el)
+                    {
+                        el = el.WithPalette(pal);
+                        SetElement(el, x, y);
+                    }
                 }
             }
         }
@@ -301,10 +314,13 @@ namespace ImageMagitek
                 {
                     var elX = x * ElementPixelSize.Width;
                     var elY = y * ElementPixelSize.Height;
-                    var codec = _codecs.CloneCodec(ElementGrid[x + elemX, y + elemY].Codec);
+                    if (ElementGrid[x + elemX, y + elemY] is ArrangerElement el)
+                    {
+                        var codec = _codecs.CloneCodec(el.Codec);
 
-                    var el = GetElement(x + elemX, y + elemY).WithCodec(codec, elX, elY);
-                    arranger.SetElement(el, x, y);
+                        el = el.WithCodec(codec, elX, elY);
+                        arranger.SetElement(el, x, y);
+                    }
                 }
             }
 
@@ -322,9 +338,9 @@ namespace ImageMagitek
 
             if (Mode != ArrangerMode.Sequential)
                 throw new InvalidOperationException($"{nameof(GetInitialSequentialFileAddress)} property '{nameof(Mode)}' " + 
-                    $"is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
+                    $"is in invalid {nameof(ArrangerMode)} ({Mode})");
 
-            return ElementGrid[0, 0].FileAddress;
+            return ElementGrid[0, 0]?.FileAddress ?? 0;
         }
 
         /// <summary>
@@ -339,7 +355,7 @@ namespace ImageMagitek
             {
                 var set = new HashSet<IProjectResource>();
 
-                foreach (var el in EnumerateElements())
+                foreach (var el in EnumerateElements().OfType<ArrangerElement>())
                 {
                     if (el.Palette is object)
                         set.Add(el.Palette);

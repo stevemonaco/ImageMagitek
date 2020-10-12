@@ -201,7 +201,7 @@ namespace ImageMagitek.Project
                         if (linkedResource is DataFile && resource is Arranger arranger)
                         {
                             lostElements = true;
-                            if (arranger.EnumerateElements().All(x => removedDict.ContainsKey(linkedResource) || x.DataFile is null))
+                            if (arranger.EnumerateElements().OfType<ArrangerElement>().All(x => removedDict.ContainsKey(linkedResource) || x.DataFile is null))
                                 removed = true;
                         }
                     }

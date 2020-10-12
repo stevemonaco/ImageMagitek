@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Collections.Generic;
 using ImageMagitek.Project;
 using ImageMagitek.Codec;
+using System.Linq;
 
 namespace ImageMagitek
 {
@@ -32,7 +33,7 @@ namespace ImageMagitek
             if (arrangerWidth <= 0 || arrangerHeight <= 0 || elementWidth <= 0 | elementHeight <= 0)
                 throw new ArgumentOutOfRangeException($"Arranger '{name}' does not have positive sizes for arranger and elements");
 
-            ElementGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
+            ElementGrid = new ArrangerElement?[arrangerWidth, arrangerHeight];
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
             ElementPixelSize = new Size(elementWidth, elementHeight);
 
@@ -93,7 +94,7 @@ namespace ImageMagitek
             if (Mode != ArrangerMode.Scattered)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
-            ArrangerElement[,] newGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
+            var newGrid = new ArrangerElement?[arrangerWidth, arrangerHeight];
 
             int xCopy = Math.Min(arrangerWidth, ArrangerElementSize.Width);
             int yCopy = Math.Min(arrangerHeight, ArrangerElementSize.Height);
@@ -140,8 +141,9 @@ namespace ImageMagitek
             {
                 for (int x = 0; x < elemsWidth; x++)
                 {
-                    var el = GetElement(x + elemX, y + elemY).WithLocation(x * ElementPixelSize.Width, y * ElementPixelSize.Height);
-                    arranger.SetElement(el, x, y);
+                    var el = GetElement(x + elemX, y + elemY)?.WithLocation(x * ElementPixelSize.Width, y * ElementPixelSize.Height);
+                    if (el is ArrangerElement element)
+                        arranger.SetElement(element, x, y);
                 }
             }
 
@@ -154,7 +156,7 @@ namespace ImageMagitek
             {
                 var set = new HashSet<IProjectResource>();
 
-                foreach (var el in EnumerateElements())
+                foreach (var el in EnumerateElements().OfType<ArrangerElement>())
                 {
                     if (el.Palette is object)
                         set.Add(el.Palette);

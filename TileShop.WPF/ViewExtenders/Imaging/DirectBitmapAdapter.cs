@@ -87,13 +87,13 @@ namespace TileShop.WPF.Imaging
                         for (int x = xStart; x < xStart + width; x++)
                         {
                             // TODO: Do Direct Color conversion
-                            var pal = Image.GetElementAtPixel(x, y).Palette;
-                            var color = row[x];
+                            //var pal = Image.GetElementAtPixel(x, y).Palette;
+                            //var color = row[x];
 
-                            dest[x * 4] = color.B;
-                            dest[x * 4 + 1] = color.G;
-                            dest[x * 4 + 2] = color.R;
-                            dest[x * 4 + 3] = color.A;                                
+                            //dest[x * 4] = color.B;
+                            //dest[x * 4 + 1] = color.G;
+                            //dest[x * 4 + 2] = color.R;
+                            //dest[x * 4 + 3] = color.A;                                
                         }
                     }
                 }

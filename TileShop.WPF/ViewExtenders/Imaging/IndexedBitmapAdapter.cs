@@ -89,28 +89,41 @@ namespace TileShop.WPF.Imaging
                         for (int x = 0; x < width; x++)
                         {
                             var el = Image.GetElementAtPixel(x + xStart, y);
-                            var pal = el.Palette;
 
-                            if (el.Codec is BlankIndexedCodec blankIndexedCodec)
+                            // TODO: More elegant handling of element fallback to clearing
+
+                            if (el is ArrangerElement element)
+                            {
+                                var pal = element.Palette;
+
+                                if (element.Codec is BlankIndexedCodec blankIndexedCodec)
+                                {
+                                    dest[x * 4] = 0;
+                                    dest[x * 4 + 1] = 0;
+                                    dest[x * 4 + 2] = 0;
+                                    dest[x * 4 + 3] = 0;
+                                }
+                                else if (pal is object)
+                                {
+                                    var index = src[x + xStart];
+                                    var color = pal[index];
+
+                                    dest[x * 4] = color.B;
+                                    dest[x * 4 + 1] = color.G;
+                                    dest[x * 4 + 2] = color.R;
+
+                                    if (index == 0 && pal.ZeroIndexTransparent)
+                                        dest[x * 4 + 3] = 0;
+                                    else
+                                        dest[x * 4 + 3] = color.A;
+                                }
+                            }
+                            else
                             {
                                 dest[x * 4] = 0;
                                 dest[x * 4 + 1] = 0;
                                 dest[x * 4 + 2] = 0;
                                 dest[x * 4 + 3] = 0;
-                            }
-                            else if (pal is object)
-                            {
-                                var index = src[x + xStart];
-                                var color = pal[index];
-
-                                dest[x * 4] = color.B;
-                                dest[x * 4 + 1] = color.G;
-                                dest[x * 4 + 2] = color.R;
-
-                                if (index == 0 && pal.ZeroIndexTransparent)
-                                    dest[x * 4 + 3] = 0;
-                                else
-                                    dest[x * 4 + 3] = color.A;
                             }
                         }
                     }

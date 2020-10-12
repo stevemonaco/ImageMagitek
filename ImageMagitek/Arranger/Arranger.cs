@@ -44,7 +44,7 @@ namespace ImageMagitek
         /// <summary>
         /// Individual Elements that compose the Arranger
         /// </summary>
-        protected ArrangerElement[,] ElementGrid { get; set; }
+        protected ArrangerElement?[,] ElementGrid { get; set; }
 
         /// <summary>
         /// Gets the size of the entire Arranger in Element coordinates
@@ -132,7 +132,7 @@ namespace ImageMagitek
         /// <param name="element">Element to be placed into the ElementGrid</param>
         /// <param name="posX">x-coordinate in Element coordinates</param>
         /// <param name="posY">y-coordinate in Element coordinates</param>
-        public virtual void SetElement(in ArrangerElement element, int posX, int posY)
+        public virtual void SetElement(in ArrangerElement? element, int posX, int posY)
         {
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(SetElement)} property '{nameof(ElementGrid)}' was null");
@@ -140,22 +140,26 @@ namespace ImageMagitek
             if (posX >= ArrangerElementSize.Width || posY >= ArrangerElementSize.Height)
                 throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({posX}, {posY})");
 
-            if (element.Codec is object)
-                if (element.Codec.ColorType != ColorType)
+            if (element is ArrangerElement)
+            {
+                if (element?.Codec.ColorType != ColorType)
                     throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' did not match the Arranger's {nameof(PixelColorType)}");
 
-            //if (ColorType == PixelColorType.Indexed && element.Palette is null && element.DataFile is object)
-            //    throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' does not contain a palette");
+                //if (ColorType == PixelColorType.Indexed && element.Palette is null && element.DataFile is object)
+                //    throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' does not contain a palette");
 
-            var relocatedElement = element.WithLocation(posX * ElementPixelSize.Width, posY * ElementPixelSize.Height);
-            ElementGrid[posX, posY] = relocatedElement;
+                var relocatedElement = element?.WithLocation(posX * ElementPixelSize.Width, posY * ElementPixelSize.Height);
+                ElementGrid[posX, posY] = relocatedElement;
+            }
+            else
+                ElementGrid[posX, posY] = element;
         }
 
         /// <summary>
-        /// Resets the Element to a default state at the given position in the Arranger ElementGrid
+        /// Resets the Element to the undefined state at the given position in the Arranger ElementGrid
         /// </summary>
-        /// <param name="posX"></param>
-        /// <param name="posY"></param>
+        /// <param name="posX">Element position in element coordinates</param>
+        /// <param name="posY">Element position in element coordinates</param>
         public virtual void ResetElement(int posX, int posY)
         {
             if (ElementGrid is null)
@@ -164,14 +168,17 @@ namespace ImageMagitek
             if (posX >= ArrangerElementSize.Width || posY >= ArrangerElementSize.Height)
                 throw new ArgumentOutOfRangeException($"{nameof(ResetElement)} parameter was out of range: ({posX}, {posY})");
 
-            var el = GetElement(posX, posY);
+            ElementGrid[posX, posY] = null;
 
-            if (ColorType == PixelColorType.Indexed)
-                el = el.WithTarget(null, 0, _blankIndexedCodec, el.Palette);
-            else if (ColorType == PixelColorType.Direct)
-                el = el = el.WithTarget(null, 0, _blankDirectCodec, null);
+            // TODO: ArrangerElement old code
+            //var el = GetElement(posX, posY);
 
-            SetElement(el, posX, posY);
+            //if (ColorType == PixelColorType.Indexed)
+            //    el = el.WithTarget(null, 0, _blankIndexedCodec, el.Palette);
+            //else if (ColorType == PixelColorType.Direct)
+            //    el = el = el.WithTarget(null, 0, _blankDirectCodec, null);
+
+            //SetElement(el, posX, posY);
         }
 
         /// <summary>
@@ -180,7 +187,7 @@ namespace ImageMagitek
         /// <param name="posX">x-coordinate in Element coordinates</param>
         /// <param name="posY">y-coordinate in Element coordinates</param>
         /// <returns></returns>
-        public ArrangerElement GetElement(int posX, int posY)
+        public ArrangerElement? GetElement(int posX, int posY)
         {
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(GetElement)} property '{nameof(ElementGrid)}' was null");
@@ -196,7 +203,7 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="pixelX">x-coordinate in pixel coordinates</param>
         /// <param name="pixelY">x-coordinate in pixel coordinates</param>
-        public ArrangerElement GetElementAtPixel(int pixelX, int pixelY)
+        public ArrangerElement? GetElementAtPixel(int pixelX, int pixelY)
         {
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(GetElementAtPixel)} property '{nameof(ElementGrid)}' was null");
@@ -211,33 +218,37 @@ namespace ImageMagitek
         /// Returns the enumeration of all Elements in the grid in a left-to-right, row-by-row order
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<ArrangerElement> EnumerateElements() =>
+        public IEnumerable<ArrangerElement?> EnumerateElements() =>
             EnumerateElements(0, 0, ArrangerElementSize.Width, ArrangerElementSize.Height);
 
         /// <summary>
-        /// Returns the enumeration of a subsection of Elements in the grid in a left-to-right, row-by-row order
+        /// Returns the full enumeration of a subsection of all Elements in the grid in a left-to-right, row-by-row order
         /// </summary>
         /// <param name="elemX">Starting x-coordinate in element coordinates</param>
         /// <param name="elemY">Starting y-coordinate in element coordinates</param>
         /// <param name="width">Number of elements to enumerate in x-direction</param>
         /// <param name="height">Number of elements to enumerate in y-direction</param>
         /// <returns></returns>
-        public IEnumerable<ArrangerElement> EnumerateElements(int elemX, int elemY, int width, int height)
+        public IEnumerable<ArrangerElement?> EnumerateElements(int elemX, int elemY, int width, int height)
         {
             for (int y = 0; y < height; y++)
+            {
                 for (int x = 0; x < width; x++)
-                    yield return ElementGrid[x+elemX, y+elemY];
+                {
+                    yield return ElementGrid[x + elemX, y + elemY];
+                }
+            }
         }
 
         /// <summary>
-        /// Returns the enumeration of a subsection of Elements in the grid in a left-to-right, row-by-row order
+        /// Returns the full enumeration of a subsection of Elements in the grid in a left-to-right, row-by-row order
         /// </summary>
         /// <param name="x">Starting x-coordinate in pixel coordinates</param>
         /// <param name="y">Starting y-coordinate in pixel coordinates</param>
         /// <param name="width">Width of range in pixels</param>
         /// <param name="height">Height of range in pixels</param>
         /// <returns></returns>
-        public IEnumerable<ArrangerElement> EnumerateElementsByPixel(int pixelX, int pixelY, int width, int height)
+        public IEnumerable<ArrangerElement?> EnumerateElementsByPixel(int pixelX, int pixelY, int width, int height)
         {
             if (width <= 0 || height <= 0)
                 yield break;
@@ -248,8 +259,39 @@ namespace ImageMagitek
             int elemY2 = (pixelY + height + ElementPixelSize.Height - 1) / ElementPixelSize.Height;
 
             for (int y = elemY; y < elemY2; y++)
+            {
                 for (int x = elemX; x < elemX2; x++)
+                {
                     yield return GetElement(x, y);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the full enumeration of a subsection of Element locations in the grid in a left-to-right, row-by-row order
+        /// </summary>
+        /// <param name="x">Starting x-coordinate in pixel coordinates</param>
+        /// <param name="y">Starting y-coordinate in pixel coordinates</param>
+        /// <param name="width">Width of range in pixels</param>
+        /// <param name="height">Height of range in pixels</param>
+        /// <returns>A tuple with the x and y location of the element</returns>
+        public IEnumerable<(int X, int Y)> EnumerateElementLocationsByPixel(int pixelX, int pixelY, int width, int height)
+        {
+            if (width <= 0 || height <= 0)
+                yield break;
+
+            int elemX = pixelX / ElementPixelSize.Width;
+            int elemY = pixelY / ElementPixelSize.Height;
+            int elemX2 = (pixelX + width + ElementPixelSize.Width - 1) / ElementPixelSize.Width;
+            int elemY2 = (pixelY + height + ElementPixelSize.Height - 1) / ElementPixelSize.Height;
+
+            for (int y = elemY; y < elemY2; y++)
+            {
+                for (int x = elemX; x < elemX2; x++)
+                {
+                    yield return (x, y);
+                }
+            }
         }
 
         /// <summary>
@@ -259,6 +301,7 @@ namespace ImageMagitek
         public HashSet<Palette> GetReferencedPalettes()
         {
             return EnumerateElements()
+                .OfType<ArrangerElement>()
                 .Select(x => x.Palette)
                 .OfType<Palette>()
                 .Distinct()
@@ -272,6 +315,7 @@ namespace ImageMagitek
         public HashSet<IGraphicsCodec> GetReferencedCodecs()
         {
             return EnumerateElements()
+                .OfType<ArrangerElement>()
                 .Select(x => x.Codec)
                 .Where(x => !(x is BlankIndexedCodec) && !(x is BlankDirectCodec ))
                 .Distinct()
@@ -298,11 +342,13 @@ namespace ImageMagitek
             {
                 for (int x = 0; x < ArrangerElementSize.Width; x++)
                 {
-                    var el = GetElement(x, y);
-                    if (ReferenceEquals(palette, el.Palette))
+                    if (GetElement(x, y) is ArrangerElement el)
                     {
-                        SetElement(el.WithPalette(default), x, y);
-                        isModified = true;
+                        if (ReferenceEquals(palette, el.Palette))
+                        {
+                            SetElement(el.WithPalette(default), x, y);
+                            isModified = true;
+                        }
                     }
                 }
             }
@@ -318,11 +364,13 @@ namespace ImageMagitek
             {
                 for (int x = 0; x < ArrangerElementSize.Width; x++)
                 {
-                    var el = GetElement(x, y);
-                    if (ReferenceEquals(dataFile, el.DataFile))
+                    if (GetElement(x, y) is ArrangerElement el)
                     {
-                        SetElement(el.WithFile(default, 0), x, y);
-                        isModified = true;
+                        if (ReferenceEquals(dataFile, el.DataFile))
+                        {
+                            SetElement(el.WithFile(default, 0), x, y);
+                            isModified = true;
+                        }
                     }
                 }
             }

@@ -187,9 +187,12 @@ namespace TileShop.WPF.ViewModels
                 var elY = y / _workingArranger.ElementPixelSize.Height;
                 var el = _workingArranger.GetElement(elX, elY);
 
-                string notifyMessage = $"Element ({elX}, {elY}): Palette {el.Palette?.Name ?? "Default"}, DataFile {el.DataFile?.Location ?? "None"}, FileOffset 0x{el.FileAddress.FileOffset:X}.{(el.FileAddress.BitOffset != 0 ? el.FileAddress.BitOffset.ToString() : "")}";
-                var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-                _events.PublishOnUIThread(notifyEvent);
+                if (el is ArrangerElement element)
+                {
+                    string notifyMessage = $"Element ({elX}, {elY}): Palette {element.Palette?.Name ?? "Default"}, DataFile {element.DataFile?.Location ?? "None"}, FileOffset 0x{element.FileAddress.FileOffset:X}.{(element.FileAddress.BitOffset != 0 ? element.FileAddress.BitOffset.ToString() : "")}";
+                    var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+                    _events.PublishOnUIThread(notifyEvent);
+                }
             }
             else if (ActiveTool == ScatteredArrangerTool.Select)
             {
@@ -301,25 +304,30 @@ namespace TileShop.WPF.ViewModels
 
                 var el = _workingArranger.GetElementAtPixel(pixelX, pixelY);
 
-                if (ReferenceEquals(palette, el.Palette))
-                    return false;
-
-                var result = _indexedImage.TrySetPalette(pixelX, pixelY, palette);
-
-                return result.Match(
-                    success =>
-                    {
-                        _applyPaletteHistory.Add(pixelX, pixelY);
-                        Render();
-                        IsModified = true;
-                        return true;
-                    },
-                    fail =>
-                    {
-                        if (notify)
-                            _events.PublishOnUIThread(new NotifyOperationEvent(fail.Reason));
+                if (el is ArrangerElement element)
+                {
+                    if (ReferenceEquals(palette, element.Palette))
                         return false;
-                    });
+
+                    var result = _indexedImage.TrySetPalette(pixelX, pixelY, palette);
+
+                    return result.Match(
+                        success =>
+                        {
+                            _applyPaletteHistory.Add(pixelX, pixelY);
+                            Render();
+                            IsModified = true;
+                            return true;
+                        },
+                        fail =>
+                        {
+                            if (notify)
+                                _events.PublishOnUIThread(new NotifyOperationEvent(fail.Reason));
+                            return false;
+                        });
+                }
+                else
+                    return false;
             }
         }
 
@@ -333,8 +341,11 @@ namespace TileShop.WPF.ViewModels
 
             var el = _workingArranger.GetElement(elX, elY);
 
-            SelectedPalette = Palettes.FirstOrDefault(x => ReferenceEquals(el.Palette, x.Palette)) ??
-                Palettes.First(x => ReferenceEquals(_paletteService?.DefaultPalette, x.Palette));
+            if (el is ArrangerElement element)
+            {
+                SelectedPalette = Palettes.FirstOrDefault(x => ReferenceEquals(element.Palette, x.Palette)) ??
+                    Palettes.First(x => ReferenceEquals(_paletteService?.DefaultPalette, x.Palette));
+            }
 
             return true;
         }

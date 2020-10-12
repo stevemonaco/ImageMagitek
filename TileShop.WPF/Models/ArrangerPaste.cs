@@ -47,19 +47,19 @@ namespace TileShop.WPF.Models
 
             if (copy is ElementCopy elementCopy)
             {
-                var el1 = elementCopy.Elements[0, 0];
+                var x = elementCopy.X * elementCopy.ElementWidth;
+                var y = elementCopy.Y * elementCopy.ElementHeight;
                 var width = elementCopy.Width * elementCopy.Source.ElementPixelSize.Width;
                 var height = elementCopy.Height * elementCopy.Source.ElementPixelSize.Height;
 
                 if (elementCopy.Source.ColorType == PixelColorType.Indexed)
                 {
-
-                    var image = new IndexedImage(elementCopy.Source, el1.X1, el1.Y1, width, height);
+                    var image = new IndexedImage(elementCopy.Source, x, y, width, height);
                     OverlayImage = new IndexedBitmapAdapter(image);
                 }
                 else if (elementCopy.Source.ColorType == PixelColorType.Direct)
                 {
-                    var image = new DirectImage(elementCopy.Source, el1.X1, el1.Y1, width, height);
+                    var image = new DirectImage(elementCopy.Source, x, y, width, height);
                     OverlayImage = new DirectBitmapAdapter(image);
                 }
             }

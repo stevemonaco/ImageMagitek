@@ -23,9 +23,11 @@ namespace ImageMagitek.UnitTests
             {
                 for (int x = 0; x < sourceIndexed.ArrangerElementSize.Width; x++)
                 {
-                    var el = sourceIndexed.GetElement(x, y);
-                    el = el.WithTarget(df, new FileBitAddress(x * y), new Snes3bppCodec(8, 8), null);
-                    sourceIndexed.SetElement(el, x, y);
+                    if (sourceIndexed.GetElement(x, y) is ArrangerElement element)
+                    {
+                        element = element.WithTarget(df, new FileBitAddress(x * y), new Snes3bppCodec(8, 8), null);
+                        sourceIndexed.SetElement(element, x, y);
+                    }
                 }
             }
         }

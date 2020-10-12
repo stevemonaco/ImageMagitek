@@ -42,9 +42,12 @@ namespace ImageMagitek.Image
             {
                 for (int x = 0; x < copyWidth; x++)
                 {
-                    var element = source.GetElementAtPixel(sourceStart.X + x, sourceStart.Y + y);
-                    if ((1 << element.Codec.ColorDepth) < dest.GetPixel(destStart.X + x, destStart.Y + y))
-                        return new MagitekResult.Failed($"Destination image contains a palette index too large to map to the source image pixels at destination position ({destStart.X + x}, {destStart.Y + y}) and source position ({sourceStart.X + x}, {sourceStart.Y + y})");
+                    var el = source.GetElementAtPixel(sourceStart.X + x, sourceStart.Y + y);
+                    if (el is ArrangerElement element)
+                    {
+                        if ((1 << element.Codec.ColorDepth) < dest.GetPixel(destStart.X + x, destStart.Y + y))
+                            return new MagitekResult.Failed($"Destination image contains a palette index too large to map to the source image pixels at destination position ({destStart.X + x}, {destStart.Y + y}) and source position ({sourceStart.X + x}, {sourceStart.Y + y})");
+                    }
                 }
             }
 
@@ -60,7 +63,9 @@ namespace ImageMagitek.Image
                     var color = source.GetPixelColor(x + sourceStart.X, y + sourceStart.Y);
                     if (dest.CanSetPixel(x + destStart.X, y + destStart.Y, color).Value is MagitekResult.Failed)
                     {
-                        var palName = dest.GetElementAtPixel(x + destStart.X, y + destStart.Y).Palette?.Name ?? "Default";
+                        var el = dest.GetElementAtPixel(x + destStart.X, y + destStart.Y);
+
+                        var palName = el?.Palette?.Name ?? "Default";
                         return new MagitekResult.Failed($"Destination image at (x: {destStart.X}, y: {destStart.Y}) with element palette '{palName}' could not be set to the source color ({color.A}, {color.R}, {color.G}, {color.B})");
                     }
                 }
@@ -78,7 +83,7 @@ namespace ImageMagitek.Image
                     var color = source.GetPixel(x + sourceStart.X, y + sourceStart.Y);
                     if (dest.CanSetPixel(x + destStart.X, y + destStart.Y, color).Value is MagitekResult.Failed)
                     {
-                        var palName = dest.GetElementAtPixel(x + destStart.X, y + destStart.Y).Palette?.Name ?? "Default";
+                        var palName = dest.GetElementAtPixel(x + destStart.X, y + destStart.Y)?.Palette?.Name ?? "Undefined";
                         return new MagitekResult.Failed($"Destination image at (x: {destStart.X}, y: {destStart.Y}) with element palette '{palName}' could not be set to the source color ({color.A}, {color.R}, {color.G}, {color.B})");
                     }
                 }
@@ -167,7 +172,7 @@ namespace ImageMagitek.Image
             where TPixel : struct
         {
             var elems = image.GetElementsByPixel(start.X, start.Y, width, height);
-            return elems.Any(x => x.Codec is BlankIndexedCodec || x.Codec is BlankDirectCodec);
+            return elems.Any(x => x is null || x?.Codec is BlankIndexedCodec || x?.Codec is BlankDirectCodec);
         }
 
         public static MagitekResult CopyPixels(IndexedPixelCopy source, IndexedImage dest, Point destStart, params PixelRemapOperation[] operationAttempts)

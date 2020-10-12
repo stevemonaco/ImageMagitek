@@ -104,7 +104,7 @@ namespace ImageMagitek
         /// <param name="x">x-coordinate in pixel coordinates</param>
         /// <param name="y">y-coordinate in pixel coordinates</param>
         /// <returns></returns>
-        public ArrangerElement GetElementAtPixel(int x, int y) => Arranger.GetElementAtPixel(x + Left, y + Top);
+        public ArrangerElement? GetElementAtPixel(int x, int y) => Arranger.GetElementAtPixel(x + Left, y + Top);
 
         /// <summary>
         /// Gets all ArrangerElements within the specific pixel coordinate area
@@ -114,7 +114,7 @@ namespace ImageMagitek
         /// <param name="width">Width of area in pixel coordinates</param>
         /// <param name="height">Height of area in pixel coordinates</param>
         /// <returns></returns>
-        public IEnumerable<ArrangerElement> GetElementsByPixel(int x, int y, int width, int height) =>
+        public IEnumerable<ArrangerElement?> GetElementsByPixel(int x, int y, int width, int height) =>
             Arranger.EnumerateElementsByPixel(x + Left, y + Top, width, height);
     }
 }

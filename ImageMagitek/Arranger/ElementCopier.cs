@@ -55,7 +55,8 @@ namespace ImageMagitek
                     for (int x = 0; x < copyWidth; x++)
                     {
                         var el = source.GetElement(x + sourceStart.X, y + sourceStart.Y);
-                        dest.SetElement(el, x + destStart.X, y + destStart.Y);
+                        if (el is ArrangerElement element)
+                            dest.SetElement(element, x + destStart.X, y + destStart.Y);
                     }
                 }
             }
@@ -119,7 +120,8 @@ namespace ImageMagitek
                     for (int x = 0; x < copyWidth; x++)
                     {
                         var el = source.Elements[x + sourceStart.X, y + sourceStart.Y];
-                        dest.SetElement(el, x + destStart.X, y + destStart.Y);
+                        if (el is ArrangerElement element)
+                            dest.SetElement(element, x + destStart.X, y + destStart.Y);
                     }
                 }
             }

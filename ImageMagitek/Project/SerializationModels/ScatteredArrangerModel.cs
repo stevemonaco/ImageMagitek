@@ -32,7 +32,11 @@ namespace ImageMagitek.Project.Serialization
             {
                 for (int y = 0; y < model.ElementGrid.GetLength(1); y++)
                 {
-                    model.ElementGrid[x, y] = ArrangerElementModel.FromArrangerElement(arranger.GetElement(x, y), x, y);
+                    if (arranger.GetElement(x, y) is ArrangerElement el)
+                    {
+                        var elModel = ArrangerElementModel.FromArrangerElement(el, x, y);
+                        model.ElementGrid[x, y] = elModel;
+                    }
                 }
             }
 

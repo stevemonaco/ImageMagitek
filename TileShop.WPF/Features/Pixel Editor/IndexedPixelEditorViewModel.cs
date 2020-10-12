@@ -54,17 +54,13 @@ namespace TileShop.WPF.ViewModels
             var arrangerPalettes = _workingArranger.GetReferencedPalettes().OrderBy(x => x.Name).ToArray();
             foreach (var pal in arrangerPalettes)
             {
-                var colors = Math.Min(256, 1 << _workingArranger.EnumerateElements().Where(x => ReferenceEquals(pal, x.Palette)).Select(x => x.Codec?.ColorDepth ?? 0).Max());
+                var maxArrangerColors = 1 << _workingArranger.EnumerateElements().
+                    OfType<ArrangerElement>().
+                    Where(x => ReferenceEquals(pal, x.Palette)).Select(x => x.Codec?.ColorDepth ?? 0).
+                    Max();
+
+                var colors = Math.Min(256, maxArrangerColors);
                 Palettes.Add(new PaletteModel(pal, colors));
-            }
-
-            var defaultPaletteElements = _workingArranger.EnumerateElements().Where(x => x.Palette is null).ToArray();
-            var defaultPalette = _paletteService.DefaultPalette;
-
-            if (defaultPaletteElements.Length > 0)
-            {
-                var defaultColors = Math.Min(256, 1 << defaultPaletteElements.Select(x => x.Codec?.ColorDepth ?? 0).Max());
-                Palettes.Add(new PaletteModel(defaultPalette, defaultColors));
             }
 
             _indexedImage = new IndexedImage(_workingArranger, _viewX, _viewY, _viewWidth, _viewHeight);
@@ -231,7 +227,8 @@ namespace TileShop.WPF.ViewModels
             if (palette is null)
                 palette = _paletteService.DefaultPalette;
 
-            var colors = Math.Min(256, 1 << _workingArranger.EnumerateElements().Select(x => x.Codec?.ColorDepth ?? 0).Max());
+            var maxArrangerColors = _workingArranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Codec?.ColorDepth ?? 0).Max();
+            var colors = Math.Min(256, 1 << maxArrangerColors);
 
             var remapViewModel = new ColorRemapViewModel(palette, colors);
             if (_windowManager.ShowDialog(remapViewModel) is true)
