@@ -133,12 +133,13 @@ namespace TileShop.WPF.ViewModels
                 return ImageCopier.CopyPixels(indexedCopy.Image, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
                     PixelRemapOperation.RemapByExactPaletteColors, PixelRemapOperation.RemapByExactIndex);
             }
-            //else if (Paste?.Copy is DirectPixelCopy directCopy)
-            //{
-            //var sourceImage = (Paste.OverlayImage as DirectBitmapAdapter).Image;
-            //result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
-            //    ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
-            //}
+            else if (Paste?.Copy is DirectPixelCopy directCopy)
+            {
+                throw new NotImplementedException("Direct->Indexed pasting is not yet implemented");
+                //var sourceImage = (Paste.OverlayImage as DirectBitmapAdapter).Image;
+                //result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
+                //    ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
+            }
             else
                 throw new InvalidOperationException($"{nameof(ApplyPaste)} attempted to copy from an arranger of type {paste.Copy.Source.ColorType} to {_workingArranger.ColorType}");
         }

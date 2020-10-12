@@ -143,7 +143,7 @@ namespace TileShop.WPF.ViewModels
                 return ImageCopier.CopyPixels(directCopy.Image, _directImage, sourceStart, destStart, copyWidth, copyHeight);
             }
             else
-                throw new InvalidOperationException($"{nameof(ApplyPaste)} attempted to copy from an arranger of type {Paste.Copy.Source.ColorType} to {_workingArranger.ColorType}");
+                throw new InvalidOperationException($"{nameof(ApplyPasteInternal)} attempted to copy from an arranger of type {Paste.Copy.Source.ColorType} to {_workingArranger.ColorType}");
         }
     }
 }

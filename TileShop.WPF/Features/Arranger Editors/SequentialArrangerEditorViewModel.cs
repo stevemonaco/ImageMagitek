@@ -17,6 +17,8 @@ namespace TileShop.WPF.ViewModels
     {
         private readonly ICodecService _codecService;
         private readonly Tracker _tracker;
+        private IndexedImage _indexedImage;
+        private DirectImage _directImage;
 
         private BindableCollection<string> _codecNames = new BindableCollection<string>();
         public BindableCollection<string> CodecNames

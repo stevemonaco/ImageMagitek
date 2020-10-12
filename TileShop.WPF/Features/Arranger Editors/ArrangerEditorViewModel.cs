@@ -11,7 +11,6 @@ using GongSolutions.Wpf.DragDrop;
 using ImageMagitek.Services;
 using ImageMagitek;
 using ImageMagitek.Codec;
-using ImageMagitek.Image;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -301,12 +300,6 @@ namespace TileShop.WPF.ViewModels
             {
                 // Start drag for paste (Handled by DragDrop in View)
             }
-            //else if ((Overlay.State == OverlayState.Selected || Overlay.State == OverlayState.Pasted || Overlay.State == OverlayState.Pasting) && 
-            //    e.RightButton)
-            //{
-            //    CancelOverlay();
-            //    NotifyOfPropertyChange(() => CanEditSelection);
-            //}
             else if (e.LeftButton)
             {
                 Selection.StartSelection(x, y);
