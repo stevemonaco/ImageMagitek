@@ -38,6 +38,8 @@ namespace TileShop.WPF.ViewModels
         private ScatteredArrangerTool _activeTool = ScatteredArrangerTool.Select;
         private ApplyPaletteHistoryAction _applyPaletteHistory;
         private readonly IProjectService _projectService;
+        private IndexedImage _indexedImage;
+        private DirectImage _directImage;
 
         public ScatteredArrangerTool ActiveTool
         {

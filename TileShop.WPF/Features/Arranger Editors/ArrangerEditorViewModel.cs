@@ -20,8 +20,6 @@ namespace TileShop.WPF.ViewModels
     public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMouseCaptureProxy, IDropTarget, IDragSource
     {
         protected Arranger _workingArranger;
-        protected IndexedImage _indexedImage;
-        protected DirectImage _directImage;
 
         protected IEventAggregator _events;
         protected IPaletteService _paletteService;
@@ -226,57 +224,6 @@ namespace TileShop.WPF.ViewModels
         }
 
         public abstract void ApplyPaste(ArrangerPaste paste);
-
-        //private void ApplyPasteAsPixels()
-        //{
-        //    var sourceStart = new System.Drawing.Point(Paste.Rect.SnappedLeft, Paste.Rect.SnappedTop);
-        //    var destStart = new System.Drawing.Point(Paste.Rect.SnappedLeft, Paste.Rect.SnappedTop);
-        //    int copyWidth = Paste.Rect.SnappedWidth;
-        //    int copyHeight = Paste.Rect.SnappedHeight;
-
-        //    MagitekResult result;
-
-        //    if (Paste.Copy.Source.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Indexed)
-        //    {
-        //        var sourceImage = (Paste.OverlayImage as IndexedBitmapAdapter).Image;
-        //        result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
-        //            ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
-        //    }
-        //    else if (Paste.Copy.Source.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Direct)
-        //    {
-        //        var sourceImage = (Paste.OverlayImage as IndexedBitmapAdapter).Image;
-        //        result = ImageCopier.CopyPixels(sourceImage, _directImage, sourceStart, destStart, copyWidth, copyHeight);
-        //    }
-        //    else if (Paste.Copy.Source.ColorType == PixelColorType.Direct && _workingArranger.ColorType == PixelColorType.Indexed)
-        //    {
-        //        var sourceImage = (Paste.OverlayImage as DirectBitmapAdapter).Image;
-        //        result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
-        //            ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
-        //    }
-        //    else if (Paste.Copy.Source.ColorType == PixelColorType.Direct && _workingArranger.ColorType == PixelColorType.Direct)
-        //    {
-        //        var sourceImage = (Paste.OverlayImage as DirectBitmapAdapter).Image;
-        //        result = ImageCopier.CopyPixels(sourceImage, _directImage, sourceStart, destStart, copyWidth, copyHeight);
-        //    }
-        //    else
-        //        throw new InvalidOperationException($"{nameof(ApplyPasteAsPixels)} attempted to copy from an arranger of type {Paste.Copy.Source.ColorType} to {_workingArranger.ColorType}");
-
-        //    var notifyEvent = result.Match(
-        //        success =>
-        //        {
-        //            if (_workingArranger.ColorType == PixelColorType.Indexed)
-        //                _indexedImage.SaveImage();
-        //            else if (_workingArranger.ColorType == PixelColorType.Direct)
-        //                _directImage.SaveImage();
-
-        //            Render();
-        //            return new NotifyOperationEvent("Paste successfully applied");
-        //        },
-        //        fail => new NotifyOperationEvent(fail.Reason)
-        //        );
-
-        //    _events.PublishOnUIThread(notifyEvent);
-        //}
 
         public void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);
         public void ZoomOut() => Zoom = Math.Clamp(Zoom - 1, MinZoom, MaxZoom);
