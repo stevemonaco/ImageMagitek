@@ -53,7 +53,7 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _shell, value);
         }
 
-        private readonly Dictionary<MessageBoxResult, string> messageBoxLabels = new Dictionary<MessageBoxResult, string>
+        private readonly Dictionary<MessageBoxResult, string> _messageBoxLabels = new Dictionary<MessageBoxResult, string>
         {
             { MessageBoxResult.Yes, "Save" }, { MessageBoxResult.No, "Discard" }, { MessageBoxResult.Cancel, "Cancel" }
         };
@@ -212,15 +212,14 @@ namespace TileShop.WPF.ViewModels
             if (editor.IsModified)
             {
                 var result = _windowManager.ShowMessageBox($"'{editor.DisplayName}' has been modified and will be closed. Save changes?",
-                    "Save changes", MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
-
-                var projectTree = _projectService.GetContainingProject(editor.Resource);
+                    "Save changes", MessageBoxButton.YesNoCancel, buttonLabels: _messageBoxLabels);
 
                 if (result == MessageBoxResult.Yes)
                 {
                     editor.SaveChanges();
                     if (saveTree)
                     {
+                        var projectTree = _projectService.GetContainingProject(editor.Resource);
                         _projectService.SaveProject(projectTree)
                          .Switch(
                              success => { },
@@ -253,7 +252,7 @@ namespace TileShop.WPF.ViewModels
             if (ActivePixelEditor.IsModified)
             {
                 var result = _windowManager.ShowMessageBox($"'{ActivePixelEditor.DisplayName}' has been modified and will be closed. Save changes?",
-                    "Save changes", MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
+                    "Save changes", MessageBoxButton.YesNoCancel, buttonLabels: _messageBoxLabels);
 
                 if (result == MessageBoxResult.Yes)
                 {
