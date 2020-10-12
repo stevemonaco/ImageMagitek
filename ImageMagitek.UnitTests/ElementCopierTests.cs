@@ -32,17 +32,17 @@ namespace ImageMagitek.UnitTests
             }
         }
 
-        [Test]
-        public void CopyElements_ValidIndexedToIndexed_ReturnsTrue()
-        {
-            ScatteredArranger dest = new ScatteredArranger("dest", PixelColorType.Indexed, ArrangerLayout.Tiled, 4, 4, 8, 8);
+        //[Test]
+        //public void CopyElements_ValidIndexedToIndexed_ReturnsTrue()
+        //{
+        //    ScatteredArranger dest = new ScatteredArranger("dest", PixelColorType.Indexed, ArrangerLayout.Tiled, 4, 4, 8, 8);
 
-            ElementCopier.CopyElements(sourceIndexed, dest, new Point(2, 2), new Point(0, 0), 4, 4);
-            var sourceItems = sourceIndexed.EnumerateElements(2, 2, 4, 4).ToList();
-            var destItems = dest.EnumerateElements().ToList();
+        //    ElementCopier.CopyElements(sourceIndexed, dest, new Point(2, 2), new Point(0, 0), 4, 4);
+        //    var sourceItems = sourceIndexed.EnumerateElements(2, 2, 4, 4).ToList();
+        //    var destItems = dest.EnumerateElements().ToList();
 
-            CollectionAssert.AreEqual(sourceItems, destItems, new ElementWithoutLocationComparer());
-        }
+        //    CollectionAssert.AreEqual(sourceItems, destItems, new ElementWithoutLocationComparer());
+        //}
 
         //public void CanCopyElements_IndexedToDirect_ReturnsFalse()
         //{

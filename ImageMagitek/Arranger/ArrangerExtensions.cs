@@ -11,6 +11,11 @@ namespace ImageMagitek
     /// </summary>
     public static class ArrangerExtensions
     {
+        /// <summary>
+        /// Copies all elements within the specified arranger
+        /// </summary>
+        /// <param name="arranger">Source to copy from</param>
+        /// <returns></returns>
         public static ElementCopy CopyElements(this Arranger arranger)
         {
             int width = arranger.ArrangerElementSize.Width;
@@ -18,11 +23,25 @@ namespace ImageMagitek
             return arranger.CopyElements(0, 0, width, height);
         }
 
-        public static ElementCopy CopyElements(this Arranger arranger, int x, int y, int width, int height)
+        /// <summary>
+        /// Copies elements within the specified arranger
+        /// </summary>
+        /// <param name="arranger">Source to copy from</param>
+        /// <param name="x">x-coordinate in element coordinates</param>
+        /// <param name="y">y-coordinate in element coordinates</param>
+        /// <param name="copyWidth">Width of copy in element coordinates</param>
+        /// <param name="copyHeight">Height of copy in element coordinates</param>
+        /// <returns></returns>
+        public static ElementCopy CopyElements(this Arranger arranger, int x, int y, int copyWidth, int copyHeight)
         {
-            return new ElementCopy(arranger, x, y, width, height);
+            return new ElementCopy(arranger, x, y, copyWidth, copyHeight);
         }
 
+        /// <summary>
+        /// Copies all pixels within the specified arranger
+        /// </summary>
+        /// <param name="arranger">Source to copy from</param>
+        /// <returns></returns>
         public static IndexedPixelCopy CopyPixelsIndexed(this Arranger arranger)
         {
             int width = arranger.ArrangerPixelSize.Width;
@@ -30,6 +49,15 @@ namespace ImageMagitek
             return arranger.CopyPixelsIndexed(0, 0, width, height);
         }
 
+        /// <summary>
+        /// Copies pixels within the specified arranger
+        /// </summary>
+        /// <param name="arranger">Source to copy from</param>
+        /// <param name="x">x-coordinate in pixel coordinates</param>
+        /// <param name="y">y-coordinate in pixel coordinates</param>
+        /// <param name="copyWidth">Width of copy in pixel coordinates</param>
+        /// <param name="copyHeight">Height of copy in pixel coordinates</param>
+        /// <returns></returns>
         public static IndexedPixelCopy CopyPixelsIndexed(this Arranger arranger, int x, int y, int width, int height)
         {
             if (arranger.ColorType == PixelColorType.Indexed)
@@ -42,6 +70,11 @@ namespace ImageMagitek
             }
         }
 
+        /// <summary>
+        /// Copies all pixels within the specified arranger
+        /// </summary>
+        /// <param name="arranger">Source to copy from</param>
+        /// <returns></returns>
         public static DirectPixelCopy CopyPixelsDirect(this Arranger arranger)
         {
             int width = arranger.ArrangerPixelSize.Width;
@@ -49,6 +82,15 @@ namespace ImageMagitek
             return arranger.CopyPixelsDirect(0, 0, width, height);
         }
 
+        /// <summary>
+        /// Copies pixels within the specified arranger
+        /// </summary>
+        /// <param name="arranger">Source to copy from</param>
+        /// <param name="x">x-coordinate in pixel coordinates</param>
+        /// <param name="y">y-coordinate in pixel coordinates</param>
+        /// <param name="copyWidth">Width of copy in pixel coordinates</param>
+        /// <param name="copyHeight">Height of copy in pixel coordinates</param>
+        /// <returns></returns>
         public static DirectPixelCopy CopyPixelsDirect(this Arranger arranger, int x, int y, int width, int height)
         {
             if (arranger.ColorType == PixelColorType.Indexed)
@@ -146,7 +188,7 @@ namespace ImageMagitek
                 newAddress = 0;
 
             if(initialAddress != newAddress)
-                arranger.Move(newAddress);
+                newAddress = arranger.Move(newAddress);
 
             return newAddress;
         }

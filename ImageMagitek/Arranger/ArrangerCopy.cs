@@ -5,18 +5,45 @@ namespace ImageMagitek
 {
     public abstract class ArrangerCopy
     {
+        /// <summary>
+        /// Arranger being copied from
+        /// </summary>
         public Arranger Source { get; protected set; }
+
+        /// <summary>
+        /// Starting x-coordinate of copy in copy units
+        /// </summary>
         public int X { get; protected set; }
+
+        /// <summary>
+        /// Starting y-coordinate of copy in copy units
+        /// </summary>
         public int Y { get; protected set; }
+
+        /// <summary>
+        /// Width of copy in copy units
+        /// </summary>
         public int Width { get; protected set; }
+
+        /// <summary>
+        /// Width of copy in copy units
+        /// </summary>
         public int Height { get; protected set; }
     }
 
     public class ElementCopy : ArrangerCopy
     {
         public ArrangerElement?[,] Elements { get; }
-        public int ElementWidth { get; }
-        public int ElementHeight { get; }
+
+        /// <summary>
+        /// Width of each element in pixels
+        /// </summary>
+        public int ElementPixelWidth { get; }
+
+        /// <summary>
+        /// Height of each element in pixels
+        /// </summary>
+        public int ElementPixelHeight { get; }
 
         /// <summary>
         /// Creates a copy of an Arranger's ArrangerElements
@@ -33,8 +60,8 @@ namespace ImageMagitek
             Y = elementY;
             Width = copyWidth;
             Height = copyHeight;
-            ElementWidth = source.ElementPixelSize.Width;
-            ElementHeight = source.ElementPixelSize.Height;
+            ElementPixelWidth = source.ElementPixelSize.Width;
+            ElementPixelHeight = source.ElementPixelSize.Height;
 
             Elements = new ArrangerElement?[copyWidth, copyHeight];
 

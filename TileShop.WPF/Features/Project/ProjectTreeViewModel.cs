@@ -20,7 +20,7 @@ using TileShop.WPF.Models;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatteredArrangerFromExistingEvent>
+    public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatteredArrangerFromCopyEvent>
     {
         private readonly IProjectService _projectService;
         private readonly IPaletteService _paletteService;
@@ -390,20 +390,21 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void Handle(AddScatteredArrangerFromExistingEvent message)
+        public void Handle(AddScatteredArrangerFromCopyEvent message)
         {
             var parentModel = Projects.First();
             var model = new NameResourceViewModel();
-            var arranger = message.Arranger;
+            var copy = message.Copy;
+            var arranger = message.Copy.Source;
             var projectTree = _projectService.GetContainingProject(parentModel.Node);
 
             if (_windowManager.ShowDialog(model) is true)
             {
-                var newArranger = new ScatteredArranger(model.ResourceName, arranger.ColorType, arranger.Layout, message.Width, message.Height, arranger.ElementPixelSize.Width, arranger.ElementPixelSize.Height);
-                var source = new Point(message.ElementX, message.ElementY);
+                var newArranger = new ScatteredArranger(model.ResourceName, arranger.ColorType, arranger.Layout, copy.Width, copy.Height, copy.ElementPixelWidth, copy.ElementPixelHeight);
+                var source = new Point(0, 0);
                 var dest = new Point(0, 0);
 
-                var result = ElementCopier.CopyElements(arranger, newArranger, source, dest, message.Width, message.Height);
+                var result = ElementCopier.CopyElements(copy, newArranger, source, dest, copy.Width, copy.Height);
 
                 result.Switch(
                     success =>

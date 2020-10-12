@@ -3,7 +3,6 @@ using System.Linq;
 using Stylet;
 using ImageMagitek;
 using ImageMagitek.Services;
-using TileShop.Shared.EventModels;
 using TileShop.Shared.Models;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Imaging;
@@ -290,7 +289,9 @@ namespace TileShop.WPF.ViewModels
                 int y = Selection.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
                 int width = Selection.SelectionRect.SnappedWidth / _workingArranger.ElementPixelSize.Width;
                 int height = Selection.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
-                var model = new AddScatteredArrangerFromExistingEvent(_workingArranger, x, y, width, height);
+
+                var copy = new ElementCopy(_workingArranger, x, y, width, height);
+                var model = new AddScatteredArrangerFromCopyEvent(copy);
                 _events.PublishOnUIThread(model);
             }
             else
@@ -301,7 +302,14 @@ namespace TileShop.WPF.ViewModels
 
         public void NewScatteredArrangerFromImage()
         {
-            var model = new AddScatteredArrangerFromExistingEvent(_workingArranger, 0, 0, 1, 1);
+            int x = Selection.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
+            int y = Selection.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
+            int width = Selection.SelectionRect.SnappedWidth / _workingArranger.ElementPixelSize.Width;
+            int height = Selection.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
+
+            var copy = new ElementCopy(_workingArranger, x, y, width, height);
+
+            var model = new AddScatteredArrangerFromCopyEvent(copy);
             _events.PublishOnUIThread(model);
         }
 
@@ -452,30 +460,6 @@ namespace TileShop.WPF.ViewModels
                 BitmapAdapter.Invalidate();
             }
         }
-
-        //public override void OnMouseMove(object sender, MouseCaptureArgs e)
-        //{
-        //    if (IsSelecting)
-        //    {
-        //        Selection.UpdateSelectionEndpoint(e.X / Zoom, e.Y / Zoom);
-        //        string notifyMessage;
-        //        var rect = Selection.SelectionRect;
-        //        if (rect.SnapMode == SnapMode.Element)
-        //            notifyMessage = $"Element Selection: {rect.SnappedWidth / _workingArranger.ElementPixelSize.Width} x {rect.SnappedHeight / _workingArranger.ElementPixelSize.Height}" +
-        //                $" at ({rect.SnappedLeft / _workingArranger.ElementPixelSize.Width}, {rect.SnappedRight / _workingArranger.ElementPixelSize.Height})";
-        //        else
-        //            notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight}" +
-        //                $" at ({rect.SnappedLeft} x {rect.SnappedTop})";
-        //        var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-        //        _events.PublishOnUIThread(notifyEvent);
-        //    }
-        //    else
-        //    {
-        //        string notifyMessage = $"File Offset: 0x{_address.FileOffset:X} ({(int)Math.Round(e.X / Zoom)}, {(int)Math.Round(e.Y / Zoom)})";
-        //        var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-        //        _events.PublishOnUIThread(notifyEvent);
-        //    }
-        //}
 
         #region Unsupported Operations due to SequentialArrangerEditor being read-only
         public override void Undo()

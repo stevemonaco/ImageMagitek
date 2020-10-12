@@ -47,8 +47,8 @@ namespace TileShop.WPF.Models
 
             if (copy is ElementCopy elementCopy)
             {
-                var x = elementCopy.X * elementCopy.ElementWidth;
-                var y = elementCopy.Y * elementCopy.ElementHeight;
+                var x = elementCopy.X * elementCopy.ElementPixelWidth;
+                var y = elementCopy.Y * elementCopy.ElementPixelHeight;
                 var width = elementCopy.Width * elementCopy.Source.ElementPixelSize.Width;
                 var height = elementCopy.Height * elementCopy.Source.ElementPixelSize.Height;
 
