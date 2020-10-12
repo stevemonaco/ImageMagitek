@@ -132,11 +132,19 @@ namespace ImageMagitek
         /// </summary>
         public override void SaveImage()
         {
+            // Additional copy is necessary for the case where the image pixels are not completely element-aligned
+            // Edited image is merged into a full arranger image and then the entire arranger is encoded/saved
+
+            var fullImage = Arranger.CopyPixelsIndexed().Image;
             var buffer = new byte[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
-            
+
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++)
+                    fullImage.Image[(y + Top) * fullImage.Width + x + Left] = Image[y * Width + x];
+
             foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IIndexedCodec))
             {
-                Image.CopyToArray(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
+                fullImage.Image.CopyToArray2D(el.X1, el.Y1, fullImage.Width, buffer, 0, 0, Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height);
                 var codec = el.Codec as IIndexedCodec;
                 var encodedImage = codec.EncodeElement(el, buffer);
                 codec.WriteElement(el, encodedImage);
