@@ -9,8 +9,6 @@
         public int PositionX { get; set; }
         public int PositionY { get; set; }
 
-        public bool UsesGlobalDefaultPalette { get; set; }
-
         public static ArrangerElementModel FromArrangerElement(in ArrangerElement el)
         {
             return new ArrangerElementModel()

@@ -36,27 +36,6 @@ namespace ImageMagitek
             ElementGrid = new ArrangerElement?[arrangerWidth, arrangerHeight];
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
             ElementPixelSize = new Size(elementWidth, elementHeight);
-
-            IGraphicsCodec codec = null;
-            if (colorType == PixelColorType.Direct)
-                codec = new BlankDirectCodec();
-            else if (colorType == PixelColorType.Indexed)
-                codec = new BlankIndexedCodec();
-
-            int elY = 0;
-
-            for (int posY = 0; posY < arrangerHeight; posY++)
-            {
-                int elX = 0;
-                for (int posX = 0; posX < arrangerWidth; posX++)
-                {
-                    var el = new ArrangerElement(elX, elY, null, 0, codec, null);
-                    ElementGrid[posX, posY] = el;
-
-                    elX += elementWidth;
-                }
-                elY += elementHeight;
-            }
         }
 
         /// <summary>
@@ -96,23 +75,14 @@ namespace ImageMagitek
 
             var newGrid = new ArrangerElement?[arrangerWidth, arrangerHeight];
 
-            int xCopy = Math.Min(arrangerWidth, ArrangerElementSize.Width);
-            int yCopy = Math.Min(arrangerHeight, ArrangerElementSize.Height);
-            int Width = ElementPixelSize.Width;
-            int Height = ElementPixelSize.Height;
+            int width = Math.Min(arrangerWidth, ArrangerElementSize.Width);
+            int height = Math.Min(arrangerHeight, ArrangerElementSize.Height);
 
-            for (int posY = 0; posY < arrangerHeight; posY++)
+            for (int posY = 0; posY < height; posY++)
             {
-                for (int posX = 0; posX < arrangerWidth; posX++)
+                for (int posX = 0; posX < width; posX++)
                 {
-                    if ((posY < ArrangerElementSize.Height) && (posX < ArrangerElementSize.Width)) // Copy from old grid
-                    {
-                        newGrid[posX, posY] = ElementGrid[posX, posY];
-                    }
-                    else // Create new blank element
-                    {
-                        newGrid[posX, posY] = elementFactory(posX, posY);
-                    }
+                    newGrid[posX, posY] = ElementGrid[posX, posY];
                 }
             }
 

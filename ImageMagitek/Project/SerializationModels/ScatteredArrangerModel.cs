@@ -71,10 +71,11 @@ namespace ImageMagitek.Project.Serialization
             PropertyInfo P = T.GetProperty(propertyName);
 
             var query = from ArrangerElementModel el in ElementGrid
+                        where el is object
                         group el by P.GetValue(el) into grp
                         select new { key = grp.Key, count = grp.Count() };
 
-            return query.MaxBy(x => x.count).First().key as string;
+            return query.MaxBy(x => x.count).FirstOrDefault()?.key as string;
         }
     }
 }

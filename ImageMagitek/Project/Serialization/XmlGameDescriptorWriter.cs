@@ -128,7 +128,7 @@ namespace ImageMagitek.Project.Serialization
                             {
                                 if (arranger.GetElement(x, y) is ArrangerElement element)
                                 {
-                                    var elementModel = arrangerModel.ElementGrid[x, y];
+                                    var elementModel = ArrangerElementModel.FromArrangerElement(element, x, y);
 
                                     if (element.DataFile is object)
                                         elementModel.DataFileKey = resourceResolver[element.DataFile];
@@ -137,22 +137,14 @@ namespace ImageMagitek.Project.Serialization
 
                                     string paletteKey = default;
 
-                                    if (ReferenceEquals(element.Palette, _globalDefaultPalette))
+                                    if (!resourceResolver.TryGetValue(element.Palette, out paletteKey))
                                     {
-                                        elementModel.UsesGlobalDefaultPalette = true;
-                                        paletteKey = _globalDefaultPalette.Name;
-                                    }
-                                    else if (element.Palette is object)
-                                    {
-                                        if (!resourceResolver.TryGetValue(element.Palette, out paletteKey))
-                                        {
-                                            paletteKey = _globalResources.OfType<Palette>()
-                                                .Skip(1)
-                                                .FirstOrDefault(x => ReferenceEquals(element.Palette, x))?.Name;
-                                        }
+                                        paletteKey = _globalResources.OfType<Palette>()
+                                            .FirstOrDefault(x => ReferenceEquals(element.Palette, x))?.Name;
                                     }
 
                                     elementModel.PaletteKey = paletteKey;
+                                    arrangerModel.ElementGrid[x, y] = elementModel;
                                 }
                             }
                         }
@@ -221,32 +213,8 @@ namespace ImageMagitek.Project.Serialization
         private XElement Serialize(ScatteredArrangerModel arrangerModel)
         {
             var mostUsedCodecName = arrangerModel.FindMostFrequentPropertyValue("CodecName");
-            var mostUsedFileKey = arrangerModel.FindMostFrequentPropertyValue("DataFileKey") ?? "";
-            string mostUsedPaletteKey = default;
-            bool defaultGlobalPaletteIsMostFrequentPalette = false;
-
-            var mostUsedNonDefaultPalette = arrangerModel.EnumerateElements()
-                .Where(x => !x.UsesGlobalDefaultPalette)
-                .Where(x => !string.IsNullOrEmpty(x.DataFileKey))
-                .GroupBy(x => x.PaletteKey)
-                .Select(x => new { PaletteKey = x.Key, Count = x.Count() })
-                .OrderByDescending(x => x.Count)
-                .FirstOrDefault();
-
-            if (mostUsedNonDefaultPalette is null)
-            {
-                defaultGlobalPaletteIsMostFrequentPalette = true;
-                mostUsedPaletteKey = _globalDefaultPalette.Name;
-            }    
-            else if (mostUsedNonDefaultPalette.Count < arrangerModel.EnumerateElements().Count(x => x.UsesGlobalDefaultPalette))
-            {
-                defaultGlobalPaletteIsMostFrequentPalette = true;
-                mostUsedPaletteKey = _globalDefaultPalette.Name;
-            }
-            else
-            {
-                mostUsedPaletteKey = mostUsedNonDefaultPalette.PaletteKey;
-            }
+            var mostUsedFileKey = arrangerModel.FindMostFrequentPropertyValue("DataFileKey");
+            string mostUsedPaletteKey = arrangerModel.FindMostFrequentPropertyValue("PaletteKey");
 
             var arrangerNode = new XElement("arranger");
             arrangerNode.Add(new XAttribute("name", arrangerModel.Name));
@@ -265,10 +233,13 @@ namespace ImageMagitek.Project.Serialization
             else if (arrangerModel.ColorType == PixelColorType.Direct)
                 arrangerNode.Add(new XAttribute("color", "direct"));
 
-            arrangerNode.Add(new XAttribute("defaultcodec", mostUsedCodecName));
-            arrangerNode.Add(new XAttribute("defaultdatafile", mostUsedFileKey));
+            if (!string.IsNullOrEmpty(mostUsedCodecName))
+                arrangerNode.Add(new XAttribute("defaultcodec", mostUsedCodecName));
 
-            if (mostUsedPaletteKey is object)
+            if (!string.IsNullOrEmpty(mostUsedFileKey))
+                arrangerNode.Add(new XAttribute("defaultdatafile", mostUsedFileKey));
+
+            if (!string.IsNullOrEmpty(mostUsedPaletteKey))
                 arrangerNode.Add(new XAttribute("defaultpalette", mostUsedPaletteKey));
 
             for (int y = 0; y < arrangerModel.ArrangerElementSize.Height; y++)
@@ -276,6 +247,9 @@ namespace ImageMagitek.Project.Serialization
                 for(int x = 0; x < arrangerModel.ArrangerElementSize.Width; x++)
                 {
                     var el = arrangerModel.ElementGrid[x, y];
+
+                    if (el is null)
+                        continue;
 
                     if (el.CodecName == "Blank Indexed" || el.CodecName == "Blank Direct")
                         continue;
@@ -294,18 +268,8 @@ namespace ImageMagitek.Project.Serialization
                     if(el.DataFileKey != mostUsedFileKey)
                         elNode.Add(new XAttribute("datafile", el.DataFileKey));
 
-                    if (defaultGlobalPaletteIsMostFrequentPalette && !el.UsesGlobalDefaultPalette)
-                    {
+                    if (el.PaletteKey != mostUsedPaletteKey)
                         elNode.Add(new XAttribute("palette", el.PaletteKey));
-                    }
-                    else if (!defaultGlobalPaletteIsMostFrequentPalette && el.UsesGlobalDefaultPalette)
-                    {
-                        elNode.Add(new XAttribute("palette", _globalDefaultPalette.Name));
-                    }
-                    else if (el.PaletteKey != mostUsedPaletteKey)
-                    {
-                        elNode.Add(new XAttribute("palette", el.PaletteKey));
-                    }
 
                     arrangerNode.Add(elNode);
                 }
