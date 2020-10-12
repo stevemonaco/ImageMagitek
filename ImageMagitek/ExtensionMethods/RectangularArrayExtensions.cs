@@ -47,5 +47,16 @@ namespace ImageMagitek.ExtensionMethods
                 for (int x = 0; x < destWidth; x++)
                     dest[x, y] = source[(y + sourceY) * sourceWidth + x + sourceX];
         }
+
+        public static void CopyToArray2D<T>(this T[] source, int sourceX, int sourceY, int sourceWidth, T[,] dest, int destX, int destY, int copyWidth, int copyHeight)
+        {
+            for (int y = 0; y < copyHeight; y++)
+            {
+                for (int x = 0; x < copyWidth; x++)
+                {
+                    dest[x + destX, y + destY] = source[(y + sourceY) * sourceWidth + x + sourceX];
+                }
+            }
+        }
     }
 }
