@@ -57,8 +57,6 @@ namespace ImageMagitek
             if (Width * Height != Image.Length)
                 Image = new ColorRgba32[Width * Height];
 
-            //var buffer = new ColorRgba32[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
-
             foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.DataFile is object))
             {
                 if (el.Codec is IDirectCodec codec)
@@ -94,8 +92,6 @@ namespace ImageMagitek
 
                 var encodeResult = codec.EncodeElement(el, buffer);
                 codec.WriteElement(el, encodeResult);
-
-                //codec.Encode(el, buffer);
             }
             foreach (var fs in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.DataFile.Stream).Distinct())
                 fs.Flush();

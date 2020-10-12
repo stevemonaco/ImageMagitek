@@ -165,16 +165,6 @@ namespace ImageMagitek
                 throw new ArgumentOutOfRangeException($"{nameof(ResetElement)} parameter was out of range: ({posX}, {posY})");
 
             ElementGrid[posX, posY] = null;
-
-            // TODO: ArrangerElement old code
-            //var el = GetElement(posX, posY);
-
-            //if (ColorType == PixelColorType.Indexed)
-            //    el = el.WithTarget(null, 0, _blankIndexedCodec, el.Palette);
-            //else if (ColorType == PixelColorType.Direct)
-            //    el = el = el.WithTarget(null, 0, _blankDirectCodec, null);
-
-            //SetElement(el, posX, posY);
         }
 
         /// <summary>

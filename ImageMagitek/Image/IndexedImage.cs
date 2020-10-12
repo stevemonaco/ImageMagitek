@@ -125,54 +125,6 @@ namespace ImageMagitek
 
                 }
             }
-
-            //var elements = Arranger.EnumerateElementsByPixel(Left, Top, Width, Height);
-
-            //Rectangle imageRect = new Rectangle(Left, Top, Width, Height);
-
-            //foreach (var el in elements)
-            //{
-            //    if (el is ArrangerElement element)
-            //    {
-            //        if (element.Codec is IIndexedCodec codec)
-            //        {
-            //            var encodedBuffer = codec.ReadElement(element);
-
-            //            // TODO: Detect reads past end of file more gracefully
-            //            if (encodedBuffer.Length == 0)
-            //                continue;
-
-            //            var decodedImage = codec.DecodeElement(element, encodedBuffer);
-
-            //            var elementRect = new Rectangle(element.X1, element.Y1, element.Width, element.Height);
-            //            elementRect.Intersect(imageRect);
-
-            //            if (elementRect.IsEmpty)
-            //                continue;
-
-            //            int minX = Math.Clamp(element.X1, Left, Right - 1);
-            //            int maxX = Math.Clamp(element.X2, Left, Right - 1);
-            //            int minY = Math.Clamp(element.Y1, Top, Bottom - 1);
-            //            int maxY = Math.Clamp(element.Y2, Top, Bottom - 1);
-            //            int deltaX = minX - element.X1;
-            //            int deltaY = minY - element.Y1;
-
-            //            for (int y = 0; y <= maxY - minY; y++)
-            //            {
-            //                int destidx = (element.Y1 + deltaY + y - Top) * Width + (element.X1 + deltaX - Left);
-            //                for (int x = 0; x <= maxX - minX; x++)
-            //                {
-            //                    Image[destidx] = decodedImage[x + deltaX, y + deltaY];
-            //                    destidx++;
-            //                }
-            //            }
-            //        }
-            //    }
-            //    else
-            //    {
-
-            //    }
-            //}
         }
 
         /// <summary>

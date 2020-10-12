@@ -508,7 +508,6 @@ namespace TileShop.WPF.ViewModels
             catch (Exception ex)
             {
                 _windowManager.ShowMessageBox($"Unable to create new project at location '{projectFileName}'\n{ex.Message}\n{ex.StackTrace}");
-                // TODO: Log
             }
         }
 
