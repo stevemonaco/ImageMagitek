@@ -15,15 +15,16 @@ namespace TileShop.WPF.ViewModels
     {
         private DirectImage _directImage;
 
-        public DirectPixelEditorViewModel(Arranger arranger, IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService)
-            : base(events, windowManager, paletteService)
+        public DirectPixelEditorViewModel(Arranger arranger, Arranger projectArranger, 
+            IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService)
+            : base(projectArranger, events, windowManager, paletteService)
         {
             Initialize(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
         }
 
-        public DirectPixelEditorViewModel(Arranger arranger, int viewX, int viewY, int viewWidth, int viewHeight,
+        public DirectPixelEditorViewModel(Arranger arranger, Arranger projectArranger, int viewX, int viewY, int viewWidth, int viewHeight,
             IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService)
-            : base(events, windowManager, paletteService)
+            : base(projectArranger, events, windowManager, paletteService)
         {
             Initialize(arranger, viewX, viewY, viewWidth, viewHeight);
         }
@@ -47,7 +48,7 @@ namespace TileShop.WPF.ViewModels
             CreateGridlines();
         }
 
-        protected override void Render() { }
+        public override void Render() { }
             //ArrangerSource = new DirectImageSource(_directImage, _viewX, _viewY, _viewWidth, _viewHeight);
 
         protected override void ReloadImage() => _directImage.Render();

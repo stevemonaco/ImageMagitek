@@ -12,6 +12,7 @@ namespace TileShop.WPF.ViewModels
     public abstract class PixelEditorViewModel<TColor> : ArrangerEditorViewModel
         where TColor : struct
     {
+        protected readonly Arranger _projectArranger;
         protected int _viewX;
         protected int _viewY;
         protected int _viewWidth;
@@ -55,7 +56,7 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _secondaryColor, value);
         }
 
-        public PixelEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) :
+        public PixelEditorViewModel(Arranger projectArranger, IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) :
             base(events, windowManager, paletteService)
         {
             DisplayName = "Pixel Editor";
@@ -64,6 +65,7 @@ namespace TileShop.WPF.ViewModels
 
             Zoom = 3;
             MaxZoom = 32;
+            _projectArranger = projectArranger;
         }
 
         protected abstract void ReloadImage();

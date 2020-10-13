@@ -135,7 +135,15 @@ namespace TileShop.WPF.ViewModels
             _paletteService = paletteService;
         }
 
-        protected abstract void Render();
+        /// <summary>
+        /// Redraws the ImageBase onto the BitmapAdapter
+        /// </summary>
+        public abstract void Render();
+
+        /// <summary>
+        /// Applies the paste to the Editor
+        /// </summary>
+        /// <param name="paste"></param>
         public abstract void ApplyPaste(ArrangerPaste paste);
 
         protected virtual void CreateGridlines()
@@ -182,23 +190,23 @@ namespace TileShop.WPF.ViewModels
             if (!CanEditSelection)
                 return;
 
-            ArrangerTransferModel transferModel;
+            EditArrangerPixelsEvent editEvent;
             var rect = Selection.SelectionRect;
 
             if (SnapMode == SnapMode.Element && _workingArranger.Layout == ArrangerLayout.Tiled)
             {
                 // Clone a subsection of the arranger and show the full subarranger
+                _workingArranger.CopyElements();
                 var arranger = _workingArranger.CloneArranger(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
-                transferModel = new ArrangerTransferModel(arranger, Resource as Arranger, 0, 0, rect.SnappedWidth, rect.SnappedHeight);
+                editEvent = new EditArrangerPixelsEvent(arranger, Resource as Arranger, 0, 0, rect.SnappedWidth, rect.SnappedHeight);
             }
             else
             {
                 // Clone the entire arranger and show a subsection of the cloned arranger
                 var arranger = _workingArranger.CloneArranger();
-                transferModel = new ArrangerTransferModel(arranger, Resource as Arranger, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+                editEvent = new EditArrangerPixelsEvent(arranger, Resource as Arranger, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
             }
 
-            var editEvent = new EditArrangerPixelsEvent(transferModel);
             _events.PublishOnUIThread(editEvent);
             CancelOverlay();
         }

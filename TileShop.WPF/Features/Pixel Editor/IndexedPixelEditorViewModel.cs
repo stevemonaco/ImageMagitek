@@ -31,15 +31,16 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _activePalette, value);
         }
 
-        public IndexedPixelEditorViewModel(Arranger arranger, IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService)
-            : base(events, windowManager, paletteService)
+        public IndexedPixelEditorViewModel(Arranger arranger, Arranger projectArranger, IEventAggregator events, 
+            IWindowManager windowManager, IPaletteService paletteService)
+            : base(projectArranger, events, windowManager, paletteService)
         {
             Initialize(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
         }
 
-        public IndexedPixelEditorViewModel(Arranger arranger, int viewX, int viewY, int viewWidth, int viewHeight,
+        public IndexedPixelEditorViewModel(Arranger arranger, Arranger projectArranger, int viewX, int viewY, int viewWidth, int viewHeight,
             IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService)
-            : base(events, windowManager, paletteService)
+            : base(projectArranger, events, windowManager, paletteService)
         {
             Initialize(arranger, viewX, viewY, viewWidth, viewHeight);
         }
@@ -76,7 +77,7 @@ namespace TileShop.WPF.ViewModels
             NotifyOfPropertyChange(() => CanRemapColors);
         }
 
-        protected override void Render() => BitmapAdapter.Invalidate();
+        public override void Render() => BitmapAdapter.Invalidate();
 
         protected override void ReloadImage() => _indexedImage.Render();
 
@@ -163,6 +164,8 @@ namespace TileShop.WPF.ViewModels
                 NotifyOfPropertyChange(() => CanRedo);
 
                 IsModified = false;
+                var changeEvent = new ArrangerChangedEvent(_projectArranger, ArrangerChange.Pixels);
+                _events.PublishOnUIThread(changeEvent);
             }
             catch (Exception ex)
             {

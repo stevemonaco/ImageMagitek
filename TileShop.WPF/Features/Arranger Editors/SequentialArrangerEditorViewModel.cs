@@ -445,7 +445,7 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        protected override void Render()
+        public override void Render()
         {
             CancelOverlay();
 

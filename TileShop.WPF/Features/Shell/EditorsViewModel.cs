@@ -15,7 +15,7 @@ using Serilog;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsEvent>
+    public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsEvent>, IHandle<ArrangerChangedEvent>
     {
         private readonly IWindowManager _windowManager;
         private readonly Tracker _tracker;
@@ -281,19 +281,34 @@ namespace TileShop.WPF.ViewModels
             if (ActivePixelEditor is object)
                 Shell.Tools.Remove(ActivePixelEditor);
 
-            var model = message.ArrangerTransferModel;
-
-            if (model.Arranger.ColorType == PixelColorType.Indexed)
+            if (message.Arranger.ColorType == PixelColorType.Indexed)
             {
-                var editor = new IndexedPixelEditorViewModel(model.Arranger, model.X, model.Y, model.Width, model.Height,
-                    _events, _windowManager, _paletteService);
+                var editor = new IndexedPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
+                    message.Width, message.Height, _events, _windowManager, _paletteService);
 
                 ActivePixelEditor = editor;
                 Shell.Tools.Add(ActivePixelEditor);
             }
-            else if (model.Arranger.ColorType == PixelColorType.Direct)
+            else if (message.Arranger.ColorType == PixelColorType.Direct)
             {
 
+            }
+        }
+
+        public void Handle(ArrangerChangedEvent message)
+        {
+            if (message.Change == ArrangerChange.Pixels || message.Change == ArrangerChange.Elements)
+            {
+                var effectedEditors = Editors.OfType<ArrangerEditorViewModel>()
+                    .Where(x => ReferenceEquals(x.Resource, message.Arranger));
+
+                foreach (var editor in effectedEditors)
+                {
+                    if (editor is SequentialArrangerEditorViewModel || editor is ScatteredArrangerEditorViewModel)
+                    {
+                        editor.Render();
+                    }
+                }
             }
         }
     }
