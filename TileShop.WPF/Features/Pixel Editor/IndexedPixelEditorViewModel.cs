@@ -80,6 +80,7 @@ namespace TileShop.WPF.ViewModels
 
         protected override void ReloadImage() => _indexedImage.Render();
 
+        #region Commands
         public void ConfirmPendingOperation()
         {
             if (Paste?.Copy is ElementCopy || Paste?.Copy is IndexedPixelCopy || Paste?.Copy is DirectPixelCopy)
@@ -105,40 +106,49 @@ namespace TileShop.WPF.ViewModels
             _events.PublishOnUIThread(notifyEvent);
         }
 
-        private MagitekResult ApplyPasteInternal(ArrangerPaste paste)
+        public bool CanRemapColors
         {
-            int destX = Math.Max(0, paste.Rect.SnappedLeft);
-            int destY = Math.Max(0, paste.Rect.SnappedTop);
-            int sourceX = paste.Rect.SnappedLeft >= 0 ? 0 : -paste.Rect.SnappedLeft;
-            int sourceY = paste.Rect.SnappedTop >= 0 ? 0 : -paste.Rect.SnappedTop;
-
-            var destStart = new Point(destX, destY);
-            var sourceStart = new Point(sourceX, sourceY);
-
-            ArrangerCopy copy;
-
-            if (paste?.Copy is ElementCopy elementCopy)
-                copy = elementCopy.ToPixelCopy();
-            else
-                copy = paste?.Copy;
-
-            if (copy is IndexedPixelCopy indexedCopy)
+            get
             {
-                int copyWidth = Math.Min(copy.Width - sourceX, _indexedImage.Width - destX);
-                int copyHeight = Math.Min(copy.Height - sourceY, _indexedImage.Height - destY);
+                var palettes = _workingArranger?.GetReferencedPalettes();
+                if (palettes?.Count <= 1)
+                    return _workingArranger.GetReferencedCodecs().All(x => x.ColorType == PixelColorType.Indexed);
 
-                return ImageCopier.CopyPixels(indexedCopy.Image, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
-                    PixelRemapOperation.RemapByExactPaletteColors, PixelRemapOperation.RemapByExactIndex);
+                return false;
             }
-            else if (Paste?.Copy is DirectPixelCopy directCopy)
+        }
+
+        public void RemapColors()
+        {
+            var palette = _workingArranger.GetReferencedPalettes().FirstOrDefault();
+            if (palette is null)
+                palette = _paletteService.DefaultPalette;
+
+            var maxArrangerColors = _workingArranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Codec?.ColorDepth ?? 0).Max();
+            var colors = Math.Min(256, 1 << maxArrangerColors);
+
+            var remapViewModel = new ColorRemapViewModel(palette, colors);
+            if (_windowManager.ShowDialog(remapViewModel) is true)
             {
-                throw new NotImplementedException("Direct->Indexed pasting is not yet implemented");
-                //var sourceImage = (Paste.OverlayImage as DirectBitmapAdapter).Image;
-                //result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
-                //    ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
+                var remap = remapViewModel.FinalColors.Select(x => (byte)x.Index).ToList();
+                _indexedImage.RemapColors(remap);
+                Render();
+
+                var remapAction = new ColorRemapHistoryAction(remapViewModel.InitialColors, remapViewModel.FinalColors);
+                UndoHistory.Add(remapAction);
+                IsModified = true;
             }
-            else
-                throw new InvalidOperationException($"{nameof(ApplyPaste)} attempted to copy from an arranger of type {paste.Copy.Source.ColorType} to {_workingArranger.ColorType}");
+        }
+
+        public override void PickColor(int x, int y, ColorPriority priority)
+        {
+            var el = _workingArranger.GetElementAtPixel(x, y);
+
+            if (el is ArrangerElement element)
+            {
+                ActivePalette = Palettes.FirstOrDefault(x => ReferenceEquals(x.Palette, element.Palette));
+                base.PickColor(x, y, priority);
+            }            
         }
 
         public override void SaveChanges()
@@ -192,6 +202,44 @@ namespace TileShop.WPF.ViewModels
 
         public override byte GetPixel(int x, int y) => _indexedImage.GetPixel(x, y);
 
+        #endregion
+
+        private MagitekResult ApplyPasteInternal(ArrangerPaste paste)
+        {
+            int destX = Math.Max(0, paste.Rect.SnappedLeft);
+            int destY = Math.Max(0, paste.Rect.SnappedTop);
+            int sourceX = paste.Rect.SnappedLeft >= 0 ? 0 : -paste.Rect.SnappedLeft;
+            int sourceY = paste.Rect.SnappedTop >= 0 ? 0 : -paste.Rect.SnappedTop;
+
+            var destStart = new Point(destX, destY);
+            var sourceStart = new Point(sourceX, sourceY);
+
+            ArrangerCopy copy;
+
+            if (paste?.Copy is ElementCopy elementCopy)
+                copy = elementCopy.ToPixelCopy();
+            else
+                copy = paste?.Copy;
+
+            if (copy is IndexedPixelCopy indexedCopy)
+            {
+                int copyWidth = Math.Min(copy.Width - sourceX, _indexedImage.Width - destX);
+                int copyHeight = Math.Min(copy.Height - sourceY, _indexedImage.Height - destY);
+
+                return ImageCopier.CopyPixels(indexedCopy.Image, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
+                    PixelRemapOperation.RemapByExactPaletteColors, PixelRemapOperation.RemapByExactIndex);
+            }
+            else if (Paste?.Copy is DirectPixelCopy directCopy)
+            {
+                throw new NotImplementedException("Direct->Indexed pasting is not yet implemented");
+                //var sourceImage = (Paste.OverlayImage as DirectBitmapAdapter).Image;
+                //result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
+                //    ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
+            }
+            else
+                throw new InvalidOperationException($"{nameof(ApplyPaste)} attempted to copy from an arranger of type {paste.Copy.Source.ColorType} to {_workingArranger.ColorType}");
+        }
+
         public override void ApplyHistoryAction(HistoryAction action)
         {
             if (action is PencilHistoryAction<byte> pencilAction)
@@ -206,40 +254,6 @@ namespace TileShop.WPF.ViewModels
             else if (action is PasteArrangerHistoryAction pasteAction)
             {
                 ApplyPasteInternal(pasteAction.Paste);
-            }
-        }
-
-        public bool CanRemapColors
-        {
-            get
-            {
-                var palettes = _workingArranger?.GetReferencedPalettes();
-                if (palettes?.Count <= 1)
-                    return _workingArranger.GetReferencedCodecs().All(x => x.ColorType == PixelColorType.Indexed);
-
-                return false;
-            }
-        }
-
-        public void RemapColors()
-        {
-            var palette = _workingArranger.GetReferencedPalettes().FirstOrDefault();
-            if (palette is null)
-                palette = _paletteService.DefaultPalette;
-
-            var maxArrangerColors = _workingArranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Codec?.ColorDepth ?? 0).Max();
-            var colors = Math.Min(256, 1 << maxArrangerColors);
-
-            var remapViewModel = new ColorRemapViewModel(palette, colors);
-            if (_windowManager.ShowDialog(remapViewModel) is true)
-            {
-                var remap = remapViewModel.FinalColors.Select(x => (byte)x.Index).ToList();
-                _indexedImage.RemapColors(remap);
-                Render();
-
-                var remapAction = new ColorRemapHistoryAction(remapViewModel.InitialColors, remapViewModel.FinalColors);
-                UndoHistory.Add(remapAction);
-                IsModified = true;
             }
         }
     }

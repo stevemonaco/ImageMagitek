@@ -50,12 +50,6 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _gridlines, value);
         }
 
-#pragma warning disable CS0067
-        // Unused events that are required to be present for IMouseCaptureProxy
-        public virtual event EventHandler Capture;
-        public virtual event EventHandler Release;
-#pragma warning restore CS0067
-
         protected int _zoom = 1;
         public int Zoom
         {
@@ -142,13 +136,45 @@ namespace TileShop.WPF.ViewModels
         }
 
         protected abstract void Render();
+        public abstract void ApplyPaste(ArrangerPaste paste);
 
-        public virtual void Closing() { }
-
-        public virtual void RequestEditSelection()
+        protected virtual void CreateGridlines()
         {
-            if (CanEditSelection)
-                EditSelection();
+            if (_workingArranger is null || !CanShowGridlines)
+                return;
+
+            _gridlines = new BindableCollection<Gridline>();
+            for (int x = 0; x < _workingArranger.ArrangerElementSize.Width; x++) // Vertical gridlines
+            {
+                var gridline = new Gridline(x * _workingArranger.ElementPixelSize.Width * Zoom + 1, 0,
+                    x * _workingArranger.ElementPixelSize.Width * Zoom + 1, _workingArranger.ArrangerPixelSize.Height * Zoom);
+                _gridlines.Add(gridline);
+            }
+
+            _gridlines.Add(new Gridline(_workingArranger.ArrangerPixelSize.Width * Zoom, 0,
+                _workingArranger.ArrangerPixelSize.Width * Zoom, _workingArranger.ArrangerPixelSize.Height * Zoom));
+
+            for (int y = 0; y < _workingArranger.ArrangerElementSize.Height; y++) // Horizontal gridlines
+            {
+                var gridline = new Gridline(0, y * _workingArranger.ElementPixelSize.Height * Zoom + 1,
+                    _workingArranger.ArrangerPixelSize.Width * Zoom, y * _workingArranger.ElementPixelSize.Height * Zoom + 1);
+                _gridlines.Add(gridline);
+            }
+
+            _gridlines.Add(new Gridline(0, _workingArranger.ArrangerPixelSize.Height * Zoom,
+                _workingArranger.ArrangerPixelSize.Width * Zoom, _workingArranger.ArrangerPixelSize.Height * Zoom));
+
+            NotifyOfPropertyChange(() => Gridlines);
+        }
+
+        #region Commands
+        public virtual void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);
+        public virtual void ZoomOut() => Zoom = Math.Clamp(Zoom - 1, MinZoom, MaxZoom);
+
+        public virtual void ToggleGridlineVisibility()
+        {
+            if (CanShowGridlines)
+                ShowGridlines ^= true;
         }
 
         public virtual void EditSelection()
@@ -193,51 +219,41 @@ namespace TileShop.WPF.ViewModels
             NotifyOfPropertyChange(() => CanEditSelection);
         }
 
-        protected virtual void CreateGridlines()
+        public virtual void StartNewSelection(int x, int y)
         {
-            if (_workingArranger is null || !CanShowGridlines)
-                return;
-
-            _gridlines = new BindableCollection<Gridline>();
-            for (int x = 0; x < _workingArranger.ArrangerElementSize.Width; x++) // Vertical gridlines
-            {
-                var gridline = new Gridline(x * _workingArranger.ElementPixelSize.Width * Zoom + 1, 0,
-                    x * _workingArranger.ElementPixelSize.Width * Zoom + 1, _workingArranger.ArrangerPixelSize.Height * Zoom);
-                _gridlines.Add(gridline);
-            }
-
-            _gridlines.Add(new Gridline(_workingArranger.ArrangerPixelSize.Width * Zoom, 0,
-                _workingArranger.ArrangerPixelSize.Width * Zoom, _workingArranger.ArrangerPixelSize.Height * Zoom));
-
-            for (int y = 0; y < _workingArranger.ArrangerElementSize.Height; y++) // Horizontal gridlines
-            {
-                var gridline = new Gridline(0, y * _workingArranger.ElementPixelSize.Height * Zoom + 1,
-                    _workingArranger.ArrangerPixelSize.Width * Zoom, y * _workingArranger.ElementPixelSize.Height * Zoom + 1);
-                _gridlines.Add(gridline);
-            }
-
-            _gridlines.Add(new Gridline(0, _workingArranger.ArrangerPixelSize.Height * Zoom,
-                _workingArranger.ArrangerPixelSize.Width * Zoom, _workingArranger.ArrangerPixelSize.Height * Zoom));
-
-            NotifyOfPropertyChange(() => Gridlines);
+            Selection.StartSelection(x, y);
+            IsSelecting = true;
         }
 
-        public abstract void ApplyPaste(ArrangerPaste paste);
-
-        public void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);
-        public void ZoomOut() => Zoom = Math.Clamp(Zoom - 1, MinZoom, MaxZoom);
-        
-        public void ToggleGridlineVisibility()
+        public virtual void UpdateSelection(int x, int y)
         {
-            if (CanShowGridlines)
-                ShowGridlines ^= true;
+            if (IsSelecting)
+                Selection.UpdateSelectionEndpoint(x, y);
         }
+
+        public virtual void CompleteSelection()
+        {
+            if (IsSelecting)
+            {
+                if (Selection.SelectionRect.SnappedWidth == 0 || Selection.SelectionRect.SnappedHeight == 0)
+                {
+                    Selection = new ArrangerSelection(_workingArranger, SnapMode);
+                }
+
+                IsSelecting = false;
+                NotifyOfPropertyChange(() => CanEditSelection);
+            }
+        }
+        #endregion
 
         #region Mouse Actions
         public virtual void OnMouseMove(object sender, MouseCaptureArgs e)
         {
+            int x = (int)(e.X / Zoom);
+            int y = (int)(e.Y / Zoom);
+
             if (IsSelecting)
-                Selection.UpdateSelectionEndpoint(e.X / Zoom, e.Y / Zoom);
+                UpdateSelection(x, y);
 
             if (Selection.HasSelection)
             {
@@ -270,14 +286,7 @@ namespace TileShop.WPF.ViewModels
         {
             if (IsSelecting)
             {
-                IsSelecting = false;
-
-                if (Selection.SelectionRect.SnappedWidth == 0 || Selection.SelectionRect.SnappedHeight == 0)
-                {
-                    Selection = new ArrangerSelection(_workingArranger, SnapMode);
-                }
-
-                NotifyOfPropertyChange(() => CanEditSelection);
+                CompleteSelection();
             }
         }
 
@@ -302,8 +311,7 @@ namespace TileShop.WPF.ViewModels
             }
             else if (e.LeftButton)
             {
-                Selection.StartSelection(x, y);
-                IsSelecting = true;
+                StartNewSelection(x, y);
             }
         }
 
@@ -314,6 +322,12 @@ namespace TileShop.WPF.ViewModels
             else
                 ZoomOut();
         }
+
+        #pragma warning disable CS0067
+        // Unused events that are required to be present for IMouseCaptureProxy
+        public virtual event EventHandler Capture;
+        public virtual event EventHandler Release;
+        #pragma warning restore CS0067
         #endregion
 
         #region Drag and Drop Implementation
