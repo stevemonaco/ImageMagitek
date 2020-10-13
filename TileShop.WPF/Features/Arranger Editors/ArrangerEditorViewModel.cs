@@ -163,13 +163,13 @@ namespace TileShop.WPF.ViewModels
             {
                 // Clone a subsection of the arranger and show the full subarranger
                 var arranger = _workingArranger.CloneArranger(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
-                transferModel = new ArrangerTransferModel(arranger, 0, 0, rect.SnappedWidth, rect.SnappedHeight);
+                transferModel = new ArrangerTransferModel(arranger, Resource as Arranger, 0, 0, rect.SnappedWidth, rect.SnappedHeight);
             }
             else
             {
                 // Clone the entire arranger and show a subsection of the cloned arranger
                 var arranger = _workingArranger.CloneArranger();
-                transferModel = new ArrangerTransferModel(arranger, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+                transferModel = new ArrangerTransferModel(arranger, Resource as Arranger, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
             }
 
             var editEvent = new EditArrangerPixelsEvent(transferModel);

@@ -53,17 +53,14 @@ namespace TileShop.WPF.ViewModels
             _viewWidth = viewWidth;
             _viewHeight = viewHeight;
 
-            var arrangerPalettes = _workingArranger.GetReferencedPalettes().OrderBy(x => x.Name).ToArray();
-            foreach (var pal in arrangerPalettes)
-            {
-                var maxArrangerColors = 1 << _workingArranger.EnumerateElements().
-                    OfType<ArrangerElement>().
-                    Where(x => ReferenceEquals(pal, x.Palette)).Select(x => x.Codec?.ColorDepth ?? 0).
-                    Max();
+            var arrangerPalettes = _workingArranger.EnumerateElementsByPixel(viewX, viewY, viewWidth, viewHeight)
+                .OfType<ArrangerElement>()
+                .Select(x => x.Palette)
+                .Distinct()
+                .OrderBy(x => x.Name)
+                .Select(x => new PaletteModel(x, x.Entries));
 
-                var colors = Math.Min(256, maxArrangerColors);
-                Palettes.Add(new PaletteModel(pal, colors));
-            }
+            Palettes = new BindableCollection<PaletteModel>(arrangerPalettes);
 
             _indexedImage = new IndexedImage(_workingArranger, _viewX, _viewY, _viewWidth, _viewHeight);
             BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);

@@ -2,6 +2,7 @@
 using ImageMagitek.Services;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Models;
+using ImageMagitek;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -15,6 +16,8 @@ namespace TileShop.WPF.ViewModels
         protected int _viewWidth;
         protected int _viewHeight;
         protected PencilHistoryAction<TColor> _activePencilHistory;
+
+        public Arranger SourceArranger { get; }
 
         private bool _isDrawing;
         public bool IsDrawing

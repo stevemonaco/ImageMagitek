@@ -11,9 +11,9 @@ namespace TileShop.Shared.Models
         public Arranger Arranger { get; set; }
 
         /// <summary>
-        /// Arranger to be pasted unto
+        /// Original source arranger
         /// </summary>
-        public Arranger DestinationArranger { get; set; }
+        public Arranger SourceArranger { get; set; }
 
         /// <summary>
         /// Left edge of arranger subsection in pixels
@@ -38,13 +38,15 @@ namespace TileShop.Shared.Models
         /// Model to transfer a subsection of an Arranger
         /// </summary>
         /// <param name="arranger">Arranger to be copied from</param>
+        /// <param name="projectArranger">Original Arranger from the project</param>
         /// <param name="x">Left edge of arranger subsection in pixels</param>
         /// <param name="y">Top edge of arranger subsection in pixels</param>
         /// <param name="width">Width of arranger subsection in pixels</param>
         /// <param name="height">Height of arranger subsection in pixels</param>
-        public ArrangerTransferModel(Arranger arranger, int x, int y, int width, int height)
+        public ArrangerTransferModel(Arranger arranger, Arranger projectArranger, int x, int y, int width, int height)
         {
             Arranger = arranger;
+            SourceArranger = projectArranger;
             X = x;
             Y = y;
             Width = width;
