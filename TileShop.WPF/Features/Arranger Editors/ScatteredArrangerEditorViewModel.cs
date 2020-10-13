@@ -382,45 +382,6 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        //protected override bool CanAcceptTransfer(ArrangerTransferModel model)
-        //{
-        //    CanPasteElements = CanAcceptElementTransfer(model);
-        //    CanPastePixels = CanAcceptPixelTransfer(model);
-
-        //    return CanPasteElements || CanPastePixels;
-        //}
-
-        //private bool CanAcceptPixelTransfer(ArrangerTransferModel model)
-        //{
-        //    return true;
-        //    //if (IsLinearLayout)
-        //    //    return true;
-        //    //else if (IsTiledLayout)
-        //    //{
-        //    //    var elems = _workingArranger.EnumerateElementsByPixel(model.X, model.Y, model.Width, model.Height);
-        //    //    return !elems.Any(x => x.Codec is BlankIndexedCodec || x.Codec is BlankDirectCodec);
-        //    //}
-
-        //    //return false;
-        //}
-
-        //private bool CanAcceptElementTransfer(ArrangerTransferModel model)
-        //{
-        //    // Ensure elements are an even multiple width/height
-        //    if (model.Width % _workingArranger.ElementPixelSize.Width != 0 || model.Height % _workingArranger.ElementPixelSize.Height != 0)
-        //        return false;
-
-        //    // Ensure start point is aligned to an element boundary
-        //    if (model.X % _workingArranger.ElementPixelSize.Width != 0 || model.Y % _workingArranger.ElementPixelSize.Height != 0)
-        //        return false;
-
-        //    // Cannot copy into a single arranger
-        //    if (_workingArranger.Layout == ArrangerLayout.Single)
-        //        return false;
-
-        //    return true;
-        //}
-
         public void ConfirmPendingOperation()
         {
             if (Paste?.Copy is ElementCopy)
@@ -458,13 +419,6 @@ namespace TileShop.WPF.ViewModels
 
             var destElemWidth = sourceArranger.ElementPixelSize.Width;
             var destElemHeight = sourceArranger.ElementPixelSize.Width;
-
-            //var sourceStart = new Point(rect.SnappedLeft / sourceArranger.ElementPixelSize.Width,
-            //    rect.SnappedTop / sourceArranger.ElementPixelSize.Height);
-            //var destStart = new Point(rect.SnappedLeft / _workingArranger.ElementPixelSize.Width,
-            //    rect.SnappedTop / _workingArranger.ElementPixelSize.Height);
-            //int copyWidth = paste.Copy.Width;
-            //int copyHeight = paste.Copy.Height;
 
             int destX = Math.Max(0, rect.SnappedLeft / destElemWidth);
             int destY = Math.Max(0, rect.SnappedTop / destElemHeight);
