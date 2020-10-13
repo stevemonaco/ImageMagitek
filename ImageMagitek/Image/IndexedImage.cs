@@ -243,6 +243,10 @@ namespace ImageMagitek
                 if (!pal.ContainsNativeColor(color))
                     return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the palette '{pal.Name}' does not contain the native color ({color.R}, {color.G}, {color.B}, {color.A})");
 
+                var index = pal.GetIndexByNativeColor(color, ColorMatchStrategy.Exact);
+                if (index >= (1 << element.Codec.ColorDepth))
+                    return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the color is contained at an index outside of the codec's range");
+
                 return MagitekResult.SuccessResult;
             }
             else

@@ -54,12 +54,17 @@ namespace TileShop.WPF.ViewModels
             _viewWidth = viewWidth;
             _viewHeight = viewHeight;
 
+            var maxColors = _workingArranger.EnumerateElementsByPixel(viewX, viewY, viewWidth, viewHeight)
+                .OfType<ArrangerElement>()
+                .Select(x => 1 << x.Codec.ColorDepth)
+                .Max();
+
             var arrangerPalettes = _workingArranger.EnumerateElementsByPixel(viewX, viewY, viewWidth, viewHeight)
                 .OfType<ArrangerElement>()
                 .Select(x => x.Palette)
                 .Distinct()
                 .OrderBy(x => x.Name)
-                .Select(x => new PaletteModel(x, x.Entries));
+                .Select(x => new PaletteModel(x, Math.Min(maxColors, x.Entries)));
 
             Palettes = new BindableCollection<PaletteModel>(arrangerPalettes);
 

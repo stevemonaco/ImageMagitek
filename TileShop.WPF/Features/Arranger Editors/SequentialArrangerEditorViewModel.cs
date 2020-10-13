@@ -373,6 +373,14 @@ namespace TileShop.WPF.ViewModels
             SelectedCodecName = CodecNames[index];
         }
 
+        public void ToggleSnapMode()
+        {
+            if (SnapMode == SnapMode.Element)
+                SnapMode = SnapMode.Pixel;
+            else if (SnapMode == SnapMode.Pixel)
+                SnapMode = SnapMode.Element;
+        }
+
         private void ChangeCodec()
         {
             var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName);

@@ -23,6 +23,18 @@
         <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
         <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
         <KeyBinding Key="Return" Command="{s:Action ConfirmPendingOperation}" />
+        <KeyBinding
+            Key="S"
+            Command="{s:Action SaveChanges}"
+            Modifiers="Ctrl" />
+        <KeyBinding
+            Key="Z"
+            Command="{s:Action Undo}"
+            Modifiers="Ctrl" />
+        <KeyBinding
+            Key="Y"
+            Command="{s:Action Redo}"
+            Modifiers="Ctrl" />
     </UserControl.InputBindings>
 
     <Grid x:Name="pixelEditor" UseLayoutRounding="True">

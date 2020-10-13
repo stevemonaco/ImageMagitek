@@ -77,6 +77,9 @@ namespace TileShop.WPF.ViewModels
 
         public override void Undo()
         {
+            if (!CanUndo)
+                return;
+
             var lastAction = UndoHistory[^1];
             UndoHistory.RemoveAt(UndoHistory.Count - 1);
             RedoHistory.Add(lastAction);
@@ -95,6 +98,9 @@ namespace TileShop.WPF.ViewModels
 
         public override void Redo()
         {
+            if (!CanRedo)
+                return;
+
             var redoAction = RedoHistory[^1];
             RedoHistory.RemoveAt(RedoHistory.Count - 1);
             UndoHistory.Add(redoAction);

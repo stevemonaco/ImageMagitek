@@ -267,6 +267,34 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        private MagitekResult ApplyPasteInternal(ArrangerPaste paste)
+        {
+            var elementCopy = paste?.Copy as ElementCopy;
+
+            if (elementCopy is null)
+                return new MagitekResult.Failed("No valid Paste selection");
+
+            var sourceArranger = paste.Copy.Source;
+            var rect = paste.Rect;
+
+            var destElemWidth = sourceArranger.ElementPixelSize.Width;
+            var destElemHeight = sourceArranger.ElementPixelSize.Width;
+
+            int destX = Math.Max(0, rect.SnappedLeft / destElemWidth);
+            int destY = Math.Max(0, rect.SnappedTop / destElemHeight);
+            int sourceX = rect.SnappedLeft / destElemWidth >= 0 ? 0 : -rect.SnappedLeft / destElemWidth;
+            int sourceY = rect.SnappedTop / destElemWidth >= 0 ? 0 : -rect.SnappedTop / destElemWidth;
+
+            var destStart = new Point(destX, destY);
+            var sourceStart = new Point(sourceX, sourceY);
+
+            int copyWidth = Math.Min(elementCopy.Width - sourceX, _workingArranger.ArrangerElementSize.Width - destX);
+            int copyHeight = Math.Min(elementCopy.Height - sourceY, _workingArranger.ArrangerElementSize.Height - destY);
+
+            return ElementCopier.CopyElements(elementCopy, _workingArranger as ScatteredArranger, sourceStart, destStart, copyWidth, copyHeight);
+        }
+
+        #region Commands
         private void TryApplyPalette(int pixelX, int pixelY, Palette palette)
         {
             bool needsRender = false;
@@ -382,6 +410,14 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        public void ToggleSnapMode()
+        {
+            if (SnapMode == SnapMode.Element)
+                SnapMode = SnapMode.Pixel;
+            else if (SnapMode == SnapMode.Pixel)
+                SnapMode = SnapMode.Element;
+        }
+
         public void ConfirmPendingOperation()
         {
             if (Paste?.Copy is ElementCopy)
@@ -405,34 +441,6 @@ namespace TileShop.WPF.ViewModels
                 );
 
             _events.PublishOnUIThread(notifyEvent);
-        }
-
-        private MagitekResult ApplyPasteInternal(ArrangerPaste paste)
-        {
-            var elementCopy = paste?.Copy as ElementCopy;
-
-            if (elementCopy is null)
-                return new MagitekResult.Failed("No valid Paste selection");
-
-            var sourceArranger = paste.Copy.Source;
-            var rect = paste.Rect;
-
-            var destElemWidth = sourceArranger.ElementPixelSize.Width;
-            var destElemHeight = sourceArranger.ElementPixelSize.Width;
-
-            int destX = Math.Max(0, rect.SnappedLeft / destElemWidth);
-            int destY = Math.Max(0, rect.SnappedTop / destElemHeight);
-            int sourceX = rect.SnappedLeft / destElemWidth >= 0 ? 0 : -rect.SnappedLeft / destElemWidth;
-            int sourceY = rect.SnappedTop / destElemWidth >= 0 ? 0 : -rect.SnappedTop / destElemWidth;
-
-            var destStart = new Point(destX, destY);
-            var sourceStart = new Point(sourceX, sourceY);
-
-            int copyWidth = Math.Min(elementCopy.Width - sourceX, _workingArranger.ArrangerElementSize.Width - destX);
-            int copyHeight = Math.Min(elementCopy.Height - sourceY, _workingArranger.ArrangerElementSize.Height - destY);
-
-            //return ElementCopier.CopyElements(paste.Copy as ElementCopy, _workingArranger as ScatteredArranger, destStart);
-            return ElementCopier.CopyElements(elementCopy, _workingArranger as ScatteredArranger, sourceStart, destStart, copyWidth, copyHeight);
         }
 
         public void DeleteElementSelection()
@@ -462,6 +470,7 @@ namespace TileShop.WPF.ViewModels
                 }
             }
         }
+        #endregion
 
         #region Undo Redo Actions
         public override void ApplyHistoryAction(HistoryAction action)
@@ -493,6 +502,9 @@ namespace TileShop.WPF.ViewModels
 
         public override void Undo()
         {
+            if (!CanUndo)
+                return;
+
             var lastAction = UndoHistory[^1];
             UndoHistory.RemoveAt(UndoHistory.Count - 1);
             RedoHistory.Add(lastAction);
@@ -512,6 +524,9 @@ namespace TileShop.WPF.ViewModels
 
         public override void Redo()
         {
+            if (!CanRedo)
+                return;
+
             var redoAction = RedoHistory[^1];
             RedoHistory.RemoveAt(RedoHistory.Count - 1);
             UndoHistory.Add(redoAction);

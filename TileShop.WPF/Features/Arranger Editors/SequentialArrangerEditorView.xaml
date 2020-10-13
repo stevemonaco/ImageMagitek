@@ -39,11 +39,12 @@
         <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
         <KeyBinding Key="J" Command="{s:Action JumpToOffset}" />
         <KeyBinding Key="E" Command="{s:Action EditSelection}" />
+        <KeyBinding Key="S" Command="{s:Action ToggleSnapMode}" />
+        <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
         <KeyBinding
             Key="A"
             Command="{s:Action SelectAll}"
             Modifiers="Ctrl" />
-        <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
     </UserControl.InputBindings>
 
     <Grid UseLayoutRounding="True">
@@ -94,13 +95,14 @@
                         Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
                         <Image Style="{StaticResource iconGrid}" />
                     </ToggleButton>
-                    <!--
-            <ToggleButton
-                Margin="0,0,10,0"
-                Content="Snap"
-                IsChecked="{Binding Selection.SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
-                Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
-                    -->
+
+                    <ToggleButton
+                        Margin="0,0,10,0"
+                        IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
+                        ToolTip="Snap Selection to Elements"
+                        Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Image Style="{StaticResource iconSnap}" />
+                    </ToggleButton>
 
                     <!--  Resize Element Dimensions in Pixels  -->
                     <ui:NumberBox
