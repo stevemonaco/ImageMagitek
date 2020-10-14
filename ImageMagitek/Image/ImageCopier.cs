@@ -1,6 +1,5 @@
 ﻿using System.Drawing;
 using System.Linq;
-using ImageMagitek.Codec;
 
 namespace ImageMagitek.Image
 {

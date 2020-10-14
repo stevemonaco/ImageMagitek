@@ -2,8 +2,6 @@
 using System.Drawing;
 using System.Windows.Media.Imaging;
 using ImageMagitek;
-using ImageMagitek.Codec;
-using ImageMagitek.Colors;
 
 namespace TileShop.WPF.Imaging
 {
