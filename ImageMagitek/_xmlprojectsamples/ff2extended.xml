@@ -2,11 +2,11 @@
 <gdf version="0.8">
 	<project name="FF2">
 		<datafile name="FF2" location="ff2.sfc" />
-		<arranger name="Portraits" elementsx="28" elementsy="8" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2" defaultpalette="/FF2/Character Palettes/CharPortraitPal3">
-			<element fileoffset="ED3C0" posx="0" posy="0" palette="/FF2/Character Palettes/CharPortraitPal0" />
-			<element fileoffset="ED3D8" posx="1" posy="0" palette="/FF2/Character Palettes/CharPortraitPal0" />
-			<element fileoffset="ED3F0" posx="2" posy="0" palette="/FF2/Character Palettes/CharPortraitPal0" />
-			<element fileoffset="ED408" posx="3" posy="0" palette="/FF2/Character Palettes/CharPortraitPal0" />
+		<arranger name="Portraits" elementsx="28" elementsy="8" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp" defaultdatafile="/FF2/FF2" defaultpalette="/FF2/Character Palettes/CharPortraitPal0">
+			<element fileoffset="ED3C0" posx="0" posy="0" />
+			<element fileoffset="ED3D8" posx="1" posy="0" />
+			<element fileoffset="ED3F0" posx="2" posy="0" />
+			<element fileoffset="ED408" posx="3" posy="0" />
 			<element fileoffset="ED6C0" posx="4" posy="0" palette="/FF2/Character Palettes/CharPortraitPal2" />
 			<element fileoffset="ED6D8" posx="5" posy="0" palette="/FF2/Character Palettes/CharPortraitPal2" />
 			<element fileoffset="ED6F0" posx="6" posy="0" palette="/FF2/Character Palettes/CharPortraitPal2" />
@@ -31,10 +31,10 @@
 			<element fileoffset="EE5D8" posx="25" posy="0" palette="/FF2/Character Palettes/CharPortraitPal12" />
 			<element fileoffset="EE5F0" posx="26" posy="0" palette="/FF2/Character Palettes/CharPortraitPal12" />
 			<element fileoffset="EE608" posx="27" posy="0" palette="/FF2/Character Palettes/CharPortraitPal12" />
-			<element fileoffset="ED420" posx="0" posy="1" palette="/FF2/Character Palettes/CharPortraitPal0" />
-			<element fileoffset="ED438" posx="1" posy="1" palette="/FF2/Character Palettes/CharPortraitPal0" />
-			<element fileoffset="ED450" posx="2" posy="1" palette="/FF2/Character Palettes/CharPortraitPal0" />
-			<element fileoffset="ED468" posx="3" posy="1" palette="/FF2/Character Palettes/CharPortraitPal0" />
+			<element fileoffset="ED420" posx="0" posy="1" />
+			<element fileoffset="ED438" posx="1" posy="1" />
+			<element fileoffset="ED450" posx="2" posy="1" />
+			<element fileoffset="ED468" posx="3" posy="1" />
 			<element fileoffset="ED720" posx="4" posy="1" palette="/FF2/Character Palettes/CharPortraitPal2" />
 			<element fileoffset="ED738" posx="5" posy="1" palette="/FF2/Character Palettes/CharPortraitPal2" />
 			<element fileoffset="ED750" posx="6" posy="1" palette="/FF2/Character Palettes/CharPortraitPal2" />
@@ -59,10 +59,10 @@
 			<element fileoffset="EE638" posx="25" posy="1" palette="/FF2/Character Palettes/CharPortraitPal12" />
 			<element fileoffset="EE650" posx="26" posy="1" palette="/FF2/Character Palettes/CharPortraitPal12" />
 			<element fileoffset="EE668" posx="27" posy="1" palette="/FF2/Character Palettes/CharPortraitPal12" />
-			<element fileoffset="ED480" posx="0" posy="2" palette="/FF2/Character Palettes/CharPortraitPal0" />
-			<element fileoffset="ED498" posx="1" posy="2" palette="/FF2/Character Palettes/CharPortraitPal0" />
-			<element fileoffset="ED4B0" posx="2" posy="2" palette="/FF2/Character Palettes/CharPortraitPal0" />
-			<element fileoffset="ED4C8" posx="3" posy="2" palette="/FF2/Character Palettes/CharPortraitPal0" />
+			<element fileoffset="ED480" posx="0" posy="2" />
+			<element fileoffset="ED498" posx="1" posy="2" />
+			<element fileoffset="ED4B0" posx="2" posy="2" />
+			<element fileoffset="ED4C8" posx="3" posy="2" />
 			<element fileoffset="ED780" posx="4" posy="2" palette="/FF2/Character Palettes/CharPortraitPal2" />
 			<element fileoffset="ED798" posx="5" posy="2" palette="/FF2/Character Palettes/CharPortraitPal2" />
 			<element fileoffset="ED7B0" posx="6" posy="2" palette="/FF2/Character Palettes/CharPortraitPal2" />
@@ -87,10 +87,10 @@
 			<element fileoffset="EE698" posx="25" posy="2" palette="/FF2/Character Palettes/CharPortraitPal12" />
 			<element fileoffset="EE6B0" posx="26" posy="2" palette="/FF2/Character Palettes/CharPortraitPal12" />
 			<element fileoffset="EE6C8" posx="27" posy="2" palette="/FF2/Character Palettes/CharPortraitPal12" />
-			<element fileoffset="ED4E0" posx="0" posy="3" palette="/FF2/Character Palettes/CharPortraitPal0" />
-			<element fileoffset="ED4F8" posx="1" posy="3" palette="/FF2/Character Palettes/CharPortraitPal0" />
-			<element fileoffset="ED510" posx="2" posy="3" palette="/FF2/Character Palettes/CharPortraitPal0" />
-			<element fileoffset="ED528" posx="3" posy="3" palette="/FF2/Character Palettes/CharPortraitPal0" />
+			<element fileoffset="ED4E0" posx="0" posy="3" />
+			<element fileoffset="ED4F8" posx="1" posy="3" />
+			<element fileoffset="ED510" posx="2" posy="3" />
+			<element fileoffset="ED528" posx="3" posy="3" />
 			<element fileoffset="ED7E0" posx="4" posy="3" palette="/FF2/Character Palettes/CharPortraitPal2" />
 			<element fileoffset="ED7F8" posx="5" posy="3" palette="/FF2/Character Palettes/CharPortraitPal2" />
 			<element fileoffset="ED810" posx="6" posy="3" palette="/FF2/Character Palettes/CharPortraitPal2" />
@@ -119,10 +119,10 @@
 			<element fileoffset="ED558" posx="1" posy="4" palette="/FF2/Character Palettes/CharPortraitPal1" />
 			<element fileoffset="ED570" posx="2" posy="4" palette="/FF2/Character Palettes/CharPortraitPal1" />
 			<element fileoffset="ED588" posx="3" posy="4" palette="/FF2/Character Palettes/CharPortraitPal1" />
-			<element fileoffset="ED840" posx="4" posy="4" />
-			<element fileoffset="ED858" posx="5" posy="4" />
-			<element fileoffset="ED870" posx="6" posy="4" />
-			<element fileoffset="ED888" posx="7" posy="4" />
+			<element fileoffset="ED840" posx="4" posy="4" palette="/FF2/Character Palettes/CharPortraitPal3" />
+			<element fileoffset="ED858" posx="5" posy="4" palette="/FF2/Character Palettes/CharPortraitPal3" />
+			<element fileoffset="ED870" posx="6" posy="4" palette="/FF2/Character Palettes/CharPortraitPal3" />
+			<element fileoffset="ED888" posx="7" posy="4" palette="/FF2/Character Palettes/CharPortraitPal3" />
 			<element fileoffset="EDB40" posx="8" posy="4" palette="/FF2/Character Palettes/CharPortraitPal5" />
 			<element fileoffset="EDB58" posx="9" posy="4" palette="/FF2/Character Palettes/CharPortraitPal5" />
 			<element fileoffset="EDB70" posx="10" posy="4" palette="/FF2/Character Palettes/CharPortraitPal5" />
@@ -147,10 +147,10 @@
 			<element fileoffset="ED5B8" posx="1" posy="5" palette="/FF2/Character Palettes/CharPortraitPal1" />
 			<element fileoffset="ED5D0" posx="2" posy="5" palette="/FF2/Character Palettes/CharPortraitPal1" />
 			<element fileoffset="ED5E8" posx="3" posy="5" palette="/FF2/Character Palettes/CharPortraitPal1" />
-			<element fileoffset="ED8A0" posx="4" posy="5" />
-			<element fileoffset="ED8B8" posx="5" posy="5" />
-			<element fileoffset="ED8D0" posx="6" posy="5" />
-			<element fileoffset="ED8E8" posx="7" posy="5" />
+			<element fileoffset="ED8A0" posx="4" posy="5" palette="/FF2/Character Palettes/CharPortraitPal3" />
+			<element fileoffset="ED8B8" posx="5" posy="5" palette="/FF2/Character Palettes/CharPortraitPal3" />
+			<element fileoffset="ED8D0" posx="6" posy="5" palette="/FF2/Character Palettes/CharPortraitPal3" />
+			<element fileoffset="ED8E8" posx="7" posy="5" palette="/FF2/Character Palettes/CharPortraitPal3" />
 			<element fileoffset="EDBA0" posx="8" posy="5" palette="/FF2/Character Palettes/CharPortraitPal5" />
 			<element fileoffset="EDBB8" posx="9" posy="5" palette="/FF2/Character Palettes/CharPortraitPal5" />
 			<element fileoffset="EDBD0" posx="10" posy="5" palette="/FF2/Character Palettes/CharPortraitPal5" />
@@ -175,12 +175,12 @@
 			<element fileoffset="ED618" posx="1" posy="6" palette="/FF2/Character Palettes/CharPortraitPal1" />
 			<element fileoffset="ED630" posx="2" posy="6" palette="/FF2/Character Palettes/CharPortraitPal1" />
 			<element fileoffset="ED648" posx="3" posy="6" palette="/FF2/Character Palettes/CharPortraitPal1" />
-			<element fileoffset="ED900" posx="4" posy="6" />
-			<element fileoffset="ED918" posx="5" posy="6" />
-			<element fileoffset="ED930" posx="6" posy="6" />
-			<element fileoffset="ED948" posx="7" posy="6" />
+			<element fileoffset="ED900" posx="4" posy="6" palette="/FF2/Character Palettes/CharPortraitPal3" />
+			<element fileoffset="ED918" posx="5" posy="6" palette="/FF2/Character Palettes/CharPortraitPal3" />
+			<element fileoffset="ED930" posx="6" posy="6" palette="/FF2/Character Palettes/CharPortraitPal3" />
+			<element fileoffset="ED948" posx="7" posy="6" palette="/FF2/Character Palettes/CharPortraitPal3" />
 			<element fileoffset="EDC00" posx="8" posy="6" palette="/FF2/Character Palettes/CharPortraitPal5" />
-			<element fileoffset="EDC18" posx="9" posy="6" />
+			<element fileoffset="EDC18" posx="9" posy="6" palette="/FF2/Character Palettes/CharPortraitPal5" />
 			<element fileoffset="EDC30" posx="10" posy="6" palette="/FF2/Character Palettes/CharPortraitPal5" />
 			<element fileoffset="EDC48" posx="11" posy="6" palette="/FF2/Character Palettes/CharPortraitPal5" />
 			<element fileoffset="EDF00" posx="12" posy="6" palette="/FF2/Character Palettes/CharPortraitPal7" />
@@ -203,10 +203,10 @@
 			<element fileoffset="ED678" posx="1" posy="7" palette="/FF2/Character Palettes/CharPortraitPal1" />
 			<element fileoffset="ED690" posx="2" posy="7" palette="/FF2/Character Palettes/CharPortraitPal1" />
 			<element fileoffset="ED6A8" posx="3" posy="7" palette="/FF2/Character Palettes/CharPortraitPal1" />
-			<element fileoffset="ED960" posx="4" posy="7" />
-			<element fileoffset="ED978" posx="5" posy="7" />
-			<element fileoffset="ED990" posx="6" posy="7" />
-			<element fileoffset="ED9A8" posx="7" posy="7" />
+			<element fileoffset="ED960" posx="4" posy="7" palette="/FF2/Character Palettes/CharPortraitPal3" />
+			<element fileoffset="ED978" posx="5" posy="7" palette="/FF2/Character Palettes/CharPortraitPal3" />
+			<element fileoffset="ED990" posx="6" posy="7" palette="/FF2/Character Palettes/CharPortraitPal3" />
+			<element fileoffset="ED9A8" posx="7" posy="7" palette="/FF2/Character Palettes/CharPortraitPal3" />
 			<element fileoffset="EDC60" posx="8" posy="7" palette="/FF2/Character Palettes/CharPortraitPal5" />
 			<element fileoffset="EDC78" posx="9" posy="7" palette="/FF2/Character Palettes/CharPortraitPal5" />
 			<element fileoffset="EDC90" posx="10" posy="7" palette="/FF2/Character Palettes/CharPortraitPal5" />

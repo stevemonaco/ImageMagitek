@@ -3,7 +3,6 @@ using System.Linq;
 using Stylet;
 using ImageMagitek;
 using ImageMagitek.Services;
-using TileShop.Shared.EventModels;
 using TileShop.Shared.Models;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Imaging;
@@ -17,7 +16,8 @@ namespace TileShop.WPF.ViewModels
     {
         private readonly ICodecService _codecService;
         private readonly Tracker _tracker;
-        private FileBitAddress _address;
+        private IndexedImage _indexedImage;
+        private DirectImage _directImage;
 
         private BindableCollection<string> _codecNames = new BindableCollection<string>();
         public BindableCollection<string> CodecNames
@@ -146,6 +146,31 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _heightIncrement, value);
         }
 
+        private long _fileOffset;
+        public long FileOffset
+        {
+            get => _fileOffset;
+            set
+            {
+                if (SetAndNotify(ref _fileOffset, value))
+                    Move(_fileOffset);
+            }
+        }
+
+        private long _maxFileDecodingOffset;
+        public long MaxFileDecodingOffset
+        {
+            get => _maxFileDecodingOffset;
+            set => SetAndNotify(ref _maxFileDecodingOffset, value);
+        }
+
+        private int _arrangerPageSize;
+        public int ArrangerPageSize
+        {
+            get => _arrangerPageSize;
+            set => SetAndNotify(ref _arrangerPageSize, value);
+        }
+
         public SequentialArrangerEditorViewModel(SequentialArranger arranger, IEventAggregator events, IWindowManager windowManager, 
             Tracker tracker, ICodecService codecService, IPaletteService paletteService) :
             base(events, windowManager, paletteService)
@@ -157,7 +182,6 @@ namespace TileShop.WPF.ViewModels
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
             CreateImages();
-            CreateGridlines();
 
             foreach (var name in codecService.GetSupportedCodecNames().OrderBy(x => x))
                 CodecNames.Add(name);
@@ -178,12 +202,16 @@ namespace TileShop.WPF.ViewModels
                 SnapMode = SnapMode.Pixel;
             }
 
+            CanChangeSnapMode = true;
             CanResize = arranger.ActiveCodec.CanResize;
             WidthIncrement = arranger.ActiveCodec.WidthResizeIncrement;
             HeightIncrement = arranger.ActiveCodec.HeightResizeIncrement;
 
             Palettes = new BindableCollection<PaletteModel>(_paletteService.GlobalPalettes.Select(x => new PaletteModel(x)));
             SelectedPalette = Palettes.First();
+
+            ArrangerPageSize = (int) (_workingArranger as SequentialArranger).ArrangerBitSize / 8;
+            MaxFileDecodingOffset = (_workingArranger as SequentialArranger).FileSize - ArrangerPageSize;
         }
 
         public override void SaveChanges()
@@ -247,7 +275,7 @@ namespace TileShop.WPF.ViewModels
 
             if (result is true)
             {
-                Move(model.Result * 8);
+                Move(model.Result);
                 _tracker.Persist(model);
             }
         }
@@ -256,11 +284,13 @@ namespace TileShop.WPF.ViewModels
         {
             if (SnapMode == SnapMode.Element)
             {
-                int x = Overlay.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
-                int y = Overlay.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
-                int width = Overlay.SelectionRect.SnappedWidth / _workingArranger.ElementPixelSize.Width;
-                int height = Overlay.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
-                var model = new AddScatteredArrangerFromExistingEvent(_workingArranger, x, y, width, height);
+                int x = Selection.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
+                int y = Selection.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
+                int width = Selection.SelectionRect.SnappedWidth / _workingArranger.ElementPixelSize.Width;
+                int height = Selection.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
+
+                var copy = new ElementCopy(_workingArranger, x, y, width, height);
+                var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
                 _events.PublishOnUIThread(model);
             }
             else
@@ -269,36 +299,30 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void NewScatteredArrangerFromImage()
-        {
-            var model = new AddScatteredArrangerFromExistingEvent(_workingArranger, 0, 0, 1, 1);
-            _events.PublishOnUIThread(model);
-        }
-
         private void Move(ArrangerMoveType moveType)
         {
             var oldAddress = (_workingArranger as SequentialArranger).GetInitialSequentialFileAddress();
-            _address = (_workingArranger as SequentialArranger).Move(moveType);
+            var newAddress = (_workingArranger as SequentialArranger).Move(moveType);
 
-            if (oldAddress != _address)
+            if (oldAddress != newAddress)
+            {
+                _fileOffset = newAddress.FileOffset;
+                NotifyOfPropertyChange(() => FileOffset);
                 Render();
-
-            string notifyMessage = $"File Offset: 0x{_address.FileOffset:X}";
-            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            _events.PublishOnUIThread(notifyEvent);
+            }
         }
 
         private void Move(long offset)
         {
             var oldAddress = (_workingArranger as SequentialArranger).GetInitialSequentialFileAddress();
-            _address = (_workingArranger as SequentialArranger).Move(offset);
+            var newAddress = (_workingArranger as SequentialArranger).Move(new FileBitAddress(offset, 0));
 
-            if (oldAddress != _address)
+            if (oldAddress != newAddress)
+            {
+                _fileOffset = newAddress.FileOffset;
+                NotifyOfPropertyChange(() => FileOffset);
                 Render();
-
-            string notifyMessage = $"File Offset: 0x{_address.FileOffset:X}";
-            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            _events.PublishOnUIThread(notifyEvent);
+            }
         }
 
         private void ResizeArranger(int arrangerWidth, int arrangerHeight)
@@ -316,7 +340,8 @@ namespace TileShop.WPF.ViewModels
 
             (_workingArranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
             CreateImages();
-            CreateGridlines();
+            ArrangerPageSize = (int)(_workingArranger as SequentialArranger).ArrangerBitSize / 8;
+            MaxFileDecodingOffset = (_workingArranger as SequentialArranger).FileSize - ArrangerPageSize;
         }
 
         public void SelectNextCodec()
@@ -331,6 +356,14 @@ namespace TileShop.WPF.ViewModels
             if (index < 0)
                 index = CodecNames.Count - 1;
             SelectedCodecName = CodecNames[index];
+        }
+
+        public void ToggleSnapMode()
+        {
+            if (SnapMode == SnapMode.Element)
+                SnapMode = SnapMode.Pixel;
+            else if (SnapMode == SnapMode.Pixel)
+                SnapMode = SnapMode.Element;
         }
 
         private void ChangeCodec()
@@ -355,24 +388,22 @@ namespace TileShop.WPF.ViewModels
 
                 (_workingArranger as SequentialArranger).ChangeCodec(codec, 1, 1);
                 SnapMode = SnapMode.Pixel;
+
                 NotifyOfPropertyChange(() => LinearArrangerHeight);
                 NotifyOfPropertyChange(() => LinearArrangerWidth);
             }
 
-            _address = (_workingArranger as SequentialArranger).FileAddress;
+            _fileOffset = (_workingArranger as SequentialArranger).FileAddress;
+            ArrangerPageSize = (int)(_workingArranger as SequentialArranger).ArrangerBitSize / 8;
+            MaxFileDecodingOffset = (_workingArranger as SequentialArranger).FileSize - ArrangerPageSize;
             CanResize = codec.CanResize;
             WidthIncrement = codec.WidthResizeIncrement;
             HeightIncrement = codec.HeightResizeIncrement;
-            CreateGridlines();
             CreateImages();
 
+            NotifyOfPropertyChange(() => FileOffset);
             NotifyOfPropertyChange(() => IsTiledLayout);
             NotifyOfPropertyChange(() => IsSingleLayout);
-            NotifyOfPropertyChange(() => CanShowGridlines);
-
-            string notifyMessage = $"File Offset: 0x{_address.FileOffset:X}";
-            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            _events.PublishOnUIThread(notifyEvent);
         }
 
         private void ChangePalette(PaletteModel pal)
@@ -386,7 +417,6 @@ namespace TileShop.WPF.ViewModels
             var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, width, height);
             (_workingArranger as SequentialArranger).ChangeCodec(codec);
             CreateImages();
-            CreateGridlines();
         }
 
         private void CreateImages()
@@ -403,9 +433,23 @@ namespace TileShop.WPF.ViewModels
                 _directImage = new DirectImage(_workingArranger);
                 BitmapAdapter = new DirectBitmapAdapter(_directImage);
             }
+
+            CreateGridlines();
         }
 
-        protected override void Render()
+        protected override void CreateGridlines()
+        {
+            if (_workingArranger.Layout == ArrangerLayout.Single)
+            {
+                CreateGridlines(0, 0, _workingArranger.ArrangerPixelSize.Width, _workingArranger.ArrangerPixelSize.Height, 8, 8);
+            }
+            else if (_workingArranger.Layout == ArrangerLayout.Tiled)
+            {
+                base.CreateGridlines();
+            }
+        }
+
+        public override void Render()
         {
             CancelOverlay();
 
@@ -421,43 +465,26 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public override void OnMouseMove(object sender, MouseCaptureArgs e)
+        #region Unsupported Operations due to SequentialArrangerEditor being read-only
+        public override void Undo()
         {
-            if (Overlay.State == OverlayState.Selecting)
-                Overlay.UpdateSelectionEndPoint(e.X / Zoom, e.Y / Zoom);
-
-            if (Overlay.State == OverlayState.Selecting || Overlay.State == OverlayState.Selected)
-            {
-                string notifyMessage;
-                var rect = Overlay.SelectionRect;
-                if (rect.SnapMode == SnapMode.Element)
-                    notifyMessage = $"Element Selection: {rect.SnappedWidth / _workingArranger.ElementPixelSize.Width} x {rect.SnappedHeight / _workingArranger.ElementPixelSize.Height}" +
-                        $" at ({rect.SnappedLeft / _workingArranger.ElementPixelSize.Width}, {rect.SnappedRight / _workingArranger.ElementPixelSize.Height})";
-                else
-                    notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight}" +
-                        $" at ({rect.SnappedLeft} x {rect.SnappedTop})";
-                var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-                _events.PublishOnUIThread(notifyEvent);
-            }
-            else
-            {
-                string notifyMessage = $"File Offset: 0x{_address.FileOffset:X} ({(int)Math.Round(e.X / Zoom)}, {(int)Math.Round(e.Y / Zoom)})";
-                var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-                _events.PublishOnUIThread(notifyEvent);
-            }
+            throw new NotSupportedException();
         }
 
-        /// <summary>
-        /// Checks if the specified arranger can be copied into the current SequentialArranger
-        /// SequentialArrangers can only copy pixels
-        /// </summary>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        protected override bool CanAcceptTransfer(ArrangerTransferModel model)
+        public override void Redo()
         {
-            CanPastePixels = true;
-            CanPasteElements = false;
-            return true;
+            throw new NotSupportedException();
         }
+
+        public override void ApplyHistoryAction(HistoryAction action)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void ApplyPaste(ArrangerPaste paste)
+        {
+            throw new NotSupportedException();
+        }
+        #endregion
     }
 }

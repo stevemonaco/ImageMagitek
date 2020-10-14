@@ -48,13 +48,21 @@ namespace ImageMagitek.Project
         /// Compares the node's root ancestor with the project root to determine if the tree contains the node
         /// </summary>
         /// <param name="node">Node to search</param>
-        /// <returns></returns>
         public bool ContainsNode(ResourceNode node) =>
             ReferenceEquals(node.SelfAndAncestors().Last(), Tree.Root);
 
-        public MagitekResult<ResourceNode> CreateNewFolder(ResourceNode parentNode, string name, bool useExactName)
+        /// <summary>
+        /// Creates a new folder node under the specified parent
+        /// </summary>
+        /// <param name="parentNode">Parent to the new folder</param>
+        /// <param name="name">New name of the folder which will be augmented if already existing</param>
+        /// <returns>The newly created ResourceNode</returns>
+        public MagitekResult<ResourceNode> CreateNewFolder(ResourceNode parentNode, string name)
         {
-            if (!parentNode.ContainsChild(name) || !useExactName && parentNode.Value.CanContainChildResources)
+            if (!ContainsNode(parentNode))
+                return new MagitekResult<ResourceNode>.Failed($"{parentNode.Value.Name} is not contained within project {Tree.Root.Value.Name}");
+
+            if (!parentNode.ContainsChild(name) && parentNode.Value.CanContainChildResources)
             {
                 var childName = FindFirstNewChildResourceName(parentNode, name);
                 var folder = new ResourceFolder(childName);
@@ -62,14 +70,22 @@ namespace ImageMagitek.Project
                 parentNode.AttachChild(folderNode);
                 return new MagitekResult<ResourceNode>.Success(folderNode);
             }
-            else // if (parentNode.ContainsChild(name) && useExactName)
+            else
+            {
                 return new MagitekResult<ResourceNode>.Failed($"Could not create folder '{name}' under parent '{parentNode.Name}'");
+            }
         }
 
+        /// <summary>
+        /// Adds the specified resource to the parent resource node
+        /// </summary>
+        /// <param name="parentNode">ResourceNode that is contained by the project</param>
+        /// <param name="resource">New resource to add</param>
+        /// <returns></returns>
         public MagitekResult<ResourceNode> AddResource(ResourceNode parentNode, IProjectResource resource)
         {
             if (!ContainsNode(parentNode))
-                return new MagitekResult<ResourceNode>.Failed($"{parentNode.Value} is not contained within project {Tree.Root.Value.Name}");
+                return new MagitekResult<ResourceNode>.Failed($"{parentNode.Value.Name} is not contained within project {Tree.Root.Value.Name}");
 
             if (parentNode.ContainsChild(resource.Name))
             {
@@ -85,6 +101,7 @@ namespace ImageMagitek.Project
                 {
                     parentNode.AddChild(resource.Name, resource);
                     parentNode.TryGetChild(resource.Name, out var childNode);
+                    
                     return new MagitekResult<ResourceNode>.Success(childNode);
                 }
                 else
@@ -201,7 +218,7 @@ namespace ImageMagitek.Project
                         if (linkedResource is DataFile && resource is Arranger arranger)
                         {
                             lostElements = true;
-                            if (arranger.EnumerateElements().All(x => removedDict.ContainsKey(linkedResource) || x.DataFile is null))
+                            if (arranger.EnumerateElements().OfType<ArrangerElement>().All(x => removedDict.ContainsKey(linkedResource) || x.DataFile is null))
                                 removed = true;
                         }
                     }

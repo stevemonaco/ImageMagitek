@@ -2,6 +2,7 @@
     x:Class="TileShop.WPF.Views.ScatteredArrangerEditorView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:adorners="http://gu.se/Adorners"
     xmlns:behaviors="clr-namespace:TileShop.WPF.Behaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dd="urn:gong-wpf-dragdrop"
@@ -18,13 +19,27 @@
         <KeyBinding Key="Z" Command="{s:Action ZoomIn}" />
         <KeyBinding Key="X" Command="{s:Action ZoomOut}" />
         <KeyBinding Key="G" Command="{s:Action ToggleGridlineVisibility}" />
-        <KeyBinding Key="E" Command="{s:Action RequestEditSelection}" />
-        <KeyBinding Key="Delete" Command="{s:Action DeleteSelection}" />
+        <KeyBinding Key="E" Command="{s:Action EditSelection}" />
+        <KeyBinding Key="S" Command="{s:Action ToggleSnapMode}" />
+        <KeyBinding Key="Delete" Command="{s:Action DeleteElementSelection}" />
+        <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
+        <KeyBinding Key="Return" Command="{s:Action ConfirmPendingOperation}" />
+        <KeyBinding
+            Key="S"
+            Command="{s:Action SaveChanges}"
+            Modifiers="Ctrl" />
+        <KeyBinding
+            Key="Z"
+            Command="{s:Action Undo}"
+            Modifiers="Ctrl" />
+        <KeyBinding
+            Key="Y"
+            Command="{s:Action Redo}"
+            Modifiers="Ctrl" />
         <KeyBinding
             Key="A"
             Command="{s:Action SelectAll}"
             Modifiers="Ctrl" />
-        <KeyBinding Key="Escape" Command="{s:Action CancelOverlay}" />
     </UserControl.InputBindings>
 
     <Grid UseLayoutRounding="True">
@@ -38,8 +53,10 @@
             Grid.Row="0"
             Grid.Column="0"
             Margin="5,5,0,10"
+            Panel.ZIndex="0"
             Orientation="Horizontal">
 
+            <!--  Tools  -->
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Tools" />
 
@@ -118,11 +135,23 @@
                 <ToggleButton
                     Focusable="False"
                     IsChecked="{Binding ShowGridlines}"
-                    ToolTip="Toggle gridline visibility"
-                    Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+                    ToolTip="Toggle gridline visibility">
                     <StackPanel>
                         <TextBlock Text="Grid" />
                         <Image Style="{StaticResource iconGrid}" />
+                    </StackPanel>
+                </ToggleButton>
+            </StackPanel>
+
+            <StackPanel Margin="5,0,0,0">
+                <ToggleButton
+                    Focusable="False"
+                    IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
+                    ToolTip="Snap Selection to Elements"
+                    Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel>
+                        <TextBlock Text="Snap" />
+                        <Image Style="{StaticResource iconSnap}" />
                     </StackPanel>
                 </ToggleButton>
             </StackPanel>
@@ -152,31 +181,34 @@
 
             <Button
                 Margin="5,0,0,0"
-                Click="{s:Action SaveChanges}"
-                IsEnabled="{Binding IsModified}"
-                ToolTip="Saves arranger properties to in-memory project">
+                Click="{s:Action Undo}"
+                IsEnabled="{Binding CanUndo}"
+                ToolTip="Undo">
                 <StackPanel>
-                    <TextBlock Text="Save" />
-                    <Image Style="{StaticResource iconSave}" />
+                    <TextBlock Text="Undo" />
+                    <Image Style="{StaticResource iconUndo}" />
                 </StackPanel>
             </Button>
 
-            <Button Margin="5,0,0,0">
-                <ui:FlyoutService.Flyout>
-                    <ui:MenuFlyout>
-                        <MenuItem
-                            Click="{s:Action ApplyPasteAsElements}"
-                            Header="As Elements"
-                            IsEnabled="{Binding CanPasteElements}" />
-                        <MenuItem
-                            Click="{s:Action ApplyPasteAsPixels}"
-                            Header="As Pixels"
-                            IsEnabled="{Binding CanPastePixels}" />
-                    </ui:MenuFlyout>
-                </ui:FlyoutService.Flyout>
+            <Button
+                Margin="5,0,0,0"
+                Click="{s:Action Redo}"
+                IsEnabled="{Binding CanRedo}"
+                ToolTip="Redo">
                 <StackPanel>
-                    <TextBlock Text="Paste" />
-                    <Image Style="{StaticResource iconPaste}" />
+                    <TextBlock Text="Redo" />
+                    <Image Style="{StaticResource iconRedo}" />
+                </StackPanel>
+            </Button>
+
+            <Button
+                Margin="5,0,0,0"
+                Click="{s:Action SaveChanges}"
+                IsEnabled="{Binding IsModified}"
+                ToolTip="Saves arranger">
+                <StackPanel>
+                    <TextBlock Text="Save" />
+                    <Image Style="{StaticResource iconSave}" />
                 </StackPanel>
             </Button>
         </StackPanel>
@@ -207,9 +239,8 @@
                     <behaviors:MouseCaptureBehavior Proxy="{Binding}" RequireCtrlForMouseWheel="True" />
                 </i:Interaction.Behaviors>
 
+                <!--  Arranged Image  -->
                 <Image
-                    Grid.Row="0"
-                    Grid.Column="0"
                     Panel.ZIndex="1"
                     dd:DragDrop.DropHandler="{Binding}"
                     dd:DragDrop.IsDropTarget="True"
@@ -219,9 +250,8 @@
                     Source="{Binding BitmapAdapter.Bitmap}"
                     Stretch="None" />
 
+                <!--  Checkered Background  -->
                 <Rectangle
-                    Grid.Row="0"
-                    Grid.Column="0"
                     Panel.ZIndex="0"
                     Fill="{StaticResource CheckeredBrush}"
                     LayoutTransform="{StaticResource transform}" />
@@ -229,35 +259,51 @@
                 <!--  Selection and Paste Overlay  -->
                 <Canvas
                     x:Name="overlayCanvas"
-                    Grid.Row="0"
-                    Grid.Column="0"
+                    MaxWidth="{Binding BitmapAdapter.Width}"
+                    MaxHeight="{Binding BitmapAdapter.Height}"
                     Panel.ZIndex="2"
                     dd:DragDrop.DragHandler="{Binding}"
                     dd:DragDrop.DropHandler="{Binding}"
                     dd:DragDrop.IsDragSource="True"
                     dd:DragDrop.IsDropTarget="True"
+                    ClipToBounds="True"
                     LayoutTransform="{StaticResource transform}">
+
                     <Rectangle
-                        Canvas.Left="{Binding Overlay.SelectionRect.SnappedLeft}"
-                        Canvas.Top="{Binding Overlay.SelectionRect.SnappedTop}"
-                        Width="{Binding Overlay.SelectionRect.SnappedWidth}"
-                        Height="{Binding Overlay.SelectionRect.SnappedHeight}"
+                        Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
+                        Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
+                        Width="{Binding Selection.SelectionRect.SnappedWidth}"
+                        Height="{Binding Selection.SelectionRect.SnappedHeight}"
+                        ClipToBounds="False"
                         Fill="{StaticResource editSelectionFillBrush}"
+                        SnapsToDevicePixels="True"
                         Stroke="Black"
                         StrokeDashArray="3 2"
-                        StrokeThickness="0.3"
-                        Visibility="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Selection}" />
+                        StrokeThickness="1"
+                        Visibility="{Binding Selection.HasSelection, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+
                     <Rectangle
-                        Canvas.Left="{Binding Overlay.PasteRect.SnappedLeft}"
-                        Canvas.Top="{Binding Overlay.PasteRect.SnappedTop}"
-                        Width="{Binding Overlay.PasteRect.SnappedWidth}"
-                        Height="{Binding Overlay.PasteRect.SnappedHeight}"
-                        dd:DragDrop.IsDropTarget="True"
-                        Fill="{StaticResource pasteSelectionFillBrush}"
+                        Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+                        Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+                        Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+                        Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+                        Panel.ZIndex="5"
+                        Fill="{StaticResource editSelectionFillBrush}"
+                        IsHitTestVisible="False"
+                        SnapsToDevicePixels="True"
                         Stroke="Black"
                         StrokeDashArray="3 2"
-                        StrokeThickness="0.3"
-                        Visibility="{Binding Overlay.State, Converter={StaticResource OverlayStateVisibilityConverter}, ConverterParameter=Paste}" />
+                        StrokeThickness="1" />
+
+                    <Image
+                        Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+                        Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+                        Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+                        Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+                        RenderOptions.BitmapScalingMode="NearestNeighbor"
+                        SnapsToDevicePixels="True"
+                        Source="{Binding Paste.OverlayImage.Bitmap}"
+                        Stretch="None" />
                 </Canvas>
 
                 <!--  Gridline Overlay  -->
@@ -265,6 +311,7 @@
                     Grid.Row="0"
                     Grid.Column="0"
                     Panel.ZIndex="3"
+                    IsHitTestVisible="False"
                     ItemsSource="{Binding Gridlines}"
                     Visibility="{Binding ShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Hidden}">
                     <ItemsControl.ItemsPanel>

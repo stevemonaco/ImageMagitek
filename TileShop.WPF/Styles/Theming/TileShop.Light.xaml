@@ -7,6 +7,10 @@
         x:Key="iconPen"
         Brush="{DynamicResource iconBrush}"
         Thickness="1" />
+    <Pen
+        x:Key="iconPenThick"
+        Brush="{DynamicResource iconBrush}"
+        Thickness="2" />
 
     <SolidColorBrush
         x:Key="pasteSelectionFillBrush"

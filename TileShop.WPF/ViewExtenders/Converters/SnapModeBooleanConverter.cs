@@ -12,9 +12,9 @@ namespace TileShop.WPF.Converters
             if(value is SnapMode mode)
             {
                 if (mode == SnapMode.Element)
-                    return false;
-                else if (mode == SnapMode.Pixel)
                     return true;
+                else if (mode == SnapMode.Pixel)
+                    return false;
             }
 
             return Binding.DoNothing;
@@ -24,7 +24,7 @@ namespace TileShop.WPF.Converters
         {
             if(value is bool snapBool)
             {
-                if (snapBool == false)
+                if (snapBool == true)
                     return SnapMode.Element;
                 else
                     return SnapMode.Pixel;

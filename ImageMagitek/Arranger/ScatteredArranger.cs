@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Collections.Generic;
 using ImageMagitek.Project;
 using ImageMagitek.Codec;
+using System.Linq;
 
 namespace ImageMagitek
 {
@@ -32,60 +33,17 @@ namespace ImageMagitek
             if (arrangerWidth <= 0 || arrangerHeight <= 0 || elementWidth <= 0 | elementHeight <= 0)
                 throw new ArgumentOutOfRangeException($"Arranger '{name}' does not have positive sizes for arranger and elements");
 
-            ElementGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
+            ElementGrid = new ArrangerElement?[arrangerWidth, arrangerHeight];
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
             ElementPixelSize = new Size(elementWidth, elementHeight);
-
-            IGraphicsCodec codec = null;
-            if (colorType == PixelColorType.Direct)
-                codec = new BlankDirectCodec();
-            else if (colorType == PixelColorType.Indexed)
-                codec = new BlankIndexedCodec();
-
-            int elY = 0;
-
-            for (int posY = 0; posY < arrangerHeight; posY++)
-            {
-                int elX = 0;
-                for (int posX = 0; posX < arrangerWidth; posX++)
-                {
-                    var el = new ArrangerElement(elX, elY, null, 0, codec, null);
-                    ElementGrid[posX, posY] = el;
-
-                    elX += elementWidth;
-                }
-                elY += elementHeight;
-            }
         }
 
         /// <summary>
-        /// Resizes a scattered arranger to the specified number of elements and default initializes any new elements
+        /// Resizes a ScatteredArranger to the specified number of elements
         /// </summary>
         /// <param name="arrangerWidth">Width of Arranger in Elements</param>
         /// <param name="arrangerHeight">Height of Arranger in Elements</param>
         public override void Resize(int arrangerWidth, int arrangerHeight)
-        {
-            int Width = ElementPixelSize.Width;
-            int Height = ElementPixelSize.Height;
-
-            Resize(arrangerWidth, arrangerHeight, (x, y) =>
-            {
-                IGraphicsCodec codec = null;
-                if (ColorType == PixelColorType.Direct)
-                    codec = new BlankDirectCodec();
-                else if (ColorType == PixelColorType.Indexed)
-                    codec = new BlankIndexedCodec();
-                return new ArrangerElement(x * Width, y * Height, null, 0, codec, null);
-            });
-        }
-
-        /// <summary>
-        /// Resizes a ScatteredArranger to the specified number of elements and default initializes any new elements
-        /// </summary>
-        /// <param name="arrangerWidth">Width of Arranger in Elements</param>
-        /// <param name="arrangerHeight">Height of Arranger in Elements</param>
-        /// <param name="elementFactory">Method to create new elements with given the x and y positions in element coordinates</param>
-        public override void Resize(int arrangerWidth, int arrangerHeight, Func<int, int, ArrangerElement> elementFactory)
         {
             if (arrangerWidth < 1 || arrangerHeight < 1)
                 throw new ArgumentOutOfRangeException($"{nameof(Resize)}: {nameof(arrangerWidth)} ({arrangerWidth}) and {nameof(arrangerHeight)} ({arrangerHeight}) must be larger than 0");
@@ -93,25 +51,16 @@ namespace ImageMagitek
             if (Mode != ArrangerMode.Scattered)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
-            ArrangerElement[,] newGrid = new ArrangerElement[arrangerWidth, arrangerHeight];
+            var newGrid = new ArrangerElement?[arrangerWidth, arrangerHeight];
 
-            int xCopy = Math.Min(arrangerWidth, ArrangerElementSize.Width);
-            int yCopy = Math.Min(arrangerHeight, ArrangerElementSize.Height);
-            int Width = ElementPixelSize.Width;
-            int Height = ElementPixelSize.Height;
+            int width = Math.Min(arrangerWidth, ArrangerElementSize.Width);
+            int height = Math.Min(arrangerHeight, ArrangerElementSize.Height);
 
-            for (int posY = 0; posY < arrangerHeight; posY++)
+            for (int posY = 0; posY < height; posY++)
             {
-                for (int posX = 0; posX < arrangerWidth; posX++)
+                for (int posX = 0; posX < width; posX++)
                 {
-                    if ((posY < ArrangerElementSize.Height) && (posX < ArrangerElementSize.Width)) // Copy from old grid
-                    {
-                        newGrid[posX, posY] = ElementGrid[posX, posY];
-                    }
-                    else // Create new blank element
-                    {
-                        newGrid[posX, posY] = elementFactory(posX, posY);
-                    }
+                    newGrid[posX, posY] = ElementGrid[posX, posY];
                 }
             }
 
@@ -140,8 +89,9 @@ namespace ImageMagitek
             {
                 for (int x = 0; x < elemsWidth; x++)
                 {
-                    var el = GetElement(x + elemX, y + elemY).WithLocation(x * ElementPixelSize.Width, y * ElementPixelSize.Height);
-                    arranger.SetElement(el, x, y);
+                    var el = GetElement(x + elemX, y + elemY)?.WithLocation(x * ElementPixelSize.Width, y * ElementPixelSize.Height);
+                    if (el is ArrangerElement element)
+                        arranger.SetElement(element, x, y);
                 }
             }
 
@@ -154,7 +104,7 @@ namespace ImageMagitek
             {
                 var set = new HashSet<IProjectResource>();
 
-                foreach (var el in EnumerateElements())
+                foreach (var el in EnumerateElements().OfType<ArrangerElement>())
                 {
                     if (el.Palette is object)
                         set.Add(el.Palette);

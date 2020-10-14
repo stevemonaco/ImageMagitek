@@ -14,20 +14,6 @@ namespace TileShop.WPF.Imaging
             protected set => SetAndNotify(ref _bitmap, value);
         }
 
-        private int _top;
-        public int Top
-        {
-            get => _top;
-            set => SetAndNotify(ref _top, value);
-        }
-
-        private int _left;
-        public int Left
-        {
-            get => _left;
-            set => SetAndNotify(ref _left, value);
-        }
-
         private int _width;
         public int Width
         {

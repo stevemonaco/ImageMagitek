@@ -15,6 +15,7 @@ using TileShop.WPF.Configuration;
 using TileShop.WPF.Services;
 using TileShop.WPF.ViewModels;
 using TileShop.WPF.Views;
+using System.Windows.Controls;
 
 namespace TileShop.WPF
 {
@@ -41,6 +42,8 @@ namespace TileShop.WPF
             ConfigureSolutionService(_projectSchemaName, builder);
             ConfigureServices(builder);
             ConfigureJotTracker(builder);
+
+            ToolTipService.ShowOnDisabledProperty.OverrideMetadata(typeof(Control), new FrameworkPropertyMetadata(true));
         }
 
         private void ConfigureServices(ContainerBuilder builder)

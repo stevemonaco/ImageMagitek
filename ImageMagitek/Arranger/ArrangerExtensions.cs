@@ -12,6 +12,102 @@ namespace ImageMagitek
     public static class ArrangerExtensions
     {
         /// <summary>
+        /// Copies all elements within the specified arranger
+        /// </summary>
+        /// <param name="arranger">Source to copy from</param>
+        /// <returns></returns>
+        public static ElementCopy CopyElements(this Arranger arranger)
+        {
+            int width = arranger.ArrangerElementSize.Width;
+            int height = arranger.ArrangerElementSize.Height;
+            return arranger.CopyElements(0, 0, width, height);
+        }
+
+        /// <summary>
+        /// Copies elements within the specified arranger
+        /// </summary>
+        /// <param name="arranger">Source to copy from</param>
+        /// <param name="x">x-coordinate in element coordinates</param>
+        /// <param name="y">y-coordinate in element coordinates</param>
+        /// <param name="copyWidth">Width of copy in element coordinates</param>
+        /// <param name="copyHeight">Height of copy in element coordinates</param>
+        /// <returns></returns>
+        public static ElementCopy CopyElements(this Arranger arranger, int x, int y, int copyWidth, int copyHeight)
+        {
+            return new ElementCopy(arranger, x, y, copyWidth, copyHeight);
+        }
+
+        /// <summary>
+        /// Copies all pixels within the specified arranger
+        /// </summary>
+        /// <param name="arranger">Source to copy from</param>
+        /// <returns></returns>
+        public static IndexedPixelCopy CopyPixelsIndexed(this Arranger arranger)
+        {
+            int width = arranger.ArrangerPixelSize.Width;
+            int height = arranger.ArrangerPixelSize.Height;
+            return arranger.CopyPixelsIndexed(0, 0, width, height);
+        }
+
+        /// <summary>
+        /// Copies pixels within the specified arranger
+        /// </summary>
+        /// <param name="arranger">Source to copy from</param>
+        /// <param name="x">x-coordinate in pixel coordinates</param>
+        /// <param name="y">y-coordinate in pixel coordinates</param>
+        /// <param name="copyWidth">Width of copy in pixel coordinates</param>
+        /// <param name="copyHeight">Height of copy in pixel coordinates</param>
+        /// <returns></returns>
+        public static IndexedPixelCopy CopyPixelsIndexed(this Arranger arranger, int x, int y, int width, int height)
+        {
+            if (arranger.ColorType == PixelColorType.Indexed)
+            {
+                return new IndexedPixelCopy(arranger, x, y, width, height);
+            }
+            else
+            {
+                throw new ArgumentException($"{nameof(CopyPixelsIndexed)}: Cannot copy from arranger '{arranger.Name}' with {nameof(PixelColorType)} '{arranger.ColorType}'");
+            }
+        }
+
+        /// <summary>
+        /// Copies all pixels within the specified arranger
+        /// </summary>
+        /// <param name="arranger">Source to copy from</param>
+        /// <returns></returns>
+        public static DirectPixelCopy CopyPixelsDirect(this Arranger arranger)
+        {
+            int width = arranger.ArrangerPixelSize.Width;
+            int height = arranger.ArrangerPixelSize.Height;
+            return arranger.CopyPixelsDirect(0, 0, width, height);
+        }
+
+        /// <summary>
+        /// Copies pixels within the specified arranger
+        /// </summary>
+        /// <param name="arranger">Source to copy from</param>
+        /// <param name="x">x-coordinate in pixel coordinates</param>
+        /// <param name="y">y-coordinate in pixel coordinates</param>
+        /// <param name="copyWidth">Width of copy in pixel coordinates</param>
+        /// <param name="copyHeight">Height of copy in pixel coordinates</param>
+        /// <returns></returns>
+        public static DirectPixelCopy CopyPixelsDirect(this Arranger arranger, int x, int y, int width, int height)
+        {
+            if (arranger.ColorType == PixelColorType.Indexed)
+            {
+                throw new NotImplementedException($"{nameof(CopyPixelsDirect)}: Cannot copy from arranger '{arranger.Name}' with {nameof(PixelColorType)} '{arranger.ColorType}'");
+            }
+            else if (arranger.ColorType == PixelColorType.Direct)
+            {
+                return new DirectPixelCopy(arranger, x, y, width, height);
+            }
+            else
+            {
+                throw new ArgumentException($"{nameof(CopyPixelsIndexed)}: Cannot copy from arranger '{arranger.Name}' with {nameof(PixelColorType)} '{arranger.ColorType}'");
+            }
+        }
+
+        /// <summary>
         /// Moves a Sequential Arranger's file position and updates each Element
         /// Will not move outside of the bounds of the underlying file
         /// </summary>
@@ -92,7 +188,7 @@ namespace ImageMagitek
                 newAddress = 0;
 
             if(initialAddress != newAddress)
-                arranger.Move(newAddress);
+                newAddress = arranger.Move(newAddress);
 
             return newAddress;
         }
@@ -100,28 +196,21 @@ namespace ImageMagitek
         /// <summary>
         /// Translates a point to an element location in the underlying arranger
         /// </summary>
-        /// <param name="Location">Point in zoomed coordinates</param>
-        /// <returns>Element location</returns>
-        public static Point PointToElementLocation(this Arranger arranger, Point Location, int Zoom = 1)
+        /// <param name="location">Point in pixel coordinates</param>
+        /// <returns>Element location in element coordinates</returns>
+        public static Point PointToElementLocation(this Arranger arranger, Point location)
         {
-            Point unzoomed = new Point(Location.X / Zoom, Location.Y / Zoom);
+            if (location.X < 0 || location.X >= arranger.ArrangerPixelSize.Width || location.Y < 0 || location.Y >= arranger.ArrangerPixelSize.Height)
+                throw new ArgumentOutOfRangeException($"{nameof(PointToElementLocation)} Location ({location.X}, {location.Y}) is out of range");
 
-            // Search list for element
-            for (int y = 0; y < arranger.ArrangerElementSize.Height; y++)
-            {
-                for (int x = 0; x < arranger.ArrangerElementSize.Width; x++)
-                {
-                    ArrangerElement el = arranger.GetElement(x, y);
-                    if (unzoomed.X >= el.X1 && unzoomed.X <= el.X2 && unzoomed.Y >= el.Y1 && unzoomed.Y <= el.Y2)
-                        return new Point(x, y);
-                }
-            }
+            int elX = location.X / arranger.ElementPixelSize.Width;
+            int elY = location.Y / arranger.ElementPixelSize.Height;
 
-            throw new ArgumentOutOfRangeException($"{nameof(PointToElementLocation)} Location ({Location.X}, {Location.Y}) is out of range");
+            return new Point(elX, elY);
         }
 
         /// <summary>
-        /// Find most frequent of an attribute within an arranger's elements
+        /// Find most frequent occurrence of an attribute within an arranger's elements
         /// </summary>
         /// <param name="arr">Arranger to search</param>
         /// <param name="attributeName">Name of the attribute to find most frequent value of</param>

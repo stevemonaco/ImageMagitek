@@ -6,7 +6,7 @@
     <LangVersion>8.0</LangVersion>
     <UseWPF>true</UseWPF>
     <AssemblyName>TileShop</AssemblyName>
-    <Version>0.96</Version>
+    <Version>0.97</Version>
     <Authors>Steve Monaco</Authors>
     <PackageProjectUrl>https://github.com/stevemonaco/ImageMagitek</PackageProjectUrl>
     <RepositoryUrl>https://github.com/stevemonaco/ImageMagitek</RepositoryUrl>
@@ -26,6 +26,7 @@
     <PackageReference Include="Dirkster.AvalonDock" Version="4.40.0" />
     <PackageReference Include="Dirkster.AvalonDock.Themes.VS2013" Version="4.40.0" />
     <PackageReference Include="gong-wpf-dragdrop" Version="2.2.0" />
+    <PackageReference Include="Gu.Wpf.Adorners" Version="2.1.0" />
     <PackageReference Include="Jot" Version="2.1.7" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.19" />
     <PackageReference Include="ModernWpfUI" Version="0.9.2" />

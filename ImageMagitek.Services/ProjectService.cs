@@ -26,8 +26,12 @@ namespace ImageMagitek.Services
         void CloseProject(ProjectTree projectTree);
         void CloseProjects();
 
+        MagitekResult<ResourceNode> AddResource(ResourceNode parentNode, IProjectResource resource, bool saveProject);
+        MagitekResult<ResourceNode> CreateNewFolder(ResourceNode parentNode, string name, bool saveProject);
+
         ProjectTree GetContainingProject(ResourceNode node);
         ProjectTree GetContainingProject(IProjectResource resource);
+        bool AreResourcesInSameProject(IProjectResource a, IProjectResource b);
     }
 
     public class ProjectService : IProjectService
@@ -181,6 +185,60 @@ namespace ImageMagitek.Services
             Projects.Clear();
         }
 
+        public MagitekResult<ResourceNode> AddResource(ResourceNode parentNode, IProjectResource resource, bool saveProject)
+        {
+            var projectTree = Projects.FirstOrDefault(x => x.ContainsNode(parentNode));
+
+            if (projectTree is null)
+                return new MagitekResult<ResourceNode>.Failed($"{parentNode.Value.Name} is not contained within any loaded project");
+
+
+            var addResult = projectTree.AddResource(parentNode, resource);
+
+            return addResult.Match(
+                addSuccess =>
+                {
+                    if (saveProject)
+                    {
+                        var saveResult = SaveProject(projectTree);
+                        return saveResult.Match(
+                            saveSuccess => addResult,
+                            saveFailed => new MagitekResult<ResourceNode>.Failed(saveFailed.Reason));
+                    }
+                    else
+                        return addResult;
+
+                },
+                addFailed => addResult);
+        }
+
+        public MagitekResult<ResourceNode> CreateNewFolder(ResourceNode parentNode, string name, bool saveProject)
+        {
+            var projectTree = Projects.FirstOrDefault(x => x.ContainsNode(parentNode));
+
+            if (projectTree is null)
+                return new MagitekResult<ResourceNode>.Failed($"{parentNode.Value.Name} is not contained within any loaded project");
+
+
+            var addResult = projectTree.CreateNewFolder(parentNode, name);
+
+            return addResult.Match(
+                addSuccess =>
+                {
+                    if (saveProject)
+                    {
+                        var saveResult = SaveProject(projectTree);
+                        return saveResult.Match(
+                            saveSuccess => addResult,
+                            saveFailed => new MagitekResult<ResourceNode>.Failed(saveFailed.Reason));
+                    }
+                    else
+                        return addResult;
+
+                },
+                addFailed => addResult);
+        }
+
         public ProjectTree GetContainingProject(ResourceNode node)
         {
             return Projects.FirstOrDefault(x => x.ContainsNode(node)) ??
@@ -191,6 +249,14 @@ namespace ImageMagitek.Services
         {
             return Projects.FirstOrDefault(x => x.ContainsResource(resource)) ??
                 throw new ArgumentException($"{nameof(GetContainingProject)} could not locate the resource '{resource.Name}'");
+        }
+
+        public bool AreResourcesInSameProject(IProjectResource a, IProjectResource b)
+        {
+            var projectA = Projects.FirstOrDefault(x => x.ContainsResource(a));
+            var projectB = Projects.FirstOrDefault(x => x.ContainsResource(b));
+
+            return ReferenceEquals(projectA, projectB);
         }
     }
 }

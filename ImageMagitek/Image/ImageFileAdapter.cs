@@ -30,10 +30,13 @@ namespace ImageMagitek
 
                 for (int x = 0; x < width; x++, srcidx++)
                 {
-                    var pal = arranger.GetElementAtPixel(x, y).Palette;
-                    var index = image[srcidx];
-                    var color = pal[index];
-                    span[x] = color.ToRgba32();
+                    if (arranger.GetElementAtPixel(x, y) is ArrangerElement el)
+                    {
+                        var pal = el.Palette;
+                        var index = image[srcidx];
+                        var color = pal[index];
+                        span[x] = color.ToRgba32();
+                    }
                 }
             }
 
@@ -73,10 +76,13 @@ namespace ImageMagitek
                 var span = inputImage.GetPixelRowSpan(y);
                 for (int x = 0; x < width; x++, destidx++)
                 {
-                    var pal = arranger.GetElementAtPixel(x, y).Palette;
-                    var color = new ColorRgba32(span[x].PackedValue);
-                    var palIndex = pal.GetIndexByNativeColor(color, matchStrategy);
-                    outputImage[destidx] = palIndex;
+                    if (arranger.GetElementAtPixel(x, y) is ArrangerElement el)
+                    {
+                        var pal = el.Palette;
+                        var color = new ColorRgba32(span[x].PackedValue);
+                        var palIndex = pal.GetIndexByNativeColor(color, matchStrategy);
+                        outputImage[destidx] = palIndex;
+                    }
                 }
             }
 
@@ -104,16 +110,19 @@ namespace ImageMagitek
                 var span = inputImage.GetPixelRowSpan(y);
                 for (int x = 0; x < width; x++, destidx++)
                 {
-                    var pal = arranger.GetElementAtPixel(x, y).Palette;
-                    var color = new ColorRgba32(span[x].PackedValue);
+                    if (arranger.GetElementAtPixel(x, y) is ArrangerElement el)
+                    {
+                        var pal = el.Palette;
+                        var color = new ColorRgba32(span[x].PackedValue);
 
-                    if (pal.TryGetIndexByNativeColor(color, matchStrategy, out var palIndex))
-                    {
-                        image[destidx] = palIndex;
-                    }
-                    else
-                    {
-                        return new MagitekResult.Failed($"Could not match image color (R: {color.R}, G: {color.G}, B: {color.B}, A: {color.A}) within palette '{pal.Name}'");
+                        if (pal.TryGetIndexByNativeColor(color, matchStrategy, out var palIndex))
+                        {
+                            image[destidx] = palIndex;
+                        }
+                        else
+                        {
+                            return new MagitekResult.Failed($"Could not match image color (R: {color.R}, G: {color.G}, B: {color.B}, A: {color.A}) within palette '{pal.Name}'");
+                        }
                     }
                 }
             }

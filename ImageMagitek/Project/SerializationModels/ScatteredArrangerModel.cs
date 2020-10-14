@@ -32,7 +32,11 @@ namespace ImageMagitek.Project.Serialization
             {
                 for (int y = 0; y < model.ElementGrid.GetLength(1); y++)
                 {
-                    model.ElementGrid[x, y] = ArrangerElementModel.FromArrangerElement(arranger.GetElement(x, y), x, y);
+                    if (arranger.GetElement(x, y) is ArrangerElement el)
+                    {
+                        var elModel = ArrangerElementModel.FromArrangerElement(el, x, y);
+                        model.ElementGrid[x, y] = elModel;
+                    }
                 }
             }
 
@@ -67,10 +71,11 @@ namespace ImageMagitek.Project.Serialization
             PropertyInfo P = T.GetProperty(propertyName);
 
             var query = from ArrangerElementModel el in ElementGrid
+                        where el is object
                         group el by P.GetValue(el) into grp
                         select new { key = grp.Key, count = grp.Count() };
 
-            return query.MaxBy(x => x.count).First().key as string;
+            return query.MaxBy(x => x.count).FirstOrDefault()?.key as string;
         }
     }
 }

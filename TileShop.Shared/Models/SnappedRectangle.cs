@@ -176,8 +176,12 @@ namespace TileShop.Shared.Models
         /// <param name="y"></param>
         public void SetBeginPoint(double x, double y)
         {
-            Left = x;
-            Top = y;
+            _left = x;
+            _top = y;
+
+            Snap();
+            OnPropertyChanged(nameof(Left));
+            OnPropertyChanged(nameof(Top));
         }
 
         /// <summary>
@@ -187,8 +191,12 @@ namespace TileShop.Shared.Models
         /// <param name="y"></param>
         public void SetEndpoint(double x, double y)
         {
-            Right = x;
-            Bottom = y;
+            _right = x;
+            _bottom = y;
+
+            Snap();
+            OnPropertyChanged(nameof(Right));
+            OnPropertyChanged(nameof(Bottom));
         }
 
         /// <summary>

@@ -12,25 +12,8 @@ namespace TileShop.WPF.Imaging
         public DirectBitmapAdapter(DirectImage image)
         {
             Image = image;
-            Left = 0;
-            Top = 0;
             Width = Image.Width;
             Height = Image.Height;
-
-            Bitmap = new WriteableBitmap(Width, Height, DpiX, DpiY, PixelFormat, null);
-            Invalidate();
-        }
-
-        /// <summary>
-        /// Creates an IndexedBitmapAdapter with a crop-transformed subsection of an IndexedArranger
-        /// </summary>
-        public DirectBitmapAdapter(DirectImage image, int left, int top, int width, int height)
-        {
-            Image = image;
-            Left = left;
-            Top = top;
-            Width = width;
-            Height = height;
 
             Bitmap = new WriteableBitmap(Width, Height, DpiX, DpiY, PixelFormat, null);
             Invalidate();
@@ -66,8 +49,8 @@ namespace TileShop.WPF.Imaging
         /// <summary>
         /// Invalidates and redraws a region of the Bitmap
         /// </summary>
-        /// <param name="x">Left coordinate in crop-transformed coordinates</param>
-        /// <param name="y">Top coordinate in crop-transformed coordinates</param>
+        /// <param name="x">Left coordinate in pixel coordinates</param>
+        /// <param name="y">Top coordinate in pixel coordinates</param>
         /// <param name="width">Width of region</param>
         /// <param name="height">Height of region</param>
         public override void Invalidate(int x, int y, int width, int height)
@@ -99,17 +82,18 @@ namespace TileShop.WPF.Imaging
                     {
                         var dest = (byte*)Bitmap.BackBuffer.ToPointer();
                         dest += y * Bitmap.BackBufferStride + xStart * 4;
-                        var row = Image.GetPixelRowSpan(y + Top);
+                        var row = Image.GetPixelRowSpan(y);
 
                         for (int x = xStart; x < xStart + width; x++)
                         {
-                            var pal = Image.GetElementAtPixel(x + Left, y + Top).Palette;
-                            var color = row[x + Left];
+                            // TODO: Do Direct Color conversion
+                            //var pal = Image.GetElementAtPixel(x, y).Palette;
+                            //var color = row[x];
 
-                            dest[x * 4] = color.B;
-                            dest[x * 4 + 1] = color.G;
-                            dest[x * 4 + 2] = color.R;
-                            dest[x * 4 + 3] = color.A;                                
+                            //dest[x * 4] = color.B;
+                            //dest[x * 4 + 1] = color.G;
+                            //dest[x * 4 + 2] = color.R;
+                            //dest[x * 4 + 3] = color.A;                                
                         }
                     }
                 }

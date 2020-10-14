@@ -5,20 +5,26 @@ using ImageMagitek.Colors;
 using ImageMagitek.Services;
 using TileShop.WPF.Imaging;
 using TileShop.WPF.Models;
+using TileShop.Shared.EventModels;
+using ImageMagitek.Image;
+using System.Drawing;
 
 namespace TileShop.WPF.ViewModels
 {
     public class DirectPixelEditorViewModel : PixelEditorViewModel<ColorRgba32>
     {
-        public DirectPixelEditorViewModel(Arranger arranger, IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService)
-            : base(events, windowManager, paletteService)
+        private DirectImage _directImage;
+
+        public DirectPixelEditorViewModel(Arranger arranger, Arranger projectArranger, 
+            IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService)
+            : base(projectArranger, events, windowManager, paletteService)
         {
             Initialize(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
         }
 
-        public DirectPixelEditorViewModel(Arranger arranger, int viewX, int viewY, int viewWidth, int viewHeight,
+        public DirectPixelEditorViewModel(Arranger arranger, Arranger projectArranger, int viewX, int viewY, int viewWidth, int viewHeight,
             IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService)
-            : base(events, windowManager, paletteService)
+            : base(projectArranger, events, windowManager, paletteService)
         {
             Initialize(arranger, viewX, viewY, viewWidth, viewHeight);
         }
@@ -32,8 +38,8 @@ namespace TileShop.WPF.ViewModels
             _viewWidth = viewWidth;
             _viewHeight = viewHeight;
 
-            _directImage = new DirectImage(_workingArranger);
-            //ArrangerSource = new DirectImageSource(_directImage, _viewX, _viewY, _viewWidth, _viewHeight);
+            _directImage = new DirectImage(_workingArranger, _viewX, _viewY, _viewWidth, _viewHeight);
+            BitmapAdapter = new DirectBitmapAdapter(_directImage);
 
             DisplayName = $"Pixel Editor - {_workingArranger.Name}";
 
@@ -42,21 +48,10 @@ namespace TileShop.WPF.ViewModels
             CreateGridlines();
         }
 
-        protected override void Render() { }
+        public override void Render() { }
             //ArrangerSource = new DirectImageSource(_directImage, _viewX, _viewY, _viewWidth, _viewHeight);
 
         protected override void ReloadImage() => _directImage.Render();
-
-        public override void ApplyAction(HistoryAction action)
-        {
-            if (action is PencilHistoryAction<ColorRgba32> pencilAction)
-            {
-                foreach (var point in pencilAction.ModifiedPoints)
-                {
-                    _directImage.SetPixel(point.X, point.Y, pencilAction.PencilColor);
-                }
-            }
-        }
 
         public override void SaveChanges()
         {
@@ -85,6 +80,71 @@ namespace TileShop.WPF.ViewModels
         public override void SetPixel(int x, int y, ColorRgba32 color)
         {
             _directImage.SetPixel(x + _viewX, y + _viewY, color);
+        }
+
+        public override void ApplyHistoryAction(HistoryAction action)
+        {
+            if (action is PencilHistoryAction<ColorRgba32> pencilAction)
+            {
+                foreach (var point in pencilAction.ModifiedPoints)
+                {
+                    _directImage.SetPixel(point.X, point.Y, pencilAction.PencilColor);
+                }
+            }
+        }
+
+        public override void ApplyPaste(ArrangerPaste paste)
+        {
+            var notifyEvent = ApplyPasteInternal(paste).Match(
+                success =>
+                {
+                    AddHistoryAction(new PasteArrangerHistoryAction(Paste));
+
+                    IsModified = true;
+                    CancelOverlay();
+                    BitmapAdapter.Invalidate();
+
+                    return new NotifyOperationEvent("Paste successfully applied");
+                },
+                fail => new NotifyOperationEvent(fail.Reason)
+                );
+
+            _events.PublishOnUIThread(notifyEvent);
+        }
+
+        public MagitekResult ApplyPasteInternal(ArrangerPaste paste)
+        {
+            int destX = Math.Max(0, paste.Rect.SnappedLeft);
+            int destY = Math.Max(0, paste.Rect.SnappedTop);
+            int sourceX = paste.Rect.SnappedLeft >= 0 ? 0 : -paste.Rect.SnappedLeft;
+            int sourceY = paste.Rect.SnappedTop >= 0 ? 0 : -paste.Rect.SnappedTop;
+
+            var destStart = new Point(destX, destY);
+            var sourceStart = new Point(sourceX, sourceY);
+
+            ArrangerCopy copy;
+
+            if (paste?.Copy is ElementCopy elementCopy)
+                copy = elementCopy.ToPixelCopy();
+            else
+                copy = paste?.Copy;
+
+            if (copy is IndexedPixelCopy indexedCopy)
+            {
+                int copyWidth = Math.Min(copy.Width - sourceX, _directImage.Width - destX);
+                int copyHeight = Math.Min(copy.Height - sourceY, _directImage.Height - destY);
+
+                return ImageCopier.CopyPixels(indexedCopy.Image, _directImage, sourceStart, destStart, copyWidth, copyHeight);
+            }
+            else if (copy is DirectPixelCopy directCopy)
+            {
+                int copyWidth = Math.Min(copy.Width - sourceX, _directImage.Width - destX);
+                int copyHeight = Math.Min(copy.Height - sourceY, _directImage.Height - destY);
+
+                return ImageCopier.CopyPixels(directCopy.Image, _directImage, sourceStart, destStart, copyWidth, copyHeight);
+            }
+            else
+                throw new InvalidOperationException($"{nameof(ApplyPasteInternal)} attempted to copy from an arranger of type {Paste.Copy.Source.ColorType} to {_workingArranger.ColorType}");
         }
     }
 }

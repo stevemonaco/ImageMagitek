@@ -131,7 +131,7 @@ namespace ImageMagitek.Project.Serialization
             return pal;
         }
 
-        private MagitekResult<ArrangerElement> CreateElement(ScatteredArrangerModel arrangerModel, int x, int y)
+        private MagitekResult<ArrangerElement?> CreateElement(ScatteredArrangerModel arrangerModel, int x, int y)
         {
             var elementModel = arrangerModel.ElementGrid[x, y];
             IGraphicsCodec codec = default;
@@ -141,20 +141,12 @@ namespace ImageMagitek.Project.Serialization
 
             if (elementModel is null)
             {
-                if (arrangerModel.ColorType == PixelColorType.Indexed)
-                {
-                    codec = new BlankIndexedCodec();
-                    palette = _globalDefaultPalette;
-                }
-                else if (arrangerModel.ColorType == PixelColorType.Direct)
-                {
-                    codec = new BlankDirectCodec();
-                }
+                return new MagitekResult<ArrangerElement?>.Success(null);
             }
             else if (arrangerModel.ColorType == PixelColorType.Indexed)
             {
-                if (!string.IsNullOrWhiteSpace(arrangerModel.ElementGrid[x, y].DataFileKey))
-                    Tree.TryGetValue<DataFile>(arrangerModel.ElementGrid[x, y].DataFileKey, out df);
+                if (!string.IsNullOrWhiteSpace(elementModel.DataFileKey))
+                    Tree.TryGetValue<DataFile>(elementModel.DataFileKey, out df);
                 
                 address = elementModel.FileAddress;
                 var paletteKey = elementModel.PaletteKey;
@@ -162,28 +154,28 @@ namespace ImageMagitek.Project.Serialization
 
                 if (palette is null)
                 {
-                    return new MagitekResult<ArrangerElement>.Failed($"Could not resolve palette '{paletteKey}' referenced by arranger '{arrangerModel.Name}'");
+                    return new MagitekResult<ArrangerElement?>.Failed($"Could not resolve palette '{paletteKey}' referenced by arranger '{arrangerModel.Name}'");
                 }
 
-                codec = _codecFactory.GetCodec(arrangerModel.ElementGrid[x, y].CodecName, arrangerModel.ElementPixelSize.Width, arrangerModel.ElementPixelSize.Height);
+                codec = _codecFactory.GetCodec(elementModel.CodecName, arrangerModel.ElementPixelSize.Width, arrangerModel.ElementPixelSize.Height);
             }
             else if (arrangerModel.ColorType == PixelColorType.Direct)
             {
-                if (!string.IsNullOrWhiteSpace(arrangerModel.ElementGrid[x, y].DataFileKey))
-                    Tree.TryGetValue<DataFile>(arrangerModel.ElementGrid[x, y].DataFileKey, out df);
+                if (!string.IsNullOrWhiteSpace(elementModel.DataFileKey))
+                    Tree.TryGetValue<DataFile>(elementModel.DataFileKey, out df);
 
                 address = elementModel.FileAddress;
-                codec = _codecFactory.GetCodec(arrangerModel.ElementGrid[x, y].CodecName, arrangerModel.ElementPixelSize.Width, arrangerModel.ElementPixelSize.Height);
+                codec = _codecFactory.GetCodec(elementModel.CodecName, arrangerModel.ElementPixelSize.Width, arrangerModel.ElementPixelSize.Height);
             }
             else
             {
-                throw new InvalidOperationException($"{nameof(CreateElement)}: Arranger '{arrangerModel.Name}' has invalid {nameof(PixelColorType)} '{arrangerModel.ColorType}'");
+                return new MagitekResult<ArrangerElement?>.Failed($"{nameof(CreateElement)}: Arranger '{arrangerModel.Name}' has invalid {nameof(PixelColorType)} '{arrangerModel.ColorType}'");
             }
 
             var pixelX = x * arrangerModel.ElementPixelSize.Width;
             var pixelY = y * arrangerModel.ElementPixelSize.Height;
             var el = new ArrangerElement(pixelX, pixelY, df, address, codec, palette);
-            return new MagitekResult<ArrangerElement>.Success(el);
+            return new MagitekResult<ArrangerElement?>.Success(el);
         }
     }
 }

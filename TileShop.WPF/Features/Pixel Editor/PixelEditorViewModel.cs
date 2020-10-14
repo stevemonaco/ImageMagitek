@@ -2,33 +2,24 @@
 using ImageMagitek.Services;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Models;
+using ImageMagitek;
 
 namespace TileShop.WPF.ViewModels
 {
-    public enum PixelTool { Pencil, ColorPicker }
+    public enum PixelTool { Select, Pencil, ColorPicker }
+    public enum ColorPriority { Primary, Secondary }
 
     public abstract class PixelEditorViewModel<TColor> : ArrangerEditorViewModel
         where TColor : struct
     {
+        protected readonly Arranger _projectArranger;
         protected int _viewX;
         protected int _viewY;
         protected int _viewWidth;
         protected int _viewHeight;
         protected PencilHistoryAction<TColor> _activePencilHistory;
 
-        private BindableCollection<HistoryAction> _undoHistory = new BindableCollection<HistoryAction>();
-        public BindableCollection<HistoryAction> UndoHistory
-        {
-            get => _undoHistory;
-            set => SetAndNotify(ref _undoHistory, value);
-        }
-
-        private BindableCollection<HistoryAction> _redoHistory = new BindableCollection<HistoryAction>();
-        public BindableCollection<HistoryAction> RedoHistory
-        {
-            get => _redoHistory;
-            set => SetAndNotify(ref _redoHistory, value);
-        }
+        public Arranger SourceArranger { get; }
 
         private bool _isDrawing;
         public bool IsDrawing
@@ -65,13 +56,16 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _secondaryColor, value);
         }
 
-        public PixelEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) :
+        public PixelEditorViewModel(Arranger projectArranger, IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) :
             base(events, windowManager, paletteService)
         {
             DisplayName = "Pixel Editor";
+            CanAcceptElementPastes = true;
+            CanAcceptPixelPastes = true;
 
             Zoom = 3;
             MaxZoom = 32;
+            _projectArranger = projectArranger;
         }
 
         protected abstract void ReloadImage();
@@ -81,21 +75,11 @@ namespace TileShop.WPF.ViewModels
         public void SetPrimaryColor(TColor color) => PrimaryColor = color;
         public void SetSecondaryColor(TColor color) => SecondaryColor = color;
 
-        public abstract void ApplyAction(HistoryAction action);
-
-        public bool CanUndo { get => UndoHistory.Count > 0; }
-        public bool CanRedo { get => RedoHistory.Count > 0; }
-
-        public virtual void AddHistoryAction(HistoryAction action)
+        public override void Undo()
         {
-            UndoHistory.Add(action);
-            RedoHistory.Clear();
-            NotifyOfPropertyChange(() => CanUndo);
-            NotifyOfPropertyChange(() => CanRedo);
-        }
+            if (!CanUndo)
+                return;
 
-        public virtual void Undo()
-        {
             var lastAction = UndoHistory[^1];
             UndoHistory.RemoveAt(UndoHistory.Count - 1);
             RedoHistory.Add(lastAction);
@@ -107,51 +91,84 @@ namespace TileShop.WPF.ViewModels
             ReloadImage();
 
             foreach (var action in UndoHistory)
-                ApplyAction(action);
+                ApplyHistoryAction(action);
 
             Render();
         }
 
-        public virtual void Redo()
+        public override void Redo()
         {
+            if (!CanRedo)
+                return;
+
             var redoAction = RedoHistory[^1];
             RedoHistory.RemoveAt(RedoHistory.Count - 1);
             UndoHistory.Add(redoAction);
             NotifyOfPropertyChange(() => CanUndo);
             NotifyOfPropertyChange(() => CanRedo);
 
-            ApplyAction(redoAction);
+            ApplyHistoryAction(redoAction);
             IsModified = true;
             Render();
         }
 
+        #region Commands
+        public virtual void StartDraw(int x, int y, ColorPriority priority)
+        {
+            if (priority == ColorPriority.Primary)
+                _activePencilHistory = new PencilHistoryAction<TColor>(PrimaryColor);
+            else if (priority == ColorPriority.Secondary)
+                _activePencilHistory = new PencilHistoryAction<TColor>(SecondaryColor);
+            IsDrawing = true;
+        }
+
+        /// <summary>
+        /// Pick a color at the specified coordinate
+        /// </summary>
+        /// <param name="x">x-coordinate in pixel coordinates</param>
+        /// <param name="y">y-coordinate in pixel coordinates</param>
+        /// <param name="priority">Priority to apply the color pick to</param>
+        public virtual void PickColor(int x, int y, ColorPriority priority)
+        {
+            var color = GetPixel(x, y);
+
+            if (priority == ColorPriority.Primary)
+                PrimaryColor = color;
+            else if (priority == ColorPriority.Secondary)
+                SecondaryColor = color;
+        }
+        #endregion
+
+        #region Mouse Actions
         public override void OnMouseDown(object sender, MouseCaptureArgs e)
         {
             int x = (int)e.X / Zoom;
             int y = (int)e.Y / Zoom;
 
+            // Always drag first
+            if (ActiveTool != PixelTool.Select && Paste?.Rect.ContainsPointSnapped(x, y) is true)
+                return;
+
             if (ActiveTool == PixelTool.Pencil && e.LeftButton)
             {
-                _activePencilHistory = new PencilHistoryAction<TColor>(PrimaryColor);
+                StartDraw(x, y, ColorPriority.Primary);
                 SetPixel(x, y, PrimaryColor);
-                IsDrawing = true;
             }
             else if (ActiveTool == PixelTool.Pencil && e.RightButton)
             {
-                _activePencilHistory = new PencilHistoryAction<TColor>(SecondaryColor);
+                StartDraw(x, y, ColorPriority.Secondary);
                 SetPixel(x, y, SecondaryColor);
-                IsDrawing = true;
             }
             else if (ActiveTool == PixelTool.ColorPicker && e.LeftButton)
             {
-                PrimaryColor = GetPixel(x, y);
-                ActiveColor = PrimaryColor;
+                PickColor(x, y, ColorPriority.Primary);
             }
             else if (ActiveTool == PixelTool.ColorPicker && e.RightButton)
             {
-                SecondaryColor = GetPixel(x, y);
-                ActiveColor = SecondaryColor;
+                PickColor(x, y, ColorPriority.Secondary);
             }
+            else if (ActiveTool == PixelTool.Select)
+                base.OnMouseDown(sender, e);
         }
 
         public override void OnMouseLeave(object sender, MouseCaptureArgs e)
@@ -161,6 +178,8 @@ namespace TileShop.WPF.ViewModels
                 IsDrawing = false;
                 AddHistoryAction(_activePencilHistory);
             }
+            else
+                base.OnMouseLeave(sender, e);
         }
 
         public override void OnMouseMove(object sender, MouseCaptureArgs e)
@@ -175,6 +194,8 @@ namespace TileShop.WPF.ViewModels
                 SetPixel(x, y, PrimaryColor);
             else if (IsDrawing && ActiveTool == PixelTool.Pencil && e.RightButton)
                 SetPixel(x, y, SecondaryColor);
+            else
+                base.OnMouseMove(sender, e);
         }
 
         public override void OnMouseUp(object sender, MouseCaptureArgs e)
@@ -185,6 +206,9 @@ namespace TileShop.WPF.ViewModels
                 AddHistoryAction(_activePencilHistory);
                 _activePencilHistory = null;
             }
+            else
+                base.OnMouseUp(sender, e);
         }
+        #endregion
     }
 }

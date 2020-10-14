@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
@@ -8,14 +9,42 @@ using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek
 {
+    /// <summary>
+    /// Provides functionality to work with pixel data of Arrangers with palettized graphics
+    /// </summary>
     public class IndexedImage : ImageBase<byte>
     {
-        public IndexedImage(Arranger arranger)
+        /// <summary>
+        /// Creates an IndexedImage of an Arranger
+        /// </summary>
+        /// <param name="arranger">Source Arranger</param>
+        public IndexedImage(Arranger arranger) : 
+            this(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height)
+        {
+        }
+
+        /// <summary>
+        /// Creates an IndexedImage with a subsection of an Arranger
+        /// </summary>
+        /// <param name="arranger">Source Arranger</param>
+        /// <param name="x">Left-edge of subsection in pixel coordinates</param>
+        /// <param name="y">Top-edge of subsection in pixel coordinates</param>
+        /// <param name="width">Width of subsection in pixel coordinates</param>
+        /// <param name="height">Height of subsection in pixel coordinates</param>
+        public IndexedImage(Arranger arranger, int x, int y, int width, int height)
         {
             if (arranger is null)
                 throw new ArgumentNullException($"{nameof(IndexedImage)}.Ctor parameter '{nameof(arranger)}' was null");
 
+            if (arranger.ColorType != PixelColorType.Indexed)
+                throw new ArgumentException($"{nameof(IndexedImage)}.Ctor: Arranger '{arranger.Name}' has an invalid color type '{arranger.ColorType}'");
+
             Arranger = arranger;
+            Left = x;
+            Top = y;
+            Width = width;
+            Height = height;
+
             Image = new byte[Width * Height];
             Render();
         }
@@ -48,27 +77,52 @@ namespace ImageMagitek
             if (Width * Height != Image.Length)
                 Image = new byte[Width * Height];
 
-            foreach (var el in Arranger.EnumerateElements().Where(x => x.DataFile is object))
-            {
-                if (el.Codec is IIndexedCodec codec)
-                {
-                    var encodedBuffer = codec.ReadElement(el);
+            // TODO: Handle undefined elements explicitly and clear image subsections
+            Array.Clear(Image, 0, Image.Length);
 
-                    // TODO: Detect reads past end of file gracefully
+            var locations = Arranger.EnumerateElementLocationsByPixel(Left, Top, Width, Height);
+
+            Rectangle imageRect = new Rectangle(Left, Top, Width, Height);
+
+            foreach (var location in locations)
+            {
+                var el = Arranger.GetElement(location.X, location.Y);
+                if (el is ArrangerElement element && element.Codec is IIndexedCodec codec)
+                {
+                    var encodedBuffer = codec.ReadElement(element);
+
+                    // TODO: Detect reads past end of file more gracefully
                     if (encodedBuffer.Length == 0)
                         continue;
-                        
-                    var decodedImage = codec.DecodeElement(el, encodedBuffer);
 
-                    for (int y = 0; y < Arranger.ElementPixelSize.Height; y++)
+                    var decodedImage = codec.DecodeElement(element, encodedBuffer);
+
+                    var elementRect = new Rectangle(element.X1, element.Y1, element.Width, element.Height);
+                    elementRect.Intersect(imageRect);
+
+                    if (elementRect.IsEmpty)
+                        continue;
+
+                    int minX = Math.Clamp(element.X1, Left, Right - 1);
+                    int maxX = Math.Clamp(element.X2, Left, Right - 1);
+                    int minY = Math.Clamp(element.Y1, Top, Bottom - 1);
+                    int maxY = Math.Clamp(element.Y2, Top, Bottom - 1);
+                    int deltaX = minX - element.X1;
+                    int deltaY = minY - element.Y1;
+
+                    for (int y = 0; y <= maxY - minY; y++)
                     {
-                        var destidx = (y + el.Y1) * Width + el.X1;
-                        for (int x = 0; x < Arranger.ElementPixelSize.Width; x++)
+                        int destidx = (element.Y1 + deltaY + y - Top) * Width + (element.X1 + deltaX - Left);
+                        for (int x = 0; x <= maxX - minX; x++)
                         {
-                            Image[destidx] = decodedImage[x, y];
+                            Image[destidx] = decodedImage[x + deltaX, y + deltaY];
                             destidx++;
                         }
                     }
+                }
+                else
+                {
+
                 }
             }
         }
@@ -78,41 +132,53 @@ namespace ImageMagitek
         /// </summary>
         public override void SaveImage()
         {
+            // Additional copy is necessary for the case where the image pixels are not completely element-aligned
+            // Edited image is merged into a full arranger image and then the entire arranger is encoded/saved
+
+            var fullImage = Arranger.CopyPixelsIndexed().Image;
             var buffer = new byte[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
-            
-            foreach (var el in Arranger.EnumerateElements().Where(x => x.Codec is IIndexedCodec))
+
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++)
+                    fullImage.Image[(y + Top) * fullImage.Width + x + Left] = Image[y * Width + x];
+
+            foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IIndexedCodec))
             {
-                Image.CopyToArray(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
+                fullImage.Image.CopyToArray2D(el.X1, el.Y1, fullImage.Width, buffer, 0, 0, Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height);
                 var codec = el.Codec as IIndexedCodec;
                 var encodedImage = codec.EncodeElement(el, buffer);
                 codec.WriteElement(el, encodedImage);
             }
 
-            foreach (var fs in Arranger.EnumerateElements().Select(x => x.DataFile?.Stream).OfType<Stream>().Distinct())
+            foreach (var fs in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.DataFile?.Stream).OfType<Stream>().Distinct())
                 fs.Flush();
         }
 
         /// <summary>
         /// Sets a pixel's palette index at the specified pixel coordinate
         /// </summary>
-        /// <param name="x">x-coordinate in pixel coordinates</param>
-        /// <param name="y">y-coordinate in pixel coordinates</param>
+        /// <param name="x">x-coordinate in subregion pixel coordinates</param>
+        /// <param name="y">y-coordinate in subregion pixel coordinates</param>
         /// <param name="color">Palette index of color</param>
         public override void SetPixel(int x, int y, byte color)
         {
             if (x >= Width || y >= Height || x < 0 || y < 0)
                 throw new ArgumentOutOfRangeException($"{nameof(SetPixel)} ({nameof(x)}: {x}, {nameof(y)}: {y}) were outside the image bounds ({nameof(Width)}: {Width}, {nameof(Height)}: {Height}");
 
-            var el = Arranger.GetElementAtPixel(x, y);
-            var codecColors = 1 << el.Codec.ColorDepth;
-            var pal = Arranger.GetElementAtPixel(x, y).Palette;
+            if (Arranger.GetElementAtPixel(x, y) is ArrangerElement el)
+            {
+                var codecColors = 1 << el.Codec.ColorDepth;
+                var pal = el.Palette;
 
-            if (color >= pal.Entries)
-                throw new ArgumentOutOfRangeException($"{nameof(SetPixel)} ({nameof(color)} ({color}): exceeded the number of entries in palette '{pal.Name}' ({pal.Entries})");
-            if (color >= codecColors)
-                throw new ArgumentOutOfRangeException($"{nameof(SetPixel)} ({nameof(color)} ({color}): index exceeded the max number of colors in codec '{el.Codec.Name}' ({codecColors})");
+                if (color >= pal.Entries)
+                    throw new ArgumentOutOfRangeException($"{nameof(SetPixel)} ({nameof(color)} ({color}): exceeded the number of entries in palette '{pal.Name}' ({pal.Entries})");
+                if (color >= codecColors)
+                    throw new ArgumentOutOfRangeException($"{nameof(SetPixel)} ({nameof(color)} ({color}): index exceeded the max number of colors in codec '{el.Codec.Name}' ({codecColors})");
 
-            Image[x + Width * y] = color;
+                Image[x + Width * y] = color;
+            }
+            else
+                throw new InvalidOperationException($"{nameof(SetPixel)} cannot set a pixel on the undefined {nameof(ArrangerElement)} at ({x}, {y})");
         }
 
         /// <summary>
@@ -140,11 +206,15 @@ namespace ImageMagitek
         /// <param name="color">Palette index of color</param>
         public void SetPixel(int x, int y, ColorRgba32 color)
         {
-            var elem = Arranger.GetElementAtPixel(x, y);
-            var pal = elem.Palette;
+            var el = Arranger.GetElementAtPixel(x + Left, y + Top);
 
-            var index = pal.GetIndexByNativeColor(color, ColorMatchStrategy.Exact);
-            Image[x + Width * y] = index;
+            if (el?.Palette is Palette pal)
+            {
+                var index = pal.GetIndexByNativeColor(color, ColorMatchStrategy.Exact);
+                Image[x + Width * y] = index;
+            }
+            else
+                throw new InvalidOperationException($"{nameof(SetPixel)} cannot set pixel at ({x}, {y}) because there is no associated palette");
         }
 
         /// <summary>
@@ -155,19 +225,32 @@ namespace ImageMagitek
         /// <param name="color">Palette index of color</param>
         public MagitekResult CanSetPixel(int x, int y, ColorRgba32 color)
         {
-            var elem = Arranger.GetElementAtPixel(x, y);
-            if (!(elem.Codec is IIndexedCodec))
-                return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the element's codec is not an indexed color type");
+            if (x >= Width || y >= Height || x < 0 || y < 0)
+                return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because because it is outside of the Arranger");
 
-            var pal = elem.Palette;
+            var el = Arranger.GetElementAtPixel(x + Left, y + Top);
 
-            if (pal is null)
-                return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because arranger '{Arranger.Name}' has no palette specified and no default palette");
+            if (el is ArrangerElement element)
+            {
+                if (!(element.Codec is IIndexedCodec))
+                    return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the element's codec is not an indexed color type");
 
-            if (!pal.ContainsNativeColor(color))
-                return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the palette '{pal.Name}' does not contain the native color ({color.R}, {color.G}, {color.B}, {color.A})");
+                var pal = element.Palette;
 
-            return MagitekResult.SuccessResult;
+                if (pal is null)
+                    return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because arranger '{Arranger.Name}' has no palette specified for the element");
+
+                if (!pal.ContainsNativeColor(color))
+                    return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the palette '{pal.Name}' does not contain the native color ({color.R}, {color.G}, {color.B}, {color.A})");
+
+                var index = pal.GetIndexByNativeColor(color, ColorMatchStrategy.Exact);
+                if (index >= (1 << element.Codec.ColorDepth))
+                    return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the color is contained at an index outside of the codec's range");
+
+                return MagitekResult.SuccessResult;
+            }
+            else
+                return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the element is undefined");
         }
 
         /// <summary>
@@ -177,9 +260,15 @@ namespace ImageMagitek
         /// <param name="y">y-coordinate in pixel coordinates</param>
         public ColorRgba32 GetPixelColor(int x, int y)
         {
-            var pal = Arranger.GetElementAtPixel(x, y).Palette;
-            var palIndex = Image[x + Width * y];
-            return pal[palIndex];
+            var el = Arranger.GetElementAtPixel(x + Left, y + Top);
+
+            if (el?.Palette is Palette pal)
+            {
+                var palIndex = Image[x + Width * y];
+                return pal[palIndex];
+            }
+            else
+                throw new InvalidOperationException($"{nameof(GetPixelColor)} has no defined palette at ({x}, {y})");
         }
 
         /// <summary>
@@ -191,32 +280,37 @@ namespace ImageMagitek
         /// <returns></returns>
         public MagitekResult TrySetPalette(int x, int y, Palette pal)
         {
-            if (x >= Arranger.ArrangerPixelSize.Width || y >= Arranger.ArrangerPixelSize.Height)
+            if (x + Left >= Arranger.ArrangerPixelSize.Width || y + Top >= Arranger.ArrangerPixelSize.Height)
                 return new MagitekResult.Failed($"Cannot assign the palette because the location ({x}, {y}) is outside of the arranger " +
                     $"'{Arranger.Name}' bounds  ({Arranger.ArrangerPixelSize.Width}, {Arranger.ArrangerPixelSize.Height})");
 
-            var el = Arranger.GetElementAtPixel(x, y);
+            var el = Arranger.GetElementAtPixel(x + Left, y + Top);
 
-            if (ReferenceEquals(pal, el.Palette))
-                return MagitekResult.SuccessResult;
-
-            int maxIndex = 0;
-
-            for (int pixelY = el.Y1; pixelY <= el.Y2; pixelY++)
-                for (int pixelX = el.X1; pixelX <= el.X2; pixelX++)
-                    maxIndex = Math.Max(maxIndex, GetPixel(pixelX, pixelY));
-
-            if (maxIndex < pal.Entries)
+            if (el is ArrangerElement element)
             {
-                var location = Arranger.PointToElementLocation(new System.Drawing.Point(x, y));
+                if (ReferenceEquals(pal, element.Palette))
+                    return MagitekResult.SuccessResult;
 
-                el = el.WithPalette(pal);
+                int maxIndex = 0;
 
-                Arranger.SetElement(el, location.X, location.Y);
-                return MagitekResult.SuccessResult;
+                for (int pixelY = element.Y1; pixelY <= element.Y2; pixelY++)
+                    for (int pixelX = element.X1; pixelX <= element.X2; pixelX++)
+                        maxIndex = Math.Max(maxIndex, GetPixel(pixelX, pixelY));
+
+                if (maxIndex < pal.Entries)
+                {
+                    var location = Arranger.PointToElementLocation(new Point(x + Left, y + Top));
+
+                    element = element.WithPalette(pal);
+
+                    Arranger.SetElement(element, location.X, location.Y);
+                    return MagitekResult.SuccessResult;
+                }
+                else
+                    return new MagitekResult.Failed($"Cannot assign the palette '{pal.Name}' because the element contains a palette index ({maxIndex}) outside of the palette");
             }
             else
-                return new MagitekResult.Failed($"Cannot assign the palette '{pal.Name}' because the element contains a palette index ({maxIndex}) outside of the palette");
+                return new MagitekResult.Failed($"Cannot assign the palette '{pal.Name}' because the element is undefined");
         }
 
         /// <summary>

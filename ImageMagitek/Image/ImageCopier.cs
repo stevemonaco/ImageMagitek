@@ -1,10 +1,20 @@
 ﻿using System.Drawing;
 using System.Linq;
-using ImageMagitek.Codec;
 
 namespace ImageMagitek.Image
 {
-    public enum ImageRemapOperation { RemapByExactIndex, RemapByExactPaletteColors, RemapByAnyIndex }
+    /// <summary>
+    /// Operations to remap pixels during copy operations
+    /// </summary>
+    public enum PixelRemapOperation 
+    {
+        /// <summary>The source index is directly applied to the destination</summary>
+        RemapByExactIndex, 
+        /// <summary>The source index is translated to a palette color and matched exactly against the destination's available palette colors</summary>
+        RemapByExactPaletteColors, 
+        /// <summary>Not yet implemented</summary>
+        RemapByAnyIndex 
+    }
 
     public static class ImageCopier
     {
@@ -31,9 +41,12 @@ namespace ImageMagitek.Image
             {
                 for (int x = 0; x < copyWidth; x++)
                 {
-                    var element = source.GetElementAtPixel(sourceStart.X + x, sourceStart.Y + y);
-                    if ((1 << element.Codec.ColorDepth) < dest.GetPixel(destStart.X + x, destStart.Y + y))
-                        return new MagitekResult.Failed($"Destination image contains a palette index too large to map to the source image pixels at destination position ({destStart.X + x}, {destStart.Y + y}) and source position ({sourceStart.X + x}, {sourceStart.Y + y})");
+                    var el = source.GetElementAtPixel(sourceStart.X + x, sourceStart.Y + y);
+                    if (el is ArrangerElement element)
+                    {
+                        if ((1 << element.Codec.ColorDepth) < dest.GetPixel(destStart.X + x, destStart.Y + y))
+                            return new MagitekResult.Failed($"Destination image contains a palette index too large to map to the source image pixels at destination position ({destStart.X + x}, {destStart.Y + y}) and source position ({sourceStart.X + x}, {sourceStart.Y + y})");
+                    }
                 }
             }
 
@@ -49,7 +62,9 @@ namespace ImageMagitek.Image
                     var color = source.GetPixelColor(x + sourceStart.X, y + sourceStart.Y);
                     if (dest.CanSetPixel(x + destStart.X, y + destStart.Y, color).Value is MagitekResult.Failed)
                     {
-                        var palName = dest.GetElementAtPixel(x + destStart.X, y + destStart.Y).Palette?.Name ?? "Default";
+                        var el = dest.GetElementAtPixel(x + destStart.X, y + destStart.Y);
+
+                        var palName = el?.Palette?.Name ?? "Default";
                         return new MagitekResult.Failed($"Destination image at (x: {destStart.X}, y: {destStart.Y}) with element palette '{palName}' could not be set to the source color ({color.A}, {color.R}, {color.G}, {color.B})");
                     }
                 }
@@ -67,7 +82,7 @@ namespace ImageMagitek.Image
                     var color = source.GetPixel(x + sourceStart.X, y + sourceStart.Y);
                     if (dest.CanSetPixel(x + destStart.X, y + destStart.Y, color).Value is MagitekResult.Failed)
                     {
-                        var palName = dest.GetElementAtPixel(x + destStart.X, y + destStart.Y).Palette?.Name ?? "Default";
+                        var palName = dest.GetElementAtPixel(x + destStart.X, y + destStart.Y)?.Palette?.Name ?? "Undefined";
                         return new MagitekResult.Failed($"Destination image at (x: {destStart.X}, y: {destStart.Y}) with element palette '{palName}' could not be set to the source color ({color.A}, {color.R}, {color.G}, {color.B})");
                     }
                 }
@@ -156,10 +171,15 @@ namespace ImageMagitek.Image
             where TPixel : struct
         {
             var elems = image.GetElementsByPixel(start.X, start.Y, width, height);
-            return elems.Any(x => x.Codec is BlankIndexedCodec || x.Codec is BlankDirectCodec);
+            return elems.Any(x => x is null);
         }
 
-        public static MagitekResult CopyPixels(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight, params ImageRemapOperation[] operationAttempts)
+        public static MagitekResult CopyPixels(IndexedPixelCopy source, IndexedImage dest, Point destStart, params PixelRemapOperation[] operationAttempts)
+        {
+            return CopyPixels(source.Image, dest, new Point(0, 0), destStart, source.Width, source.Height, operationAttempts);
+        }
+
+        public static MagitekResult CopyPixels(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight, params PixelRemapOperation[] operationAttempts)
         {
             var dimensionResult = CanCopyPixelDimensions(source, dest, sourceStart, destStart, copyWidth, copyHeight);
 
@@ -174,7 +194,7 @@ namespace ImageMagitek.Image
 
             foreach (var operation in operationAttempts)
             {
-                if (operation == ImageRemapOperation.RemapByExactIndex)
+                if (operation == PixelRemapOperation.RemapByExactIndex)
                 {
                     if (CanRemapByExactIndex(source, dest, sourceStart, destStart, copyWidth, copyHeight).Value is MagitekResult.Success)
                     {
@@ -182,7 +202,7 @@ namespace ImageMagitek.Image
                         return MagitekResult.SuccessResult;
                     }
                 }
-                else if (operation == ImageRemapOperation.RemapByExactPaletteColors)
+                else if (operation == PixelRemapOperation.RemapByExactPaletteColors)
                 {
                     if (CanRemapByExactPaletteColors(source, dest, sourceStart, destStart, copyWidth, copyHeight).Value is MagitekResult.Success)
                     {
@@ -190,7 +210,7 @@ namespace ImageMagitek.Image
                         return MagitekResult.SuccessResult;
                     }
                 }
-                else if (operation == ImageRemapOperation.RemapByAnyIndex)
+                else if (operation == PixelRemapOperation.RemapByAnyIndex)
                 {
                     //if (CanRemapByAnyIndex(source, dest, sourceStart, destStart, copyWidth, copyHeight).Value is MagitekResult.Success)
                     //{
@@ -228,7 +248,7 @@ namespace ImageMagitek.Image
             return MagitekResult.SuccessResult;
         }
 
-        public static MagitekResult CopyPixels(DirectImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight, params ImageRemapOperation[] operationAttempts)
+        public static MagitekResult CopyPixels(DirectImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight, params PixelRemapOperation[] operationAttempts)
         {
             var dimensionResult = CanCopyPixelDimensions(source, dest, sourceStart, destStart, copyWidth, copyHeight);
 
@@ -243,7 +263,7 @@ namespace ImageMagitek.Image
 
             foreach (var operation in operationAttempts)
             {
-                if (operation == ImageRemapOperation.RemapByExactIndex)
+                if (operation == PixelRemapOperation.RemapByExactIndex)
                 {
                     if (CanExactColorRemapPixels(source, dest, sourceStart, destStart, copyWidth, copyHeight).Value is MagitekResult.Success)
                     {
@@ -251,7 +271,7 @@ namespace ImageMagitek.Image
                         return MagitekResult.SuccessResult;
                     }
                 }
-                else if (operation == ImageRemapOperation.RemapByExactPaletteColors)
+                else if (operation == PixelRemapOperation.RemapByExactPaletteColors)
                 {
                     if (CanRemapByExactPaletteColors(source, dest, sourceStart, destStart, copyWidth, copyHeight).Value is MagitekResult.Success)
                     {
@@ -259,7 +279,7 @@ namespace ImageMagitek.Image
                         return MagitekResult.SuccessResult;
                     }
                 }
-                else if (operation == ImageRemapOperation.RemapByAnyIndex)
+                else if (operation == PixelRemapOperation.RemapByAnyIndex)
                 {
 
                 }

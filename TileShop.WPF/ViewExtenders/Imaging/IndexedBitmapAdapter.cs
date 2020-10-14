@@ -2,8 +2,6 @@
 using System.Drawing;
 using System.Windows.Media.Imaging;
 using ImageMagitek;
-using ImageMagitek.Codec;
-using ImageMagitek.Colors;
 
 namespace TileShop.WPF.Imaging
 {
@@ -14,25 +12,8 @@ namespace TileShop.WPF.Imaging
         public IndexedBitmapAdapter(IndexedImage image)
         {
             Image = image;
-            Left = 0;
-            Top = 0;
             Width = Image.Width;
             Height = Image.Height;
-
-            Bitmap = new WriteableBitmap(Width, Height, DpiX, DpiY, PixelFormat, null);
-            Invalidate();
-        }
-
-        /// <summary>
-        /// Creates an IndexedBitmapAdapter with a crop-transformed subsection of an IndexedArranger
-        /// </summary>
-        public IndexedBitmapAdapter(IndexedImage image, int left, int top, int width, int height)
-        {
-            Image = image;
-            Left = left;
-            Top = top;
-            Width = width;
-            Height = height;
 
             Bitmap = new WriteableBitmap(Width, Height, DpiX, DpiY, PixelFormat, null);
             Invalidate();
@@ -43,7 +24,7 @@ namespace TileShop.WPF.Imaging
         /// </summary>
         public override void Invalidate()
         {
-            Render(0, 0, Image.Width, Image.Height);
+            Render(0, 0, Width, Height);
         }
 
         /// <summary>
@@ -68,8 +49,8 @@ namespace TileShop.WPF.Imaging
         /// <summary>
         /// Invalidates and redraws a region of the Bitmap
         /// </summary>
-        /// <param name="x">Left coordinate in crop-transformed coordinates</param>
-        /// <param name="y">Top coordinate in crop-transformed coordinates</param>
+        /// <param name="x">Left coordinate in pixel coordinates</param>
+        /// <param name="y">Top coordinate in pixel coordinates</param>
         /// <param name="width">Width of region</param>
         /// <param name="height">Height of region</param>
         public override void Invalidate(int x, int y, int width, int height)
@@ -101,33 +82,39 @@ namespace TileShop.WPF.Imaging
                     {
                         var dest = (byte*)Bitmap.BackBuffer.ToPointer();
                         dest += y * Bitmap.BackBufferStride + xStart * 4;
-                        var row = Image.GetPixelRowSpan(y + Top);
+                        var src = Image.GetPixelRowSpan(y);
 
-                        for (int x = xStart; x < xStart + width; x++)
+                        for (int x = 0; x < width; x++)
                         {
-                            var el = Image.GetElementAtPixel(x + Left, y + Top);
-                            var pal = el.Palette;
+                            var el = Image.GetElementAtPixel(x + xStart, y);
 
-                            if (el.Codec is BlankIndexedCodec blankIndexedCodec)
+                            // TODO: More elegant handling of element fallback to clearing
+
+                            if (el is ArrangerElement element)
+                            {
+                                var pal = element.Palette;
+
+                                if (pal is object)
+                                {
+                                    var index = src[x + xStart];
+                                    var color = pal[index];
+
+                                    dest[x * 4] = color.B;
+                                    dest[x * 4 + 1] = color.G;
+                                    dest[x * 4 + 2] = color.R;
+
+                                    if (index == 0 && pal.ZeroIndexTransparent)
+                                        dest[x * 4 + 3] = 0;
+                                    else
+                                        dest[x * 4 + 3] = color.A;
+                                }
+                            }
+                            else
                             {
                                 dest[x * 4] = 0;
                                 dest[x * 4 + 1] = 0;
                                 dest[x * 4 + 2] = 0;
                                 dest[x * 4 + 3] = 0;
-                            }
-                            else if (pal is object)
-                            {
-                                var index = row[x + Left];
-                                var color = pal[index];
-
-                                dest[x * 4] = color.B;
-                                dest[x * 4 + 1] = color.G;
-                                dest[x * 4 + 2] = color.R;
-
-                                if (index == 0 && pal.ZeroIndexTransparent)
-                                    dest[x * 4 + 3] = 0;
-                                else
-                                    dest[x * 4 + 3] = color.A;
                             }
                         }
                     }

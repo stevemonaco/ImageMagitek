@@ -8,12 +8,33 @@ namespace ImageMagitek
 {
     public class DirectImage : ImageBase<ColorRgba32>
     {
-        public DirectImage(Arranger arranger)
+        public DirectImage(Arranger arranger) :
+            this(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height)
+        {
+        }
+
+        /// <summary>
+        /// Creates a DirectImage with a subsection of an Arranger
+        /// </summary>
+        /// <param name="arranger">Source Arranger</param>
+        /// <param name="x">Left-edge of subsection in pixel coordinates</param>
+        /// <param name="y">Top-edge of subsection in pixel coordinates</param>
+        /// <param name="width">Width of subsection in pixel coordinates</param>
+        /// <param name="height">Height of subsection in pixel coordinates</param>
+        public DirectImage(Arranger arranger, int x, int y, int width, int height)
         {
             if (arranger is null)
                 throw new ArgumentNullException($"{nameof(DirectImage)}.Ctor parameter '{nameof(arranger)}' was null");
 
+            if (arranger.ColorType != PixelColorType.Direct)
+                throw new ArgumentException($"{nameof(DirectImage)}.Ctor: Arranger '{arranger.Name}' has an invalid color type '{arranger.ColorType}'");
+
             Arranger = arranger;
+            Left = x;
+            Top = y;
+            Width = width;
+            Height = height;
+
             Image = new ColorRgba32[Width * Height];
             Render();
         }
@@ -36,9 +57,7 @@ namespace ImageMagitek
             if (Width * Height != Image.Length)
                 Image = new ColorRgba32[Width * Height];
 
-            //var buffer = new ColorRgba32[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
-
-            foreach (var el in Arranger.EnumerateElements().Where(x => x.DataFile is object))
+            foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.DataFile is object))
             {
                 if (el.Codec is IDirectCodec codec)
                 {
@@ -66,17 +85,15 @@ namespace ImageMagitek
         public override void SaveImage()
         {
             var buffer = new ColorRgba32[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
-            foreach (var el in Arranger.EnumerateElements().Where(x => x.Codec is IDirectCodec))
+            foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IDirectCodec))
             {
                 Image.CopyToArray(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
                 var codec = el.Codec as IDirectCodec;
 
                 var encodeResult = codec.EncodeElement(el, buffer);
                 codec.WriteElement(el, encodeResult);
-
-                //codec.Encode(el, buffer);
             }
-            foreach (var fs in Arranger.EnumerateElements().Select(x => x.DataFile.Stream).Distinct())
+            foreach (var fs in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.DataFile.Stream).Distinct())
                 fs.Flush();
         }
     }

@@ -10,8 +10,6 @@ using TileShop.WPF.Imaging;
 using GongSolutions.Wpf.DragDrop;
 using ImageMagitek.Services;
 using ImageMagitek;
-using ImageMagitek.Codec;
-using ImageMagitek.Image;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -20,8 +18,6 @@ namespace TileShop.WPF.ViewModels
     public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMouseCaptureProxy, IDropTarget, IDragSource
     {
         protected Arranger _workingArranger;
-        protected IndexedImage _indexedImage;
-        protected DirectImage _directImage;
 
         protected IEventAggregator _events;
         protected IPaletteService _paletteService;
@@ -34,11 +30,8 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _bitmapAdapter, value);
         }
 
-
         public bool IsSingleLayout => _workingArranger?.Layout == ArrangerLayout.Single;
         public bool IsTiledLayout => _workingArranger?.Layout == ArrangerLayout.Tiled;
-
-        public virtual bool CanShowGridlines => _workingArranger?.Layout == ArrangerLayout.Tiled;
 
         protected bool _showGridlines = false;
         public bool ShowGridlines
@@ -54,27 +47,21 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _gridlines, value);
         }
 
-#pragma warning disable CS0067
-        // Unused events that are required to be present for IMouseCaptureProxy
-        public virtual event EventHandler Capture;
-        public virtual event EventHandler Release;
-#pragma warning restore CS0067
-
         protected int _zoom = 1;
         public int Zoom
         {
             get => _zoom;
             set
             {
-                SetAndNotify(ref _zoom, value);
-                CreateGridlines();
+                if (SetAndNotify(ref _zoom, value))
+                    CreateGridlines();
             }
         }
 
         public int MinZoom => 1;
         public int MaxZoom { get; protected set; } = 16;
 
-        public bool CanChangeSnapMode => _workingArranger is object ? _workingArranger.Layout == ArrangerLayout.Tiled : false;
+        public bool CanChangeSnapMode { get; protected set; }
 
         protected EditMode _editMode = EditMode.ArrangeGraphics;
         public EditMode EditMode
@@ -87,14 +74,14 @@ namespace TileShop.WPF.ViewModels
         {
             get
             {
-                if (Overlay.State == OverlayState.Selected)
+                if (Selection.HasSelection)
                 {
-                    var rect = Overlay.SelectionRect;
+                    var rect = Selection.SelectionRect;
                     if (rect.SnappedWidth == 0 || rect.SnappedHeight == 0)
                         return false;
 
-                    var elems = _workingArranger.EnumerateElementsByPixel(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
-                    return !elems.Any(x => x.DataFile is null || x.Codec is BlankIndexedCodec || x.Codec is BlankDirectCodec);
+                    return !_workingArranger.EnumerateElementsByPixel(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight)
+                        .Any(x => x is null || x?.DataFile is null);
                 }
                     
                 return false;
@@ -108,36 +95,33 @@ namespace TileShop.WPF.ViewModels
             set
             {
                 SetAndNotify(ref _snapMode, value);
-                Overlay.UpdateSnapMode(SnapMode);
+                if (Selection is object)
+                    Selection.SnapMode = SnapMode;
             }
         }
 
-        private ArrangerOverlay _overlay = new ArrangerOverlay();
-        public ArrangerOverlay Overlay
+        private ArrangerSelection _selection;
+        public ArrangerSelection Selection
         {
-            get => _overlay;
-            set => SetAndNotify(ref _overlay, value);
+            get => _selection;
+            set => SetAndNotify(ref _selection, value);
         }
 
-        private bool _canPasteElements;
-        public bool CanPasteElements
+        private bool _isSelecting;
+        public bool IsSelecting
         {
-            get => _canPasteElements;
-            set => SetAndNotify(ref _canPasteElements, value);
+            get => _isSelecting;
+            set => SetAndNotify(ref _isSelecting, value);
         }
 
-        private bool _canPastePixels;
-        public bool CanPastePixels
-        {
-            get => _canPastePixels;
-            set => SetAndNotify(ref _canPastePixels, value);
-        }
+        public bool CanAcceptPixelPastes { get; set; }
+        public bool CanAcceptElementPastes { get; set; }
 
-        protected ArrangerTransferModel _arrangerTransfer;
-        public ArrangerTransferModel ArrangerTransfer
+        private ArrangerPaste _paste;
+        public ArrangerPaste Paste
         {
-            get => _arrangerTransfer;
-            set => SetAndNotify(ref _arrangerTransfer, value);
+            get => _paste;
+            set => SetAndNotify(ref _paste, value);
         }
 
         public ArrangerEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) 
@@ -148,38 +132,87 @@ namespace TileShop.WPF.ViewModels
             _paletteService = paletteService;
         }
 
-        protected abstract void Render();
+        /// <summary>
+        /// Redraws the ImageBase onto the BitmapAdapter
+        /// </summary>
+        public abstract void Render();
 
-        public virtual void Closing() { }
+        /// <summary>
+        /// Applies the paste to the Editor
+        /// </summary>
+        /// <param name="paste"></param>
+        public abstract void ApplyPaste(ArrangerPaste paste);
 
-        public virtual void RequestEditSelection()
+        /// <summary>
+        /// Creates the Gridlines for an overlay using the extents and element spacing of the Working Arranger
+        /// </summary>
+        protected virtual void CreateGridlines()
         {
-            if (CanEditSelection)
-                EditSelection();
+            if (_workingArranger is object)
+                CreateGridlines(0, 0, _workingArranger.ArrangerPixelSize.Width, _workingArranger.ArrangerPixelSize.Height,
+                    _workingArranger.ElementPixelSize.Width, _workingArranger.ElementPixelSize.Height);
         }
+
+        /// <summary>
+        /// Creates the Gridlines for an overlay
+        /// </summary>
+        /// <param name="x">Starting x-coordinate in pixel coordinates, inclusive</param>
+        /// <param name="y">Starting y-coordinate in pixel coordinates, inclusive</param>
+        /// <param name="x2">Ending x-coordinate in pixel coordinates, inclusive</param>
+        /// <param name="y2">Ending y-coordinate in pixel coordinates, inclusive</param>
+        /// <param name="xSpacing">Spacing between gridlines in pixel coordinates</param>
+        /// <param name="height">Spacing between gridlines in pixel coordinates</param>
+        protected void CreateGridlines(int x1, int y1, int x2, int y2, int xSpacing, int ySpacing)
+        {
+            if (_workingArranger is null)
+                return;
+
+            _gridlines = new BindableCollection<Gridline>();
+            for (int x = x1; x <= x2; x += xSpacing) // Vertical gridlines
+            {
+                var gridline = new Gridline(x * Zoom + 1, 0,
+                    x * Zoom + 1, y2 * Zoom);
+                _gridlines.Add(gridline);
+            }
+
+            for (int y = y1; y <= y2; y += ySpacing) // Horizontal gridlines
+            {
+                var gridline = new Gridline(0, y * Zoom + 1,
+                    x2 * Zoom, y * Zoom + 1);
+                _gridlines.Add(gridline);
+            }
+
+            NotifyOfPropertyChange(() => Gridlines);
+        }
+
+        #region Commands
+        public virtual void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);
+        public virtual void ZoomOut() => Zoom = Math.Clamp(Zoom - 1, MinZoom, MaxZoom);
+
+        public virtual void ToggleGridlineVisibility() => ShowGridlines ^= true;
 
         public virtual void EditSelection()
         {
             if (!CanEditSelection)
                 return;
 
-            ArrangerTransferModel transferModel;
-            var rect = Overlay.SelectionRect;
+            EditArrangerPixelsEvent editEvent;
+            var rect = Selection.SelectionRect;
 
             if (SnapMode == SnapMode.Element && _workingArranger.Layout == ArrangerLayout.Tiled)
             {
                 // Clone a subsection of the arranger and show the full subarranger
+                _workingArranger.CopyElements();
                 var arranger = _workingArranger.CloneArranger(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
-                transferModel = new ArrangerTransferModel(arranger, 0, 0, rect.SnappedWidth, rect.SnappedHeight);
+                editEvent = new EditArrangerPixelsEvent(arranger, Resource as Arranger, 0, 0, rect.SnappedWidth, rect.SnappedHeight);
             }
             else
             {
                 // Clone the entire arranger and show a subsection of the cloned arranger
                 var arranger = _workingArranger.CloneArranger();
-                transferModel = new ArrangerTransferModel(arranger, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+                editEvent = new EditArrangerPixelsEvent(arranger, Resource as Arranger, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
             }
 
-            var editEvent = new EditArrangerPixelsEvent(transferModel);
             _events.PublishOnUIThread(editEvent);
             CancelOverlay();
         }
@@ -187,127 +220,65 @@ namespace TileShop.WPF.ViewModels
         public virtual void SelectAll()
         {
             CancelOverlay();
-            Overlay.StartSelection(_workingArranger, SnapMode, 0, 0);
-            Overlay.UpdateSelectionEndPoint(_workingArranger.ArrangerPixelSize.Width, _workingArranger.ArrangerPixelSize.Height);
-            Overlay.CompleteSelection();
+            Selection = new ArrangerSelection(_workingArranger, SnapMode);
+            Selection.StartSelection(0, 0);
+            Selection.UpdateSelectionEndpoint(_workingArranger.ArrangerPixelSize.Width, _workingArranger.ArrangerPixelSize.Height);
         }
 
         public virtual void CancelOverlay()
         {
-            Overlay.Cancel();
-            CanPasteElements = false;
-            CanPastePixels = false;
+            Selection = new ArrangerSelection(_workingArranger, SnapMode);
+            Paste = null;
+
             NotifyOfPropertyChange(() => CanEditSelection);
         }
 
-        protected virtual void CreateGridlines()
+        public virtual void StartNewSelection(int x, int y)
         {
-            if (_workingArranger is null || !CanShowGridlines)
-                return;
-
-            _gridlines = new BindableCollection<Gridline>();
-            for (int x = 0; x < _workingArranger.ArrangerElementSize.Width; x++) // Vertical gridlines
-            {
-                var gridline = new Gridline(x * _workingArranger.ElementPixelSize.Width * Zoom + 1, 0,
-                    x * _workingArranger.ElementPixelSize.Width * Zoom + 1, _workingArranger.ArrangerPixelSize.Height * Zoom);
-                _gridlines.Add(gridline);
-            }
-
-            _gridlines.Add(new Gridline(_workingArranger.ArrangerPixelSize.Width * Zoom, 0,
-                _workingArranger.ArrangerPixelSize.Width * Zoom, _workingArranger.ArrangerPixelSize.Height * Zoom));
-
-            for (int y = 0; y < _workingArranger.ArrangerElementSize.Height; y++) // Horizontal gridlines
-            {
-                var gridline = new Gridline(0, y * _workingArranger.ElementPixelSize.Height * Zoom + 1,
-                    _workingArranger.ArrangerPixelSize.Width * Zoom, y * _workingArranger.ElementPixelSize.Height * Zoom + 1);
-                _gridlines.Add(gridline);
-            }
-
-            _gridlines.Add(new Gridline(0, _workingArranger.ArrangerPixelSize.Height * Zoom,
-                _workingArranger.ArrangerPixelSize.Width * Zoom, _workingArranger.ArrangerPixelSize.Height * Zoom));
-
-            NotifyOfPropertyChange(() => Gridlines);
+            Selection.StartSelection(x, y);
+            IsSelecting = true;
         }
 
-        public virtual void ApplyPasteAsPixels()
+        public virtual void UpdateSelection(int x, int y)
         {
-            var sourceStart = new System.Drawing.Point(Overlay.SelectionRect.SnappedLeft, Overlay.SelectionRect.SnappedTop);
-            var destStart = new System.Drawing.Point(Overlay.PasteRect.SnappedLeft, Overlay.PasteRect.SnappedTop);
-            int copyWidth = Overlay.SelectionRect.SnappedWidth;
-            int copyHeight = Overlay.SelectionRect.SnappedHeight;
+            if (IsSelecting)
+                Selection.UpdateSelectionEndpoint(x, y);
+        }
 
-            MagitekResult result;
-
-            if (Overlay.CopyArranger.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Indexed)
+        public virtual void CompleteSelection()
+        {
+            if (IsSelecting)
             {
-                var sourceImage = new IndexedImage(Overlay.CopyArranger);
-                sourceImage.Render();
-                result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
-                    ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
-            }
-            else if (Overlay.CopyArranger.ColorType == PixelColorType.Indexed && _workingArranger.ColorType == PixelColorType.Direct)
-            {
-                var sourceImage = new IndexedImage(Overlay.CopyArranger);
-                sourceImage.Render();
-                result = ImageCopier.CopyPixels(sourceImage, _directImage, sourceStart, destStart, copyWidth, copyHeight);
-            }
-            else if (Overlay.CopyArranger.ColorType == PixelColorType.Direct && _workingArranger.ColorType == PixelColorType.Indexed)
-            {
-                var sourceImage = new DirectImage(Overlay.CopyArranger);
-                sourceImage.Render();
-                result = ImageCopier.CopyPixels(sourceImage, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
-                    ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
-            }
-            else if (Overlay.CopyArranger.ColorType == PixelColorType.Direct && _workingArranger.ColorType == PixelColorType.Direct)
-            {
-                var sourceImage = new DirectImage(Overlay.CopyArranger);
-                sourceImage.Render();
-                result = ImageCopier.CopyPixels(sourceImage, _directImage, sourceStart, destStart, copyWidth, copyHeight);
-            }
-            else
-                throw new InvalidOperationException($"{nameof(ApplyPasteAsPixels)} attempted to copy from an arranger of type {Overlay.CopyArranger.ColorType} to {_workingArranger.ColorType}");
-
-            var notifyEvent = result.Match(
-                success =>
+                if (Selection.SelectionRect.SnappedWidth == 0 || Selection.SelectionRect.SnappedHeight == 0)
                 {
-                    if (_workingArranger.ColorType == PixelColorType.Indexed)
-                        _indexedImage.SaveImage();
-                    else if (_workingArranger.ColorType == PixelColorType.Direct)
-                        _directImage.SaveImage();
+                    Selection = new ArrangerSelection(_workingArranger, SnapMode);
+                }
 
-                    Render();
-                    return new NotifyOperationEvent("Paste successfully applied");
-                },
-                fail => new NotifyOperationEvent(fail.Reason)
-                );
-
-            _events.PublishOnUIThread(notifyEvent);
+                IsSelecting = false;
+                NotifyOfPropertyChange(() => CanEditSelection);
+            }
         }
+        #endregion
 
-        public void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);
-        public void ZoomOut() => Zoom = Math.Clamp(Zoom - 1, MinZoom, MaxZoom);
-        
-        public void ToggleGridlineVisibility()
-        {
-            if (CanShowGridlines)
-                ShowGridlines ^= true;
-        }
-
+        #region Mouse Actions
         public virtual void OnMouseMove(object sender, MouseCaptureArgs e)
         {
-            if (Overlay.State == OverlayState.Selecting)
-                Overlay.UpdateSelectionEndPoint(e.X / Zoom, e.Y / Zoom);
+            int x = (int)(e.X / Zoom);
+            int y = (int)(e.Y / Zoom);
 
-            if (Overlay.State == OverlayState.Selecting || Overlay.State == OverlayState.Selected)
+            if (IsSelecting)
+                UpdateSelection(x, y);
+
+            if (Selection.HasSelection)
             {
                 string notifyMessage;
-                var rect = Overlay.SelectionRect;
+                var rect = Selection.SelectionRect;
                 if (rect.SnapMode == SnapMode.Element)
                     notifyMessage = $"Element Selection: {rect.SnappedWidth / _workingArranger.ElementPixelSize.Width} x {rect.SnappedHeight / _workingArranger.ElementPixelSize.Height}" +
                         $" at ({rect.SnappedLeft / _workingArranger.ElementPixelSize.Width}, {rect.SnappedRight / _workingArranger.ElementPixelSize.Height})";
                 else
                     notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight}" +
-                        $" at ({rect.SnappedLeft} x {rect.SnappedTop})";
+                        $" at ({rect.SnappedLeft}, {rect.SnappedTop})";
                 var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
                 _events.PublishOnUIThread(notifyEvent);
             }
@@ -327,40 +298,38 @@ namespace TileShop.WPF.ViewModels
 
         public virtual void OnMouseUp(object sender, MouseCaptureArgs e)
         {
-            if (Overlay.State == OverlayState.Selecting)
+            if (IsSelecting)
             {
-                Overlay.CompleteSelection();
-                if (Overlay.SelectionRect.SnappedWidth == 0 || Overlay.SelectionRect.SnappedHeight == 0)
-                    Overlay.Cancel();
+                CompleteSelection();
             }
-
-            NotifyOfPropertyChange(() => CanEditSelection);
         }
 
         public virtual void OnMouseDown(object sender, MouseCaptureArgs e)
         {
-            if (Overlay.State == OverlayState.Selected && e.LeftButton && Overlay.SelectionRect.ContainsPointSnapped(e.X / Zoom, e.Y / Zoom))
+            int x = (int)(e.X / Zoom);
+            int y = (int)(e.Y / Zoom);
+
+            if (e.LeftButton && Paste is object && !Paste.Rect.ContainsPointSnapped(x, y))
+            {
+                ApplyPaste(Paste);
+                Paste = null;
+            }
+
+            if (Selection?.HasSelection is true && e.LeftButton && Selection.SelectionRect.ContainsPointSnapped(x, y))
             {
                 // Start drag for selection (Handled by DragDrop in View)
             }
-            else if ((Overlay.State == OverlayState.Pasting || Overlay.State == OverlayState.Pasted) && 
-                e.LeftButton && Overlay.PasteRect.ContainsPointSnapped(e.X / Zoom, e.Y / Zoom))
+            else if (Paste is object && e.LeftButton && Paste.Rect.ContainsPointSnapped(x, y))
             {
                 // Start drag for paste (Handled by DragDrop in View)
             }
-            //else if ((Overlay.State == OverlayState.Selected || Overlay.State == OverlayState.Pasted || Overlay.State == OverlayState.Pasting) && 
-            //    e.RightButton)
-            //{
-            //    CancelOverlay();
-            //    NotifyOfPropertyChange(() => CanEditSelection);
-            //}
             else if (e.LeftButton)
             {
-                Overlay.StartSelection(_workingArranger, SnapMode, e.X / Zoom, e.Y / Zoom);
+                StartNewSelection(x, y);
             }
         }
 
-        public virtual void OnMouseWheel(object sender, MouseCaptureArgs e) 
+        public virtual void OnMouseWheel(object sender, MouseCaptureArgs e)
         {
             if (e.WheelDelta > 0)
                 ZoomIn();
@@ -368,78 +337,120 @@ namespace TileShop.WPF.ViewModels
                 ZoomOut();
         }
 
-        protected virtual bool CanAcceptTransfer(ArrangerTransferModel model) => true;
+        #pragma warning disable CS0067
+        // Unused events that are required to be present for IMouseCaptureProxy
+        public virtual event EventHandler Capture;
+        public virtual event EventHandler Release;
+        #pragma warning restore CS0067
+        #endregion
 
+        #region Drag and Drop Implementation
         public virtual void Drop(IDropInfo dropInfo)
         {
-            if (dropInfo.Data is ArrangerTransferModel model)
+            if (dropInfo.Data is ArrangerPaste paste)
             {
-                model.DestinationArranger = _workingArranger;
-                Overlay.UpdatePastingStartPoint(dropInfo.DropPosition.X, dropInfo.DropPosition.Y, SnapMode);
-                Overlay.CompletePasting();
+                paste.SnapMode = SnapMode;
+                Paste = paste;
+                Paste.MoveTo((int)dropInfo.DropPosition.X, (int)dropInfo.DropPosition.Y);
             }
         }
 
         public virtual void DragOver(IDropInfo dropInfo)
         {
-            if (dropInfo.Data is ArrangerTransferModel model)
+            if (dropInfo.Data is ArrangerPaste paste)
             {
-                if (CanAcceptTransfer(model))
-                {
-                    if (Overlay.State != OverlayState.Pasting)
-                    {
-                        Overlay.StartSelection(model.Arranger, SnapMode.Pixel, model.X, model.Y);
-                        Overlay.UpdateSelectionEndPoint(model.X + model.Width, model.Y + model.Height);
-                        Overlay.CompleteSelection();
-                        Overlay.StartPasting(_workingArranger, SnapMode, dropInfo.DropPosition.X, dropInfo.DropPosition.Y);
-                    }
-                    else if (Overlay.State == OverlayState.Pasting)
-                        Overlay.UpdatePastingStartPoint(dropInfo.DropPosition.X, dropInfo.DropPosition.Y, SnapMode);
+                if (paste.Copy is ElementCopy && !CanAcceptElementPastes)
+                    return;
 
-                    dropInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
+                if ((paste.Copy is IndexedPixelCopy || paste.Copy is DirectPixelCopy) && !CanAcceptPixelPastes)
+                    return;
+
+                if (!ReferenceEquals(dropInfo.DragInfo.SourceItem, this))
+                    (dropInfo.DragInfo.SourceItem as ArrangerEditorViewModel).CancelOverlay();
+
+                if (Paste != paste)
+                {
+                    Paste = new ArrangerPaste(paste.Copy, SnapMode)
+                    {
+                        DeltaX = paste.DeltaX,
+                        DeltaY = paste.DeltaY
+                    };
                 }
+
+                Paste.MoveTo((int)dropInfo.DropPosition.X, (int)dropInfo.DropPosition.Y);
+                dropInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
             }
         }
 
         public virtual void StartDrag(IDragInfo dragInfo)
         {
-            var rect = Overlay.SelectionRect;
-            var transferModel = new ArrangerTransferModel(_workingArranger, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
-            dragInfo.Data = transferModel;
-            dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
+            if (Selection.HasSelection)
+            {
+                var rect = Selection.SelectionRect;
 
-            CancelOverlay();
+                ArrangerCopy copy = default;
+                if (SnapMode == SnapMode.Element)
+                {
+                    int x = rect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
+                    int y = rect.SnappedTop / _workingArranger.ElementPixelSize.Height;
+                    int width = rect.SnappedWidth / _workingArranger.ElementPixelSize.Width;
+                    int height = rect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
+                    copy = _workingArranger.CopyElements(x, y, width, height);
+                    (copy as ElementCopy).ProjectResource = OriginatingProjectResource;
+                }
+                else if (SnapMode == SnapMode.Pixel && _workingArranger.ColorType == PixelColorType.Indexed)
+                {
+                    copy = _workingArranger.CopyPixelsIndexed(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+                }
+                else if (SnapMode == SnapMode.Pixel && _workingArranger.ColorType == PixelColorType.Direct)
+                {
+                    copy = _workingArranger.CopyPixelsDirect(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+                }
+
+                var paste = new ArrangerPaste(copy, SnapMode)
+                {
+                    DeltaX = (int)dragInfo.DragStartPosition.X - Selection.SelectionRect.SnappedLeft,
+                    DeltaY = (int)dragInfo.DragStartPosition.Y - Selection.SelectionRect.SnappedTop
+                };
+                dragInfo.Data = paste;
+                dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
+
+                Selection = new ArrangerSelection(_workingArranger, SnapMode);
+            }
+            else if (Paste is object)
+            {
+                Paste.DeltaX = (int)dragInfo.DragStartPosition.X - Paste.Rect.SnappedLeft;
+                Paste.DeltaY = (int)dragInfo.DragStartPosition.Y - Paste.Rect.SnappedTop;
+                Paste.SnapMode = SnapMode;
+
+                dragInfo.Data = Paste;
+                dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
+            }
         }
 
         public virtual bool CanStartDrag(IDragInfo dragInfo)
         {
-            if (Overlay.State == OverlayState.Selected)
-                return Overlay.SelectionRect.ContainsPointSnapped(dragInfo.DragStartPosition.X, dragInfo.DragStartPosition.Y);
-            else if (Overlay.State == OverlayState.Pasting || Overlay.State == OverlayState.Pasted)
-                return Overlay.PasteRect.ContainsPointSnapped(dragInfo.DragStartPosition.X, dragInfo.DragStartPosition.Y);
+            if (Selection.HasSelection)
+            {
+                return Selection.SelectionRect.ContainsPointSnapped(dragInfo.DragStartPosition.X, dragInfo.DragStartPosition.Y);
+            }
+            else if (Paste is object)
+            {
+                return Paste.Rect.ContainsPointSnapped(dragInfo.DragStartPosition.X, dragInfo.DragStartPosition.Y);
+            }
             else
                 return false;
         }
 
-        public virtual void Dropped(IDropInfo dropInfo)
-        {
-            if (dropInfo.Data is ArrangerTransferModel model)
-            {
-                if (!ReferenceEquals(model.DestinationArranger, _workingArranger))
-                {
-                    CancelOverlay();
-                }
-            }
-        }
+        public virtual void Dropped(IDropInfo dropInfo) { }
 
         public virtual void DragDropOperationFinished(DragDropEffects operationResult, IDragInfo dragInfo) { }
 
         public virtual void DragCancelled()
         {
             CancelOverlay();
-            CanPasteElements = false;
-            CanPastePixels = false;
         }
         public virtual bool TryCatchOccurredException(Exception exception) => false;
+        #endregion
     }
 }

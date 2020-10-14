@@ -20,7 +20,7 @@ using TileShop.WPF.Models;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatteredArrangerFromExistingEvent>
+    public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatteredArrangerFromCopyEvent>
     {
         private readonly IProjectService _projectService;
         private readonly IPaletteService _paletteService;
@@ -63,7 +63,7 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _selectedNode, value);
         }
 
-        private readonly Dictionary<MessageBoxResult, string> messageBoxLabels = new Dictionary<MessageBoxResult, string>
+        private readonly Dictionary<MessageBoxResult, string> _messageBoxLabels = new Dictionary<MessageBoxResult, string>
         {
             { MessageBoxResult.Yes, "Save" }, { MessageBoxResult.No, "Discard" }, { MessageBoxResult.Cancel, "Cancel" }
         };
@@ -82,9 +82,7 @@ namespace TileShop.WPF.ViewModels
 
         public void AddNewFolder(ResourceNodeViewModel parentNodeModel)
         {
-            var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
-
-            projectTree.CreateNewFolder(parentNodeModel.Node, "New Folder", false).Switch(
+            _projectService.CreateNewFolder(parentNodeModel.Node, "New Folder", true).Switch(
                 success =>
                 {
                     var folderVM = new FolderNodeViewModel(success.Result, parentNodeModel);
@@ -114,7 +112,7 @@ namespace TileShop.WPF.ViewModels
                 }
 
                 var df = new DataFile(dfName, dataFileName);
-                var result = projectTree.AddResource(parentNodeModel.Node, df);
+                var result = _projectService.AddResource(parentNodeModel.Node, df, true);
 
                 result.Switch(success =>
                 {
@@ -154,7 +152,7 @@ namespace TileShop.WPF.ViewModels
                     dialogModel.Entries, dialogModel.ZeroIndexTransparent, PaletteStorageSource.DataFile);
                 pal.DataFile = dialogModel.SelectedDataFile;
 
-                var result = projectTree.AddResource(parentNodeModel.Node, pal);
+                var result = _projectService.AddResource(parentNodeModel.Node, pal, true);
 
                 result.Switch(success =>
                 {
@@ -163,6 +161,7 @@ namespace TileShop.WPF.ViewModels
                     SelectedNode = palVM;
                     IsModified = true;
                     _tracker.Persist(dialogModel);
+                    _editors.ActivateEditor(pal);
                 },
                 fail =>
                 {
@@ -183,7 +182,7 @@ namespace TileShop.WPF.ViewModels
                     dialogModel.Layout, dialogModel.ArrangerElementWidth, dialogModel.ArrangerElementHeight,
                     dialogModel.ElementPixelWidth, dialogModel.ElementPixelHeight);
 
-                var result = projectTree.AddResource(parentNodeModel.Node, arranger);
+                var result = _projectService.AddResource(parentNodeModel.Node, arranger, true);
 
                 result.Switch(success =>
                 {
@@ -192,6 +191,7 @@ namespace TileShop.WPF.ViewModels
                     SelectedNode = arrangerVM;
                     IsModified = true;
                     _tracker.Persist(dialogModel);
+                    _editors.ActivateEditor(arranger);
                 },
                 fail =>
                 {
@@ -251,7 +251,7 @@ namespace TileShop.WPF.ViewModels
                 if (modifiedEditors.Any())
                 {
                     var boxResult = _windowManager.ShowMessageBox("The project contains modified items which must be saved or discarded before removing any items", "Save changes",
-                        MessageBoxButton.YesNoCancel, buttonLabels: messageBoxLabels);
+                        MessageBoxButton.YesNoCancel, buttonLabels: _messageBoxLabels);
 
                     if (boxResult == MessageBoxResult.Yes)
                     {
@@ -390,32 +390,40 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void Handle(AddScatteredArrangerFromExistingEvent message)
+        public void Handle(AddScatteredArrangerFromCopyEvent message)
         {
-            var parentModel = Projects.First();
             var model = new NameResourceViewModel();
-            var arranger = message.Arranger;
-            var projectTree = _projectService.GetContainingProject(parentModel.Node);
+            var copy = message.Copy;
+            var arranger = message.Copy.Source;
+            var projectTree = _projectService.GetContainingProject(message.ProjectResource);
+            var parentModel = Projects.First(x => ReferenceEquals(projectTree.Project, x.Node.Value));
 
             if (_windowManager.ShowDialog(model) is true)
             {
-                var newArranger = new ScatteredArranger(model.ResourceName, arranger.ColorType, arranger.Layout, message.Width, message.Height, arranger.ElementPixelSize.Width, arranger.ElementPixelSize.Height);
-                var source = new Point(message.ElementX, message.ElementY);
+                var newArranger = new ScatteredArranger(model.ResourceName, arranger.ColorType, arranger.Layout, copy.Width, copy.Height, copy.ElementPixelWidth, copy.ElementPixelHeight);
+                var source = new Point(0, 0);
                 var dest = new Point(0, 0);
 
-                var result = ElementCopier.CopyElements(arranger, newArranger, source, dest, message.Width, message.Height);
+                var copyResult = ElementCopier.CopyElements(copy, newArranger, source, dest, copy.Width, copy.Height);
 
-                result.Switch(
-                    success =>
+                copyResult.Switch(
+                    copySuccess =>
                     {
-                        var nodeResult = projectTree.AddResource(parentModel.Node, newArranger);
-                        var arrangerVM = new ArrangerNodeViewModel(nodeResult.AsT0.Result, parentModel);
-                        parentModel.Children.Add(arrangerVM);
-                        SelectedNode = arrangerVM;
-                        IsModified = true;
-                        _editors.ActivateEditor(newArranger);
+                        var addResult = _projectService.AddResource(parentModel.Node, newArranger, true);
+
+                        addResult.Switch(
+                            addSuccess =>
+                            {
+                                var arrangerVM = new ArrangerNodeViewModel(addSuccess.Result, parentModel);
+                                parentModel.Children.Add(arrangerVM);
+                                SelectedNode = arrangerVM;
+                                IsModified = true;
+                                _editors.ActivateEditor(newArranger);
+                            },
+                            addFailed => _windowManager.ShowMessageBox($"{addFailed.Reason}", "Error")
+                        );
                     },
-                    fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Error")
+                    copyFailed => _windowManager.ShowMessageBox($"{copyFailed.Reason}", "Error")
                 );
             }
         }
@@ -508,7 +516,6 @@ namespace TileShop.WPF.ViewModels
             catch (Exception ex)
             {
                 _windowManager.ShowMessageBox($"Unable to create new project at location '{projectFileName}'\n{ex.Message}\n{ex.StackTrace}");
-                // TODO: Log
             }
         }
 
