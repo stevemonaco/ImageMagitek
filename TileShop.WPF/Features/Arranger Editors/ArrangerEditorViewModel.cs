@@ -54,7 +54,7 @@ namespace TileShop.WPF.ViewModels
             get => _zoom;
             set
             {
-                if (SetAndNotify(ref _zoom, value));
+                if (SetAndNotify(ref _zoom, value))
                     CreateGridlines();
             }
         }
