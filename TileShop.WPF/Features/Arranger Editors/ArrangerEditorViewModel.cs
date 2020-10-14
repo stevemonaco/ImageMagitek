@@ -34,8 +34,6 @@ namespace TileShop.WPF.ViewModels
         public bool IsSingleLayout => _workingArranger?.Layout == ArrangerLayout.Single;
         public bool IsTiledLayout => _workingArranger?.Layout == ArrangerLayout.Tiled;
 
-        public virtual bool CanShowGridlines => _workingArranger?.Layout == ArrangerLayout.Tiled;
-
         protected bool _showGridlines = false;
         public bool ShowGridlines
         {
@@ -56,8 +54,8 @@ namespace TileShop.WPF.ViewModels
             get => _zoom;
             set
             {
-                SetAndNotify(ref _zoom, value);
-                CreateGridlines();
+                if (SetAndNotify(ref _zoom, value));
+                    CreateGridlines();
             }
         }
 
@@ -146,31 +144,44 @@ namespace TileShop.WPF.ViewModels
         /// <param name="paste"></param>
         public abstract void ApplyPaste(ArrangerPaste paste);
 
+        /// <summary>
+        /// Creates the Gridlines for an overlay using the extents and element spacing of the Working Arranger
+        /// </summary>
         protected virtual void CreateGridlines()
         {
-            if (_workingArranger is null || !CanShowGridlines)
+            if (_workingArranger is object)
+                CreateGridlines(0, 0, _workingArranger.ArrangerPixelSize.Width, _workingArranger.ArrangerPixelSize.Height,
+                    _workingArranger.ElementPixelSize.Width, _workingArranger.ElementPixelSize.Height);
+        }
+
+        /// <summary>
+        /// Creates the Gridlines for an overlay
+        /// </summary>
+        /// <param name="x">Starting x-coordinate in pixel coordinates, inclusive</param>
+        /// <param name="y">Starting y-coordinate in pixel coordinates, inclusive</param>
+        /// <param name="x2">Ending x-coordinate in pixel coordinates, inclusive</param>
+        /// <param name="y2">Ending y-coordinate in pixel coordinates, inclusive</param>
+        /// <param name="xSpacing">Spacing between gridlines in pixel coordinates</param>
+        /// <param name="height">Spacing between gridlines in pixel coordinates</param>
+        protected void CreateGridlines(int x1, int y1, int x2, int y2, int xSpacing, int ySpacing)
+        {
+            if (_workingArranger is null)
                 return;
 
             _gridlines = new BindableCollection<Gridline>();
-            for (int x = 0; x < _workingArranger.ArrangerElementSize.Width; x++) // Vertical gridlines
+            for (int x = x1; x <= x2; x += xSpacing) // Vertical gridlines
             {
-                var gridline = new Gridline(x * _workingArranger.ElementPixelSize.Width * Zoom + 1, 0,
-                    x * _workingArranger.ElementPixelSize.Width * Zoom + 1, _workingArranger.ArrangerPixelSize.Height * Zoom);
+                var gridline = new Gridline(x * Zoom + 1, 0,
+                    x * Zoom + 1, y2 * Zoom);
                 _gridlines.Add(gridline);
             }
 
-            _gridlines.Add(new Gridline(_workingArranger.ArrangerPixelSize.Width * Zoom, 0,
-                _workingArranger.ArrangerPixelSize.Width * Zoom, _workingArranger.ArrangerPixelSize.Height * Zoom));
-
-            for (int y = 0; y < _workingArranger.ArrangerElementSize.Height; y++) // Horizontal gridlines
+            for (int y = y1; y <= y2; y += ySpacing) // Horizontal gridlines
             {
-                var gridline = new Gridline(0, y * _workingArranger.ElementPixelSize.Height * Zoom + 1,
-                    _workingArranger.ArrangerPixelSize.Width * Zoom, y * _workingArranger.ElementPixelSize.Height * Zoom + 1);
+                var gridline = new Gridline(0, y * Zoom + 1,
+                    x2 * Zoom, y * Zoom + 1);
                 _gridlines.Add(gridline);
             }
-
-            _gridlines.Add(new Gridline(0, _workingArranger.ArrangerPixelSize.Height * Zoom,
-                _workingArranger.ArrangerPixelSize.Width * Zoom, _workingArranger.ArrangerPixelSize.Height * Zoom));
 
             NotifyOfPropertyChange(() => Gridlines);
         }
@@ -179,11 +190,7 @@ namespace TileShop.WPF.ViewModels
         public virtual void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);
         public virtual void ZoomOut() => Zoom = Math.Clamp(Zoom - 1, MinZoom, MaxZoom);
 
-        public virtual void ToggleGridlineVisibility()
-        {
-            if (CanShowGridlines)
-                ShowGridlines ^= true;
-        }
+        public virtual void ToggleGridlineVisibility() => ShowGridlines ^= true;
 
         public virtual void EditSelection()
         {

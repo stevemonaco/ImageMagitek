@@ -60,7 +60,6 @@ namespace TileShop.WPF.ViewModels
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
             CreateImages();
-            CreateGridlines();
 
             if (arranger.Layout == ArrangerLayout.Single)
             {
@@ -248,6 +247,20 @@ namespace TileShop.WPF.ViewModels
                 _directImage = new DirectImage(_workingArranger);
                 BitmapAdapter = new DirectBitmapAdapter(_directImage);
             }
+
+            CreateGridlines();
+        }
+
+        protected override void CreateGridlines()
+        {
+            if (_workingArranger.Layout == ArrangerLayout.Single)
+            {
+                CreateGridlines(0, 0, _workingArranger.ArrangerPixelSize.Width, _workingArranger.ArrangerPixelSize.Height, 8, 8);
+            }
+            else if (_workingArranger.Layout == ArrangerLayout.Tiled)
+            {
+                base.CreateGridlines();
+            }
         }
 
         public override void Render()
@@ -273,6 +286,9 @@ namespace TileShop.WPF.ViewModels
 
             if (elementCopy is null)
                 return new MagitekResult.Failed("No valid Paste selection");
+
+            if (!_projectService.AreResourcesInSameProject(elementCopy.Source, Resource))
+                return new MagitekResult.Failed("Copying arranger elements across projects is not permitted");
 
             var sourceArranger = paste.Copy.Source;
             var rect = paste.Rect;

@@ -76,6 +76,7 @@ namespace TileShop.WPF.ViewModels
             Selection = new ArrangerSelection(arranger, SnapMode);
 
             CreateGridlines();
+
             ActivePalette = Palettes.First();
             PrimaryColor = 0;
             SecondaryColor = 1;
@@ -85,6 +86,27 @@ namespace TileShop.WPF.ViewModels
         public override void Render() => BitmapAdapter.Invalidate();
 
         protected override void ReloadImage() => _indexedImage.Render();
+
+        protected override void CreateGridlines()
+        {
+            if (_workingArranger is null)
+                return;
+
+            if (_workingArranger.Layout == ArrangerLayout.Single)
+            {
+                CreateGridlines(0, 0, _viewWidth, _viewHeight, 8, 8);
+            }
+            else if (_workingArranger.Layout == ArrangerLayout.Tiled)
+            {
+                var location = _workingArranger.PointToElementLocation(new Point(_viewX, _viewY));
+
+                int x = _workingArranger.ElementPixelSize.Width - (_viewX - location.X * _workingArranger.ElementPixelSize.Width);
+                int y = _workingArranger.ElementPixelSize.Height - (_viewY - location.Y * _workingArranger.ElementPixelSize.Height);
+
+                CreateGridlines(x, y, _viewWidth, _viewHeight,
+                    _workingArranger.ElementPixelSize.Width, _workingArranger.ElementPixelSize.Height);
+            }
+        }
 
         #region Commands
         public void ConfirmPendingOperation()

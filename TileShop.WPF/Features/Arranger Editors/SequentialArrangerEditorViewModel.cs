@@ -182,7 +182,6 @@ namespace TileShop.WPF.ViewModels
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
             CreateImages();
-            CreateGridlines();
 
             foreach (var name in codecService.GetSupportedCodecNames().OrderBy(x => x))
                 CodecNames.Add(name);
@@ -341,7 +340,6 @@ namespace TileShop.WPF.ViewModels
 
             (_workingArranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
             CreateImages();
-            CreateGridlines();
             ArrangerPageSize = (int)(_workingArranger as SequentialArranger).ArrangerBitSize / 8;
             MaxFileDecodingOffset = (_workingArranger as SequentialArranger).FileSize - ArrangerPageSize;
         }
@@ -401,13 +399,11 @@ namespace TileShop.WPF.ViewModels
             CanResize = codec.CanResize;
             WidthIncrement = codec.WidthResizeIncrement;
             HeightIncrement = codec.HeightResizeIncrement;
-            CreateGridlines();
             CreateImages();
 
             NotifyOfPropertyChange(() => FileOffset);
             NotifyOfPropertyChange(() => IsTiledLayout);
             NotifyOfPropertyChange(() => IsSingleLayout);
-            NotifyOfPropertyChange(() => CanShowGridlines);
         }
 
         private void ChangePalette(PaletteModel pal)
@@ -421,7 +417,6 @@ namespace TileShop.WPF.ViewModels
             var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, width, height);
             (_workingArranger as SequentialArranger).ChangeCodec(codec);
             CreateImages();
-            CreateGridlines();
         }
 
         private void CreateImages()
@@ -437,6 +432,20 @@ namespace TileShop.WPF.ViewModels
             {
                 _directImage = new DirectImage(_workingArranger);
                 BitmapAdapter = new DirectBitmapAdapter(_directImage);
+            }
+
+            CreateGridlines();
+        }
+
+        protected override void CreateGridlines()
+        {
+            if (_workingArranger.Layout == ArrangerLayout.Single)
+            {
+                CreateGridlines(0, 0, _workingArranger.ArrangerPixelSize.Width, _workingArranger.ArrangerPixelSize.Height, 8, 8);
+            }
+            else if (_workingArranger.Layout == ArrangerLayout.Tiled)
+            {
+                base.CreateGridlines();
             }
         }
 

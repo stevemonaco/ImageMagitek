@@ -135,8 +135,7 @@
                 <ToggleButton
                     Focusable="False"
                     IsChecked="{Binding ShowGridlines}"
-                    ToolTip="Toggle gridline visibility"
-                    Visibility="{Binding CanShowGridlines, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+                    ToolTip="Toggle gridline visibility">
                     <StackPanel>
                         <TextBlock Text="Grid" />
                         <Image Style="{StaticResource iconGrid}" />

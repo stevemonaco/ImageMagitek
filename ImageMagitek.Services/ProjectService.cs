@@ -28,6 +28,7 @@ namespace ImageMagitek.Services
 
         ProjectTree GetContainingProject(ResourceNode node);
         ProjectTree GetContainingProject(IProjectResource resource);
+        bool AreResourcesInSameProject(IProjectResource a, IProjectResource b);
     }
 
     public class ProjectService : IProjectService
@@ -191,6 +192,14 @@ namespace ImageMagitek.Services
         {
             return Projects.FirstOrDefault(x => x.ContainsResource(resource)) ??
                 throw new ArgumentException($"{nameof(GetContainingProject)} could not locate the resource '{resource.Name}'");
+        }
+
+        public bool AreResourcesInSameProject(IProjectResource a, IProjectResource b)
+        {
+            var projectA = Projects.FirstOrDefault(x => x.ContainsResource(a));
+            var projectB = Projects.FirstOrDefault(x => x.ContainsResource(b));
+
+            return ReferenceEquals(projectA, projectB);
         }
     }
 }
