@@ -161,6 +161,7 @@ namespace TileShop.WPF.ViewModels
 
                 if (newDocument is object)
                 {
+                    newDocument.OriginatingProjectResource = resource;
                     Editors.Add(newDocument);
                     ActiveEditor = newDocument;
                 }

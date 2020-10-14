@@ -396,6 +396,7 @@ namespace TileShop.WPF.ViewModels
                     int width = rect.SnappedWidth / _workingArranger.ElementPixelSize.Width;
                     int height = rect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
                     copy = _workingArranger.CopyElements(x, y, width, height);
+                    (copy as ElementCopy).ProjectResource = OriginatingProjectResource;
                 }
                 else if (SnapMode == SnapMode.Pixel && _workingArranger.ColorType == PixelColorType.Indexed)
                 {

@@ -76,7 +76,7 @@
 
   <xs:element name="arranger">
     <xs:complexType>
-      <xs:choice maxOccurs="unbounded">
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
         <xs:element ref="element" />
       </xs:choice>
       <xs:attribute name="name" type="xs:string" use="required" />
@@ -102,7 +102,7 @@
       </xs:attribute>
       <xs:attribute name="defaultcodec" type="xs:string" use="required" />
       <xs:attribute name="defaultdatafile" type="xs:string" use="required" />
-      <xs:attribute name="defaultpalette" type="xs:string" use="optional" />
+      <xs:attribute name="defaultpalette" type="xs:string" use="required" />
     </xs:complexType>
   </xs:element>
 

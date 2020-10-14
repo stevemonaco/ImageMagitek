@@ -220,7 +220,7 @@ namespace TileShop.WPF.ViewModels
         {
             if (dropInfo.Data is PaletteNodeViewModel palNodeVM)
             {
-                if (!_projectService.AreResourcesInSameProject(Resource, palNodeVM.Node.Resource))
+                if (!_projectService.AreResourcesInSameProject(OriginatingProjectResource, palNodeVM.Node.Resource))
                 {
                     var notifyEvent = new NotifyOperationEvent("Copying palettes across projects is not permitted");
                     _events.PublishOnUIThread(notifyEvent);
@@ -294,7 +294,7 @@ namespace TileShop.WPF.ViewModels
             if (elementCopy is null)
                 return new MagitekResult.Failed("No valid Paste selection");
 
-            if (!_projectService.AreResourcesInSameProject(elementCopy.Source, Resource))
+            if (!_projectService.AreResourcesInSameProject(elementCopy.ProjectResource, OriginatingProjectResource))
                 return new MagitekResult.Failed("Copying arranger elements across projects is not permitted");
 
             var sourceArranger = paste.Copy.Source;

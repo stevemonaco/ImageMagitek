@@ -8,6 +8,7 @@ namespace TileShop.WPF.ViewModels
     public abstract class ResourceEditorBaseViewModel : ToolViewModel, IHandle<ResourceRenamedEvent>
     {
         public IProjectResource Resource { get; protected set; }
+        public IProjectResource OriginatingProjectResource { get; set; }
 
         private BindableCollection<HistoryAction> _undoHistory = new BindableCollection<HistoryAction>();
         public BindableCollection<HistoryAction> UndoHistory

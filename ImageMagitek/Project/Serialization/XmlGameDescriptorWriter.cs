@@ -218,14 +218,9 @@ namespace ImageMagitek.Project.Serialization
             else if (arrangerModel.ColorType == PixelColorType.Direct)
                 arrangerNode.Add(new XAttribute("color", "direct"));
 
-            if (!string.IsNullOrEmpty(mostUsedCodecName))
-                arrangerNode.Add(new XAttribute("defaultcodec", mostUsedCodecName));
-
-            if (!string.IsNullOrEmpty(mostUsedFileKey))
-                arrangerNode.Add(new XAttribute("defaultdatafile", mostUsedFileKey));
-
-            if (!string.IsNullOrEmpty(mostUsedPaletteKey))
-                arrangerNode.Add(new XAttribute("defaultpalette", mostUsedPaletteKey));
+            arrangerNode.Add(new XAttribute("defaultcodec", mostUsedCodecName ?? ""));
+            arrangerNode.Add(new XAttribute("defaultdatafile", mostUsedFileKey ?? ""));
+            arrangerNode.Add(new XAttribute("defaultpalette", mostUsedPaletteKey ?? ""));
 
             for (int y = 0; y < arrangerModel.ArrangerElementSize.Height; y++)
             {
@@ -234,9 +229,6 @@ namespace ImageMagitek.Project.Serialization
                     var el = arrangerModel.ElementGrid[x, y];
 
                     if (el is null)
-                        continue;
-
-                    if (el.CodecName == "Blank Indexed" || el.CodecName == "Blank Direct")
                         continue;
 
                     var elNode = new XElement("element");

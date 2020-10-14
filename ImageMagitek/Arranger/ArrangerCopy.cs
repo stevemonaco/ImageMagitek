@@ -1,4 +1,4 @@
-﻿using ImageMagitek.Colors;
+﻿using ImageMagitek.Project;
 using System;
 
 namespace ImageMagitek
@@ -33,7 +33,15 @@ namespace ImageMagitek
 
     public class ElementCopy : ArrangerCopy
     {
+        /// <summary>
+        /// Elements to be copied into the destination
+        /// </summary>
         public ArrangerElement?[,] Elements { get; }
+
+        /// <summary>
+        /// Originating project resource
+        /// </summary>
+        public IProjectResource ProjectResource { get; set; }
 
         /// <summary>
         /// Width of each element in pixels
@@ -48,7 +56,7 @@ namespace ImageMagitek
         /// <summary>
         /// Creates a copy of an Arranger's ArrangerElements
         /// </summary>
-        /// <param name="source"></param>
+        /// <param name="source">Arranger containing the elements to be copied from</param>
         /// <param name="elementX">Starting x-coordinate of copy in element coordinates</param>
         /// <param name="elementY">Starting y-coordinate of copy in element coordinates</param>
         /// <param name="copyWidth">Width of copy in element coordinates</param>
@@ -56,6 +64,7 @@ namespace ImageMagitek
         public ElementCopy(Arranger source, int elementX, int elementY, int copyWidth, int copyHeight)
         {
             Source = source;
+            ProjectResource = Source;
             X = elementX;
             Y = elementY;
             Width = copyWidth;

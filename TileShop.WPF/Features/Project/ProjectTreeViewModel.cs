@@ -82,9 +82,7 @@ namespace TileShop.WPF.ViewModels
 
         public void AddNewFolder(ResourceNodeViewModel parentNodeModel)
         {
-            var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
-
-            projectTree.CreateNewFolder(parentNodeModel.Node, "New Folder", false).Switch(
+            _projectService.CreateNewFolder(parentNodeModel.Node, "New Folder", true).Switch(
                 success =>
                 {
                     var folderVM = new FolderNodeViewModel(success.Result, parentNodeModel);
@@ -114,7 +112,7 @@ namespace TileShop.WPF.ViewModels
                 }
 
                 var df = new DataFile(dfName, dataFileName);
-                var result = projectTree.AddResource(parentNodeModel.Node, df);
+                var result = _projectService.AddResource(parentNodeModel.Node, df, true);
 
                 result.Switch(success =>
                 {
@@ -154,7 +152,7 @@ namespace TileShop.WPF.ViewModels
                     dialogModel.Entries, dialogModel.ZeroIndexTransparent, PaletteStorageSource.DataFile);
                 pal.DataFile = dialogModel.SelectedDataFile;
 
-                var result = projectTree.AddResource(parentNodeModel.Node, pal);
+                var result = _projectService.AddResource(parentNodeModel.Node, pal, true);
 
                 result.Switch(success =>
                 {
@@ -163,6 +161,7 @@ namespace TileShop.WPF.ViewModels
                     SelectedNode = palVM;
                     IsModified = true;
                     _tracker.Persist(dialogModel);
+                    _editors.ActivateEditor(pal);
                 },
                 fail =>
                 {
@@ -183,7 +182,7 @@ namespace TileShop.WPF.ViewModels
                     dialogModel.Layout, dialogModel.ArrangerElementWidth, dialogModel.ArrangerElementHeight,
                     dialogModel.ElementPixelWidth, dialogModel.ElementPixelHeight);
 
-                var result = projectTree.AddResource(parentNodeModel.Node, arranger);
+                var result = _projectService.AddResource(parentNodeModel.Node, arranger, true);
 
                 result.Switch(success =>
                 {
@@ -192,6 +191,7 @@ namespace TileShop.WPF.ViewModels
                     SelectedNode = arrangerVM;
                     IsModified = true;
                     _tracker.Persist(dialogModel);
+                    _editors.ActivateEditor(arranger);
                 },
                 fail =>
                 {
@@ -404,19 +404,26 @@ namespace TileShop.WPF.ViewModels
                 var source = new Point(0, 0);
                 var dest = new Point(0, 0);
 
-                var result = ElementCopier.CopyElements(copy, newArranger, source, dest, copy.Width, copy.Height);
+                var copyResult = ElementCopier.CopyElements(copy, newArranger, source, dest, copy.Width, copy.Height);
 
-                result.Switch(
-                    success =>
+                copyResult.Switch(
+                    copySuccess =>
                     {
-                        var nodeResult = projectTree.AddResource(parentModel.Node, newArranger);
-                        var arrangerVM = new ArrangerNodeViewModel(nodeResult.AsT0.Result, parentModel);
-                        parentModel.Children.Add(arrangerVM);
-                        SelectedNode = arrangerVM;
-                        IsModified = true;
-                        _editors.ActivateEditor(newArranger);
+                        var addResult = _projectService.AddResource(parentModel.Node, newArranger, true);
+
+                        addResult.Switch(
+                            addSuccess =>
+                            {
+                                var arrangerVM = new ArrangerNodeViewModel(addSuccess.Result, parentModel);
+                                parentModel.Children.Add(arrangerVM);
+                                SelectedNode = arrangerVM;
+                                IsModified = true;
+                                _editors.ActivateEditor(newArranger);
+                            },
+                            addFailed => _windowManager.ShowMessageBox($"{addFailed.Reason}", "Error")
+                        );
                     },
-                    fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Error")
+                    copyFailed => _windowManager.ShowMessageBox($"{copyFailed.Reason}", "Error")
                 );
             }
         }

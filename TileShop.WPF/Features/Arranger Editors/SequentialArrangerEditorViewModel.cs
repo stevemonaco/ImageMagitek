@@ -290,7 +290,7 @@ namespace TileShop.WPF.ViewModels
                 int height = Selection.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
 
                 var copy = new ElementCopy(_workingArranger, x, y, width, height);
-                var model = new AddScatteredArrangerFromCopyEvent(copy, (Resource as SequentialArranger).ActiveDataFile);
+                var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
                 _events.PublishOnUIThread(model);
             }
             else
