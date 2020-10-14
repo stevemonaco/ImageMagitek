@@ -30,7 +30,7 @@ namespace ImageMagitek.Colors
     /// </summary>
     public class Palette : IProjectResource
     {
-        private static Cie94Comparison _comparator = new Cie94Comparison(Cie94Comparison.Application.GraphicArts);
+        private static readonly Cie94Comparison _comparator = new Cie94Comparison(Cie94Comparison.Application.GraphicArts);
 
         public string Name { get; set; }
         public bool CanContainChildResources => false;
@@ -493,7 +493,7 @@ namespace ImageMagitek.Colors
                 //case ColorModel.NES:
                 //    return "NES";
                 default:
-                    throw new ArgumentException($"{nameof(ColorModelToString)} {nameof(ColorModel)} '{model.ToString()}' is not supported");
+                    throw new ArgumentException($"{nameof(ColorModelToString)} {nameof(ColorModel)} '{model}' is not supported");
             }
         }
 

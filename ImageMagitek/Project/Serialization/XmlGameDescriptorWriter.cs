@@ -43,28 +43,15 @@ namespace ImageMagitek.Project.Serialization
 
             foreach(var node in modelTree.EnumerateDepthFirst())
             {
-                XElement element;
- 
-                switch(node.Value)
+                XElement element = node.Value switch
                 {
-                    case ResourceFolderModel folderModel:
-                        element = Serialize(folderModel);
-                        break;
-                    case DataFileModel dataFileModel:
-                        element = Serialize(dataFileModel);
-                        break;
-                    case PaletteModel paletteModel:
-                        element = Serialize(paletteModel);
-                        break;
-                    case ScatteredArrangerModel arrangerModel:
-                        element = Serialize(arrangerModel);
-                        break;
-                    case ImageProjectModel projectModel:
-                        element = Serialize(projectModel);
-                        break;
-                    default:
-                        throw new InvalidOperationException($"{nameof(WriteProject)}: unexpected node of type '{node.Value.GetType()}'");
-                }
+                    ResourceFolderModel folderModel => Serialize(folderModel),
+                    DataFileModel dataFileModel => Serialize(dataFileModel),
+                    PaletteModel paletteModel => Serialize(paletteModel),
+                    ScatteredArrangerModel arrangerModel => Serialize(arrangerModel),
+                    ImageProjectModel projectModel => Serialize(projectModel),
+                    _ => throw new InvalidOperationException($"{nameof(WriteProject)}: unexpected node of type '{node.Value.GetType()}'"),
+                };
 
                 AddResourceToXmlTree(xmlRoot, element, node.Paths.ToArray());
             }
@@ -135,9 +122,7 @@ namespace ImageMagitek.Project.Serialization
                                     else
                                         continue;
 
-                                    string paletteKey = default;
-
-                                    if (!resourceResolver.TryGetValue(element.Palette, out paletteKey))
+                                    if (!resourceResolver.TryGetValue(element.Palette, out var paletteKey))
                                     {
                                         paletteKey = _globalResources.OfType<Palette>()
                                             .FirstOrDefault(x => ReferenceEquals(element.Palette, x))?.Name;

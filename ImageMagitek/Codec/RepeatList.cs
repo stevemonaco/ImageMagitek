@@ -10,7 +10,7 @@ namespace ImageMagitek.Codec
     /// </summary>
     public class RepeatList : IEnumerable<int>
     {
-        private List<int> _list;
+        private readonly List<int> _list;
 
         public int Capacity => _list.Capacity;
         public int Count => _list.Count;
