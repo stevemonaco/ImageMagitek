@@ -96,14 +96,7 @@ namespace TileShop.WPF.Imaging
                             {
                                 var pal = element.Palette;
 
-                                if (element.Codec is BlankIndexedCodec blankIndexedCodec)
-                                {
-                                    dest[x * 4] = 0;
-                                    dest[x * 4 + 1] = 0;
-                                    dest[x * 4 + 2] = 0;
-                                    dest[x * 4 + 3] = 0;
-                                }
-                                else if (pal is object)
+                                if (pal is object)
                                 {
                                     var index = src[x + xStart];
                                     var color = pal[index];

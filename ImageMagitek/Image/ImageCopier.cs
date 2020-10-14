@@ -172,7 +172,7 @@ namespace ImageMagitek.Image
             where TPixel : struct
         {
             var elems = image.GetElementsByPixel(start.X, start.Y, width, height);
-            return elems.Any(x => x is null || x?.Codec is BlankIndexedCodec || x?.Codec is BlankDirectCodec);
+            return elems.Any(x => x is null);
         }
 
         public static MagitekResult CopyPixels(IndexedPixelCopy source, IndexedImage dest, Point destStart, params PixelRemapOperation[] operationAttempts)

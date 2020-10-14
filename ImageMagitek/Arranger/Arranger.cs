@@ -303,7 +303,6 @@ namespace ImageMagitek
             return EnumerateElements()
                 .OfType<ArrangerElement>()
                 .Select(x => x.Codec)
-                .Where(x => !(x is BlankIndexedCodec) && !(x is BlankDirectCodec ))
                 .Distinct()
                 .ToHashSet();
         }
