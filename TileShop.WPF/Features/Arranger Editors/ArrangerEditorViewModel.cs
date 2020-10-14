@@ -10,7 +10,6 @@ using TileShop.WPF.Imaging;
 using GongSolutions.Wpf.DragDrop;
 using ImageMagitek.Services;
 using ImageMagitek;
-using ImageMagitek.Codec;
 
 namespace TileShop.WPF.ViewModels
 {
