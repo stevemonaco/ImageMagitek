@@ -291,26 +291,13 @@ namespace TileShop.WPF.ViewModels
                 int height = Selection.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
 
                 var copy = new ElementCopy(_workingArranger, x, y, width, height);
-                var model = new AddScatteredArrangerFromCopyEvent(copy);
+                var model = new AddScatteredArrangerFromCopyEvent(copy, (Resource as SequentialArranger).ActiveDataFile);
                 _events.PublishOnUIThread(model);
             }
             else
             {
                 _windowManager.ShowMessageBox("Selection must be performed in element snap mode to create a new Scattered Arranger", "Error");
             }
-        }
-
-        public void NewScatteredArrangerFromImage()
-        {
-            int x = Selection.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
-            int y = Selection.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
-            int width = Selection.SelectionRect.SnappedWidth / _workingArranger.ElementPixelSize.Width;
-            int height = Selection.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
-
-            var copy = new ElementCopy(_workingArranger, x, y, width, height);
-
-            var model = new AddScatteredArrangerFromCopyEvent(copy);
-            _events.PublishOnUIThread(model);
         }
 
         private void Move(ArrangerMoveType moveType)

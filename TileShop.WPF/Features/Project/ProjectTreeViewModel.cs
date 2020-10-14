@@ -392,11 +392,11 @@ namespace TileShop.WPF.ViewModels
 
         public void Handle(AddScatteredArrangerFromCopyEvent message)
         {
-            var parentModel = Projects.First();
             var model = new NameResourceViewModel();
             var copy = message.Copy;
             var arranger = message.Copy.Source;
-            var projectTree = _projectService.GetContainingProject(parentModel.Node);
+            var projectTree = _projectService.GetContainingProject(message.ProjectResource);
+            var parentModel = Projects.First(x => ReferenceEquals(projectTree.Project, x.Node.Value));
 
             if (_windowManager.ShowDialog(model) is true)
             {
