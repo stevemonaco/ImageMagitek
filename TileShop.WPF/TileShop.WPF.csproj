@@ -6,7 +6,7 @@
     <LangVersion>8.0</LangVersion>
     <UseWPF>true</UseWPF>
     <AssemblyName>TileShop</AssemblyName>
-    <Version>0.96</Version>
+    <Version>0.97</Version>
     <Authors>Steve Monaco</Authors>
     <PackageProjectUrl>https://github.com/stevemonaco/ImageMagitek</PackageProjectUrl>
     <RepositoryUrl>https://github.com/stevemonaco/ImageMagitek</RepositoryUrl>
