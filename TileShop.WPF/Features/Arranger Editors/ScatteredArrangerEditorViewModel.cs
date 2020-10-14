@@ -220,6 +220,13 @@ namespace TileShop.WPF.ViewModels
         {
             if (dropInfo.Data is PaletteNodeViewModel palNodeVM)
             {
+                if (!_projectService.AreResourcesInSameProject(Resource, palNodeVM.Node.Resource))
+                {
+                    var notifyEvent = new NotifyOperationEvent("Copying palettes across projects is not permitted");
+                    _events.PublishOnUIThread(notifyEvent);
+                    return;
+                }
+
                 var pal = palNodeVM.Node.Value as Palette;
                 if (!Palettes.Any(x => ReferenceEquals(pal, x.Palette)))
                 {
