@@ -422,7 +422,8 @@ namespace TileShop.WPF.ViewModels
             var projectTree = _projectService.GetContainingProject(Resource);
             var palettes = projectTree.Tree.EnumerateDepthFirst()
                 .Where(x => x.Value is Palette)
-                .Select(x => new AssociatePaletteModel(x.Value as Palette, x.PathKey));
+                .Select(x => new AssociatePaletteModel(x.Value as Palette, x.PathKey))
+                .Concat(_projectService.GlobalResources.OfType<Palette>().Select(x => new AssociatePaletteModel(x, x.Name)));
 
             var model = new AssociatePaletteViewModel(palettes);
 
