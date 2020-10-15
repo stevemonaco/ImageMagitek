@@ -61,7 +61,7 @@ namespace TileShop.WPF.ViewModels
             get => _tiledElementWidth;
             set
             {
-                var preferredWidth = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
+                var preferredWidth = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
                 SetAndNotify(ref _tiledElementWidth, preferredWidth);
                 ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
             }
@@ -73,7 +73,7 @@ namespace TileShop.WPF.ViewModels
             get => _tiledElementHeight;
             set
             {
-                var preferredHeight = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredHeight(value);
+                var preferredHeight = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredHeight(value);
                 SetAndNotify(ref _tiledElementHeight, preferredHeight);
                 ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
             }
@@ -107,7 +107,7 @@ namespace TileShop.WPF.ViewModels
             get => _linearArrangerWidth;
             set
             {
-                var preferredWidth = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
+                var preferredWidth = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
                 SetAndNotify(ref _linearArrangerWidth, preferredWidth);
                 ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
             }
@@ -119,7 +119,7 @@ namespace TileShop.WPF.ViewModels
             get => _linearArrangerHeight;
             set
             {
-                var preferredHeight = (_workingArranger as SequentialArranger).ActiveCodec.GetPreferredHeight(value);
+                var preferredHeight = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredHeight(value);
                 SetAndNotify(ref _linearArrangerHeight, preferredHeight);
                 ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
             }
@@ -176,7 +176,7 @@ namespace TileShop.WPF.ViewModels
             base(events, windowManager, paletteService)
         {
             Resource = arranger;
-            _workingArranger = arranger;
+            WorkingArranger = arranger;
             _codecService = codecService;
             _tracker = tracker;
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
@@ -210,8 +210,8 @@ namespace TileShop.WPF.ViewModels
             Palettes = new BindableCollection<PaletteModel>(_paletteService.GlobalPalettes.Select(x => new PaletteModel(x)));
             SelectedPalette = Palettes.First();
 
-            ArrangerPageSize = (int) (_workingArranger as SequentialArranger).ArrangerBitSize / 8;
-            MaxFileDecodingOffset = (_workingArranger as SequentialArranger).FileSize - ArrangerPageSize;
+            ArrangerPageSize = (int) (WorkingArranger as SequentialArranger).ArrangerBitSize / 8;
+            MaxFileDecodingOffset = (WorkingArranger as SequentialArranger).FileSize - ArrangerPageSize;
         }
 
         public override void SaveChanges()
@@ -284,12 +284,12 @@ namespace TileShop.WPF.ViewModels
         {
             if (SnapMode == SnapMode.Element)
             {
-                int x = Selection.SelectionRect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
-                int y = Selection.SelectionRect.SnappedTop / _workingArranger.ElementPixelSize.Height;
-                int width = Selection.SelectionRect.SnappedWidth / _workingArranger.ElementPixelSize.Width;
-                int height = Selection.SelectionRect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
+                int x = Selection.SelectionRect.SnappedLeft / WorkingArranger.ElementPixelSize.Width;
+                int y = Selection.SelectionRect.SnappedTop / WorkingArranger.ElementPixelSize.Height;
+                int width = Selection.SelectionRect.SnappedWidth / WorkingArranger.ElementPixelSize.Width;
+                int height = Selection.SelectionRect.SnappedHeight / WorkingArranger.ElementPixelSize.Height;
 
-                var copy = new ElementCopy(_workingArranger, x, y, width, height);
+                var copy = new ElementCopy(WorkingArranger, x, y, width, height);
                 var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
                 _events.PublishOnUIThread(model);
             }
@@ -301,8 +301,8 @@ namespace TileShop.WPF.ViewModels
 
         private void Move(ArrangerMoveType moveType)
         {
-            var oldAddress = (_workingArranger as SequentialArranger).GetInitialSequentialFileAddress();
-            var newAddress = (_workingArranger as SequentialArranger).Move(moveType);
+            var oldAddress = (WorkingArranger as SequentialArranger).GetInitialSequentialFileAddress();
+            var newAddress = (WorkingArranger as SequentialArranger).Move(moveType);
 
             if (oldAddress != newAddress)
             {
@@ -314,8 +314,8 @@ namespace TileShop.WPF.ViewModels
 
         private void Move(long offset)
         {
-            var oldAddress = (_workingArranger as SequentialArranger).GetInitialSequentialFileAddress();
-            var newAddress = (_workingArranger as SequentialArranger).Move(new FileBitAddress(offset, 0));
+            var oldAddress = (WorkingArranger as SequentialArranger).GetInitialSequentialFileAddress();
+            var newAddress = (WorkingArranger as SequentialArranger).Move(new FileBitAddress(offset, 0));
 
             if (oldAddress != newAddress)
             {
@@ -330,18 +330,18 @@ namespace TileShop.WPF.ViewModels
             if (arrangerWidth <= 0 || arrangerHeight <= 0)
                 return;
 
-            if (arrangerWidth == _workingArranger.ArrangerElementSize.Width && 
-                arrangerHeight == _workingArranger.ArrangerElementSize.Height && IsTiledLayout)
+            if (arrangerWidth == WorkingArranger.ArrangerElementSize.Width && 
+                arrangerHeight == WorkingArranger.ArrangerElementSize.Height && IsTiledLayout)
                 return;
 
-            if (arrangerWidth == _workingArranger.ArrangerPixelSize.Width &&
-                arrangerHeight == _workingArranger.ArrangerPixelSize.Height && IsSingleLayout)
+            if (arrangerWidth == WorkingArranger.ArrangerPixelSize.Width &&
+                arrangerHeight == WorkingArranger.ArrangerPixelSize.Height && IsSingleLayout)
                 return;
 
-            (_workingArranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
+            (WorkingArranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
             CreateImages();
-            ArrangerPageSize = (int)(_workingArranger as SequentialArranger).ArrangerBitSize / 8;
-            MaxFileDecodingOffset = (_workingArranger as SequentialArranger).FileSize - ArrangerPageSize;
+            ArrangerPageSize = (int)(WorkingArranger as SequentialArranger).ArrangerBitSize / 8;
+            MaxFileDecodingOffset = (WorkingArranger as SequentialArranger).FileSize - ArrangerPageSize;
         }
 
         public void SelectNextCodec()
@@ -374,7 +374,7 @@ namespace TileShop.WPF.ViewModels
                 _tiledElementHeight = codec.Height;
                 _tiledElementWidth = codec.Width;
 
-                (_workingArranger as SequentialArranger).ChangeCodec(codec, TiledArrangerWidth, TiledArrangerHeight);
+                (WorkingArranger as SequentialArranger).ChangeCodec(codec, TiledArrangerWidth, TiledArrangerHeight);
                 SnapMode = SnapMode.Element;
 
                 NotifyOfPropertyChange(() => TiledElementHeight);
@@ -386,16 +386,16 @@ namespace TileShop.WPF.ViewModels
                 _linearArrangerHeight = codec.Height;
                 _linearArrangerWidth = codec.Width;
 
-                (_workingArranger as SequentialArranger).ChangeCodec(codec, 1, 1);
+                (WorkingArranger as SequentialArranger).ChangeCodec(codec, 1, 1);
                 SnapMode = SnapMode.Pixel;
 
                 NotifyOfPropertyChange(() => LinearArrangerHeight);
                 NotifyOfPropertyChange(() => LinearArrangerWidth);
             }
 
-            _fileOffset = (_workingArranger as SequentialArranger).FileAddress;
-            ArrangerPageSize = (int)(_workingArranger as SequentialArranger).ArrangerBitSize / 8;
-            MaxFileDecodingOffset = (_workingArranger as SequentialArranger).FileSize - ArrangerPageSize;
+            _fileOffset = (WorkingArranger as SequentialArranger).FileAddress;
+            ArrangerPageSize = (int)(WorkingArranger as SequentialArranger).ArrangerBitSize / 8;
+            MaxFileDecodingOffset = (WorkingArranger as SequentialArranger).FileSize - ArrangerPageSize;
             CanResize = codec.CanResize;
             WidthIncrement = codec.WidthResizeIncrement;
             HeightIncrement = codec.HeightResizeIncrement;
@@ -408,14 +408,14 @@ namespace TileShop.WPF.ViewModels
 
         private void ChangePalette(PaletteModel pal)
         {
-            (_workingArranger as SequentialArranger).ChangePalette(pal.Palette);
+            (WorkingArranger as SequentialArranger).ChangePalette(pal.Palette);
             Render();
         }
 
         private void ChangeCodecDimensions(int width, int height)
         {
             var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, width, height);
-            (_workingArranger as SequentialArranger).ChangeCodec(codec);
+            (WorkingArranger as SequentialArranger).ChangeCodec(codec);
             CreateImages();
         }
 
@@ -423,14 +423,14 @@ namespace TileShop.WPF.ViewModels
         {
             CancelOverlay();
 
-            if (_workingArranger.ColorType == PixelColorType.Indexed)
+            if (WorkingArranger.ColorType == PixelColorType.Indexed)
             {
-                _indexedImage = new IndexedImage(_workingArranger);
+                _indexedImage = new IndexedImage(WorkingArranger);
                 BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
             }
-            else if (_workingArranger.ColorType == PixelColorType.Direct)
+            else if (WorkingArranger.ColorType == PixelColorType.Direct)
             {
-                _directImage = new DirectImage(_workingArranger);
+                _directImage = new DirectImage(WorkingArranger);
                 BitmapAdapter = new DirectBitmapAdapter(_directImage);
             }
 
@@ -439,11 +439,11 @@ namespace TileShop.WPF.ViewModels
 
         protected override void CreateGridlines()
         {
-            if (_workingArranger.Layout == ArrangerLayout.Single)
+            if (WorkingArranger.Layout == ArrangerLayout.Single)
             {
-                CreateGridlines(0, 0, _workingArranger.ArrangerPixelSize.Width, _workingArranger.ArrangerPixelSize.Height, 8, 8);
+                CreateGridlines(0, 0, WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height, 8, 8);
             }
-            else if (_workingArranger.Layout == ArrangerLayout.Tiled)
+            else if (WorkingArranger.Layout == ArrangerLayout.Tiled)
             {
                 base.CreateGridlines();
             }
@@ -453,12 +453,12 @@ namespace TileShop.WPF.ViewModels
         {
             CancelOverlay();
 
-            if (_workingArranger.ColorType == PixelColorType.Indexed)
+            if (WorkingArranger.ColorType == PixelColorType.Indexed)
             {
                 _indexedImage.Render();
                 BitmapAdapter.Invalidate();
             }
-            else if (_workingArranger.ColorType == PixelColorType.Direct)
+            else if (WorkingArranger.ColorType == PixelColorType.Direct)
             {
                 _directImage.Render();
                 BitmapAdapter.Invalidate();

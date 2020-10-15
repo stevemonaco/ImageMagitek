@@ -52,6 +52,9 @@ namespace TileShop.WPF.ViewModels
         {
             _palette.SavePalette();
             IsModified = false;
+
+            var changeEvent = new PaletteChangedEvent(_palette);
+            _events.PublishOnUIThread(changeEvent);
         }
 
         public override void DiscardChanges()

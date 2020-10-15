@@ -15,7 +15,8 @@ using Serilog;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsEvent>, IHandle<ArrangerChangedEvent>
+    public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsEvent>, IHandle<ArrangerChangedEvent>,
+        IHandle<PaletteChangedEvent>
     {
         private readonly IWindowManager _windowManager;
         private readonly Tracker _tracker;
@@ -311,6 +312,15 @@ namespace TileShop.WPF.ViewModels
                     }
                 }
             }
+        }
+
+        public void Handle(PaletteChangedEvent message)
+        {
+            var effectedEditors = Editors.OfType<ScatteredArrangerEditorViewModel>()
+                .Where(x => x.WorkingArranger.GetReferencedPalettes().Contains(message.Palette));
+
+            foreach (var editor in effectedEditors)
+                editor.Render();
         }
     }
 }

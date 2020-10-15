@@ -17,7 +17,7 @@ namespace TileShop.WPF.ViewModels
 
     public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMouseCaptureProxy, IDropTarget, IDragSource
     {
-        protected Arranger _workingArranger;
+        public Arranger WorkingArranger { get; protected set; }
 
         protected IEventAggregator _events;
         protected IPaletteService _paletteService;
@@ -30,8 +30,8 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _bitmapAdapter, value);
         }
 
-        public bool IsSingleLayout => _workingArranger?.Layout == ArrangerLayout.Single;
-        public bool IsTiledLayout => _workingArranger?.Layout == ArrangerLayout.Tiled;
+        public bool IsSingleLayout => WorkingArranger?.Layout == ArrangerLayout.Single;
+        public bool IsTiledLayout => WorkingArranger?.Layout == ArrangerLayout.Tiled;
 
         protected bool _showGridlines = false;
         public bool ShowGridlines
@@ -80,7 +80,7 @@ namespace TileShop.WPF.ViewModels
                     if (rect.SnappedWidth == 0 || rect.SnappedHeight == 0)
                         return false;
 
-                    return !_workingArranger.EnumerateElementsByPixel(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight)
+                    return !WorkingArranger.EnumerateElementsByPixel(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight)
                         .Any(x => x is null || x?.DataFile is null);
                 }
                     
@@ -148,9 +148,9 @@ namespace TileShop.WPF.ViewModels
         /// </summary>
         protected virtual void CreateGridlines()
         {
-            if (_workingArranger is object)
-                CreateGridlines(0, 0, _workingArranger.ArrangerPixelSize.Width, _workingArranger.ArrangerPixelSize.Height,
-                    _workingArranger.ElementPixelSize.Width, _workingArranger.ElementPixelSize.Height);
+            if (WorkingArranger is object)
+                CreateGridlines(0, 0, WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height,
+                    WorkingArranger.ElementPixelSize.Width, WorkingArranger.ElementPixelSize.Height);
         }
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace TileShop.WPF.ViewModels
         /// <param name="height">Spacing between gridlines in pixel coordinates</param>
         protected void CreateGridlines(int x1, int y1, int x2, int y2, int xSpacing, int ySpacing)
         {
-            if (_workingArranger is null)
+            if (WorkingArranger is null)
                 return;
 
             _gridlines = new BindableCollection<Gridline>();
@@ -199,17 +199,17 @@ namespace TileShop.WPF.ViewModels
             EditArrangerPixelsEvent editEvent;
             var rect = Selection.SelectionRect;
 
-            if (SnapMode == SnapMode.Element && _workingArranger.Layout == ArrangerLayout.Tiled)
+            if (SnapMode == SnapMode.Element && WorkingArranger.Layout == ArrangerLayout.Tiled)
             {
                 // Clone a subsection of the arranger and show the full subarranger
-                _workingArranger.CopyElements();
-                var arranger = _workingArranger.CloneArranger(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+                WorkingArranger.CopyElements();
+                var arranger = WorkingArranger.CloneArranger(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
                 editEvent = new EditArrangerPixelsEvent(arranger, Resource as Arranger, 0, 0, rect.SnappedWidth, rect.SnappedHeight);
             }
             else
             {
                 // Clone the entire arranger and show a subsection of the cloned arranger
-                var arranger = _workingArranger.CloneArranger();
+                var arranger = WorkingArranger.CloneArranger();
                 editEvent = new EditArrangerPixelsEvent(arranger, Resource as Arranger, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
             }
 
@@ -220,14 +220,14 @@ namespace TileShop.WPF.ViewModels
         public virtual void SelectAll()
         {
             CancelOverlay();
-            Selection = new ArrangerSelection(_workingArranger, SnapMode);
+            Selection = new ArrangerSelection(WorkingArranger, SnapMode);
             Selection.StartSelection(0, 0);
-            Selection.UpdateSelectionEndpoint(_workingArranger.ArrangerPixelSize.Width, _workingArranger.ArrangerPixelSize.Height);
+            Selection.UpdateSelectionEndpoint(WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height);
         }
 
         public virtual void CancelOverlay()
         {
-            Selection = new ArrangerSelection(_workingArranger, SnapMode);
+            Selection = new ArrangerSelection(WorkingArranger, SnapMode);
             Paste = null;
 
             NotifyOfPropertyChange(() => CanEditSelection);
@@ -251,7 +251,7 @@ namespace TileShop.WPF.ViewModels
             {
                 if (Selection.SelectionRect.SnappedWidth == 0 || Selection.SelectionRect.SnappedHeight == 0)
                 {
-                    Selection = new ArrangerSelection(_workingArranger, SnapMode);
+                    Selection = new ArrangerSelection(WorkingArranger, SnapMode);
                 }
 
                 IsSelecting = false;
@@ -274,8 +274,8 @@ namespace TileShop.WPF.ViewModels
                 string notifyMessage;
                 var rect = Selection.SelectionRect;
                 if (rect.SnapMode == SnapMode.Element)
-                    notifyMessage = $"Element Selection: {rect.SnappedWidth / _workingArranger.ElementPixelSize.Width} x {rect.SnappedHeight / _workingArranger.ElementPixelSize.Height}" +
-                        $" at ({rect.SnappedLeft / _workingArranger.ElementPixelSize.Width}, {rect.SnappedRight / _workingArranger.ElementPixelSize.Height})";
+                    notifyMessage = $"Element Selection: {rect.SnappedWidth / WorkingArranger.ElementPixelSize.Width} x {rect.SnappedHeight / WorkingArranger.ElementPixelSize.Height}" +
+                        $" at ({rect.SnappedLeft / WorkingArranger.ElementPixelSize.Width}, {rect.SnappedRight / WorkingArranger.ElementPixelSize.Height})";
                 else
                     notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight}" +
                         $" at ({rect.SnappedLeft}, {rect.SnappedTop})";
@@ -284,7 +284,7 @@ namespace TileShop.WPF.ViewModels
             }
             else
             {
-                var notifyMessage = $"{_workingArranger.Name}: ({(int)Math.Truncate(e.X / Zoom)}, {(int)Math.Truncate(e.Y / Zoom)})";
+                var notifyMessage = $"{WorkingArranger.Name}: ({(int)Math.Truncate(e.X / Zoom)}, {(int)Math.Truncate(e.Y / Zoom)})";
                 var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
                 _events.PublishOnUIThread(notifyEvent);
             }
@@ -391,20 +391,20 @@ namespace TileShop.WPF.ViewModels
                 ArrangerCopy copy = default;
                 if (SnapMode == SnapMode.Element)
                 {
-                    int x = rect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
-                    int y = rect.SnappedTop / _workingArranger.ElementPixelSize.Height;
-                    int width = rect.SnappedWidth / _workingArranger.ElementPixelSize.Width;
-                    int height = rect.SnappedHeight / _workingArranger.ElementPixelSize.Height;
-                    copy = _workingArranger.CopyElements(x, y, width, height);
+                    int x = rect.SnappedLeft / WorkingArranger.ElementPixelSize.Width;
+                    int y = rect.SnappedTop / WorkingArranger.ElementPixelSize.Height;
+                    int width = rect.SnappedWidth / WorkingArranger.ElementPixelSize.Width;
+                    int height = rect.SnappedHeight / WorkingArranger.ElementPixelSize.Height;
+                    copy = WorkingArranger.CopyElements(x, y, width, height);
                     (copy as ElementCopy).ProjectResource = OriginatingProjectResource;
                 }
-                else if (SnapMode == SnapMode.Pixel && _workingArranger.ColorType == PixelColorType.Indexed)
+                else if (SnapMode == SnapMode.Pixel && WorkingArranger.ColorType == PixelColorType.Indexed)
                 {
-                    copy = _workingArranger.CopyPixelsIndexed(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+                    copy = WorkingArranger.CopyPixelsIndexed(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
                 }
-                else if (SnapMode == SnapMode.Pixel && _workingArranger.ColorType == PixelColorType.Direct)
+                else if (SnapMode == SnapMode.Pixel && WorkingArranger.ColorType == PixelColorType.Direct)
                 {
-                    copy = _workingArranger.CopyPixelsDirect(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+                    copy = WorkingArranger.CopyPixelsDirect(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
                 }
 
                 var paste = new ArrangerPaste(copy, SnapMode)
@@ -415,7 +415,7 @@ namespace TileShop.WPF.ViewModels
                 dragInfo.Data = paste;
                 dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
 
-                Selection = new ArrangerSelection(_workingArranger, SnapMode);
+                Selection = new ArrangerSelection(WorkingArranger, SnapMode);
             }
             else if (Paste is object)
             {

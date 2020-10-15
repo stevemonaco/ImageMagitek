@@ -187,7 +187,7 @@ namespace TileShop.WPF.ViewModels
             int x = (int)e.X / Zoom;
             int y = (int)e.Y / Zoom;
 
-            if (x < 0 || x >= _workingArranger.ArrangerPixelSize.Width || y < 0 || y >= _workingArranger.ArrangerPixelSize.Height)
+            if (x < 0 || x >= WorkingArranger.ArrangerPixelSize.Width || y < 0 || y >= WorkingArranger.ArrangerPixelSize.Height)
                 return;
 
             if (IsDrawing && ActiveTool == PixelTool.Pencil && e.LeftButton)
