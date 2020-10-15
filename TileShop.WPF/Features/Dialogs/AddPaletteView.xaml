@@ -8,8 +8,8 @@
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     Title="Add a New Palette"
-    Width="440"
-    Height="320"
+    Width="400"
+    Height="400"
     MinWidth="220"
     ui:ThemeManager.IsThemeAware="True"
     ui:WindowHelper.UseModernWindowStyle="True"
@@ -19,75 +19,79 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <ScrollViewer
-            Grid.Row="0"
-            Margin="5"
-            HorizontalScrollBarVisibility="Auto"
-            VerticalScrollBarVisibility="Auto">
-            <StackPanel Grid.Row="0" Margin="5">
-                <TextBox
-                    ui:ControlHelper.PlaceholderText="Palette Name"
-                    Text="{Binding PaletteName, UpdateSourceTrigger=PropertyChanged}"
-                    TextChanged="{s:Action ValidateModel}" />
+        <StackPanel Grid.Row="0" Margin="5">
+            <TextBox
+                ui:ControlHelper.PlaceholderText="Palette Name"
+                Text="{Binding PaletteName, UpdateSourceTrigger=PropertyChanged}"
+                TextChanged="{s:Action ValidateModel}" />
 
-                <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
-                    <ComboBox
-                        MinWidth="100"
-                        ItemsSource="{Binding ColorModels}"
-                        SelectedIndex="1"
-                        SelectedItem="{Binding SelectedColorModel}"
-                        ToolTip="Palette Color Model" />
-                    <ui:NumberBox
-                        MinWidth="20"
-                        Margin="10,0,0,0"
-                        Maximum="256"
-                        Minimum="2"
-                        ToolTip="Number of Palette Entries"
-                        Value="{Binding Entries}" />
-                </StackPanel>
+            <TextBlock
+                Margin="0,4,0,0"
+                Text="{Binding SelectedDataFile.Location, StringFormat=Data Source: {0}}"
+                TextWrapping="Wrap" />
+            <ComboBox
+                MinWidth="200"
+                Margin="0,5,0,0"
+                HorizontalAlignment="Stretch"
+                ItemsSource="{Binding DataFiles}"
+                SelectedItem="{Binding SelectedDataFile}"
+                ToolTip="Palette File Source">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
 
+            <StackPanel
+                Margin="0,5,0,0"
+                HorizontalAlignment="Center"
+                Orientation="Horizontal">
                 <ComboBox
-                    Margin="0,5,0,0"
-                    ItemsSource="{Binding DataFiles}"
-                    SelectedItem="{Binding SelectedDataFile}"
-                    ToolTip="Palette File Source">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding Name}" />
-                                <TextBlock Text="{Binding Location, StringFormat=: [{0}]}" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-                <TextBox
-                    Margin="0,5,0,0"
-                    ui:ControlHelper.PlaceholderText="File Offset"
-                    Text="{Binding FileOffset}"
-                    ToolTip="File offset of palette data in decimal" />
-
-                <ItemsControl
-                    Grid.Row="1"
-                    Margin="0,5,0,5"
-                    HorizontalAlignment="Center"
-                    ItemsSource="{Binding ValidationErrors}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock
-                                FontWeight="Bold"
-                                Foreground="Red"
-                                Text="{Binding}" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    MinWidth="150"
+                    ui:ControlHelper.Header="Color Model"
+                    ItemsSource="{Binding ColorModels}"
+                    SelectedIndex="1"
+                    SelectedItem="{Binding SelectedColorModel}"
+                    ToolTip="Palette Color Model" />
+                <ui:NumberBox
+                    MinWidth="60"
+                    Margin="10,0,0,0"
+                    ui:ControlHelper.Header="Colors"
+                    Maximum="256"
+                    Minimum="2"
+                    ToolTip="Number of Palette Entries"
+                    Value="{Binding Entries}" />
             </StackPanel>
-        </ScrollViewer>
+
+            <TextBox
+                Width="140"
+                Margin="0,5,0,0"
+                HorizontalAlignment="Center"
+                ui:ControlHelper.Header="File Offset"
+                Text="{Binding FileOffset}"
+                ToolTip="File offset of palette data in decimal" />
+
+            <ItemsControl
+                Grid.Row="1"
+                Margin="0,5,0,5"
+                HorizontalAlignment="Center"
+                ItemsSource="{Binding ValidationErrors}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock
+                            FontWeight="Bold"
+                            Foreground="Red"
+                            Text="{Binding}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
 
         <StackPanel
             Grid.Row="1"
-            Margin="0,5,0,0"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom"
+            Margin="0,5,0,5"
+            HorizontalAlignment="Center"
             Orientation="Horizontal">
             <Button
                 Width="80"
