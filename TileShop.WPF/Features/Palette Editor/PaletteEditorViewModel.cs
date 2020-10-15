@@ -9,8 +9,8 @@ namespace TileShop.WPF.ViewModels
 {
     public class PaletteEditorViewModel : ResourceEditorBaseViewModel
     {
-        private Palette _palette;
-        private IEventAggregator _events;
+        private readonly Palette _palette;
+        private readonly IEventAggregator _events;
 
         private BindableCollection<ValidatedColorModel> _colors = new BindableCollection<ValidatedColorModel>();
         public BindableCollection<ValidatedColorModel> Colors

@@ -12,7 +12,6 @@ namespace TileShop.WPF.ViewModels
     public class ImportImageViewModel : Screen
     {
         private readonly Arranger _arranger;
-        private readonly IPaletteService _paletteService;
         private readonly IFileSelectService _fileSelect;
 
         private readonly IndexedImage _originalIndexed;
@@ -81,10 +80,9 @@ namespace TileShop.WPF.ViewModels
         public bool IsTiledArranger => _arranger.Layout == ArrangerLayout.Tiled;
         public bool IsSingleArranger => _arranger.Layout == ArrangerLayout.Single;
 
-        public ImportImageViewModel(Arranger arranger, IPaletteService paletteService, IFileSelectService fileSelect)
+        public ImportImageViewModel(Arranger arranger, IFileSelectService fileSelect)
         {
             _arranger = arranger;
-            _paletteService = paletteService;
             _fileSelect = fileSelect;
 
             if (_arranger.ColorType == PixelColorType.Indexed)
