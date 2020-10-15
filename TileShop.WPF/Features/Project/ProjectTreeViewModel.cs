@@ -228,7 +228,11 @@ namespace TileShop.WPF.ViewModels
             if (nodeModel is ArrangerNodeViewModel arrNodeModel && arrNodeModel.Node.Value is ScatteredArranger arranger)
             {
                 var model = new ImportImageViewModel(arranger, _paletteService, _fileSelect);
-                _windowManager.ShowDialog(model);
+                if (_windowManager.ShowDialog(model) is true)
+                {
+                    var changeEvent = new ArrangerChangedEvent(arranger, ArrangerChange.Pixels);
+                    _events.PublishOnUIThread(changeEvent);
+                }
             }
         }
 
