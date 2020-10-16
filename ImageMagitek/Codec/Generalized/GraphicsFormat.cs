@@ -78,13 +78,6 @@ namespace ImageMagitek.Codec
 
         public IList<ImageProperty> ImageProperties { get; set; } = new List<ImageProperty>();
 
-        // Processing Operations
-        public bool HFlip { get; set; }
-        public bool VFlip { get; set; }
-        public bool Remap { get; set; }
-
-        // Pixel remap operations (TODO)
-
         public GraphicsFormat() { }
 
         public void Resize(int width, int height)
@@ -107,9 +100,6 @@ namespace ImageMagitek.Codec
             clone.DefaultHeight = DefaultHeight;
             clone.RowStride = RowStride;
             clone.ElementStride = ElementStride;
-            clone.HFlip = HFlip;
-            clone.VFlip = VFlip;
-            clone.Remap = Remap;
 
             clone.MergePlanePriority = new int[MergePlanePriority.Length];
             Array.Copy(MergePlanePriority, clone.MergePlanePriority, MergePlanePriority.Length);

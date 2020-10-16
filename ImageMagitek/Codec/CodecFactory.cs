@@ -41,7 +41,7 @@ namespace ImageMagitek.Codec
                         format.Height = format.DefaultHeight;
 
                         if (format.ColorType == PixelColorType.Indexed)
-                            return new IndexedGraphicsCodec(format, DefaultPalette);
+                            return new IndexedGraphicsCodec(format);
                         else if (format.ColorType == PixelColorType.Direct)
                             throw new NotSupportedException();
 
@@ -77,7 +77,7 @@ namespace ImageMagitek.Codec
                         format.Height = height;
 
                         if (format.ColorType == PixelColorType.Indexed)
-                            return new IndexedGraphicsCodec(format, DefaultPalette);
+                            return new IndexedGraphicsCodec(format);
                         else if (format.ColorType == PixelColorType.Direct)
                             throw new NotSupportedException();
 

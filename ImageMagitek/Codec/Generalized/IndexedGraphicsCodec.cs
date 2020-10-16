@@ -19,11 +19,11 @@ namespace ImageMagitek.Codec
         public int Height => Format.Height;
         public int RowStride => Format.RowStride;
         public int ElementStride => Format.ElementStride;
-        public Palette DefaultPalette { get; set; }
 
         public virtual ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
         protected byte[] _foreignBuffer;
 
+        protected byte[,] _nativeBuffer;
         public virtual byte[,] NativeBuffer => _nativeBuffer;
 
         public int DefaultWidth => Format.DefaultWidth;
@@ -31,8 +31,6 @@ namespace ImageMagitek.Codec
         public bool CanResize => !Format.FixedSize;
         public int WidthResizeIncrement { get; }
         public int HeightResizeIncrement => 1;
-
-        protected byte[,] _nativeBuffer;
 
         /// <summary>
         /// Preallocated buffer that separates and stores pixel color data
@@ -46,11 +44,10 @@ namespace ImageMagitek.Codec
 
         private BitStream _bitStream;
 
-        public IndexedGraphicsCodec(GraphicsFormat format, Palette defaultPalette)
+        public IndexedGraphicsCodec(GraphicsFormat format)
         {
             Format = format;
             Name = format.Name;
-            DefaultPalette = defaultPalette;
             AllocateBuffers();
 
             // Consider implementing resize increment with more accurate LCM approach
