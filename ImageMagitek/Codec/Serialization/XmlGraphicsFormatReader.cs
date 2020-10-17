@@ -21,9 +21,9 @@ namespace ImageMagitek.Codec
             }
         }
 
-        public MagitekResults<GraphicsFormat> LoadFromFile(string fileName)
+        public MagitekResults<FlowGraphicsFormat> LoadFromFile(string fileName)
         {
-            var format = new GraphicsFormat();
+            var format = new FlowGraphicsFormat();
 
             using var stream = File.OpenRead(fileName);
             var doc = XDocument.Load(stream, LoadOptions.SetLineInfo);
@@ -38,7 +38,7 @@ namespace ImageMagitek.Codec
             if (validationErrors.Any())
             {
                 validationErrors.Insert(0, $"Codec '{fileName}' failed to be validated");
-                return new MagitekResults<GraphicsFormat>.Failed(validationErrors);
+                return new MagitekResults<FlowGraphicsFormat>.Failed(validationErrors);
             }
 
 
@@ -127,7 +127,7 @@ namespace ImageMagitek.Codec
                 format.ImageProperties.Add(ip);
             }
 
-            return new MagitekResults<GraphicsFormat>.Success(format);
+            return new MagitekResults<FlowGraphicsFormat>.Success(format);
         }
     }
 }

@@ -9,6 +9,7 @@ using TileShop.WPF.Imaging;
 using TileShop.WPF.EventModels;
 using Jot;
 using TileShop.WPF.Models;
+using System.Drawing;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -368,7 +369,7 @@ namespace TileShop.WPF.ViewModels
 
         private void ChangeCodec()
         {
-            var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName);
+            var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, default);
             if (codec.Layout == ImageMagitek.Codec.ImageLayout.Tiled)
             {
                 _tiledElementHeight = codec.Height;
@@ -414,7 +415,7 @@ namespace TileShop.WPF.ViewModels
 
         private void ChangeCodecDimensions(int width, int height)
         {
-            var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, width, height);
+            var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, new Size(width, height));
             (WorkingArranger as SequentialArranger).ChangeCodec(codec);
             CreateImages();
         }

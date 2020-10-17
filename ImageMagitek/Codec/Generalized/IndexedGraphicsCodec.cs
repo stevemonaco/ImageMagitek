@@ -10,7 +10,7 @@ namespace ImageMagitek.Codec
     public class IndexedGraphicsCodec : IIndexedCodec
     {
         public string Name { get; set; }
-        public GraphicsFormat Format { get; private set; }
+        public FlowGraphicsFormat Format { get; private set; }
         public int StorageSize => Format.StorageSize;
         public ImageLayout Layout => Format.Layout;
         public PixelColorType ColorType => Format.ColorType;
@@ -44,7 +44,7 @@ namespace ImageMagitek.Codec
 
         private BitStream _bitStream;
 
-        public IndexedGraphicsCodec(GraphicsFormat format)
+        public IndexedGraphicsCodec(FlowGraphicsFormat format)
         {
             Format = format;
             Name = format.Name;

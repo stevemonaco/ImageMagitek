@@ -61,7 +61,7 @@ namespace ImageMagitek
             ActivePalette = palette;
             _codecs = codecFactory;
 
-            ActiveCodec = _codecs.GetCodec(codecName);
+            ActiveCodec = _codecs.GetCodec(codecName, default);
             ColorType = ActiveCodec.ColorType;
 
             ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);

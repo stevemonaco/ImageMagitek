@@ -166,7 +166,7 @@ namespace TileShop.WPF
 
         private void ReadCodecs(string codecsPath, string schemaFileName, ContainerBuilder builder)
         {
-            _codecService = new CodecService(schemaFileName, _paletteService.DefaultPalette);
+            _codecService = new CodecService(schemaFileName);
             var result = _codecService.LoadXmlCodecs(codecsPath);
 
             if (result.Value is MagitekResults.Failed fail)

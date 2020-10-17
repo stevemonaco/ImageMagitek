@@ -4,9 +4,10 @@ using System.Collections.Generic;
 namespace ImageMagitek.Codec
 {
     /// <summary>
-    /// GraphicsFormat describes properties relating to decoding/encoding a general graphics format
+    /// FlowGraphicsFormat describes properties relating to decoding/encoding a
+    /// general graphics format that is resizable
     /// </summary>
-    public class GraphicsFormat
+    public class FlowGraphicsFormat : IGraphicsFormat
     {
         /// <summary>
         /// The name of the codec
@@ -74,11 +75,11 @@ namespace ImageMagitek.Codec
         /// Storage size of an element in bits
         /// </summary>
         /// <returns></returns>
-        public int StorageSize => (Width + RowStride) * Height * ColorDepth + ElementStride;
+        public int StorageSize => (Width + RowStride) * Height * ColorDepth;
 
         public IList<ImageProperty> ImageProperties { get; set; } = new List<ImageProperty>();
 
-        public GraphicsFormat() { }
+        public FlowGraphicsFormat() { }
 
         public void Resize(int width, int height)
         {
@@ -86,9 +87,9 @@ namespace ImageMagitek.Codec
             Height = height;
         }
 
-        public GraphicsFormat Clone()
+        public IGraphicsFormat Clone()
         {
-            var clone = new GraphicsFormat();
+            var clone = new FlowGraphicsFormat();
             clone.Name = Name;
             clone.FixedSize = FixedSize;
             clone.Layout = Layout;
@@ -105,7 +106,7 @@ namespace ImageMagitek.Codec
             Array.Copy(MergePlanePriority, clone.MergePlanePriority, MergePlanePriority.Length);
 
             clone.ImageProperties = new List<ImageProperty>();
-            foreach(var prop in ImageProperties)
+            foreach (var prop in ImageProperties)
             {
                 var pattern = new BroadcastList<int>(prop.RowPixelPattern);
 

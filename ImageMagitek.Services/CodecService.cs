@@ -19,17 +19,15 @@ namespace ImageMagitek.Services
         public ICodecFactory CodecFactory { get; private set; }
 
         private readonly string _schemaFileName;
-        private readonly Palette _defaultPalette;
 
-        public CodecService(string schemaFileName, Palette defaultPalette)
+        public CodecService(string schemaFileName)
         {
             _schemaFileName = schemaFileName;
-            _defaultPalette = defaultPalette;
         }
 
         public MagitekResults LoadXmlCodecs(string codecsPath)
         {
-            var formats = new Dictionary<string, GraphicsFormat>();
+            var formats = new Dictionary<string, FlowGraphicsFormat>();
             var serializer = new XmlGraphicsFormatReader(_schemaFileName);
             var errors = new List<string>();
 
@@ -47,7 +45,7 @@ namespace ImageMagitek.Services
                     });
             }
 
-            CodecFactory = new CodecFactory(formats, _defaultPalette);
+            CodecFactory = new CodecFactory(formats);
 
             if (errors.Any())
                 return new MagitekResults.Failed(errors);

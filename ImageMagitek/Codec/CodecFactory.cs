@@ -1,69 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec
 {
     public class CodecFactory : ICodecFactory
     {
-        private readonly Dictionary<string, GraphicsFormat> _formats;
+        private readonly Dictionary<string, FlowGraphicsFormat> _formats;
 
-        public Palette DefaultPalette { get; set; }
-
-        public CodecFactory(Dictionary<string, GraphicsFormat> formats, Palette defaultPalette)
+        public CodecFactory(Dictionary<string, FlowGraphicsFormat> formats)
         {
-            _formats = formats ?? new Dictionary<string, GraphicsFormat>();
-            DefaultPalette = defaultPalette;
+            _formats = formats ?? new Dictionary<string, FlowGraphicsFormat>();
         }
 
-        public IGraphicsCodec GetCodec(string codecName)
-        {
-            switch (codecName)
-            {
-                //case "NES 1bpp":
-                //    return new Nes1bppCodec(_defaultWidth, _defaultHeight);
-                case "SNES 3bpp":
-                    return new Snes3bppCodec();
-                case "PSX 4bpp":
-                    return new Psx4bppCodec();
-                case "PSX 8bpp":
-                    return new Psx8bppCodec();
-                //case "PSX 16bpp":
-                //    return new Psx16bppCodec(width, height);
-                //case "PSX 24bpp":
-                //    return new Psx24bppCodec(width, height);
-                default:
-                    if (_formats.ContainsKey(codecName))
-                    {
-                        var format = _formats[codecName].Clone();
-                        format.Name = codecName;
-                        format.Width = format.DefaultWidth;
-                        format.Height = format.DefaultHeight;
-
-                        if (format.ColorType == PixelColorType.Indexed)
-                            return new IndexedGraphicsCodec(format);
-                        else if (format.ColorType == PixelColorType.Direct)
-                            throw new NotSupportedException();
-
-                        throw new NotSupportedException();
-                    }
-                    else
-                        throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{nameof(codecName)}'");
-            }
-        }
-
-        public IGraphicsCodec GetCodec(string codecName, int width, int height, int rowStride = 0)
+        public IGraphicsCodec GetCodec(string codecName, Size? elementSize)
         {
             switch (codecName)
             {
                 //case "NES 1bpp":
                 //    return new Nes1bppCodec(width, height);
                 case "SNES 3bpp":
-                    return new Snes3bppCodec(width, height);
+                    return elementSize.HasValue ? new Snes3bppCodec(elementSize.Value.Width, elementSize.Value.Height) : new Snes3bppCodec();
                 case "PSX 4bpp":
-                    return new Psx4bppCodec(width, height);
+                    return elementSize.HasValue ? new Psx4bppCodec(elementSize.Value.Width, elementSize.Value.Height) : new Psx4bppCodec();
                 case "PSX 8bpp":
-                    return new Psx8bppCodec(width, height);
+                    return elementSize.HasValue ? new Psx8bppCodec(elementSize.Value.Width, elementSize.Value.Height) : new Psx8bppCodec();
                 //case "PSX 16bpp":
                 //    return new Psx16bppCodec(width, height);
                 //case "PSX 24bpp":
@@ -71,10 +33,13 @@ namespace ImageMagitek.Codec
                 default:
                     if (_formats.ContainsKey(codecName))
                     {
-                        var format = _formats[codecName].Clone();
-                        format.Name = codecName;
-                        format.Width = width;
-                        format.Height = height;
+                        var format = _formats[codecName].Clone() as FlowGraphicsFormat;
+
+                        if (elementSize.HasValue)
+                        {
+                            format.Width = elementSize.Value.Width;
+                            format.Height = elementSize.Value.Height;
+                        }
 
                         if (format.ColorType == PixelColorType.Indexed)
                             return new IndexedGraphicsCodec(format);
@@ -90,7 +55,7 @@ namespace ImageMagitek.Codec
 
         public IGraphicsCodec CloneCodec(IGraphicsCodec codec)
         {
-            return GetCodec(codec.Name, codec.Width, codec.Height, codec.RowStride);
+            return GetCodec(codec.Name, new Size(codec.Width, codec.Height));
         }
 
         public IEnumerable<string> GetSupportedCodecNames()

@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using ImageMagitek;
+using System.Xml;
+using System.Xml.Schema;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
+using ImageMagitek.Project.Serialization;
 using Monaco.PathTree;
 
 namespace ImageMagitekConsole
@@ -15,8 +17,8 @@ namespace ImageMagitekConsole
     class Program
     {
         static readonly HashSet<string> _commands = new HashSet<string> { "export", "exportall", "import", "importall", "print", "resave" };
-        static readonly string _projectSchemaFileName = Path.Combine("schema", "GameDescriptorSchema.xsd");
-        static readonly string _codecSchemaFileName = Path.Combine("schema", "CodecSchema.xsd");
+        static readonly string _projectSchemaFileName = Path.Combine("_schemas", "GameDescriptorSchema.xsd");
+        static readonly string _codecSchemaFileName = Path.Combine("_schemas", "CodecSchema.xsd");
 
         static int Main(string[] args)
         {
@@ -46,8 +48,8 @@ namespace ImageMagitekConsole
             }
 
             // Load default graphic formats and palettes
-            var codecPath = Path.Combine(Directory.GetCurrentDirectory(), "codecs");
-            var formats = new Dictionary<string, GraphicsFormat>();
+            var codecPath = Path.Combine(Directory.GetCurrentDirectory(), "_codecs");
+            var formats = new Dictionary<string, FlowGraphicsFormat>();
             var serializer = new XmlGraphicsFormatReader(_codecSchemaFileName);
             foreach (var formatFileName in Directory.GetFiles(codecPath).Where(x => x.EndsWith(".xml")))
             {
@@ -63,25 +65,28 @@ namespace ImageMagitekConsole
                 });
             }
 
-            var palPath = Path.Combine(Directory.GetCurrentDirectory(), "pal");
+            var palPath = Path.Combine(Directory.GetCurrentDirectory(), "_palettes");
             var palettes = new List<Palette>();
 
-            foreach (var paletteFileName in Directory.GetFiles(palPath).Where(x => x.EndsWith(".json")))
+            var paletteFileNames = Directory.GetFiles(palPath).Where(x => x.EndsWith(".json"));
+
+            foreach (var paletteFileName in paletteFileNames)
             {
                 string json = File.ReadAllText(paletteFileName);
                 var pal = PaletteJsonSerializer.ReadPalette(json);
-                palettes.Add(pal);
+                if (pal.Name == "DefaultRgba32")
+                    palettes.Insert(0, pal);
+                else
+                    palettes.Add(pal);
             }
 
-            var defaultPalette = palettes.Single(x => x.Name.Contains("DefaultRgba32"));
+            using var schemaStream = File.OpenRead(_projectSchemaFileName);
+            XmlSchemaSet projectSchema = new XmlSchemaSet();
+            projectSchema.Add("", XmlReader.Create(schemaStream));
 
-            var schemaFileName = Path.Combine(Directory.GetCurrentDirectory(), "schema", "GameDescriptorValidator.xsd");
-            var deserializer = new XmlGameDescriptorReader(schemaFileName, new CodecFactory(formats, defaultPalette));
+            var deserializer = new XmlGameDescriptorReader(projectSchema, new CodecFactory(formats), palettes);
 
-            //IPathTree<IProjectResource> tree = default;
-            var projectResult = deserializer.ReadProject(projectFileName);
-
-            IPathTree<IProjectResource> tree = projectResult.Match(
+            var tree = deserializer.ReadProject(projectFileName).Match(
                 success => success.Result,
                 fail =>
                 {
@@ -95,7 +100,7 @@ namespace ImageMagitekConsole
             if (tree is null)
                 return (int) ExitCode.ProjectValidationError;
 
-            var processor = new CommandProcessor(tree, defaultPalette);
+            var processor = new CommandProcessor(tree, palettes.First());
 
             switch (command)
             {

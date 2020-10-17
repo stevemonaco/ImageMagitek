@@ -2,6 +2,6 @@
 {
     public interface IGraphicsFormatReader
     {
-        MagitekResults<GraphicsFormat> LoadFromFile(string fileName);
+        MagitekResults<FlowGraphicsFormat> LoadFromFile(string fileName);
     }
 }
