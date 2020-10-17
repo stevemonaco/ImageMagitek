@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec
 {
     public class CodecFactory : ICodecFactory
     {
-        private readonly Dictionary<string, FlowGraphicsFormat> _formats;
+        private readonly Dictionary<string, IGraphicsFormat> _formats;
 
-        public CodecFactory(Dictionary<string, FlowGraphicsFormat> formats)
+        public CodecFactory(Dictionary<string, IGraphicsFormat> formats)
         {
-            _formats = formats ?? new Dictionary<string, FlowGraphicsFormat>();
+            _formats = formats ?? new Dictionary<string, IGraphicsFormat>();
         }
 
         public IGraphicsCodec GetCodec(string codecName, Size? elementSize)
@@ -49,7 +48,7 @@ namespace ImageMagitek.Codec
                         throw new NotSupportedException();
                     }
                     else
-                        throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{nameof(codecName)}'");
+                        throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{codecName}'");
             }
         }
 

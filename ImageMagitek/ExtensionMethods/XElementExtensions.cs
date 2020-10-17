@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace ImageMagitek.ExtensionMethods
@@ -33,6 +34,15 @@ namespace ImageMagitek.ExtensionMethods
         {
             string path = node.NodePath();
             return Path.Combine(path, node.Attribute("name").Value);
+        }
+
+        public static int? LineNumber(this XElement element)
+        {
+            if (element is null)
+                return default;
+
+            var info = element as IXmlLineInfo;
+            return info.HasLineInfo() ? info.LineNumber : default;
         }
     }
 }

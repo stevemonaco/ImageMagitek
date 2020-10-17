@@ -27,7 +27,7 @@ namespace ImageMagitek.Services
 
         public MagitekResults LoadXmlCodecs(string codecsPath)
         {
-            var formats = new Dictionary<string, FlowGraphicsFormat>();
+            var formats = new Dictionary<string, IGraphicsFormat>();
             var serializer = new XmlGraphicsFormatReader(_schemaFileName);
             var errors = new List<string>();
 
