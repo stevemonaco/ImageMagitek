@@ -17,8 +17,15 @@ namespace ImageMagitek.Codec
         {
             if (!string.IsNullOrWhiteSpace(schemaFileName))
             {
-                using var schemaStream = File.OpenRead(schemaFileName);
-                _schemas.Add("", XmlReader.Create(schemaStream));
+                if (!File.Exists(schemaFileName))
+                {
+                    throw new ArgumentException($"{nameof(schemaFileName)} cannot be found");
+                }
+                else
+                {
+                    using var schemaStream = File.OpenRead(schemaFileName);
+                    _schemas.Add("", XmlReader.Create(schemaStream));
+                }
             }
             else
                 throw new ArgumentException($"{nameof(schemaFileName)} was null or empty");
@@ -45,13 +52,13 @@ namespace ImageMagitek.Codec
             //    return new MagitekResults<FlowGraphicsFormat>.Failed(validationErrors);
             //}
 
-            if (doc.Root.Name == "flowcodec")
+            if (doc.Root?.Name.LocalName == "flowcodec")
             {
                 return ReadFlowCodec(doc.Root);
             }
-            else if (doc.Root.Name == "patterncodec")
+            else if (doc.Root?.Name.LocalName == "patterncodec")
             {
-
+                return ReadPatternCodec(doc.Root);
             }
 
             return new MagitekResults<IGraphicsFormat>.Failed($"Unrecognized codec root element '{doc.Root.Name}'");
@@ -59,74 +66,66 @@ namespace ImageMagitek.Codec
 
         private MagitekResults<IGraphicsFormat> ReadFlowCodec(XElement flowElementRoot)
         {
-            var format = new FlowGraphicsFormat();
             var errors = new List<string>();
 
-            format.Name = flowElementRoot.Attribute("name").Value;
+            var name = flowElementRoot.Attribute("name").Value;
 
             var codec = new
             {
                 ColorType = flowElementRoot.Element("colortype"),
                 ColorDepth = flowElementRoot.Element("colordepth"),
                 Layout = flowElementRoot.Element("layout"),
-                DefaultHeight = flowElementRoot.Element("defaultheight"),
                 DefaultWidth = flowElementRoot.Element("defaultwidth"),
+                DefaultHeight = flowElementRoot.Element("defaultheight"),
                 FixedSize = flowElementRoot.Element("fixedsize"),
                 MergePriority = flowElementRoot.Element("mergepriority"),
                 Images = flowElementRoot.Element("images")
             };
 
+            if (!int.TryParse(codec.DefaultWidth?.Value, out var defaultWidth))
+                errors.Add($"Element width could not be parsed on {codec.DefaultWidth.LineNumber()}");
+
+            if (defaultWidth <= 1)
+                errors.Add($"Specified default width is too small on line {codec.DefaultWidth.LineNumber()}");
+
+            if (!int.TryParse(codec.DefaultHeight?.Value, out var defaultHeight))
+                errors.Add($"Element height could not be parsed on {codec.DefaultHeight.LineNumber()}");
+
+            if (defaultHeight <= 1)
+                errors.Add($"Specified default height is too small on line {codec.DefaultHeight.LineNumber()}");
+
+            PixelColorType colorType = default;
             if (codec.ColorType?.Value == "indexed")
-                format.ColorType = PixelColorType.Indexed;
+                colorType = PixelColorType.Indexed;
             else if (codec.ColorType?.Value == "direct")
-                format.ColorType = PixelColorType.Direct;
+                colorType = PixelColorType.Direct;
             else
                 errors.Add($"Unrecognized colortype '{codec.ColorType}' on line {codec.ColorType.LineNumber()}");
 
             if (!int.TryParse(codec.ColorDepth?.Value, out var colorDepth))
                 errors.Add($"colordepth could not be parsed on {codec.ColorDepth.LineNumber()}");
 
-            if (colorDepth >= 1 && colorDepth <= 32)
-                format.ColorDepth = colorDepth;
-            else
-                errors.Add($"colordepth contains an out of range value {colorDepth} on {codec.ColorDepth.LineNumber()}");
+            if (colorDepth < 1 && colorDepth > 32)
+                errors.Add($"colordepth contains an out of range value '{colorDepth}' on {codec.ColorDepth.LineNumber()}");
 
+            ImageLayout layout = default;
             if (codec.Layout?.Value == "tiled")
-                format.Layout = ImageLayout.Tiled;
-            else if (codec.Layout?.Value == "linear")
-                format.Layout = ImageLayout.Single;
+                layout = ImageLayout.Tiled;
+            else if (codec.Layout?.Value == "single")
+                layout = ImageLayout.Single;
             else
                 errors.Add($"Unrecognized layout '{codec.Layout?.Value}' on line {codec.Layout.LineNumber()}");
 
+            bool fixedSize = false;
             if (codec.FixedSize?.Value == "true")
-                format.FixedSize = true;
+                fixedSize = true;
             else if (codec.FixedSize?.Value == "false")
-                format.FixedSize = false;
+                fixedSize = false;
             else
                 errors.Add($"Unrecognized fixedsize value '{codec.FixedSize?.Value}' on line {codec.FixedSize.LineNumber()}");
 
-            if (!int.TryParse(codec.DefaultWidth?.Value, out var defaultWidth))
-                errors.Add($"Element width could not be parsed on {codec.DefaultWidth.LineNumber()}");
-
-            if (defaultWidth >= 1)
-            {
-                format.DefaultWidth = defaultWidth;
-                format.Width = defaultWidth;
-            }
-            else
-                errors.Add($"Specified default width is too small on line {codec.DefaultWidth.LineNumber()}");
-
-            if (!int.TryParse(codec.DefaultHeight?.Value, out var defaultHeight))
-                errors.Add($"Element height could not be parsed on {codec.DefaultHeight.LineNumber()}");
-
-            if (defaultHeight >= 1)
-            {
-                format.DefaultHeight = defaultHeight;
-                format.Height = defaultHeight;
-            }
-            else
-                errors.Add($"Specified default height is too small on line {codec.DefaultHeight.LineNumber()}");
-
+            var format = new FlowGraphicsFormat(name, colorType, colorDepth, layout, defaultWidth, defaultHeight);
+            format.FixedSize = fixedSize;
 
             string mergeString = codec.MergePriority?.Value ?? "";
             mergeString = mergeString.Replace(" ", "");
@@ -147,7 +146,7 @@ namespace ImageMagitek.Codec
             else
                 errors.Add($"The number of entries in mergepriority does not match the colordepth on line {codec.MergePriority.LineNumber()}");
 
-            var imageElements = flowElementRoot.Descendants("images").Single().Descendants("image");
+            var imageElements = flowElementRoot.Element("images").Elements("image");
             var images = imageElements.Select(x => new
             {
                 ColorDepth = x.Element("colordepth"),
@@ -196,12 +195,92 @@ namespace ImageMagitek.Codec
                 errors.Add($"Codec's colordepth '{format.ColorDepth}' does not match the sum of all image colordepth elements '{sumColorDepth}'");
             }
 
-            return new MagitekResults<IGraphicsFormat>.Success(format);
+            if (errors.Any())
+                return new MagitekResults<IGraphicsFormat>.Failed(errors);
+            else
+                return new MagitekResults<IGraphicsFormat>.Success(format);
         }
 
         private MagitekResults<IGraphicsFormat> ReadPatternCodec(XElement patternElementRoot)
         {
-            throw new NotImplementedException();
+            var errors = new List<string>();
+
+            var name = patternElementRoot.Attribute("name").Value;
+
+            var codec = new
+            {
+                ColorType = patternElementRoot.Element("colortype"),
+                ColorDepth = patternElementRoot.Element("colordepth"),
+                Layout = patternElementRoot.Element("layout"),
+                Width = patternElementRoot.Element("width"),
+                Height = patternElementRoot.Element("height"),
+                Patterns = patternElementRoot.Element("patterns")
+            };
+
+            if (!int.TryParse(codec.Width?.Value, out var width))
+                errors.Add($"Element width could not be parsed on {codec.Width.LineNumber()}");
+
+            if (width <= 1)
+                errors.Add($"Specified default width is too small on line {codec.Width.LineNumber()}");
+
+            if (!int.TryParse(codec.Height?.Value, out var height))
+                errors.Add($"Element height could not be parsed on {codec.Height.LineNumber()}");
+
+            if (height <= 1)
+                errors.Add($"Specified default height is too small on line {codec.Height.LineNumber()}");
+
+            PixelColorType colorType = default;
+            if (codec.ColorType?.Value == "indexed")
+                colorType = PixelColorType.Indexed;
+            else if (codec.ColorType?.Value == "direct")
+                colorType = PixelColorType.Direct;
+            else
+                errors.Add($"Unrecognized colortype '{codec.ColorType}' on line {codec.ColorType.LineNumber()}");
+
+            if (!int.TryParse(codec.ColorDepth?.Value, out var colorDepth))
+                errors.Add($"colordepth could not be parsed on {codec.ColorDepth.LineNumber()}");
+
+            if (colorDepth < 1 && colorDepth > 32)
+                errors.Add($"colordepth contains an out of range value '{colorDepth}' on {codec.ColorDepth.LineNumber()}");
+
+            ImageLayout layout = default;
+            if (codec.Layout?.Value == "tiled")
+                layout = ImageLayout.Tiled;
+            else if (codec.Layout?.Value == "single")
+                layout = ImageLayout.Single;
+            else
+                errors.Add($"Unrecognized layout '{codec.Layout?.Value}' on line {codec.Layout.LineNumber()}");
+
+            var format = new PatternGraphicsFormat(name, colorType, colorDepth, layout, width, height);
+
+            var sizeElement = patternElementRoot.Element("patterns").Attribute("size");
+
+            if (!int.TryParse(sizeElement?.Value, out var patternSize))
+                errors.Add($"Pattern size could not be parsed on {codec.Width.LineNumber()}");
+
+            if (patternSize < 1 || patternSize > PatternList.MaxPatternSize)
+                errors.Add($"Pattern size contains an out of range value '{patternSize}' {codec.Width.LineNumber()}");
+
+            var patternStrings = patternElementRoot
+                .Element("patterns")
+                .Elements("pattern")
+                .Select(x => string.Join("", x.Value.Where(c => !char.IsWhiteSpace(c))))
+                .ToArray();
+
+            var patternResult = PatternList.TryCreateRemapPattern(patternStrings, patternSize);
+
+            patternResult.Switch(
+                success =>
+                {
+                    var pattern = new PatternList(success.Result);
+                    format.SetPattern(pattern);
+                },
+                failed => errors.Add(failed.Reason));
+
+            if (errors.Any())
+                return new MagitekResults<IGraphicsFormat>.Failed(errors);
+            else
+                return new MagitekResults<IGraphicsFormat>.Success(format);
         }
     }
 }

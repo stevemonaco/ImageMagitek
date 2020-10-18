@@ -149,14 +149,14 @@ namespace ImageMagitek
                     if (arranger.Layout == ArrangerLayout.Tiled)
                         delta = arranger.ActiveCodec.StorageSize;
                     else if (arranger.Layout == ArrangerLayout.Single)
-                        delta = 16 * arranger.ActiveCodec.StorageSize / ((arranger.ActiveCodec.RowStride + arranger.ActiveCodec.Width) * arranger.ActiveCodec.Height);
+                        delta = 16 * arranger.ActiveCodec.StorageSize * arranger.ActiveCodec.Height / arranger.ActiveCodec.Width;
                     newAddress += delta;
                     break;
                 case ArrangerMoveType.ColLeft:
                     if (arranger.Layout == ArrangerLayout.Tiled)
                         delta = arranger.ActiveCodec.StorageSize;
                     else if (arranger.Layout == ArrangerLayout.Single)
-                        delta = 16 * arranger.ActiveCodec.StorageSize / ((arranger.ActiveCodec.RowStride + arranger.ActiveCodec.Width) * arranger.ActiveCodec.Height);
+                        delta = 16 * arranger.ActiveCodec.StorageSize * arranger.ActiveCodec.Height / arranger.ActiveCodec.Width;
                     newAddress -= delta;
                     break;
                 case ArrangerMoveType.PageDown:

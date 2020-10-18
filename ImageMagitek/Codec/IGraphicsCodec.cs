@@ -5,7 +5,7 @@
     /// Tiled is capable of rendering a grid of multiple images
     /// Single will render a single image
     /// </summary>
-    public enum ImageLayout { Tiled = 0, Single }
+    public enum ImageLayout { Tiled = 1, Single }
 
     public interface IGraphicsCodec
     {
@@ -16,8 +16,6 @@
         PixelColorType ColorType { get; }
         int ColorDepth { get; }
         int StorageSize { get; }
-        int RowStride { get; }
-        int ElementStride { get; }
 
         int DefaultWidth { get; }
         int DefaultHeight { get; }

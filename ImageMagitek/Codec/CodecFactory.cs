@@ -32,18 +32,28 @@ namespace ImageMagitek.Codec
                 default:
                     if (_formats.ContainsKey(codecName))
                     {
-                        var format = _formats[codecName].Clone() as FlowGraphicsFormat;
+                        var format = _formats[codecName].Clone();
 
-                        if (elementSize.HasValue)
+                        if (format is FlowGraphicsFormat flowFormat)
                         {
-                            format.Width = elementSize.Value.Width;
-                            format.Height = elementSize.Value.Height;
-                        }
+                            if (elementSize.HasValue)
+                            {
+                                flowFormat.Width = elementSize.Value.Width;
+                                flowFormat.Height = elementSize.Value.Height;
+                            }
 
-                        if (format.ColorType == PixelColorType.Indexed)
-                            return new IndexedGraphicsCodec(format);
-                        else if (format.ColorType == PixelColorType.Direct)
-                            throw new NotSupportedException();
+                            if (format.ColorType == PixelColorType.Indexed)
+                                return new IndexedGraphicsCodec(flowFormat);
+                            else if (format.ColorType == PixelColorType.Direct)
+                                throw new NotImplementedException();
+                        }
+                        else if (format is PatternGraphicsFormat patternFormat)
+                        {
+                            if (format.ColorType == PixelColorType.Indexed)
+                                return new IndexedPatternGraphicsCodec(patternFormat);
+                            else if (format.ColorType == PixelColorType.Direct)
+                                throw new NotImplementedException();
+                        }
 
                         throw new NotSupportedException();
                     }

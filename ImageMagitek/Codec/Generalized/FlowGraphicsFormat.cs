@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ImageMagitek.Codec
 {
@@ -25,7 +26,7 @@ namespace ImageMagitek.Codec
         public ImageLayout Layout { get; set; }
 
         /// <summary>
-        /// The color depth of the format in bits per pixel
+        /// The color depth of each pixel in bits per pixel
         /// </summary>
         public int ColorDepth { get; set; }
 
@@ -42,6 +43,16 @@ namespace ImageMagitek.Codec
         public int[] MergePlanePriority { get; set; }
 
         /// <summary>
+        /// Default width of an element
+        /// </summary>
+        public int DefaultWidth { get; }
+
+        /// <summary>
+        /// Default height of an element
+        /// </summary>
+        public int DefaultHeight { get; }
+
+        /// <summary>
         /// Current width of the elements to encode/decode
         /// </summary>
         public int Width { get; set; }
@@ -52,34 +63,26 @@ namespace ImageMagitek.Codec
         public int Height { get; set; }
 
         /// <summary>
-        /// Default width of an element as specified by the XML file
-        /// </summary>
-        public int DefaultWidth { get; set; }
-
-        /// <summary>
-        /// Default height of an element as specified by the XML file
-        /// </summary>
-        public int DefaultHeight { get; set; }
-
-        /// <summary>
-        /// Number of bits to skip after each row
-        /// </summary>
-        public int RowStride { get; set; }
-
-        /// <summary>
-        /// Number of bits to skip after each element
-        /// </summary>
-        public int ElementStride { get; set; }
-
-        /// <summary>
         /// Storage size of an element in bits
         /// </summary>
         /// <returns></returns>
-        public int StorageSize => (Width + RowStride) * Height * ColorDepth;
+        public int StorageSize => Width * Height * ColorDepth;
 
         public IList<ImageProperty> ImageProperties { get; set; } = new List<ImageProperty>();
 
-        public FlowGraphicsFormat() { }
+        public FlowGraphicsFormat(string name, PixelColorType colorType, int colorDepth, 
+            ImageLayout layout, int defaultHeight, int defaultWidth)
+        {
+            Name = name;
+            ColorType = colorType;
+            ColorDepth = colorDepth;
+            Layout = layout;
+            DefaultHeight = defaultHeight;
+            DefaultWidth = defaultWidth;
+
+            Height = defaultHeight;
+            Width = defaultWidth;
+        }
 
         public void Resize(int width, int height)
         {
@@ -89,28 +92,17 @@ namespace ImageMagitek.Codec
 
         public IGraphicsFormat Clone()
         {
-            var clone = new FlowGraphicsFormat();
-            clone.Name = Name;
-            clone.FixedSize = FixedSize;
-            clone.Layout = Layout;
-            clone.ColorDepth = ColorDepth;
-            clone.ColorType = ColorType;
-            clone.Width = Width;
-            clone.Height = Height;
-            clone.DefaultWidth = DefaultWidth;
-            clone.DefaultHeight = DefaultHeight;
-            clone.RowStride = RowStride;
-            clone.ElementStride = ElementStride;
+            var clone = new FlowGraphicsFormat(Name, ColorType, ColorDepth, Layout, DefaultWidth, DefaultHeight)
+            {
+                FixedSize = FixedSize,
 
-            clone.MergePlanePriority = new int[MergePlanePriority.Length];
-            Array.Copy(MergePlanePriority, clone.MergePlanePriority, MergePlanePriority.Length);
+                MergePlanePriority = MergePlanePriority.ToArray(),
+                ImageProperties = new List<ImageProperty>()
+            };
 
-            clone.ImageProperties = new List<ImageProperty>();
             foreach (var prop in ImageProperties)
             {
-                var pattern = new BroadcastList<int>(prop.RowPixelPattern);
-
-                var propclone = new ImageProperty(prop.ColorDepth, prop.RowInterlace, pattern);
+                var propclone = new ImageProperty(prop.ColorDepth, prop.RowInterlace, prop.RowPixelPattern);
                 clone.ImageProperties.Add(propclone);
             }
 

@@ -12,17 +12,45 @@ namespace ImageMagitek.Codec
     /// </remarks>
     public class PatternList
     {
+        public static int MaxPatternSize { get; } = 64 * 8;
+
+        private const string _letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz" + "!?@*";
         private readonly static Dictionary<char, int> _letterMapper = new Dictionary<char, int>
         (
-            ("ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-             "abcdefghijklmnopqrstuvwxyz" +
-             "!?@*")
-            .Select((x, i) => new KeyValuePair<char, int>(x, i))
+            _letters.Select((x, i) => new KeyValuePair<char, int>(x, i))
         );
 
-        public PatternList()
+        public int PatternSize { get; }
+
+        private readonly int[] _encodePattern;
+        private readonly int[] _decodePattern;
+
+        public PatternList(IEnumerable<int> remapPattern)
         {
-            
+            _decodePattern = remapPattern.ToArray();
+            _encodePattern = remapPattern
+                .Select((x, i) => new { Redirect = x, Index = i })
+                .OrderBy(x => x.Redirect)
+                .Select(x => x.Index)
+                .ToArray();
+
+            PatternSize = _decodePattern.Length;
+        }
+
+        public int GetDecodeIndex(int bitIndex)
+        {
+            if (bitIndex >= 0 && bitIndex < _encodePattern.Length)
+                return _encodePattern[bitIndex];
+            else
+                throw new ArgumentOutOfRangeException($"{nameof(GetDecodeIndex)} argument {nameof(bitIndex)} is out of range");
+        }
+
+        public int GetEncodeIndex(int pixelIndex)
+        {
+            if (pixelIndex >= 0 && pixelIndex < _decodePattern.Length)
+                return _decodePattern[pixelIndex];
+            else
+                throw new ArgumentOutOfRangeException($"{nameof(GetEncodeIndex)} argument {nameof(pixelIndex)} is out of range");
         }
 
         /// <summary>
@@ -31,10 +59,6 @@ namespace ImageMagitek.Codec
         /// <param name="pattern">List of pattern strings where each string contains the pattern for a single plane in first-to-last fill priority</param>
         /// <param name="size">Size in bits of all provided patterns combined</param>
         /// <returns>The index remapping pattern</returns>
-        /// <example>
-        /// { "AAAAAAAACCCCCCCCBBBBBBBB" } -> 
-        /// { 0, 1, 2, 3, 4, 5, 6, 7, 16, 17, 18, 19, 20, 21, 22, 23, 8, 9, 10, 11, 12, 13, 14, 15 }
-        /// </example>
         public static MagitekResult<int[]> TryCreateRemapPattern(IList<string> patterns, int size)
         {
             if (size <= 0)

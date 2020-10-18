@@ -15,8 +15,6 @@ namespace ImageMagitek.Codec
         public PixelColorType ColorType => PixelColorType.Indexed;
         public abstract int ColorDepth { get; }
         public abstract int StorageSize { get; }
-        public abstract int RowStride { get; }
-        public abstract int ElementStride { get; }
 
         public abstract int DefaultWidth { get; }
         public abstract int DefaultHeight { get; }

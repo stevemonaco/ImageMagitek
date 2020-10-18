@@ -1,26 +1,23 @@
-﻿using System.Collections.Generic;
-
-namespace ImageMagitek.Codec
+﻿namespace ImageMagitek.Codec
 {
     public interface IGraphicsFormat
     {
-        int ColorDepth { get; set; }
-        PixelColorType ColorType { get; set; }
-        
-        int DefaultHeight { get; set; }
-        int DefaultWidth { get; set; }
+        string Name { get; }
 
-        int ElementStride { get; set; }
-        bool FixedSize { get; set; }
+        PixelColorType ColorType { get; }
+        int ColorDepth { get; }
 
-        int Height { get; set; }
-        int Width { get; set; }
+        ImageLayout Layout { get; }
 
-        string Name { get; set; }
-        int RowStride { get; set; }
+        int DefaultHeight { get; }
+        int DefaultWidth { get; }
+
+        int Height { get; }
+        int Width { get; }
+
+        bool FixedSize { get; }
         int StorageSize { get; }
 
         IGraphicsFormat Clone();
-        void Resize(int width, int height);
     }
 }
