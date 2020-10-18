@@ -1,14 +1,13 @@
 ﻿using ImageMagitek.ExtensionMethods;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ImageMagitek.Codec
 {
     public class IndexedPatternGraphicsCodec : IIndexedCodec
     {
         public string Name { get; set; }
-        public PatternGraphicsFormat Format { get; private set; }
+        public PatternGraphicsFormat Format { get; }
         public int StorageSize => Format.StorageSize;
         public ImageLayout Layout => Format.Layout;
         public PixelColorType ColorType => Format.ColorType;
@@ -23,7 +22,6 @@ namespace ImageMagitek.Codec
         public virtual byte[,] NativeBuffer => _nativeBuffer;
 
         private BitStream _bitStream;
-        private int[] _planeOffsets;
         private List<int[,]> _planeImages;
 
         public int DefaultWidth => Format.DefaultWidth;
@@ -114,7 +112,6 @@ namespace ImageMagitek.Codec
             _nativeBuffer = new byte[Width, Height];
 
             _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
-            _planeOffsets = new int[Format.ColorDepth];
 
             _planeImages = new List<int[,]>();
             for (int i = 0; i < Format.ColorDepth; i++)
