@@ -76,7 +76,36 @@ namespace ImageMagitek.Codec
 
         public ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer)
         {
-            throw new NotImplementedException();
+            if (imageBuffer.GetLength(0) != Width || imageBuffer.GetLength(1) != Height)
+                throw new ArgumentException(nameof(imageBuffer));
+
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    int color = imageBuffer[x, y];
+                    for (int i = 0; i < Format.ColorDepth; i++)
+                    {
+                        var bit = (color >> i) & 1;
+                        _planeImages[i][x, y] = bit;
+                    }
+                }
+            }
+
+            var bs = BitStream.OpenWrite(StorageSize, 8);
+
+            for (int i = 0; i < StorageSize; i++)
+            {
+                var index = Format.Pattern.GetEncodeIndex(i);
+                var plane = index / (StorageSize / Format.ColorDepth);
+                var pixel = index % (StorageSize / Format.ColorDepth);
+                var x = pixel % Width;
+                var y = pixel / Width;
+                var bit = _planeImages[plane][x, y];
+                bs.WriteBit(bit);
+            }
+
+            return bs.Data;
         }
 
         private void AllocateBuffers()

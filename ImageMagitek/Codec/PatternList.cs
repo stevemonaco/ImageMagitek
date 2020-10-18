@@ -47,8 +47,8 @@ namespace ImageMagitek.Codec
 
         public int GetEncodeIndex(int pixelIndex)
         {
-            if (pixelIndex >= 0 && pixelIndex < _decodePattern.Length)
-                return _decodePattern[pixelIndex];
+            if (pixelIndex >= 0 && pixelIndex < _encodePattern.Length)
+                return _encodePattern[pixelIndex];
             else
                 throw new ArgumentOutOfRangeException($"{nameof(GetEncodeIndex)} argument {nameof(pixelIndex)} is out of range");
         }
