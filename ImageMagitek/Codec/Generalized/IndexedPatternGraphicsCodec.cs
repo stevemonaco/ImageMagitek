@@ -37,15 +37,6 @@ namespace ImageMagitek.Codec
             Format = format;
             Name = format.Name;
             AllocateBuffers();
-
-            //_planeOffsets = Enumerable
-            //    .Range(0, format.ColorDepth)
-            //    .Select(x => x * format.StorageSize / format.ColorDepth)
-            //    .ToArray();
-
-            //_planeOffsets = new int[format.ColorDepth];
-            //for (int i = 0; i < _planeOffsets.Length; i++)
-            //    _planeOffsets[i] = i * format.StorageSize / format.ColorDepth;
         }
 
         public byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -56,15 +47,12 @@ namespace ImageMagitek.Codec
             encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
             _bitStream.SeekAbsolute(0);
 
-            for (int i = 0; i < _planeOffsets.Length; i++)
-                _planeOffsets[i] = i * Format.StorageSize / Format.ColorDepth;
-
             for (int i = 0; i < StorageSize; i++)
             {
                 var bit = _bitStream.ReadBit();
                 var index = Format.Pattern.GetDecodeIndex(i);
-                var plane = index / StorageSize;
-                var pixel = index % StorageSize;
+                var plane = index / (StorageSize / Format.ColorDepth);
+                var pixel = index % (StorageSize / Format.ColorDepth);
                 var x = pixel % Width;
                 var y = pixel / Width;
                 _planeImages[plane][x, y] = bit;
@@ -77,14 +65,11 @@ namespace ImageMagitek.Codec
                     int color = 0;
                     for (int i = 0; i < Format.ColorDepth; i++)
                     {
-                        color <<= 1;
-                        color |= _planeImages[i][x, y];
+                        color |= _planeImages[i][x, y] << i;
                     }
                     NativeBuffer[x, y] = (byte)color;
                 }
             }
-
-            // Copy to NativeBuffer
 
             return NativeBuffer;
         }
