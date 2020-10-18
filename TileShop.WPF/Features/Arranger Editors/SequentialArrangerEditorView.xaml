@@ -132,7 +132,6 @@
                     <!--  Resize Arranger Dimensions in Elements  -->
                     <ui:NumberBox
                         Margin="2,0,0,0"
-                        IsEnabled="{Binding CanResize}"
                         LargeChange="1"
                         Minimum="1"
                         SmallChange="1"
@@ -145,7 +144,6 @@
 
                     <ui:NumberBox
                         Margin="2,0,0,0"
-                        IsEnabled="{Binding CanResize}"
                         LargeChange="1"
                         Minimum="1"
                         SmallChange="1"
