@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ImageMagitek.Codec
+﻿namespace ImageMagitek.Codec
 {
     public class PatternGraphicsFormat : IGraphicsFormat
     {

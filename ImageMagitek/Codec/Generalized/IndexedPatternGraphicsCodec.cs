@@ -15,11 +15,11 @@ namespace ImageMagitek.Codec
         public int Width => Format.Width;
         public int Height => Format.Height;
 
-        protected byte[] _foreignBuffer;
-        public virtual ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
+        private byte[] _foreignBuffer;
+        public ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
 
-        protected byte[,] _nativeBuffer;
-        public virtual byte[,] NativeBuffer => _nativeBuffer;
+        private byte[,] _nativeBuffer;
+        public byte[,] NativeBuffer => _nativeBuffer;
 
         private BitStream _bitStream;
         private List<int[,]> _planeImages;

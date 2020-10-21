@@ -25,11 +25,13 @@ namespace TileShop.WPF
         private Tracker _tracker = new Tracker();
         private IPaletteService _paletteService;
         private ICodecService _codecService;
+        private IPluginService _pluginService;
 
         private readonly string _logFileName = "errorlog.txt";
         private readonly string _configName = "appsettings.json";
         private readonly string _palPath = "_palettes";
         private readonly string _codecPath = "_codecs";
+        private readonly string _pluginPath = "_plugins";
         private readonly string _projectSchemaName = Path.Combine("_schemas", "GameDescriptorSchema.xsd");
         private readonly string _codecSchemaName = Path.Combine("_schemas", "CodecSchema.xsd");
 
@@ -39,11 +41,25 @@ namespace TileShop.WPF
             ReadConfiguration(_configName, builder);
             ReadPalettes(_palPath, _settings, builder);
             ReadCodecs(_codecPath, _codecSchemaName, builder);
+            LoadPlugins(_pluginPath, _codecService, builder);
             ConfigureSolutionService(_projectSchemaName, builder);
             ConfigureServices(builder);
             ConfigureJotTracker(builder);
 
             ToolTipService.ShowOnDisabledProperty.OverrideMetadata(typeof(Control), new FrameworkPropertyMetadata(true));
+        }
+
+        private void LoadPlugins(string pluginPath, ICodecService codecService, ContainerBuilder builder)
+        {
+            _pluginService = new PluginService();
+            var fullPath = Path.GetFullPath(pluginPath);
+            _pluginService.LoadCodecPlugins(fullPath);
+            foreach (var codecPlugin in _pluginService.CodecPlugins)
+            {
+                codecService.AddOrUpdateCodec(codecPlugin.Value);
+            }
+
+            builder.RegisterInstance(_pluginService);
         }
 
         private void ConfigureServices(ContainerBuilder builder)

@@ -39,18 +39,18 @@ namespace ImageMagitek.Codec
             using var stream = File.OpenRead(fileName);
             var doc = XDocument.Load(stream, LoadOptions.SetLineInfo);
 
-            //var validationErrors = new List<string>();
+            var validationErrors = new List<string>();
 
-            //doc.Validate(_schemas, (o, e) =>
-            //{
-            //    validationErrors.Add(e.Message);
-            //});
+            doc.Validate(_schemas, (o, e) =>
+            {
+                validationErrors.Add(e.Message);
+            });
 
-            //if (validationErrors.Any())
-            //{
-            //    validationErrors.Insert(0, $"Codec '{fileName}' failed to be validated");
-            //    return new MagitekResults<FlowGraphicsFormat>.Failed(validationErrors);
-            //}
+            if (validationErrors.Any())
+            {
+                validationErrors.Insert(0, $"Codec '{fileName}' failed to be validated");
+                return new MagitekResults<IGraphicsFormat>.Failed(validationErrors);
+            }
 
             if (doc.Root?.Name.LocalName == "flowcodec")
             {

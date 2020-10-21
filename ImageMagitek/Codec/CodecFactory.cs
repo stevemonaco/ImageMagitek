@@ -1,64 +1,75 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace ImageMagitek.Codec
 {
     public class CodecFactory : ICodecFactory
     {
         private readonly Dictionary<string, IGraphicsFormat> _formats;
+        private readonly Dictionary<string, Type> _codecs;
 
         public CodecFactory(Dictionary<string, IGraphicsFormat> formats)
         {
             _formats = formats ?? new Dictionary<string, IGraphicsFormat>();
+            _codecs = new Dictionary<string, Type>
+            {
+                { "SNES 3bpp", typeof(Snes3bppCodec) }, { "PSX 4bpp", typeof(Psx4bppCodec) }, { "PSX 8bpp", typeof(Psx8bppCodec) }
+            };
+        }
+
+        public void AddOrUpdateCodec(Type codecType)
+        {
+            if (typeof(IGraphicsCodec).IsAssignableFrom(codecType) && !codecType.IsAbstract)
+            {
+                var codec = (IGraphicsCodec)Activator.CreateInstance(codecType);
+                _codecs[codec.Name] = codecType;
+            }
+            else
+                throw new ArgumentException($"{nameof(AddOrUpdateCodec)} parameter '{nameof(codecType)}' is not of type {typeof(IGraphicsCodec)} or is not instantiable");
         }
 
         public IGraphicsCodec GetCodec(string codecName, Size? elementSize)
         {
-            switch (codecName)
+            if (_codecs.ContainsKey(codecName))
             {
-                //case "NES 1bpp":
-                //    return new Nes1bppCodec(width, height);
-                case "SNES 3bpp":
-                    return elementSize.HasValue ? new Snes3bppCodec(elementSize.Value.Width, elementSize.Value.Height) : new Snes3bppCodec();
-                case "PSX 4bpp":
-                    return elementSize.HasValue ? new Psx4bppCodec(elementSize.Value.Width, elementSize.Value.Height) : new Psx4bppCodec();
-                case "PSX 8bpp":
-                    return elementSize.HasValue ? new Psx8bppCodec(elementSize.Value.Width, elementSize.Value.Height) : new Psx8bppCodec();
-                //case "PSX 16bpp":
-                //    return new Psx16bppCodec(width, height);
-                //case "PSX 24bpp":
-                //    return new Psx24bppCodec(width, height);
-                default:
-                    if (_formats.ContainsKey(codecName))
+                var codecType = _codecs[codecName];
+                if (elementSize.HasValue)
+                    return (IGraphicsCodec) Activator.CreateInstance(codecType, elementSize.Value.Width, elementSize.Value.Height);
+                else
+                    return (IGraphicsCodec) Activator.CreateInstance(codecType);
+            }
+            else if (_formats.ContainsKey(codecName))
+            {
+                var format = _formats[codecName].Clone();
+
+                if (format is FlowGraphicsFormat flowFormat)
+                {
+                    if (elementSize.HasValue)
                     {
-                        var format = _formats[codecName].Clone();
-
-                        if (format is FlowGraphicsFormat flowFormat)
-                        {
-                            if (elementSize.HasValue)
-                            {
-                                flowFormat.Width = elementSize.Value.Width;
-                                flowFormat.Height = elementSize.Value.Height;
-                            }
-
-                            if (format.ColorType == PixelColorType.Indexed)
-                                return new IndexedGraphicsCodec(flowFormat);
-                            else if (format.ColorType == PixelColorType.Direct)
-                                throw new NotImplementedException();
-                        }
-                        else if (format is PatternGraphicsFormat patternFormat)
-                        {
-                            if (format.ColorType == PixelColorType.Indexed)
-                                return new IndexedPatternGraphicsCodec(patternFormat);
-                            else if (format.ColorType == PixelColorType.Direct)
-                                throw new NotImplementedException();
-                        }
-
-                        throw new NotSupportedException();
+                        flowFormat.Width = elementSize.Value.Width;
+                        flowFormat.Height = elementSize.Value.Height;
                     }
-                    else
-                        throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{codecName}'");
+
+                    if (format.ColorType == PixelColorType.Indexed)
+                        return new IndexedGraphicsCodec(flowFormat);
+                    else if (format.ColorType == PixelColorType.Direct)
+                        throw new NotImplementedException();
+                }
+                else if (format is PatternGraphicsFormat patternFormat)
+                {
+                    if (format.ColorType == PixelColorType.Indexed)
+                        return new IndexedPatternGraphicsCodec(patternFormat);
+                    else if (format.ColorType == PixelColorType.Direct)
+                        throw new NotImplementedException();
+                }
+
+                throw new NotSupportedException($"Graphics format of type '{format}' is not supported");
+            }
+            else
+            {
+                throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{codecName}'");
             }
         }
 
@@ -69,15 +80,9 @@ namespace ImageMagitek.Codec
 
         public IEnumerable<string> GetSupportedCodecNames()
         {
-            //yield return "NES 1bpp";
-            yield return "SNES 3bpp";
-            yield return "PSX 4bpp";
-            yield return "PSX 8bpp";
-            //yield return "PSX 16bpp";
-            //yield return "PSX 24bpp";
-
-            foreach (var format in _formats.Values)
-                yield return format.Name;
+            return _formats.Keys
+                .Concat(_codecs.Keys)
+                .OrderBy(x => x);
         }
     }
 }

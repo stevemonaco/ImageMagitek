@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using McMaster.NETCore.Plugins;
 
 namespace ImageMagitek.Services
 {
@@ -12,6 +14,7 @@ namespace ImageMagitek.Services
 
         IEnumerable<string> GetSupportedCodecNames();
         MagitekResults LoadXmlCodecs(string codecsPath);
+        void AddOrUpdateCodec(Type codecType);
     }
 
     public class CodecService : ICodecService
@@ -52,6 +55,9 @@ namespace ImageMagitek.Services
             else
                 return MagitekResults.SuccessResults;
         }
+
+        public void AddOrUpdateCodec(Type codecType) =>
+            CodecFactory.AddOrUpdateCodec(codecType);
 
         public IEnumerable<string> GetSupportedCodecNames() => CodecFactory?.GetSupportedCodecNames();
     }

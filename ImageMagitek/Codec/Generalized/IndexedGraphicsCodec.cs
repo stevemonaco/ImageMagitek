@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Codec
 {
-    public class IndexedGraphicsCodec : IIndexedCodec
+    class IndexedGraphicsCodec : IIndexedCodec
     {
         public string Name { get; set; }
         public FlowGraphicsFormat Format { get; private set; }
