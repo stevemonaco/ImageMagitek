@@ -24,9 +24,12 @@ namespace ImageMagitek.Codec
 
         private readonly int[] _encodePattern;
         private readonly int[] _decodePattern;
+        private readonly int _maxRepeatIndex;
 
-        public PatternList(IEnumerable<int> remapPattern)
+        public PatternList(IEnumerable<int> remapPattern, int maxRepeatIndex)
         {
+            _maxRepeatIndex = maxRepeatIndex;
+
             _decodePattern = remapPattern.ToArray();
             _encodePattern = remapPattern
                 .Select((x, i) => new { Redirect = x, Index = i })
@@ -39,16 +42,16 @@ namespace ImageMagitek.Codec
 
         public int GetDecodeIndex(int bitIndex)
         {
-            if (bitIndex >= 0 && bitIndex < _encodePattern.Length)
-                return _encodePattern[bitIndex];
+            if (bitIndex >= 0 && bitIndex < _maxRepeatIndex)
+                return _encodePattern[bitIndex % PatternSize];
             else
                 throw new ArgumentOutOfRangeException($"{nameof(GetDecodeIndex)} argument {nameof(bitIndex)} is out of range");
         }
 
         public int GetEncodeIndex(int pixelIndex)
         {
-            if (pixelIndex >= 0 && pixelIndex < _encodePattern.Length)
-                return _encodePattern[pixelIndex];
+            if (pixelIndex >= 0 && pixelIndex < _maxRepeatIndex)
+                return _encodePattern[pixelIndex % PatternSize];
             else
                 throw new ArgumentOutOfRangeException($"{nameof(GetEncodeIndex)} argument {nameof(pixelIndex)} is out of range");
         }

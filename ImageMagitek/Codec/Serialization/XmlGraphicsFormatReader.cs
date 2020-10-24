@@ -272,7 +272,7 @@ namespace ImageMagitek.Codec
             patternResult.Switch(
                 success =>
                 {
-                    var pattern = new PatternList(success.Result);
+                    var pattern = new PatternList(success.Result, width * height * colorDepth);
                     format.SetPattern(pattern);
                 },
                 failed => errors.Add(failed.Reason));
