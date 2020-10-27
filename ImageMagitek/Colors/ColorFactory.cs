@@ -37,6 +37,7 @@ namespace ImageMagitek.Colors
         IColor ToForeign(ColorRgba32 color, ColorModel colorModel);
     }
 
+    /// <inheritdoc/>
     public class ColorFactory : IColorFactory
     {
         private readonly ColorConverterBgr15 _bgr15Converter = new ColorConverterBgr15();
