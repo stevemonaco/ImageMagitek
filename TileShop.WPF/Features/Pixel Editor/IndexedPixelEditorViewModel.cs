@@ -155,7 +155,7 @@ namespace TileShop.WPF.ViewModels
             var maxArrangerColors = WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Codec?.ColorDepth ?? 0).Max();
             var colors = Math.Min(256, 1 << maxArrangerColors);
 
-            var remapViewModel = new ColorRemapViewModel(palette, colors);
+            var remapViewModel = new ColorRemapViewModel(palette, colors, _paletteService.ColorFactory);
             if (_windowManager.ShowDialog(remapViewModel) is true)
             {
                 var remap = remapViewModel.FinalColors.Select(x => (byte)x.Index).ToList();

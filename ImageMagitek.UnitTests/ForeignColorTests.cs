@@ -8,7 +8,8 @@ namespace ImageMagitek.UnitTests
         [TestCaseSource(typeof(ForeignColorTestCases), "ToNativeTestCases")]
         public void ToNative_AsExpected(IColor32 fc, ColorRgba32 expected)
         {
-            var actual = ColorConverter.ToNative(fc);
+            var colorFactory = new ColorFactory();
+            var actual = colorFactory.ToNative(fc);
 
             Assert.Multiple(() =>
             {

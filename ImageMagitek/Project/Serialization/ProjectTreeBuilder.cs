@@ -18,10 +18,12 @@ namespace ImageMagitek.Project.Serialization
         private readonly List<IProjectResource> _globalResources;
         private readonly Palette _globalDefaultPalette;
         private readonly ICodecFactory _codecFactory;
+        private readonly IColorFactory _colorFactory;
 
-        public ProjectTreeBuilder(ICodecFactory codecFactory, IEnumerable<IProjectResource> globalResources)
+        public ProjectTreeBuilder(ICodecFactory codecFactory, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
         {
             _codecFactory = codecFactory;
+            _colorFactory = colorFactory;
             _globalResources = globalResources.ToList();
             _globalDefaultPalette = _globalResources.OfType<Palette>().FirstOrDefault();
         }
@@ -65,7 +67,7 @@ namespace ImageMagitek.Project.Serialization
 
         public MagitekResult AddPalette(PaletteModel paletteModel, string parentNodePath)
         {
-            var pal = new Palette(paletteModel.Name, paletteModel.ColorModel, paletteModel.FileAddress, paletteModel.Entries, paletteModel.ZeroIndexTransparent, paletteModel.StorageSource);
+            var pal = new Palette(paletteModel.Name, _colorFactory, paletteModel.ColorModel, paletteModel.FileAddress, paletteModel.Entries, paletteModel.ZeroIndexTransparent, paletteModel.StorageSource);
 
             if (!Tree.TryGetValue<DataFile>(paletteModel.DataFileKey, out var df))
                 return new MagitekResult.Failed($"Palette '{pal.Name}' could not locate DataFile with key '{paletteModel.DataFileKey}'");

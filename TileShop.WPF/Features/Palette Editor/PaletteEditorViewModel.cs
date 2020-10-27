@@ -4,12 +4,14 @@ using TileShop.Shared.EventModels;
 using TileShop.WPF.Models;
 using ImageMagitek.Colors;
 using System.Linq;
+using ImageMagitek.Services;
 
 namespace TileShop.WPF.ViewModels
 {
     public class PaletteEditorViewModel : ResourceEditorBaseViewModel
     {
         private readonly Palette _palette;
+        private readonly IPaletteService _paletteService;
         private readonly IEventAggregator _events;
 
         private BindableCollection<ValidatedColorModel> _colors = new BindableCollection<ValidatedColorModel>();
@@ -26,17 +28,18 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _selectedColor, value);
         }
 
-        public PaletteEditorViewModel(Palette palette, IEventAggregator events)
+        public PaletteEditorViewModel(Palette palette, IPaletteService paletteService, IEventAggregator events)
         {
             Resource = palette;
             _palette = palette;
+            _paletteService = paletteService;
             _events = events;
             events.Subscribe(this);
 
             DisplayName = Resource?.Name ?? "Unnamed Palette";
 
             for(int i = 0; i < _palette.Entries; i++)
-                Colors.Add(new ValidatedColorModel(_palette.GetForeignColor(i), i));
+                Colors.Add(new ValidatedColorModel((IColor32)_palette.GetForeignColor(i), i, _paletteService.ColorFactory));
 
             SelectedColor = Colors.First();
         }

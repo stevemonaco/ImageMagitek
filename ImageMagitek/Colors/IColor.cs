@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ImageMagitek.Colors
+﻿namespace ImageMagitek.Colors
 {
     public interface IColor
     {

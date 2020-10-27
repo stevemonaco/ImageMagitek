@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Schema;
+using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
 using Monaco.PathTree;
@@ -41,15 +42,18 @@ namespace ImageMagitek.Services
 
         private XmlSchemaSet _schemas = new XmlSchemaSet();
         private readonly ICodecService _codecService;
+        private readonly IColorFactory _colorFactory;
 
-        public ProjectService(ICodecService codecService)
+        public ProjectService(ICodecService codecService, IColorFactory colorFactory)
         {
             _codecService = codecService;
+            _colorFactory = colorFactory;
         }
 
-        public ProjectService(ICodecService codecService, IEnumerable<IProjectResource> globalResources)
+        public ProjectService(ICodecService codecService, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
         {
             _codecService = codecService;
+            _colorFactory = colorFactory;
             GlobalResources = globalResources.ToHashSet();
         }
 
@@ -101,7 +105,7 @@ namespace ImageMagitek.Services
 
             try
             {
-                var deserializer = new XmlGameDescriptorReader(_schemas, _codecService.CodecFactory, GlobalResources);
+                var deserializer = new XmlGameDescriptorReader(_schemas, _codecService.CodecFactory, _colorFactory, GlobalResources);
                 var result = deserializer.ReadProject(projectFileName);
 
                 return result.Match(

@@ -10,6 +10,14 @@ namespace ImageMagitek.Colors
         public byte b;
         public byte a;
 
+        public ColorBgr15(uint foreignColor)
+        {
+            r = (byte)(foreignColor & 0x1f);
+            g = (byte)((foreignColor & 0x3e0) >> 5);
+            b = (byte)((foreignColor & 0x7c00) >> 10);
+            a = 0;
+        }
+
         public ColorBgr15(byte red, byte green, byte blue)
         {
             r = red;

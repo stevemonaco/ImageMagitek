@@ -19,24 +19,27 @@ namespace ImageMagitek.Project.Serialization
 
         private readonly XmlSchemaSet _schemaSet;
         private readonly ICodecFactory _codecFactory;
+        private readonly IColorFactory _colorFactory;
         private readonly List<IProjectResource> _globalResources;
         private readonly Palette _globalDefaultPalette;
         private string _baseDirectory;
 
-        public XmlGameDescriptorReader(ICodecFactory codecFactory) : 
-            this(new XmlSchemaSet(), codecFactory, Enumerable.Empty<IProjectResource>())
+        public XmlGameDescriptorReader(ICodecFactory codecFactory, IColorFactory colorFactory) : 
+            this(new XmlSchemaSet(), codecFactory, colorFactory, Enumerable.Empty<IProjectResource>())
         {
         }
 
-        public XmlGameDescriptorReader(XmlSchemaSet schemaSet, ICodecFactory codecFactory) : 
-            this(schemaSet, codecFactory, Enumerable.Empty<IProjectResource>())
+        public XmlGameDescriptorReader(XmlSchemaSet schemaSet, ICodecFactory codecFactory, IColorFactory colorFactory) : 
+            this(schemaSet, codecFactory, colorFactory, Enumerable.Empty<IProjectResource>())
         {
         }
 
-        public XmlGameDescriptorReader(XmlSchemaSet schemaSet, ICodecFactory codecFactory, IEnumerable<IProjectResource> globalResources)
+        public XmlGameDescriptorReader(XmlSchemaSet schemaSet, ICodecFactory codecFactory, 
+            IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
         {
             _schemaSet = schemaSet;
             _codecFactory = codecFactory;
+            _colorFactory = colorFactory;
             _globalResources = globalResources.ToList();
             _globalDefaultPalette = _globalResources.OfType<Palette>().First();
         }
@@ -68,7 +71,7 @@ namespace ImageMagitek.Project.Serialization
             var projectErrors = new List<string>();
 
             var projectModel = DeserializeImageProject(projectNode);
-            var builder = new ProjectTreeBuilder(_codecFactory, _globalResources);
+            var builder = new ProjectTreeBuilder(_codecFactory, _colorFactory, _globalResources);
             builder.AddProject(projectModel);
 
             foreach (var node in projectNode.Descendants("folder"))

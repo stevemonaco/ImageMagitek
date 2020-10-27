@@ -7,6 +7,7 @@ namespace TileShop.WPF.Models
     public class ValidatedColorModel : PropertyChangedBase
     {
         private IColor32 _foreignColor;
+        private readonly IColorFactory _colorFactory;
 
         public IColor32 WorkingColor { get; set; }
 
@@ -24,7 +25,7 @@ namespace TileShop.WPF.Models
             {
                 WorkingColor.R = (byte) value;
                 OnPropertyChanged(nameof(Red));
-                var nativeColor = ImageMagitek.Colors.ColorConverter.ToNative(WorkingColor);
+                var nativeColor = _colorFactory.ToNative(WorkingColor);
                 Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
                 OnPropertyChanged(nameof(CanSaveColor));
             }
@@ -37,7 +38,7 @@ namespace TileShop.WPF.Models
             {
                 WorkingColor.B = (byte)value;
                 OnPropertyChanged(nameof(Blue));
-                var nativeColor = ImageMagitek.Colors.ColorConverter.ToNative(WorkingColor);
+                var nativeColor = _colorFactory.ToNative(WorkingColor);
                 Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
                 OnPropertyChanged(nameof(CanSaveColor));
             }
@@ -50,7 +51,7 @@ namespace TileShop.WPF.Models
             {
                 WorkingColor.G = (byte)value;
                 OnPropertyChanged(nameof(Green));
-                var nativeColor = ImageMagitek.Colors.ColorConverter.ToNative(WorkingColor);
+                var nativeColor = _colorFactory.ToNative(WorkingColor);
                 Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
                 OnPropertyChanged(nameof(CanSaveColor));
             }
@@ -63,7 +64,7 @@ namespace TileShop.WPF.Models
             {
                 WorkingColor.A = (byte)value;
                 OnPropertyChanged(nameof(Alpha));
-                var nativeColor = ImageMagitek.Colors.ColorConverter.ToNative(WorkingColor);
+                var nativeColor = _colorFactory.ToNative(WorkingColor);
                 Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
                 OnPropertyChanged(nameof(CanSaveColor));
             }
@@ -109,12 +110,14 @@ namespace TileShop.WPF.Models
             set => SetAndNotify(ref _index, value);
         }
 
-        public ValidatedColorModel(IColor32 foreignColor, int index)
+        public ValidatedColorModel(IColor32 foreignColor, int index, IColorFactory colorFactory)
         {
             _foreignColor = foreignColor;
             Index = index;
-            WorkingColor = ColorFactory.CloneColor(foreignColor);
-            var nativeColor = ImageMagitek.Colors.ColorConverter.ToNative(foreignColor);
+            _colorFactory = colorFactory;
+
+            WorkingColor = (IColor32)_colorFactory.CloneColor(foreignColor);
+            var nativeColor = _colorFactory.ToNative(foreignColor);
             Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
 
             Red = foreignColor.R;
@@ -129,7 +132,7 @@ namespace TileShop.WPF.Models
 
         public void SaveColor()
         {
-            _foreignColor = ColorFactory.CloneColor(WorkingColor);
+            _foreignColor = (IColor32)_colorFactory.CloneColor(WorkingColor);
             OnPropertyChanged(nameof(CanSaveColor));
         }
     }

@@ -7,54 +7,41 @@ namespace ImageMagitek.Services
 {
     public interface IPaletteService
     {
+        IColorFactory ColorFactory { get; }
+
         Palette DefaultPalette { get; }
         List<Palette> GlobalPalettes { get; }
         Palette NesPalette { get; }
 
-        void LoadGlobalPalette(string paletteFileName);
+        Palette ReadJsonPalette(string paletteFileName);
         void SetDefaultPalette(Palette pal);
-        void LoadNesPalette(string nesPaletteFileName);
     }
 
     public class PaletteService : IPaletteService
     {
+        public IColorFactory ColorFactory { get; private set; }
+
         public Palette DefaultPalette { get; private set; }
         public List<Palette> GlobalPalettes { get; } = new List<Palette>();
         public Palette NesPalette { get; private set; }
 
+        public PaletteService(IColorFactory colorFactory)
+        {
+            ColorFactory = colorFactory;
+        }
+
         /// <summary>
-        /// Loads a palette from a JSON file and adds it to GlobalPalettes
+        /// Read a palette from a JSON file
         /// </summary>
-        /// <param name="paletteFileName"></param>
-        public void LoadGlobalPalette(string paletteFileName)
+        /// <param name="paletteFileName">Path to the JSON palette file</param>
+        public Palette ReadJsonPalette(string paletteFileName)
         {
             if (!File.Exists(paletteFileName))
-                throw new FileNotFoundException($"{nameof(LoadGlobalPalette)}: Could not locate file {paletteFileName}");
+                throw new FileNotFoundException($"{nameof(ReadJsonPalette)}: Could not locate file {paletteFileName}");
 
             string json = File.ReadAllText(paletteFileName);
-            var pal = PaletteJsonSerializer.ReadPalette(json);
-            GlobalPalettes.Add(pal);
-
-            if (GlobalPalettes.Count == 1)
-                DefaultPalette = GlobalPalettes.First();
-        }
-
-        /// <summary>
-        /// Loads a palette from a JSON file and sets it as the NesPalette
-        /// </summary>
-        /// <param name="nesPaletteFileName"></param>
-        public void LoadNesPalette(string nesPaletteFileName)
-        {
-            if (!File.Exists(nesPaletteFileName))
-                throw new FileNotFoundException($"{nameof(LoadNesPalette)}: Could not locate file {nesPaletteFileName}");
-
-            NesPalette = LoadJsonPalette(nesPaletteFileName);
-        }
-
-        private Palette LoadJsonPalette(string paletteFileName)
-        {
-            string json = File.ReadAllText(paletteFileName);
-            return PaletteJsonSerializer.ReadPalette(json);
+            var pal = PaletteJsonSerializer.ReadPalette(json, ColorFactory);
+            return pal;
         }
 
         /// <summary>

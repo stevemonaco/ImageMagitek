@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ImageMagitek.Colors.ColorFormats
+namespace ImageMagitek.Colors
 {
     public struct ColorNes : ITableColor
     {
@@ -13,5 +13,10 @@ namespace ImageMagitek.Colors.ColorFormats
 
         public int Size => 8;
         public int ColorMax => 63;
+
+        public ColorNes(uint foreignColor)
+        {
+            _color = Math.Clamp(foreignColor, 0, 63);
+        }
     }
 }

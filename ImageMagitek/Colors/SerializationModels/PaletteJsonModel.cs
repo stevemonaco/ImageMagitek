@@ -10,12 +10,12 @@ namespace ImageMagitek.Colors.SerializationModels
         public List<string> Colors { get; set; }
         public bool ZeroIndexTransparent { get; set; } = true;
 
-        public Palette ToPalette()
+        public Palette ToPalette(IColorFactory colorFactory)
         {
             const string colorRegex = "^#([A-Fa-f0-9]){6,8}$";
             var regex = new Regex(colorRegex, RegexOptions.Compiled);
 
-            var pal = new Palette(Name, ColorModel.RGBA32, 0, Colors.Count, ZeroIndexTransparent, PaletteStorageSource.Json);
+            var pal = new Palette(Name, colorFactory, ColorModel.Rgba32, 0, Colors.Count, ZeroIndexTransparent, PaletteStorageSource.Json);
 
             for (int i = 0; i < Colors.Count; i++)
             {

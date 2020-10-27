@@ -9,6 +9,8 @@ namespace TileShop.WPF.ViewModels
 {
     public class ColorRemapViewModel : Screen, IDropTarget //, IDropTarget, IDragSource
     {
+        private readonly IColorFactory _colorFactory;
+
         private BindableCollection<RemappableColorModel> _initialColors = new BindableCollection<RemappableColorModel>();
         public BindableCollection<RemappableColorModel> InitialColors
         {
@@ -27,18 +29,21 @@ namespace TileShop.WPF.ViewModels
         /// ViewModel responsible for remapping Palette colors of an indexed image
         /// </summary>
         /// <param name="palette">Palette containing the colors</param>
-        public ColorRemapViewModel(Palette palette) : this(palette, palette.Entries) { }
+        public ColorRemapViewModel(Palette palette, IColorFactory colorFactory) : this(palette, palette.Entries, colorFactory) { }
 
         /// <summary>
         /// ViewModel responsible for remapping Palette colors of an indexed image
         /// </summary>
         /// <param name="palette">Palette containing the colors</param>
         /// <param name="paletteEntries">Number of colors to remap starting with the 0-index</param>
-        public ColorRemapViewModel(Palette palette, int paletteEntries)
+        /// <param name="colorFactory">Factory to create/convert colors</param>
+        public ColorRemapViewModel(Palette palette, int paletteEntries, IColorFactory colorFactory)
         {
+            _colorFactory = colorFactory;
+
             for (int i = 0; i < paletteEntries; i++)
             {
-                var nativeColor = ImageMagitek.Colors.ColorConverter.ToNative(palette[i]);
+                var nativeColor = _colorFactory.ToNative(palette[i]);
                 var color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
                 InitialColors.Add(new RemappableColorModel(color, i));
                 FinalColors.Add(new RemappableColorModel(color, i));

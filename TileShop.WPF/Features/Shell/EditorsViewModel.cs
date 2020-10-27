@@ -129,7 +129,7 @@ namespace TileShop.WPF.ViewModels
                 switch (resource)
                 {
                     case Palette pal:
-                        newDocument = new PaletteEditorViewModel(pal, _events);
+                        newDocument = new PaletteEditorViewModel(pal, _paletteService, _events);
                         break;
                     case ScatteredArranger scatteredArranger:
                         newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _events, _windowManager, _paletteService, _projectService);
