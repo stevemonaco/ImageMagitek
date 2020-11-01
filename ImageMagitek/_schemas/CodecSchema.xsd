@@ -31,8 +31,11 @@
 	  	<xs:element name="colordepth" type="xs:positiveInteger" />
 	    <xs:element name="height" type="xs:positiveInteger" />
 	    <xs:element name="width" type="xs:positiveInteger" />
+		<xs:element ref="mergepriority" />
+		<xs:element ref="packing" />
 		<xs:element ref="colortype" />
 		<xs:element ref="layout" />
+		<xs:element ref="rowpixelpattern" />
 		
 	    <xs:element name="patterns">
 	      <xs:complexType>
@@ -80,13 +83,7 @@
       <xs:choice maxOccurs="3">
         <xs:element name="colordepth" type="xs:nonNegativeInteger" maxOccurs="1" />
         <xs:element name="rowinterlace" type="xs:boolean" maxOccurs="1" />
-        <xs:element name="rowpixelpattern" maxOccurs="1" >
-          <xs:simpleType>
-            <xs:restriction base="xs:string">
-              <xs:pattern value="\d+(,\s+\d+)*" />
-            </xs:restriction>
-          </xs:simpleType>
-        </xs:element>
+        <xs:element ref="rowpixelpattern" />
       </xs:choice>
     </xs:complexType>
   </xs:element>
@@ -97,6 +94,23 @@
 	    <xs:pattern value="([A-Z]|[a-z]|[2-9]|[!?@*]|[\s])+" />
 	  </xs:restriction>
 	</xs:simpleType>
+  </xs:element>
+  
+  <xs:element name="packing">
+	<xs:simpleType>
+	  <xs:restriction base="xs:string">
+		<xs:enumeration value="planar" />
+		<xs:enumeration value="chunky" />
+	  </xs:restriction>
+	</xs:simpleType>
+  </xs:element>
+  
+  <xs:element name="rowpixelpattern">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:pattern value="\d+(,\s+\d+)*" />
+      </xs:restriction>
+    </xs:simpleType>
   </xs:element>
   
 </xs:schema>

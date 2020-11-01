@@ -63,9 +63,10 @@
       <xs:attribute name="color" use="required" >
         <xs:simpleType>
           <xs:restriction base="xs:string">
-            <xs:enumeration value="BGR15" />
-            <xs:enumeration value="ABGR16" />
-            <xs:enumeration value="RGBA32" />
+            <xs:enumeration value="Bgr15" />
+            <xs:enumeration value="Abgr16" />
+            <xs:enumeration value="Rgba32" />
+			<xs:enumeration value="Nes" />
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
