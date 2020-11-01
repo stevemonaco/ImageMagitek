@@ -172,7 +172,8 @@ namespace ImageMagitek.Codec
                             for (int x = 0; x < Format.Width; x++)
                             {
                                 int priorityPos = pos + ip.RowPixelPattern[x];
-                                bs.WriteBit(_elementData[curPlane][priorityPos]);
+                                int mergedPlane = Format.MergePlanePriority[curPlane];
+                                bs.WriteBit(_elementData[mergedPlane][priorityPos]);
                             }
                         }
                     }
@@ -182,10 +183,14 @@ namespace ImageMagitek.Codec
                     for (int y = 0; y < Format.Height; y++, pos += Format.Width)
                     {
                         for (int x = 0; x < Format.Width; x++)
+                        {
                             for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
                             {
-                                bs.WriteBit(_elementData[curPlane][pos + ip.RowPixelPattern[x]]);
+                                int priorityPos = pos + ip.RowPixelPattern[x];
+                                int mergedPlane = Format.MergePlanePriority[curPlane];
+                                bs.WriteBit(_elementData[mergedPlane][priorityPos]);
                             }
+                        }
                     }
                 }
 
