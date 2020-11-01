@@ -212,6 +212,9 @@ namespace ImageMagitek.Codec
                 ColorType = patternElementRoot.Element("colortype"),
                 ColorDepth = patternElementRoot.Element("colordepth"),
                 Layout = patternElementRoot.Element("layout"),
+                Packing = patternElementRoot.Element("packing"),
+                MergePriority = patternElementRoot.Element("mergepriority"),
+                RowPixelPattern = patternElementRoot.Element("rowpixelpattern"),
                 Width = patternElementRoot.Element("width"),
                 Height = patternElementRoot.Element("height"),
                 Patterns = patternElementRoot.Element("patterns")
@@ -251,7 +254,58 @@ namespace ImageMagitek.Codec
             else
                 errors.Add($"Unrecognized layout '{codec.Layout?.Value}' on line {codec.Layout.LineNumber()}");
 
-            var format = new PatternGraphicsFormat(name, colorType, colorDepth, layout, width, height);
+            PixelPacking packing = default;
+            if (codec.Packing?.Value == "planar")
+                packing = PixelPacking.Planar;
+            else if (codec.Packing?.Value == "chunky")
+                packing = PixelPacking.Chunky;
+            else
+                errors.Add($"Unrecognized layout '{codec.Packing?.Value}' on line {codec.Packing.LineNumber()}");
+
+            var format = new PatternGraphicsFormat(name, colorType, colorDepth, layout, packing, width, height);
+
+            int[] rowPixelPattern;
+            var patternString = codec.RowPixelPattern?.Value;
+            if (patternString is object)
+            {
+                patternString = patternString.Replace(" ", "");
+                var patternInputs = patternString.Split(',');
+
+                rowPixelPattern = new int[patternInputs.Length];
+
+                for (int i = 0; i < patternInputs.Length; i++)
+                {
+                    if (int.TryParse(patternInputs[i], out var patternPriority))
+                        rowPixelPattern[i] = patternPriority;
+                    else
+                        errors.Add($"rowpixelpattern value '{patternInputs[i]}' could not be parsed on {codec.RowPixelPattern.LineNumber()}");
+                }
+            }
+            else // Create a default rowpixelpattern
+            {
+                rowPixelPattern = new int[1];
+            }
+
+            format.RowPixelPattern = new RepeatList(rowPixelPattern);
+
+            string mergeString = codec.MergePriority?.Value ?? "";
+            mergeString = mergeString.Replace(" ", "");
+            var mergeItems = mergeString.Split(',');
+
+            if (mergeItems.Length == format.ColorDepth)
+            {
+                format.MergePlanePriority = new int[format.ColorDepth];
+
+                for (int i = 0; i < mergeItems.Length; i++)
+                {
+                    if (int.TryParse(mergeItems[i], out var mergePlane))
+                        format.MergePlanePriority[i] = mergePlane;
+                    else
+                        errors.Add($"Merge priority '{mergeItems[i]}' could not be parsed on {codec.MergePriority.LineNumber()}");
+                }
+            }
+            else
+                errors.Add($"The number of entries in mergepriority does not match the colordepth on line {codec.MergePriority.LineNumber()}");
 
             var sizeElement = patternElementRoot.Element("patterns").Attribute("size");
 
@@ -267,13 +321,12 @@ namespace ImageMagitek.Codec
                 .Select(x => string.Join("", x.Value.Where(c => !char.IsWhiteSpace(c))))
                 .ToArray();
 
-            var patternResult = PatternList.TryCreateRemapPattern(patternStrings, patternSize);
+            var patternResult = PatternList.TryCreatePatternList(patternStrings, packing, width, height, colorDepth, patternSize);
 
             patternResult.Switch(
                 success =>
                 {
-                    var pattern = new PatternList(success.Result, width * height * colorDepth);
-                    format.SetPattern(pattern);
+                    format.SetPattern(success.Result);
                 },
                 failed => errors.Add(failed.Reason));
 

@@ -48,24 +48,22 @@ namespace ImageMagitek.Codec
             for (int i = 0; i < StorageSize; i++)
             {
                 var bit = _bitStream.ReadBit();
-                var index = Format.Pattern.GetDecodeIndex(i);
-                var plane = index / (StorageSize / Format.ColorDepth);
-                var pixel = index % (StorageSize / Format.ColorDepth);
-                var x = pixel % Width;
-                var y = pixel / Width;
-                _planeImages[plane][x, y] = bit;
+                var coordinate = Format.Pattern.GetDecodeIndex(i);
+                _planeImages[coordinate.P][coordinate.X, coordinate.Y] = bit;
             }
 
             for (int y = 0; y < Height; y++)
             {
                 for (int x = 0; x < Width; x++)
                 {
-                    int color = 0;
+                    byte color = 0;
+                    int xpos = Format.RowPixelPattern[x];
+
                     for (int i = 0; i < Format.ColorDepth; i++)
                     {
-                        color |= _planeImages[i][x, y] << i;
+                        color |= (byte)(_planeImages[i][x, y] << Format.MergePlanePriority[i]);
                     }
-                    NativeBuffer[x, y] = (byte)color;
+                    NativeBuffer[xpos, y] = color;
                 }
             }
 
@@ -77,30 +75,23 @@ namespace ImageMagitek.Codec
             if (imageBuffer.GetLength(0) != Width || imageBuffer.GetLength(1) != Height)
                 throw new ArgumentException(nameof(imageBuffer));
 
-            for (int y = 0; y < Height; y++)
-            {
-                for (int x = 0; x < Width; x++)
-                {
-                    int color = imageBuffer[x, y];
-                    for (int i = 0; i < Format.ColorDepth; i++)
-                    {
-                        var bit = (color >> i) & 1;
-                        _planeImages[i][x, y] = bit;
-                    }
-                }
-            }
-
             var bs = BitStream.OpenWrite(StorageSize, 8);
 
-            for (int i = 0; i < StorageSize; i++)
+            for (short y = 0; y < Height; y++)
             {
-                var index = Format.Pattern.GetEncodeIndex(i);
-                var plane = index / (StorageSize / Format.ColorDepth);
-                var pixel = index % (StorageSize / Format.ColorDepth);
-                var x = pixel % Width;
-                var y = pixel / Width;
-                var bit = _planeImages[plane][x, y];
-                bs.WriteBit(bit);
+                for (short x = 0; x < Width; x++)
+                {
+                    int color = imageBuffer[x, y];
+                    for (short i = 0; i < Format.ColorDepth; i++)
+                    {
+                        var bit = (color >> i) & 1;
+                        short xpos = (short)Format.RowPixelPattern[x];
+                        short plane = (short)Format.MergePlanePriority[i];
+                        var index = Format.Pattern.GetEncodeIndex(new PlaneCoordinate(xpos, y, plane));
+                        bs.SeekAbsolute(index);
+                        bs.WriteBit(bit);
+                    }
+                }
             }
 
             return bs.Data;
