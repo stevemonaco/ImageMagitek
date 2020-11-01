@@ -52,16 +52,12 @@ namespace ImageMagitek.Codec
                 return new MagitekResults<IGraphicsFormat>.Failed(validationErrors);
             }
 
-            if (doc.Root?.Name.LocalName == "flowcodec")
+            return doc.Root?.Name.LocalName switch
             {
-                return ReadFlowCodec(doc.Root);
-            }
-            else if (doc.Root?.Name.LocalName == "patterncodec")
-            {
-                return ReadPatternCodec(doc.Root);
-            }
-
-            return new MagitekResults<IGraphicsFormat>.Failed($"Unrecognized codec root element '{doc.Root.Name}'");
+                "flowcodec" => ReadFlowCodec(doc.Root),
+                "patterncodec" => ReadPatternCodec(doc.Root),
+                _ => new MagitekResults<IGraphicsFormat>.Failed($"Unrecognized codec root element '{doc.Root.Name}'")
+            };
         }
 
         private MagitekResults<IGraphicsFormat> ReadFlowCodec(XElement flowElementRoot)
@@ -224,13 +220,13 @@ namespace ImageMagitek.Codec
                 errors.Add($"Element width could not be parsed on {codec.Width.LineNumber()}");
 
             if (width <= 1)
-                errors.Add($"Specified default width is too small on line {codec.Width.LineNumber()}");
+                errors.Add($"Specified width is too small on line {codec.Width.LineNumber()}");
 
             if (!int.TryParse(codec.Height?.Value, out var height))
                 errors.Add($"Element height could not be parsed on {codec.Height.LineNumber()}");
 
             if (height <= 1)
-                errors.Add($"Specified default height is too small on line {codec.Height.LineNumber()}");
+                errors.Add($"Specified height is too small on line {codec.Height.LineNumber()}");
 
             PixelColorType colorType = default;
             if (codec.ColorType?.Value == "indexed")

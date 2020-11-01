@@ -44,6 +44,7 @@ namespace ImageMagitek.Services
                     },
                     fail =>
                     {
+                        errors.Add($"Failed to load XML codec '{formatFileName}'");
                         errors.AddRange(fail.Reasons);
                     });
             }
