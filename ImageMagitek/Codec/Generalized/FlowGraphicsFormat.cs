@@ -95,7 +95,6 @@ namespace ImageMagitek.Codec
             var clone = new FlowGraphicsFormat(Name, ColorType, ColorDepth, Layout, DefaultWidth, DefaultHeight)
             {
                 FixedSize = FixedSize,
-
                 MergePlanePriority = MergePlanePriority.ToArray(),
                 ImageProperties = new List<ImageProperty>()
             };
