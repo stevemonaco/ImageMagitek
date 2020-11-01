@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<patterncodec name="SNES4bpp Pattern" version="0.9">
+	<colortype>indexed</colortype>
+	<colordepth>4</colordepth>
+	<layout>tiled</layout>
+	<height>8</height>
+	<width>8</width>
+	<packing>planar</packing>
+	<mergepriority>0, 1, 2, 3</mergepriority>
+	<rowpixelpattern>0, 1</rowpixelpattern>
+
+    <patterns size="256">
+		<pattern>
+			AAAAAAAA
+			CCCCCCCC
+			EEEEEEEE
+			GGGGGGGG
+			IIIIIIII
+			KKKKKKKK
+			MMMMMMMM
+			OOOOOOOO
+		</pattern>
+		<pattern>
+			BBBBBBBB
+			DDDDDDDD
+			FFFFFFFF
+			HHHHHHHH
+			JJJJJJJJ
+			LLLLLLLL
+			NNNNNNNN
+			PPPPPPPP
+		</pattern>
+		<pattern>
+			QQQQQQQQ
+			SSSSSSSS
+			UUUUUUUU
+			WWWWWWWW
+			YYYYYYYY
+			aaaaaaaa
+			cccccccc
+			eeeeeeee
+		</pattern>
+		<pattern>
+			RRRRRRRR
+			TTTTTTTT
+			VVVVVVVV
+			XXXXXXXX
+			ZZZZZZZZ
+			bbbbbbbb
+			dddddddd
+			ffffffff
+		</pattern>
+    </patterns>
+</patterncodec>

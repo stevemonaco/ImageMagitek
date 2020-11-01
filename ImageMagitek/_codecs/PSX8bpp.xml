@@ -1,15 +1,17 @@
-<format name="PSX 8bpp" version="0.8">
-    <codec>
-        <colortype>indexed</colortype>
-        <colordepth>8</colordepth>
-        <layout>linear</layout>
-        <defaultheight>1</defaultheight>
-        <defaultwidth>256</defaultwidth>
-        <fixedsize>false</fixedsize>
-		<mergepriority>7, 6, 5, 4, 3, 2, 1, 0</mergepriority>
-    </codec>
-    <image>
-        <colordepth>8</colordepth>
-        <rowinterlace>false</rowinterlace>
-    </image>
-</format>
+<?xml version="1.0" encoding="utf-8"?>
+<flowcodec name="PSX 8bpp Flow" version="0.9">
+	<colortype>indexed</colortype>
+	<colordepth>8</colordepth>
+	<layout>single</layout>
+	<defaultheight>64</defaultheight>
+	<defaultwidth>64</defaultwidth>
+	<fixedsize>false</fixedsize>
+	<mergepriority>7, 6, 5, 4, 3, 2, 1, 0</mergepriority>
+
+	<images>
+	    <image>
+			<colordepth>8</colordepth>
+			<rowinterlace>false</rowinterlace>
+		</image>
+	</images>
+</flowcodec>

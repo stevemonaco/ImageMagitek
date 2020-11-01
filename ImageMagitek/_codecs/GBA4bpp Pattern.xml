@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<patterncodec name="GBA4bpp Pattern" version="0.9">
+	<colortype>indexed</colortype>
+	<colordepth>4</colordepth>
+	<layout>tiled</layout>
+	<packing>chunky</packing>
+	<height>8</height>
+	<width>8</width>
+	<mergepriority>3, 2, 1, 0</mergepriority>
+	<rowpixelpattern>1, 0</rowpixelpattern>
+
+    <patterns size="32">
+		<pattern>
+			AABBCCDD
+		</pattern>
+    </patterns>
+</patterncodec>
