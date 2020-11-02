@@ -181,6 +181,7 @@ namespace TileShop.WPF
             var nesPaletteFileName = Path.Combine(palettesPath, $"{settings.NesPalette}.json");
             var nesPalette = _paletteService.ReadJsonPalette(nesPaletteFileName);
             (_colorFactory as ColorFactory).SetNesPalette(nesPalette);
+            (_paletteService as PaletteService).SetNesPalette(nesPalette);
 
             builder.RegisterInstance(_paletteService);
         }

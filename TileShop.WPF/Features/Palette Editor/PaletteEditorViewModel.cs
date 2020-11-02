@@ -14,15 +14,15 @@ namespace TileShop.WPF.ViewModels
         private readonly IPaletteService _paletteService;
         private readonly IEventAggregator _events;
 
-        private BindableCollection<ValidatedColorModel> _colors = new BindableCollection<ValidatedColorModel>();
-        public BindableCollection<ValidatedColorModel> Colors
+        private BindableCollection<ValidatedColor32Model> _colors = new BindableCollection<ValidatedColor32Model>();
+        public BindableCollection<ValidatedColor32Model> Colors
         {
             get => _colors;
             set => SetAndNotify(ref _colors, value);
         }
 
-        private ValidatedColorModel _selectedColor;
-        public ValidatedColorModel SelectedColor
+        private ValidatedColor32Model _selectedColor;
+        public ValidatedColor32Model SelectedColor
         {
             get => _selectedColor;
             set => SetAndNotify(ref _selectedColor, value);
@@ -39,7 +39,7 @@ namespace TileShop.WPF.ViewModels
             DisplayName = Resource?.Name ?? "Unnamed Palette";
 
             for(int i = 0; i < _palette.Entries; i++)
-                Colors.Add(new ValidatedColorModel((IColor32)_palette.GetForeignColor(i), i, _paletteService.ColorFactory));
+                Colors.Add(new ValidatedColor32Model((IColor32)_palette.GetForeignColor(i), i, _paletteService.ColorFactory));
 
             SelectedColor = Colors.First();
         }
@@ -66,7 +66,7 @@ namespace TileShop.WPF.ViewModels
             IsModified = false;
         }
 
-        public void MouseOver(ValidatedColorModel model)
+        public void MouseOver(ValidatedColor32Model model)
         {
             string notifyMessage = $"Palette Index: {model.Index}";
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);

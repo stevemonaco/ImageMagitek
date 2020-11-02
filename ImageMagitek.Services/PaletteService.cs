@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using ImageMagitek.Colors;
 
 namespace ImageMagitek.Services
@@ -54,6 +53,15 @@ namespace ImageMagitek.Services
                 GlobalPalettes.Add(pal);
 
             DefaultPalette = pal;
+        }
+
+        /// <summary>
+        /// Sets the NES Palette
+        /// </summary>
+        /// <param name="nesPalette"></param>
+        public void SetNesPalette(Palette nesPalette)
+        {
+            NesPalette = nesPalette;
         }
     }
 }

@@ -4,7 +4,7 @@ using Stylet;
 
 namespace TileShop.WPF.Models
 {
-    public class ValidatedColorModel : PropertyChangedBase
+    public class ValidatedColor32Model : PropertyChangedBase
     {
         private IColor32 _foreignColor;
         private readonly IColorFactory _colorFactory;
@@ -110,7 +110,7 @@ namespace TileShop.WPF.Models
             set => SetAndNotify(ref _index, value);
         }
 
-        public ValidatedColorModel(IColor32 foreignColor, int index, IColorFactory colorFactory)
+        public ValidatedColor32Model(IColor32 foreignColor, int index, IColorFactory colorFactory)
         {
             _foreignColor = foreignColor;
             Index = index;
