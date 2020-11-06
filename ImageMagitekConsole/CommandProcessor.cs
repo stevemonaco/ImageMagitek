@@ -50,12 +50,12 @@ namespace ImageMagitekConsole
             if (arranger.ColorType == PixelColorType.Indexed)
             {
                 var image = new IndexedImage(arranger);
-                image.ExportImage(exportFileName, new ImageFileAdapter());
+                image.ExportImage(exportFileName, new ImageSharpFileAdapter());
             }
             else if (arranger.ColorType == PixelColorType.Direct)
             {
                 var image = new DirectImage(arranger);
-                image.ExportImage(exportFileName, new ImageFileAdapter());
+                image.ExportImage(exportFileName, new ImageSharpFileAdapter());
             }
 
             return true;
@@ -81,13 +81,13 @@ namespace ImageMagitekConsole
             if (arranger.ColorType == PixelColorType.Indexed)
             {
                 var image = new IndexedImage(arranger);
-                image.ImportImage(imageFileName, new ImageFileAdapter(), ColorMatchStrategy.Exact);
+                image.ImportImage(imageFileName, new ImageSharpFileAdapter(), ColorMatchStrategy.Exact);
                 image.SaveImage();
             }
             else if (arranger.ColorType == PixelColorType.Direct)
             {
                 var image = new DirectImage(arranger);
-                image.ImportImage(imageFileName, new ImageFileAdapter());
+                image.ImportImage(imageFileName, new ImageSharpFileAdapter());
                 image.SaveImage();
             }
 

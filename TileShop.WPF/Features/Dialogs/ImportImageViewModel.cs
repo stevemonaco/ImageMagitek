@@ -117,7 +117,7 @@ namespace TileShop.WPF.ViewModels
                 else if (_arranger.ColorType == PixelColorType.Direct)
                 {
                     _importedDirect = new DirectImage(_arranger);
-                    _importedDirect.ImportImage(ImageFileName, new ImageFileAdapter());
+                    _importedDirect.ImportImage(ImageFileName, new ImageSharpFileAdapter());
                     ImportedSource = new DirectBitmapAdapter(_importedDirect);
                     CanImport = true;
                 }
@@ -129,7 +129,7 @@ namespace TileShop.WPF.ViewModels
             var matchStrategy = UseExactMatching ? ColorMatchStrategy.Exact : ColorMatchStrategy.Nearest;
             _importedIndexed = new IndexedImage(_arranger);
 
-            var result = _importedIndexed.TryImportImage(fileName, new ImageFileAdapter(), matchStrategy);
+            var result = _importedIndexed.TryImportImage(fileName, new ImageSharpFileAdapter(), matchStrategy);
 
             result.Switch(
                 success =>

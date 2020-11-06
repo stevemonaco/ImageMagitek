@@ -214,12 +214,12 @@ namespace TileShop.WPF.ViewModels
                     if (arranger.ColorType == PixelColorType.Indexed)
                     {
                         var image = new IndexedImage(arranger);
-                        image.ExportImage(exportFileName, new ImageFileAdapter());
+                        image.ExportImage(exportFileName, new ImageSharpFileAdapter());
                     }
                     else if (arranger.ColorType == PixelColorType.Direct)
                     {
                         var image = new DirectImage(arranger);
-                        image.ExportImage(exportFileName, new ImageFileAdapter());
+                        image.ExportImage(exportFileName, new ImageSharpFileAdapter());
                     }
                 }
             }

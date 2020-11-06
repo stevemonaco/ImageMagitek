@@ -105,7 +105,7 @@ namespace ImageMagitek.Benchmarks
                 var outputFileName = Path.Combine(outputDirectory, $"Native.{i}.bmp");
 
                 var image = new IndexedImage(arranger);
-                image.ExportImage(outputFileName, new ImageFileAdapter());
+                image.ExportImage(outputFileName, new ImageSharpFileAdapter());
             }
         }
 
@@ -117,7 +117,7 @@ namespace ImageMagitek.Benchmarks
                 var outputFileName = Path.Combine(outputDirectory, $"Generic.{i}.bmp");
 
                 var image = new IndexedImage(arranger);
-                image.ExportImage(outputFileName, new ImageFileAdapter());
+                image.ExportImage(outputFileName, new ImageSharpFileAdapter());
             }
         }
     }
