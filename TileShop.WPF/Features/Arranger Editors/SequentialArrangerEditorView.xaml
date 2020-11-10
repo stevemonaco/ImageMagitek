@@ -17,7 +17,7 @@
 
     <UserControl.InputBindings>
         <KeyBinding Key="OemPlus" Command="{s:Action MoveByteDown}" />
-        <KeyBinding Key="Add" Command="{s:Action MouseByteDown}" />
+        <KeyBinding Key="Add" Command="{s:Action MoveByteDown}" />
         <KeyBinding Key="Subtract" Command="{s:Action MoveByteUp}" />
         <KeyBinding Key="OemMinus" Command="{s:Action MoveByteUp}" />
         <KeyBinding Key="Down" Command="{s:Action MoveRowDown}" />
