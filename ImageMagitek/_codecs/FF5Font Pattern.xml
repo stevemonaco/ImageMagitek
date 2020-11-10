@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Font offset is 0x3E800 -->
+<patterncodec name="FF5 Pattern" version="0.9">
+	<colortype>indexed</colortype>
+	<colordepth>1</colordepth>
+	<layout>tiled</layout>
+	<packing>planar</packing>
+	<height>12</height>
+	<width>16</width>
+	<mergepriority>0</mergepriority>
+	<rowpixelpattern>0, 1</rowpixelpattern>
+
+    <patterns size="192">
+		<pattern>
+			AAAAAAAAMMMMMMMM
+            BBBBBBBBNNNNNNNN
+            CCCCCCCCOOOOOOOO
+            DDDDDDDDPPPPPPPP
+            EEEEEEEEQQQQQQQQ
+            FFFFFFFFRRRRRRRR
+            GGGGGGGGSSSSSSSS
+            HHHHHHHHTTTTTTTT
+            IIIIIIIIUUUUUUUU
+            JJJJJJJJVVVVVVVV
+            KKKKKKKKWWWWWWWW
+            LLLLLLLLXXXXXXXX
+		</pattern>
+    </patterns>
+</patterncodec>

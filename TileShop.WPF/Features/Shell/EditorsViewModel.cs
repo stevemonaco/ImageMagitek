@@ -15,7 +15,8 @@ using Serilog;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsEvent>, IHandle<ArrangerChangedEvent>
+    public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsEvent>, IHandle<ArrangerChangedEvent>,
+        IHandle<PaletteChangedEvent>
     {
         private readonly IWindowManager _windowManager;
         private readonly Tracker _tracker;
@@ -127,8 +128,11 @@ namespace TileShop.WPF.ViewModels
 
                 switch (resource)
                 {
-                    case Palette pal:
-                        newDocument = new PaletteEditorViewModel(pal, _events);
+                    case Palette pal when pal.ColorModel != ColorModel.Nes:
+                        newDocument = new PaletteEditorViewModel(pal, _paletteService, _events);
+                        break;
+                    case Palette pal when pal.ColorModel == ColorModel.Nes:
+                        newDocument = new TablePaletteEditorViewModel(pal, _paletteService, _events);
                         break;
                     case ScatteredArranger scatteredArranger:
                         newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _events, _windowManager, _paletteService, _projectService);
@@ -311,6 +315,15 @@ namespace TileShop.WPF.ViewModels
                     }
                 }
             }
+        }
+
+        public void Handle(PaletteChangedEvent message)
+        {
+            var effectedEditors = Editors.OfType<ScatteredArrangerEditorViewModel>()
+                .Where(x => x.WorkingArranger.GetReferencedPalettes().Contains(message.Palette));
+
+            foreach (var editor in effectedEditors)
+                editor.Render();
         }
     }
 }

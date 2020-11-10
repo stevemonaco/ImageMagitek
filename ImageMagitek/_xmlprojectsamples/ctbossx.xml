@@ -21,12 +21,12 @@
 			<element fileoffset="C20" posx="0" posy="0" />
 		</arranger>
 		<folder name="Boss Palettes">
-			<palette name="BOSSX.TIM.0.CLUT.0" fileoffset="14" datafile="/CT/BOSSX" color="BGR15" entries="256" zeroindextransparent="true" />
-			<palette name="BOSSX.TIM.0.CLUT.1" fileoffset="214" datafile="/CT/BOSSX" color="BGR15" entries="256" zeroindextransparent="true" />
-			<palette name="BOSSX.TIM.0.CLUT.2" fileoffset="414" datafile="/CT/BOSSX" color="BGR15" entries="256" zeroindextransparent="true" />
-			<palette name="BOSSX.TIM.0.CLUT.3" fileoffset="614" datafile="/CT/BOSSX" color="BGR15" entries="256" zeroindextransparent="true" />
-			<palette name="BOSSX.TIM.0.CLUT.4" fileoffset="814" datafile="/CT/BOSSX" color="BGR15" entries="256" zeroindextransparent="true" />
-			<palette name="BOSSX.TIM.0.CLUT.5" fileoffset="A14" datafile="/CT/BOSSX" color="BGR15" entries="256" zeroindextransparent="true" />
+			<palette name="BOSSX.TIM.0.CLUT.0" fileoffset="14" datafile="/CT/BOSSX" color="Bgr15" entries="256" zeroindextransparent="true" />
+			<palette name="BOSSX.TIM.0.CLUT.1" fileoffset="214" datafile="/CT/BOSSX" color="Bgr15" entries="256" zeroindextransparent="true" />
+			<palette name="BOSSX.TIM.0.CLUT.2" fileoffset="414" datafile="/CT/BOSSX" color="Bgr15" entries="256" zeroindextransparent="true" />
+			<palette name="BOSSX.TIM.0.CLUT.3" fileoffset="614" datafile="/CT/BOSSX" color="Bgr15" entries="256" zeroindextransparent="true" />
+			<palette name="BOSSX.TIM.0.CLUT.4" fileoffset="814" datafile="/CT/BOSSX" color="Bgr15" entries="256" zeroindextransparent="true" />
+			<palette name="BOSSX.TIM.0.CLUT.5" fileoffset="A14" datafile="/CT/BOSSX" color="Bgr15" entries="256" zeroindextransparent="true" />
 		</folder>
 	</project>
 </gdf>

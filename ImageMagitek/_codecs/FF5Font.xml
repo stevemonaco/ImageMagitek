@@ -1,15 +1,18 @@
-<format name="FF5 Font" version="0.8">
-    <codec>
-        <colortype>indexed</colortype>
-        <colordepth>1</colordepth>
-        <layout>tiled</layout>
-        <defaultheight>12</defaultheight>
-        <defaultwidth>8</defaultwidth>
-        <fixedsize>true</fixedsize>
-		<mergepriority>0</mergepriority>
-    </codec>
-    <image>
-        <colordepth>1</colordepth>
-        <rowinterlace>false</rowinterlace>
-    </image>
-</format>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Font offset is 0x3EB00 -->
+<flowcodec name="FF5 Font" version="0.9">
+	<colortype>indexed</colortype>
+	<colordepth>1</colordepth>
+	<layout>tiled</layout>
+	<defaultheight>12</defaultheight>
+	<defaultwidth>8</defaultwidth>
+	<fixedsize>true</fixedsize>
+	<mergepriority>0</mergepriority>
+
+	<images>
+		<image>
+			<colordepth>1</colordepth>
+			<rowinterlace>false</rowinterlace>
+		</image>
+	</images>
+</flowcodec>

@@ -4,39 +4,42 @@ using TileShop.Shared.EventModels;
 using TileShop.WPF.Models;
 using ImageMagitek.Colors;
 using System.Linq;
+using ImageMagitek.Services;
 
 namespace TileShop.WPF.ViewModels
 {
     public class PaletteEditorViewModel : ResourceEditorBaseViewModel
     {
-        private Palette _palette;
-        private IEventAggregator _events;
+        private readonly Palette _palette;
+        private readonly IPaletteService _paletteService;
+        private readonly IEventAggregator _events;
 
-        private BindableCollection<ValidatedColorModel> _colors = new BindableCollection<ValidatedColorModel>();
-        public BindableCollection<ValidatedColorModel> Colors
+        private BindableCollection<ValidatedColor32Model> _colors = new BindableCollection<ValidatedColor32Model>();
+        public BindableCollection<ValidatedColor32Model> Colors
         {
             get => _colors;
             set => SetAndNotify(ref _colors, value);
         }
 
-        private ValidatedColorModel _selectedColor;
-        public ValidatedColorModel SelectedColor
+        private ValidatedColor32Model _selectedColor;
+        public ValidatedColor32Model SelectedColor
         {
             get => _selectedColor;
             set => SetAndNotify(ref _selectedColor, value);
         }
 
-        public PaletteEditorViewModel(Palette palette, IEventAggregator events)
+        public PaletteEditorViewModel(Palette palette, IPaletteService paletteService, IEventAggregator events)
         {
             Resource = palette;
             _palette = palette;
+            _paletteService = paletteService;
             _events = events;
             events.Subscribe(this);
 
             DisplayName = Resource?.Name ?? "Unnamed Palette";
 
             for(int i = 0; i < _palette.Entries; i++)
-                Colors.Add(new ValidatedColorModel(_palette.GetForeignColor(i), i));
+                Colors.Add(new ValidatedColor32Model((IColor32)_palette.GetForeignColor(i), i, _paletteService.ColorFactory));
 
             SelectedColor = Colors.First();
         }
@@ -52,6 +55,9 @@ namespace TileShop.WPF.ViewModels
         {
             _palette.SavePalette();
             IsModified = false;
+
+            var changeEvent = new PaletteChangedEvent(_palette);
+            _events.PublishOnUIThread(changeEvent);
         }
 
         public override void DiscardChanges()
@@ -60,7 +66,7 @@ namespace TileShop.WPF.ViewModels
             IsModified = false;
         }
 
-        public void MouseOver(ValidatedColorModel model)
+        public void MouseOver(ValidatedColor32Model model)
         {
             string notifyMessage = $"Palette Index: {model.Index}";
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);

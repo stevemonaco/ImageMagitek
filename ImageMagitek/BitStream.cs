@@ -13,28 +13,28 @@ namespace ImageMagitek
         /// <summary>
         /// Current working bit index
         /// </summary>
-        private int BitIndex;
+        private int _bitIndex;
 
         /// <summary>
         ///  Current working index into data array where bits are read/written to
         /// </summary>
-        private int Index;
+        private int _index;
 
         /// <summary>
         /// Bits remaining in the stream
         /// </summary>
-        private int BitsRemaining;
+        private int _bitsRemaining;
 
         /// <summary>
         /// Type of access to the stream
         /// </summary>
-        private BitStreamAccess Access;
+        private BitStreamAccess _access;
 
-        private int StreamStartOffset;
+        private int _streamStartOffset;
 
-        private int StreamEndOffset;
+        private int _streamEndOffset;
 
-        private int StreamSize { get => StreamEndOffset - StreamStartOffset; }
+        private int StreamSize { get => _streamEndOffset - _streamStartOffset; }
 
         public byte[] Data { get; private set; }
 
@@ -51,12 +51,12 @@ namespace ImageMagitek
             BitStream bs = new BitStream();
 
             bs.Data = ReadData;
-            bs.BitsRemaining = DataBits;
-            bs.BitIndex = 8;
-            bs.Index = 0;
-            bs.Access = BitStreamAccess.Read;
-            bs.StreamStartOffset = 0;
-            bs.StreamEndOffset = DataBits;
+            bs._bitsRemaining = DataBits;
+            bs._bitIndex = 8;
+            bs._index = 0;
+            bs._access = BitStreamAccess.Read;
+            bs._streamStartOffset = 0;
+            bs._streamEndOffset = DataBits;
 
             return bs;
         }
@@ -89,12 +89,12 @@ namespace ImageMagitek
             byte mask = (byte)((1 << FirstByteBits) - 1);
             bs.Data[0] = (byte)(bs.Data[0] & mask);
 
-            bs.BitIndex = FirstByteBits;
-            bs.BitsRemaining = DataBits;
-            bs.Index = 0;
-            bs.Access = BitStreamAccess.Read;
-            bs.StreamStartOffset = 8 - FirstByteBits;
-            bs.StreamEndOffset = DataBits - bs.StreamStartOffset;
+            bs._bitIndex = FirstByteBits;
+            bs._bitsRemaining = DataBits;
+            bs._index = 0;
+            bs._access = BitStreamAccess.Read;
+            bs._streamStartOffset = 8 - FirstByteBits;
+            bs._streamEndOffset = DataBits - bs._streamStartOffset;
 
             return bs;
         }
@@ -119,12 +119,12 @@ namespace ImageMagitek
 
             bs.Data = Buffer;
 
-            bs.BitIndex = FirstByteBits;
-            bs.BitsRemaining = DataBits;
-            bs.Index = 0;
-            bs.Access = BitStreamAccess.Write;
-            bs.StreamStartOffset = 8 - FirstByteBits;
-            bs.StreamEndOffset = DataBits - bs.StreamStartOffset;
+            bs._bitIndex = FirstByteBits;
+            bs._bitsRemaining = DataBits;
+            bs._index = 0;
+            bs._access = BitStreamAccess.Write;
+            bs._streamStartOffset = 8 - FirstByteBits;
+            bs._streamEndOffset = DataBits - bs._streamStartOffset;
 
             return bs;
         }
@@ -134,21 +134,21 @@ namespace ImageMagitek
             if (seekBits < 0 || seekBits >= StreamSize)
                 throw new ArgumentOutOfRangeException($"{nameof(SeekAbsolute)} parameter '{nameof(seekBits)} is out of range ({seekBits})'");
 
-            Index = (StreamStartOffset + seekBits) / 8;
-            BitIndex = 8 - (StreamStartOffset + seekBits) % 8;
-            BitsRemaining = StreamEndOffset - (StreamStartOffset + seekBits);
+            _index = (_streamStartOffset + seekBits) / 8;
+            _bitIndex = 8 - (_streamStartOffset + seekBits) % 8;
+            _bitsRemaining = _streamEndOffset - (_streamStartOffset + seekBits);
         }
 
         public void SeekRelative(int seekBits)
         {
-            int seekOffset = Index * 8 + (8 - BitIndex) + seekBits;
+            int seekOffset = _index * 8 + (8 - _bitIndex) + seekBits;
 
             if (seekOffset < 0 || seekOffset >= StreamSize)
                 throw new ArgumentOutOfRangeException($"{nameof(SeekRelative)} parameter '{nameof(seekOffset)} is out of range ({seekOffset})'");
 
-            Index = (StreamStartOffset + seekOffset) / 8;
-            BitIndex = 8 - (StreamStartOffset + seekOffset) % 8;
-            BitsRemaining = StreamEndOffset - (StreamStartOffset + seekOffset);
+            _index = (_streamStartOffset + seekOffset) / 8;
+            _bitIndex = 8 - (_streamStartOffset + seekOffset) % 8;
+            _bitsRemaining = _streamEndOffset - (_streamStartOffset + seekOffset);
         }
 
         /// <summary>
@@ -157,23 +157,23 @@ namespace ImageMagitek
         /// <returns></returns>
         public int ReadBit()
         {
-            if (Access != BitStreamAccess.Read && Access != BitStreamAccess.ReadWrite)
+            if (_access != BitStreamAccess.Read && _access != BitStreamAccess.ReadWrite)
                 throw new InvalidOperationException($"{nameof(ReadBit)} does not have read access");
-            if (BitsRemaining == 0)
+            if (_bitsRemaining == 0)
                 throw new EndOfStreamException($"{nameof(ReadBit)} read past end of stream");
 
-            if (BitIndex == 0)
+            if (_bitIndex == 0)
             {
-                Index++;
-                if (Index == Data.Length)
+                _index++;
+                if (_index == Data.Length)
                     throw new EndOfStreamException($"{nameof(ReadBit)} read past end of stream");
 
-                BitIndex = 8;
+                _bitIndex = 8;
             }
 
-            int bit = (Data[Index] >> (BitIndex - 1)) & 1;
-            BitsRemaining--;
-            BitIndex--;
+            int bit = (Data[_index] >> (_bitIndex - 1)) & 1;
+            _bitsRemaining--;
+            _bitIndex--;
 
             return bit;
         }
@@ -184,19 +184,19 @@ namespace ImageMagitek
         /// <returns></returns>
         public byte ReadByte()
         {
-            if (BitsRemaining < 8)
+            if (_bitsRemaining < 8)
                 throw new EndOfStreamException($"{nameof(ReadByte)} read past end of stream");
 
             byte result = 0;
 
-            if (BitIndex == 8)
+            if (_bitIndex == 8)
             {
-                result = Data[Index];
+                result = Data[_index];
                 Advance(8);
             }
             else
             {
-                int readSize = BitIndex;
+                int readSize = _bitIndex;
                 result = (byte)(PartialRead(readSize) << (8 - readSize));
                 readSize = 8 - readSize;
                 result = (byte)(result | PartialRead(readSize));
@@ -215,16 +215,16 @@ namespace ImageMagitek
             if (numBits > 32 || numBits < 1)
                 throw new ArgumentOutOfRangeException($"{nameof(ReadBits)} parameter {nameof(numBits)} ({numBits}) is out of range");
 
-            if (numBits > BitsRemaining)
+            if (numBits > _bitsRemaining)
                 throw new EndOfStreamException($"{nameof(ReadBits)} read past end of stream");
 
             var readRemaining = numBits; // Number of bits remaining to be read
             int result = 0;
 
             // Unaligned, partial read
-            if (BitIndex != 8)
+            if (_bitIndex != 8)
             {
-                int readLength = Math.Min(BitIndex, readRemaining);
+                int readLength = Math.Min(_bitIndex, readRemaining);
                 result = PartialRead(readLength);
                 readRemaining -= readLength;
             }
@@ -232,7 +232,7 @@ namespace ImageMagitek
             // Multiple aligned byte reads
             while(readRemaining >= 8)
             {
-                result = (result << 8) | Data[Index];
+                result = (result << 8) | Data[_index];
                 Advance(8);
                 readRemaining -= 8;
             }
@@ -252,9 +252,9 @@ namespace ImageMagitek
         private int PartialRead(int bitReadLength)
         {
             int mask = ((1 << bitReadLength) - 1); // Make mask for the bits to be read
-            mask <<= (BitIndex - bitReadLength); // Shift mask to the bit index
+            mask <<= (_bitIndex - bitReadLength); // Shift mask to the bit index
 
-            int result = (Data[Index] & mask) >> (BitIndex - bitReadLength);
+            int result = (Data[_index] & mask) >> (_bitIndex - bitReadLength);
 
             Advance(bitReadLength);
 
@@ -267,55 +267,55 @@ namespace ImageMagitek
         /// <param name="advanceLength">Number of bits to advance</param>
         private void Advance(int advanceLength)
         {
-            int offset = (8 - BitIndex) + advanceLength;
-            Index += offset / 8;
-            BitIndex = 8 - (offset % 8);
-            BitsRemaining -= advanceLength;
+            int offset = (8 - _bitIndex) + advanceLength;
+            _index += offset / 8;
+            _bitIndex = 8 - (offset % 8);
+            _bitsRemaining -= advanceLength;
         }
 
         public void WriteBit(int bit)
         {
             if (bit > 1)
                 throw new ArgumentOutOfRangeException();
-            if (Access != BitStreamAccess.Write && Access != BitStreamAccess.ReadWrite)
+            if (_access != BitStreamAccess.Write && _access != BitStreamAccess.ReadWrite)
                 throw new InvalidOperationException($"{nameof(WriteBit)} does not have write access");
-            if (BitsRemaining == 0)
+            if (_bitsRemaining == 0)
                 throw new EndOfStreamException($"{nameof(WriteBit)} attempted to write past end of stream");
 
-            if(BitIndex == 0)
+            if(_bitIndex == 0)
             {
-                if (Index == Data.Length)
+                if (_index == Data.Length)
                     throw new EndOfStreamException($"{nameof(WriteBit)} attempted to write past end of stream");
 
-                Index++;
-                BitIndex = 8;
+                _index++;
+                _bitIndex = 8;
             }
 
             if (bit == 0)
             {
-                byte mask = (byte) ~(1 << (BitIndex - 1));
-                Data[Index] &= mask;
+                byte mask = (byte) ~(1 << (_bitIndex - 1));
+                Data[_index] &= mask;
             }
             else
-                Data[Index] |= (byte)(1 << (BitIndex - 1));
+                Data[_index] |= (byte)(1 << (_bitIndex - 1));
 
-            BitsRemaining--;
-            BitIndex--;
+            _bitsRemaining--;
+            _bitIndex--;
         }
 
         public void WriteByte(byte val)
         {
-            if (BitsRemaining < 8)
+            if (_bitsRemaining < 8)
                 throw new EndOfStreamException($"{nameof(WriteByte)} read past end of stream");
 
-            if (BitIndex == 8)
+            if (_bitIndex == 8)
             {
-                Data[Index] = val;
+                Data[_index] = val;
                 Advance(8);
             }
             else
             {
-                int writeSize = BitIndex;
+                int writeSize = _bitIndex;
                 int writeValue = val >> (8 - writeSize);
                 PartialWrite(writeValue, writeSize);
                 writeSize = 8 - writeSize;
@@ -329,15 +329,15 @@ namespace ImageMagitek
             if (numBits > 32 || numBits < 1)
                 throw new ArgumentOutOfRangeException($"{nameof(WriteBits)} parameter {nameof(numBits)} ({numBits}) is out of range");
 
-            if (numBits > BitsRemaining)
+            if (numBits > _bitsRemaining)
                 throw new EndOfStreamException($"{nameof(WriteBits)} read past end of stream");
 
             var writeRemaining = numBits;
 
             // Unaligned, partial write
-            if (BitIndex != 8)
+            if (_bitIndex != 8)
             {
-                int writeLength = Math.Min(BitIndex, writeRemaining);
+                int writeLength = Math.Min(_bitIndex, writeRemaining);
                 int writeValue = val >> (writeRemaining - writeLength);
                 PartialWrite(writeValue, writeLength);
                 writeRemaining -= writeLength;
@@ -348,7 +348,7 @@ namespace ImageMagitek
             {
                 int writeValue = val >> (writeRemaining - 8);
                 writeValue &= (1 << 8) - 1;
-                Data[Index] = (byte) writeValue;
+                Data[_index] = (byte) writeValue;
                 Advance(8);
                 writeRemaining -= 8;
             }
@@ -364,10 +364,10 @@ namespace ImageMagitek
         private void PartialWrite(int val, int bitWriteLength)
         {
             int mask = ((1 << bitWriteLength) - 1); // Make mask for the bits to be read
-            mask <<= (BitIndex - bitWriteLength); // Shift mask to the bit index
+            mask <<= (_bitIndex - bitWriteLength); // Shift mask to the bit index
 
-            Data[Index] &= (byte) ~mask; // Clear bits
-            Data[Index] |= (byte) (val << (BitIndex - bitWriteLength));
+            Data[_index] &= (byte) ~mask; // Clear bits
+            Data[_index] |= (byte) (val << (_bitIndex - bitWriteLength));
 
             Advance(bitWriteLength);
         }

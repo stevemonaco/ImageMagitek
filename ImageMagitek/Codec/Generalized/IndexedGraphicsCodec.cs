@@ -1,29 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Codec
 {
-    public class IndexedGraphicsCodec : IIndexedCodec
+    class IndexedGraphicsCodec : IIndexedCodec
     {
         public string Name { get; set; }
-        public GraphicsFormat Format { get; private set; }
+        public FlowGraphicsFormat Format { get; private set; }
         public int StorageSize => Format.StorageSize;
         public ImageLayout Layout => Format.Layout;
         public PixelColorType ColorType => Format.ColorType;
         public int ColorDepth => Format.ColorDepth;
         public int Width => Format.Width;
         public int Height => Format.Height;
-        public int RowStride => Format.RowStride;
-        public int ElementStride => Format.ElementStride;
-        public Palette DefaultPalette { get; set; }
 
         public virtual ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
         protected byte[] _foreignBuffer;
 
+        protected byte[,] _nativeBuffer;
         public virtual byte[,] NativeBuffer => _nativeBuffer;
 
         public int DefaultWidth => Format.DefaultWidth;
@@ -32,25 +28,22 @@ namespace ImageMagitek.Codec
         public int WidthResizeIncrement { get; }
         public int HeightResizeIncrement => 1;
 
-        protected byte[,] _nativeBuffer;
-
         /// <summary>
         /// Preallocated buffer that separates and stores pixel color data
         /// </summary>
-        private List<byte[]> ElementData;
+        private List<byte[]> _elementData;
 
         /// <summary>
         /// Preallocated buffer that stores merged pixel color data
         /// </summary>
-        private byte[] MergedData;
+        private byte[] _mergedData;
 
         private BitStream _bitStream;
 
-        public IndexedGraphicsCodec(GraphicsFormat format, Palette defaultPalette)
+        public IndexedGraphicsCodec(FlowGraphicsFormat format)
         {
             Format = format;
             Name = format.Name;
-            DefaultPalette = defaultPalette;
             AllocateBuffers();
 
             // Consider implementing resize increment with more accurate LCM approach
@@ -60,14 +53,14 @@ namespace ImageMagitek.Codec
 
         private void AllocateBuffers()
         {
-            ElementData = new List<byte[]>();
+            _elementData = new List<byte[]>();
             for (int i = 0; i < Format.ColorDepth; i++)
             {
                 byte[] data = new byte[Format.Width * Format.Height];
-                ElementData.Add(data);
+                _elementData.Add(data);
             }
 
-            MergedData = new byte[Format.Width * Format.Height];
+            _mergedData = new byte[Format.Width * Format.Height];
 
             _foreignBuffer = new byte[(StorageSize + 7) / 8];
             _nativeBuffer = new byte[Width, Height];
@@ -100,7 +93,7 @@ namespace ImageMagitek.Codec
                             {
                                 var mergePlane = Format.MergePlanePriority[curPlane];
                                 var pixelPosition = scanlinePosition + ip.RowPixelPattern[x];
-                                ElementData[mergePlane][pixelPosition] = (byte)_bitStream.ReadBit();
+                                _elementData[mergePlane][pixelPosition] = (byte)_bitStream.ReadBit();
                             }
                         }
                     }
@@ -116,7 +109,7 @@ namespace ImageMagitek.Codec
                             {
                                 var mergePlane = Format.MergePlanePriority[curPlane];
                                 int pixelPosition = scanlinePosition + ip.RowPixelPattern[x];
-                                ElementData[mergePlane][pixelPosition] = (byte)_bitStream.ReadBit();
+                                _elementData[mergePlane][pixelPosition] = (byte)_bitStream.ReadBit();
                             }
                         }
                     }
@@ -128,18 +121,18 @@ namespace ImageMagitek.Codec
             // Merge into foreign pixel data 
             byte foreignPixelData;
 
-            for (scanlinePosition = 0; scanlinePosition < MergedData.Length; scanlinePosition++)
+            for (scanlinePosition = 0; scanlinePosition < _mergedData.Length; scanlinePosition++)
             {
                 foreignPixelData = 0;
                 for (int i = 0; i < Format.ColorDepth; i++)
-                    foreignPixelData |= (byte)(ElementData[i][scanlinePosition] << i); // Works for SNES image data and palettes, may need customization later
-                MergedData[scanlinePosition] = foreignPixelData;
+                    foreignPixelData |= (byte)(_elementData[i][scanlinePosition] << i); // Works for SNES image data and palettes, may need customization later
+                _mergedData[scanlinePosition] = foreignPixelData;
             }
 
             scanlinePosition = 0;
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++, scanlinePosition++)
-                    _nativeBuffer[x, y] = MergedData[scanlinePosition];
+                    _nativeBuffer[x, y] = _mergedData[scanlinePosition];
 
             return NativeBuffer;
         }
@@ -152,13 +145,13 @@ namespace ImageMagitek.Codec
             int pos = 0;
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++, pos++)
-                    MergedData[pos] = imageBuffer[x, y];
+                    _mergedData[pos] = imageBuffer[x, y];
 
             // Loop over MergedData to split foreign colors into bit planes in ElementData
-            for (pos = 0; pos < MergedData.Length; pos++)
+            for (pos = 0; pos < _mergedData.Length; pos++)
             {
                 for (int i = 0; i < Format.ColorDepth; i++)
-                    ElementData[i][pos] = (byte)((MergedData[pos] >> i) & 0x1);
+                    _elementData[i][pos] = (byte)((_mergedData[pos] >> i) & 0x1);
             }
 
             // Loop over planes and write bits to data buffer with proper interlacing
@@ -179,7 +172,8 @@ namespace ImageMagitek.Codec
                             for (int x = 0; x < Format.Width; x++)
                             {
                                 int priorityPos = pos + ip.RowPixelPattern[x];
-                                bs.WriteBit(ElementData[curPlane][priorityPos]);
+                                int mergedPlane = Format.MergePlanePriority[curPlane];
+                                bs.WriteBit(_elementData[mergedPlane][priorityPos]);
                             }
                         }
                     }
@@ -189,10 +183,14 @@ namespace ImageMagitek.Codec
                     for (int y = 0; y < Format.Height; y++, pos += Format.Width)
                     {
                         for (int x = 0; x < Format.Width; x++)
+                        {
                             for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
                             {
-                                bs.WriteBit(ElementData[curPlane][pos + ip.RowPixelPattern[x]]);
+                                int priorityPos = pos + ip.RowPixelPattern[x];
+                                int mergedPlane = Format.MergePlanePriority[curPlane];
+                                bs.WriteBit(_elementData[mergedPlane][priorityPos]);
                             }
+                        }
                     }
                 }
 

@@ -1,15 +1,17 @@
-<format name="SNES 2bpp" version="0.8">
-    <codec>
-        <colortype>indexed</colortype>
-        <colordepth>2</colordepth>
-        <layout>tiled</layout>
-        <defaultheight>8</defaultheight>
-        <defaultwidth>8</defaultwidth>
-        <fixedsize>false</fixedsize>
-		<mergepriority>0, 1</mergepriority>
-    </codec>
-    <image>
-        <colordepth>2</colordepth>
-        <rowinterlace>true</rowinterlace>
-    </image>
-</format>
+<?xml version="1.0" encoding="utf-8"?>
+<flowcodec name="SNES 2bpp" version="0.9">
+	<colortype>indexed</colortype>
+	<colordepth>2</colordepth>
+	<layout>tiled</layout>
+	<defaultheight>8</defaultheight>
+	<defaultwidth>8</defaultwidth>
+	<fixedsize>false</fixedsize>
+	<mergepriority>0, 1</mergepriority>
+
+	<images>
+		<image>
+			<colordepth>2</colordepth>
+			<rowinterlace>true</rowinterlace>
+		</image>
+	</images>
+</flowcodec>

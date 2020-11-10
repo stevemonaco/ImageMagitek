@@ -1,49 +1,81 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xs:schema id="CodecSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-  <xs:element name="format">
+  <xs:element name="flowcodec">
     <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="codec" minOccurs="1" maxOccurs="1" />
-        <xs:element ref="image" minOccurs="1" maxOccurs="unbounded" />
-      </xs:sequence>
-      <xs:attribute name="name" type="xs:string" use="required" />
+	  <xs:all>
+	  	<xs:element name="colordepth" type="xs:positiveInteger" />
+	    <xs:element name="defaultheight" type="xs:positiveInteger" />
+	    <xs:element name="defaultwidth" type="xs:positiveInteger" />
+	    <xs:element name="fixedsize" type="xs:boolean" />
+		<xs:element ref="mergepriority" />
+		<xs:element ref="colortype" />
+		<xs:element ref="layout" />
+		
+	    <xs:element name="images">
+	      <xs:complexType>
+		    <xs:sequence>
+		      <xs:element ref="image" minOccurs="1" maxOccurs="32" />
+			</xs:sequence>
+		  </xs:complexType>
+	    </xs:element>
+	  </xs:all>
+	  
+	  <xs:attribute name="name" type="xs:string" use="required" />
       <xs:attribute name="version" type="xs:decimal" use="required" />
     </xs:complexType>
   </xs:element>
-
-  <xs:element name="codec">
-    <xs:complexType>
-      <xs:all>
-        <xs:element name="colortype">
-          <xs:simpleType>
-            <xs:restriction base="xs:string">
-              <xs:enumeration value="indexed" />
-              <xs:enumeration value="direct" />
-            </xs:restriction>
-          </xs:simpleType>
-        </xs:element>
-        <xs:element name="layout">
-          <xs:simpleType>
-            <xs:restriction base="xs:string">
-              <xs:enumeration value="tiled" />
-              <xs:enumeration value="single" />
-            </xs:restriction>
-          </xs:simpleType>
-        </xs:element>
-
-        <xs:element name="colordepth" type="xs:nonNegativeInteger" />
-        <xs:element name="defaultheight" type="xs:nonNegativeInteger" />
-        <xs:element name="defaultwidth" type="xs:nonNegativeInteger" />
-        <xs:element name="fixedsize" type="xs:boolean" />
-        <xs:element name="mergepriority">
-          <xs:simpleType>
-            <xs:restriction base="xs:string">
-              <xs:pattern value="\d+(,\s+\d+)*" />
-            </xs:restriction>
-          </xs:simpleType>
-        </xs:element>
-      </xs:all>
+  
+  <xs:element name="patterncodec">
+    <xs:complexType>	  
+	  <xs:all>
+	  	<xs:element name="colordepth" type="xs:positiveInteger" />
+	    <xs:element name="height" type="xs:positiveInteger" />
+	    <xs:element name="width" type="xs:positiveInteger" />
+		<xs:element ref="mergepriority" />
+		<xs:element ref="packing" />
+		<xs:element ref="colortype" />
+		<xs:element ref="layout" />
+		<xs:element ref="rowpixelpattern" />
+		
+	    <xs:element name="patterns">
+	      <xs:complexType>
+		    <xs:sequence>
+			  <xs:element ref="pattern" minOccurs="1" maxOccurs="8" />
+			</xs:sequence>
+		    <xs:attribute name="size" type="xs:positiveInteger" use="required" />
+		  </xs:complexType>
+	    </xs:element>
+	  </xs:all>
+	  
+	  <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="version" type="xs:decimal" use="required" />
     </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="mergepriority">
+	<xs:simpleType>
+	  <xs:restriction base="xs:string">
+	    <xs:pattern value="\d+(,\s+\d+)*" />
+	  </xs:restriction>
+	</xs:simpleType>
+  </xs:element>
+  
+  <xs:element name="colortype">
+	<xs:simpleType>
+	  <xs:restriction base="xs:string">
+		<xs:enumeration value="indexed" />
+		<xs:enumeration value="direct" />
+	  </xs:restriction>
+	</xs:simpleType>
+  </xs:element>
+  
+  <xs:element name="layout">
+	<xs:simpleType>
+	  <xs:restriction base="xs:string">
+		<xs:enumeration value="tiled" />
+		<xs:enumeration value="single" />
+	  </xs:restriction>
+	</xs:simpleType>
   </xs:element>
   
   <xs:element name="image">
@@ -51,15 +83,34 @@
       <xs:choice maxOccurs="3">
         <xs:element name="colordepth" type="xs:nonNegativeInteger" maxOccurs="1" />
         <xs:element name="rowinterlace" type="xs:boolean" maxOccurs="1" />
-        <xs:element name="rowpixelpattern" maxOccurs="1" >
-          <xs:simpleType>
-            <xs:restriction base="xs:string">
-              <xs:pattern value="\d+(,\s+\d+)*" />
-            </xs:restriction>
-          </xs:simpleType>
-        </xs:element>
+        <xs:element ref="rowpixelpattern" />
       </xs:choice>
     </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="pattern">
+    <xs:simpleType>
+	  <xs:restriction base="xs:string">
+	    <xs:pattern value="([A-Z]|[a-z]|[2-9]|[!?@*]|[\s])+" />
+	  </xs:restriction>
+	</xs:simpleType>
+  </xs:element>
+  
+  <xs:element name="packing">
+	<xs:simpleType>
+	  <xs:restriction base="xs:string">
+		<xs:enumeration value="planar" />
+		<xs:enumeration value="chunky" />
+	  </xs:restriction>
+	</xs:simpleType>
+  </xs:element>
+  
+  <xs:element name="rowpixelpattern">
+    <xs:simpleType>
+      <xs:restriction base="xs:string">
+        <xs:pattern value="\d+(,\s+\d+)*" />
+      </xs:restriction>
+    </xs:simpleType>
   </xs:element>
   
 </xs:schema>

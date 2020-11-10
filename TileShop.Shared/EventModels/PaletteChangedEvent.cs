@@ -1,10 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using ImageMagitek.Colors;
 
 namespace TileShop.Shared.EventModels
 {
-    class PaletteChangedEvent
+    public class PaletteChangedEvent
     {
+        public Palette Palette { get; }
+
+        public PaletteChangedEvent(Palette palette)
+        {
+            Palette = palette;
+        }
     }
 }

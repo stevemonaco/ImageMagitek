@@ -1,5 +1,6 @@
 ﻿using System;
 using ImageMagitek.Colors;
+using ImageMagitek.Colors.Converters;
 
 namespace ImageMagitek.Codec
 {
@@ -21,6 +22,7 @@ namespace ImageMagitek.Codec
         public override int DefaultHeight => 64;
 
         private BitStream _bitStream;
+        private readonly ColorConverterAbgr16 _colorConverter = new ColorConverterAbgr16();
 
         public Psx16bppCodec(int width, int height)
         {
@@ -47,8 +49,8 @@ namespace ImageMagitek.Codec
                 {
                     uint packedColor = _bitStream.ReadByte();
                     packedColor |= (uint)_bitStream.ReadByte() << 8;
-                    var colorAbgr16 = ColorFactory.CreateColor(ColorModel.ABGR16, packedColor);
-                    _nativeBuffer[x, y] = ColorConverter.ToNative(colorAbgr16);
+                    var abgr16 = new ColorAbgr16(packedColor);
+                    _nativeBuffer[x, y] = _colorConverter.ToNativeColor(abgr16);
                 }
             }
 
@@ -67,7 +69,7 @@ namespace ImageMagitek.Codec
                 for (int x = 0; x < el.Width; x++)
                 {
                     var imageColor = imageBuffer[x, y];
-                    var fc = ColorConverter.ToForeign(imageColor, ColorModel.ABGR16);
+                    var fc = _colorConverter.ToForeignColor(imageColor);
 
                     byte high = (byte)(fc.Color & 0xFF00);
                     byte low = (byte)(fc.Color & 0xFF);

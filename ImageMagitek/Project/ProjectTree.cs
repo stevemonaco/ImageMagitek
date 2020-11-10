@@ -114,10 +114,13 @@ namespace ImageMagitek.Project
         public MagitekResult CanMoveNode(ResourceNode node, ResourceNode parentNode)
         {
             if (node is null)
-                throw new ArgumentNullException($"{nameof(CanMoveNode)} parameter '{node}' was null");
+                throw new ArgumentNullException($"{nameof(CanMoveNode)} parameter '{nameof(node)}' was null");
 
             if (parentNode is null)
-                throw new ArgumentNullException($"{nameof(CanMoveNode)} parameter '{parentNode}' was null");
+                throw new ArgumentNullException($"{nameof(CanMoveNode)} parameter '{nameof(parentNode)}' was null");
+
+            if (node.Parent is null)
+                return new MagitekResult.Failed($"{node.Name} has no parent");
 
             if (ReferenceEquals(node, parentNode))
                 return new MagitekResult.Failed($"Cannot move {node.Name} onto itself");

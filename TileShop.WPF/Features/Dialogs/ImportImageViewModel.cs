@@ -12,7 +12,6 @@ namespace TileShop.WPF.ViewModels
     public class ImportImageViewModel : Screen
     {
         private readonly Arranger _arranger;
-        private readonly IPaletteService _paletteService;
         private readonly IFileSelectService _fileSelect;
 
         private readonly IndexedImage _originalIndexed;
@@ -81,10 +80,9 @@ namespace TileShop.WPF.ViewModels
         public bool IsTiledArranger => _arranger.Layout == ArrangerLayout.Tiled;
         public bool IsSingleArranger => _arranger.Layout == ArrangerLayout.Single;
 
-        public ImportImageViewModel(Arranger arranger, IPaletteService paletteService, IFileSelectService fileSelect)
+        public ImportImageViewModel(Arranger arranger, IFileSelectService fileSelect)
         {
             _arranger = arranger;
-            _paletteService = paletteService;
             _fileSelect = fileSelect;
 
             if (_arranger.ColorType == PixelColorType.Indexed)
@@ -119,7 +117,7 @@ namespace TileShop.WPF.ViewModels
                 else if (_arranger.ColorType == PixelColorType.Direct)
                 {
                     _importedDirect = new DirectImage(_arranger);
-                    _importedDirect.ImportImage(ImageFileName, new ImageFileAdapter());
+                    _importedDirect.ImportImage(ImageFileName, new ImageSharpFileAdapter());
                     ImportedSource = new DirectBitmapAdapter(_importedDirect);
                     CanImport = true;
                 }
@@ -131,7 +129,7 @@ namespace TileShop.WPF.ViewModels
             var matchStrategy = UseExactMatching ? ColorMatchStrategy.Exact : ColorMatchStrategy.Nearest;
             _importedIndexed = new IndexedImage(_arranger);
 
-            var result = _importedIndexed.TryImportImage(fileName, new ImageFileAdapter(), matchStrategy);
+            var result = _importedIndexed.TryImportImage(fileName, new ImageSharpFileAdapter(), matchStrategy);
 
             result.Switch(
                 success =>

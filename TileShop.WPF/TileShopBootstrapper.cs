@@ -16,6 +16,7 @@ using TileShop.WPF.Services;
 using TileShop.WPF.ViewModels;
 using TileShop.WPF.Views;
 using System.Windows.Controls;
+using ImageMagitek.Colors;
 
 namespace TileShop.WPF
 {
@@ -25,11 +26,14 @@ namespace TileShop.WPF
         private Tracker _tracker = new Tracker();
         private IPaletteService _paletteService;
         private ICodecService _codecService;
+        private IColorFactory _colorFactory;
+        private IPluginService _pluginService;
 
         private readonly string _logFileName = "errorlog.txt";
         private readonly string _configName = "appsettings.json";
         private readonly string _palPath = "_palettes";
         private readonly string _codecPath = "_codecs";
+        private readonly string _pluginPath = "_plugins";
         private readonly string _projectSchemaName = Path.Combine("_schemas", "GameDescriptorSchema.xsd");
         private readonly string _codecSchemaName = Path.Combine("_schemas", "CodecSchema.xsd");
 
@@ -39,11 +43,25 @@ namespace TileShop.WPF
             ReadConfiguration(_configName, builder);
             ReadPalettes(_palPath, _settings, builder);
             ReadCodecs(_codecPath, _codecSchemaName, builder);
+            LoadPlugins(_pluginPath, _codecService, builder);
             ConfigureSolutionService(_projectSchemaName, builder);
             ConfigureServices(builder);
             ConfigureJotTracker(builder);
 
             ToolTipService.ShowOnDisabledProperty.OverrideMetadata(typeof(Control), new FrameworkPropertyMetadata(true));
+        }
+
+        private void LoadPlugins(string pluginPath, ICodecService codecService, ContainerBuilder builder)
+        {
+            _pluginService = new PluginService();
+            var fullPath = Path.GetFullPath(pluginPath);
+            _pluginService.LoadCodecPlugins(fullPath);
+            foreach (var codecPlugin in _pluginService.CodecPlugins)
+            {
+                codecService.AddOrUpdateCodec(codecPlugin.Value);
+            }
+
+            builder.RegisterInstance(_pluginService);
         }
 
         private void ConfigureServices(ContainerBuilder builder)
@@ -79,7 +97,7 @@ namespace TileShop.WPF
         private void ConfigureSolutionService(string schemaFileName, ContainerBuilder builder)
         {
             var defaultResources = _paletteService.GlobalPalettes;
-            var solutionService = new ProjectService(_codecService, defaultResources);
+            var solutionService = new ProjectService(_codecService, _colorFactory, defaultResources);
             solutionService.LoadSchemaDefinition(schemaFileName);
             builder.RegisterInstance<IProjectService>(solutionService);
         }
@@ -149,24 +167,28 @@ namespace TileShop.WPF
 
         private void ReadPalettes(string palettesPath, AppSettings settings, ContainerBuilder builder)
         {
-            _paletteService = new PaletteService();
+            _colorFactory = new ColorFactory();
+            _paletteService = new PaletteService(_colorFactory);
 
             foreach (var paletteName in settings.GlobalPalettes)
             {
                 var paletteFileName = Path.Combine(palettesPath, $"{paletteName}.json");
-                _paletteService.LoadGlobalPalette(paletteFileName);
+                var palette = _paletteService.ReadJsonPalette(paletteFileName);
+                _paletteService.GlobalPalettes.Add(palette);
             }
             _paletteService.SetDefaultPalette(_paletteService.GlobalPalettes.First());
 
             var nesPaletteFileName = Path.Combine(palettesPath, $"{settings.NesPalette}.json");
-            _paletteService.LoadNesPalette(nesPaletteFileName);
+            var nesPalette = _paletteService.ReadJsonPalette(nesPaletteFileName);
+            (_colorFactory as ColorFactory).SetNesPalette(nesPalette);
+            (_paletteService as PaletteService).SetNesPalette(nesPalette);
 
             builder.RegisterInstance(_paletteService);
         }
 
         private void ReadCodecs(string codecsPath, string schemaFileName, ContainerBuilder builder)
         {
-            _codecService = new CodecService(schemaFileName, _paletteService.DefaultPalette);
+            _codecService = new CodecService(schemaFileName);
             var result = _codecService.LoadXmlCodecs(codecsPath);
 
             if (result.Value is MagitekResults.Failed fail)

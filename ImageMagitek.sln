@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TileShop.WPF", "TileShop.WP
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TileShop.Shared", "TileShop.Shared\TileShop.Shared.csproj", "{6B68BC85-0708-46DD-9197-2CA5273B306F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageMagitek.Services", "ImageMagitek.Services\ImageMagitek.Services.csproj", "{8932A93B-0074-4508-BFCB-39E9ED2E887C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageMagitek.Services", "ImageMagitek.Services\ImageMagitek.Services.csproj", "{8932A93B-0074-4508-BFCB-39E9ED2E887C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageMagitek.PluginSamples", "ImageMagitek.PluginSamples\ImageMagitek.PluginSamples.csproj", "{7872050E-73EF-4757-8918-B7971FE8E2F8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,6 +49,10 @@ Global
 		{8932A93B-0074-4508-BFCB-39E9ED2E887C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8932A93B-0074-4508-BFCB-39E9ED2E887C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8932A93B-0074-4508-BFCB-39E9ED2E887C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7872050E-73EF-4757-8918-B7971FE8E2F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7872050E-73EF-4757-8918-B7971FE8E2F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7872050E-73EF-4757-8918-B7971FE8E2F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7872050E-73EF-4757-8918-B7971FE8E2F8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

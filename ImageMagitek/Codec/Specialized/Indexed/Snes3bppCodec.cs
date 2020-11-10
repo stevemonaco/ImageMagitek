@@ -13,8 +13,6 @@ namespace ImageMagitek.Codec
 
         public override int DefaultWidth => 8;
         public override int DefaultHeight => 8;
-        public override int RowStride => 0;
-        public override int ElementStride => 0;
         public override int WidthResizeIncrement => 1;
         public override int HeightResizeIncrement => 1;
         public override bool CanResize => true;

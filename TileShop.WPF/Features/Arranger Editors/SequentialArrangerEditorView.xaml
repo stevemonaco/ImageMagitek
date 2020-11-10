@@ -17,7 +17,7 @@
 
     <UserControl.InputBindings>
         <KeyBinding Key="OemPlus" Command="{s:Action MoveByteDown}" />
-        <KeyBinding Key="Add" Command="{s:Action MouseByteDown}" />
+        <KeyBinding Key="Add" Command="{s:Action MoveByteDown}" />
         <KeyBinding Key="Subtract" Command="{s:Action MoveByteUp}" />
         <KeyBinding Key="OemMinus" Command="{s:Action MoveByteUp}" />
         <KeyBinding Key="Down" Command="{s:Action MoveRowDown}" />
@@ -70,10 +70,14 @@
                 <StackPanel Grid.Row="0" Orientation="Horizontal">
                     <ComboBox
                         MinWidth="180"
+                        Focusable="False"
                         ItemsSource="{Binding CodecNames}"
                         SelectedValue="{Binding SelectedCodecName}" />
 
-                    <ComboBox ItemsSource="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
+                    <ComboBox
+                        Focusable="False"
+                        ItemsSource="{Binding Palettes}"
+                        SelectedItem="{Binding SelectedPalette}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Name}" />
@@ -84,12 +88,14 @@
                     <Slider
                         MinWidth="100"
                         Margin="10,0,10,0"
+                        Focusable="False"
                         Maximum="{Binding MaxZoom}"
                         Minimum="{Binding MinZoom}"
                         ToolTip="Zoom"
                         Value="{Binding Zoom}" />
                     <ToggleButton
                         Margin="0,0,10,0"
+                        Focusable="False"
                         IsChecked="{Binding ShowGridlines}"
                         ToolTip="Toggle gridline visibility">
                         <Image Style="{StaticResource iconGrid}" />
@@ -97,6 +103,7 @@
 
                     <ToggleButton
                         Margin="0,0,10,0"
+                        Focusable="False"
                         IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
                         ToolTip="Snap Selection to Elements"
                         Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -132,7 +139,6 @@
                     <!--  Resize Arranger Dimensions in Elements  -->
                     <ui:NumberBox
                         Margin="2,0,0,0"
-                        IsEnabled="{Binding CanResize}"
                         LargeChange="1"
                         Minimum="1"
                         SmallChange="1"
@@ -145,7 +151,6 @@
 
                     <ui:NumberBox
                         Margin="2,0,0,0"
-                        IsEnabled="{Binding CanResize}"
                         LargeChange="1"
                         Minimum="1"
                         SmallChange="1"
@@ -186,6 +191,7 @@
                     <Button
                         Margin="10,0,0,0"
                         Click="{s:Action EditSelection}"
+                        Focusable="False"
                         IsEnabled="{Binding CanEditSelection}"
                         ToolTip="Opens selection in the pixel editor">
                         <Image Style="{StaticResource iconEdit}" />
@@ -208,6 +214,7 @@
                     <Slider
                         Grid.Column="1"
                         Margin="10,0,10,0"
+                        Focusable="False"
                         IsSnapToTickEnabled="True"
                         LargeChange="{Binding ArrangerPageSize}"
                         Maximum="{Binding MaxFileDecodingOffset}"

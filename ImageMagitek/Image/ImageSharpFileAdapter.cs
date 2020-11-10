@@ -5,16 +5,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace ImageMagitek
 {
-    public interface IImageFileAdapter
-    {
-        void SaveImage(byte[] image, Arranger arranger, string imagePath);
-        void SaveImage(ColorRgba32[] image, int width, int height, string imagePath);
-        byte[] LoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy);
-        MagitekResult TryLoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy, out byte[] image);
-        ColorRgba32[] LoadImage(string imagePath);
-    }
-
-    public class ImageFileAdapter : IImageFileAdapter
+    public class ImageSharpFileAdapter : IImageFileAdapter
     {
         public void SaveImage(byte[] image, Arranger arranger, string imagePath)
         {
@@ -151,96 +142,5 @@ namespace ImageMagitek
 
             return outputImage;
         }
-
-
-        //public void SaveImage(DirectImage image, string imagePath)
-        //{
-        //    using var outputImage = new Image<Rgba32>(image.Width, image.Height);
-
-        //    var span = outputImage.GetPixelSpan();
-
-        //    for (int i = 0; i < span.Length; i++)
-        //    {
-        //        var color = image.Image[i].ToRgba32();
-        //        span[i] = color;
-        //    }
-
-        //    using var outputStream = new FileStream(imagePath, FileMode.Create, FileAccess.Write, FileShare.Read);
-        //    outputImage.SaveAsPng(outputStream);
-        //}
-
-        //public void SaveImage(IndexedImage image, Palette pal, string imagePath)
-        //{
-        //    using var outputImage = new Image<Rgba32>(image.Width, image.Height);
-
-        //    var span = outputImage.GetPixelSpan();
-
-        //    for (int i = 0; i < span.Length; i++)
-        //    {
-        //        var color = pal.GetNativeColor(image.Image[i]);
-        //        span[i] = color.ToRgba32();
-        //    }
-
-        //    using var outputStream = new FileStream(imagePath, FileMode.Create, FileAccess.Write, FileShare.Read);
-        //    outputImage.SaveAsPng(outputStream);
-        //}
-
-        //public void SaveImage(IndexedImage image, Arranger arranger, string imagePath)
-        //{
-        //    using var outputImage = new Image<Rgba32>(image.Width, image.Height);
-
-        //    for (int y = 0; y < image.Height; y++)
-        //    {
-        //        for (int x = 0; x < image.Width; x++)
-        //        {
-        //            var span = outputImage.GetPixelRowSpan(y);
-        //            var pal = arranger.GetElement(x / image.Width, y / image.Height).Palette;
-        //            var color = pal[image.GetPixel(x, y)];
-        //            span[x] = color.ToRgba32();
-        //        }
-        //    }
-
-        //    using var outputStream = new FileStream(imagePath, FileMode.Create, FileAccess.Write, FileShare.Read);
-        //    outputImage.SaveAsPng(outputStream);
-        //}
-
-        //public DirectImage LoadDirectImage(string imagePath)
-        //{
-        //    throw new NotImplementedException();
-        //    //using var image = Image.Load(imagePath);
-
-        //    //var direct = new DirectImage(image.Width, image.Height);
-
-        //    //var span = image.GetPixelSpan();
-
-        //    //for (int i = 0; i < span.Length; i++)
-        //    //{
-        //    //    var color = new ColorRgba32(span[i].R, span[i].G, span[i].B, span[i].A);
-        //    //    direct.Image[i] = color;
-        //    //}
-
-        //    //return direct;
-        //}
-
-        //public IndexedImage LoadIndexedImage(string imagePath, Palette pal)
-        //{
-        //    throw new NotImplementedException();
-        //    //using var image = Image.Load(imagePath);
-
-        //    //var indexed = new IndexedImage(image.Width, image.Height);
-
-        //    //var span = image.GetPixelSpan();
-
-        //    //for (int i = 0; i < span.Length; i++)
-        //    //{
-        //    //    var nc = new ColorRgba32(span[i].R, span[i].G, span[i].B, span[i].A);
-        //    //    if (pal.ContainsNativeColor(nc))
-        //    //        throw new Exception($"{nameof(LoadIndexedImage)}: Image '{imagePath}' contained a color not contained by the palette '{pal.Name}'");
-
-        //    //    indexed.Image[i] = pal.GetIndexByNativeColor(nc, true);
-        //    //}
-
-        //    //return indexed;
-        //}
     }
 }

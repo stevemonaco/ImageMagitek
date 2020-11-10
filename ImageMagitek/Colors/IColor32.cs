@@ -2,15 +2,14 @@
 
 namespace ImageMagitek.Colors
 {
-    public interface IColor32
+    public interface IColor32 : IColor
     {
-        uint Color { get; set; }
         Vector4 ColorVector { get; set; }
         byte R { get; set; }
         byte G { get; set; }
         byte B { get; set; }
         byte A { get; set; }
-        int Size { get; }
+        
         int AlphaMax { get; }
         int RedMax { get; }
         int GreenMax { get; }

@@ -32,16 +32,16 @@ namespace TileShop.WPF.ViewModels
         public void Initialize(Arranger arranger, int viewX, int viewY, int viewWidth, int viewHeight)
         {
             Resource = arranger;
-            _workingArranger = arranger.CloneArranger();
+            WorkingArranger = arranger.CloneArranger();
             _viewX = viewX;
             _viewY = viewY;
             _viewWidth = viewWidth;
             _viewHeight = viewHeight;
 
-            _directImage = new DirectImage(_workingArranger, _viewX, _viewY, _viewWidth, _viewHeight);
+            _directImage = new DirectImage(WorkingArranger, _viewX, _viewY, _viewWidth, _viewHeight);
             BitmapAdapter = new DirectBitmapAdapter(_directImage);
 
-            DisplayName = $"Pixel Editor - {_workingArranger.Name}";
+            DisplayName = $"Pixel Editor - {WorkingArranger.Name}";
 
             PrimaryColor = new ColorRgba32(255, 255, 255, 255);
             SecondaryColor = new ColorRgba32(0, 0, 0, 255);
@@ -144,7 +144,7 @@ namespace TileShop.WPF.ViewModels
                 return ImageCopier.CopyPixels(directCopy.Image, _directImage, sourceStart, destStart, copyWidth, copyHeight);
             }
             else
-                throw new InvalidOperationException($"{nameof(ApplyPasteInternal)} attempted to copy from an arranger of type {Paste.Copy.Source.ColorType} to {_workingArranger.ColorType}");
+                throw new InvalidOperationException($"{nameof(ApplyPasteInternal)} attempted to copy from an arranger of type {Paste.Copy.Source.ColorType} to {WorkingArranger.ColorType}");
         }
     }
 }

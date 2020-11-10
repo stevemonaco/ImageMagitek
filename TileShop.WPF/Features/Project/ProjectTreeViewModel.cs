@@ -148,8 +148,10 @@ namespace TileShop.WPF.ViewModels
 
             if (_windowManager.ShowDialog(dialogModel) is true)
             {
-                var pal = new Palette(dialogModel.PaletteName, Palette.StringToColorModel(dialogModel.SelectedColorModel), new FileBitAddress(dialogModel.FileOffset, 0),
+                var pal = new Palette(dialogModel.PaletteName, _paletteService.ColorFactory,
+                    Palette.StringToColorModel(dialogModel.SelectedColorModel), new FileBitAddress(dialogModel.FileOffset, 0),
                     dialogModel.Entries, dialogModel.ZeroIndexTransparent, PaletteStorageSource.DataFile);
+
                 pal.DataFile = dialogModel.SelectedDataFile;
 
                 var result = _projectService.AddResource(parentNodeModel.Node, pal, true);
@@ -212,12 +214,12 @@ namespace TileShop.WPF.ViewModels
                     if (arranger.ColorType == PixelColorType.Indexed)
                     {
                         var image = new IndexedImage(arranger);
-                        image.ExportImage(exportFileName, new ImageFileAdapter());
+                        image.ExportImage(exportFileName, new ImageSharpFileAdapter());
                     }
                     else if (arranger.ColorType == PixelColorType.Direct)
                     {
                         var image = new DirectImage(arranger);
-                        image.ExportImage(exportFileName, new ImageFileAdapter());
+                        image.ExportImage(exportFileName, new ImageSharpFileAdapter());
                     }
                 }
             }
@@ -227,8 +229,12 @@ namespace TileShop.WPF.ViewModels
         {
             if (nodeModel is ArrangerNodeViewModel arrNodeModel && arrNodeModel.Node.Value is ScatteredArranger arranger)
             {
-                var model = new ImportImageViewModel(arranger, _paletteService, _fileSelect);
-                _windowManager.ShowDialog(model);
+                var model = new ImportImageViewModel(arranger, _fileSelect);
+                if (_windowManager.ShowDialog(model) is true)
+                {
+                    var changeEvent = new ArrangerChangedEvent(arranger, ArrangerChange.Pixels);
+                    _events.PublishOnUIThread(changeEvent);
+                }
             }
         }
 

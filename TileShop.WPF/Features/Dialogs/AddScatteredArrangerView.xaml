@@ -8,11 +8,12 @@
     xmlns:ui="http://schemas.modernwpf.com/2019"
     Title="Add Scattered Arranger"
     Width="300"
-    Height="440"
+    Height="500"
     d:DesignHeight="300"
     d:DesignWidth="400"
     ui:ThemeManager.IsThemeAware="True"
     ui:WindowHelper.UseModernWindowStyle="True"
+    ResizeMode="NoResize"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
@@ -82,7 +83,7 @@
                     <TextBlock
                         Margin="0,10,0,0"
                         HorizontalAlignment="Center"
-                        Text="Arranger Size" />
+                        Text="Arranger Size in Elements" />
 
                     <StackPanel
                         Margin="0,10,0,0"
@@ -90,11 +91,13 @@
                         Orientation="Horizontal">
                         <TextBox
                             MinWidth="80"
+                            ui:ControlHelper.Header="Width"
                             Text="{Binding ArrangerElementWidth}"
                             ToolTip="Width of arranger in number of elements" />
                         <TextBox
                             MinWidth="80"
                             Margin="10,0,0,0"
+                            ui:ControlHelper.Header="Height"
                             Text="{Binding ArrangerElementHeight}"
                             ToolTip="Height of arranger in number of elements" />
                     </StackPanel>
@@ -104,7 +107,7 @@
                 <TextBlock
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
-                    Text="Element Size" />
+                    Text="Element Size in Pixels" />
 
                 <StackPanel
                     Margin="0,10,0,0"
@@ -113,11 +116,13 @@
 
                     <TextBox
                         MinWidth="80"
+                        ui:ControlHelper.Header="Width"
                         Text="{Binding ElementPixelWidth}"
                         ToolTip="Width of each element in pixels" />
                     <TextBox
                         MinWidth="80"
                         Margin="10,0,0,0"
+                        ui:ControlHelper.Header="Height"
                         Text="{Binding ElementPixelHeight}"
                         ToolTip="Height of each element in pixels" />
                 </StackPanel>

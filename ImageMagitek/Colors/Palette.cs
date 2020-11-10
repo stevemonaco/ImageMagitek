@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using ColorMine.ColorSpaces.Comparisons;
-using ColorMine.ColorSpaces.Conversions;
 using ImageMagitek.Project;
 using ImageMagitek.ExtensionMethods;
 
@@ -15,7 +14,7 @@ namespace ImageMagitek.Colors
     public enum ColorMatchStrategy { Exact, Nearest }
 
     //public enum ColorModel { RGBA32 = 0, RGB24, ARGB32, BGR15, ABGR16, RGB15, NES }
-    public enum ColorModel { RGBA32 = 0, BGR15 = 3, ABGR16 = 4 }
+    public enum ColorModel { Rgba32 = 0, Bgr15 = 3, Abgr16 = 4, Nes = 6 }
 
     /// <summary>
     /// Storage source of the palette
@@ -31,6 +30,8 @@ namespace ImageMagitek.Colors
     public class Palette : IProjectResource
     {
         private static readonly Cie94Comparison _comparator = new Cie94Comparison(Cie94Comparison.Application.GraphicArts);
+        private readonly IColorFactory _colorFactory;
+        private readonly IPaletteBinarySerializer _paletteSerializer;
 
         public string Name { get; set; }
         public bool CanContainChildResources => false;
@@ -80,25 +81,30 @@ namespace ImageMagitek.Colors
         /// <summary>
         /// Gets the internal palette containing foreign colors
         /// </summary>
-        IColor32[] ForeignPalette { get => _foreignPalette.Value; }
-        Lazy<IColor32[]> _foreignPalette;
+        IColor[] ForeignPalette { get => _foreignPalette.Value; }
+        Lazy<IColor[]> _foreignPalette;
 
         /// <summary>
         /// Constructs a new named Palette object
         /// </summary>
         /// <param name="PaletteName">Name of the palette</param>
-        public Palette(string PaletteName)
+        public Palette(string PaletteName, IColorFactory colorFactory)
         {
             Name = PaletteName;
+            _colorFactory = colorFactory;
+            _paletteSerializer = new PaletteBinarySerializer(_colorFactory);
 
             HasAlpha = false;
             ZeroIndexTransparent = true;
         }
 
-        public Palette(string name, ColorModel colorModel, FileBitAddress fileAddress,
+        public Palette(string name, IColorFactory colorFactory, ColorModel colorModel, FileBitAddress fileAddress,
             int entries, bool zeroIndexTransparent, PaletteStorageSource storageSource)
         {
             Name = name;
+            _colorFactory = colorFactory;
+            _paletteSerializer = new PaletteBinarySerializer(_colorFactory);
+
             ColorModel = colorModel;
             FileAddress = fileAddress;
             Entries = entries;
@@ -108,12 +114,12 @@ namespace ImageMagitek.Colors
             if(storageSource == PaletteStorageSource.DataFile)
             {
                 _nativePalette = new Lazy<ColorRgba32[]>(() => LoadNativePalette());
-                _foreignPalette = new Lazy<IColor32[]>(() => LoadForeignPalette());
+                _foreignPalette = new Lazy<IColor[]>(() => LoadForeignPalette());
             }
             else if(storageSource == PaletteStorageSource.Json)
             {
                 _nativePalette = new Lazy<ColorRgba32[]>(() => new ColorRgba32[Entries]);
-                _foreignPalette = new Lazy<IColor32[]>(() => new IColor32[Entries]);
+                _foreignPalette = new Lazy<IColor[]>(() => new IColor[Entries]);
             }
         }
 
@@ -148,7 +154,7 @@ namespace ImageMagitek.Colors
             StorageSource = PaletteStorageSource.DataFile;
 
             _nativePalette = new Lazy<ColorRgba32[]>(() => LoadNativePalette());
-            _foreignPalette = new Lazy<IColor32[]>(() => LoadForeignPalette());
+            _foreignPalette = new Lazy<IColor[]>(() => LoadForeignPalette());
 
             return true;
         }
@@ -157,7 +163,7 @@ namespace ImageMagitek.Colors
         {
             var nativePalette = new ColorRgba32[Entries];
             for(int i = 0; i < Entries; i++)
-                nativePalette[i] = ColorConverter.ToNative(ForeignPalette[i]); // Will load ForeignPalette if not already loaded
+                nativePalette[i] = _colorFactory.ToNative(ForeignPalette[i]); // Will load ForeignPalette if not already loaded
 
             if (ZeroIndexTransparent)
                 nativePalette[0].Color &= 0x00FFFFFF;
@@ -173,9 +179,9 @@ namespace ImageMagitek.Colors
         /// or
         /// Palette formats with entry sizes larger than 4 bytes are not supported
         /// </exception>
-        private IColor32[] LoadForeignPalette()
+        private IColor[] LoadForeignPalette()
         {
-            return PaletteBinarySerializer.ReadPalette(DataFile, FileAddress, ColorModel, Entries);
+            return _paletteSerializer.ReadPalette(DataFile, FileAddress, ColorModel, Entries);
         }
 
         /// <summary>
@@ -209,7 +215,7 @@ namespace ImageMagitek.Colors
             return NativePalette[index];
         }
 
-        public IColor32 GetForeignColor(int index)
+        public IColor GetForeignColor(int index)
         {
             if (ForeignPalette is null)
                 throw new ArgumentNullException($"{nameof(GetForeignColor)} property '{nameof(ForeignPalette)}' was null");
@@ -372,7 +378,7 @@ namespace ImageMagitek.Colors
         /// </summary>
         /// <param name="index">Zero-based palette index</param>
         /// <param name="foreignColor">Color to assign to the foreign palette</param>
-        public void SetForeignColor(int index, IColor32 foreignColor)
+        public void SetForeignColor(int index, IColor foreignColor)
         {
             if (ForeignPalette is null)
                 throw new NullReferenceException($"{nameof(SetForeignColor)} property '{nameof(ForeignPalette)}' was null");
@@ -381,7 +387,7 @@ namespace ImageMagitek.Colors
                 throw new ArgumentOutOfRangeException($"{nameof(GetForeignColor)} parameter '{nameof(index)}' was out of range");
 
             ForeignPalette[index] = foreignColor;
-            NativePalette[index] = ColorConverter.ToNative(foreignColor);
+            NativePalette[index] = _colorFactory.ToNative(foreignColor);
         }
 
         /// <summary>
@@ -391,11 +397,7 @@ namespace ImageMagitek.Colors
         /// <param name="index">Zero-based palette index</param>
         public void SetForeignColor(int index, byte R, byte G, byte B, byte A)
         {
-            var fc = ColorFactory.CreateColor(ColorModel);
-            fc.R = R;
-            fc.G = G;
-            fc.B = B;
-            fc.A = A;
+            var fc = _colorFactory.CreateColor(ColorModel, R, G, B, A);
 
             SetForeignColor(index, fc);
         }
@@ -415,7 +417,7 @@ namespace ImageMagitek.Colors
                 throw new ArgumentOutOfRangeException($"{nameof(GetNativeColor)} parameter '{nameof(index)}' was out of range");
 
             NativePalette[index] = nativeColor;
-            ForeignPalette[index] = ColorConverter.ToForeign(nativeColor, ColorModel);
+            ForeignPalette[index] = _colorFactory.ToForeign(nativeColor, ColorModel);
         }
 
         /// <summary>
@@ -425,11 +427,7 @@ namespace ImageMagitek.Colors
         /// <param name="index">Zero-based palette index</param>
         public void SetNativeColor(int index, byte R, byte G, byte B, byte A)
         {
-            var nc = ColorFactory.CreateColor(ColorModel.RGBA32);
-            nc.R = R;
-            nc.G = G;
-            nc.B = B;
-            nc.A = A;
+            var nc = _colorFactory.CreateColor(ColorModel.Rgba32, R, G, B, A);
 
             SetForeignColor(index, nc);
         }
@@ -441,7 +439,7 @@ namespace ImageMagitek.Colors
         public bool SavePalette()
         {
             if(StorageSource == PaletteStorageSource.DataFile)
-                PaletteBinarySerializer.WritePalette(DataFile, FileAddress, ForeignPalette);
+                _paletteSerializer.WritePalette(DataFile, FileAddress, ForeignPalette);
 
             return true;
         }
@@ -455,20 +453,14 @@ namespace ImageMagitek.Colors
         {
             switch(ColorModelName)
             {
-                //case "RGB24":
-                //    return ColorModel.RGB24;
-                //case "ARGB32":
-                //    return ColorModel.ARGB32;
-                case "RGBA32":
-                    return ColorModel.RGBA32;
-                case "BGR15":
-                    return ColorModel.BGR15;
-                case "ABGR16":
-                    return ColorModel.ABGR16;
-                //case "RGB15":
-                //    return ColorModel.RGB15;
-                //case "NES":
-                //    return ColorModel.NES;
+                case "Rgba32":
+                    return ColorModel.Rgba32;
+                case "Bgr15":
+                    return ColorModel.Bgr15;
+                case "Abgr16":
+                    return ColorModel.Abgr16;
+                case "Nes":
+                    return ColorModel.Nes;
                 default:
                     throw new ArgumentException($"{nameof(StringToColorModel)} {nameof(ColorModel)} '{ColorModelName}' is not supported");
             }
@@ -478,20 +470,14 @@ namespace ImageMagitek.Colors
         {
             switch (model)
             {
-                //case ColorModel.RGB24:
-                //    return "RGB24";
-                //case ColorModel.ARGB32:
-                //    return "ARGB32";
-                case ColorModel.BGR15:
-                    return "BGR15";
-                case ColorModel.ABGR16:
-                    return "ABGR16";
-                case ColorModel.RGBA32:
-                    return "RGBA32";
-                //case ColorModel.RGB15:
-                //    return "RGB15";
-                //case ColorModel.NES:
-                //    return "NES";
+                case ColorModel.Bgr15:
+                    return "Bgr15";
+                case ColorModel.Abgr16:
+                    return "Abgr16";
+                case ColorModel.Rgba32:
+                    return "Rgba32";
+                case ColorModel.Nes:
+                    return "Nes";
                 default:
                     throw new ArgumentException($"{nameof(ColorModelToString)} {nameof(ColorModel)} '{model}' is not supported");
             }

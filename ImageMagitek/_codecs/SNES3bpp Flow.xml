@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<flowcodec name="SNES 3bpp Flow" version="0.9">
+	<colortype>indexed</colortype>
+	<colordepth>3</colordepth>
+	<layout>tiled</layout>
+	<defaultheight>8</defaultheight>
+	<defaultwidth>8</defaultwidth>
+	<fixedsize>false</fixedsize>
+	<mergepriority>0, 1, 2</mergepriority>
+    
+	<images>
+		<image>
+			<colordepth>2</colordepth>
+			<rowinterlace>true</rowinterlace>
+		</image>
+		<image>
+			<colordepth>1</colordepth>
+			<rowinterlace>true</rowinterlace>
+		</image>
+	</images>
+</flowcodec>

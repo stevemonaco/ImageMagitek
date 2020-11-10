@@ -61,8 +61,15 @@ namespace ImageMagitek
             ActivePalette = palette;
             _codecs = codecFactory;
 
-            ActiveCodec = _codecs.GetCodec(codecName);
+            ActiveCodec = _codecs.GetCodec(codecName, default);
             ColorType = ActiveCodec.ColorType;
+
+            Layout = ActiveCodec.Layout switch
+            {
+                ImageLayout.Tiled => ArrangerLayout.Tiled,
+                ImageLayout.Single => ArrangerLayout.Single,
+                _ => throw new InvalidOperationException($"{nameof(SequentialArranger)}.ctor was called with an invalid {nameof(ImageLayout)}")
+            };
 
             ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);
 
@@ -155,7 +162,7 @@ namespace ImageMagitek
                     if (el.Codec.Layout == ImageLayout.Tiled)
                         address += ActiveCodec.StorageSize;
                     else if (el.Codec.Layout == ImageLayout.Single)
-                        address += (ElementPixelSize.Width + ActiveCodec.RowStride) * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
+                        address += ElementPixelSize.Width * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
                     else
                         throw new NotSupportedException();
 
@@ -237,7 +244,7 @@ namespace ImageMagitek
                         if (ActiveCodec.Layout == ImageLayout.Tiled)
                             address += ActiveCodec.StorageSize;
                         else if (ActiveCodec.Layout == ImageLayout.Single)
-                            address += (ElementPixelSize.Width + ActiveCodec.RowStride) * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
+                            address += ElementPixelSize.Width * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
                         else
                             throw new NotSupportedException();
                     }

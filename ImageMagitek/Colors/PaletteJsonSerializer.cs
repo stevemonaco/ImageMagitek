@@ -5,12 +5,12 @@ namespace ImageMagitek.Colors
 {
     public static class PaletteJsonSerializer
     {
-        public static Palette ReadPalette(string json)
+        public static Palette ReadPalette(string json, IColorFactory colorFactory)
         {
             var options = new JsonSerializerOptions();
             options.PropertyNameCaseInsensitive = true;
             var model = JsonSerializer.Deserialize<PaletteJsonModel>(json, options);
-            return model.ToPalette();
+            return model.ToPalette(colorFactory);
         }
     }
 }

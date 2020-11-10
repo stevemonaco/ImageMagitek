@@ -48,18 +48,18 @@ namespace TileShop.WPF.ViewModels
         private void Initialize(Arranger arranger, int viewX, int viewY, int viewWidth, int viewHeight)
         {
             Resource = arranger;
-            _workingArranger = arranger.CloneArranger();
+            WorkingArranger = arranger.CloneArranger();
             _viewX = viewX;
             _viewY = viewY;
             _viewWidth = viewWidth;
             _viewHeight = viewHeight;
 
-            var maxColors = _workingArranger.EnumerateElementsByPixel(viewX, viewY, viewWidth, viewHeight)
+            var maxColors = WorkingArranger.EnumerateElementsByPixel(viewX, viewY, viewWidth, viewHeight)
                 .OfType<ArrangerElement>()
                 .Select(x => 1 << x.Codec.ColorDepth)
                 .Max();
 
-            var arrangerPalettes = _workingArranger.EnumerateElementsByPixel(viewX, viewY, viewWidth, viewHeight)
+            var arrangerPalettes = WorkingArranger.EnumerateElementsByPixel(viewX, viewY, viewWidth, viewHeight)
                 .OfType<ArrangerElement>()
                 .Select(x => x.Palette)
                 .Distinct()
@@ -68,10 +68,10 @@ namespace TileShop.WPF.ViewModels
 
             Palettes = new BindableCollection<PaletteModel>(arrangerPalettes);
 
-            _indexedImage = new IndexedImage(_workingArranger, _viewX, _viewY, _viewWidth, _viewHeight);
+            _indexedImage = new IndexedImage(WorkingArranger, _viewX, _viewY, _viewWidth, _viewHeight);
             BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
 
-            DisplayName = $"Pixel Editor - {_workingArranger.Name}";
+            DisplayName = $"Pixel Editor - {WorkingArranger.Name}";
             SnapMode = SnapMode.Pixel;
             Selection = new ArrangerSelection(arranger, SnapMode);
 
@@ -89,22 +89,22 @@ namespace TileShop.WPF.ViewModels
 
         protected override void CreateGridlines()
         {
-            if (_workingArranger is null)
+            if (WorkingArranger is null)
                 return;
 
-            if (_workingArranger.Layout == ArrangerLayout.Single)
+            if (WorkingArranger.Layout == ArrangerLayout.Single)
             {
                 CreateGridlines(0, 0, _viewWidth, _viewHeight, 8, 8);
             }
-            else if (_workingArranger.Layout == ArrangerLayout.Tiled)
+            else if (WorkingArranger.Layout == ArrangerLayout.Tiled)
             {
-                var location = _workingArranger.PointToElementLocation(new Point(_viewX, _viewY));
+                var location = WorkingArranger.PointToElementLocation(new Point(_viewX, _viewY));
 
-                int x = _workingArranger.ElementPixelSize.Width - (_viewX - location.X * _workingArranger.ElementPixelSize.Width);
-                int y = _workingArranger.ElementPixelSize.Height - (_viewY - location.Y * _workingArranger.ElementPixelSize.Height);
+                int x = WorkingArranger.ElementPixelSize.Width - (_viewX - location.X * WorkingArranger.ElementPixelSize.Width);
+                int y = WorkingArranger.ElementPixelSize.Height - (_viewY - location.Y * WorkingArranger.ElementPixelSize.Height);
 
                 CreateGridlines(x, y, _viewWidth, _viewHeight,
-                    _workingArranger.ElementPixelSize.Width, _workingArranger.ElementPixelSize.Height);
+                    WorkingArranger.ElementPixelSize.Width, WorkingArranger.ElementPixelSize.Height);
             }
         }
 
@@ -138,9 +138,9 @@ namespace TileShop.WPF.ViewModels
         {
             get
             {
-                var palettes = _workingArranger?.GetReferencedPalettes();
+                var palettes = WorkingArranger?.GetReferencedPalettes();
                 if (palettes?.Count <= 1)
-                    return _workingArranger.GetReferencedCodecs().All(x => x.ColorType == PixelColorType.Indexed);
+                    return WorkingArranger.GetReferencedCodecs().All(x => x.ColorType == PixelColorType.Indexed);
 
                 return false;
             }
@@ -148,14 +148,14 @@ namespace TileShop.WPF.ViewModels
 
         public void RemapColors()
         {
-            var palette = _workingArranger.GetReferencedPalettes().FirstOrDefault();
+            var palette = WorkingArranger.GetReferencedPalettes().FirstOrDefault();
             if (palette is null)
                 palette = _paletteService.DefaultPalette;
 
-            var maxArrangerColors = _workingArranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Codec?.ColorDepth ?? 0).Max();
+            var maxArrangerColors = WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Codec?.ColorDepth ?? 0).Max();
             var colors = Math.Min(256, 1 << maxArrangerColors);
 
-            var remapViewModel = new ColorRemapViewModel(palette, colors);
+            var remapViewModel = new ColorRemapViewModel(palette, colors, _paletteService.ColorFactory);
             if (_windowManager.ShowDialog(remapViewModel) is true)
             {
                 var remap = remapViewModel.FinalColors.Select(x => (byte)x.Index).ToList();
@@ -170,7 +170,7 @@ namespace TileShop.WPF.ViewModels
 
         public override void PickColor(int x, int y, ColorPriority priority)
         {
-            var el = _workingArranger.GetElementAtPixel(x, y);
+            var el = WorkingArranger.GetElementAtPixel(x, y);
 
             if (el is ArrangerElement element)
             {
@@ -267,7 +267,7 @@ namespace TileShop.WPF.ViewModels
                 //    ImageRemapOperation.RemapByExactPaletteColors, ImageRemapOperation.RemapByExactIndex);
             }
             else
-                throw new InvalidOperationException($"{nameof(ApplyPaste)} attempted to copy from an arranger of type {paste.Copy.Source.ColorType} to {_workingArranger.ColorType}");
+                throw new InvalidOperationException($"{nameof(ApplyPaste)} attempted to copy from an arranger of type {paste.Copy.Source.ColorType} to {WorkingArranger.ColorType}");
         }
 
         public override void ApplyHistoryAction(HistoryAction action)

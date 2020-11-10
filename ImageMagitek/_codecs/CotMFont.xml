@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<flowcodec name="CotM Font" version="0.9">
+	<colortype>indexed</colortype>
+	<colordepth>1</colordepth>
+	<layout>tiled</layout>
+	<defaultheight>8</defaultheight>
+	<defaultwidth>8</defaultwidth>
+	<fixedsize>true</fixedsize>
+	<mergepriority>0</mergepriority>
+
+	<images>
+		<image>
+			<colordepth>1</colordepth>
+			<rowpixelpattern>1, 0, 3, 2, 5, 4, 7, 6</rowpixelpattern>
+			<rowinterlace>false</rowinterlace>
+		</image>
+	</images>
+</flowcodec>

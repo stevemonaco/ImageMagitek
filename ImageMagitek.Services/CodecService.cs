@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using McMaster.NETCore.Plugins;
 
 namespace ImageMagitek.Services
 {
@@ -12,6 +14,7 @@ namespace ImageMagitek.Services
 
         IEnumerable<string> GetSupportedCodecNames();
         MagitekResults LoadXmlCodecs(string codecsPath);
+        void AddOrUpdateCodec(Type codecType);
     }
 
     public class CodecService : ICodecService
@@ -19,17 +22,15 @@ namespace ImageMagitek.Services
         public ICodecFactory CodecFactory { get; private set; }
 
         private readonly string _schemaFileName;
-        private readonly Palette _defaultPalette;
 
-        public CodecService(string schemaFileName, Palette defaultPalette)
+        public CodecService(string schemaFileName)
         {
             _schemaFileName = schemaFileName;
-            _defaultPalette = defaultPalette;
         }
 
         public MagitekResults LoadXmlCodecs(string codecsPath)
         {
-            var formats = new Dictionary<string, GraphicsFormat>();
+            var formats = new Dictionary<string, IGraphicsFormat>();
             var serializer = new XmlGraphicsFormatReader(_schemaFileName);
             var errors = new List<string>();
 
@@ -43,17 +44,21 @@ namespace ImageMagitek.Services
                     },
                     fail =>
                     {
+                        errors.Add($"Failed to load XML codec '{formatFileName}'");
                         errors.AddRange(fail.Reasons);
                     });
             }
 
-            CodecFactory = new CodecFactory(formats, _defaultPalette);
+            CodecFactory = new CodecFactory(formats);
 
             if (errors.Any())
                 return new MagitekResults.Failed(errors);
             else
                 return MagitekResults.SuccessResults;
         }
+
+        public void AddOrUpdateCodec(Type codecType) =>
+            CodecFactory.AddOrUpdateCodec(codecType);
 
         public IEnumerable<string> GetSupportedCodecNames() => CodecFactory?.GetSupportedCodecNames();
     }
