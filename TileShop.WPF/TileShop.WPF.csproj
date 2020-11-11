@@ -5,11 +5,13 @@
     <TargetFramework>net5.0-windows10.0.18362.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>TileShop</AssemblyName>
-    <Version>0.98.1</Version>
+    <Version>0.981</Version>
     <Authors>Steve Monaco</Authors>
     <PackageProjectUrl>https://github.com/stevemonaco/ImageMagitek</PackageProjectUrl>
     <RepositoryUrl>https://github.com/stevemonaco/ImageMagitek</RepositoryUrl>
     <Copyright>2020</Copyright>
+    <AssemblyVersion>0.981.0.0</AssemblyVersion>
+    <FileVersion>0.981.1.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
