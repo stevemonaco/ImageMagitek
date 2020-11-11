@@ -289,9 +289,7 @@ namespace TileShop.WPF.ViewModels
 
         private MagitekResult ApplyPasteInternal(ArrangerPaste paste)
         {
-            var elementCopy = paste?.Copy as ElementCopy;
-
-            if (elementCopy is null)
+            if (paste?.Copy is not ElementCopy elementCopy)
                 return new MagitekResult.Failed("No valid Paste selection");
 
             if (!_projectService.AreResourcesInSameProject(elementCopy.ProjectResource, OriginatingProjectResource))
