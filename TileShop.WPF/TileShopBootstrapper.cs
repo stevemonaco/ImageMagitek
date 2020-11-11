@@ -64,7 +64,7 @@ namespace TileShop.WPF
             builder.RegisterInstance(_pluginService);
         }
 
-        private void ConfigureServices(ContainerBuilder builder)
+        private static void ConfigureServices(ContainerBuilder builder)
         {
             builder.RegisterType<FileSelectService>().As<IFileSelectService>();
             builder.RegisterType<ViewModels.MessageBoxViewModel>().As<IMessageBoxViewModel>();
@@ -82,7 +82,11 @@ namespace TileShop.WPF
 
         protected override void ConfigureViewModels(ContainerBuilder builder)
         {
-            var vmTypes = GetType().Assembly.GetTypes().Where(x => x.Name.EndsWith("ViewModel"));
+            var vmTypes = GetType()
+                .Assembly
+                .GetTypes()
+                .Where(x => x.Name.EndsWith("ViewModel"))
+                .Where(x => !x.IsAbstract && !x.IsInterface);
 
             foreach (var vmType in vmTypes)
                 builder.RegisterType(vmType);
@@ -102,7 +106,7 @@ namespace TileShop.WPF
             builder.RegisterInstance<IProjectService>(solutionService);
         }
 
-        private void ConfigureLogging(string logName, ContainerBuilder builder)
+        private static void ConfigureLogging(string logName, ContainerBuilder builder)
         {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Error()

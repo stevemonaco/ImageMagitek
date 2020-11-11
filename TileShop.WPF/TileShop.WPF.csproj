@@ -21,11 +21,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="5.2.0" />
+    <PackageReference Include="Autofac" Version="6.0.0" />
     <PackageReference Include="Dirkster.AvalonDock" Version="4.50.0" />
     <PackageReference Include="Dirkster.AvalonDock.Themes.VS2013" Version="4.50.0" />
     <PackageReference Include="gong-wpf-dragdrop" Version="2.3.2" />
-    <PackageReference Include="Gu.Wpf.Adorners" Version="2.1.0" />
     <PackageReference Include="Jot" Version="2.1.7" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.19" />
     <PackageReference Include="ModernWpfUI" Version="0.9.3-preview.201004.0" />
