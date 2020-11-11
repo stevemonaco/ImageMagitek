@@ -23,7 +23,7 @@ namespace TileShop.WPF
     public class TileShopBootstrapper : AutofacBootstrapper<ShellViewModel>
     {
         private AppSettings _settings;
-        private Tracker _tracker = new Tracker();
+        private readonly Tracker _tracker = new Tracker();
         private IPaletteService _paletteService;
         private ICodecService _codecService;
         private IColorFactory _colorFactory;
