@@ -55,7 +55,7 @@
   <xs:element name="mergepriority">
 	<xs:simpleType>
 	  <xs:restriction base="xs:string">
-	    <xs:pattern value="\d+(,\s+\d+)*" />
+	    <xs:pattern value="\d+(,\s*\d+)*" />
 	  </xs:restriction>
 	</xs:simpleType>
   </xs:element>
@@ -108,7 +108,7 @@
   <xs:element name="rowpixelpattern">
     <xs:simpleType>
       <xs:restriction base="xs:string">
-        <xs:pattern value="\d+(,\s+\d+)*" />
+        <xs:pattern value="\d+(,\s*\d+)*" />
       </xs:restriction>
     </xs:simpleType>
   </xs:element>
