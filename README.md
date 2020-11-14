@@ -7,6 +7,7 @@ See the [releases page](https://github.com/stevemonaco/ImageMagitek/releases) to
 
 # Tech Stack
 Language - C# / .NET 5
+
 GUI Framework - WPF
 
 # Major Third Party Dependencies
