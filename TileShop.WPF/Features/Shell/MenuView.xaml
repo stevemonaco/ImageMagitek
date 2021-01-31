@@ -28,8 +28,6 @@
                     HeaderStringFormat="Close '{0}'"
                     Visibility="{Binding Editors.ActiveEditor, Converter={StaticResource NullToVisibilityConverter}}" />
 
-                <!--  InputGestureText="Ctrl+X"  -->
-
                 <MenuItem
                     Click="{s:Action CloseAllProjects}"
                     Header="_Close All Projects"
@@ -52,12 +50,8 @@
             <MenuItem Header="_View">
                 <MenuItem
                     Command="{s:Action ShowWindow}"
-                    CommandParameter="{x:Static event:ToolWindow.PixelEditor}"
-                    Header="Pixel Editor" />
-                <MenuItem
-                    Command="{s:Action ShowWindow}"
                     CommandParameter="{x:Static event:ToolWindow.ProjectExplorer}"
-                    Header="Project Explorer" />
+                    Header="Project _Explorer" />
                 <Separator />
                 <MenuItem Header="Set _Theme">
                     <MenuItem Command="{s:Action ChangeToLightTheme}" Header="Light Theme" />
@@ -66,28 +60,9 @@
             </MenuItem>
 
             <!--
-            <MenuItem Header="_Project" IsEnabled="{Binding HasProject}">
-                <MenuItem
-                    Click="{s:Action AddDataFile}"
-                    Header="Add Existing Data File..."
-                    IsEnabled="{Binding ProjectTree.HasProject}" />
-                <MenuItem
-                    Click="{s:Action AddScatteredArranger}"
-                    Header="Add New Scattered Arranger Definition..."
-                    IsEnabled="{Binding ProjectTree.HasProject}" />
-                <MenuItem
-                    Click="{s:Action AddPalette}"
-                    Header="Add New Palette Definition..."
-                    IsEnabled="{Binding ProjectTree.HasProject}" />
-            </MenuItem>
-            -->
-
-            <!--
         <MenuItem Header="_Plugins" />
             -->
 
         </Menu>
-
-
     </Grid>
 </UserControl>
