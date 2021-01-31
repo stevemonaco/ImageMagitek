@@ -65,7 +65,7 @@ namespace ImageMagitek.Colors
         /// <summary>
         /// Specifies if the palette's 0-index is automatically treated as transparent
         /// </summary>
-        public bool ZeroIndexTransparent { get; private set; }
+        public bool ZeroIndexTransparent { get; set; }
 
         /// <summary>
         /// Specifies the palette's storage source
