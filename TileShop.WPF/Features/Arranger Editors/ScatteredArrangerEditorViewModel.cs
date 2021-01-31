@@ -330,9 +330,9 @@ namespace TileShop.WPF.ViewModels
                 {
                     for (int posX = left; posX < right; posX++)
                     {
-                        int applyPixelX = posX * WorkingArranger.ElementPixelSize.Width;
-                        int applyPixelY = posY * WorkingArranger.ElementPixelSize.Height;
-                        if (TryApplySinglePalette(applyPixelX, applyPixelY, SelectedPalette.Palette, false))
+                        int elementX = posX * WorkingArranger.ElementPixelSize.Width;
+                        int elementY = posY * WorkingArranger.ElementPixelSize.Height;
+                        if (TryApplySinglePalette(elementX, elementY, SelectedPalette.Palette, false))
                         {
                             needsRender = true;
                         }
@@ -500,9 +500,6 @@ namespace TileShop.WPF.ViewModels
             if (action is PasteArrangerHistoryAction pasteAction)
             {
                 ApplyPasteInternal(pasteAction.Paste);
-                //int x = pasteAction.Paste.Rect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
-                //int y = pasteAction.Paste.Rect.SnappedTop / _workingArranger.ElementPixelSize.Height;
-                //ElementCopier.CopyElements(pasteAction.Paste.Copy as ElementCopy, _workingArranger as ScatteredArranger, new Point(x, y));
             }
             else if (action is DeleteElementSelectionHistoryAction deleteSelectionAction)
             {

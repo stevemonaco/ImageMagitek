@@ -581,9 +581,17 @@ namespace TileShop.WPF.ViewModels
             return _projectService.SaveProject(projectTree).Match(
                 success =>
                 {
-                    var removedEditors = new HashSet<ResourceEditorBaseViewModel>();
-                    removedEditors.UnionWith(_editors.Editors.Where(x => projectTree.ContainsResource(x.Resource)));
-                    removedEditors.UnionWith(_editors.Editors.OfType<SequentialArrangerEditorViewModel>().Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataFile)));
+                    var activeContainedEditors = _editors.Editors.Where(x => projectTree.ContainsResource(x.Resource));
+                    var activeSequentialEditors = _editors.Editors
+                        .OfType<SequentialArrangerEditorViewModel>()
+                        .Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataFile));
+                    var activePixelEditors = _editors.Editors
+                        .OfType<IndexedPixelEditorViewModel>()
+                        .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
+
+                    var removedEditors = new HashSet<ResourceEditorBaseViewModel>(activeContainedEditors);
+                    removedEditors.UnionWith(activeSequentialEditors);
+                    removedEditors.UnionWith(activePixelEditors);
 
                     var remainingEditors = _editors.Editors
                         .Where(x => !removedEditors.Contains(x));
@@ -593,9 +601,6 @@ namespace TileShop.WPF.ViewModels
 
                     _editors.Editors = new BindableCollection<ResourceEditorBaseViewModel>(remainingEditors);
                     _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
-
-                    if (!_editors.ClosePixelEditor())
-                        return false;
 
                     _projectService.SaveProject(projectTree)
                      .Switch(

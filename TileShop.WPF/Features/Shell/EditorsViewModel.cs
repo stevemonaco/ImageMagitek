@@ -40,13 +40,6 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _activeEditor, value);
         }
 
-        private ArrangerEditorViewModel _activePixelEditor;
-        public ArrangerEditorViewModel ActivePixelEditor
-        {
-            get => _activePixelEditor;
-            set => SetAndNotify(ref _activePixelEditor, value);
-        }
-
         private ShellViewModel _shell;
         public ShellViewModel Shell
         {
@@ -75,9 +68,6 @@ namespace TileShop.WPF.ViewModels
 
         public bool CloseEditor(ResourceEditorBaseViewModel editor)
         {
-            if (editor == ActivePixelEditor)
-                return ClosePixelEditor();
-
             if (editor.IsModified)
             {
                 if (RequestSaveUserChanges(editor, true))
@@ -97,23 +87,6 @@ namespace TileShop.WPF.ViewModels
 
             Editors.Remove(editor);
             ActiveEditor = Editors.FirstOrDefault();
-
-            return true;
-        }
-
-        public bool ClosePixelEditor()
-        {
-            if (ActivePixelEditor is null)
-                return true;
-
-            if (ActivePixelEditor.IsModified)
-            {
-                if (!RequestSavePixelEditorChanges())
-                    return false;
-            }
-
-            Shell.Tools.Remove(ActivePixelEditor);
-            ActivePixelEditor = default;
 
             return true;
         }
@@ -192,7 +165,7 @@ namespace TileShop.WPF.ViewModels
                     _projectService.SaveProject(projectTree)
                      .Switch(
                          success => { },
-                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
+                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}:\n{fail.Reason}")
                      );
                 }
 
@@ -245,54 +218,17 @@ namespace TileShop.WPF.ViewModels
             return true;
         }
 
-        /// <summary>
-        /// Requests to the user if they want to save the ActivePixelEditor
-        /// </summary>
-        /// <returns>True if saved/discarded, false if cancelled</returns>
-        public bool RequestSavePixelEditorChanges()
-        {
-            if (ActivePixelEditor is null)
-                return true;
-
-            if (ActivePixelEditor.IsModified)
-            {
-                var result = _windowManager.ShowMessageBox($"'{ActivePixelEditor.DisplayName}' has been modified and will be closed. Save changes?",
-                    "Save changes", MessageBoxButton.YesNoCancel, buttonLabels: _messageBoxLabels);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    ActivePixelEditor.SaveChanges();
-                    return true;
-                }
-                if (result == MessageBoxResult.No)
-                {
-                    ActivePixelEditor.DiscardChanges();
-                    return true;
-                }
-                else if (result == MessageBoxResult.Cancel)
-                    return false;
-            }
-            return true;
-        }
-
         public void Handle(EditArrangerPixelsEvent message)
         {
-            if (ActivePixelEditor?.IsModified is true)
-            {
-                if (!RequestSaveUserChanges(ActivePixelEditor, false))
-                    return;
-            }
-
-            if (ActivePixelEditor is object)
-                Shell.Tools.Remove(ActivePixelEditor);
-
             if (message.Arranger.ColorType == PixelColorType.Indexed)
             {
                 var editor = new IndexedPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
                     message.Width, message.Height, _events, _windowManager, _paletteService);
 
-                ActivePixelEditor = editor;
-                Shell.Tools.Add(ActivePixelEditor);
+                editor.DisplayName = message.Arranger.Name;
+
+                ActiveEditor = editor;
+                Shell.Editors.Editors.Add(ActiveEditor);
             }
             else if (message.Arranger.ColorType == PixelColorType.Direct)
             {

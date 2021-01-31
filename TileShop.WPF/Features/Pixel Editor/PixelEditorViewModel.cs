@@ -66,6 +66,7 @@ namespace TileShop.WPF.ViewModels
 
             Zoom = 3;
             MaxZoom = 32;
+            OriginatingProjectResource = projectArranger;
             _projectArranger = projectArranger;
         }
 
