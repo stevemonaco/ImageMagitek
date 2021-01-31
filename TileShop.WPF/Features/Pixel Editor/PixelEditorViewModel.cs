@@ -3,6 +3,7 @@ using ImageMagitek.Services;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Models;
 using ImageMagitek;
+using System;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -142,8 +143,8 @@ namespace TileShop.WPF.ViewModels
         #region Mouse Actions
         public override void OnMouseDown(object sender, MouseCaptureArgs e)
         {
-            int x = (int)e.X / Zoom;
-            int y = (int)e.Y / Zoom;
+            int x = Math.Clamp((int)e.X / Zoom, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
+            int y = Math.Clamp((int)e.Y / Zoom, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
 
             // Always drag first
             if (ActiveTool != PixelTool.Select && Paste?.Rect.ContainsPointSnapped(x, y) is true)
@@ -184,8 +185,8 @@ namespace TileShop.WPF.ViewModels
 
         public override void OnMouseMove(object sender, MouseCaptureArgs e)
         {
-            int x = (int)e.X / Zoom;
-            int y = (int)e.Y / Zoom;
+            int x = Math.Clamp((int)e.X / Zoom, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
+            int y = Math.Clamp((int)e.Y / Zoom, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
 
             if (x < 0 || x >= WorkingArranger.ArrangerPixelSize.Width || y < 0 || y >= WorkingArranger.ArrangerPixelSize.Height)
                 return;

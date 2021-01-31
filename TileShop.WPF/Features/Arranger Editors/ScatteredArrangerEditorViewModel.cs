@@ -137,8 +137,8 @@ namespace TileShop.WPF.ViewModels
         #region Mouse Actions
         public override void OnMouseDown(object sender, MouseCaptureArgs e)
         {
-            int x = (int)e.X / Zoom;
-            int y = (int)e.Y / Zoom;
+            int x = Math.Clamp((int)e.X / Zoom, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
+            int y = Math.Clamp((int)e.Y / Zoom, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
 
             if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton)
             {
@@ -296,15 +296,15 @@ namespace TileShop.WPF.ViewModels
                 return new MagitekResult.Failed("Copying arranger elements across projects is not permitted");
 
             var sourceArranger = paste.Copy.Source;
-            var rect = paste.Rect;
+            var destRect = paste.Rect;
 
-            var destElemWidth = sourceArranger.ElementPixelSize.Width;
-            var destElemHeight = sourceArranger.ElementPixelSize.Width;
+            var destElemWidth = WorkingArranger.ElementPixelSize.Width;
+            var destElemHeight = WorkingArranger.ElementPixelSize.Height;
 
-            int destX = Math.Max(0, rect.SnappedLeft / destElemWidth);
-            int destY = Math.Max(0, rect.SnappedTop / destElemHeight);
-            int sourceX = rect.SnappedLeft / destElemWidth >= 0 ? 0 : -rect.SnappedLeft / destElemWidth;
-            int sourceY = rect.SnappedTop / destElemWidth >= 0 ? 0 : -rect.SnappedTop / destElemWidth;
+            int destX = Math.Max(0, destRect.SnappedLeft / destElemWidth);
+            int destY = Math.Max(0, destRect.SnappedTop / destElemHeight);
+            int sourceX = destRect.SnappedLeft / destElemWidth >= 0 ? 0 : -destRect.SnappedLeft / destElemWidth;
+            int sourceY = destRect.SnappedTop / destElemHeight >= 0 ? 0 : -destRect.SnappedTop / destElemHeight;
 
             var destStart = new Point(destX, destY);
             var sourceStart = new Point(sourceX, sourceY);
