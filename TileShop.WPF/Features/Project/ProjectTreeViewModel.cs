@@ -525,6 +525,55 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        public void AddNewProjectFromFile()
+        {
+            var dataFileName = _fileSelect.GetExistingDataFileNameByUser();
+            var projectFileName = Path.ChangeExtension(dataFileName, ".xml");
+
+            try
+            {
+                if (dataFileName is object)
+                {
+                    if (File.Exists(projectFileName))
+                    {
+                        MessageBox.Show($"Project file '{projectFileName}' already exists");
+                        return;
+                    }    
+
+                    _projectService.NewProject(Path.GetFullPath(projectFileName)).Switch(
+                        success =>
+                        {
+                            var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Tree.Root);
+                            Projects.Add(projectVM);
+
+                            var dfName = Path.GetFileName(dataFileName);
+                            var df = new DataFile(dfName, dataFileName);
+                            var result = _projectService.AddResource(projectVM.Node, df, true);
+
+                            result.Switch(success =>
+                            {
+                                var dfVM = new DataFileNodeViewModel(success.Result, projectVM);
+                                projectVM.Children.Add(dfVM);
+                                SelectedNode = dfVM;
+                                IsModified = true;
+
+                                NotifyOfPropertyChange(() => HasProject);
+                                _events.PublishOnUIThread(new ProjectLoadedEvent());
+                            },
+                            fail =>
+                            {
+                                _windowManager.ShowMessageBox(fail.Reason, "Resource Error adding {dataFileName}");
+                            });
+                        },
+                        fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Project Error"));
+                }
+            }
+            catch (Exception ex)
+            {
+                _windowManager.ShowMessageBox($"Unable to create new project at location '{projectFileName}'\n{ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
         public bool OpenProject()
         {
             var projectFileName = _fileSelect.GetProjectFileNameByUser();
