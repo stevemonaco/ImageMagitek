@@ -28,6 +28,31 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _selectedColor, value);
         }
 
+        private string _paletteSource;
+        public string PaletteSource
+        {
+            get => _paletteSource;
+            set => SetAndNotify(ref _paletteSource, value);
+        }
+
+        private long _fileOffset;
+        public long FileOffset
+        {
+            get => _fileOffset;
+            set => SetAndNotify(ref _fileOffset, value);
+        }
+
+        private bool _zeroIndexTransparent;
+        public bool ZeroIndexTransparent
+        {
+            get => _zeroIndexTransparent;
+            set
+            {
+                if (SetAndNotify(ref _zeroIndexTransparent, value))
+                    IsModified = true;
+            }
+        }
+
         public PaletteEditorViewModel(Palette palette, IPaletteService paletteService, IEventAggregator events)
         {
             Resource = palette;
@@ -42,6 +67,8 @@ namespace TileShop.WPF.ViewModels
                 Colors.Add(new ValidatedColor32Model((IColor32)_palette.GetForeignColor(i), i, _paletteService.ColorFactory));
 
             SelectedColor = Colors.First();
+            FileOffset = _palette.FileAddress.FileOffset;
+            PaletteSource = _palette.DataFile.Name;
         }
 
         public void SaveColor()
@@ -53,6 +80,7 @@ namespace TileShop.WPF.ViewModels
 
         public override void SaveChanges()
         {
+            _palette.ZeroIndexTransparent = ZeroIndexTransparent;
             _palette.SavePalette();
             IsModified = false;
 
@@ -63,6 +91,7 @@ namespace TileShop.WPF.ViewModels
         public override void DiscardChanges()
         {
             _palette.Reload();
+            ZeroIndexTransparent = _palette.ZeroIndexTransparent;
             IsModified = false;
         }
 

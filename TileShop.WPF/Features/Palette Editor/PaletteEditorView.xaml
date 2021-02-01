@@ -11,139 +11,138 @@
     <UserControl.Resources>
         <ResourceDictionary Source="/Styles/ValidatedPaletteStyles.xaml" />
     </UserControl.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <StackPanel Margin="10">
 
-        <Grid Grid.Row="0" Margin="3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto" />
-                <ColumnDefinition Width="auto" />
-                <ColumnDefinition
-                    Width="*"
-                    MinWidth="100"
-                    MaxWidth="400" />
-                <ColumnDefinition Width="auto" />
-                <ColumnDefinition Width="auto" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="auto" />
-                <RowDefinition Height="auto" />
-            </Grid.RowDefinitions>
+        <!--  Palette Information display  -->
+        <GroupBox Header="Palette Properties">
+            <StackPanel>
+                <TextBlock Text="{Binding PaletteSource, StringFormat=Source: {0}}" />
+                <TextBlock Text="{Binding FileOffset, StringFormat=Address: 0x{0:X}}" />
+                <CheckBox Content="Zero Index Transparent" IsChecked="{Binding ZeroIndexTransparent}" />
+            </StackPanel>
+        </GroupBox>
 
-            <!--  Selected color display  -->
-            <Button
-                Grid.Row="0"
-                Grid.RowSpan="4"
-                Grid.Column="0"
-                Height="50"
-                MinWidth="50"
-                Margin="5,0,5,0"
-                Click="{s:Action SaveColor}"
-                IsEnabled="{Binding SelectedColor.CanSaveColor}">
-                <StackPanel>
-                    <TextBlock HorizontalAlignment="Center" Text="Save" />
-                    <TextBlock HorizontalAlignment="Center" Text="Color" />
+        <!--  Selected color display  -->
+        <GroupBox Header="Palette Color">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" MinWidth="300" />
+                    <ColumnDefinition Width="auto" MinWidth="25" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel
+                    Grid.Row="0"
+                    Grid.RowSpan="4"
+                    Grid.Column="0"
+                    VerticalAlignment="Center">
+                    <Button
+                        Height="50"
+                        Margin="0,0,10,10"
+                        Click="{s:Action SaveColor}"
+                        IsEnabled="{Binding SelectedColor.CanSaveColor}">
+                        <StackPanel>
+                            <TextBlock HorizontalAlignment="Center" Text="Assign" />
+                            <TextBlock HorizontalAlignment="Center" Text="Color" />
+                        </StackPanel>
+                    </Button>
+
+                    <Border
+                        Margin="0,0,10,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        BorderBrush="Black"
+                        BorderThickness="2">
+
+                        <Rectangle Width="55" Height="55">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{Binding SelectedColor.Color}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                    </Border>
                 </StackPanel>
-            </Button>
 
-            <Border
-                Grid.Row="0"
-                Grid.RowSpan="4"
-                Grid.Column="1"
-                Margin="0,0,10,0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                BorderBrush="Black"
-                BorderThickness="2">
+                <!--  RGBA Sliders  -->
+                <Slider
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="0,0,10,5"
+                    Foreground="Red"
+                    Maximum="{Binding SelectedColor.RedMax, UpdateSourceTrigger=PropertyChanged}"
+                    Minimum="0"
+                    Value="{Binding SelectedColor.Red, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                <Rectangle Width="45" Height="45">
-                    <Rectangle.Fill>
-                        <SolidColorBrush Color="{Binding SelectedColor.Color}" />
-                    </Rectangle.Fill>
-                </Rectangle>
-            </Border>
+                <Slider
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Margin="0,0,10,5"
+                    Foreground="Green"
+                    Maximum="{Binding SelectedColor.GreenMax}"
+                    Minimum="0"
+                    Value="{Binding SelectedColor.Green, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-            <Slider
-                Grid.Row="0"
-                Grid.Column="2"
-                Margin="0,0,10,5"
-                Foreground="Red"
-                Maximum="{Binding SelectedColor.RedMax, UpdateSourceTrigger=PropertyChanged}"
-                Minimum="0"
-                Value="{Binding SelectedColor.Red, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <Slider
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    Margin="0,0,10,5"
+                    Foreground="Blue"
+                    Maximum="{Binding SelectedColor.BlueMax}"
+                    Minimum="0"
+                    Value="{Binding SelectedColor.Blue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-            <Slider
-                Grid.Row="1"
-                Grid.Column="2"
-                Margin="0,0,10,5"
-                Foreground="Green"
-                Maximum="{Binding SelectedColor.GreenMax}"
-                Minimum="0"
-                Value="{Binding SelectedColor.Green, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <Slider
+                    Grid.Row="3"
+                    Grid.Column="1"
+                    Margin="0,0,10,0"
+                    Foreground="{StaticResource CheckeredBrush}"
+                    Maximum="{Binding SelectedColor.AlphaMax}"
+                    Minimum="0"
+                    Value="{Binding SelectedColor.Alpha, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-            <Slider
-                Grid.Row="2"
-                Grid.Column="2"
-                Margin="0,0,10,5"
-                Foreground="Blue"
-                Maximum="{Binding SelectedColor.BlueMax}"
-                Minimum="0"
-                Value="{Binding SelectedColor.Blue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <!--  RGBA Numeric Values  -->
+                <TextBlock
+                    Grid.Row="0"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Text="{Binding SelectedColor.Red}" />
+                <TextBlock
+                    Grid.Row="1"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Text="{Binding SelectedColor.Green}" />
+                <TextBlock
+                    Grid.Row="2"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Text="{Binding SelectedColor.Blue}" />
+                <TextBlock
+                    Grid.Row="3"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Text="{Binding SelectedColor.Alpha}" />
 
-            <Slider
-                Grid.Row="3"
-                Grid.Column="2"
-                Margin="0,0,10,0"
-                Foreground="{StaticResource CheckeredBrush}"
-                Maximum="{Binding SelectedColor.AlphaMax}"
-                Minimum="0"
-                Value="{Binding SelectedColor.Alpha, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-            <TextBlock
-                Grid.Row="0"
-                Grid.Column="3"
-                MinWidth="25"
-                VerticalAlignment="Center"
-                Text="{Binding SelectedColor.Red}" />
-            <TextBlock
-                Grid.Row="1"
-                Grid.Column="3"
-                MinWidth="25"
-                VerticalAlignment="Center"
-                Text="{Binding SelectedColor.Green}" />
-            <TextBlock
-                Grid.Row="2"
-                Grid.Column="3"
-                MinWidth="25"
-                VerticalAlignment="Center"
-                Text="{Binding SelectedColor.Blue}" />
-            <TextBlock
-                Grid.Row="3"
-                Grid.Column="3"
-                MinWidth="25"
-                VerticalAlignment="Center"
-                Text="{Binding SelectedColor.Alpha}" />
-
-            <Button
-                Grid.Row="0"
-                Grid.RowSpan="4"
-                Grid.Column="4"
-                MinWidth="50"
-                Margin="10,0,0,0"
-                VerticalAlignment="Center"
-                Command="{s:Action SaveChanges}"
-                IsEnabled="{Binding IsModified}">
-                <StackPanel>
-                    <TextBlock HorizontalAlignment="Center" Text="Save" />
-                    <TextBlock HorizontalAlignment="Center" Text="Palette" />
-                </StackPanel>
-            </Button>
-        </Grid>
+                <Button
+                    Grid.Row="0"
+                    Grid.RowSpan="4"
+                    Grid.Column="3"
+                    MinWidth="50"
+                    Margin="10,0,0,0"
+                    VerticalAlignment="Center"
+                    Command="{s:Action SaveChanges}"
+                    IsEnabled="{Binding IsModified}">
+                    <StackPanel>
+                        <TextBlock HorizontalAlignment="Center" Text="Save" />
+                        <TextBlock HorizontalAlignment="Center" Text="Palette" />
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </GroupBox>
 
         <!--  Palette Display  -->
         <ListBox
@@ -160,5 +159,5 @@
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
         </ListBox>
-    </Grid>
+    </StackPanel>
 </UserControl>
