@@ -11,7 +11,6 @@ using Jot;
 using ModernWpf;
 using ImageMagitek;
 using ImageMagitek.Services;
-using TileShop.WPF.Configuration;
 using TileShop.WPF.Services;
 using TileShop.WPF.ViewModels;
 using TileShop.WPF.Views;
@@ -44,7 +43,7 @@ namespace TileShop.WPF
             ReadPalettes(_palPath, _settings, builder);
             ReadCodecs(_codecPath, _codecSchemaName, builder);
             LoadPlugins(_pluginPath, _codecService, builder);
-            ConfigureSolutionService(_projectSchemaName, builder);
+            ConfigureProjectService(_projectSchemaName, builder);
             ConfigureServices(builder);
             ConfigureJotTracker(builder);
 
@@ -98,7 +97,7 @@ namespace TileShop.WPF
             builder.RegisterType<StatusBarViewModel>().SingleInstance();
         }
 
-        private void ConfigureSolutionService(string schemaFileName, ContainerBuilder builder)
+        private void ConfigureProjectService(string schemaFileName, ContainerBuilder builder)
         {
             var defaultResources = _paletteService.GlobalPalettes;
             var solutionService = new ProjectService(_codecService, _colorFactory, defaultResources);

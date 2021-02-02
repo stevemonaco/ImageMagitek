@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Xml;
-using System.Xml.Schema;
-using ImageMagitek.Codec;
-using ImageMagitek.Colors;
 using ImageMagitek.Project;
-using ImageMagitek.Project.Serialization;
-using Monaco.PathTree;
+using ImageMagitek.Services;
+using Serilog;
+using Microsoft.Extensions.Logging;
+
+using LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory;
 
 namespace ImageMagitekConsole
 {
@@ -16,13 +15,14 @@ namespace ImageMagitekConsole
 
     class Program
     {
-        static readonly HashSet<string> _commands = new HashSet<string> { "export", "exportall", "import", "importall", "print", "resave" };
-        static readonly string _projectSchemaFileName = Path.Combine("_schemas", "GameDescriptorSchema.xsd");
-        static readonly string _codecSchemaFileName = Path.Combine("_schemas", "CodecSchema.xsd");
+        static readonly HashSet<string> _commands = new HashSet<string>
+        {
+            "export", "exportall", "import", "importall", "print", "resave"
+        };
 
         static int Main(string[] args)
         {
-            Console.WriteLine("ImageMagitek v0.06");
+            Console.WriteLine("ImageMagitek v0.1");
             if (args.Length < 2)
             {
                 Console.WriteLine("Usage: ImageMagitek project.xml (ExportAll|ImportAll) ProjectRoot");
@@ -47,60 +47,32 @@ namespace ImageMagitekConsole
                     Directory.CreateDirectory(projectRoot);
             }
 
-            // Load default graphic formats and palettes
-            var codecPath = Path.Combine(Directory.GetCurrentDirectory(), "_codecs");
-            var formats = new Dictionary<string, FlowGraphicsFormat>();
-            var serializer = new XmlGraphicsFormatReader(_codecSchemaFileName);
-            foreach (var formatFileName in Directory.GetFiles(codecPath).Where(x => x.EndsWith(".xml")))
-            {
-                var codecResult = serializer.LoadFromFile(formatFileName);
-                codecResult.Switch(success =>
+            var loggerFactory = CreateLoggerFactory(BootstrapService.DefaultLogFileName);
+            var bootstrapper = new BootstrapService(loggerFactory.CreateLogger<BootstrapService>());
+
+            var settings = bootstrapper.ReadConfiguration(BootstrapService.DefaultConfigurationFileName);
+            var codecService = bootstrapper.CreateCodecService(BootstrapService.DefaultCodecPath, BootstrapService.DefaultCodecSchemaFileName);
+            var paletteService = bootstrapper.CreatePaletteService(BootstrapService.DefaultPalettePath, settings);
+            var projectService = bootstrapper.CreateProjectService(BootstrapService.DefaultProjectSchemaFileName, paletteService, codecService);
+
+            var openResult = projectService.OpenProjectFile(projectFileName);
+
+            ProjectTree project = openResult.Match(
+                success =>
                 {
-                    formats.Add(success.Result.Name, success.Result);
+                    return success.Result;
                 },
                 fail =>
                 {
-                    Console.WriteLine($"Codec '{formatFileName}' contained {fail.Reasons.Count} error(s):");
-                    Console.WriteLine(string.Join(Environment.NewLine, fail.Reasons));
+                    var message = $"Project '{projectFileName}' contained {fail.Reasons.Count} errors{Environment.NewLine}" +
+                        string.Join(Environment.NewLine, fail.Reasons);
+                    return null;
                 });
-            }
 
-            var palPath = Path.Combine(Directory.GetCurrentDirectory(), "_palettes");
-            var palettes = new List<Palette>();
+            if (project is null)
+                return (int)ExitCode.ProjectValidationError;
 
-            var paletteFileNames = Directory.GetFiles(palPath).Where(x => x.EndsWith(".json"));
-
-            foreach (var paletteFileName in paletteFileNames)
-            {
-                string json = File.ReadAllText(paletteFileName);
-                var pal = PaletteJsonSerializer.ReadPalette(json);
-                if (pal.Name == "DefaultRgba32")
-                    palettes.Insert(0, pal);
-                else
-                    palettes.Add(pal);
-            }
-
-            using var schemaStream = File.OpenRead(_projectSchemaFileName);
-            XmlSchemaSet projectSchema = new XmlSchemaSet();
-            projectSchema.Add("", XmlReader.Create(schemaStream));
-
-            var deserializer = new XmlGameDescriptorReader(projectSchema, new CodecFactory(formats), palettes);
-
-            var tree = deserializer.ReadProject(projectFileName).Match(
-                success => success.Result,
-                fail =>
-                {
-                    Console.WriteLine($"'{projectFileName}' could not be parsed and contained {fail.Reasons.Count} errors");
-                    foreach (var error in fail.Reasons)
-                        Console.WriteLine(error);
-                    return default;
-                }
-                );
-
-            if (tree is null)
-                return (int) ExitCode.ProjectValidationError;
-
-            var processor = new CommandProcessor(tree, palettes.First());
+            var processor = new CommandProcessor(project, paletteService.DefaultPalette);
 
             switch (command)
             {
@@ -128,6 +100,19 @@ namespace ImageMagitekConsole
             }
 
             return (int) ExitCode.Success;
+        }
+
+        private static LoggerFactory CreateLoggerFactory(string logName)
+        {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Error()
+                .WriteTo.File(logName, rollingInterval: RollingInterval.Month,
+                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}")
+                .CreateLogger();
+
+            var factory = new LoggerFactory();
+            factory.AddSerilog(Log.Logger);
+            return factory;
         }
     }
 }

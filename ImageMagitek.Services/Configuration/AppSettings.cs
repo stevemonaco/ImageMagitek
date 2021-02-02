@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace TileShop.WPF.Configuration
+namespace ImageMagitek.Services
 {
     public class AppSettings
     {

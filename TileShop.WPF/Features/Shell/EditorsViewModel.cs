@@ -8,7 +8,6 @@ using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
 using TileShop.Shared.EventModels;
-using TileShop.WPF.Configuration;
 using Jot;
 using Stylet;
 using Serilog;
