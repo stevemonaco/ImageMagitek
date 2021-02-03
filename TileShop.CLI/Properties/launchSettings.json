@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "FF2 ExportAll": {
+      "commandName": "Project",
+      "commandLineArgs": "ff2extended.xml ExportAll FF2Extract",
+      "workingDirectory": "D:\\ImageMagitekTest"
+    },
+    "FF2 ImportAll": {
+      "commandName": "Project",
+      "commandLineArgs": "ff2extended.xml ImportAll FF2Extract",
+      "workingDirectory": "D:\\ImageMagitekTest"
+    }
+  }
+}

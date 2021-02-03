@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29025.244
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageMagitek", "ImageMagitek\ImageMagitek.csproj", "{94136DDB-1B6F-4959-A14C-D59716994E85}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageMagitekConsole", "ImageMagitekConsole\ImageMagitekConsole.csproj", "{EDFCC714-2B1F-4B5D-8FA7-CD60BA04EAB7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TileShop.CLI", "TileShop.CLI\TileShop.CLI.csproj", "{EDFCC714-2B1F-4B5D-8FA7-CD60BA04EAB7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageMagitek.UnitTests", "ImageMagitek.UnitTests\ImageMagitek.UnitTests.csproj", "{FB67BDC5-C4F8-4CE6-9865-D8A87B6E9BA1}"
 EndProject
@@ -32,6 +32,7 @@ Global
 		{EDFCC714-2B1F-4B5D-8FA7-CD60BA04EAB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EDFCC714-2B1F-4B5D-8FA7-CD60BA04EAB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDFCC714-2B1F-4B5D-8FA7-CD60BA04EAB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDFCC714-2B1F-4B5D-8FA7-CD60BA04EAB7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FB67BDC5-C4F8-4CE6-9865-D8A87B6E9BA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FB67BDC5-C4F8-4CE6-9865-D8A87B6E9BA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB67BDC5-C4F8-4CE6-9865-D8A87B6E9BA1}.Release|Any CPU.ActiveCfg = Release|Any CPU

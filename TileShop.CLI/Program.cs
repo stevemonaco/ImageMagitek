@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 using LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory;
 
-namespace ImageMagitekConsole
+namespace TileShop.CLI
 {
     public enum ExitCode { Success = 0, InvalidCommandArguments = -1, ProjectValidationError = -2 }
 
@@ -72,7 +72,7 @@ namespace ImageMagitekConsole
             if (project is null)
                 return (int)ExitCode.ProjectValidationError;
 
-            var processor = new CommandProcessor(project, paletteService.DefaultPalette);
+            var processor = new CommandProcessor(project);
 
             switch (command)
             {

@@ -1,24 +1,21 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using SixLabors.ImageSharp;
 using ImageMagitek;
 using ImageMagitek.Project;
 using Monaco.PathTree;
 using ImageMagitek.Colors;
 using ImageMagitek.Project.Serialization;
 
-namespace ImageMagitekConsole
+namespace TileShop.CLI
 {
     public class CommandProcessor
     {
         private readonly ProjectTree _projectTree;
-        private readonly Palette _defaultPalette;
 
-        public CommandProcessor(ProjectTree projectTree, Palette defaultPalette)
+        public CommandProcessor(ProjectTree projectTree)
         {
             _projectTree = projectTree;
-            _defaultPalette = defaultPalette;
             
         }
 
