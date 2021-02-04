@@ -21,7 +21,6 @@ namespace TileShop.WPF
 {
     public class TileShopBootstrapper : AutofacBootstrapper<ShellViewModel>
     {
-        private AppSettings _settings;
         private readonly Tracker _tracker = new Tracker();
         private LoggerFactory _loggerFactory;
 
@@ -40,7 +39,7 @@ namespace TileShop.WPF
         {
             var bootstrapper = new BootstrapService(_loggerFactory.CreateLogger<BootstrapService>());
             var settings = bootstrapper.ReadConfiguration(BootstrapService.DefaultConfigurationFileName);
-            var paletteService = bootstrapper.CreatePaletteService(BootstrapService.DefaultPalettePath, _settings);
+            var paletteService = bootstrapper.CreatePaletteService(BootstrapService.DefaultPalettePath, settings);
             var codecService = bootstrapper.CreateCodecService(BootstrapService.DefaultCodecPath, BootstrapService.DefaultCodecSchemaFileName);
             var pluginService = bootstrapper.CreatePluginService(BootstrapService.DefaultPluginPath, codecService);
             var projectService = bootstrapper.CreateProjectService(BootstrapService.DefaultProjectSchemaFileName, paletteService, codecService);
