@@ -15,7 +15,7 @@ using TileShop.WPF.Services;
 using TileShop.WPF.ViewModels;
 using TileShop.WPF.Views;
 using System.Windows.Controls;
-using ImageMagitek.Colors;
+using Microsoft.Extensions.Logging;
 
 namespace TileShop.WPF
 {
@@ -23,44 +23,33 @@ namespace TileShop.WPF
     {
         private AppSettings _settings;
         private readonly Tracker _tracker = new Tracker();
-        private IPaletteService _paletteService;
-        private ICodecService _codecService;
-        private IColorFactory _colorFactory;
-        private IPluginService _pluginService;
-
-        private readonly string _logFileName = "errorlog.txt";
-        private readonly string _configName = "appsettings.json";
-        private readonly string _palPath = "_palettes";
-        private readonly string _codecPath = "_codecs";
-        private readonly string _pluginPath = "_plugins";
-        private readonly string _projectSchemaName = Path.Combine("_schemas", "GameDescriptorSchema.xsd");
-        private readonly string _codecSchemaName = Path.Combine("_schemas", "CodecSchema.xsd");
+        private LoggerFactory _loggerFactory;
 
         protected override void ConfigureIoC(ContainerBuilder builder)
         {
-            ConfigureLogging(_logFileName, builder);
-            ReadConfiguration(_configName, builder);
-            ReadPalettes(_palPath, _settings, builder);
-            ReadCodecs(_codecPath, _codecSchemaName, builder);
-            LoadPlugins(_pluginPath, _codecService, builder);
-            ConfigureProjectService(_projectSchemaName, builder);
+            _loggerFactory = CreateLoggerFactory(BootstrapService.DefaultLogFileName);
+
+            ConfigureImageMagitek(builder);
             ConfigureServices(builder);
-            ConfigureJotTracker(builder);
+            ConfigureJotTracker(_tracker, builder);
 
             ToolTipService.ShowOnDisabledProperty.OverrideMetadata(typeof(Control), new FrameworkPropertyMetadata(true));
         }
 
-        private void LoadPlugins(string pluginPath, ICodecService codecService, ContainerBuilder builder)
+        private void ConfigureImageMagitek(ContainerBuilder builder)
         {
-            _pluginService = new PluginService();
-            var fullPath = Path.GetFullPath(pluginPath);
-            _pluginService.LoadCodecPlugins(fullPath);
-            foreach (var codecPlugin in _pluginService.CodecPlugins)
-            {
-                codecService.AddOrUpdateCodec(codecPlugin.Value);
-            }
+            var bootstrapper = new BootstrapService(_loggerFactory.CreateLogger<BootstrapService>());
+            var settings = bootstrapper.ReadConfiguration(BootstrapService.DefaultConfigurationFileName);
+            var paletteService = bootstrapper.CreatePaletteService(BootstrapService.DefaultPalettePath, _settings);
+            var codecService = bootstrapper.CreateCodecService(BootstrapService.DefaultCodecPath, BootstrapService.DefaultCodecSchemaFileName);
+            var pluginService = bootstrapper.CreatePluginService(BootstrapService.DefaultPluginPath, codecService);
+            var projectService = bootstrapper.CreateProjectService(BootstrapService.DefaultProjectSchemaFileName, paletteService, codecService);
 
-            builder.RegisterInstance(_pluginService);
+            builder.RegisterInstance(settings);
+            builder.RegisterInstance(paletteService);
+            builder.RegisterInstance(codecService);
+            builder.RegisterInstance(pluginService);
+            builder.RegisterInstance(projectService);
         }
 
         private static void ConfigureServices(ContainerBuilder builder)
@@ -97,35 +86,18 @@ namespace TileShop.WPF
             builder.RegisterType<StatusBarViewModel>().SingleInstance();
         }
 
-        private void ConfigureProjectService(string schemaFileName, ContainerBuilder builder)
+        private static void ConfigureJotTracker(Tracker tracker, ContainerBuilder builder)
         {
-            var defaultResources = _paletteService.GlobalPalettes;
-            var solutionService = new ProjectService(_codecService, _colorFactory, defaultResources);
-            solutionService.LoadSchemaDefinition(schemaFileName);
-            builder.RegisterInstance<IProjectService>(solutionService);
-        }
-
-        private static void ConfigureLogging(string logName, ContainerBuilder builder)
-        {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Error()
-                .WriteTo.File(logName, rollingInterval: RollingInterval.Month,
-                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}")
-                .CreateLogger();
-        }
-
-        private void ConfigureJotTracker(ContainerBuilder builder)
-        {
-            _tracker.Configure<ShellView>()
+            tracker.Configure<ShellView>()
                 .Id(w => w.Name)
                 .Properties(w => new { w.Top, w.Width, w.Height, w.Left, w.WindowState })
                 .PersistOn(nameof(Window.Closing))
                 .StopTrackingOn(nameof(Window.Closing));
 
-            _tracker.Configure<ShellViewModel>()
+            tracker.Configure<ShellViewModel>()
                 .Property(p => p.Theme, ApplicationTheme.Light);
 
-            _tracker.Configure<AddScatteredArrangerViewModel>()
+            tracker.Configure<AddScatteredArrangerViewModel>()
                 .Property(p => p.ArrangerElementWidth, 8)
                 .Property(p => p.ArrangerElementHeight, 16)
                 .Property(p => p.ElementPixelWidth, 8)
@@ -133,73 +105,31 @@ namespace TileShop.WPF
                 .Property(p => p.ColorType, PixelColorType.Indexed)
                 .Property(p => p.Layout, ArrangerLayout.Tiled);
 
-            _tracker.Configure<AddPaletteViewModel>()
+            tracker.Configure<AddPaletteViewModel>()
                 .Property(p => p.PaletteName)
                 .Property(p => p.SelectedColorModel, "RGBA32")
                 .Property(p => p.Entries, 2)
                 .Property(p => p.FileOffset, 0)
                 .Property(p => p.ZeroIndexTransparent, true);
 
-            _tracker.Configure<JumpToOffsetViewModel>()
+            tracker.Configure<JumpToOffsetViewModel>()
                 .Property(p => p.NumericBase, NumericBase.Decimal)
                 .Property(p => p.Offset, string.Empty);
 
-            builder.RegisterInstance(_tracker);
+            builder.RegisterInstance(tracker);
         }
 
-        private void ReadConfiguration(string jsonFileName, ContainerBuilder builder)
+        private static LoggerFactory CreateLoggerFactory(string logName)
         {
-            try
-            {
-                var json = File.ReadAllText(jsonFileName);
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Error()
+                .WriteTo.File(logName, rollingInterval: RollingInterval.Month,
+                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}")
+                .CreateLogger();
 
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-
-                _settings = JsonSerializer.Deserialize<AppSettings>(json, options);
-                builder.RegisterInstance(_settings);
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, $"Failed to read the configuration file '{jsonFileName}'");
-                throw;
-            }
-        }
-
-        private void ReadPalettes(string palettesPath, AppSettings settings, ContainerBuilder builder)
-        {
-            _colorFactory = new ColorFactory();
-            _paletteService = new PaletteService(_colorFactory);
-
-            foreach (var paletteName in settings.GlobalPalettes)
-            {
-                var paletteFileName = Path.Combine(palettesPath, $"{paletteName}.json");
-                var palette = _paletteService.ReadJsonPalette(paletteFileName);
-                _paletteService.GlobalPalettes.Add(palette);
-            }
-            _paletteService.SetDefaultPalette(_paletteService.GlobalPalettes.First());
-
-            var nesPaletteFileName = Path.Combine(palettesPath, $"{settings.NesPalette}.json");
-            var nesPalette = _paletteService.ReadJsonPalette(nesPaletteFileName);
-            (_colorFactory as ColorFactory).SetNesPalette(nesPalette);
-            (_paletteService as PaletteService).SetNesPalette(nesPalette);
-
-            builder.RegisterInstance(_paletteService);
-        }
-
-        private void ReadCodecs(string codecsPath, string schemaFileName, ContainerBuilder builder)
-        {
-            _codecService = new CodecService(schemaFileName);
-            var result = _codecService.LoadXmlCodecs(codecsPath);
-
-            if (result.Value is MagitekResults.Failed fail)
-            {
-                Log.Error(string.Join(Environment.NewLine, fail.Reasons));
-            }
-
-            builder.RegisterInstance(_codecService);
+            var factory = new LoggerFactory();
+            factory.AddSerilog(Log.Logger);
+            return factory;
         }
 
         protected override void OnUnhandledException(DispatcherUnhandledExceptionEventArgs e)
