@@ -22,7 +22,7 @@ namespace TileShop.CLI
 
         static int Main(string[] args)
         {
-            Console.WriteLine("ImageMagitek v0.1");
+            Console.WriteLine("ImageMagitek v0.2");
             if (args.Length < 2)
             {
                 Console.WriteLine("Usage: ImageMagitek project.xml (ExportAll|ImportAll) ProjectRoot");
@@ -64,8 +64,14 @@ namespace TileShop.CLI
                 },
                 fail =>
                 {
-                    var message = $"Project '{projectFileName}' contained {fail.Reasons.Count} errors{Environment.NewLine}" +
-                        string.Join(Environment.NewLine, fail.Reasons);
+                    var headerMessage = $"Project '{projectFileName}' contained {fail.Reasons.Count} errors";
+                    var errorMessages = Enumerable.Range(1, fail.Reasons.Count - 1)
+                        .Select(x => $"{x}: {fail.Reasons[x - 1]}");
+
+                    Console.WriteLine(headerMessage);
+
+                    foreach (var message in errorMessages)
+                        Console.WriteLine(message);
                     return null;
                 });
 
@@ -85,7 +91,7 @@ namespace TileShop.CLI
                     break;
                 case "import":
                     foreach (var key in args.Skip(3))
-                        processor.ImportImage(Path.Combine(projectRoot, key + ".bmp"), key);
+                        processor.ImportImage(Path.Combine(projectRoot, $"{key}.png"), key);
                     break;
                 case "importall":
                     processor.ImportAllImages(projectRoot);

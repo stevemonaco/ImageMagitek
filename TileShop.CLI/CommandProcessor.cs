@@ -26,7 +26,7 @@ namespace TileShop.CLI
                 string key = res.PathKey;
                 int level = key.Split('\\').Length;
 
-                Console.WriteLine($"{res.Name}({level}): type '{res.Value.GetType().ToString()}' path '{key}'");
+                Console.WriteLine($"{res.Name}({level}): type '{res.Value.GetType()}' path '{key}'");
             }
 
             return true;
@@ -37,7 +37,7 @@ namespace TileShop.CLI
             _projectTree.Tree.TryGetNode(arrangerKey, out var node);
 
             var relativeFile = Path.Combine(node.Paths.ToArray());
-            var exportFileName = Path.Combine(projectRoot, relativeFile + ".bmp");
+            var exportFileName = Path.Combine(projectRoot, $"{relativeFile}.png");
 
             var arranger = node.Value as ScatteredArranger;
 
@@ -97,7 +97,7 @@ namespace TileShop.CLI
             {
                 var arranger = node.Value as ScatteredArranger;
                 var relativeFile = Path.Combine(node.Paths.ToArray());
-                var imageFileName = Path.Combine(projectRoot, relativeFile + ".bmp");
+                var imageFileName = Path.Combine(projectRoot, $"{relativeFile}.png");
                 if(File.Exists(imageFileName))
                     ImportImage(imageFileName, node.PathKey);
             }

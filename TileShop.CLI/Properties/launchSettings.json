@@ -2,12 +2,17 @@
   "profiles": {
     "FF2 ExportAll": {
       "commandName": "Project",
-      "commandLineArgs": "ff2extended.xml ExportAll FF2Extract",
+      "commandLineArgs": "ff2.xml ExportAll FF2Extract",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
     "FF2 ImportAll": {
       "commandName": "Project",
-      "commandLineArgs": "ff2extended.xml ImportAll FF2Extract",
+      "commandLineArgs": "ff2.xml ImportAll FF2Extract",
+      "workingDirectory": "D:\\ImageMagitekTest"
+    },
+    "FF2 Import Cecil": {
+      "commandName": "Project",
+      "commandLineArgs": "ff2.xml Import FF2Extract \"FF2\\Character Overworld Sprites\\Cecil Map\"",
       "workingDirectory": "D:\\ImageMagitekTest"
     }
   }
