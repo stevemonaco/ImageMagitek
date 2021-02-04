@@ -226,8 +226,8 @@ namespace TileShop.WPF.ViewModels
 
                 editor.DisplayName = message.Arranger.Name;
 
+                Shell.Editors.Editors.Add(editor);
                 ActiveEditor = editor;
-                Shell.Editors.Editors.Add(ActiveEditor);
             }
             else if (message.Arranger.ColorType == PixelColorType.Direct)
             {
