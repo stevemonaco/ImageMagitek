@@ -22,11 +22,11 @@ namespace TileShop.CLI
 
         static int Main(string[] args)
         {
-            Console.WriteLine("ImageMagitek v0.2");
+            Console.WriteLine("TileShopCLI v0.2");
             if (args.Length < 2)
             {
-                Console.WriteLine("Usage: ImageMagitek project.xml (ExportAll|ImportAll) ProjectRoot");
-                Console.WriteLine("ImageMagitek project.xml (Export|Import) ProjectRoot ResourceKey1 ResourceKey2 ...");
+                Console.WriteLine("Usage: TileShopCLI project.xml (ExportAll|ImportAll) ProjectRoot");
+                Console.WriteLine("TileShopCLI project.xml (Export|Import) ProjectRoot ResourceKey1 ResourceKey2 ...");
             }
 
             string projectFileName = args[0];

@@ -4,6 +4,9 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>TileShopCLI</AssemblyName>
+    <Authors>Klarth</Authors>
+    <PackageProjectUrl>https://github.com/stevemonaco/ImageMagitek</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/stevemonaco/ImageMagitek</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
