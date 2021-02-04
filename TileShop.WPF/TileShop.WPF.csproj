@@ -12,6 +12,7 @@
     <Copyright>2020</Copyright>
     <AssemblyVersion>0.981.0.0</AssemblyVersion>
     <FileVersion>0.981.1.0</FileVersion>
+    <ApplicationIcon>Assets\tsicon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
