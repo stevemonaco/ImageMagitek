@@ -8,7 +8,7 @@ namespace TileShop.CLI.Commands
         [Value(0, Required = true, HelpText = "Project to export resources from")]
         public string ProjectFileName { get; set; }
 
-        [Value(1, Required = true, HelpText = "The directory where all resources will be exported to")]
+        [Value(1, Required = true, HelpText = "Directory where all resources will be exported to")]
         public string ExportDirectory { get; set; }
 
         [Option('f', longName: "force", HelpText = "Forces an overwrite of existing files")]

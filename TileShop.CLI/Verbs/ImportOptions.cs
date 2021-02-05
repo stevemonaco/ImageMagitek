@@ -6,10 +6,10 @@ namespace TileShop.CLI.Commands
     [Verb("Import", HelpText = "Imports one or more project resources by resource key, skipping resources that cannot be located")]
     public class ImportOptions
     {
-        [Value(0, Required = true, HelpText = "Project to export resources from")]
+        [Value(0, Required = true, HelpText = "Project to import resources into")]
         public string ProjectFileName { get; set; }
 
-        [Value(1, Required = true, HelpText = "The directory containing all resources to be imported from")]
+        [Value(1, Required = true, HelpText = "Directory containing all resources to be imported from")]
         public string ImportDirectory { get; set; }
 
         [Value(2, Required = true, Min = 1, HelpText = "Project resource keys to import")]
