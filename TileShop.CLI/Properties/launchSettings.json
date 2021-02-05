@@ -10,9 +10,9 @@
       "commandLineArgs": "ImportAll ff2.xml FF2Extract",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
-    "FF2 Import Cecil": {
+    "FF2 Import": {
       "commandName": "Project",
-      "commandLineArgs": "Import ff2.xml FF2Extract \"FF2\\Character Overworld Sprites\\Cecil Map\"",
+      "commandLineArgs": "Import ff2.xml FF2Extract \"FF2\\Character Overworld Sprites\\Cecil Map\" \"/FF2/Portraits\"",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
     "FF2 Print": {
@@ -20,9 +20,9 @@
       "commandLineArgs": "Print ff2.xml",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
-    "FF2 Export Cecil": {
+    "FF2 Export": {
       "commandName": "Project",
-      "commandLineArgs": "Export ff2.xml FF2Extract \"/FF2/Character Overworld Sprites/Cecil Map\"",
+      "commandLineArgs": "Export ff2.xml FF2Extract \"/FF2/Character Overworld Sprites/Cecil Map\" \"FF2\\Portraits\"",
       "workingDirectory": "D:\\ImageMagitekTest"
     }
   }
