@@ -42,7 +42,7 @@ namespace TileShop.CLI
             var errorCodeDescription = code switch
             {
                 ExitCode.Success => "Operation completed successfully",
-                ExitCode.Unset => "Operation exited with an unset exit code",
+                ExitCode.Unset => "Operation exited without setting an exit code",
                 ExitCode.Exception => "Operation failed due to an exception",
                 ExitCode.InvalidCommandArguments => "Operation failed due to invalid command line options",
                 ExitCode.ProjectOpenError => "Operation failed because the project could not be opened or validated",
