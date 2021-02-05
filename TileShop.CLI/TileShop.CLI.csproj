@@ -7,10 +7,14 @@
     <Authors>Klarth</Authors>
     <PackageProjectUrl>https://github.com/stevemonaco/ImageMagitek</PackageProjectUrl>
     <RepositoryUrl>https://github.com/stevemonaco/ImageMagitek</RepositoryUrl>
+    <AssemblyVersion>0.2.0.0</AssemblyVersion>
+    <FileVersion>0.2.0.0</FileVersion>
+    <Version>0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Monaco.PathTree" Version="0.4.1" />
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="Monaco.PathTree" Version="0.4.2" />
     <PackageReference Include="OneOf" Version="2.1.155" />
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />

@@ -1,51 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using ImageMagitek.Project;
+using System.Reflection;
 using ImageMagitek.Services;
 using Serilog;
 using Microsoft.Extensions.Logging;
+using CommandLine;
+using TileShop.CLI.Commands;
 
 using LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory;
 
 namespace TileShop.CLI
 {
-    public enum ExitCode { Success = 0, InvalidCommandArguments = -1, ProjectValidationError = -2 }
-
     class Program
     {
-        static readonly HashSet<string> _commands = new HashSet<string>
-        {
-            "export", "exportall", "import", "importall", "print", "resave"
-        };
+        public static IProjectService ProjectService { get; set; }
 
         static int Main(string[] args)
         {
             Console.WriteLine("TileShopCLI v0.2");
-            if (args.Length < 2)
-            {
-                Console.WriteLine("Usage: TileShopCLI project.xml (ExportAll|ImportAll) ProjectRoot");
-                Console.WriteLine("TileShopCLI project.xml (Export|Import) ProjectRoot ResourceKey1 ResourceKey2 ...");
-            }
-
-            string projectFileName = args[0];
-
-            var command = args[1].ToLower();
-            if (!_commands.Contains(command))
-            {
-                Console.WriteLine($"Invalid command {command}");
-                return (int) ExitCode.InvalidCommandArguments;
-            }
-
-            string projectRoot = null;
-            if (args.Length >= 3)
-            {
-                projectRoot = args[2];
-
-                if (!Directory.Exists(projectRoot))
-                    Directory.CreateDirectory(projectRoot);
-            }
 
             var loggerFactory = CreateLoggerFactory(BootstrapService.DefaultLogFileName);
             var bootstrapper = new BootstrapService(loggerFactory.CreateLogger<BootstrapService>());
@@ -53,59 +25,67 @@ namespace TileShop.CLI
             var settings = bootstrapper.ReadConfiguration(BootstrapService.DefaultConfigurationFileName);
             var codecService = bootstrapper.CreateCodecService(BootstrapService.DefaultCodecPath, BootstrapService.DefaultCodecSchemaFileName);
             var paletteService = bootstrapper.CreatePaletteService(BootstrapService.DefaultPalettePath, settings);
-            var projectService = bootstrapper.CreateProjectService(BootstrapService.DefaultProjectSchemaFileName, paletteService, codecService);
+            ProjectService = bootstrapper.CreateProjectService(BootstrapService.DefaultProjectSchemaFileName, paletteService, codecService);
 
-            var openResult = projectService.OpenProjectFile(projectFileName);
+            var verbs = LoadVerbs();
 
-            ProjectTree project = openResult.Match(
-                success =>
-                {
-                    return success.Result;
-                },
-                fail =>
-                {
-                    var headerMessage = $"Project '{projectFileName}' contained {fail.Reasons.Count} errors";
-                    var errorMessages = Enumerable.Range(1, fail.Reasons.Count - 1)
-                        .Select(x => $"{x}: {fail.Reasons[x - 1]}");
+            ExitCode code = ExitCode.Unset;
 
-                    Console.WriteLine(headerMessage);
+            var parser = new Parser(with => with.CaseSensitive = false);
+            var parserResult = parser.ParseArguments(args, verbs)
+                .WithParsed(options => code = ExecuteHandler(options))
+                .WithNotParsed(x => code = ExitCode.InvalidCommandArguments);
 
-                    foreach (var message in errorMessages)
-                        Console.WriteLine(message);
-                    return null;
-                });
-
-            if (project is null)
-                return (int)ExitCode.ProjectValidationError;
-
-            var processor = new CommandProcessor(project);
-
-            switch (command)
+            var errorCodeDescription = code switch
             {
-                case "export":
-                    foreach(var key in args.Skip(3))
-                        processor.ExportArranger(key, projectRoot);
+                ExitCode.Success => "Operation completed successfully",
+                ExitCode.Unset => "Operation exited with an unset exit code",
+                ExitCode.Exception => "Operation failed due to an exception",
+                ExitCode.InvalidCommandArguments => "Operation failed due to invalid command line options",
+                ExitCode.ProjectOpenError => "Operation failed because the project could not be opened or validated",
+                _ => $"Operation failed with an unknown exit code '{code}'"
+            };
+
+            Console.WriteLine($"{errorCodeDescription}");
+
+            return (int) ExitCode.Success;
+        }
+
+        private static Type[] LoadVerbs()
+        {
+            return Assembly.GetExecutingAssembly().GetTypes()
+                .Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToArray();
+        }
+
+        private static ExitCode ExecuteHandler(object obj)
+        {
+            ExitCode code = ExitCode.Unset;
+
+            switch (obj)
+            {
+                case PrintOptions printOptions:
+                    var printHandler = new PrintHandler(ProjectService);
+                    code = printHandler.TryExecute(printOptions);
                     break;
-                case "exportall":
-                    processor.ExportAllArrangers(projectRoot);
+                case ExportOptions exportOptions:
+                    var exportHandler = new ExportHandler(ProjectService);
+                    code = exportHandler.TryExecute(exportOptions);
                     break;
-                case "import":
-                    foreach (var key in args.Skip(3))
-                        processor.ImportImage(Path.Combine(projectRoot, $"{key}.png"), key);
+                case ExportAllOptions exportAllOptions:
+                    var exportAllHandler = new ExportAllHandler(ProjectService);
+                    code = exportAllHandler.TryExecute(exportAllOptions);
                     break;
-                case "importall":
-                    processor.ImportAllImages(projectRoot);
+                case ImportOptions importOptions:
+                    var importHandler = new ImportHandler(ProjectService);
+                    code = importHandler.TryExecute(importOptions);
                     break;
-                case "print":
-                    processor.PrintResources();
-                    break;
-                case "resave":
-                    var newFileName = Path.GetFullPath(Path.GetFileNameWithoutExtension(projectFileName) + "-resave.xml");
-                    processor.ResaveProject(newFileName);
+                case ImportAllOptions importAllOptions:
+                    var importAllHandler = new ImportAllHandler(ProjectService);
+                    code = importAllHandler.TryExecute(importAllOptions);
                     break;
             }
 
-            return (int) ExitCode.Success;
+            return code;
         }
 
         private static LoggerFactory CreateLoggerFactory(string logName)
