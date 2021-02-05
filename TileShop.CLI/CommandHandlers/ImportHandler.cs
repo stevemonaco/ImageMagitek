@@ -20,7 +20,9 @@ namespace TileShop.CLI.Commands
 
             foreach (var resourceKey in options.ResourceKeys)
             {
-                var imageFileName = Path.Combine(options.ImportDirectory, $"{resourceKey}.png");
+                var relativeFile = Path.Combine(resourceKey.Split(new[] { '\\', '/' }));
+                var imageFileName = Path.Combine(options.ImportDirectory, $"{relativeFile}.png");
+
                 Importer.ImportImage(project, imageFileName, resourceKey);
             }
 
