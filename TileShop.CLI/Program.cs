@@ -8,6 +8,7 @@ using CommandLine;
 using TileShop.CLI.Commands;
 
 using LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory;
+using System.Diagnostics;
 
 namespace TileShop.CLI
 {
@@ -17,7 +18,9 @@ namespace TileShop.CLI
 
         static int Main(string[] args)
         {
-            Console.WriteLine("TileShopCLI v0.2");
+            string version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
+
+            Console.WriteLine($"TileShopCLI v{version} by Klarth");
 
             var loggerFactory = CreateLoggerFactory(BootstrapService.DefaultLogFileName);
             var bootstrapper = new BootstrapService(loggerFactory.CreateLogger<BootstrapService>());
