@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Contributed by Kajitani-Eizan -->
+<flowcodec name="GBA 8bpp" version="0.9">
+	<colortype>indexed</colortype>
+	<colordepth>8</colordepth>
+	<layout>tiled</layout>
+	<defaultheight>8</defaultheight>
+	<defaultwidth>8</defaultwidth>
+	<fixedsize>false</fixedsize>
+	<mergepriority>7, 6, 5, 4, 3, 2, 1, 0</mergepriority>
+
+	<images>
+		<image>
+			<colordepth>8</colordepth>
+			<rowinterlace>false</rowinterlace>
+			<rowpixelpattern>0, 1</rowpixelpattern>
+		</image>
+	</images>
+</flowcodec>
