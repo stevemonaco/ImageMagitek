@@ -252,7 +252,7 @@ namespace TileShop.WPF.ViewModels
 
             if (result is true)
             {
-                var modifiedEditors = _editors.Editors.Where(x => x.IsModified); //.Concat(Tools.OfType<ArrangerEditorViewModel>().Where(x => x.IsModified));
+                var modifiedEditors = _editors.Editors.Where(x => x.IsModified);
 
                 if (modifiedEditors.Any())
                 {
