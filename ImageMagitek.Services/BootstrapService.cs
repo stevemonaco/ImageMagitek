@@ -84,11 +84,15 @@ namespace ImageMagitek.Services
         public IPluginService CreatePluginService(string pluginPath, ICodecService codecService)
         {
             var pluginService = new PluginService();
-            var fullPath = Path.GetFullPath(pluginPath);
-            pluginService.LoadCodecPlugins(fullPath);
-            foreach (var codecPlugin in pluginService.CodecPlugins)
+            var fullPluginPath = Path.GetFullPath(pluginPath);
+
+            if (Directory.Exists(fullPluginPath))
             {
-                codecService.AddOrUpdateCodec(codecPlugin.Value);
+                pluginService.LoadCodecPlugins(fullPluginPath);
+                foreach (var codecPlugin in pluginService.CodecPlugins)
+                {
+                    codecService.AddOrUpdateCodec(codecPlugin.Value);
+                }
             }
 
             return pluginService;
