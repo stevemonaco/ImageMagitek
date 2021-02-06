@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -38,7 +39,17 @@ namespace ImageMagitek.Services
                     PropertyNameCaseInsensitive = true
                 };
 
-                return JsonSerializer.Deserialize<AppSettings>(json, options);
+                var settings = JsonSerializer.Deserialize<AppSettings>(json, options);
+
+                var lowerDict = new Dictionary<string, string>();
+                foreach (var item in settings.ExtensionCodecAssociations)
+                {
+                    lowerDict.TryAdd(item.Key.ToLower(), item.Value);
+                }
+
+                settings.ExtensionCodecAssociations = lowerDict;
+
+                return settings;
             }
             catch (Exception ex)
             {

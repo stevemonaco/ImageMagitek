@@ -113,7 +113,7 @@ namespace TileShop.WPF.ViewModels
                         newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _windowManager, _tracker, _codecService, _paletteService);
                         break;
                     case DataFile dataFile: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
-                        var extension = Path.GetExtension(dataFile.Location);
+                        var extension = Path.GetExtension(dataFile.Location).ToLower();
                         string codecName;
                         if (_settings.ExtensionCodecAssociations.ContainsKey(extension))
                             codecName = _settings.ExtensionCodecAssociations[extension];
