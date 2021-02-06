@@ -10,5 +10,8 @@ namespace TileShop.CLI.Commands
 
         [Value(1, Required = true, HelpText = "Directory containing all resources to be imported from")]
         public string ImportDirectory { get; set; }
+
+        [Option("log", HelpText = "Log file name")]
+        public string LogFileName { get; set; }
     }
 }

@@ -17,7 +17,7 @@
     },
     "FF2 Print": {
       "commandName": "Project",
-      "commandLineArgs": "Print ff2.xml",
+      "commandLineArgs": "Print --log ff2.log ff2.xml",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
     "FF2 Export": {

@@ -13,5 +13,8 @@ namespace TileShop.CLI.Commands
 
         [Option('f', longName: "force", HelpText = "Forces an overwrite of existing files")]
         public bool ForceOverwrite { get; set; }
+
+        [Option("log", HelpText = "Log file name")]
+        public string LogFileName { get; set; }
     }
 }

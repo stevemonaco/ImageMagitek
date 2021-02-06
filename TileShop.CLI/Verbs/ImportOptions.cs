@@ -14,5 +14,8 @@ namespace TileShop.CLI.Commands
 
         [Value(2, Required = true, Min = 1, HelpText = "Project resource keys to import")]
         public IEnumerable<string> ResourceKeys { get; set; }
+
+        [Option("log", HelpText = "Log file name")]
+        public string LogFileName { get; set; }
     }
 }

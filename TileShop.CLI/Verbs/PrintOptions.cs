@@ -7,5 +7,8 @@ namespace TileShop.CLI.Commands
     {
         [Value(0, Required = true, HelpText = "Project to print resources from")]
         public string ProjectFileName { get; set; }
+
+        [Option("log", HelpText = "Log file name")]
+        public string LogFileName { get; set; }
     }
 }
