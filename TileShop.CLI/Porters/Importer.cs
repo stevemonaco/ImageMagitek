@@ -6,22 +6,24 @@ using ImageMagitek.Project;
 
 namespace TileShop.CLI.Porters
 {
+    public enum ImportResult { Success, MissingFile, BadResourceKey }
+
     public static class Importer
     {
-        public static bool ImportImage(ProjectTree projectTree, string imageFileName, string arrangerKey)
+        public static ImportResult ImportImage(ProjectTree projectTree, string imageFileName, string arrangerKey)
         {
             Console.Write($"Importing '{imageFileName}' to '{arrangerKey}'...");
 
             if (!File.Exists(imageFileName))
             {
                 Console.WriteLine($"File does not exist");
-                return false;
+                return ImportResult.MissingFile;
             }
 
             if (!projectTree.Tree.TryGetValue(arrangerKey, out ScatteredArranger arranger))
             {
                 Console.WriteLine($"Resource key does not exist or is not a {nameof(ScatteredArranger)}");
-                return false;
+                return ImportResult.BadResourceKey;
             }
 
             if (arranger.ColorType == PixelColorType.Indexed)
@@ -38,7 +40,7 @@ namespace TileShop.CLI.Porters
             }
 
             Console.WriteLine("Completed successfully");
-            return true;
+            return ImportResult.Success;
         }
     }
 }

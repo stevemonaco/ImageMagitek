@@ -15,7 +15,7 @@ namespace TileShop.CLI.Commands
         [Value(2, Required = true, Min = 1, HelpText = "Project resource keys to export")]
         public IEnumerable<string> ResourceKeys { get; set; }
 
-        [Option('f', longName: "force", HelpText = "Forces an overwrite of existing files")]
+        [Option("overwrite", HelpText = "Forces an overwrite of existing files")]
         public bool ForceOverwrite { get; set; }
 
         [Option("log", HelpText = "Log file name")]

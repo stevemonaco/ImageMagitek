@@ -17,5 +17,11 @@ namespace TileShop.CLI.Commands
 
         [Option("log", HelpText = "Log file name")]
         public string LogFileName { get; set; }
+
+        [Option('f', HelpText = "Skip missing files")]
+        public bool SkipMissingFiles { get; set; }
+
+        [Option('r', HelpText = "Skip bad resource keys")]
+        public bool SkipBadResourceKeys { get; set; }
     }
 }

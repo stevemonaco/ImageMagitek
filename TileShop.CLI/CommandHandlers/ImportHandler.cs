@@ -23,7 +23,16 @@ namespace TileShop.CLI.Commands
                 var relativeFile = Path.Combine(resourceKey.Split(new[] { '\\', '/' }));
                 var imageFileName = Path.Combine(options.ImportDirectory, $"{relativeFile}.png");
 
-                Importer.ImportImage(project, imageFileName, resourceKey);
+                var result = Importer.ImportImage(project, imageFileName, resourceKey);
+
+                if (result == ImportResult.MissingFile && options.SkipMissingFiles is false)
+                {
+                    return ExitCode.ImportOperationFailed;
+                }
+                else if (result == ImportResult.BadResourceKey && options.SkipBadResourceKeys is false)
+                {
+                    return ExitCode.ImportOperationFailed;
+                }
             }
 
             return ExitCode.Success;

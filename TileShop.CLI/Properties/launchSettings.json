@@ -2,17 +2,17 @@
   "profiles": {
     "FF2 ExportAll": {
       "commandName": "Project",
-      "commandLineArgs": "ExportAll -f ff2.xml FF2Extract",
+      "commandLineArgs": "ExportAll --overwrite ff2.xml FF2Extract",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
     "FF2 ImportAll": {
       "commandName": "Project",
-      "commandLineArgs": "ImportAll ff2.xml FF2Extract",
+      "commandLineArgs": "ImportAll -f ff2.xml FF2Extract",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
     "FF2 Import": {
       "commandName": "Project",
-      "commandLineArgs": "Import ff2.xml FF2Extract \"FF2\\Character Overworld Sprites\\Cecil Map\" \"/FF2/Portraits\"",
+      "commandLineArgs": "Import -fr ff2.xml FF2Extract \"FF2\\Character Overworld Sprites\\Cecil Map\" \"/FF2/Portraits\"",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
     "FF2 Print": {

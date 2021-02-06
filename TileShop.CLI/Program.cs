@@ -47,6 +47,8 @@ namespace TileShop.CLI
                 ExitCode.EnvironmentError => "Operation failed because the TileShop environment could not be loaded",
                 ExitCode.InvalidCommandArguments => "Operation failed due to invalid command line options",
                 ExitCode.ProjectOpenError => "Operation failed because the project could not be opened or validated",
+                ExitCode.ImportOperationFailed => "Operation failed due to an import error",
+                ExitCode.ExportOperationFailed => "Operation failed due to an export error",
                 _ => $"Operation failed with an unknown exit code '{code}'"
             };
 

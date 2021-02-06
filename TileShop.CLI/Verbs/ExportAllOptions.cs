@@ -11,7 +11,7 @@ namespace TileShop.CLI.Commands
         [Value(1, Required = true, HelpText = "Directory where all resources will be exported to")]
         public string ExportDirectory { get; set; }
 
-        [Option('f', longName: "force", HelpText = "Forces an overwrite of existing files")]
+        [Option("overwrite", HelpText = "Forces an overwrite of existing files")]
         public bool ForceOverwrite { get; set; }
 
         [Option("log", HelpText = "Log file name")]
