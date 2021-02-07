@@ -16,7 +16,7 @@
 
 name: ci
 
-on:
+on: workflow_dispatch
 
 jobs:
   windows-latest:
@@ -24,5 +24,9 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Run './build.cmd '
-        run: ./build.cmd 
+      - name: Run './build.cmd Package'
+        run: ./build.cmd Package
+      - uses: actions/upload-artifact@v1
+        with:
+          name: output
+          path: output
