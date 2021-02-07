@@ -19,12 +19,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageMagitek.Services", "Im
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageMagitek.PluginSamples", "ImageMagitek.PluginSamples\ImageMagitek.PluginSamples.csproj", "{7872050E-73EF-4757-8918-B7971FE8E2F8}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageMagitek.Build", "ImageMagitek.Build\ImageMagitek.Build.csproj", "{25275280-C633-4153-B84D-00DBD9165861}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{25275280-C633-4153-B84D-00DBD9165861}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25275280-C633-4153-B84D-00DBD9165861}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94136DDB-1B6F-4959-A14C-D59716994E85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{94136DDB-1B6F-4959-A14C-D59716994E85}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94136DDB-1B6F-4959-A14C-D59716994E85}.Release|Any CPU.ActiveCfg = Release|Any CPU
