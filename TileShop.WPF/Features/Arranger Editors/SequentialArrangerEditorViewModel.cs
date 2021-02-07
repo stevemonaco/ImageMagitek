@@ -469,22 +469,22 @@ namespace TileShop.WPF.ViewModels
         #region Unsupported Operations due to SequentialArrangerEditor being read-only
         public override void Undo()
         {
-            throw new NotSupportedException();
+            throw new NotSupportedException("Sequential Arrangers are read-only");
         }
 
         public override void Redo()
         {
-            throw new NotSupportedException();
+            throw new NotSupportedException("Sequential Arrangers are read-only");
         }
 
         public override void ApplyHistoryAction(HistoryAction action)
         {
-            throw new NotSupportedException();
+            throw new NotSupportedException("Sequential Arrangers are read-only");
         }
 
         public override void ApplyPaste(ArrangerPaste paste)
         {
-            throw new NotSupportedException();
+            throw new NotSupportedException("Sequential Arrangers are read-only");
         }
         #endregion
     }

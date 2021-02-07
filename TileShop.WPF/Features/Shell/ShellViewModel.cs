@@ -128,16 +128,6 @@ namespace TileShop.WPF.ViewModels
                     }
                     break;
 
-                case ToolWindow.PixelEditor:
-                    if (Editors.ActivePixelEditor is object)
-                    {
-                        Editors.ActivePixelEditor.IsSelected = true;
-                        Editors.ActivePixelEditor.IsVisible = true;
-                        Tools.Remove(Editors.ActivePixelEditor);
-                        Tools.Add(Editors.ActivePixelEditor);
-                    }
-                    break;
-
                 default:
                     throw new InvalidOperationException();
             }

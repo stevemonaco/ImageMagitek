@@ -252,7 +252,7 @@ namespace TileShop.WPF.ViewModels
 
             if (result is true)
             {
-                var modifiedEditors = _editors.Editors.Where(x => x.IsModified); //.Concat(Tools.OfType<ArrangerEditorViewModel>().Where(x => x.IsModified));
+                var modifiedEditors = _editors.Editors.Where(x => x.IsModified);
 
                 if (modifiedEditors.Any())
                 {
@@ -525,6 +525,55 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        public void AddNewProjectFromFile()
+        {
+            var dataFileName = _fileSelect.GetExistingDataFileNameByUser();
+            var projectFileName = Path.ChangeExtension(dataFileName, ".xml");
+
+            try
+            {
+                if (dataFileName is object)
+                {
+                    if (File.Exists(projectFileName))
+                    {
+                        MessageBox.Show($"Project file '{projectFileName}' already exists");
+                        return;
+                    }    
+
+                    _projectService.NewProject(Path.GetFullPath(projectFileName)).Switch(
+                        success =>
+                        {
+                            var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Tree.Root);
+                            Projects.Add(projectVM);
+
+                            var dfName = Path.GetFileName(dataFileName);
+                            var df = new DataFile(dfName, dataFileName);
+                            var result = _projectService.AddResource(projectVM.Node, df, true);
+
+                            result.Switch(success =>
+                            {
+                                var dfVM = new DataFileNodeViewModel(success.Result, projectVM);
+                                projectVM.Children.Add(dfVM);
+                                SelectedNode = dfVM;
+                                IsModified = true;
+
+                                NotifyOfPropertyChange(() => HasProject);
+                                _events.PublishOnUIThread(new ProjectLoadedEvent());
+                            },
+                            fail =>
+                            {
+                                _windowManager.ShowMessageBox(fail.Reason, "Resource Error adding {dataFileName}");
+                            });
+                        },
+                        fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Project Error"));
+                }
+            }
+            catch (Exception ex)
+            {
+                _windowManager.ShowMessageBox($"Unable to create new project at location '{projectFileName}'\n{ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
         public bool OpenProject()
         {
             var projectFileName = _fileSelect.GetProjectFileNameByUser();
@@ -581,9 +630,17 @@ namespace TileShop.WPF.ViewModels
             return _projectService.SaveProject(projectTree).Match(
                 success =>
                 {
-                    var removedEditors = new HashSet<ResourceEditorBaseViewModel>();
-                    removedEditors.UnionWith(_editors.Editors.Where(x => projectTree.ContainsResource(x.Resource)));
-                    removedEditors.UnionWith(_editors.Editors.OfType<SequentialArrangerEditorViewModel>().Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataFile)));
+                    var activeContainedEditors = _editors.Editors.Where(x => projectTree.ContainsResource(x.Resource));
+                    var activeSequentialEditors = _editors.Editors
+                        .OfType<SequentialArrangerEditorViewModel>()
+                        .Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataFile));
+                    var activePixelEditors = _editors.Editors
+                        .OfType<IndexedPixelEditorViewModel>()
+                        .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
+
+                    var removedEditors = new HashSet<ResourceEditorBaseViewModel>(activeContainedEditors);
+                    removedEditors.UnionWith(activeSequentialEditors);
+                    removedEditors.UnionWith(activePixelEditors);
 
                     var remainingEditors = _editors.Editors
                         .Where(x => !removedEditors.Contains(x));
@@ -593,9 +650,6 @@ namespace TileShop.WPF.ViewModels
 
                     _editors.Editors = new BindableCollection<ResourceEditorBaseViewModel>(remainingEditors);
                     _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
-
-                    if (!_editors.ClosePixelEditor())
-                        return false;
 
                     _projectService.SaveProject(projectTree)
                      .Switch(

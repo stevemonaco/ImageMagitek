@@ -137,8 +137,8 @@ namespace TileShop.WPF.ViewModels
         #region Mouse Actions
         public override void OnMouseDown(object sender, MouseCaptureArgs e)
         {
-            int x = (int)e.X / Zoom;
-            int y = (int)e.Y / Zoom;
+            int x = Math.Clamp((int)e.X / Zoom, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
+            int y = Math.Clamp((int)e.Y / Zoom, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
 
             if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton)
             {
@@ -289,24 +289,22 @@ namespace TileShop.WPF.ViewModels
 
         private MagitekResult ApplyPasteInternal(ArrangerPaste paste)
         {
-            var elementCopy = paste?.Copy as ElementCopy;
-
-            if (elementCopy is null)
+            if (paste?.Copy is not ElementCopy elementCopy)
                 return new MagitekResult.Failed("No valid Paste selection");
 
             if (!_projectService.AreResourcesInSameProject(elementCopy.ProjectResource, OriginatingProjectResource))
                 return new MagitekResult.Failed("Copying arranger elements across projects is not permitted");
 
             var sourceArranger = paste.Copy.Source;
-            var rect = paste.Rect;
+            var destRect = paste.Rect;
 
-            var destElemWidth = sourceArranger.ElementPixelSize.Width;
-            var destElemHeight = sourceArranger.ElementPixelSize.Width;
+            var destElemWidth = WorkingArranger.ElementPixelSize.Width;
+            var destElemHeight = WorkingArranger.ElementPixelSize.Height;
 
-            int destX = Math.Max(0, rect.SnappedLeft / destElemWidth);
-            int destY = Math.Max(0, rect.SnappedTop / destElemHeight);
-            int sourceX = rect.SnappedLeft / destElemWidth >= 0 ? 0 : -rect.SnappedLeft / destElemWidth;
-            int sourceY = rect.SnappedTop / destElemWidth >= 0 ? 0 : -rect.SnappedTop / destElemWidth;
+            int destX = Math.Max(0, destRect.SnappedLeft / destElemWidth);
+            int destY = Math.Max(0, destRect.SnappedTop / destElemHeight);
+            int sourceX = destRect.SnappedLeft / destElemWidth >= 0 ? 0 : -destRect.SnappedLeft / destElemWidth;
+            int sourceY = destRect.SnappedTop / destElemHeight >= 0 ? 0 : -destRect.SnappedTop / destElemHeight;
 
             var destStart = new Point(destX, destY);
             var sourceStart = new Point(sourceX, sourceY);
@@ -332,9 +330,9 @@ namespace TileShop.WPF.ViewModels
                 {
                     for (int posX = left; posX < right; posX++)
                     {
-                        int applyPixelX = posX * WorkingArranger.ElementPixelSize.Width;
-                        int applyPixelY = posY * WorkingArranger.ElementPixelSize.Height;
-                        if (TryApplySinglePalette(applyPixelX, applyPixelY, SelectedPalette.Palette, false))
+                        int elementX = posX * WorkingArranger.ElementPixelSize.Width;
+                        int elementY = posY * WorkingArranger.ElementPixelSize.Height;
+                        if (TryApplySinglePalette(elementX, elementY, SelectedPalette.Palette, false))
                         {
                             needsRender = true;
                         }
@@ -502,9 +500,6 @@ namespace TileShop.WPF.ViewModels
             if (action is PasteArrangerHistoryAction pasteAction)
             {
                 ApplyPasteInternal(pasteAction.Paste);
-                //int x = pasteAction.Paste.Rect.SnappedLeft / _workingArranger.ElementPixelSize.Width;
-                //int y = pasteAction.Paste.Rect.SnappedTop / _workingArranger.ElementPixelSize.Height;
-                //ElementCopier.CopyElements(pasteAction.Paste.Copy as ElementCopy, _workingArranger as ScatteredArranger, new Point(x, y));
             }
             else if (action is DeleteElementSelectionHistoryAction deleteSelectionAction)
             {

@@ -18,15 +18,15 @@ namespace TileShop.WPF
         private object _rootViewModel;
         protected virtual object RootViewModel
         {
-            get { return this._rootViewModel ?? (this._rootViewModel = this.GetInstance(typeof(TRootViewModel))); }
+            get { return _rootViewModel ??= GetInstance(typeof(TRootViewModel)); }
         }
 
         protected override void ConfigureBootstrapper()
         {
             var builder = new ContainerBuilder();
-            this.DefaultConfigureIoC(builder);
-            this.ConfigureIoC(builder);
-            this._container = builder.Build();
+            DefaultConfigureIoC(builder);
+            ConfigureIoC(builder);
+            _container = builder.Build();
         }
 
         /// <summary>
@@ -48,7 +48,11 @@ namespace TileShop.WPF
 
         protected virtual void ConfigureViewModels(ContainerBuilder builder)
         {
-            var vmTypes = GetType().Assembly.GetTypes().Where(x => x.Name.EndsWith("ViewModel"));
+            var vmTypes = GetType()
+                .Assembly
+                .GetTypes()
+                .Where(x => x.Name.EndsWith("ViewModel"))
+                .Where(x => !x.IsAbstract && !x.IsInterface);
 
             foreach (var vmType in vmTypes)
                 builder.RegisterType(vmType);
@@ -66,8 +70,8 @@ namespace TileShop.WPF
         {
             return new ViewManagerConfig()
             {
-                ViewFactory = this.GetInstance,
-                ViewAssemblies = new List<Assembly>() { this.GetType().Assembly }
+                ViewFactory = GetInstance,
+                ViewAssemblies = new List<Assembly>() { GetType().Assembly }
             };
         }
 
@@ -78,19 +82,19 @@ namespace TileShop.WPF
 
         public override object GetInstance(Type type)
         {
-            return this._container.Resolve(type);
+            return _container.Resolve(type);
         }
 
         protected override void Launch()
         {
-            base.DisplayRootView(this.RootViewModel);
+            base.DisplayRootView(RootViewModel);
         }
 
         public override void Dispose()
         {
-            ScreenExtensions.TryDispose(this._rootViewModel);
-            if (this._container != null)
-                this._container.Dispose();
+            ScreenExtensions.TryDispose(_rootViewModel);
+            if (_container != null)
+                _container.Dispose();
 
             base.Dispose();
         }

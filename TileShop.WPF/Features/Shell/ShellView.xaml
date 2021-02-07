@@ -79,7 +79,7 @@
         <sel:DocumentHeaderTemplateSelector x:Key="documentHeaderTemplateSelector">
             <sel:DocumentHeaderTemplateSelector.PaletteDocumentHeaderTemplate>
                 <DataTemplate>
-                    <StackPanel Height="30" Orientation="Horizontal">
+                    <StackPanel Height="25" Orientation="Horizontal">
                         <Image Margin="0,0,6,0" Style="{StaticResource iconNodePaletteSmall}" />
                         <TextBlock
                             VerticalAlignment="Center"
@@ -94,7 +94,7 @@
             </sel:DocumentHeaderTemplateSelector.PaletteDocumentHeaderTemplate>
             <sel:DocumentHeaderTemplateSelector.DataFileDocumentHeaderTemplate>
                 <DataTemplate>
-                    <StackPanel Height="30" Orientation="Horizontal">
+                    <StackPanel Height="25" Orientation="Horizontal">
                         <Image Margin="0,0,6,0" Style="{StaticResource iconNodeFileSmall}" />
                         <TextBlock
                             VerticalAlignment="Center"
@@ -109,7 +109,7 @@
             </sel:DocumentHeaderTemplateSelector.DataFileDocumentHeaderTemplate>
             <sel:DocumentHeaderTemplateSelector.ScatteredArrangerDocumentHeaderTemplate>
                 <DataTemplate>
-                    <StackPanel Height="30" Orientation="Horizontal">
+                    <StackPanel Height="25" Orientation="Horizontal">
                         <Image Margin="0,0,6,0" Style="{StaticResource iconNodeArrangerSmall}" />
                         <TextBlock
                             VerticalAlignment="Center"
@@ -124,7 +124,7 @@
             </sel:DocumentHeaderTemplateSelector.ScatteredArrangerDocumentHeaderTemplate>
             <sel:DocumentHeaderTemplateSelector.SequentialArrangerDocumentHeaderTemplate>
                 <DataTemplate>
-                    <StackPanel Height="30" Orientation="Horizontal">
+                    <StackPanel Height="25" Orientation="Horizontal">
                         <Image Margin="0,0,6,0" Style="{StaticResource iconNodeFileSmall}" />
                         <TextBlock
                             VerticalAlignment="Center"
@@ -137,6 +137,21 @@
                     </StackPanel>
                 </DataTemplate>
             </sel:DocumentHeaderTemplateSelector.SequentialArrangerDocumentHeaderTemplate>
+            <sel:DocumentHeaderTemplateSelector.PixelDocumentHeaderTemplate>
+                <DataTemplate>
+                    <StackPanel Height="25" Orientation="Horizontal">
+                        <Image Margin="0,0,6,0" Style="{StaticResource iconNodePixelSmall}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{Binding Content.DisplayName}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="*"
+                            Visibility="{Binding Content.IsModified, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                    </StackPanel>
+                </DataTemplate>
+            </sel:DocumentHeaderTemplateSelector.PixelDocumentHeaderTemplate>
         </sel:DocumentHeaderTemplateSelector>
     </Window.Resources>
 

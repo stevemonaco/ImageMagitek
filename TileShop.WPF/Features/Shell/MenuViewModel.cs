@@ -36,7 +36,9 @@ namespace TileShop.WPF.ViewModels
             Editors = editors;
         }
 
-        public void NewProject() => ProjectTree.AddNewProject();
+        public void NewEmptyProject() => ProjectTree.AddNewProject();
+
+        public void NewProjectFromFile() => ProjectTree.AddNewProjectFromFile();
 
         public void OpenProject() => ProjectTree.OpenProject();
 

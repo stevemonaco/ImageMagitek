@@ -5,7 +5,7 @@ namespace TileShop.WPF.ViewModels.Dialogs
 {
     public class ResizeTiledScatteredArrangerViewModel : Screen
     {
-        private IWindowManager _windowManager;
+        private readonly IWindowManager _windowManager;
 
         private int _width;
         public int Width

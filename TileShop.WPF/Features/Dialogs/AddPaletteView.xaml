@@ -9,24 +9,24 @@
     xmlns:ui="http://schemas.modernwpf.com/2019"
     Title="Add a New Palette"
     Width="400"
-    Height="400"
-    MinWidth="220"
+    Height="500"
+    MinWidth="230"
     ui:ThemeManager.IsThemeAware="True"
     ui:WindowHelper.UseModernWindowStyle="True"
     mc:Ignorable="d">
-    <Grid Margin="5">
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Margin="5">
+        <StackPanel Grid.Row="0">
             <TextBox
-                ui:ControlHelper.PlaceholderText="Palette Name"
+                ui:ControlHelper.Header="Palette Name"
                 Text="{Binding PaletteName, UpdateSourceTrigger=PropertyChanged}"
                 TextChanged="{s:Action ValidateModel}" />
 
             <TextBlock
-                Margin="0,4,0,0"
+                Margin="0,5,0,0"
                 Text="{Binding SelectedDataFile.Location, StringFormat=Data Source: {0}}"
                 TextWrapping="Wrap" />
             <ComboBox
@@ -43,34 +43,35 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
 
-            <StackPanel
+            <ComboBox
+                MinWidth="150"
                 Margin="0,5,0,0"
-                HorizontalAlignment="Center"
-                Orientation="Horizontal">
-                <ComboBox
-                    MinWidth="150"
-                    ui:ControlHelper.Header="Color Model"
-                    ItemsSource="{Binding ColorModels}"
-                    SelectedIndex="1"
-                    SelectedItem="{Binding SelectedColorModel}"
-                    ToolTip="Palette Color Model" />
-                <ui:NumberBox
-                    MinWidth="60"
-                    Margin="10,0,0,0"
-                    ui:ControlHelper.Header="Colors"
-                    Maximum="256"
-                    Minimum="2"
-                    ToolTip="Number of Palette Entries"
-                    Value="{Binding Entries}" />
-            </StackPanel>
+                ui:ControlHelper.Header="Color Model"
+                ItemsSource="{Binding ColorModels}"
+                SelectedIndex="1"
+                SelectedItem="{Binding SelectedColorModel}"
+                ToolTip="Palette Color Model" />
+
+            <ui:NumberBox
+                MinWidth="60"
+                MaxWidth="200"
+                Margin="0,5,0,0"
+                HorizontalAlignment="Left"
+                ui:ControlHelper.Header="Colors"
+                Maximum="256"
+                Minimum="2"
+                ToolTip="Number of Palette Entries"
+                Value="{Binding Entries}" />
 
             <TextBox
                 Width="140"
                 Margin="0,5,0,0"
-                HorizontalAlignment="Center"
+                HorizontalAlignment="Left"
                 ui:ControlHelper.Header="File Offset"
                 Text="{Binding FileOffset}"
                 ToolTip="File offset of palette data in decimal" />
+
+            <CheckBox Content="Zero Index Transparent" IsChecked="{Binding ZeroIndexTransparent}" />
 
             <ItemsControl
                 Grid.Row="1"
