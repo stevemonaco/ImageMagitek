@@ -20,7 +20,7 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
 [CheckBuildProjectConfigurations]
 [ShutdownDotNetAfterServerBuild]
-[GitHubActions("ci", GitHubActionsImage.WindowsLatest, AutoGenerate = true)]
+[GitHubActions("ci", GitHubActionsImage.WindowsLatest, AutoGenerate = true, PublishArtifacts = true)]
 class Build : NukeBuild
 {
     public static int Main () => Execute<Build>(x => x.Package);
@@ -99,6 +99,7 @@ class Build : NukeBuild
         .DependsOn(Test)
         .Executes(() =>
         {
+            // win-x64 single file
             DotNetPublish(_ => _
                 .SetProject(TileShopProject)
                 .EnableNoRestore()
@@ -109,23 +110,13 @@ class Build : NukeBuild
                 .SetFramework(TileShopFramework)
                 .AddProperty("SelfContained", false)
                 .AddProperty("PublishSingleFile", true));
-
-            //DotNetPublish(_ => _
-            //    .SetProject(TileShopCLIProject)
-            //    .EnableNoRestore()
-            //    .EnableNoBuild()
-            //    .SetConfiguration(Configuration)
-            //    .SetOutput(TileShopCLIWinx64OutputDirectory)
-            //    .SetRuntime(TileShopRuntime)
-            //    .SetFramework(TileShopCLIFramework)
-            //    .AddProperty("SelfContained", false)
-            //    .AddProperty("PublishSingleFile", true));
         });
 
     Target PublishTileShopCLI => _ => _
         .DependsOn(Test)
         .Executes(() =>
         {
+            // Portable
             DotNetPublish(_ => _
                 .SetProject(TileShopCLIProject)
                 .EnableNoRestore()
@@ -135,21 +126,35 @@ class Build : NukeBuild
                 .SetFramework(TileShopCLIFramework)
                 .AddProperty("SelfContained", false)
                 .AddProperty("PublishSingleFile", false));
+
+            // win-x64 single file
+            DotNetPublish(_ => _
+                .SetProject(TileShopCLIProject)
+                .EnableNoRestore()
+                .EnableNoBuild()
+                .SetConfiguration(Configuration)
+                .SetOutput(TileShopCLIWinx64OutputDirectory)
+                .SetRuntime(TileShopRuntime)
+                .SetFramework(TileShopCLIFramework)
+                .AddProperty("SelfContained", false)
+                .AddProperty("PublishSingleFile", true));
         });
 
     Target Package => _ => _
         .DependsOn(PublishTileShop, PublishTileShopCLI)
+        .Requires(() => Configuration == Configuration.Release)
+        .Produces(OutputDirectory / "*.zip")
         .Executes(() =>
         {
             var files = Directory.GetFiles(TileShopOutputDirectory)
                 .Concat(Directory.GetFiles(TileShopCLIPortableOutputDirectory))
                 .Where(filename => Path.GetExtension(filename).Equals(".pdb", StringComparison.OrdinalIgnoreCase));
-
+            
             foreach (var file in files)
                 File.Delete(file);
-
-            //File.Copy(TileShopCLIWinx64OutputDirectory / "TileShopCLI.exe", TileShopOutputDirectory / "TileShopCLI.exe");
-
+            
+            File.Copy(TileShopCLIWinx64OutputDirectory / "TileShopCLI.exe", TileShopOutputDirectory / "TileShopCLI.exe");
+            
             ZipFile.CreateFromDirectory(TileShopOutputDirectory,
                 OutputDirectory / $"TileShop v{TileShopVersion}.zip",
                 CompressionLevel.Optimal,
