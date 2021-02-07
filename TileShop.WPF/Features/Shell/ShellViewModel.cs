@@ -59,7 +59,7 @@ namespace TileShop.WPF.ViewModels
             {
                 Dispatcher.CurrentDispatcher.Invoke(() =>
                 {
-                    ThemeManager.Current.SetCurrentValue(ThemeManager.ApplicationThemeProperty, value);
+                    ThemeManager.Current.SetValue(ThemeManager.ApplicationThemeProperty, value);
                 });
             }
         }
