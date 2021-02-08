@@ -2,6 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.981</Version>
+    <Authors>Steve Monaco</Authors>
+    <PackageProjectUrl>https://github.com/stevemonaco/ImageMagitek</PackageProjectUrl>
+    <Copyright>2021</Copyright>
+    <RepositoryUrl>https://github.com/stevemonaco/ImageMagitek</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

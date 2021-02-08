@@ -20,10 +20,10 @@ using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
 [CheckBuildProjectConfigurations]
 [ShutdownDotNetAfterServerBuild]
-[GitHubActions("ci",
-    GitHubActionsImage.WindowsLatest,
-    PublishArtifacts = true,
-    InvokedTargets = new[] { nameof(Package) })]
+//[GitHubActions("ci",
+//    GitHubActionsImage.WindowsLatest,
+//    PublishArtifacts = true,
+//    InvokedTargets = new[] { nameof(Package) })]
 class Build : NukeBuild
 {
     public static int Main () => Execute<Build>(x => x.Package);
