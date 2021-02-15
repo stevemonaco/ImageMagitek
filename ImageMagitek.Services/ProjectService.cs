@@ -14,11 +14,6 @@ namespace ImageMagitek.Services
     public interface IProjectService
     {
         ISet<ProjectTree> Projects { get; }
-        ISet<IProjectResource> GlobalResources { get; }
-
-        MagitekResult LoadSchemaDefinition(string schemaFileName);
-        void SetSchemaDefinition(XmlSchemaSet schemas);
-        bool TryAddGlobalResource(IProjectResource resource);
 
         MagitekResult<ProjectTree> NewProject(string projectName);
         MagitekResults<ProjectTree> OpenProjectFile(string projectFileName);
@@ -38,28 +33,15 @@ namespace ImageMagitek.Services
     public class ProjectService : IProjectService
     {
         public ISet<ProjectTree> Projects { get; } = new HashSet<ProjectTree>();
-        public ISet<IProjectResource> GlobalResources { get; } = new HashSet<IProjectResource>();
 
-        private XmlSchemaSet _schemas = new XmlSchemaSet();
-        private readonly ICodecService _codecService;
-        private readonly IColorFactory _colorFactory;
+        private readonly IProjectSerializerFactory _serializerFactory;
 
-        public ProjectService(ICodecService codecService, IColorFactory colorFactory)
+        public ProjectService(IProjectSerializerFactory serializerFactory)
         {
-            _codecService = codecService;
-            _colorFactory = colorFactory;
+            _serializerFactory = serializerFactory;
         }
 
-        public ProjectService(ICodecService codecService, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
-        {
-            _codecService = codecService;
-            _colorFactory = colorFactory;
-            GlobalResources = globalResources.ToHashSet();
-        }
-
-        public bool TryAddGlobalResource(IProjectResource resource) => GlobalResources.Add(resource);
-
-        public MagitekResult<ProjectTree> NewProject(string projectFileName)
+        public virtual MagitekResult<ProjectTree> NewProject(string projectFileName)
         {
             if (Projects.Any(x => string.Equals(x.Name, projectFileName, StringComparison.OrdinalIgnoreCase)))
                 return new MagitekResult<ProjectTree>.Failed($"{projectFileName} already exists in the solution");
@@ -72,30 +54,53 @@ namespace ImageMagitek.Services
             return new MagitekResult<ProjectTree>.Success(projectTree);
         }
 
-        public MagitekResult LoadSchemaDefinition(string schemaFileName)
-        {
-            if (!File.Exists(schemaFileName))
-                return new MagitekResult.Failed($"File '{schemaFileName}' does not exist");
+        //public MagitekResult LoadProjectSchema(string schemaFileName)
+        //{
+        //    if (!File.Exists(schemaFileName))
+        //        return new MagitekResult.Failed($"File '{schemaFileName}' does not exist");
 
-            try
-            {
-                using var schemaStream = File.OpenRead(schemaFileName);
-                _schemas = new XmlSchemaSet();
-                _schemas.Add("", XmlReader.Create(schemaStream));
-                return MagitekResult.SuccessResult;
-            }
-            catch (Exception ex)
-            {
-                return new MagitekResult.Failed($"{ex.Message}\n{ex.StackTrace}");
-            }
-        }
+        //    try
+        //    {
+        //        using var schemaStream = File.OpenRead(schemaFileName);
+        //        _projectSchema = new XmlSchemaSet();
+        //        _projectSchema.Add("", XmlReader.Create(schemaStream));
+        //        return MagitekResult.SuccessResult;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new MagitekResult.Failed($"{ex.Message}\n{ex.StackTrace}");
+        //    }
+        //}
 
-        public void SetSchemaDefinition(XmlSchemaSet schemas)
-        {
-            _schemas = schemas;
-        }
+        //public void SetProjectSchema(XmlSchemaSet schema)
+        //{
+        //    _projectSchema = schema;
+        //}
 
-        public MagitekResults<ProjectTree> OpenProjectFile(string projectFileName)
+        //public MagitekResult LoadResourceSchema(string schemaFileName)
+        //{
+        //    if (!File.Exists(schemaFileName))
+        //        return new MagitekResult.Failed($"File '{schemaFileName}' does not exist");
+
+        //    try
+        //    {
+        //        using var schemaStream = File.OpenRead(schemaFileName);
+        //        _resourceSchema = new XmlSchemaSet();
+        //        _resourceSchema.Add("", XmlReader.Create(schemaStream));
+        //        return MagitekResult.SuccessResult;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new MagitekResult.Failed($"{ex.Message}\n{ex.StackTrace}");
+        //    }
+        //}
+
+        //public void SetResourceSchema(XmlSchemaSet schema)
+        //{
+        //    _resourceSchema = schema;
+        //}
+
+        public virtual MagitekResults<ProjectTree> OpenProjectFile(string projectFileName)
         {
             if (string.IsNullOrWhiteSpace(projectFileName))
                 throw new ArgumentException($"{nameof(OpenProjectFile)} cannot have a null or empty value for '{nameof(projectFileName)}'");
@@ -105,8 +110,8 @@ namespace ImageMagitek.Services
 
             try
             {
-                var deserializer = new XmlGameDescriptorReader(_schemas, _codecService.CodecFactory, _colorFactory, GlobalResources);
-                var result = deserializer.ReadProject(projectFileName);
+                var reader = _serializerFactory.CreateReader();
+                var result = reader.ReadProject(projectFileName);
 
                 return result.Match(
                     success =>
@@ -119,11 +124,11 @@ namespace ImageMagitek.Services
             }
             catch (Exception ex)
             {
-                return new MagitekResults<ProjectTree>.Failed($"Failed to open project '{projectFileName}': {ex.Message}");
+                return new MagitekResults<ProjectTree>.Failed($"Failed to open project '{projectFileName}' due to a {ex.GetType()}: {ex.Message}");
             }
         }
 
-        public MagitekResult SaveProject(ProjectTree projectTree)
+        public virtual MagitekResult SaveProject(ProjectTree projectTree)
         {
             if (projectTree is null)
                 throw new InvalidOperationException($"{nameof(SaveProject)} parameter '{nameof(projectTree)}' was null");
@@ -133,8 +138,8 @@ namespace ImageMagitek.Services
 
             try
             {
-                var serializer = new XmlGameDescriptorWriter(GlobalResources);
-                return serializer.WriteProject(projectTree, projectTree.FileLocation);
+                var writer = _serializerFactory.CreateWriter();
+                return writer.WriteProject(projectTree, projectTree.FileLocation);
             }
             catch (Exception ex)
             {
@@ -142,7 +147,7 @@ namespace ImageMagitek.Services
             }
         }
 
-        public MagitekResult SaveProjectAs(ProjectTree projectTree, string projectFileName)
+        public virtual MagitekResult SaveProjectAs(ProjectTree projectTree, string projectFileName)
         {
             if (projectTree is null)
                 throw new InvalidOperationException($"{nameof(SaveProjectAs)} parameter '{nameof(projectTree)}' was null");
@@ -152,7 +157,7 @@ namespace ImageMagitek.Services
 
             try
             {
-                var serializer = new XmlGameDescriptorWriter(GlobalResources);
+                var serializer = _serializerFactory.CreateWriter();
                 var result = serializer.WriteProject(projectTree, projectFileName);
                 if (result.Value is MagitekResult.Success)
                     projectTree.FileLocation = projectFileName;
@@ -165,7 +170,7 @@ namespace ImageMagitek.Services
             }
         }
 
-        public void CloseProject(ProjectTree projectTree)
+        public virtual void CloseProject(ProjectTree projectTree)
         {
             if (projectTree is null)
                 throw new InvalidOperationException($"{nameof(CloseProject)} parameter '{nameof(projectTree)}' was null");
@@ -179,7 +184,7 @@ namespace ImageMagitek.Services
             }
         }
 
-        public void CloseProjects()
+        public virtual void CloseProjects()
         {
             foreach (var projectTree in Projects)
             {
@@ -189,7 +194,7 @@ namespace ImageMagitek.Services
             Projects.Clear();
         }
 
-        public MagitekResult<ResourceNode> AddResource(ResourceNode parentNode, IProjectResource resource, bool saveProject)
+        public virtual MagitekResult<ResourceNode> AddResource(ResourceNode parentNode, IProjectResource resource, bool saveProject)
         {
             var projectTree = Projects.FirstOrDefault(x => x.ContainsNode(parentNode));
 
@@ -216,7 +221,7 @@ namespace ImageMagitek.Services
                 addFailed => addResult);
         }
 
-        public MagitekResult<ResourceNode> CreateNewFolder(ResourceNode parentNode, string name, bool saveProject)
+        public virtual MagitekResult<ResourceNode> CreateNewFolder(ResourceNode parentNode, string name, bool saveProject)
         {
             var projectTree = Projects.FirstOrDefault(x => x.ContainsNode(parentNode));
 
@@ -243,19 +248,19 @@ namespace ImageMagitek.Services
                 addFailed => addResult);
         }
 
-        public ProjectTree GetContainingProject(ResourceNode node)
+        public virtual ProjectTree GetContainingProject(ResourceNode node)
         {
             return Projects.FirstOrDefault(x => x.ContainsNode(node)) ??
                 throw new ArgumentException($"{nameof(GetContainingProject)} could not locate the node '{node.PathKey}'");
         }
 
-        public ProjectTree GetContainingProject(IProjectResource resource)
+        public virtual ProjectTree GetContainingProject(IProjectResource resource)
         {
             return Projects.FirstOrDefault(x => x.ContainsResource(resource)) ??
                 throw new ArgumentException($"{nameof(GetContainingProject)} could not locate the resource '{resource.Name}'");
         }
 
-        public bool AreResourcesInSameProject(IProjectResource a, IProjectResource b)
+        public virtual bool AreResourcesInSameProject(IProjectResource a, IProjectResource b)
         {
             var projectA = Projects.FirstOrDefault(x => x.ContainsResource(a));
             var projectB = Projects.FirstOrDefault(x => x.ContainsResource(b));

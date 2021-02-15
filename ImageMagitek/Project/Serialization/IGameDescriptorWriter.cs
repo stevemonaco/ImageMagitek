@@ -1,6 +1,4 @@
-﻿using Monaco.PathTree;
-
-namespace ImageMagitek.Project.Serialization
+﻿namespace ImageMagitek.Project.Serialization
 {
     public interface IGameDescriptorWriter
     {
