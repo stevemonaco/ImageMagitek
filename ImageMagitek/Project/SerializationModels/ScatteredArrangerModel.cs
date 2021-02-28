@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace ImageMagitek.Project.Serialization
 {
-    internal class ScatteredArrangerModel : ProjectNodeModel
+    internal class ScatteredArrangerModel : ResourceModel
     {
         public ArrangerElementModel[,] ElementGrid { get; set; }
         public Size ArrangerElementSize { get; set; }

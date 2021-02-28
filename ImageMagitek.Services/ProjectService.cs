@@ -47,8 +47,9 @@ namespace ImageMagitek.Services
                 return new MagitekResult<ProjectTree>.Failed($"{projectFileName} already exists in the solution");
 
             var projectName = Path.GetFileNameWithoutExtension(projectFileName);
-            var projectNode = new ProjectNode(projectName, new ImageProject(projectName));
-            var projectTree = new ProjectTree(new PathTree<IProjectResource>(projectNode));
+            var project = new ImageProject(projectName);
+            var tree = new PathTree<IProjectResource, ResourceMetadata>(project.Name, project);
+            var projectTree = new ProjectTree(tree);
             projectTree.FileLocation = projectFileName;
             Projects.Add(projectTree);
             return new MagitekResult<ProjectTree>.Success(projectTree);
@@ -177,7 +178,7 @@ namespace ImageMagitek.Services
 
             if (Projects.Contains(projectTree))
             {
-                foreach (var file in projectTree.Tree.EnumerateBreadthFirst().Select(x => x.Value).OfType<DataFile>())
+                foreach (var file in projectTree.Tree.EnumerateBreadthFirst().Select(x => x.Item).OfType<DataFile>())
                     file.Close();
 
                 Projects.Remove(projectTree);
@@ -188,7 +189,7 @@ namespace ImageMagitek.Services
         {
             foreach (var projectTree in Projects)
             {
-                foreach (var file in projectTree.Tree.EnumerateDepthFirst().Select(x => x.Value).OfType<DataFile>())
+                foreach (var file in projectTree.Tree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataFile>())
                     file.Close();
             }
             Projects.Clear();
@@ -199,7 +200,7 @@ namespace ImageMagitek.Services
             var projectTree = Projects.FirstOrDefault(x => x.ContainsNode(parentNode));
 
             if (projectTree is null)
-                return new MagitekResult<ResourceNode>.Failed($"{parentNode.Value.Name} is not contained within any loaded project");
+                return new MagitekResult<ResourceNode>.Failed($"{parentNode.Item.Name} is not contained within any loaded project");
 
 
             var addResult = projectTree.AddResource(parentNode, resource);
@@ -226,7 +227,7 @@ namespace ImageMagitek.Services
             var projectTree = Projects.FirstOrDefault(x => x.ContainsNode(parentNode));
 
             if (projectTree is null)
-                return new MagitekResult<ResourceNode>.Failed($"{parentNode.Value.Name} is not contained within any loaded project");
+                return new MagitekResult<ResourceNode>.Failed($"{parentNode.Item.Name} is not contained within any loaded project");
 
 
             var addResult = projectTree.CreateNewFolder(parentNode, name);

@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="Monaco.PathTree" Version="0.4.2" />
+    <PackageReference Include="Monaco.PathTree" Version="0.5.0" />
     <PackageReference Include="OneOf" Version="2.1.155" />
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />

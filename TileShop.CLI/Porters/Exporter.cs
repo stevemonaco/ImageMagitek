@@ -19,7 +19,7 @@ namespace TileShop.CLI.Porters
             var relativeFile = Path.Combine(node.Paths.ToArray());
             var exportFileName = Path.Combine(projectRoot, $"{relativeFile}.png");
 
-            var arranger = node.Value as ScatteredArranger;
+            var arranger = node.Item as ScatteredArranger;
 
             Console.Write($"Exporting '{arrangerKey}' to '{exportFileName}'...");
 

@@ -43,14 +43,14 @@ namespace ImageMagitek.Project.Serialization
 
             foreach(var node in modelTree.EnumerateDepthFirst())
             {
-                XElement element = node.Value switch
+                XElement element = node.Item switch
                 {
                     ResourceFolderModel folderModel => Serialize(folderModel),
                     DataFileModel dataFileModel => Serialize(dataFileModel),
                     PaletteModel paletteModel => Serialize(paletteModel),
                     ScatteredArrangerModel arrangerModel => Serialize(arrangerModel),
                     ImageProjectModel projectModel => Serialize(projectModel),
-                    _ => throw new InvalidOperationException($"{nameof(WriteProject)}: unexpected node of type '{node.Value.GetType()}'"),
+                    _ => throw new InvalidOperationException($"{nameof(WriteProject)}: unexpected node of type '{node.Item.GetType()}'"),
                 };
 
                 AddResourceToXmlTree(xmlRoot, element, node.Paths.ToArray());
@@ -76,36 +76,36 @@ namespace ImageMagitek.Project.Serialization
             }
         }
 
-        private IPathTree<ProjectNodeModel> BuildModelTree(ProjectTree projectTree)
+        private PathTree<ResourceModel> BuildModelTree(ProjectTree projectTree)
         {
             var tree = projectTree.Tree;
             var resourceResolver = new Dictionary<IProjectResource, string>();
             foreach (var node in tree.EnumerateDepthFirst())
-                resourceResolver.Add(node.Value, node.PathKey);
+                resourceResolver.Add(node.Item, node.PathKey);
 
-            var projectModel = ImageProjectModel.FromImageProject(tree.Root.Value as ImageProject);
-            IPathTree<ProjectNodeModel> modelTree = new PathTree<ProjectNodeModel>(projectModel.Name, projectModel);
+            var projectModel = ImageProjectModel.FromImageProject(tree.Root.Item as ImageProject);
+            PathTree<ResourceModel> modelTree = new PathTree<ResourceModel>(projectModel.Name, projectModel);
 
-            foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Value.ShouldBeSerialized && x.Value is ResourceFolder))
+            foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Item.ShouldBeSerialized && x.Item is ResourceFolder))
             {
-                var folderModel = ResourceFolderModel.FromResourceFolder(node.Value as ResourceFolder);
-                modelTree.Add(node.PathKey, folderModel);
+                var folderModel = ResourceFolderModel.FromResourceFolder(node.Item as ResourceFolder);
+                modelTree.AddItemAsPath(node.PathKey, folderModel);
             }
 
-            foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Value.ShouldBeSerialized))
+            foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Item.ShouldBeSerialized))
             {
-                switch (node.Value)
+                switch (node.Item)
                 {
                     case ResourceFolder folder:
                         break;
                     case DataFile dataFile:
                         var dataFileModel = DataFileModel.FromDataFile(dataFile);
-                        modelTree.Add(node.PathKey, dataFileModel);
+                        modelTree.AddItemAsPath(node.PathKey, dataFileModel);
                         break;
                     case Palette palette:
                         var paletteModel = PaletteModel.FromPalette(palette);
                         paletteModel.DataFileKey = resourceResolver[palette.DataFile];
-                        modelTree.Add(node.PathKey, paletteModel);
+                        modelTree.AddItemAsPath(node.PathKey, paletteModel);
                         break;
                     case ScatteredArranger arranger:
                         var arrangerModel = ScatteredArrangerModel.FromScatteredArranger(arranger);
@@ -134,7 +134,7 @@ namespace ImageMagitek.Project.Serialization
                             }
                         }
 
-                        modelTree.Add(node.PathKey, arrangerModel);
+                        modelTree.AddItemAsPath(node.PathKey, arrangerModel);
                         break;
                 }
             }

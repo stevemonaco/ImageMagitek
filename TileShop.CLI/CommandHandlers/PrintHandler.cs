@@ -21,7 +21,7 @@ namespace TileShop.CLI.Commands
             foreach (var res in project.Tree.EnumerateDepthFirst())
             {
                 string key = res.PathKey;
-                Console.WriteLine($"{res.Name}: Type '{res.Value.GetType().Name}'; Resource Key '{key}'");
+                Console.WriteLine($"{res.Name}: Type '{res.Item.GetType().Name}'; Resource Key '{key}'");
             }
 
             return ExitCode.Success;

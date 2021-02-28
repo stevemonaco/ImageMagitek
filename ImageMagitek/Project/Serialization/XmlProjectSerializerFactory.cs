@@ -39,7 +39,7 @@ namespace ImageMagitek.Project.Serialization
 
         public IGameDescriptorWriter CreateWriter()
         {
-            return new XmlGameDescriptorMultiFileWriter();
+            return new XmlGameDescriptorMultiFileWriter(GlobalResources);
         }
 
         private (XmlSchemaSet projectSchemas, XmlSchemaSet resourceSchemas) CreateSchemas(

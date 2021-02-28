@@ -20,7 +20,7 @@ namespace TileShop.CLI.Commands
             if (project is null)
                 return ExitCode.ProjectOpenError;
 
-            foreach (var node in project.Tree.EnumerateDepthFirst().Where(x => x.Value is ScatteredArranger))
+            foreach (var node in project.Tree.EnumerateDepthFirst().Where(x => x.Item is ScatteredArranger))
             {
                 Exporter.ExportArranger(project, node.PathKey, options.ExportDirectory, options.ForceOverwrite);
             }

@@ -41,10 +41,11 @@ namespace TileShop.CLI.Commands
                 },
                 fail =>
                 {
-                    var errorMessages = Enumerable.Range(1, fail.Reasons.Count - 1)
-                        .Select(x => $"{x}: {fail.Reasons[x - 1]}");
+                    var errorMessages = Enumerable.Range(0, fail.Reasons.Count)
+                        .Select(x => $"{x + 1}: {fail.Reasons[x]}")
+                        .ToList();
 
-                    PrintProjectErrors(projectFileName, errorMessages.ToList());
+                    PrintProjectErrors(projectFileName, errorMessages);
                     return null;
                 });
         }

@@ -16,7 +16,7 @@
         public ResourceChange(ResourceNode resourceNode, bool removed, bool lostPalette, bool lostElement)
         {
             ResourceNode = resourceNode;
-            Resource = resourceNode.Value;
+            Resource = resourceNode.Item;
             ResourceName = Resource.Name;
             ResourcePath = ResourceNode.PathKey;
             Removed = removed;

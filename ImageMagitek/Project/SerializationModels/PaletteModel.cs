@@ -2,7 +2,7 @@
 
 namespace ImageMagitek.Project.Serialization
 {
-    internal class PaletteModel : ProjectNodeModel
+    internal class PaletteModel : ResourceModel
     {
         public ColorModel ColorModel { get; set; }
         public string DataFileKey { get; set; }

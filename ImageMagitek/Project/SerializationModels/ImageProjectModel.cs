@@ -1,6 +1,6 @@
 ﻿namespace ImageMagitek.Project.Serialization
 {
-    internal class ImageProjectModel : ProjectNodeModel
+    public class ImageProjectModel : ResourceModel
     {
         public string Root { get; set; }
 

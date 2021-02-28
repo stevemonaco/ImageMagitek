@@ -1,6 +1,6 @@
 ﻿namespace ImageMagitek.Project.Serialization
 {
-    internal class ResourceFolderModel : ProjectNodeModel
+    internal class ResourceFolderModel : ResourceModel
     {
         public ResourceFolder ToResourceFolder()
         {

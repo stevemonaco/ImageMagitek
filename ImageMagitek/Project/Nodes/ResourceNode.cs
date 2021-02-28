@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ImageMagitek.Project
 {
-    public class ResourceNode : PathTreeNode<IProjectResource>
+    public class ResourceNode : PathTreeNode<IProjectResource, ResourceMetadata>
     {
         public IProjectResource Resource { get; set; }
 
@@ -15,18 +15,18 @@ namespace ImageMagitek.Project
             Resource = resource;
         }
 
-        public new void AddChild(string name, IProjectResource value)
+        public void AddChild(string name, IProjectResource value)
         {
-            base.AttachChild(new ResourceNode(name, value));
+            base.AddChild(name, value);
         }
 
-        public new IEnumerable<ResourceNode> Children { get => _children?.Values.Cast<ResourceNode>() ?? Enumerable.Empty<ResourceNode>(); }
+        public new IEnumerable<ResourceNode> ChildNodes { get => _children?.Values.Cast<ResourceNode>() ?? Enumerable.Empty<ResourceNode>(); }
 
-        public new ResourceNode DetachChild(string name) => (ResourceNode)base.DetachChild(name);
+        public new ResourceNode DetachChildNode(string name) => (ResourceNode)base.DetachChildNode(name);
 
-        public bool TryGetChild(string name, out ResourceNode node)
+        public bool TryGetChildNode(string name, out ResourceNode node)
         {
-            if (base.TryGetChild(name, out var treeNode))
+            if (base.TryGetChildNode(name, out var treeNode))
             {
                 node = (ResourceNode)treeNode;
                 return true;

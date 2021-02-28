@@ -14,7 +14,8 @@ namespace ImageMagitek.Project.Serialization
     /// </summary>
     class ProjectTreeBuilder
     {
-        public PathTree<IProjectResource> Tree { get; } = new PathTree<IProjectResource>();
+        public PathTree<IProjectResource, ResourceMetadata> Tree { get; private set; }
+
         private readonly List<IProjectResource> _globalResources;
         private readonly Palette _globalDefaultPalette;
         private readonly ICodecFactory _codecFactory;
@@ -30,13 +31,11 @@ namespace ImageMagitek.Project.Serialization
 
         public MagitekResult AddProject(ImageProjectModel projectModel)
         {
-            if (Tree.Root is object)
+            if (Tree?.Root is object)
                 return new MagitekResult.Failed($"Attempted to add a new project '{projectModel?.Name}' to an existing project");
 
-            var project = new ImageProject(projectModel.Name);
-            project.Root = projectModel.Root;
+            Tree = new PathTree<IProjectResource, ResourceMetadata>(projectModel.Name, projectModel.ToImageProject());
 
-            Tree.Root = new ProjectNode(project.Name, project);
             return MagitekResult.SuccessResult;
         }
 
@@ -46,7 +45,7 @@ namespace ImageMagitek.Project.Serialization
 
             var folderNode = new FolderNode(folder.Name, folder);
             Tree.TryGetNode(parentNodePath, out var parentNode);
-            parentNode.AttachChild(folderNode);
+            parentNode.AttachChildNode(folderNode);
 
             return MagitekResult.SuccessResult;
         }
@@ -57,7 +56,7 @@ namespace ImageMagitek.Project.Serialization
 
             var dfNode = new DataFileNode(df.Name, df);
             Tree.TryGetNode(parentNodePath, out var parentNode);
-            parentNode.AttachChild(dfNode);
+            parentNode.AttachChildNode(dfNode);
 
             if (!File.Exists(df.Location))
                 return new MagitekResult.Failed($"DataFile '{df.Name}' does not exist at location '{df.Location}'");
@@ -69,7 +68,7 @@ namespace ImageMagitek.Project.Serialization
         {
             var pal = new Palette(paletteModel.Name, _colorFactory, paletteModel.ColorModel, paletteModel.FileAddress, paletteModel.Entries, paletteModel.ZeroIndexTransparent, paletteModel.StorageSource);
 
-            if (!Tree.TryGetValue<DataFile>(paletteModel.DataFileKey, out var df))
+            if (!Tree.TryGetItem<DataFile>(paletteModel.DataFileKey, out var df))
                 return new MagitekResult.Failed($"Palette '{pal.Name}' could not locate DataFile with key '{paletteModel.DataFileKey}'");
 
             pal.DataFile = df;
@@ -77,7 +76,7 @@ namespace ImageMagitek.Project.Serialization
 
             var palNode = new PaletteNode(pal.Name, pal);
             Tree.TryGetNode(parentNodePath, out var parentNode);
-            parentNode.AttachChild(palNode);
+            parentNode.AttachChildNode(palNode);
 
             return MagitekResult.SuccessResult;
         }
@@ -106,7 +105,7 @@ namespace ImageMagitek.Project.Serialization
 
             var arrangerNode = new ArrangerNode(arranger.Name, arranger);
             Tree.TryGetNode(parentNodePath, out var parentNode);
-            parentNode.AttachChild(arrangerNode);
+            parentNode.AttachChildNode(arrangerNode);
 
             return MagitekResult.SuccessResult;
         }
@@ -125,7 +124,7 @@ namespace ImageMagitek.Project.Serialization
             {
                 return _globalDefaultPalette;
             }
-            else if (!Tree.TryGetValue<Palette>(paletteKey, out pal))
+            else if (!Tree.TryGetItem<Palette>(paletteKey, out pal))
             {
                 var name = paletteKey.Split(Tree.PathSeparators).Last();
                 pal = _globalResources.OfType<Palette>().FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
@@ -149,7 +148,7 @@ namespace ImageMagitek.Project.Serialization
             else if (arrangerModel.ColorType == PixelColorType.Indexed)
             {
                 if (!string.IsNullOrWhiteSpace(elementModel.DataFileKey))
-                    Tree.TryGetValue<DataFile>(elementModel.DataFileKey, out df);
+                    Tree.TryGetItem<DataFile>(elementModel.DataFileKey, out df);
                 
                 address = elementModel.FileAddress;
                 var paletteKey = elementModel.PaletteKey;
@@ -165,7 +164,7 @@ namespace ImageMagitek.Project.Serialization
             else if (arrangerModel.ColorType == PixelColorType.Direct)
             {
                 if (!string.IsNullOrWhiteSpace(elementModel.DataFileKey))
-                    Tree.TryGetValue<DataFile>(elementModel.DataFileKey, out df);
+                    Tree.TryGetItem<DataFile>(elementModel.DataFileKey, out df);
 
                 address = elementModel.FileAddress;
                 codec = _codecFactory.GetCodec(elementModel.CodecName, new Size(arrangerModel.ElementPixelSize.Width, arrangerModel.ElementPixelSize.Height));

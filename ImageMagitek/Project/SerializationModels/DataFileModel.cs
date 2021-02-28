@@ -1,6 +1,6 @@
 ﻿namespace ImageMagitek.Project.Serialization
 {
-    internal class DataFileModel : ProjectNodeModel
+    internal class DataFileModel : ResourceModel
     {
         public string Location { get; set; }
 

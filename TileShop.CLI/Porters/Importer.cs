@@ -20,7 +20,7 @@ namespace TileShop.CLI.Porters
                 return ImportResult.MissingFile;
             }
 
-            if (!projectTree.Tree.TryGetValue(arrangerKey, out ScatteredArranger arranger))
+            if (!projectTree.Tree.TryGetItem(arrangerKey, out ScatteredArranger arranger))
             {
                 Console.WriteLine($"Resource key does not exist or is not a {nameof(ScatteredArranger)}");
                 return ImportResult.BadResourceKey;
