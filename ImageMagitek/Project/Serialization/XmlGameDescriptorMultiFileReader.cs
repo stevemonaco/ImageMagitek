@@ -152,13 +152,10 @@ namespace ImageMagitek.Project.Serialization
             if (Errors.Count > 0)
                 return new MagitekResults<ProjectTree>.Failed(Errors);
 
-            var tree = builder.Tree;
-            var projectTree = new ProjectTree(tree, projectFileName);
-
-            return new MagitekResults<ProjectTree>.Success(projectTree);
+            return new MagitekResults<ProjectTree>.Success(builder.Tree);
         }
 
-        private ImageProjectModel DeserializeImageProject(XElement element)
+        private static ImageProjectModel DeserializeImageProject(XElement element)
         {
             var model = new ImageProjectModel
             {

@@ -13,17 +13,17 @@ namespace TileShop.WPF.ViewModels
             Node = node;
             Name = node.Name;
 
-            foreach (var child in Node.Children)
+            foreach (var child in Node.ChildNodes)
             {
                 ResourceNodeViewModel model;
 
-                if (child.Value is ResourceFolder)
+                if (child.Item is ResourceFolder)
                     model = new FolderNodeViewModel(child, this);
-                else if (child.Value is Palette)
+                else if (child.Item is Palette)
                     model = new PaletteNodeViewModel(child, this);
-                else if (child.Value is DataFile)
+                else if (child.Item is DataFile)
                     model = new DataFileNodeViewModel(child, this);
-                else if (child.Value is Arranger)
+                else if (child.Item is Arranger)
                     model = new ArrangerNodeViewModel(child, this);
                 else
                     continue;

@@ -53,7 +53,7 @@ namespace TileShop.WPF.Models
         public ResourceChangeViewModel(ResourceNode resourceNode, bool removed, bool lostPalette, bool lostElement)
         {
             ResourceNode = resourceNode;
-            Resource = ResourceNode.Value;
+            Resource = ResourceNode.Item;
             ResourceName = Resource.Name;
             ResourcePath = ResourceNode.PathKey;
             Removed = removed;

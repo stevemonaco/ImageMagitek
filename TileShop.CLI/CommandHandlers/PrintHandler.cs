@@ -13,12 +13,12 @@ namespace TileShop.CLI.Commands
 
         public override ExitCode Execute(PrintOptions options)
         {
-            var project = OpenProject(options.ProjectFileName);
+            var projectTree = OpenProject(options.ProjectFileName);
 
-            if (project is null)
+            if (projectTree is null)
                 return ExitCode.ProjectOpenError;
 
-            foreach (var res in project.Tree.EnumerateDepthFirst())
+            foreach (var res in projectTree.EnumerateDepthFirst())
             {
                 string key = res.PathKey;
                 Console.WriteLine($"{res.Name}: Type '{res.Item.GetType().Name}'; Resource Key '{key}'");

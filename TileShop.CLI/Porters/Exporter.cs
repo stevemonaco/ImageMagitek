@@ -10,7 +10,7 @@ namespace TileShop.CLI.Porters
     {
         public static bool ExportArranger(ProjectTree projectTree, string arrangerKey, string projectRoot, bool forceOverwrite)
         {
-            if (!projectTree.Tree.TryGetNode(arrangerKey, out var node))
+            if (!projectTree.TryGetNode(arrangerKey, out var node))
             {
                 Console.WriteLine($"Exporting '{arrangerKey}'...Resource key not found in project");
                 return false;

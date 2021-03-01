@@ -15,14 +15,14 @@ namespace TileShop.CLI.Commands
 
         public override ExitCode Execute(ExportAllOptions options)
         {
-            var project = OpenProject(options.ProjectFileName);
+            var projectTree = OpenProject(options.ProjectFileName);
 
-            if (project is null)
+            if (projectTree is null)
                 return ExitCode.ProjectOpenError;
 
-            foreach (var node in project.Tree.EnumerateDepthFirst().Where(x => x.Item is ScatteredArranger))
+            foreach (var node in projectTree.EnumerateDepthFirst().Where(x => x.Item is ScatteredArranger))
             {
-                Exporter.ExportArranger(project, node.PathKey, options.ExportDirectory, options.ForceOverwrite);
+                Exporter.ExportArranger(projectTree, node.PathKey, options.ExportDirectory, options.ForceOverwrite);
             }
 
             return ExitCode.Success;

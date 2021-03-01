@@ -207,7 +207,7 @@ namespace TileShop.WPF.ViewModels
         {
             if (dropInfo.Data is PaletteNodeViewModel model)
             {
-                var pal = model.Node.Value as Palette;
+                var pal = model.Node.Item as Palette;
                 dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
                 dropInfo.Effects = DragDropEffects.Move | DragDropEffects.Link;
                 dropInfo.EffectText = $"Add palette {pal.Name}";
@@ -220,14 +220,14 @@ namespace TileShop.WPF.ViewModels
         {
             if (dropInfo.Data is PaletteNodeViewModel palNodeVM)
             {
-                if (!_projectService.AreResourcesInSameProject(OriginatingProjectResource, palNodeVM.Node.Resource))
+                if (!_projectService.AreResourcesInSameProject(OriginatingProjectResource, palNodeVM.Node.Item))
                 {
                     var notifyEvent = new NotifyOperationEvent("Copying palettes across projects is not permitted");
                     _events.PublishOnUIThread(notifyEvent);
                     return;
                 }
 
-                var pal = palNodeVM.Node.Value as Palette;
+                var pal = palNodeVM.Node.Item as Palette;
                 if (!Palettes.Any(x => ReferenceEquals(pal, x.Palette)))
                 {
                     var palModel = new PaletteModel(pal);
@@ -418,9 +418,9 @@ namespace TileShop.WPF.ViewModels
         public void AssociatePalette()
         {
             var projectTree = _projectService.GetContainingProject(Resource);
-            var palettes = projectTree.Tree.EnumerateDepthFirst()
-                .Where(x => x.Value is Palette)
-                .Select(x => new AssociatePaletteModel(x.Value as Palette, x.PathKey))
+            var palettes = projectTree.EnumerateDepthFirst()
+                .Where(x => x.Item is Palette)
+                .Select(x => new AssociatePaletteModel(x.Item as Palette, x.PathKey))
                 .Concat(_paletteService.GlobalPalettes.Select(x => new AssociatePaletteModel(x, x.Name)));
 
             var model = new AssociatePaletteViewModel(palettes);

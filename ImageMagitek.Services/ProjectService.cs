@@ -48,11 +48,12 @@ namespace ImageMagitek.Services
 
             var projectName = Path.GetFileNameWithoutExtension(projectFileName);
             var project = new ImageProject(projectName);
-            var tree = new PathTree<IProjectResource, ResourceMetadata>(project.Name, project);
-            var projectTree = new ProjectTree(tree);
-            projectTree.FileLocation = projectFileName;
-            Projects.Add(projectTree);
-            return new MagitekResult<ProjectTree>.Success(projectTree);
+            var root = new ProjectNode(project.Name, project);
+            var tree = new ProjectTree(root);
+            tree.FileLocation = projectFileName;
+
+            Projects.Add(tree);
+            return new MagitekResult<ProjectTree>.Success(tree);
         }
 
         //public MagitekResult LoadProjectSchema(string schemaFileName)
@@ -178,7 +179,7 @@ namespace ImageMagitek.Services
 
             if (Projects.Contains(projectTree))
             {
-                foreach (var file in projectTree.Tree.EnumerateBreadthFirst().Select(x => x.Item).OfType<DataFile>())
+                foreach (var file in projectTree.EnumerateBreadthFirst().Select(x => x.Item).OfType<DataFile>())
                     file.Close();
 
                 Projects.Remove(projectTree);
@@ -189,7 +190,7 @@ namespace ImageMagitek.Services
         {
             foreach (var projectTree in Projects)
             {
-                foreach (var file in projectTree.Tree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataFile>())
+                foreach (var file in projectTree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataFile>())
                     file.Close();
             }
             Projects.Clear();

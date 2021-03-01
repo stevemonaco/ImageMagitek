@@ -6,7 +6,7 @@ namespace ImageMagitek.Project
     {
         public override ImageProjectModel Model { get; }
 
-        public ProjectMetadata(ImageProjectModel model, string fileLocation)
+        public ProjectMetadata(ImageProjectModel model, string fileLocation = default)
         {
             Model = model;
             FileLocation = fileLocation;

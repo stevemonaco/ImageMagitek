@@ -21,7 +21,7 @@ namespace TileShop.CLI.Commands
             if (project is null)
                 return ExitCode.ProjectOpenError;
 
-            foreach (var node in project.Tree.EnumerateDepthFirst().Where(x => x.Item is ScatteredArranger))
+            foreach (var node in project.EnumerateDepthFirst().Where(x => x.Item is ScatteredArranger))
             {
                 var relativeFile = Path.Combine(node.Paths.ToArray());
                 var imageFileName = Path.Combine(options.ImportDirectory, $"{relativeFile}.png");

@@ -74,9 +74,9 @@ namespace TileShop.WPF.ViewModels
             {
                 SelectedNode.IsExpanded ^= true;
             }
-            else if (SelectedNode?.Node?.Value is object)
+            else if (SelectedNode?.Node?.Item is object)
             {
-                _editors.ActivateEditor(SelectedNode.Node.Value);
+                _editors.ActivateEditor(SelectedNode.Node.Item);
             }
         }
 
@@ -133,7 +133,7 @@ namespace TileShop.WPF.ViewModels
             var dialogModel = new AddPaletteViewModel(parentNodeModel.Children.Select(x => x.Name));
 
             var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
-            var dataFiles = projectTree.Tree.EnumerateDepthFirst().Select(x => x.Value).OfType<DataFile>();
+            var dataFiles = projectTree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataFile>();
             dialogModel.DataFiles.AddRange(dataFiles);
             dialogModel.SelectedDataFile = dialogModel.DataFiles.FirstOrDefault();
             dialogModel.ColorModels.AddRange(Palette.GetColorModelNames());
@@ -206,7 +206,7 @@ namespace TileShop.WPF.ViewModels
         {
             if (nodeModel is ArrangerNodeViewModel arrNodeModel)
             {
-                var arranger = arrNodeModel.Node.Value as ScatteredArranger;
+                var arranger = arrNodeModel.Node.Item as ScatteredArranger;
                 var exportFileName = _fileSelect.GetExportArrangerFileNameByUser($"{arranger.Name}.png");
 
                 if (exportFileName is object)
@@ -227,7 +227,7 @@ namespace TileShop.WPF.ViewModels
 
         public void ImportImageAs(ResourceNodeViewModel nodeModel)
         {
-            if (nodeModel is ArrangerNodeViewModel arrNodeModel && arrNodeModel.Node.Value is ScatteredArranger arranger)
+            if (nodeModel is ArrangerNodeViewModel arrNodeModel && arrNodeModel.Node.Item is ScatteredArranger arranger)
             {
                 var model = new ImportImageViewModel(arranger, _fileSelect);
                 if (_windowManager.ShowDialog(model) is true)
@@ -277,7 +277,7 @@ namespace TileShop.WPF.ViewModels
                 _editors.ActiveEditor = null;
 
                 projectTree.ApplyRemovalChanges(changes);
-                var projectRootNode = projectTree.Tree.Root as ResourceNode;
+                var projectRootNode = projectTree.Root as ResourceNode;
                 var projectRootVm = Projects.First(x => ReferenceEquals(projectRootNode, x.Node));
                 SynchronizeTree(projectRootVm);
 
@@ -308,11 +308,11 @@ namespace TileShop.WPF.ViewModels
 
         private void SynchronizeNode(ResourceNode resourceNode, ResourceNodeViewModel vmNode)
         {
-            if (resourceNode.Children is null)
+            if (resourceNode.ChildNodes is null)
                 return;
 
-            if (!resourceNode.Children.All(x => vmNode.Children.Any(y => ReferenceEquals(x, y.Node))) && 
-                resourceNode.Children.Count() == vmNode.Children.Count)
+            if (!resourceNode.ChildNodes.All(x => vmNode.Children.Any(y => ReferenceEquals(x, y.Node))) && 
+                resourceNode.ChildNodes.Count() == vmNode.Children.Count)
                 return;
 
             SynchronizeDeletions(resourceNode, vmNode);
@@ -324,7 +324,7 @@ namespace TileShop.WPF.ViewModels
 
                 foreach (var vm in vmNode.Children)
                 {
-                    if (!resourceNode.Children.Any(x => ReferenceEquals(x, vm.Node)))
+                    if (!resourceNode.ChildNodes.Any(x => ReferenceEquals(x, vm.Node)))
                     {
                         if (removedItems is null)
                             removedItems = new List<ResourceNodeViewModel>();
@@ -342,7 +342,7 @@ namespace TileShop.WPF.ViewModels
 
             void SynchronizeInsertions(ResourceNode resourceNode, ResourceNodeViewModel vmNode)
             {
-                foreach (var node in resourceNode.Children)
+                foreach (var node in resourceNode.ChildNodes)
                 {
                     if (!vmNode.Children.Any(x => ReferenceEquals(node, x.Node)))
                     {
@@ -372,14 +372,14 @@ namespace TileShop.WPF.ViewModels
                 var oldName = nodeModel.Name;
                 var newName = dialogModel.Name;
 
-                if (nodeModel.ParentModel is object && nodeModel.ParentModel.Node.ContainsChild(newName))
+                if (nodeModel.ParentModel is object && nodeModel.ParentModel.Node.ContainsChildNode(newName))
                 {
                     _windowManager.ShowMessageBox($"Parent item already contains an item named '{newName}'", icon: MessageBoxImage.Error);
                 }
                 else
                 {
                     nodeModel.Node.Rename(newName);
-                    nodeModel.Node.Value.Name = newName;
+                    nodeModel.Node.Item.Name = newName;
                     nodeModel.Name = newName;
 
                     var projectTree = _projectService.GetContainingProject(nodeModel.Node);
@@ -390,7 +390,7 @@ namespace TileShop.WPF.ViewModels
                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
                     );
 
-                    var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Value, newName, oldName);
+                    var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, newName, oldName);
                     _events.PublishOnUIThread(renameEvent);
                 }
             }
@@ -402,7 +402,7 @@ namespace TileShop.WPF.ViewModels
             var copy = message.Copy;
             var arranger = message.Copy.Source;
             var projectTree = _projectService.GetContainingProject(message.ProjectResource);
-            var parentModel = Projects.First(x => ReferenceEquals(projectTree.Project, x.Node.Value));
+            var parentModel = Projects.First(x => ReferenceEquals(projectTree.Project, x.Node.Item));
 
             if (_windowManager.ShowDialog(model) is true)
             {
@@ -511,7 +511,7 @@ namespace TileShop.WPF.ViewModels
                     _projectService.NewProject(Path.GetFullPath(projectFileName)).Switch(
                         success =>
                         {
-                            var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Tree.Root);
+                            var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
                             Projects.Add(projectVM);
                             NotifyOfPropertyChange(() => HasProject);
                             _events.PublishOnUIThread(new ProjectLoadedEvent());
@@ -543,7 +543,7 @@ namespace TileShop.WPF.ViewModels
                     _projectService.NewProject(Path.GetFullPath(projectFileName)).Switch(
                         success =>
                         {
-                            var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Tree.Root);
+                            var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
                             Projects.Add(projectVM);
 
                             var dfName = Path.GetFileName(dataFileName);
@@ -586,7 +586,7 @@ namespace TileShop.WPF.ViewModels
             return openResult.Match(
                 success =>
                 {
-                    var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Tree.Root);
+                    var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
                     Projects.Add(projectVM);
                     NotifyOfPropertyChange(() => HasProject);
                     return true;

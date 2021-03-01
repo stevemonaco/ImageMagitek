@@ -76,23 +76,23 @@ namespace ImageMagitek.Project.Serialization
             }
         }
 
-        private PathTree<ResourceModel> BuildModelTree(ProjectTree projectTree)
+        private ResourceModelTree BuildModelTree(ProjectTree projectTree)
         {
-            var tree = projectTree.Tree;
             var resourceResolver = new Dictionary<IProjectResource, string>();
-            foreach (var node in tree.EnumerateDepthFirst())
+            foreach (var node in projectTree.EnumerateDepthFirst())
                 resourceResolver.Add(node.Item, node.PathKey);
 
-            var projectModel = ImageProjectModel.FromImageProject(tree.Root.Item as ImageProject);
-            PathTree<ResourceModel> modelTree = new PathTree<ResourceModel>(projectModel.Name, projectModel);
+            var projectModel = ImageProjectModel.FromImageProject(projectTree.Root.Item as ImageProject);
+            var root = new ResourceModelNode(projectModel.Name, projectModel);
+            var modelTree = new ResourceModelTree(root);
 
-            foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Item.ShouldBeSerialized && x.Item is ResourceFolder))
+            foreach (var node in projectTree.EnumerateDepthFirst().Where(x => x.Item.ShouldBeSerialized && x.Item is ResourceFolder))
             {
                 var folderModel = ResourceFolderModel.FromResourceFolder(node.Item as ResourceFolder);
                 modelTree.AddItemAsPath(node.PathKey, folderModel);
             }
 
-            foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Item.ShouldBeSerialized))
+            foreach (var node in projectTree.EnumerateDepthFirst().Where(x => x.Item.ShouldBeSerialized))
             {
                 switch (node.Item)
                 {

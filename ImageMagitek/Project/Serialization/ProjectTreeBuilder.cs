@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
-using Monaco.PathTree;
 
 namespace ImageMagitek.Project.Serialization
 {
@@ -14,7 +13,7 @@ namespace ImageMagitek.Project.Serialization
     /// </summary>
     class ProjectTreeBuilder
     {
-        public PathTree<IProjectResource, ResourceMetadata> Tree { get; private set; }
+        public ProjectTree Tree { get; private set; }
 
         private readonly List<IProjectResource> _globalResources;
         private readonly Palette _globalDefaultPalette;
@@ -34,7 +33,9 @@ namespace ImageMagitek.Project.Serialization
             if (Tree?.Root is object)
                 return new MagitekResult.Failed($"Attempted to add a new project '{projectModel?.Name}' to an existing project");
 
-            Tree = new PathTree<IProjectResource, ResourceMetadata>(projectModel.Name, projectModel.ToImageProject());
+            var metadata = new ProjectMetadata(projectModel);
+            var root = new ProjectNode(projectModel.Name, projectModel.ToImageProject(), metadata);
+            Tree = new ProjectTree(root);
 
             return MagitekResult.SuccessResult;
         }
