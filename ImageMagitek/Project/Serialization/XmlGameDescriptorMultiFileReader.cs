@@ -3,13 +3,12 @@ using System.IO;
 using System.Xml;
 using System.Xml.Linq;
 using System.Linq;
-using ImageMagitek.ExtensionMethods;
 using System.Drawing;
-using Monaco.PathTree;
-using ImageMagitek.Codec;
-using ImageMagitek.Colors;
 using System.Xml.Schema;
 using System.Collections.Generic;
+using ImageMagitek.Codec;
+using ImageMagitek.Colors;
+using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Project.Serialization
 {

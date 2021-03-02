@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Xml;
-using System.Xml.Schema;
-using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
 using Monaco.PathTree;
@@ -55,52 +52,6 @@ namespace ImageMagitek.Services
             Projects.Add(tree);
             return new MagitekResult<ProjectTree>.Success(tree);
         }
-
-        //public MagitekResult LoadProjectSchema(string schemaFileName)
-        //{
-        //    if (!File.Exists(schemaFileName))
-        //        return new MagitekResult.Failed($"File '{schemaFileName}' does not exist");
-
-        //    try
-        //    {
-        //        using var schemaStream = File.OpenRead(schemaFileName);
-        //        _projectSchema = new XmlSchemaSet();
-        //        _projectSchema.Add("", XmlReader.Create(schemaStream));
-        //        return MagitekResult.SuccessResult;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new MagitekResult.Failed($"{ex.Message}\n{ex.StackTrace}");
-        //    }
-        //}
-
-        //public void SetProjectSchema(XmlSchemaSet schema)
-        //{
-        //    _projectSchema = schema;
-        //}
-
-        //public MagitekResult LoadResourceSchema(string schemaFileName)
-        //{
-        //    if (!File.Exists(schemaFileName))
-        //        return new MagitekResult.Failed($"File '{schemaFileName}' does not exist");
-
-        //    try
-        //    {
-        //        using var schemaStream = File.OpenRead(schemaFileName);
-        //        _resourceSchema = new XmlSchemaSet();
-        //        _resourceSchema.Add("", XmlReader.Create(schemaStream));
-        //        return MagitekResult.SuccessResult;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new MagitekResult.Failed($"{ex.Message}\n{ex.StackTrace}");
-        //    }
-        //}
-
-        //public void SetResourceSchema(XmlSchemaSet schema)
-        //{
-        //    _resourceSchema = schema;
-        //}
 
         public virtual MagitekResults<ProjectTree> OpenProjectFile(string projectFileName)
         {
@@ -188,11 +139,11 @@ namespace ImageMagitek.Services
 
         public virtual void CloseProjects()
         {
-            foreach (var projectTree in Projects)
-            {
-                foreach (var file in projectTree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataFile>())
-                    file.Close();
-            }
+            var files = Projects.SelectMany(tree => tree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataFile>());
+
+            foreach (var file in files)
+                file.Close();
+
             Projects.Clear();
         }
 

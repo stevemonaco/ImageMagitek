@@ -9,7 +9,7 @@ using ImageMagitek.Colors;
 namespace ImageMagitek.Project.Serialization
 {
     /// <summary>
-    /// Builds a ProjectTree and resolves resources from Serialization Models
+    /// Builds a ProjectTree from Serialization Models and handles resolving of resources
     /// </summary>
     class ProjectTreeBuilder
     {
