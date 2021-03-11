@@ -20,7 +20,7 @@ namespace TileShop.CLI.Commands
 
             foreach (var res in projectTree.EnumerateDepthFirst())
             {
-                string key = res.PathKey;
+                string key = projectTree.CreatePathKey(res);
                 Console.WriteLine($"{res.Name}: Type '{res.Item.GetType().Name}'; Resource Key '{key}'");
             }
 

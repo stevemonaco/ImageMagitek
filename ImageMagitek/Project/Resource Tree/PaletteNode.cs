@@ -1,8 +1,12 @@
-﻿namespace ImageMagitek.Project
+﻿using ImageMagitek.Project.Serialization;
+
+namespace ImageMagitek.Project
 {
     public class PaletteNode : ResourceNode
     {
-        public PaletteNode(string nodeName, IProjectResource resource, ResourceMetadata metadata = null) : base(nodeName, resource, metadata)
+        public PaletteModel Model { get; set; }
+
+        public PaletteNode(string nodeName, IProjectResource resource) : base(nodeName, resource)
         {
         }
     }

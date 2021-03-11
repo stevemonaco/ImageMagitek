@@ -13,12 +13,12 @@
         public bool LostElement { get; set; }
         public bool IsChanged { get; set; }
 
-        public ResourceChange(ResourceNode resourceNode, bool removed, bool lostPalette, bool lostElement)
+        public ResourceChange(ResourceNode resourceNode, string resourcePathKey, bool removed, bool lostPalette, bool lostElement)
         {
             ResourceNode = resourceNode;
             Resource = resourceNode.Item;
             ResourceName = Resource.Name;
-            ResourcePath = ResourceNode.PathKey;
+            ResourcePath = resourcePathKey;
             Removed = removed;
             LostPalette = lostPalette;
             LostElement = lostElement;

@@ -22,7 +22,7 @@ namespace TileShop.CLI.Commands
 
             foreach (var node in projectTree.EnumerateDepthFirst().Where(x => x.Item is ScatteredArranger))
             {
-                Exporter.ExportArranger(projectTree, node.PathKey, options.ExportDirectory, options.ForceOverwrite);
+                Exporter.ExportArranger(projectTree, projectTree.CreatePathKey(node), options.ExportDirectory, options.ForceOverwrite);
             }
 
             return ExitCode.Success;

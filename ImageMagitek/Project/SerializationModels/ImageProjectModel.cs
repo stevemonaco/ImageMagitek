@@ -1,25 +1,18 @@
-﻿namespace ImageMagitek.Project.Serialization
+﻿using System;
+
+namespace ImageMagitek.Project.Serialization
 {
     public class ImageProjectModel : ResourceModel
     {
         public string Root { get; set; }
+        public decimal Version { get; set; }
 
-        public ImageProject ToImageProject()
+        public override bool ResourceEquals(ResourceModel resourceModel)
         {
-            return new ImageProject()
-            {
-                Name = Name,
-                Root = Root
-            };
-        }
+            if (resourceModel is not ImageProjectModel model)
+                return false;
 
-        public static ImageProjectModel FromImageProject(ImageProject project)
-        {
-            return new ImageProjectModel()
-            {
-                Name = project.Name,
-                Root = project.Root
-            };
+            return model.Root == Root && model.Name == Name;
         }
     }
 }

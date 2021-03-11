@@ -1,26 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using ImageMagitek.Colors;
+using ImageMagitek.Project.Serialization;
 using Monaco.PathTree;
 using Monaco.PathTree.Abstractions;
 
 namespace ImageMagitek.Project
 {
-    public sealed class ProjectTree : PathTreeBase<ResourceNode, IProjectResource, ResourceMetadata>
+    public sealed class ProjectTree : PathTreeBase<ResourceNode, IProjectResource>
     {
         public ImageProject Project => Root?.Item as ImageProject;
         public string Name => Root.Item.Name;
-        public string FileLocation { get; set; }
+        //public string FileLocation => (Root?.Metadata as ProjectMetadata).FileLocation;
 
-        public ProjectTree(ResourceNode root, string fileLocation = default) :
+        public ProjectTree(ProjectNode root, string fileLocation = default) :
             base(root)
         {
             if (root?.Item is not ImageProject)
                 throw new ArgumentException($"{nameof(ProjectTree)} ctor called with invalid" +
                     $" root type '{root.GetType()}'");
 
-            FileLocation = fileLocation;
+            ExcludeRootFromPath = true;
+            //if (string.IsNullOrEmpty(root?.FileLocation))
+            //    throw new ArgumentException($"{nameof(ProjectTree)} ctor called with an invalid metadata file location");
         }
 
         /// <summary>
@@ -30,7 +34,7 @@ namespace ImageMagitek.Project
         /// <returns></returns>
         public bool ContainsResource(IProjectResource resource)
         {
-            return Root.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource, ResourceMetadata>()
+            return Root.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>()
                 .Any(x => ReferenceEquals(x.Item, resource));
         }
 
@@ -39,7 +43,7 @@ namespace ImageMagitek.Project
         /// </summary>
         /// <param name="node">Node to search</param>
         public bool ContainsNode(ResourceNode node) =>
-            ReferenceEquals(node.SelfAndAncestors<ResourceNode, IProjectResource, ResourceMetadata>().Last(), Root);
+            ReferenceEquals(node.SelfAndAncestors<ResourceNode, IProjectResource>().Last(), Root);
 
         /// <summary>
         /// Creates a new folder node under the specified parent
@@ -56,8 +60,8 @@ namespace ImageMagitek.Project
             {
                 var childName = FindFirstNewChildResourceName(parentNode, name);
                 var folder = new ResourceFolder(childName);
-
-                var node = parentNode.AddChild(folder.Name, folder);
+                var node = new ResourceFolderNode(childName, folder);
+                parentNode.AttachChildNode(node);
                 return new MagitekResult<ResourceNode>.Success(node);
             }
             else
@@ -87,17 +91,22 @@ namespace ImageMagitek.Project
             }
             else
             {
-                if (resource is DataFile || resource is ScatteredArranger || resource is Palette || resource is ResourceFolder)
+                ResourceNode childNode = resource switch
                 {
-                    parentNode.AddChild(resource.Name, resource);
-                    parentNode.TryGetChildNode(resource.Name, out var childNode);
-                    
-                    return new MagitekResult<ResourceNode>.Success(childNode);
-                }
-                else
-                {
-                    return new MagitekResult<ResourceNode>.Failed($"Cannot add a resource of type '{resource.GetType()}'"); ;
-                }
+                    DataFile df => new DataFileNode(df.Name, df),
+                    ScatteredArranger arranger => new ArrangerNode(arranger.Name, arranger),
+                    Palette pal => new PaletteNode(pal.Name, pal),
+                    ResourceFolder folder => new ResourceFolderNode(folder.Name, folder),
+                    _ => null
+                };
+
+                if (childNode is null)
+                    return new MagitekResult<ResourceNode>.Failed($"Cannot add a resource of type '{resource.GetType()}'");
+
+                parentNode.AttachChildNode(childNode);
+                childNode.FileLocation = LocateResourceFileByPathKey(this.CreatePathKey(childNode));
+
+                return new MagitekResult<ResourceNode>.Success(childNode);
             }
         }
 
@@ -115,7 +124,11 @@ namespace ImageMagitek.Project
             if (ReferenceEquals(node, parentNode))
                 return new MagitekResult.Failed($"Cannot move {node.Name} onto itself");
 
-            if (node.Parent.PathKey == parentNode.PathKey)
+
+            var nodeKey = CreatePathKey(node);
+            var parentKey = CreatePathKey(parentNode);
+
+            if (CreatePathKey(node.Parent) == parentKey)
                 return new MagitekResult.Failed($"Cannot move {node.Name} onto itself");
 
             if (parentNode.ContainsChildNode(node.Name))
@@ -126,15 +139,16 @@ namespace ImageMagitek.Project
 
             if (node.Item is ResourceFolder && parentNode.Item is ResourceFolder)
             {
-                if (parentNode.Ancestors<ResourceNode, IProjectResource, ResourceMetadata>().Any(x => x.PathKey == node.PathKey))
+                var keys = parentNode.Ancestors<ResourceNode, IProjectResource>().Select(x => CreatePathKey(x));
+                if (keys.Any(x => x == nodeKey))
                     return new MagitekResult.Failed($"{parentNode.Name} cannot be moved underneath its child node");
             }
 
             if (!ContainsNode(node))
-                return new MagitekResult.Failed($"{node.PathKey} is not contained within project {Root.Item.Name}");
+                return new MagitekResult.Failed($"{nodeKey} is not contained within project {Root.Item.Name}");
 
             if (!ContainsNode(parentNode))
-                return new MagitekResult.Failed($"{parentNode.PathKey} is not contained within project {Root.Item.Name}");
+                return new MagitekResult.Failed($"{parentKey} is not contained within project {Root.Item.Name}");
 
             return MagitekResult.SuccessResult;
         }
@@ -150,8 +164,13 @@ namespace ImageMagitek.Project
             return CanMoveNode(node, parentNode).Match<MagitekResult>(
                 success =>
                 {
+                    var oldFileName = node.FileLocation;
+                    var newFileName = LocateResourceFileByPathKey(CreatePathKey(parentNode), node.Name);
+                    File.Move(oldFileName, newFileName, true);
+
                     node.Parent.DetachChildNode(node.Name);
                     parentNode.AttachChildNode(node);
+                    node.FileLocation = newFileName;
                     return MagitekResult.SuccessResult;
                 },
                 failed => failed
@@ -171,10 +190,10 @@ namespace ImageMagitek.Project
             if (!ContainsNode(removeNode))
                 throw new ArgumentException($"{nameof(GetSecondaryResourceRemovalChanges)} value '{removeNode.Name}' was not found in the project tree");
 
-            var rootRemovalChange = new ResourceChange(removeNode, true, false, false);
+            var rootRemovalChange = new ResourceChange(removeNode, CreatePathKey(removeNode), true, false, false);
 
-            var removedDict = removeNode.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource, ResourceMetadata>()
-                .Select(x => new ResourceChange(x, true, false, false))
+            var removedDict = removeNode.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>()
+                .Select(x => new ResourceChange(x, CreatePathKey(x), true, false, false))
                 .ToDictionary(key => key.Resource, val => val);
 
             foreach (var node in removedDict.Values)
@@ -187,7 +206,7 @@ namespace ImageMagitek.Project
 
             foreach (var paletteNode in removedPaletteNodes)
             {
-                var paletteChange = new ResourceChange(paletteNode, true, false, false);
+                var paletteChange = new ResourceChange(paletteNode, CreatePathKey(paletteNode), true, false, false);
                 removedDict[paletteNode.Item] = paletteChange;
                 yield return paletteChange;
             }
@@ -217,7 +236,7 @@ namespace ImageMagitek.Project
 
                 if (removed || lostPalette || lostElements)
                 {
-                    var change = new ResourceChange(node, removed, lostPalette, lostElements);
+                    var change = new ResourceChange(node, CreatePathKey(node), removed, lostPalette, lostElements);
                     yield return change;
                 }
             }
@@ -248,6 +267,12 @@ namespace ImageMagitek.Project
                 return new string[] { baseName }
                 .Concat(Enumerable.Range(1, 999).Select(x => $"{baseName} ({x})"))
                 .FirstOrDefault(x => !node.ContainsChildNode(x));
+        }
+
+        private string LocateResourceFileByPathKey(string path, string child = "")
+        {
+            var projectBase = (Root.Item as ImageProject).Root;
+            return Path.Combine(projectBase, path, $"{child}.xml");
         }
     }
 }

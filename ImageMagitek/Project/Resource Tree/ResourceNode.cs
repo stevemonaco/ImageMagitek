@@ -1,17 +1,15 @@
-﻿using Monaco.PathTree.Abstractions;
+﻿using ImageMagitek.Project.Serialization;
+using Monaco.PathTree.Abstractions;
 
 namespace ImageMagitek.Project
 {
-    public class ResourceNode : PathNodeBase<ResourceNode, IProjectResource, ResourceMetadata>
+    public class ResourceNode : PathNodeBase<ResourceNode, IProjectResource>
     {
-        public ResourceNode(string nodeName, IProjectResource resource, ResourceMetadata metadata = default) :
-            base(nodeName, resource, metadata)
-        {
-        }
+        public string FileLocation { get; set; }
 
-        protected override ResourceNode CreateNode(string nodeName, IProjectResource item, ResourceMetadata metadata = null)
+        public ResourceNode(string nodeName, IProjectResource resource) :
+            base(nodeName, resource)
         {
-            return new ResourceNode(nodeName, item, metadata);
         }
     }
 }

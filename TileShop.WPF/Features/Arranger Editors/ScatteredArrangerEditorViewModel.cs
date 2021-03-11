@@ -123,7 +123,7 @@ namespace TileShop.WPF.ViewModels
 
                          IsModified = false;
                      },
-                     fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
+                     fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.FileLocation}: {fail.Reason}")
                  );
         }
 
@@ -420,7 +420,7 @@ namespace TileShop.WPF.ViewModels
             var projectTree = _projectService.GetContainingProject(Resource);
             var palettes = projectTree.EnumerateDepthFirst()
                 .Where(x => x.Item is Palette)
-                .Select(x => new AssociatePaletteModel(x.Item as Palette, x.PathKey))
+                .Select(x => new AssociatePaletteModel(x.Item as Palette, projectTree.CreatePathKey(x)))
                 .Concat(_paletteService.GlobalPalettes.Select(x => new AssociatePaletteModel(x, x.Name)));
 
             var model = new AssociatePaletteViewModel(palettes);

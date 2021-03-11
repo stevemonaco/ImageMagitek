@@ -16,7 +16,7 @@ namespace TileShop.CLI.Porters
                 return false;
             }
 
-            var relativeFile = Path.Combine(node.Paths.ToArray());
+            var relativeFile = Path.Combine(projectTree.CreatePaths(node).ToArray());
             var exportFileName = Path.Combine(projectRoot, $"{relativeFile}.png");
 
             var arranger = node.Item as ScatteredArranger;

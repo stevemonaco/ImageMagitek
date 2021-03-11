@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using ImageMagitek.Colors;
+using ImageMagitek.Utility;
 using Monaco.PathTree;
 
 namespace ImageMagitek.Project.Serialization
@@ -24,6 +26,12 @@ namespace ImageMagitek.Project.Serialization
             _globalDefaultPalette = globalResources.OfType<Palette>().FirstOrDefault();
         }
 
+        /// <summary>
+        /// Writes all project resources contained in a ProjectTree to disk
+        /// </summary>
+        /// <param name="tree">Tree to be saved</param>
+        /// <param name="projectFileName">Filename to write</param>
+        /// <returns></returns>
         public MagitekResult WriteProject(ProjectTree tree, string projectFileName)
         {
             if (tree is null)
@@ -35,25 +43,45 @@ namespace ImageMagitek.Project.Serialization
             _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName));
             _activeBackupFiles = new HashSet<string>();
 
-            var xmlRoot = new XElement("gdf");
-            xmlRoot.Add(new XAttribute("version", DescriptorVersion));
-
             var modelTree = BuildModelTree(tree);
 
-            foreach (var node in modelTree.EnumerateDepthFirst())
-            {
-                XElement element = node.Item switch
-                {
-                    ResourceFolderModel folderModel => Serialize(folderModel),
-                    DataFileModel dataFileModel => Serialize(dataFileModel),
-                    PaletteModel paletteModel => Serialize(paletteModel),
-                    ScatteredArrangerModel arrangerModel => Serialize(arrangerModel),
-                    ImageProjectModel projectModel => Serialize(projectModel),
-                    _ => throw new InvalidOperationException($"{nameof(WriteProject)}: unexpected node of type '{node.Item.GetType()}'"),
-                };
+            return TrySerializeModelTree(tree, modelTree).Match<MagitekResult>(
+                success => MagitekResult.SuccessResult,
+                failed => new MagitekResult.Failed(failed.Reasons.First()));
+        }
 
-                AddResourceToXmlTree(xmlRoot, element, node.Paths.ToArray());
+        private MagitekResults TrySerializeModelTree(ProjectTree projectTree, ProjectModelTree modelTree)
+        {
+            var actions = new List<BackupFileAndOverwriteExistingTransaction>();
+
+            foreach (var modelNode in modelTree.EnumerateDepthFirst().Where(x => x.Item is not ResourceFolderModel))
+            {
+                var modelKey = modelTree.CreatePathKey(modelNode);
+                projectTree.TryGetNode<ProjectNode>(modelKey, out var projectNode);
+
+                if (modelNode.Item.ResourceEquals(projectNode.Model))
+                    continue;
+
+                var diskLocation = LocateResourceOnDisk(projectNode);
+                 actions.Add(CreateWriteAction(modelNode, diskLocation));
             }
+
+            var transaction = new FileSetWriteTransaction(actions);
+
+            return transaction.Transact();
+        }
+
+        private BackupFileAndOverwriteExistingTransaction CreateWriteAction(ResourceModelNode modelNode, string diskLocation)
+        {
+            XElement element = modelNode.Item switch
+            {
+                ResourceFolderModel folderModel => Serialize(folderModel),
+                DataFileModel dataFileModel => Serialize(dataFileModel),
+                PaletteModel paletteModel => Serialize(paletteModel),
+                ScatteredArrangerModel arrangerModel => Serialize(arrangerModel),
+                ImageProjectModel projectModel => Serialize(projectModel),
+                _ => throw new InvalidOperationException($"{nameof(WriteProject)}: unexpected node of type '{modelNode.Item.GetType()}'"),
+            };
 
             var xws = new XmlWriterSettings
             {
@@ -61,91 +89,29 @@ namespace ImageMagitek.Project.Serialization
                 IndentChars = "\t"
             };
 
-            try
-            {
-                using var fs = new FileStream(projectFileName, FileMode.Create);
-                using var xw = XmlWriter.Create(fs, xws);
-                xmlRoot.Save(xw);
+            var sb = new StringBuilder();
+            using var xw = XmlWriter.Create(sb, xws);
+            element.Save(xw);
 
-                return MagitekResult.SuccessResult;
-            }
-            catch (Exception ex)
-            {
-                return new MagitekResult.Failed($"{ex.Message}");
-            }
+            var action = new BackupFileAndOverwriteExistingTransaction(diskLocation, sb.ToString());
+            return action;
         }
 
-        //private MagitekResults TrySerializeModelTree(IPathTree<ProjectNodeModel> modelTree)
-        //{
-        //    //var existingNodesOnDisk = modelTree.EnumerateDepthFirst()
-        //    //    .Where(x => File.Exists(LocateResource(x.PathKey)));
-        //}
-
-        private static MagitekResult TryStartSave(IEnumerable<string> fileNames)
-        {
-            string destName = string.Empty;
-            try
-            {
-                foreach (var fileName in fileNames.Where(File.Exists))
-                {
-                    destName = Path.ChangeExtension(fileName, ".bak");
-                    File.Move(fileName, destName, true);
-                }
-
-                return MagitekResult.SuccessResult;
-            }
-            catch (Exception ex)
-            {
-                return new MagitekResult.Failed($"Failed to rename existing XML files to .bak ('{destName}') in preparation for save: {ex.Message}");
-            }
-        }
-
-        private static MagitekResults TryRevertSave(IEnumerable<string> fileNames)
-        {
-            var errors = new List<string>();
-
-            foreach (var fileName in fileNames)
-            {
-                TryRevertFile(fileName).Switch(
-                    success => { },
-                    failed => errors.Add(failed.Reason)
-                );
-            }
-
-            if (errors.Count > 0)
-                return new MagitekResults.Failed(errors);
-            else
-                return MagitekResults.SuccessResults;
-        }
-
-        private static MagitekResult TryRevertFile(string fileName)
-        {
-            try
-            {
-                var restoreFileName = Path.ChangeExtension(fileName, ".bak");
-                File.Move(restoreFileName, fileName, true);
-                return MagitekResult.SuccessResult;
-            }
-            catch (Exception ex)
-            {
-                return new MagitekResult.Failed($"'{fileName}' failed to revert: {ex.Message}");
-            }
-        }
-
-        private ResourceModelTree BuildModelTree(ProjectTree projectTree)
+        private ProjectModelTree BuildModelTree(ProjectTree projectTree)
         {
             var resourceResolver = new Dictionary<IProjectResource, string>();
             foreach (var node in projectTree.EnumerateDepthFirst())
-                resourceResolver.Add(node.Item, node.PathKey);
+                resourceResolver.Add(node.Item, projectTree.CreatePathKey(node));
 
-            var projectModel = ImageProjectModel.FromImageProject(projectTree.Root.Item as ImageProject);
+            var projectModel = projectTree.Project.MapToModel();
             var root = new ResourceModelNode(projectModel.Name, projectModel);
-            var modelTree = new ResourceModelTree(root);
+            var modelTree = new ProjectModelTree(root);
 
-            foreach (var node in projectTree.EnumerateDepthFirst().Where(x => x.Item.ShouldBeSerialized && x.Item is ResourceFolder))
+            foreach (var projectNode in projectTree.EnumerateDepthFirst().Where(x => x.Item.ShouldBeSerialized && x.Item is ResourceFolder))
             {
-                var folderModel = ResourceFolderModel.FromResourceFolder(node.Item as ResourceFolder);
-                modelTree.AddItemAsPath(node.PathKey, folderModel);
+                var folderModel = (projectNode.Item as ResourceFolder).MapToModel();
+                var modelNode = new ResourceModelNode(projectNode.Name, folderModel);
+                modelTree.AttachNodeAsPath(projectTree.CreatePathKey(projectNode), modelNode);
             }
 
             foreach (var node in projectTree.EnumerateDepthFirst().Where(x => x.Item.ShouldBeSerialized))
@@ -155,23 +121,25 @@ namespace ImageMagitek.Project.Serialization
                     case ResourceFolder folder:
                         break;
                     case DataFile dataFile:
-                        var dataFileModel = DataFileModel.FromDataFile(dataFile);
-                        modelTree.AddItemAsPath(node.PathKey, dataFileModel);
+                        var dataFileModel = dataFile.MapToModel();
+                        var fileNode = new ResourceModelNode(node.Name, dataFileModel);
+                        modelTree.AttachNodeAsPath(projectTree.CreatePathKey(node), fileNode);
                         break;
                     case Palette palette:
-                        var paletteModel = PaletteModel.FromPalette(palette);
+                        var paletteModel = palette.MapToModel();
                         paletteModel.DataFileKey = resourceResolver[palette.DataFile];
-                        modelTree.AddItemAsPath(node.PathKey, paletteModel);
+                        var paletteNode = new ResourceModelNode(node.Name, paletteModel);
+                        modelTree.AttachNodeAsPath(projectTree.CreatePathKey(node), paletteNode);
                         break;
                     case ScatteredArranger arranger:
-                        var arrangerModel = ScatteredArrangerModel.FromScatteredArranger(arranger);
+                        var arrangerModel = arranger.MapToModel();
                         for (int x = 0; x < arrangerModel.ArrangerElementSize.Width; x++)
                         {
                             for (int y = 0; y < arrangerModel.ArrangerElementSize.Height; y++)
                             {
                                 if (arranger.GetElement(x, y) is ArrangerElement element)
                                 {
-                                    var elementModel = ArrangerElementModel.FromArrangerElement(element, x, y);
+                                    var elementModel = element.MapToModel(x, y);
 
                                     if (element.DataFile is object)
                                         elementModel.DataFileKey = resourceResolver[element.DataFile];
@@ -190,7 +158,8 @@ namespace ImageMagitek.Project.Serialization
                             }
                         }
 
-                        modelTree.AddItemAsPath(node.PathKey, arrangerModel);
+                        var arrangerNode = new ResourceModelNode(node.Name, arrangerModel);
+                        modelTree.AttachNodeAsPath(projectTree.CreatePathKey(node), arrangerNode);
                         break;
                 }
             }
@@ -216,6 +185,7 @@ namespace ImageMagitek.Project.Serialization
         {
             var element = new XElement("project");
             element.Add(new XAttribute("name", projectModel.Name));
+            element.Add(new XAttribute("version", DescriptorVersion));
 
             if (!string.IsNullOrEmpty(projectModel.Root))
                 element.Add(new XAttribute("root", projectModel.Root));
@@ -311,9 +281,15 @@ namespace ImageMagitek.Project.Serialization
             return arrangerNode;
         }
 
-        private string LocateResource(string location)
+        private string LocateResourceOnDisk(ResourceNode node)
         {
-            return Path.Join(_baseDirectory, location);
+            var relativePath = string.Join
+            (
+                Path.DirectorySeparatorChar,
+                node.SelfAndAncestors<ResourceNode, IProjectResource>().Select(x => x.Name).Reverse().Skip(1)
+            );
+
+            return Path.Join(_baseDirectory, $"{relativePath}.xml");
         }
     }
 }

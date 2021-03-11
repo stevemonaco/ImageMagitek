@@ -7,52 +7,86 @@ using System.Threading.Tasks;
 
 namespace ImageMagitek.Utility
 {
-    //public interface IFileSetWriteTransaction
-    //{
-    //    MagitekResults Transact(IEnumerable<IFileWriteTransaction> fileActions);
-    //}
+    public interface IFileChangeTransactionRunner
+    {
+        MagitekResults Transact();
+    }
 
-    //public class FileSetWriteTransaction : IFileSetWriteTransaction
-    //{
-    //    public MagitekResults Transact(IEnumerable<IFileWriteTransaction> fileActions)
-    //    {
-    //        TryStartSave(fileActions);
+    public class FileSetWriteTransaction : IFileChangeTransactionRunner
+    {
+        private readonly IList<IFileChangeTransaction> _actions;
 
-    //        return MagitekResults.SuccessResults;
-    //    }
+        public FileSetWriteTransaction(IEnumerable<IFileChangeTransaction> actions)
+        {
+            _actions = actions.ToList();
+        }
 
-    //    private static MagitekResult TryStartSave(IEnumerable<IFileWriteTransaction> fileActions)
-    //    {
-    //        string destName = string.Empty;
-    //        try
-    //        {
-    //            foreach (var action in fileActions.Where(x => File.Exists(x.FileName)))
-    //            {
-    //                destName = Path.ChangeExtension(action.FileName, ".bak");
-    //                File.Move(action.FileName, destName, true);
-    //            }
+        public MagitekResults Transact()
+        {
+            return TryRunTransactionSet().Match<MagitekResults>(
+                success => MagitekResults.SuccessResults,
+                failed =>
+                {
+                    var compositeErrors = new List<string>
+                    {
+                        failed.Reason
+                    };
 
-    //            return MagitekResult.SuccessResult;
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            return new MagitekResult.Failed($"Failed to rename existing XML files to .bak ('{destName}') in preparation for save: {ex.Message}");
-    //        }
-    //    }
+                    return TrySetRollback().Match(
+                        rollBackSuccess =>
+                        {
+                            return new MagitekResults.Failed(compositeErrors);
+                        },
+                        rollbackFailure =>
+                        {
+                            compositeErrors.AddRange(rollbackFailure.Reasons);
+                            return new MagitekResults.Failed(compositeErrors);
+                        });
+                });
+        }
 
-    //    private static MagitekResults TryRevertSave(IEnumerable<IFileWriteTransaction> fileActions)
-    //    {
-    //        var errors = new List<string>();
+        private MagitekResult TryRunTransactionSet()
+        {
+            string destName = string.Empty;
+            try
+            {
+                foreach (var action in _actions)
+                {
+                    action.Prepare();
+                }
 
-    //        foreach (var action in fileActions)
-    //        {
-    //            action.Revert();
-    //        }
+                foreach (var action in _actions)
+                {
+                    action.Execute();
+                }
 
-    //        if (errors.Count > 0)
-    //            return new MagitekResults.Failed(errors);
-    //        else
-    //            return MagitekResults.SuccessResults;
-    //    }
-    //}
+                foreach (var action in _actions)
+                {
+                    action.Complete();
+                }
+
+                return MagitekResult.SuccessResult;
+            }
+            catch (Exception ex)
+            {
+                return new MagitekResult.Failed($"Failed to rename existing XML files to .bak ('{destName}') in preparation for save: {ex.Message}");
+            }
+        }
+
+        private MagitekResults TrySetRollback()
+        {
+            var errors = new List<string>();
+
+            foreach (var action in _actions.Where(x => x.State == TransactionState.RollbackRequired))
+            {
+                if (action.Rollback())
+                    errors.Add($"'{action.PrimaryFileName}' failed to rollback");
+            }
+
+            if (errors.Count > 0)
+                return new MagitekResults.Failed(errors);
+            else
+                return MagitekResults.SuccessResults;
+        }
+    }
 }

@@ -3,9 +3,11 @@ using System.IO;
 
 namespace ImageMagitek.Utility
 {
-    public class BackupFileAndOverwriteExistingTransaction : ITransactionCommand
+    public class BackupFileAndOverwriteExistingTransaction : IFileChangeTransaction
     {
-        public string FileName { get; }
+        public TransactionState State { get; private set; }
+
+        public string PrimaryFileName { get; set; }
         public string Contents { get; }
         public string BackupFileName { get; }
 
@@ -13,30 +15,36 @@ namespace ImageMagitek.Utility
 
         public BackupFileAndOverwriteExistingTransaction(string fileName, string contents)
         {
-            FileName = fileName;
+            PrimaryFileName = fileName;
             Contents = contents;
 
-            BackupFileName = Path.ChangeExtension(FileName, ".bak");
+            BackupFileName = Path.ChangeExtension(PrimaryFileName, ".bak");
+            State = TransactionState.NotStarted;
         }
 
         /// <summary>
-        /// Prepares for writing by moving the existing file to a backup location
+        /// Prepares for writing by moving an optionally existing file to a backup location
         /// </summary>
         /// <returns>True if successful, false if an exception occurred</returns>
         public bool Prepare()
         {
+            if (State != TransactionState.NotStarted)
+                throw new InvalidOperationException($"Attempted to call {nameof(Prepare)} while {nameof(TransactionState)} was '{State}'");
+
             try
             {
-                if (File.Exists(FileName))
+                if (File.Exists(PrimaryFileName))
                 {
-                    File.Move(FileName, BackupFileName, true);
+                    File.Move(PrimaryFileName, BackupFileName, true);
                 }
 
+                State = TransactionState.Prepared;
                 return true;
             }
             catch (Exception ex)
             {
                 LastException = ex;
+                State = TransactionState.RollbackRequired;
                 return false;
             }
         }
@@ -47,14 +55,19 @@ namespace ImageMagitek.Utility
         /// <returns></returns>
         public bool Execute()
         {
+            if (State != TransactionState.Prepared)
+                throw new InvalidOperationException($"Attempted to call {nameof(Execute)} while {nameof(TransactionState)} was '{State}'");
+
             try
             {
-                File.WriteAllText(FileName, Contents);
+                File.WriteAllText(PrimaryFileName, Contents);
+                State = TransactionState.Executed;
                 return true;
             }
             catch (Exception ex)
             {
                 LastException = ex;
+                State = TransactionState.RollbackRequired;
                 return false;
             }
         }
@@ -65,20 +78,28 @@ namespace ImageMagitek.Utility
         /// <returns></returns>
         public bool Rollback()
         {
+            if (State != TransactionState.RollbackRequired)
+                throw new InvalidOperationException($"Attempted to call {nameof(Rollback)} while {nameof(TransactionState)} was '{State}'");
+
             try
             {
                 if (File.Exists(BackupFileName))
                 {
-                    File.Move(BackupFileName, FileName, true);
+                    File.Move(BackupFileName, PrimaryFileName, true);
                 }
                 else
+                {
+                    State = TransactionState.RollbackCompleted;
                     return false;
+                }
 
+                State = TransactionState.RollbackCompleted;
                 return true;
             }
             catch (Exception ex)
             {
                 LastException = ex;
+                State = TransactionState.RollbackFailed;
                 return false;
             }
         }
@@ -89,14 +110,19 @@ namespace ImageMagitek.Utility
         /// <returns></returns>
         public bool Complete()
         {
+            if (State != TransactionState.Executed)
+                throw new InvalidOperationException($"Attempted to call {nameof(Complete)} while {nameof(TransactionState)} was '{State}'");
+
             try
             {
                 File.Delete(BackupFileName);
+                State = TransactionState.Completed;
                 return true;
             }
             catch (Exception ex)
             {
                 LastException = ex;
+                State = TransactionState.RollbackFailed;
                 return false;
             }
         }

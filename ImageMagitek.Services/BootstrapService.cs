@@ -21,7 +21,6 @@ namespace ImageMagitek.Services
         public static string DefaultPalettePath { get; } = "_palettes";
         public static string DefaultCodecPath { get; } = "_codecs";
         public static string DefaultPluginPath { get; } = "_plugins";
-        public static string DefaultProjectSchemaFileName { get; } = Path.Combine("_schemas", "ProjectSchema.xsd");
         public static string DefaultResourceSchemaFileName { get; } = Path.Combine("_schemas", "ResourceSchema.xsd");
         public static string DefaultCodecSchemaFileName { get; } = Path.Combine("_schemas", "CodecSchema.xsd");
 

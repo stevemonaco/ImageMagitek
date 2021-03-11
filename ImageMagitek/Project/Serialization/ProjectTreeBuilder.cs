@@ -19,6 +19,7 @@ namespace ImageMagitek.Project.Serialization
         private readonly Palette _globalDefaultPalette;
         private readonly ICodecFactory _codecFactory;
         private readonly IColorFactory _colorFactory;
+        private string _baseDirectory;
 
         public ProjectTreeBuilder(ICodecFactory codecFactory, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
         {
@@ -28,14 +29,19 @@ namespace ImageMagitek.Project.Serialization
             _globalDefaultPalette = _globalResources.OfType<Palette>().FirstOrDefault();
         }
 
-        public MagitekResult AddProject(ImageProjectModel projectModel)
+        public MagitekResult AddProject(ImageProjectModel projectModel, string baseDirectory, string projectFileName)
         {
             if (Tree?.Root is object)
                 return new MagitekResult.Failed($"Attempted to add a new project '{projectModel?.Name}' to an existing project");
 
-            var metadata = new ProjectMetadata(projectModel);
-            var root = new ProjectNode(projectModel.Name, projectModel.ToImageProject(), metadata);
+            var root = new ProjectNode(projectModel.Name, projectModel.MapToResource())
+            {
+                FileLocation = projectFileName,
+                BaseDirectory = baseDirectory
+            };
+
             Tree = new ProjectTree(root);
+            //_baseDirectory = metadata.BaseDirectory;
 
             return MagitekResult.SuccessResult;
         }
@@ -44,20 +50,25 @@ namespace ImageMagitek.Project.Serialization
         {
             var folder = new ResourceFolder(folderModel.Name);
 
-            var folderNode = new FolderNode(folder.Name, folder);
+            var folderNode = new ResourceFolderNode(folder.Name, folder);
             Tree.TryGetNode(parentNodePath, out var parentNode);
             parentNode.AttachChildNode(folderNode);
 
             return MagitekResult.SuccessResult;
         }
 
-        public MagitekResult AddDataFile(DataFileModel dfModel, string parentNodePath)
+        public MagitekResult AddDataFile(DataFileModel dfModel, string parentNodePath, string fileLocation)
         {
             var df = new DataFile(dfModel.Name, dfModel.Location);
 
-            var dfNode = new DataFileNode(df.Name, df);
+            var dfNode = new DataFileNode(df.Name, df)
+            {
+                FileLocation = fileLocation,
+                Model = dfModel
+            };
+
             Tree.TryGetNode(parentNodePath, out var parentNode);
-            parentNode.AttachChildNode(dfNode);
+            parentNode.AttachChildNode(dfNode);            
 
             if (!File.Exists(df.Location))
                 return new MagitekResult.Failed($"DataFile '{df.Name}' does not exist at location '{df.Location}'");
@@ -65,7 +76,7 @@ namespace ImageMagitek.Project.Serialization
             return MagitekResult.SuccessResult;
         }
 
-        public MagitekResult AddPalette(PaletteModel paletteModel, string parentNodePath)
+        public MagitekResult AddPalette(PaletteModel paletteModel, string parentNodePath, string fileLocation)
         {
             var pal = new Palette(paletteModel.Name, _colorFactory, paletteModel.ColorModel, paletteModel.FileAddress, paletteModel.Entries, paletteModel.ZeroIndexTransparent, paletteModel.StorageSource);
 
@@ -75,14 +86,19 @@ namespace ImageMagitek.Project.Serialization
             pal.DataFile = df;
             pal.LazyLoadPalette(pal.DataFile, pal.FileAddress, pal.ColorModel, pal.ZeroIndexTransparent, pal.Entries);
 
-            var palNode = new PaletteNode(pal.Name, pal);
+            var palNode = new PaletteNode(pal.Name, pal)
+            {
+                FileLocation = fileLocation,
+                Model = paletteModel
+            };
+
             Tree.TryGetNode(parentNodePath, out var parentNode);
             parentNode.AttachChildNode(palNode);
 
             return MagitekResult.SuccessResult;
         }
 
-        public MagitekResult AddScatteredArranger(ScatteredArrangerModel arrangerModel, string parentNodePath)
+        public MagitekResult AddScatteredArranger(ScatteredArrangerModel arrangerModel, string parentNodePath, string fileLocation)
         {
             var arranger = new ScatteredArranger(arrangerModel.Name, arrangerModel.ColorType, arrangerModel.Layout, 
                 arrangerModel.ArrangerElementSize.Width, arrangerModel.ArrangerElementSize.Height, arrangerModel.ElementPixelSize.Width, arrangerModel.ElementPixelSize.Height);
@@ -104,7 +120,12 @@ namespace ImageMagitek.Project.Serialization
                 }
             }
 
-            var arrangerNode = new ArrangerNode(arranger.Name, arranger);
+            var arrangerNode = new ArrangerNode(arranger.Name, arranger)
+            {
+                FileLocation = fileLocation,
+                Model = arrangerModel
+            };
+
             Tree.TryGetNode(parentNodePath, out var parentNode);
             parentNode.AttachChildNode(arrangerNode);
 
@@ -127,7 +148,7 @@ namespace ImageMagitek.Project.Serialization
             }
             else if (!Tree.TryGetItem<Palette>(paletteKey, out pal))
             {
-                var name = paletteKey.Split(Tree.PathSeparators).Last();
+                var name = paletteKey.Split(Tree.PathSeparators[0]).Last();
                 pal = _globalResources.OfType<Palette>().FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
             }
 

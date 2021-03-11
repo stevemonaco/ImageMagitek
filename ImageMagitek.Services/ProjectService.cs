@@ -45,9 +45,10 @@ namespace ImageMagitek.Services
 
             var projectName = Path.GetFileNameWithoutExtension(projectFileName);
             var project = new ImageProject(projectName);
+            project.Root = "";
             var root = new ProjectNode(project.Name, project);
+            root.FileLocation = Path.GetFullPath(projectFileName);
             var tree = new ProjectTree(root);
-            tree.FileLocation = projectFileName;
 
             Projects.Add(tree);
             return new MagitekResult<ProjectTree>.Success(tree);
@@ -86,13 +87,15 @@ namespace ImageMagitek.Services
             if (projectTree is null)
                 throw new InvalidOperationException($"{nameof(SaveProject)} parameter '{nameof(projectTree)}' was null");
 
-            if (string.IsNullOrWhiteSpace(projectTree.FileLocation))
+            string projectFileLocation = projectTree.Root.FileLocation;
+
+            if (string.IsNullOrWhiteSpace(projectFileLocation))
                 throw new InvalidOperationException($"{nameof(SaveProject)} cannot have a null or empty value for the project's file location");
 
             try
             {
                 var writer = _serializerFactory.CreateWriter();
-                return writer.WriteProject(projectTree, projectTree.FileLocation);
+                return writer.WriteProject(projectTree, projectFileLocation);
             }
             catch (Exception ex)
             {
@@ -113,7 +116,9 @@ namespace ImageMagitek.Services
                 var serializer = _serializerFactory.CreateWriter();
                 var result = serializer.WriteProject(projectTree, projectFileName);
                 if (result.Value is MagitekResult.Success)
-                    projectTree.FileLocation = projectFileName;
+                {
+                    projectTree.Root.FileLocation = Path.GetFullPath(projectFileName);
+                }
 
                 return result;
             }
@@ -204,7 +209,7 @@ namespace ImageMagitek.Services
         public virtual ProjectTree GetContainingProject(ResourceNode node)
         {
             return Projects.FirstOrDefault(x => x.ContainsNode(node)) ??
-                throw new ArgumentException($"{nameof(GetContainingProject)} could not locate the node '{node.PathKey}'");
+                throw new ArgumentException($"{nameof(GetContainingProject)} could not locate the node '{node.Name}'");
         }
 
         public virtual ProjectTree GetContainingProject(IProjectResource resource)

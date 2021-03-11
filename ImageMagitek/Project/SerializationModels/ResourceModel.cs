@@ -7,5 +7,7 @@ namespace ImageMagitek.Project.Serialization
         public string Name { get; set; }
         public ResourceModel Parent { get; set; }
         internal Dictionary<string, ResourceModel> ChildResources = new Dictionary<string, ResourceModel>();
+
+        public abstract bool ResourceEquals(ResourceModel model);
     }
 }

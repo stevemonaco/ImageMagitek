@@ -15,15 +15,13 @@ namespace ImageMagitek.Project.Serialization
     {
         public List<IProjectResource> GlobalResources { get; }
 
-        private readonly string _projectSchemaFileName;
         private readonly string _resourceSchemaFileName;
         private readonly ICodecFactory _codecFactory;
         private readonly IColorFactory _colorFactory;
 
-        public XmlProjectSerializerFactory(string projectSchemaFileName, string resourceSchemaFileName,
+        public XmlProjectSerializerFactory(string resourceSchemaFileName,
             ICodecFactory codecFactory, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
         {
-            _projectSchemaFileName = projectSchemaFileName;
             _resourceSchemaFileName = resourceSchemaFileName;
             _codecFactory = codecFactory;
             _colorFactory = colorFactory;
@@ -32,9 +30,9 @@ namespace ImageMagitek.Project.Serialization
 
         public IGameDescriptorReader CreateReader()
         {
-            var (projectSchemas, resourceSchemas) = CreateSchemas(_projectSchemaFileName, _resourceSchemaFileName);
+            var resourceSchemas = CreateSchemas(_resourceSchemaFileName);
 
-            return new XmlGameDescriptorMultiFileReader(projectSchemas, resourceSchemas, _codecFactory, _colorFactory, GlobalResources);
+            return new XmlGameDescriptorMultiFileReader(resourceSchemas, _codecFactory, _colorFactory, GlobalResources);
         }
 
         public IGameDescriptorWriter CreateWriter()
@@ -42,29 +40,19 @@ namespace ImageMagitek.Project.Serialization
             return new XmlGameDescriptorMultiFileWriter(GlobalResources);
         }
 
-        private (XmlSchemaSet projectSchemas, XmlSchemaSet resourceSchemas) CreateSchemas(
-            string projectSchemaFileName, string resourceSchemaFileName)
+        private XmlSchemaSet CreateSchemas(string resourceSchemaFileName)
         {
-            var projectSchemaText = File.ReadAllText(projectSchemaFileName);
             var resourceSchemaText = File.ReadAllText(resourceSchemaFileName);
-
-            var projectSchema = XmlSchema.Read(new StringReader(projectSchemaText),
-                (sender, args) =>
-                {
-                });
 
             var resourceSchema = XmlSchema.Read(new StringReader(resourceSchemaText),
                 (sender, args) =>
                 {
                 });
 
-            var projectSchemaSet = new XmlSchemaSet();
-            projectSchemaSet.Add(projectSchema);
-
             var resourceSchemaSet = new XmlSchemaSet();
             resourceSchemaSet.Add(resourceSchema);
 
-            return (projectSchemaSet, resourceSchemaSet);
+            return resourceSchemaSet;
         }
     }
 }
