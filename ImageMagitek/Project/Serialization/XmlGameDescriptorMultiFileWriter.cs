@@ -43,44 +43,105 @@ namespace ImageMagitek.Project.Serialization
             _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName));
             _activeBackupFiles = new HashSet<string>();
 
-            var modelTree = BuildModelTree(tree);
-
-            return TrySerializeModelTree(tree, modelTree).Match<MagitekResult>(
+            return TrySerializeProjectTree(tree).Match<MagitekResult>(
                 success => MagitekResult.SuccessResult,
                 failed => new MagitekResult.Failed(failed.Reasons.First()));
         }
 
-        private MagitekResults TrySerializeModelTree(ProjectTree projectTree, ProjectModelTree modelTree)
+        private MagitekResults TrySerializeProjectTree(ProjectTree tree)
         {
-            var actions = new List<BackupFileAndOverwriteExistingTransaction>();
+            var actions = new List<(BackupFileAndOverwriteExistingTransaction transaction, ResourceNode node, ResourceModel model)>();
+            var resourceMap = new Dictionary<IProjectResource, string>();
 
-            foreach (var modelNode in modelTree.EnumerateDepthFirst().Where(x => x.Item is not ResourceFolderModel))
+            foreach (var resource in _globalResources)
+                resourceMap.Add(resource, resource.Name);
+
+            foreach (var node in tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
+                resourceMap.Add(node.Item, tree.CreatePathKey(node));
+
+            foreach (var node in tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
             {
-                var modelKey = modelTree.CreatePathKey(modelNode);
-                projectTree.TryGetNode<ProjectNode>(modelKey, out var projectNode);
+                ResourceModel currentModel;
+                ResourceModel diskModel;
 
-                if (modelNode.Item.ResourceEquals(projectNode.Model))
-                    continue;
+                if (node is ProjectNode projectNode)
+                {
+                    var model = (projectNode.Item as ImageProject).MapToModel();
+                    currentModel = model;
+                    diskModel = projectNode.Model;
+                }
+                else if (node is DataFileNode dfNode)
+                {
+                    var model = (dfNode.Item as DataFile).MapToModel();
+                    currentModel = model;
+                    diskModel = dfNode.Model;
+                }
+                else if (node is PaletteNode paletteNode)
+                {
+                    var pal = paletteNode.Item as Palette;
+                    var model = pal.MapToModel(resourceMap);
+                    currentModel = model;
 
-                var diskLocation = LocateResourceOnDisk(projectNode);
-                 actions.Add(CreateWriteAction(modelNode, diskLocation));
+                    diskModel = paletteNode.Model;
+                }
+                else if (node is ArrangerNode arrangerNode)
+                {
+                    var arranger = arrangerNode.Item as ScatteredArranger;
+                    var model = arranger.MapToModel(resourceMap);
+                    currentModel = model;
+
+                    diskModel = arrangerNode.Model;
+                }
+                else
+                    throw new InvalidOperationException($"Serializing project node with unexpected type '{node.GetType()}' is not supported");
+
+                if (!currentModel.ResourceEquals(diskModel))
+                {
+                    actions.Add((CreateWriteAction(currentModel, node.DiskLocation), node, currentModel));
+                }
             }
 
-            var transaction = new FileSetWriteTransaction(actions);
+            var transaction = new FileSetWriteTransaction(actions.Select(x => x.transaction));
+            var result = transaction.Transact();
 
-            return transaction.Transact();
+            if (result.HasSucceeded)
+            {
+                foreach (var action in actions)
+                {
+                    if (action.node is ProjectNode projectNode)
+                    {
+                        projectNode.Model = action.model as ImageProjectModel;
+                    }
+                    else if (action.node is DataFileNode dfNode)
+                    {
+                        dfNode.Model = action.model as DataFileModel;
+                    }
+                    else if (action.node is PaletteNode paletteNode)
+                    {
+                        paletteNode.Model = action.model as PaletteModel;
+                    }
+                    else if (action.node is ArrangerNode arrangerNode)
+                    {
+                        arrangerNode.Model = action.model as ScatteredArrangerModel;
+                    }
+                    else
+                        throw new InvalidOperationException($"Serializing project node with unexpected type '{action.node.GetType()}' is not supported");
+                }
+            }
+
+            return result;
         }
 
-        private BackupFileAndOverwriteExistingTransaction CreateWriteAction(ResourceModelNode modelNode, string diskLocation)
+        private BackupFileAndOverwriteExistingTransaction CreateWriteAction(ResourceModel model, string diskLocation)
         {
-            XElement element = modelNode.Item switch
+            XElement element = model switch
             {
                 ResourceFolderModel folderModel => Serialize(folderModel),
                 DataFileModel dataFileModel => Serialize(dataFileModel),
                 PaletteModel paletteModel => Serialize(paletteModel),
                 ScatteredArrangerModel arrangerModel => Serialize(arrangerModel),
                 ImageProjectModel projectModel => Serialize(projectModel),
-                _ => throw new InvalidOperationException($"{nameof(WriteProject)}: unexpected node of type '{modelNode.Item.GetType()}'"),
+                _ => throw new InvalidOperationException($"{nameof(WriteProject)}: unexpected resource model of type '{model.GetType()}'"),
             };
 
             var xws = new XmlWriterSettings
@@ -92,79 +153,9 @@ namespace ImageMagitek.Project.Serialization
             var sb = new StringBuilder();
             using var xw = XmlWriter.Create(sb, xws);
             element.Save(xw);
+            xw.Flush();
 
-            var action = new BackupFileAndOverwriteExistingTransaction(diskLocation, sb.ToString());
-            return action;
-        }
-
-        private ProjectModelTree BuildModelTree(ProjectTree projectTree)
-        {
-            var resourceResolver = new Dictionary<IProjectResource, string>();
-            foreach (var node in projectTree.EnumerateDepthFirst())
-                resourceResolver.Add(node.Item, projectTree.CreatePathKey(node));
-
-            var projectModel = projectTree.Project.MapToModel();
-            var root = new ResourceModelNode(projectModel.Name, projectModel);
-            var modelTree = new ProjectModelTree(root);
-
-            foreach (var projectNode in projectTree.EnumerateDepthFirst().Where(x => x.Item.ShouldBeSerialized && x.Item is ResourceFolder))
-            {
-                var folderModel = (projectNode.Item as ResourceFolder).MapToModel();
-                var modelNode = new ResourceModelNode(projectNode.Name, folderModel);
-                modelTree.AttachNodeAsPath(projectTree.CreatePathKey(projectNode), modelNode);
-            }
-
-            foreach (var node in projectTree.EnumerateDepthFirst().Where(x => x.Item.ShouldBeSerialized))
-            {
-                switch (node.Item)
-                {
-                    case ResourceFolder folder:
-                        break;
-                    case DataFile dataFile:
-                        var dataFileModel = dataFile.MapToModel();
-                        var fileNode = new ResourceModelNode(node.Name, dataFileModel);
-                        modelTree.AttachNodeAsPath(projectTree.CreatePathKey(node), fileNode);
-                        break;
-                    case Palette palette:
-                        var paletteModel = palette.MapToModel();
-                        paletteModel.DataFileKey = resourceResolver[palette.DataFile];
-                        var paletteNode = new ResourceModelNode(node.Name, paletteModel);
-                        modelTree.AttachNodeAsPath(projectTree.CreatePathKey(node), paletteNode);
-                        break;
-                    case ScatteredArranger arranger:
-                        var arrangerModel = arranger.MapToModel();
-                        for (int x = 0; x < arrangerModel.ArrangerElementSize.Width; x++)
-                        {
-                            for (int y = 0; y < arrangerModel.ArrangerElementSize.Height; y++)
-                            {
-                                if (arranger.GetElement(x, y) is ArrangerElement element)
-                                {
-                                    var elementModel = element.MapToModel(x, y);
-
-                                    if (element.DataFile is object)
-                                        elementModel.DataFileKey = resourceResolver[element.DataFile];
-                                    else
-                                        continue;
-
-                                    if (!resourceResolver.TryGetValue(element.Palette, out var paletteKey))
-                                    {
-                                        paletteKey = _globalResources.OfType<Palette>()
-                                            .FirstOrDefault(x => ReferenceEquals(element.Palette, x))?.Name;
-                                    }
-
-                                    elementModel.PaletteKey = paletteKey;
-                                    arrangerModel.ElementGrid[x, y] = elementModel;
-                                }
-                            }
-                        }
-
-                        var arrangerNode = new ResourceModelNode(node.Name, arrangerModel);
-                        modelTree.AttachNodeAsPath(projectTree.CreatePathKey(node), arrangerNode);
-                        break;
-                }
-            }
-
-            return modelTree;
+            return new BackupFileAndOverwriteExistingTransaction(diskLocation, sb.ToString());
         }
 
         private void AddResourceToXmlTree(XElement projectNode, XElement resourceNode, string[] resourcePaths)

@@ -9,28 +9,6 @@ namespace ImageMagitek.Project.Serialization
 {
     static class SerializationMapperExtensions
     {
-        public static ArrangerElementModel MapToModel(this ArrangerElement el)
-        {
-            return new ArrangerElementModel()
-            {
-                FileAddress = el.FileAddress,
-                PositionX = el.X1 / el.Width,
-                PositionY = el.Y1 / el.Height,
-                CodecName = el.Codec.Name
-            };
-        }
-
-        public static ArrangerElementModel MapToModel(this ArrangerElement el, int elemX, int elemY)
-        {
-            return new ArrangerElementModel()
-            {
-                FileAddress = el.FileAddress,
-                PositionX = elemX,
-                PositionY = elemY,
-                CodecName = el.Codec.Name
-            };
-        }
-
         public static DataFile MapToResource(this DataFileModel df) => 
             new DataFile(df.Name, df.Location);
 
@@ -61,16 +39,21 @@ namespace ImageMagitek.Project.Serialization
             };
         }
 
-        public static PaletteModel MapToModel(this Palette pal)
+        public static PaletteModel MapToModel(this Palette pal, Dictionary<IProjectResource, string> resourceMap)
         {
-            return new PaletteModel()
+            var model = new PaletteModel()
             {
                 Name = pal.Name,
                 ColorModel = pal.ColorModel,
                 FileAddress = pal.FileAddress,
                 Entries = pal.Entries,
-                ZeroIndexTransparent = pal.ZeroIndexTransparent
+                ZeroIndexTransparent = pal.ZeroIndexTransparent,
             };
+
+            if (resourceMap.TryGetValue(pal.DataFile, out var dataFileKey))
+                model.DataFileKey = dataFileKey;
+
+            return model;
         }
 
         public static ResourceFolderModel MapToModel(this ResourceFolder folder)
@@ -84,7 +67,7 @@ namespace ImageMagitek.Project.Serialization
         public static ResourceFolder MapToResource(this ResourceFolderModel model) =>
             new ResourceFolder(model.Name);
 
-        public static ScatteredArrangerModel MapToModel(this ScatteredArranger arranger)
+        public static ScatteredArrangerModel MapToModel(this ScatteredArranger arranger, Dictionary<IProjectResource, string> resourceMap)
         {
             var model = new ScatteredArrangerModel()
             {
@@ -103,13 +86,35 @@ namespace ImageMagitek.Project.Serialization
                 {
                     if (arranger.GetElement(x, y) is ArrangerElement el)
                     {
-                        var elModel = el.MapToModel(x, y);
-                        model.ElementGrid[x, y] = elModel;
+                        model.ElementGrid[x, y] = MapToModel(el, x, y);
                     }
                 }
             }
 
             return model;
+            
+            ArrangerElementModel MapToModel(ArrangerElement el, int elemX, int elemY)
+            {
+                var model = new ArrangerElementModel
+                {
+                    FileAddress = el.FileAddress,
+                    PositionX = elemX,
+                    PositionY = elemY,
+                    CodecName = el.Codec.Name
+                };
+
+                if (resourceMap.TryGetValue(el.DataFile, out var dataFileKey))
+                {
+                    model.DataFileKey = dataFileKey;
+                }
+
+                if (resourceMap.TryGetValue(el.Palette, out var paletteKey))
+                {
+                    model.PaletteKey = paletteKey;
+                }
+
+                return model;
+            }
         }
 
         /// <summary>

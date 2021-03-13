@@ -6,7 +6,7 @@ namespace ImageMagitek.Project
     {
         public DataFileModel Model { get; set; }
 
-        public DataFileNode(string nodeName, IProjectResource resource) : base(nodeName, resource)
+        public DataFileNode(string nodeName, DataFile resource) : base(nodeName, resource)
         {
         }
     }

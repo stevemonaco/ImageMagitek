@@ -284,7 +284,7 @@ namespace TileShop.WPF.ViewModels
                 _projectService.SaveProject(projectTree)
                 .Switch(
                     success => IsModified = false,
-                    fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.FileLocation}: {fail.Reason}")
+                    fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                 );
             }
         }
@@ -365,34 +365,23 @@ namespace TileShop.WPF.ViewModels
         public void RenameNode(ResourceNodeViewModel nodeModel)
         {
             var dialogModel = new RenameNodeViewModel(nodeModel);
-            var result = _windowManager.ShowDialog(dialogModel);
+            var dialogResult = _windowManager.ShowDialog(dialogModel);
 
-            if (result is true)
+            if (dialogResult is true)
             {
                 var oldName = nodeModel.Name;
                 var newName = dialogModel.Name;
 
-                if (nodeModel.ParentModel is object && nodeModel.ParentModel.Node.ContainsChildNode(newName))
-                {
-                    _windowManager.ShowMessageBox($"Parent item already contains an item named '{newName}'", icon: MessageBoxImage.Error);
-                }
-                else
-                {
-                    nodeModel.Node.Rename(newName);
-                    nodeModel.Node.Item.Name = newName;
-                    nodeModel.Name = newName;
+                var tree = _projectService.GetContainingProject(nodeModel.Node);
+                tree.RenameResource(nodeModel.Node, dialogModel.Name).Switch(
+                    success =>
+                    {
+                        nodeModel.Name = newName;
 
-                    var projectTree = _projectService.GetContainingProject(nodeModel.Node);
-
-                    _projectService.SaveProject(projectTree)
-                    .Switch(
-                        success => IsModified = false,
-                        fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.FileLocation}: {fail.Reason}")
-                    );
-
-                    var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, newName, oldName);
-                    _events.PublishOnUIThread(renameEvent);
-                }
+                        var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, newName, oldName);
+                        _events.PublishOnUIThread(renameEvent);
+                    },
+                    fail => _windowManager.ShowMessageBox(fail.Reason, icon: MessageBoxImage.Error));
             }
         }
 
@@ -471,7 +460,7 @@ namespace TileShop.WPF.ViewModels
                         _projectService.SaveProject(projectTree)
                         .Switch(
                             success => IsModified = false,
-                            fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.FileLocation}: {fail.Reason}")
+                            fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                         );
                     },
                     fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Move Resource Error")
@@ -490,7 +479,7 @@ namespace TileShop.WPF.ViewModels
                     _projectService.SaveProject(projectTree)
                          .Switch(
                              success => IsModified = false,
-                             fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.FileLocation}: {fail.Reason}")
+                             fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                          );
                 }
             }
@@ -652,7 +641,7 @@ namespace TileShop.WPF.ViewModels
                     _projectService.SaveProject(projectTree)
                      .Switch(
                          success => IsModified = false,
-                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.FileLocation}: {fail.Reason}")
+                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                      );
 
                     _projectService.CloseProject(projectTree);

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ImageMagitek.Colors;
-using ImageMagitek.Project.Serialization;
 using Monaco.PathTree;
 using Monaco.PathTree.Abstractions;
 
@@ -23,8 +22,6 @@ namespace ImageMagitek.Project
                     $" root type '{root.GetType()}'");
 
             ExcludeRootFromPath = true;
-            //if (string.IsNullOrEmpty(root?.FileLocation))
-            //    throw new ArgumentException($"{nameof(ProjectTree)} ctor called with an invalid metadata file location");
         }
 
         /// <summary>
@@ -46,6 +43,36 @@ namespace ImageMagitek.Project
             ReferenceEquals(node.SelfAndAncestors<ResourceNode, IProjectResource>().Last(), Root);
 
         /// <summary>
+        /// Tries to find the resource node that contains the specified resource
+        /// </summary>
+        /// <param name="resource">Resource to locate</param>
+        /// <param name="resourceNode">Result of search</param>
+        /// <returns>True if found, false if not found</returns>
+        public bool TryFindResourceNode(IProjectResource resource, out ResourceNode resourceNode)
+        {
+            resourceNode = Root.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>()
+                .FirstOrDefault(x => ReferenceEquals(x.Item, resource));
+
+            return resourceNode is object;
+        }
+
+        /// <summary>
+        /// Gets the resource node that contains the specified resource
+        /// </summary>
+        /// <param name="resource">Resource to locate</param>
+        public ResourceNode GetResourceNode(IProjectResource resource) =>
+            Root.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>()
+                .First(x => ReferenceEquals(x.Item, resource));
+
+        /// <summary>
+        /// Gets the resource node that contains the specified resource
+        /// </summary>
+        /// <param name="resource">Resource to locate</param>
+        public T GetResourceNode<T>(IProjectResource resource) where T : ResourceNode =>
+            (T) Root.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>()
+                .First(x => ReferenceEquals(x.Item, resource) && x is T);
+
+        /// <summary>
         /// Creates a new folder node under the specified parent
         /// </summary>
         /// <param name="parentNode">Parent to the new folder</param>
@@ -56,17 +83,23 @@ namespace ImageMagitek.Project
             if (!ContainsNode(parentNode))
                 return new MagitekResult<ResourceNode>.Failed($"{parentNode.Item.Name} is not contained within project {Root.Item.Name}");
 
-            if (!parentNode.ContainsChildNode(name) && parentNode.Item.CanContainChildResources)
+            if (parentNode.ContainsChildNode(name) || !parentNode.Item.CanContainChildResources)
+                return new MagitekResult<ResourceNode>.Failed($"Could not create folder '{name}' under parent '{parentNode.Name}'");
+
+            try
             {
                 var childName = FindFirstNewChildResourceName(parentNode, name);
+                var directoryName = LocateResourceDirectoryByParentNode(parentNode, childName);
+                Directory.CreateDirectory(directoryName);
+
                 var folder = new ResourceFolder(childName);
                 var node = new ResourceFolderNode(childName, folder);
                 parentNode.AttachChildNode(node);
                 return new MagitekResult<ResourceNode>.Success(node);
             }
-            else
+            catch (Exception ex)
             {
-                return new MagitekResult<ResourceNode>.Failed($"Could not create folder '{name}' under parent '{parentNode.Name}'");
+                return new MagitekResult<ResourceNode>.Failed($"Could not create folder '{name}' under parent '{parentNode.Name}'\n{ex.Message}");
             }
         }
 
@@ -104,7 +137,8 @@ namespace ImageMagitek.Project
                     return new MagitekResult<ResourceNode>.Failed($"Cannot add a resource of type '{resource.GetType()}'");
 
                 parentNode.AttachChildNode(childNode);
-                childNode.FileLocation = LocateResourceFileByPathKey(this.CreatePathKey(childNode));
+                var childKey = CreatePathKey(childNode);
+                childNode.DiskLocation = LocateResourceFileNameByNode(childNode);
 
                 return new MagitekResult<ResourceNode>.Success(childNode);
             }
@@ -161,20 +195,53 @@ namespace ImageMagitek.Project
             if (parentNode is null)
                 throw new ArgumentNullException($"{nameof(CanMoveNode)} parameter '{parentNode}' was null");
 
-            return CanMoveNode(node, parentNode).Match<MagitekResult>(
-                success =>
+            var canMoveResult = CanMoveNode(node, parentNode);
+
+            if (canMoveResult.HasSucceeded)
+            {
+                try
                 {
-                    var oldFileName = node.FileLocation;
-                    var newFileName = LocateResourceFileByPathKey(CreatePathKey(parentNode), node.Name);
+                    var oldFileName = node.DiskLocation;
+                    var newFileName = LocateResourceFileNameByParentNode(parentNode, node.Name);
                     File.Move(oldFileName, newFileName, true);
 
                     node.Parent.DetachChildNode(node.Name);
                     parentNode.AttachChildNode(node);
-                    node.FileLocation = newFileName;
+                    node.DiskLocation = newFileName;
                     return MagitekResult.SuccessResult;
-                },
-                failed => failed
-                );
+                }
+                catch (Exception ex)
+                {
+                    return new MagitekResult.Failed($"Failed to move node: {ex.Message}");
+                }
+            }
+            else
+                return canMoveResult;
+        }
+
+        public MagitekResult RenameResource(ResourceNode resourceNode, string newName)
+        {
+            if (resourceNode.Parent.ContainsChildNode(newName))
+                return new MagitekResult.Failed($"Parent node '{CreatePathKey(resourceNode.Parent)}' already contains a node named '{newName}'");
+
+            if (resourceNode is ResourceFolderNode)
+            {
+                var oldDirectoryPath = resourceNode.DiskLocation;
+                var newDirectoryPath = LocateResourceDirectoryByParentNode(resourceNode.Parent, newName);
+                Directory.Move(oldDirectoryPath, newDirectoryPath);
+                resourceNode.DiskLocation = newDirectoryPath;
+                resourceNode.Rename(newName);
+            }
+            else
+            {
+                var oldFileName = resourceNode.DiskLocation;
+                var newFileName = LocateResourceFileNameByParentNode(resourceNode.Parent, newName);
+                File.Move(oldFileName, newFileName);
+                resourceNode.DiskLocation = newFileName;
+                resourceNode.Rename(newName);
+            }
+
+            return MagitekResult.SuccessResult;
         }
 
         /// <summary>
@@ -269,10 +336,36 @@ namespace ImageMagitek.Project
                 .FirstOrDefault(x => !node.ContainsChildNode(x));
         }
 
-        private string LocateResourceFileByPathKey(string path, string child = "")
+        private string LocateResourceFileNameByNode(ResourceNode node)
         {
-            var projectBase = (Root.Item as ImageProject).Root;
-            return Path.Combine(projectBase, path, $"{child}.xml");
+            var baseDirectory = (Root as ProjectNode).BaseDirectory;
+            var pathKey = CreatePathKey(node, Path.DirectorySeparatorChar.ToString()).TrimStart(Path.DirectorySeparatorChar);
+
+            return Path.Combine(baseDirectory, $"{pathKey}.xml");
+        }
+
+        private string LocateResourceFileNameByParentNode(ResourceNode parentNode, string childName)
+        {
+            var baseDirectory = (Root as ProjectNode).BaseDirectory;
+            var pathKey = CreatePathKey(parentNode, Path.DirectorySeparatorChar.ToString()).TrimStart(Path.DirectorySeparatorChar);
+
+            return Path.Combine(baseDirectory, pathKey, $"{childName}.xml");
+        }
+
+        private string LocateResourceDirectoryByNode(ResourceNode node)
+        {
+            var baseDirectory = (Root as ProjectNode).BaseDirectory;
+            var pathKey = CreatePathKey(node, Path.DirectorySeparatorChar.ToString()).TrimStart(Path.DirectorySeparatorChar);
+
+            return Path.Combine(baseDirectory, pathKey);
+        }
+
+        private string LocateResourceDirectoryByParentNode(ResourceNode parentNode, string childName)
+        {
+            var baseDirectory = (Root as ProjectNode).BaseDirectory;
+            var pathKey = CreatePathKey(parentNode, Path.DirectorySeparatorChar.ToString()).TrimStart(Path.DirectorySeparatorChar);
+
+            return Path.Combine(baseDirectory, pathKey, childName);
         }
     }
 }

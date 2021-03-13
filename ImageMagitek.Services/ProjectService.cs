@@ -47,7 +47,7 @@ namespace ImageMagitek.Services
             var project = new ImageProject(projectName);
             project.Root = "";
             var root = new ProjectNode(project.Name, project);
-            root.FileLocation = Path.GetFullPath(projectFileName);
+            root.DiskLocation = Path.GetFullPath(projectFileName);
             var tree = new ProjectTree(root);
 
             Projects.Add(tree);
@@ -87,7 +87,7 @@ namespace ImageMagitek.Services
             if (projectTree is null)
                 throw new InvalidOperationException($"{nameof(SaveProject)} parameter '{nameof(projectTree)}' was null");
 
-            string projectFileLocation = projectTree.Root.FileLocation;
+            string projectFileLocation = projectTree.Root.DiskLocation;
 
             if (string.IsNullOrWhiteSpace(projectFileLocation))
                 throw new InvalidOperationException($"{nameof(SaveProject)} cannot have a null or empty value for the project's file location");
@@ -117,7 +117,7 @@ namespace ImageMagitek.Services
                 var result = serializer.WriteProject(projectTree, projectFileName);
                 if (result.Value is MagitekResult.Success)
                 {
-                    projectTree.Root.FileLocation = Path.GetFullPath(projectFileName);
+                    projectTree.Root.DiskLocation = Path.GetFullPath(projectFileName);
                 }
 
                 return result;

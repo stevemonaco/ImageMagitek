@@ -6,7 +6,7 @@ namespace ImageMagitek.Project
     {
         public ResourceFolderModel Model { get; set; }
 
-        public ResourceFolderNode(string nodeName, IProjectResource resource) : base(nodeName, resource)
+        public ResourceFolderNode(string nodeName, ResourceFolder resource) : base(nodeName, resource)
         {
         }
     }

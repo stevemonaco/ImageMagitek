@@ -7,7 +7,7 @@ namespace ImageMagitek.Project
         public ImageProjectModel Model { get; set; }
         public string BaseDirectory { get; set; }
 
-        public ProjectNode(string nodeName, IProjectResource resource) : base(nodeName, resource)
+        public ProjectNode(string nodeName, ImageProject resource) : base(nodeName, resource)
         {
         }
     }

@@ -123,7 +123,7 @@ namespace TileShop.WPF.ViewModels
 
                          IsModified = false;
                      },
-                     fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.FileLocation}: {fail.Reason}")
+                     fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                  );
         }
 

@@ -1,4 +1,5 @@
-﻿using ImageMagitek.Project.Serialization;
+﻿using ImageMagitek.Colors;
+using ImageMagitek.Project.Serialization;
 
 namespace ImageMagitek.Project
 {
@@ -6,7 +7,7 @@ namespace ImageMagitek.Project
     {
         public PaletteModel Model { get; set; }
 
-        public PaletteNode(string nodeName, IProjectResource resource) : base(nodeName, resource)
+        public PaletteNode(string nodeName, Palette resource) : base(nodeName, resource)
         {
         }
     }

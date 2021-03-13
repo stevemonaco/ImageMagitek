@@ -108,50 +108,6 @@ namespace ImageMagitek.Project.Serialization
             model = default;
             return false;
         }
-
-        //private bool TryOpenXmlFile(string xmlFileName, XmlSchemaSet schema, out XDocument document)
-        //{
-        //    if (!File.Exists(xmlFileName))
-        //    {
-        //        Errors.Add($"File '{xmlFileName}' does not exist");
-        //        document = default;
-        //        return false;
-        //    }
-
-        //    try
-        //    {
-        //        var xml = File.ReadAllText(xmlFileName);
-        //        var doc = XDocument.Parse(xml, LoadOptions.SetLineInfo);
-
-        //        if (schema is object)
-        //        {
-        //            doc.Validate(schema, (o, e) =>
-        //            {
-        //                Errors.Add(e.Message);
-        //            });
-
-        //            if (Errors.Any())
-        //            {
-        //                document = default;
-        //                return false;
-        //            }
-        //        }
-
-        //        document = doc;
-        //        return true;
-        //    }
-        //    catch (XmlSchemaValidationException vex)
-        //    {
-        //        Errors.Add($"Validation error on line {vex.LineNumber}: '{vex.Message}'");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Errors.Add($"An exception occurred while reading '{xmlFileName}': {ex.Message}");
-        //    }
-
-        //    document = default;
-        //    return false;
-        //}
         
         private string LocateResourceOnDisk(string location)
         {
@@ -190,17 +146,6 @@ namespace ImageMagitek.Project.Serialization
             }
 
             var builder = new ProjectTreeBuilder(_codecFactory, _colorFactory, _globalResources);
-            builder.AddProject(projectModel, _baseDirectory, projectFileName);
-
-            //string baseDirectory;
-            //if (Path.IsPathFullyQualified(projectModel.Root))
-            //    baseDirectory = projectModel.Root;
-            //else
-            //{
-            //    var fullProjectPath = Path.GetFullPath(projectFileName);
-            //    baseDirectory = Path.Combine(fullProjectPath, projectModel.Root);
-            //}
-
             _baseDirectory = Path.GetDirectoryName(projectFileName);
             if (!string.IsNullOrWhiteSpace(projectModel.Root))
             {
@@ -222,7 +167,7 @@ namespace ImageMagitek.Project.Serialization
                 var parentDirectory = Directory.GetParent(directoryName).FullName;
                 var relativePath = Path.GetRelativePath(_baseDirectory, parentDirectory);
                 var parentKey = relativePath == "." ? "" : relativePath;
-                builder.AddFolder(folderModel, parentKey);
+                builder.AddFolder(folderModel, parentKey, Path.GetFullPath(directoryName));
             }
 
             // Add resources

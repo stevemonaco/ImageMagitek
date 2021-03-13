@@ -6,7 +6,7 @@ namespace ImageMagitek.Project
     {
         public ScatteredArrangerModel Model { get; set; }
 
-        public ArrangerNode(string nodeName, IProjectResource resource) : base(nodeName, resource)
+        public ArrangerNode(string nodeName, ScatteredArranger resource) : base(nodeName, resource)
         {
         }
     }

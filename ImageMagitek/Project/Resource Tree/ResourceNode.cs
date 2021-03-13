@@ -5,7 +5,7 @@ namespace ImageMagitek.Project
 {
     public class ResourceNode : PathNodeBase<ResourceNode, IProjectResource>
     {
-        public string FileLocation { get; set; }
+        public string DiskLocation { get; set; }
 
         public ResourceNode(string nodeName, IProjectResource resource) :
             base(nodeName, resource)

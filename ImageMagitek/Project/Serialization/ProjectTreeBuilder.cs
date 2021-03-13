@@ -36,21 +36,22 @@ namespace ImageMagitek.Project.Serialization
 
             var root = new ProjectNode(projectModel.Name, projectModel.MapToResource())
             {
-                FileLocation = projectFileName,
-                BaseDirectory = baseDirectory
+                BaseDirectory = baseDirectory,
+                DiskLocation = projectFileName,
+                Model = projectModel
             };
 
             Tree = new ProjectTree(root);
-            //_baseDirectory = metadata.BaseDirectory;
 
             return MagitekResult.SuccessResult;
         }
 
-        public MagitekResult AddFolder(ResourceFolderModel folderModel, string parentNodePath)
+        public MagitekResult AddFolder(ResourceFolderModel folderModel, string parentNodePath, string diskLocation)
         {
             var folder = new ResourceFolder(folderModel.Name);
 
             var folderNode = new ResourceFolderNode(folder.Name, folder);
+            folderNode.DiskLocation = diskLocation;
             Tree.TryGetNode(parentNodePath, out var parentNode);
             parentNode.AttachChildNode(folderNode);
 
@@ -63,7 +64,7 @@ namespace ImageMagitek.Project.Serialization
 
             var dfNode = new DataFileNode(df.Name, df)
             {
-                FileLocation = fileLocation,
+                DiskLocation = fileLocation,
                 Model = dfModel
             };
 
@@ -88,7 +89,7 @@ namespace ImageMagitek.Project.Serialization
 
             var palNode = new PaletteNode(pal.Name, pal)
             {
-                FileLocation = fileLocation,
+                DiskLocation = fileLocation,
                 Model = paletteModel
             };
 
@@ -122,7 +123,7 @@ namespace ImageMagitek.Project.Serialization
 
             var arrangerNode = new ArrangerNode(arranger.Name, arranger)
             {
-                FileLocation = fileLocation,
+                DiskLocation = fileLocation,
                 Model = arrangerModel
             };
 

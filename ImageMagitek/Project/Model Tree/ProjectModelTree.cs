@@ -6,6 +6,7 @@ namespace ImageMagitek.Project.Serialization
     {
         public ProjectModelTree(ResourceModelNode root) : base(root)
         {
+            ExcludeRootFromPath = true;
         }
     }
 }

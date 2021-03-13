@@ -75,7 +75,7 @@ namespace TileShop.WPF.ViewModels
                     _projectService.SaveProject(projectTree)
                     .Switch(
                         success => { },
-                        fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.FileLocation}: {fail.Reason}")
+                        fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                     );
                 }
                 else
@@ -164,7 +164,7 @@ namespace TileShop.WPF.ViewModels
                     _projectService.SaveProject(projectTree)
                      .Switch(
                          success => { },
-                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.FileLocation}:\n{fail.Reason}")
+                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}:\n{fail.Reason}")
                      );
                 }
 
@@ -200,7 +200,7 @@ namespace TileShop.WPF.ViewModels
                         _projectService.SaveProject(projectTree)
                          .Switch(
                              success => { },
-                             fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.FileLocation}: {fail.Reason}")
+                             fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                          );
                     }
                         
