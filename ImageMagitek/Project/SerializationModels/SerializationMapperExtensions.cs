@@ -50,7 +50,7 @@ namespace ImageMagitek.Project.Serialization
                 ZeroIndexTransparent = pal.ZeroIndexTransparent,
             };
 
-            if (resourceMap.TryGetValue(pal.DataFile, out var dataFileKey))
+            if (pal.DataFile is object && resourceMap.TryGetValue(pal.DataFile, out var dataFileKey))
                 model.DataFileKey = dataFileKey;
 
             return model;
@@ -103,12 +103,12 @@ namespace ImageMagitek.Project.Serialization
                     CodecName = el.Codec.Name
                 };
 
-                if (resourceMap.TryGetValue(el.DataFile, out var dataFileKey))
+                if (el.DataFile is object && resourceMap.TryGetValue(el.DataFile, out var dataFileKey))
                 {
                     model.DataFileKey = dataFileKey;
                 }
 
-                if (resourceMap.TryGetValue(el.Palette, out var paletteKey))
+                if (el.Palette is object && resourceMap.TryGetValue(el.Palette, out var paletteKey))
                 {
                     model.PaletteKey = paletteKey;
                 }

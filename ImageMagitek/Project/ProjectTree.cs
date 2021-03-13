@@ -137,7 +137,6 @@ namespace ImageMagitek.Project
                     return new MagitekResult<ResourceNode>.Failed($"Cannot add a resource of type '{resource.GetType()}'");
 
                 parentNode.AttachChildNode(childNode);
-                var childKey = CreatePathKey(childNode);
                 childNode.DiskLocation = LocateResourceFileNameByNode(childNode);
 
                 return new MagitekResult<ResourceNode>.Success(childNode);
@@ -309,20 +308,40 @@ namespace ImageMagitek.Project
             }
         }
 
-        public void ApplyRemovalChanges(IList<ResourceChange> changes)
+        public void ApplyRemovalChanges(IList<ResourceChange> changes, Palette defaultPalette)
         {
-            foreach (var item in changes.Where(x => x.IsChanged))
+            var removedItems = changes.Where(x => x.Removed).ToList();
+
+            foreach (var change in changes.Where(x => x.IsChanged))
             {
-                foreach (var removeItem in changes.Where(x => x.Removed))
+                foreach (var removeItem in removedItems)
                 {
-                    item.Resource.UnlinkResource(removeItem.Resource);
+                    change.Resource.UnlinkResource(removeItem.Resource);
+                }
+
+                if (change.LostPalette && change.Resource is ScatteredArranger arranger)
+                {
+                    foreach (var (x, y) in arranger.EnumerateElementLocations())
+                    {
+                        var el = arranger.GetElement(x, y);
+                        if (el is object && el?.Palette is null)
+                            arranger.SetElement(el.Value.WithPalette(defaultPalette), x, y);
+                    }
                 }
             }
 
-            foreach (var item in changes.Where(x => x.Removed))
+            foreach (var item in removedItems.Where(x => x.Resource is not ResourceFolder))
             {
                 var resourceParent = item.ResourceNode.Parent;
                 resourceParent.RemoveChildNode(item.Resource.Name);
+                File.Delete(item.ResourceNode.DiskLocation);
+            }
+
+            foreach (var item in removedItems.Where(x => x.Resource is ResourceFolder))
+            {
+                var resourceParent = item.ResourceNode.Parent;
+                resourceParent.RemoveChildNode(item.Resource.Name);
+                Directory.Delete(item.ResourceNode.DiskLocation);
             }
         }
 

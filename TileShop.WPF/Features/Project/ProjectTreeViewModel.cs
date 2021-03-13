@@ -276,8 +276,8 @@ namespace TileShop.WPF.ViewModels
                 _editors.Editors.Clear();
                 _editors.ActiveEditor = null;
 
-                projectTree.ApplyRemovalChanges(changes);
-                var projectRootNode = projectTree.Root as ResourceNode;
+                projectTree.ApplyRemovalChanges(changes, _paletteService.DefaultPalette);
+                var projectRootNode = projectTree.Root;
                 var projectRootVm = Projects.First(x => ReferenceEquals(projectRootNode, x.Node));
                 SynchronizeTree(projectRootVm);
 

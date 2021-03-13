@@ -227,6 +227,31 @@ namespace ImageMagitek
         }
 
         /// <summary>
+        /// Returns the enumeration of all ArrangerElement locations in the grid in a left-to-right, row-by-row order
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<(int x, int y)> EnumerateElementLocations() =>
+            EnumerateElementLocations(0, 0, ArrangerElementSize.Width, ArrangerElementSize.Height);
+
+        /// <summary>
+        /// Returns the full enumeration of a subsection of all ArrangerElement locations in the grid in a left-to-right, row-by-row order
+        /// </summary>
+        /// <param name="elemX">Starting x-coordinate in element coordinates</param>
+        /// <param name="elemY">Starting y-coordinate in element coordinates</param>
+        /// <param name="width">Number of elements to enumerate in x-direction</param>
+        /// <param name="height">Number of elements to enumerate in y-direction</param>
+        public IEnumerable<(int x, int y)> EnumerateElementLocations(int elemX, int elemY, int width, int height)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    yield return (x + elemX, y + elemY);
+                }
+            }
+        }
+
+        /// <summary>
         /// Returns the full enumeration of a subsection of Elements in the grid in a left-to-right, row-by-row order
         /// </summary>
         /// <param name="x">Starting x-coordinate in pixel coordinates</param>
