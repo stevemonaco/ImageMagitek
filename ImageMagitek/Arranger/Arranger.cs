@@ -240,7 +240,7 @@ namespace ImageMagitek
         /// <param name="elemY">Starting y-coordinate in element coordinates</param>
         /// <param name="width">Number of elements to enumerate in x-direction</param>
         /// <param name="height">Number of elements to enumerate in y-direction</param>
-        public IEnumerable<(int x, int y)> EnumerateElementLocations(int elemX, int elemY, int width, int height)
+        public static IEnumerable<(int x, int y)> EnumerateElementLocations(int elemX, int elemY, int width, int height)
         {
             for (int y = 0; y < height; y++)
             {

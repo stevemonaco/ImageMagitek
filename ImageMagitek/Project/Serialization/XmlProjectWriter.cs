@@ -11,31 +11,41 @@ using Monaco.PathTree;
 
 namespace ImageMagitek.Project.Serialization
 {
-    public class XmlGameDescriptorMultiFileWriter : IGameDescriptorWriter
+    public class XmlProjectWriter : IProjectWriter
     {
-        public string DescriptorVersion => "0.9";
+        public string Version => "0.9";
         private readonly List<IProjectResource> _globalResources;
         private readonly Palette _globalDefaultPalette;
+        private readonly ProjectTree _tree;
         private string _baseDirectory;
+        private readonly Dictionary<IProjectResource, string> _resourceMap;
 
         private HashSet<string> _activeBackupFiles;
 
-        public XmlGameDescriptorMultiFileWriter(IEnumerable<IProjectResource> globalResources)
+        public XmlProjectWriter(ProjectTree tree, IEnumerable<IProjectResource> globalResources)
         {
+            _tree = tree;
             _globalResources = globalResources.ToList();
             _globalDefaultPalette = globalResources.OfType<Palette>().FirstOrDefault();
+
+            _resourceMap = new Dictionary<IProjectResource, string>();
+
+            foreach (var resource in _globalResources)
+                _resourceMap.Add(resource, resource.Name);
+
+            foreach (var node in tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
+                _resourceMap.Add(node.Item, tree.CreatePathKey(node));
         }
 
         /// <summary>
         /// Writes all project resources contained in a ProjectTree to disk
         /// </summary>
-        /// <param name="tree">Tree to be saved</param>
-        /// <param name="projectFileName">Filename to write</param>
+        /// <param name="projectFileName">Filename to write to</param>
         /// <returns></returns>
-        public MagitekResult WriteProject(ProjectTree tree, string projectFileName)
+        public MagitekResult WriteProject(string projectFileName)
         {
-            if (tree is null)
-                throw new ArgumentNullException($"{nameof(WriteProject)} property '{nameof(tree)}' was null");
+            if (_tree is null)
+                throw new ArgumentNullException($"{nameof(WriteProject)} property '{nameof(_tree)}' was null");
 
             if (string.IsNullOrWhiteSpace(projectFileName))
                 throw new ArgumentException($"{nameof(WriteProject)} property '{nameof(projectFileName)}' was null or empty");
@@ -43,21 +53,40 @@ namespace ImageMagitek.Project.Serialization
             _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName));
             _activeBackupFiles = new HashSet<string>();
 
-            return TrySerializeProjectTree(tree).Match<MagitekResult>(
+            return TrySerializeProjectTree(_tree).Match<MagitekResult>(
                 success => MagitekResult.SuccessResult,
                 failed => new MagitekResult.Failed(failed.Reasons.First()));
+        }
+
+        public string SerializeResource(ResourceNode resourceNode)
+        {
+            if (resourceNode is ProjectNode projectNode)
+            {
+                var model = (projectNode.Item as ImageProject).MapToModel();
+                return Stringify(Serialize(model));
+            }
+            else if (resourceNode is DataFileNode dfNode)
+            {
+                var model = (dfNode.Item as DataFile).MapToModel();
+                return Stringify(Serialize(model));
+            }
+            else if (resourceNode is PaletteNode palNode)
+            {
+                var model = (palNode.Item as Palette).MapToModel(_resourceMap);
+                return Stringify(Serialize(model));
+            }
+            else if (resourceNode is ArrangerNode arrangerNode)
+            {
+                var model = (arrangerNode.Item as ScatteredArranger).MapToModel(_resourceMap);
+                return Stringify(Serialize(model));
+            }
+            else
+                return null;
         }
 
         private MagitekResults TrySerializeProjectTree(ProjectTree tree)
         {
             var actions = new List<(BackupFileAndOverwriteExistingTransaction transaction, ResourceNode node, ResourceModel model)>();
-            var resourceMap = new Dictionary<IProjectResource, string>();
-
-            foreach (var resource in _globalResources)
-                resourceMap.Add(resource, resource.Name);
-
-            foreach (var node in tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
-                resourceMap.Add(node.Item, tree.CreatePathKey(node));
 
             foreach (var node in tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
             {
@@ -79,7 +108,7 @@ namespace ImageMagitek.Project.Serialization
                 else if (node is PaletteNode paletteNode)
                 {
                     var pal = paletteNode.Item as Palette;
-                    var model = pal.MapToModel(resourceMap);
+                    var model = pal.MapToModel(_resourceMap);
                     currentModel = model;
 
                     diskModel = paletteNode.Model;
@@ -87,7 +116,7 @@ namespace ImageMagitek.Project.Serialization
                 else if (node is ArrangerNode arrangerNode)
                 {
                     var arranger = arrangerNode.Item as ScatteredArranger;
-                    var model = arranger.MapToModel(resourceMap);
+                    var model = arranger.MapToModel(_resourceMap);
                     currentModel = model;
 
                     diskModel = arrangerNode.Model;
@@ -144,18 +173,7 @@ namespace ImageMagitek.Project.Serialization
                 _ => throw new InvalidOperationException($"{nameof(WriteProject)}: unexpected resource model of type '{model.GetType()}'"),
             };
 
-            var xws = new XmlWriterSettings
-            {
-                Indent = true,
-                IndentChars = "\t"
-            };
-
-            var sb = new StringBuilder();
-            using var xw = XmlWriter.Create(sb, xws);
-            element.Save(xw);
-            xw.Flush();
-
-            return new BackupFileAndOverwriteExistingTransaction(diskLocation, sb.ToString());
+            return new BackupFileAndOverwriteExistingTransaction(diskLocation, Stringify(element));
         }
 
         private void AddResourceToXmlTree(XElement projectNode, XElement resourceNode, string[] resourcePaths)
@@ -176,7 +194,7 @@ namespace ImageMagitek.Project.Serialization
         {
             var element = new XElement("project");
             element.Add(new XAttribute("name", projectModel.Name));
-            element.Add(new XAttribute("version", DescriptorVersion));
+            element.Add(new XAttribute("version", Version));
 
             if (!string.IsNullOrEmpty(projectModel.Root))
                 element.Add(new XAttribute("root", projectModel.Root));
@@ -270,6 +288,22 @@ namespace ImageMagitek.Project.Serialization
             }
 
             return arrangerNode;
+        }
+
+        private string Stringify(XElement resourceElement)
+        {
+            var xws = new XmlWriterSettings
+            {
+                Indent = true,
+                IndentChars = "\t"
+            };
+
+            var sb = new StringBuilder();
+            using var xw = XmlWriter.Create(sb, xws);
+            resourceElement.Save(xw);
+            xw.Flush();
+
+            return sb.ToString();
         }
 
         private string LocateResourceOnDisk(ResourceNode node)

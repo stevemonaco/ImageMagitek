@@ -17,6 +17,7 @@ namespace ImageMagitek.Project
         public ImageProject(string name)
         {
             Name = name;
+            Root = "";
         }
 
         public void Rename(string name)

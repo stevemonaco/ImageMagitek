@@ -19,7 +19,6 @@ namespace ImageMagitek.Project.Serialization
         private readonly Palette _globalDefaultPalette;
         private readonly ICodecFactory _codecFactory;
         private readonly IColorFactory _colorFactory;
-        private string _baseDirectory;
 
         public ProjectTreeBuilder(ICodecFactory codecFactory, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
         {
@@ -50,8 +49,11 @@ namespace ImageMagitek.Project.Serialization
         {
             var folder = new ResourceFolder(folderModel.Name);
 
-            var folderNode = new ResourceFolderNode(folder.Name, folder);
-            folderNode.DiskLocation = diskLocation;
+            var folderNode = new ResourceFolderNode(folder.Name, folder)
+            {
+                DiskLocation = diskLocation
+            };
+
             Tree.TryGetNode(parentNodePath, out var parentNode);
             parentNode.AttachChildNode(folderNode);
 

@@ -8,15 +8,13 @@ using System.Xml.Schema;
 using System.Collections.Generic;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
-using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Project.Serialization
 {
-    public class XmlGameDescriptorMultiFileReader : IGameDescriptorReader
+    public class XmlProjectReader : IProjectReader
     {
-        public string DescriptorVersion => "0.9";
+        public string Version => "0.9";
 
-        private readonly XmlSchemaSet _projectSchema;
         private readonly XmlSchemaSet _resourceSchema;
 
         private readonly ICodecFactory _codecFactory;
@@ -27,7 +25,7 @@ namespace ImageMagitek.Project.Serialization
         private List<string> Errors;
         private string _baseDirectory;
 
-        public XmlGameDescriptorMultiFileReader(XmlSchemaSet resourceSchema, 
+        public XmlProjectReader(XmlSchemaSet resourceSchema, 
             ICodecFactory codecFactory, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
         {
             _resourceSchema = resourceSchema;
@@ -134,7 +132,7 @@ namespace ImageMagitek.Project.Serialization
 
             Errors = new();
 
-            if (!TryDeserializeXmlFile(projectFileName, _projectSchema, out var rootModel))
+            if (!TryDeserializeXmlFile(projectFileName, _resourceSchema, out var rootModel))
             {
                 return new MagitekResults<ProjectTree>.Failed(Errors);
             }

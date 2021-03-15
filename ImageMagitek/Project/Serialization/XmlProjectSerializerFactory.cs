@@ -24,16 +24,16 @@ namespace ImageMagitek.Project.Serialization
             GlobalResources = globalResources.ToList();
         }
 
-        public IGameDescriptorReader CreateReader()
+        public IProjectReader CreateReader()
         {
             var resourceSchemas = CreateSchemas(_resourceSchemaFileName);
 
-            return new XmlGameDescriptorMultiFileReader(resourceSchemas, _codecFactory, _colorFactory, GlobalResources);
+            return new XmlProjectReader(resourceSchemas, _codecFactory, _colorFactory, GlobalResources);
         }
 
-        public IGameDescriptorWriter CreateWriter()
+        public IProjectWriter CreateWriter(ProjectTree tree)
         {
-            return new XmlGameDescriptorMultiFileWriter(GlobalResources);
+            return new XmlProjectWriter(tree, GlobalResources);
         }
 
         private XmlSchemaSet CreateSchemas(string resourceSchemaFileName)

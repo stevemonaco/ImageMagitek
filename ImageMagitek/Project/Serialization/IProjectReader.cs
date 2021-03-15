@@ -1,8 +1,8 @@
 ﻿namespace ImageMagitek.Project.Serialization
 {
-    public interface IGameDescriptorReader
+    public interface IProjectReader
     {
-        string DescriptorVersion { get; }
+        string Version { get; }
         MagitekResults<ProjectTree> ReadProject(string projectFileName);
     }
 }

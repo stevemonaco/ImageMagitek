@@ -7,7 +7,7 @@ using MoreLinq;
 
 namespace ImageMagitek.Project.Serialization
 {
-    static class SerializationMapperExtensions
+    public static class SerializationMapperExtensions
     {
         public static DataFile MapToResource(this DataFileModel df) => 
             new DataFile(df.Name, df.Location);

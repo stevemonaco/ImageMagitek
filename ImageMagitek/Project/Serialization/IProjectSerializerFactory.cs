@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace ImageMagitek.Project.Serialization
 {
     public interface IProjectSerializerFactory
     {
-        IGameDescriptorReader CreateReader();
-        IGameDescriptorWriter CreateWriter();
+        List<IProjectResource> GlobalResources { get; }
+
+        IProjectReader CreateReader();
+        IProjectWriter CreateWriter(ProjectTree tree);
     }
 }
