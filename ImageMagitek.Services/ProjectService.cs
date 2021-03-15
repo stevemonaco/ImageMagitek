@@ -281,6 +281,12 @@ namespace ImageMagitek.Services
             return ReferenceEquals(projectA, projectB);
         }
 
+        /// <summary>
+        /// Renames a node to the specified name
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="newName"></param>
+        /// <returns></returns>
         public virtual MagitekResult RenameResource(ResourceNode node, string newName)
         {
             var tree = Projects.FirstOrDefault(x => x.ContainsNode(node));
@@ -324,7 +330,13 @@ namespace ImageMagitek.Services
             return MagitekResult.SuccessResult;
         }
 
-        public MagitekResult CanMoveNode(ResourceNode node, ResourceNode parentNode)
+        /// <summary>
+        /// Checks if the specified node can be assigned as a child to the specified parent node
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="parentNode"></param>
+        /// <returns></returns>
+        public virtual MagitekResult CanMoveNode(ResourceNode node, ResourceNode parentNode)
         {
             if (node is null)
                 throw new ArgumentNullException($"{nameof(CanMoveNode)} parameter '{nameof(node)}' was null");
@@ -370,7 +382,13 @@ namespace ImageMagitek.Services
             return MagitekResult.SuccessResult;
         }
 
-        public MagitekResult MoveNode(ResourceNode node, ResourceNode parentNode)
+        /// <summary>
+        /// Moves the specified node to be a child of the specified parent, if possible
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="parentNode"></param>
+        /// <returns></returns>
+        public virtual MagitekResult MoveNode(ResourceNode node, ResourceNode parentNode)
         {
             if (node is null)
                 throw new ArgumentNullException($"{nameof(CanMoveNode)} parameter '{node}' was null");
@@ -407,6 +425,12 @@ namespace ImageMagitek.Services
                 return canMoveResult;
         }
 
+        /// <summary>
+        /// Applies deletion and modification changes to the tree
+        /// </summary>
+        /// <param name="changes">Changes to be applied</param>
+        /// <param name="defaultPalette">Default palette to fallback to when a resource loses a palette</param>
+        /// <returns></returns>
         public virtual MagitekResult ApplyResourceDeletionChanges(IList<ResourceChange> changes, Palette defaultPalette)
         {
             var tree = GetContainingProject(changes.First().ResourceNode);
@@ -453,6 +477,11 @@ namespace ImageMagitek.Services
             return MagitekResult.SuccessResult;
         }
 
+        /// <summary>
+        /// Previews a list of changes/deletions that will happen if the specified node is deleted
+        /// </summary>
+        /// <param name="deleteNode">Node to preview deletion of</param>
+        /// <returns></returns>
         public virtual IEnumerable<ResourceChange> PreviewResourceDeletionChanges(ResourceNode deleteNode)
         {
             if (deleteNode is null)
