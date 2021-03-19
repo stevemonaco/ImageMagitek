@@ -24,6 +24,9 @@ namespace ImageMagitek.Project.Serialization
 
         public XmlProjectWriter(ProjectTree tree, IEnumerable<IProjectResource> globalResources)
         {
+            if (_tree is null)
+                throw new ArgumentNullException($"{nameof(WriteProject)} parameter '{nameof(_tree)}' was null");
+
             _tree = tree;
             _globalResources = globalResources.ToList();
             _globalDefaultPalette = globalResources.OfType<Palette>().FirstOrDefault();
@@ -44,9 +47,6 @@ namespace ImageMagitek.Project.Serialization
         /// <returns></returns>
         public MagitekResult WriteProject(string projectFileName)
         {
-            if (_tree is null)
-                throw new ArgumentNullException($"{nameof(WriteProject)} property '{nameof(_tree)}' was null");
-
             if (string.IsNullOrWhiteSpace(projectFileName))
                 throw new ArgumentException($"{nameof(WriteProject)} property '{nameof(projectFileName)}' was null or empty");
 

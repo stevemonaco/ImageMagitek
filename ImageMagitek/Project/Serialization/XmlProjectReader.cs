@@ -22,7 +22,7 @@ namespace ImageMagitek.Project.Serialization
         private readonly List<IProjectResource> _globalResources;
         private readonly Palette _globalDefaultPalette;
 
-        private List<string> Errors;
+        private List<string> _errors;
         private string _baseDirectory;
 
         public XmlProjectReader(XmlSchemaSet resourceSchema, 
@@ -39,7 +39,7 @@ namespace ImageMagitek.Project.Serialization
         {
             if (!File.Exists(xmlFileName))
             {
-                Errors.Add($"File '{xmlFileName}' does not exist");
+                _errors.Add($"File '{xmlFileName}' does not exist");
                 model = default;
                 return false;
             }
@@ -53,10 +53,10 @@ namespace ImageMagitek.Project.Serialization
                 {
                     doc.Validate(schema, (o, e) =>
                     {
-                        Errors.Add(e.Message);
+                        _errors.Add(e.Message);
                     });
 
-                    if (Errors.Any())
+                    if (_errors.Any())
                     {
                         model = default;
                         return false;
@@ -87,7 +87,7 @@ namespace ImageMagitek.Project.Serialization
                 }
                 else
                 {
-                    Errors.Add($"{xmlFileName} has invalid root element '{rootName}'");
+                    _errors.Add($"{xmlFileName} has invalid root element '{rootName}'");
                     model = null;
                     return false;
                 }    
@@ -96,11 +96,11 @@ namespace ImageMagitek.Project.Serialization
             }
             catch (XmlSchemaValidationException vex)
             {
-                Errors.Add($"Validation error on line {vex.LineNumber}: '{vex.Message}'");
+                _errors.Add($"Validation error on line {vex.LineNumber}: '{vex.Message}'");
             }
             catch (Exception ex)
             {
-                Errors.Add($"An exception occurred while reading '{xmlFileName}': {ex.Message}");
+                _errors.Add($"An exception occurred while reading '{xmlFileName}': {ex.Message}");
             }
 
             model = default;
@@ -130,17 +130,17 @@ namespace ImageMagitek.Project.Serialization
             if (string.IsNullOrWhiteSpace(projectFileName))
                 throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
 
-            Errors = new();
+            _errors = new();
 
             if (!TryDeserializeXmlFile(projectFileName, _resourceSchema, out var rootModel))
             {
-                return new MagitekResults<ProjectTree>.Failed(Errors);
+                return new MagitekResults<ProjectTree>.Failed(_errors);
             }
 
             if (rootModel is not ImageProjectModel projectModel)
             {
-                Errors.Add($"'{projectFileName}' was expected to be a project file");
-                return new MagitekResults<ProjectTree>.Failed(Errors);
+                _errors.Add($"'{projectFileName}' was expected to be a project file");
+                return new MagitekResults<ProjectTree>.Failed(_errors);
             }
 
             var builder = new ProjectTreeBuilder(_codecFactory, _colorFactory, _globalResources);
@@ -180,7 +180,7 @@ namespace ImageMagitek.Project.Serialization
             {
                 if (!TryDeserializeXmlFile(resourceFileName, _resourceSchema, out var resourceModel))
                 {
-                    return new MagitekResults<ProjectTree>.Failed(Errors);
+                    return new MagitekResults<ProjectTree>.Failed(_errors);
                 }
 
                 var pathKey = LocateParentPathKey(resourceFileName);
@@ -204,8 +204,8 @@ namespace ImageMagitek.Project.Serialization
                 builder.AddScatteredArranger(model as ScatteredArrangerModel, pathKey, fileLocation);
             }
 
-            if (Errors.Count > 0)
-                return new MagitekResults<ProjectTree>.Failed(Errors);
+            if (_errors.Count > 0)
+                return new MagitekResults<ProjectTree>.Failed(_errors);
 
             return new MagitekResults<ProjectTree>.Success(builder.Tree);
         }
