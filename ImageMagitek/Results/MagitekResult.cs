@@ -15,7 +15,7 @@ namespace ImageMagitek
         }
 
         public bool HasSucceeded => IsT0;
-        public MagitekResult.Success AsSuccess => AsSuccess;
+        public MagitekResult.Success AsSuccess => AsT0;
 
         public bool HasFailed => IsT1;
         public MagitekResult.Failed AsError => AsT1;
@@ -36,7 +36,7 @@ namespace ImageMagitek
         }
 
         public bool HasSucceeded => IsT0;
-        public MagitekResult<T>.Success AsSuccess => AsSuccess;
+        public MagitekResult<T>.Success AsSuccess => AsT0;
 
         public bool HasFailed => IsT1;
         public MagitekResult<T>.Failed AsError => AsT1;
