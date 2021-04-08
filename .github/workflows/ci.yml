@@ -16,7 +16,7 @@
 
 name: ci
 
-on: workflow_dispatch
+on: [workflow_dispatch]
 
 jobs:
   windows-latest:
@@ -24,6 +24,13 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
+      - name: Cache .tmp, ~/.nuget/packages
+        uses: actions/cache@v2
+        with:
+          path: |
+            .tmp
+            ~/.nuget/packages
+          key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
       - name: Run './build.cmd Package'
         run: ./build.cmd Package
       - uses: actions/upload-artifact@v1
