@@ -296,7 +296,21 @@ namespace TileShop.WPF.ViewModels
             }
             else
             {
-                _windowManager.ShowMessageBox("Selection must be performed in element snap mode to create a new Scattered Arranger", "Error");
+                _windowManager.ShowMessageBox("Selection must be performed in Element Snap mode to create a new Scattered Arranger", "Error");
+            }
+        }
+
+        public void NewScatteredArrangerFromImage()
+        {
+            if (SnapMode == SnapMode.Element)
+            {
+                var copy = new ElementCopy(WorkingArranger, 0, 0, 1, 1);
+                var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
+                _events.PublishOnUIThread(model);
+            }
+            else
+            {
+                _windowManager.ShowMessageBox("Selection must be performed in Element Snap mode to create a new Scattered Arranger", "Error");
             }
         }
 
