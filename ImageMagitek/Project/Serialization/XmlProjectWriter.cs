@@ -24,8 +24,8 @@ namespace ImageMagitek.Project.Serialization
 
         public XmlProjectWriter(ProjectTree tree, IEnumerable<IProjectResource> globalResources)
         {
-            if (_tree is null)
-                throw new ArgumentNullException($"{nameof(WriteProject)} parameter '{nameof(_tree)}' was null");
+            if (tree is null)
+                throw new ArgumentNullException($"{nameof(WriteProject)} parameter '{nameof(tree)}' was null");
 
             _tree = tree;
             _globalResources = globalResources.ToList();
