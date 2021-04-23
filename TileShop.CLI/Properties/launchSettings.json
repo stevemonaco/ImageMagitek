@@ -2,7 +2,7 @@
   "profiles": {
     "FF2 ExportAll": {
       "commandName": "Project",
-      "commandLineArgs": "ExportAll --overwrite ff2.xml FF2Extract",
+      "commandLineArgs": "ExportAll --overwrite \"FF2new\\ff2.xml\" FF2Extract",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
     "FF2 ImportAll": {

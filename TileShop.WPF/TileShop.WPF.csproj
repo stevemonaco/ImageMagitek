@@ -31,7 +31,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" />
     <PackageReference Include="ModernWpfUI" Version="0.9.3" />
-    <PackageReference Include="Monaco.PathTree" Version="0.4.2" />
+    <PackageReference Include="Monaco.PathTree" Version="1.0.0" />
     <PackageReference Include="OneOf" Version="2.1.155" />
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />

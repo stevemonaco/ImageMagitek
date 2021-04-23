@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using ImageMagitek.Colors;
+using ImageMagitek.Project.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace ImageMagitek.Services
@@ -20,7 +21,7 @@ namespace ImageMagitek.Services
         public static string DefaultPalettePath { get; } = "_palettes";
         public static string DefaultCodecPath { get; } = "_codecs";
         public static string DefaultPluginPath { get; } = "_plugins";
-        public static string DefaultProjectSchemaFileName { get; } = Path.Combine("_schemas", "GameDescriptorSchema.xsd");
+        public static string DefaultResourceSchemaFileName { get; } = Path.Combine("_schemas", "ResourceSchema.xsd");
         public static string DefaultCodecSchemaFileName { get; } = Path.Combine("_schemas", "CodecSchema.xsd");
 
         public BootstrapService(ILogger logger)
@@ -28,7 +29,7 @@ namespace ImageMagitek.Services
             _logger = logger;
         }
 
-        public AppSettings ReadConfiguration(string jsonFileName)
+        public virtual AppSettings ReadConfiguration(string jsonFileName)
         {
             try
             {
@@ -58,7 +59,7 @@ namespace ImageMagitek.Services
             }
         }
 
-        public IPaletteService CreatePaletteService(string palettesPath, AppSettings settings)
+        public virtual IPaletteService CreatePaletteService(string palettesPath, AppSettings settings)
         {
             var _colorFactory = new ColorFactory();
             var _paletteService = new PaletteService(_colorFactory);
@@ -79,7 +80,7 @@ namespace ImageMagitek.Services
             return _paletteService;
         }
 
-        public ICodecService CreateCodecService(string codecsPath, string schemaFileName)
+        public virtual ICodecService CreateCodecService(string codecsPath, string schemaFileName)
         {
             var _codecService = new CodecService(schemaFileName);
             var result = _codecService.LoadXmlCodecs(codecsPath);
@@ -92,7 +93,7 @@ namespace ImageMagitek.Services
             return _codecService;
         }
 
-        public IPluginService CreatePluginService(string pluginPath, ICodecService codecService)
+        public virtual IPluginService CreatePluginService(string pluginPath, ICodecService codecService)
         {
             var pluginService = new PluginService();
             var fullPluginPath = Path.GetFullPath(pluginPath);
@@ -109,11 +110,9 @@ namespace ImageMagitek.Services
             return pluginService;
         }
 
-        public IProjectService CreateProjectService(string schemaFileName, IPaletteService paletteService, ICodecService codecService)
+        public virtual IProjectService CreateProjectService(IProjectSerializerFactory serializerFactory)
         {
-            var defaultResources = paletteService.GlobalPalettes;
-            var projectService = new ProjectService(codecService, paletteService.ColorFactory, defaultResources);
-            projectService.LoadSchemaDefinition(schemaFileName);
+            var projectService = new ProjectService(serializerFactory);
 
             return projectService;
         }

@@ -16,6 +16,7 @@ using TileShop.WPF.ViewModels;
 using TileShop.WPF.Views;
 using System.Windows.Controls;
 using Microsoft.Extensions.Logging;
+using ImageMagitek.Project.Serialization;
 
 namespace TileShop.WPF
 {
@@ -41,13 +42,17 @@ namespace TileShop.WPF
             var settings = bootstrapper.ReadConfiguration(BootstrapService.DefaultConfigurationFileName);
             var paletteService = bootstrapper.CreatePaletteService(BootstrapService.DefaultPalettePath, settings);
             var codecService = bootstrapper.CreateCodecService(BootstrapService.DefaultCodecPath, BootstrapService.DefaultCodecSchemaFileName);
-            var pluginService = bootstrapper.CreatePluginService(BootstrapService.DefaultPluginPath, codecService);
-            var projectService = bootstrapper.CreateProjectService(BootstrapService.DefaultProjectSchemaFileName, paletteService, codecService);
+            //var pluginService = bootstrapper.CreatePluginService(BootstrapService.DefaultPluginPath, codecService);
+
+            var defaultResources = paletteService.GlobalPalettes;
+            var serializerFactory = new XmlProjectSerializerFactory(BootstrapService.DefaultResourceSchemaFileName,
+                codecService.CodecFactory, paletteService.ColorFactory, defaultResources);
+            var projectService = bootstrapper.CreateProjectService(serializerFactory);
 
             builder.RegisterInstance(settings);
             builder.RegisterInstance(paletteService);
             builder.RegisterInstance(codecService);
-            builder.RegisterInstance(pluginService);
+            //builder.RegisterInstance(pluginService);
             builder.RegisterInstance(projectService);
         }
 

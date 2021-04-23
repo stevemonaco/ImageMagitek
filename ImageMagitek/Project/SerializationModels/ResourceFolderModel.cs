@@ -1,19 +1,13 @@
 ﻿namespace ImageMagitek.Project.Serialization
 {
-    internal class ResourceFolderModel : ProjectNodeModel
+    public class ResourceFolderModel : ResourceModel
     {
-        public ResourceFolder ToResourceFolder()
+        public override bool ResourceEquals(ResourceModel resourceModel)
         {
-            var folder = new ResourceFolder(Name);
-            return folder;
-        }
+            if (resourceModel is not ResourceFolderModel model)
+                return false;
 
-        public static ResourceFolderModel FromResourceFolder(ResourceFolder folder)
-        {
-            return new ResourceFolderModel()
-            {
-                Name = folder.Name
-            };
+            return model.Name == Name;
         }
     }
 }

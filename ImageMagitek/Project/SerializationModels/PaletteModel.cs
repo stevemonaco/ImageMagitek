@@ -1,8 +1,9 @@
 ﻿using ImageMagitek.Colors;
+using System;
 
 namespace ImageMagitek.Project.Serialization
 {
-    internal class PaletteModel : ProjectNodeModel
+    public class PaletteModel : ResourceModel
     {
         public ColorModel ColorModel { get; set; }
         public string DataFileKey { get; set; }
@@ -11,16 +12,14 @@ namespace ImageMagitek.Project.Serialization
         public bool ZeroIndexTransparent { get; set; }
         public PaletteStorageSource StorageSource { get; set; }
 
-        public static PaletteModel FromPalette(Palette pal)
+        public override bool ResourceEquals(ResourceModel resourceModel)
         {
-            return new PaletteModel()
-            {
-                Name = pal.Name,
-                ColorModel = pal.ColorModel,
-                FileAddress = pal.FileAddress,
-                Entries = pal.Entries,
-                ZeroIndexTransparent = pal.ZeroIndexTransparent
-            };
+            if (resourceModel is not PaletteModel model)
+                return false;
+
+            return model.ColorModel == ColorModel && model.DataFileKey == DataFileKey && model.FileAddress == FileAddress &&
+                model.Entries == Entries && model.ZeroIndexTransparent == ZeroIndexTransparent && model.StorageSource == StorageSource
+                && model.Name == Name;
         }
     }
 }

@@ -21,12 +21,12 @@ namespace TileShop.CLI.Commands
             if (project is null)
                 return ExitCode.ProjectOpenError;
 
-            foreach (var node in project.Tree.EnumerateDepthFirst().Where(x => x.Value is ScatteredArranger))
+            foreach (var node in project.EnumerateDepthFirst().Where(x => x.Item is ScatteredArranger))
             {
-                var relativeFile = Path.Combine(node.Paths.ToArray());
+                var relativeFile = Path.Combine(project.CreatePaths(node).ToArray());
                 var imageFileName = Path.Combine(options.ImportDirectory, $"{relativeFile}.png");
 
-                var result = Importer.ImportImage(project, imageFileName, node.PathKey);
+                var result = Importer.ImportImage(project, imageFileName, project.CreatePathKey(node));
 
                 if (result == ImportResult.MissingFile && options.SkipMissingFiles is false)
                 {

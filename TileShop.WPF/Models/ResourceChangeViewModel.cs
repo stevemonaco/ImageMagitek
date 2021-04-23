@@ -50,12 +50,12 @@ namespace TileShop.WPF.Models
             set => SetAndNotify(ref _isChanged, value);
         }
 
-        public ResourceChangeViewModel(ResourceNode resourceNode, bool removed, bool lostPalette, bool lostElement)
+        public ResourceChangeViewModel(ResourceNode resourceNode, string resourcePathKey, bool removed, bool lostPalette, bool lostElement)
         {
             ResourceNode = resourceNode;
-            Resource = ResourceNode.Value;
+            Resource = ResourceNode.Item;
             ResourceName = Resource.Name;
-            ResourcePath = ResourceNode.PathKey;
+            ResourcePath = resourcePathKey;
             Removed = removed;
             LostPalette = lostPalette;
             LostElement = lostElement;

@@ -1,18 +1,17 @@
-﻿namespace ImageMagitek.Project.Serialization
+﻿using System;
+
+namespace ImageMagitek.Project.Serialization
 {
-    internal class DataFileModel : ProjectNodeModel
+    public class DataFileModel : ResourceModel
     {
         public string Location { get; set; }
 
-        public DataFile ToDataFile() => new DataFile(Name, Location);
-
-        public static DataFileModel FromDataFile(DataFile df)
+        public override bool ResourceEquals(ResourceModel resourceModel)
         {
-            return new DataFileModel()
-            {
-                Name = df.Name,
-                Location = df.Location
-            };
+            if (resourceModel is not DataFileModel model)
+                return false;
+
+            return model.Location == Location && model.Name == Name;
         }
     }
 }

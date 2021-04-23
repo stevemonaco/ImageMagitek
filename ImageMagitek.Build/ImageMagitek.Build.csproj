@@ -10,15 +10,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nuke.Common" Version="5.0.2" />
+    <PackageReference Include="Nuke.Common" Version="5.1.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="..\.github\workflows\main.yml" />
+    <None Remove="..\.github\workflows\ci.yml" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="..\.github\workflows\main.yml" />
+    <None Remove="..\.github\workflows\ci.yml" />
   </ItemGroup>
 
 </Project>

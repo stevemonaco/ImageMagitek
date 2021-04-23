@@ -74,15 +74,15 @@ namespace TileShop.WPF.ViewModels
             {
                 SelectedNode.IsExpanded ^= true;
             }
-            else if (SelectedNode?.Node?.Value is object)
+            else if (SelectedNode?.Node?.Item is object)
             {
-                _editors.ActivateEditor(SelectedNode.Node.Value);
+                _editors.ActivateEditor(SelectedNode.Node.Item);
             }
         }
 
         public void AddNewFolder(ResourceNodeViewModel parentNodeModel)
         {
-            _projectService.CreateNewFolder(parentNodeModel.Node, "New Folder", true).Switch(
+            _projectService.CreateNewFolder(parentNodeModel.Node, "New Folder").Switch(
                 success =>
                 {
                     var folderVM = new FolderNodeViewModel(success.Result, parentNodeModel);
@@ -112,7 +112,7 @@ namespace TileShop.WPF.ViewModels
                 }
 
                 var df = new DataFile(dfName, dataFileName);
-                var result = _projectService.AddResource(parentNodeModel.Node, df, true);
+                var result = _projectService.AddResource(parentNodeModel.Node, df);
 
                 result.Switch(success =>
                 {
@@ -133,7 +133,7 @@ namespace TileShop.WPF.ViewModels
             var dialogModel = new AddPaletteViewModel(parentNodeModel.Children.Select(x => x.Name));
 
             var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
-            var dataFiles = projectTree.Tree.EnumerateDepthFirst().Select(x => x.Value).OfType<DataFile>();
+            var dataFiles = projectTree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataFile>();
             dialogModel.DataFiles.AddRange(dataFiles);
             dialogModel.SelectedDataFile = dialogModel.DataFiles.FirstOrDefault();
             dialogModel.ColorModels.AddRange(Palette.GetColorModelNames());
@@ -154,7 +154,7 @@ namespace TileShop.WPF.ViewModels
 
                 pal.DataFile = dialogModel.SelectedDataFile;
 
-                var result = _projectService.AddResource(parentNodeModel.Node, pal, true);
+                var result = _projectService.AddResource(parentNodeModel.Node, pal);
 
                 result.Switch(success =>
                 {
@@ -184,7 +184,7 @@ namespace TileShop.WPF.ViewModels
                     dialogModel.Layout, dialogModel.ArrangerElementWidth, dialogModel.ArrangerElementHeight,
                     dialogModel.ElementPixelWidth, dialogModel.ElementPixelHeight);
 
-                var result = _projectService.AddResource(parentNodeModel.Node, arranger, true);
+                var result = _projectService.AddResource(parentNodeModel.Node, arranger);
 
                 result.Switch(success =>
                 {
@@ -206,7 +206,7 @@ namespace TileShop.WPF.ViewModels
         {
             if (nodeModel is ArrangerNodeViewModel arrNodeModel)
             {
-                var arranger = arrNodeModel.Node.Value as ScatteredArranger;
+                var arranger = arrNodeModel.Node.Item as ScatteredArranger;
                 var exportFileName = _fileSelect.GetExportArrangerFileNameByUser($"{arranger.Name}.png");
 
                 if (exportFileName is object)
@@ -227,7 +227,7 @@ namespace TileShop.WPF.ViewModels
 
         public void ImportImageAs(ResourceNodeViewModel nodeModel)
         {
-            if (nodeModel is ArrangerNodeViewModel arrNodeModel && arrNodeModel.Node.Value is ScatteredArranger arranger)
+            if (nodeModel is ArrangerNodeViewModel arrNodeModel && arrNodeModel.Node.Item is ScatteredArranger arranger)
             {
                 var model = new ImportImageViewModel(arranger, _fileSelect);
                 if (_windowManager.ShowDialog(model) is true)
@@ -240,12 +240,12 @@ namespace TileShop.WPF.ViewModels
 
         public void RequestRemoveNode(ResourceNodeViewModel nodeModel)
         {
-            var removeNode = nodeModel.Node;
-            var projectTree = _projectService.GetContainingProject(removeNode);
-            var changes = projectTree.GetSecondaryResourceRemovalChanges(removeNode).ToList();
+            var deleteNode = nodeModel.Node;
+            var tree = _projectService.GetContainingProject(nodeModel.Node);
+            var changes = _projectService.PreviewResourceDeletionChanges(deleteNode).ToList();
 
-            var changeVm = new ResourceRemovalChangesViewModel(new ResourceChangeViewModel(removeNode, true, false, false), 
-                changes.Select(x => new ResourceChangeViewModel(x)).ToList());
+            var changeVm = new ResourceRemovalChangesViewModel(new ResourceChangeViewModel(deleteNode, tree.CreatePathKey(deleteNode),
+                true, false, false), changes.Select(x => new ResourceChangeViewModel(x)).ToList());
 
             bool? result;
             result = _windowManager.ShowDialog(changeVm);
@@ -276,15 +276,14 @@ namespace TileShop.WPF.ViewModels
                 _editors.Editors.Clear();
                 _editors.ActiveEditor = null;
 
-                projectTree.ApplyRemovalChanges(changes);
-                var projectRootNode = projectTree.Tree.Root as ResourceNode;
-                var projectRootVm = Projects.First(x => ReferenceEquals(projectRootNode, x.Node));
+                _projectService.ApplyResourceDeletionChanges(changes, _paletteService.DefaultPalette);
+                var projectRootVm = Projects.First(x => ReferenceEquals(tree.Root, x.Node));
                 SynchronizeTree(projectRootVm);
 
-                _projectService.SaveProject(projectTree)
+                _projectService.SaveProject(tree)
                 .Switch(
                     success => IsModified = false,
-                    fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
+                    fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {tree.Root.DiskLocation}: {fail.Reason}")
                 );
             }
         }
@@ -308,11 +307,11 @@ namespace TileShop.WPF.ViewModels
 
         private void SynchronizeNode(ResourceNode resourceNode, ResourceNodeViewModel vmNode)
         {
-            if (resourceNode.Children is null)
+            if (resourceNode.ChildNodes is null)
                 return;
 
-            if (!resourceNode.Children.All(x => vmNode.Children.Any(y => ReferenceEquals(x, y.Node))) && 
-                resourceNode.Children.Count() == vmNode.Children.Count)
+            if (!resourceNode.ChildNodes.All(x => vmNode.Children.Any(y => ReferenceEquals(x, y.Node))) && 
+                resourceNode.ChildNodes.Count() == vmNode.Children.Count)
                 return;
 
             SynchronizeDeletions(resourceNode, vmNode);
@@ -324,7 +323,7 @@ namespace TileShop.WPF.ViewModels
 
                 foreach (var vm in vmNode.Children)
                 {
-                    if (!resourceNode.Children.Any(x => ReferenceEquals(x, vm.Node)))
+                    if (!resourceNode.ChildNodes.Any(x => ReferenceEquals(x, vm.Node)))
                     {
                         if (removedItems is null)
                             removedItems = new List<ResourceNodeViewModel>();
@@ -342,13 +341,13 @@ namespace TileShop.WPF.ViewModels
 
             void SynchronizeInsertions(ResourceNode resourceNode, ResourceNodeViewModel vmNode)
             {
-                foreach (var node in resourceNode.Children)
+                foreach (var node in resourceNode.ChildNodes)
                 {
                     if (!vmNode.Children.Any(x => ReferenceEquals(node, x.Node)))
                     {
                         ResourceNodeViewModel newNode = node switch
                         {
-                            FolderNode _ => new FolderNodeViewModel(node, vmNode),
+                            ResourceFolderNode _ => new FolderNodeViewModel(node, vmNode),
                             PaletteNode _ => new PaletteNodeViewModel(node, vmNode),
                             DataFileNode _ => new DataFileNodeViewModel(node, vmNode),
                             ArrangerNode _ => new ArrangerNodeViewModel(node, vmNode),
@@ -365,34 +364,23 @@ namespace TileShop.WPF.ViewModels
         public void RenameNode(ResourceNodeViewModel nodeModel)
         {
             var dialogModel = new RenameNodeViewModel(nodeModel);
-            var result = _windowManager.ShowDialog(dialogModel);
+            var dialogResult = _windowManager.ShowDialog(dialogModel);
 
-            if (result is true)
+            if (dialogResult is true)
             {
                 var oldName = nodeModel.Name;
                 var newName = dialogModel.Name;
 
-                if (nodeModel.ParentModel is object && nodeModel.ParentModel.Node.ContainsChild(newName))
-                {
-                    _windowManager.ShowMessageBox($"Parent item already contains an item named '{newName}'", icon: MessageBoxImage.Error);
-                }
-                else
-                {
-                    nodeModel.Node.Rename(newName);
-                    nodeModel.Node.Value.Name = newName;
-                    nodeModel.Name = newName;
+                var tree = _projectService.GetContainingProject(nodeModel.Node);
+                _projectService.RenameResource(nodeModel.Node, dialogModel.Name).Switch(
+                    success =>
+                    {
+                        nodeModel.Name = newName;
 
-                    var projectTree = _projectService.GetContainingProject(nodeModel.Node);
-
-                    _projectService.SaveProject(projectTree)
-                    .Switch(
-                        success => IsModified = false,
-                        fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
-                    );
-
-                    var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Value, newName, oldName);
-                    _events.PublishOnUIThread(renameEvent);
-                }
+                        var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, newName, oldName);
+                        _events.PublishOnUIThread(renameEvent);
+                    },
+                    fail => _windowManager.ShowMessageBox(fail.Reason, icon: MessageBoxImage.Error));
             }
         }
 
@@ -402,7 +390,7 @@ namespace TileShop.WPF.ViewModels
             var copy = message.Copy;
             var arranger = message.Copy.Source;
             var projectTree = _projectService.GetContainingProject(message.ProjectResource);
-            var parentModel = Projects.First(x => ReferenceEquals(projectTree.Project, x.Node.Value));
+            var parentModel = Projects.First(x => ReferenceEquals(projectTree.Project, x.Node.Item));
 
             if (_windowManager.ShowDialog(model) is true)
             {
@@ -415,7 +403,7 @@ namespace TileShop.WPF.ViewModels
                 copyResult.Switch(
                     copySuccess =>
                     {
-                        var addResult = _projectService.AddResource(parentModel.Node, newArranger, true);
+                        var addResult = _projectService.AddResource(parentModel.Node, newArranger);
 
                         addResult.Switch(
                             addSuccess =>
@@ -438,8 +426,7 @@ namespace TileShop.WPF.ViewModels
         {
             if (dropInfo.Data is ResourceNodeViewModel sourceModel && dropInfo.TargetItem is ResourceNodeViewModel targetModel)
             {
-                var projectTree = _projectService.GetContainingProject(sourceModel.Node);
-                projectTree.CanMoveNode(sourceModel.Node, targetModel.Node).Switch(
+                _projectService.CanMoveNode(sourceModel.Node, targetModel.Node).Switch(
                     success =>
                     {
                         dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
@@ -456,9 +443,7 @@ namespace TileShop.WPF.ViewModels
 
             if (dropInfo.Data is ResourceNodeViewModel sourceModel && (targetModel is ResourceNodeViewModel || targetModel is FolderNodeViewModel))
             {
-                var projectTree = _projectService.GetContainingProject(sourceModel.Node);
-
-                var result = projectTree.MoveNode(sourceModel.Node, targetModel.Node);
+                var result = _projectService.MoveNode(sourceModel.Node, targetModel.Node);
 
                 result.Switch(
                     success =>
@@ -468,11 +453,11 @@ namespace TileShop.WPF.ViewModels
                         targetModel.Children.Add(sourceModel);
                         SelectedNode = sourceModel;
 
-                        _projectService.SaveProject(projectTree)
-                        .Switch(
-                            success => IsModified = false,
-                            fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
-                        );
+                        //_projectService.SaveProject(projectTree)
+                        //.Switch(
+                        //    success => IsModified = false,
+                        //    fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
+                        //);
                     },
                     fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Move Resource Error")
                     );
@@ -490,7 +475,7 @@ namespace TileShop.WPF.ViewModels
                     _projectService.SaveProject(projectTree)
                          .Switch(
                              success => IsModified = false,
-                             fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
+                             fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                          );
                 }
             }
@@ -511,7 +496,7 @@ namespace TileShop.WPF.ViewModels
                     _projectService.NewProject(Path.GetFullPath(projectFileName)).Switch(
                         success =>
                         {
-                            var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Tree.Root);
+                            var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
                             Projects.Add(projectVM);
                             NotifyOfPropertyChange(() => HasProject);
                             _events.PublishOnUIThread(new ProjectLoadedEvent());
@@ -543,12 +528,12 @@ namespace TileShop.WPF.ViewModels
                     _projectService.NewProject(Path.GetFullPath(projectFileName)).Switch(
                         success =>
                         {
-                            var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Tree.Root);
+                            var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
                             Projects.Add(projectVM);
 
                             var dfName = Path.GetFileName(dataFileName);
                             var df = new DataFile(dfName, dataFileName);
-                            var result = _projectService.AddResource(projectVM.Node, df, true);
+                            var result = _projectService.AddResource(projectVM.Node, df);
 
                             result.Switch(success =>
                             {
@@ -586,7 +571,7 @@ namespace TileShop.WPF.ViewModels
             return openResult.Match(
                 success =>
                 {
-                    var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Tree.Root);
+                    var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
                     Projects.Add(projectVM);
                     NotifyOfPropertyChange(() => HasProject);
                     return true;
@@ -609,9 +594,7 @@ namespace TileShop.WPF.ViewModels
             if (newFileName is null)
                 return false;
 
-            projectTree.FileLocation = newFileName;
-
-            return _projectService.SaveProject(projectTree).Match(
+            return _projectService.SaveProjectAs(projectTree, newFileName).Match(
                 success =>
                 {
                     return true;
@@ -654,7 +637,7 @@ namespace TileShop.WPF.ViewModels
                     _projectService.SaveProject(projectTree)
                      .Switch(
                          success => IsModified = false,
-                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.FileLocation}: {fail.Reason}")
+                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                      );
 
                     _projectService.CloseProject(projectTree);

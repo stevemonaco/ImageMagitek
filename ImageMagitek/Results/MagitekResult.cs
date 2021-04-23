@@ -13,6 +13,12 @@ namespace ImageMagitek
             public string Reason { get; }
             public Failed(string reason) => Reason = reason;
         }
+
+        public bool HasSucceeded => IsT0;
+        public MagitekResult.Success AsSuccess => AsT0;
+
+        public bool HasFailed => IsT1;
+        public MagitekResult.Failed AsError => AsT1;
     }
 
     public abstract class MagitekResult<T> : OneOfBase<MagitekResult<T>.Success, MagitekResult<T>.Failed>
@@ -28,5 +34,11 @@ namespace ImageMagitek
             public string Reason { get; }
             public Failed(string reason) => Reason = reason;
         }
+
+        public bool HasSucceeded => IsT0;
+        public MagitekResult<T>.Success AsSuccess => AsT0;
+
+        public bool HasFailed => IsT1;
+        public MagitekResult<T>.Failed AsError => AsT1;
     }
 }

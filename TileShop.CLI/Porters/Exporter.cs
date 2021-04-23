@@ -10,16 +10,16 @@ namespace TileShop.CLI.Porters
     {
         public static bool ExportArranger(ProjectTree projectTree, string arrangerKey, string projectRoot, bool forceOverwrite)
         {
-            if (!projectTree.Tree.TryGetNode(arrangerKey, out var node))
+            if (!projectTree.TryGetNode(arrangerKey, out var node))
             {
                 Console.WriteLine($"Exporting '{arrangerKey}'...Resource key not found in project");
                 return false;
             }
 
-            var relativeFile = Path.Combine(node.Paths.ToArray());
+            var relativeFile = Path.Combine(projectTree.CreatePaths(node).ToArray());
             var exportFileName = Path.Combine(projectRoot, $"{relativeFile}.png");
 
-            var arranger = node.Value as ScatteredArranger;
+            var arranger = node.Item as ScatteredArranger;
 
             Console.Write($"Exporting '{arrangerKey}' to '{exportFileName}'...");
 

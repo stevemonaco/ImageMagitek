@@ -10,6 +10,7 @@ using CommandLine;
 using TileShop.CLI.Commands;
 
 using LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory;
+using ImageMagitek.Project.Serialization;
 
 namespace TileShop.CLI
 {
@@ -78,13 +79,17 @@ namespace TileShop.CLI
                 var codecSchemaFileName = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultCodecSchemaFileName);
                 var palettePath = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultPalettePath);
                 var pluginPath = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultPluginPath);
-                var projectSchemaFileName = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultProjectSchemaFileName);
+                var resourceSchemaFileName = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultResourceSchemaFileName);
 
                 var settings = bootstrapper.ReadConfiguration(settingsFileName);
                 var codecService = bootstrapper.CreateCodecService(codecPath, codecSchemaFileName);
                 var paletteService = bootstrapper.CreatePaletteService(palettePath, settings);
                 var pluginService = bootstrapper.CreatePluginService(pluginPath, codecService);
-                ProjectService = bootstrapper.CreateProjectService(projectSchemaFileName, paletteService, codecService);
+
+                var defaultResources = paletteService.GlobalPalettes;
+                var serializerFactory = new XmlProjectSerializerFactory(resourceSchemaFileName,
+                    codecService.CodecFactory, paletteService.ColorFactory, defaultResources);
+                ProjectService = bootstrapper.CreateProjectService(serializerFactory);
                 
                 return true;
             }
