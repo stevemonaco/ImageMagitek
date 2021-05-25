@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using Stylet;
 
-namespace TileShop.WPF.ViewModels.Dialogs
+namespace TileShop.WPF.ViewModels
 {
     public class ResizeTiledScatteredArrangerViewModel : Screen
     {

@@ -7,10 +7,12 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:ui="http://schemas.modernwpf.com/2019"
+    xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     Title="Add a New Palette"
     Width="400"
     Height="500"
     MinWidth="230"
+    d:DataContext="{d:DesignInstance Type=vm:AddPaletteViewModel}"
     ui:ThemeManager.IsThemeAware="True"
     ui:WindowHelper.UseModernWindowStyle="True"
     mc:Ignorable="d">

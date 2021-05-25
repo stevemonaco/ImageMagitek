@@ -6,9 +6,11 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:ui="http://schemas.modernwpf.com/2019"
+    xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     Title="Resize Scattered Arranger"
     Width="300"
     Height="150"
+    d:DataContext="{d:DesignInstance Type=vm:ResizeTiledScatteredArrangerViewModel}"
     ui:ThemeManager.IsThemeAware="True"
     ui:WindowHelper.UseModernWindowStyle="True"
     mc:Ignorable="d">

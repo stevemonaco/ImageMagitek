@@ -10,6 +10,8 @@
     xmlns:model="clr-namespace:TileShop.WPF.Models"
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:ui="http://schemas.modernwpf.com/2019"
+    xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:ScatteredArrangerEditorViewModel}"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">

@@ -1,10 +1,9 @@
-﻿using ImageMagitek.Project;
-using Stylet;
+﻿using Stylet;
 using System.Collections.Generic;
 using System.Linq;
 using TileShop.WPF.Models;
 
-namespace TileShop.WPF.ViewModels.Dialogs
+namespace TileShop.WPF.ViewModels
 {
     public class ResourceRemovalChangesViewModel : Screen
     {

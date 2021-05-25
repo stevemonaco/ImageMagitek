@@ -6,7 +6,6 @@ using GongSolutions.Wpf.DragDrop;
 using Stylet;
 using TileShop.Shared.EventModels;
 using TileShop.WPF.Services;
-using TileShop.WPF.ViewModels.Dialogs;
 using TileShop.WPF.EventModels;
 using ImageMagitek;
 using ImageMagitek.Colors;

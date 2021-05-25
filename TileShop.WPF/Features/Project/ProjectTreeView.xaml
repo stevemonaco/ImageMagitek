@@ -12,6 +12,8 @@
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:sel="clr-namespace:TileShop.WPF.Selectors"
     xmlns:ui="http://schemas.modernwpf.com/2019"
+    xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:ProjectTreeViewModel}"
     mc:Ignorable="d">
     <UserControl.Resources>
         <converters:TreeNodeCollectionViewSource x:Key="SortedTreeViewSource" />

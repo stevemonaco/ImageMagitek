@@ -10,7 +10,6 @@ using TileShop.WPF.Models;
 using TileShop.WPF.Behaviors;
 using TileShop.Shared.Models;
 using TileShop.Shared.EventModels;
-using TileShop.WPF.ViewModels.Dialogs;
 using System;
 using Monaco.PathTree;
 using Point = System.Drawing.Point;
