@@ -11,7 +11,7 @@ using ModernWpf;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class ShellViewModel : Conductor<object>, IHandle<ShowToolWindowEvent>
+    public class ShellViewModel : Screen, IHandle<ShowToolWindowEvent>
     {
         private readonly Tracker _tracker;
         private readonly IEventAggregator _events;
