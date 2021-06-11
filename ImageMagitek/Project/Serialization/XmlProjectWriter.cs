@@ -17,17 +17,19 @@ namespace ImageMagitek.Project.Serialization
         private readonly List<IProjectResource> _globalResources;
         private readonly Palette _globalDefaultPalette;
         private readonly ProjectTree _tree;
+        private readonly IColorFactory _colorFactory;
         private string _baseDirectory;
         private readonly Dictionary<IProjectResource, string> _resourceMap;
 
         private HashSet<string> _activeBackupFiles;
 
-        public XmlProjectWriter(ProjectTree tree, IEnumerable<IProjectResource> globalResources)
+        public XmlProjectWriter(ProjectTree tree, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
         {
             if (tree is null)
                 throw new ArgumentNullException($"{nameof(WriteProject)} parameter '{nameof(tree)}' was null");
 
             _tree = tree;
+            _colorFactory = colorFactory;
             _globalResources = globalResources.ToList();
             _globalDefaultPalette = globalResources.OfType<Palette>().FirstOrDefault();
 
@@ -72,7 +74,7 @@ namespace ImageMagitek.Project.Serialization
             }
             else if (resourceNode is PaletteNode palNode)
             {
-                var model = (palNode.Item as Palette).MapToModel(_resourceMap);
+                var model = (palNode.Item as Palette).MapToModel(_resourceMap, _colorFactory);
                 return Stringify(Serialize(model));
             }
             else if (resourceNode is ArrangerNode arrangerNode)
@@ -108,7 +110,7 @@ namespace ImageMagitek.Project.Serialization
                 else if (node is PaletteNode paletteNode)
                 {
                     var pal = paletteNode.Item as Palette;
-                    var model = pal.MapToModel(_resourceMap);
+                    var model = pal.MapToModel(_resourceMap, _colorFactory);
                     currentModel = model;
 
                     diskModel = paletteNode.Model;
@@ -221,11 +223,31 @@ namespace ImageMagitek.Project.Serialization
         {
             var element = new XElement("palette");
             element.Add(new XAttribute("name", paletteModel.Name));
-            element.Add(new XAttribute("fileoffset", $"{paletteModel.FileAddress.FileOffset:X}"));
             element.Add(new XAttribute("datafile", paletteModel.DataFileKey));
             element.Add(new XAttribute("color", paletteModel.ColorModel.ToString()));
             element.Add(new XAttribute("entries", paletteModel.Entries));
             element.Add(new XAttribute("zeroindextransparent", paletteModel.ZeroIndexTransparent));
+
+            int i = 0;
+            while (i < paletteModel.ColorSources.Count)
+            {
+                if (paletteModel.ColorSources[i] is FileColorSourceModel fileSource)
+                {
+                    var fileElement = new XElement("filesource");
+                    fileElement.Add(new XAttribute("fileoffset", $"{fileSource.FileAddress.FileOffset:X}"));
+                    fileElement.Add(new XAttribute("entries", fileSource.Entries));
+                }
+                else if (paletteModel.ColorSources[i] is ProjectNativeColorSourceModel nativeSource)
+                {
+                    var nativeElement = new XElement("nativecolor");
+                    nativeElement.Add(new XAttribute("value", $"#{nativeSource.Value:08X}"));
+                }
+                else if (paletteModel.ColorSources[i] is ProjectForeignColorSourceModel foreignSource)
+                {
+                    var foreignElement = new XElement("foreigncolor");
+                    foreignElement.Add(new XAttribute("value", $"#{foreignSource.Value:X}"));
+                }
+            }
 
             return element;
         }

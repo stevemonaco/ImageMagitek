@@ -1,11 +1,14 @@
 ﻿using Stylet;
 using ImageMagitek;
 using System.Collections.Generic;
+using ImageMagitek.Colors;
 
 namespace TileShop.WPF.ViewModels
 {
     public class AddPaletteViewModel : Screen
     {
+        public IColorSource[] ColorSources { get; private set; }
+
         private string _paletteName;
         public string PaletteName
         {

@@ -5,6 +5,7 @@ using System.Drawing;
 using ColorMine.ColorSpaces.Comparisons;
 using ImageMagitek.Project;
 using ImageMagitek.ExtensionMethods;
+using ImageMagitek.Colors.Serialization;
 
 namespace ImageMagitek.Colors
 {
@@ -32,6 +33,7 @@ namespace ImageMagitek.Colors
         private static readonly Cie94Comparison _comparator = new Cie94Comparison(Cie94Comparison.Application.GraphicArts);
         private readonly IColorFactory _colorFactory;
         private readonly IPaletteBinarySerializer _paletteSerializer;
+        private readonly IPaletteColorSourceSerializer _colorSerializer;
 
         public string Name { get; set; }
         public bool CanContainChildResources => false;
@@ -73,6 +75,11 @@ namespace ImageMagitek.Colors
         public PaletteStorageSource StorageSource { get; private set; }
 
         /// <summary>
+        /// Specifies how the Palette colors will be serialized
+        /// </summary>
+        public IColorSource[] ColorSources { get; private set; }
+
+        /// <summary>
         /// Gets the internal palette containing native Rgba32 colors
         /// </summary>
         ColorRgba32[] NativePalette { get => _nativePalette.Value; }
@@ -93,20 +100,21 @@ namespace ImageMagitek.Colors
             Name = PaletteName;
             _colorFactory = colorFactory;
             _paletteSerializer = new PaletteBinarySerializer(_colorFactory);
+            _colorSerializer = new PaletteColorSourceSerializer(_colorFactory);
 
             HasAlpha = false;
             ZeroIndexTransparent = true;
         }
 
-        public Palette(string name, IColorFactory colorFactory, ColorModel colorModel, FileBitAddress fileAddress,
+        public Palette(string name, IColorFactory colorFactory, ColorModel colorModel,
             int entries, bool zeroIndexTransparent, PaletteStorageSource storageSource)
         {
             Name = name;
             _colorFactory = colorFactory;
             _paletteSerializer = new PaletteBinarySerializer(_colorFactory);
+            _colorSerializer = new PaletteColorSourceSerializer(_colorFactory);
 
             ColorModel = colorModel;
-            FileAddress = fileAddress;
             Entries = entries;
             ZeroIndexTransparent = zeroIndexTransparent;
             StorageSource = storageSource;
@@ -117,6 +125,32 @@ namespace ImageMagitek.Colors
                 _foreignPalette = new Lazy<IColor[]>(() => LoadForeignPalette());
             }
             else if(storageSource == PaletteStorageSource.Json)
+            {
+                _nativePalette = new Lazy<ColorRgba32[]>(() => new ColorRgba32[Entries]);
+                _foreignPalette = new Lazy<IColor[]>(() => new IColor[Entries]);
+            }
+        }
+
+        public Palette(string name, IColorFactory colorFactory, ColorModel colorModel, IList<IColorSource> colorSources,
+            int entries, bool zeroIndexTransparent, PaletteStorageSource storageSource)
+        {
+            Name = name;
+            _colorFactory = colorFactory;
+            _paletteSerializer = new PaletteBinarySerializer(_colorFactory);
+            _colorSerializer = new PaletteColorSourceSerializer(_colorFactory);
+
+            ColorModel = colorModel;
+            ColorSources = colorSources.ToArray();
+            Entries = entries;
+            ZeroIndexTransparent = zeroIndexTransparent;
+            StorageSource = storageSource;
+
+            if (storageSource == PaletteStorageSource.DataFile)
+            {
+                _nativePalette = new Lazy<ColorRgba32[]>(() => LoadNativePalette());
+                _foreignPalette = new Lazy<IColor[]>(() => LoadForeignPalette());
+            }
+            else if (storageSource == PaletteStorageSource.Json)
             {
                 _nativePalette = new Lazy<ColorRgba32[]>(() => new ColorRgba32[Entries]);
                 _foreignPalette = new Lazy<IColor[]>(() => new IColor[Entries]);
@@ -181,7 +215,8 @@ namespace ImageMagitek.Colors
         /// </exception>
         private IColor[] LoadForeignPalette()
         {
-            return _paletteSerializer.ReadPalette(DataFile, FileAddress, ColorModel, Entries);
+            //return _paletteSerializer.ReadPalette(DataFile, FileAddress, ColorModel, Entries);
+            return _colorSerializer.ReadPalette(ColorSources, DataFile, ColorModel, Entries);
         }
 
         /// <summary>

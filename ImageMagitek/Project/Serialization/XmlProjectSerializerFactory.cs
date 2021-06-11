@@ -33,7 +33,7 @@ namespace ImageMagitek.Project.Serialization
 
         public IProjectWriter CreateWriter(ProjectTree tree)
         {
-            return new XmlProjectWriter(tree, GlobalResources);
+            return new XmlProjectWriter(tree, _colorFactory, GlobalResources);
         }
 
         private XmlSchemaSet CreateSchemas(string resourceSchemaFileName)

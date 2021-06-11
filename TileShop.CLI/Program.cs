@@ -89,7 +89,7 @@ namespace TileShop.CLI
                 var defaultResources = paletteService.GlobalPalettes;
                 var serializerFactory = new XmlProjectSerializerFactory(resourceSchemaFileName,
                     codecService.CodecFactory, paletteService.ColorFactory, defaultResources);
-                ProjectService = bootstrapper.CreateProjectService(serializerFactory);
+                ProjectService = bootstrapper.CreateProjectService(serializerFactory, paletteService.ColorFactory);
                 
                 return true;
             }

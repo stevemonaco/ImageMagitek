@@ -16,10 +16,12 @@ namespace ImageMagitek.Services
     {
         public ISet<ProjectTree> Projects { get; } = new HashSet<ProjectTree>();
         private readonly IProjectSerializerFactory _serializerFactory;
+        private readonly IColorFactory _colorFactory;
 
-        public ProjectService(IProjectSerializerFactory serializerFactory)
+        public ProjectService(IProjectSerializerFactory serializerFactory, IColorFactory colorFactory)
         {
             _serializerFactory = serializerFactory;
+            _colorFactory = colorFactory;
         }
 
         /// <summary>
@@ -576,7 +578,7 @@ namespace ImageMagitek.Services
             else if (node is PaletteNode palNode)
             {
                 var map = GetResourceMap(tree);
-                palNode.Model = (palNode.Item as Palette).MapToModel(map);
+                palNode.Model = (palNode.Item as Palette).MapToModel(map, _colorFactory);
             }
             else if (node is ArrangerNode arrangerNode)
             {

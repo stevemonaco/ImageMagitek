@@ -98,7 +98,7 @@ namespace TileShop.WPF.ViewModels
 
         public void DocumentClosing(object sender, DocumentClosingEventArgs e)
         {
-            if ((e.Document.Content is ResourceEditorBaseViewModel editor))
+            if (e.Document.Content is ResourceEditorBaseViewModel editor)
             {
                 if (Editors.RequestSaveUserChanges(editor, true))
                 {

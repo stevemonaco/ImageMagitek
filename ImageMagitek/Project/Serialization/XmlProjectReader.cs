@@ -8,6 +8,7 @@ using System.Xml.Schema;
 using System.Collections.Generic;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using ImageMagitek.Utility.Parsing;
 
 namespace ImageMagitek.Project.Serialization
 {
@@ -240,16 +241,44 @@ namespace ImageMagitek.Project.Serialization
             var model = new PaletteModel();
 
             model.Name = element.Attribute("name").Value;
-            var fileOffset = long.Parse(element.Attribute("fileoffset").Value, System.Globalization.NumberStyles.HexNumber);
             model.DataFileKey = element.Attribute("datafile").Value;
             model.Entries = int.Parse(element.Attribute("entries").Value);
             model.ColorModel = Palette.StringToColorModel(element.Attribute("color").Value);
             model.ZeroIndexTransparent = bool.Parse(element.Attribute("zeroindextransparent").Value);
 
-            if (element.Attribute("bitoffset") is null)
-                model.FileAddress = new FileBitAddress(fileOffset, 0);
-            else
-                model.FileAddress = new FileBitAddress(fileOffset, int.Parse(element.Attribute("bitoffset").Value));
+            foreach (var item in element.Elements())
+            {
+                if (item.Name.LocalName == "filesource")
+                {
+                    var source = new FileColorSourceModel();
+                    var fileOffset = long.Parse(item.Attribute("fileoffset").Value, System.Globalization.NumberStyles.HexNumber);
+                    if (item.Attribute("bitoffset") is null)
+                        source.FileAddress = new FileBitAddress(fileOffset, 0);
+                    else
+                        source.FileAddress = new FileBitAddress(fileOffset, int.Parse(element.Attribute("bitoffset").Value));
+
+                    source.Entries = int.Parse(item.Attribute("entries").Value);
+
+                    model.ColorSources.Add(source);
+                }
+                else if (item.Name.LocalName == "nativecolor")
+                {
+                    if (NativeColorParser.TryParse(item.Attribute("value").Value, out var nativeColor))
+                    {
+                        model.ColorSources.Add(new ProjectNativeColorSourceModel(nativeColor));
+                    }
+                }
+                else if (item.Name.LocalName == "foreigncolor")
+                { 
+                
+                }
+                else if (item.Name.LocalName == "scatteredcolor")
+                { }
+                else if (item.Name.LocalName == "import")
+                { }
+                else if (item.Name.LocalName == "export")
+                { }
+            }
 
             paletteModel = model;
             return true;

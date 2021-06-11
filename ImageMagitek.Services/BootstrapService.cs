@@ -110,9 +110,9 @@ namespace ImageMagitek.Services
             return pluginService;
         }
 
-        public virtual IProjectService CreateProjectService(IProjectSerializerFactory serializerFactory)
+        public virtual IProjectService CreateProjectService(IProjectSerializerFactory serializerFactory, IColorFactory colorFactory)
         {
-            var projectService = new ProjectService(serializerFactory);
+            var projectService = new ProjectService(serializerFactory, colorFactory);
 
             return projectService;
         }

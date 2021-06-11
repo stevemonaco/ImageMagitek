@@ -81,7 +81,7 @@ namespace ImageMagitek.Project.Serialization
 
         public MagitekResult AddPalette(PaletteModel paletteModel, string parentNodePath, string fileLocation)
         {
-            var pal = new Palette(paletteModel.Name, _colorFactory, paletteModel.ColorModel, paletteModel.FileAddress, paletteModel.Entries, paletteModel.ZeroIndexTransparent, paletteModel.StorageSource);
+            var pal = paletteModel.MapToResource(_colorFactory);
 
             if (!Tree.TryGetItem<DataFile>(paletteModel.DataFileKey, out var df))
                 return new MagitekResult.Failed($"Palette '{pal.Name}' could not locate DataFile with key '{paletteModel.DataFileKey}'");

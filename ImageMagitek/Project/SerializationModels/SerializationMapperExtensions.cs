@@ -39,13 +39,14 @@ namespace ImageMagitek.Project.Serialization
             };
         }
 
-        public static PaletteModel MapToModel(this Palette pal, Dictionary<IProjectResource, string> resourceMap)
+        public static PaletteModel MapToModel(this Palette pal, Dictionary<IProjectResource, string> resourceMap, IColorFactory colorFactory)
         {
+            var size = colorFactory.CreateColor(pal.ColorModel).Size;
+
             var model = new PaletteModel()
             {
                 Name = pal.Name,
                 ColorModel = pal.ColorModel,
-                FileAddress = pal.FileAddress,
                 Entries = pal.Entries,
                 ZeroIndexTransparent = pal.ZeroIndexTransparent,
             };
@@ -53,7 +54,70 @@ namespace ImageMagitek.Project.Serialization
             if (pal.DataFile is object && resourceMap.TryGetValue(pal.DataFile, out var dataFileKey))
                 model.DataFileKey = dataFileKey;
 
+            int i = 0;
+            while (i < pal.ColorSources.Length)
+            {
+                if (pal.ColorSources[i] is FileColorSource fileSource)
+                {
+                    var sources = pal.ColorSources.Skip(i)
+                        .TakeWhile((x, i) => x is FileColorSource && ((x as FileColorSource).Offset + i * size) == fileSource.Offset)
+                        .ToList();
+
+                    var sourceModel = new FileColorSourceModel(fileSource.Offset, sources.Count);
+                    model.ColorSources.Add(sourceModel);
+
+                    i += sources.Count;
+                }
+                else if (pal.ColorSources[i] is ProjectNativeColorSource nativeSource)
+                {
+                    var nativeModel = new ProjectNativeColorSourceModel(nativeSource.Value);
+                    model.ColorSources.Add(nativeModel);
+                    i++;
+                }
+                else if (pal.ColorSources[i] is ProjectForeignColorSource foreignSource)
+                {
+                    var foreignModel = new ProjectForeignColorSourceModel(foreignSource.Value);
+                    model.ColorSources.Add(foreignModel);
+                    i++;
+                }
+                else if (pal.ColorSources[i] is ScatteredColorSource scatteredSource)
+                { 
+                }
+            }
+
             return model;
+        }
+
+        public static Palette MapToResource(this PaletteModel model, IColorFactory colorFactory)
+        {
+            var size = colorFactory.CreateColor(model.ColorModel).Size;
+            var sources = new List<IColorSource>();
+
+            foreach (var source in model.ColorSources)
+            {
+                if (source is FileColorSourceModel fileSource)
+                {
+                    var fileSources = Enumerable.Range(0, fileSource.Entries)
+                        .Select(x => fileSource.FileAddress + size * x)
+                        .Select(x => new FileColorSource(x))
+                        .ToList();
+                    sources.AddRange(fileSources);
+                }
+                else if (source is ProjectNativeColorSourceModel nativeSource)
+                {
+                    sources.Add(new ProjectNativeColorSource(nativeSource.Value));
+                }
+                else if (source is ProjectForeignColorSourceModel foreignSource)
+                {
+                    sources.Add(new ProjectForeignColorSource(foreignSource.Value));
+                }
+                //else if (source is ScatteredColorSourceModel scatteredSource)
+                //{
+
+                //}
+            }
+
+            return new Palette(model.Name, colorFactory, model.ColorModel, sources, model.Entries, model.ZeroIndexTransparent, model.StorageSource);
         }
 
         public static ResourceFolderModel MapToModel(this ResourceFolder folder)

@@ -47,7 +47,7 @@ namespace TileShop.WPF
             var defaultResources = paletteService.GlobalPalettes;
             var serializerFactory = new XmlProjectSerializerFactory(BootstrapService.DefaultResourceSchemaFileName,
                 codecService.CodecFactory, paletteService.ColorFactory, defaultResources);
-            var projectService = bootstrapper.CreateProjectService(serializerFactory);
+            var projectService = bootstrapper.CreateProjectService(serializerFactory, paletteService.ColorFactory);
 
             builder.RegisterInstance(settings);
             builder.RegisterInstance(paletteService);
