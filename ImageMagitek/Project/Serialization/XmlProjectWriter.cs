@@ -86,6 +86,57 @@ namespace ImageMagitek.Project.Serialization
                 return null;
         }
 
+        public MagitekResult WriteResource(ResourceNode resourceNode, bool alwaysOverwrite)
+        {
+            string contents;
+            ResourceModel currentModel;
+            ResourceModel diskModel;
+
+            if (resourceNode is ProjectNode projectNode)
+            {
+                var model = (projectNode.Item as ImageProject).MapToModel();
+                contents = Stringify(Serialize(model));
+                currentModel = model;
+                diskModel = projectNode.Model;
+            }
+            else if (resourceNode is DataFileNode dfNode)
+            {
+                var model = (dfNode.Item as DataFile).MapToModel();
+                contents = Stringify(Serialize(model));
+                currentModel = model;
+                diskModel = dfNode.Model;
+            }
+            else if (resourceNode is PaletteNode palNode)
+            {
+                var model = (palNode.Item as Palette).MapToModel(_resourceMap, _colorFactory);
+                contents = Stringify(Serialize(model));
+                currentModel = model;
+                diskModel = palNode.Model;
+            }
+            else if (resourceNode is ArrangerNode arrangerNode)
+            {
+                var model = (arrangerNode.Item as ScatteredArranger).MapToModel(_resourceMap);
+                contents = Stringify(Serialize(model));
+                currentModel = model;
+                diskModel = arrangerNode.Model;
+            }
+            else
+            {
+                return new MagitekResult.Failed($"{nameof(WriteResource)} cannot write resource of type '{resourceNode}'");
+            }
+
+            if (currentModel.ResourceEquals(diskModel) == false || alwaysOverwrite)
+            {
+                var actions = new[] { (CreateWriteAction(currentModel, resourceNode.DiskLocation), resourceNode, currentModel) };
+
+                return RunTransactions(actions).Match<MagitekResult>(
+                    success => MagitekResult.SuccessResult,
+                    failed => new MagitekResult.Failed(failed.Reasons.First()));
+            }
+
+            return MagitekResult.SuccessResult;
+        }
+
         private MagitekResults TrySerializeProjectTree(ProjectTree tree)
         {
             var actions = new List<(BackupFileAndOverwriteExistingTransaction transaction, ResourceNode node, ResourceModel model)>();
@@ -132,6 +183,11 @@ namespace ImageMagitek.Project.Serialization
                 }
             }
 
+            return RunTransactions(actions);
+        }
+
+        private MagitekResults RunTransactions(IList<(BackupFileAndOverwriteExistingTransaction transaction, ResourceNode node, ResourceModel model)> actions)
+        {
             var transaction = new FileSetWriteTransaction(actions.Select(x => x.transaction));
             var result = transaction.Transact();
 
@@ -228,24 +284,28 @@ namespace ImageMagitek.Project.Serialization
             element.Add(new XAttribute("entries", paletteModel.Entries));
             element.Add(new XAttribute("zeroindextransparent", paletteModel.ZeroIndexTransparent));
 
-            int i = 0;
-            while (i < paletteModel.ColorSources.Count)
+            foreach (var source in paletteModel.ColorSources)
             {
-                if (paletteModel.ColorSources[i] is FileColorSourceModel fileSource)
+                if (source is FileColorSourceModel fileSource)
                 {
                     var fileElement = new XElement("filesource");
                     fileElement.Add(new XAttribute("fileoffset", $"{fileSource.FileAddress.FileOffset:X}"));
                     fileElement.Add(new XAttribute("entries", fileSource.Entries));
+                    element.Add(fileElement);
                 }
-                else if (paletteModel.ColorSources[i] is ProjectNativeColorSourceModel nativeSource)
+                else if (source is ProjectNativeColorSourceModel nativeSource)
                 {
                     var nativeElement = new XElement("nativecolor");
-                    nativeElement.Add(new XAttribute("value", $"#{nativeSource.Value:08X}"));
+                    var hexColor = _colorFactory.ToHexString(nativeSource.Value);
+                    nativeElement.Add(new XAttribute("value", hexColor));
+                    element.Add(nativeElement);
                 }
-                else if (paletteModel.ColorSources[i] is ProjectForeignColorSourceModel foreignSource)
+                else if (source is ProjectForeignColorSourceModel foreignSource)
                 {
                     var foreignElement = new XElement("foreigncolor");
-                    foreignElement.Add(new XAttribute("value", $"#{foreignSource.Value:X}"));
+                    var hexColor = _colorFactory.ToHexString(foreignSource.Value);
+                    foreignElement.Add(new XAttribute("value", hexColor));
+                    element.Add(foreignElement);
                 }
             }
 
@@ -326,17 +386,6 @@ namespace ImageMagitek.Project.Serialization
             xw.Flush();
 
             return sb.ToString();
-        }
-
-        private string LocateResourceOnDisk(ResourceNode node)
-        {
-            var relativePath = string.Join
-            (
-                Path.DirectorySeparatorChar,
-                node.SelfAndAncestors<ResourceNode, IProjectResource>().Select(x => x.Name).Reverse().Skip(1)
-            );
-
-            return Path.Join(_baseDirectory, $"{relativePath}.xml");
         }
     }
 }

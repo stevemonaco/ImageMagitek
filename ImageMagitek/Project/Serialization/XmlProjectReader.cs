@@ -263,14 +263,17 @@ namespace ImageMagitek.Project.Serialization
                 }
                 else if (item.Name.LocalName == "nativecolor")
                 {
-                    if (NativeColorParser.TryParse(item.Attribute("value").Value, out var nativeColor))
+                    if (ColorParser.TryParse(item.Attribute("value").Value, ColorModel.Rgba32, out var nativeColor))
                     {
-                        model.ColorSources.Add(new ProjectNativeColorSourceModel(nativeColor));
+                        model.ColorSources.Add(new ProjectNativeColorSourceModel((ColorRgba32)nativeColor));
                     }
                 }
                 else if (item.Name.LocalName == "foreigncolor")
-                { 
-                
+                {
+                    if (ColorParser.TryParse(item.Attribute("value").Value, model.ColorModel, out var foreignColor))
+                    {
+                        model.ColorSources.Add(new ProjectForeignColorSourceModel(foreignColor));
+                    }
                 }
                 else if (item.Name.LocalName == "scatteredcolor")
                 { }

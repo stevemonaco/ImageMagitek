@@ -15,8 +15,8 @@ namespace ImageMagitek.Colors.SerializationModels
 
             for (int i = 0; i < Colors.Count; i++)
             {
-                if (NativeColorParser.TryParse(Colors[i], out var color))
-                    pal.SetNativeColor(i, color);
+                if (ColorParser.TryParse(Colors[i], ColorModel.Rgba32, out var color))
+                    pal.SetNativeColor(i, (ColorRgba32)color);
             }
 
             return pal;

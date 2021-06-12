@@ -149,7 +149,7 @@ namespace TileShop.WPF.ViewModels
             {
                 var pal = new Palette(dialogModel.PaletteName, _paletteService.ColorFactory,
                     Palette.StringToColorModel(dialogModel.SelectedColorModel), dialogModel.ColorSources,
-                    dialogModel.Entries, dialogModel.ZeroIndexTransparent, PaletteStorageSource.DataFile);
+                    dialogModel.Entries, dialogModel.ZeroIndexTransparent, PaletteStorageSource.Project);
 
                 pal.DataFile = dialogModel.SelectedDataFile;
 

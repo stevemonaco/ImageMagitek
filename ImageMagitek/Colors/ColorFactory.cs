@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ImageMagitek.Colors.Converters;
+using ImageMagitek.Utility.Parsing;
 
 namespace ImageMagitek.Colors
 {
@@ -35,6 +36,15 @@ namespace ImageMagitek.Colors
         /// Converts the specified native color to a foreign color type
         /// </summary>
         IColor ToForeign(ColorRgba32 color, ColorModel colorModel);
+
+        /// <summary>
+        /// Tries to create a color from the specified hexadecimal string
+        /// </summary>
+        bool FromHexString(string hexString, ColorModel colorModel, out IColor color);
+
+        /// <summary>
+        /// Converts the specified color to a hex string
+        string ToHexString(IColor color);
     }
 
     /// <inheritdoc/>
@@ -110,6 +120,30 @@ namespace ImageMagitek.Colors
                 ColorModel.Nes => _nesConverter?.ToForeignColor(color) ??
                     throw new ArgumentException($"{nameof(ToForeign)} has no NES color converter defined"),
                 _ => throw new NotSupportedException($"{nameof(ToForeign)} '{colorModel}' is not supported"),
+            };
+        }
+
+        public bool FromHexString(string hexString, ColorModel colorModel, out IColor color)
+        {
+            if (ColorParser.TryParse(hexString, colorModel, out var resultColor))
+            {
+                color = resultColor;
+                return true;
+            }
+
+            color = default;
+            return false;
+        }
+
+        public string ToHexString(IColor color)
+        {
+            return color switch
+            {
+                ColorRgba32 rgba32 => $"#{rgba32.R:X2}{rgba32.G:X2}{rgba32.B:X2}{rgba32.A:X2}",
+                ColorBgr15 bgr15 => $"#{bgr15.Color:X04}",
+                ColorAbgr16 abgr15 => $"#{abgr15.Color:X04}",
+                ColorNes nes => $"#{nes.Color:X2}",
+                _ => throw new NotSupportedException($"{nameof(ToString)} '{color.GetType()}' is not supported"),
             };
         }
     }

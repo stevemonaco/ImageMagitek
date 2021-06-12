@@ -17,6 +17,7 @@ namespace ImageMagitek.Services
 
         MagitekResult<ResourceNode> AddResource(ResourceNode parentNode, IProjectResource resource);
         MagitekResult<ResourceNode> CreateNewFolder(ResourceNode parentNode, string name);
+        MagitekResult SaveResource(ProjectTree projectTree, ResourceNode resourceNode, bool alwaysOverwrite);
         MagitekResult CanMoveNode(ResourceNode node, ResourceNode parentNode);
         MagitekResult MoveNode(ResourceNode node, ResourceNode parentNode);
 

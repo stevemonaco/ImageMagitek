@@ -263,6 +263,27 @@ namespace ImageMagitek.Services
             }
         }
 
+        public virtual MagitekResult SaveResource(ProjectTree projectTree, ResourceNode resourceNode, bool alwaysOverwrite)
+        {
+            if (projectTree is null)
+                throw new InvalidOperationException($"{nameof(SaveResource)} parameter '{nameof(projectTree)}' was null");
+
+            string projectFileLocation = projectTree.Root.DiskLocation;
+
+            if (string.IsNullOrWhiteSpace(projectFileLocation))
+                throw new InvalidOperationException($"{nameof(SaveResource)} cannot have a null or empty value for the project's file location");
+
+            try
+            {
+                var writer = _serializerFactory.CreateWriter(projectTree);
+                return writer.WriteResource(resourceNode, alwaysOverwrite);
+            }
+            catch (Exception ex)
+            {
+                return new MagitekResult.Failed($"Failed to save project resource '{resourceNode.Name}': {ex.Message}");
+            }
+        }
+
         public virtual ProjectTree GetContainingProject(ResourceNode node)
         {
             return Projects.FirstOrDefault(x => x.ContainsNode(node)) ??

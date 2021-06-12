@@ -2,30 +2,27 @@
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Colors.Serialization
 {
-    public interface IPaletteColorSourceSerializer
+    public interface IColorSourceSerializer
     {
-        IColor[] ReadPalette(IColorSource[] sources, DataFile df, ColorModel colorModel, int entries);
-        void WritePalette(IColorSource[] sources, DataFile df, IEnumerable<IColor> colors);
+        IColor[] LoadColors(IColorSource[] sources, DataFile df, ColorModel colorModel, int entries);
+        void StoreColors(IList<IColorSource> sources, DataFile df, IList<ColorRgba32> nativeColors, IList<IColor> foreignColors);
     }
 
-    public class PaletteColorSourceSerializer : IPaletteColorSourceSerializer
+    public class ColorSourceSerializer : IColorSourceSerializer
     {
         private readonly IColorFactory _colorFactory;
         private readonly byte[] _colorBuffer = new byte[8];
 
-        public PaletteColorSourceSerializer(IColorFactory colorFactory)
+        public ColorSourceSerializer(IColorFactory colorFactory)
         {
             _colorFactory = colorFactory;
         }
 
-        public IColor[] ReadPalette(IColorSource[] sources, DataFile df, ColorModel colorModel, int entries)
+        public IColor[] LoadColors(IColorSource[] sources, DataFile df, ColorModel colorModel, int entries)
         {
             var result = new IColor[entries];
             var currentEntry = 0;
@@ -86,14 +83,59 @@ namespace ImageMagitek.Colors.Serialization
                 readColor = BinaryPrimitives.ReadUInt32LittleEndian(_colorBuffer);
             }
             else
-                throw new NotSupportedException($"{nameof(ReadPalette)}: Palette formats with entry sizes larger than 4 bytes are not supported");
+                throw new NotSupportedException($"{nameof(LoadColors)}: Palette formats with entry sizes larger than 4 bytes are not supported");
 
             return _colorFactory.CreateColor(colorModel, readColor);
         }
 
-        public void WritePalette(IColorSource[] sources, DataFile df, IEnumerable<IColor> colors)
+        public void StoreColors(IList<IColorSource> sources, DataFile df, IList<ColorRgba32> nativeColors, IList<IColor> foreignColors)
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < sources.Count; i++)
+            {
+                if (sources[i] is FileColorSource fileSource)
+                {
+                    WriteFileColor(df, fileSource.Offset, foreignColors[i]);
+                }
+                else if (sources[i] is ProjectNativeColorSource nativeSource)
+                {
+                    nativeSource.Value = nativeColors[i];
+                }
+                else if (sources[i] is ProjectForeignColorSource foreignSource)
+                {
+                    foreignSource.Value = foreignColors[i];
+                }
+                else if (sources[i] is ScatteredColorSource scatteredSource)
+                {
+
+                }
+            }
+        }
+
+        private void WriteFileColor(DataFile df, FileBitAddress offset, IColor foreignColor)
+        {
+            int writeSize = (foreignColor.Size + 7) / 8;
+
+            if (writeSize == 1)
+            {
+                _colorBuffer[0] = (byte)foreignColor.Color;
+            }
+            else if (writeSize == 2)
+            {
+                BinaryPrimitives.WriteUInt16LittleEndian(_colorBuffer, (ushort)foreignColor.Color);
+            }
+            else if (writeSize == 3)
+            {
+                _colorBuffer[0] = (byte)foreignColor.Color;
+                _colorBuffer[1] = (byte)(foreignColor.Color >> 8);
+                _colorBuffer[2] = (byte)(foreignColor.Color >> 16);
+            }
+            else if (writeSize == 4)
+            {
+                BinaryPrimitives.WriteUInt32LittleEndian(_colorBuffer, foreignColor.Color);
+            }
+
+            df.Stream.Seek(offset.FileOffset, SeekOrigin.Begin);
+            df.Stream.Write(_colorBuffer, 0, writeSize);
         }
     }
 }

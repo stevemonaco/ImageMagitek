@@ -60,7 +60,7 @@ namespace ImageMagitek.Project.Serialization
                 if (pal.ColorSources[i] is FileColorSource fileSource)
                 {
                     var sources = pal.ColorSources.Skip(i)
-                        .TakeWhile((x, i) => x is FileColorSource && ((x as FileColorSource).Offset + i * size) == fileSource.Offset)
+                        .TakeWhile((x, i) => x is FileColorSource && (x as FileColorSource).Offset == (fileSource.Offset + i * size))
                         .ToList();
 
                     var sourceModel = new FileColorSourceModel(fileSource.Offset, sources.Count);

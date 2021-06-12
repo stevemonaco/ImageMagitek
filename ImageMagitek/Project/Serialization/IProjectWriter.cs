@@ -6,5 +6,6 @@
 
         MagitekResult WriteProject(string fileName);
         string SerializeResource(ResourceNode resourceNode);
+        MagitekResult WriteResource(ResourceNode resourceNode, bool alwaysOverwrite);
     }
 }

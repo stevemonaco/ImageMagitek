@@ -19,9 +19,10 @@ namespace ImageMagitek.Colors
 
     /// <summary>
     /// Storage source of the palette
-    /// ProjectFile palettes are stored in the XML project file
+    /// Project has IColorSources within DataFile and/or the palette XML project file
+    /// Json are for predefined, global palettes
     /// </summary>
-    public enum PaletteStorageSource { DataFile = 0, ProjectFile, Json }
+    public enum PaletteStorageSource { Project = 0, Json }
 
     /// <summary>
     /// Palette manages the loading of palettes and colors from a variety of color formats
@@ -32,8 +33,7 @@ namespace ImageMagitek.Colors
     {
         private static readonly Cie94Comparison _comparator = new Cie94Comparison(Cie94Comparison.Application.GraphicArts);
         private readonly IColorFactory _colorFactory;
-        private readonly IPaletteBinarySerializer _paletteSerializer;
-        private readonly IPaletteColorSourceSerializer _colorSerializer;
+        private readonly IColorSourceSerializer _colorSerializer;
 
         public string Name { get; set; }
         public bool CanContainChildResources => false;
@@ -99,8 +99,7 @@ namespace ImageMagitek.Colors
         {
             Name = PaletteName;
             _colorFactory = colorFactory;
-            _paletteSerializer = new PaletteBinarySerializer(_colorFactory);
-            _colorSerializer = new PaletteColorSourceSerializer(_colorFactory);
+            _colorSerializer = new ColorSourceSerializer(_colorFactory);
 
             HasAlpha = false;
             ZeroIndexTransparent = true;
@@ -111,15 +110,14 @@ namespace ImageMagitek.Colors
         {
             Name = name;
             _colorFactory = colorFactory;
-            _paletteSerializer = new PaletteBinarySerializer(_colorFactory);
-            _colorSerializer = new PaletteColorSourceSerializer(_colorFactory);
+            _colorSerializer = new ColorSourceSerializer(_colorFactory);
 
             ColorModel = colorModel;
             Entries = entries;
             ZeroIndexTransparent = zeroIndexTransparent;
             StorageSource = storageSource;
 
-            if(storageSource == PaletteStorageSource.DataFile)
+            if(storageSource == PaletteStorageSource.Project)
             {
                 _nativePalette = new Lazy<ColorRgba32[]>(() => LoadNativePalette());
                 _foreignPalette = new Lazy<IColor[]>(() => LoadForeignPalette());
@@ -136,8 +134,7 @@ namespace ImageMagitek.Colors
         {
             Name = name;
             _colorFactory = colorFactory;
-            _paletteSerializer = new PaletteBinarySerializer(_colorFactory);
-            _colorSerializer = new PaletteColorSourceSerializer(_colorFactory);
+            _colorSerializer = new ColorSourceSerializer(_colorFactory);
 
             ColorModel = colorModel;
             ColorSources = colorSources.ToArray();
@@ -145,7 +142,7 @@ namespace ImageMagitek.Colors
             ZeroIndexTransparent = zeroIndexTransparent;
             StorageSource = storageSource;
 
-            if (storageSource == PaletteStorageSource.DataFile)
+            if (storageSource == PaletteStorageSource.Project)
             {
                 _nativePalette = new Lazy<ColorRgba32[]>(() => LoadNativePalette());
                 _foreignPalette = new Lazy<IColor[]>(() => LoadForeignPalette());
@@ -185,7 +182,7 @@ namespace ImageMagitek.Colors
             ColorModel = model;
             ZeroIndexTransparent = zeroIndexTransparent;
             Entries = numEntries;
-            StorageSource = PaletteStorageSource.DataFile;
+            StorageSource = PaletteStorageSource.Project;
 
             _nativePalette = new Lazy<ColorRgba32[]>(() => LoadNativePalette());
             _foreignPalette = new Lazy<IColor[]>(() => LoadForeignPalette());
@@ -216,7 +213,7 @@ namespace ImageMagitek.Colors
         private IColor[] LoadForeignPalette()
         {
             //return _paletteSerializer.ReadPalette(DataFile, FileAddress, ColorModel, Entries);
-            return _colorSerializer.ReadPalette(ColorSources, DataFile, ColorModel, Entries);
+            return _colorSerializer.LoadColors(ColorSources, DataFile, ColorModel, Entries);
         }
 
         /// <summary>
@@ -473,8 +470,8 @@ namespace ImageMagitek.Colors
         /// <returns>Success value</returns>
         public bool SavePalette()
         {
-            if(StorageSource == PaletteStorageSource.DataFile)
-                _paletteSerializer.WritePalette(DataFile, FileAddress, ForeignPalette);
+            if (StorageSource == PaletteStorageSource.Project)
+                _colorSerializer.StoreColors(ColorSources, DataFile, NativePalette, ForeignPalette);
 
             return true;
         }

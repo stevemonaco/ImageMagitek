@@ -12,6 +12,7 @@ namespace TileShop.WPF.ViewModels
     {
         private readonly Palette _palette;
         private readonly IPaletteService _paletteService;
+        private readonly IProjectService _projectService;
         private readonly IEventAggregator _events;
 
         private BindableCollection<ValidatedColor32Model> _colors = new BindableCollection<ValidatedColor32Model>();
@@ -53,11 +54,12 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public PaletteEditorViewModel(Palette palette, IPaletteService paletteService, IEventAggregator events)
+        public PaletteEditorViewModel(Palette palette, IPaletteService paletteService, IProjectService projectService, IEventAggregator events)
         {
             Resource = palette;
             _palette = palette;
             _paletteService = paletteService;
+            _projectService = projectService;
             _events = events;
             events.Subscribe(this);
 
@@ -82,6 +84,10 @@ namespace TileShop.WPF.ViewModels
         {
             _palette.ZeroIndexTransparent = ZeroIndexTransparent;
             _palette.SavePalette();
+
+            var projectTree = _projectService.GetContainingProject(_palette);
+            var paletteNode = projectTree.GetResourceNode(_palette);
+            _projectService.SaveResource(projectTree, paletteNode, false);
             IsModified = false;
 
             var changeEvent = new PaletteChangedEvent(_palette);

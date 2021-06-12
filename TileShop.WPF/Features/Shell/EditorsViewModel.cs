@@ -101,7 +101,7 @@ namespace TileShop.WPF.ViewModels
                 switch (resource)
                 {
                     case Palette pal when pal.ColorModel != ColorModel.Nes:
-                        newDocument = new PaletteEditorViewModel(pal, _paletteService, _events);
+                        newDocument = new PaletteEditorViewModel(pal, _paletteService, _projectService, _events);
                         break;
                     case Palette pal when pal.ColorModel == ColorModel.Nes:
                         newDocument = new TablePaletteEditorViewModel(pal, _paletteService, _events);
