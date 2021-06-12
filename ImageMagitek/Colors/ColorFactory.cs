@@ -139,10 +139,10 @@ namespace ImageMagitek.Colors
         {
             return color switch
             {
-                ColorRgba32 rgba32 => $"#{rgba32.R:X2}{rgba32.G:X2}{rgba32.B:X2}{rgba32.A:X2}",
+                ColorRgba32 rgba32 => $"#{rgba32.R:X02}{rgba32.G:X02}{rgba32.B:X02}{rgba32.A:X02}",
                 ColorBgr15 bgr15 => $"#{bgr15.Color:X04}",
                 ColorAbgr16 abgr15 => $"#{abgr15.Color:X04}",
-                ColorNes nes => $"#{nes.Color:X2}",
+                ColorNes nes => $"#{nes.Color:X02}",
                 _ => throw new NotSupportedException($"{nameof(ToString)} '{color.GetType()}' is not supported"),
             };
         }
