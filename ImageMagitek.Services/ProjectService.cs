@@ -241,6 +241,7 @@ namespace ImageMagitek.Services
                 var folder = new ResourceFolder(childName);
                 var node = new ResourceFolderNode(childName, folder);
                 var directoryName = LocateResourceDiskLocationByParent(tree, parentNode, node);
+                node.DiskLocation = directoryName;
 
                 Directory.CreateDirectory(directoryName);
                 parentNode.AttachChildNode(node);
