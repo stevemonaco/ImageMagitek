@@ -328,9 +328,10 @@ namespace ImageMagitek.Services
 
             if (node is ResourceFolderNode)
             {
+                node.Rename(newName);
+                newLocation = LocateResourceDiskLocationByParent(tree, node.Parent, node);
                 Directory.Move(oldLocation, newLocation);
                 node.DiskLocation = newLocation;
-                node.Rename(newName);
             }
             else
             {
