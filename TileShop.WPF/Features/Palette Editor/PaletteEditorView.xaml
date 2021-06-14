@@ -130,8 +130,8 @@
                             <ui:DropDownButton.Flyout>
                                 <ui:MenuFlyout Placement="BottomEdgeAlignedLeft">
                                     <MenuItem Command="{s:Action AddNewFileColorSource}" Header="New File Source" />
-                                    <MenuItem Command="{s:Action AddNewNativeColorSource}" Header="New Native Source" />
-                                    <MenuItem Command="{s:Action AddNewForeignColorSource}" Header="New Foreign Source" />
+                                    <MenuItem Command="{s:Action AddNewNativeColorSource}" Header="New Native Color" />
+                                    <MenuItem Command="{s:Action AddNewForeignColorSource}" Header="New Foreign Color" />
                                 </ui:MenuFlyout>
                             </ui:DropDownButton.Flyout>
                         </ui:DropDownButton>
