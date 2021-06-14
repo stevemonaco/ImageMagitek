@@ -40,10 +40,7 @@ namespace ImageMagitek.Project.Serialization
         {
             var resourceSchemaText = File.ReadAllText(resourceSchemaFileName);
 
-            var resourceSchema = XmlSchema.Read(new StringReader(resourceSchemaText),
-                (sender, args) =>
-                {
-                });
+            var resourceSchema = XmlSchema.Read(new StringReader(resourceSchemaText), null);
 
             var resourceSchemaSet = new XmlSchemaSet();
             resourceSchemaSet.Add(resourceSchema);

@@ -54,7 +54,8 @@ namespace ImageMagitek.Project.Serialization
                 {
                     doc.Validate(schema, (o, e) =>
                     {
-                        _errors.Add(e.Message);
+                        var lineInfo = (IXmlLineInfo)o;
+                        _errors.Add($"'{xmlFileName}' line {lineInfo.LineNumber}: {e.Message}");
                     });
 
                     if (_errors.Any())
