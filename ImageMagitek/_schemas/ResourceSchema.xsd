@@ -18,22 +18,13 @@
 
   <xs:element name="palette">
     <xs:complexType>
+	  <xs:choice minOccurs="0" maxOccurs="256">
+		<xs:element name="filesource" type="filecolorsource" />
+		<xs:element name="nativecolor" type="nativecolorsource" />
+		<xs:element name="foreigncolor" type="foreigncolorsource" />
+	  </xs:choice>
+	  
       <xs:attribute name="name" type="xs:string" use="required" />
-      <xs:attribute name="fileoffset" use="required">
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:pattern value="[0-9A-Fa-f]+" />
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
-      <xs:attribute name="bitoffset" use="optional">
-        <xs:simpleType>
-          <xs:restriction base="xs:nonNegativeInteger">
-            <xs:minInclusive value="0" />
-            <xs:maxExclusive value="8" />
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
       <xs:attribute name="datafile" type="xs:string" use="required" />
       <xs:attribute name="color" use="required" >
         <xs:simpleType>
@@ -45,7 +36,6 @@
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
-      <xs:attribute name="entries" type="xs:positiveInteger" use="required" />
       <xs:attribute name="zeroindextransparent" type="xs:boolean" use="required" />
     </xs:complexType>
   </xs:element>
@@ -103,6 +93,45 @@
     <xs:attribute name="codec" type="xs:string" use="optional" />
     <xs:attribute name="datafile" type="xs:string" use="optional" />
     <xs:attribute name="palette" type="xs:string" use="optional" />
+  </xs:complexType>
+  
+  <xs:complexType name="filecolorsource">
+	<xs:attribute name="entries" type="xs:positiveInteger" use="required" />
+    <xs:attribute name="fileoffset" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[0-9A-Fa-f]+" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="bitoffset" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:nonNegativeInteger">
+          <xs:minInclusive value="0" />
+          <xs:maxExclusive value="8" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  
+  <xs:complexType name="nativecolorsource">
+    <xs:attribute name="value" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="^#([A-Fa-f0-9]{2}){3,4}$" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+  
+  <xs:complexType name="foreigncolorsource">
+    <xs:attribute name="value" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="^#([A-Fa-f0-9]{2}){1,4}$" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
   </xs:complexType>
 
 </xs:schema>
