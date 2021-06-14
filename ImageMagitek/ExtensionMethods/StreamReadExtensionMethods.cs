@@ -10,7 +10,7 @@ namespace ImageMagitek.ExtensionMethods
     {
         public static byte[] ReadUnshifted(this Stream stream, FileBitAddress address, int readBits)
         {
-            var readBuffer = new byte[(readBits + 7) / 8];
+            var readBuffer = new byte[(readBits + address.BitOffset + 7) / 8];
             stream.ReadUnshifted(address, readBits, readBuffer);
             return readBuffer;
         }
