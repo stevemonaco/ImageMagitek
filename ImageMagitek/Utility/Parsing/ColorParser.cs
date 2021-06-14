@@ -6,9 +6,9 @@ namespace ImageMagitek.Utility.Parsing
 {
     public static class ColorParser
     {
-        private const string _nativeColorRegexString = "^#([A-Fa-f0-9]){6,8}$";
-        private const string _nesColorRegexString = "^#([A-Fa-f0-9]){2}$";
-        private const string _twoByteColorRegexString = "^#([A-Fa-f0-9]){4}$";
+        private const string _nativeColorRegexString = "^#([A-Fa-f0-9]{2}){3,4}$";
+        private const string _nesColorRegexString = "^#([A-Fa-f0-9]{2})$";
+        private const string _twoByteColorRegexString = "^#([A-Fa-f0-9]{4})$";
 
         private static readonly Regex _nativeRegex = new Regex(_nativeColorRegexString, RegexOptions.Compiled);
         private static readonly Regex _nesRegex = new Regex(_nesColorRegexString, RegexOptions.Compiled);
