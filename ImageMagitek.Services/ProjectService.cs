@@ -42,8 +42,14 @@ namespace ImageMagitek.Services
             };
             var tree = new ProjectTree(root);
 
-            Projects.Add(tree);
-            return new MagitekResult<ProjectTree>.Success(tree);
+            return SaveProject(tree).Match<MagitekResult<ProjectTree>>(
+                success =>
+                {
+                    Projects.Add(tree);
+                    return new MagitekResult<ProjectTree>.Success(tree);
+                },
+                failed => new MagitekResult<ProjectTree>.Failed(failed.Reason)
+                );
         }
 
         /// <summary>

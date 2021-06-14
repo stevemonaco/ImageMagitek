@@ -32,6 +32,7 @@ namespace ImageMagitek.Project.Serialization
             _colorFactory = colorFactory;
             _globalResources = globalResources.ToList();
             _globalDefaultPalette = globalResources.OfType<Palette>().FirstOrDefault();
+            _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(tree.Root.DiskLocation));
 
             _resourceMap = new Dictionary<IProjectResource, string>();
 
