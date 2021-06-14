@@ -79,6 +79,13 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        private ColorModel _colorModel;
+        public ColorModel ColorModel
+        {
+            get => _colorModel;
+            set => SetAndNotify(ref _colorModel, value);
+        }
+
         public PaletteEditorViewModel(Palette palette, IPaletteService paletteService, IProjectService projectService, IEventAggregator events)
         {
             Resource = palette;
@@ -91,6 +98,7 @@ namespace TileShop.WPF.ViewModels
 
             DisplayName = Resource?.Name ?? "Unnamed Palette";
 
+            ColorModel = _palette.ColorModel;
             Colors.AddRange(CreateColorModels());
             ColorSourceModels.AddRange(CreateColorSourceModels(_palette));
 

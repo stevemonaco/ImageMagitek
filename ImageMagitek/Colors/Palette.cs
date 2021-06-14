@@ -52,7 +52,7 @@ namespace ImageMagitek.Colors
         /// <summary>
         /// Number of color entries in the palette
         /// </summary>
-        public int Entries { get => ColorSources?.Length ?? 0; }
+        public int Entries => ColorSources?.Length ?? 0;
 
         /// <summary>
         /// Specifies if the Palette has an alpha channel
