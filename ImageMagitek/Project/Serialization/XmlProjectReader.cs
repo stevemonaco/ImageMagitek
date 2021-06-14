@@ -193,17 +193,29 @@ namespace ImageMagitek.Project.Serialization
 
             foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is DataFileModel))
             {
-                builder.AddDataFile(model as DataFileModel, pathKey, fileLocation);
+                var result = builder.AddDataFile(model as DataFileModel, pathKey, fileLocation);
+                if (result.HasFailed)
+                {
+                    _errors.Add($"{result.AsT1.Reason}");
+                }
             }
 
             foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is PaletteModel))
             {
-                builder.AddPalette(model as PaletteModel, pathKey, fileLocation);
+                var result = builder.AddPalette(model as PaletteModel, pathKey, fileLocation);
+                if (result.HasFailed)
+                {
+                    _errors.Add($"{result.AsT1.Reason}");
+                }
             }
 
             foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is ScatteredArrangerModel))
             {
-                builder.AddScatteredArranger(model as ScatteredArrangerModel, pathKey, fileLocation);
+                var result = builder.AddScatteredArranger(model as ScatteredArrangerModel, pathKey, fileLocation);
+                if (result.HasFailed)
+                {
+                    _errors.Add($"{result.AsT1.Reason}");
+                }
             }
 
             if (_errors.Count > 0)
