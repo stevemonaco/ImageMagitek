@@ -87,7 +87,7 @@ namespace ImageMagitek.Project.Serialization
                 return new MagitekResult.Failed($"Palette '{pal.Name}' could not locate DataFile with key '{paletteModel.DataFileKey}'");
 
             pal.DataFile = df;
-            pal.LazyLoadPalette(pal.DataFile, pal.FileAddress, pal.ColorModel, pal.ZeroIndexTransparent, pal.Entries);
+            pal.LazyLoadPalette(pal.DataFile, pal.ColorModel, pal.ZeroIndexTransparent);
 
             var palNode = new PaletteNode(pal.Name, pal)
             {

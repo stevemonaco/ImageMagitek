@@ -242,7 +242,6 @@ namespace ImageMagitek.Project.Serialization
 
             model.Name = element.Attribute("name").Value;
             model.DataFileKey = element.Attribute("datafile").Value;
-            model.Entries = int.Parse(element.Attribute("entries").Value);
             model.ColorModel = Palette.StringToColorModel(element.Attribute("color").Value);
             model.ZeroIndexTransparent = bool.Parse(element.Attribute("zeroindextransparent").Value);
 

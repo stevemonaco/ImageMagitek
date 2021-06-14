@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using ImageMagitek.Colors.SerializationModels;
+using ImageMagitek.Colors.Serialization;
 
 namespace ImageMagitek.Colors
 {

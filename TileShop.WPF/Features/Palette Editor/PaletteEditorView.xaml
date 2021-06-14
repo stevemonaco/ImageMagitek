@@ -3,163 +3,271 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dd="urn:gong-wpf-dragdrop"
+    xmlns:m="clr-namespace:TileShop.WPF.Models"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:sel="clr-namespace:TileShop.WPF.Selectors"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
     xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:PaletteEditorViewModel}"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
     <UserControl.Resources>
-        <ResourceDictionary Source="/Styles/ValidatedPaletteStyles.xaml" />
-    </UserControl.Resources>
-    <StackPanel Margin="10">
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Styles/ValidatedPaletteStyles.xaml" />
 
-        <!--  Palette Information display  -->
-        <GroupBox Header="Palette Properties">
-            <StackPanel>
-                <TextBlock Text="{Binding PaletteSource, StringFormat=Source: {0}}" />
-                <TextBlock Text="{Binding FileOffset, StringFormat=Address: 0x{0:X}}" />
-                <CheckBox Content="Zero Index Transparent" IsChecked="{Binding ZeroIndexTransparent}" />
-            </StackPanel>
-        </GroupBox>
-
-        <!--  Selected color display  -->
-        <GroupBox Header="Palette Color">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto" />
-                    <ColumnDefinition Width="auto" MinWidth="300" />
-                    <ColumnDefinition Width="auto" MinWidth="25" />
-                    <ColumnDefinition Width="auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel
-                    Grid.Row="0"
-                    Grid.RowSpan="4"
-                    Grid.Column="0"
-                    VerticalAlignment="Center">
-                    <Button
-                        Height="50"
-                        Margin="0,0,10,10"
-                        Click="{s:Action SaveColor}"
-                        IsEnabled="{Binding SelectedColor.CanSaveColor}">
-                        <StackPanel>
-                            <TextBlock HorizontalAlignment="Center" Text="Assign" />
-                            <TextBlock HorizontalAlignment="Center" Text="Color" />
+                <ResourceDictionary>
+                    <DataTemplate x:Key="fileSourceTemplate" DataType="{x:Type m:FileColorSourceModel}">
+                        <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
+                            <Button
+                                Background="#DA3633"
+                                Command="{s:Action RemoveColorSource}"
+                                CommandParameter="{Binding}">
+                                <Image Style="{StaticResource iconTrash}" />
+                            </Button>
+                            <TextBlock
+                                Width="150"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Text="File Source" />
+                            <TextBox
+                                Width="135"
+                                ui:ControlHelper.Header="Offset"
+                                Text="{Binding FileAddress, Converter={StaticResource LongToHexadecimalConverter}}" />
+                            <TextBox
+                                Width="135"
+                                Margin="10,0,0,0"
+                                ui:ControlHelper.Header="Entries"
+                                Text="{Binding Entries}" />
                         </StackPanel>
-                    </Button>
+                    </DataTemplate>
 
-                    <Border
-                        Margin="0,0,10,0"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        BorderBrush="Black"
-                        BorderThickness="2">
+                    <DataTemplate x:Key="nativeSourceTemplate" DataType="{x:Type m:NativeColorSourceModel}">
+                        <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
+                            <Button
+                                Background="#DA3633"
+                                Command="{s:Action RemoveColorSource}"
+                                CommandParameter="{Binding}">
+                                <Image Style="{StaticResource iconTrash}" />
+                            </Button>
+                            <TextBlock
+                                Width="150"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Text="Native Source" />
+                            <TextBox
+                                Width="135"
+                                ui:ControlHelper.Header="Color"
+                                Text="{Binding NativeHexColor}" />
+                        </StackPanel>
+                    </DataTemplate>
 
-                        <Rectangle Width="55" Height="55">
-                            <Rectangle.Fill>
-                                <SolidColorBrush Color="{Binding SelectedColor.Color}" />
-                            </Rectangle.Fill>
-                        </Rectangle>
-                    </Border>
-                </StackPanel>
+                    <DataTemplate x:Key="foreignSourceTemplate" DataType="{x:Type m:ForeignColorSourceModel}">
+                        <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
+                            <Button
+                                Background="#DA3633"
+                                Command="{s:Action RemoveColorSource}"
+                                CommandParameter="{Binding}">
+                                <Image Style="{StaticResource iconTrash}" />
+                            </Button>
+                            <TextBlock
+                                Width="150"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Text="Foreign Source" />
+                            <TextBox
+                                Width="135"
+                                ui:ControlHelper.Header="Color"
+                                Text="{Binding ForeignHexColor}" />
+                        </StackPanel>
 
-                <!--  RGBA Sliders  -->
-                <Slider
-                    Grid.Row="0"
-                    Grid.Column="1"
-                    Margin="0,0,10,5"
-                    Foreground="Red"
-                    Maximum="{Binding SelectedColor.RedMax, UpdateSourceTrigger=PropertyChanged}"
-                    Minimum="0"
-                    Value="{Binding SelectedColor.Red, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </DataTemplate>
 
-                <Slider
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    Margin="0,0,10,5"
-                    Foreground="Green"
-                    Maximum="{Binding SelectedColor.GreenMax}"
-                    Minimum="0"
-                    Value="{Binding SelectedColor.Green, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <sel:ColorSourceTemplateSelector
+                        x:Key="colorSourceTemplateSelector"
+                        FileSourceTemplate="{StaticResource fileSourceTemplate}"
+                        ForeignSourceTemplate="{StaticResource foreignSourceTemplate}"
+                        NativeSourceTemplate="{StaticResource nativeSourceTemplate}" />
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
 
-                <Slider
-                    Grid.Row="2"
-                    Grid.Column="1"
-                    Margin="0,0,10,5"
-                    Foreground="Blue"
-                    Maximum="{Binding SelectedColor.BlueMax}"
-                    Minimum="0"
-                    Value="{Binding SelectedColor.Blue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+    <ScrollViewer>
+        <StackPanel Margin="10">
 
-                <Slider
-                    Grid.Row="3"
-                    Grid.Column="1"
-                    Margin="0,0,10,0"
-                    Foreground="{StaticResource CheckeredBrush}"
-                    Maximum="{Binding SelectedColor.AlphaMax}"
-                    Minimum="0"
-                    Value="{Binding SelectedColor.Alpha, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <!--  Palette Information display  -->
+            <Expander>
+                <Expander.Header>
+                    <TextBlock FontSize="24" Text="Palette Properties" />
+                </Expander.Header>
+                <StackPanel>
+                    <TextBlock Text="{Binding PaletteSource, StringFormat=Source: {0}}" />
+                    <TextBlock Text="{Binding Entries, StringFormat=Entries: {0}}" />
+                    <CheckBox Content="Zero Index Transparency" IsChecked="{Binding ZeroIndexTransparent}" />
 
-                <!--  RGBA Numeric Values  -->
-                <TextBlock
-                    Grid.Row="0"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Text="{Binding SelectedColor.Red}" />
-                <TextBlock
-                    Grid.Row="1"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Text="{Binding SelectedColor.Green}" />
-                <TextBlock
-                    Grid.Row="2"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Text="{Binding SelectedColor.Blue}" />
-                <TextBlock
-                    Grid.Row="3"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Text="{Binding SelectedColor.Alpha}" />
+                    <ui:ListView
+                        dd:DragDrop.IsDragSource="True"
+                        dd:DragDrop.IsDropTarget="True"
+                        IsSelectionEnabled="False"
+                        ItemTemplateSelector="{StaticResource colorSourceTemplateSelector}"
+                        ItemsSource="{Binding ColorSourceModels}" />
 
-                <Button
-                    Grid.Row="0"
-                    Grid.RowSpan="4"
-                    Grid.Column="3"
-                    MinWidth="50"
-                    Margin="10,0,0,0"
-                    VerticalAlignment="Center"
-                    Command="{s:Action SaveChanges}"
-                    IsEnabled="{Binding IsModified}">
-                    <StackPanel>
-                        <TextBlock HorizontalAlignment="Center" Text="Save" />
-                        <TextBlock HorizontalAlignment="Center" Text="Palette" />
+                    <StackPanel Orientation="Horizontal">
+                        <ui:DropDownButton Background="#238636">
+                            <ui:DropDownButton.Content>
+                                <Image Style="{StaticResource iconPlus}" />
+                            </ui:DropDownButton.Content>
+                            <ui:DropDownButton.Flyout>
+                                <ui:MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                    <MenuItem Command="{s:Action AddNewFileColorSource}" Header="New File Source" />
+                                    <MenuItem Command="{s:Action AddNewNativeColorSource}" Header="New Native Source" />
+                                    <MenuItem Command="{s:Action AddNewForeignColorSource}" Header="New Foreign Source" />
+                                </ui:MenuFlyout>
+                            </ui:DropDownButton.Flyout>
+                        </ui:DropDownButton>
+                        <Button
+                            Margin="10,0,0,0"
+                            Command="{s:Action SaveSources}"
+                            Content="Save" />
                     </StackPanel>
-                </Button>
-            </Grid>
-        </GroupBox>
+                </StackPanel>
+            </Expander>
 
-        <!--  Palette Display  -->
-        <ListBox
-            Grid.Row="1"
-            Margin="5,0,0,0"
-            ItemContainerStyle="{StaticResource ValidatedPaletteItemContainerTemplate}"
-            ItemTemplate="{StaticResource ValidatedPaletteItemTemplate}"
-            ItemsSource="{Binding Colors}"
-            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-            SelectedItem="{Binding SelectedColor}">
-            <ListBox.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel IsItemsHost="True" Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ListBox.ItemsPanel>
-        </ListBox>
-    </StackPanel>
+            <!--  Selected color editor  -->
+            <Expander IsExpanded="True" Visibility="{Binding ActiveColor, Converter={StaticResource NullToVisibilityConverter}}">
+                <Expander.Header>
+                    <TextBlock FontSize="24" Text="Color Editor" />
+                </Expander.Header>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="auto" MinWidth="300" />
+                        <ColumnDefinition Width="auto" MinWidth="25" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel
+                        Grid.Row="0"
+                        Grid.RowSpan="4"
+                        Grid.Column="0"
+                        VerticalAlignment="Center">
+                        <Button
+                            Height="50"
+                            Margin="0,0,10,10"
+                            Click="{s:Action SaveActiveColor}"
+                            IsEnabled="{Binding ActiveColor.CanSaveColor}">
+                            <StackPanel>
+                                <TextBlock HorizontalAlignment="Center" Text="Assign" />
+                                <TextBlock HorizontalAlignment="Center" Text="Color" />
+                            </StackPanel>
+                        </Button>
+
+                        <Border
+                            Margin="0,0,10,0"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            BorderBrush="Black"
+                            BorderThickness="2">
+
+                            <Rectangle Width="55" Height="55">
+                                <Rectangle.Fill>
+                                    <SolidColorBrush Color="{Binding ActiveColor.Color}" />
+                                </Rectangle.Fill>
+                            </Rectangle>
+                        </Border>
+                    </StackPanel>
+
+                    <!--  RGBA Sliders  -->
+                    <Slider
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Margin="0,0,10,5"
+                        Foreground="Red"
+                        Maximum="{Binding ActiveColor.RedMax, UpdateSourceTrigger=PropertyChanged}"
+                        Minimum="0"
+                        Value="{Binding ActiveColor.Red, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Slider
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        Margin="0,0,10,5"
+                        Foreground="Green"
+                        Maximum="{Binding ActiveColor.GreenMax}"
+                        Minimum="0"
+                        Value="{Binding ActiveColor.Green, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Slider
+                        Grid.Row="2"
+                        Grid.Column="1"
+                        Margin="0,0,10,5"
+                        Foreground="Blue"
+                        Maximum="{Binding ActiveColor.BlueMax}"
+                        Minimum="0"
+                        Value="{Binding ActiveColor.Blue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Slider
+                        Grid.Row="3"
+                        Grid.Column="1"
+                        Margin="0,0,10,0"
+                        Foreground="{StaticResource CheckeredBrush}"
+                        Maximum="{Binding ActiveColor.AlphaMax}"
+                        Minimum="0"
+                        Value="{Binding ActiveColor.Alpha, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <!--  RGBA Numeric Values  -->
+                    <TextBlock
+                        Grid.Row="0"
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        Text="{Binding ActiveColor.Red}" />
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        Text="{Binding ActiveColor.Green}" />
+                    <TextBlock
+                        Grid.Row="2"
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        Text="{Binding ActiveColor.Blue}" />
+                    <TextBlock
+                        Grid.Row="3"
+                        Grid.Column="2"
+                        VerticalAlignment="Center"
+                        Text="{Binding ActiveColor.Alpha}" />
+                </Grid>
+            </Expander>
+
+            <!--  Palette Display  -->
+            <ListBox
+                Grid.Row="1"
+                Margin="5,0,0,0"
+                ItemContainerStyle="{StaticResource ValidatedPaletteItemContainerTemplate}"
+                ItemTemplate="{StaticResource ValidatedPaletteItemTemplate}"
+                ItemsSource="{Binding Colors}"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                SelectedIndex="{Binding SelectedColorIndex}">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel IsItemsHost="True" Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+            </ListBox>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

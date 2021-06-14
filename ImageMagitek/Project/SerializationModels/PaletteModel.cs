@@ -8,7 +8,6 @@ namespace ImageMagitek.Project.Serialization
     {
         public ColorModel ColorModel { get; set; }
         public string DataFileKey { get; set; }
-        public int Entries { get; set; }
         public bool ZeroIndexTransparent { get; set; }
         public PaletteStorageSource StorageSource { get; set; }
         public List<IColorSourceModel> ColorSources { get; set; } = new();
@@ -18,7 +17,7 @@ namespace ImageMagitek.Project.Serialization
             if (resourceModel is not PaletteModel model)
                 return false;
 
-            return model.ColorModel == ColorModel && model.DataFileKey == DataFileKey && model.Entries == Entries 
+            return model.ColorModel == ColorModel && model.DataFileKey == DataFileKey
                 && model.ZeroIndexTransparent == ZeroIndexTransparent && model.StorageSource == StorageSource
                 && model.Name == Name && model.ColorSources.Count == ColorSources.Count &&
                 ColorSources.Zip(model.ColorSources).All(x => x.First.ResourceEquals(x.Second));

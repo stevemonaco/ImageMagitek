@@ -7,8 +7,6 @@ namespace TileShop.WPF.ViewModels
 {
     public class AddPaletteViewModel : Screen
     {
-        public IColorSource[] ColorSources { get; private set; }
-
         private string _paletteName;
         public string PaletteName
         {
@@ -44,25 +42,11 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _selectedColorModel, value);
         }
 
-        private int _entries;
-        public int Entries
-        {
-            get => _entries;
-            set => SetAndNotify(ref _entries, value);
-        }
-
         private bool _zeroIndexTransparent = true;
         public bool ZeroIndexTransparent
         {
             get => _zeroIndexTransparent;
             set => SetAndNotify(ref _zeroIndexTransparent, value);
-        }
-
-        private int _fileOffset;
-        public int FileOffset
-        {
-            get => _fileOffset;
-            set => SetAndNotify(ref _fileOffset, value);
         }
 
         private BindableCollection<string> _existingResourceNames = new BindableCollection<string>();

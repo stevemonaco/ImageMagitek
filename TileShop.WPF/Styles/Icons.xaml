@@ -243,11 +243,17 @@
                     <DrawingImage.Drawing>
                         <GeometryDrawing Brush="{DynamicResource iconBrush}">
                             <GeometryDrawing.Geometry>
-                                M0 2C0 .9.9 0 2 0h14l4 4v14a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm5 0v6h10V2H5zm6 1h3v4h-3V3z
+                                M213.333 64h597.333c47.061 0 85.333 38.272 85.333 85.333v469.333c0 11.307-4.48 22.187-12.501 30.165l-170.667 170.667c-7.979 8.021-18.816 12.501-30.165 12.501h-469.333c-47.061 0-85.333-38.272-85.333-85.333v-597.333c0-47.061 38.272-85.333 85.333-85.333zM640 149.333h-256v213.333h256v-213.333zM554.667 661.333h-85.333v85.333h85.333v-85.333zM213.333 746.667h85.333v-170.667h341.333v170.667h25.003l145.664-145.664 0.043-451.669h-85.376v213.333c0 47.061-38.272 85.333-85.333 85.333h-256c-47.061 0-85.333-38.272-85.333-85.333v-213.333h-85.333v597.333z
                             </GeometryDrawing.Geometry>
                         </GeometryDrawing>
                     </DrawingImage.Drawing>
                 </DrawingImage>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <ScaleTransform ScaleX="1" ScaleY="-1" />
             </Setter.Value>
         </Setter>
     </Style>
@@ -450,6 +456,42 @@
                         <GeometryDrawing Brush="{DynamicResource iconBrush}">
                             <GeometryDrawing.Geometry>
                                 M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="iconTrash" TargetType="Image">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Brush="{DynamicResource iconBrush}">
+                            <GeometryDrawing.Geometry>
+                                M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="iconPlus" TargetType="Image">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Brush="{DynamicResource iconBrush}">
+                            <GeometryDrawing.Geometry>
+                                M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M13,7H11V11H7V13H11V17H13V13H17V11H13V7Z
                             </GeometryDrawing.Geometry>
                         </GeometryDrawing>
                     </DrawingImage.Drawing>

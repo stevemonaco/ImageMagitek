@@ -112,8 +112,6 @@ namespace TileShop.WPF
             tracker.Configure<AddPaletteViewModel>()
                 .Property(p => p.PaletteName)
                 .Property(p => p.SelectedColorModel, "RGBA32")
-                .Property(p => p.Entries, 2)
-                .Property(p => p.FileOffset, 0)
                 .Property(p => p.ZeroIndexTransparent, true);
 
             tracker.Configure<JumpToOffsetViewModel>()

@@ -47,7 +47,6 @@ namespace ImageMagitek.Project.Serialization
             {
                 Name = pal.Name,
                 ColorModel = pal.ColorModel,
-                Entries = pal.Entries,
                 ZeroIndexTransparent = pal.ZeroIndexTransparent,
             };
 
@@ -117,7 +116,7 @@ namespace ImageMagitek.Project.Serialization
                 //}
             }
 
-            return new Palette(model.Name, colorFactory, model.ColorModel, sources, model.Entries, model.ZeroIndexTransparent, model.StorageSource);
+            return new Palette(model.Name, colorFactory, model.ColorModel, sources, model.ZeroIndexTransparent, model.StorageSource);
         }
 
         public static ResourceFolderModel MapToModel(this ResourceFolder folder)

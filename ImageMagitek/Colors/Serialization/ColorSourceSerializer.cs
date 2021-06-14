@@ -106,7 +106,7 @@ namespace ImageMagitek.Colors.Serialization
                 }
                 else if (sources[i] is ScatteredColorSource scatteredSource)
                 {
-
+                    throw new NotSupportedException();
                 }
             }
         }

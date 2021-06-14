@@ -275,6 +275,11 @@ namespace ImageMagitek.Services
 
             try
             {
+                if (resourceNode is PaletteNode paletteNode)
+                {
+                    (paletteNode.Item as Palette).SavePalette();
+                }
+
                 var writer = _serializerFactory.CreateWriter(projectTree);
                 return writer.WriteResource(resourceNode, alwaysOverwrite);
             }

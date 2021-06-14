@@ -10,7 +10,7 @@
     xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     Title="Add a New Palette"
     Width="400"
-    Height="500"
+    Height="320"
     MinWidth="230"
     d:DataContext="{d:DesignInstance Type=vm:AddPaletteViewModel}"
     ui:ThemeManager.IsThemeAware="True"
@@ -53,25 +53,6 @@
                 SelectedIndex="1"
                 SelectedItem="{Binding SelectedColorModel}"
                 ToolTip="Palette Color Model" />
-
-            <ui:NumberBox
-                MinWidth="60"
-                MaxWidth="200"
-                Margin="0,5,0,0"
-                HorizontalAlignment="Left"
-                ui:ControlHelper.Header="Colors"
-                Maximum="256"
-                Minimum="2"
-                ToolTip="Number of Palette Entries"
-                Value="{Binding Entries}" />
-
-            <TextBox
-                Width="140"
-                Margin="0,5,0,0"
-                HorizontalAlignment="Left"
-                ui:ControlHelper.Header="File Offset"
-                Text="{Binding FileOffset}"
-                ToolTip="File offset of palette data in decimal" />
 
             <CheckBox Content="Zero Index Transparent" IsChecked="{Binding ZeroIndexTransparent}" />
 

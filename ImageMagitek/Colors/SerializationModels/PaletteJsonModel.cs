@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using ImageMagitek.Utility.Parsing;
 
-namespace ImageMagitek.Colors.SerializationModels
+namespace ImageMagitek.Colors.Serialization
 {
     public class PaletteJsonModel
     {
@@ -11,13 +11,16 @@ namespace ImageMagitek.Colors.SerializationModels
 
         public Palette ToPalette(IColorFactory colorFactory)
         {
-            var pal = new Palette(Name, colorFactory, ColorModel.Rgba32, Colors.Count, ZeroIndexTransparent, PaletteStorageSource.Json);
+            var pal = new Palette(Name, colorFactory, ColorModel.Rgba32, ZeroIndexTransparent, PaletteStorageSource.Json);
 
+            var colors = new List<IColorSource>();
             for (int i = 0; i < Colors.Count; i++)
             {
                 if (ColorParser.TryParse(Colors[i], ColorModel.Rgba32, out var color))
-                    pal.SetNativeColor(i, (ColorRgba32)color);
+                    colors.Add(new ProjectNativeColorSource((ColorRgba32)color));
             }
+
+            pal.SetColorSources(colors);
 
             return pal;
         }

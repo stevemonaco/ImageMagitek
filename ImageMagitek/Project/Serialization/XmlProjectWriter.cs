@@ -281,7 +281,6 @@ namespace ImageMagitek.Project.Serialization
             element.Add(new XAttribute("name", paletteModel.Name));
             element.Add(new XAttribute("datafile", paletteModel.DataFileKey));
             element.Add(new XAttribute("color", paletteModel.ColorModel.ToString()));
-            element.Add(new XAttribute("entries", paletteModel.Entries));
             element.Add(new XAttribute("zeroindextransparent", paletteModel.ZeroIndexTransparent));
 
             foreach (var source in paletteModel.ColorSources)

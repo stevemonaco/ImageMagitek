@@ -50,14 +50,9 @@ namespace ImageMagitek.Colors
         public DataFile DataFile { get; set; }
 
         /// <summary>
-        /// Address of the palette within the file
-        /// </summary>
-        public FileBitAddress FileAddress { get; private set; }
-
-        /// <summary>
         /// Number of color entries in the palette
         /// </summary>
-        public int Entries { get; private set; }
+        public int Entries { get => ColorSources?.Length ?? 0; }
 
         /// <summary>
         /// Specifies if the Palette has an alpha channel
@@ -101,28 +96,29 @@ namespace ImageMagitek.Colors
             _colorFactory = colorFactory;
             _colorSerializer = new ColorSourceSerializer(_colorFactory);
 
+            ColorSources = Array.Empty<IColorSource>();
             HasAlpha = false;
             ZeroIndexTransparent = true;
         }
 
         public Palette(string name, IColorFactory colorFactory, ColorModel colorModel,
-            int entries, bool zeroIndexTransparent, PaletteStorageSource storageSource)
+            bool zeroIndexTransparent, PaletteStorageSource storageSource)
         {
             Name = name;
             _colorFactory = colorFactory;
             _colorSerializer = new ColorSourceSerializer(_colorFactory);
 
+            ColorSources = Array.Empty<IColorSource>();
             ColorModel = colorModel;
-            Entries = entries;
             ZeroIndexTransparent = zeroIndexTransparent;
             StorageSource = storageSource;
 
-            if(storageSource == PaletteStorageSource.Project)
+            if (storageSource == PaletteStorageSource.Project)
             {
                 _nativePalette = new Lazy<ColorRgba32[]>(() => LoadNativePalette());
                 _foreignPalette = new Lazy<IColor[]>(() => LoadForeignPalette());
             }
-            else if(storageSource == PaletteStorageSource.Json)
+            else if (storageSource == PaletteStorageSource.Json)
             {
                 _nativePalette = new Lazy<ColorRgba32[]>(() => new ColorRgba32[Entries]);
                 _foreignPalette = new Lazy<IColor[]>(() => new IColor[Entries]);
@@ -130,7 +126,7 @@ namespace ImageMagitek.Colors
         }
 
         public Palette(string name, IColorFactory colorFactory, ColorModel colorModel, IList<IColorSource> colorSources,
-            int entries, bool zeroIndexTransparent, PaletteStorageSource storageSource)
+            bool zeroIndexTransparent, PaletteStorageSource storageSource)
         {
             Name = name;
             _colorFactory = colorFactory;
@@ -138,7 +134,6 @@ namespace ImageMagitek.Colors
 
             ColorModel = colorModel;
             ColorSources = colorSources.ToArray();
-            Entries = entries;
             ZeroIndexTransparent = zeroIndexTransparent;
             StorageSource = storageSource;
 
@@ -160,28 +155,21 @@ namespace ImageMagitek.Colors
         /// <returns></returns>
         public bool Reload()
         {
-            return LazyLoadPalette(DataFile, FileAddress, ColorModel, ZeroIndexTransparent, Entries);
+            return LazyLoadPalette(DataFile, ColorModel, ZeroIndexTransparent);
         }
 
         /// <summary>
         /// Lazily loads palette from a previously opened file. Actual loading will occur during color access.
         /// </summary>
         /// <param name="dataFile">DataFile containing the palette data</param>
-        /// <param name="address">File address to the beginning of the palette</param>
         /// <param name="model">ColorModel of the palette</param>
         /// <param name="zeroIndexTransparent">If the 0-index of the palette is automatically transparent</param>
-        /// <param name="numEntries">Number of entries the palette contains</param>
         /// <returns>Success value</returns>
-        public bool LazyLoadPalette(DataFile dataFile, FileBitAddress address, ColorModel model, bool zeroIndexTransparent, int numEntries)
+        public bool LazyLoadPalette(DataFile dataFile, ColorModel model, bool zeroIndexTransparent)
         {
-            if (numEntries > 256 || numEntries < 2)
-                throw new ArgumentOutOfRangeException($"{nameof(LazyLoadPalette)}: {nameof(numEntries)} ({numEntries}) is out of range");
-
             DataFile = dataFile;
-            FileAddress = address;
             ColorModel = model;
             ZeroIndexTransparent = zeroIndexTransparent;
-            Entries = numEntries;
             StorageSource = PaletteStorageSource.Project;
 
             _nativePalette = new Lazy<ColorRgba32[]>(() => LoadNativePalette());
@@ -193,7 +181,7 @@ namespace ImageMagitek.Colors
         private ColorRgba32[] LoadNativePalette()
         {
             var nativePalette = new ColorRgba32[Entries];
-            for(int i = 0; i < Entries; i++)
+            for (int i = 0; i < Entries; i++)
                 nativePalette[i] = _colorFactory.ToNative(ForeignPalette[i]); // Will load ForeignPalette if not already loaded
 
             if (ZeroIndexTransparent)
@@ -279,7 +267,7 @@ namespace ImageMagitek.Colors
 
                 if (searchIndex >= 0)
                 {
-                    index = (byte) searchIndex;
+                    index = (byte)searchIndex;
                     return true;
                 }
                 else
@@ -474,6 +462,12 @@ namespace ImageMagitek.Colors
                 _colorSerializer.StoreColors(ColorSources, DataFile, NativePalette, ForeignPalette);
 
             return true;
+        }
+
+        public void SetColorSources(IEnumerable<IColorSource> colorSources)
+        {
+            ColorSources = colorSources.ToArray();
+            Reload();
         }
 
         /// <summary>
