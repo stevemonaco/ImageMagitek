@@ -2,7 +2,7 @@
 
 namespace ImageMagitek.Project
 {
-    public class ArrangerNode : ResourceNode<ScatteredArrangerModel>
+    public sealed class ArrangerNode : ResourceNode<ScatteredArrangerModel>
     {
         public ArrangerNode(string nodeName, ScatteredArranger resource) : base(nodeName, resource)
         {

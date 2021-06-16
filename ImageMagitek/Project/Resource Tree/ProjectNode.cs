@@ -2,7 +2,7 @@
 
 namespace ImageMagitek.Project
 {
-    public class ProjectNode : ResourceNode<ImageProjectModel>
+    public sealed class ProjectNode : ResourceNode<ImageProjectModel>
     {
         public string BaseDirectory { get; set; }
 

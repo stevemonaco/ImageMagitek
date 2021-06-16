@@ -2,7 +2,7 @@
 
 namespace ImageMagitek.Project
 {
-    public class ResourceFolderNode : ResourceNode<ResourceFolderModel>
+    public sealed class ResourceFolderNode : ResourceNode<ResourceFolderModel>
     {
         public ResourceFolderNode(string nodeName, ResourceFolder resource) : base(nodeName, resource)
         {
