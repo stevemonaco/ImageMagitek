@@ -370,7 +370,6 @@ namespace TileShop.WPF.ViewModels
                 var oldName = nodeModel.Name;
                 var newName = dialogModel.Name;
 
-                var tree = _projectService.GetContainingProject(nodeModel.Node);
                 _projectService.RenameResource(nodeModel.Node, dialogModel.Name).Switch(
                     success =>
                     {

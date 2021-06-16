@@ -210,7 +210,7 @@ namespace ImageMagitek.Services
                     return new MagitekResult<ResourceNode>.Failed($"Cannot add a resource of type '{resource.GetType()}'");
 
                 var contents = _serializerFactory.CreateWriter(tree).SerializeResource(childNode);
-                var location = LocateResourceDiskLocationByParent(tree, parentNode, childNode);
+                var location = ResourceFileLocator.LocateByParent(tree, parentNode, childNode);
                 File.WriteAllText(location, contents);
 
                 parentNode.AttachChildNode(childNode);
@@ -246,7 +246,7 @@ namespace ImageMagitek.Services
                 var childName = FindFirstNewChildResourceName(parentNode, name);
                 var folder = new ResourceFolder(childName);
                 var node = new ResourceFolderNode(childName, folder);
-                var directoryName = LocateResourceDiskLocationByParent(tree, parentNode, node);
+                var directoryName = ResourceFileLocator.LocateByParent(tree, parentNode, node);
                 node.DiskLocation = directoryName;
 
                 Directory.CreateDirectory(directoryName);
@@ -317,7 +317,7 @@ namespace ImageMagitek.Services
         }
 
         /// <summary>
-        /// Renames a node to the specified name
+        /// Renames a node to the specified name and updates stale references
         /// </summary>
         /// <param name="node"></param>
         /// <param name="newName"></param>
@@ -330,37 +330,50 @@ namespace ImageMagitek.Services
                 return new MagitekResult.Failed($"Parent node '{tree.CreatePathKey(node.Parent)}' already contains a node named '{newName}'");
 
             var oldLocation = node.DiskLocation;
-            var newLocation = LocateResourceDiskLocationByParent(tree, node.Parent, node);
+            var oldName = node.Name;
 
             if (node is ResourceFolderNode)
             {
                 node.Rename(newName);
-                newLocation = LocateResourceDiskLocationByParent(tree, node.Parent, node);
-                Directory.Move(oldLocation, newLocation);
-                node.DiskLocation = newLocation;
-            }
-            else
-            {
-                var oldName = node.Name;
+                string newLocation = ResourceFileLocator.LocateByParent(tree, node.Parent, node);
 
                 try
                 {
-                    node.Rename(newName);
-                    node.Item.Name = newName;
-                    var contents = _serializerFactory.CreateWriter(tree).SerializeResource(node);
-
-                    File.WriteAllText(newLocation, contents);
-                    File.Delete(oldLocation);
+                    Directory.Move(oldLocation, newLocation);
                     node.DiskLocation = newLocation;
-
-                    UpdateNodeModel(tree, node);
                 }
                 catch (Exception ex)
                 {
                     node.Rename(oldName);
-                    node.Item.Name = oldName;
                     return new MagitekResult.Failed($"Could not rename '{node.Name}': {ex.Message}");
                 }
+
+                var serializer = _serializerFactory.CreateWriter(tree);
+                return serializer.WriteProject(tree.Root.DiskLocation)
+                    .Match<MagitekResult>(
+                    success => MagitekResult.SuccessResult,
+                    failed =>
+                    {
+                        node.Rename(oldName);
+                        Directory.Move(newLocation, oldLocation);
+                        return failed;
+                    });
+            }
+            else
+            {
+                try
+                {
+                    node.Rename(newName);
+                    var serializer = _serializerFactory.CreateWriter(tree);
+                    serializer.WriteProject(tree.Root.DiskLocation);
+                }
+                catch (Exception ex)
+                {
+                    node.Rename(oldName);
+                    return new MagitekResult.Failed($"Could not rename '{node.Name}': {ex.Message}");
+                }
+
+                File.Delete(oldLocation);
             }
 
             return MagitekResult.SuccessResult;
@@ -421,8 +434,8 @@ namespace ImageMagitek.Services
         /// <summary>
         /// Moves the specified node to be a child of the specified parent, if possible
         /// </summary>
-        /// <param name="node"></param>
-        /// <param name="parentNode"></param>
+        /// <param name="node">Node to move</param>
+        /// <param name="parentNode">Parent destination</param>
         /// <returns></returns>
         public virtual MagitekResult MoveNode(ResourceNode node, ResourceNode parentNode)
         {
@@ -435,26 +448,69 @@ namespace ImageMagitek.Services
             var canMoveResult = CanMoveNode(node, parentNode);
             var tree = GetContainingProject(node);
 
+            var serializer = _serializerFactory.CreateWriter(tree);
+            var newLocation = ResourceFileLocator.LocateByParent(tree, parentNode, node);
+            var oldLocation = node.DiskLocation;
+            var oldParent = node.Parent;
+
             if (canMoveResult.HasSucceeded)
             {
-                try
+                if (node is ResourceFolderNode folderNode)
                 {
-                    var oldFileName = node.DiskLocation;
-                    var newFileName = LocateResourceDiskLocationByParent(tree, parentNode, node);
-                    
-                    var contents = _serializerFactory.CreateWriter(tree).SerializeResource(node);
-                    File.WriteAllText(newFileName, contents);
-                    File.Delete(node.DiskLocation);
-                    node.DiskLocation = newFileName;
-                    
-                    node.Parent.DetachChildNode(node.Name);
-                    parentNode.AttachChildNode(node);
-                    UpdateNodeModel(tree, node);
-                    return SaveProject(tree);
+                    try
+                    {
+                        Directory.Move(oldLocation, newLocation);
+                        node.DiskLocation = newLocation;
+
+                        node.Parent.DetachChildNode(node.Name);
+                        parentNode.AttachChildNode(node);
+                    }
+                    catch (Exception ex)
+                    {
+                        return new MagitekResult.Failed($"Failed to move node '{node.Name}': {ex.Message}");
+                    }
+
+                    return serializer.WriteProject(tree.Root.DiskLocation)
+                        .Match<MagitekResult>(
+                        success => MagitekResult.SuccessResult,
+                        failed =>
+                        {
+                            Directory.Move(newLocation, oldLocation);
+                            node.DiskLocation = oldLocation;
+
+                            node.Parent.DetachChildNode(node.Name);
+                            oldParent.AttachChildNode(node);
+
+                            return failed;
+                        });
                 }
-                catch (Exception ex)
+                else
                 {
-                    return new MagitekResult.Failed($"Failed to move node: {ex.Message}");
+                    try
+                    {
+                        File.Move(oldLocation, newLocation);
+                        node.DiskLocation = newLocation;
+
+                        node.Parent.DetachChildNode(node.Name);
+                        parentNode.AttachChildNode(node);
+                        var result = serializer.WriteProject(tree.Root.DiskLocation);
+
+                        if (result.HasFailed)
+                        {
+                            File.Move(newLocation, oldLocation);
+                            node.Parent.DetachChildNode(node.Name);
+                            oldParent.AttachChildNode(node);
+                        }
+
+                        return result;
+                    }
+                    catch (Exception ex)
+                    {
+                        File.Move(oldLocation, newLocation);
+                        node.Parent.DetachChildNode(node.Name);
+                        oldParent.AttachChildNode(node);
+                        return new MagitekResult.Failed($"Failed to move node '{node.Name}': {ex.Message}");
+                    }
                 }
             }
             else
@@ -577,28 +633,18 @@ namespace ImageMagitek.Services
             }
         }
 
-        private static string LocateResourceDiskLocation(ProjectTree tree, ResourceNode node)
+        /// <summary>
+        /// Finds all resources with stale key references to the provided resources
+        /// </summary>
+        private static IEnumerable<ResourceNode> FindStaleKeyResources(ProjectTree tree, HashSet<IProjectResource> keyChangedResources)
         {
-            var baseDirectory = (tree.Root as ProjectNode).BaseDirectory;
-            var pathKey = tree.CreatePathKey(node, Path.DirectorySeparatorChar.ToString()).TrimStart(Path.DirectorySeparatorChar);
-
-            if (node.Item is ResourceFolder)
-                return Path.Combine(baseDirectory, pathKey);
-            else
-                return Path.Combine(baseDirectory, $"{pathKey}.xml");
+            return tree.Root.SelfAndDescendantsBreadthFirst<ResourceNode, IProjectResource>()
+                .Where(x => x.Item.LinkedResources.Any(x => keyChangedResources.Contains(x)));
         }
 
-        private static string LocateResourceDiskLocationByParent(ProjectTree tree, ResourceNode parentNode, ResourceNode childNode)
-        {
-            var baseDirectory = (tree.Root as ProjectNode).BaseDirectory;
-            var pathKey = tree.CreatePathKey(parentNode, Path.DirectorySeparatorChar.ToString()).TrimStart(Path.DirectorySeparatorChar);
-
-            if (childNode is not ResourceFolderNode)
-                return Path.Combine(baseDirectory, pathKey, $"{childNode.Name}.xml");
-            else
-                return Path.Combine(baseDirectory, pathKey, childNode.Name);
-        }
-
+        /// <summary>
+        /// Updates the node model to reflect the current resource
+        /// </summary>
         private void UpdateNodeModel(ProjectTree tree, ResourceNode node)
         {
             if (node is ProjectNode projectNode)

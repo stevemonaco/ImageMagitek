@@ -111,7 +111,10 @@ namespace TileShop.WPF.ViewModels
             }
 
             var projectTree = _projectService.GetContainingProject(Resource);
-            _projectService.SaveProject(projectTree)
+            projectTree.TryFindResourceNode(Resource, out var resourceNode);
+            //_projectService.SaveProject(projectTree)
+
+            _projectService.SaveResource(projectTree, resourceNode, true)
                  .Switch(
                      success =>
                      {

@@ -23,8 +23,7 @@ namespace ImageMagitek.Project.Serialization
 
             return model.EnumerateElements()
                 .Zip(this.EnumerateElements())
-                .Where(x => x.First is not null && x.Second is not null)
-                .All(x => x.First?.ResourceEquals(x.Second) ?? false);
+                .All(x => x.First?.ResourceEquals(x.Second) ?? (x.Second is null));
         }
     }
 }

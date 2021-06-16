@@ -19,7 +19,6 @@ namespace ImageMagitek.Project.Serialization
         private readonly ProjectTree _tree;
         private readonly IColorFactory _colorFactory;
         private string _baseDirectory;
-        private readonly Dictionary<IProjectResource, string> _resourceMap;
 
         private HashSet<string> _activeBackupFiles;
 
@@ -33,18 +32,11 @@ namespace ImageMagitek.Project.Serialization
             _globalResources = globalResources.ToList();
             _globalDefaultPalette = globalResources.OfType<Palette>().FirstOrDefault();
             _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(tree.Root.DiskLocation));
-
-            _resourceMap = new Dictionary<IProjectResource, string>();
-
-            foreach (var resource in _globalResources)
-                _resourceMap.Add(resource, resource.Name);
-
-            foreach (var node in tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
-                _resourceMap.Add(node.Item, tree.CreatePathKey(node));
         }
 
         /// <summary>
-        /// Writes all project resources contained in a ProjectTree to disk
+        /// Writes all modified project resources contained in a ProjectTree to disk and updates the persistence models
+        /// while accounting for stale references
         /// </summary>
         /// <param name="projectFileName">Filename to write to</param>
         /// <returns></returns>
@@ -61,8 +53,15 @@ namespace ImageMagitek.Project.Serialization
                 failed => new MagitekResult.Failed(failed.Reasons.First()));
         }
 
+        /// <summary>
+        /// Serializes the resource to a string
+        /// </summary>
+        /// <param name="resourceNode"></param>
+        /// <returns></returns>
         public string SerializeResource(ResourceNode resourceNode)
         {
+            var resourceMap = CreateResourceMap();
+
             if (resourceNode is ProjectNode projectNode)
             {
                 var model = (projectNode.Item as ImageProject).MapToModel();
@@ -75,23 +74,30 @@ namespace ImageMagitek.Project.Serialization
             }
             else if (resourceNode is PaletteNode palNode)
             {
-                var model = (palNode.Item as Palette).MapToModel(_resourceMap, _colorFactory);
+                var model = (palNode.Item as Palette).MapToModel(resourceMap, _colorFactory);
                 return Stringify(Serialize(model));
             }
             else if (resourceNode is ArrangerNode arrangerNode)
             {
-                var model = (arrangerNode.Item as ScatteredArranger).MapToModel(_resourceMap);
+                var model = (arrangerNode.Item as ScatteredArranger).MapToModel(resourceMap);
                 return Stringify(Serialize(model));
             }
             else
                 return null;
         }
 
+        /// <summary>
+        /// Writes a single resource, updating its model, but does not update stale resources in the tree
+        /// </summary>
+        /// <param name="resourceNode"></param>
+        /// <param name="alwaysOverwrite"></param>
+        /// <returns></returns>
         public MagitekResult WriteResource(ResourceNode resourceNode, bool alwaysOverwrite)
         {
             string contents;
             ResourceModel currentModel;
             ResourceModel diskModel;
+            var resourceMap = CreateResourceMap();
 
             if (resourceNode is ProjectNode projectNode)
             {
@@ -109,14 +115,14 @@ namespace ImageMagitek.Project.Serialization
             }
             else if (resourceNode is PaletteNode palNode)
             {
-                var model = (palNode.Item as Palette).MapToModel(_resourceMap, _colorFactory);
+                var model = (palNode.Item as Palette).MapToModel(resourceMap, _colorFactory);
                 contents = Stringify(Serialize(model));
                 currentModel = model;
                 diskModel = palNode.Model;
             }
             else if (resourceNode is ArrangerNode arrangerNode)
             {
-                var model = (arrangerNode.Item as ScatteredArranger).MapToModel(_resourceMap);
+                var model = (arrangerNode.Item as ScatteredArranger).MapToModel(resourceMap);
                 contents = Stringify(Serialize(model));
                 currentModel = model;
                 diskModel = arrangerNode.Model;
@@ -146,6 +152,7 @@ namespace ImageMagitek.Project.Serialization
             {
                 ResourceModel currentModel;
                 ResourceModel diskModel;
+                var resourceMap = CreateResourceMap();
 
                 if (node is ProjectNode projectNode)
                 {
@@ -162,7 +169,7 @@ namespace ImageMagitek.Project.Serialization
                 else if (node is PaletteNode paletteNode)
                 {
                     var pal = paletteNode.Item as Palette;
-                    var model = pal.MapToModel(_resourceMap, _colorFactory);
+                    var model = pal.MapToModel(resourceMap, _colorFactory);
                     currentModel = model;
 
                     diskModel = paletteNode.Model;
@@ -170,7 +177,7 @@ namespace ImageMagitek.Project.Serialization
                 else if (node is ArrangerNode arrangerNode)
                 {
                     var arranger = arrangerNode.Item as ScatteredArranger;
-                    var model = arranger.MapToModel(_resourceMap);
+                    var model = arranger.MapToModel(resourceMap);
                     currentModel = model;
 
                     diskModel = arrangerNode.Model;
@@ -178,9 +185,11 @@ namespace ImageMagitek.Project.Serialization
                 else
                     throw new InvalidOperationException($"Serializing project node with unexpected type '{node.GetType()}' is not supported");
 
-                if (!currentModel.ResourceEquals(diskModel))
+                var location = ResourceFileLocator.LocateByParent(tree, node.Parent, node);
+
+                if (!currentModel.ResourceEquals(diskModel) || node.DiskLocation != location)
                 {
-                    actions.Add((CreateWriteAction(currentModel, node.DiskLocation), node, currentModel));
+                    actions.Add((CreateWriteAction(currentModel, location), node, currentModel));
                 }
             }
 
@@ -213,7 +222,11 @@ namespace ImageMagitek.Project.Serialization
                         arrangerNode.Model = action.model as ScatteredArrangerModel;
                     }
                     else
+                    {
                         throw new InvalidOperationException($"Serializing project node with unexpected type '{action.node.GetType()}' is not supported");
+                    }
+
+                    action.node.DiskLocation = action.transaction.PrimaryFileName;
                 }
             }
 
@@ -386,6 +399,19 @@ namespace ImageMagitek.Project.Serialization
             xw.Flush();
 
             return sb.ToString();
+        }
+
+        private Dictionary<IProjectResource, string> CreateResourceMap()
+        {
+            var resourceMap = new Dictionary<IProjectResource, string>();
+
+            foreach (var resource in _globalResources)
+                resourceMap.Add(resource, resource.Name);
+
+            foreach (var node in _tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
+                resourceMap.Add(node.Item, _tree.CreatePathKey(node));
+
+            return resourceMap;
         }
     }
 }
