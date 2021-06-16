@@ -265,7 +265,6 @@ namespace ImageMagitek.Project.Serialization
         private XElement Serialize(ImageProjectModel projectModel)
         {
             var element = new XElement("project");
-            element.Add(new XAttribute("name", projectModel.Name));
             element.Add(new XAttribute("version", Version));
 
             if (!string.IsNullOrEmpty(projectModel.Root))
@@ -282,7 +281,6 @@ namespace ImageMagitek.Project.Serialization
         private XElement Serialize(DataFileModel dataFileModel)
         {
             var element = new XElement("datafile");
-            element.Add(new XAttribute("name", dataFileModel.Name));
 
             var relativePath = Path.GetRelativePath(_baseDirectory, dataFileModel.Location);
             element.Add(new XAttribute("location", relativePath));
@@ -292,7 +290,6 @@ namespace ImageMagitek.Project.Serialization
         private XElement Serialize(PaletteModel paletteModel)
         {
             var element = new XElement("palette");
-            element.Add(new XAttribute("name", paletteModel.Name));
             element.Add(new XAttribute("datafile", paletteModel.DataFileKey));
             element.Add(new XAttribute("color", paletteModel.ColorModel.ToString()));
             element.Add(new XAttribute("zeroindextransparent", paletteModel.ZeroIndexTransparent));
@@ -332,7 +329,6 @@ namespace ImageMagitek.Project.Serialization
             string mostUsedPaletteKey = arrangerModel.FindMostFrequentPropertyValue("PaletteKey");
 
             var arrangerNode = new XElement("arranger");
-            arrangerNode.Add(new XAttribute("name", arrangerModel.Name));
             arrangerNode.Add(new XAttribute("elementsx", arrangerModel.ArrangerElementSize.Width));
             arrangerNode.Add(new XAttribute("elementsy", arrangerModel.ArrangerElementSize.Height));
             arrangerNode.Add(new XAttribute("width", arrangerModel.ElementPixelSize.Width));

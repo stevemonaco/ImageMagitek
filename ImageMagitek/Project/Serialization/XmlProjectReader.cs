@@ -65,31 +65,32 @@ namespace ImageMagitek.Project.Serialization
                     }
                 }
 
-                var rootName = doc.Root.Name.LocalName;
+                var resourceName = Path.GetFileNameWithoutExtension(xmlFileName);
+                var rootElementName = doc.Root.Name.LocalName;
 
-                if (rootName == "project")
+                if (rootElementName == "project")
                 {
-                    TryDeserializeProject(doc.Root, out var projectModel);
+                    TryDeserializeProject(doc.Root, resourceName, out var projectModel);
                     model = projectModel;
                 }
-                else if (rootName == "datafile")
+                else if (rootElementName == "datafile")
                 {
-                    TryDeserializeDataFile(doc.Root, out var dataFileModel);
+                    TryDeserializeDataFile(doc.Root, resourceName, out var dataFileModel);
                     model = dataFileModel;
                 }
-                else if (rootName == "palette")
+                else if (rootElementName == "palette")
                 {
-                    TryDeserializePalette(doc.Root, out var paletteModel);
+                    TryDeserializePalette(doc.Root, resourceName, out var paletteModel);
                     model = paletteModel;
                 }
-                else if (rootName == "arranger")
+                else if (rootElementName == "arranger")
                 {
-                    TryDeserializeScatteredArranger(doc.Root, out var arrangerModel);
+                    TryDeserializeScatteredArranger(doc.Root, resourceName, out var arrangerModel);
                     model = arrangerModel;
                 }
                 else
                 {
-                    _errors.Add($"{xmlFileName} has invalid root element '{rootName}'");
+                    _errors.Add($"{xmlFileName} has invalid root element '{rootElementName}'");
                     model = null;
                     return false;
                 }    
@@ -224,11 +225,11 @@ namespace ImageMagitek.Project.Serialization
             return new MagitekResults<ProjectTree>.Success(builder.Tree);
         }
 
-        private static bool TryDeserializeProject(XElement element, out ImageProjectModel projectModel)
+        private static bool TryDeserializeProject(XElement element, string resourceName, out ImageProjectModel projectModel)
         {
             var model = new ImageProjectModel
             {
-                Name = element.Attribute("name").Value,
+                Name = resourceName,
                 Version = decimal.Parse(element.Attribute("version").Value),
                 Root = element.Attribute("root")?.Value ?? string.Empty
             };
@@ -237,11 +238,11 @@ namespace ImageMagitek.Project.Serialization
             return true;
         }
 
-        private bool TryDeserializeDataFile(XElement element, out DataFileModel dataFileModel)
+        private bool TryDeserializeDataFile(XElement element, string resourceName, out DataFileModel dataFileModel)
         {
             var model = new DataFileModel
             {
-                Name = element.Attribute("name").Value,
+                Name = resourceName,
                 Location = Path.Combine(_baseDirectory, element.Attribute("location").Value)
             };
 
@@ -249,11 +250,11 @@ namespace ImageMagitek.Project.Serialization
             return true;
         }
 
-        private bool TryDeserializePalette(XElement element, out PaletteModel paletteModel)
+        private bool TryDeserializePalette(XElement element, string resourceName, out PaletteModel paletteModel)
         {
             var model = new PaletteModel();
 
-            model.Name = element.Attribute("name").Value;
+            model.Name = resourceName;
             model.DataFileKey = element.Attribute("datafile").Value;
             model.ColorModel = Palette.StringToColorModel(element.Attribute("color").Value);
             model.ZeroIndexTransparent = bool.Parse(element.Attribute("zeroindextransparent").Value);
@@ -299,22 +300,11 @@ namespace ImageMagitek.Project.Serialization
             return true;
         }
 
-        private bool TryDeserializeResourceFolder(XElement element, out ResourceFolderModel folderModel)
-        {
-            var model = new ResourceFolderModel
-            {
-                Name = element.Attribute("name").Value
-            };
-
-            folderModel = model;
-            return true;
-        }
-
-        private bool TryDeserializeScatteredArranger(XElement element, out ScatteredArrangerModel arrangerModel)
+        private bool TryDeserializeScatteredArranger(XElement element, string resourceName, out ScatteredArrangerModel arrangerModel)
         {
             var model = new ScatteredArrangerModel();
 
-            model.Name = element.Attribute("name").Value;
+            model.Name = resourceName;
             var elementsx = int.Parse(element.Attribute("elementsx").Value); // Width of arranger in elements
             var elementsy = int.Parse(element.Attribute("elementsy").Value); // Height of arranger in elements
             var width = int.Parse(element.Attribute("width").Value); // Width of element in pixels

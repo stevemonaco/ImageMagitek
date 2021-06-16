@@ -3,7 +3,6 @@
 
   <xs:element name="project">
     <xs:complexType>
-      <xs:attribute name="name" use="required" />
 	  <xs:attribute name="version" type="xs:decimal" use="required" />
       <xs:attribute name="root" use="optional" />
 	</xs:complexType>
@@ -11,7 +10,6 @@
 
   <xs:element name="datafile">
     <xs:complexType>
-      <xs:attribute name="name" type="xs:string" use="required" />
       <xs:attribute name="location" type="xs:string" use="required" />
     </xs:complexType>
   </xs:element>
@@ -24,7 +22,6 @@
 		<xs:element name="foreigncolor" type="foreigncolorsource" />
 	  </xs:choice>
 	  
-      <xs:attribute name="name" type="xs:string" use="required" />
       <xs:attribute name="datafile" type="xs:string" use="required" />
       <xs:attribute name="color" use="required" >
         <xs:simpleType>
@@ -45,7 +42,6 @@
       <xs:choice minOccurs="0" maxOccurs="unbounded">
         <xs:element name="element" type="element" />
       </xs:choice>
-      <xs:attribute name="name" type="xs:string" use="required" />
       <xs:attribute name="elementsx" type="xs:positiveInteger" use="required" />
       <xs:attribute name="elementsy" type="xs:positiveInteger" use="required" />
       <xs:attribute name="width" type="xs:positiveInteger" use="required" />
