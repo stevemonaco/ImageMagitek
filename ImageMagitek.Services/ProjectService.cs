@@ -38,18 +38,18 @@ namespace ImageMagitek.Services
             var project = new ImageProject(projectName);
             var root = new ProjectNode(project.Name, project)
             {
-                DiskLocation = Path.GetFullPath(projectFileName)
+                DiskLocation = Path.GetFullPath(projectFileName),
+                BaseDirectory = Path.GetDirectoryName(projectFileName)
             };
             var tree = new ProjectTree(root);
 
-            return SaveProject(tree).Match<MagitekResult<ProjectTree>>(
-                success =>
-                {
-                    Projects.Add(tree);
-                    return new MagitekResult<ProjectTree>.Success(tree);
-                },
-                failed => new MagitekResult<ProjectTree>.Failed(failed.Reason)
-                );
+            var contents = _serializerFactory.CreateWriter(tree).SerializeResource(root);
+            File.WriteAllText(root.DiskLocation, contents);
+
+            Projects.Add(tree);
+            UpdateNodeModel(tree, root);
+
+            return new MagitekResult<ProjectTree>.Success(tree);
         }
 
         /// <summary>
