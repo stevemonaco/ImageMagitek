@@ -104,7 +104,7 @@ namespace TileShop.WPF.ViewModels
                         newDocument = new PaletteEditorViewModel(pal, _paletteService, _projectService, _events);
                         break;
                     case Palette pal when pal.ColorModel == ColorModel.Nes:
-                        newDocument = new TablePaletteEditorViewModel(pal, _paletteService, _events);
+                        newDocument = new PaletteEditorViewModel(pal, _paletteService, _projectService, _events);
                         break;
                     case ScatteredArranger scatteredArranger:
                         newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _events, _windowManager, _paletteService, _projectService);

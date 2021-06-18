@@ -21,7 +21,6 @@ namespace TileShop.WPF.Selectors
             return item switch
             {
                 PaletteEditorViewModel _ => PaletteEditorTemplate,
-                TablePaletteEditorViewModel _ => PaletteEditorTemplate,
                 ScatteredArrangerEditorViewModel _ => ScatteredArrangerEditorTemplate,
                 SequentialArrangerEditorViewModel _ => SequentialArrangerEditorTemplate,
                 DataFileEditorViewModel _ => DataFileEditorTemplate,

@@ -1,0 +1,138 @@
+﻿<UserControl
+    x:Class="TileShop.WPF.Views.TableColorView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dd="urn:gong-wpf-dragdrop"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:local="clr-namespace:TileShop.WPF.ViewModels"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
+    xmlns:v="clr-namespace:TileShop.WPF.Views"
+    xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
+    d:DataContext="{d:DesignInstance Type=vm:TableColorViewModel}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Styles/ValidatedPaletteStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" MinWidth="300" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0">
+            <Button
+                Height="50"
+                Margin="0,10,10,10"
+                s:View.ActionTarget="{Binding DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type v:PaletteEditorView}}}"
+                Command="{s:Action SaveActiveColor}"
+                IsEnabled="{Binding CanSaveColor}">
+                <StackPanel>
+                    <TextBlock HorizontalAlignment="Center" Text="Assign" />
+                    <TextBlock HorizontalAlignment="Center" Text="Color" />
+                </StackPanel>
+            </Button>
+
+            <Border
+                Margin="0,0,10,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                BorderBrush="Black"
+                BorderThickness="2">
+
+                <Rectangle Width="55" Height="55">
+                    <Rectangle.Fill>
+                        <SolidColorBrush Color="{Binding Color}" />
+                    </Rectangle.Fill>
+                </Rectangle>
+            </Border>
+        </StackPanel>
+
+        <!--  Color Table  -->
+        <ui:ItemsRepeater
+            x:Name="availableColorsRepeater"
+            Grid.Column="1"
+            ItemsSource="{Binding AvailableColors}">
+            <ui:ItemsRepeater.Layout>
+                <ui:UniformGridLayout
+                    MaximumRowsOrColumns="16"
+                    MinColumnSpacing="0"
+                    MinItemWidth="38"
+                    Orientation="Horizontal" />
+            </ui:ItemsRepeater.Layout>
+
+            <ui:ItemsRepeater.ItemTemplate>
+                <DataTemplate>
+                    <Border
+                        x:Name="colorBorder"
+                        Margin="1"
+                        Padding="0"
+                        BorderBrush="Black"
+                        BorderThickness="2">
+                        <Rectangle Width="34" Height="32">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="PreviewMouseLeftButtonDown">
+                                    <i:InvokeCommandAction
+                                        s:View.ActionTarget="{Binding DataContext, ElementName=availableColorsRepeater}"
+                                        Command="{s:Action SetWorkingColor}"
+                                        CommandParameter="{Binding}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{Binding Color}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                    </Border>
+                </DataTemplate>
+            </ui:ItemsRepeater.ItemTemplate>
+
+        </ui:ItemsRepeater>
+
+        <!--<ListView
+            x:Name="availableColorsListView"
+            Grid.Column="1"
+            Margin="0,5,0,0"
+            ItemsSource="{Binding AvailableColors}">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Columns="16"
+                        IsItemsHost="True"
+                        Rows="4" />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Border
+                        Margin="2"
+                        BorderBrush="Black"
+                        BorderThickness="2">
+                        <Rectangle Width="30" Height="30">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="PreviewMouseLeftButtonDown">
+                                    <i:InvokeCommandAction
+                                        s:View.ActionTarget="{Binding DataContext, ElementName=availableColorsListView}"
+                                        Command="{s:Action SetWorkingColor}"
+                                        CommandParameter="{Binding}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{Binding Color}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                    </Border>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>-->
+    </Grid>
+</UserControl>

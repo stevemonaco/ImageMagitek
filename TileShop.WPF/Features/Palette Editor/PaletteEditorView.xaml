@@ -177,116 +177,14 @@
                 <Expander.Header>
                     <TextBlock FontSize="24" Text="Color Editor" />
                 </Expander.Header>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto" />
-                        <ColumnDefinition Width="auto" MinWidth="300" />
-                        <ColumnDefinition Width="auto" MinWidth="25" />
-                        <ColumnDefinition Width="auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel
-                        Grid.Row="0"
-                        Grid.RowSpan="4"
-                        Grid.Column="0"
-                        VerticalAlignment="Center">
-                        <Button
-                            Height="50"
-                            Margin="0,0,10,10"
-                            Click="{s:Action SaveActiveColor}"
-                            IsEnabled="{Binding ActiveColor.CanSaveColor}">
-                            <StackPanel>
-                                <TextBlock HorizontalAlignment="Center" Text="Assign" />
-                                <TextBlock HorizontalAlignment="Center" Text="Color" />
-                            </StackPanel>
-                        </Button>
-
-                        <Border
-                            Margin="0,0,10,0"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            BorderBrush="Black"
-                            BorderThickness="2">
-
-                            <Rectangle Width="55" Height="55">
-                                <Rectangle.Fill>
-                                    <SolidColorBrush Color="{Binding ActiveColor.Color}" />
-                                </Rectangle.Fill>
-                            </Rectangle>
-                        </Border>
-                    </StackPanel>
-
-                    <!--  RGBA Sliders  -->
-                    <Slider
-                        Grid.Row="0"
-                        Grid.Column="1"
-                        Margin="0,0,10,5"
-                        Foreground="Red"
-                        Maximum="{Binding ActiveColor.RedMax, UpdateSourceTrigger=PropertyChanged}"
-                        Minimum="0"
-                        Value="{Binding ActiveColor.Red, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <Slider
-                        Grid.Row="1"
-                        Grid.Column="1"
-                        Margin="0,0,10,5"
-                        Foreground="Green"
-                        Maximum="{Binding ActiveColor.GreenMax}"
-                        Minimum="0"
-                        Value="{Binding ActiveColor.Green, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <Slider
-                        Grid.Row="2"
-                        Grid.Column="1"
-                        Margin="0,0,10,5"
-                        Foreground="Blue"
-                        Maximum="{Binding ActiveColor.BlueMax}"
-                        Minimum="0"
-                        Value="{Binding ActiveColor.Blue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <Slider
-                        Grid.Row="3"
-                        Grid.Column="1"
-                        Margin="0,0,10,0"
-                        Foreground="{StaticResource CheckeredBrush}"
-                        Maximum="{Binding ActiveColor.AlphaMax}"
-                        Minimum="0"
-                        Value="{Binding ActiveColor.Alpha, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <!--  RGBA Numeric Values  -->
-                    <TextBlock
-                        Grid.Row="0"
-                        Grid.Column="2"
-                        VerticalAlignment="Center"
-                        Text="{Binding ActiveColor.Red}" />
-                    <TextBlock
-                        Grid.Row="1"
-                        Grid.Column="2"
-                        VerticalAlignment="Center"
-                        Text="{Binding ActiveColor.Green}" />
-                    <TextBlock
-                        Grid.Row="2"
-                        Grid.Column="2"
-                        VerticalAlignment="Center"
-                        Text="{Binding ActiveColor.Blue}" />
-                    <TextBlock
-                        Grid.Row="3"
-                        Grid.Column="2"
-                        VerticalAlignment="Center"
-                        Text="{Binding ActiveColor.Alpha}" />
-                </Grid>
+                <ContentControl s:View.Model="{Binding ActiveColor}" />
             </Expander>
 
             <!--  Palette Display  -->
             <ListBox
                 Grid.Row="1"
                 Margin="5,0,0,0"
-                ItemContainerStyle="{StaticResource ValidatedPaletteItemContainerTemplate}"
+                ItemContainerStyle="{StaticResource ValidatedPaletteListBoxContainerTemplate}"
                 ItemTemplate="{StaticResource ValidatedPaletteItemTemplate}"
                 ItemsSource="{Binding Colors}"
                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"

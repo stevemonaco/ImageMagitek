@@ -28,7 +28,6 @@ namespace TileShop.WPF.Selectors
             return content switch
             {
                 PaletteEditorViewModel _ => PaletteDocumentHeaderTemplate,
-                TablePaletteEditorViewModel _ => PaletteDocumentHeaderTemplate,
                 ScatteredArrangerEditorViewModel _ => ScatteredArrangerDocumentHeaderTemplate,
                 SequentialArrangerEditorViewModel _ => SequentialArrangerDocumentHeaderTemplate,
                 DataFileEditorViewModel _ => DataFileDocumentHeaderTemplate,
