@@ -81,7 +81,7 @@
                             <i:Interaction.Triggers>
                                 <i:EventTrigger EventName="PreviewMouseLeftButtonDown">
                                     <i:InvokeCommandAction
-                                        s:View.ActionTarget="{Binding DataContext, ElementName=availableColorsRepeater}"
+                                        s:View.ActionTarget="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type v:TableColorView}}}"
                                         Command="{s:Action SetWorkingColor}"
                                         CommandParameter="{Binding}" />
                                 </i:EventTrigger>

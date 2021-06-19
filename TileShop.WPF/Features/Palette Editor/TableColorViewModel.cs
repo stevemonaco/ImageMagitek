@@ -51,6 +51,7 @@ namespace TileShop.WPF.ViewModels
             WorkingColor = (ITableColor)_colorFactory.CloneColor(model.WorkingColor);
             var nativeColor = _colorFactory.ToNative(WorkingColor);
             Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
+            OnPropertyChanged(nameof(CanSaveColor));
         }
 
         //public void MouseOver(ValidatedTableColorModel model)
