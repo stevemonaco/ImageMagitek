@@ -21,7 +21,6 @@
         <Menu>
             <MenuItem Header="_File">
                 <MenuItem Click="{s:Action NewEmptyProject}" Header="_New Empty Project" />
-                <MenuItem Click="{s:Action NewProjectFromFile}" Header="New Project From _File" />
                 <MenuItem Click="{s:Action OpenProject}" Header="Open _Project" />
                 <Separator />
                 <MenuItem

@@ -21,8 +21,9 @@ namespace TileShop.CLI
 
         static int Main(string[] args)
         {
-            string version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
-            Console.WriteLine($"TileShopCLI v{version} by Klarth");
+            //string assemblyLocation = Assembly.GetExecutingAssembly().Location;
+            //string version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
+            //Console.WriteLine($"TileShopCLI v{version} by Klarth");
 
             var verbs = LoadVerbs();
 
@@ -84,7 +85,7 @@ namespace TileShop.CLI
                 var settings = bootstrapper.ReadConfiguration(settingsFileName);
                 var codecService = bootstrapper.CreateCodecService(codecPath, codecSchemaFileName);
                 var paletteService = bootstrapper.CreatePaletteService(palettePath, settings);
-                var pluginService = bootstrapper.CreatePluginService(pluginPath, codecService);
+                //var pluginService = bootstrapper.CreatePluginService(pluginPath, codecService);
 
                 var defaultResources = paletteService.GlobalPalettes;
                 var serializerFactory = new XmlProjectSerializerFactory(resourceSchemaFileName,
@@ -95,7 +96,7 @@ namespace TileShop.CLI
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "TileShopCLI environment failed to load");
+                Log.Fatal(ex, $"TileShopCLI environment failed to load:\n{ex.StackTrace}\n");
                 return false;
             }
         }
