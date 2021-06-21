@@ -39,4 +39,5 @@ Big thanks to the authors of these libraries for making this project much higher
 Thanks to these people for helping push TileShop along
 
 FCandChill - Testing/bug reports
+
 Kajitani-Eizan - Testing/bug reports, 8bpp GBA codec
