@@ -375,6 +375,9 @@ namespace TileShop.WPF.ViewModels
                     {
                         nodeModel.Name = newName;
 
+                        if (nodeModel.ParentModel is FolderNodeViewModel || nodeModel.ParentModel is ProjectNodeViewModel)
+                            nodeModel.ParentModel.NotifyChildrenChanged();
+
                         var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, newName, oldName);
                         _events.PublishOnUIThread(renameEvent);
                     },

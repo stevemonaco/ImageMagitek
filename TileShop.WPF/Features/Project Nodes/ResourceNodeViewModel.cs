@@ -36,5 +36,10 @@ namespace TileShop.WPF.ViewModels
             get => _name;
             set => SetAndNotify(ref _name, value);
         }
+
+        public void NotifyChildrenChanged()
+        {
+            NotifyOfPropertyChange(() => Children);
+        }
     }
 }
