@@ -101,6 +101,7 @@ namespace TileShop.WPF.ViewModels
 
             DisplayName = Resource?.Name ?? "Unnamed Palette";
 
+            _zeroIndexTransparent = _palette.ZeroIndexTransparent;
             ColorModel = _palette.ColorModel;
             Colors.AddRange(CreateColorModels());
             ColorSourceModels.AddRange(CreateColorSourceModels(_palette));
