@@ -100,6 +100,13 @@
                 ToolTip="Color Picker Tool">
                 <Image Style="{StaticResource iconColorPicker}" />
             </RadioButton>
+            <RadioButton
+                GroupName="Tools"
+                IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=FloodFill}"
+                Style="{StaticResource {x:Type ToggleButton}}"
+                ToolTip="Flood Fill Tool">
+                <Image Style="{StaticResource iconFloodFill}" />
+            </RadioButton>
             <Border BorderBrush="Black" BorderThickness="2">
                 <Border BorderBrush="White" BorderThickness="2">
                     <Rectangle

@@ -232,6 +232,16 @@ namespace TileShop.WPF.ViewModels
 
         public override byte GetPixel(int x, int y) => _indexedImage.GetPixel(x, y);
 
+        public override void FloodFill(int x, int y, byte fillColor)
+        {
+            if (_indexedImage.FloodFill(x, y, fillColor))
+            {
+                AddHistoryAction(new FloodFillAction<byte>(x, y, fillColor));
+                IsModified = true;
+                Render();
+            }
+        }
+
         #endregion
 
         private MagitekResult ApplyPasteInternal(ArrangerPaste paste)
@@ -276,6 +286,10 @@ namespace TileShop.WPF.ViewModels
             {
                 foreach (var point in pencilAction.ModifiedPoints)
                     _indexedImage.SetPixel(point.X, point.Y, pencilAction.PencilColor);
+            }
+            else if (action is FloodFillAction<byte> floodFillAction)
+            {
+                _indexedImage.FloodFill(floodFillAction.X, floodFillAction.Y, floodFillAction.FillColor);
             }
             else if (action is ColorRemapHistoryAction remapAction)
             {

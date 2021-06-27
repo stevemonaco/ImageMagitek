@@ -7,7 +7,7 @@ using System;
 
 namespace TileShop.WPF.ViewModels
 {
-    public enum PixelTool { Select, Pencil, ColorPicker }
+    public enum PixelTool { Select, Pencil, ColorPicker, FloodFill }
     public enum ColorPriority { Primary, Secondary }
 
     public abstract class PixelEditorViewModel<TColor> : ArrangerEditorViewModel
@@ -73,6 +73,7 @@ namespace TileShop.WPF.ViewModels
         protected abstract void ReloadImage();
         public abstract void SetPixel(int x, int y, TColor color);
         public abstract TColor GetPixel(int x, int y);
+        public abstract void FloodFill(int x, int y, TColor fillColor);
 
         public void SetPrimaryColor(TColor color) => PrimaryColor = color;
         public void SetSecondaryColor(TColor color) => SecondaryColor = color;
@@ -169,8 +170,18 @@ namespace TileShop.WPF.ViewModels
             {
                 PickColor(x, y, ColorPriority.Secondary);
             }
+            else if (ActiveTool == PixelTool.FloodFill && e.LeftButton)
+            {
+                FloodFill(x, y, PrimaryColor);
+            }
+            else if (ActiveTool == PixelTool.FloodFill && e.RightButton)
+            {
+                FloodFill(x, y, SecondaryColor);
+            }
             else if (ActiveTool == PixelTool.Select)
+            {
                 base.OnMouseDown(sender, e);
+            }
         }
 
         public override void OnMouseLeave(object sender, MouseCaptureArgs e)

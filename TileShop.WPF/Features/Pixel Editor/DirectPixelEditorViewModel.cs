@@ -146,5 +146,10 @@ namespace TileShop.WPF.ViewModels
             else
                 throw new InvalidOperationException($"{nameof(ApplyPasteInternal)} attempted to copy from an arranger of type {Paste.Copy.Source.ColorType} to {WorkingArranger.ColorType}");
         }
+
+        public override void FloodFill(int x, int y, ColorRgba32 fillColor)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

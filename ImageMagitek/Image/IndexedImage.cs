@@ -314,6 +314,58 @@ namespace ImageMagitek
         }
 
         /// <summary>
+        /// Fills the surrounding, contiguous color area with a new color
+        /// </summary>
+        /// <param name="x">x-coordinate to start at in pixel coordinates</param>
+        /// <param name="y">y-coordinate to start at in pixel coordinates</param>
+        /// <param name="fillColor">Color to fill with</param>
+        /// <returns>True if any pixels were modified</returns>
+        public bool FloodFill(int x, int y, byte fillColor)
+        {
+            bool isModified = false;
+            var replaceColor = GetPixel(x, y);
+
+            if (fillColor == replaceColor)
+                return false;
+
+            var openNodes = new Stack<(int x, int y)>();
+            openNodes.Push((x, y));
+
+            while (openNodes.Count > 0)
+            {
+                var nodePosition = openNodes.Pop();
+
+                if (nodePosition.x >= 0 && nodePosition.x < Width && nodePosition.y >= 0 && nodePosition.y < Height)
+                {
+                    var nodeColor = GetPixel(nodePosition.x, nodePosition.y);
+                    if (nodeColor == replaceColor)
+                    {
+                        isModified = true;
+                        SetPixel(nodePosition.x, nodePosition.y, fillColor);
+                        openNodes.Push((nodePosition.x - 1, nodePosition.y));
+                        openNodes.Push((nodePosition.x + 1, nodePosition.y));
+                        openNodes.Push((nodePosition.x, nodePosition.y - 1));
+                        openNodes.Push((nodePosition.x, nodePosition.y + 1));
+                    }
+                }
+            }
+
+            return isModified;
+        }
+
+        private IEnumerable<(int x, int y)> AdjacentNeighbors(int x, int y, int width, int height)
+        {
+            if (x - 1 >= 0 && x - 1 < width && y >= 0 && y < height)
+                yield return (x - 1, y);
+            if (x + 1 >= 0 && x + 1 < width && y >= 0 && y < height)
+                yield return (x + 1, y);
+            if (x >= 0 && x < width && y - 1 >= 0 && y - 1 < height)
+                yield return (x, y - 1);
+            if (x >= 0 && x < width && y + 1 >= 0 && y + 1 < height)
+                yield return (x, y + 1);
+        }
+
+        /// <summary>
         /// Remaps the colors of the image to new colors
         /// </summary>
         /// <param name="remap">List containing remapped indices</param>
