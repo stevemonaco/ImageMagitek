@@ -4,24 +4,47 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:event="clr-namespace:TileShop.Shared.EventModels;assembly=TileShop.Shared"
+    xmlns:h="clr-namespace:TileShop.WPF.Helpers"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:MenuViewModel}"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
+    <UserControl.Resources>
+        <h:BindingProxy x:Key="menuProxy" Data="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MenuView}}, Path=DataContext}" />
+    </UserControl.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="auto" />
         </Grid.ColumnDefinitions>
-        <Menu>
+        <Menu x:Name="menu">
             <MenuItem Header="_File">
                 <MenuItem Click="{s:Action NewEmptyProject}" Header="_New Empty Project" />
+                <Separator />
                 <MenuItem Click="{s:Action OpenProject}" Header="Open _Project" />
+                <MenuItem
+                    Header="Open Recent Project"
+                    ItemsSource="{Binding RecentProjectFiles}"
+                    UsesItemContainerTemplate="True"
+                    Visibility="{Binding RecentProjectFiles.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                    <MenuItem.Resources>
+                        <!--  x:Key vs DataType issue here: https://github.com/dotnet/wpf/issues/2404  -->
+                        <ItemContainerTemplate x:Key="{ItemContainerTemplateKey {x:Type sys:String}}">
+                            <MenuItem
+                                s:View.ActionTarget="{Binding Data, Source={StaticResource menuProxy}}"
+                                Command="{s:Action OpenRecentProject}"
+                                CommandParameter="{Binding}"
+                                Header="{Binding}" />
+                        </ItemContainerTemplate>
+                    </MenuItem.Resources>
+                </MenuItem>
                 <Separator />
                 <MenuItem
                     Click="{s:Action CloseEditor}"

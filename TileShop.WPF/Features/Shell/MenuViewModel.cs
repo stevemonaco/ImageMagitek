@@ -1,10 +1,12 @@
-﻿using ModernWpf;
+﻿using Jot;
+using ModernWpf;
 using Stylet;
+using System.Linq;
 using TileShop.Shared.EventModels;
 
 namespace TileShop.WPF.ViewModels
 {
-    public class MenuViewModel : Screen
+    public class MenuViewModel : Screen, IHandle<ProjectLoadedEvent>
     {
         private ShellViewModel _shell;
         public ShellViewModel Shell
@@ -27,13 +29,25 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _editors, value);
         }
 
-        private readonly IEventAggregator _events;
+        private BindableCollection<string> _recentProjectFiles = new();
+        public BindableCollection<string> RecentProjectFiles
+        {
+            get => _recentProjectFiles;
+            set => SetAndNotify(ref _recentProjectFiles, value);
+        }
 
-        public MenuViewModel(IEventAggregator events, ProjectTreeViewModel projectTreeVM, EditorsViewModel editors)
+        private readonly IEventAggregator _events;
+        private readonly Tracker _tracker;
+
+        public MenuViewModel(IEventAggregator events, ProjectTreeViewModel projectTreeVM, EditorsViewModel editors, Tracker tracker)
         {
             _events = events;
             ProjectTree = projectTreeVM;
             Editors = editors;
+            _tracker = tracker;
+
+            _events.Subscribe(this);
+            _tracker.Track(this);
         }
 
         public void NewEmptyProject() => ProjectTree.AddNewProject();
@@ -41,6 +55,8 @@ namespace TileShop.WPF.ViewModels
         public void NewProjectFromFile() => ProjectTree.AddNewProjectFromFile();
 
         public void OpenProject() => ProjectTree.OpenProject();
+
+        public void OpenRecentProject(string projectFileName) => ProjectTree.OpenProject(projectFileName);
 
         public void CloseAllProjects() => ProjectTree.CloseAllProjects();
 
@@ -55,5 +71,20 @@ namespace TileShop.WPF.ViewModels
         public void ChangeToLightTheme() => Shell.Theme = ApplicationTheme.Light;
 
         public void ChangeToDarkTheme() => Shell.Theme = ApplicationTheme.Dark;
+
+        public void Handle(ProjectLoadedEvent message)
+        {
+            if (RecentProjectFiles.Contains(message.ProjectFileName))
+            {
+                RecentProjectFiles.Remove(message.ProjectFileName);
+                RecentProjectFiles.Insert(0, message.ProjectFileName);
+            }
+            else
+            {
+                RecentProjectFiles.Insert(0, message.ProjectFileName);
+                if (RecentProjectFiles.Count > 8)
+                    RecentProjectFiles = new(RecentProjectFiles.Take(8));
+            }
+        }
     }
 }

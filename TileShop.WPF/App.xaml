@@ -67,6 +67,7 @@
                     <converters:PaletteEntryToSolidColorBrushConverter x:Key="PaletteEntryToSolidColorBrushConverter" />
                     <converters:ScrollViewerToMarginStringConverter x:Key="ScrollViewerToMarginStringConverter" />
                     <converters:LongToHexadecimalConverter x:Key="LongToHexadecimalConverter" />
+                    <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
                 </ResourceDictionary>
 
                 <!--  TileShop Control Styles  -->

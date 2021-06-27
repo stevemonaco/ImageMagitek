@@ -118,6 +118,9 @@ namespace TileShop.WPF
                 .Property(p => p.NumericBase, NumericBase.Decimal)
                 .Property(p => p.Offset, string.Empty);
 
+            tracker.Configure<MenuViewModel>()
+                .Property(p => p.RecentProjectFiles);
+
             builder.RegisterInstance(tracker);
         }
 

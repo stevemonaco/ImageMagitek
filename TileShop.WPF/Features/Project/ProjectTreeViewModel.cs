@@ -564,6 +564,14 @@ namespace TileShop.WPF.ViewModels
             if (projectFileName is null)
                 return false;
 
+            return OpenProject(projectFileName);
+        }
+
+        public bool OpenProject(string projectFileName)
+        {
+            if (projectFileName is null)
+                return false;
+
             var openResult = _projectService.OpenProjectFile(projectFileName);
 
             return openResult.Match(
@@ -572,6 +580,7 @@ namespace TileShop.WPF.ViewModels
                     var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
                     Projects.Add(projectVM);
                     NotifyOfPropertyChange(() => HasProject);
+                    _events.PublishOnUIThread(new ProjectLoadedEvent(projectFileName));
                     return true;
                 },
                 fail =>

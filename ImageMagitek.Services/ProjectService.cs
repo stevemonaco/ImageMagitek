@@ -65,6 +65,9 @@ namespace ImageMagitek.Services
             if (!File.Exists(projectFileName))
                 return new MagitekResults<ProjectTree>.Failed($"File '{projectFileName}' does not exist");
 
+            if (Projects.Any(x => x.Root.DiskLocation == projectFileName))
+                return new MagitekResults<ProjectTree>.Failed($"File '{projectFileName}' is already open");
+
             try
             {
                 var reader = _serializerFactory.CreateReader();
