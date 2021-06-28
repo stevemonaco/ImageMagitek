@@ -27,17 +27,19 @@ namespace TileShop.WPF.ViewModels
         private readonly IEventAggregator _events;
         private readonly IWindowManager _windowManager;
         private readonly Tracker _tracker;
+        private readonly IDiskExploreService _diskExploreService;
         private readonly EditorsViewModel _editors;
 
         public ProjectTreeViewModel(IProjectService solutionService, IPaletteService paletteService,
             IFileSelectService fileSelect, IEventAggregator events, IWindowManager windowManager,
-            Tracker tracker, EditorsViewModel editors)
+            Tracker tracker, IDiskExploreService diskExploreService, EditorsViewModel editors)
         {
             _projectService = solutionService;
             _paletteService = paletteService;
             _fileSelect = fileSelect;
             _windowManager = windowManager;
             _tracker = tracker;
+            _diskExploreService = diskExploreService;
             _editors = editors;
 
             _events = events;
@@ -669,6 +671,11 @@ namespace TileShop.WPF.ViewModels
                 if (!CloseProject(Projects.First()))
                     return;
             }
+        }
+
+        public void ExploreResource(ResourceNodeViewModel nodeVM)
+        {
+            _diskExploreService.ExploreDiskLocation(nodeVM.Node.DiskLocation);
         }
 
         public override void DiscardChanges()

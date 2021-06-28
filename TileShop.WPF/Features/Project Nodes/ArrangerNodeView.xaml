@@ -53,6 +53,11 @@
                     Command="{s:Action RenameNode}"
                     CommandParameter="{Binding}"
                     Header="Rename" />
+                <MenuItem
+                    s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
+                    Command="{s:Action ExploreResource}"
+                    CommandParameter="{Binding}"
+                    Header="Open in Folder" />
             </ContextMenu>
         </StackPanel.ContextMenu>
     </StackPanel>

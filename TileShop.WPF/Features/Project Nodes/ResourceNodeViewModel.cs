@@ -41,5 +41,10 @@ namespace TileShop.WPF.ViewModels
         {
             NotifyOfPropertyChange(() => Children);
         }
+
+        public void OpenInFolder()
+        {
+
+        }
     }
 }

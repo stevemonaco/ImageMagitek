@@ -60,6 +60,7 @@ namespace TileShop.WPF
         {
             builder.RegisterType<FileSelectService>().As<IFileSelectService>();
             builder.RegisterType<ViewModels.MessageBoxViewModel>().As<IMessageBoxViewModel>();
+            builder.RegisterType<DiskExploreService>().As<IDiskExploreService>();
         }
 
         protected override void ConfigureViews(ContainerBuilder builder)
