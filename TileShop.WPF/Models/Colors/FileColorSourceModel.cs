@@ -1,4 +1,6 @@
-﻿namespace TileShop.WPF.Models
+﻿using ImageMagitek;
+
+namespace TileShop.WPF.Models
 {
     public class FileColorSourceModel : ColorSourceModel
     {
@@ -16,10 +18,18 @@
             set => SetAndNotify(ref _entries, value);
         }
 
-        public FileColorSourceModel(long fileAddress, int entries)
+        private Endian _endian;
+        public Endian Endian
+        {
+            get => _endian;
+            set => SetAndNotify(ref _endian, value);
+        }
+
+        public FileColorSourceModel(long fileAddress, int entries, Endian endian)
         {
             FileAddress = fileAddress;
             Entries = entries;
+            Endian = endian;
         }
     }
 }

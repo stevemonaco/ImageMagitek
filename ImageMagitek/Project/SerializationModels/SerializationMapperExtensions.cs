@@ -62,7 +62,7 @@ namespace ImageMagitek.Project.Serialization
                         .TakeWhile((x, i) => x is FileColorSource && (x as FileColorSource).Offset == (fileSource.Offset + i * size))
                         .ToList();
 
-                    var sourceModel = new FileColorSourceModel(fileSource.Offset, sources.Count);
+                    var sourceModel = new FileColorSourceModel(fileSource.Offset, sources.Count, fileSource.Endian);
                     model.ColorSources.Add(sourceModel);
 
                     i += sources.Count;
@@ -98,7 +98,7 @@ namespace ImageMagitek.Project.Serialization
                 {
                     var fileSources = Enumerable.Range(0, fileSource.Entries)
                         .Select(x => fileSource.FileAddress + size * x)
-                        .Select(x => new FileColorSource(x))
+                        .Select(x => new FileColorSource(x, fileSource.Endian))
                         .ToList();
                     sources.AddRange(fileSources);
                 }

@@ -49,6 +49,12 @@
                                 Margin="10,0,0,0"
                                 ui:ControlHelper.Header="Entries"
                                 Text="{Binding Entries}" />
+                            <ui:ToggleSwitch
+                                Margin="10,0,0,0"
+                                ui:ControlHelper.Header="Endian"
+                                IsOn="{Binding Endian, Converter={StaticResource EndianToBooleanConverter}}"
+                                OffContent="Little"
+                                OnContent="Big" />
                         </StackPanel>
                     </DataTemplate>
 

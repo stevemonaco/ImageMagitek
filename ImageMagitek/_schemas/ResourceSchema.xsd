@@ -108,6 +108,14 @@
         </xs:restriction>
       </xs:simpleType>
     </xs:attribute>
+	<xs:attribute name="endian" use="optional">
+	  <xs:simpleType>
+	    <xs:restriction base="xs:string">
+	      <xs:enumeration value="little" />
+	      <xs:enumeration value="big" />
+	    </xs:restriction>
+	  </xs:simpleType>
+	</xs:attribute>
   </xs:complexType>
   
   <xs:complexType name="nativecolorsource">

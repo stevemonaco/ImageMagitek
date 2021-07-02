@@ -272,6 +272,16 @@ namespace ImageMagitek.Project.Serialization
 
                     source.Entries = int.Parse(item.Attribute("entries").Value);
 
+                    if (item.Attribute("endian") is not null)
+                    {
+                        if (item.Attribute("endian").Value == "big")
+                            source.Endian = Endian.Big;
+                        else if (item.Attribute("endian").Value == "little")
+                            source.Endian = Endian.Little;
+                        else
+                            _errors.Add($"'endian' has unknown value '{item.Attribute("endian").Value}'");
+                    }
+
                     model.ColorSources.Add(source);
                 }
                 else if (item.Name.LocalName == "nativecolor")

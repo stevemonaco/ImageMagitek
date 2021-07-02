@@ -301,6 +301,10 @@ namespace ImageMagitek.Project.Serialization
                     var fileElement = new XElement("filesource");
                     fileElement.Add(new XAttribute("fileoffset", $"{fileSource.FileAddress.FileOffset:X}"));
                     fileElement.Add(new XAttribute("entries", fileSource.Entries));
+
+                    if (fileSource.Endian == Endian.Big)
+                        fileElement.Add(new XAttribute("endian", "big"));
+
                     element.Add(fileElement);
                 }
                 else if (source is ProjectNativeColorSourceModel nativeSource)

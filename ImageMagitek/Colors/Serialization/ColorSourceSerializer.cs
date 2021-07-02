@@ -35,7 +35,7 @@ namespace ImageMagitek.Colors.Serialization
 
                 if (source is FileColorSource fileSource)
                 {
-                    result[currentEntry] = ReadFileColor(df, fileSource.Offset, colorModel, size);
+                    result[currentEntry] = ReadFileColor(df, fileSource.Offset, colorModel, size, fileSource.Endian);
                 }
                 else if (source is ProjectNativeColorSource nativeSource)
                 {
@@ -56,21 +56,24 @@ namespace ImageMagitek.Colors.Serialization
             return result;
         }
 
-        private IColor ReadFileColor(DataFile df, FileBitAddress offset, ColorModel colorModel, int size)
+        private IColor ReadFileColor(DataFile df, FileBitAddress offset, ColorModel colorModel, int size, Endian endian)
         {
             int readSize = (size + 7) / 8;
             byte[] paletteData = df.Stream.ReadUnshifted(offset, readSize * 8);
 
             df.Stream.Seek(offset.FileOffset, SeekOrigin.Begin);
             df.Stream.ReadUnshifted(offset, size, _colorBuffer);
-            //BitStream bs = BitStream.OpenRead(paletteData, readSize * 8);
 
             uint readColor;
             if (readSize == 1)
-                readColor = (uint)_colorBuffer[0];
-            else if (readSize == 2)
+                readColor = _colorBuffer[0];
+            else if (readSize == 2 && endian == Endian.Little)
             {
                 readColor = BinaryPrimitives.ReadUInt16LittleEndian(_colorBuffer);
+            }
+            else if (readSize == 2 && endian == Endian.Big)
+            {
+                readColor = BinaryPrimitives.ReadUInt16BigEndian(_colorBuffer);
             }
             else if (readSize == 3)
             {
@@ -78,9 +81,13 @@ namespace ImageMagitek.Colors.Serialization
                 readColor |= ((uint)_colorBuffer[1]) << 8;
                 readColor |= ((uint)_colorBuffer[2]) << 16;
             }
-            else if (readSize == 4)
+            else if (readSize == 4 && endian == Endian.Little)
             {
                 readColor = BinaryPrimitives.ReadUInt32LittleEndian(_colorBuffer);
+            }
+            else if (readSize == 4 && endian == Endian.Big)
+            {
+                readColor = BinaryPrimitives.ReadUInt32BigEndian(_colorBuffer);
             }
             else
                 throw new NotSupportedException($"{nameof(LoadColors)}: Palette formats with entry sizes larger than 4 bytes are not supported");
@@ -94,7 +101,7 @@ namespace ImageMagitek.Colors.Serialization
             {
                 if (sources[i] is FileColorSource fileSource)
                 {
-                    WriteFileColor(df, fileSource.Offset, foreignColors[i]);
+                    WriteFileColor(df, fileSource.Offset, foreignColors[i], fileSource.Endian);
                 }
                 else if (sources[i] is ProjectNativeColorSource nativeSource)
                 {
@@ -111,7 +118,7 @@ namespace ImageMagitek.Colors.Serialization
             }
         }
 
-        private void WriteFileColor(DataFile df, FileBitAddress offset, IColor foreignColor)
+        private void WriteFileColor(DataFile df, FileBitAddress offset, IColor foreignColor, Endian endian)
         {
             int writeSize = (foreignColor.Size + 7) / 8;
 
@@ -119,9 +126,13 @@ namespace ImageMagitek.Colors.Serialization
             {
                 _colorBuffer[0] = (byte)foreignColor.Color;
             }
-            else if (writeSize == 2)
+            else if (writeSize == 2 && endian == Endian.Little)
             {
                 BinaryPrimitives.WriteUInt16LittleEndian(_colorBuffer, (ushort)foreignColor.Color);
+            }
+            else if (writeSize == 2 && endian == Endian.Big)
+            {
+                BinaryPrimitives.WriteUInt16BigEndian(_colorBuffer, (ushort)foreignColor.Color);
             }
             else if (writeSize == 3)
             {
@@ -129,9 +140,13 @@ namespace ImageMagitek.Colors.Serialization
                 _colorBuffer[1] = (byte)(foreignColor.Color >> 8);
                 _colorBuffer[2] = (byte)(foreignColor.Color >> 16);
             }
-            else if (writeSize == 4)
+            else if (writeSize == 4 && endian == Endian.Little)
             {
                 BinaryPrimitives.WriteUInt32LittleEndian(_colorBuffer, foreignColor.Color);
+            }
+            else if (writeSize == 4 && endian == Endian.Big)
+            {
+                BinaryPrimitives.WriteUInt32BigEndian(_colorBuffer, foreignColor.Color);
             }
 
             df.Stream.Seek(offset.FileOffset, SeekOrigin.Begin);

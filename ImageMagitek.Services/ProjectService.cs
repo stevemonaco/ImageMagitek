@@ -273,6 +273,13 @@ namespace ImageMagitek.Services
             }
         }
 
+        /// <summary>
+        /// Persists the Project Resource's schema
+        /// </summary>
+        /// <param name="projectTree">Project containing resourceNode</param>
+        /// <param name="resourceNode">Resource to persist</param>
+        /// <param name="alwaysOverwrite">Persist the resource even if unchanged</param>
+        /// <returns></returns>
         public virtual MagitekResult SaveResource(ProjectTree projectTree, ResourceNode resourceNode, bool alwaysOverwrite)
         {
             if (projectTree is null)
@@ -285,11 +292,6 @@ namespace ImageMagitek.Services
 
             try
             {
-                if (resourceNode is PaletteNode paletteNode)
-                {
-                    (paletteNode.Item as Palette).SavePalette();
-                }
-
                 var writer = _serializerFactory.CreateWriter(projectTree);
                 return writer.WriteResource(resourceNode, alwaysOverwrite);
             }

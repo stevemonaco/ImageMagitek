@@ -68,6 +68,7 @@
                     <converters:ScrollViewerToMarginStringConverter x:Key="ScrollViewerToMarginStringConverter" />
                     <converters:LongToHexadecimalConverter x:Key="LongToHexadecimalConverter" />
                     <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+                    <converters:EndianToBooleanConverter x:Key="EndianToBooleanConverter" />
                 </ResourceDictionary>
 
                 <!--  TileShop Control Styles  -->

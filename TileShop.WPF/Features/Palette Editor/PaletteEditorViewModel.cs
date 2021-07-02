@@ -19,6 +19,14 @@ namespace TileShop.WPF.ViewModels
         protected readonly IProjectService _projectService;
         protected readonly IEventAggregator _events;
 
+        private int _myField;
+        public int MyProperty
+        {
+            get => _myField;
+            set => SetAndNotify(ref _myField, value);
+        }
+
+
         private BindableCollection<EditableColorBaseViewModel> _colors = new();
         public BindableCollection<EditableColorBaseViewModel> Colors
         {
@@ -119,10 +127,17 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        /// <summary>
+        /// Saves color sources to their project resource
+        /// </summary>
         public void SaveSources()
         {
+            _palette.ZeroIndexTransparent = ZeroIndexTransparent;
+
             _palette.SetColorSources(CreateColorSources());
-            SaveChanges();
+            var projectTree = _projectService.GetContainingProject(_palette);
+            var paletteNode = projectTree.GetResourceNode(_palette);
+            _projectService.SaveResource(projectTree, paletteNode, false);
 
             Colors = new(CreateColorModels());
 
@@ -130,6 +145,11 @@ namespace TileShop.WPF.ViewModels
             PaletteSource = _palette.DataFile.Name;
             Entries = CountSourceColors();
             SelectedColorIndex = 0;
+
+            var changeEvent = new PaletteChangedEvent(_palette);
+            _events.PublishOnUIThread(changeEvent);
+
+            IsModified = false;
         }
 
         public void SaveActiveColor()
@@ -146,6 +166,9 @@ namespace TileShop.WPF.ViewModels
             SaveChanges();
         }
 
+        /// <summary>
+        /// Saves palette properties and color source values to their underlying sources
+        /// </summary>
         public override void SaveChanges()
         {
             _palette.ZeroIndexTransparent = ZeroIndexTransparent;
@@ -153,6 +176,7 @@ namespace TileShop.WPF.ViewModels
             var projectTree = _projectService.GetContainingProject(_palette);
             var paletteNode = projectTree.GetResourceNode(_palette);
             _projectService.SaveResource(projectTree, paletteNode, false);
+            _palette.SavePalette();
             IsModified = false;
 
             var changeEvent = new PaletteChangedEvent(_palette);
@@ -210,7 +234,7 @@ namespace TileShop.WPF.ViewModels
 
         public void AddNewFileColorSource()
         {
-            ColorSourceModels.Add(new FileColorSourceModel(0, 0));
+            ColorSourceModels.Add(new FileColorSourceModel(0, 0, Endian.Little));
             Entries = CountSourceColors();
         }
 
@@ -249,7 +273,7 @@ namespace TileShop.WPF.ViewModels
                         .TakeWhile((x, i) => x is FileColorSource && (x as FileColorSource).Offset == (fileSource.Offset + i * size))
                         .ToList();
 
-                    var fileSourceModel = new FileColorSourceModel(fileSource.Offset.FileOffset, sources.Count);
+                    var fileSourceModel = new FileColorSourceModel(fileSource.Offset.FileOffset, sources.Count, fileSource.Endian);
                     yield return fileSourceModel;
 
                     i += sources.Count;
@@ -303,7 +327,7 @@ namespace TileShop.WPF.ViewModels
                 {
                     var offset = new FileBitAddress(fileModel.FileAddress, 0);
                     for (int j = 0; j < fileModel.Entries; j++)
-                        yield return new FileColorSource(offset + j * size);
+                        yield return new FileColorSource(offset + j * size, fileModel.Endian);
                 }
                 else if (sourceModel is NativeColorSourceModel nativeModel)
                 {
