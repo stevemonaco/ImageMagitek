@@ -14,8 +14,8 @@ namespace ImageMagitek.Colors
     /// </summary>
     public enum ColorMatchStrategy { Exact, Nearest }
 
-    //public enum ColorModel { RGBA32 = 0, RGB24, ARGB32, BGR15, ABGR16, RGB15, NES }
-    public enum ColorModel { Rgba32 = 0, Bgr15 = 3, Abgr16 = 4, Nes = 6 }
+    //public enum ColorModel { RGBA32 = 0, RGB24, ARGB32, BGR15, ABGR16, RGB15, NES, BGR12, BGR6 }
+    public enum ColorModel { Rgba32 = 0, Bgr15 = 3, Abgr16 = 4, Nes = 6, Bgr12 = 7, Bgr6 = 8 }
 
     /// <summary>
     /// Storage source of the palette
@@ -487,6 +487,10 @@ namespace ImageMagitek.Colors
                     return ColorModel.Abgr16;
                 case "Nes":
                     return ColorModel.Nes;
+                case "Bgr12":
+                    return ColorModel.Bgr12;
+                case "Bgr6":
+                    return ColorModel.Bgr6;
                 default:
                     throw new ArgumentException($"{nameof(StringToColorModel)} {nameof(ColorModel)} '{ColorModelName}' is not supported");
             }
@@ -504,6 +508,10 @@ namespace ImageMagitek.Colors
                     return "Rgba32";
                 case ColorModel.Nes:
                     return "Nes";
+                case ColorModel.Bgr12:
+                    return "Bgr12";
+                case ColorModel.Bgr6:
+                    return "Bgr6";
                 default:
                     throw new ArgumentException($"{nameof(ColorModelToString)} {nameof(ColorModel)} '{model}' is not supported");
             }

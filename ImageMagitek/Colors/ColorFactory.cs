@@ -53,6 +53,8 @@ namespace ImageMagitek.Colors
         private readonly ColorConverterBgr15 _bgr15Converter = new ColorConverterBgr15();
         private readonly ColorConverterAbgr16 _abgr16Converter = new ColorConverterAbgr16();
         private ColorConverterNes _nesConverter;
+        private readonly ColorConverterBgr12 _bgr12Converter = new ColorConverterBgr12();
+        private readonly ColorConverterBgr6 _bgr6Converter = new ColorConverterBgr6();
 
         public void SetNesPalette(Palette nesPalette)
         {
@@ -69,6 +71,8 @@ namespace ImageMagitek.Colors
                 ColorModel.Bgr15 => new ColorBgr15(color),
                 ColorModel.Abgr16 => new ColorAbgr16(color),
                 ColorModel.Nes => new ColorNes(color),
+                ColorModel.Bgr12 => new ColorBgr12(color),
+                ColorModel.Bgr6 => new ColorBgr6(color),
                 _ => throw new NotSupportedException($"{nameof(ColorModel)} '{colorModel}' is not supported")
             };
         }
@@ -81,6 +85,8 @@ namespace ImageMagitek.Colors
                 ColorModel.Bgr15 => new ColorBgr15((byte)r, (byte)g, (byte)b),
                 ColorModel.Abgr16 => new ColorAbgr16((byte)r, (byte)g, (byte)b, (byte)a),
                 ColorModel.Nes => _nesConverter.ToForeignColor(new ColorRgba32((byte)r, (byte)g, (byte)b, (byte)a)),
+                ColorModel.Bgr12 => new ColorBgr12((byte)r, (byte)g, (byte)b),
+                ColorModel.Bgr6 => new ColorBgr6((byte)r, (byte)g, (byte)b),
                 _ => throw new NotSupportedException($"{nameof(ColorModel)} '{colorModel}' is not supported")
             };
         }
@@ -93,6 +99,8 @@ namespace ImageMagitek.Colors
                 ColorBgr15 bgr15 => new ColorBgr15(bgr15.R, bgr15.G, bgr15.B),
                 ColorAbgr16 abgr16 => new ColorAbgr16(abgr16.R, abgr16.G, abgr16.B, abgr16.A),
                 ColorNes nes => new ColorNes(color.Color),
+                ColorBgr12 bgr12 => new ColorBgr12(bgr12.R, bgr12.G, bgr12.B),
+                ColorBgr6 bgr6 => new ColorBgr6(bgr6.R, bgr6.G, bgr6.B),
                 _ => throw new NotSupportedException($"{nameof(IColor)} '{color}' is not supported")
             };
         }
@@ -106,6 +114,8 @@ namespace ImageMagitek.Colors
                 ColorRgba32 _ => new ColorRgba32(color.Color),
                 ColorNes colorNes => _nesConverter?.ToNativeColor(colorNes) ?? 
                     throw new ArgumentException($"{nameof(ToNative)} has no NES color converter defined"),
+                ColorBgr12 colorBgr12 => _bgr12Converter.ToNativeColor(colorBgr12),
+                ColorBgr6 colorBgr6 => _bgr6Converter.ToNativeColor(colorBgr6),
                 _ => throw new NotSupportedException($"{nameof(ToNative)} '{color}' is not supported"),
             };
         }
@@ -119,6 +129,8 @@ namespace ImageMagitek.Colors
                 ColorModel.Abgr16 => _abgr16Converter.ToForeignColor(color),
                 ColorModel.Nes => _nesConverter?.ToForeignColor(color) ??
                     throw new ArgumentException($"{nameof(ToForeign)} has no NES color converter defined"),
+                ColorModel.Bgr12 => _bgr12Converter.ToForeignColor(color),
+                ColorModel.Bgr6 => _bgr6Converter.ToForeignColor(color),
                 _ => throw new NotSupportedException($"{nameof(ToForeign)} '{colorModel}' is not supported"),
             };
         }
@@ -143,6 +155,8 @@ namespace ImageMagitek.Colors
                 ColorBgr15 bgr15 => $"#{bgr15.Color:X04}",
                 ColorAbgr16 abgr15 => $"#{abgr15.Color:X04}",
                 ColorNes nes => $"#{nes.Color:X02}",
+                ColorBgr12 bgr12 => $"#{bgr12.Color:X04}",
+                ColorBgr6 bgr6 => $"#{bgr6.Color:X02}",
                 _ => throw new NotSupportedException($"{nameof(ToString)} '{color.GetType()}' is not supported"),
             };
         }

@@ -9,10 +9,12 @@ namespace ImageMagitek.Utility.Parsing
         private const string _nativeColorRegexString = "^#([A-Fa-f0-9]{2}){3,4}$";
         private const string _nesColorRegexString = "^#([A-Fa-f0-9]{2})$";
         private const string _twoByteColorRegexString = "^#([A-Fa-f0-9]{4})$";
+        private const string _oneByteColorRegexString = "^#([A-Fa-f0-9]{2})$";
 
         private static readonly Regex _nativeRegex = new Regex(_nativeColorRegexString, RegexOptions.Compiled);
         private static readonly Regex _nesRegex = new Regex(_nesColorRegexString, RegexOptions.Compiled);
         private static readonly Regex _twoByteRegex = new Regex(_twoByteColorRegexString, RegexOptions.Compiled);
+        private static readonly Regex _oneByteRegex = new Regex(_twoByteColorRegexString, RegexOptions.Compiled);
 
         /// <summary>
         /// Tries to parse a color represented as a hexadecimal string
@@ -59,6 +61,26 @@ namespace ImageMagitek.Utility.Parsing
                 {
                     uint nesRaw = byte.Parse(input.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
                     color = new ColorNes(nesRaw);
+                    return true;
+                }
+            }
+            else if (colorModel == ColorModel.Bgr12)
+            {
+                if (_twoByteRegex.IsMatch(input))
+                {
+                    var a = byte.Parse(input.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
+                    var b = byte.Parse(input.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber);
+                    uint bgr12Raw = (uint)(a << 8) | b;
+                    color = new ColorBgr12(bgr12Raw);
+                    return true;
+                }
+            }
+            else if (colorModel == ColorModel.Bgr6)
+            {
+                if (_oneByteRegex.IsMatch(input))
+                {
+                    uint bgr6Raw = byte.Parse(input.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
+                    color = new ColorBgr6(bgr6Raw);
                     return true;
                 }
             }

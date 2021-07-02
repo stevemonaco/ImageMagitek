@@ -18,8 +18,8 @@
         public ColorAbgr16 ToForeignColor(ColorRgba32 nc)
         {
             byte r = (byte)(nc.r >> 3);
-            byte b = (byte)(nc.b >> 3);
             byte g = (byte)(nc.g >> 3);
+            byte b = (byte)(nc.b >> 3);
             byte a = (byte)(nc.a <= AlphaSemiTransparent ? 0 : 1);
 
             return new ColorAbgr16(r, g, b, a);

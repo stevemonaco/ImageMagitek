@@ -5,8 +5,8 @@
         public ColorBgr15 ToForeignColor(ColorRgba32 nc)
         {
             byte r = (byte)(nc.r >> 3);
-            byte b = (byte)(nc.b >> 3);
             byte g = (byte)(nc.g >> 3);
+            byte b = (byte)(nc.b >> 3);
 
             return new ColorBgr15(r, g, b);
         }
