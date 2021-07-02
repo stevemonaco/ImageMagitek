@@ -30,6 +30,8 @@
             <xs:enumeration value="Abgr16" />
             <xs:enumeration value="Rgba32" />
 			<xs:enumeration value="Nes" />
+			<xs:enumeration value="Bgr12" />
+			<xs:enumeration value="Bgr6" />
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
