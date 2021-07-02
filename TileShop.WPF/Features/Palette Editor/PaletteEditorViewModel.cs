@@ -109,11 +109,14 @@ namespace TileShop.WPF.ViewModels
             PaletteSource = _palette.DataFile.Name;
             Entries = CountSourceColors();
 
-            var color = _palette.GetForeignColor(0);
-            if (color is IColor32 color32)
-                ActiveColor = new Color32ViewModel(color32, 0, _colorFactory);
-            else if (color is ITableColor tableColor)
-                ActiveColor = new TableColorViewModel(tableColor, 0, _colorFactory);
+            if (Entries > 0)
+            {
+                var color = _palette.GetForeignColor(0);
+                if (color is IColor32 color32)
+                    ActiveColor = new Color32ViewModel(color32, 0, _colorFactory);
+                else if (color is ITableColor tableColor)
+                    ActiveColor = new TableColorViewModel(tableColor, 0, _colorFactory);
+            }
         }
 
         public void SaveSources()
