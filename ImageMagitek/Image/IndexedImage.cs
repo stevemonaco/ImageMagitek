@@ -318,14 +318,15 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="x">x-coordinate to start at in pixel coordinates</param>
         /// <param name="y">y-coordinate to start at in pixel coordinates</param>
-        /// <param name="fillColor">Color to fill with</param>
+        /// <param name="fillIndex">Palette index to fill with</param>
         /// <returns>True if any pixels were modified</returns>
-        public bool FloodFill(int x, int y, byte fillColor)
+        public bool FloodFill(int x, int y, byte fillIndex)
         {
             bool isModified = false;
-            var replaceColor = GetPixel(x, y);
+            var replaceIndex = GetPixel(x, y);
+            var startingPalette = GetElementAtPixel(x, y).Value.Palette;
 
-            if (fillColor == replaceColor)
+            if (fillIndex == replaceIndex)
                 return false;
 
             var openNodes = new Stack<(int x, int y)>();
@@ -338,14 +339,18 @@ namespace ImageMagitek
                 if (nodePosition.x >= 0 && nodePosition.x < Width && nodePosition.y >= 0 && nodePosition.y < Height)
                 {
                     var nodeColor = GetPixel(nodePosition.x, nodePosition.y);
-                    if (nodeColor == replaceColor)
+                    if (nodeColor == replaceIndex)
                     {
-                        isModified = true;
-                        SetPixel(nodePosition.x, nodePosition.y, fillColor);
-                        openNodes.Push((nodePosition.x - 1, nodePosition.y));
-                        openNodes.Push((nodePosition.x + 1, nodePosition.y));
-                        openNodes.Push((nodePosition.x, nodePosition.y - 1));
-                        openNodes.Push((nodePosition.x, nodePosition.y + 1));
+                        var destPalette = GetElementAtPixel(nodePosition.x, nodePosition.y).Value.Palette;
+                        if (ReferenceEquals(startingPalette, destPalette))
+                        {
+                            isModified = true;
+                            SetPixel(nodePosition.x, nodePosition.y, fillIndex);
+                            openNodes.Push((nodePosition.x - 1, nodePosition.y));
+                            openNodes.Push((nodePosition.x + 1, nodePosition.y));
+                            openNodes.Push((nodePosition.x, nodePosition.y - 1));
+                            openNodes.Push((nodePosition.x, nodePosition.y + 1));
+                        }
                     }
                 }
             }
