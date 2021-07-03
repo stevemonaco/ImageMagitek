@@ -3,6 +3,7 @@ using System.Numerics;
 
 namespace ImageMagitek.Colors
 {
+    // Based on info from https://segaretro.org/Palette#Mega_Drive_Palette
     public struct ColorBgr6 : IColor32
     {
         public byte r;
