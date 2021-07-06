@@ -378,6 +378,20 @@ namespace ImageMagitek.Project.Serialization
                     if (el.PaletteKey != mostUsedPaletteKey)
                         elNode.Add(new XAttribute("palette", el.PaletteKey));
 
+                    if (el.Mirror == MirrorOperation.Horizontal)
+                        elNode.Add(new XAttribute("mirror", "horizontal"));
+                    else if (el.Mirror == MirrorOperation.Vertical)
+                        elNode.Add(new XAttribute("mirror", "vertical"));
+                    else if (el.Mirror == MirrorOperation.Both)
+                        elNode.Add(new XAttribute("mirror", "both"));
+
+                    if (el.Rotation == RotationOperation.Left)
+                        elNode.Add(new XAttribute("rotation", "left"));
+                    else if (el.Rotation == RotationOperation.Right)
+                        elNode.Add(new XAttribute("rotation", "right"));
+                    else if (el.Rotation == RotationOperation.Turn)
+                        elNode.Add(new XAttribute("rotation", "turn"));
+
                     arrangerNode.Add(elNode);
                 }
             }

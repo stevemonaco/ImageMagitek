@@ -352,7 +352,9 @@ namespace ImageMagitek.Project.Serialization
                 posy = int.Parse(e.Attribute("posy").Value),
                 format = e.Attribute("codec"),
                 palette = e.Attribute("palette"),
-                datafile = e.Attribute("datafile")
+                datafile = e.Attribute("datafile"),
+                mirror = e.Attribute("mirror"),
+                rotation = e.Attribute("rotation")
             });
 
             foreach (var xmlElement in xmlElements)
@@ -365,10 +367,28 @@ namespace ImageMagitek.Project.Serialization
                 el.PositionX = xmlElement.posx;
                 el.PositionY = xmlElement.posy;
 
-                if (xmlElement.bitoffset != null)
+                if (xmlElement.bitoffset is not null)
                     el.FileAddress = new FileBitAddress(xmlElement.fileoffset, int.Parse(xmlElement.bitoffset.Value));
                 else
                     el.FileAddress = new FileBitAddress(xmlElement.fileoffset, 0);
+
+                el.Mirror = xmlElement.mirror?.Value switch
+                {
+                    "none" => MirrorOperation.None,
+                    "horizontal" => MirrorOperation.Horizontal,
+                    "vertical" => MirrorOperation.Vertical,
+                    "both" => MirrorOperation.Both,
+                    _ => MirrorOperation.None
+                };
+
+                el.Rotation = xmlElement.rotation?.Value switch
+                {
+                    "none" => RotationOperation.None,
+                    "left" => RotationOperation.Left,
+                    "right" => RotationOperation.Right,
+                    "turn" => RotationOperation.Turn,
+                    _ => RotationOperation.None
+                };
 
                 model.ElementGrid[xmlElement.posx, xmlElement.posy] = el;
             }

@@ -358,18 +358,6 @@ namespace ImageMagitek
             return isModified;
         }
 
-        private IEnumerable<(int x, int y)> AdjacentNeighbors(int x, int y, int width, int height)
-        {
-            if (x - 1 >= 0 && x - 1 < width && y >= 0 && y < height)
-                yield return (x - 1, y);
-            if (x + 1 >= 0 && x + 1 < width && y >= 0 && y < height)
-                yield return (x + 1, y);
-            if (x >= 0 && x < width && y - 1 >= 0 && y - 1 < height)
-                yield return (x, y - 1);
-            if (x >= 0 && x < width && y + 1 >= 0 && y + 1 < height)
-                yield return (x, y + 1);
-        }
-
         /// <summary>
         /// Remaps the colors of the image to new colors
         /// </summary>

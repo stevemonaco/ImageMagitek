@@ -3,6 +3,9 @@ using ImageMagitek.Colors;
 
 namespace ImageMagitek
 {
+    public enum MirrorOperation { None, Horizontal, Vertical, Both }
+    public enum RotationOperation { None, Left, Right, Turn }
+
     /// <summary>
     /// Contains all necessary data to encode/decode a single element in the arranger
     /// </summary>
@@ -58,6 +61,10 @@ namespace ImageMagitek
         /// </summary>
         public int Y2 { get => Y1 + Height - 1; }
 
+        public MirrorOperation Mirror { get; }
+
+        public RotationOperation Rotation { get; }
+
         public ArrangerElement(int x1, int y1)
         {
             X1 = x1;
@@ -66,6 +73,8 @@ namespace ImageMagitek
             DataFile = null;
             Codec = null;
             Palette = null;
+            Mirror = MirrorOperation.None;
+            Rotation = RotationOperation.None;
         }
 
         public ArrangerElement(int x1, int y1, DataFile dataFile, FileBitAddress address, IGraphicsCodec codec, Palette palette)
@@ -76,27 +85,48 @@ namespace ImageMagitek
             FileAddress = address;
             Codec = codec;
             Palette = palette;
+            Mirror = MirrorOperation.None;
+            Rotation = RotationOperation.None;
+        }
+
+        public ArrangerElement(int x1, int y1, DataFile dataFile, FileBitAddress address, IGraphicsCodec codec, Palette palette,
+            MirrorOperation mirror, RotationOperation rotation)
+        {
+            X1 = x1;
+            Y1 = y1;
+            DataFile = dataFile;
+            FileAddress = address;
+            Codec = codec;
+            Palette = palette;
+            Mirror = mirror;
+            Rotation = rotation;
         }
 
         public ArrangerElement WithLocation(int x1, int y1) =>
-            new ArrangerElement(x1, y1, DataFile, FileAddress, Codec, Palette);
+            new ArrangerElement(x1, y1, DataFile, FileAddress, Codec, Palette, Mirror, Rotation);
 
         public ArrangerElement WithFile(DataFile dataFile, FileBitAddress fileAddress) =>
-            new ArrangerElement(X1, Y1, dataFile, fileAddress, Codec, Palette);
+            new ArrangerElement(X1, Y1, dataFile, fileAddress, Codec, Palette, Mirror, Rotation);
 
         public ArrangerElement WithPalette(Palette palette) =>
-            new ArrangerElement(X1, Y1, DataFile, FileAddress, Codec, palette);
+            new ArrangerElement(X1, Y1, DataFile, FileAddress, Codec, palette, Mirror, Rotation);
 
         public ArrangerElement WithAddress(FileBitAddress address) =>
-            new ArrangerElement(X1, Y1, DataFile, address, Codec, Palette);
+            new ArrangerElement(X1, Y1, DataFile, address, Codec, Palette, Mirror, Rotation);
 
         public ArrangerElement WithCodec(IGraphicsCodec codec) =>
-            new ArrangerElement(X1, Y1, DataFile, FileAddress, codec, Palette);
+            new ArrangerElement(X1, Y1, DataFile, FileAddress, codec, Palette, Mirror, Rotation);
 
         public ArrangerElement WithCodec(IGraphicsCodec codec, int x1, int y1) =>
-            new ArrangerElement(x1, y1, DataFile, FileAddress, codec, Palette);
+            new ArrangerElement(x1, y1, DataFile, FileAddress, codec, Palette, Mirror, Rotation);
 
         public ArrangerElement WithTarget(DataFile dataFile, FileBitAddress fileAddress, IGraphicsCodec codec, Palette palette) =>
-            new ArrangerElement(X1, Y1, dataFile, fileAddress, codec, palette);
+            new ArrangerElement(X1, Y1, dataFile, fileAddress, codec, palette, Mirror, Rotation);
+
+        public ArrangerElement WithMirror(MirrorOperation mirror) =>
+            new ArrangerElement(X1, Y1, DataFile, FileAddress, Codec, Palette, mirror, Rotation);
+
+        public ArrangerElement WithRotation(RotationOperation rotation) =>
+            new ArrangerElement(X1, Y1, DataFile, FileAddress, Codec, Palette, Mirror, rotation);
     }
 }

@@ -163,7 +163,9 @@ namespace ImageMagitek.Project.Serialization
                     FileAddress = el.FileAddress,
                     PositionX = elemX,
                     PositionY = elemY,
-                    CodecName = el.Codec.Name
+                    CodecName = el.Codec.Name,
+                    Mirror = el.Mirror,
+                    Rotation = el.Rotation
                 };
 
                 if (el.DataFile is object && resourceMap.TryGetValue(el.DataFile, out var dataFileKey))

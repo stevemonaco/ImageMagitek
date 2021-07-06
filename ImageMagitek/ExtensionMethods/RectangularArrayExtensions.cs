@@ -58,5 +58,66 @@ namespace ImageMagitek.ExtensionMethods
                 }
             }
         }
+
+        /// <summary>
+        /// Performs an in-place mirror of a 2D array's items
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">Array to be mirrored</param>
+        /// <param name="mirror">Mirror operation to apply</param>
+        public static void MirrorArray2D<T>(this T[,] source, MirrorOperation mirror)
+        {
+            int width = source.GetLength(0);
+            int height = source.GetLength(1);
+
+            if (mirror == MirrorOperation.Horizontal)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        SwapItem(x, y, width - 1 - x, y);
+                    }
+                }
+            }
+            else if (mirror == MirrorOperation.Vertical)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        SwapItem(x, y, x, height - 1 - y);
+                    }
+                }
+            }
+            else if (mirror == MirrorOperation.Both)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        SwapItem(x, y, width - 1 - x, height - 1 - y);
+                    }
+                }
+            }
+
+            void SwapItem(int ax, int ay, int bx, int by)
+            {
+                T temp = source[ax, ay];
+                source[ax, ay] = source[bx, by];
+                source[bx, by] = temp;
+            }
+        }
+
+        /// <summary>
+        /// Peforms an in-place rotation of a 2D array's items
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">Array to be rotated, must be a square array</param>
+        /// <param name="rotation">Rotation operation to apply</param>
+        public static void RotateArray2D<T>(this T[,] source, RotationOperation rotation)
+        {
+
+        }
     }
 }
