@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace ImageMagitek.ExtensionMethods
 {
@@ -67,45 +69,56 @@ namespace ImageMagitek.ExtensionMethods
         /// <param name="mirror">Mirror operation to apply</param>
         public static void MirrorArray2D<T>(this T[,] source, MirrorOperation mirror)
         {
-            int width = source.GetLength(0);
-            int height = source.GetLength(1);
+            int width = source.GetLength(1);
+            int height = source.GetLength(0);
 
-            if (mirror == MirrorOperation.Horizontal)
+            if (mirror == MirrorOperation.Horizontal && width > 1)
             {
                 for (int y = 0; y < height; y++)
                 {
-                    for (int x = 0; x < width; x++)
+                    for (int x = 0; x < width / 2; x++)
                     {
-                        SwapItem(x, y, width - 1 - x, y);
+                        SwapItem(source, x, y, width - 1 - x, y);
                     }
                 }
             }
-            else if (mirror == MirrorOperation.Vertical)
+            else if (mirror == MirrorOperation.Vertical && height > 1)
             {
-                for (int y = 0; y < height; y++)
+                for (int y = 0; y < height / 2; y++)
                 {
                     for (int x = 0; x < width; x++)
                     {
-                        SwapItem(x, y, x, height - 1 - y);
+                        SwapItem(source, x, y, x, height - 1 - y);
                     }
                 }
             }
-            else if (mirror == MirrorOperation.Both)
+            else if (mirror == MirrorOperation.Both && width > 1 && height > 1)
             {
-                for (int y = 0; y < height; y++)
+                for (int y = 0; y < height / 2; y++)
                 {
                     for (int x = 0; x < width; x++)
                     {
-                        SwapItem(x, y, width - 1 - x, height - 1 - y);
+                        SwapItem(source, x, y, width - 1 - x, height - 1 - y);
+                    }
+                }
+
+                // Mirror center row horizontally for arrays with odd number of rows
+                if (height % 2 == 1)
+                {
+                    int y = height / 2;
+                    for (int x = 0; x < width / 2; x++)
+                    {
+                        SwapItem(source, x, y, width - 1 - x, y);
                     }
                 }
             }
 
-            void SwapItem(int ax, int ay, int bx, int by)
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            static void SwapItem(T[,] source, int ax, int ay, int bx, int by)
             {
-                T temp = source[ax, ay];
-                source[ax, ay] = source[bx, by];
-                source[bx, by] = temp;
+                T temp = source[ay, ax];
+                source[ay, ax] = source[by, bx];
+                source[by, bx] = temp;
             }
         }
 
@@ -115,9 +128,61 @@ namespace ImageMagitek.ExtensionMethods
         /// <typeparam name="T"></typeparam>
         /// <param name="source">Array to be rotated, must be a square array</param>
         /// <param name="rotation">Rotation operation to apply</param>
+        /// <remarks>Implementation based on https://stackoverflow.com/questions/42519/how-do-you-rotate-a-two-dimensional-array </remarks>
         public static void RotateArray2D<T>(this T[,] source, RotationOperation rotation)
         {
+            int width = source.GetLength(1);
+            int height = source.GetLength(0);
 
+            if (width != height)
+                throw new ArgumentException($"{nameof(RotateArray2D)} parameter '{nameof(source)}' must be a square array");
+
+            if (width <= 1 || height <= 1)
+                return;
+
+            if (rotation == RotationOperation.Left)
+            {
+                source.MirrorArray2D(MirrorOperation.Horizontal);
+                source.TransposeArray2D();
+            }
+            else if (rotation == RotationOperation.Right)
+            {
+                source.TransposeArray2D();
+                source.MirrorArray2D(MirrorOperation.Horizontal);
+            }
+            else if (rotation == RotationOperation.Turn)
+            {
+                source.MirrorArray2D(MirrorOperation.Both);
+            }
+        }
+
+        /// <summary>
+        /// Performs an in-place transpose of a 2D square array's items
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">2D array to be transposed, must be square</param>
+        public static void TransposeArray2D<T>(this T[,] source)
+        {
+            int width = source.GetLength(1);
+            int height = source.GetLength(0);
+
+            if (width != height)
+                throw new ArgumentException($"{nameof(TransposeArray2D)} parameter '{nameof(source)}' must be a square array");
+
+            if (width <= 1 || height <= 1)
+                return;
+
+            int len = source.GetLength(0);
+
+            for (int i = 0; i < len; i++)
+            {
+                for (int j = i + 1; j < len; j++)
+                {
+                    var temp = source[i, j];
+                    source[i, j] = source[j, i];
+                    source[j, i] = temp;
+                }
+            }
         }
     }
 }
