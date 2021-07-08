@@ -36,7 +36,7 @@ namespace ImageMagitek.Codec
         private void Initialize()
         {
             _foreignBuffer = new byte[(StorageSize + 7) / 8];
-            _nativeBuffer = new byte[Width, Height];
+            _nativeBuffer = new byte[Height, Width];
             _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
         }
 
