@@ -65,7 +65,7 @@ namespace ImageMagitek.Codec
                     var bp3 = _bitStream.ReadBit();
 
                     var palIndex = (bp1 << 0) | (bp2 << 1) | (bp3 << 2);
-                    _nativeBuffer[x, y] = (byte) palIndex;
+                    _nativeBuffer[y, x] = (byte) palIndex;
 
                     offsetPlane1++;
                     offsetPlane2++;
@@ -94,7 +94,7 @@ namespace ImageMagitek.Codec
             {
                 for (int x = 0; x < Width; x++)
                 {
-                    var index = imageBuffer[x, y];
+                    var index = imageBuffer[y, x];
 
                     byte bp1 = (byte)(index & 1);
                     byte bp2 = (byte)((index >> 1) & 1);

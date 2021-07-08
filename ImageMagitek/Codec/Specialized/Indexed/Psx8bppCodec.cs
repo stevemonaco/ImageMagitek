@@ -34,7 +34,7 @@ namespace ImageMagitek.Codec
         private void Initialize()
         {
             _foreignBuffer = new byte[(StorageSize + 7) / 8];
-            _nativeBuffer = new byte[Width, Height];
+            _nativeBuffer = new byte[Height, Width];
         }
 
         public override byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -49,7 +49,7 @@ namespace ImageMagitek.Codec
                 for (int x = 0; x < el.Width; x++, srcidx++)
                 {
                     var palIndex = encodedBuffer[srcidx];
-                    _nativeBuffer[x, y] = palIndex;
+                    _nativeBuffer[y, x] = palIndex;
                 }
             }
 
@@ -67,7 +67,7 @@ namespace ImageMagitek.Codec
             {
                 for (int x = 0; x < el.Width; x++, destidx++)
                 {
-                    byte index = imageBuffer[x, y];
+                    byte index = imageBuffer[y, x];
                     _foreignBuffer[destidx] = index;
                 }
             }

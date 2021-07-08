@@ -63,7 +63,7 @@ namespace ImageMagitek.Codec
                     {
                         color |= (byte)(_planeImages[i][x, y] << Format.MergePlanePriority[i]);
                     }
-                    NativeBuffer[xpos, y] = color;
+                    NativeBuffer[y, xpos] = color;
                 }
             }
 
@@ -81,7 +81,7 @@ namespace ImageMagitek.Codec
             {
                 for (short x = 0; x < Width; x++)
                 {
-                    int color = imageBuffer[x, y];
+                    int color = imageBuffer[y, x];
                     for (short i = 0; i < Format.ColorDepth; i++)
                     {
                         var bit = (color >> i) & 1;
@@ -100,7 +100,7 @@ namespace ImageMagitek.Codec
         private void AllocateBuffers()
         {
             _foreignBuffer = new byte[(StorageSize + 7) / 8];
-            _nativeBuffer = new byte[Width, Height];
+            _nativeBuffer = new byte[Height, Width];
 
             _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
 

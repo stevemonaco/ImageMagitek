@@ -87,7 +87,7 @@ namespace ImageMagitek
             var buffer = new ColorRgba32[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
             foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IDirectCodec))
             {
-                Image.CopyToArray(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
+                Image.CopyToArray2D(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
                 var codec = el.Codec as IDirectCodec;
 
                 var encodeResult = codec.EncodeElement(el, buffer);

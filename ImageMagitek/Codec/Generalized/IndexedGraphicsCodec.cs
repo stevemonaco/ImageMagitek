@@ -68,6 +68,7 @@ namespace ImageMagitek.Codec
             _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
         }
 
+        /// <inheritdoc/>
         public byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
         {
             if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
@@ -132,11 +133,12 @@ namespace ImageMagitek.Codec
             scanlinePosition = 0;
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++, scanlinePosition++)
-                    _nativeBuffer[x, y] = _mergedData[scanlinePosition];
+                    _nativeBuffer[y, x] = _mergedData[scanlinePosition];
 
             return NativeBuffer;
         }
 
+        /// <inheritdoc/>
         public ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer)
         {
             if (imageBuffer.GetLength(0) != Width || imageBuffer.GetLength(1) != Height)
@@ -145,7 +147,7 @@ namespace ImageMagitek.Codec
             int pos = 0;
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++, pos++)
-                    _mergedData[pos] = imageBuffer[x, y];
+                    _mergedData[pos] = imageBuffer[y, x];
 
             // Loop over MergedData to split foreign colors into bit planes in ElementData
             for (pos = 0; pos < _mergedData.Length; pos++)
@@ -201,7 +203,7 @@ namespace ImageMagitek.Codec
         }
 
         /// <summary>
-        /// Reads a contiguous block of encoded pixel data
+        /// Reads a contiguous block of foreign pixel data
         /// </summary>
         public virtual ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
         {
@@ -217,7 +219,7 @@ namespace ImageMagitek.Codec
         }
 
         /// <summary>
-        /// Writes a contiguous block of encoded pixel data
+        /// Writes a contiguous block of foreign pixel data
         /// </summary>
         public virtual void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
         {

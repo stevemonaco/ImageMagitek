@@ -36,7 +36,7 @@ namespace ImageMagitek.Codec
         private void Initialize()
         {
             _foreignBuffer = new byte[(StorageSize + 7) / 8];
-            _nativeBuffer = new byte[Width, Height];
+            _nativeBuffer = new byte[Height, Width];
             _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
         }
 
@@ -54,10 +54,10 @@ namespace ImageMagitek.Codec
                 for (int x = 0; x < el.Width; x += 2)
                 {
                     var palIndex = (byte)_bitStream.ReadBits(4);
-                    _nativeBuffer[x + 1, y] = palIndex;
+                    _nativeBuffer[y, x + 1] = palIndex;
 
                     palIndex = (byte)_bitStream.ReadBits(4);
-                    _nativeBuffer[x, y] = palIndex;
+                    _nativeBuffer[y, x] = palIndex;
                 }
             }
 
@@ -74,8 +74,8 @@ namespace ImageMagitek.Codec
             {
                 for (int x = 0; x < el.Width; x += 2, dest++)
                 {
-                    byte indexLow = imageBuffer[x, y];
-                    byte indexHigh = imageBuffer[x + 1, y];
+                    byte indexLow = imageBuffer[y, x];
+                    byte indexHigh = imageBuffer[y, x + 1];
 
                     byte index = (byte)(indexLow | (indexHigh << 4));
                     _foreignBuffer[dest] = index;

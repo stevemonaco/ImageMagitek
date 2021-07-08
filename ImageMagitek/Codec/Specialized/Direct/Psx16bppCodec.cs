@@ -30,7 +30,7 @@ namespace ImageMagitek.Codec
             Height = height;
 
             _foreignBuffer = new byte[(StorageSize + 7) / 8];
-            _nativeBuffer = new ColorRgba32[Width, Height];
+            _nativeBuffer = new ColorRgba32[Height, Width];
 
             _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
         }
@@ -50,7 +50,7 @@ namespace ImageMagitek.Codec
                     uint packedColor = _bitStream.ReadByte();
                     packedColor |= (uint)_bitStream.ReadByte() << 8;
                     var abgr16 = new ColorAbgr16(packedColor);
-                    _nativeBuffer[x, y] = _colorConverter.ToNativeColor(abgr16);
+                    _nativeBuffer[y, x] = _colorConverter.ToNativeColor(abgr16);
                 }
             }
 
@@ -68,7 +68,7 @@ namespace ImageMagitek.Codec
             {
                 for (int x = 0; x < el.Width; x++)
                 {
-                    var imageColor = imageBuffer[x, y];
+                    var imageColor = imageBuffer[y, x];
                     var fc = _colorConverter.ToForeignColor(imageColor);
 
                     byte high = (byte)(fc.Color & 0xFF00);

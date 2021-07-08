@@ -95,8 +95,6 @@ namespace ImageMagitek
                     if (encodedBuffer.Length == 0)
                         continue;
 
-                    var decodedImage = codec.DecodeElement(element, encodedBuffer);
-
                     var elementRect = new Rectangle(element.X1, element.Y1, element.Width, element.Height);
                     elementRect.Intersect(imageRect);
 
@@ -110,12 +108,14 @@ namespace ImageMagitek
                     int deltaX = minX - element.X1;
                     int deltaY = minY - element.Y1;
 
+                    var decodedImage = codec.DecodeElement(element, encodedBuffer);
+
                     for (int y = 0; y <= maxY - minY; y++)
                     {
                         int destidx = (element.Y1 + deltaY + y - Top) * Width + (element.X1 + deltaX - Left);
                         for (int x = 0; x <= maxX - minX; x++)
                         {
-                            Image[destidx] = decodedImage[x + deltaX, y + deltaY];
+                            Image[destidx] = decodedImage[y + deltaY, x + deltaX];
                             destidx++;
                         }
                     }
@@ -136,7 +136,7 @@ namespace ImageMagitek
             // Edited image is merged into a full arranger image and then the entire arranger is encoded/saved
 
             var fullImage = Arranger.CopyPixelsIndexed().Image;
-            var buffer = new byte[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
+            var buffer = new byte[Arranger.ElementPixelSize.Height, Arranger.ElementPixelSize.Width];
 
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++)

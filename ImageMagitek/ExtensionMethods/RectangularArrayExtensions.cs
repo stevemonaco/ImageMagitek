@@ -22,41 +22,96 @@ namespace ImageMagitek.ExtensionMethods
                 yield return item;
         }
 
+        /// <summary>
+        /// Creates a new subarray from the given source
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">Parent array to copy from in [y, x] ordering</param>
+        /// <param name="x0">x-coordinate to start copying from</param>
+        /// <param name="y0">y-coordinate to start copying from</param>
+        /// <param name="width">Width of the copy</param>
+        /// <param name="height">Height of the copy</param>
+        /// <returns>The subarray in [y, x] ordering</returns>
         public static T[,] ToSubArray<T>(this T[,] source, int x0, int y0, int width, int height)
         {
-            var subArray = new T[width, height];
+            var subArray = new T[height, width];
             source.CopyToArray(subArray, x0, y0, width, height);
             return subArray;
         }
 
+        /// <summary>
+        /// Copies the given source array to the destination array
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">Source array to copy from in [y, x] ordering</param>
+        /// <param name="dest">Destination array to copy to in [y, x] ordering</param>
+        /// <param name="x0">x-coordinate of the source array to start copying from</param>
+        /// <param name="y0">y-coordinate of the source array to start copying from</param>
+        /// <param name="width">Width of the copy</param>
+        /// <param name="height">Height of the copy</param>
         public static void CopyToArray<T>(this T[,] source, T[,] dest, int x0, int y0, int width, int height)
         {
             for (int y = 0; y < height; y++)
                 for (int x = 0; x < width; x++)
-                    dest[x, y] = source[x + x0, y + y0];
+                    dest[y, x] = source[y + y0, x + x0];
         }
 
+        /// <summary>
+        /// Copies a 1D array to a new 2D array
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">Source array to copy from</param>
+        /// <param name="sourceX">x-coordinate of the array to start copying from</param>
+        /// <param name="sourceY">y-coordinate of the array to start copying from</param>
+        /// <param name="sourceWidth">Width of each row in source</param>
+        /// <param name="width">Width of the copy</param>
+        /// <param name="height">Height of the copy</param>
+        /// <returns>The 2D array in [y, x] ordering</returns>
         public static T[,] To2DArray<T>(this T[] source, int sourceX, int sourceY, int sourceWidth, int width, int height)
         {
-            var array = new T[width, height];
-            source.CopyToArray(array, sourceX, sourceY, sourceWidth, width, height);
+            var array = new T[height, width];
+            source.CopyToArray2D(array, sourceX, sourceY, sourceWidth, width, height);
             return array;
         }
 
-        public static void CopyToArray<T>(this T[] source, T[,] dest, int sourceX, int sourceY, int sourceWidth, int destWidth, int destHeight)
+        /// <summary>
+        /// Copies from a 1D array into an existing 2D array
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">Source array to copy from</param>
+        /// <param name="dest">Destination array to copy into in [y, x] ordering</param>
+        /// <param name="sourceX">x-coordinate of the source array to start copying from</param>
+        /// <param name="sourceY">y-coordinate of the source array to start copying from</param>
+        /// <param name="sourceWidth">Width of each row in source</param>
+        /// <param name="destWidth">Width of the copy into dest</param>
+        /// <param name="destHeight">Height of the copy into dest</param>
+        public static void CopyToArray2D<T>(this T[] source, T[,] dest, int sourceX, int sourceY, int sourceWidth, int destWidth, int destHeight)
         {
             for (int y = 0; y < destHeight; y++)
                 for (int x = 0; x < destWidth; x++)
-                    dest[x, y] = source[(y + sourceY) * sourceWidth + x + sourceX];
+                    dest[y, x] = source[(y + sourceY) * sourceWidth + x + sourceX];
         }
 
+        /// <summary>
+        /// Copies from a 1D array into an existing 2D array
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">Source array to copy from</param>
+        /// <param name="sourceX">x-coordinate of the source array to start copying from</param>
+        /// <param name="sourceY">y-coordinate of the source array to start copying from</param>
+        /// <param name="sourceWidth"></param>
+        /// <param name="dest">Destination array to copy into in [y, x] ordering</param>
+        /// <param name="destX">x-coordinate of the dest array to start copying into</param>
+        /// <param name="destY">y-coordinate of the dest array to start copying into</param>
+        /// <param name="copyWidth">Width of the copy</param>
+        /// <param name="copyHeight">Height of the copy</param>
         public static void CopyToArray2D<T>(this T[] source, int sourceX, int sourceY, int sourceWidth, T[,] dest, int destX, int destY, int copyWidth, int copyHeight)
         {
             for (int y = 0; y < copyHeight; y++)
             {
                 for (int x = 0; x < copyWidth; x++)
                 {
-                    dest[x + destX, y + destY] = source[(y + sourceY) * sourceWidth + x + sourceX];
+                    dest[y + destY, x + destX] = source[(y + sourceY) * sourceWidth + x + sourceX];
                 }
             }
         }
