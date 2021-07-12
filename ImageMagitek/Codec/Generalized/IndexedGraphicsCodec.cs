@@ -5,7 +5,7 @@ using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Codec
 {
-    class IndexedGraphicsCodec : IIndexedCodec
+    public class IndexedGraphicsCodec : IIndexedCodec
     {
         public string Name { get; set; }
         public FlowGraphicsFormat Format { get; private set; }
