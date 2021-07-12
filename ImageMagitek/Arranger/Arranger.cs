@@ -42,7 +42,7 @@ namespace ImageMagitek
     public abstract class Arranger : IProjectResource
     {
         /// <summary>
-        /// Individual Elements that compose the Arranger
+        /// Individual Elements that compose the Arranger in [y, x] ordering
         /// </summary>
         protected ArrangerElement?[,] ElementGrid { get; set; }
 
@@ -54,7 +54,8 @@ namespace ImageMagitek
         /// <summary>
         /// Gets the Size of the entire Arranger in pixel coordinates
         /// </summary>
-        public Size ArrangerPixelSize { get => new Size(ArrangerElementSize.Width * ElementPixelSize.Width, ArrangerElementSize.Height * ElementPixelSize.Height); }
+        public Size ArrangerPixelSize => 
+            new(ArrangerElementSize.Width * ElementPixelSize.Width, ArrangerElementSize.Height * ElementPixelSize.Height);
 
         /// <summary>
         /// Gets the size of an individual Element in pixels
@@ -145,10 +146,10 @@ namespace ImageMagitek
                 //    throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' does not contain a palette");
 
                 var relocatedElement = element?.WithLocation(posX * ElementPixelSize.Width, posY * ElementPixelSize.Height);
-                ElementGrid[posX, posY] = relocatedElement;
+                ElementGrid[posY, posX] = relocatedElement;
             }
             else
-                ElementGrid[posX, posY] = element;
+                ElementGrid[posY, posX] = element;
         }
 
         /// <summary>
@@ -164,7 +165,7 @@ namespace ImageMagitek
             if (posX >= ArrangerElementSize.Width || posY >= ArrangerElementSize.Height)
                 throw new ArgumentOutOfRangeException($"{nameof(ResetElement)} parameter was out of range: ({posX}, {posY})");
 
-            ElementGrid[posX, posY] = null;
+            ElementGrid[posY, posX] = null;
         }
 
         /// <summary>
@@ -181,7 +182,7 @@ namespace ImageMagitek
             if (posX >= ArrangerElementSize.Width || posY >= ArrangerElementSize.Height)
                 throw new ArgumentOutOfRangeException($"{nameof(GetElement)} parameter was out of range: ({posX}, {posY})");
 
-            return ElementGrid[posX, posY];
+            return ElementGrid[posY, posX];
         }
 
         /// <summary>
@@ -197,7 +198,7 @@ namespace ImageMagitek
             if (pixelX >= ArrangerPixelSize.Width || pixelY >= ArrangerPixelSize.Height || pixelX < 0 || pixelY < 0)
                 throw new ArgumentOutOfRangeException($"{nameof(GetElementAtPixel)} parameter was out of range: ({pixelX}, {pixelY})");
 
-            return ElementGrid[pixelX / ElementPixelSize.Width, pixelY / ElementPixelSize.Height];
+            return ElementGrid[pixelY / ElementPixelSize.Height, pixelX / ElementPixelSize.Width];
         }
 
         /// <summary>
@@ -221,7 +222,7 @@ namespace ImageMagitek
             {
                 for (int x = 0; x < width; x++)
                 {
-                    yield return ElementGrid[x + elemX, y + elemY];
+                    yield return ElementGrid[y + elemY, x + elemX];
                 }
             }
         }

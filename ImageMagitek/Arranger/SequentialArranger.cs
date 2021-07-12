@@ -134,18 +134,18 @@ namespace ImageMagitek
 
             if (ElementGrid is null) // New Arranger being initially sized
             {
-                ElementGrid = new ArrangerElement?[arrangerWidth, arrangerHeight];
+                ElementGrid = new ArrangerElement?[arrangerHeight, arrangerWidth];
             }
             else // Arranger being resized with existing elements
             {
                 var oldElementGrid = ElementGrid;
-                ElementGrid = new ArrangerElement?[arrangerWidth, arrangerHeight];
+                ElementGrid = new ArrangerElement?[arrangerHeight, arrangerWidth];
                 var elemsX = Math.Min(ArrangerElementSize.Width, arrangerWidth);
                 var elemsY = Math.Min(ArrangerElementSize.Height, arrangerHeight);
 
-                for (int i = 0; i < elemsY; i++)
-                    for (int j = 0; j < elemsX; j++)
-                        ElementGrid[j, i] = oldElementGrid[j, i];
+                for (int y = 0; y < elemsY; y++)
+                    for (int x = 0; x < elemsX; x++)
+                        ElementGrid[y, x] = oldElementGrid[y, x];
 
                 address = GetInitialSequentialFileAddress();
             }
@@ -193,10 +193,10 @@ namespace ImageMagitek
                 if (element?.Codec.ColorType != ColorType || element?.Codec.Name != ActiveCodec.Name)
                     throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned to SequentialArranger '{Name}'");
 
-                ElementGrid[posX, posY] = element;
+                ElementGrid[posY, posX] = element;
             }
             else
-                ElementGrid[posX, posY] = element;
+                ElementGrid[posY, posX] = element;
         }
 
         /// <summary>
@@ -301,7 +301,7 @@ namespace ImageMagitek
                 {
                     var elX = x * ElementPixelSize.Width;
                     var elY = y * ElementPixelSize.Height;
-                    if (ElementGrid[x + elemX, y + elemY] is ArrangerElement el)
+                    if (ElementGrid[y + elemY, x + elemX] is ArrangerElement el)
                     {
                         var codec = _codecs.CloneCodec(el.Codec);
 

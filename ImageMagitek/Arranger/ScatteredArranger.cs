@@ -33,7 +33,7 @@ namespace ImageMagitek
             if (arrangerWidth <= 0 || arrangerHeight <= 0 || elementWidth <= 0 | elementHeight <= 0)
                 throw new ArgumentOutOfRangeException($"Arranger '{name}' does not have positive sizes for arranger and elements");
 
-            ElementGrid = new ArrangerElement?[arrangerWidth, arrangerHeight];
+            ElementGrid = new ArrangerElement?[arrangerHeight, arrangerWidth];
             ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
             ElementPixelSize = new Size(elementWidth, elementHeight);
         }
@@ -60,7 +60,7 @@ namespace ImageMagitek
             {
                 for (int posX = 0; posX < width; posX++)
                 {
-                    newGrid[posX, posY] = ElementGrid[posX, posY];
+                    newGrid[posY, posX] = ElementGrid[posY, posX];
                 }
             }
 
