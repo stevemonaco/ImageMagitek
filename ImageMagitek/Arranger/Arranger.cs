@@ -10,24 +10,24 @@ namespace ImageMagitek
 {
     /// <summary>
     /// Mode for the Arranger
-    /// SequentialArrangers are for simple sequential file access
-    /// ScatteredArrangers are capable of accessing many files, file offsets, palettes, and codecs in a single arranger
-    /// MemoryArrangers are used as a scratchpad (currently unimplemented)
+    /// <para>SequentialArrangers are for simple sequential file access</para>
+    /// <para>ScatteredArrangers are capable of accessing many files, file offsets, palettes, and codecs in a single arranger</para>
+    /// <para>MemoryArrangers are used as a scratchpad (currently unimplemented)</para>
     /// </summary>
     public enum ArrangerMode { Sequential = 1, Scattered, Memory };
 
     /// <summary>
     /// Layout of graphics for the arranger
-    /// Each layout directs Arranger element selection and Arranger cloning to perform differently
-    /// Tiled will snap selection rectangles to tile boundaries
-    /// Single will snap selection rectangles to pixel boundaries
+    /// <para>Each layout directs Arranger element selection and Arranger cloning to perform differently</para>
+    /// <para>Tiled will snap selection rectangles to tile boundaries</para>
+    /// <para>Single will snap selection rectangles to pixel boundaries</para>
     /// </summary>
     public enum ArrangerLayout { Tiled = 1, Single };
 
     /// <summary>
     /// Specifies how the pixels' colors are determined for the graphic
-    /// Indexed graphics have their full color determined by a palette
-    /// Direct graphics have their full color determined by the pixel image data alone
+    /// <para>Indexed graphics have their full color determined by a palette</para>
+    /// <para>Direct graphics have their full color determined by the pixel image data alone</para>
     /// </summary>
     public enum PixelColorType { Indexed = 1, Direct }
 
