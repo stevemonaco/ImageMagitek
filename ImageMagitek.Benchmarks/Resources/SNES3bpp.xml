@@ -1,19 +1,21 @@
-<format name="SNES 3bpp">
-    <codec>
-        <colortype>indexed</colortype>
-        <colordepth>3</colordepth>
-        <layout>tiled</layout>
-        <defaultheight>8</defaultheight>
-        <defaultwidth>8</defaultwidth>
-        <fixedsize>false</fixedsize>
-		<mergepriority>0, 1, 2</mergepriority>
-    </codec>
+<?xml version="1.0" encoding="utf-8"?>
+<flowcodec name="SNES3bpp" version="0.9">
+  <colortype>indexed</colortype>
+  <colordepth>3</colordepth>
+  <layout>tiled</layout>
+  <defaultheight>8</defaultheight>
+  <defaultwidth>8</defaultwidth>
+  <fixedsize>false</fixedsize>
+  <mergepriority>0, 1, 2</mergepriority>
+
+  <images>
     <image>
-        <colordepth>2</colordepth>
-        <rowinterlace>true</rowinterlace>
+      <colordepth>2</colordepth>
+      <rowinterlace>true</rowinterlace>
     </image>
     <image>
-        <colordepth>1</colordepth>
-        <rowinterlace>true</rowinterlace>
+      <colordepth>1</colordepth>
+      <rowinterlace>true</rowinterlace>
     </image>
-</format>
+  </images>
+</flowcodec>

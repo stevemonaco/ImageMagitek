@@ -1,4 +1,5 @@
-﻿using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Running;
 using System;
 
 namespace ImageMagitek.Benchmarks
@@ -7,15 +8,9 @@ namespace ImageMagitek.Benchmarks
     {
         static void Main(string[] args)
         {
+            //BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, new DebugInProcessConfig());
             //BenchmarkRunner.Run(typeof(FileStreamReopenPerRead));
             BenchmarkRunner.Run(typeof(Snes3bppDecodeToImage));
-            //var test = new Snes3bppDecodeToImage();
-            //test.GlobalSetupGeneric();
-            //test.DecodeGeneric();
-            //test.GlobalCleanupGeneric();
-            //test.GlobalSetupNative();
-            //test.DecodeNative();
-            //test.GlobalCleanupNative();
         }
     }
 }

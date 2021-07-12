@@ -40,3 +40,15 @@ Intel Core i7-2600K CPU 3.40GHz (Sandy Bridge), 1 CPU, 8 logical and 4 physical 
 |-------------- |---------:|---------:|---------:|------:|--------:|
 |  DecodeNative | 415.1 ms | 6.669 ms | 5.912 ms |  1.00 |    0.00 |
 | DecodeGeneric | 457.3 ms | 8.464 ms | 8.313 ms |  1.10 |    0.02 |
+
+BenchmarkDotNet=v0.13.0, OS=Windows 10.0.19041.1083 (2004/May2020Update/20H1)
+AMD Ryzen 9 3900X, 1 CPU, 24 logical and 12 physical cores
+.NET SDK=5.0.301
+  [Host]     : .NET 5.0.7 (5.0.721.25508), X64 RyuJIT
+  DefaultJob : .NET 5.0.7 (5.0.721.25508), X64 RyuJIT
+
+
+|        Method |    Mean |    Error |   StdDev | Ratio |
+|-------------- |--------:|---------:|---------:|------:|
+|  DecodeNative | 1.238 s | 0.0059 s | 0.0049 s |  1.00 |
+| DecodeGeneric | 1.314 s | 0.0047 s | 0.0039 s |  1.06 |

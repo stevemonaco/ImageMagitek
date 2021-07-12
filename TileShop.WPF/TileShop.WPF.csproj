@@ -60,6 +60,7 @@
 
   <ItemGroup>
     <Folder Include="Assets\DemoImages\" />
+    <Folder Include="Features\Toolbars\" />
   </ItemGroup>
 
 </Project>

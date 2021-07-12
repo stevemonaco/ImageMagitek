@@ -132,8 +132,11 @@
                     Value="{Binding Zoom}" />
             </StackPanel>
 
-            <StackPanel>
+            <StackPanel VerticalAlignment="Center">
                 <ToggleButton
+                    Width="40"
+                    Height="45"
+                    Padding="0"
                     Focusable="False"
                     IsChecked="{Binding ShowGridlines}"
                     ToolTip="Toggle gridline visibility">
@@ -144,8 +147,11 @@
                 </ToggleButton>
             </StackPanel>
 
-            <StackPanel Margin="5,0,0,0">
+            <StackPanel Margin="5,0,0,0" VerticalAlignment="Center">
                 <ToggleButton
+                    Width="40"
+                    Height="45"
+                    Padding="0"
                     Focusable="False"
                     IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
                     ToolTip="Snap Selection to Elements"
@@ -160,6 +166,9 @@
             <Separator Margin="5,0,5,0" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
 
             <Button
+                Width="40"
+                Height="45"
+                Padding="0"
                 Click="{s:Action ResizeArranger}"
                 ToolTip="Resizes the Arranger"
                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -170,7 +179,10 @@
             </Button>
 
             <Button
+                Width="40"
+                Height="45"
                 Margin="5,0,0,0"
+                Padding="0"
                 Click="{s:Action EditSelection}"
                 IsEnabled="{Binding CanEditSelection}"
                 ToolTip="Opens selection in the pixel editor">
@@ -181,7 +193,10 @@
             </Button>
 
             <Button
+                Width="40"
+                Height="45"
                 Margin="5,0,0,0"
+                Padding="0"
                 Click="{s:Action Undo}"
                 IsEnabled="{Binding CanUndo}"
                 ToolTip="Undo">
@@ -192,7 +207,10 @@
             </Button>
 
             <Button
+                Width="40"
+                Height="45"
                 Margin="5,0,0,0"
+                Padding="0"
                 Click="{s:Action Redo}"
                 IsEnabled="{Binding CanRedo}"
                 ToolTip="Redo">
@@ -203,7 +221,10 @@
             </Button>
 
             <Button
+                Width="40"
+                Height="45"
                 Margin="5,0,0,0"
+                Padding="0"
                 Click="{s:Action SaveChanges}"
                 IsEnabled="{Binding IsModified}"
                 ToolTip="Saves arranger">
