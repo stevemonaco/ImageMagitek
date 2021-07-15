@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace ImageMagitek
 {
-    public class ScatteredArranger: Arranger
+    public sealed class ScatteredArranger: Arranger
     {
         public override bool ShouldBeSerialized { get; set; } = true;
 

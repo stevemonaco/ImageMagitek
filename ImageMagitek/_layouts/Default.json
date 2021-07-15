@@ -1,0 +1,9 @@
+{
+	"name": "Default",
+	"width": 1,
+	"height": 1,
+	"tilesPerPattern": 1,
+	"pattern" : [
+		{ "x": 0, "y": 0 }
+	]
+}

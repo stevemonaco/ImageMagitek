@@ -22,6 +22,7 @@ namespace TileShop.WPF.ViewModels
         private readonly ICodecService _codecService;
         private readonly IPaletteService _paletteService;
         private readonly IProjectService _projectService;
+        private readonly ITileLayoutService _layoutService;
         private readonly AppSettings _settings;
         private readonly IEventAggregator _events;
 
@@ -52,7 +53,7 @@ namespace TileShop.WPF.ViewModels
         };
 
         public EditorsViewModel(AppSettings settings, IEventAggregator events, IWindowManager windowManager, Tracker tracker,
-            ICodecService codecService, IPaletteService paletteService, IProjectService projectService)
+            ICodecService codecService, IPaletteService paletteService, IProjectService projectService, ITileLayoutService layoutService)
         {
             _settings = settings;
             _events = events;
@@ -61,6 +62,7 @@ namespace TileShop.WPF.ViewModels
             _codecService = codecService;
             _paletteService = paletteService;
             _projectService = projectService;
+            _layoutService = layoutService;
 
             _events.Subscribe(this);
         }
@@ -110,7 +112,7 @@ namespace TileShop.WPF.ViewModels
                         newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _events, _windowManager, _paletteService, _projectService);
                         break;
                     case SequentialArranger sequentialArranger:
-                        newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _windowManager, _tracker, _codecService, _paletteService);
+                        newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _windowManager, _tracker, _codecService, _paletteService, _layoutService);
                         break;
                     case DataFile dataFile: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
                         var extension = Path.GetExtension(dataFile.Location).ToLower();
@@ -123,7 +125,7 @@ namespace TileShop.WPF.ViewModels
                             codecName = "NES 1bpp";
 
                         var newArranger = new SequentialArranger(8, 16, dataFile, _paletteService.DefaultPalette, _codecService.CodecFactory, codecName);
-                        newDocument = new SequentialArrangerEditorViewModel(newArranger, _events, _windowManager, _tracker, _codecService, _paletteService);
+                        newDocument = new SequentialArrangerEditorViewModel(newArranger, _events, _windowManager, _tracker, _codecService, _paletteService, _layoutService);
                         break;
                     case ResourceFolder resourceFolder:
                         newDocument = null;

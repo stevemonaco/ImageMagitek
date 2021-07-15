@@ -118,9 +118,12 @@ namespace ImageMagitek
             if (arranger.Mode != ArrangerMode.Sequential)
                 throw new InvalidOperationException($"{nameof(Move)}: Arranger {arranger.Name} is not in sequential mode");
 
-            var initialAddress = arranger.GetInitialSequentialFileAddress();
-            var newAddress = arranger.GetInitialSequentialFileAddress();
+            var initialAddress = arranger.FileAddress;
+            var newAddress = initialAddress;
             FileBitAddress delta = 0;
+
+            var patternWidth = arranger.TileLayout?.Width ?? 1;
+            var patternHeight = arranger.TileLayout?.Width ?? 1;
 
             switch (moveType) // Calculate the new address based on the movement command. Negative and post-EOF addresses are handled after the switch
             {
@@ -132,7 +135,7 @@ namespace ImageMagitek
                     break;
                 case ArrangerMoveType.RowDown:
                     if(arranger.Layout == ArrangerLayout.Tiled)
-                        delta = arranger.ArrangerElementSize.Width * arranger.ActiveCodec.StorageSize;
+                        delta = arranger.ArrangerElementSize.Width * arranger.ActiveCodec.StorageSize * patternHeight;
                     else if(arranger.Layout == ArrangerLayout.Single)
                         delta = arranger.ActiveCodec.StorageSize / arranger.ArrangerPixelSize.Height;
 
@@ -140,21 +143,21 @@ namespace ImageMagitek
                     break;
                 case ArrangerMoveType.RowUp:
                     if (arranger.Layout == ArrangerLayout.Tiled)
-                        delta = arranger.ArrangerElementSize.Width * arranger.ActiveCodec.StorageSize;
+                        delta = arranger.ArrangerElementSize.Width * arranger.ActiveCodec.StorageSize * patternHeight;
                     else if (arranger.Layout == ArrangerLayout.Single)
                         delta = arranger.ActiveCodec.StorageSize / arranger.ArrangerPixelSize.Height;
                     newAddress -= delta;
                     break;
                 case ArrangerMoveType.ColRight:
                     if (arranger.Layout == ArrangerLayout.Tiled)
-                        delta = arranger.ActiveCodec.StorageSize;
+                        delta = arranger.ActiveCodec.StorageSize * patternWidth * patternHeight;
                     else if (arranger.Layout == ArrangerLayout.Single)
                         delta = 16 * arranger.ActiveCodec.StorageSize * arranger.ActiveCodec.Height / arranger.ActiveCodec.Width;
                     newAddress += delta;
                     break;
                 case ArrangerMoveType.ColLeft:
                     if (arranger.Layout == ArrangerLayout.Tiled)
-                        delta = arranger.ActiveCodec.StorageSize;
+                        delta = arranger.ActiveCodec.StorageSize * patternWidth * patternHeight;
                     else if (arranger.Layout == ArrangerLayout.Single)
                         delta = 16 * arranger.ActiveCodec.StorageSize * arranger.ActiveCodec.Height / arranger.ActiveCodec.Width;
                     newAddress -= delta;

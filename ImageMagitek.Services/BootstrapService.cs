@@ -21,6 +21,7 @@ namespace ImageMagitek.Services
         public static string DefaultPalettePath { get; } = "_palettes";
         public static string DefaultCodecPath { get; } = "_codecs";
         public static string DefaultPluginPath { get; } = "_plugins";
+        public static string DefaultLayoutsPath { get; } = "_layouts";
         public static string DefaultResourceSchemaFileName { get; } = Path.Combine("_schemas", "ResourceSchema.xsd");
         public static string DefaultCodecSchemaFileName { get; } = Path.Combine("_schemas", "CodecSchema.xsd");
 
@@ -115,6 +116,25 @@ namespace ImageMagitek.Services
             var projectService = new ProjectService(serializerFactory, colorFactory);
 
             return projectService;
+        }
+
+        public virtual ITileLayoutService CreateTileLayoutService(string layoutPath)
+        {
+            if (!Directory.Exists(layoutPath))
+                throw new ArgumentException($"{nameof(CreateTileLayoutService)} failed because the path '{layoutPath}' does not exist");
+
+            var layoutService = new TileLayoutService();
+            foreach (var fileName in Directory.GetFiles(layoutPath, "*.json"))
+            {
+                layoutService.LoadLayout(fileName);
+            }
+
+            if (layoutService.TileLayouts.TryGetValue("Default", out var defaultLayout))
+                layoutService.DefaultTileLayout = defaultLayout;
+            else
+                layoutService.DefaultTileLayout = layoutService.TileLayouts.First().Value;
+
+            return layoutService;
         }
     }
 }

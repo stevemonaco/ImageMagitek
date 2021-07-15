@@ -8,38 +8,45 @@ using System.Linq;
 
 namespace ImageMagitek
 {
-    public class SequentialArranger : Arranger
+    public sealed class SequentialArranger : Arranger
     {
         /// <summary>
         /// Gets the filesize of the file associated with a SequentialArranger
         /// </summary>
-        public long FileSize { get; protected set; }
+        public long FileSize { get; private set; }
 
         /// <summary>
         /// Gets the current file address of the file associated with a SequentialArranger
         /// </summary>
-        public long FileAddress { get; protected set; }
+        public FileBitAddress FileAddress { get; private set; }
 
         /// <summary>
         /// Number of bits required to be read from file sequentially to fully display the Arranger
         /// </summary>
-        public long ArrangerBitSize { get; protected set; }
+        public long ArrangerBitSize { get; private set; }
+
+        /// <inheritdoc/>
         public override bool ShouldBeSerialized { get; set; } = true;
 
         /// <summary>
         /// Codec that is assigned to each ArrangerElement
         /// </summary>
-        public IGraphicsCodec ActiveCodec { get; protected set; }
+        public IGraphicsCodec ActiveCodec { get; private set; }
 
         /// <summary>
         /// DataFile that is assigned to each ArrangerElement
         /// </summary>
-        public DataFile ActiveDataFile { get; protected set; }
+        public DataFile ActiveDataFile { get; private set; }
 
         /// <summary>
         /// Palette that is assigned to each ArrangerElement
         /// </summary>
-        public Palette ActivePalette { get; protected set; }
+        public Palette ActivePalette { get; private set; }
+
+        /// <summary>
+        /// Layout used arrange tiles when ArrangerLayout is Tiled
+        /// </summary>
+        public TileLayout TileLayout { get; private set; }
 
         private readonly ICodecFactory _codecs;
 
@@ -77,6 +84,65 @@ namespace ImageMagitek
         }
 
         /// <summary>
+        /// Lays out ArrangerElements
+        /// </summary>
+        private void PerformLayout()
+        {
+            var address = FileAddress;
+
+            if (TileLayout is null || Layout == ArrangerLayout.Single)
+            {
+                for (int posY = 0; posY < ArrangerElementSize.Height; posY++)
+                {
+                    for (int posX = 0; posX < ArrangerElementSize.Width; posX++)
+                    {
+                        var el = new ArrangerElement(posX * ElementPixelSize.Width, posY * ElementPixelSize.Height, ActiveDataFile, address, ActiveCodec, ActivePalette);
+
+                        if (el.Codec.Layout == ImageLayout.Tiled)
+                            address += ActiveCodec.StorageSize;
+                        else if (el.Codec.Layout == ImageLayout.Single)
+                            address += ElementPixelSize.Width * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
+                        else
+                            throw new NotSupportedException();
+
+                        SetElement(el, posX, posY);
+                    }
+                }
+            }
+            else
+            {
+                var patternsX = ArrangerElementSize.Width / TileLayout.Width;
+                var patternsY = ArrangerElementSize.Height / TileLayout.Height;
+
+                for (int y = 0; y < patternsY; y++)
+                {
+                    for (int x = 0; x < patternsX; x++)
+                    {
+                        foreach (var pos in TileLayout.Pattern)
+                        {
+                            var posX = x * TileLayout.Width + pos.X;
+                            var posY = y * TileLayout.Height + pos.Y;
+
+                            var el = new ArrangerElement(posX * ElementPixelSize.Width,
+                                posY * ElementPixelSize.Height, ActiveDataFile, address, ActiveCodec, ActivePalette);
+
+                            if (el.Codec.Layout == ImageLayout.Tiled)
+                                address += ActiveCodec.StorageSize;
+                            else if (el.Codec.Layout == ImageLayout.Single)
+                                address += ElementPixelSize.Width * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
+                            else
+                                throw new NotSupportedException();
+
+                            SetElement(el, posX, posY);
+                        }
+                    }
+                }
+            }
+
+            Move(FileAddress);
+        }
+
+        /// <summary>
         /// Moves the sequential arranger to the specified address
         /// If the arranger will overflow the file, then seek only to the furthest offset
         /// </summary>
@@ -87,17 +153,16 @@ namespace ImageMagitek
             if (Mode != ArrangerMode.Sequential)
                 throw new InvalidOperationException($"{nameof(Move)}: Arranger {Name} is not in sequential mode");
 
-            FileBitAddress address;
             FileBitAddress testaddress = absoluteAddress + ArrangerBitSize; // Tests the bounds of the arranger vs the file size
 
             if (FileSize * 8 < ArrangerBitSize) // Arranger needs more bits than the entire file
-                address = new FileBitAddress(0, 0);
-            else if (testaddress.Bits() > FileSize * 8)
-                address = new FileBitAddress(FileSize * 8 - ArrangerBitSize);
+                FileAddress = new FileBitAddress(0, 0);
+            else if (testaddress.Bits() > FileSize * 8) // Clamp arranger to edge of viewable file
+                FileAddress = new FileBitAddress(FileSize * 8 - ArrangerBitSize);
             else
-                address = absoluteAddress;
+                FileAddress = absoluteAddress;
 
-            int ElementStorageSize = ActiveCodec.StorageSize;
+            FileBitAddress relativeChange = FileAddress - GetInitialSequentialFileAddress();
 
             for (int y = 0; y < ArrangerElementSize.Height; y++)
             {
@@ -106,16 +171,13 @@ namespace ImageMagitek
                     var el = GetElement(x, y);
                     if (el is ArrangerElement element)
                     {
-                        element = element.WithAddress(address);
+                        element = element.WithAddress(element.FileAddress + relativeChange);
                         SetElement(element, x, y);
-                        address += ElementStorageSize;
                     }
                 }
             }
 
-            FileAddress = GetInitialSequentialFileAddress().FileOffset;
-
-            return new FileBitAddress(FileAddress, 0);
+            return FileAddress;
         }
 
         /// <summary>
@@ -132,50 +194,18 @@ namespace ImageMagitek
 
             ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);
 
-            if (ElementGrid is null) // New Arranger being initially sized
+            if (ElementGrid is null || ArrangerElementSize != new Size(arrangerWidth, arrangerHeight))
             {
                 ElementGrid = new ArrangerElement?[arrangerHeight, arrangerWidth];
-            }
-            else // Arranger being resized with existing elements
-            {
-                var oldElementGrid = ElementGrid;
-                ElementGrid = new ArrangerElement?[arrangerHeight, arrangerWidth];
-                var elemsX = Math.Min(ArrangerElementSize.Width, arrangerWidth);
-                var elemsY = Math.Min(ArrangerElementSize.Height, arrangerHeight);
-
-                for (int y = 0; y < elemsY; y++)
-                    for (int x = 0; x < elemsX; x++)
-                        ElementGrid[y, x] = oldElementGrid[y, x];
-
-                address = GetInitialSequentialFileAddress();
+                ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
+                ArrangerBitSize = arrangerWidth * arrangerHeight * ActiveCodec.StorageSize;
             }
 
-            ArrangerElementSize = new Size(arrangerWidth, arrangerHeight);
-            ArrangerBitSize = arrangerWidth * arrangerHeight * ActiveCodec.StorageSize;
-
-            for (int posY = 0; posY < arrangerHeight; posY++)
-            {
-                for (int posX = 0; posX < arrangerWidth; posX++)
-                {
-                    var el = new ArrangerElement(posX * ElementPixelSize.Width, posY * ElementPixelSize.Height, ActiveDataFile, address, ActiveCodec, ActivePalette);
-
-                    if (el.Codec.Layout == ImageLayout.Tiled)
-                        address += ActiveCodec.StorageSize;
-                    else if (el.Codec.Layout == ImageLayout.Single)
-                        address += ElementPixelSize.Width * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
-                    else
-                        throw new NotSupportedException();
-
-                    SetElement(el, posX, posY);
-                }
-            }
-
-            address = GetInitialSequentialFileAddress();
-            address = Move(address);
+            PerformLayout();
         }
 
         /// <summary>
-        /// Sets Element to a position in the Arranger ElementGrid using a shallow copy
+        /// Sets Element to an absolute position in the Arranger's ElementGrid using a shallow copy
         /// </summary>
         /// <param name="element">Element to be placed into the ElementGrid</param>
         /// <param name="posX">x-coordinate in Element coordinates</param>
@@ -199,6 +229,12 @@ namespace ImageMagitek
                 ElementGrid[posY, posX] = element;
         }
 
+        public void ChangeTileLayout(TileLayout layout)
+        {
+            TileLayout = layout;
+            PerformLayout();
+        }
+
         /// <summary>
         /// Changes each Element's codec
         /// </summary>
@@ -213,7 +249,7 @@ namespace ImageMagitek
         /// <param name="arrangerHeight">Arranger Height in Elements</param>
         public void ChangeCodec(IGraphicsCodec codec, int arrangerWidth, int arrangerHeight)
         {
-            FileBitAddress address = GetInitialSequentialFileAddress();
+            FileBitAddress address = FileAddress;
             ElementPixelSize = new Size(codec.Width, codec.Height);
 
             ActiveCodec = codec;
@@ -254,8 +290,7 @@ namespace ImageMagitek
                 elY += ElementPixelSize.Height;
             }
 
-            address = GetInitialSequentialFileAddress();
-            this.Move(address);
+            Move(FileAddress);
         }
 
         /// <summary>
@@ -315,10 +350,10 @@ namespace ImageMagitek
         }
 
         /// <summary>
-        /// Gets the initial file address of a Sequential Arranger
+        /// Gets the file address from the first element in the sequential arranger
         /// </summary>
         /// <returns></returns>
-        public FileBitAddress GetInitialSequentialFileAddress()
+        private FileBitAddress GetInitialSequentialFileAddress()
         {
             if (ElementGrid is null)
                 throw new NullReferenceException($"{nameof(GetInitialSequentialFileAddress)} property '{nameof(ElementGrid)}' was null");
@@ -327,15 +362,18 @@ namespace ImageMagitek
                 throw new InvalidOperationException($"{nameof(GetInitialSequentialFileAddress)} property '{nameof(Mode)}' " + 
                     $"is in invalid {nameof(ArrangerMode)} ({Mode})");
 
-            return ElementGrid[0, 0]?.FileAddress ?? 0;
+            if (TileLayout is null)
+            {
+                return ElementGrid[0, 0]?.FileAddress ?? 0;
+            }
+            else
+            {
+                var layoutElement = TileLayout.Pattern.First();
+                return ElementGrid[layoutElement.X, layoutElement.Y]?.FileAddress ?? 0;
+            }
         }
 
-        /// <summary>
-        /// Gets the GraphicsFormat name for a Sequential Arranger
-        /// </summary>
-        /// <returns></returns>
-        public string GetSequentialGraphicsFormat() => ActiveCodec.Name;
-
+        /// <inheritdoc/>
         public override IEnumerable<IProjectResource> LinkedResources
         {
             get

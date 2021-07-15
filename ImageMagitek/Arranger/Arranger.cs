@@ -205,7 +205,7 @@ namespace ImageMagitek
         /// Returns the enumeration of all Elements in the grid in a left-to-right, row-by-row order
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<ArrangerElement?> EnumerateElements() =>
+        public virtual IEnumerable<ArrangerElement?> EnumerateElements() =>
             EnumerateElements(0, 0, ArrangerElementSize.Width, ArrangerElementSize.Height);
 
         /// <summary>
@@ -216,7 +216,7 @@ namespace ImageMagitek
         /// <param name="width">Number of elements to enumerate in x-direction</param>
         /// <param name="height">Number of elements to enumerate in y-direction</param>
         /// <returns></returns>
-        public IEnumerable<ArrangerElement?> EnumerateElements(int elemX, int elemY, int width, int height)
+        public virtual IEnumerable<ArrangerElement?> EnumerateElements(int elemX, int elemY, int width, int height)
         {
             for (int y = 0; y < height; y++)
             {
@@ -231,7 +231,7 @@ namespace ImageMagitek
         /// Returns the enumeration of all ArrangerElement locations in the grid in a left-to-right, row-by-row order
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<(int x, int y)> EnumerateElementLocations() =>
+        public virtual IEnumerable<(int x, int y)> EnumerateElementLocations() =>
             EnumerateElementLocations(0, 0, ArrangerElementSize.Width, ArrangerElementSize.Height);
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace ImageMagitek
         /// <param name="elemY">Starting y-coordinate in element coordinates</param>
         /// <param name="width">Number of elements to enumerate in x-direction</param>
         /// <param name="height">Number of elements to enumerate in y-direction</param>
-        public static IEnumerable<(int x, int y)> EnumerateElementLocations(int elemX, int elemY, int width, int height)
+        public virtual IEnumerable<(int x, int y)> EnumerateElementLocations(int elemX, int elemY, int width, int height)
         {
             for (int y = 0; y < height; y++)
             {
@@ -260,7 +260,7 @@ namespace ImageMagitek
         /// <param name="width">Width of range in pixels</param>
         /// <param name="height">Height of range in pixels</param>
         /// <returns></returns>
-        public IEnumerable<ArrangerElement?> EnumerateElementsByPixel(int pixelX, int pixelY, int width, int height)
+        public virtual IEnumerable<ArrangerElement?> EnumerateElementsByPixel(int pixelX, int pixelY, int width, int height)
         {
             if (width <= 0 || height <= 0)
                 yield break;
@@ -287,7 +287,7 @@ namespace ImageMagitek
         /// <param name="width">Width of range in pixels</param>
         /// <param name="height">Height of range in pixels</param>
         /// <returns>A tuple with the x and y location of the element</returns>
-        public IEnumerable<(int X, int Y)> EnumerateElementLocationsByPixel(int pixelX, int pixelY, int width, int height)
+        public virtual IEnumerable<(int X, int Y)> EnumerateElementLocationsByPixel(int pixelX, int pixelY, int width, int height)
         {
             if (width <= 0 || height <= 0)
                 yield break;
@@ -333,6 +333,9 @@ namespace ImageMagitek
                 .ToHashSet();
         }
 
+        /// <summary>
+        /// Gets all project resources referenced by this arranger
+        /// </summary>
         public abstract IEnumerable<IProjectResource> LinkedResources { get; }
 
         public bool UnlinkResource(IProjectResource resource)

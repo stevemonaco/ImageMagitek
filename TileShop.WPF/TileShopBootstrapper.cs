@@ -43,6 +43,7 @@ namespace TileShop.WPF
             var paletteService = bootstrapper.CreatePaletteService(BootstrapService.DefaultPalettePath, settings);
             var codecService = bootstrapper.CreateCodecService(BootstrapService.DefaultCodecPath, BootstrapService.DefaultCodecSchemaFileName);
             //var pluginService = bootstrapper.CreatePluginService(BootstrapService.DefaultPluginPath, codecService);
+            var layoutService = bootstrapper.CreateTileLayoutService(BootstrapService.DefaultLayoutsPath);
 
             var defaultResources = paletteService.GlobalPalettes;
             var serializerFactory = new XmlProjectSerializerFactory(BootstrapService.DefaultResourceSchemaFileName,
@@ -53,6 +54,7 @@ namespace TileShop.WPF
             builder.RegisterInstance(paletteService);
             builder.RegisterInstance(codecService);
             //builder.RegisterInstance(pluginService);
+            builder.RegisterInstance(layoutService);
             builder.RegisterInstance(projectService);
         }
 
