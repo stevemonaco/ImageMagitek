@@ -274,7 +274,7 @@ namespace ImageMagitek
             {
                 for (int x = elemX; x < elemX2; x++)
                 {
-                    yield return GetElement(x, y);
+                    yield return ElementGrid[y, x];
                 }
             }
         }

@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Collections.Generic;
 using ImageMagitek.Project;
-using ImageMagitek.Codec;
-using System.Linq;
 
 namespace ImageMagitek
 {
     public sealed class ScatteredArranger: Arranger
     {
+        /// <inheritdoc/>
         public override bool ShouldBeSerialized { get; set; } = true;
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace ImageMagitek
             {
                 for (int x = 0; x < elemsWidth; x++)
                 {
-                    var el = GetElement(x + elemX, y + elemY)?.WithLocation(x * ElementPixelSize.Width, y * ElementPixelSize.Height);
+                    var el = ElementGrid[y + elemY, x + elemX]?.WithLocation(x * ElementPixelSize.Width, y * ElementPixelSize.Height);
                     if (el is ArrangerElement element)
                         arranger.SetElement(element, x, y);
                 }
