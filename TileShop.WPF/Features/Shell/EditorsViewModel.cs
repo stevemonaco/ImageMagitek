@@ -22,7 +22,7 @@ namespace TileShop.WPF.ViewModels
         private readonly ICodecService _codecService;
         private readonly IPaletteService _paletteService;
         private readonly IProjectService _projectService;
-        private readonly ITileLayoutService _layoutService;
+        private readonly IElementLayoutService _layoutService;
         private readonly AppSettings _settings;
         private readonly IEventAggregator _events;
 
@@ -53,7 +53,7 @@ namespace TileShop.WPF.ViewModels
         };
 
         public EditorsViewModel(AppSettings settings, IEventAggregator events, IWindowManager windowManager, Tracker tracker,
-            ICodecService codecService, IPaletteService paletteService, IProjectService projectService, ITileLayoutService layoutService)
+            ICodecService codecService, IPaletteService paletteService, IProjectService projectService, IElementLayoutService layoutService)
         {
             _settings = settings;
             _events = events;

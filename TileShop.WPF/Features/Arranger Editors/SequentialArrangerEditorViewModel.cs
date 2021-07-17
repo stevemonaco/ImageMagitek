@@ -16,7 +16,7 @@ namespace TileShop.WPF.ViewModels
     public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouseCaptureProxy
     {
         private readonly ICodecService _codecService;
-        private readonly ITileLayoutService _layoutService;
+        private readonly IElementLayoutService _layoutService;
         private readonly Tracker _tracker;
         private IndexedImage _indexedImage;
         private DirectImage _directImage;
@@ -206,7 +206,7 @@ namespace TileShop.WPF.ViewModels
         }
 
         public SequentialArrangerEditorViewModel(SequentialArranger arranger, IEventAggregator events, IWindowManager windowManager, 
-            Tracker tracker, ICodecService codecService, IPaletteService paletteService, ITileLayoutService layoutService) :
+            Tracker tracker, ICodecService codecService, IPaletteService paletteService, IElementLayoutService layoutService) :
             base(events, windowManager, paletteService)
         {
             Resource = arranger;
@@ -221,8 +221,8 @@ namespace TileShop.WPF.ViewModels
             CodecNames = new(codecService.GetSupportedCodecNames().OrderBy(x => x));
             _selectedCodecName = arranger.ActiveCodec.Name;
 
-            TileLayoutNames = new(_layoutService.TileLayouts.Select(x => x.Key).OrderBy(x => x));
-            _selectedTileLayoutName = _layoutService.DefaultTileLayout.Name;
+            TileLayoutNames = new(_layoutService.ElementLayouts.Select(x => x.Key).OrderBy(x => x));
+            _selectedTileLayoutName = _layoutService.DefaultElementLayout.Name;
 
             if (arranger.Layout == ArrangerLayout.Tiled)
             {
@@ -419,7 +419,7 @@ namespace TileShop.WPF.ViewModels
 
         private void ChangeTileLayout()
         {
-            var layout = _layoutService.TileLayouts[SelectedTileLayoutName];
+            var layout = _layoutService.ElementLayouts[SelectedTileLayoutName];
             (WorkingArranger as SequentialArranger).ChangeElementLayout(layout);
             ArrangerWidthIncrement = layout.Width;
             ArrangerHeightIncrement = layout.Height;

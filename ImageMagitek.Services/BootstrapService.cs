@@ -118,21 +118,21 @@ namespace ImageMagitek.Services
             return projectService;
         }
 
-        public virtual ITileLayoutService CreateTileLayoutService(string layoutPath)
+        public virtual IElementLayoutService CreateTileLayoutService(string layoutPath)
         {
             if (!Directory.Exists(layoutPath))
                 throw new ArgumentException($"{nameof(CreateTileLayoutService)} failed because the path '{layoutPath}' does not exist");
 
-            var layoutService = new TileLayoutService();
+            var layoutService = new ElementLayoutService();
             foreach (var fileName in Directory.GetFiles(layoutPath, "*.json"))
             {
                 layoutService.LoadLayout(fileName);
             }
 
-            if (layoutService.TileLayouts.TryGetValue("Default", out var defaultLayout))
-                layoutService.DefaultTileLayout = defaultLayout;
+            if (layoutService.ElementLayouts.TryGetValue("Default", out var defaultLayout))
+                layoutService.DefaultElementLayout = defaultLayout;
             else
-                layoutService.DefaultTileLayout = layoutService.TileLayouts.First().Value;
+                layoutService.DefaultElementLayout = layoutService.ElementLayouts.First().Value;
 
             return layoutService;
         }
