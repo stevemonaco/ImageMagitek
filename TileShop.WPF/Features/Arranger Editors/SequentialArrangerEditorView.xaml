@@ -87,6 +87,11 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
 
+                    <!--<ui:DropDownButton ToolTip="Tile Layout Pattern">
+                        <ui:DropDownButton.Flyout>
+                        </ui:DropDownButton.Flyout>
+                    </ui:DropDownButton>-->
+
                     <ComboBox
                         Focusable="False"
                         ItemsSource="{Binding TileLayoutNames}"

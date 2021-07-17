@@ -44,9 +44,9 @@ namespace ImageMagitek
         public Palette ActivePalette { get; private set; }
 
         /// <summary>
-        /// Layout used arrange tiles when ArrangerLayout is Tiled
+        /// Layout used arrange elements when ArrangerLayout is Tiled
         /// </summary>
-        public TileLayout TileLayout { get; private set; }
+        public ElementLayout ElementLayout { get; private set; }
 
         private readonly ICodecFactory _codecs;
 
@@ -79,6 +79,7 @@ namespace ImageMagitek
             };
 
             ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);
+            ElementLayout = ElementLayout.Default;
 
             Resize(arrangerWidth, arrangerHeight);
         }
@@ -90,13 +91,20 @@ namespace ImageMagitek
         {
             var address = FileAddress;
 
-            if (TileLayout is null || Layout == ArrangerLayout.Single)
+            var patternsX = ArrangerElementSize.Width / ElementLayout.Width;
+            var patternsY = ArrangerElementSize.Height / ElementLayout.Height;
+
+            for (int y = 0; y < patternsY; y++)
             {
-                for (int posY = 0; posY < ArrangerElementSize.Height; posY++)
+                for (int x = 0; x < patternsX; x++)
                 {
-                    for (int posX = 0; posX < ArrangerElementSize.Width; posX++)
+                    foreach (var pos in ElementLayout.Pattern)
                     {
-                        var el = new ArrangerElement(posX * ElementPixelSize.Width, posY * ElementPixelSize.Height, ActiveDataFile, address, ActiveCodec, ActivePalette);
+                        var posX = x * ElementLayout.Width + pos.X;
+                        var posY = y * ElementLayout.Height + pos.Y;
+
+                        var el = new ArrangerElement(posX * ElementPixelSize.Width,
+                            posY * ElementPixelSize.Height, ActiveDataFile, address, ActiveCodec, ActivePalette);
 
                         if (el.Codec.Layout == ImageLayout.Tiled)
                             address += ActiveCodec.StorageSize;
@@ -106,35 +114,6 @@ namespace ImageMagitek
                             throw new NotSupportedException();
 
                         ElementGrid[posY, posX] = el;
-                    }
-                }
-            }
-            else
-            {
-                var patternsX = ArrangerElementSize.Width / TileLayout.Width;
-                var patternsY = ArrangerElementSize.Height / TileLayout.Height;
-
-                for (int y = 0; y < patternsY; y++)
-                {
-                    for (int x = 0; x < patternsX; x++)
-                    {
-                        foreach (var pos in TileLayout.Pattern)
-                        {
-                            var posX = x * TileLayout.Width + pos.X;
-                            var posY = y * TileLayout.Height + pos.Y;
-
-                            var el = new ArrangerElement(posX * ElementPixelSize.Width,
-                                posY * ElementPixelSize.Height, ActiveDataFile, address, ActiveCodec, ActivePalette);
-
-                            if (el.Codec.Layout == ImageLayout.Tiled)
-                                address += ActiveCodec.StorageSize;
-                            else if (el.Codec.Layout == ImageLayout.Single)
-                                address += ElementPixelSize.Width * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
-                            else
-                                throw new NotSupportedException();
-
-                            ElementGrid[posY, posX] = el;
-                        }
                     }
                 }
             }
@@ -235,9 +214,12 @@ namespace ImageMagitek
                 ElementGrid[posY, posX] = element;
         }
 
-        public void ChangeTileLayout(TileLayout layout)
+        /// <summary>
+        /// Changes the arranger's element layout
+        /// </summary>
+        public void ChangeElementLayout(ElementLayout layout)
         {
-            TileLayout = layout;
+            ElementLayout = layout;
             PerformLayout();
         }
 
@@ -255,7 +237,6 @@ namespace ImageMagitek
         /// <param name="arrangerHeight">Arranger Height in Elements</param>
         public void ChangeCodec(IGraphicsCodec codec, int arrangerWidth, int arrangerHeight)
         {
-            FileBitAddress address = FileAddress;
             ElementPixelSize = new Size(codec.Width, codec.Height);
 
             ActiveCodec = codec;
@@ -270,33 +251,7 @@ namespace ImageMagitek
                 Resize(arrangerWidth, arrangerHeight);
 
             ArrangerBitSize = ArrangerElementSize.Width * ArrangerElementSize.Height * codec.StorageSize;
-
-            int elY = 0;
-
-            for (int posY = 0; posY < ArrangerElementSize.Height; posY++)
-            {
-                int elX = 0;
-                for (int posX = 0; posX < ArrangerElementSize.Width; posX++)
-                {
-                    if (ElementGrid[posY, posX] is ArrangerElement el)
-                    {
-                        el = new ArrangerElement(elX, elY, el.DataFile, address, _codecs.CloneCodec(ActiveCodec), el.Palette);
-                        ElementGrid[posY, posX] = el;
-
-                        if (ActiveCodec.Layout == ImageLayout.Tiled)
-                            address += ActiveCodec.StorageSize;
-                        else if (ActiveCodec.Layout == ImageLayout.Single)
-                            address += ElementPixelSize.Width * ActiveCodec.ColorDepth / 4; // TODO: Fix sequential arranger offsets to be bit-wise
-                        else
-                            throw new NotSupportedException();
-                    }
-
-                    elX += ElementPixelSize.Width;
-                }
-                elY += ElementPixelSize.Height;
-            }
-
-            Move(FileAddress);
+            PerformLayout();
         }
 
         /// <summary>
@@ -368,13 +323,13 @@ namespace ImageMagitek
                 throw new InvalidOperationException($"{nameof(GetInitialSequentialFileAddress)} property '{nameof(Mode)}' " + 
                     $"is in invalid {nameof(ArrangerMode)} ({Mode})");
 
-            if (TileLayout is null)
+            if (ElementLayout is null)
             {
                 return ElementGrid[0, 0]?.FileAddress ?? 0;
             }
             else
             {
-                var layoutElement = TileLayout.Pattern.First();
+                var layoutElement = ElementLayout.Pattern.First();
                 return ElementGrid[layoutElement.X, layoutElement.Y]?.FileAddress ?? 0;
             }
         }

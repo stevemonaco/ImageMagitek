@@ -420,7 +420,7 @@ namespace TileShop.WPF.ViewModels
         private void ChangeTileLayout()
         {
             var layout = _layoutService.TileLayouts[SelectedTileLayoutName];
-            (WorkingArranger as SequentialArranger).ChangeTileLayout(layout);
+            (WorkingArranger as SequentialArranger).ChangeElementLayout(layout);
             ArrangerWidthIncrement = layout.Width;
             ArrangerHeightIncrement = layout.Height;
             CreateImages();
