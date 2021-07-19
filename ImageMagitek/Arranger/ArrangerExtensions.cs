@@ -123,7 +123,7 @@ namespace ImageMagitek
             FileBitAddress delta = 0;
 
             var patternWidth = arranger.ElementLayout?.Width ?? 1;
-            var patternHeight = arranger.ElementLayout?.Width ?? 1;
+            var patternHeight = arranger.ElementLayout?.Height ?? 1;
 
             switch (moveType) // Calculate the new address based on the movement command. Negative and post-EOF addresses are handled after the switch
             {

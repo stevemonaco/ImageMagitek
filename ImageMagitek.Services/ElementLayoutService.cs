@@ -15,7 +15,7 @@ namespace ImageMagitek.Services
     public class ElementLayoutService : IElementLayoutService
     {
         public ElementLayout DefaultElementLayout { get; set; } = ElementLayout.Default;
-        public Dictionary<string, ElementLayout> ElementLayouts { get; } = new() { { "Default", ElementLayout.Default } };
+        public Dictionary<string, ElementLayout> ElementLayouts { get; } = new();
 
         /// <summary>
         /// Loads a TileLayout from a JSON file

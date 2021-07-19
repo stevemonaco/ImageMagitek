@@ -10,6 +10,7 @@ using TileShop.WPF.EventModels;
 using Jot;
 using TileShop.WPF.Models;
 using System.Drawing;
+using System.Collections.Generic;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -20,6 +21,7 @@ namespace TileShop.WPF.ViewModels
         private readonly Tracker _tracker;
         private IndexedImage _indexedImage;
         private DirectImage _directImage;
+        private ElementLayout _activeLayout;
 
         private BindableCollection<string> _codecNames = new BindableCollection<string>();
         public BindableCollection<string> CodecNames
@@ -71,7 +73,7 @@ namespace TileShop.WPF.ViewModels
             set
             {
                 if (SetAndNotify(ref _selectedTileLayoutName, value))
-                    ChangeTileLayout();
+                    ChangeElementLayout(_layoutService.ElementLayouts[_selectedTileLayoutName]);
             }
         }
 
@@ -82,8 +84,8 @@ namespace TileShop.WPF.ViewModels
             set
             {
                 var preferredWidth = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
-                SetAndNotify(ref _tiledElementWidth, preferredWidth);
-                ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
+                if (SetAndNotify(ref _tiledElementWidth, preferredWidth))
+                    ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
             }
         }
 
@@ -94,8 +96,8 @@ namespace TileShop.WPF.ViewModels
             set
             {
                 var preferredHeight = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredHeight(value);
-                SetAndNotify(ref _tiledElementHeight, preferredHeight);
-                ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
+                if (SetAndNotify(ref _tiledElementHeight, preferredHeight))
+                    ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
             }
         }
 
@@ -105,8 +107,8 @@ namespace TileShop.WPF.ViewModels
             get => _tiledArrangerWidth;
             set
             {
-                SetAndNotify(ref _tiledArrangerWidth, value);
-                ResizeArranger(TiledArrangerWidth, TiledArrangerHeight);
+                if (SetAndNotify(ref _tiledArrangerWidth, value))
+                    ResizeArranger(TiledArrangerWidth, TiledArrangerHeight);
             }
         }
 
@@ -116,8 +118,8 @@ namespace TileShop.WPF.ViewModels
             get => _tiledArrangerHeight;
             set
             {
-                SetAndNotify(ref _tiledArrangerHeight, value);
-                ResizeArranger(TiledArrangerWidth, TiledArrangerHeight);
+                if (SetAndNotify(ref _tiledArrangerHeight, value))
+                    ResizeArranger(TiledArrangerWidth, TiledArrangerHeight);
             }
         }
 
@@ -223,6 +225,7 @@ namespace TileShop.WPF.ViewModels
 
             TileLayoutNames = new(_layoutService.ElementLayouts.Select(x => x.Key).OrderBy(x => x));
             _selectedTileLayoutName = _layoutService.DefaultElementLayout.Name;
+            _activeLayout = arranger.ElementLayout;
 
             if (arranger.Layout == ArrangerLayout.Tiled)
             {
@@ -350,6 +353,44 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
+        public void ApplyDefaultElementLayout()
+        {
+            ChangeElementLayout(_layoutService.DefaultElementLayout);
+        }
+
+        public void CreateCustomLayout()
+        {
+            var model = new CustomElementLayoutViewModel();
+            _tracker.Track(model);
+
+            if (_windowManager.ShowDialog(model) is true)
+            {
+                var order = new List<Point>();
+                if (model.FlowDirection == ElementLayoutFlowDirection.RowLeftToRight)
+                {
+                    for (int y = 0; y < model.Height; y++)
+                        for (int x = 0; x < model.Width; x++)
+                            order.Add(new Point(x, y));
+                }
+                else if (model.FlowDirection == ElementLayoutFlowDirection.ColumnTopToBottom)
+                {
+                    for (int x = 0; x < model.Width; x++)
+                        for (int y = 0; y < model.Height; y++)
+                            order.Add(new Point(x, y));
+                }
+
+                var layout = new ElementLayout("Custom", model.Width, model.Height, model.Width * model.Height, order);
+                ChangeElementLayout(layout);
+
+                _tracker.Persist(model);
+            }
+        }
+
+        public void ChangeElementLayout(string layoutName)
+        {
+            ChangeElementLayout(_layoutService.ElementLayouts[layoutName]);
+        }
+
         private void Move(ArrangerMoveType moveType)
         {
             var oldAddress = (WorkingArranger as SequentialArranger).FileAddress;
@@ -417,12 +458,17 @@ namespace TileShop.WPF.ViewModels
                 SnapMode = SnapMode.Element;
         }
 
-        private void ChangeTileLayout()
+        private void ChangeElementLayout(ElementLayout layout)
         {
-            var layout = _layoutService.ElementLayouts[SelectedTileLayoutName];
             (WorkingArranger as SequentialArranger).ChangeElementLayout(layout);
             ArrangerWidthIncrement = layout.Width;
             ArrangerHeightIncrement = layout.Height;
+            _tiledArrangerWidth = WorkingArranger.ArrangerElementSize.Width;
+            _tiledArrangerHeight = WorkingArranger.ArrangerElementSize.Height;
+
+            NotifyOfPropertyChange(() => TiledArrangerWidth);
+            NotifyOfPropertyChange(() => TiledArrangerHeight);
+
             CreateImages();
         }
 

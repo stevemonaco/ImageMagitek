@@ -5,10 +5,13 @@
     xmlns:behaviors="clr-namespace:TileShop.WPF.Behaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dd="urn:gong-wpf-dragdrop"
+    xmlns:h="clr-namespace:TileShop.WPF.Helpers"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:TileShop.WPF.Models"
     xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
     xmlns:ui="http://schemas.modernwpf.com/2019"
     xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:SequentialArrangerEditorViewModel}"
@@ -16,6 +19,10 @@
     d:DesignWidth="800"
     Focusable="True"
     mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <h:BindingProxy x:Key="editorProxy" Data="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:SequentialArrangerEditorView}}, Path=DataContext}" />
+    </UserControl.Resources>
 
     <UserControl.InputBindings>
         <KeyBinding Key="OemPlus" Command="{s:Action MoveByteDown}" />
@@ -87,16 +94,40 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
 
-                    <!--<ui:DropDownButton ToolTip="Tile Layout Pattern">
-                        <ui:DropDownButton.Flyout>
-                        </ui:DropDownButton.Flyout>
-                    </ui:DropDownButton>-->
+                    <ui:DropDownButton VerticalAlignment="Top" ToolTip="Element Layout Pattern">
+                        <ui:DropDownButton.Content>
+                            <Image Style="{StaticResource iconElementLayout}" />
+                        </ui:DropDownButton.Content>
 
-                    <ComboBox
-                        Focusable="False"
-                        ItemsSource="{Binding TileLayoutNames}"
-                        SelectedItem="{Binding SelectedTileLayoutName}"
-                        Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <ui:DropDownButton.Flyout>
+                            <ui:MenuFlyout Placement="BottomEdgeAlignedLeft">
+                                <MenuItem
+                                    s:View.ActionTarget="{Binding Data, Source={StaticResource editorProxy}}"
+                                    Command="{s:Action ApplyDefaultElementLayout}"
+                                    Header="Default" />
+                                <MenuItem
+                                    Header="Saved Layouts"
+                                    ItemsSource="{Binding TileLayoutNames}"
+                                    UsesItemContainerTemplate="True"
+                                    Visibility="{Binding TileLayoutNames.Count, Converter={StaticResource CountToVisibilityConverter}}">
+                                    <MenuItem.Resources>
+                                        <!--  x:Key vs DataType issue here: https://github.com/dotnet/wpf/issues/2404  -->
+                                        <ItemContainerTemplate x:Key="{ItemContainerTemplateKey {x:Type sys:String}}">
+                                            <MenuItem
+                                                s:View.ActionTarget="{Binding Data, Source={StaticResource editorProxy}}"
+                                                Command="{s:Action ChangeElementLayout}"
+                                                CommandParameter="{Binding}"
+                                                Header="{Binding}" />
+                                        </ItemContainerTemplate>
+                                    </MenuItem.Resources>
+                                </MenuItem>
+                                <MenuItem
+                                    s:View.ActionTarget="{Binding Data, Source={StaticResource editorProxy}}"
+                                    Command="{s:Action CreateCustomLayout}"
+                                    Header="Custom Layout..." />
+                            </ui:MenuFlyout>
+                        </ui:DropDownButton.Flyout>
+                    </ui:DropDownButton>
 
                     <Slider
                         MinWidth="100"
@@ -152,9 +183,9 @@
                     <!--  Resize Arranger Dimensions in Elements  -->
                     <ui:NumberBox
                         Margin="2,0,0,0"
-                        LargeChange="{Binding ArrangerHeightIncrement}"
-                        Minimum="{Binding ArrangerHeightIncrement}"
-                        SmallChange="{Binding ArrangerHeightIncrement}"
+                        LargeChange="{Binding ArrangerWidthIncrement}"
+                        Minimum="{Binding ArrangerWidthIncrement}"
+                        SmallChange="{Binding ArrangerWidthIncrement}"
                         SpinButtonPlacementMode="Inline"
                         Style="{StaticResource tsNumberBox}"
                         ToolTip="Arranger width in elements"
@@ -178,9 +209,9 @@
                     <ui:NumberBox
                         Margin="2,0,0,0"
                         IsEnabled="{Binding CanResize}"
-                        LargeChange="{Binding WidthIncrement}"
-                        Minimum="{Binding WidthIncrement}"
-                        SmallChange="{Binding WidthIncrement}"
+                        LargeChange="{Binding ElementWidthIncrement}"
+                        Minimum="{Binding ElementWidthIncrement}"
+                        SmallChange="{Binding ElementWidthIncrement}"
                         SpinButtonPlacementMode="Inline"
                         Style="{StaticResource tsNumberBox}"
                         ToolTip="Arranger width in pixels"
@@ -191,9 +222,9 @@
                     <ui:NumberBox
                         Margin="2,0,0,0"
                         IsEnabled="{Binding CanResize}"
-                        LargeChange="{Binding HeightIncrement}"
-                        Minimum="{Binding HeightIncrement}"
-                        SmallChange="{Binding HeightIncrement}"
+                        LargeChange="{Binding ElementHeightIncrement}"
+                        Minimum="{Binding ElementHeightIncrement}"
+                        SmallChange="{Binding ElementHeightIncrement}"
                         SpinButtonPlacementMode="Inline"
                         Style="{StaticResource tsNumberBox}"
                         ToolTip="Arranger height in pixels"

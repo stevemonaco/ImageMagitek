@@ -124,6 +124,11 @@ namespace TileShop.WPF
             tracker.Configure<MenuViewModel>()
                 .Property(p => p.RecentProjectFiles);
 
+            tracker.Configure<CustomElementLayoutViewModel>()
+                .Property(p => p.Width, 1)
+                .Property(p => p.Height, 1)
+                .Property(p => p.FlowDirection, ElementLayoutFlowDirection.RowLeftToRight);
+
             builder.RegisterInstance(tracker);
         }
 

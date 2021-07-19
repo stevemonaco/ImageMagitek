@@ -216,11 +216,26 @@ namespace ImageMagitek
 
         /// <summary>
         /// Changes the arranger's element layout
+        /// <para>The arranger is resized if necessary</para>
         /// </summary>
         public void ChangeElementLayout(ElementLayout layout)
         {
             ElementLayout = layout;
-            PerformLayout();
+
+            var width = ArrangerElementSize.Width - (ArrangerElementSize.Width % layout.Width);
+            width = Math.Max(width, layout.Width);
+
+            var height = ArrangerElementSize.Height - (ArrangerElementSize.Height % layout.Height);
+            height = Math.Max(height, layout.Height);
+
+            if (ArrangerElementSize.Width != width || ArrangerElementSize.Height != height)
+            {
+                Resize(width, height);
+            }
+            else
+            {
+                PerformLayout();
+            }
         }
 
         /// <summary>

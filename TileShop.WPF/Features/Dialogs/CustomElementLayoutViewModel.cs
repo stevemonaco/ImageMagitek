@@ -1,9 +1,4 @@
 ﻿using Stylet;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TileShop.WPF.ViewModels
 {
@@ -22,14 +17,22 @@ namespace TileShop.WPF.ViewModels
         public int Width
         {
             get => _width;
-            set => SetAndNotify(ref _width, value);
+            set
+            {
+                if (SetAndNotify(ref _width, value))
+                    ValidateModel();
+            }
         }
 
         private int _height;
         public int Height
         {
             get => _height;
-            set => SetAndNotify(ref _height, value);
+            set
+            {
+                if (SetAndNotify(ref _height, value))
+                    ValidateModel();
+            }
         }
 
         private bool _canConfirm;
@@ -39,14 +42,33 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _canConfirm, value);
         }
 
-        public void Confirm()
+        private BindableCollection<string> _validationErrors = new BindableCollection<string>();
+        public BindableCollection<string> ValidationErrors
         {
-
+            get => _validationErrors;
+            set => SetAndNotify(ref _validationErrors, value);
         }
 
-        public void Cancel()
+        protected override void OnInitialActivate()
         {
+            ValidateModel();
+        }
 
+        public void Confirm() => RequestClose(true);
+
+        public void Cancel() => RequestClose(false);
+
+        public void ValidateModel()
+        {
+            ValidationErrors.Clear();
+
+            if (Width <= 0)
+                ValidationErrors.Add($"{nameof(Width)} must be 1 or larger");
+
+            if (Height <= 0)
+                ValidationErrors.Add($"{nameof(Height)} must be 1 or larger");
+
+            CanConfirm = ValidationErrors.Count == 0;
         }
     }
 }

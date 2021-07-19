@@ -120,19 +120,16 @@ namespace ImageMagitek.Services
 
         public virtual IElementLayoutService CreateTileLayoutService(string layoutPath)
         {
-            if (!Directory.Exists(layoutPath))
-                throw new ArgumentException($"{nameof(CreateTileLayoutService)} failed because the path '{layoutPath}' does not exist");
-
             var layoutService = new ElementLayoutService();
-            foreach (var fileName in Directory.GetFiles(layoutPath, "*.json"))
-            {
-                layoutService.LoadLayout(fileName);
-            }
+            layoutService.DefaultElementLayout = ElementLayout.Default;
 
-            if (layoutService.ElementLayouts.TryGetValue("Default", out var defaultLayout))
-                layoutService.DefaultElementLayout = defaultLayout;
-            else
-                layoutService.DefaultElementLayout = layoutService.ElementLayouts.First().Value;
+            if (Directory.Exists(layoutPath))
+            {
+                foreach (var fileName in Directory.GetFiles(layoutPath, "*.json"))
+                {
+                    layoutService.LoadLayout(fileName);
+                }
+            }
 
             return layoutService;
         }
