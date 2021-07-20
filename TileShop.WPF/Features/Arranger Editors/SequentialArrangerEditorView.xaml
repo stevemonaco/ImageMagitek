@@ -94,7 +94,10 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
 
-                    <ui:DropDownButton VerticalAlignment="Top" ToolTip="Element Layout Pattern">
+                    <ui:DropDownButton
+                        VerticalAlignment="Top"
+                        ToolTip="Element Layout Pattern"
+                        Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
                         <ui:DropDownButton.Content>
                             <Image Style="{StaticResource iconElementLayout}" />
                         </ui:DropDownButton.Content>
