@@ -86,6 +86,7 @@
                             VerticalContentAlignment="Center"
                             ui:ControlHelper.CornerRadius="{TemplateBinding CornerRadius}"
                             ui:ControlHelper.PlaceholderText="{TemplateBinding PlaceholderText}"
+                            ui:TextBoxHelper.IsDeleteButtonVisible="False"
                             SelectionBrush="{TemplateBinding SelectionBrush}" />
 
                         <Popup
