@@ -223,6 +223,7 @@ namespace TileShop.WPF.ViewModels
             Selection = new ArrangerSelection(WorkingArranger, SnapMode);
             Selection.StartSelection(0, 0);
             Selection.UpdateSelectionEndpoint(WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height);
+            NotifyOfPropertyChange(() => CanEditSelection);
         }
 
         public virtual void CancelOverlay()
