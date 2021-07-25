@@ -73,12 +73,15 @@ namespace TileShop.WPF.ViewModels
             {
                 if (RequestSaveUserChanges(editor, true))
                 {
-                    var projectTree = _projectService.GetContainingProject(editor.Resource);
-                    _projectService.SaveProject(projectTree)
-                    .Switch(
-                        success => { },
-                        fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
-                    );
+                    if (editor is not IndexedPixelEditorViewModel && editor is not DirectPixelEditorViewModel)
+                    {
+                        var projectTree = _projectService.GetContainingProject(editor.Resource);
+                        _projectService.SaveProject(projectTree)
+                        .Switch(
+                            success => { },
+                            fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
+                        );
+                    }
                 }
                 else
                 {
