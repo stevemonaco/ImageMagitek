@@ -6,14 +6,14 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <UseWPF>true</UseWPF>
     <AssemblyName>TileShop</AssemblyName>
-    <Version>0.990</Version>
+    <Version>0.991</Version>
     <Authors>Steve Monaco</Authors>
     <PackageProjectUrl>https://github.com/stevemonaco/ImageMagitek</PackageProjectUrl>
     <RepositoryUrl>https://github.com/stevemonaco/ImageMagitek</RepositoryUrl>
     <Copyright>2021</Copyright>
     <ApplicationIcon>Assets\tsicon.ico</ApplicationIcon>
-    <AssemblyVersion>0.990.0.0</AssemblyVersion>
-    <FileVersion>0.990.0.0</FileVersion>
+    <AssemblyVersion>0.991.0.0</AssemblyVersion>
+    <FileVersion>0.991.0.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
