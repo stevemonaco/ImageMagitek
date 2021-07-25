@@ -25,4 +25,8 @@
         Opacity="0.8"
         Color="Black" />
 
+    <SolidColorBrush
+        x:Key="separatorBrush"
+        Opacity="0.8"
+        Color="Black" />
 </ResourceDictionary>

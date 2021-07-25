@@ -96,6 +96,7 @@
 
                     <ui:DropDownButton
                         VerticalAlignment="Top"
+                        Style="{StaticResource toolbarDropDownButtonStyle}"
                         ToolTip="Element Layout Pattern"
                         Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
                         <ui:DropDownButton.Content>
@@ -144,6 +145,7 @@
                         Margin="0,0,10,0"
                         Focusable="False"
                         IsChecked="{Binding ShowGridlines}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
                         ToolTip="Toggle gridline visibility">
                         <Image Style="{StaticResource iconGrid}" />
                     </ToggleButton>
@@ -152,6 +154,7 @@
                         Margin="0,0,10,0"
                         Focusable="False"
                         IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
                         ToolTip="Snap Selection to Elements"
                         Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Image Style="{StaticResource iconSnap}" />
@@ -240,6 +243,7 @@
                         Click="{s:Action EditSelection}"
                         Focusable="False"
                         IsEnabled="{Binding CanEditSelection}"
+                        Style="{StaticResource toolBarButtonStyle}"
                         ToolTip="Opens selection in the pixel editor">
                         <Image Style="{StaticResource iconEdit}" />
                     </Button>

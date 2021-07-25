@@ -164,8 +164,51 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal">
-            <local:AppIconView Padding="2,0,2,0" />
+            <local:AppIconView Padding="8,0,8,0" />
             <ContentControl s:View.Model="{Binding ActiveMenu}" WindowChrome.IsHitTestVisibleInChrome="True" />
+
+            <Border
+                Margin="5,12,5,10"
+                BorderBrush="{StaticResource separatorBrush}"
+                BorderThickness="1" />
+
+            <Button
+                Margin="10,2,0,0"
+                Padding="0"
+                s:View.ActionTarget="{Binding Editors.ActiveEditor}"
+                Click="{s:Action Undo}"
+                IsEnabled="{Binding Editors.ActiveEditor.CanUndo, FallbackValue=False}"
+                Style="{StaticResource toolBarButtonStyle}"
+                ToolTip="Undo (Ctrl+Z)"
+                WindowChrome.IsHitTestVisibleInChrome="True">
+                <Image Style="{StaticResource iconMenuUndo}" />
+            </Button>
+
+            <Button
+                Margin="6,2,0,0"
+                Padding="0"
+                s:View.ActionTarget="{Binding Editors.ActiveEditor}"
+                Click="{s:Action Redo}"
+                IsEnabled="{Binding Editors.ActiveEditor.CanRedo, FallbackValue=False}"
+                Style="{StaticResource toolBarButtonStyle}"
+                ToolTip="Redo (Ctrl+Y)"
+                WindowChrome.IsHitTestVisibleInChrome="True">
+                <Image Style="{StaticResource iconMenuRedo}" />
+            </Button>
+
+            <Button
+                Margin="6,2,0,0"
+                Padding="0"
+                s:View.ActionTarget="{Binding Editors.ActiveEditor}"
+                Click="{s:Action SaveChanges}"
+                IsEnabled="{Binding Editors.ActiveEditor.IsModified, FallbackValue=False}"
+                Style="{StaticResource toolBarButtonStyle}"
+                WindowChrome.IsHitTestVisibleInChrome="True">
+                <Button.ToolTip>
+                    <ToolTip Content="{Binding Editors.ActiveEditor.DisplayName}" ContentStringFormat="Save {0} (Ctrl+S)" />
+                </Button.ToolTip>
+                <Image Style="{StaticResource iconMenuSave}" />
+            </Button>
         </StackPanel>
 
         <Grid x:Name="mainGrid" Grid.Row="1">

@@ -1,0 +1,64 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.modernwpf.com/2019">
+    <Style
+        x:Key="toolBarButtonStyle"
+        BasedOn="{StaticResource DefaultButtonStyle}"
+        TargetType="Button">
+        <Style.Resources>
+            <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="Transparent" />
+        </Style.Resources>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.25" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="menuBarButtonStyle"
+        BasedOn="{StaticResource DefaultButtonStyle}"
+        TargetType="Button">
+        <Style.Resources>
+            <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="Transparent" />
+        </Style.Resources>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="toolBarToggleButtonStyle"
+        BasedOn="{StaticResource DefaultToggleButtonStyle}"
+        TargetType="ToggleButton">
+        <Style.Resources>
+            <SolidColorBrush x:Key="ToggleButtonBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="ToggleButtonBackgroundDisabled" Color="Transparent" />
+        </Style.Resources>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="toolBarRadioButtonStyle"
+        BasedOn="{StaticResource DefaultRadioButtonStyle}"
+        TargetType="RadioButton">
+        <Style.Resources>
+            <SolidColorBrush x:Key="RadioButtonBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="RadioButtonBackgroundDisabled" Color="Transparent" />
+        </Style.Resources>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

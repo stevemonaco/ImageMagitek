@@ -9,6 +9,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ui:XamlControlsResources />
                 <!--  Color Theming  -->
                 <ui:ThemeResources>
                     <ui:ThemeResources.ThemeDictionaries>
@@ -25,11 +26,12 @@
                                 <ui:ColorPaletteResources AltHigh="#FF2B2B2B" TargetTheme="Dark" />
                                 <ResourceDictionary Source="/Styles/Theming/TileShop.Dark.xaml" />
                                 <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/DarkTheme.xaml" />
+
                             </ResourceDictionary.MergedDictionaries>
                         </ResourceDictionary>
                     </ui:ThemeResources.ThemeDictionaries>
                 </ui:ThemeResources>
-                <ui:XamlControlsResources />
+
 
                 <!--  TileShop Resources  -->
                 <ResourceDictionary>
@@ -73,7 +75,10 @@
 
                 <!--  TileShop Control Styles  -->
                 <ResourceDictionary Source="/TileShop;component/Styles/Icons.xaml" />
+
+                <ResourceDictionary Source="/TileShop;component/Styles/ButtonStyles.xaml" />
                 <ResourceDictionary Source="/TileShop;component/Styles/NumberBox.xaml" />
+                <ResourceDictionary Source="/TileShop;component/Styles/ToolbarDropDownButton.xaml" />
                 <ResourceDictionary Source="/ModernWpf;component/Styles/TreeView.xaml" />
 
             </ResourceDictionary.MergedDictionaries>

@@ -66,7 +66,7 @@
                         HorizontalContentAlignment="Center"
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
-                        Style="{StaticResource {x:Type ToggleButton}}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
                         ToolTip="Click and drag across Arranger to select a region">
                         <Image Style="{StaticResource iconCursor}" />
                     </RadioButton>
@@ -75,7 +75,7 @@
                         VerticalContentAlignment="Center"
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
-                        Style="{StaticResource {x:Type ToggleButton}}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
                         ToolTip="Click on an Arranger element to apply the current palette">
                         <Image Style="{StaticResource iconPaletteBrush}" />
                     </RadioButton>
@@ -84,7 +84,7 @@
                         VerticalContentAlignment="Center"
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PickPalette}"
-                        Style="{StaticResource {x:Type ToggleButton}}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
                         ToolTip="Click on an Arranger element to pick its associated palette">
                         <Image Style="{StaticResource iconPalettePicker}" />
                     </RadioButton>
@@ -93,14 +93,17 @@
                         HorizontalContentAlignment="Center"
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=InspectElement}"
-                        Style="{StaticResource {x:Type ToggleButton}}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
                         ToolTip="Hover Arranger elements to inspect their properties">
                         <Image Style="{StaticResource iconEye}" />
                     </RadioButton>
                 </StackPanel>
             </StackPanel>
 
-            <Separator Margin="5,0,5,0" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+            <Border
+                Margin="5,0,12,0"
+                BorderBrush="{StaticResource separatorBrush}"
+                BorderThickness="1" />
 
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Palette" />
@@ -118,9 +121,15 @@
                 VerticalAlignment="Bottom"
                 VerticalContentAlignment="Center"
                 Click="{s:Action AssociatePalette}"
+                Style="{StaticResource toolBarButtonStyle}"
                 ToolTip="Asssociate a Palette from this Project with this Arranger">
                 <Image Style="{StaticResource iconPlusCircle}" />
             </Button>
+
+            <Border
+                Margin="6,0,6,0"
+                BorderBrush="{StaticResource separatorBrush}"
+                BorderThickness="1" />
 
             <StackPanel Margin="10,0,10,0">
                 <TextBlock HorizontalAlignment="Center" Text="Zoom" />
@@ -139,6 +148,7 @@
                     Padding="0"
                     Focusable="False"
                     IsChecked="{Binding ShowGridlines}"
+                    Style="{StaticResource toolBarToggleButtonStyle}"
                     ToolTip="Toggle gridline visibility">
                     <StackPanel>
                         <TextBlock Text="Grid" />
@@ -154,6 +164,7 @@
                     Padding="0"
                     Focusable="False"
                     IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
+                    Style="{StaticResource toolBarToggleButtonStyle}"
                     ToolTip="Snap Selection to Elements"
                     Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <StackPanel>
@@ -163,13 +174,17 @@
                 </ToggleButton>
             </StackPanel>
 
-            <Separator Margin="5,0,5,0" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+            <Border
+                Margin="12,0,12,0"
+                BorderBrush="{StaticResource separatorBrush}"
+                BorderThickness="1" />
 
             <Button
                 Width="40"
                 Height="45"
                 Padding="0"
                 Click="{s:Action ResizeArranger}"
+                Style="{StaticResource toolBarButtonStyle}"
                 ToolTip="Resizes the Arranger"
                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel>
@@ -185,52 +200,11 @@
                 Padding="0"
                 Click="{s:Action EditSelection}"
                 IsEnabled="{Binding CanEditSelection}"
+                Style="{StaticResource toolBarButtonStyle}"
                 ToolTip="Opens selection in the pixel editor">
                 <StackPanel>
                     <TextBlock Text="Edit" />
                     <Image Style="{StaticResource iconEdit}" />
-                </StackPanel>
-            </Button>
-
-            <Button
-                Width="40"
-                Height="45"
-                Margin="5,0,0,0"
-                Padding="0"
-                Click="{s:Action Undo}"
-                IsEnabled="{Binding CanUndo}"
-                ToolTip="Undo">
-                <StackPanel>
-                    <TextBlock Text="Undo" />
-                    <Image Style="{StaticResource iconUndo}" />
-                </StackPanel>
-            </Button>
-
-            <Button
-                Width="40"
-                Height="45"
-                Margin="5,0,0,0"
-                Padding="0"
-                Click="{s:Action Redo}"
-                IsEnabled="{Binding CanRedo}"
-                ToolTip="Redo">
-                <StackPanel>
-                    <TextBlock Text="Redo" />
-                    <Image Style="{StaticResource iconRedo}" />
-                </StackPanel>
-            </Button>
-
-            <Button
-                Width="40"
-                Height="45"
-                Margin="5,0,0,0"
-                Padding="0"
-                Click="{s:Action SaveChanges}"
-                IsEnabled="{Binding IsModified}"
-                ToolTip="Saves arranger">
-                <StackPanel>
-                    <TextBlock Text="Save" />
-                    <Image Style="{StaticResource iconSave}" />
                 </StackPanel>
             </Button>
         </StackPanel>

@@ -65,7 +65,10 @@
                 Maximum="{Binding MaxZoom}"
                 Minimum="{Binding MinZoom}"
                 Value="{Binding Zoom}" />
-            <ToggleButton IsChecked="{Binding ShowGridlines}" ToolTip="Toggle gridline visibility">
+            <ToggleButton
+                IsChecked="{Binding ShowGridlines}"
+                Style="{StaticResource toolBarToggleButtonStyle}"
+                ToolTip="Toggle gridline visibility">
                 <Image Style="{StaticResource iconGrid}" />
             </ToggleButton>
 
@@ -80,7 +83,7 @@
                 VerticalContentAlignment="Center"
                 GroupName="Tools"
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
-                Style="{StaticResource {x:Type ToggleButton}}"
+                Style="{StaticResource toolBarToggleButtonStyle}"
                 ToolTip="Select Tool">
                 <Image Style="{StaticResource iconCursor}" />
             </RadioButton>
@@ -89,21 +92,21 @@
                 VerticalContentAlignment="Center"
                 GroupName="Tools"
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Pencil}"
-                Style="{StaticResource {x:Type ToggleButton}}"
+                Style="{StaticResource toolBarToggleButtonStyle}"
                 ToolTip="Pencil Tool">
                 <Image Style="{StaticResource iconPencil}" />
             </RadioButton>
             <RadioButton
                 GroupName="Tools"
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ColorPicker}"
-                Style="{StaticResource {x:Type ToggleButton}}"
+                Style="{StaticResource toolBarToggleButtonStyle}"
                 ToolTip="Color Picker Tool">
                 <Image Style="{StaticResource iconColorPicker}" />
             </RadioButton>
             <RadioButton
                 GroupName="Tools"
                 IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=FloodFill}"
-                Style="{StaticResource {x:Type ToggleButton}}"
+                Style="{StaticResource toolBarToggleButtonStyle}"
                 ToolTip="Flood Fill Tool">
                 <Image Style="{StaticResource iconFloodFill}" />
             </RadioButton>
@@ -140,34 +143,11 @@
 
             <Button
                 Margin="10,0,0,0"
-                Click="{s:Action Undo}"
-                IsEnabled="{Binding CanUndo}"
-                ToolTip="Undo">
-                <Image Style="{StaticResource iconUndo}" />
-            </Button>
-
-            <Button
-                Margin="10,0,0,0"
-                Click="{s:Action Redo}"
-                IsEnabled="{Binding CanRedo}"
-                ToolTip="Redo">
-                <Image Style="{StaticResource iconRedo}" />
-            </Button>
-
-            <Button
-                Margin="10,0,0,0"
                 Click="{s:Action RemapColors}"
                 IsEnabled="{Binding CanRemapColors}"
+                Style="{StaticResource toolBarButtonStyle}"
                 ToolTip="Remap Palette Colors">
                 <Image Style="{StaticResource iconRemap}" />
-            </Button>
-
-            <Button
-                Margin="10,0,0,0"
-                Click="{s:Action SaveChanges}"
-                IsEnabled="{Binding IsModified}"
-                ToolTip="Saves image to underlying file">
-                <Image Style="{StaticResource iconSave}" />
             </Button>
         </StackPanel>
 

@@ -86,7 +86,6 @@
             <!--
         <MenuItem Header="_Plugins" />
             -->
-
         </Menu>
     </Grid>
 </UserControl>
