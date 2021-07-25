@@ -133,7 +133,8 @@
                                 Height="35"
                                 Focusable="False"
                                 ItemsSource="{Binding Palettes}"
-                                SelectedItem="{Binding SelectedPalette}">
+                                SelectedItem="{Binding SelectedPalette}"
+                                Visibility="{Binding Palettes.Count, Converter={StaticResource MultipleCountToVisibilityConverter}}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Name}" />
