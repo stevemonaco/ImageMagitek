@@ -141,36 +141,26 @@
                     Value="{Binding Zoom}" />
             </StackPanel>
 
-            <StackPanel VerticalAlignment="Center">
+            <StackPanel>
+                <TextBlock HorizontalAlignment="Center" Text="Grid" />
                 <ToggleButton
-                    Width="40"
-                    Height="45"
-                    Padding="0"
                     Focusable="False"
                     IsChecked="{Binding ShowGridlines}"
                     Style="{StaticResource toolBarToggleButtonStyle}"
                     ToolTip="Toggle gridline visibility">
-                    <StackPanel>
-                        <TextBlock Text="Grid" />
-                        <Image Style="{StaticResource iconGrid}" />
-                    </StackPanel>
+                    <Image Style="{StaticResource iconGrid}" />
                 </ToggleButton>
             </StackPanel>
 
-            <StackPanel Margin="5,0,0,0" VerticalAlignment="Center">
+            <StackPanel Margin="5,0,0,0">
+                <TextBlock HorizontalAlignment="Center" Text="Snap" />
                 <ToggleButton
-                    Width="40"
-                    Height="45"
-                    Padding="0"
                     Focusable="False"
                     IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
                     Style="{StaticResource toolBarToggleButtonStyle}"
                     ToolTip="Snap Selection to Elements"
                     Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <StackPanel>
-                        <TextBlock Text="Snap" />
-                        <Image Style="{StaticResource iconSnap}" />
-                    </StackPanel>
+                    <Image Style="{StaticResource iconSnap}" />
                 </ToggleButton>
             </StackPanel>
 
@@ -179,34 +169,29 @@
                 BorderBrush="{StaticResource separatorBrush}"
                 BorderThickness="1" />
 
-            <Button
-                Width="40"
-                Height="45"
-                Padding="0"
-                Click="{s:Action ResizeArranger}"
-                Style="{StaticResource toolBarButtonStyle}"
-                ToolTip="Resizes the Arranger"
-                Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <StackPanel>
-                    <TextBlock Text="Resize" />
-                    <Image Style="{StaticResource iconResize}" />
-                </StackPanel>
-            </Button>
+            <StackPanel>
+                <TextBlock HorizontalAlignment="Center" Text="Resize" />
 
-            <Button
-                Width="40"
-                Height="45"
-                Margin="5,0,0,0"
-                Padding="0"
-                Click="{s:Action EditSelection}"
-                IsEnabled="{Binding CanEditSelection}"
-                Style="{StaticResource toolBarButtonStyle}"
-                ToolTip="Opens selection in the pixel editor">
-                <StackPanel>
-                    <TextBlock Text="Edit" />
+                <Button
+                    Click="{s:Action ResizeArranger}"
+                    Style="{StaticResource toolBarButtonStyle}"
+                    ToolTip="Resizes the Arranger"
+                    Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Image Style="{StaticResource iconResize}" />
+                </Button>
+            </StackPanel>
+
+            <StackPanel Margin="5,0,0,0">
+                <TextBlock HorizontalAlignment="Center" Text="Edit" />
+
+                <Button
+                    Click="{s:Action EditSelection}"
+                    IsEnabled="{Binding CanEditSelection}"
+                    Style="{StaticResource toolBarButtonStyle}"
+                    ToolTip="Opens selection in the pixel editor">
                     <Image Style="{StaticResource iconEdit}" />
-                </StackPanel>
-            </Button>
+                </Button>
+            </StackPanel>
         </StackPanel>
 
         <!--  Image Display  -->

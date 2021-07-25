@@ -52,6 +52,128 @@
 
         <!--  Toolbar  -->
         <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal">
+            <StackPanel Margin="10,0,10,0">
+                <TextBlock HorizontalAlignment="Center" Text="Zoom" />
+                <Slider
+                    MinWidth="100"
+                    Maximum="{Binding MaxZoom}"
+                    Minimum="{Binding MinZoom}"
+                    ToolTip="Zoom"
+                    Value="{Binding Zoom}" />
+            </StackPanel>
+
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock HorizontalAlignment="Center" Text="Grid" />
+                <ToggleButton
+                    Focusable="False"
+                    IsChecked="{Binding ShowGridlines}"
+                    Style="{StaticResource toolBarToggleButtonStyle}"
+                    ToolTip="Toggle gridline visibility">
+                    <Image Style="{StaticResource iconGrid}" />
+                </ToggleButton>
+            </StackPanel>
+
+            <Border
+                Margin="5,6,5,4"
+                BorderBrush="{StaticResource separatorBrush}"
+                BorderThickness="1" />
+
+            <!--  Tools  -->
+            <StackPanel>
+                <TextBlock HorizontalAlignment="Center" Text="Tools" />
+
+                <StackPanel Orientation="Horizontal">
+                    <RadioButton
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
+                        ToolTip="Select Tool">
+                        <Image Style="{StaticResource iconCursor}" />
+                    </RadioButton>
+                    <RadioButton
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Pencil}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
+                        ToolTip="Pencil Tool">
+                        <Image Style="{StaticResource iconPencil}" />
+                    </RadioButton>
+                    <RadioButton
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ColorPicker}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
+                        ToolTip="Color Picker Tool">
+                        <Image Style="{StaticResource iconColorPicker}" />
+                    </RadioButton>
+                    <RadioButton
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=FloodFill}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
+                        ToolTip="Flood Fill Tool">
+                        <Image Style="{StaticResource iconFloodFill}" />
+                    </RadioButton>
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel>
+                <TextBlock HorizontalAlignment="Center" Text="Active Colors" />
+                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                    <Border BorderBrush="Black" BorderThickness="2">
+                        <Border BorderBrush="White" BorderThickness="2">
+                            <Rectangle
+                                Width="26"
+                                Height="26"
+                                ToolTip="Primary Color">
+                                <Rectangle.Fill>
+                                    <MultiBinding Converter="{StaticResource PaletteIndexToColorConverter}">
+                                        <Binding Path="ActivePalette" />
+                                        <Binding Path="PrimaryColor" />
+                                    </MultiBinding>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                        </Border>
+                    </Border>
+                    <Border BorderBrush="Black" BorderThickness="2">
+                        <Border BorderBrush="White" BorderThickness="2">
+                            <Rectangle
+                                Width="26"
+                                Height="26"
+                                ToolTip="Secondary Color">
+                                <Rectangle.Fill>
+                                    <MultiBinding Converter="{StaticResource PaletteIndexToColorConverter}">
+                                        <Binding Path="ActivePalette" />
+                                        <Binding Path="SecondaryColor" />
+                                    </MultiBinding>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                        </Border>
+                    </Border>
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Margin="8,0,0,0">
+                <TextBlock HorizontalAlignment="Center" Text="Remap" />
+
+                <Button
+                    HorizontalAlignment="Center"
+                    Click="{s:Action RemapColors}"
+                    IsEnabled="{Binding CanRemapColors}"
+                    Style="{StaticResource toolBarButtonStyle}"
+                    ToolTip="Remap Palette Colors">
+                    <Image Style="{StaticResource iconRemap}" />
+                </Button>
+            </StackPanel>
+        </StackPanel>
+
+        <!--  Palette Display  -->
+        <StackPanel
+            Grid.Row="1"
+            Grid.ColumnSpan="2"
+            Margin="4,4,0,0"
+            Orientation="Horizontal">
             <ComboBox ItemsSource="{Binding Palettes}" SelectedValue="{Binding ActivePalette}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
@@ -59,141 +181,51 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-            <Slider
-                MinWidth="100"
-                Margin="10,0,10,0"
-                Maximum="{Binding MaxZoom}"
-                Minimum="{Binding MinZoom}"
-                Value="{Binding Zoom}" />
-            <ToggleButton
-                IsChecked="{Binding ShowGridlines}"
-                Style="{StaticResource toolBarToggleButtonStyle}"
-                ToolTip="Toggle gridline visibility">
-                <Image Style="{StaticResource iconGrid}" />
-            </ToggleButton>
 
-            <Border
-                Margin="5,4,5,4"
-                BorderBrush="SlateGray"
-                BorderThickness="1" />
-
-            <!--  Tools  -->
-            <RadioButton
-                HorizontalContentAlignment="Center"
-                VerticalContentAlignment="Center"
-                GroupName="Tools"
-                IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
-                Style="{StaticResource toolBarToggleButtonStyle}"
-                ToolTip="Select Tool">
-                <Image Style="{StaticResource iconCursor}" />
-            </RadioButton>
-            <RadioButton
-                HorizontalContentAlignment="Center"
-                VerticalContentAlignment="Center"
-                GroupName="Tools"
-                IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Pencil}"
-                Style="{StaticResource toolBarToggleButtonStyle}"
-                ToolTip="Pencil Tool">
-                <Image Style="{StaticResource iconPencil}" />
-            </RadioButton>
-            <RadioButton
-                GroupName="Tools"
-                IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ColorPicker}"
-                Style="{StaticResource toolBarToggleButtonStyle}"
-                ToolTip="Color Picker Tool">
-                <Image Style="{StaticResource iconColorPicker}" />
-            </RadioButton>
-            <RadioButton
-                GroupName="Tools"
-                IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=FloodFill}"
-                Style="{StaticResource toolBarToggleButtonStyle}"
-                ToolTip="Flood Fill Tool">
-                <Image Style="{StaticResource iconFloodFill}" />
-            </RadioButton>
-            <Border BorderBrush="Black" BorderThickness="2">
-                <Border BorderBrush="White" BorderThickness="2">
-                    <Rectangle
-                        Width="24"
-                        Height="24"
-                        ToolTip="Primary Color">
-                        <Rectangle.Fill>
-                            <MultiBinding Converter="{StaticResource PaletteIndexToColorConverter}">
-                                <Binding Path="ActivePalette" />
-                                <Binding Path="PrimaryColor" />
-                            </MultiBinding>
-                        </Rectangle.Fill>
-                    </Rectangle>
-                </Border>
-            </Border>
-            <Border BorderBrush="Black" BorderThickness="2">
-                <Border BorderBrush="White" BorderThickness="2">
-                    <Rectangle
-                        Width="24"
-                        Height="24"
-                        ToolTip="Secondary Color">
-                        <Rectangle.Fill>
-                            <MultiBinding Converter="{StaticResource PaletteIndexToColorConverter}">
-                                <Binding Path="ActivePalette" />
-                                <Binding Path="SecondaryColor" />
-                            </MultiBinding>
-                        </Rectangle.Fill>
-                    </Rectangle>
-                </Border>
-            </Border>
-
-            <Button
-                Margin="10,0,0,0"
-                Click="{s:Action RemapColors}"
-                IsEnabled="{Binding CanRemapColors}"
-                Style="{StaticResource toolBarButtonStyle}"
-                ToolTip="Remap Palette Colors">
-                <Image Style="{StaticResource iconRemap}" />
-            </Button>
-        </StackPanel>
-
-        <!--  Palette Display  -->
-        <ItemsControl
-            Grid.Row="1"
-            Grid.ColumnSpan="2"
-            Margin="0,0,0,5"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            ItemsSource="{Binding ActivePalette.Colors}"
-            ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel IsItemsHost="True" Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Border
-                        Margin="1"
-                        BorderBrush="Black"
-                        BorderThickness="1">
-                        <Border BorderBrush="White" BorderThickness="1">
-                            <Rectangle
-                                Width="24"
-                                Height="24"
-                                Fill="{Binding Converter={StaticResource PaletteEntryToSolidColorBrushConverter}}">
-                                <Rectangle.InputBindings>
-                                    <MouseBinding
-                                        s:View.ActionTarget="{Binding DataContext, ElementName=pixelEditor}"
-                                        Command="{s:Action SetPrimaryColor}"
-                                        CommandParameter="{Binding Converter={StaticResource PaletteEntryToIndexConverter}}"
-                                        MouseAction="LeftClick" />
-                                    <MouseBinding
-                                        s:View.ActionTarget="{Binding DataContext, ElementName=pixelEditor}"
-                                        Command="{s:Action SetSecondaryColor}"
-                                        CommandParameter="{Binding Converter={StaticResource PaletteEntryToIndexConverter}}"
-                                        MouseAction="RightClick" />
-                                </Rectangle.InputBindings>
-                            </Rectangle>
+            <ItemsControl
+                Margin="1,0,3,5"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                ItemsSource="{Binding ActivePalette.Colors}"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel
+                            Margin="0,0,3,5"
+                            IsItemsHost="True"
+                            Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border
+                            Margin="1,0,1,0"
+                            BorderBrush="Black"
+                            BorderThickness="1">
+                            <Border BorderBrush="White" BorderThickness="1">
+                                <Rectangle
+                                    Width="28"
+                                    Height="28"
+                                    Fill="{Binding Converter={StaticResource PaletteEntryToSolidColorBrushConverter}}">
+                                    <Rectangle.InputBindings>
+                                        <MouseBinding
+                                            s:View.ActionTarget="{Binding DataContext, ElementName=pixelEditor}"
+                                            Command="{s:Action SetPrimaryColor}"
+                                            CommandParameter="{Binding Converter={StaticResource PaletteEntryToIndexConverter}}"
+                                            MouseAction="LeftClick" />
+                                        <MouseBinding
+                                            s:View.ActionTarget="{Binding DataContext, ElementName=pixelEditor}"
+                                            Command="{s:Action SetSecondaryColor}"
+                                            CommandParameter="{Binding Converter={StaticResource PaletteEntryToIndexConverter}}"
+                                            MouseAction="RightClick" />
+                                    </Rectangle.InputBindings>
+                                </Rectangle>
+                            </Border>
                         </Border>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
 
         <!--  Image Display  -->
         <ScrollViewer
