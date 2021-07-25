@@ -121,7 +121,7 @@
 
                     <Border
                         Margin="5,6,5,0"
-                        BorderBrush="{StaticResource separatorBrush}"
+                        BorderBrush="{DynamicResource separatorBrush}"
                         BorderThickness="1" />
 
                     <!--  Arranger Tools  -->
@@ -239,7 +239,7 @@
 
                     <Border
                         Margin="5,6,5,0"
-                        BorderBrush="{StaticResource separatorBrush}"
+                        BorderBrush="{DynamicResource separatorBrush}"
                         BorderThickness="1" />
 
                     <StackPanel>

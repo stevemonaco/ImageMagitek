@@ -169,7 +169,7 @@
 
             <Border
                 Margin="5,12,5,10"
-                BorderBrush="{StaticResource separatorBrush}"
+                BorderBrush="{DynamicResource separatorBrush}"
                 BorderThickness="1" />
 
             <Button

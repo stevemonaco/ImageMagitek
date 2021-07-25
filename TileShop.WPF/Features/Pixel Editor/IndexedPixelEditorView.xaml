@@ -75,7 +75,7 @@
 
             <Border
                 Margin="5,6,5,4"
-                BorderBrush="{StaticResource separatorBrush}"
+                BorderBrush="{DynamicResource separatorBrush}"
                 BorderThickness="1" />
 
             <!--  Tools  -->
