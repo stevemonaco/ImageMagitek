@@ -24,6 +24,9 @@
       "commandName": "Project",
       "commandLineArgs": "Export \"FF2new\\FF2project.xml\" FF2Extract \"/Character Overworld Sprites/Cecil Map\" \"Character Portraits\\Portraits\"",
       "workingDirectory": "D:\\ImageMagitekTest"
+    },
+    "Empty": {
+      "commandName": "Project"
     }
   }
 }
