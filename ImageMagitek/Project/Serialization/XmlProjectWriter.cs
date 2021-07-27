@@ -404,15 +404,16 @@ namespace ImageMagitek.Project.Serialization
             var xws = new XmlWriterSettings
             {
                 Indent = true,
-                IndentChars = "\t"
+                IndentChars = "\t",
             };
 
-            var sb = new StringBuilder();
-            using var xw = XmlWriter.Create(sb, xws);
+            using TextWriter writer = new Utf8StringWriter();
+            using var xw = XmlWriter.Create(writer, xws);
+
             resourceElement.Save(xw);
             xw.Flush();
 
-            return sb.ToString();
+            return writer.ToString();
         }
 
         private Dictionary<IProjectResource, string> CreateResourceMap()
