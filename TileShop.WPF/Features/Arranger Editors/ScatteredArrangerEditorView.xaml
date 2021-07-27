@@ -97,6 +97,24 @@
                         ToolTip="Hover Arranger elements to inspect their properties">
                         <Image Style="{StaticResource iconEye}" />
                     </RadioButton>
+                    <RadioButton
+                        Margin="2,0,0,0"
+                        HorizontalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateLeft}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
+                        ToolTip="Rotate Element Left">
+                        <Image Style="{StaticResource iconRotateLeft}" />
+                    </RadioButton>
+                    <RadioButton
+                        Margin="2,0,0,0"
+                        HorizontalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateRight}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
+                        ToolTip="Rotate Element Right">
+                        <Image Style="{StaticResource iconRotateRight}" />
+                    </RadioButton>
                 </StackPanel>
             </StackPanel>
 

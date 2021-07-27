@@ -16,11 +16,11 @@ using Point = System.Drawing.Point;
 
 namespace TileShop.WPF.ViewModels
 {
-    public enum ScatteredArrangerTool { Select, ApplyPalette, PickPalette, InspectElement }
+    public enum ScatteredArrangerTool { Select, ApplyPalette, PickPalette, InspectElement, RotateLeft, RotateRight }
 
     public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     {
-        private BindableCollection<PaletteModel> _palettes = new BindableCollection<PaletteModel>();
+        private BindableCollection<PaletteModel> _palettes = new();
         public BindableCollection<PaletteModel> Palettes
         {
             get => _palettes;
@@ -148,7 +148,13 @@ namespace TileShop.WPF.ViewModels
                 TryApplyPalette(x, y, SelectedPalette.Palette);
             }
             else if (ActiveTool == ScatteredArrangerTool.PickPalette && e.LeftButton)
+            {
                 TryPickPalette(x, y);
+            }
+            else if (ActiveTool == ScatteredArrangerTool.RotateLeft || ActiveTool == ScatteredArrangerTool.RotateRight && e.LeftButton)
+            {
+                TryRotateElement(x, y);
+            }
             else if (ActiveTool == ScatteredArrangerTool.Select)
                 base.OnMouseDown(sender, e);
         }
@@ -399,6 +405,27 @@ namespace TileShop.WPF.ViewModels
                 SelectedPalette = Palettes.FirstOrDefault(x => ReferenceEquals(element.Palette, x.Palette)) ??
                     Palettes.First(x => ReferenceEquals(_paletteService?.DefaultPalette, x.Palette));
             }
+
+            return true;
+        }
+
+        private bool TryRotateElement(int pixelX, int pixelY)
+        {
+            var elX = pixelX / WorkingArranger.ElementPixelSize.Width;
+            var elY = pixelY / WorkingArranger.ElementPixelSize.Height;
+
+            if (elX >= WorkingArranger.ArrangerElementSize.Width || elY >= WorkingArranger.ArrangerElementSize.Height)
+                return false;
+
+            var result = ActiveTool switch
+            {
+                ScatteredArrangerTool.RotateLeft => WorkingArranger.TryRotateElement(elX, elY, RotationOperation.Left),
+                ScatteredArrangerTool.RotateRight => WorkingArranger.TryRotateElement(elX, elY, RotationOperation.Right),
+                _ => throw new InvalidOperationException($"{nameof(TryRotateElement)} was called without a rotation tool selected")
+            };
+
+            IsModified = true;
+            Render();
 
             return true;
         }

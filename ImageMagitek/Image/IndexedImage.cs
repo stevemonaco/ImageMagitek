@@ -109,6 +109,8 @@ namespace ImageMagitek
                     int deltaY = minY - element.Y1;
 
                     var decodedImage = codec.DecodeElement(element, encodedBuffer);
+                    decodedImage.RotateArray2D(element.Rotation);
+                    decodedImage.MirrorArray2D(element.Mirror);
 
                     for (int y = 0; y <= maxY - minY; y++)
                     {
@@ -141,6 +143,10 @@ namespace ImageMagitek
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++)
                     fullImage.Image[(y + Top) * fullImage.Width + x + Left] = Image[y * Width + x];
+
+            // Reverse this order
+            //decodedImage.RotateArray2D(element.Rotation);
+            //decodedImage.MirrorArray2D(element.Mirror);
 
             foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IIndexedCodec))
             {

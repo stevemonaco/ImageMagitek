@@ -201,7 +201,7 @@ namespace ImageMagitek.Project.Serialization
 
             var pixelX = x * arrangerModel.ElementPixelSize.Width;
             var pixelY = y * arrangerModel.ElementPixelSize.Height;
-            var el = new ArrangerElement(pixelX, pixelY, df, address, codec, palette);
+            var el = new ArrangerElement(pixelX, pixelY, df, address, codec, palette, elementModel.Mirror, elementModel.Rotation);
             return new MagitekResult<ArrangerElement?>.Success(el);
         }
     }

@@ -196,6 +196,41 @@ namespace ImageMagitek
             return newAddress;
         }
 
+        public static MagitekResult TryRotateElement(this Arranger arranger, int elementX, int elementY, RotationOperation rotate)
+        {
+            if (arranger.GetElement(elementX, elementY) is ArrangerElement el)
+            {
+                if (el.Width != el.Height)
+                    return new MagitekResult.Failed("Only square elements may be rotated");
+
+                var newRotation = (el.Rotation, rotate) switch
+                {
+                    (RotationOperation.Left, RotationOperation.Left) => RotationOperation.Turn,
+                    (RotationOperation.Turn, RotationOperation.Left) => RotationOperation.Right,
+                    (RotationOperation.Right, RotationOperation.Left) => RotationOperation.None,
+
+                    (RotationOperation.Left, RotationOperation.Right) => RotationOperation.None,
+                    (RotationOperation.Turn, RotationOperation.Right) => RotationOperation.Left,
+                    (RotationOperation.Right, RotationOperation.Right) => RotationOperation.Turn,
+
+                    (RotationOperation.Left, RotationOperation.Turn) => RotationOperation.Right,
+                    (RotationOperation.Turn, RotationOperation.Turn) => RotationOperation.None,
+                    (RotationOperation.Right, RotationOperation.Turn) => RotationOperation.Left,
+
+                    (RotationOperation.None, _) => rotate,
+                    (_, RotationOperation.None) => el.Rotation,
+                    _ => el.Rotation
+                };
+
+                var rotatedElement = el.WithRotation(newRotation);
+                arranger.SetElement(rotatedElement, elementX, elementY);
+
+                return MagitekResult.SuccessResult;
+            }
+
+            return new MagitekResult.Failed($"No element present at position ({elementX}, {elementY}) to be rotated");
+        }
+
         /// <summary>
         /// Translates a point to an element location in the underlying arranger
         /// </summary>
