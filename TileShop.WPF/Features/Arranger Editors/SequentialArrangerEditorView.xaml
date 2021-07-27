@@ -88,7 +88,8 @@
                                 MinWidth="180"
                                 Focusable="False"
                                 ItemsSource="{Binding CodecNames}"
-                                SelectedValue="{Binding SelectedCodecName}" />
+                                SelectedValue="{Binding SelectedCodecName}"
+                                ToolTip="Active Codec (F, D)" />
 
                             <ui:NumberBox
                                 Margin="2,0,0,0"
@@ -150,7 +151,7 @@
                                 SmallChange="{Binding ArrangerWidthIncrement}"
                                 SpinButtonPlacementMode="Inline"
                                 Style="{StaticResource tsNumberBox}"
-                                ToolTip="Arranger width in elements"
+                                ToolTip="Arranger width in elements (/, .)"
                                 ValidationMode="InvalidInputOverwritten"
                                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                                 Value="{Binding TiledArrangerWidth}" />
@@ -162,7 +163,7 @@
                                 SmallChange="{Binding ArrangerHeightIncrement}"
                                 SpinButtonPlacementMode="Inline"
                                 Style="{StaticResource tsNumberBox}"
-                                ToolTip="Arranger height in elements"
+                                ToolTip="Arranger height in elements (;, L)"
                                 ValidationMode="InvalidInputOverwritten"
                                 Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                                 Value="{Binding TiledArrangerHeight}" />
@@ -176,7 +177,7 @@
                                 SmallChange="{Binding ElementWidthIncrement}"
                                 SpinButtonPlacementMode="Inline"
                                 Style="{StaticResource tsNumberBox}"
-                                ToolTip="Arranger width in pixels"
+                                ToolTip="Arranger width in pixels (/, .)"
                                 ValidationMode="InvalidInputOverwritten"
                                 Visibility="{Binding IsSingleLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                                 Value="{Binding LinearArrangerWidth}" />
@@ -189,7 +190,7 @@
                                 SmallChange="{Binding ElementHeightIncrement}"
                                 SpinButtonPlacementMode="Inline"
                                 Style="{StaticResource tsNumberBox}"
-                                ToolTip="Arranger height in pixels"
+                                ToolTip="Arranger height in pixels (;, L)"
                                 ValidationMode="InvalidInputOverwritten"
                                 Visibility="{Binding IsSingleLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"
                                 Value="{Binding LinearArrangerHeight}" />
@@ -251,7 +252,7 @@
                                 Focusable="False"
                                 Maximum="{Binding MaxZoom}"
                                 Minimum="{Binding MinZoom}"
-                                ToolTip="Zoom"
+                                ToolTip="Zoom (Z, X)"
                                 Value="{Binding Zoom}" />
                         </StackPanel>
                     </StackPanel>
@@ -263,7 +264,7 @@
                             Focusable="False"
                             IsChecked="{Binding ShowGridlines}"
                             Style="{StaticResource toolBarToggleButtonStyle}"
-                            ToolTip="Toggle gridline visibility">
+                            ToolTip="Toggle gridline visibility (G)">
                             <Image Style="{StaticResource iconGrid}" />
                         </ToggleButton>
                     </StackPanel>
@@ -275,7 +276,7 @@
                             Focusable="False"
                             IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
                             Style="{StaticResource toolBarToggleButtonStyle}"
-                            ToolTip="Snap Selection to Elements"
+                            ToolTip="Snap Selection to Elements (S)"
                             Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <Image Style="{StaticResource iconSnap}" />
                         </ToggleButton>
@@ -289,7 +290,7 @@
                             Focusable="False"
                             IsEnabled="{Binding CanEditSelection}"
                             Style="{StaticResource toolBarButtonStyle}"
-                            ToolTip="Opens selection in the pixel editor">
+                            ToolTip="Opens selection in the pixel editor (E)">
                             <Image Style="{StaticResource iconEdit}" />
                         </Button>
                     </StackPanel>

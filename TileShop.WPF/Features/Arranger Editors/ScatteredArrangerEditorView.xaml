@@ -137,7 +137,7 @@
                     MinWidth="100"
                     Maximum="{Binding MaxZoom}"
                     Minimum="{Binding MinZoom}"
-                    ToolTip="Zoom"
+                    ToolTip="Zoom (Z, X)"
                     Value="{Binding Zoom}" />
             </StackPanel>
 
@@ -147,7 +147,7 @@
                     Focusable="False"
                     IsChecked="{Binding ShowGridlines}"
                     Style="{StaticResource toolBarToggleButtonStyle}"
-                    ToolTip="Toggle gridline visibility">
+                    ToolTip="Toggle gridline visibility (G)">
                     <Image Style="{StaticResource iconGrid}" />
                 </ToggleButton>
             </StackPanel>
@@ -158,7 +158,7 @@
                     Focusable="False"
                     IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
                     Style="{StaticResource toolBarToggleButtonStyle}"
-                    ToolTip="Snap Selection to Elements"
+                    ToolTip="Snap Selection to Elements (S)"
                     Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <Image Style="{StaticResource iconSnap}" />
                 </ToggleButton>
@@ -188,7 +188,7 @@
                     Click="{s:Action EditSelection}"
                     IsEnabled="{Binding CanEditSelection}"
                     Style="{StaticResource toolBarButtonStyle}"
-                    ToolTip="Opens selection in the pixel editor">
+                    ToolTip="Opens selection in the pixel editor (E)">
                     <Image Style="{StaticResource iconEdit}" />
                 </Button>
             </StackPanel>

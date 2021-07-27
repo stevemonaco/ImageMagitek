@@ -58,7 +58,7 @@
                     MinWidth="100"
                     Maximum="{Binding MaxZoom}"
                     Minimum="{Binding MinZoom}"
-                    ToolTip="Zoom"
+                    ToolTip="Zoom (Z, X)"
                     Value="{Binding Zoom}" />
             </StackPanel>
 
@@ -68,7 +68,7 @@
                     Focusable="False"
                     IsChecked="{Binding ShowGridlines}"
                     Style="{StaticResource toolBarToggleButtonStyle}"
-                    ToolTip="Toggle gridline visibility">
+                    ToolTip="Toggle gridline visibility (G)">
                     <Image Style="{StaticResource iconGrid}" />
                 </ToggleButton>
             </StackPanel>
