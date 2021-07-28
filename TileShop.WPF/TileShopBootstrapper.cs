@@ -42,7 +42,7 @@ namespace TileShop.WPF
             var settings = bootstrapper.ReadConfiguration(BootstrapService.DefaultConfigurationFileName);
             var paletteService = bootstrapper.CreatePaletteService(BootstrapService.DefaultPalettePath, settings);
             var codecService = bootstrapper.CreateCodecService(BootstrapService.DefaultCodecPath, BootstrapService.DefaultCodecSchemaFileName);
-            //var pluginService = bootstrapper.CreatePluginService(BootstrapService.DefaultPluginPath, codecService);
+            var pluginService = bootstrapper.CreatePluginService(BootstrapService.DefaultPluginPath, codecService);
             var layoutService = bootstrapper.CreateTileLayoutService(BootstrapService.DefaultLayoutsPath);
 
             var defaultResources = paletteService.GlobalPalettes;
@@ -53,7 +53,7 @@ namespace TileShop.WPF
             builder.RegisterInstance(settings);
             builder.RegisterInstance(paletteService);
             builder.RegisterInstance(codecService);
-            //builder.RegisterInstance(pluginService);
+            builder.RegisterInstance(pluginService);
             builder.RegisterInstance(layoutService);
             builder.RegisterInstance(projectService);
         }

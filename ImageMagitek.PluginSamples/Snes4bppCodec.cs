@@ -37,7 +37,7 @@ namespace ImageMagitek.PluginSample
         private void Initialize()
         {
             _foreignBuffer = new byte[(StorageSize + 7) / 8];
-            _nativeBuffer = new byte[Width, Height];
+            _nativeBuffer = new byte[Height, Width];
             _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
         }
 
@@ -69,7 +69,7 @@ namespace ImageMagitek.PluginSample
                     var bp4 = _bitStream.ReadBit();
 
                     var palIndex = (bp1 << 0) | (bp2 << 1) | (bp3 << 2) | (bp4 << 3);
-                    _nativeBuffer[x, y] = (byte)palIndex;
+                    _nativeBuffer[y, x] = (byte)palIndex;
 
                     offsetPlane1++;
                     offsetPlane2++;
@@ -88,7 +88,7 @@ namespace ImageMagitek.PluginSample
 
         public override ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer)
         {
-            if (imageBuffer.GetLength(0) != Width || imageBuffer.GetLength(1) != Height)
+            if (imageBuffer.GetLength(1) != Width || imageBuffer.GetLength(0) != Height)
                 throw new ArgumentException(nameof(imageBuffer));
 
             var bs = BitStream.OpenWrite(StorageSize, 8);
@@ -102,7 +102,7 @@ namespace ImageMagitek.PluginSample
             {
                 for (int x = 0; x < Width; x++)
                 {
-                    var index = imageBuffer[x, y];
+                    var index = imageBuffer[y, x];
 
                     byte bp1 = (byte)(index & 1);
                     byte bp2 = (byte)((index >> 1) & 1);
