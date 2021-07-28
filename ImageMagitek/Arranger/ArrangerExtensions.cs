@@ -198,6 +198,9 @@ namespace ImageMagitek
 
         public static MagitekResult TryRotateElement(this Arranger arranger, int elementX, int elementY, RotationOperation rotate)
         {
+            if (rotate == RotationOperation.None)
+                return MagitekResult.SuccessResult;
+
             if (arranger.GetElement(elementX, elementY) is ArrangerElement el)
             {
                 if (el.Width != el.Height)

@@ -186,6 +186,9 @@ namespace ImageMagitek.ExtensionMethods
         /// <remarks>Implementation based on https://stackoverflow.com/questions/42519/how-do-you-rotate-a-two-dimensional-array </remarks>
         public static void RotateArray2D<T>(this T[,] source, RotationOperation rotation)
         {
+            if (rotation == RotationOperation.None)
+                return;
+
             int width = source.GetLength(1);
             int height = source.GetLength(0);
 
