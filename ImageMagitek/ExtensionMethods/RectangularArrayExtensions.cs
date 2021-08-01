@@ -178,6 +178,18 @@ namespace ImageMagitek.ExtensionMethods
         }
 
         /// <summary>
+        /// Inverses an in-place mirror of a 2D array's items
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">Array to be inverse mirrored</param>
+        /// <param name="mirror">Mirror operation to invert</param>
+        public static void InverseMirrorArray2D<T>(this T[,] source, MirrorOperation mirror)
+        {
+            if (mirror != MirrorOperation.None)
+                source.MirrorArray2D(mirror);
+        }
+
+        /// <summary>
         /// Peforms an in-place rotation of a 2D array's items
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -212,6 +224,22 @@ namespace ImageMagitek.ExtensionMethods
             {
                 source.MirrorArray2D(MirrorOperation.Both);
             }
+        }
+
+        /// <summary>
+        /// Inverses an in-place rotation of a 2D array's items
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source">Array to be inverse rotated, must be a square array</param>
+        /// <param name="rotation">Rotation operation to invert</param>
+        public static void InverseRotateArray2D<T>(this T[,] source, RotationOperation rotation)
+        {
+            if (rotation == RotationOperation.Left)
+                source.RotateArray2D(RotationOperation.Right);
+            else if (rotation == RotationOperation.Right)
+                source.RotateArray2D(RotationOperation.Left);
+            else if (rotation == RotationOperation.Turn)
+                source.RotateArray2D(RotationOperation.Turn);
         }
 
         /// <summary>

@@ -16,7 +16,7 @@ using Point = System.Drawing.Point;
 
 namespace TileShop.WPF.ViewModels
 {
-    public enum ScatteredArrangerTool { Select, ApplyPalette, PickPalette, InspectElement, RotateLeft, RotateRight }
+    public enum ScatteredArrangerTool { Select, ApplyPalette, PickPalette, InspectElement, RotateLeft, RotateRight, MirrorHorizontal, MirrorVertical }
 
     public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     {
@@ -141,6 +141,8 @@ namespace TileShop.WPF.ViewModels
         {
             int x = Math.Clamp((int)e.X / Zoom, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
             int y = Math.Clamp((int)e.Y / Zoom, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
+            var elementX = x / WorkingArranger.ElementPixelSize.Width;
+            var elementY = y / WorkingArranger.ElementPixelSize.Height;
 
             if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton)
             {
@@ -151,12 +153,50 @@ namespace TileShop.WPF.ViewModels
             {
                 TryPickPalette(x, y);
             }
-            else if (ActiveTool == ScatteredArrangerTool.RotateLeft || ActiveTool == ScatteredArrangerTool.RotateRight && e.LeftButton)
+            else if (ActiveTool == ScatteredArrangerTool.RotateLeft && e.LeftButton)
             {
-                TryRotateElement(x, y);
+                var result = WorkingArranger.TryRotateElement(elementX, elementY, RotationOperation.Left);
+                if (result.HasSucceeded)
+                {
+                    AddHistoryAction(new RotateElementHistoryAction(elementX, elementY, RotationOperation.Left));
+                    IsModified = true;
+                    Render();
+                }
+            }
+            else if (ActiveTool == ScatteredArrangerTool.RotateRight && e.LeftButton)
+            {
+                var result = WorkingArranger.TryRotateElement(elementX, elementY, RotationOperation.Right);
+                if (result.HasSucceeded)
+                {
+                    AddHistoryAction(new RotateElementHistoryAction(elementX, elementY, RotationOperation.Right));
+                    IsModified = true;
+                    Render();
+                }
+            }
+            else if (ActiveTool == ScatteredArrangerTool.MirrorHorizontal && e.LeftButton)
+            {
+                var result = WorkingArranger.TryMirrorElement(elementX, elementY, MirrorOperation.Horizontal);
+                if (result.HasSucceeded)
+                {
+                    AddHistoryAction(new MirrorElementHistoryAction(elementX, elementY, MirrorOperation.Horizontal));
+                    IsModified = true;
+                    Render();
+                }
+            }
+            else if (ActiveTool == ScatteredArrangerTool.MirrorVertical && e.LeftButton)
+            {
+                var result = WorkingArranger.TryMirrorElement(elementX, elementY, MirrorOperation.Vertical);
+                if (result.HasSucceeded)
+                {
+                    AddHistoryAction(new MirrorElementHistoryAction(elementX, elementY, MirrorOperation.Vertical));
+                    IsModified = true;
+                    Render();
+                }
             }
             else if (ActiveTool == ScatteredArrangerTool.Select)
+            {
                 base.OnMouseDown(sender, e);
+            }
         }
 
         public override void OnMouseUp(object sender, MouseCaptureArgs e)
@@ -409,27 +449,6 @@ namespace TileShop.WPF.ViewModels
             return true;
         }
 
-        private bool TryRotateElement(int pixelX, int pixelY)
-        {
-            var elX = pixelX / WorkingArranger.ElementPixelSize.Width;
-            var elY = pixelY / WorkingArranger.ElementPixelSize.Height;
-
-            if (elX >= WorkingArranger.ArrangerElementSize.Width || elY >= WorkingArranger.ArrangerElementSize.Height)
-                return false;
-
-            var result = ActiveTool switch
-            {
-                ScatteredArrangerTool.RotateLeft => WorkingArranger.TryRotateElement(elX, elY, RotationOperation.Left),
-                ScatteredArrangerTool.RotateRight => WorkingArranger.TryRotateElement(elX, elY, RotationOperation.Right),
-                _ => throw new InvalidOperationException($"{nameof(TryRotateElement)} was called without a rotation tool selected")
-            };
-
-            IsModified = true;
-            Render();
-
-            return true;
-        }
-
         public void ResizeArranger()
         {
             var model = new ResizeTiledScatteredArrangerViewModel(_windowManager, WorkingArranger.ArrangerElementSize.Width, WorkingArranger.ArrangerElementSize.Height);
@@ -545,6 +564,14 @@ namespace TileShop.WPF.ViewModels
             {
                 WorkingArranger.Resize(resizeAction.Width, resizeAction.Height);
                 CreateImages();
+            }
+            else if (action is RotateElementHistoryAction rotateAction)
+            {
+                WorkingArranger.TryRotateElement(rotateAction.ElementX, rotateAction.ElementY, rotateAction.Rotation);
+            }
+            else if (action is MirrorElementHistoryAction mirrorAction)
+            {
+                WorkingArranger.TryMirrorElement(mirrorAction.ElementX, mirrorAction.ElementY, mirrorAction.Mirror);
             }
         }
 

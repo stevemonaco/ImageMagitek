@@ -103,7 +103,7 @@
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateLeft}"
                         Style="{StaticResource toolBarToggleButtonStyle}"
-                        ToolTip="Rotate Element Left">
+                        ToolTip="Rotate Element's Display Left">
                         <Image Style="{StaticResource iconRotateLeft}" />
                     </RadioButton>
                     <RadioButton
@@ -112,8 +112,26 @@
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateRight}"
                         Style="{StaticResource toolBarToggleButtonStyle}"
-                        ToolTip="Rotate Element Right">
+                        ToolTip="Rotate Element's Display Right">
                         <Image Style="{StaticResource iconRotateRight}" />
+                    </RadioButton>
+                    <RadioButton
+                        Margin="2,0,0,0"
+                        HorizontalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=MirrorHorizontal}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
+                        ToolTip="Mirror Element's Display Horizontally">
+                        <Image Style="{StaticResource iconMirrorHorizontal}" />
+                    </RadioButton>
+                    <RadioButton
+                        Margin="2,0,0,0"
+                        HorizontalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=MirrorVertical}"
+                        Style="{StaticResource toolBarToggleButtonStyle}"
+                        ToolTip="Mirror Element's Display Vertically">
+                        <Image Style="{StaticResource iconMirrorVertical}" />
                     </RadioButton>
                 </StackPanel>
             </StackPanel>

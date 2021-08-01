@@ -402,6 +402,42 @@
         </Setter>
     </Style>
 
+    <Style x:Key="iconMirrorHorizontal" TargetType="Image">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Brush="{DynamicResource iconBrush}">
+                            <GeometryDrawing.Geometry>
+                                M0 0l384 320-384 313.6zM576 313.6l384-313.6v640l-384-326.4zM896 134.4l-217.6 179.2 217.6 192v-371.2zM448 640h64v-64h-64v64zM448 768h64v-64h-64v64zM448 512h64v-64h-64v64zM448 384h64v-64h-64v64zM448 256h64v-64h-64v64zM448 128h64v-64h-64v64zM448 0h64v-64h-64v64zM480 896v0c83.2 0 166.4-44.8 230.4-121.6l-70.4-70.4h192v192l-76.8-76.8c-76.8 89.6-172.8 140.8-275.2 140.8 0 0 0 0 0 0-121.6 0-230.4-64-313.6-185.6l51.2-38.4c70.4 102.4 160 160 262.4 160z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="iconMirrorVertical" TargetType="Image">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Source">
+            <Setter.Value>
+                <DrawingImage>
+                    <DrawingImage.Drawing>
+                        <GeometryDrawing Brush="{DynamicResource iconBrush}">
+                            <GeometryDrawing.Geometry>
+                                M64 896l320-384 316.16 384h-636.16zM380.16 320l-316.16-384h640zM199.68 0l181.12 220.16 192-220.16h-373.12zM640 448h64v-64h-64v64zM768 448h64v-64h-64v64zM512 448h64v-64h-64v64zM384 448h64v-64h-64v64zM256 448h64v-64h-64v64zM128 448h64v-64h-64v64zM0 448h64v-64h-64v64zM960 417.92v0c-3.769-95.016-50.050-178.503-120.232-232.422l-71.768 70.502v-192h192l-75.52 75.52c82.733 65.979 136.204 165.625 139.507 277.862l0.013 0.538c-5.909 133.32-78.267 248.533-184.559 313.918l-38.161-51.518c91.058-54.867 152.517-150.832 158.682-261.554z
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingImage.Drawing>
+                </DrawingImage>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!--  Tree Node Icons  -->
     <Style x:Key="iconNodeProjectSmall" TargetType="Image">
         <Setter Property="Width" Value="16" />
@@ -447,10 +483,7 @@
 
     <DrawingImage x:Key="iconNodeFolderOpen">
         <DrawingImage.Drawing>
-            <GeometryDrawing>
-                <GeometryDrawing.Brush>
-                    <SolidColorBrush Color="Black" />
-                </GeometryDrawing.Brush>
+            <GeometryDrawing Brush="{DynamicResource iconBrush}">
                 <GeometryDrawing.Geometry>
                     M846 467q16 0 24 -11.5t5 -30.5l-92 -333q-13 -53 -58.5 -89t-99.5 -36h-500q-53 0 -89 36t-36 89v416q0 53 36 89t89 36h171q34 0 58.5 -24.5t24.5 -58.5h250q40 0 72 -22.5t45 -60.5h100zM83 508v-387l67 262q6 19 20.5 30.5t33.5 11.5h463q0 19 -11.5 30.5t-30.5 11.5 h-250q-35 0 -59 24.5t-24 58.5h-167q-19 0 -30.5 -11.5t-11.5 -30.5zM704 112l75 271h-571q-3 0 -7.5 -2.5t-4.5 -5.5l-79 -292q-3 -12 -1.5 -19.5t5.5 -10.5l4 -3h500q25 0 49 18.5t30 43.5z
                 </GeometryDrawing.Geometry>

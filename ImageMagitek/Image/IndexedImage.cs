@@ -144,14 +144,14 @@ namespace ImageMagitek
                 for (int x = 0; x < Width; x++)
                     fullImage.Image[(y + Top) * fullImage.Width + x + Left] = Image[y * Width + x];
 
-            // Reverse this order
-            //decodedImage.RotateArray2D(element.Rotation);
-            //decodedImage.MirrorArray2D(element.Mirror);
-
             foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IIndexedCodec))
             {
                 fullImage.Image.CopyToArray2D(el.X1, el.Y1, fullImage.Width, buffer, 0, 0, Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height);
                 var codec = el.Codec as IIndexedCodec;
+
+                buffer.InverseMirrorArray2D(el.Mirror);
+                buffer.InverseRotateArray2D(el.Rotation);
+
                 var encodedImage = codec.EncodeElement(el, buffer);
                 codec.WriteElement(el, encodedImage);
             }

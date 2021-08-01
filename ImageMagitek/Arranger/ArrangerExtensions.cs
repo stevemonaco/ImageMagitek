@@ -201,6 +201,9 @@ namespace ImageMagitek
             if (rotate == RotationOperation.None)
                 return MagitekResult.SuccessResult;
 
+            if (elementX > arranger.ArrangerElementSize.Width || elementY > arranger.ArrangerElementSize.Height)
+                return new MagitekResult.Failed($"Location ({elementX}, {elementY}) is outside of the arranger");
+
             if (arranger.GetElement(elementX, elementY) is ArrangerElement el)
             {
                 if (el.Width != el.Height)
@@ -232,6 +235,41 @@ namespace ImageMagitek
             }
 
             return new MagitekResult.Failed($"No element present at position ({elementX}, {elementY}) to be rotated");
+        }
+
+        public static MagitekResult TryMirrorElement(this Arranger arranger, int elementX, int elementY, MirrorOperation mirror)
+        {
+            if (mirror == MirrorOperation.None)
+                return MagitekResult.SuccessResult;
+
+            if (arranger.GetElement(elementX, elementY) is ArrangerElement el)
+            {
+                var newMirror = (el.Mirror, mirror) switch
+                {
+                    (MirrorOperation.Horizontal, MirrorOperation.Horizontal) => MirrorOperation.None,
+                    (MirrorOperation.Vertical, MirrorOperation.Horizontal) => MirrorOperation.Both,
+                    (MirrorOperation.Both, MirrorOperation.Horizontal) => MirrorOperation.Vertical,
+
+                    (MirrorOperation.Horizontal, MirrorOperation.Vertical) => MirrorOperation.Both,
+                    (MirrorOperation.Vertical, MirrorOperation.Vertical) => MirrorOperation.None,
+                    (MirrorOperation.Both, MirrorOperation.Vertical) => MirrorOperation.Horizontal,
+
+                    (MirrorOperation.Horizontal, MirrorOperation.Both) => MirrorOperation.Vertical,
+                    (MirrorOperation.Vertical, MirrorOperation.Both) => MirrorOperation.Horizontal,
+                    (MirrorOperation.Both, MirrorOperation.Both) => MirrorOperation.None,
+
+                    (MirrorOperation.None, _) => mirror,
+                    (_, MirrorOperation.None) => el.Mirror,
+                    _ => el.Mirror
+                };
+
+                var mirroredElement = el.WithMirror(newMirror);
+                arranger.SetElement(mirroredElement, elementX, elementY);
+
+                return MagitekResult.SuccessResult;
+            }
+
+            return new MagitekResult.Failed($"No element present at position ({elementX}, {elementY}) to be mirrored");
         }
 
         /// <summary>
