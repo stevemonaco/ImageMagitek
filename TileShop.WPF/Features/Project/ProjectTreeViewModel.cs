@@ -502,7 +502,7 @@ namespace TileShop.WPF.ViewModels
                             var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
                             Projects.Add(projectVM);
                             NotifyOfPropertyChange(() => HasProject);
-                            _events.PublishOnUIThread(new ProjectLoadedEvent());
+                            _events.PublishOnUIThread(new ProjectLoadedEvent(projectVM.Node.DiskLocation));
                         },
                         fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Project Error"));
                 }
