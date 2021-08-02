@@ -3,26 +3,26 @@ using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec
 {
-    public class Psx24bppCodec : DirectCodec
+    public class Rgb24TiledCodec : DirectCodec
     {
-        public override string Name => "PSX 24bpp";
+        public override string Name => "Rgb24 Tiled";
         public override int Width { get; } = 8;
         public override int Height { get; } = 8;
-        public override ImageLayout Layout => ImageLayout.Single;
+        public override ImageLayout Layout => ImageLayout.Tiled;
         public override int ColorDepth => 24;
         public override int StorageSize => Width * Height * 24;
+        public override int RowStride { get; } = 0;
+        public override int ElementStride { get; } = 0;
 
-        public override int RowStride => 0;
-        public override int ElementStride => 0;
         public override bool CanResize => true;
         public override int WidthResizeIncrement => 1;
         public override int HeightResizeIncrement => 1;
-        public override int DefaultWidth => 64;
-        public override int DefaultHeight => 64;
+        public override int DefaultWidth => 8;
+        public override int DefaultHeight => 8;
 
         private BitStream _bitStream;
 
-        public Psx24bppCodec()
+        public Rgb24TiledCodec()
         {
             Width = DefaultWidth;
             Height = DefaultHeight;
@@ -33,7 +33,7 @@ namespace ImageMagitek.Codec
             _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
         }
 
-        public Psx24bppCodec(int width, int height)
+        public Rgb24TiledCodec(int width, int height)
         {
             Width = width;
             Height = height;
@@ -56,9 +56,9 @@ namespace ImageMagitek.Codec
             {
                 for (int x = 0; x < el.Width; x++)
                 {
-                    byte r = _bitStream.ReadByte();
-                    byte g = _bitStream.ReadByte();
-                    byte b = _bitStream.ReadByte();
+                    var r = _bitStream.ReadByte();
+                    var g = _bitStream.ReadByte();
+                    var b = _bitStream.ReadByte();
 
                     _nativeBuffer[y, x] = new ColorRgba32(r, g, b, 0xFF);
                 }
@@ -69,23 +69,7 @@ namespace ImageMagitek.Codec
 
         public override ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, ColorRgba32[,] imageBuffer)
         {
-            if (imageBuffer.GetLength(0) != Width || imageBuffer.GetLength(1) != Height)
-                throw new ArgumentException(nameof(imageBuffer));
-
-            var bs = BitStream.OpenWrite(StorageSize, 8);
-
-            for (int y = 0; y < el.Height; y++)
-            {
-                for (int x = 0; x < el.Width; x++)
-                {
-                    var imageColor = imageBuffer[y, x];
-                    bs.WriteByte(imageColor.R);
-                    bs.WriteByte(imageColor.G);
-                    bs.WriteByte(imageColor.B);
-                }
-            }
-
-            return bs.Data;
+            throw new NotImplementedException();
         }
     }
 }

@@ -19,21 +19,19 @@ namespace ImageMagitek.Codec
         public abstract int RowStride { get; }
         public abstract int ElementStride { get; }
 
-        public virtual ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
-        protected byte[] _foreignBuffer;
-
-        public virtual ColorRgba32[,] NativeBuffer => _nativeBuffer;
-
         public abstract bool CanResize { get; }
         public abstract int WidthResizeIncrement { get; }
         public abstract int HeightResizeIncrement { get; }
         public abstract int DefaultWidth { get; }
         public abstract int DefaultHeight { get; }
 
+        public virtual ColorRgba32[,] NativeBuffer => _nativeBuffer;
         protected ColorRgba32[,] _nativeBuffer;
 
-        public abstract ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer);
+        public virtual ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
+        protected byte[] _foreignBuffer;
 
+        public abstract ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer);
         public abstract ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, ColorRgba32[,] imageBuffer);
 
         /// <summary>
@@ -51,7 +49,7 @@ namespace ImageMagitek.Codec
                 return null;
 
             bitStream.SeekAbsolute(0);
-            fs.ReadUnshifted(el.FileAddress, StorageSize, buffer);
+            fs.ReadShifted(el.FileAddress, StorageSize, buffer);
 
             return buffer;
         }
@@ -63,18 +61,23 @@ namespace ImageMagitek.Codec
         {
             // TODO: Add bit granularity to seek and read
             var fs = el.DataFile.Stream;
-            fs.Seek(el.FileAddress.FileOffset, SeekOrigin.Begin);
-            fs.Write(encodedBuffer);
+            fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
         }
 
-        public int GetPreferredWidth(int width)
+        public virtual int GetPreferredWidth(int width)
         {
-            throw new NotImplementedException();
+            if (!CanResize)
+                return DefaultWidth;
+
+            return Math.Clamp(width - width % WidthResizeIncrement, WidthResizeIncrement, int.MaxValue);
         }
 
-        public int GetPreferredHeight(int height)
+        public virtual int GetPreferredHeight(int height)
         {
-            throw new NotImplementedException();
+            if (!CanResize)
+                return DefaultHeight;
+
+            return Math.Clamp(height - height % HeightResizeIncrement, HeightResizeIncrement, int.MaxValue);
         }
     }
 }

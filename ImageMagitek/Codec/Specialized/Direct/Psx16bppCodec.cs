@@ -24,6 +24,17 @@ namespace ImageMagitek.Codec
         private BitStream _bitStream;
         private readonly ColorConverterAbgr16 _colorConverter = new ColorConverterAbgr16();
 
+        public Psx16bppCodec()
+        {
+            Width = DefaultWidth;
+            Height = DefaultHeight;
+
+            _foreignBuffer = new byte[(StorageSize + 7) / 8];
+            _nativeBuffer = new ColorRgba32[Height, Width];
+
+            _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        }
+
         public Psx16bppCodec(int width, int height)
         {
             Width = width;

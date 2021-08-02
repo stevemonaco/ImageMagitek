@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
@@ -57,27 +58,54 @@ namespace ImageMagitek
             if (Width * Height != Image.Length)
                 Image = new ColorRgba32[Width * Height];
 
-            foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.DataFile is object))
-            {
-                if (el.Codec is IDirectCodec codec)
-                {
-                    var encodedBuffer = codec.ReadElement(el);
+            // TODO: Handle undefined elements explicitly and clear image subsections
+            Array.Clear(Image, 0, Image.Length);
 
-                    // TODO: Detect reads past end of file gracefully
+            var locations = Arranger.EnumerateElementLocationsByPixel(Left, Top, Width, Height);
+
+            Rectangle imageRect = new Rectangle(Left, Top, Width, Height);
+
+            foreach (var location in locations)
+            {
+                var el = Arranger.GetElement(location.X, location.Y);
+                if (el is ArrangerElement element && element.Codec is IDirectCodec codec)
+                {
+                    var encodedBuffer = codec.ReadElement(element);
+
+                    // TODO: Detect reads past end of file more gracefully
                     if (encodedBuffer.Length == 0)
                         continue;
 
-                    var decodeResult = codec.DecodeElement(el, encodedBuffer);
+                    var elementRect = new Rectangle(element.X1, element.Y1, element.Width, element.Height);
+                    elementRect.Intersect(imageRect);
 
-                    for (int y = 0; y < Arranger.ElementPixelSize.Height; y++)
+                    if (elementRect.IsEmpty)
+                        continue;
+
+                    int minX = Math.Clamp(element.X1, Left, Right - 1);
+                    int maxX = Math.Clamp(element.X2, Left, Right - 1);
+                    int minY = Math.Clamp(element.Y1, Top, Bottom - 1);
+                    int maxY = Math.Clamp(element.Y2, Top, Bottom - 1);
+                    int deltaX = minX - element.X1;
+                    int deltaY = minY - element.Y1;
+
+                    var decodedImage = codec.DecodeElement(element, encodedBuffer);
+                    decodedImage.RotateArray2D(element.Rotation);
+                    decodedImage.MirrorArray2D(element.Mirror);
+
+                    for (int y = 0; y <= maxY - minY; y++)
                     {
-                        var destidx = y * Width;
-                        for (int x = 0; x < Arranger.ElementPixelSize.Width; x++)
+                        int destidx = (element.Y1 + deltaY + y - Top) * Width + (element.X1 + deltaX - Left);
+                        for (int x = 0; x <= maxX - minX; x++)
                         {
-                            Image[destidx] = decodeResult[x, y];
+                            Image[destidx] = decodedImage[y + deltaY, x + deltaX];
                             destidx++;
                         }
                     }
+                }
+                else
+                {
+
                 }
             }
         }
