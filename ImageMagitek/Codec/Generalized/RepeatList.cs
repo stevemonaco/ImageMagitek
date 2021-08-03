@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text;
 
 namespace ImageMagitek.Codec
 {
     /// <summary>
     /// A list that implements index-wrapping for repeating/incrementing patterns
     /// </summary>
-    public class RepeatList : IEnumerable<int>
+    public sealed class RepeatList : IEnumerable<int>
     {
         private readonly List<int> _list;
 

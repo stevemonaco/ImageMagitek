@@ -9,7 +9,7 @@ using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Codec
 {
-    public class XmlGraphicsFormatReader : IGraphicsFormatReader
+    public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
     {
         private XmlSchemaSet _schemas = new XmlSchemaSet();
 

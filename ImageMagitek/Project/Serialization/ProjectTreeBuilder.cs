@@ -11,7 +11,7 @@ namespace ImageMagitek.Project.Serialization
     /// <summary>
     /// Builds a ProjectTree from Serialization Models and handles resolving of resources
     /// </summary>
-    class ProjectTreeBuilder
+    internal sealed class ProjectTreeBuilder
     {
         public ProjectTree Tree { get; private set; }
 

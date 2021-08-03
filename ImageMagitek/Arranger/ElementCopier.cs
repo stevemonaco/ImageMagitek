@@ -2,7 +2,7 @@
 
 namespace ImageMagitek
 {
-    public class ElementCopier
+    public static class ElementCopier
     {
         /// <summary>
         /// Tests if the source can be copied into the specified destination ScatteredArranger

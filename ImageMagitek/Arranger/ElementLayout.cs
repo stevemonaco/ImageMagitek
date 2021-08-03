@@ -7,7 +7,7 @@ namespace ImageMagitek
     /// <summary>
     /// Defines a rectangular element layout for Sequential Arrangers
     /// </summary>
-    public class ElementLayout
+    public sealed class ElementLayout
     {
         public string Name { get; }
         public int Width { get; }

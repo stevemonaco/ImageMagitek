@@ -1,13 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 
 namespace ImageMagitek.Codec
 {
     public enum PixelPacking { Planar, Chunky }
 
-    public class PatternGraphicsFormat : IGraphicsFormat
+    public sealed class PatternGraphicsFormat : IGraphicsFormat
     {
-        public PatternList Pattern { get; protected set; }
+        public PatternList Pattern { get; private set; }
 
         /// <summary>
         /// The name of the codec

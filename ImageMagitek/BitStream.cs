@@ -6,7 +6,7 @@ namespace ImageMagitek
     /// <summary>
     /// Stream class with specific features for bit reading and writing
     /// </summary>
-    public class BitStream
+    public sealed class BitStream
     {
         private enum BitStreamAccess { Read, Write, ReadWrite };
 

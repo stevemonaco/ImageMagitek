@@ -31,7 +31,7 @@ namespace ImageMagitek
         public int Height { get; protected set; }
     }
 
-    public class ElementCopy : ArrangerCopy
+    public sealed class ElementCopy : ArrangerCopy
     {
         /// <summary>
         /// Elements to be copied into the destination
@@ -82,7 +82,7 @@ namespace ImageMagitek
         }
     }
 
-    public class IndexedPixelCopy : ArrangerCopy
+    public sealed class IndexedPixelCopy : ArrangerCopy
     {
         public IndexedImage Image { get; }
 
@@ -98,7 +98,7 @@ namespace ImageMagitek
         }
     }
 
-    public class DirectPixelCopy : ArrangerCopy
+    public sealed class DirectPixelCopy : ArrangerCopy
     {
         public DirectImage Image { get; }
 

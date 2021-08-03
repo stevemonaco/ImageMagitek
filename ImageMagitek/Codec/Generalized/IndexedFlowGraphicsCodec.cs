@@ -5,7 +5,7 @@ using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Codec
 {
-    public class IndexedGraphicsCodec : IIndexedCodec
+    public class IndexedFlowGraphicsCodec : IIndexedCodec
     {
         public string Name { get; set; }
         public FlowGraphicsFormat Format { get; private set; }
@@ -40,7 +40,7 @@ namespace ImageMagitek.Codec
 
         private BitStream _bitStream;
 
-        public IndexedGraphicsCodec(FlowGraphicsFormat format)
+        public IndexedFlowGraphicsCodec(FlowGraphicsFormat format)
         {
             Format = format;
             Name = format.Name;

@@ -1,10 +1,10 @@
-﻿using ImageMagitek.ExtensionMethods;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Codec
 {
-    public class IndexedPatternGraphicsCodec : IIndexedCodec
+    public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
     {
         public string Name { get; set; }
         public PatternGraphicsFormat Format { get; }

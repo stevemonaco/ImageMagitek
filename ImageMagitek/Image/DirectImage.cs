@@ -7,7 +7,7 @@ using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek
 {
-    public class DirectImage : ImageBase<ColorRgba32>
+    public sealed class DirectImage : ImageBase<ColorRgba32>
     {
         public DirectImage(Arranger arranger) :
             this(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height)

@@ -3,7 +3,7 @@ using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec
 {
-    public class Psx24bppCodec : DirectCodec
+    public sealed class Psx24bppCodec : DirectCodec
     {
         public override string Name => "PSX 24bpp";
         public override int Width { get; } = 8;

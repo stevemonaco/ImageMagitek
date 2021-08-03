@@ -2,7 +2,7 @@
 
 namespace ImageMagitek.Codec
 {
-    public class ImageProperty
+    public sealed class ImageProperty
     {
         public int ColorDepth { get; set; }
         public bool RowInterlace { get; set; }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using ImageMagitek.Colors;
@@ -11,7 +10,7 @@ using Monaco.PathTree;
 
 namespace ImageMagitek.Project.Serialization
 {
-    public class XmlProjectWriter : IProjectWriter
+    public sealed class XmlProjectWriter : IProjectWriter
     {
         public string Version => "0.9";
         private readonly List<IProjectResource> _globalResources;

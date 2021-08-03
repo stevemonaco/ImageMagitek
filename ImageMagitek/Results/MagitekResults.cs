@@ -7,9 +7,9 @@ namespace ImageMagitek
     {
         public static Success SuccessResults { get; } = new Success();
 
-        public class Success : MagitekResults { }
+        public sealed class Success : MagitekResults { }
 
-        public class Failed : MagitekResults
+        public sealed class Failed : MagitekResults
         {
             public List<string> Reasons { get; }
 
@@ -26,13 +26,13 @@ namespace ImageMagitek
 
     public abstract class MagitekResults<T> : OneOfBase<MagitekResults<T>.Success, MagitekResults<T>.Failed>
     {
-        public class Success : MagitekResults<T>
+        public sealed class Success : MagitekResults<T>
         {
             public T Result { get; }
             public Success(T result) => Result = result;
         }
 
-        public class Failed : MagitekResults<T>
+        public sealed class Failed : MagitekResults<T>
         {
             public List<string> Reasons { get; }
 

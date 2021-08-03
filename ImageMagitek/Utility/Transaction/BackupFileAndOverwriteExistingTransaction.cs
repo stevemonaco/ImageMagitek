@@ -3,7 +3,7 @@ using System.IO;
 
 namespace ImageMagitek.Utility
 {
-    public class BackupFileAndOverwriteExistingTransaction : IFileChangeTransaction
+    public sealed class BackupFileAndOverwriteExistingTransaction : IFileChangeTransaction
     {
         public TransactionState State { get; private set; }
 

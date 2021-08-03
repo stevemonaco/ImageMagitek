@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ImageMagitek.Utility
 {
@@ -12,7 +9,7 @@ namespace ImageMagitek.Utility
         MagitekResults Transact();
     }
 
-    public class FileSetWriteTransaction : IFileChangeTransactionRunner
+    public sealed class FileSetWriteTransaction : IFileChangeTransactionRunner
     {
         private readonly IList<IFileChangeTransaction> _actions;
 

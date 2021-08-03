@@ -3,7 +3,7 @@ using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec
 {
-    public class Rgba16TiledCodec : DirectCodec
+    public sealed class Rgba16TiledCodec : DirectCodec
     {
         public override string Name => "Rgba16 Tiled";
         public override int Width { get; } = 8;

@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace ImageMagitek.Project
 {
-    public class ResourceFolder : IProjectResource
+    public sealed class ResourceFolder : IProjectResource
     {
         public ResourceFolder() : this("") { }
 

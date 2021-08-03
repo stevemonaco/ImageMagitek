@@ -11,7 +11,7 @@ namespace ImageMagitek.Codec
     /// <remarks>
     /// The pattern precedence is [A-Z] [a-z] [2-9] [!?@*] for a total of 64 characters
     /// </remarks>
-    public class PatternList
+    public sealed class PatternList
     {
         public static int MaxPatternSize { get; } = 64 * 8;
 

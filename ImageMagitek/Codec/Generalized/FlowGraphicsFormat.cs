@@ -8,7 +8,7 @@ namespace ImageMagitek.Codec
     /// FlowGraphicsFormat describes properties relating to decoding/encoding a
     /// general graphics format that is resizable
     /// </summary>
-    public class FlowGraphicsFormat : IGraphicsFormat
+    public sealed class FlowGraphicsFormat : IGraphicsFormat
     {
         /// <summary>
         /// The name of the codec

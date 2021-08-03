@@ -9,7 +9,7 @@ namespace ImageMagitek
     /// <summary>
     /// DataFile manages access to user-modifiable files
     /// </summary>
-    public class DataFile: IProjectResource
+    public sealed class DataFile: IProjectResource
     {
         public string Location { get; private set; }
 

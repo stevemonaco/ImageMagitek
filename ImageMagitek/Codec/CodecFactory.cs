@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace ImageMagitek.Codec
 {
-    public class CodecFactory : ICodecFactory
+    public sealed class CodecFactory : ICodecFactory
     {
         private readonly Dictionary<string, IGraphicsFormat> _formats;
         private readonly Dictionary<string, Type> _codecs;
@@ -55,7 +55,7 @@ namespace ImageMagitek.Codec
                     }
 
                     if (format.ColorType == PixelColorType.Indexed)
-                        return new IndexedGraphicsCodec(flowFormat);
+                        return new IndexedFlowGraphicsCodec(flowFormat);
                     else if (format.ColorType == PixelColorType.Direct)
                         throw new NotImplementedException();
                 }

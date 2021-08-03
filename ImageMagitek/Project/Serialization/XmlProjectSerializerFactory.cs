@@ -7,7 +7,7 @@ using System.Xml.Schema;
 
 namespace ImageMagitek.Project.Serialization
 {
-    public class XmlProjectSerializerFactory : IProjectSerializerFactory
+    public sealed class XmlProjectSerializerFactory : IProjectSerializerFactory
     {
         public List<IProjectResource> GlobalResources { get; }
 

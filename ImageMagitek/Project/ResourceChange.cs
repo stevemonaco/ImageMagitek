@@ -1,6 +1,6 @@
 ﻿namespace ImageMagitek.Project
 {
-    public class ResourceChange
+    public sealed class ResourceChange
     {
         public IProjectResource Resource { get; }
         public ResourceNode ResourceNode { get; }

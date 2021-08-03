@@ -5,7 +5,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace ImageMagitek
 {
-    public class ImageSharpFileAdapter : IImageFileAdapter
+    public sealed class ImageSharpFileAdapter : IImageFileAdapter
     {
         public void SaveImage(byte[] image, Arranger arranger, string imagePath)
         {

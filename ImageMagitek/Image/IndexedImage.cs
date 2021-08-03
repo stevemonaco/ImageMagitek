@@ -12,7 +12,7 @@ namespace ImageMagitek
     /// <summary>
     /// Provides functionality to work with pixel data of Arrangers with palettized graphics
     /// </summary>
-    public class IndexedImage : ImageBase<byte>
+    public sealed class IndexedImage : ImageBase<byte>
     {
         /// <summary>
         /// Creates an IndexedImage of an Arranger

@@ -3,7 +3,7 @@ using System.Text;
 
 namespace ImageMagitek.Project.Serialization
 {
-    internal class Utf8StringWriter : StringWriter
+    internal sealed class Utf8StringWriter : StringWriter
     {
         public override Encoding Encoding => Encoding.UTF8;
     }

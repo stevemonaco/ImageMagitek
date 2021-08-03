@@ -12,7 +12,7 @@ using ImageMagitek.Utility.Parsing;
 
 namespace ImageMagitek.Project.Serialization
 {
-    public class XmlProjectReader : IProjectReader
+    public sealed class XmlProjectReader : IProjectReader
     {
         public string Version => "0.9";
 

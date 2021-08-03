@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace ImageMagitek.Project
 {
-    public class ImageProject : IProjectResource
+    public sealed class ImageProject : IProjectResource
     {
         public string Name { get; set; }
         public string Root { get; set; }

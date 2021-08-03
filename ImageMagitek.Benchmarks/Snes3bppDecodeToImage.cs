@@ -45,7 +45,7 @@ namespace ImageMagitek.Benchmarks
             //var codecFileName = Path.Combine(Directory.GetCurrentDirectory(), "Resources", _genericCodecFileName);
             var serializer = new XmlGraphicsFormatReader(_codecSchemaFileName);
             var format = serializer.LoadFromFile(_genericCodecFileName);
-            _codec = new IndexedGraphicsCodec((FlowGraphicsFormat)format.AsSuccess.Result);
+            _codec = new IndexedFlowGraphicsCodec((FlowGraphicsFormat)format.AsSuccess.Result);
 
             Setup(_genericFileName, "generic");
         }

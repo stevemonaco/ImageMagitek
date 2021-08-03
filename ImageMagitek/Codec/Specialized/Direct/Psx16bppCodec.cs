@@ -4,7 +4,7 @@ using ImageMagitek.Colors.Converters;
 
 namespace ImageMagitek.Codec
 {
-    public class Psx16bppCodec : DirectCodec
+    public sealed class Psx16bppCodec : DirectCodec
     {
         public override string Name => "PSX 16bpp";
         public override int Width { get; } = 8;
