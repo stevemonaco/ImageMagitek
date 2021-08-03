@@ -90,7 +90,7 @@ namespace TileShop.WPF.Imaging
                             dest[x * 4] = color.B;
                             dest[x * 4 + 1] = color.G;
                             dest[x * 4 + 2] = color.R;
-                            dest[x * 4 + 3] = color.A;                             
+                            dest[x * 4 + 3] = color.A;
                         }
                     }
                 }
