@@ -14,7 +14,7 @@ namespace ImageMagitek.Services
     /// </summary>
     public class ProjectService : IProjectService
     {
-        public ISet<ProjectTree> Projects { get; } = new HashSet<ProjectTree>();
+        private readonly ISet<ProjectTree> _projects = new HashSet<ProjectTree>();
         private readonly IProjectSerializerFactory _serializerFactory;
         private readonly IColorFactory _colorFactory;
 
@@ -31,7 +31,7 @@ namespace ImageMagitek.Services
         /// <returns></returns>
         public virtual MagitekResult<ProjectTree> NewProject(string projectFileName)
         {
-            if (Projects.Any(x => string.Equals(x.Name, projectFileName, StringComparison.OrdinalIgnoreCase)))
+            if (_projects.Any(x => string.Equals(x.Name, projectFileName, StringComparison.OrdinalIgnoreCase)))
                 return new MagitekResult<ProjectTree>.Failed($"{projectFileName} already exists in the solution");
 
             var projectName = Path.GetFileNameWithoutExtension(projectFileName);
@@ -46,7 +46,7 @@ namespace ImageMagitek.Services
             var contents = _serializerFactory.CreateWriter(tree).SerializeResource(root);
             File.WriteAllText(root.DiskLocation, contents);
 
-            Projects.Add(tree);
+            _projects.Add(tree);
             UpdateNodeModel(tree, root);
 
             return new MagitekResult<ProjectTree>.Success(tree);
@@ -65,7 +65,7 @@ namespace ImageMagitek.Services
             if (!File.Exists(projectFileName))
                 return new MagitekResults<ProjectTree>.Failed($"File '{projectFileName}' does not exist");
 
-            if (Projects.Any(x => x.Root.DiskLocation == projectFileName))
+            if (_projects.Any(x => x.Root.DiskLocation == projectFileName))
                 return new MagitekResults<ProjectTree>.Failed($"File '{projectFileName}' is already open");
 
             try
@@ -76,7 +76,7 @@ namespace ImageMagitek.Services
                 return result.Match(
                     success =>
                     {
-                        Projects.Add(success.Result);
+                        _projects.Add(success.Result);
                         return result;
                     },
                     fail => result
@@ -154,12 +154,12 @@ namespace ImageMagitek.Services
             if (projectTree is null)
                 throw new InvalidOperationException($"{nameof(CloseProject)} parameter '{nameof(projectTree)}' was null");
 
-            if (Projects.Contains(projectTree))
+            if (_projects.Contains(projectTree))
             {
                 foreach (var file in projectTree.EnumerateBreadthFirst().Select(x => x.Item).OfType<DataFile>())
                     file.Close();
 
-                Projects.Remove(projectTree);
+                _projects.Remove(projectTree);
             }
         }
 
@@ -168,12 +168,12 @@ namespace ImageMagitek.Services
         /// </summary>
         public virtual void CloseProjects()
         {
-            var files = Projects.SelectMany(tree => tree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataFile>());
+            var files = _projects.SelectMany(tree => tree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataFile>());
 
             foreach (var file in files)
                 file.Close();
 
-            Projects.Clear();
+            _projects.Clear();
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace ImageMagitek.Services
         /// <returns></returns>
         public virtual MagitekResult<ResourceNode> AddResource(ResourceNode parentNode, IProjectResource resource)
         {
-            var tree = Projects.FirstOrDefault(x => x.ContainsNode(parentNode));
+            var tree = _projects.FirstOrDefault(x => x.ContainsNode(parentNode));
 
             if (tree is null)
                 return new MagitekResult<ResourceNode>.Failed($"{parentNode.Item.Name} is not contained within any loaded project");
@@ -236,7 +236,7 @@ namespace ImageMagitek.Services
         /// <returns>The newly created ResourceNode</returns>
         public virtual MagitekResult<ResourceNode> CreateNewFolder(ResourceNode parentNode, string name)
         {
-            var tree = Projects.FirstOrDefault(x => x.ContainsNode(parentNode));
+            var tree = _projects.FirstOrDefault(x => x.ContainsNode(parentNode));
 
             if (tree is null)
                 return new MagitekResult<ResourceNode>.Failed($"{parentNode.Item.Name} is not contained within any loaded project");
@@ -303,20 +303,20 @@ namespace ImageMagitek.Services
 
         public virtual ProjectTree GetContainingProject(ResourceNode node)
         {
-            return Projects.FirstOrDefault(x => x.ContainsNode(node)) ??
+            return _projects.FirstOrDefault(x => x.ContainsNode(node)) ??
                 throw new ArgumentException($"{nameof(GetContainingProject)} could not locate the node '{node.Name}'");
         }
 
         public virtual ProjectTree GetContainingProject(IProjectResource resource)
         {
-            return Projects.FirstOrDefault(x => x.ContainsResource(resource)) ??
+            return _projects.FirstOrDefault(x => x.ContainsResource(resource)) ??
                 throw new ArgumentException($"{nameof(GetContainingProject)} could not locate the resource '{resource.Name}'");
         }
 
         public virtual bool AreResourcesInSameProject(IProjectResource a, IProjectResource b)
         {
-            var projectA = Projects.FirstOrDefault(x => x.ContainsResource(a));
-            var projectB = Projects.FirstOrDefault(x => x.ContainsResource(b));
+            var projectA = _projects.FirstOrDefault(x => x.ContainsResource(a));
+            var projectB = _projects.FirstOrDefault(x => x.ContainsResource(b));
 
             return ReferenceEquals(projectA, projectB);
         }
@@ -329,7 +329,7 @@ namespace ImageMagitek.Services
         /// <returns></returns>
         public virtual MagitekResult RenameResource(ResourceNode node, string newName)
         {
-            var tree = Projects.FirstOrDefault(x => x.ContainsNode(node));
+            var tree = _projects.FirstOrDefault(x => x.ContainsNode(node));
 
             if (node.Parent is not null && node.Parent.ContainsChildNode(newName))
                 return new MagitekResult.Failed($"Parent node '{tree.CreatePathKey(node.Parent)}' already contains a node named '{newName}'");
@@ -584,7 +584,7 @@ namespace ImageMagitek.Services
             if (deleteNode is null)
                 throw new ArgumentNullException($"{nameof(PreviewResourceDeletionChanges)} parameter '{deleteNode}' was null");
 
-            var tree = Projects.FirstOrDefault(x => x.ContainsNode(deleteNode));
+            var tree = _projects.FirstOrDefault(x => x.ContainsNode(deleteNode));
 
             var rootRemovalChange = new ResourceChange(deleteNode, tree.CreatePathKey(deleteNode), true, false, false);
 

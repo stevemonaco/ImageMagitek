@@ -6,8 +6,6 @@ namespace ImageMagitek.Services
 {
     public interface IProjectService
     {
-        ISet<ProjectTree> Projects { get; }
-
         MagitekResult<ProjectTree> NewProject(string projectName);
         MagitekResults<ProjectTree> OpenProjectFile(string projectFileName);
         MagitekResult SaveProject(ProjectTree projectTree);
