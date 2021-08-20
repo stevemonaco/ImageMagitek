@@ -51,7 +51,7 @@ namespace ImageMagitek
             if (Mode != ArrangerMode.Scattered)
                 throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode.ToString()})");
 
-            var newGrid = new ArrangerElement?[arrangerWidth, arrangerHeight];
+            var newGrid = new ArrangerElement?[arrangerHeight, arrangerWidth];
 
             int width = Math.Min(arrangerWidth, ArrangerElementSize.Width);
             int height = Math.Min(arrangerHeight, ArrangerElementSize.Height);
