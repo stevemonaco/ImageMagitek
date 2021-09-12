@@ -29,7 +29,7 @@ namespace TileShop.WPF.ViewModels
             Initialize(arranger, viewX, viewY, viewWidth, viewHeight);
         }
 
-        public void Initialize(Arranger arranger, int viewX, int viewY, int viewWidth, int viewHeight)
+        private void Initialize(Arranger arranger, int viewX, int viewY, int viewWidth, int viewHeight)
         {
             Resource = arranger;
             WorkingArranger = arranger.CloneArranger();

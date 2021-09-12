@@ -26,7 +26,7 @@ namespace TileShop.WPF.ViewModels
         private readonly AppSettings _settings;
         private readonly IEventAggregator _events;
 
-        private BindableCollection<ResourceEditorBaseViewModel> _editors = new BindableCollection<ResourceEditorBaseViewModel>();
+        private BindableCollection<ResourceEditorBaseViewModel> _editors = new();
         public BindableCollection<ResourceEditorBaseViewModel> Editors
         {
             get => _editors;
@@ -47,7 +47,7 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _shell, value);
         }
 
-        private readonly Dictionary<MessageBoxResult, string> _messageBoxLabels = new Dictionary<MessageBoxResult, string>
+        private readonly Dictionary<MessageBoxResult, string> _messageBoxLabels = new()
         {
             { MessageBoxResult.Yes, "Save" }, { MessageBoxResult.No, "Discard" }, { MessageBoxResult.Cancel, "Cancel" }
         };
@@ -236,7 +236,13 @@ namespace TileShop.WPF.ViewModels
             }
             else if (message.Arranger.ColorType == PixelColorType.Direct)
             {
+                var editor = new DirectPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
+                    message.Width, message.Height, _events, _windowManager, _paletteService);
 
+                editor.DisplayName = message.Arranger.Name;
+
+                Shell.Editors.Editors.Add(editor);
+                ActiveEditor = editor;
             }
         }
 

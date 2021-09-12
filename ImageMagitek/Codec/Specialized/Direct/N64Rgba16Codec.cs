@@ -3,11 +3,11 @@ using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec
 {
-    public sealed class Rgba16TiledCodec : DirectCodec
+    public sealed class N64Rgba16Codec : DirectCodec
     {
-        public override string Name => "Rgba16 Tiled";
-        public override int Width { get; } = 8;
-        public override int Height { get; } = 8;
+        public override string Name => "N64 Rgba16";
+        public override int Width { get; } = 32;
+        public override int Height { get; } = 32;
         public override ImageLayout Layout => ImageLayout.Tiled;
         public override int ColorDepth => 32;
         public override int StorageSize => Width * Height * 32;
@@ -17,12 +17,12 @@ namespace ImageMagitek.Codec
         public override bool CanResize => true;
         public override int WidthResizeIncrement => 1;
         public override int HeightResizeIncrement => 1;
-        public override int DefaultWidth => 8;
-        public override int DefaultHeight => 8;
+        public override int DefaultWidth => 32;
+        public override int DefaultHeight => 32;
 
         private BitStream _bitStream;
 
-        public Rgba16TiledCodec()
+        public N64Rgba16Codec()
         {
             Width = DefaultWidth;
             Height = DefaultHeight;
@@ -33,7 +33,7 @@ namespace ImageMagitek.Codec
             _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
         }
 
-        public Rgba16TiledCodec(int width, int height)
+        public N64Rgba16Codec(int width, int height)
         {
             Width = width;
             Height = height;

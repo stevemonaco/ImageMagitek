@@ -264,6 +264,9 @@ namespace TileShop.WPF.ViewModels
         #region Mouse Actions
         public virtual void OnMouseMove(object sender, MouseCaptureArgs e)
         {
+            if (Selection is null)
+                return;
+
             int x = Math.Clamp((int)e.X / Zoom, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
             int y = Math.Clamp((int)e.Y / Zoom, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
 
