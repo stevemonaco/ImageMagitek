@@ -546,7 +546,7 @@ namespace TileShop.WPF.ViewModels
                                 IsModified = true;
 
                                 NotifyOfPropertyChange(() => HasProject);
-                                _events.PublishOnUIThread(new ProjectLoadedEvent());
+                                _events.PublishOnUIThread(new ProjectLoadedEvent(projectVM.Node.DiskLocation));
                             },
                             fail =>
                             {

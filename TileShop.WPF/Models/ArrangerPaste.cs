@@ -1,14 +1,12 @@
 ﻿using ImageMagitek;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Drawing;
 using TileShop.Shared.Models;
+using Stylet;
 using TileShop.WPF.Imaging;
 
 namespace TileShop.WPF.Models
 {
-    public class ArrangerPaste : INotifyPropertyChanged
+    public class ArrangerPaste : PropertyChangedBase
     {
         public ArrangerCopy Copy { get; private set; }
         public int DeltaX { get; set; }
@@ -20,7 +18,7 @@ namespace TileShop.WPF.Models
             get => _snapMode;
             set
             {
-                SetField(ref _snapMode, value);
+                SetAndNotify(ref _snapMode, value);
                 if (Rect is object)
                     Rect.SnapMode = value;
             }
@@ -30,14 +28,14 @@ namespace TileShop.WPF.Models
         public BitmapAdapter OverlayImage
         {
             get => _overlayImage;
-            private set => SetField(ref _overlayImage, value);
+            private set => SetAndNotify(ref _overlayImage, value);
         }
 
         private SnappedRectangle _rect;
         public SnappedRectangle Rect
         {
             get => _rect;
-            set => SetField(ref _rect, value);
+            set => SetAndNotify(ref _rect, value);
         }
 
         public ArrangerPaste(ArrangerCopy copy, SnapMode snapMode)
@@ -77,19 +75,5 @@ namespace TileShop.WPF.Models
         }
 
         public void MoveTo(int x, int y) => Rect.MoveTo(x - DeltaX, y - DeltaY);
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-        protected bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(field, value))
-                return false;
-
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
-        }
     }
 }

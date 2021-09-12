@@ -1,9 +1,6 @@
 ﻿using ImageMagitek.Colors;
-using Stylet;
-using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Text;
 using TileShop.WPF.Helpers;
 
 namespace TileShop.WPF.Models
