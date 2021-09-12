@@ -3,12 +3,15 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:behaviors="clr-namespace:TileShop.WPF.Behaviors"
+    xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
+    xmlns:controls="clr-namespace:TileShop.WPF.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dd="urn:gong-wpf-dragdrop"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="clr-namespace:TileShop.WPF.Models"
     xmlns:s="https://github.com/canton7/Stylet"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
     xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:DirectPixelEditorViewModel}"
     d:DesignHeight="450"
@@ -116,98 +119,53 @@
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Active Colors" />
                 <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                    <Border BorderBrush="Black" BorderThickness="2">
-                        <Border BorderBrush="White" BorderThickness="2">
-                            <Rectangle
-                                Width="26"
-                                Height="26"
-                                ToolTip="Primary Color">
-                                <Rectangle.Fill>
-                                    <MultiBinding Converter="{StaticResource PaletteIndexToColorConverter}">
-                                        <Binding Path="ActivePalette" />
-                                        <Binding Path="PrimaryColor" />
-                                    </MultiBinding>
-                                </Rectangle.Fill>
-                            </Rectangle>
-                        </Border>
-                    </Border>
-                    <Border BorderBrush="Black" BorderThickness="2">
-                        <Border BorderBrush="White" BorderThickness="2">
-                            <Rectangle
-                                Width="26"
-                                Height="26"
-                                ToolTip="Secondary Color">
-                                <Rectangle.Fill>
-                                    <MultiBinding Converter="{StaticResource PaletteIndexToColorConverter}">
-                                        <Binding Path="ActivePalette" />
-                                        <Binding Path="SecondaryColor" />
-                                    </MultiBinding>
-                                </Rectangle.Fill>
-                            </Rectangle>
-                        </Border>
-                    </Border>
+                    <Button Padding="0" Background="Transparent">
+                        <Button.Content>
+                            <Border BorderBrush="Black" BorderThickness="2">
+                                <Border BorderBrush="White" BorderThickness="2">
+                                    <Rectangle
+                                        Width="26"
+                                        Height="26"
+                                        ToolTip="Primary Color">
+                                        <Rectangle.Fill>
+                                            <SolidColorBrush Color="{Binding PrimaryColor, Converter={StaticResource ColorRgba32ToMediaColorConverter}}" />
+                                        </Rectangle.Fill>
+                                    </Rectangle>
+                                </Border>
+                            </Border>
+                        </Button.Content>
+                        <!--<ui:FlyoutService.Flyout>
+                            <ui:Flyout>
+                                <colorpicker:SquarePicker />
+                            </ui:Flyout>
+                        </ui:FlyoutService.Flyout>-->
+                    </Button>
+
+                    <Button Padding="0" Background="Transparent">
+                        <Button.Content>
+                            <Border BorderBrush="Black" BorderThickness="2">
+                                <Border BorderBrush="White" BorderThickness="2">
+                                    <Rectangle
+                                        Width="26"
+                                        Height="26"
+                                        ToolTip="Secondary Color">
+                                        <Rectangle.Fill>
+                                            <SolidColorBrush Color="{Binding SecondaryColor, Converter={StaticResource ColorRgba32ToMediaColorConverter}}" />
+                                        </Rectangle.Fill>
+                                    </Rectangle>
+                                </Border>
+                            </Border>
+                        </Button.Content>
+                        <ui:FlyoutService.Flyout>
+                            <ui:Flyout>
+                                <!--<colorpicker:StandardColorPicker SecondaryColor="{Binding SecondaryColor, Converter={StaticResource ColorRgba32ToMediaColorConverter}, Mode=TwoWay}" SelectedColor="{Binding PrimaryColor, Converter={StaticResource ColorRgba32ToMediaColorConverter}, Mode=TwoWay}" />-->
+                                <controls:DirectColorPicker SecondaryColor="{Binding SecondaryColor, Converter={StaticResource ColorRgba32ToMediaColorConverter}, Mode=TwoWay}" SelectedColor="{Binding PrimaryColor, Converter={StaticResource ColorRgba32ToMediaColorConverter}, Mode=TwoWay}" />
+                            </ui:Flyout>
+                        </ui:FlyoutService.Flyout>
+                    </Button>
                 </StackPanel>
             </StackPanel>
         </StackPanel>
-
-        <!--  Palette Display  -->
-        <!--<StackPanel
-            Grid.Row="1"
-            Grid.ColumnSpan="2"
-            Margin="4,4,0,0"
-            Orientation="Horizontal">
-            <ComboBox ItemsSource="{Binding Palettes}" SelectedValue="{Binding ActivePalette}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Name}" />
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-
-            <ItemsControl
-                Margin="1,0,3,5"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                ItemsSource="{Binding ActivePalette.Colors}"
-                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel
-                            Margin="0,0,3,5"
-                            IsItemsHost="True"
-                            Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border
-                            Margin="1,0,1,0"
-                            BorderBrush="Black"
-                            BorderThickness="1">
-                            <Border BorderBrush="White" BorderThickness="1">
-                                <Rectangle
-                                    Width="28"
-                                    Height="28"
-                                    Fill="{Binding Converter={StaticResource PaletteEntryToSolidColorBrushConverter}}">
-                                    <Rectangle.InputBindings>
-                                        <MouseBinding
-                                            s:View.ActionTarget="{Binding DataContext, ElementName=pixelEditor}"
-                                            Command="{s:Action SetPrimaryColor}"
-                                            CommandParameter="{Binding Converter={StaticResource PaletteEntryToIndexConverter}}"
-                                            MouseAction="LeftClick" />
-                                        <MouseBinding
-                                            s:View.ActionTarget="{Binding DataContext, ElementName=pixelEditor}"
-                                            Command="{s:Action SetSecondaryColor}"
-                                            CommandParameter="{Binding Converter={StaticResource PaletteEntryToIndexConverter}}"
-                                            MouseAction="RightClick" />
-                                    </Rectangle.InputBindings>
-                                </Rectangle>
-                            </Border>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </StackPanel>-->
 
         <!--  Image Display  -->
         <ScrollViewer

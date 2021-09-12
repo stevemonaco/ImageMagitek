@@ -84,9 +84,9 @@ namespace TileShop.WPF.Imaging
                         dest += y * Bitmap.BackBufferStride + xStart * 4;
                         var row = Image.GetPixelRowSpan(y);
 
-                        for (int x = xStart; x < xStart + width; x++)
+                        for (int x = 0; x < width; x++)
                         {
-                            var color = row[x];
+                            var color = row[x + xStart];
                             dest[x * 4] = color.B;
                             dest[x * 4 + 1] = color.G;
                             dest[x * 4 + 2] = color.R;

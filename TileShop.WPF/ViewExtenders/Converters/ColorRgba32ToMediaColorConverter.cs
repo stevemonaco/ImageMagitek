@@ -1,15 +1,13 @@
 ﻿using ImageMagitek.Colors;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 
 namespace TileShop.WPF.Converters
 {
-    public class ColorRgba32ToColorConverter : IValueConverter
+    public class ColorRgba32ToMediaColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -21,7 +19,10 @@ namespace TileShop.WPF.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            if (value is Color color)
+                return new ColorRgba32(color.R, color.G, color.B, color.A);
+
+            return DependencyProperty.UnsetValue;
         }
     }
 }

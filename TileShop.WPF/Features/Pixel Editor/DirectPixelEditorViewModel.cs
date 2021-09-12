@@ -43,13 +43,12 @@ namespace TileShop.WPF.ViewModels
 
             DisplayName = $"Pixel Editor - {WorkingArranger.Name}";
 
-            PrimaryColor = new ColorRgba32(255, 255, 255, 255);
-            SecondaryColor = new ColorRgba32(0, 0, 0, 255);
+            PrimaryColor = new ColorRgba32(255, 0, 255, 122);
+            SecondaryColor = new ColorRgba32(0, 255, 0, 122);
             CreateGridlines();
         }
 
-        public override void Render() { }
-            //ArrangerSource = new DirectImageSource(_directImage, _viewX, _viewY, _viewWidth, _viewHeight);
+        public override void Render() => BitmapAdapter.Invalidate();
 
         protected override void ReloadImage() => _directImage.Render();
 
@@ -80,6 +79,12 @@ namespace TileShop.WPF.ViewModels
         public override void SetPixel(int x, int y, ColorRgba32 color)
         {
             _directImage.SetPixel(x + _viewX, y + _viewY, color);
+
+            if (_activePencilHistory.ModifiedPoints.Add(new Point(x, y)))
+            {
+                IsModified = true;
+                BitmapAdapter.Invalidate(x, y, 1, 1);
+            }
         }
 
         public override void ApplyHistoryAction(HistoryAction action)

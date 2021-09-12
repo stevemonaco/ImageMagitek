@@ -26,7 +26,7 @@
                                 <ui:ColorPaletteResources AltHigh="#FF2B2B2B" TargetTheme="Dark" />
                                 <ResourceDictionary Source="/Styles/Theming/TileShop.Dark.xaml" />
                                 <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/DarkTheme.xaml" />
-
+                                <ResourceDictionary Source="pack://application:,,,/ColorPicker;component/Styles/DefaultColorPickerStyle.xaml" />
                             </ResourceDictionary.MergedDictionaries>
                         </ResourceDictionary>
                     </ui:ThemeResources.ThemeDictionaries>
@@ -64,7 +64,7 @@
                     <converters:NumericBaseToStringConverter x:Key="NumericBaseToStringConverter" />
                     <converters:NumericBaseBooleanConverter x:Key="NumericBaseBooleanConverter" />
                     <converters:PaletteModelIndexToSolidColorBrushConverter x:Key="PaletteIndexToColorConverter" />
-                    <converters:ColorRgba32ToColorConverter x:Key="ColorRgba32ToColorConverter" />
+                    <converters:ColorRgba32ToMediaColorConverter x:Key="ColorRgba32ToMediaColorConverter" />
                     <converters:PaletteEntryToIndexConverter x:Key="PaletteEntryToIndexConverter" />
                     <converters:PaletteEntryToSolidColorBrushConverter x:Key="PaletteEntryToSolidColorBrushConverter" />
                     <converters:ScrollViewerToMarginStringConverter x:Key="ScrollViewerToMarginStringConverter" />
