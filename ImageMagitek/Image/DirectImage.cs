@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using ImageMagitek.Codec;
@@ -123,6 +124,46 @@ namespace ImageMagitek
             }
             foreach (var fs in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.DataFile.Stream).Distinct())
                 fs.Flush();
+        }
+
+        /// <summary>
+        /// Fills the surrounding, contiguous color area with a new color
+        /// </summary>
+        /// <param name="x">x-coordinate to start at in pixel coordinates</param>
+        /// <param name="y">y-coordinate to start at in pixel coordinates</param>
+        /// <param name="fillIndex">Palette index to fill with</param>
+        /// <returns>True if any pixels were modified</returns>
+        public bool FloodFill(int x, int y, ColorRgba32 fillColor)
+        {
+            bool isModified = false;
+            var replaceColor = GetPixel(x, y);
+
+            if (fillColor.Color == replaceColor.Color)
+                return false;
+
+            var openNodes = new Stack<(int x, int y)>();
+            openNodes.Push((x, y));
+
+            while (openNodes.Count > 0)
+            {
+                var nodePosition = openNodes.Pop();
+
+                if (nodePosition.x >= 0 && nodePosition.x < Width && nodePosition.y >= 0 && nodePosition.y < Height)
+                {
+                    var nodeColor = GetPixel(nodePosition.x, nodePosition.y);
+                    if (nodeColor.Color == replaceColor.Color)
+                    {
+                        isModified = true;
+                        SetPixel(nodePosition.x, nodePosition.y, fillColor);
+                        openNodes.Push((nodePosition.x - 1, nodePosition.y));
+                        openNodes.Push((nodePosition.x + 1, nodePosition.y));
+                        openNodes.Push((nodePosition.x, nodePosition.y - 1));
+                        openNodes.Push((nodePosition.x, nodePosition.y + 1));
+                    }
+                }
+            }
+
+            return isModified;
         }
     }
 }

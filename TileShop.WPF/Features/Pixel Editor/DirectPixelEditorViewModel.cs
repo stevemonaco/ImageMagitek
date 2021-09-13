@@ -43,8 +43,8 @@ namespace TileShop.WPF.ViewModels
 
             DisplayName = $"Pixel Editor - {WorkingArranger.Name}";
 
-            PrimaryColor = new ColorRgba32(255, 0, 255, 122);
-            SecondaryColor = new ColorRgba32(0, 255, 0, 122);
+            PrimaryColor = new ColorRgba32(255, 255, 255, 255);
+            SecondaryColor = new ColorRgba32(0, 0, 0, 255);
             CreateGridlines();
         }
 
@@ -57,7 +57,15 @@ namespace TileShop.WPF.ViewModels
             try
             {
                 _directImage.SaveImage();
+
+                UndoHistory.Clear();
+                RedoHistory.Clear();
+                NotifyOfPropertyChange(() => CanUndo);
+                NotifyOfPropertyChange(() => CanRedo);
+
                 IsModified = false;
+                var changeEvent = new ArrangerChangedEvent(_projectArranger, ArrangerChange.Pixels);
+                _events.PublishOnUIThread(changeEvent);
             }
             catch (Exception ex)
             {
@@ -154,7 +162,12 @@ namespace TileShop.WPF.ViewModels
 
         public override void FloodFill(int x, int y, ColorRgba32 fillColor)
         {
-            throw new NotImplementedException();
+            if (_directImage.FloodFill(x, y, fillColor))
+            {
+                AddHistoryAction(new FloodFillAction<ColorRgba32>(x, y, fillColor));
+                IsModified = true;
+                Render();
+            }
         }
     }
 }
