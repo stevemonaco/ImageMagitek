@@ -10,8 +10,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="clr-namespace:ColorPicker.UIExtensions"
     x:Name="uc"
-    MinWidth="200"
-    MinHeight="150"
     d:DesignHeight="150"
     d:DesignWidth="300"
     mc:Ignorable="d">
@@ -86,7 +84,7 @@
                 <TextBox
                     Grid.Row="0"
                     Grid.Column="2"
-                    Width="40"
+                    Width="50"
                     Height="18"
                     Margin="{StaticResource BarHorizontalMargin}"
                     VerticalContentAlignment="Center"
@@ -117,7 +115,7 @@
                 <TextBox
                     Grid.Row="1"
                     Grid.Column="2"
-                    Width="40"
+                    Width="50"
                     Height="18"
                     Margin="{StaticResource BarHorizontalMargin}"
                     Text="{Binding Path=Color.HSV_S, Converter={StaticResource HundredChannelConverter}, ElementName=uc, StringFormat=N1}"
@@ -147,7 +145,7 @@
                 <TextBox
                     Grid.Row="2"
                     Grid.Column="2"
-                    Width="40"
+                    Width="50"
                     Height="18"
                     Margin="{StaticResource BarHorizontalMargin}"
                     Text="{Binding Path=Color.HSV_V, Converter={StaticResource HundredChannelConverter}, ElementName=uc, StringFormat=N1}"
@@ -188,7 +186,7 @@
                 <TextBox
                     Grid.Row="3"
                     Grid.Column="2"
-                    Width="40"
+                    Width="50"
                     Height="18"
                     Margin="{StaticResource BarHorizontalMargin}"
                     IsEnabled="{Binding ElementName=uc, Path=ShowAlpha}"
@@ -246,7 +244,7 @@
                 <TextBox
                     Grid.Row="0"
                     Grid.Column="2"
-                    Width="40"
+                    Width="50"
                     Height="18"
                     Margin="{StaticResource BarHorizontalMargin}"
                     VerticalContentAlignment="Center"
@@ -277,7 +275,7 @@
                 <TextBox
                     Grid.Row="1"
                     Grid.Column="2"
-                    Width="40"
+                    Width="50"
                     Height="18"
                     Margin="{StaticResource BarHorizontalMargin}"
                     VerticalContentAlignment="Center"
@@ -308,7 +306,7 @@
                 <TextBox
                     Grid.Row="2"
                     Grid.Column="2"
-                    Width="40"
+                    Width="50"
                     Height="18"
                     Margin="{StaticResource BarHorizontalMargin}"
                     VerticalContentAlignment="Center"
@@ -350,7 +348,7 @@
                 <TextBox
                     Grid.Row="3"
                     Grid.Column="2"
-                    Width="40"
+                    Width="50"
                     Height="18"
                     Margin="{StaticResource BarHorizontalMargin}"
                     VerticalContentAlignment="Center"
@@ -409,7 +407,7 @@
                 <TextBox
                     Grid.Row="0"
                     Grid.Column="2"
-                    Width="40"
+                    Width="50"
                     Height="18"
                     Margin="{StaticResource BarHorizontalMargin}"
                     VerticalContentAlignment="Center"
@@ -440,7 +438,7 @@
                 <TextBox
                     Grid.Row="1"
                     Grid.Column="2"
-                    Width="40"
+                    Width="50"
                     Height="18"
                     Margin="{StaticResource BarHorizontalMargin}"
                     VerticalContentAlignment="Center"
@@ -471,7 +469,7 @@
                 <TextBox
                     Grid.Row="2"
                     Grid.Column="2"
-                    Width="40"
+                    Width="50"
                     Height="18"
                     Margin="{StaticResource BarHorizontalMargin}"
                     VerticalContentAlignment="Center"
@@ -513,7 +511,7 @@
                 <TextBox
                     Grid.Row="3"
                     Grid.Column="2"
-                    Width="40"
+                    Width="50"
                     Height="18"
                     Margin="{StaticResource BarHorizontalMargin}"
                     VerticalContentAlignment="Center"
