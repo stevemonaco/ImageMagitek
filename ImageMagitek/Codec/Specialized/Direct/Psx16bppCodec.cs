@@ -82,7 +82,7 @@ namespace ImageMagitek.Codec
                     var imageColor = imageBuffer[y, x];
                     var fc = _colorConverter.ToForeignColor(imageColor);
 
-                    byte high = (byte)(fc.Color & 0xFF00);
+                    byte high = (byte)((fc.Color & 0xFF00) >> 8);
                     byte low = (byte)(fc.Color & 0xFF);
 
                     bs.WriteByte(low);

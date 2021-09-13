@@ -83,13 +83,18 @@ namespace ImageMagitek.Codec
                 for (int x = 0; x < el.Width; x++)
                 {
                     var imageColor = imageBuffer[y, x];
-                    var fc = _colorConverter.ToForeignColor(imageColor);
 
-                    byte high = (byte)(fc.Color & 0xFF00);
-                    byte low = (byte)(fc.Color & 0xFF);
+                    ushort r = (ushort)((imageColor.R >> 3) << 11);
+                    ushort g = (ushort)((imageColor.G >> 3) << 6);
+                    ushort b = (ushort)((imageColor.B >> 3) << 1);
+                    ushort a = imageColor.A == 255 ? (byte)1 : (byte)0;
 
-                    bs.WriteByte(low);
+                    ushort pair = (ushort) (r | g | b | a);
+                    byte high = (byte)(pair >> 8);
+                    byte low = (byte)(pair & 0xFF);
+
                     bs.WriteByte(high);
+                    bs.WriteByte(low);
                 }
             }
 
