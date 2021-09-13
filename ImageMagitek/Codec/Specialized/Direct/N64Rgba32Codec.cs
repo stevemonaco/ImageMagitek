@@ -80,8 +80,9 @@ namespace ImageMagitek.Codec
                 for (int x = 0; x < el.Width; x++)
                 {
                     var imageColor = imageBuffer[y, x];
-                    bs.WriteByte(imageColor.R);
                     bs.WriteByte(imageColor.G);
+                    bs.WriteByte(imageColor.R);
+                    bs.WriteByte(imageColor.A);
                     bs.WriteByte(imageColor.B);
                 }
             }

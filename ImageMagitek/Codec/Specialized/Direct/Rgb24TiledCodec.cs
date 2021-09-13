@@ -69,7 +69,23 @@ namespace ImageMagitek.Codec
 
         public override ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, ColorRgba32[,] imageBuffer)
         {
-            throw new NotImplementedException();
+            if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
+                throw new ArgumentException(nameof(imageBuffer));
+
+            var bs = BitStream.OpenWrite(StorageSize, 8);
+
+            for (int y = 0; y < el.Height; y++)
+            {
+                for (int x = 0; x < el.Width; x++)
+                {
+                    var imageColor = imageBuffer[y, x];
+                    bs.WriteByte(imageColor.R);
+                    bs.WriteByte(imageColor.G);
+                    bs.WriteByte(imageColor.B);
+                }
+            }
+
+            return bs.Data;
         }
     }
 }

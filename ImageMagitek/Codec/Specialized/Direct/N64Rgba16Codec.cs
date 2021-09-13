@@ -1,5 +1,6 @@
 ﻿using System;
 using ImageMagitek.Colors;
+using ImageMagitek.Colors.Converters;
 
 namespace ImageMagitek.Codec
 {
@@ -21,6 +22,7 @@ namespace ImageMagitek.Codec
         public override int DefaultHeight => 32;
 
         private BitStream _bitStream;
+        private readonly ColorConverterAbgr16 _colorConverter = new();
 
         public N64Rgba16Codec()
         {
@@ -71,7 +73,27 @@ namespace ImageMagitek.Codec
 
         public override ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, ColorRgba32[,] imageBuffer)
         {
-            throw new NotImplementedException();
+            if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
+                throw new ArgumentException(nameof(imageBuffer));
+
+            var bs = BitStream.OpenWrite(StorageSize, 8);
+
+            for (int y = 0; y < el.Height; y++)
+            {
+                for (int x = 0; x < el.Width; x++)
+                {
+                    var imageColor = imageBuffer[y, x];
+                    var fc = _colorConverter.ToForeignColor(imageColor);
+
+                    byte high = (byte)(fc.Color & 0xFF00);
+                    byte low = (byte)(fc.Color & 0xFF);
+
+                    bs.WriteByte(low);
+                    bs.WriteByte(high);
+                }
+            }
+
+            return bs.Data;
         }
     }
 }
