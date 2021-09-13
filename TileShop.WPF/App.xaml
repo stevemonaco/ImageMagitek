@@ -26,7 +26,6 @@
                                 <ui:ColorPaletteResources AltHigh="#FF2B2B2B" TargetTheme="Dark" />
                                 <ResourceDictionary Source="/Styles/Theming/TileShop.Dark.xaml" />
                                 <ResourceDictionary Source="pack://application:,,,/AvalonDock.Themes.VS2013;component/DarkTheme.xaml" />
-                                <ResourceDictionary Source="pack://application:,,,/ColorPicker;component/Styles/DefaultColorPickerStyle.xaml" />
                             </ResourceDictionary.MergedDictionaries>
                         </ResourceDictionary>
                     </ui:ThemeResources.ThemeDictionaries>

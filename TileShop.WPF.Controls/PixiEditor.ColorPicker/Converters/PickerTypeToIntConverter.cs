@@ -3,10 +3,11 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace TileShop.WPF.Controls
+namespace ColorPicker.Converters
 {
     [ValueConversion(typeof(PickerType), typeof(int))]
-    class PickerTypeToIntConverter : IValueConverter
+    class PickerTypeToIntConverter
+        : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

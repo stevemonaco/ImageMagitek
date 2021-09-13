@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="PixiEditor.ColorPicker\Images\CircularHueGradient.png" />
+    <None Remove="PixiEditor.ColorPicker\Images\transparentbg_mini.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="PixiEditor.ColorPicker\Images\CircularHueGradient.png" />
+    <Resource Include="PixiEditor.ColorPicker\Images\transparentbg_mini.png" />
+  </ItemGroup>
+
+</Project>

@@ -35,7 +35,6 @@
     <PackageReference Include="ModernWpfUI" Version="0.9.4" />
     <PackageReference Include="Monaco.PathTree" Version="1.1.0" />
     <PackageReference Include="OneOf" Version="2.1.155" />
-    <PackageReference Include="PixiEditor.ColorPicker" Version="3.1.0" />
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
@@ -51,6 +50,7 @@
     <ProjectReference Include="..\ImageMagitek.Services\ImageMagitek.Services.csproj" />
     <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
     <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
+    <ProjectReference Include="..\TileShop.WPF.Controls\TileShop.WPF.Controls.csproj" />
   </ItemGroup>
 
   <ItemGroup>
