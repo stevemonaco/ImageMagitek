@@ -88,7 +88,7 @@ namespace ImageMagitek.PluginSample
 
         public override ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer)
         {
-            if (imageBuffer.GetLength(1) != Width || imageBuffer.GetLength(0) != Height)
+            if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
                 throw new ArgumentException(nameof(imageBuffer));
 
             var bs = BitStream.OpenWrite(StorageSize, 8);

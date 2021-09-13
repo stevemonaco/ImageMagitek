@@ -66,7 +66,7 @@ namespace ImageMagitek.Codec
 
         public override ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer)
         {
-            if (imageBuffer.GetLength(0) != Width || imageBuffer.GetLength(1) != Height)
+            if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
                 throw new ArgumentException(nameof(imageBuffer));
 
             int dest = 0;
