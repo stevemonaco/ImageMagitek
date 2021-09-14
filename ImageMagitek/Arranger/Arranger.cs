@@ -10,11 +10,10 @@ namespace ImageMagitek
 {
     /// <summary>
     /// Mode for the Arranger
-    /// <para>SequentialArrangers are for simple sequential file access</para>
+    /// <para>SequentialArrangers are used for simple sequential file access</para>
     /// <para>ScatteredArrangers are capable of accessing many files, file offsets, palettes, and codecs in a single arranger</para>
-    /// <para>MemoryArrangers are used as a scratchpad (currently unimplemented)</para>
     /// </summary>
-    public enum ArrangerMode { Sequential = 1, Scattered, Memory };
+    public enum ArrangerMode { Sequential = 1, Scattered };
 
     /// <summary>
     /// Layout of graphics for the arranger
@@ -22,7 +21,7 @@ namespace ImageMagitek
     /// <para>Tiled will snap selection rectangles to tile boundaries</para>
     /// <para>Single will snap selection rectangles to pixel boundaries</para>
     /// </summary>
-    public enum ArrangerLayout { Tiled = 1, Single };
+    public enum ElementLayout { Tiled = 1, Single };
 
     /// <summary>
     /// Specifies how the pixels' colors are determined for the graphic
@@ -70,7 +69,7 @@ namespace ImageMagitek
         /// <summary>
         /// Gets the ArrangerLayout of the Arranger
         /// </summary>
-        public ArrangerLayout Layout { get; protected set; }
+        public ElementLayout Layout { get; protected set; }
 
         /// <summary>
         /// Gets the ColorType of the Arranger
@@ -91,10 +90,10 @@ namespace ImageMagitek
         /// <returns></returns>
         public virtual Arranger CloneArranger()
         {
-            if (Layout == ArrangerLayout.Tiled || Layout == ArrangerLayout.Single)
+            if (Layout == ElementLayout.Tiled || Layout == ElementLayout.Single)
                 return CloneArranger(0, 0, ArrangerPixelSize.Width, ArrangerPixelSize.Height);
             else
-                throw new NotSupportedException($"{nameof(CloneArranger)} with {nameof(ArrangerLayout)} '{Layout}' is not supported");
+                throw new NotSupportedException($"{nameof(CloneArranger)} with {nameof(ElementLayout)} '{Layout}' is not supported");
         }
 
         /// <summary>
@@ -111,7 +110,7 @@ namespace ImageMagitek
                 throw new ArgumentOutOfRangeException($"{nameof(CloneArranger)} parameters ({nameof(pixelX)}: {pixelX}, {nameof(pixelY)}: {pixelY}, {nameof(width)}: {width}, {nameof(height)}: {height})" +
                     $" were outside of the bounds of arranger '{Name}' of size (width: {ArrangerPixelSize.Width}, height: {ArrangerPixelSize.Height})");
 
-            if (Layout == ArrangerLayout.Single)
+            if (Layout == ElementLayout.Single)
             {
                 if (pixelX != 0 || pixelY != 0 || width != ArrangerPixelSize.Width || height != ArrangerPixelSize.Height)
                     throw new InvalidOperationException($"{nameof(CloneArranger)} of an Arranger with ArrangerLayout of Single must have the same dimensions as the original");

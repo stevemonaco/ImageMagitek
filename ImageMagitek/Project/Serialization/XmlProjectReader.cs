@@ -327,9 +327,9 @@ namespace ImageMagitek.Project.Serialization
             var elementList = element.Descendants("element");
 
             if (layoutName == "tiled")
-                model.Layout = ArrangerLayout.Tiled;
+                model.Layout = ElementLayout.Tiled;
             else if (layoutName == "single")
-                model.Layout = ArrangerLayout.Single;
+                model.Layout = ElementLayout.Single;
             else
                 throw new XmlException($"Unsupported arranger layout type ('{layoutName}') for arranger '{model.Name}'");
 

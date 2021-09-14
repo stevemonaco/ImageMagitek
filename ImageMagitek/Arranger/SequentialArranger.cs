@@ -46,7 +46,7 @@ namespace ImageMagitek
         /// <summary>
         /// Layout used arrange elements when ArrangerLayout is Tiled
         /// </summary>
-        public ElementLayout ElementLayout { get; private set; }
+        public TiledLayout ElementLayout { get; private set; }
 
         private readonly ICodecFactory _codecs;
 
@@ -73,13 +73,13 @@ namespace ImageMagitek
 
             Layout = ActiveCodec.Layout switch
             {
-                ImageLayout.Tiled => ArrangerLayout.Tiled,
-                ImageLayout.Single => ArrangerLayout.Single,
+                ImageLayout.Tiled => ImageMagitek.ElementLayout.Tiled,
+                ImageLayout.Single => ImageMagitek.ElementLayout.Single,
                 _ => throw new InvalidOperationException($"{nameof(SequentialArranger)}.ctor was called with an invalid {nameof(ImageLayout)}")
             };
 
             ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);
-            ElementLayout = ElementLayout.Default;
+            ElementLayout = TiledLayout.Default;
 
             Resize(arrangerWidth, arrangerHeight);
         }
@@ -218,7 +218,7 @@ namespace ImageMagitek
         /// Changes the arranger's element layout
         /// <para>The arranger is resized if necessary</para>
         /// </summary>
-        public void ChangeElementLayout(ElementLayout layout)
+        public void ChangeElementLayout(TiledLayout layout)
         {
             ElementLayout = layout;
 
@@ -258,9 +258,9 @@ namespace ImageMagitek
             ColorType = ActiveCodec.ColorType;
 
             if (codec.Layout == ImageLayout.Single)
-                Layout = ArrangerLayout.Single;
+                Layout = ImageMagitek.ElementLayout.Single;
             else if (codec.Layout == ImageLayout.Tiled)
-                Layout = ArrangerLayout.Tiled;
+                Layout = ImageMagitek.ElementLayout.Tiled;
 
             if (ArrangerElementSize.Width != arrangerWidth || ArrangerElementSize.Height != arrangerHeight)
                 Resize(arrangerWidth, arrangerHeight);

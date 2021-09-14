@@ -21,7 +21,7 @@ namespace TileShop.WPF.ViewModels
         private readonly Tracker _tracker;
         private IndexedImage _indexedImage;
         private DirectImage _directImage;
-        private ElementLayout _activeLayout;
+        private TiledLayout _activeLayout;
 
         private BindableCollection<string> _codecNames = new BindableCollection<string>();
         public BindableCollection<string> CodecNames
@@ -227,7 +227,7 @@ namespace TileShop.WPF.ViewModels
             _selectedTileLayoutName = _layoutService.DefaultElementLayout.Name;
             _activeLayout = arranger.ElementLayout;
 
-            if (arranger.Layout == ArrangerLayout.Tiled)
+            if (arranger.Layout == ElementLayout.Tiled)
             {
                 _tiledElementWidth = arranger.ElementPixelSize.Width;
                 _tiledElementHeight = arranger.ElementPixelSize.Height;
@@ -235,7 +235,7 @@ namespace TileShop.WPF.ViewModels
                 _tiledArrangerWidth = arranger.ArrangerElementSize.Width;
                 SnapMode = SnapMode.Element;
             }
-            else if(arranger.Layout == ArrangerLayout.Single)
+            else if(arranger.Layout == ElementLayout.Single)
             {
                 _linearArrangerHeight = arranger.ArrangerPixelSize.Height;
                 _linearArrangerWidth = arranger.ArrangerPixelSize.Width;
@@ -379,7 +379,7 @@ namespace TileShop.WPF.ViewModels
                             order.Add(new Point(x, y));
                 }
 
-                var layout = new ElementLayout("Custom", model.Width, model.Height, model.Width * model.Height, order);
+                var layout = new TiledLayout("Custom", model.Width, model.Height, model.Width * model.Height, order);
                 ChangeElementLayout(layout);
 
                 _tracker.Persist(model);
@@ -458,7 +458,7 @@ namespace TileShop.WPF.ViewModels
                 SnapMode = SnapMode.Element;
         }
 
-        private void ChangeElementLayout(ElementLayout layout)
+        private void ChangeElementLayout(TiledLayout layout)
         {
             (WorkingArranger as SequentialArranger).ChangeElementLayout(layout);
             ArrangerWidthIncrement = layout.Width;
@@ -545,11 +545,11 @@ namespace TileShop.WPF.ViewModels
 
         protected override void CreateGridlines()
         {
-            if (WorkingArranger.Layout == ArrangerLayout.Single)
+            if (WorkingArranger.Layout == ElementLayout.Single)
             {
                 CreateGridlines(0, 0, WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height, 8, 8);
             }
-            else if (WorkingArranger.Layout == ArrangerLayout.Tiled)
+            else if (WorkingArranger.Layout == ElementLayout.Tiled)
             {
                 base.CreateGridlines();
             }

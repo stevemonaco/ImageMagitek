@@ -7,7 +7,7 @@ namespace ImageMagitek
     /// <summary>
     /// Defines a rectangular element layout for Sequential Arrangers
     /// </summary>
-    public sealed class ElementLayout
+    public sealed class TiledLayout
     {
         public string Name { get; }
         public int Width { get; }
@@ -17,7 +17,7 @@ namespace ImageMagitek
 
         private List<Point> _pattern;
 
-        public ElementLayout(string name, int width, int height, int tilesPerPattern, IEnumerable<Point> pattern)
+        public TiledLayout(string name, int width, int height, int tilesPerPattern, IEnumerable<Point> pattern)
         {
             Name = name;
             Width = width;
@@ -26,6 +26,6 @@ namespace ImageMagitek
             _pattern = pattern.ToList();
         }
 
-        public static ElementLayout Default { get; } = new ElementLayout("Default", 1, 1, 1, new Point[] { new Point(0, 0) });
+        public static TiledLayout Default { get; } = new TiledLayout("Default", 1, 1, 1, new Point[] { new Point(0, 0) });
     }
 }

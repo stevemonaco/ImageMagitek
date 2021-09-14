@@ -62,7 +62,7 @@ namespace ImageMagitek.Benchmarks
 
             _df = new DataFile("df", Path.GetFullPath(dataFileName));
 
-            _arranger = new ScatteredArranger(arrangerName, PixelColorType.Indexed, ArrangerLayout.Tiled, 16, 32, 8, 8);
+            _arranger = new ScatteredArranger(arrangerName, PixelColorType.Indexed, ElementLayout.Tiled, 16, 32, 8, 8);
 
             for (int y = 0; y < _arranger.ArrangerElementSize.Height; y++)
             {

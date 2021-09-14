@@ -26,7 +26,7 @@ namespace ImageMagitek.UnitTests.TestFactories
             var elemsX = image.Width / codec.Width;
             var elemsY = image.Height / codec.Height;
 
-            var arranger = new ScatteredArranger("testArranger", PixelColorType.Indexed, ArrangerLayout.Tiled, elemsX, elemsY, codec.Width, codec.Height);
+            var arranger = new ScatteredArranger("testArranger", PixelColorType.Indexed, ElementLayout.Tiled, elemsX, elemsY, codec.Width, codec.Height);
 
             var address = new FileBitAddress(0);
             for (int y = 0; y < elemsY; y++)

@@ -337,9 +337,9 @@ namespace ImageMagitek.Project.Serialization
             arrangerNode.Add(new XAttribute("width", arrangerModel.ElementPixelSize.Width));
             arrangerNode.Add(new XAttribute("height", arrangerModel.ElementPixelSize.Height));
 
-            if (arrangerModel.Layout == ArrangerLayout.Tiled)
+            if (arrangerModel.Layout == ElementLayout.Tiled)
                 arrangerNode.Add(new XAttribute("layout", "tiled"));
-            else if (arrangerModel.Layout == ArrangerLayout.Single)
+            else if (arrangerModel.Layout == ElementLayout.Single)
                 arrangerNode.Add(new XAttribute("layout", "single"));
 
             if (arrangerModel.ColorType == PixelColorType.Indexed)

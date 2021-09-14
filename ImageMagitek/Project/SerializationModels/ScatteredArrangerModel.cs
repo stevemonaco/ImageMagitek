@@ -9,7 +9,7 @@ namespace ImageMagitek.Project.Serialization
         public ArrangerElementModel[,] ElementGrid { get; set; }
         public Size ArrangerElementSize { get; set; }
         public Size ElementPixelSize { get; set; }
-        public ArrangerLayout Layout { get; set; }
+        public ElementLayout Layout { get; set; }
         public PixelColorType ColorType { get; set; }
 
         public override bool ResourceEquals(ResourceModel resourceModel)

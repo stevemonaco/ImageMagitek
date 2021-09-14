@@ -110,7 +110,7 @@ namespace TileShop.WPF
                 .Property(p => p.ElementPixelWidth, 8)
                 .Property(p => p.ElementPixelHeight, 8)
                 .Property(p => p.ColorType, PixelColorType.Indexed)
-                .Property(p => p.Layout, ArrangerLayout.Tiled);
+                .Property(p => p.Layout, ElementLayout.Tiled);
 
             tracker.Configure<AddPaletteViewModel>()
                 .Property(p => p.PaletteName)

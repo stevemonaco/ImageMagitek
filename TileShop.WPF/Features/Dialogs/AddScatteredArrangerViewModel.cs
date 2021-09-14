@@ -20,8 +20,8 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _colorType, value);
         }
 
-        private ArrangerLayout _layout;
-        public ArrangerLayout Layout
+        private ElementLayout _layout;
+        public ElementLayout Layout
         {
             get => _layout;
             set => SetAndNotify(ref _layout, value);
@@ -85,7 +85,7 @@ namespace TileShop.WPF.ViewModels
 
         public void Add()
         {
-            if (Layout == ArrangerLayout.Single)
+            if (Layout == ElementLayout.Single)
             {
                 ArrangerElementHeight = 1;
                 ArrangerElementWidth = 1;

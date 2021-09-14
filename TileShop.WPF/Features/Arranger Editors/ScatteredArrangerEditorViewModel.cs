@@ -60,11 +60,11 @@ namespace TileShop.WPF.ViewModels
 
             CreateImages();
 
-            if (arranger.Layout == ArrangerLayout.Single)
+            if (arranger.Layout == ElementLayout.Single)
             {
                 SnapMode = SnapMode.Pixel;
             }
-            else if (arranger.Layout == ArrangerLayout.Tiled)
+            else if (arranger.Layout == ElementLayout.Tiled)
             {
                 SnapMode = SnapMode.Element;
                 CanChangeSnapMode = true;
@@ -89,14 +89,14 @@ namespace TileShop.WPF.ViewModels
 
         public override void SaveChanges()
         {
-            if (WorkingArranger.Layout == ArrangerLayout.Tiled)
+            if (WorkingArranger.Layout == ElementLayout.Tiled)
             {
                 var treeArranger = Resource as Arranger;
                 if (WorkingArranger.ArrangerElementSize != treeArranger.ArrangerElementSize)
                 {
-                    if (treeArranger.Layout == ArrangerLayout.Tiled)
+                    if (treeArranger.Layout == ElementLayout.Tiled)
                         treeArranger.Resize(WorkingArranger.ArrangerElementSize.Width, WorkingArranger.ArrangerElementSize.Height);
-                    else if (treeArranger.Layout == ArrangerLayout.Single)
+                    else if (treeArranger.Layout == ElementLayout.Single)
                         treeArranger.Resize(WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height);
                 }
 
@@ -308,11 +308,11 @@ namespace TileShop.WPF.ViewModels
 
         protected override void CreateGridlines()
         {
-            if (WorkingArranger.Layout == ArrangerLayout.Single)
+            if (WorkingArranger.Layout == ElementLayout.Single)
             {
                 CreateGridlines(0, 0, WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height, 8, 8);
             }
-            else if (WorkingArranger.Layout == ArrangerLayout.Tiled)
+            else if (WorkingArranger.Layout == ElementLayout.Tiled)
             {
                 base.CreateGridlines();
             }

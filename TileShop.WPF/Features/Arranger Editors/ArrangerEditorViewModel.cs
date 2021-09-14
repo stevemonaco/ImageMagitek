@@ -30,8 +30,8 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _bitmapAdapter, value);
         }
 
-        public bool IsSingleLayout => WorkingArranger?.Layout == ArrangerLayout.Single;
-        public bool IsTiledLayout => WorkingArranger?.Layout == ArrangerLayout.Tiled;
+        public bool IsSingleLayout => WorkingArranger?.Layout == ElementLayout.Single;
+        public bool IsTiledLayout => WorkingArranger?.Layout == ElementLayout.Tiled;
 
         protected bool _showGridlines = false;
         public bool ShowGridlines
@@ -199,7 +199,7 @@ namespace TileShop.WPF.ViewModels
             EditArrangerPixelsEvent editEvent;
             var rect = Selection.SelectionRect;
 
-            if (SnapMode == SnapMode.Element && WorkingArranger.Layout == ArrangerLayout.Tiled)
+            if (SnapMode == SnapMode.Element && WorkingArranger.Layout == ElementLayout.Tiled)
             {
                 // Clone a subsection of the arranger and show the full subarranger
                 WorkingArranger.CopyElements();

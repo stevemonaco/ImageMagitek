@@ -92,11 +92,11 @@ namespace TileShop.WPF.ViewModels
             if (WorkingArranger is null)
                 return;
 
-            if (WorkingArranger.Layout == ArrangerLayout.Single)
+            if (WorkingArranger.Layout == ElementLayout.Single)
             {
                 CreateGridlines(0, 0, _viewWidth, _viewHeight, 8, 8);
             }
-            else if (WorkingArranger.Layout == ArrangerLayout.Tiled)
+            else if (WorkingArranger.Layout == ElementLayout.Tiled)
             {
                 var location = WorkingArranger.PointToElementLocation(new Point(_viewX, _viewY));
 

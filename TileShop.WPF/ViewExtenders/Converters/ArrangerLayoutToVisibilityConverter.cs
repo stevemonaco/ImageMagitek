@@ -14,12 +14,12 @@ namespace TileShop.WPF.Converters
         {
             var parameterString = parameter as string;
 
-            if (value is ArrangerLayout state && Enum.TryParse(parameterString, out ArrangerLayout stateVisibility))
+            if (value is ElementLayout state && Enum.TryParse(parameterString, out ElementLayout stateVisibility))
             {
                 var visibility = (state, stateVisibility) switch
                 {
-                    (ArrangerLayout.Tiled, ArrangerLayout.Tiled) => Visibility.Visible,
-                    (ArrangerLayout.Single, ArrangerLayout.Single) => Visibility.Visible,
+                    (ElementLayout.Tiled, ElementLayout.Tiled) => Visibility.Visible,
+                    (ElementLayout.Single, ElementLayout.Single) => Visibility.Visible,
                     _ => Visibility.Collapsed
                 };
 

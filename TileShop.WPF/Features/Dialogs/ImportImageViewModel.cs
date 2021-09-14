@@ -77,8 +77,8 @@ namespace TileShop.WPF.ViewModels
         public int MinZoom => 1;
         public int MaxZoom { get; protected set; } = 16;
 
-        public bool IsTiledArranger => _arranger.Layout == ArrangerLayout.Tiled;
-        public bool IsSingleArranger => _arranger.Layout == ArrangerLayout.Single;
+        public bool IsTiledArranger => _arranger.Layout == ElementLayout.Tiled;
+        public bool IsSingleArranger => _arranger.Layout == ElementLayout.Single;
 
         public ImportImageViewModel(Arranger arranger, IFileSelectService fileSelect)
         {
