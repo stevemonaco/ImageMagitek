@@ -629,13 +629,17 @@ namespace TileShop.WPF.ViewModels
                     var activeSequentialEditors = _editors.Editors
                         .OfType<SequentialArrangerEditorViewModel>()
                         .Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataFile));
-                    var activePixelEditors = _editors.Editors
+                    var activeIndexedPixelEditors = _editors.Editors
                         .OfType<IndexedPixelEditorViewModel>()
+                        .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
+                    var activeDirectPixelEditors = _editors.Editors
+                        .OfType<DirectPixelEditorViewModel>()
                         .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
 
                     var removedEditors = new HashSet<ResourceEditorBaseViewModel>(activeContainedEditors);
                     removedEditors.UnionWith(activeSequentialEditors);
-                    removedEditors.UnionWith(activePixelEditors);
+                    removedEditors.UnionWith(activeIndexedPixelEditors);
+                    removedEditors.UnionWith(activeDirectPixelEditors);
 
                     var remainingEditors = _editors.Editors
                         .Where(x => !removedEditors.Contains(x));
