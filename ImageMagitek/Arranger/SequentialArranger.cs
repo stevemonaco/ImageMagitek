@@ -44,9 +44,9 @@ namespace ImageMagitek
         public Palette ActivePalette { get; private set; }
 
         /// <summary>
-        /// Layout used arrange elements when ArrangerLayout is Tiled
+        /// Layout used to arrange elements when Layout is ElementLayout.Tiled
         /// </summary>
-        public TiledLayout ElementLayout { get; private set; }
+        public TileLayout TileLayout { get; private set; }
 
         private readonly ICodecFactory _codecs;
 
@@ -73,13 +73,13 @@ namespace ImageMagitek
 
             Layout = ActiveCodec.Layout switch
             {
-                ImageLayout.Tiled => ImageMagitek.ElementLayout.Tiled,
-                ImageLayout.Single => ImageMagitek.ElementLayout.Single,
+                ImageLayout.Tiled => ElementLayout.Tiled,
+                ImageLayout.Single => ElementLayout.Single,
                 _ => throw new InvalidOperationException($"{nameof(SequentialArranger)}.ctor was called with an invalid {nameof(ImageLayout)}")
             };
 
             ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);
-            ElementLayout = TiledLayout.Default;
+            TileLayout = TileLayout.Default;
 
             Resize(arrangerWidth, arrangerHeight);
         }
@@ -91,17 +91,17 @@ namespace ImageMagitek
         {
             var address = FileAddress;
 
-            var patternsX = ArrangerElementSize.Width / ElementLayout.Width;
-            var patternsY = ArrangerElementSize.Height / ElementLayout.Height;
+            var patternsX = ArrangerElementSize.Width / TileLayout.Width;
+            var patternsY = ArrangerElementSize.Height / TileLayout.Height;
 
             for (int y = 0; y < patternsY; y++)
             {
                 for (int x = 0; x < patternsX; x++)
                 {
-                    foreach (var pos in ElementLayout.Pattern)
+                    foreach (var pos in TileLayout.Pattern)
                     {
-                        var posX = x * ElementLayout.Width + pos.X;
-                        var posY = y * ElementLayout.Height + pos.Y;
+                        var posX = x * TileLayout.Width + pos.X;
+                        var posY = y * TileLayout.Height + pos.Y;
 
                         var el = new ArrangerElement(posX * ElementPixelSize.Width,
                             posY * ElementPixelSize.Height, ActiveDataFile, address, ActiveCodec, ActivePalette);
@@ -218,9 +218,9 @@ namespace ImageMagitek
         /// Changes the arranger's element layout
         /// <para>The arranger is resized if necessary</para>
         /// </summary>
-        public void ChangeElementLayout(TiledLayout layout)
+        public void ChangeElementLayout(TileLayout layout)
         {
-            ElementLayout = layout;
+            TileLayout = layout;
 
             var width = ArrangerElementSize.Width - (ArrangerElementSize.Width % layout.Width);
             width = Math.Max(width, layout.Width);
@@ -258,9 +258,9 @@ namespace ImageMagitek
             ColorType = ActiveCodec.ColorType;
 
             if (codec.Layout == ImageLayout.Single)
-                Layout = ImageMagitek.ElementLayout.Single;
+                Layout = ElementLayout.Single;
             else if (codec.Layout == ImageLayout.Tiled)
-                Layout = ImageMagitek.ElementLayout.Tiled;
+                Layout = ElementLayout.Tiled;
 
             if (ArrangerElementSize.Width != arrangerWidth || ArrangerElementSize.Height != arrangerHeight)
                 Resize(arrangerWidth, arrangerHeight);
@@ -338,13 +338,13 @@ namespace ImageMagitek
                 throw new InvalidOperationException($"{nameof(GetInitialSequentialFileAddress)} property '{nameof(Mode)}' " + 
                     $"is in invalid {nameof(ArrangerMode)} ({Mode})");
 
-            if (ElementLayout is null)
+            if (TileLayout is null)
             {
                 return ElementGrid[0, 0]?.FileAddress ?? 0;
             }
             else
             {
-                var layoutElement = ElementLayout.Pattern.First();
+                var layoutElement = TileLayout.Pattern.First();
                 return ElementGrid[layoutElement.X, layoutElement.Y]?.FileAddress ?? 0;
             }
         }

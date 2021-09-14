@@ -21,7 +21,7 @@ namespace TileShop.WPF.ViewModels
         private readonly Tracker _tracker;
         private IndexedImage _indexedImage;
         private DirectImage _directImage;
-        private TiledLayout _activeLayout;
+        private TileLayout _activeLayout;
 
         private BindableCollection<string> _codecNames = new BindableCollection<string>();
         public BindableCollection<string> CodecNames
@@ -225,7 +225,7 @@ namespace TileShop.WPF.ViewModels
 
             TileLayoutNames = new(_layoutService.ElementLayouts.Select(x => x.Key).OrderBy(x => x));
             _selectedTileLayoutName = _layoutService.DefaultElementLayout.Name;
-            _activeLayout = arranger.ElementLayout;
+            _activeLayout = arranger.TileLayout;
 
             if (arranger.Layout == ElementLayout.Tiled)
             {
@@ -379,7 +379,7 @@ namespace TileShop.WPF.ViewModels
                             order.Add(new Point(x, y));
                 }
 
-                var layout = new TiledLayout("Custom", model.Width, model.Height, model.Width * model.Height, order);
+                var layout = new TileLayout("Custom", model.Width, model.Height, model.Width * model.Height, order);
                 ChangeElementLayout(layout);
 
                 _tracker.Persist(model);
@@ -458,7 +458,7 @@ namespace TileShop.WPF.ViewModels
                 SnapMode = SnapMode.Element;
         }
 
-        private void ChangeElementLayout(TiledLayout layout)
+        private void ChangeElementLayout(TileLayout layout)
         {
             (WorkingArranger as SequentialArranger).ChangeElementLayout(layout);
             ArrangerWidthIncrement = layout.Width;

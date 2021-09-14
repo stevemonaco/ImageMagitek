@@ -6,16 +6,16 @@ namespace ImageMagitek.Services
 {
     public interface IElementLayoutService
     {
-        Dictionary<string, TiledLayout> ElementLayouts { get; }
-        TiledLayout DefaultElementLayout { get; set; }
+        Dictionary<string, TileLayout> ElementLayouts { get; }
+        TileLayout DefaultElementLayout { get; set; }
 
         MagitekResult LoadLayout(string layoutFileName);
     }
 
     public class ElementLayoutService : IElementLayoutService
     {
-        public TiledLayout DefaultElementLayout { get; set; } = TiledLayout.Default;
-        public Dictionary<string, TiledLayout> ElementLayouts { get; } = new();
+        public TileLayout DefaultElementLayout { get; set; } = TileLayout.Default;
+        public Dictionary<string, TileLayout> ElementLayouts { get; } = new();
 
         /// <summary>
         /// Loads a TileLayout from a JSON file
@@ -28,7 +28,7 @@ namespace ImageMagitek.Services
                 return new MagitekResult.Failed($"{nameof(LoadLayout)} failed because '{layoutFileName}' does not exist");
 
             var contents = File.ReadAllText(layoutFileName);
-            var layout = JsonSerializer.Deserialize<TiledLayout>(contents, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+            var layout = JsonSerializer.Deserialize<TileLayout>(contents, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
 
             if (ElementLayouts.ContainsKey(layout.Name))
                 return new MagitekResult.Failed($"{nameof(LoadLayout)} failed because a layout with name '{layout.Name}' already exists");

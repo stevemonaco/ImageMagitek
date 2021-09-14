@@ -121,7 +121,7 @@ namespace ImageMagitek.Services
         public virtual IElementLayoutService CreateTileLayoutService(string layoutPath)
         {
             var layoutService = new ElementLayoutService();
-            layoutService.DefaultElementLayout = TiledLayout.Default;
+            layoutService.DefaultElementLayout = TileLayout.Default;
 
             if (Directory.Exists(layoutPath))
             {
