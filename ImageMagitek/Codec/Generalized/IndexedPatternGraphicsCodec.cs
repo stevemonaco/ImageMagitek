@@ -30,6 +30,8 @@ namespace ImageMagitek.Codec
         public int WidthResizeIncrement { get; }
         public int HeightResizeIncrement => 1;
 
+        public bool CanEncode => true;
+
         public IndexedPatternGraphicsCodec(PatternGraphicsFormat format)
         {
             Format = format;

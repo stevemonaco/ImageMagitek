@@ -19,6 +19,7 @@ namespace ImageMagitek.PluginSamples
         public override ImageLayout Layout => ImageLayout.Single;
         public override int ColorDepth => 1;
         public override int StorageSize => 126820;
+        public override bool CanEncode => false;
 
         public override int DefaultWidth => 16;
         public override int DefaultHeight => 10000;

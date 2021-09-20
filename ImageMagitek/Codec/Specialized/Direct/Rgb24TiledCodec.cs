@@ -13,6 +13,7 @@ namespace ImageMagitek.Codec
         public override int StorageSize => Width * Height * 24;
         public override int RowStride { get; } = 0;
         public override int ElementStride { get; } = 0;
+        public override bool CanEncode => true;
 
         public override bool CanResize => true;
         public override int WidthResizeIncrement => 1;

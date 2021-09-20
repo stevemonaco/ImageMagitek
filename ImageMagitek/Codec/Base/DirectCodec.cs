@@ -18,6 +18,7 @@ namespace ImageMagitek.Codec
         public abstract int StorageSize { get; }
         public abstract int RowStride { get; }
         public abstract int ElementStride { get; }
+        public abstract bool CanEncode { get; }
 
         public abstract bool CanResize { get; }
         public abstract int WidthResizeIncrement { get; }

@@ -20,6 +20,7 @@ namespace ImageMagitek.Codec
         public override int HeightResizeIncrement => 1;
         public override int DefaultWidth => 32;
         public override int DefaultHeight => 32;
+        public override bool CanEncode => true;
 
         private BitStream _bitStream;
         private readonly ColorConverterAbgr16 _colorConverter = new();

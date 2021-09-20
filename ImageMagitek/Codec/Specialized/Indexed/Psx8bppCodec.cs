@@ -10,6 +10,7 @@ namespace ImageMagitek.Codec
         public override ImageLayout Layout => ImageLayout.Single;
         public override int ColorDepth => 8;
         public override int StorageSize => Width * Height * 8;
+        public override bool CanEncode => true;
 
         public override int DefaultWidth => 64;
         public override int DefaultHeight => 64;

@@ -15,6 +15,7 @@ namespace ImageMagitek.Codec
         public int ColorDepth => Format.ColorDepth;
         public int Width => Format.Width;
         public int Height => Format.Height;
+        public bool CanEncode => true;
 
         public virtual ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
         protected byte[] _foreignBuffer;

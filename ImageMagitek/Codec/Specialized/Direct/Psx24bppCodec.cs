@@ -11,6 +11,7 @@ namespace ImageMagitek.Codec
         public override ImageLayout Layout => ImageLayout.Single;
         public override int ColorDepth => 24;
         public override int StorageSize => Width * Height * 24;
+        public override bool CanEncode => true;
 
         public override int RowStride => 0;
         public override int ElementStride => 0;

@@ -24,5 +24,7 @@
         int HeightResizeIncrement { get; }
         int GetPreferredWidth(int width);
         int GetPreferredHeight(int height);
+
+        bool CanEncode { get; }
     }
 }

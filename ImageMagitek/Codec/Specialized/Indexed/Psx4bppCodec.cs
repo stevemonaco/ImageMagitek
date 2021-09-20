@@ -7,10 +7,11 @@ namespace ImageMagitek.Codec
         public override string Name => "PSX 4bpp";
         public override int Width { get; }
         public override int Height { get; }
-
         public override ImageLayout Layout => ImageLayout.Single;
         public override int ColorDepth => 4;
         public override int StorageSize => Width * Height * 4;
+        public override bool CanEncode => true;
+
         public override int DefaultWidth => 64;
         public override int DefaultHeight => 64;
         public override int WidthResizeIncrement => 2;
