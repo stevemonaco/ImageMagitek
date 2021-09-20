@@ -11,17 +11,17 @@ namespace ImageMagitek
     public sealed class SequentialArranger : Arranger
     {
         /// <summary>
-        /// Gets the filesize of the file associated with a SequentialArranger
+        /// Gets the filesize of the file associated with a <see cref="SequentialArranger"/>
         /// </summary>
         public long FileSize { get; private set; }
 
         /// <summary>
-        /// Gets the current file address of the file associated with a SequentialArranger
+        /// Gets the current file address of the file associated with a <see cref="SequentialArranger"/>
         /// </summary>
         public FileBitAddress FileAddress { get; private set; }
 
         /// <summary>
-        /// Number of bits required to be read from file sequentially to fully display the Arranger
+        /// Number of bits required to be read from file sequentially to fully display the <see cref="SequentialArranger"/>
         /// </summary>
         public long ArrangerBitSize { get; private set; }
 
@@ -29,22 +29,22 @@ namespace ImageMagitek
         public override bool ShouldBeSerialized { get; set; } = true;
 
         /// <summary>
-        /// Codec that is assigned to each ArrangerElement
+        /// Codec that is assigned to each <see cref="ArrangerElement"/>
         /// </summary>
         public IGraphicsCodec ActiveCodec { get; private set; }
 
         /// <summary>
-        /// DataFile that is assigned to each ArrangerElement
+        /// DataFile that is assigned to each <see cref="ArrangerElement"/>
         /// </summary>
         public DataFile ActiveDataFile { get; private set; }
 
         /// <summary>
-        /// Palette that is assigned to each ArrangerElement
+        /// Palette that is assigned to each <see cref="ArrangerElement"/>
         /// </summary>
         public Palette ActivePalette { get; private set; }
 
         /// <summary>
-        /// Layout used to arrange elements when Layout is ElementLayout.Tiled
+        /// Layout used to arrange elements when <see cref="ElementLayout"/> is <see cref="ElementLayout.Tiled"/>
         /// </summary>
         public TileLayout TileLayout { get; private set; }
 
@@ -55,8 +55,8 @@ namespace ImageMagitek
         /// </summary>
         /// <param name="arrangerWidth">Width of arranger in elements</param>
         /// <param name="arrangerHeight">Height of arranger in elements</param>
-        /// <param name="dataFile">DataFile assigned to each Element</param>
-        /// <param name="palette">Palette assigned to each Element</param>
+        /// <param name="dataFile"><see cref="DataFile"/> assigned to each <see cref="ArrangerElement"/></param>
+        /// <param name="palette"><see cref="Palette"/> assigned to each <see cref="ArrangerElement"/></param>
         /// <param name="codecFactory">Factory responsible for creating new codecs</param>
         /// <param name="codecName">Name of codec each Element will be initialized to</param>
         public SequentialArranger(int arrangerWidth, int arrangerHeight, DataFile dataFile, Palette palette, ICodecFactory codecFactory, string codecName)
@@ -160,7 +160,7 @@ namespace ImageMagitek
         }
 
         /// <summary>
-        /// Resizes a SequentialArranger to the specified number of elements
+        /// Resizes a <see cref="SequentialArranger"/> to the specified number of elements
         /// </summary>
         /// <param name="arrangerWidth">Width of Arranger in Elements</param>
         /// <param name="arrangerHeight">Height of Arranger in Elements</param>
