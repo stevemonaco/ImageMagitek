@@ -247,6 +247,11 @@ namespace TileShop.WPF.ViewModels
                     var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
                     _events.PublishOnUIThread(notifyEvent);
                 }
+                else
+                {
+                    string notifyMessage = $"Element ({elX}, {elY}): Empty";
+                    _events.PublishOnUIThread(new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite));
+                }
             }
             else if (ActiveTool == ScatteredArrangerTool.Select)
             {
