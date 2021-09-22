@@ -349,7 +349,9 @@ namespace ImageMagitek.Project.Serialization
 
             arrangerNode.Add(new XAttribute("defaultcodec", mostUsedCodecName ?? ""));
             arrangerNode.Add(new XAttribute("defaultdatafile", mostUsedFileKey ?? ""));
-            arrangerNode.Add(new XAttribute("defaultpalette", mostUsedPaletteKey ?? ""));
+
+            if (arrangerModel.ColorType == PixelColorType.Indexed)
+                arrangerNode.Add(new XAttribute("defaultpalette", mostUsedPaletteKey ?? ""));
 
             for (int y = 0; y < arrangerModel.ArrangerElementSize.Height; y++)
             {
@@ -374,7 +376,7 @@ namespace ImageMagitek.Project.Serialization
                     if (el.DataFileKey != mostUsedFileKey)
                         elNode.Add(new XAttribute("datafile", el.DataFileKey));
 
-                    if (el.PaletteKey != mostUsedPaletteKey)
+                    if (el.PaletteKey != mostUsedPaletteKey && arrangerModel.ColorType == PixelColorType.Indexed)
                         elNode.Add(new XAttribute("palette", el.PaletteKey));
 
                     if (el.Mirror == MirrorOperation.Horizontal)

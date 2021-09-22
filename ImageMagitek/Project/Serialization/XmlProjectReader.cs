@@ -321,7 +321,7 @@ namespace ImageMagitek.Project.Serialization
             var height = int.Parse(element.Attribute("height").Value); // Height of element in pixels
             var defaultCodecName = element.Attribute("defaultcodec").Value;
             var defaultDataFileKey = element.Attribute("defaultdatafile").Value;
-            var defaultPaletteKey = element.Attribute("defaultpalette")?.Value ?? "";
+            var defaultPaletteKey = element.Attribute("defaultpalette")?.Value ?? _globalDefaultPalette.Name;
             var layoutName = element.Attribute("layout").Value;
             var colorType = element.Attribute("color")?.Value ?? "indexed";
             var elementList = element.Descendants("element");
