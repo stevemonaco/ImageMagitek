@@ -76,7 +76,10 @@
                 </Grid.RowDefinitions>
 
                 <!--  Top Toolbar  -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                <StackPanel
+                    Grid.Row="0"
+                    Margin="0,5,0,0"
+                    Orientation="Horizontal">
 
                     <!--  Codec Tools  -->
                     <StackPanel>
@@ -121,7 +124,7 @@
                     </StackPanel>
 
                     <Border
-                        Margin="5,6,5,0"
+                        Margin="8,6,6,0"
                         BorderBrush="{DynamicResource separatorBrush}"
                         BorderThickness="1" />
 
@@ -248,7 +251,7 @@
                             <TextBlock HorizontalAlignment="Center" Text="Zoom" />
                             <Slider
                                 MinWidth="100"
-                                Margin="10,0,10,0"
+                                Margin="5,0,5,0"
                                 Focusable="False"
                                 Maximum="{Binding MaxZoom}"
                                 Minimum="{Binding MinZoom}"
