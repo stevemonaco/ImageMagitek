@@ -76,7 +76,8 @@
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
                         Style="{StaticResource toolBarToggleButtonStyle}"
-                        ToolTip="Click on an Arranger element to apply the current palette">
+                        ToolTip="Click on an Arranger element to apply the current palette"
+                        Visibility="{Binding IsIndexedColor, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Image Style="{StaticResource iconPaletteBrush}" />
                     </RadioButton>
                     <RadioButton
@@ -85,7 +86,8 @@
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PickPalette}"
                         Style="{StaticResource toolBarToggleButtonStyle}"
-                        ToolTip="Click on an Arranger element to pick its associated palette">
+                        ToolTip="Click on an Arranger element to pick its associated palette"
+                        Visibility="{Binding IsIndexedColor, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Image Style="{StaticResource iconPalettePicker}" />
                     </RadioButton>
                     <RadioButton
@@ -137,11 +139,11 @@
             </StackPanel>
 
             <Border
-                Margin="5,6,12,0"
+                Margin="5,6,6,0"
                 BorderBrush="{DynamicResource separatorBrush}"
                 BorderThickness="1" />
 
-            <StackPanel>
+            <StackPanel Margin="6,0,0,0" Visibility="{Binding IsIndexedColor, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <TextBlock HorizontalAlignment="Center" Text="Palette" />
                 <ComboBox ItemsSource="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
                     <ComboBox.ItemTemplate>
@@ -158,14 +160,16 @@
                 VerticalContentAlignment="Center"
                 Click="{s:Action AssociatePalette}"
                 Style="{StaticResource toolBarButtonStyle}"
-                ToolTip="Asssociate a Palette from this Project with this Arranger">
+                ToolTip="Asssociate a Palette from this Project with this Arranger"
+                Visibility="{Binding IsIndexedColor, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Image Style="{StaticResource iconPlusCircle}" />
             </Button>
 
             <Border
                 Margin="6,6,6,0"
                 BorderBrush="{DynamicResource separatorBrush}"
-                BorderThickness="1" />
+                BorderThickness="1"
+                Visibility="{Binding IsIndexedColor, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
             <StackPanel Margin="10,0,10,0">
                 <TextBlock HorizontalAlignment="Center" Text="Zoom" />

@@ -33,6 +33,9 @@ namespace TileShop.WPF.ViewModels
         public bool IsSingleLayout => WorkingArranger?.Layout == ElementLayout.Single;
         public bool IsTiledLayout => WorkingArranger?.Layout == ElementLayout.Tiled;
 
+        public bool IsIndexedColor => WorkingArranger?.ColorType == PixelColorType.Indexed;
+        public bool IsDirectColor => WorkingArranger?.ColorType == PixelColorType.Direct;
+
         protected bool _showGridlines = false;
         public bool ShowGridlines
         {

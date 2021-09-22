@@ -112,7 +112,6 @@ namespace TileShop.WPF.ViewModels
 
             var projectTree = _projectService.GetContainingProject(Resource);
             projectTree.TryFindResourceNode(Resource, out var resourceNode);
-            //_projectService.SaveProject(projectTree)
 
             _projectService.SaveResource(projectTree, resourceNode, true)
                  .Switch(
@@ -238,7 +237,13 @@ namespace TileShop.WPF.ViewModels
 
                 if (el is ArrangerElement element)
                 {
-                    string notifyMessage = $"Element ({elX}, {elY}): Palette {element.Palette?.Name ?? "Default"}, DataFile {element.DataFile?.Location ?? "None"}, FileOffset 0x{element.FileAddress.FileOffset:X}.{(element.FileAddress.BitOffset != 0 ? element.FileAddress.BitOffset.ToString() : "")}";
+                    string notifyMessage = WorkingArranger.ColorType switch
+                    {
+                        PixelColorType.Indexed => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, Palette {element.Palette?.Name ?? "Default"}, DataFile {element.DataFile?.Location ?? "None"}, FileOffset 0x{element.FileAddress.FileOffset:X}.{(element.FileAddress.BitOffset != 0 ? element.FileAddress.BitOffset.ToString() : "")}",
+                        PixelColorType.Direct => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, DataFile {element.DataFile?.Location ?? "None"}, FileOffset 0x{element.FileAddress.FileOffset:X}.{(element.FileAddress.BitOffset != 0 ? element.FileAddress.BitOffset.ToString() : "")}",
+                        _ => "Unknown Color Type"
+                    };
+
                     var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
                     _events.PublishOnUIThread(notifyEvent);
                 }
@@ -253,15 +258,24 @@ namespace TileShop.WPF.ViewModels
         #region Drag and Drop Overrides
         public override void DragOver(IDropInfo dropInfo)
         {
-            if (dropInfo.Data is PaletteNodeViewModel model)
+            if (dropInfo.Data is not PaletteNodeViewModel nodeModel)
             {
-                var pal = model.Node.Item as Palette;
+                base.DragOver(dropInfo);
+            }
+            else if (WorkingArranger.ColorType == PixelColorType.Indexed)
+            {
+                var pal = nodeModel.Node.Item as Palette;
                 dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
                 dropInfo.Effects = DragDropEffects.Move | DragDropEffects.Link;
-                dropInfo.EffectText = $"Add palette {pal.Name}";
+            }
+            else if (WorkingArranger.ColorType == PixelColorType.Direct)
+            { 
+            
             }
             else
+            {
                 base.DragOver(dropInfo);
+            }
         }
 
         public override void Drop(IDropInfo dropInfo)
