@@ -26,12 +26,12 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="6.2.0" />
-    <PackageReference Include="Dirkster.AvalonDock" Version="4.51.1" />
+    <PackageReference Include="Dirkster.AvalonDock" Version="4.60.0" />
     <PackageReference Include="Dirkster.AvalonDock.Themes.VS2013" Version="4.51.1" />
-    <PackageReference Include="gong-wpf-dragdrop" Version="2.3.2" />
-    <PackageReference Include="Jot" Version="2.1.8" />
+    <PackageReference Include="gong-wpf-dragdrop" Version="2.4.2" />
+    <PackageReference Include="Jot" Version="2.1.11" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.37" />
     <PackageReference Include="ModernWpfUI" Version="0.9.4" />
     <PackageReference Include="Monaco.PathTree" Version="1.1.0" />
     <PackageReference Include="OneOf" Version="2.1.155" />
