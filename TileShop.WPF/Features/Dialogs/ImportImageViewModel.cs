@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Windows.Media.Imaging;
 using Stylet;
 using ImageMagitek;
 using ImageMagitek.Colors;
-using ImageMagitek.Services;
 using TileShop.WPF.Imaging;
 using TileShop.WPF.Services;
 
@@ -49,7 +47,12 @@ namespace TileShop.WPF.ViewModels
             {
                 SetAndNotify(ref _useExactMatching, value);
                 if (!string.IsNullOrEmpty(ImageFileName))
-                    ImportIndexed(ImageFileName);
+                {
+                    if (_arranger.ColorType == PixelColorType.Indexed)
+                        ImportIndexed(ImageFileName);
+                    else if (_arranger.ColorType == PixelColorType.Direct)
+                        ImportDirect(ImageFileName);
+                }
             }
         }
 
@@ -108,19 +111,18 @@ namespace TileShop.WPF.ViewModels
         {
             var fileName = _fileSelect.GetImportArrangerFileNameByUser();
 
-            if (fileName is object)
+            if (fileName is null)
+                return;
+
+            ImageFileName = fileName;
+
+            if (_arranger.ColorType == PixelColorType.Indexed)
             {
-                if (_arranger.ColorType == PixelColorType.Indexed)
-                {
-                    ImportIndexed(fileName);
-                }
-                else if (_arranger.ColorType == PixelColorType.Direct)
-                {
-                    _importedDirect = new DirectImage(_arranger);
-                    _importedDirect.ImportImage(ImageFileName, new ImageSharpFileAdapter());
-                    ImportedSource = new DirectBitmapAdapter(_importedDirect);
-                    CanImport = true;
-                }
+                ImportIndexed(ImageFileName);
+            }
+            else if (_arranger.ColorType == PixelColorType.Direct)
+            {
+                ImportDirect(ImageFileName);
             }
         }
 
@@ -146,6 +148,14 @@ namespace TileShop.WPF.ViewModels
                     ImportedSource = null;
                     ImportError = fail.Reason;
                 });
+        }
+
+        private void ImportDirect(string fileName)
+        {
+            _importedDirect = new DirectImage(_arranger);
+            _importedDirect.ImportImage(ImageFileName, new ImageSharpFileAdapter());
+            ImportedSource = new DirectBitmapAdapter(_importedDirect);
+            CanImport = true;
         }
 
         public void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);

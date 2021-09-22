@@ -137,6 +137,7 @@ namespace ImageMagitek
                 {
                     var color = new ColorRgba32(span[x].PackedValue);
                     outputImage[destidx] = color;
+                    destidx++;
                 }
             }
 
