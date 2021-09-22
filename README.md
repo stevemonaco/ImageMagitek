@@ -1,9 +1,10 @@
+# Installation
+### [**Latest Release**](https://github.com/stevemonaco/ImageMagitek/releases) | [**Installation Requirements**](https://github.com/stevemonaco/ImageMagitek/wiki/TileShop-Installation-and-Overview) | [**Screenshots**](https://github.com/stevemonaco/ImageMagitek/wiki/TileShop-Workflow)
+
 # TileShop and ImageMagitek
-TileShop is a WPF application for Windows that implements ImageMagitek and allows end-users to manage specialized graphics in a modern GUI environment. ImageMagitek is an internal .NET library written in C# to view, edit, and organize common and complex retro videogame system graphics. Emphasis is given to the features most valuable to the common, cumbersome tasks when encountering graphics embedded within binaries without any distinguishable headers or identifiers. Exporting and importing is supported to allow advanced editing features to be performed in third-party image editors that operate on standard PNG.
+TileShop is a WPF application for Windows that implements ImageMagitek and allows end-users to manage specialized graphics in a modern GUI environment. ImageMagitek is an internal .NET library written in C# to view, edit, and organize common and complex retro videogame system graphics. Emphasis is given to the features most valuable to the common, cumbersome tasks when encountering graphics embedded within binaries without any distinguishable headers or identifiers. Exporting and importing is supported to allow advanced editing features to be performed in third-party image editors that support standard PNG.
 
 TileShopCLI is a portable, limited implementation of TileShop where users can export/import resources from existing TileShop.WPF projects. This is especially useful in toolchains.
-
-See the [releases page](https://github.com/stevemonaco/ImageMagitek/releases) to download and the [wiki](https://github.com/stevemonaco/ImageMagitek/wiki) for details on installation, usage, and more screenshots.
 
 ![TileShop Workspace Dark Theme](https://raw.githubusercontent.com/stevemonaco/ImageMagitek/master/TileShop.WPF/Assets/DemoImages/TileShopLayoutDark10142020.png)
 
@@ -34,6 +35,8 @@ Big thanks to the authors of these libraries for making this project much higher
 [Serilog](https://github.com/serilog/serilog) for logging
 
 [Nuke](https://github.com/nuke-build/nuke) for the C#-based build system
+
+[PixiEditor/ColorPicker](https://github.com/PixiEditor/ColorPicker) for the color picker for direct graphics
 
 # External Contributors
 Thanks to these people for helping push TileShop along
