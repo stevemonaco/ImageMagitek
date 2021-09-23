@@ -16,7 +16,7 @@ namespace ImageMagitek.Codec
             _codecs = new Dictionary<string, Type>
             {
                 { "SNES 3bpp", typeof(Snes3bppCodec) }, { "PSX 4bpp", typeof(Psx4bppCodec) }, { "PSX 8bpp", typeof(Psx8bppCodec) },
-                { "Rgb24 Tiled", typeof(Rgb24TiledCodec) }, { "Rgba32 Tiled", typeof(Rgba32TiledCodec) }, 
+                //{ "Rgb24 Tiled", typeof(Rgb24TiledCodec) }, { "Rgba32 Tiled", typeof(Rgba32TiledCodec) }, 
                 { "N64 Rgba16", typeof(N64Rgba16Codec) }, { "N64 Rgba32", typeof(N64Rgba32Codec) },
                 { "PSX 16bpp", typeof(Psx16bppCodec) }, { "PSX 24bpp", typeof(Psx24bppCodec) }
             };
