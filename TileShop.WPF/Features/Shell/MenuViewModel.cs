@@ -1,6 +1,7 @@
 ﻿using Jot;
 using ModernWpf;
 using Stylet;
+using System.IO;
 using System.Linq;
 using TileShop.Shared.EventModels;
 
@@ -29,7 +30,7 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _editors, value);
         }
 
-        private BindableCollection<string> _recentProjectFiles = new();
+        private BindableCollection<string> _recentProjectFiles;
         public BindableCollection<string> RecentProjectFiles
         {
             get => _recentProjectFiles;
@@ -48,6 +49,8 @@ namespace TileShop.WPF.ViewModels
 
             _events.Subscribe(this);
             _tracker.Track(this);
+
+            RecentProjectFiles = new(RecentProjectFiles.Where(x => File.Exists(x)).ToList());
         }
 
         public void NewEmptyProject() => ProjectTree.AddNewProject();
