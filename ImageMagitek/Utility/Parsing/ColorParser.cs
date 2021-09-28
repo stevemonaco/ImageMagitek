@@ -64,14 +64,14 @@ namespace ImageMagitek.Utility.Parsing
                     return true;
                 }
             }
-            else if (colorModel == ColorModel.Bgr12)
+            else if (colorModel == ColorModel.Bgr9)
             {
                 if (_twoByteRegex.IsMatch(input))
                 {
                     var a = byte.Parse(input.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
                     var b = byte.Parse(input.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber);
-                    uint bgr12Raw = (uint)(a << 8) | b;
-                    color = new ColorBgr12(bgr12Raw);
+                    uint bgr9Raw = (uint)(a << 8) | b;
+                    color = new ColorBgr9(bgr9Raw);
                     return true;
                 }
             }

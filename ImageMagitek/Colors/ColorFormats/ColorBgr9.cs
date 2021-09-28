@@ -4,14 +4,14 @@ using System.Numerics;
 namespace ImageMagitek.Colors
 {
     // Based on info from https://segaretro.org/Palette#Mega_Drive_Palette
-    public struct ColorBgr12 : IColor32
+    public struct ColorBgr9 : IColor32
     {
         public byte r;
         public byte g;
         public byte b;
         public byte a;
 
-        public ColorBgr12(uint foreignColor)
+        public ColorBgr9(uint foreignColor)
         {
             r = (byte)(foreignColor & 0xf);
             g = (byte)((foreignColor & 0xf0) >> 4);
@@ -19,7 +19,7 @@ namespace ImageMagitek.Colors
             a = 0;
         }
 
-        public ColorBgr12(byte red, byte green, byte blue)
+        public ColorBgr9(byte red, byte green, byte blue)
         {
             r = red;
             g = green;
