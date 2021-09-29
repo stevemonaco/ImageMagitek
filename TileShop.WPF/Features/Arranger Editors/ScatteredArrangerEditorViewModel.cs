@@ -34,6 +34,13 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _selectedPalette, value);
         }
 
+        private bool _areSymmetryToolsEnabled;
+        public bool AreSymmetryToolsEnabled
+        {
+            get => _areSymmetryToolsEnabled;
+            set => SetAndNotify(ref _areSymmetryToolsEnabled, value);
+        }
+
         private ScatteredArrangerTool _activeTool = ScatteredArrangerTool.Select;
         private ApplyPaletteHistoryAction _applyPaletteHistory;
         private readonly IProjectService _projectService;
@@ -52,11 +59,13 @@ namespace TileShop.WPF.ViewModels
         }
 
         public ScatteredArrangerEditorViewModel(Arranger arranger, IEventAggregator events, IWindowManager windowManager,
-            IPaletteService paletteService, IProjectService projectService) : base(events, windowManager, paletteService)
+            IPaletteService paletteService, IProjectService projectService, AppSettings settings) : 
+            base(events, windowManager, paletteService)
         {
             Resource = arranger;
             WorkingArranger = arranger.CloneArranger();
             DisplayName = Resource?.Name ?? "Unnamed Arranger";
+            AreSymmetryToolsEnabled = settings.EnableArrangerSymmetryTools;
 
             CreateImages();
 

@@ -112,7 +112,7 @@ namespace TileShop.WPF.ViewModels
                         newDocument = new PaletteEditorViewModel(pal, _paletteService, _projectService, _events);
                         break;
                     case ScatteredArranger scatteredArranger:
-                        newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _events, _windowManager, _paletteService, _projectService);
+                        newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _events, _windowManager, _paletteService, _projectService, _settings);
                         break;
                     case SequentialArranger sequentialArranger:
                         newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _windowManager, _tracker, _codecService, _paletteService, _layoutService);
