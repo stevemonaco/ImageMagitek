@@ -43,6 +43,13 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _showGridlines, value);
         }
 
+        private bool _areSymmetryToolsEnabled;
+        public bool AreSymmetryToolsEnabled
+        {
+            get => _areSymmetryToolsEnabled;
+            set => SetAndNotify(ref _areSymmetryToolsEnabled, value);
+        }
+
         protected BindableCollection<Gridline> _gridlines;
         public BindableCollection<Gridline> Gridlines
         {
@@ -127,12 +134,13 @@ namespace TileShop.WPF.ViewModels
             set => SetAndNotify(ref _paste, value);
         }
 
-        public ArrangerEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService) 
+        public ArrangerEditorViewModel(IEventAggregator events, IWindowManager windowManager, IPaletteService paletteService, AppSettings settings) 
         {
             _events = events;
             _events.Subscribe(this);
             _windowManager = windowManager;
             _paletteService = paletteService;
+            AreSymmetryToolsEnabled = settings.EnableArrangerSymmetryTools;
         }
 
         /// <summary>

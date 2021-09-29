@@ -105,7 +105,8 @@
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateLeft}"
                         Style="{StaticResource toolBarToggleButtonStyle}"
-                        ToolTip="Rotate Element's Display Left">
+                        ToolTip="Rotate Element's Display Left"
+                        Visibility="{Binding AreSymmetryToolsEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Image Style="{StaticResource iconRotateLeft}" />
                     </RadioButton>
                     <RadioButton
@@ -114,7 +115,8 @@
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateRight}"
                         Style="{StaticResource toolBarToggleButtonStyle}"
-                        ToolTip="Rotate Element's Display Right">
+                        ToolTip="Rotate Element's Display Right"
+                        Visibility="{Binding AreSymmetryToolsEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Image Style="{StaticResource iconRotateRight}" />
                     </RadioButton>
                     <RadioButton
@@ -123,7 +125,8 @@
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=MirrorHorizontal}"
                         Style="{StaticResource toolBarToggleButtonStyle}"
-                        ToolTip="Mirror Element's Display Horizontally">
+                        ToolTip="Mirror Element's Display Horizontally"
+                        Visibility="{Binding AreSymmetryToolsEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Image Style="{StaticResource iconMirrorHorizontal}" />
                     </RadioButton>
                     <RadioButton
@@ -132,7 +135,8 @@
                         GroupName="Tools"
                         IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=MirrorVertical}"
                         Style="{StaticResource toolBarToggleButtonStyle}"
-                        ToolTip="Mirror Element's Display Vertically">
+                        ToolTip="Mirror Element's Display Vertically"
+                        Visibility="{Binding AreSymmetryToolsEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Image Style="{StaticResource iconMirrorVertical}" />
                     </RadioButton>
                 </StackPanel>
@@ -271,10 +275,11 @@
                     Source="{Binding BitmapAdapter.Bitmap}"
                     Stretch="None" />
 
-                <!--  Checkered Background  -->
+                <!--  Backdrop  -->
                 <Rectangle
+                    x:Name="arrangerBackdrop"
                     Panel.ZIndex="0"
-                    Fill="{StaticResource CheckeredBrush}"
+                    Fill="{DynamicResource CheckeredBrush}"
                     LayoutTransform="{StaticResource transform}" />
 
                 <!--  Selection and Paste Overlay  -->

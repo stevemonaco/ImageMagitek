@@ -7,5 +7,6 @@ namespace ImageMagitek.Services
         public IDictionary<string, string> ExtensionCodecAssociations { get; set; }
         public IList<string> GlobalPalettes { get; set; }
         public string NesPalette { get; set; }
+        public bool EnableArrangerSymmetryTools { get; set; }
     }
 }
