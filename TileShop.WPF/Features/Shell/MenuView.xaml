@@ -70,7 +70,6 @@
                 <MenuItem Click="{s:Action ExitApplication}" Header="E_xit" />
             </MenuItem>
 
-
             <MenuItem Header="_View">
                 <MenuItem
                     Command="{s:Action ShowWindow}"
@@ -81,6 +80,18 @@
                     <MenuItem Command="{s:Action ChangeToLightTheme}" Header="Light Theme" />
                     <MenuItem Command="{s:Action ChangeToDarkTheme}" Header="Dark Theme" />
                 </MenuItem>
+            </MenuItem>
+
+            <MenuItem Header="_Arranger" Visibility="{Binding Editors.ActiveEditor, Converter={StaticResource TypeToVisibilityConverter}, ConverterParameter={x:Type vm:ScatteredArrangerEditorViewModel}}">
+                <MenuItem
+                    Command="{s:Action ExportArrangerToImage}"
+                    CommandParameter="{Binding Editors.ActiveEditor}"
+                    Header="Export..." />
+                <MenuItem
+                    Command="{s:Action ImportArrangerFromImage}"
+                    CommandParameter="{Binding Editors.ActiveEditor}"
+                    Header="Import From Image..." />
+                <MenuItem Header="Grid Settings..." />
             </MenuItem>
 
             <!--

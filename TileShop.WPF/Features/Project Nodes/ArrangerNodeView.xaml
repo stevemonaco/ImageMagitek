@@ -34,12 +34,12 @@
             <ContextMenu>
                 <MenuItem
                     s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
-                    Command="{s:Action ExportArrangerAs}"
+                    Command="{s:Action ExportArrangerNodeAs}"
                     CommandParameter="{Binding}"
                     Header="Export As..." />
                 <MenuItem
                     s:View.ActionTarget="{Binding Data, Source={StaticResource treeProxy}}"
-                    Command="{s:Action ImportImageAs}"
+                    Command="{s:Action ImportArrangerNodeFrom}"
                     CommandParameter="{Binding}"
                     Header="Import From..." />
                 <Separator />

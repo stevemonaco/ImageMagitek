@@ -203,39 +203,49 @@ namespace TileShop.WPF.ViewModels
             }
         }
 
-        public void ExportArrangerAs(ResourceNodeViewModel nodeModel)
+        public void ExportArrangerNodeAs(ResourceNodeViewModel nodeModel)
         {
             if (nodeModel is ArrangerNodeViewModel arrNodeModel)
             {
                 var arranger = arrNodeModel.Node.Item as ScatteredArranger;
-                var exportFileName = _fileSelect.GetExportArrangerFileNameByUser($"{arranger.Name}.png");
+                ExportArrangerAs(arranger);
+            }
+        }
 
-                if (exportFileName is object)
+        public void ExportArrangerAs(ScatteredArranger arranger)
+        {
+            var exportFileName = _fileSelect.GetExportArrangerFileNameByUser($"{arranger.Name}.png");
+
+            if (exportFileName is object)
+            {
+                if (arranger.ColorType == PixelColorType.Indexed)
                 {
-                    if (arranger.ColorType == PixelColorType.Indexed)
-                    {
-                        var image = new IndexedImage(arranger);
-                        image.ExportImage(exportFileName, new ImageSharpFileAdapter());
-                    }
-                    else if (arranger.ColorType == PixelColorType.Direct)
-                    {
-                        var image = new DirectImage(arranger);
-                        image.ExportImage(exportFileName, new ImageSharpFileAdapter());
-                    }
+                    var image = new IndexedImage(arranger);
+                    image.ExportImage(exportFileName, new ImageSharpFileAdapter());
+                }
+                else if (arranger.ColorType == PixelColorType.Direct)
+                {
+                    var image = new DirectImage(arranger);
+                    image.ExportImage(exportFileName, new ImageSharpFileAdapter());
                 }
             }
         }
 
-        public void ImportImageAs(ResourceNodeViewModel nodeModel)
+        public void ImportArrangerNodeFrom(ResourceNodeViewModel nodeModel)
         {
             if (nodeModel is ArrangerNodeViewModel arrNodeModel && arrNodeModel.Node.Item is ScatteredArranger arranger)
             {
-                var model = new ImportImageViewModel(arranger, _fileSelect);
-                if (_windowManager.ShowDialog(model) is true)
-                {
-                    var changeEvent = new ArrangerChangedEvent(arranger, ArrangerChange.Pixels);
-                    _events.PublishOnUIThread(changeEvent);
-                }
+                ImportArrangerFrom(arranger);
+            }
+        }
+
+        public void ImportArrangerFrom(ScatteredArranger arranger)
+        {
+            var model = new ImportImageViewModel(arranger, _fileSelect);
+            if (_windowManager.ShowDialog(model) is true)
+            {
+                var changeEvent = new ArrangerChangedEvent(arranger, ArrangerChange.Pixels);
+                _events.PublishOnUIThread(changeEvent);
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using Jot;
+﻿using ImageMagitek;
+using Jot;
 using ModernWpf;
 using Stylet;
 using System.IO;
@@ -74,6 +75,12 @@ namespace TileShop.WPF.ViewModels
         public void ChangeToLightTheme() => Shell.Theme = ApplicationTheme.Light;
 
         public void ChangeToDarkTheme() => Shell.Theme = ApplicationTheme.Dark;
+
+        public void ExportArrangerToImage(ScatteredArrangerEditorViewModel vm) => 
+            ProjectTree.ExportArrangerAs(vm.Resource as ScatteredArranger);
+
+        public void ImportArrangerFromImage(ScatteredArrangerEditorViewModel vm) =>
+            ProjectTree.ImportArrangerFrom(vm.Resource as ScatteredArranger);
 
         public void Handle(ProjectLoadedEvent message)
         {

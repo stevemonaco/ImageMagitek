@@ -71,6 +71,7 @@
                     <converters:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
                     <converters:MultipleCountToVisibilityConverter x:Key="MultipleCountToVisibilityConverter" />
                     <converters:EndianToBooleanConverter x:Key="EndianToBooleanConverter" />
+                    <converters:TypeToVisibilityConverter x:Key="TypeToVisibilityConverter" />
                 </ResourceDictionary>
 
                 <!--  TileShop Control Styles  -->
