@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
-using MoreLinq;
 
 namespace ImageMagitek.Project.Serialization
 {
@@ -215,7 +214,7 @@ namespace ImageMagitek.Project.Serialization
                         group el by P.GetValue(el) into grp
                         select new { key = grp.Key, count = grp.Count() };
 
-            return query.MaxBy(x => x.count).FirstOrDefault()?.key as string;
+            return query.MaxBy(x => x.count)?.key as string;
         }
     }
 }

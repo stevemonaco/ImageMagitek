@@ -2,7 +2,6 @@
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
-using MoreLinq;
 
 namespace ImageMagitek
 {
@@ -303,7 +302,7 @@ namespace ImageMagitek
                         group el by P.GetValue(el) into grp
                         select new { key = grp.Key, count = grp.Count() };
 
-            return query.MaxBy(x => x.count).First().key as string;
+            return query.MaxBy(x => x.count).key as string;
         }
     }
 }
