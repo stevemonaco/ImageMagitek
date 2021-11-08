@@ -1,8 +1,7 @@
 ﻿using ImageMagitek;
 
-namespace TileShop.Shared.EventModels
-{
-    public enum ArrangerChange { Elements, Pixels, All }
+namespace TileShop.Shared.EventModels;
 
-    public record ArrangerChangedEvent(Arranger Arranger, ArrangerChange Change);
-}
+public enum ArrangerChange { Elements, Pixels, All }
+
+public record ArrangerChangedEvent(Arranger Arranger, ArrangerChange Change);

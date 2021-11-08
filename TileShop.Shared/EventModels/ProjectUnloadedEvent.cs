@@ -1,4 +1,3 @@
-﻿namespace TileShop.Shared.EventModels
-{
-    public record ProjectUnloadedEvent();
-}
+﻿namespace TileShop.Shared.EventModels;
+
+public record ProjectUnloadedEvent();

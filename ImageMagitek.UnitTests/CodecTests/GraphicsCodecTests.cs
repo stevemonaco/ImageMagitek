@@ -3,17 +3,16 @@ using ImageMagitek.Colors;
 using NUnit.Framework;
 using System.IO;
 
-namespace ImageMagitek.UnitTests
-{
-    [TestFixture]
-    public class GraphicsCodecTests
-    {
-        public void IndexedCodec_Reverses_AsExpected(IGraphicsCodec codec, byte[] i)
-        {
-            //var stream = new MemoryStream()
-            //var df = new DataFile("test");
+namespace ImageMagitek.UnitTests;
 
-            //var el = new ArrangerElement(0, 0, dataFile, 0, codec, null);
-        }
+[TestFixture]
+public class GraphicsCodecTests
+{
+    public void IndexedCodec_Reverses_AsExpected(IGraphicsCodec codec, byte[] i)
+    {
+        //var stream = new MemoryStream()
+        //var df = new DataFile("test");
+
+        //var el = new ArrangerElement(0, 0, dataFile, 0, codec, null);
     }
 }

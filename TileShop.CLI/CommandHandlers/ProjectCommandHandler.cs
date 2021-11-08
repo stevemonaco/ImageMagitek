@@ -4,59 +4,58 @@ using System.Linq;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
 
-namespace TileShop.CLI.Commands
+namespace TileShop.CLI.Commands;
+
+public abstract class ProjectCommandHandler<T>
 {
-    public abstract class ProjectCommandHandler<T>
+    protected IProjectService ProjectService { get; set; }
+
+    public ProjectCommandHandler(IProjectService projectService)
     {
-        protected IProjectService ProjectService { get; set; }
+        ProjectService = projectService;
+    }
 
-        public ProjectCommandHandler(IProjectService projectService)
+    public virtual ExitCode TryExecute(T options)
+    {
+        try
         {
-            ProjectService = projectService;
+            return Execute(options);
         }
-
-        public virtual ExitCode TryExecute(T options)
+        catch (Exception ex)
         {
-            try
+            Console.WriteLine($"{ex.Message}\n{ex.StackTrace}");
+            return ExitCode.Exception;
+        }
+    }
+
+    public abstract ExitCode Execute(T options);
+
+    public virtual ProjectTree OpenProject(string projectFileName)
+    {
+        var openResult = ProjectService.OpenProjectFile(projectFileName);
+
+        return openResult.Match(
+            success =>
             {
-                return Execute(options);
-            }
-            catch (Exception ex)
+                return success.Result;
+            },
+            fail =>
             {
-                Console.WriteLine($"{ex.Message}\n{ex.StackTrace}");
-                return ExitCode.Exception;
-            }
-        }
+                var errorMessages = Enumerable.Range(0, fail.Reasons.Count)
+                    .Select(x => $"{x + 1}: {fail.Reasons[x]}")
+                    .ToList();
 
-        public abstract ExitCode Execute(T options);
+                PrintProjectErrors(projectFileName, errorMessages);
+                return null;
+            });
+    }
 
-        public virtual ProjectTree OpenProject(string projectFileName)
-        {
-            var openResult = ProjectService.OpenProjectFile(projectFileName);
+    public virtual void PrintProjectErrors(string projectFileName, IList<string> errorMessages)
+    {
+        var headerMessage = $"Project '{projectFileName}' contained {errorMessages.Count} errors";
+        Console.WriteLine(headerMessage);
 
-            return openResult.Match(
-                success =>
-                {
-                    return success.Result;
-                },
-                fail =>
-                {
-                    var errorMessages = Enumerable.Range(0, fail.Reasons.Count)
-                        .Select(x => $"{x + 1}: {fail.Reasons[x]}")
-                        .ToList();
-
-                    PrintProjectErrors(projectFileName, errorMessages);
-                    return null;
-                });
-        }
-
-        public virtual void PrintProjectErrors(string projectFileName, IList<string> errorMessages)
-        {
-            var headerMessage = $"Project '{projectFileName}' contained {errorMessages.Count} errors";
-            Console.WriteLine(headerMessage);
-
-            foreach (var message in errorMessages)
-                Console.WriteLine(message);
-        }
+        foreach (var message in errorMessages)
+            Console.WriteLine(message);
     }
 }

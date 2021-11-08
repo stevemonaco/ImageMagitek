@@ -9,24 +9,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImageMagitek.UnitTests
+namespace ImageMagitek.UnitTests;
+
+[TestFixture]
+public class ScatteredArrangerReversibilityTests
 {
-    [TestFixture]
-    public class ScatteredArrangerReversibilityTests
+    [TestCaseSource(typeof(ScatteredArrangerReversibilityTestCases), "ReverseCases")]
+    public void ScatteredArranger_Reversibility_CanReverse(ScatteredArranger arranger, string imageFileName)
     {
-        [TestCaseSource(typeof(ScatteredArrangerReversibilityTestCases), "ReverseCases")]
-        public void ScatteredArranger_Reversibility_CanReverse(ScatteredArranger arranger, string imageFileName)
-        {
-            var exportedImageFileName = $"test.png";
+        var exportedImageFileName = $"test.png";
 
-            var indexedImage = new IndexedImage(arranger);
-            indexedImage.ImportImage(imageFileName, new ImageSharpFileAdapter(), ColorMatchStrategy.Exact);
-            indexedImage.ExportImage(exportedImageFileName, new ImageSharpFileAdapter());
+        var indexedImage = new IndexedImage(arranger);
+        indexedImage.ImportImage(imageFileName, new ImageSharpFileAdapter(), ColorMatchStrategy.Exact);
+        indexedImage.ExportImage(exportedImageFileName, new ImageSharpFileAdapter());
 
-            using var expected = Image<Rgba32>.Load<Rgba32>(imageFileName);
-            using var actual = Image<Rgba32>.Load<Rgba32>(exportedImageFileName);
+        using var expected = Image<Rgba32>.Load<Rgba32>(imageFileName);
+        using var actual = Image<Rgba32>.Load<Rgba32>(exportedImageFileName);
 
-            ImageRgba32Assert.AreEqual(expected, actual);
-        }
+        ImageRgba32Assert.AreEqual(expected, actual);
     }
 }

@@ -3,15 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ImageMagitek.UnitTests
+namespace ImageMagitek.UnitTests;
+
+[TestFixture]
+public class ImageCopierTests
 {
-    [TestFixture]
-    public class ImageCopierTests
+
+    public void CanCopy_IndexedIndexed_ReturnsTrue()
     {
 
-        public void CanCopy_IndexedIndexed_ReturnsTrue()
-        {
-
-        }
     }
 }
