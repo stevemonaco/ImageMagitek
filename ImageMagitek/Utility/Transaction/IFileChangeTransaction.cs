@@ -1,7 +1,6 @@
-﻿namespace ImageMagitek.Utility
+﻿namespace ImageMagitek.Utility;
+
+public interface IFileChangeTransaction : ITransactionCommand
 {
-    public interface IFileChangeTransaction : ITransactionCommand
-    {
-        public string PrimaryFileName { get; set; }
-    }
+    public string PrimaryFileName { get; set; }
 }

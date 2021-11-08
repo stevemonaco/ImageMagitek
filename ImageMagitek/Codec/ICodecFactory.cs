@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace ImageMagitek.Codec
+namespace ImageMagitek.Codec;
+
+public interface ICodecFactory
 {
-    public interface ICodecFactory
-    {
-        void AddOrUpdateCodec(Type codecType);
-        IGraphicsCodec GetCodec(string codecName, Size? elementSize);
-        IGraphicsCodec CloneCodec(IGraphicsCodec codec);
-        IEnumerable<string> GetSupportedCodecNames();
-    }
+    void AddOrUpdateCodec(Type codecType);
+    IGraphicsCodec GetCodec(string codecName, Size? elementSize);
+    IGraphicsCodec CloneCodec(IGraphicsCodec codec);
+    IEnumerable<string> GetSupportedCodecNames();
 }

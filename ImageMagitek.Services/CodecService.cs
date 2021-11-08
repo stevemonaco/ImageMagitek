@@ -6,60 +6,59 @@ using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using McMaster.NETCore.Plugins;
 
-namespace ImageMagitek.Services
+namespace ImageMagitek.Services;
+
+public interface ICodecService
 {
-    public interface ICodecService
-    {
-        ICodecFactory CodecFactory { get; }
+    ICodecFactory CodecFactory { get; }
 
-        IEnumerable<string> GetSupportedCodecNames();
-        MagitekResults LoadXmlCodecs(string codecsPath);
-        void AddOrUpdateCodec(Type codecType);
+    IEnumerable<string> GetSupportedCodecNames();
+    MagitekResults LoadXmlCodecs(string codecsPath);
+    void AddOrUpdateCodec(Type codecType);
+}
+
+public class CodecService : ICodecService
+{
+    public ICodecFactory CodecFactory { get; private set; }
+
+    private readonly string _schemaFileName;
+
+    public CodecService(string schemaFileName)
+    {
+        _schemaFileName = schemaFileName;
     }
 
-    public class CodecService : ICodecService
+    public MagitekResults LoadXmlCodecs(string codecsPath)
     {
-        public ICodecFactory CodecFactory { get; private set; }
+        var formats = new Dictionary<string, IGraphicsFormat>();
+        var serializer = new XmlGraphicsFormatReader(_schemaFileName);
+        var errors = new List<string>();
 
-        private readonly string _schemaFileName;
-
-        public CodecService(string schemaFileName)
+        foreach (var formatFileName in Directory.GetFiles(codecsPath).Where(x => x.EndsWith(".xml")))
         {
-            _schemaFileName = schemaFileName;
+            var result = serializer.LoadFromFile(formatFileName);
+
+            result.Switch(success =>
+                {
+                    formats.Add(success.Result.Name, success.Result);
+                },
+                fail =>
+                {
+                    errors.Add($"Failed to load XML codec '{formatFileName}'");
+                    errors.AddRange(fail.Reasons);
+                });
         }
 
-        public MagitekResults LoadXmlCodecs(string codecsPath)
-        {
-            var formats = new Dictionary<string, IGraphicsFormat>();
-            var serializer = new XmlGraphicsFormatReader(_schemaFileName);
-            var errors = new List<string>();
+        CodecFactory = new CodecFactory(formats);
 
-            foreach (var formatFileName in Directory.GetFiles(codecsPath).Where(x => x.EndsWith(".xml")))
-            {
-                var result = serializer.LoadFromFile(formatFileName);
-
-                result.Switch(success =>
-                    {
-                        formats.Add(success.Result.Name, success.Result);
-                    },
-                    fail =>
-                    {
-                        errors.Add($"Failed to load XML codec '{formatFileName}'");
-                        errors.AddRange(fail.Reasons);
-                    });
-            }
-
-            CodecFactory = new CodecFactory(formats);
-
-            if (errors.Any())
-                return new MagitekResults.Failed(errors);
-            else
-                return MagitekResults.SuccessResults;
-        }
-
-        public void AddOrUpdateCodec(Type codecType) =>
-            CodecFactory.AddOrUpdateCodec(codecType);
-
-        public IEnumerable<string> GetSupportedCodecNames() => CodecFactory?.GetSupportedCodecNames();
+        if (errors.Any())
+            return new MagitekResults.Failed(errors);
+        else
+            return MagitekResults.SuccessResults;
     }
+
+    public void AddOrUpdateCodec(Type codecType) =>
+        CodecFactory.AddOrUpdateCodec(codecType);
+
+    public IEnumerable<string> GetSupportedCodecNames() => CodecFactory?.GetSupportedCodecNames();
 }

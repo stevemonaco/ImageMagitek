@@ -2,47 +2,46 @@
 using System.Xml;
 using System.Xml.Linq;
 
-namespace ImageMagitek.ExtensionMethods
+namespace ImageMagitek.ExtensionMethods;
+
+public static class XElementExtensions
 {
-    public static class XElementExtensions
+    /// <summary>
+    /// Gets the project path for the specified node
+    /// </summary>
+    /// <param name="node"></param>
+    /// <returns></returns>
+    public static string NodePath(this XElement node)
     {
-        /// <summary>
-        /// Gets the project path for the specified node
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        public static string NodePath(this XElement node)
+        string path = "";
+
+        XElement currentNode = node;
+        while (currentNode.Parent != null && currentNode.Parent.Name != "gdf")
         {
-            string path = "";
-
-            XElement currentNode = node;
-            while (currentNode.Parent != null && currentNode.Parent.Name != "gdf")
-            {
-                currentNode = currentNode.Parent;
-                path = Path.Combine(currentNode.Attribute("name").Value, path);
-            }
-
-            return path;
+            currentNode = currentNode.Parent;
+            path = Path.Combine(currentNode.Attribute("name").Value, path);
         }
 
-        /// <summary>
-        /// Gets the project key for the specified node
-        /// </summary>
-        /// <param name="node"></param>
-        /// <returns></returns>
-        public static string NodeKey(this XElement node)
-        {
-            string path = node.NodePath();
-            return Path.Combine(path, node.Attribute("name").Value);
-        }
+        return path;
+    }
 
-        public static int? LineNumber(this XElement element)
-        {
-            if (element is null)
-                return default;
+    /// <summary>
+    /// Gets the project key for the specified node
+    /// </summary>
+    /// <param name="node"></param>
+    /// <returns></returns>
+    public static string NodeKey(this XElement node)
+    {
+        string path = node.NodePath();
+        return Path.Combine(path, node.Attribute("name").Value);
+    }
 
-            var info = element as IXmlLineInfo;
-            return info.HasLineInfo() ? info.LineNumber : default;
-        }
+    public static int? LineNumber(this XElement element)
+    {
+        if (element is null)
+            return default;
+
+        var info = element as IXmlLineInfo;
+        return info.HasLineInfo() ? info.LineNumber : default;
     }
 }

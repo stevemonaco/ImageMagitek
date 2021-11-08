@@ -1,17 +1,16 @@
 ﻿using System;
 
-namespace ImageMagitek.Project.Serialization
+namespace ImageMagitek.Project.Serialization;
+
+public class DataFileModel : ResourceModel
 {
-    public class DataFileModel : ResourceModel
+    public string Location { get; set; }
+
+    public override bool ResourceEquals(ResourceModel resourceModel)
     {
-        public string Location { get; set; }
+        if (resourceModel is not DataFileModel model)
+            return false;
 
-        public override bool ResourceEquals(ResourceModel resourceModel)
-        {
-            if (resourceModel is not DataFileModel model)
-                return false;
-
-            return model.Location == Location && model.Name == Name;
-        }
+        return model.Location == Location && model.Name == Name;
     }
 }

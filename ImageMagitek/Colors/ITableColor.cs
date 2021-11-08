@@ -1,7 +1,6 @@
-﻿namespace ImageMagitek.Colors
+﻿namespace ImageMagitek.Colors;
+
+public interface ITableColor : IColor
 {
-    public interface ITableColor : IColor
-    {
-        public int ColorMax { get; }
-    }
+    public int ColorMax { get; }
 }

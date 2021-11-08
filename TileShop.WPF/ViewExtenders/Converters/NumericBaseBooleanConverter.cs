@@ -5,34 +5,33 @@ using System.Text;
 using System.Windows.Data;
 using TileShop.WPF.ViewModels;
 
-namespace TileShop.WPF.Converters
+namespace TileShop.WPF.Converters;
+
+public class NumericBaseBooleanConverter : IValueConverter
 {
-    public class NumericBaseBooleanConverter : IValueConverter
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        if (value is NumericBase numericBase)
         {
-            if (value is NumericBase numericBase)
-            {
-                if (numericBase == NumericBase.Decimal)
-                    return false;
-                else if (numericBase == NumericBase.Hexadecimal)
-                    return true;
-            }
-
-            return Binding.DoNothing;
+            if (numericBase == NumericBase.Decimal)
+                return false;
+            else if (numericBase == NumericBase.Hexadecimal)
+                return true;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is bool baseBool)
-            {
-                if (baseBool == false)
-                    return NumericBase.Decimal;
-                else
-                    return NumericBase.Hexadecimal;
-            }
+        return Binding.DoNothing;
+    }
 
-            return Binding.DoNothing;
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        if (value is bool baseBool)
+        {
+            if (baseBool == false)
+                return NumericBase.Decimal;
+            else
+                return NumericBase.Hexadecimal;
         }
+
+        return Binding.DoNothing;
     }
 }

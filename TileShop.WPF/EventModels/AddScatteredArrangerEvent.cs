@@ -1,16 +1,15 @@
 ﻿using TileShop.WPF.ViewModels;
 
-namespace TileShop.WPF.EventModels
+namespace TileShop.WPF.EventModels;
+
+public class AddScatteredArrangerEvent
 {
-    public class AddScatteredArrangerEvent
+    public ResourceNodeViewModel Parent { get; set; }
+
+    public AddScatteredArrangerEvent() { }
+
+    public AddScatteredArrangerEvent(ResourceNodeViewModel parent)
     {
-        public ResourceNodeViewModel Parent { get; set; }
-
-        public AddScatteredArrangerEvent() { }
-
-        public AddScatteredArrangerEvent(ResourceNodeViewModel parent)
-        {
-            Parent = parent;
-        }
+        Parent = parent;
     }
 }

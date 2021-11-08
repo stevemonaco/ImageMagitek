@@ -2,80 +2,79 @@
 using System.IO;
 using ImageMagitek.ExtensionMethods;
 
-namespace ImageMagitek.Codec
+namespace ImageMagitek.Codec;
+
+public interface IIndexedCodec : IGraphicsCodec<byte> { }
+
+public abstract class IndexedCodec : IIndexedCodec
 {
-    public interface IIndexedCodec : IGraphicsCodec<byte> { }
+    public abstract string Name { get; }
+    public abstract int Width { get; }
+    public abstract int Height { get; }
+    public abstract ImageLayout Layout { get; }
+    public PixelColorType ColorType => PixelColorType.Indexed;
+    public abstract int ColorDepth { get; }
+    public abstract int StorageSize { get; }
+    public abstract bool CanEncode { get; }
 
-    public abstract class IndexedCodec : IIndexedCodec
+    public abstract int DefaultWidth { get; }
+    public abstract int DefaultHeight { get; }
+    public abstract bool CanResize { get; }
+    public abstract int WidthResizeIncrement { get; }
+    public abstract int HeightResizeIncrement { get; }
+
+    public virtual ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
+    protected byte[] _foreignBuffer;
+
+    public virtual byte[,] NativeBuffer => _nativeBuffer;
+    protected byte[,] _nativeBuffer;
+
+    public abstract byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer);
+    public abstract ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer);
+
+    /// <summary>
+    /// Reads a contiguous block of encoded pixel data
+    /// </summary>
+    public virtual ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
     {
-        public abstract string Name { get; }
-        public abstract int Width { get; }
-        public abstract int Height { get; }
-        public abstract ImageLayout Layout { get; }
-        public PixelColorType ColorType => PixelColorType.Indexed;
-        public abstract int ColorDepth { get; }
-        public abstract int StorageSize { get; }
-        public abstract bool CanEncode { get; }
+        var buffer = new byte[(StorageSize + 7) / 8];
+        var bitStream = BitStream.OpenRead(buffer, StorageSize);
 
-        public abstract int DefaultWidth { get; }
-        public abstract int DefaultHeight { get; }
-        public abstract bool CanResize { get; }
-        public abstract int WidthResizeIncrement { get; }
-        public abstract int HeightResizeIncrement { get; }
+        var fs = el.DataFile.Stream;
 
-        public virtual ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
-        protected byte[] _foreignBuffer;
+        // TODO: Add bit granularity to seek and read
+        if (el.FileAddress + StorageSize > fs.Length * 8)
+            return null;
 
-        public virtual byte[,] NativeBuffer => _nativeBuffer;
-        protected byte[,] _nativeBuffer;
+        bitStream.SeekAbsolute(0);
+        fs.ReadShifted(el.FileAddress, StorageSize, buffer);
 
-        public abstract byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer);
-        public abstract ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer);
+        return buffer;
+    }
 
-        /// <summary>
-        /// Reads a contiguous block of encoded pixel data
-        /// </summary>
-        public virtual ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
-        {
-            var buffer = new byte[(StorageSize + 7) / 8];
-            var bitStream = BitStream.OpenRead(buffer, StorageSize);
+    /// <summary>
+    /// Writes a contiguous block of encoded pixel data
+    /// </summary>
+    public virtual void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+    {
+        // TODO: Add bit granularity to seek and read
+        var fs = el.DataFile.Stream;
+        fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
+    }
 
-            var fs = el.DataFile.Stream;
+    public virtual int GetPreferredWidth(int width)
+    {
+        if (!CanResize)
+            return DefaultWidth;
 
-            // TODO: Add bit granularity to seek and read
-            if (el.FileAddress + StorageSize > fs.Length * 8)
-                return null;
+        return Math.Clamp(width - width % WidthResizeIncrement, WidthResizeIncrement, int.MaxValue);
+    }
 
-            bitStream.SeekAbsolute(0);
-            fs.ReadShifted(el.FileAddress, StorageSize, buffer);
+    public virtual int GetPreferredHeight(int height)
+    {
+        if (!CanResize)
+            return DefaultHeight;
 
-            return buffer;
-        }
-
-        /// <summary>
-        /// Writes a contiguous block of encoded pixel data
-        /// </summary>
-        public virtual void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
-        {
-            // TODO: Add bit granularity to seek and read
-            var fs = el.DataFile.Stream;
-            fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
-        }
-
-        public virtual int GetPreferredWidth(int width)
-        {
-            if (!CanResize)
-                return DefaultWidth;
-
-            return Math.Clamp(width - width % WidthResizeIncrement, WidthResizeIncrement, int.MaxValue);
-        }
-
-        public virtual int GetPreferredHeight(int height)
-        {
-            if (!CanResize)
-                return DefaultHeight;
-
-            return Math.Clamp(height - height % HeightResizeIncrement, HeightResizeIncrement, int.MaxValue);
-        }
+        return Math.Clamp(height - height % HeightResizeIncrement, HeightResizeIncrement, int.MaxValue);
     }
 }

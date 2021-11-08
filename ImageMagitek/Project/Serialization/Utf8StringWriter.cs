@@ -1,10 +1,9 @@
 ﻿using System.IO;
 using System.Text;
 
-namespace ImageMagitek.Project.Serialization
+namespace ImageMagitek.Project.Serialization;
+
+internal sealed class Utf8StringWriter : StringWriter
 {
-    internal sealed class Utf8StringWriter : StringWriter
-    {
-        public override Encoding Encoding => Encoding.UTF8;
-    }
+    public override Encoding Encoding => Encoding.UTF8;
 }

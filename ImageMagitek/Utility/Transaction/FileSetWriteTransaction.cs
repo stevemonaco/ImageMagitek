@@ -2,88 +2,87 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ImageMagitek.Utility
+namespace ImageMagitek.Utility;
+
+public interface IFileChangeTransactionRunner
 {
-    public interface IFileChangeTransactionRunner
+    MagitekResults Transact();
+}
+
+public sealed class FileSetWriteTransaction : IFileChangeTransactionRunner
+{
+    private readonly IList<IFileChangeTransaction> _actions;
+
+    public FileSetWriteTransaction(IEnumerable<IFileChangeTransaction> actions)
     {
-        MagitekResults Transact();
+        _actions = actions.ToList();
     }
 
-    public sealed class FileSetWriteTransaction : IFileChangeTransactionRunner
+    public MagitekResults Transact()
     {
-        private readonly IList<IFileChangeTransaction> _actions;
-
-        public FileSetWriteTransaction(IEnumerable<IFileChangeTransaction> actions)
-        {
-            _actions = actions.ToList();
-        }
-
-        public MagitekResults Transact()
-        {
-            return TryRunTransactionSet().Match<MagitekResults>(
-                success => MagitekResults.SuccessResults,
-                failed =>
+        return TryRunTransactionSet().Match<MagitekResults>(
+            success => MagitekResults.SuccessResults,
+            failed =>
+            {
+                var compositeErrors = new List<string>
                 {
-                    var compositeErrors = new List<string>
-                    {
                         failed.Reason
-                    };
+                };
 
-                    return TrySetRollback().Match(
-                        rollBackSuccess =>
-                        {
-                            return new MagitekResults.Failed(compositeErrors);
-                        },
-                        rollbackFailure =>
-                        {
-                            compositeErrors.AddRange(rollbackFailure.Reasons);
-                            return new MagitekResults.Failed(compositeErrors);
-                        });
-                });
-        }
+                return TrySetRollback().Match(
+                    rollBackSuccess =>
+                    {
+                        return new MagitekResults.Failed(compositeErrors);
+                    },
+                    rollbackFailure =>
+                    {
+                        compositeErrors.AddRange(rollbackFailure.Reasons);
+                        return new MagitekResults.Failed(compositeErrors);
+                    });
+            });
+    }
 
-        private MagitekResult TryRunTransactionSet()
+    private MagitekResult TryRunTransactionSet()
+    {
+        string destName = string.Empty;
+        try
         {
-            string destName = string.Empty;
-            try
+            foreach (var action in _actions)
             {
-                foreach (var action in _actions)
-                {
-                    action.Prepare();
-                }
-
-                foreach (var action in _actions)
-                {
-                    action.Execute();
-                }
-
-                foreach (var action in _actions)
-                {
-                    action.Complete();
-                }
-
-                return MagitekResult.SuccessResult;
+                action.Prepare();
             }
-            catch (Exception ex)
+
+            foreach (var action in _actions)
             {
-                return new MagitekResult.Failed($"Failed to rename existing XML files to .bak ('{destName}') in preparation for save: {ex.Message}");
+                action.Execute();
             }
+
+            foreach (var action in _actions)
+            {
+                action.Complete();
+            }
+
+            return MagitekResult.SuccessResult;
         }
-
-        private MagitekResults TrySetRollback()
+        catch (Exception ex)
         {
-            var errors = new List<string>();
-
-            foreach (var action in _actions.Where(x => x.State == TransactionState.RollbackRequired))
-            {
-                if (action.Rollback())
-                    errors.Add($"'{action.PrimaryFileName}' failed to rollback");
-            }
-
-            if (errors.Count > 0)
-                return new MagitekResults.Failed(errors);
-            else
-                return MagitekResults.SuccessResults;
+            return new MagitekResult.Failed($"Failed to rename existing XML files to .bak ('{destName}') in preparation for save: {ex.Message}");
         }
+    }
+
+    private MagitekResults TrySetRollback()
+    {
+        var errors = new List<string>();
+
+        foreach (var action in _actions.Where(x => x.State == TransactionState.RollbackRequired))
+        {
+            if (action.Rollback())
+                errors.Add($"'{action.PrimaryFileName}' failed to rollback");
+        }
+
+        if (errors.Count > 0)
+            return new MagitekResults.Failed(errors);
+        else
+            return MagitekResults.SuccessResults;
     }
 }

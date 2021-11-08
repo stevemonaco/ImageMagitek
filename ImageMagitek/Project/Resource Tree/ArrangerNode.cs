@@ -1,11 +1,10 @@
 ﻿using ImageMagitek.Project.Serialization;
 
-namespace ImageMagitek.Project
+namespace ImageMagitek.Project;
+
+public sealed class ArrangerNode : ResourceNode<ScatteredArrangerModel>
 {
-    public sealed class ArrangerNode : ResourceNode<ScatteredArrangerModel>
+    public ArrangerNode(string nodeName, ScatteredArranger resource) : base(nodeName, resource)
     {
-        public ArrangerNode(string nodeName, ScatteredArranger resource) : base(nodeName, resource)
-        {
-        }
     }
 }

@@ -1,8 +1,7 @@
 ﻿using Stylet;
 
-namespace TileShop.WPF.Models
+namespace TileShop.WPF.Models;
+
+public abstract class ColorSourceModel : Screen
 {
-    public abstract class ColorSourceModel : Screen
-    {
-    }
 }

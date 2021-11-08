@@ -2,15 +2,14 @@
 using BenchmarkDotNet.Running;
 using System;
 
-namespace ImageMagitek.Benchmarks
+namespace ImageMagitek.Benchmarks;
+
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            //BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, new DebugInProcessConfig());
-            //BenchmarkRunner.Run(typeof(FileStreamReopenPerRead));
-            BenchmarkRunner.Run(typeof(Snes3bppDecodeToImage));
-        }
+        //BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, new DebugInProcessConfig());
+        //BenchmarkRunner.Run(typeof(FileStreamReopenPerRead));
+        BenchmarkRunner.Run(typeof(Snes3bppDecodeToImage));
     }
 }

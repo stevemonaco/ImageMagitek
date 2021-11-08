@@ -3,20 +3,19 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace ColorPicker.Converters
-{
-    [ValueConversion(typeof(PickerType), typeof(int))]
-    class PickerTypeToIntConverter
-        : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return (int)value;
-        }
+namespace ColorPicker.Converters;
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return (PickerType)value;
-        }
+[ValueConversion(typeof(PickerType), typeof(int))]
+class PickerTypeToIntConverter
+    : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        return (int)value;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        return (PickerType)value;
     }
 }

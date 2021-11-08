@@ -1,8 +1,7 @@
-﻿namespace ImageMagitek.Colors.Converters
+﻿namespace ImageMagitek.Colors.Converters;
+
+public interface IColorConverter<TColor> where TColor : IColor
 {
-    public interface IColorConverter<TColor> where TColor : IColor
-    {
-        TColor ToForeignColor(ColorRgba32 nc);
-        ColorRgba32 ToNativeColor(TColor fc);
-    }
+    TColor ToForeignColor(ColorRgba32 nc);
+    ColorRgba32 ToNativeColor(TColor fc);
 }

@@ -1,31 +1,30 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace ImageMagitek.Project
+namespace ImageMagitek.Project;
+
+public sealed class ResourceFolder : IProjectResource
 {
-    public sealed class ResourceFolder : IProjectResource
+    public ResourceFolder() : this("") { }
+
+    public ResourceFolder(string name)
     {
-        public ResourceFolder() : this("") { }
+        Name = name;
+    }
 
-        public ResourceFolder(string name)
+    public string Name { get; set; }
+
+    public bool CanContainChildResources => true;
+
+    public bool ShouldBeSerialized { get; set; } = true;
+
+    public bool UnlinkResource(IProjectResource resource) => false;
+
+    public IEnumerable<IProjectResource> LinkedResources
+    {
+        get
         {
-            Name = name;
-        }
-
-        public string Name { get; set; }
-
-        public bool CanContainChildResources => true;
-
-        public bool ShouldBeSerialized { get; set; } = true;
-
-        public bool UnlinkResource(IProjectResource resource) => false;
-
-        public IEnumerable<IProjectResource> LinkedResources
-        {
-            get
-            {
-                return Enumerable.Empty<IProjectResource>();
-            }
+            return Enumerable.Empty<IProjectResource>();
         }
     }
 }

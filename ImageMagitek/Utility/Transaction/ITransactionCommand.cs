@@ -1,12 +1,11 @@
-﻿namespace ImageMagitek.Utility
-{
-    public interface ITransactionCommand
-    {
-        TransactionState State { get; }
+﻿namespace ImageMagitek.Utility;
 
-        bool Prepare();
-        bool Execute();
-        bool Rollback();
-        bool Complete();
-    }
+public interface ITransactionCommand
+{
+    TransactionState State { get; }
+
+    bool Prepare();
+    bool Execute();
+    bool Rollback();
+    bool Complete();
 }

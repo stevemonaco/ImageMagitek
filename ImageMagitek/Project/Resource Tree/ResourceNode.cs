@@ -1,40 +1,39 @@
 ﻿using ImageMagitek.Project.Serialization;
 using Monaco.PathTree.Abstractions;
 
-namespace ImageMagitek.Project
+namespace ImageMagitek.Project;
+
+public abstract class ResourceNode : PathNodeBase<ResourceNode, IProjectResource>
 {
-    public abstract class ResourceNode : PathNodeBase<ResourceNode, IProjectResource>
+    public string DiskLocation { get; set; }
+    public ResourceModel Model { get; set; }
+
+    public ResourceNode(string nodeName, IProjectResource resource) :
+        base(nodeName, resource)
     {
-        public string DiskLocation { get; set; }
-        public ResourceModel Model { get; set; }
-
-        public ResourceNode(string nodeName, IProjectResource resource) :
-            base(nodeName, resource)
-        {
-        }
-
-        public override void Rename(string name)
-        {
-            base.Rename(name);
-            Item.Name = name;
-        }
     }
 
-    #pragma warning disable CS0108
-    public abstract class ResourceNode<TModel> : ResourceNode
-        where TModel : ResourceModel
+    public override void Rename(string name)
     {
-        public ResourceNode(string nodeName, IProjectResource resource) : base(nodeName, resource)
-        {
-        }
+        base.Rename(name);
+        Item.Name = name;
+    }
+}
 
-        /// <summary>
-        /// Representation of the Model that is currently persisted
-        /// </summary>
-        public TModel Model
-        {
-            get => (TModel) base.Model;
-            set => base.Model = value;
-        }
+#pragma warning disable CS0108
+public abstract class ResourceNode<TModel> : ResourceNode
+    where TModel : ResourceModel
+{
+    public ResourceNode(string nodeName, IProjectResource resource) : base(nodeName, resource)
+    {
+    }
+
+    /// <summary>
+    /// Representation of the Model that is currently persisted
+    /// </summary>
+    public TModel Model
+    {
+        get => (TModel)base.Model;
+        set => base.Model = value;
     }
 }

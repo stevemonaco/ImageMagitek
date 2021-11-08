@@ -1,7 +1,6 @@
-﻿namespace ColorPicker.Models
+﻿namespace ColorPicker.Models;
+
+public enum PickerType : int
 {
-    public enum PickerType : int
-    {
-        HSV = 0, HSL = 1
-    }
+    HSV = 0, HSL = 1
 }

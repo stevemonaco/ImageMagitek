@@ -1,20 +1,19 @@
 ﻿using ImageMagitek;
 
-namespace TileShop.WPF.Models
+namespace TileShop.WPF.Models;
+
+public class MirrorElementHistoryAction : HistoryAction
 {
-    public class MirrorElementHistoryAction : HistoryAction
+    public override string Name => "Mirror Element";
+
+    public MirrorOperation Mirror { get; }
+    public int ElementX { get; }
+    public int ElementY { get; }
+
+    public MirrorElementHistoryAction(int elementX, int elementY, MirrorOperation mirror)
     {
-        public override string Name => "Mirror Element";
-
-        public MirrorOperation Mirror { get; }
-        public int ElementX { get; }
-        public int ElementY { get; }
-
-        public MirrorElementHistoryAction(int elementX, int elementY, MirrorOperation mirror)
-        {
-            ElementX = elementX;
-            ElementY = elementY;
-            Mirror = mirror;
-        }
+        ElementX = elementX;
+        ElementY = elementY;
+        Mirror = mirror;
     }
 }

@@ -1,16 +1,15 @@
 ﻿using TileShop.WPF.ViewModels;
 
-namespace TileShop.WPF.EventModels
+namespace TileShop.WPF.EventModels;
+
+public class AddPaletteEvent
 {
-    public class AddPaletteEvent
+    public ResourceNodeViewModel Parent { get; set; }
+
+    public AddPaletteEvent() { }
+
+    public AddPaletteEvent(ResourceNodeViewModel parent)
     {
-        public ResourceNodeViewModel Parent { get; set; }
-
-        public AddPaletteEvent() { }
-
-        public AddPaletteEvent(ResourceNodeViewModel parent)
-        {
-            Parent = parent;
-        }
+        Parent = parent;
     }
 }

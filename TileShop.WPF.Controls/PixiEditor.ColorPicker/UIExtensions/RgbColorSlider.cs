@@ -1,48 +1,47 @@
 ﻿using System.Windows;
 using System.Windows.Media;
 
-namespace ColorPicker.UIExtensions
+namespace ColorPicker.UIExtensions;
+
+internal class RgbColorSlider : PreviewColorSlider
 {
-    internal class RgbColorSlider : PreviewColorSlider
+    public static readonly DependencyProperty SliderArgbTypeProperty =
+        DependencyProperty.Register(nameof(SliderArgbType), typeof(string), typeof(RgbColorSlider),
+            new PropertyMetadata(""));
+
+    public RgbColorSlider() : base() { }
+
+    public string SliderArgbType
     {
-        public static readonly DependencyProperty SliderArgbTypeProperty =
-            DependencyProperty.Register(nameof(SliderArgbType), typeof(string), typeof(RgbColorSlider),
-                new PropertyMetadata(""));
-
-        public RgbColorSlider() : base() { }
-
-        public string SliderArgbType
-        {
-            get => (string)GetValue(SliderArgbTypeProperty);
-            set => SetValue(SliderArgbTypeProperty, value);
-        }
-        protected override void GenerateBackground()
-        {
-            var colorStart = GetColorForSelectedArgb(0);
-            var colorEnd = GetColorForSelectedArgb(255);
-            LeftCapColor.Color = colorStart;
-            RightCapColor.Color = colorEnd;
-            BackgroundGradient = new GradientStopCollection
+        get => (string)GetValue(SliderArgbTypeProperty);
+        set => SetValue(SliderArgbTypeProperty, value);
+    }
+    protected override void GenerateBackground()
+    {
+        var colorStart = GetColorForSelectedArgb(0);
+        var colorEnd = GetColorForSelectedArgb(255);
+        LeftCapColor.Color = colorStart;
+        RightCapColor.Color = colorEnd;
+        BackgroundGradient = new GradientStopCollection
             {
                 new GradientStop(colorStart, 0.0),
                 new GradientStop(colorEnd, 1)
             };
-        }
+    }
 
-        private Color GetColorForSelectedArgb(int value)
+    private Color GetColorForSelectedArgb(int value)
+    {
+        byte a = (byte)(CurrentColorState.A * 255);
+        byte r = (byte)(CurrentColorState.RGB_R * 255);
+        byte g = (byte)(CurrentColorState.RGB_G * 255);
+        byte b = (byte)(CurrentColorState.RGB_B * 255);
+        switch (SliderArgbType)
         {
-            byte a = (byte)(CurrentColorState.A * 255);
-            byte r = (byte)(CurrentColorState.RGB_R * 255);
-            byte g = (byte)(CurrentColorState.RGB_G * 255);
-            byte b = (byte)(CurrentColorState.RGB_B * 255);
-            switch (SliderArgbType)
-            {
-                case "A": return Color.FromArgb((byte)value, r, g, b);
-                case "R": return Color.FromArgb(a, (byte)value, g, b);
-                case "G": return Color.FromArgb(a, r, (byte)value, b);
-                case "B": return Color.FromArgb(a, r, g, (byte)value);
-                default: return Color.FromArgb(a, r, g, b);
-            };
-        }
+            case "A": return Color.FromArgb((byte)value, r, g, b);
+            case "R": return Color.FromArgb(a, (byte)value, g, b);
+            case "G": return Color.FromArgb(a, r, (byte)value, b);
+            case "B": return Color.FromArgb(a, r, g, (byte)value);
+            default: return Color.FromArgb(a, r, g, b);
+        };
     }
 }

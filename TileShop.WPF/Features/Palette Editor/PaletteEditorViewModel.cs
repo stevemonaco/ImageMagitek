@@ -9,340 +9,339 @@ using ImageMagitek.Services;
 using ImageMagitek.Utility.Parsing;
 using ImageMagitek;
 
-namespace TileShop.WPF.ViewModels
+namespace TileShop.WPF.ViewModels;
+
+public class PaletteEditorViewModel : ResourceEditorBaseViewModel
 {
-    public class PaletteEditorViewModel : ResourceEditorBaseViewModel
+    protected readonly Palette _palette;
+    protected readonly IPaletteService _paletteService;
+    protected readonly IColorFactory _colorFactory;
+    protected readonly IProjectService _projectService;
+    protected readonly IEventAggregator _events;
+
+    private int _myField;
+    public int MyProperty
     {
-        protected readonly Palette _palette;
-        protected readonly IPaletteService _paletteService;
-        protected readonly IColorFactory _colorFactory;
-        protected readonly IProjectService _projectService;
-        protected readonly IEventAggregator _events;
+        get => _myField;
+        set => SetAndNotify(ref _myField, value);
+    }
 
-        private int _myField;
-        public int MyProperty
+
+    private BindableCollection<EditableColorBaseViewModel> _colors = new();
+    public BindableCollection<EditableColorBaseViewModel> Colors
+    {
+        get => _colors;
+        set => SetAndNotify(ref _colors, value);
+    }
+
+    private BindableCollection<ColorSourceModel> _colorSourceModels = new();
+    public BindableCollection<ColorSourceModel> ColorSourceModels
+    {
+        get => _colorSourceModels;
+        set => SetAndNotify(ref _colorSourceModels, value);
+    }
+
+    private string _paletteSource;
+    public string PaletteSource
+    {
+        get => _paletteSource;
+        set => SetAndNotify(ref _paletteSource, value);
+    }
+
+    private int _entries;
+    public int Entries
+    {
+        get => _entries;
+        set => SetAndNotify(ref _entries, value);
+    }
+
+    private bool _zeroIndexTransparent;
+    public bool ZeroIndexTransparent
+    {
+        get => _zeroIndexTransparent;
+        set
         {
-            get => _myField;
-            set => SetAndNotify(ref _myField, value);
+            if (SetAndNotify(ref _zeroIndexTransparent, value))
+                IsModified = true;
         }
+    }
 
+    private ColorModel _colorModel;
+    public ColorModel ColorModel
+    {
+        get => _colorModel;
+        set => SetAndNotify(ref _colorModel, value);
+    }
 
-        private BindableCollection<EditableColorBaseViewModel> _colors = new();
-        public BindableCollection<EditableColorBaseViewModel> Colors
+    private int _selectedColorIndex;
+    public int SelectedColorIndex
+    {
+        get => _selectedColorIndex;
+        set
         {
-            get => _colors;
-            set => SetAndNotify(ref _colors, value);
-        }
-
-        private BindableCollection<ColorSourceModel> _colorSourceModels = new();
-        public BindableCollection<ColorSourceModel> ColorSourceModels
-        {
-            get => _colorSourceModels;
-            set => SetAndNotify(ref _colorSourceModels, value);
-        }
-
-        private string _paletteSource;
-        public string PaletteSource
-        {
-            get => _paletteSource;
-            set => SetAndNotify(ref _paletteSource, value);
-        }
-
-        private int _entries;
-        public int Entries
-        {
-            get => _entries;
-            set => SetAndNotify(ref _entries, value);
-        }
-
-        private bool _zeroIndexTransparent;
-        public bool ZeroIndexTransparent
-        {
-            get => _zeroIndexTransparent;
-            set
+            if (SetAndNotify(ref _selectedColorIndex, value) && value >= 0 && value < Colors.Count)
             {
-                if (SetAndNotify(ref _zeroIndexTransparent, value))
-                    IsModified = true;
-            }
-        }
-
-        private ColorModel _colorModel;
-        public ColorModel ColorModel
-        {
-            get => _colorModel;
-            set => SetAndNotify(ref _colorModel, value);
-        }
-
-        private int _selectedColorIndex;
-        public int SelectedColorIndex
-        {
-            get => _selectedColorIndex;
-            set
-            {
-                if (SetAndNotify(ref _selectedColorIndex, value) && value >= 0 && value < Colors.Count)
-                {
-                    var color = _palette.GetForeignColor(value);
-                    if (color is IColor32 color32)
-                        ActiveColor = new Color32ViewModel(color32, value, _colorFactory);
-                    else if (color is ITableColor tableColor)
-                        ActiveColor = new TableColorViewModel(tableColor, value, _colorFactory);
-                }
-            }
-        }
-
-        private EditableColorBaseViewModel _activeColor;
-        public EditableColorBaseViewModel ActiveColor
-        {
-            get => _activeColor;
-            set => SetAndNotify(ref _activeColor, value);
-        }
-
-        public PaletteEditorViewModel(Palette palette, IPaletteService paletteService, IProjectService projectService, IEventAggregator events)
-        {
-            Resource = palette;
-            _palette = palette;
-            _paletteService = paletteService;
-            _colorFactory = _paletteService.ColorFactory;
-            _projectService = projectService;
-            _events = events;
-            events.Subscribe(this);
-
-            DisplayName = Resource?.Name ?? "Unnamed Palette";
-
-            _zeroIndexTransparent = _palette.ZeroIndexTransparent;
-            ColorModel = _palette.ColorModel;
-            Colors.AddRange(CreateColorModels());
-            ColorSourceModels.AddRange(CreateColorSourceModels(_palette));
-
-            PaletteSource = _palette.DataFile.Name;
-            Entries = CountSourceColors();
-
-            if (Entries > 0)
-            {
-                var color = _palette.GetForeignColor(0);
+                var color = _palette.GetForeignColor(value);
                 if (color is IColor32 color32)
-                    ActiveColor = new Color32ViewModel(color32, 0, _colorFactory);
+                    ActiveColor = new Color32ViewModel(color32, value, _colorFactory);
                 else if (color is ITableColor tableColor)
-                    ActiveColor = new TableColorViewModel(tableColor, 0, _colorFactory);
+                    ActiveColor = new TableColorViewModel(tableColor, value, _colorFactory);
             }
         }
+    }
 
-        /// <summary>
-        /// Saves color sources to their project resource
-        /// </summary>
-        public void SaveSources()
+    private EditableColorBaseViewModel _activeColor;
+    public EditableColorBaseViewModel ActiveColor
+    {
+        get => _activeColor;
+        set => SetAndNotify(ref _activeColor, value);
+    }
+
+    public PaletteEditorViewModel(Palette palette, IPaletteService paletteService, IProjectService projectService, IEventAggregator events)
+    {
+        Resource = palette;
+        _palette = palette;
+        _paletteService = paletteService;
+        _colorFactory = _paletteService.ColorFactory;
+        _projectService = projectService;
+        _events = events;
+        events.Subscribe(this);
+
+        DisplayName = Resource?.Name ?? "Unnamed Palette";
+
+        _zeroIndexTransparent = _palette.ZeroIndexTransparent;
+        ColorModel = _palette.ColorModel;
+        Colors.AddRange(CreateColorModels());
+        ColorSourceModels.AddRange(CreateColorSourceModels(_palette));
+
+        PaletteSource = _palette.DataFile.Name;
+        Entries = CountSourceColors();
+
+        if (Entries > 0)
         {
-            _palette.ZeroIndexTransparent = ZeroIndexTransparent;
-
-            _palette.SetColorSources(CreateColorSources());
-            var projectTree = _projectService.GetContainingProject(_palette);
-            var paletteNode = projectTree.GetResourceNode(_palette);
-            _projectService.SaveResource(projectTree, paletteNode, false);
-
-            Colors = new(CreateColorModels());
-
-            ActiveColor = Colors.FirstOrDefault();
-            PaletteSource = _palette.DataFile.Name;
-            Entries = CountSourceColors();
-            SelectedColorIndex = 0;
-
-            var changeEvent = new PaletteChangedEvent(_palette);
-            _events.PublishOnUIThread(changeEvent);
-
-            IsModified = false;
+            var color = _palette.GetForeignColor(0);
+            if (color is IColor32 color32)
+                ActiveColor = new Color32ViewModel(color32, 0, _colorFactory);
+            else if (color is ITableColor tableColor)
+                ActiveColor = new TableColorViewModel(tableColor, 0, _colorFactory);
         }
+    }
 
-        public void SaveActiveColor()
+    /// <summary>
+    /// Saves color sources to their project resource
+    /// </summary>
+    public void SaveSources()
+    {
+        _palette.ZeroIndexTransparent = ZeroIndexTransparent;
+
+        _palette.SetColorSources(CreateColorSources());
+        var projectTree = _projectService.GetContainingProject(_palette);
+        var paletteNode = projectTree.GetResourceNode(_palette);
+        _projectService.SaveResource(projectTree, paletteNode, false);
+
+        Colors = new(CreateColorModels());
+
+        ActiveColor = Colors.FirstOrDefault();
+        PaletteSource = _palette.DataFile.Name;
+        Entries = CountSourceColors();
+        SelectedColorIndex = 0;
+
+        var changeEvent = new PaletteChangedEvent(_palette);
+        _events.PublishOnUIThread(changeEvent);
+
+        IsModified = false;
+    }
+
+    public void SaveActiveColor()
+    {
+        // The order here is very important as replacing a Colors item invalidates SelectedItem to -1 and
+        // assigning a SelectedColorIndex reloads a color from the palette
+        _palette.SetForeignColor(ActiveColor.Index, ActiveColor.WorkingColor);
+
+        var model = CreateColorModel(_palette.GetForeignColor(SelectedColorIndex), SelectedColorIndex);
+        var currentIndex = SelectedColorIndex;
+        Colors[SelectedColorIndex] = model;
+
+        SelectedColorIndex = currentIndex;
+        SaveChanges();
+    }
+
+    /// <summary>
+    /// Saves palette properties and color source values to their underlying sources
+    /// </summary>
+    public override void SaveChanges()
+    {
+        _palette.ZeroIndexTransparent = ZeroIndexTransparent;
+
+        var projectTree = _projectService.GetContainingProject(_palette);
+        var paletteNode = projectTree.GetResourceNode(_palette);
+        _projectService.SaveResource(projectTree, paletteNode, false);
+        _palette.SavePalette();
+        IsModified = false;
+
+        var changeEvent = new PaletteChangedEvent(_palette);
+        _events.PublishOnUIThread(changeEvent);
+    }
+
+    public override void DiscardChanges()
+    {
+        _palette.Reload();
+        ZeroIndexTransparent = _palette.ZeroIndexTransparent;
+        ColorSourceModels = new(CreateColorSourceModels(_palette));
+        Entries = CountSourceColors();
+        IsModified = false;
+    }
+
+    public void MouseOver(Color32ViewModel model)
+    {
+        string notifyMessage = $"Palette Index: {model.Index}";
+        var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
+        _events.PublishOnUIThread(notifyEvent);
+    }
+
+    public override void Undo()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void Redo()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public override void ApplyHistoryAction(HistoryAction action)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    private IEnumerable<EditableColorBaseViewModel> CreateColorModels()
+    {
+        for (int i = 0; i < _palette.Entries; i++)
         {
-            // The order here is very important as replacing a Colors item invalidates SelectedItem to -1 and
-            // assigning a SelectedColorIndex reloads a color from the palette
-            _palette.SetForeignColor(ActiveColor.Index, ActiveColor.WorkingColor);
-
-            var model = CreateColorModel(_palette.GetForeignColor(SelectedColorIndex), SelectedColorIndex);
-            var currentIndex = SelectedColorIndex;
-            Colors[SelectedColorIndex] = model;
-
-            SelectedColorIndex = currentIndex;
-            SaveChanges();
+            yield return CreateColorModel(_palette.GetForeignColor(i), i);
         }
+    }
 
-        /// <summary>
-        /// Saves palette properties and color source values to their underlying sources
-        /// </summary>
-        public override void SaveChanges()
+    private EditableColorBaseViewModel CreateColorModel(IColor foreignColor, int index)
+    {
+        if (foreignColor is IColor32 color32)
+            return new Color32ViewModel(color32, index, _colorFactory);
+        else if (foreignColor is ITableColor tableColor)
+            return new TableColorViewModel(tableColor, index, _colorFactory);
+        else
+            throw new NotSupportedException($"Color of type '{foreignColor.GetType()}' is not supported for editing");
+    }
+
+    public void AddNewFileColorSource()
+    {
+        ColorSourceModels.Add(new FileColorSourceModel(0, 0, Endian.Little));
+        Entries = CountSourceColors();
+    }
+
+    public void AddNewNativeColorSource()
+    {
+        var color = _colorFactory.CreateColor(ColorModel.Rgba32, 0, 0, 0, 255);
+        var hexString = _colorFactory.ToHexString(color);
+        ColorSourceModels.Add(new NativeColorSourceModel(hexString));
+        Entries = CountSourceColors();
+    }
+
+    public void AddNewForeignColorSource()
+    {
+        var color = _colorFactory.CreateColor(_palette.ColorModel, 0);
+        var hexString = _colorFactory.ToHexString(color);
+        ColorSourceModels.Add(new ForeignColorSourceModel(hexString));
+        Entries = CountSourceColors();
+    }
+
+    public void RemoveColorSource(ColorSourceModel model)
+    {
+        ColorSourceModels.Remove(model);
+        Entries = CountSourceColors();
+    }
+
+    private IEnumerable<ColorSourceModel> CreateColorSourceModels(Palette pal)
+    {
+        var size = _colorFactory.CreateColor(pal.ColorModel).Size;
+
+        int i = 0;
+        while (i < pal.ColorSources.Length)
         {
-            _palette.ZeroIndexTransparent = ZeroIndexTransparent;
-
-            var projectTree = _projectService.GetContainingProject(_palette);
-            var paletteNode = projectTree.GetResourceNode(_palette);
-            _projectService.SaveResource(projectTree, paletteNode, false);
-            _palette.SavePalette();
-            IsModified = false;
-
-            var changeEvent = new PaletteChangedEvent(_palette);
-            _events.PublishOnUIThread(changeEvent);
-        }
-
-        public override void DiscardChanges()
-        {
-            _palette.Reload();
-            ZeroIndexTransparent = _palette.ZeroIndexTransparent;
-            ColorSourceModels = new(CreateColorSourceModels(_palette));
-            Entries = CountSourceColors();
-            IsModified = false;
-        }
-
-        public void MouseOver(Color32ViewModel model)
-        {
-            string notifyMessage = $"Palette Index: {model.Index}";
-            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            _events.PublishOnUIThread(notifyEvent);
-        }
-
-        public override void Undo()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void Redo()
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public override void ApplyHistoryAction(HistoryAction action)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        private IEnumerable<EditableColorBaseViewModel> CreateColorModels()
-        {
-            for (int i = 0; i < _palette.Entries; i++)
+            if (pal.ColorSources[i] is FileColorSource fileSource)
             {
-                yield return CreateColorModel(_palette.GetForeignColor(i), i);
+                var sources = pal.ColorSources.Skip(i)
+                    .TakeWhile((x, i) => x is FileColorSource && (x as FileColorSource).Offset == (fileSource.Offset + i * size))
+                    .ToList();
+
+                var fileSourceModel = new FileColorSourceModel(fileSource.Offset.FileOffset, sources.Count, fileSource.Endian);
+                yield return fileSourceModel;
+
+                i += sources.Count;
+            }
+            else if (pal.ColorSources[i] is ProjectNativeColorSource nativeSource)
+            {
+                var hexString = _colorFactory.ToHexString(nativeSource.Value);
+                var nativeSourceModel = new NativeColorSourceModel(hexString);
+                yield return nativeSourceModel;
+                i++;
+            }
+            else if (pal.ColorSources[i] is ProjectForeignColorSource foreignSource)
+            {
+                var hexString = _colorFactory.ToHexString(foreignSource.Value);
+                var foreignSourceModel = new ForeignColorSourceModel(hexString);
+                yield return foreignSourceModel;
+                i++;
+            }
+            else if (pal.ColorSources[i] is ScatteredColorSource scatteredSource)
+            {
             }
         }
+    }
 
-        private EditableColorBaseViewModel CreateColorModel(IColor foreignColor, int index)
+    private int CountSourceColors()
+    {
+        int count = 0;
+
+        foreach (var source in ColorSourceModels)
         {
-            if (foreignColor is IColor32 color32)
-                return new Color32ViewModel(color32, index, _colorFactory);
-            else if (foreignColor is ITableColor tableColor)
-                return new TableColorViewModel(tableColor, index, _colorFactory);
-            else
-                throw new NotSupportedException($"Color of type '{foreignColor.GetType()}' is not supported for editing");
-        }
-
-        public void AddNewFileColorSource()
-        {
-            ColorSourceModels.Add(new FileColorSourceModel(0, 0, Endian.Little));
-            Entries = CountSourceColors();
-        }
-
-        public void AddNewNativeColorSource()
-        {
-            var color = _colorFactory.CreateColor(ColorModel.Rgba32, 0, 0, 0, 255);
-            var hexString = _colorFactory.ToHexString(color);
-            ColorSourceModels.Add(new NativeColorSourceModel(hexString));
-            Entries = CountSourceColors();
-        }
-
-        public void AddNewForeignColorSource()
-        {
-            var color = _colorFactory.CreateColor(_palette.ColorModel, 0);
-            var hexString = _colorFactory.ToHexString(color);
-            ColorSourceModels.Add(new ForeignColorSourceModel(hexString));
-            Entries = CountSourceColors();
-        }
-
-        public void RemoveColorSource(ColorSourceModel model)
-        {
-            ColorSourceModels.Remove(model);
-            Entries = CountSourceColors();
-        }
-
-        private IEnumerable<ColorSourceModel> CreateColorSourceModels(Palette pal)
-        {
-            var size = _colorFactory.CreateColor(pal.ColorModel).Size;
-
-            int i = 0;
-            while (i < pal.ColorSources.Length)
+            count += source switch
             {
-                if (pal.ColorSources[i] is FileColorSource fileSource)
-                {
-                    var sources = pal.ColorSources.Skip(i)
-                        .TakeWhile((x, i) => x is FileColorSource && (x as FileColorSource).Offset == (fileSource.Offset + i * size))
-                        .ToList();
+                FileColorSourceModel fileSource => fileSource.Entries,
+                NativeColorSourceModel => 1,
+                ForeignColorSourceModel => 1,
+                _ => 0
+            };
+        }
 
-                    var fileSourceModel = new FileColorSourceModel(fileSource.Offset.FileOffset, sources.Count, fileSource.Endian);
-                    yield return fileSourceModel;
+        return count;
+    }
 
-                    i += sources.Count;
-                }
-                else if (pal.ColorSources[i] is ProjectNativeColorSource nativeSource)
-                {
-                    var hexString = _colorFactory.ToHexString(nativeSource.Value);
-                    var nativeSourceModel = new NativeColorSourceModel(hexString);
-                    yield return nativeSourceModel;
-                    i++;
-                }
-                else if (pal.ColorSources[i] is ProjectForeignColorSource foreignSource)
-                {
-                    var hexString = _colorFactory.ToHexString(foreignSource.Value);
-                    var foreignSourceModel = new ForeignColorSourceModel(hexString);
-                    yield return foreignSourceModel;
-                    i++;
-                }
-                else if (pal.ColorSources[i] is ScatteredColorSource scatteredSource)
-                {
-                }
+    private IEnumerable<IColorSource> CreateColorSources()
+    {
+        var size = _colorFactory.CreateColor(_palette.ColorModel).Size;
+
+        for (int i = 0; i < ColorSourceModels.Count; i++)
+        {
+            var sourceModel = ColorSourceModels[i];
+            if (sourceModel is FileColorSourceModel fileModel)
+            {
+                var offset = new FileBitAddress(fileModel.FileAddress, 0);
+                for (int j = 0; j < fileModel.Entries; j++)
+                    yield return new FileColorSource(offset + j * size, fileModel.Endian);
             }
-        }
-
-        private int CountSourceColors()
-        {
-            int count = 0;
-
-            foreach (var source in ColorSourceModels)
+            else if (sourceModel is NativeColorSourceModel nativeModel)
             {
-                count += source switch
-                {
-                    FileColorSourceModel fileSource => fileSource.Entries,
-                    NativeColorSourceModel => 1,
-                    ForeignColorSourceModel => 1,
-                    _ => 0
-                };
+                ColorParser.TryParse(nativeModel.NativeHexColor, ColorModel.Rgba32, out var nativeColor);
+                yield return new ProjectNativeColorSource((ColorRgba32)nativeColor);
             }
-
-            return count;
-        }
-
-        private IEnumerable<IColorSource> CreateColorSources()
-        {
-            var size = _colorFactory.CreateColor(_palette.ColorModel).Size;
-
-            for (int i = 0; i < ColorSourceModels.Count; i++)
+            else if (sourceModel is ForeignColorSourceModel foreignModel)
             {
-                var sourceModel = ColorSourceModels[i];
-                if (sourceModel is FileColorSourceModel fileModel)
-                {
-                    var offset = new FileBitAddress(fileModel.FileAddress, 0);
-                    for (int j = 0; j < fileModel.Entries; j++)
-                        yield return new FileColorSource(offset + j * size, fileModel.Endian);
-                }
-                else if (sourceModel is NativeColorSourceModel nativeModel)
-                {
-                    ColorParser.TryParse(nativeModel.NativeHexColor, ColorModel.Rgba32, out var nativeColor);
-                    yield return new ProjectNativeColorSource((ColorRgba32)nativeColor);
-                }
-                else if (sourceModel is ForeignColorSourceModel foreignModel)
-                {
-                    ColorParser.TryParse(foreignModel.ForeignHexColor, _palette.ColorModel, out var foreignColor);
-                    yield return new ProjectForeignColorSource(foreignColor);
-                }
-                else if (sourceModel is ScatteredColorSourceModel scatteredModel)
-                {
-                    throw new NotSupportedException();
-                }
+                ColorParser.TryParse(foreignModel.ForeignHexColor, _palette.ColorModel, out var foreignColor);
+                yield return new ProjectForeignColorSource(foreignColor);
+            }
+            else if (sourceModel is ScatteredColorSourceModel scatteredModel)
+            {
+                throw new NotSupportedException();
             }
         }
     }

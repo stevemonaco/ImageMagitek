@@ -14,46 +14,45 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace ColorPicker
+namespace ColorPicker;
+
+/// <summary>
+/// Interaction logic for DirectColorPicker.xaml
+/// </summary>
+public partial class DirectColorPicker : PickerControlBase
 {
-    /// <summary>
-    /// Interaction logic for DirectColorPicker.xaml
-    /// </summary>
-    public partial class DirectColorPicker : PickerControlBase
+    public static readonly DependencyProperty SmallChangeProperty =
+        DependencyProperty.Register(nameof(SmallChange), typeof(double), typeof(DirectColorPicker),
+            new PropertyMetadata(1.0));
+
+    public static readonly DependencyProperty ShowAlphaProperty =
+        DependencyProperty.Register(nameof(ShowAlpha), typeof(bool), typeof(DirectColorPicker),
+            new PropertyMetadata(true));
+
+    public static readonly DependencyProperty PickerTypeProperty
+        = DependencyProperty.Register(nameof(PickerType), typeof(PickerType), typeof(DirectColorPicker),
+            new PropertyMetadata(PickerType.HSV));
+
+    public double SmallChange
     {
-        public static readonly DependencyProperty SmallChangeProperty =
-            DependencyProperty.Register(nameof(SmallChange), typeof(double), typeof(DirectColorPicker),
-                new PropertyMetadata(1.0));
+        get => (double)GetValue(SmallChangeProperty);
+        set => SetValue(SmallChangeProperty, value);
+    }
 
-        public static readonly DependencyProperty ShowAlphaProperty =
-            DependencyProperty.Register(nameof(ShowAlpha), typeof(bool), typeof(DirectColorPicker),
-                new PropertyMetadata(true));
+    public bool ShowAlpha
+    {
+        get => (bool)GetValue(ShowAlphaProperty);
+        set => SetValue(ShowAlphaProperty, value);
+    }
 
-        public static readonly DependencyProperty PickerTypeProperty
-            = DependencyProperty.Register(nameof(PickerType), typeof(PickerType), typeof(DirectColorPicker),
-                new PropertyMetadata(PickerType.HSV));
+    public PickerType PickerType
+    {
+        get => (PickerType)GetValue(PickerTypeProperty);
+        set => SetValue(PickerTypeProperty, value);
+    }
 
-        public double SmallChange
-        {
-            get => (double)GetValue(SmallChangeProperty);
-            set => SetValue(SmallChangeProperty, value);
-        }
-
-        public bool ShowAlpha
-        {
-            get => (bool)GetValue(ShowAlphaProperty);
-            set => SetValue(ShowAlphaProperty, value);
-        }
-
-        public PickerType PickerType
-        {
-            get => (PickerType)GetValue(PickerTypeProperty);
-            set => SetValue(PickerTypeProperty, value);
-        }
-
-        public DirectColorPicker() : base()
-        {
-            InitializeComponent();
-        }
+    public DirectColorPicker() : base()
+    {
+        InitializeComponent();
     }
 }

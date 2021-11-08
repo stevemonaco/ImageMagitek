@@ -5,47 +5,46 @@ using System.IO;
 using System.Linq;
 using System.Xml.Schema;
 
-namespace ImageMagitek.Project.Serialization
+namespace ImageMagitek.Project.Serialization;
+
+public sealed class XmlProjectSerializerFactory : IProjectSerializerFactory
 {
-    public sealed class XmlProjectSerializerFactory : IProjectSerializerFactory
+    public List<IProjectResource> GlobalResources { get; }
+
+    private readonly string _resourceSchemaFileName;
+    private readonly ICodecFactory _codecFactory;
+    private readonly IColorFactory _colorFactory;
+
+    public XmlProjectSerializerFactory(string resourceSchemaFileName,
+        ICodecFactory codecFactory, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
     {
-        public List<IProjectResource> GlobalResources { get; }
+        _resourceSchemaFileName = resourceSchemaFileName;
+        _codecFactory = codecFactory;
+        _colorFactory = colorFactory;
+        GlobalResources = globalResources.ToList();
+    }
 
-        private readonly string _resourceSchemaFileName;
-        private readonly ICodecFactory _codecFactory;
-        private readonly IColorFactory _colorFactory;
+    public IProjectReader CreateReader()
+    {
+        var resourceSchemas = CreateSchemas(_resourceSchemaFileName);
 
-        public XmlProjectSerializerFactory(string resourceSchemaFileName,
-            ICodecFactory codecFactory, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
-        {
-            _resourceSchemaFileName = resourceSchemaFileName;
-            _codecFactory = codecFactory;
-            _colorFactory = colorFactory;
-            GlobalResources = globalResources.ToList();
-        }
+        return new XmlProjectReader(resourceSchemas, _codecFactory, _colorFactory, GlobalResources);
+    }
 
-        public IProjectReader CreateReader()
-        {
-            var resourceSchemas = CreateSchemas(_resourceSchemaFileName);
+    public IProjectWriter CreateWriter(ProjectTree tree)
+    {
+        return new XmlProjectWriter(tree, _colorFactory, GlobalResources);
+    }
 
-            return new XmlProjectReader(resourceSchemas, _codecFactory, _colorFactory, GlobalResources);
-        }
+    private XmlSchemaSet CreateSchemas(string resourceSchemaFileName)
+    {
+        var resourceSchemaText = File.ReadAllText(resourceSchemaFileName);
 
-        public IProjectWriter CreateWriter(ProjectTree tree)
-        {
-            return new XmlProjectWriter(tree, _colorFactory, GlobalResources);
-        }
+        var resourceSchema = XmlSchema.Read(new StringReader(resourceSchemaText), null);
 
-        private XmlSchemaSet CreateSchemas(string resourceSchemaFileName)
-        {
-            var resourceSchemaText = File.ReadAllText(resourceSchemaFileName);
+        var resourceSchemaSet = new XmlSchemaSet();
+        resourceSchemaSet.Add(resourceSchema);
 
-            var resourceSchema = XmlSchema.Read(new StringReader(resourceSchemaText), null);
-
-            var resourceSchemaSet = new XmlSchemaSet();
-            resourceSchemaSet.Add(resourceSchema);
-
-            return resourceSchemaSet;
-        }
+        return resourceSchemaSet;
     }
 }

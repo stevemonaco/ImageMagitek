@@ -1,8 +1,7 @@
-﻿namespace ImageMagitek.Project.Serialization
+﻿namespace ImageMagitek.Project.Serialization;
+
+public interface IProjectReader
 {
-    public interface IProjectReader
-    {
-        string Version { get; }
-        MagitekResults<ProjectTree> ReadProject(string projectFileName);
-    }
+    string Version { get; }
+    MagitekResults<ProjectTree> ReadProject(string projectFileName);
 }

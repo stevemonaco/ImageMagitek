@@ -1,6 +1,5 @@
-﻿namespace TileShop.WPF.Models
+﻿namespace TileShop.WPF.Models;
+
+public class ScatteredColorSourceModel : ColorSourceModel
 {
-    public class ScatteredColorSourceModel : ColorSourceModel
-    {
-    }
 }

@@ -2,135 +2,134 @@
 using System.Collections.Generic;
 using ImageMagitek.ExtensionMethods;
 
-namespace ImageMagitek.Codec
+namespace ImageMagitek.Codec;
+
+public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
 {
-    public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
+    public string Name { get; set; }
+    public PatternGraphicsFormat Format { get; }
+    public int StorageSize => Format.StorageSize;
+    public ImageLayout Layout => Format.Layout;
+    public PixelColorType ColorType => Format.ColorType;
+    public int ColorDepth => Format.ColorDepth;
+    public int Width => Format.Width;
+    public int Height => Format.Height;
+
+    private byte[] _foreignBuffer;
+    public ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
+
+    private byte[,] _nativeBuffer;
+    public byte[,] NativeBuffer => _nativeBuffer;
+
+    private BitStream _bitStream;
+    private List<int[,]> _planeImages;
+
+    public int DefaultWidth => Format.DefaultWidth;
+    public int DefaultHeight => Format.DefaultHeight;
+    public bool CanResize => !Format.FixedSize;
+    public int WidthResizeIncrement { get; }
+    public int HeightResizeIncrement => 1;
+
+    public bool CanEncode => true;
+
+    public IndexedPatternGraphicsCodec(PatternGraphicsFormat format)
     {
-        public string Name { get; set; }
-        public PatternGraphicsFormat Format { get; }
-        public int StorageSize => Format.StorageSize;
-        public ImageLayout Layout => Format.Layout;
-        public PixelColorType ColorType => Format.ColorType;
-        public int ColorDepth => Format.ColorDepth;
-        public int Width => Format.Width;
-        public int Height => Format.Height;
+        Format = format;
+        Name = format.Name;
+        AllocateBuffers();
+    }
 
-        private byte[] _foreignBuffer;
-        public ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
+    public byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+    {
+        if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
+            throw new ArgumentException(nameof(encodedBuffer));
 
-        private byte[,] _nativeBuffer;
-        public byte[,] NativeBuffer => _nativeBuffer;
+        encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
+        _bitStream.SeekAbsolute(0);
 
-        private BitStream _bitStream;
-        private List<int[,]> _planeImages;
-
-        public int DefaultWidth => Format.DefaultWidth;
-        public int DefaultHeight => Format.DefaultHeight;
-        public bool CanResize => !Format.FixedSize;
-        public int WidthResizeIncrement { get; }
-        public int HeightResizeIncrement => 1;
-
-        public bool CanEncode => true;
-
-        public IndexedPatternGraphicsCodec(PatternGraphicsFormat format)
+        for (int i = 0; i < StorageSize; i++)
         {
-            Format = format;
-            Name = format.Name;
-            AllocateBuffers();
+            var bit = _bitStream.ReadBit();
+            var coordinate = Format.Pattern.GetDecodeIndex(i);
+            _planeImages[coordinate.P][coordinate.X, coordinate.Y] = bit;
         }
 
-        public byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+        for (int y = 0; y < Height; y++)
         {
-            if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
-                throw new ArgumentException(nameof(encodedBuffer));
-
-            encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
-            _bitStream.SeekAbsolute(0);
-
-            for (int i = 0; i < StorageSize; i++)
+            for (int x = 0; x < Width; x++)
             {
-                var bit = _bitStream.ReadBit();
-                var coordinate = Format.Pattern.GetDecodeIndex(i);
-                _planeImages[coordinate.P][coordinate.X, coordinate.Y] = bit;
-            }
+                byte color = 0;
+                int xpos = Format.RowPixelPattern[x];
 
-            for (int y = 0; y < Height; y++)
-            {
-                for (int x = 0; x < Width; x++)
+                for (int i = 0; i < Format.ColorDepth; i++)
                 {
-                    byte color = 0;
-                    int xpos = Format.RowPixelPattern[x];
+                    color |= (byte)(_planeImages[i][x, y] << Format.MergePlanePriority[i]);
+                }
+                NativeBuffer[y, xpos] = color;
+            }
+        }
 
-                    for (int i = 0; i < Format.ColorDepth; i++)
-                    {
-                        color |= (byte)(_planeImages[i][x, y] << Format.MergePlanePriority[i]);
-                    }
-                    NativeBuffer[y, xpos] = color;
+        return NativeBuffer;
+    }
+
+    public ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer)
+    {
+        if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
+            throw new ArgumentException(nameof(imageBuffer));
+
+        var bs = BitStream.OpenWrite(StorageSize, 8);
+
+        for (short y = 0; y < Height; y++)
+        {
+            for (short x = 0; x < Width; x++)
+            {
+                int color = imageBuffer[y, x];
+                for (short i = 0; i < Format.ColorDepth; i++)
+                {
+                    var bit = (color >> i) & 1;
+                    short xpos = (short)Format.RowPixelPattern[x];
+                    short plane = (short)Format.MergePlanePriority[i];
+                    var index = Format.Pattern.GetEncodeIndex(new PlaneCoordinate(xpos, y, plane));
+                    bs.SeekAbsolute(index);
+                    bs.WriteBit(bit);
                 }
             }
-
-            return NativeBuffer;
         }
 
-        public ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer)
-        {
-            if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
-                throw new ArgumentException(nameof(imageBuffer));
+        return bs.Data;
+    }
 
-            var bs = BitStream.OpenWrite(StorageSize, 8);
+    private void AllocateBuffers()
+    {
+        _foreignBuffer = new byte[(StorageSize + 7) / 8];
+        _nativeBuffer = new byte[Height, Width];
 
-            for (short y = 0; y < Height; y++)
-            {
-                for (short x = 0; x < Width; x++)
-                {
-                    int color = imageBuffer[y, x];
-                    for (short i = 0; i < Format.ColorDepth; i++)
-                    {
-                        var bit = (color >> i) & 1;
-                        short xpos = (short)Format.RowPixelPattern[x];
-                        short plane = (short)Format.MergePlanePriority[i];
-                        var index = Format.Pattern.GetEncodeIndex(new PlaneCoordinate(xpos, y, plane));
-                        bs.SeekAbsolute(index);
-                        bs.WriteBit(bit);
-                    }
-                }
-            }
+        _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
 
-            return bs.Data;
-        }
+        _planeImages = new List<int[,]>();
+        for (int i = 0; i < Format.ColorDepth; i++)
+            _planeImages.Add(new int[Width, Height]);
+    }
 
-        private void AllocateBuffers()
-        {
-            _foreignBuffer = new byte[(StorageSize + 7) / 8];
-            _nativeBuffer = new byte[Height, Width];
+    public int GetPreferredWidth(int width) => DefaultWidth;
+    public int GetPreferredHeight(int height) => DefaultHeight;
 
-            _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+    public ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
+    {
+        var buffer = new byte[(StorageSize + 7) / 8];
+        var fs = el.DataFile.Stream;
 
-            _planeImages = new List<int[,]>();
-            for (int i = 0; i < Format.ColorDepth; i++)
-                _planeImages.Add(new int[Width, Height]);
-        }
+        if (el.FileAddress + StorageSize > fs.Length * 8)
+            return null;
 
-        public int GetPreferredWidth(int width) => DefaultWidth;
-        public int GetPreferredHeight(int height) => DefaultHeight;
+        fs.ReadShifted(el.FileAddress, StorageSize, buffer);
 
-        public ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
-        {
-            var buffer = new byte[(StorageSize + 7) / 8];
-            var fs = el.DataFile.Stream;
+        return buffer;
+    }
 
-            if (el.FileAddress + StorageSize > fs.Length * 8)
-                return null;
-
-            fs.ReadShifted(el.FileAddress, StorageSize, buffer);
-
-            return buffer;
-        }
-
-        public void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
-        {
-            var fs = el.DataFile.Stream;
-            fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
-        }
+    public void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+    {
+        var fs = el.DataFile.Stream;
+        fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
     }
 }

@@ -1,38 +1,37 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace ImageMagitek.Project
+namespace ImageMagitek.Project;
+
+public sealed class ImageProject : IProjectResource
 {
-    public sealed class ImageProject : IProjectResource
+    public string Name { get; set; }
+    public string Root { get; set; }
+
+    public bool CanContainChildResources => true;
+
+    public bool ShouldBeSerialized { get; set; } = true;
+
+    public ImageProject() : this("") { }
+
+    public ImageProject(string name)
     {
-        public string Name { get; set; }
-        public string Root { get; set; }
+        Name = name;
+        Root = "";
+    }
 
-        public bool CanContainChildResources => true;
+    public void Rename(string name)
+    {
+        Name = name;
+    }
 
-        public bool ShouldBeSerialized { get; set; } = true;
+    public bool UnlinkResource(IProjectResource resource) => false;
 
-        public ImageProject() : this("") { }
-
-        public ImageProject(string name)
+    public IEnumerable<IProjectResource> LinkedResources
+    {
+        get
         {
-            Name = name;
-            Root = "";
-        }
-
-        public void Rename(string name)
-        {
-            Name = name;
-        }
-
-        public bool UnlinkResource(IProjectResource resource) => false;
-
-        public IEnumerable<IProjectResource> LinkedResources
-        {
-            get
-            {
-                return Enumerable.Empty<IProjectResource>();
-            }
+            return Enumerable.Empty<IProjectResource>();
         }
     }
 }

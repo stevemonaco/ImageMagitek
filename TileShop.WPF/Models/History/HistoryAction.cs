@@ -1,9 +1,8 @@
 ﻿using Stylet;
 
-namespace TileShop.WPF.Models
+namespace TileShop.WPF.Models;
+
+public abstract class HistoryAction : PropertyChangedBase
 {
-    public abstract class HistoryAction : PropertyChangedBase
-    {
-        public abstract string Name { get; }
-    }
+    public abstract string Name { get; }
 }

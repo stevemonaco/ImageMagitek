@@ -1,7 +1,6 @@
-﻿namespace ImageMagitek.Codec
+﻿namespace ImageMagitek.Codec;
+
+public interface IGraphicsFormatReader
 {
-    public interface IGraphicsFormatReader
-    {
-        MagitekResults<IGraphicsFormat> LoadFromFile(string fileName);
-    }
+    MagitekResults<IGraphicsFormat> LoadFromFile(string fileName);
 }

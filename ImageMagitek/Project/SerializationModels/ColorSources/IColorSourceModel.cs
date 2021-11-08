@@ -1,7 +1,6 @@
-﻿namespace ImageMagitek.Project.Serialization
+﻿namespace ImageMagitek.Project.Serialization;
+
+public interface IColorSourceModel
 {
-    public interface IColorSourceModel
-    {
-        bool ResourceEquals(IColorSourceModel sourceModel);
-    }
+    bool ResourceEquals(IColorSourceModel sourceModel);
 }

@@ -2,34 +2,33 @@
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 
-namespace TileShop.WPF.ViewModels
+namespace TileShop.WPF.ViewModels;
+
+public class ProjectNodeViewModel : ResourceNodeViewModel
 {
-    public class ProjectNodeViewModel : ResourceNodeViewModel
+    public override int SortPriority => 0;
+
+    public ProjectNodeViewModel(ResourceNode node)
     {
-        public override int SortPriority => 0;
+        Node = node;
+        Name = node.Name;
 
-        public ProjectNodeViewModel(ResourceNode node)
+        foreach (var child in Node.ChildNodes)
         {
-            Node = node;
-            Name = node.Name;
+            ResourceNodeViewModel model;
 
-            foreach (var child in Node.ChildNodes)
-            {
-                ResourceNodeViewModel model;
+            if (child.Item is ResourceFolder)
+                model = new FolderNodeViewModel(child, this);
+            else if (child.Item is Palette)
+                model = new PaletteNodeViewModel(child, this);
+            else if (child.Item is DataFile)
+                model = new DataFileNodeViewModel(child, this);
+            else if (child.Item is Arranger)
+                model = new ArrangerNodeViewModel(child, this);
+            else
+                continue;
 
-                if (child.Item is ResourceFolder)
-                    model = new FolderNodeViewModel(child, this);
-                else if (child.Item is Palette)
-                    model = new PaletteNodeViewModel(child, this);
-                else if (child.Item is DataFile)
-                    model = new DataFileNodeViewModel(child, this);
-                else if (child.Item is Arranger)
-                    model = new ArrangerNodeViewModel(child, this);
-                else
-                    continue;
-
-                Children.Add(model);
-            }
+            Children.Add(model);
         }
     }
 }

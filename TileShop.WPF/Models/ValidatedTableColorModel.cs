@@ -2,49 +2,48 @@
 using ImageMagitek.Colors;
 using Stylet;
 
-namespace TileShop.WPF.Models
+namespace TileShop.WPF.Models;
+
+public class ValidatedTableColorModel : PropertyChangedBase
 {
-    public class ValidatedTableColorModel : PropertyChangedBase
+    private ITableColor _foreignColor;
+    private readonly IColorFactory _colorFactory;
+
+    public ITableColor WorkingColor { get; set; }
+
+    private Color _color;
+    public Color Color
     {
-        private ITableColor _foreignColor;
-        private readonly IColorFactory _colorFactory;
+        get => _color;
+        set => SetAndNotify(ref _color, value);
+    }
 
-        public ITableColor WorkingColor { get; set; }
+    public bool CanSaveColor
+    {
+        get => WorkingColor.Color != _foreignColor.Color;
+    }
 
-        private Color _color;
-        public Color Color
-        {
-            get => _color;
-            set => SetAndNotify(ref _color, value);
-        }
+    private int _index;
+    public int Index
+    {
+        get => _index;
+        set => SetAndNotify(ref _index, value);
+    }
 
-        public bool CanSaveColor
-        {
-            get => WorkingColor.Color != _foreignColor.Color;
-        }
+    public ValidatedTableColorModel(ITableColor foreignColor, int index, IColorFactory colorFactory)
+    {
+        _foreignColor = foreignColor;
+        Index = index;
+        _colorFactory = colorFactory;
 
-        private int _index;
-        public int Index
-        {
-            get => _index;
-            set => SetAndNotify(ref _index, value);
-        }
+        WorkingColor = (ITableColor)_colorFactory.CloneColor(foreignColor);
+        var nativeColor = _colorFactory.ToNative(foreignColor);
+        Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
+    }
 
-        public ValidatedTableColorModel(ITableColor foreignColor, int index, IColorFactory colorFactory)
-        {
-            _foreignColor = foreignColor;
-            Index = index;
-            _colorFactory = colorFactory;
-
-            WorkingColor = (ITableColor)_colorFactory.CloneColor(foreignColor);
-            var nativeColor = _colorFactory.ToNative(foreignColor);
-            Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-        }
-
-        public void SaveColor()
-        {
-            _foreignColor = (ITableColor)_colorFactory.CloneColor(WorkingColor);
-            OnPropertyChanged(nameof(CanSaveColor));
-        }
+    public void SaveColor()
+    {
+        _foreignColor = (ITableColor)_colorFactory.CloneColor(WorkingColor);
+        OnPropertyChanged(nameof(CanSaveColor));
     }
 }

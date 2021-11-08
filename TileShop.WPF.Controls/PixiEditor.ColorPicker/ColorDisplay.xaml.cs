@@ -1,18 +1,17 @@
 ﻿using System.Windows;
 
-namespace ColorPicker
+namespace ColorPicker;
+
+public partial class ColorDisplay : DualPickerControlBase
 {
-    public partial class ColorDisplay : DualPickerControlBase
+
+    public ColorDisplay() : base()
     {
+        InitializeComponent();
+    }
 
-        public ColorDisplay() : base()
-        {
-            InitializeComponent();
-        }
-
-        private void SwapButton_Click(object sender, RoutedEventArgs e)
-        {
-            SwapColors();
-        }
+    private void SwapButton_Click(object sender, RoutedEventArgs e)
+    {
+        SwapColors();
     }
 }

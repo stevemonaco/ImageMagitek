@@ -1,7 +1,6 @@
-﻿namespace ColorPicker.Models
+﻿namespace ColorPicker.Models;
+
+interface ISecondColorStorage
 {
-    interface ISecondColorStorage
-    {
-        ColorState SecondColorState { get; set; }
-    }
+    ColorState SecondColorState { get; set; }
 }

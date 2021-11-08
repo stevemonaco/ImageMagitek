@@ -1,8 +1,7 @@
-﻿namespace ImageMagitek.Colors
+﻿namespace ImageMagitek.Colors;
+
+public interface IColor
 {
-    public interface IColor
-    {
-        uint Color { get; set; }
-        int Size { get; }
-    }
+    uint Color { get; set; }
+    int Size { get; }
 }

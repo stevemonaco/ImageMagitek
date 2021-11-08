@@ -1,12 +1,11 @@
-﻿namespace ImageMagitek.Colors
-{
-    public class ProjectNativeColorSource : IColorSource
-    {
-        public ColorRgba32 Value { get; set; }
+﻿namespace ImageMagitek.Colors;
 
-        public ProjectNativeColorSource(ColorRgba32 value)
-        {
-            Value = value;
-        }
+public class ProjectNativeColorSource : IColorSource
+{
+    public ColorRgba32 Value { get; set; }
+
+    public ProjectNativeColorSource(ColorRgba32 value)
+    {
+        Value = value;
     }
 }

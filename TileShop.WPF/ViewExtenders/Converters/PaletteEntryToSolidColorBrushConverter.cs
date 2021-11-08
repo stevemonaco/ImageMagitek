@@ -7,21 +7,20 @@ using System.Windows.Data;
 using System.Windows.Media;
 using TileShop.WPF.Models;
 
-namespace TileShop.WPF.Converters
+namespace TileShop.WPF.Converters;
+
+public class PaletteEntryToSolidColorBrushConverter : IValueConverter
 {
-    public class PaletteEntryToSolidColorBrushConverter : IValueConverter
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is PaletteEntry entry)
-                return new SolidColorBrush(entry.Color);
+        if (value is PaletteEntry entry)
+            return new SolidColorBrush(entry.Color);
 
-            return DependencyProperty.UnsetValue;
-        }
+        return DependencyProperty.UnsetValue;
+    }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
     }
 }
