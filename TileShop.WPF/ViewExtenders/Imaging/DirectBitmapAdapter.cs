@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Drawing;
+using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using ImageMagitek;
+using ImageMagitek.Colors;
 
 namespace TileShop.WPF.Imaging;
 
@@ -78,21 +80,19 @@ public class DirectBitmapAdapter : BitmapAdapter
 
             unsafe
             {
-                for (int y = yStart; y < yStart + height; y++)
+                var backBuffer = (uint*)Bitmap.BackBuffer.ToPointer();
+                var stride = Bitmap.BackBufferStride;
+
+                Parallel.For(yStart, yStart + height - 1, (scanline) =>
                 {
-                    var dest = (byte*)Bitmap.BackBuffer.ToPointer();
-                    dest += y * Bitmap.BackBufferStride + xStart * 4;
-                    var row = Image.GetPixelRowSpan(y);
+                    var dest = backBuffer + scanline * stride / 4 + xStart;
+                    var src = Image.GetPixelRowSpan(scanline);
 
                     for (int x = 0; x < width; x++)
                     {
-                        var color = row[x + xStart];
-                        dest[x * 4] = color.B;
-                        dest[x * 4 + 1] = color.G;
-                        dest[x * 4 + 2] = color.R;
-                        dest[x * 4 + 3] = color.A;
+                        dest[x] = TranslateColor(x, scanline, src);
                     }
-                }
+                });
             }
 
             Bitmap.AddDirtyRect(new System.Windows.Int32Rect(xStart, yStart, width, height));
@@ -101,5 +101,26 @@ public class DirectBitmapAdapter : BitmapAdapter
         {
             Bitmap.Unlock();
         }
+    }
+
+    private uint TranslateColor(int x, int y, Span<ColorRgba32> sourceRow)
+    {
+        uint outputColor = 0;
+
+        var el = Image.GetElementAtPixel(x, y);
+
+        if (el is ArrangerElement element)
+        {
+            var pal = element.Palette;
+
+            if (pal is object)
+            {
+                var inputColor = sourceRow[x];
+
+                outputColor = (uint)(inputColor.B | (inputColor.G << 8) | (inputColor.R << 16) | (inputColor.A << 24));
+            }
+        }
+
+        return outputColor;
     }
 }

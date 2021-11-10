@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using ImageMagitek;
 
@@ -78,46 +79,19 @@ public class IndexedBitmapAdapter : BitmapAdapter
 
             unsafe
             {
-                for (int y = yStart; y < yStart + height; y++)
+                var backBuffer = (uint*)Bitmap.BackBuffer.ToPointer();
+                var stride = Bitmap.BackBufferStride;
+
+                Parallel.For(yStart, yStart + height - 1, (scanline) =>
                 {
-                    var dest = (byte*)Bitmap.BackBuffer.ToPointer();
-                    dest += y * Bitmap.BackBufferStride + xStart * 4;
-                    var src = Image.GetPixelRowSpan(y);
+                    var dest = backBuffer + scanline * stride / 4 + xStart;
+                    var src = Image.GetPixelRowSpan(scanline);
 
                     for (int x = 0; x < width; x++)
                     {
-                        var el = Image.GetElementAtPixel(x + xStart, y);
-
-                        // TODO: More elegant handling of element fallback to clearing
-
-                        if (el is ArrangerElement element)
-                        {
-                            var pal = element.Palette;
-
-                            if (pal is object)
-                            {
-                                var index = src[x + xStart];
-                                var color = pal[index];
-
-                                dest[x * 4] = color.B;
-                                dest[x * 4 + 1] = color.G;
-                                dest[x * 4 + 2] = color.R;
-
-                                if (index == 0 && pal.ZeroIndexTransparent)
-                                    dest[x * 4 + 3] = 0;
-                                else
-                                    dest[x * 4 + 3] = color.A;
-                            }
-                        }
-                        else
-                        {
-                            dest[x * 4] = 0;
-                            dest[x * 4 + 1] = 0;
-                            dest[x * 4 + 2] = 0;
-                            dest[x * 4 + 3] = 0;
-                        }
+                        dest[x] = TranslateColor(x, scanline, src);
                     }
-                }
+                });
             }
 
             Bitmap.AddDirtyRect(new System.Windows.Int32Rect(xStart, yStart, width, height));
@@ -126,5 +100,30 @@ public class IndexedBitmapAdapter : BitmapAdapter
         {
             Bitmap.Unlock();
         }
+    }
+
+    private uint TranslateColor(int x, int y, Span<byte> sourceRow)
+    {
+        uint outputColor = 0;
+
+        var el = Image.GetElementAtPixel(x, y);
+
+        if (el is ArrangerElement element)
+        {
+            var pal = element.Palette;
+
+            if (pal is object)
+            {
+                var index = sourceRow[x];
+                var inputColor = pal[index];
+
+                outputColor = (uint) (inputColor.B | (inputColor.G << 8) | (inputColor.R << 16) | (inputColor.A << 24));
+
+                if (index == 0 && pal.ZeroIndexTransparent)
+                    outputColor &= 0x00FFFFFF;
+            }
+        }
+
+        return outputColor;
     }
 }
