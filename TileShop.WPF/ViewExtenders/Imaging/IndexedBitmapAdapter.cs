@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using ImageMagitek;
+using ImageMagitek.Colors;
 
 namespace TileShop.WPF.Imaging;
 
@@ -108,20 +109,15 @@ public class IndexedBitmapAdapter : BitmapAdapter
 
         var el = Image.GetElementAtPixel(x, y);
 
-        if (el is ArrangerElement element)
+        if (el?.Palette is Palette pal)
         {
-            var pal = element.Palette;
+            var index = sourceRow[x];
+            var inputColor = pal[index];
 
-            if (pal is not null)
-            {
-                var index = sourceRow[x];
-                var inputColor = pal[index];
+            outputColor = (uint) (inputColor.B | (inputColor.G << 8) | (inputColor.R << 16) | (inputColor.A << 24));
 
-                outputColor = (uint) (inputColor.B | (inputColor.G << 8) | (inputColor.R << 16) | (inputColor.A << 24));
-
-                if (index == 0 && pal.ZeroIndexTransparent)
-                    outputColor &= 0x00FFFFFF;
-            }
+            if (index == 0 && pal.ZeroIndexTransparent)
+                outputColor &= 0x00FFFFFF;
         }
 
         return outputColor;

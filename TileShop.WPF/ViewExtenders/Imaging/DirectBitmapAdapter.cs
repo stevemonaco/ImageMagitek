@@ -105,21 +105,8 @@ public class DirectBitmapAdapter : BitmapAdapter
 
     private uint TranslateColor(int x, int y, Span<ColorRgba32> sourceRow)
     {
-        uint outputColor = 0;
-
-        var el = Image.GetElementAtPixel(x, y);
-
-        if (el is ArrangerElement element)
-        {
-            var pal = element.Palette;
-
-            if (pal is not null)
-            {
-                var inputColor = sourceRow[x];
-
-                outputColor = (uint)(inputColor.B | (inputColor.G << 8) | (inputColor.R << 16) | (inputColor.A << 24));
-            }
-        }
+        var inputColor = sourceRow[x];
+        uint outputColor = (uint)(inputColor.B | (inputColor.G << 8) | (inputColor.R << 16) | (inputColor.A << 24));
 
         return outputColor;
     }
