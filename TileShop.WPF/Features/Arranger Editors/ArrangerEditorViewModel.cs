@@ -98,7 +98,7 @@ public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMo
         set
         {
             SetAndNotify(ref _snapMode, value);
-            if (Selection is object)
+            if (Selection is not null)
                 Selection.SnapMode = SnapMode;
         }
     }
@@ -151,7 +151,7 @@ public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMo
     /// </summary>
     protected virtual void CreateGridlines()
     {
-        if (WorkingArranger is object)
+        if (WorkingArranger is not null)
             CreateGridlines(0, 0, WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height,
                 WorkingArranger.ElementPixelSize.Width, WorkingArranger.ElementPixelSize.Height);
     }
@@ -316,7 +316,7 @@ public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMo
         int x = Math.Clamp((int)e.X / Zoom, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
         int y = Math.Clamp((int)e.Y / Zoom, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
 
-        if (e.LeftButton && Paste is object && !Paste.Rect.ContainsPointSnapped(x, y))
+        if (e.LeftButton && Paste is not null && !Paste.Rect.ContainsPointSnapped(x, y))
         {
             ApplyPaste(Paste);
             Paste = null;
@@ -326,7 +326,7 @@ public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMo
         {
             // Start drag for selection (Handled by DragDrop in View)
         }
-        else if (Paste is object && e.LeftButton && Paste.Rect.ContainsPointSnapped(x, y))
+        else if (Paste is not null && e.LeftButton && Paste.Rect.ContainsPointSnapped(x, y))
         {
             // Start drag for paste (Handled by DragDrop in View)
         }
@@ -424,7 +424,7 @@ public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMo
 
             Selection = new ArrangerSelection(WorkingArranger, SnapMode);
         }
-        else if (Paste is object)
+        else if (Paste is not null)
         {
             Paste.DeltaX = (int)dragInfo.DragStartPosition.X - Paste.Rect.SnappedLeft;
             Paste.DeltaY = (int)dragInfo.DragStartPosition.Y - Paste.Rect.SnappedTop;
@@ -441,7 +441,7 @@ public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMo
         {
             return Selection.SelectionRect.ContainsPointSnapped(dragInfo.DragStartPosition.X, dragInfo.DragStartPosition.Y);
         }
-        else if (Paste is object)
+        else if (Paste is not null)
         {
             return Paste.Rect.ContainsPointSnapped(dragInfo.DragStartPosition.X, dragInfo.DragStartPosition.Y);
         }

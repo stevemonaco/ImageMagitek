@@ -43,7 +43,7 @@ public class ImageRgba32Source : BitmapSourceBase
 
     protected override void CopyPixelsCore(Int32Rect sourceRect, int stride, int bufferSize, IntPtr buffer)
     {
-        if (_source is object)
+        if (_source is not null)
         {
             unsafe
             {

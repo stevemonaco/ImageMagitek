@@ -49,7 +49,7 @@ public sealed class ProjectTree : PathTreeBase<ResourceNode, IProjectResource>
         resourceNode = Root.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>()
             .FirstOrDefault(x => ReferenceEquals(x.Item, resource));
 
-        return resourceNode is object;
+        return resourceNode is not null;
     }
 
     /// <summary>

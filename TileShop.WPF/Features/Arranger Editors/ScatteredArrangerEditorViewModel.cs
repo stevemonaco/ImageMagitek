@@ -234,7 +234,7 @@ public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         int x = Math.Clamp((int)e.X / Zoom, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
         int y = Math.Clamp((int)e.Y / Zoom, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
 
-        if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton && _applyPaletteHistory is object)
+        if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton && _applyPaletteHistory is not null)
         {
             TryApplyPalette(x, y, SelectedPalette.Palette);
         }

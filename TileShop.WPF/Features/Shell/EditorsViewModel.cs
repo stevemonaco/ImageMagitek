@@ -142,7 +142,7 @@ public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsE
                     throw new InvalidOperationException();
             }
 
-            if (newDocument is object)
+            if (newDocument is not null)
             {
                 newDocument.OriginatingProjectResource = resource;
                 Editors.Add(newDocument);

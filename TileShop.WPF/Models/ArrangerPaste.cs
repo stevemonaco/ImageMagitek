@@ -19,7 +19,7 @@ public class ArrangerPaste : PropertyChangedBase
         set
         {
             SetAndNotify(ref _snapMode, value);
-            if (Rect is object)
+            if (Rect is not null)
                 Rect.SnapMode = value;
         }
     }

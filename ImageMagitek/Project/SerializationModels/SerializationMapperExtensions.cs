@@ -49,7 +49,7 @@ public static class SerializationMapperExtensions
             ZeroIndexTransparent = pal.ZeroIndexTransparent,
         };
 
-        if (pal.DataFile is object && resourceMap.TryGetValue(pal.DataFile, out var dataFileKey))
+        if (pal.DataFile is not null && resourceMap.TryGetValue(pal.DataFile, out var dataFileKey))
             model.DataFileKey = dataFileKey;
 
         int i = 0;
@@ -167,12 +167,12 @@ public static class SerializationMapperExtensions
                 Rotation = el.Rotation
             };
 
-            if (el.DataFile is object && resourceMap.TryGetValue(el.DataFile, out var dataFileKey))
+            if (el.DataFile is not null && resourceMap.TryGetValue(el.DataFile, out var dataFileKey))
             {
                 model.DataFileKey = dataFileKey;
             }
 
-            if (el.Palette is object && resourceMap.TryGetValue(el.Palette, out var paletteKey))
+            if (el.Palette is not null && resourceMap.TryGetValue(el.Palette, out var paletteKey))
             {
                 model.PaletteKey = paletteKey;
             }
@@ -210,7 +210,7 @@ public static class SerializationMapperExtensions
         PropertyInfo P = T.GetProperty(propertyName);
 
         var query = from ArrangerElementModel el in model.ElementGrid
-                    where el is object
+                    where el is not null
                     group el by P.GetValue(el) into grp
                     select new { key = grp.Key, count = grp.Count() };
 

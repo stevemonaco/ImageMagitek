@@ -154,7 +154,7 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
         {
             int[] rowPixelPattern;
 
-            if (image.RowPixelPattern is object) // Parse rowpixelpattern
+            if (image.RowPixelPattern is not null) // Parse rowpixelpattern
             {
                 string patternString = image.RowPixelPattern.Value;
                 patternString = patternString.Replace(" ", "");
@@ -262,7 +262,7 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
 
         int[] rowPixelPattern;
         var patternString = codec.RowPixelPattern?.Value;
-        if (patternString is object)
+        if (patternString is not null)
         {
             patternString = patternString.Replace(" ", "");
             var patternInputs = patternString.Split(',');

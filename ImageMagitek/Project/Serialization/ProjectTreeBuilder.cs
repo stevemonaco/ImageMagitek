@@ -30,7 +30,7 @@ internal sealed class ProjectTreeBuilder
 
     public MagitekResult AddProject(ImageProjectModel projectModel, string baseDirectory, string projectFileName)
     {
-        if (Tree?.Root is object)
+        if (Tree?.Root is not null)
             return new MagitekResult.Failed($"Attempted to add a new project '{projectModel?.Name}' to an existing project");
 
         var root = new ProjectNode(projectModel.Name, projectModel.MapToResource())

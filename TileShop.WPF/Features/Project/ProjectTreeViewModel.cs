@@ -75,7 +75,7 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
         {
             SelectedNode.IsExpanded ^= true;
         }
-        else if (SelectedNode?.Node?.Item is object)
+        else if (SelectedNode?.Node?.Item is not null)
         {
             _editors.ActivateEditor(SelectedNode.Node.Item);
         }
@@ -101,7 +101,7 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
     {
         var dataFileName = _fileSelect.GetExistingDataFileNameByUser();
 
-        if (dataFileName is object)
+        if (dataFileName is not null)
         {
             var dfName = Path.GetFileName(dataFileName);
             var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
@@ -216,7 +216,7 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
     {
         var exportFileName = _fileSelect.GetExportArrangerFileNameByUser($"{arranger.Name}.png");
 
-        if (exportFileName is object)
+        if (exportFileName is not null)
         {
             if (arranger.ColorType == PixelColorType.Indexed)
             {
@@ -343,7 +343,7 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
                 }
             }
 
-            if (removedItems is object)
+            if (removedItems is not null)
             {
                 foreach (var vm in removedItems)
                     vmNode.Children.Remove(vm);
@@ -504,7 +504,7 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
 
         try
         {
-            if (projectFileName is object)
+            if (projectFileName is not null)
             {
                 _projectService.NewProject(Path.GetFullPath(projectFileName)).Switch(
                     success =>
@@ -530,7 +530,7 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
 
         try
         {
-            if (dataFileName is object)
+            if (dataFileName is not null)
             {
                 if (File.Exists(projectFileName))
                 {

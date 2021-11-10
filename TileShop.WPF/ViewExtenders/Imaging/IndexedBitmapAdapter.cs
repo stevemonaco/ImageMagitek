@@ -112,7 +112,7 @@ public class IndexedBitmapAdapter : BitmapAdapter
         {
             var pal = element.Palette;
 
-            if (pal is object)
+            if (pal is not null)
             {
                 var index = sourceRow[x];
                 var inputColor = pal[index];

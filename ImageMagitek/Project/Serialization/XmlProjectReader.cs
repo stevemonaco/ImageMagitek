@@ -50,7 +50,7 @@ public sealed class XmlProjectReader : IProjectReader
             var xml = File.ReadAllText(xmlFileName);
             var doc = XDocument.Parse(xml, LoadOptions.SetLineInfo);
 
-            if (schema is object)
+            if (schema is not null)
             {
                 doc.Validate(schema, (o, e) =>
                 {

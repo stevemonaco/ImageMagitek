@@ -545,7 +545,7 @@ public class ProjectService : IProjectService
                 foreach (var (x, y) in arranger.EnumerateElementLocations())
                 {
                     var el = arranger.GetElement(x, y);
-                    if (el is object && el?.Palette is null)
+                    if (el is not null && el?.Palette is null)
                         arranger.SetElement(el.Value.WithPalette(defaultPalette), x, y);
                 }
             }

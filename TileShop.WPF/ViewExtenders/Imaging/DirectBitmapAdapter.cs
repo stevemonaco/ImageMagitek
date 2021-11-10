@@ -113,7 +113,7 @@ public class DirectBitmapAdapter : BitmapAdapter
         {
             var pal = element.Palette;
 
-            if (pal is object)
+            if (pal is not null)
             {
                 var inputColor = sourceRow[x];
 
