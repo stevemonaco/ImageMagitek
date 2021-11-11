@@ -204,16 +204,13 @@ public static class SerializationMapperExtensions
                 yield return model.ElementGrid[x + elemX, y + elemY];
     }
 
-    public static string FindMostFrequentPropertyValue(this ScatteredArrangerModel model, string propertyName)
+    public static string FindMostFrequentElementPropertyValue(this ScatteredArrangerModel model, Func<ArrangerElementModel, string> selector)
     {
-        Type T = typeof(ArrangerElementModel);
-        PropertyInfo P = T.GetProperty(propertyName);
+        var maxElement = EnumerateElements(model).OfType<ArrangerElementModel>().MaxBy(x => selector(x));
 
-        var query = from ArrangerElementModel el in model.ElementGrid
-                    where el is not null
-                    group el by P.GetValue(el) into grp
-                    select new { key = grp.Key, count = grp.Count() };
-
-        return query.MaxBy(x => x.count)?.key as string;
+        if (maxElement is null)
+            return null;
+        else
+            return selector(maxElement);
     }
 }

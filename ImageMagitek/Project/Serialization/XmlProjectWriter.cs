@@ -327,9 +327,9 @@ public sealed class XmlProjectWriter : IProjectWriter
 
     private XElement Serialize(ScatteredArrangerModel arrangerModel)
     {
-        var mostUsedCodecName = arrangerModel.FindMostFrequentPropertyValue("CodecName");
-        var mostUsedFileKey = arrangerModel.FindMostFrequentPropertyValue("DataFileKey");
-        string mostUsedPaletteKey = arrangerModel.FindMostFrequentPropertyValue("PaletteKey");
+        var mostUsedCodecName = arrangerModel.FindMostFrequentElementPropertyValue(x => x.CodecName);
+        var mostUsedFileKey = arrangerModel.FindMostFrequentElementPropertyValue(x => x.DataFileKey);
+        var mostUsedPaletteKey = arrangerModel.FindMostFrequentElementPropertyValue(x => x.PaletteKey);
 
         var arrangerNode = new XElement("arranger");
         arrangerNode.Add(new XAttribute("elementsx", arrangerModel.ArrangerElementSize.Width));

@@ -286,22 +286,4 @@ public static class ArrangerExtensions
 
         return new Point(elX, elY);
     }
-
-    /// <summary>
-    /// Find most frequent occurrence of an attribute within an arranger's elements
-    /// </summary>
-    /// <param name="arr">Arranger to search</param>
-    /// <param name="attributeName">Name of the attribute to find most frequent value of</param>
-    /// <returns></returns>
-    public static string FindMostFrequentElementValue(this Arranger arr, string attributeName)
-    {
-        Type T = typeof(ArrangerElement);
-        PropertyInfo P = T.GetProperty(attributeName);
-
-        var query = from ArrangerElement el in arr.EnumerateElements()
-                    group el by P.GetValue(el) into grp
-                    select new { key = grp.Key, count = grp.Count() };
-
-        return query.MaxBy(x => x.count).key as string;
-    }
 }
