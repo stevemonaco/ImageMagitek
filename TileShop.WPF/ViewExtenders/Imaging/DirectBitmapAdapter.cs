@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using ImageMagitek;
@@ -103,10 +105,11 @@ public class DirectBitmapAdapter : BitmapAdapter
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint TranslateColor(int x, int y, Span<ColorRgba32> sourceRow)
     {
-        var inputColor = sourceRow[x];
-        uint outputColor = (uint)(inputColor.B | (inputColor.G << 8) | (inputColor.R << 16) | (inputColor.A << 24));
+        var inputColor = sourceRow[x].Color;
+        uint outputColor = (inputColor & 0xFF00FF00) | BitOperations.RotateLeft(inputColor & 0xFF00FF, 16);
 
         return outputColor;
     }
