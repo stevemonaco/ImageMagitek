@@ -206,11 +206,16 @@ public static class SerializationMapperExtensions
 
     public static string FindMostFrequentElementPropertyValue(this ScatteredArrangerModel model, Func<ArrangerElementModel, string> selector)
     {
-        var maxElement = EnumerateElements(model).OfType<ArrangerElementModel>().MaxBy(x => selector(x));
-
-        if (maxElement is null)
-            return null;
-        else
-            return selector(maxElement);
+        return EnumerateElements(model)
+            .OfType<ArrangerElementModel>()
+            .Select(selector)
+            .GroupBy(x => x)
+            .Select(group => new
+            {
+                Item = group.Key,
+                Count = group.Count()
+            })
+            .MaxBy(x => x.Count)
+            ?.Item;
     }
 }
