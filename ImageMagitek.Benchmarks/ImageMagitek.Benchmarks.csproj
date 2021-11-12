@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
-    <PackageReference Include="Monaco.PathTree" Version="1.1.0" />
+    <PackageReference Include="Monaco.PathTree" Version="1.2.0" />
   </ItemGroup>
 
   <ItemGroup>
