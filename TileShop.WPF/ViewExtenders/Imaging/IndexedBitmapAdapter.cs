@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Drawing;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using ImageMagitek;
@@ -103,6 +106,7 @@ public class IndexedBitmapAdapter : BitmapAdapter
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint TranslateColor(int x, int y, Span<byte> sourceRow)
     {
         uint outputColor = 0;
@@ -112,9 +116,9 @@ public class IndexedBitmapAdapter : BitmapAdapter
         if (el?.Palette is Palette pal)
         {
             var index = sourceRow[x];
-            var inputColor = pal[index];
+            var inputColor = pal[index].Color;
 
-            outputColor = (uint) (inputColor.B | (inputColor.G << 8) | (inputColor.R << 16) | (inputColor.A << 24));
+            outputColor = (inputColor & 0xFF00FF00) | BitOperations.RotateLeft(inputColor & 0xFF00FF, 16);
 
             if (index == 0 && pal.ZeroIndexTransparent)
                 outputColor &= 0x00FFFFFF;
