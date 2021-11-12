@@ -230,8 +230,8 @@ public abstract class Arranger : IProjectResource
     /// Returns the enumeration of all ArrangerElement locations in the grid in a left-to-right, row-by-row order
     /// </summary>
     /// <returns></returns>
-    public virtual IEnumerable<(int x, int y)> EnumerateElementLocations() =>
-        EnumerateElementLocations(0, 0, ArrangerElementSize.Width, ArrangerElementSize.Height);
+    public virtual IEnumerable<(int x, int y)> EnumerateElementsWithinElementRange() =>
+        EnumerateElementsWithinElementRange(0, 0, ArrangerElementSize.Width, ArrangerElementSize.Height);
 
     /// <summary>
     /// Returns the full enumeration of a subsection of all ArrangerElement locations in the grid in a left-to-right, row-by-row order
@@ -240,7 +240,7 @@ public abstract class Arranger : IProjectResource
     /// <param name="elemY">Starting y-coordinate in element coordinates</param>
     /// <param name="width">Number of elements to enumerate in x-direction</param>
     /// <param name="height">Number of elements to enumerate in y-direction</param>
-    public virtual IEnumerable<(int x, int y)> EnumerateElementLocations(int elemX, int elemY, int width, int height)
+    public virtual IEnumerable<(int x, int y)> EnumerateElementsWithinElementRange(int elemX, int elemY, int width, int height)
     {
         for (int y = 0; y < height; y++)
         {
@@ -259,7 +259,7 @@ public abstract class Arranger : IProjectResource
     /// <param name="width">Width of range in pixels</param>
     /// <param name="height">Height of range in pixels</param>
     /// <returns></returns>
-    public virtual IEnumerable<ArrangerElement?> EnumerateElementsByPixel(int pixelX, int pixelY, int width, int height)
+    public virtual IEnumerable<ArrangerElement?> EnumerateElementsWithinPixelRange(int pixelX, int pixelY, int width, int height)
     {
         if (width <= 0 || height <= 0)
             yield break;
@@ -286,7 +286,7 @@ public abstract class Arranger : IProjectResource
     /// <param name="width">Width of range in pixels</param>
     /// <param name="height">Height of range in pixels</param>
     /// <returns>A tuple with the x and y location of the element</returns>
-    public virtual IEnumerable<(int X, int Y)> EnumerateElementLocationsByPixel(int pixelX, int pixelY, int width, int height)
+    public virtual IEnumerable<(int X, int Y)> EnumerateElementLocationsWithinPixelRange(int pixelX, int pixelY, int width, int height)
     {
         if (width <= 0 || height <= 0)
             yield break;

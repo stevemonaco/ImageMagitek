@@ -54,12 +54,12 @@ public class IndexedPixelEditorViewModel : PixelEditorViewModel<byte>
         _viewWidth = viewWidth;
         _viewHeight = viewHeight;
 
-        var maxColors = WorkingArranger.EnumerateElementsByPixel(viewX, viewY, viewWidth, viewHeight)
+        var maxColors = WorkingArranger.EnumerateElementsWithinPixelRange(viewX, viewY, viewWidth, viewHeight)
             .OfType<ArrangerElement>()
             .Select(x => 1 << x.Codec.ColorDepth)
             .Max();
 
-        var arrangerPalettes = WorkingArranger.EnumerateElementsByPixel(viewX, viewY, viewWidth, viewHeight)
+        var arrangerPalettes = WorkingArranger.EnumerateElementsWithinPixelRange(viewX, viewY, viewWidth, viewHeight)
             .OfType<ArrangerElement>()
             .Select(x => x.Palette)
             .Distinct()

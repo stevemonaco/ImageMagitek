@@ -542,7 +542,7 @@ public class ProjectService : IProjectService
 
             if (change.LostPalette && change.Resource is ScatteredArranger arranger)
             {
-                foreach (var (x, y) in arranger.EnumerateElementLocations())
+                foreach (var (x, y) in arranger.EnumerateElementsWithinElementRange())
                 {
                     var el = arranger.GetElement(x, y);
                     if (el is not null && el?.Palette is null)

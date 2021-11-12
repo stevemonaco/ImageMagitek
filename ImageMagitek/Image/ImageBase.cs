@@ -115,5 +115,5 @@ public abstract class ImageBase<TPixel> where TPixel : struct
     /// <param name="height">Height of area in pixel coordinates</param>
     /// <returns></returns>
     public IEnumerable<ArrangerElement?> GetElementsByPixel(int x, int y, int width, int height) =>
-        Arranger.EnumerateElementsByPixel(x + Left, y + Top, width, height);
+        Arranger.EnumerateElementsWithinPixelRange(x + Left, y + Top, width, height);
 }

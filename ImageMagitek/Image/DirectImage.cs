@@ -62,7 +62,7 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
         // TODO: Handle undefined elements explicitly and clear image subsections
         Array.Clear(Image, 0, Image.Length);
 
-        var locations = Arranger.EnumerateElementLocationsByPixel(Left, Top, Width, Height);
+        var locations = Arranger.EnumerateElementLocationsWithinPixelRange(Left, Top, Width, Height);
 
         Rectangle imageRect = new Rectangle(Left, Top, Width, Height);
 

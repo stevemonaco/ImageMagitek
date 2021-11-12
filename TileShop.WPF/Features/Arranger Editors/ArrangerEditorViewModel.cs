@@ -83,7 +83,7 @@ public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMo
                 if (rect.SnappedWidth == 0 || rect.SnappedHeight == 0)
                     return false;
 
-                return !WorkingArranger.EnumerateElementsByPixel(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight)
+                return !WorkingArranger.EnumerateElementsWithinPixelRange(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight)
                     .Any(x => x is null || x?.DataFile is null);
             }
 
