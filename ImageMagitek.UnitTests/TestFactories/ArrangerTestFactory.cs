@@ -6,8 +6,6 @@ using ImageMagitek.Colors;
 
 namespace ImageMagitek.UnitTests.TestFactories;
 
-public enum ArrangerFonts { Bubbles }
-
 public static class ArrangerTestFactory
 {
     public static ScatteredArranger CreateIndexedArrangerFromImage(string imageFile, ColorModel colorModel,
