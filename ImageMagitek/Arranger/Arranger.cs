@@ -64,7 +64,7 @@ public abstract class Arranger : IProjectResource
     /// <summary>
     /// Gets the Mode of the Arranger
     /// </summary>
-    public ArrangerMode Mode { get; protected set; }
+    public ArrangerMode Mode { get; init; }
 
     /// <summary>
     /// Gets the ArrangerLayout of the Arranger
@@ -126,15 +126,15 @@ public abstract class Arranger : IProjectResource
     /// Sets Element to a position in the Arranger ElementGrid
     /// </summary>
     /// <param name="element">Element to be placed into the ElementGrid</param>
-    /// <param name="posX">x-coordinate in Element coordinates</param>
-    /// <param name="posY">y-coordinate in Element coordinates</param>
-    public virtual void SetElement(in ArrangerElement? element, int posX, int posY)
+    /// <param name="elemX">x-coordinate in Element coordinates</param>
+    /// <param name="elemY">y-coordinate in Element coordinates</param>
+    public virtual void SetElement(in ArrangerElement? element, int elemX, int elemY)
     {
         if (ElementGrid is null)
             throw new NullReferenceException($"{nameof(SetElement)} property '{nameof(ElementGrid)}' was null");
 
-        if (posX >= ArrangerElementSize.Width || posY >= ArrangerElementSize.Height)
-            throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({posX}, {posY})");
+        if (elemX >= ArrangerElementSize.Width || elemY >= ArrangerElementSize.Height)
+            throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({elemX}, {elemY})");
 
         if (element is ArrangerElement)
         {
@@ -144,44 +144,44 @@ public abstract class Arranger : IProjectResource
             //if (ColorType == PixelColorType.Indexed && element.Palette is null && element.DataFile is object)
             //    throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' does not contain a palette");
 
-            var relocatedElement = element?.WithLocation(posX * ElementPixelSize.Width, posY * ElementPixelSize.Height);
-            ElementGrid[posY, posX] = relocatedElement;
+            var relocatedElement = element?.WithLocation(elemX * ElementPixelSize.Width, elemY * ElementPixelSize.Height);
+            ElementGrid[elemY, elemX] = relocatedElement;
         }
         else
-            ElementGrid[posY, posX] = element;
+            ElementGrid[elemY, elemX] = element;
     }
 
     /// <summary>
     /// Resets the Element to the undefined state at the given position in the Arranger ElementGrid
     /// </summary>
-    /// <param name="posX">Element position in element coordinates</param>
-    /// <param name="posY">Element position in element coordinates</param>
-    public virtual void ResetElement(int posX, int posY)
+    /// <param name="elemX">Element position in element coordinates</param>
+    /// <param name="elemY">Element position in element coordinates</param>
+    public virtual void ResetElement(int elemX, int elemY)
     {
         if (ElementGrid is null)
             throw new NullReferenceException($"{nameof(ResetElement)} property '{nameof(ElementGrid)}' was null");
 
-        if (posX >= ArrangerElementSize.Width || posY >= ArrangerElementSize.Height)
-            throw new ArgumentOutOfRangeException($"{nameof(ResetElement)} parameter was out of range: ({posX}, {posY})");
+        if (elemX >= ArrangerElementSize.Width || elemY >= ArrangerElementSize.Height)
+            throw new ArgumentOutOfRangeException($"{nameof(ResetElement)} parameter was out of range: ({elemX}, {elemY})");
 
-        ElementGrid[posY, posX] = null;
+        ElementGrid[elemY, elemX] = null;
     }
 
     /// <summary>
     /// Gets an Element from a position in the Arranger ElementGrid in Element coordinates
     /// </summary>
-    /// <param name="posX">x-coordinate in Element coordinates</param>
-    /// <param name="posY">y-coordinate in Element coordinates</param>
+    /// <param name="elemX">x-coordinate in Element coordinates</param>
+    /// <param name="elemY">y-coordinate in Element coordinates</param>
     /// <returns></returns>
-    public ArrangerElement? GetElement(int posX, int posY)
+    public ArrangerElement? GetElement(int elemX, int elemY)
     {
         if (ElementGrid is null)
             throw new NullReferenceException($"{nameof(GetElement)} property '{nameof(ElementGrid)}' was null");
 
-        if (posX >= ArrangerElementSize.Width || posY >= ArrangerElementSize.Height)
-            throw new ArgumentOutOfRangeException($"{nameof(GetElement)} parameter was out of range: ({posX}, {posY})");
+        if (elemX >= ArrangerElementSize.Width || elemY >= ArrangerElementSize.Height)
+            throw new ArgumentOutOfRangeException($"{nameof(GetElement)} parameter was out of range: ({elemX}, {elemY})");
 
-        return ElementGrid[posY, posX];
+        return ElementGrid[elemY, elemX];
     }
 
     /// <summary>
@@ -191,13 +191,13 @@ public abstract class Arranger : IProjectResource
     /// <param name="pixelY">x-coordinate in pixel coordinates</param>
     public ArrangerElement? GetElementAtPixel(int pixelX, int pixelY)
     {
-        if (ElementGrid is null)
-            throw new NullReferenceException($"{nameof(GetElementAtPixel)} property '{nameof(ElementGrid)}' was null");
+        var elX = pixelX / ElementPixelSize.Width;
+        var elY = pixelY / ElementPixelSize.Height;
 
-        if (pixelX >= ArrangerPixelSize.Width || pixelY >= ArrangerPixelSize.Height || pixelX < 0 || pixelY < 0)
+        if (elX >= ArrangerElementSize.Width || elY >= ArrangerElementSize.Height || pixelX < 0 || pixelY < 0)
             throw new ArgumentOutOfRangeException($"{nameof(GetElementAtPixel)} parameter was out of range: ({pixelX}, {pixelY})");
 
-        return ElementGrid[pixelY / ElementPixelSize.Height, pixelX / ElementPixelSize.Width];
+        return ElementGrid[elY, elX];
     }
 
     /// <summary>
