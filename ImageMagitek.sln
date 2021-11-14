@@ -30,7 +30,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ImageMagitek.AppSamples", "ImageMagitek.AppSamples", "{5377A1C2-D477-41A2-A1A1-8B13A19760AF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FF5MonsterSprites", "FF5MonsterSprites\FF5MonsterSprites.csproj", "{857CA890-9AA6-4CD3-B83F-3A817F2B87AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.FF5MonsterSprites", "Samples.FF5MonsterSprites\Samples.FF5MonsterSprites.csproj", "{857CA890-9AA6-4CD3-B83F-3A817F2B87AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -83,9 +83,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{857CA890-9AA6-4CD3-B83F-3A817F2B87AF} = {5377A1C2-D477-41A2-A1A1-8B13A19760AF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A2AFAFCF-9151-456A-A6CD-99E0B299A998}
