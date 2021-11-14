@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using FF5MonsterSprites.Imaging;
 using FF5MonsterSprites.Models;
 using FF5MonsterSprites.Serialization;
@@ -99,11 +95,11 @@ public class SpriteViewModel : Screen
         base.OnActivate();
     }
 
-    public async Task LoadSprite()
+    private async Task LoadSprite()
     {
         var serializer = new MonsterSerializer();
 
-        _context = await serializer.DeserializeSprite(@"D:\Emulation\ff5.sfc", _metadata);
+        _context = await serializer.DeserializeSprite("ff5.sfc", _metadata);
         var image = new IndexedImage(_context.Arranger);
         image.Render();
         Adapter = new IndexedBitmapAdapter(image);

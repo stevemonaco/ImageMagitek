@@ -17,4 +17,8 @@
     <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Assets\" />
+  </ItemGroup>
+
 </Project>

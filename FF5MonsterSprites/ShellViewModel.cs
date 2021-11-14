@@ -20,7 +20,7 @@ internal class ShellViewModel : Conductor<SpriteViewModel>
     protected override async void OnInitialActivate()
     {
         var monsterSerializer = new MonsterSerializer();
-        var monsters = await monsterSerializer.DeserializeMonsters(@"D:\Emulation\ff5.sfc");
+        var monsters = await monsterSerializer.DeserializeMonsters("ff5.sfc");
 
         var sprites = monsters.Select((x, i) => new SpriteViewModel(x)
         {
