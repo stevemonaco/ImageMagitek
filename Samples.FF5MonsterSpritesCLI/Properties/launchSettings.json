@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Samples.FF5MonsterSpritesCLI": {
+      "commandName": "Project",
+      "commandLineArgs": "Export ExportedImages ff5.sfc",
+      "workingDirectory": "D:\\Emulation"
+    }
+  }
+}

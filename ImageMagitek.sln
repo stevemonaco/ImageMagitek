@@ -28,9 +28,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ImageMagitek.AppSamples", "ImageMagitek.AppSamples", "{5377A1C2-D477-41A2-A1A1-8B13A19760AF}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samples.FF5MonsterSprites", "Samples.FF5MonsterSprites\Samples.FF5MonsterSprites.csproj", "{857CA890-9AA6-4CD3-B83F-3A817F2B87AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Samples.FF5MonsterSpritesCLI", "Samples.FF5MonsterSpritesCLI\Samples.FF5MonsterSpritesCLI.csproj", "{6910DD6C-2F91-4E89-BFFF-F283CB57B997}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -80,6 +80,10 @@ Global
 		{857CA890-9AA6-4CD3-B83F-3A817F2B87AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{857CA890-9AA6-4CD3-B83F-3A817F2B87AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{857CA890-9AA6-4CD3-B83F-3A817F2B87AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6910DD6C-2F91-4E89-BFFF-F283CB57B997}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6910DD6C-2F91-4E89-BFFF-F283CB57B997}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6910DD6C-2F91-4E89-BFFF-F283CB57B997}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6910DD6C-2F91-4E89-BFFF-F283CB57B997}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

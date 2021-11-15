@@ -70,8 +70,6 @@ public class MonsterSerializer
         var pal = new Palette("monsterPalette", new ColorFactory(), ColorModel.Bgr15, paletteSources, true, PaletteStorageSource.Project);
         pal.DataFile = dataFile;
 
-        Console.WriteLine(pal.GetNativeColor(0).ToString());
-
         int arrangerWidth = metadata.TileSetSize == TileSetSize.Small ? 8 : 16;
         int arrangerHeight = metadata.TileSetSize == TileSetSize.Small ? 8 : 16;
 

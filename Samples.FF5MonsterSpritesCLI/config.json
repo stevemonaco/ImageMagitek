@@ -1,0 +1,8 @@
+﻿{
+  "MasterTableOffset": "14B180",
+  "TileSetOffset": "150000",
+  "PaletteOffset": "0ED000",
+  "FormSmallOffset": "10D004",
+  "FormLargeOffset": "10D334",
+  "Entries": 384
+}
