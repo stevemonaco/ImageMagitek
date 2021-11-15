@@ -11,7 +11,7 @@ namespace ImageMagitek.Codec;
 
 public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
 {
-    private XmlSchemaSet _schemas = new XmlSchemaSet();
+    private XmlSchemaSet _schemas = new();
 
     public XmlGraphicsFormatReader(string schemaFileName)
     {
@@ -79,13 +79,13 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
         };
 
         if (!int.TryParse(codec.DefaultWidth?.Value, out var defaultWidth))
-            errors.Add($"Element width could not be parsed on {codec.DefaultWidth.LineNumber()}");
+            errors.Add($"Element width could not be parsed on line {codec.DefaultWidth.LineNumber()}");
 
         if (defaultWidth <= 1)
             errors.Add($"Specified default width is too small on line {codec.DefaultWidth.LineNumber()}");
 
         if (!int.TryParse(codec.DefaultHeight?.Value, out var defaultHeight))
-            errors.Add($"Element height could not be parsed on {codec.DefaultHeight.LineNumber()}");
+            errors.Add($"Element height could not be parsed on line {codec.DefaultHeight.LineNumber()}");
 
         if (defaultHeight <= 1)
             errors.Add($"Specified default height is too small on line {codec.DefaultHeight.LineNumber()}");
@@ -99,10 +99,10 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
             errors.Add($"Unrecognized colortype '{codec.ColorType}' on line {codec.ColorType.LineNumber()}");
 
         if (!int.TryParse(codec.ColorDepth?.Value, out var colorDepth))
-            errors.Add($"colordepth could not be parsed on {codec.ColorDepth.LineNumber()}");
+            errors.Add($"colordepth could not be parsed on line {codec.ColorDepth.LineNumber()}");
 
         if (colorDepth < 1 && colorDepth > 32)
-            errors.Add($"colordepth contains an out of range value '{colorDepth}' on {codec.ColorDepth.LineNumber()}");
+            errors.Add($"colordepth contains an out of range value '{colorDepth}' on line {codec.ColorDepth.LineNumber()}");
 
         ImageLayout layout = default;
         if (codec.Layout?.Value == "tiled")
@@ -136,7 +136,7 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
                 if (int.TryParse(mergeItems[i], out var mergePlane))
                     format.MergePlanePriority[i] = mergePlane;
                 else
-                    errors.Add($"Merge priority '{mergeItems[i]}' could not be parsed on {codec.MergePriority.LineNumber()}");
+                    errors.Add($"Merge priority '{mergeItems[i]}' could not be parsed on line {codec.MergePriority.LineNumber()}");
             }
         }
         else
@@ -167,19 +167,19 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
                     if (int.TryParse(patternInputs[i], out var patternPriority))
                         rowPixelPattern[i] = patternPriority;
                     else
-                        errors.Add($"rowpixelpattern value '{patternInputs[i]}' could not be parsed on {image.RowPixelPattern.LineNumber()}");
+                        errors.Add($"rowpixelpattern value '{patternInputs[i]}' could not be parsed on line {image.RowPixelPattern.LineNumber()}");
                 }
             }
             else // Create a default rowpixelpattern
             {
-                rowPixelPattern = new int[1];
+                rowPixelPattern = new int[1] { 0 };
             }
 
             if (!int.TryParse(image.ColorDepth.Value, out var imageColorDepth))
-                errors.Add($"colordepth could not be parsed on {codec.DefaultHeight.LineNumber()}");
+                errors.Add($"colordepth could not be parsed on line {codec.DefaultHeight.LineNumber()}");
 
             if (!bool.TryParse(image.RowInterlace.Value, out var imageRowInterlace))
-                errors.Add($"rowinterlace could not be parsed on {codec.DefaultHeight.LineNumber()}");
+                errors.Add($"rowinterlace could not be parsed on line {codec.DefaultHeight.LineNumber()}");
 
             ImageProperty ip = new ImageProperty(imageColorDepth, imageRowInterlace, rowPixelPattern);
             format.ImageProperties.Add(ip);
@@ -217,13 +217,13 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
         };
 
         if (!int.TryParse(codec.Width?.Value, out var width))
-            errors.Add($"Element width could not be parsed on {codec.Width.LineNumber()}");
+            errors.Add($"Element width could not be parsed on line {codec.Width.LineNumber()}");
 
         if (width <= 1)
             errors.Add($"Specified width is too small on line {codec.Width.LineNumber()}");
 
         if (!int.TryParse(codec.Height?.Value, out var height))
-            errors.Add($"Element height could not be parsed on {codec.Height.LineNumber()}");
+            errors.Add($"Element height could not be parsed on line {codec.Height.LineNumber()}");
 
         if (height <= 1)
             errors.Add($"Specified height is too small on line {codec.Height.LineNumber()}");
@@ -239,8 +239,8 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
         if (!int.TryParse(codec.ColorDepth?.Value, out var colorDepth))
             errors.Add($"colordepth could not be parsed on {codec.ColorDepth.LineNumber()}");
 
-        if (colorDepth < 1 && colorDepth > 32)
-            errors.Add($"colordepth contains an out of range value '{colorDepth}' on {codec.ColorDepth.LineNumber()}");
+        if (colorDepth < 1 || colorDepth > 32)
+            errors.Add($"colordepth contains an out of range value '{colorDepth}' on line {codec.ColorDepth.LineNumber()}");
 
         ImageLayout layout = default;
         if (codec.Layout?.Value == "tiled")
@@ -261,11 +261,11 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
         var format = new PatternGraphicsFormat(name, colorType, colorDepth, layout, packing, width, height);
 
         int[] rowPixelPattern;
-        var patternString = codec.RowPixelPattern?.Value;
-        if (patternString is not null)
+        var rowPixelPatternString = codec.RowPixelPattern?.Value;
+        if (rowPixelPatternString is not null)
         {
-            patternString = patternString.Replace(" ", "");
-            var patternInputs = patternString.Split(',');
+            rowPixelPatternString = rowPixelPatternString.Replace(" ", "");
+            var patternInputs = rowPixelPatternString.Split(',');
 
             rowPixelPattern = new int[patternInputs.Length];
 
@@ -274,7 +274,7 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
                 if (int.TryParse(patternInputs[i], out var patternPriority))
                     rowPixelPattern[i] = patternPriority;
                 else
-                    errors.Add($"rowpixelpattern value '{patternInputs[i]}' could not be parsed on {codec.RowPixelPattern.LineNumber()}");
+                    errors.Add($"rowpixelpattern value '{patternInputs[i]}' could not be parsed on line {codec.RowPixelPattern.LineNumber()}");
             }
         }
         else // Create a default rowpixelpattern
@@ -297,7 +297,7 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
                 if (int.TryParse(mergeItems[i], out var mergePlane))
                     format.MergePlanePriority[i] = mergePlane;
                 else
-                    errors.Add($"Merge priority '{mergeItems[i]}' could not be parsed on {codec.MergePriority.LineNumber()}");
+                    errors.Add($"Merge priority '{mergeItems[i]}' could not be parsed on line {codec.MergePriority.LineNumber()}");
             }
         }
         else
@@ -309,7 +309,7 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
             errors.Add($"Pattern size could not be parsed on {codec.Width.LineNumber()}");
 
         if (patternSize < 1 || patternSize > PatternList.MaxPatternSize)
-            errors.Add($"Pattern size contains an out of range value '{patternSize}' {codec.Width.LineNumber()}");
+            errors.Add($"Pattern size contains an out of range value '{patternSize}' on line {codec.Width.LineNumber()}");
 
         var patternStrings = patternElementRoot
             .Element("patterns")
