@@ -2,31 +2,32 @@
   "profiles": {
     "FF2 ExportAll": {
       "commandName": "Project",
-      "commandLineArgs": "ExportAll --overwrite \"FF2new\\FF2project.xml\" FF2Extract",
+      "commandLineArgs": "ExportAll --overwrite \"FF2\\FF2project.xml\" FF2Extract",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
     "FF2 ImportAll": {
       "commandName": "Project",
-      "commandLineArgs": "ImportAll -f \"FF2new\\FF2project.xml\" FF2Extract",
+      "commandLineArgs": "ImportAll -f \"FF2\\FF2project.xml\" FF2Extract",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
     "FF2 Import": {
       "commandName": "Project",
-      "commandLineArgs": "Import -fr \"FF2new\\FF2project.xml\" FF2Extract \"\\Character Overworld Sprites\\Cecil Map\" \"/Character Portraits/Portraits\"",
+      "commandLineArgs": "Import -fr \"FF2\\FF2project.xml\" FF2Extract \"\\Character Overworld Sprites\\Cecil Map\" \"/Character Portraits/Portraits\"",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
     "FF2 Print": {
       "commandName": "Project",
-      "commandLineArgs": "Print --log ff2.log \"FF2new\\FF2project.xml\"",
+      "commandLineArgs": "Print --log ff2.log \"FF2\\FF2project.xml\"",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
     "FF2 Export": {
       "commandName": "Project",
-      "commandLineArgs": "Export \"FF2new\\FF2project.xml\" FF2Extract \"/Character Overworld Sprites/Cecil Map\" \"Character Portraits\\Portraits\"",
+      "commandLineArgs": "Export \"FF2\\FF2project.xml\" FF2Extract \"/Character Overworld Sprites/Cecil Map\" \"Character Portraits\\Portraits\"",
       "workingDirectory": "D:\\ImageMagitekTest"
     },
     "Empty": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "--help"
     }
   }
 }

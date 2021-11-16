@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using System.Diagnostics;
 using System.IO;
 using ImageMagitek.Services;
 using Serilog;
@@ -11,6 +10,8 @@ using TileShop.CLI.Commands;
 
 using LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory;
 using ImageMagitek.Project.Serialization;
+using CommandLine.Text;
+using System.Diagnostics;
 
 namespace TileShop.CLI;
 
@@ -18,20 +19,30 @@ class Program
 {
     public static string DefaultLogFileName = "errorlogCLI.txt";
     public static IProjectService ProjectService;
+    public static LoggerFactory LoggerFactory;
+    private static string AppName => "TileShopCLI";
+    private static string AppVersion => "0.991";
 
     static int Main(string[] args)
     {
-        //string assemblyLocation = Assembly.GetExecutingAssembly().Location;
-        //string version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
-        //Console.WriteLine($"TileShopCLI v{version} by Klarth");
+        Console.WriteLine($"{AppName} v{AppVersion} by Klarth");
 
+        LoggerFactory = CreateLoggerFactory(DefaultLogFileName);
         var verbs = LoadVerbs();
 
         ExitCode code = ExitCode.Unset;
 
-        var parser = new Parser(with => with.CaseSensitive = false);
+        var parser = new Parser(with => {
+            with.CaseSensitive = false;
+            with.AutoHelp = true;
+            with.AutoVersion = true;
+        });
+
         var parserResult = parser.ParseArguments(args, verbs)
-            .WithNotParsed(x => code = ExitCode.InvalidCommandArguments)
+            .WithNotParsed(errors =>
+            {
+                code = ExitCode.InvalidCommandArguments;
+            })
             .WithParsed(options =>
             {
                 var logFileName = GetFullLogFileName(options);
@@ -47,19 +58,42 @@ class Program
             ExitCode.Unset => "Operation exited without setting an exit code",
             ExitCode.Exception => "Operation failed due to an exception",
             ExitCode.EnvironmentError => "Operation failed because the TileShop environment could not be loaded",
-            ExitCode.InvalidCommandArguments => "Operation failed due to invalid command line options",
+            ExitCode.InvalidCommandArguments => $"Operation failed due to invalid command line options",
             ExitCode.ProjectOpenError => "Operation failed because the project could not be opened or validated",
             ExitCode.ImportOperationFailed => "Operation failed due to an import error",
             ExitCode.ExportOperationFailed => "Operation failed due to an export error",
             _ => $"Operation failed with an unknown exit code '{code}'"
         };
 
-        if (code != ExitCode.Success)
-            Log.Error($"{errorCodeDescription}");
-        else
-            Log.Information($"{errorCodeDescription}");
+        if (code == ExitCode.InvalidCommandArguments)
+        {
+            DisplayHelp(parserResult);
+        }
 
-        return (int)ExitCode.Success;
+        if (code != ExitCode.Success)
+        {
+            Log.Error(errorCodeDescription);
+        }
+        else
+        {
+            Log.Information(errorCodeDescription);
+        }
+
+        return (int)code;
+    }
+
+    private static void DisplayHelp<T>(ParserResult<T> result)
+    {
+        var helpText = HelpText.AutoBuild(result, h =>
+        {
+            h.AdditionalNewLineAfterOption = false;
+            h.Copyright = string.Empty;
+            h.Heading = HeadingInfo.Empty;
+            return h;
+        },
+        e => e,
+        verbsIndex: true);
+        Console.WriteLine(helpText);
     }
 
     private static Type[] LoadVerbs()
@@ -72,8 +106,7 @@ class Program
     {
         try
         {
-            var loggerFactory = CreateLoggerFactory(logFileName);
-            var bootstrapper = new BootstrapService(loggerFactory.CreateLogger<BootstrapService>());
+            var bootstrapper = new BootstrapService(LoggerFactory.CreateLogger<BootstrapService>());
 
             var settingsFileName = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultConfigurationFileName);
             var codecPath = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultCodecPath);
@@ -170,11 +203,10 @@ class Program
     private static LoggerFactory CreateLoggerFactory(string logFileName)
     {
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Error()
             .WriteTo.File(logFileName, rollingInterval: RollingInterval.Month,
-                outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}")
-            .MinimumLevel.Information()
-            .WriteTo.Console(outputTemplate: "{Message:lj}")
+                outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}",
+                restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning)
+            .WriteTo.Console(outputTemplate: "{Message:lj}{NewLine}")
             .CreateLogger();
 
         var factory = new LoggerFactory();
