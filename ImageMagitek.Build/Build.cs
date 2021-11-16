@@ -130,7 +130,6 @@ class Build : NukeBuild
             DotNetPublish(_ => _
                 .SetProject(TileShopCLIProject)
                 .EnableNoRestore()
-                .EnableNoBuild()
                 .SetConfiguration(Configuration)
                 .SetOutput(TileShopCLIWinx64OutputDirectory)
                 .SetPublishProfile(TileShopCliPublishProfilex64));
