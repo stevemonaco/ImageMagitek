@@ -86,14 +86,14 @@ public class IndexedBitmapAdapter : BitmapAdapter
                 var backBuffer = (uint*)Bitmap.BackBuffer.ToPointer();
                 var stride = Bitmap.BackBufferStride;
 
-                Parallel.For(yStart, yStart + height - 1, (scanline) =>
+                Parallel.For(yStart, yStart + height, (scanline) =>
                 {
                     var dest = backBuffer + scanline * stride / 4 + xStart;
                     var src = Image.GetPixelRowSpan(scanline);
 
                     for (int x = 0; x < width; x++)
                     {
-                        dest[x] = TranslateColor(x, scanline, src);
+                        dest[x] = TranslateColor(x + xStart, scanline, src);
                     }
                 });
             }
