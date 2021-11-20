@@ -113,7 +113,7 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
 
     public override void SaveImage()
     {
-        var buffer = new ColorRgba32[Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height];
+        var buffer = new ColorRgba32[Arranger.ElementPixelSize.Height, Arranger.ElementPixelSize.Width];
         foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IDirectCodec))
         {
             Image.CopyToArray2D(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
