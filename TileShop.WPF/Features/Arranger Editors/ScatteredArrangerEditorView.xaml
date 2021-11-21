@@ -196,14 +196,13 @@
                 </ToggleButton>
             </StackPanel>
 
-            <StackPanel Margin="5,0,0,0">
+            <StackPanel Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="5,0,0,0">
                 <TextBlock HorizontalAlignment="Center" Text="Snap" />
                 <ToggleButton
                     Focusable="False"
                     IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
                     Style="{StaticResource toolBarToggleButtonStyle}"
-                    ToolTip="Snap Selection to Elements (S)"
-                    Visibility="{Binding CanChangeSnapMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    ToolTip="Snap Selection to Elements (S)">
                     <Image Style="{StaticResource iconSnap}" />
                 </ToggleButton>
             </StackPanel>
@@ -213,14 +212,13 @@
                 BorderBrush="{DynamicResource separatorBrush}"
                 BorderThickness="1" />
 
-            <StackPanel>
+            <StackPanel Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <TextBlock HorizontalAlignment="Center" Text="Resize" />
 
                 <Button
                     Click="{s:Action ResizeArranger}"
                     Style="{StaticResource toolBarButtonStyle}"
-                    ToolTip="Resizes the Arranger"
-                    Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    ToolTip="Resizes the Arranger">
                     <Image Style="{StaticResource iconResize}" />
                 </Button>
             </StackPanel>
