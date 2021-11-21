@@ -337,6 +337,10 @@
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
 
+            <i:Interaction.Behaviors>
+                <behaviors:CaptureCtrlWheelMouseBehavior Proxy="{Binding}" />
+            </i:Interaction.Behaviors>
+
             <ScrollViewer.InputBindings>
                 <KeyBinding Key="Down" Command="{s:Action MoveRowDown}" />
                 <KeyBinding Key="Up" Command="{s:Action MoveRowUp}" />
@@ -372,7 +376,7 @@
                 </Grid.ContextMenu>
 
                 <i:Interaction.Behaviors>
-                    <behaviors:MouseCaptureBehavior Proxy="{Binding}" RequireCtrlForMouseWheel="True" />
+                    <behaviors:MouseCaptureBehavior Proxy="{Binding}" ShouldCaptureMouseWheel="False" />
                 </i:Interaction.Behaviors>
 
                 <!--  Arranger Image  -->

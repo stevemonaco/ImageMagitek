@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.Xaml.Behaviors;
 
@@ -11,6 +10,7 @@ namespace TileShop.WPF.Behaviors;
 /// </summary>
 /// <remarks>
 /// Implementation from Mark Feldman https://stackoverflow.com/questions/34984093/mouse-position-with-respect-to-image-in-wpf-using-mvvm
+/// and modified slightly for mouse wheel behavior
 /// </remarks>
 public class MouseCaptureBehavior : Behavior<FrameworkElement>
 {
@@ -29,6 +29,15 @@ public class MouseCaptureBehavior : Behavior<FrameworkElement>
     {
         return (IMouseCaptureProxy)source.GetValue(ProxyProperty);
     }
+
+    public bool ShouldCaptureMouseWheel
+    {
+        get { return (bool)GetValue(ShouldCaptureMouseWheelProperty); }
+        set { SetValue(ShouldCaptureMouseWheelProperty, value); }
+    }
+
+    public static readonly DependencyProperty ShouldCaptureMouseWheelProperty =
+        DependencyProperty.Register(nameof(ShouldCaptureMouseWheel), typeof(bool), typeof(MouseCaptureBehavior), new PropertyMetadata(false));
 
     public bool RequireCtrlForMouseWheel
     {
@@ -74,7 +83,9 @@ public class MouseCaptureBehavior : Behavior<FrameworkElement>
         AssociatedObject.PreviewMouseMove += OnMouseMove;
         AssociatedObject.PreviewMouseUp += OnMouseUp;
         AssociatedObject.MouseLeave += OnMouseLeave;
-        AssociatedObject.MouseWheel += OnMouseWheel;
+
+        if (ShouldCaptureMouseWheel)
+            AssociatedObject.PreviewMouseWheel += OnPreviewMouseWheel;
     }
 
     protected override void OnDetaching()
@@ -84,6 +95,9 @@ public class MouseCaptureBehavior : Behavior<FrameworkElement>
         AssociatedObject.PreviewMouseMove -= OnMouseMove;
         AssociatedObject.PreviewMouseUp -= OnMouseUp;
         AssociatedObject.MouseLeave -= OnMouseLeave;
+
+        if (ShouldCaptureMouseWheel)
+            AssociatedObject.PreviewMouseWheel -= OnPreviewMouseWheel;
     }
 
     private void OnMouseDown(object sender, MouseButtonEventArgs e)
@@ -154,8 +168,11 @@ public class MouseCaptureBehavior : Behavior<FrameworkElement>
         }
     }
 
-    private void OnMouseWheel(object sender, MouseWheelEventArgs e)
+    private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
+        if (!ShouldCaptureMouseWheel)
+            return;
+
         var proxy = GetProxy(this);
         if (proxy != null && e.Delta != 0)
         {

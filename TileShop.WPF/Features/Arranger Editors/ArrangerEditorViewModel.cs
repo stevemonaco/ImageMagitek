@@ -338,9 +338,9 @@ public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMo
 
     public virtual void OnMouseWheel(object sender, MouseCaptureArgs e)
     {
-        if (e.WheelDelta > 0)
+        if (e.WheelDirection == MouseWheelDirection.Up)
             ZoomIn();
-        else
+        else if (e.WheelDirection == MouseWheelDirection.Down)
             ZoomOut();
     }
 

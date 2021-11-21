@@ -234,6 +234,10 @@
             Grid.ColumnSpan="2"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
+            <i:Interaction.Behaviors>
+                <behaviors:CaptureCtrlWheelMouseBehavior Proxy="{Binding}" />
+            </i:Interaction.Behaviors>
+
             <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto" />
@@ -243,7 +247,7 @@
                 </Grid.Resources>
 
                 <i:Interaction.Behaviors>
-                    <behaviors:MouseCaptureBehavior Proxy="{Binding}" />
+                    <behaviors:MouseCaptureBehavior Proxy="{Binding}" ShouldCaptureMouseWheel="False" />
                 </i:Interaction.Behaviors>
 
                 <!--  Editable Image  -->

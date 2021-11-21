@@ -243,23 +243,20 @@
             Focusable="True"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
+            <i:Interaction.Behaviors>
+                <behaviors:CaptureCtrlWheelMouseBehavior Proxy="{Binding}" />
+            </i:Interaction.Behaviors>
 
             <Grid
                 Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer}}, Converter={StaticResource ScrollViewerToMarginStringConverter}}"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
                 <Grid.Resources>
                     <ScaleTransform x:Key="transform" ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />
                 </Grid.Resources>
 
                 <i:Interaction.Behaviors>
-                    <behaviors:MouseCaptureBehavior Proxy="{Binding}" RequireCtrlForMouseWheel="True" />
+                    <behaviors:MouseCaptureBehavior Proxy="{Binding}" ShouldCaptureMouseWheel="False" />
                 </i:Interaction.Behaviors>
 
                 <!--  Arranged Image  -->
