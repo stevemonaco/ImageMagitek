@@ -162,13 +162,20 @@ public class MouseCaptureBehavior : Behavior<FrameworkElement>
             if (!RequireCtrlForMouseWheel || (RequireCtrlForMouseWheel && Keyboard.Modifiers == ModifierKeys.Control))
             {
                 var pos = e.GetPosition(AssociatedObject);
+                var direction = e.Delta switch
+                {
+                    > 0 => MouseWheelDirection.Up,
+                    < 0 => MouseWheelDirection.Down,
+                    _ => MouseWheelDirection.None
+                };
+
                 var args = new MouseCaptureArgs
                 {
                     X = pos.X,
                     Y = pos.Y,
                     LeftButton = (e.LeftButton == MouseButtonState.Pressed),
                     RightButton = (e.RightButton == MouseButtonState.Pressed),
-                    WheelDelta = e.Delta
+                    WheelDirection = direction
                 };
                 proxy.OnMouseWheel(this, args);
             }
