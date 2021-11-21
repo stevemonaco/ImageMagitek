@@ -46,6 +46,7 @@ public sealed class IndexedImage : ImageBase<byte>
         Height = height;
 
         Image = new byte[Width * Height];
+        EnsurePalettesLoaded();
         Render();
     }
 
@@ -370,4 +371,17 @@ public sealed class IndexedImage : ImageBase<byte>
     /// <param name="remap">List containing remapped indices</param>
     public void RemapColors(IList<byte> remap) =>
         Image = Image.Select(x => remap[x]).ToArray();
+
+    private void EnsurePalettesLoaded()
+    {
+        var palettes = Arranger.EnumerateElements()
+            .OfType<ArrangerElement>()
+            .Select(x => x.Palette)
+            .Distinct();
+
+        foreach (var palette in palettes)
+        {
+            _ = palette[0];
+        }
+    }
 }

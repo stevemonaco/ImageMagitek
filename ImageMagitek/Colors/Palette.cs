@@ -200,7 +200,6 @@ public class Palette : IProjectResource
     /// </exception>
     private IColor[] LoadForeignPalette()
     {
-        //return _paletteSerializer.ReadPalette(DataFile, FileAddress, ColorModel, Entries);
         return _colorSerializer.LoadColors(ColorSources, DataFile, ColorModel, Entries);
     }
 
