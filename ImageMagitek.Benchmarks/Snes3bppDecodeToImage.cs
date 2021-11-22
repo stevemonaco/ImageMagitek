@@ -77,14 +77,14 @@ public class Snes3bppDecodeToImage
     [GlobalCleanup(Target = nameof(DecodeNative))]
     public void GlobalCleanupNative()
     {
-        _df.Close();
+        _df.Dispose();
         File.Delete(_nativeFileName);
     }
 
     [GlobalCleanup(Target = nameof(DecodeGeneric))]
     public void GlobalCleanupGeneric()
     {
-        _df.Close();
+        _df.Dispose();
         File.Delete(_genericFileName);
     }
 

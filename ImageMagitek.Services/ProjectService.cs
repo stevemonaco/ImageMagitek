@@ -156,8 +156,8 @@ public class ProjectService : IProjectService
 
         if (_projects.Contains(projectTree))
         {
-            foreach (var file in projectTree.EnumerateBreadthFirst().Select(x => x.Item).OfType<DataFile>())
-                file.Close();
+            foreach (var resource in projectTree.EnumerateBreadthFirst().Select(x => x.Item).OfType<IDisposable>())
+                resource.Dispose();
 
             _projects.Remove(projectTree);
         }
@@ -168,10 +168,10 @@ public class ProjectService : IProjectService
     /// </summary>
     public virtual void CloseProjects()
     {
-        var files = _projects.SelectMany(tree => tree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataFile>());
+        var resources = _projects.SelectMany(tree => tree.EnumerateDepthFirst().Select(x => x.Item).OfType<IDisposable>());
 
-        foreach (var file in files)
-            file.Close();
+        foreach (var resource in resources)
+            resource.Dispose();
 
         _projects.Clear();
     }
