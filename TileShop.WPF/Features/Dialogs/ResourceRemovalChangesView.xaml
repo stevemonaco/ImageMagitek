@@ -35,17 +35,16 @@
                     FontWeight="Bold"
                     Text="Removed Items"
                     Visibility="{Binding HasRemovedResources, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                <ListView
+                <ItemsControl
                     Margin="10"
                     ItemsSource="{Binding RemovedResources}"
                     Visibility="{Binding HasRemovedResources, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <ListView.View>
-                        <GridView AllowsColumnReorder="False">
-                            <GridViewColumn DisplayMemberBinding="{Binding ResourceName}" Header="Name" />
-                            <GridViewColumn DisplayMemberBinding="{Binding ResourcePath}" Header="Path" />
-                        </GridView>
-                    </ListView.View>
-                </ListView>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding ResourcePath}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
                 <TextBlock
                     Margin="0,10,0,0"
@@ -53,17 +52,16 @@
                     FontWeight="Bold"
                     Text="Changed Items"
                     Visibility="{Binding HasChangedResources, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                <ListView
+                <ItemsControl
                     Margin="10"
                     ItemsSource="{Binding ChangedResources}"
                     Visibility="{Binding HasChangedResources, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn DisplayMemberBinding="{Binding ResourceName}" Header="Name" />
-                            <GridViewColumn DisplayMemberBinding="{Binding ResourcePath}" Header="Path" />
-                        </GridView>
-                    </ListView.View>
-                </ListView>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding ResourcePath}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
         </ScrollViewer>
 
