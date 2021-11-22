@@ -26,7 +26,7 @@ public enum PaletteStorageSource { Project = 0, Json }
 
 /// <summary>
 /// Palette manages the loading of palettes and colors from a variety of color formats
-/// Local colors are internally ARGB32
+/// Local colors are internally ColorRgba32
 /// Foreign colors are the same as the target system
 /// </summary>
 public class Palette : IProjectResource

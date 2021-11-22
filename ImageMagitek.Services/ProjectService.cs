@@ -181,7 +181,7 @@ public class ProjectService : IProjectService
     /// </summary>
     /// <param name="parentNode">ResourceNode that is contained by the project</param>
     /// <param name="resource">New resource to add</param>
-    /// <returns></returns>
+    /// <returns>The added resource node result</returns>
     public virtual MagitekResult<ResourceNode> AddResource(ResourceNode parentNode, IProjectResource resource)
     {
         var tree = _projects.FirstOrDefault(x => x.ContainsNode(parentNode));
@@ -233,7 +233,7 @@ public class ProjectService : IProjectService
     /// </summary>
     /// <param name="parentNode">Parent to the new folder</param>
     /// <param name="name">New name of the folder which will be augmented if already existing</param>
-    /// <returns>The newly created ResourceNode</returns>
+    /// <returns>The newly created ResourceNode result</returns>
     public virtual MagitekResult<ResourceNode> CreateNewFolder(ResourceNode parentNode, string name)
     {
         var tree = _projects.FirstOrDefault(x => x.ContainsNode(parentNode));
@@ -274,12 +274,12 @@ public class ProjectService : IProjectService
     }
 
     /// <summary>
-    /// Persists the Project Resource's schema
+    /// Persists a single Project Resource's schema
     /// </summary>
     /// <param name="projectTree">Project containing resourceNode</param>
     /// <param name="resourceNode">Resource to persist</param>
     /// <param name="alwaysOverwrite">Persist the resource even if unchanged</param>
-    /// <returns></returns>
+    /// <returns>The result of the operation</returns>
     public virtual MagitekResult SaveResource(ProjectTree projectTree, ResourceNode resourceNode, bool alwaysOverwrite)
     {
         if (projectTree is null)
