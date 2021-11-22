@@ -74,7 +74,7 @@ public class Program
                 image.Render();
                 var path = Path.Combine(args[1], $"Enemy{i:D3}.png");
                 image.ExportImage(path, new ImageSharpFileAdapter());
-                sprite.DataFile.Stream.Close();
+                sprite.DataFile.Dispose();
                 i++;
             }
         }

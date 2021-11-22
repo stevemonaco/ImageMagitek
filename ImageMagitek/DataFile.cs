@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ImageMagitek.ExtensionMethods;
 using ImageMagitek.Project;
 
 namespace ImageMagitek;
@@ -14,6 +15,7 @@ public sealed class DataFile : IProjectResource, IDisposable
     public string Location { get; private set; }
 
     public Stream Stream { get => _stream.Value; }
+
     public string Name { get; set; }
 
     public bool CanContainChildResources => false;
@@ -54,15 +56,23 @@ public sealed class DataFile : IProjectResource, IDisposable
         _stream = new Lazy<Stream>(() => stream);
     }
 
+    public byte[] ReadUnshifted(FileBitAddress address, int readBits) => Stream.ReadUnshifted(address, readBits);
+
+    public void ReadUnshifted(FileBitAddress address, int readBits, Span<byte> buffer) => Stream.ReadUnshifted(address, readBits, buffer);
+
+    public void Write(FileBitAddress address, ReadOnlySpan<byte> buffer)
+    {
+        Stream.Seek(address.FileOffset, SeekOrigin.Begin);
+        Stream.Write(buffer);
+    }
+
+    public void Write(ReadOnlySpan<byte> buffer) => Stream.Write(buffer);
+
+    public void Flush() => Stream.Flush();
+
     public bool UnlinkResource(IProjectResource resource) => false;
 
-    public IEnumerable<IProjectResource> LinkedResources
-    {
-        get
-        {
-            return Enumerable.Empty<IProjectResource>();
-        }
-    }
+    public IEnumerable<IProjectResource> LinkedResources => Enumerable.Empty<IProjectResource>();
 
     private void Dispose(bool disposing)
     {
@@ -70,8 +80,8 @@ public sealed class DataFile : IProjectResource, IDisposable
         {
             if (disposing)
             {
-                if (Stream is not null)
-                    Stream.Close();
+                if (_stream.Value is not null)
+                    _stream.Value.Dispose();
             }
 
             disposedValue = true;
