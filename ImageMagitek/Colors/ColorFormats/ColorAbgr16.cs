@@ -74,7 +74,7 @@ public struct ColorAbgr16 : IColor32
         }
     }
 
-    public void Deconstruct(out byte A, out byte R, out byte G, out byte B)
+    public void Deconstruct(out byte R, out byte G, out byte B, out byte A)
     {
         R = r;
         G = g;

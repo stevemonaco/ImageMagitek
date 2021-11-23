@@ -73,11 +73,11 @@ public struct ColorBgr9 : IColor32
         }
     }
 
-    public void Deconstruct(out byte A, out byte R, out byte G, out byte B)
+    public void Deconstruct(out byte R, out byte G, out byte B, out byte A)
     {
-        A = 0;
         R = r;
         G = g;
         B = b;
+        A = 0;
     }
 }
