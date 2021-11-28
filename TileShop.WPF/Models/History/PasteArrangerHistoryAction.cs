@@ -1,6 +1,4 @@
-﻿using System.Drawing;
-
-namespace TileShop.WPF.Models;
+﻿namespace TileShop.WPF.Models;
 
 public class PasteArrangerHistoryAction : HistoryAction
 {

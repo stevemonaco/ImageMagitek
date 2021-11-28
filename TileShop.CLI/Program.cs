@@ -11,7 +11,6 @@ using TileShop.CLI.Commands;
 using LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory;
 using ImageMagitek.Project.Serialization;
 using CommandLine.Text;
-using System.Diagnostics;
 
 namespace TileShop.CLI;
 

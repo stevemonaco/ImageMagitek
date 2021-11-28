@@ -1,8 +1,5 @@
-﻿using System.Drawing;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using ImageMagitek.Codec;
-using ImageMagitek.UnitTests.Helpers;
 using NUnit.Framework;
 
 namespace ImageMagitek.UnitTests;

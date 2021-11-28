@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 

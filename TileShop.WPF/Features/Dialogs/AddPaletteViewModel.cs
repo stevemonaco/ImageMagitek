@@ -1,7 +1,6 @@
 ﻿using Stylet;
 using ImageMagitek;
 using System.Collections.Generic;
-using ImageMagitek.Colors;
 
 namespace TileShop.WPF.ViewModels;
 

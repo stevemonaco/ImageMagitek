@@ -1,7 +1,4 @@
 ﻿using AvalonDock.Layout;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using TileShop.WPF.ViewModels;

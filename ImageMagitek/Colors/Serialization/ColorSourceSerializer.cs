@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
-using System.IO;
-using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Colors.Serialization;
 

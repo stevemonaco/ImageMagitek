@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text.Json;
 using FF5MonsterSprites.Serialization;
 using ImageMagitek;

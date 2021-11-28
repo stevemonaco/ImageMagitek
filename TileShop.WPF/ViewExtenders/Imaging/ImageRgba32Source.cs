@@ -4,7 +4,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Advanced;
 
 namespace TileShop.WPF.Imaging;
 

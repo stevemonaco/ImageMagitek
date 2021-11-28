@@ -1,5 +1,4 @@
-﻿using ImageMagitek.Colors;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace ImageMagitek;
@@ -11,7 +10,11 @@ namespace ImageMagitek;
 public abstract class ImageBase<TPixel> where TPixel : struct
 {
     protected Arranger Arranger { get; set; }
-    public TPixel[] Image { get; set; }
+
+    /// <summary>
+    /// Flat array of pixel data
+    /// </summary>
+    public TPixel[] Image { get; protected set; }
 
     /// <summary>
     /// Width of subsection in pixels

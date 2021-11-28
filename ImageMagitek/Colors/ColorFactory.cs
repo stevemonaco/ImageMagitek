@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using ImageMagitek.Colors.Converters;
 using ImageMagitek.Utility.Parsing;
 

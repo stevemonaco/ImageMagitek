@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using TileShop.WPF.Helpers;
-using Color = System.Windows.Media.Color;
 
 namespace TileShop.WPF.Models;
 

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ImageMagitek.Project.Serialization;
+﻿namespace ImageMagitek.Project.Serialization;
 
 public class DataFileModel : ResourceModel
 {

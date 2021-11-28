@@ -1,7 +1,5 @@
 ﻿using ImageMagitek.Codec;
-using ImageMagitek.Colors;
 using NUnit.Framework;
-using System.IO;
 
 namespace ImageMagitek.UnitTests;
 

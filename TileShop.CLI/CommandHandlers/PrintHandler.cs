@@ -1,5 +1,4 @@
-﻿using System;
-using ImageMagitek.Services;
+﻿using ImageMagitek.Services;
 using Monaco.PathTree;
 using Serilog;
 

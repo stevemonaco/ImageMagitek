@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
-using ImageMagitek.Project;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
-using SixLabors.ImageSharp;
-using System.Linq;
 
 namespace ImageMagitek.Benchmarks;
 
