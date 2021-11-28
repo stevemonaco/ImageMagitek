@@ -8,6 +8,7 @@ using TileShop.WPF.Models;
 using TileShop.Shared.EventModels;
 using ImageMagitek.Image;
 using System.Drawing;
+using ImageMagitek.ExtensionMethods;
 
 namespace TileShop.WPF.ViewModels;
 

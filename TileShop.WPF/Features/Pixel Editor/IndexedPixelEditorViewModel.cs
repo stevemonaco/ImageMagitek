@@ -10,6 +10,7 @@ using TileShop.WPF.Models;
 using Point = System.Drawing.Point;
 using ImageMagitek.Image;
 using TileShop.Shared.Models;
+using ImageMagitek.ExtensionMethods;
 
 namespace TileShop.WPF.ViewModels;
 

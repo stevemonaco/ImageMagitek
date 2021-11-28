@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Linq;
+using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Image;
 

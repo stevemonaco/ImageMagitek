@@ -13,6 +13,7 @@ using TileShop.Shared.EventModels;
 using System;
 using Monaco.PathTree;
 using Point = System.Drawing.Point;
+using ImageMagitek.ExtensionMethods;
 
 namespace TileShop.WPF.ViewModels;
 

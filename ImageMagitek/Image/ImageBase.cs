@@ -9,7 +9,7 @@ namespace ImageMagitek;
 /// <typeparam name="TPixel"></typeparam>
 public abstract class ImageBase<TPixel> where TPixel : struct
 {
-    protected Arranger Arranger { get; set; }
+    public Arranger Arranger { get; protected set; }
 
     /// <summary>
     /// Flat array of pixel data
