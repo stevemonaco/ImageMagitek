@@ -19,14 +19,6 @@ public class PaletteEditorViewModel : ResourceEditorBaseViewModel
     protected readonly IProjectService _projectService;
     protected readonly IEventAggregator _events;
 
-    private int _myField;
-    public int MyProperty
-    {
-        get => _myField;
-        set => SetAndNotify(ref _myField, value);
-    }
-
-
     private BindableCollection<EditableColorBaseViewModel> _colors = new();
     public BindableCollection<EditableColorBaseViewModel> Colors
     {
@@ -145,6 +137,8 @@ public class PaletteEditorViewModel : ResourceEditorBaseViewModel
         PaletteSource = _palette.DataFile.Name;
         Entries = CountSourceColors();
         SelectedColorIndex = 0;
+
+        _palette.Reload();
 
         var changeEvent = new PaletteChangedEvent(_palette);
         _events.PublishOnUIThread(changeEvent);
