@@ -12,7 +12,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="OneOf" Version="2.1.155" />
+    <PackageReference Include="OneOf" Version="3.0.203" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>

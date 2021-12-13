@@ -21,7 +21,7 @@
   <ItemGroup>
     <PackageReference Include="ColorMinePortable" Version="2.0.1" />
     <PackageReference Include="Monaco.PathTree" Version="1.2.0" />
-    <PackageReference Include="OneOf" Version="2.1.155" />
+    <PackageReference Include="OneOf" Version="3.0.203" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
     <PackageReference Include="System.Memory" Version="4.5.4" />

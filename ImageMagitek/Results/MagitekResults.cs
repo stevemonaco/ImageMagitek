@@ -3,13 +3,15 @@ using OneOf;
 
 namespace ImageMagitek;
 
-public abstract class MagitekResults : OneOfBase<MagitekResults.Success, MagitekResults.Failed>
+public class MagitekResults : OneOfBase<MagitekResults.Success, MagitekResults.Failed>
 {
     public static Success SuccessResults { get; } = new Success();
 
-    public sealed class Success : MagitekResults { }
+    public MagitekResults(OneOf<Success, Failed> input) : base(input) { }
 
-    public sealed class Failed : MagitekResults
+    public sealed class Success { }
+
+    public sealed class Failed
     {
         public List<string> Reasons { get; }
 
@@ -18,21 +20,26 @@ public abstract class MagitekResults : OneOfBase<MagitekResults.Success, Magitek
     }
 
     public bool HasSucceeded => IsT0;
-    public MagitekResults.Success AsSuccess => AsT0;
+    public Success AsSuccess => AsT0;
 
     public bool HasFailed => IsT1;
-    public MagitekResults.Failed AsError => AsT1;
+    public Failed AsError => AsT1;
+
+    public static implicit operator MagitekResults(Success input) => new MagitekResults(input);
+    public static implicit operator MagitekResults(Failed input) => new MagitekResults(input);
 }
 
-public abstract class MagitekResults<T> : OneOfBase<MagitekResults<T>.Success, MagitekResults<T>.Failed>
+public class MagitekResults<T> : OneOfBase<MagitekResults<T>.Success, MagitekResults<T>.Failed>
 {
-    public sealed class Success : MagitekResults<T>
+    public MagitekResults(OneOf<Success, Failed> input) : base(input) { }
+
+    public sealed class Success
     {
         public T Result { get; }
         public Success(T result) => Result = result;
     }
 
-    public sealed class Failed : MagitekResults<T>
+    public sealed class Failed
     {
         public List<string> Reasons { get; }
 
@@ -42,8 +49,11 @@ public abstract class MagitekResults<T> : OneOfBase<MagitekResults<T>.Success, M
     }
 
     public bool HasSucceeded => IsT0;
-    public MagitekResults<T>.Success AsSuccess => AsT0;
+    public Success AsSuccess => AsT0;
 
     public bool HasFailed => IsT1;
-    public MagitekResults<T>.Failed AsError => AsT1;
+    public Failed AsError => AsT1;
+
+    public static implicit operator MagitekResults<T>(Success input) => new MagitekResults<T>(input);
+    public static implicit operator MagitekResults<T>(Failed input) => new MagitekResults<T>(input);
 }

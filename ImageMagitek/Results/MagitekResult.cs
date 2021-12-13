@@ -2,42 +2,52 @@
 
 namespace ImageMagitek;
 
-public abstract class MagitekResult : OneOfBase<MagitekResult.Success, MagitekResult.Failed>
+public class MagitekResult : OneOfBase<MagitekResult.Success, MagitekResult.Failed>
 {
     public static Success SuccessResult { get; } = new Success();
 
-    public sealed class Success : MagitekResult { }
+    public MagitekResult(OneOf<Success, Failed> input) : base(input) { }
 
-    public sealed class Failed : MagitekResult
+    public sealed class Success { }
+
+    public sealed class Failed
     {
         public string Reason { get; }
         public Failed(string reason) => Reason = reason;
     }
 
     public bool HasSucceeded => IsT0;
-    public MagitekResult.Success AsSuccess => AsT0;
+    public Success AsSuccess => AsT0;
 
     public bool HasFailed => IsT1;
-    public MagitekResult.Failed AsError => AsT1;
+    public Failed AsError => AsT1;
+
+    public static implicit operator MagitekResult(Success input) => new MagitekResult(input);
+    public static implicit operator MagitekResult(Failed input) => new MagitekResult(input);
 }
 
-public abstract class MagitekResult<T> : OneOfBase<MagitekResult<T>.Success, MagitekResult<T>.Failed>
+public class MagitekResult<T> : OneOfBase<MagitekResult<T>.Success, MagitekResult<T>.Failed>
 {
-    public sealed class Success : MagitekResult<T>
+    public MagitekResult(OneOf<Success, Failed> input) : base(input) { }
+
+    public sealed class Success
     {
         public T Result { get; }
         public Success(T result) => Result = result;
     }
 
-    public sealed class Failed : MagitekResult<T>
+    public sealed class Failed
     {
         public string Reason { get; }
         public Failed(string reason) => Reason = reason;
     }
 
     public bool HasSucceeded => IsT0;
-    public MagitekResult<T>.Success AsSuccess => AsT0;
+    public Success AsSuccess => AsT0;
 
     public bool HasFailed => IsT1;
-    public MagitekResult<T>.Failed AsError => AsT1;
+    public Failed AsError => AsT1;
+
+    public static implicit operator MagitekResult<T>(Success input) => new MagitekResult<T>(input);
+    public static implicit operator MagitekResult<T>(Failed input) => new MagitekResult<T>(input);
 }

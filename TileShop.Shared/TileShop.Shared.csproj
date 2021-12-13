@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Monaco.PathTree" Version="1.2.0" />
-    <PackageReference Include="OneOf" Version="2.1.155" />
+    <PackageReference Include="OneOf" Version="3.0.203" />
   </ItemGroup>
 
   <ItemGroup>
