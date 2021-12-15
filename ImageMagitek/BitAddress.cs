@@ -39,9 +39,6 @@ public readonly struct BitAddress : IEquatable<BitAddress>
     /// <param name="bits"></param>
     public BitAddress(long bits)
     {
-        if (bits < 0)
-            throw new ArgumentOutOfRangeException($"{nameof(BitAddress)}: {nameof(bits)} '{bits}' is out of range");
-
         ByteOffset = bits / 8;
         BitOffset = (int)(bits % 8);
     }
