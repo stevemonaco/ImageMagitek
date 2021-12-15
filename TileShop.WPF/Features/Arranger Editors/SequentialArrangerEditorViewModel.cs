@@ -398,7 +398,7 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
 
         if (oldAddress != newAddress)
         {
-            _fileOffset = newAddress.FileOffset;
+            _fileOffset = newAddress.ByteOffset;
             NotifyOfPropertyChange(() => FileOffset);
             Render();
         }
@@ -407,11 +407,11 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
     private void Move(long offset)
     {
         var oldAddress = (WorkingArranger as SequentialArranger).FileAddress;
-        var newAddress = (WorkingArranger as SequentialArranger).Move(new FileBitAddress(offset, 0));
+        var newAddress = (WorkingArranger as SequentialArranger).Move(new BitAddress(offset, 0));
 
         if (oldAddress != newAddress)
         {
-            _fileOffset = newAddress.FileOffset;
+            _fileOffset = newAddress.ByteOffset;
             NotifyOfPropertyChange(() => FileOffset);
             Render();
         }
@@ -499,7 +499,7 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
             NotifyOfPropertyChange(() => LinearArrangerWidth);
         }
 
-        _fileOffset = (WorkingArranger as SequentialArranger).FileAddress.FileOffset;
+        _fileOffset = (WorkingArranger as SequentialArranger).FileAddress.ByteOffset;
         ArrangerPageSize = (int)(WorkingArranger as SequentialArranger).ArrangerBitSize / 8;
         MaxFileDecodingOffset = (WorkingArranger as SequentialArranger).FileSize - ArrangerPageSize;
         CanResize = codec.CanResize;

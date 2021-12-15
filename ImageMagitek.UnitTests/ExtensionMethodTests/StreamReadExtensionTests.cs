@@ -8,7 +8,7 @@ namespace ImageMagitek.UnitTests;
 public class StreamReadExtensionTests
 {
     [TestCaseSource(typeof(StreamReadExtensionTestCases), "ReadUnshiftedCases")]
-    public void ReadUnshifted_AsExpected(byte[] data, FileBitAddress offset, int numBits, byte[] expected)
+    public void ReadUnshifted_AsExpected(byte[] data, BitAddress offset, int numBits, byte[] expected)
     {
         var stream = new MemoryStream(data);
         var actual = new byte[(numBits + 7) / 8];
@@ -18,7 +18,7 @@ public class StreamReadExtensionTests
     }
 
     [TestCaseSource(typeof(StreamReadExtensionTestCases), "ReadShiftedCases")]
-    public void ReadShifted_AsExpected(byte[] data, FileBitAddress offset, int numBits, byte[] expected)
+    public void ReadShifted_AsExpected(byte[] data, BitAddress offset, int numBits, byte[] expected)
     {
         var stream = new MemoryStream(data);
         var actual = new byte[(numBits + 7) / 8];

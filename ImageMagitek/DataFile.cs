@@ -56,13 +56,13 @@ public sealed class DataFile : IProjectResource, IDisposable
         _stream = new Lazy<Stream>(() => stream);
     }
 
-    public byte[] ReadUnshifted(FileBitAddress address, int readBits) => Stream.ReadUnshifted(address, readBits);
+    public byte[] ReadUnshifted(BitAddress address, int readBits) => Stream.ReadUnshifted(address, readBits);
 
-    public void ReadUnshifted(FileBitAddress address, int readBits, Span<byte> buffer) => Stream.ReadUnshifted(address, readBits, buffer);
+    public void ReadUnshifted(BitAddress address, int readBits, Span<byte> buffer) => Stream.ReadUnshifted(address, readBits, buffer);
 
-    public void Write(FileBitAddress address, ReadOnlySpan<byte> buffer)
+    public void Write(BitAddress address, ReadOnlySpan<byte> buffer)
     {
-        Stream.Seek(address.FileOffset, SeekOrigin.Begin);
+        Stream.Seek(address.ByteOffset, SeekOrigin.Begin);
         Stream.Write(buffer);
     }
 

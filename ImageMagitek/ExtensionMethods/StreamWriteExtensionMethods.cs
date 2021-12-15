@@ -5,9 +5,9 @@ namespace ImageMagitek.ExtensionMethods;
 
 public static class StreamWriteExtensionMethods
 {
-    public static void WriteUnshifted(this Stream stream, FileBitAddress address, int writeBits, ReadOnlySpan<byte> writeBuffer)
+    public static void WriteUnshifted(this Stream stream, BitAddress address, int writeBits, ReadOnlySpan<byte> writeBuffer)
     {
-        stream.Seek(address.FileOffset, SeekOrigin.Begin);
+        stream.Seek(address.ByteOffset, SeekOrigin.Begin);
         stream.WriteUnshifted(address.BitOffset, writeBits, writeBuffer);
     }
 
@@ -57,9 +57,9 @@ public static class StreamWriteExtensionMethods
         }
     }
 
-    public static void WriteShifted(this Stream stream, FileBitAddress address, int writeBits, ReadOnlySpan<byte> writeBuffer)
+    public static void WriteShifted(this Stream stream, BitAddress address, int writeBits, ReadOnlySpan<byte> writeBuffer)
     {
-        stream.Seek(address.FileOffset, SeekOrigin.Begin);
+        stream.Seek(address.ByteOffset, SeekOrigin.Begin);
         stream.WriteShifted(address.BitOffset, writeBits, writeBuffer);
     }
 

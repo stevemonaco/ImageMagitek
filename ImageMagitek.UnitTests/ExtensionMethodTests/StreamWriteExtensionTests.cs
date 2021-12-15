@@ -8,7 +8,7 @@ namespace ImageMagitek.UnitTests.ExtensionMethodTests;
 public class StreamWriteExtensionTests
 {
     [TestCaseSource(typeof(StreamWriteExtensionTestCases), "WriteUnshiftedCases")]
-    public void WriteUnshifted_AsExpected(byte[] data, FileBitAddress offset, int numBits, byte[] writeData, byte[] expected)
+    public void WriteUnshifted_AsExpected(byte[] data, BitAddress offset, int numBits, byte[] writeData, byte[] expected)
     {
         using var stream = new MemoryStream(data);
         stream.WriteUnshifted(offset, numBits, writeData);
@@ -21,7 +21,7 @@ public class StreamWriteExtensionTests
     }
 
     [TestCaseSource(typeof(StreamWriteExtensionTestCases), "WriteShiftedCases")]
-    public void WriteShifted_AsExpected(byte[] data, FileBitAddress offset, int numBits, byte[] writeData, byte[] expected)
+    public void WriteShifted_AsExpected(byte[] data, BitAddress offset, int numBits, byte[] writeData, byte[] expected)
     {
         using var stream = new MemoryStream(data);
         stream.WriteShifted(offset, numBits, writeData);

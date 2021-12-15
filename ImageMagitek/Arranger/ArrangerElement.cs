@@ -19,7 +19,7 @@ public readonly struct ArrangerElement
     /// <summary>
     /// FileAddress of Element
     /// </summary>
-    public FileBitAddress FileAddress { get; }
+    public BitAddress FileAddress { get; }
 
     /// <summary>
     /// Codec used for encoding and decoding
@@ -69,7 +69,7 @@ public readonly struct ArrangerElement
     {
         X1 = x1;
         Y1 = y1;
-        FileAddress = new FileBitAddress(0, 0);
+        FileAddress = new BitAddress(0, 0);
         DataFile = null;
         Codec = null;
         Palette = null;
@@ -77,7 +77,7 @@ public readonly struct ArrangerElement
         Rotation = RotationOperation.None;
     }
 
-    public ArrangerElement(int x1, int y1, DataFile dataFile, FileBitAddress address, IGraphicsCodec codec, Palette palette)
+    public ArrangerElement(int x1, int y1, DataFile dataFile, BitAddress address, IGraphicsCodec codec, Palette palette)
     {
         X1 = x1;
         Y1 = y1;
@@ -89,7 +89,7 @@ public readonly struct ArrangerElement
         Rotation = RotationOperation.None;
     }
 
-    public ArrangerElement(int x1, int y1, DataFile dataFile, FileBitAddress address, IGraphicsCodec codec, Palette palette,
+    public ArrangerElement(int x1, int y1, DataFile dataFile, BitAddress address, IGraphicsCodec codec, Palette palette,
         MirrorOperation mirror, RotationOperation rotation)
     {
         X1 = x1;
@@ -105,13 +105,13 @@ public readonly struct ArrangerElement
     public ArrangerElement WithLocation(int x1, int y1) =>
         new ArrangerElement(x1, y1, DataFile, FileAddress, Codec, Palette, Mirror, Rotation);
 
-    public ArrangerElement WithFile(DataFile dataFile, FileBitAddress fileAddress) =>
+    public ArrangerElement WithFile(DataFile dataFile, BitAddress fileAddress) =>
         new ArrangerElement(X1, Y1, dataFile, fileAddress, Codec, Palette, Mirror, Rotation);
 
     public ArrangerElement WithPalette(Palette palette) =>
         new ArrangerElement(X1, Y1, DataFile, FileAddress, Codec, palette, Mirror, Rotation);
 
-    public ArrangerElement WithAddress(FileBitAddress address) =>
+    public ArrangerElement WithAddress(BitAddress address) =>
         new ArrangerElement(X1, Y1, DataFile, address, Codec, Palette, Mirror, Rotation);
 
     public ArrangerElement WithCodec(IGraphicsCodec codec) =>
@@ -120,7 +120,7 @@ public readonly struct ArrangerElement
     public ArrangerElement WithCodec(IGraphicsCodec codec, int x1, int y1) =>
         new ArrangerElement(x1, y1, DataFile, FileAddress, codec, Palette, Mirror, Rotation);
 
-    public ArrangerElement WithTarget(DataFile dataFile, FileBitAddress fileAddress, IGraphicsCodec codec, Palette palette) =>
+    public ArrangerElement WithTarget(DataFile dataFile, BitAddress fileAddress, IGraphicsCodec codec, Palette palette) =>
         new ArrangerElement(X1, Y1, dataFile, fileAddress, codec, palette, Mirror, Rotation);
 
     public ArrangerElement WithMirror(MirrorOperation mirror) =>

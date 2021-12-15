@@ -249,8 +249,8 @@ public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
             {
                 string notifyMessage = WorkingArranger.ColorType switch
                 {
-                    PixelColorType.Indexed => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, Palette {element.Palette?.Name ?? "Default"}, DataFile {element.DataFile?.Location ?? "None"}, FileOffset 0x{element.FileAddress.FileOffset:X}.{(element.FileAddress.BitOffset != 0 ? element.FileAddress.BitOffset.ToString() : "")}",
-                    PixelColorType.Direct => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, DataFile {element.DataFile?.Location ?? "None"}, FileOffset 0x{element.FileAddress.FileOffset:X}.{(element.FileAddress.BitOffset != 0 ? element.FileAddress.BitOffset.ToString() : "")}",
+                    PixelColorType.Indexed => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, Palette {element.Palette?.Name ?? "Default"}, DataFile {element.DataFile?.Location ?? "None"}, FileOffset 0x{element.FileAddress.ByteOffset:X}.{(element.FileAddress.BitOffset != 0 ? element.FileAddress.BitOffset.ToString() : "")}",
+                    PixelColorType.Direct => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, DataFile {element.DataFile?.Location ?? "None"}, FileOffset 0x{element.FileAddress.ByteOffset:X}.{(element.FileAddress.BitOffset != 0 ? element.FileAddress.BitOffset.ToString() : "")}",
                     _ => "Unknown Color Type"
                 };
 

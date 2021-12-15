@@ -59,7 +59,7 @@ public class MonsterSerializer
         var palEntries = metadata.ColorDepth == TileColorDepth.Bpp4 ? 16 : 8;
 
         var paletteSources = Enumerable.Range(0, palEntries)
-            .Select(x => (IColorSource) new FileColorSource(8 * (PaletteOffset + 16 * metadata.PaletteID + x * 2), Endian.Little))
+            .Select(x => (IColorSource) new FileColorSource(new BitAddress(PaletteOffset + 16 * metadata.PaletteID + x * 2, 0), Endian.Little))
             .ToList();
 
         var pal = new Palette("monsterPalette", new ColorFactory(), ColorModel.Bgr15, paletteSources, true, PaletteStorageSource.Project);
@@ -87,7 +87,7 @@ public class MonsterSerializer
             .Build();
 
         int elementsStored = 0;
-        int tileAddress = TileSetOffset + 8 * metadata.TileSetID;
+        int tileOffset = TileSetOffset + 8 * metadata.TileSetID;
         int tileSize = metadata.ColorDepth == TileColorDepth.Bpp4 ? 32 : 24;
 
         for (int y = 0; y < arrangerHeight; y++)
@@ -97,8 +97,8 @@ public class MonsterSerializer
                 if (bitStream.ReadBit() == 1)
                 {
                     IGraphicsCodec codec = metadata.ColorDepth == TileColorDepth.Bpp4 ? new Snes4bppCodec(8, 8) : new Snes3bppCodec(8, 8);
-                    var element = new ArrangerElement(x * 8, y * 8, dataFile, tileAddress * 8, codec, pal);
-                    tileAddress += tileSize;
+                    var element = new ArrangerElement(x * 8, y * 8, dataFile, new BitAddress(tileOffset * 8), codec, pal);
+                    tileOffset += tileSize;
                     arranger.SetElement(element, x, y);
                     elementsStored++;
                 }

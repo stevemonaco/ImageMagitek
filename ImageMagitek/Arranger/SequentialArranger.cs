@@ -18,7 +18,7 @@ public sealed class SequentialArranger : Arranger
     /// <summary>
     /// Gets the current file address of the file associated with a <see cref="SequentialArranger"/>
     /// </summary>
-    public FileBitAddress FileAddress { get; private set; }
+    public BitAddress FileAddress { get; private set; }
 
     /// <summary>
     /// Number of bits required to be read from file sequentially to fully display the <see cref="SequentialArranger"/>
@@ -127,21 +127,21 @@ public sealed class SequentialArranger : Arranger
     /// </summary>
     /// <param name="absoluteAddress">Specified address to move the arranger to</param>
     /// <returns></returns>
-    public FileBitAddress Move(FileBitAddress absoluteAddress)
+    public BitAddress Move(BitAddress absoluteAddress)
     {
         if (Mode != ArrangerMode.Sequential)
             throw new InvalidOperationException($"{nameof(Move)}: Arranger {Name} is not in sequential mode");
 
-        FileBitAddress testaddress = absoluteAddress + ArrangerBitSize; // Tests the bounds of the arranger vs the file size
+        BitAddress testaddress = absoluteAddress + ArrangerBitSize; // Tests the bounds of the arranger vs the file size
 
         if (FileSize * 8 < ArrangerBitSize) // Arranger needs more bits than the entire file
-            FileAddress = new FileBitAddress(0, 0);
-        else if (testaddress.Bits() > FileSize * 8) // Clamp arranger to edge of viewable file
-            FileAddress = new FileBitAddress(FileSize * 8 - ArrangerBitSize);
+            FileAddress = new BitAddress(0, 0);
+        else if (testaddress.Offset > FileSize * 8) // Clamp arranger to edge of viewable file
+            FileAddress = new BitAddress(FileSize * 8 - ArrangerBitSize);
         else
             FileAddress = absoluteAddress;
 
-        FileBitAddress relativeChange = FileAddress - GetInitialSequentialFileAddress();
+        BitAddress relativeChange = FileAddress - GetInitialSequentialFileAddress();
 
         for (int posY = 0; posY < ArrangerElementSize.Height; posY++)
         {
@@ -169,7 +169,7 @@ public sealed class SequentialArranger : Arranger
         if (Mode != ArrangerMode.Sequential)
             throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode})");
 
-        FileBitAddress address = FileAddress;
+        BitAddress address = FileAddress;
 
         ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);
 
@@ -329,7 +329,7 @@ public sealed class SequentialArranger : Arranger
     /// Gets the file address from the first element in the sequential arranger
     /// </summary>
     /// <returns></returns>
-    private FileBitAddress GetInitialSequentialFileAddress()
+    private BitAddress GetInitialSequentialFileAddress()
     {
         if (ElementGrid is null)
             throw new NullReferenceException($"{nameof(GetInitialSequentialFileAddress)} property '{nameof(ElementGrid)}' was null");
@@ -340,12 +340,12 @@ public sealed class SequentialArranger : Arranger
 
         if (TileLayout is null)
         {
-            return ElementGrid[0, 0]?.FileAddress ?? 0;
+            return ElementGrid[0, 0]?.FileAddress ?? BitAddress.Zero;
         }
         else
         {
             var layoutElement = TileLayout.Pattern.First();
-            return ElementGrid[layoutElement.X, layoutElement.Y]?.FileAddress ?? 0;
+            return ElementGrid[layoutElement.X, layoutElement.Y]?.FileAddress ?? BitAddress.Zero;
         }
     }
 

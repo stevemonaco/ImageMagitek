@@ -26,7 +26,7 @@ public static class ArrangerTestFactory
 
         var arranger = new ScatteredArranger("testArranger", PixelColorType.Indexed, ElementLayout.Tiled, elemsX, elemsY, codec.Width, codec.Height);
 
-        var address = new FileBitAddress(0);
+        var address = new BitAddress(0);
         for (int y = 0; y < elemsY; y++)
         {
             for (int x = 0; x < elemsX; x++)

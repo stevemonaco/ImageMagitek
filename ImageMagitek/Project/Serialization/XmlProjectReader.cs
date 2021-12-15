@@ -266,9 +266,9 @@ public sealed class XmlProjectReader : IProjectReader
                 var source = new FileColorSourceModel();
                 var fileOffset = long.Parse(item.Attribute("fileoffset").Value, System.Globalization.NumberStyles.HexNumber);
                 if (item.Attribute("bitoffset") is null)
-                    source.FileAddress = new FileBitAddress(fileOffset, 0);
+                    source.FileAddress = new BitAddress(fileOffset, 0);
                 else
-                    source.FileAddress = new FileBitAddress(fileOffset, int.Parse(element.Attribute("bitoffset").Value));
+                    source.FileAddress = new BitAddress(fileOffset, int.Parse(element.Attribute("bitoffset").Value));
 
                 source.Entries = int.Parse(item.Attribute("entries").Value);
 
@@ -368,9 +368,9 @@ public sealed class XmlProjectReader : IProjectReader
             el.PositionY = xmlElement.posy;
 
             if (xmlElement.bitoffset is not null)
-                el.FileAddress = new FileBitAddress(xmlElement.fileoffset, int.Parse(xmlElement.bitoffset.Value));
+                el.FileAddress = new BitAddress(xmlElement.fileoffset, int.Parse(xmlElement.bitoffset.Value));
             else
-                el.FileAddress = new FileBitAddress(xmlElement.fileoffset, 0);
+                el.FileAddress = new BitAddress(xmlElement.fileoffset, 0);
 
             el.Mirror = xmlElement.mirror?.Value switch
             {

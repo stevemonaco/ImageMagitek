@@ -2,7 +2,7 @@
 
 public class FileColorSourceModel : IColorSourceModel
 {
-    public FileBitAddress FileAddress { get; set; }
+    public BitAddress FileAddress { get; set; }
     public int Entries { get; set; }
     public Endian Endian { get; set; }
 
@@ -10,7 +10,7 @@ public class FileColorSourceModel : IColorSourceModel
     {
     }
 
-    public FileColorSourceModel(FileBitAddress fileAddress, int entries, Endian endian)
+    public FileColorSourceModel(BitAddress fileAddress, int entries, Endian endian)
     {
         FileAddress = fileAddress;
         Entries = entries;

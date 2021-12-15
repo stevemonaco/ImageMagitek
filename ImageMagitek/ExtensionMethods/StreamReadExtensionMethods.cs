@@ -8,16 +8,16 @@ namespace ImageMagitek.ExtensionMethods;
 /// </summary>
 public static class StreamReadExtensionMethods
 {
-    public static byte[] ReadUnshifted(this Stream stream, FileBitAddress address, int readBits)
+    public static byte[] ReadUnshifted(this Stream stream, BitAddress address, int readBits)
     {
         var readBuffer = new byte[(readBits + address.BitOffset + 7) / 8];
         stream.ReadUnshifted(address, readBits, readBuffer);
         return readBuffer;
     }
 
-    public static void ReadUnshifted(this Stream stream, FileBitAddress address, int readBits, Span<byte> buffer)
+    public static void ReadUnshifted(this Stream stream, BitAddress address, int readBits, Span<byte> buffer)
     {
-        stream.Seek(address.FileOffset, SeekOrigin.Begin);
+        stream.Seek(address.ByteOffset, SeekOrigin.Begin);
         stream.ReadUnshifted(address.BitOffset, readBits, buffer);
     }
 
@@ -46,16 +46,16 @@ public static class StreamReadExtensionMethods
         readBuffer[^1] = (byte)(readBuffer[^1] & mask);
     }
 
-    public static byte[] ReadShifted(this Stream stream, FileBitAddress address, int readBits)
+    public static byte[] ReadShifted(this Stream stream, BitAddress address, int readBits)
     {
         var readBuffer = new byte[(readBits + 7) / 8];
         stream.ReadShifted(address, readBits, readBuffer);
         return readBuffer;
     }
 
-    public static void ReadShifted(this Stream stream, FileBitAddress address, int readBits, Span<byte> buffer)
+    public static void ReadShifted(this Stream stream, BitAddress address, int readBits, Span<byte> buffer)
     {
-        stream.Seek(address.FileOffset, SeekOrigin.Begin);
+        stream.Seek(address.ByteOffset, SeekOrigin.Begin);
         stream.ReadShifted(address.BitOffset, readBits, buffer);
     }
 

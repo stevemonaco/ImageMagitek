@@ -22,7 +22,7 @@ public class ElementCopierTests
             {
                 if (_sourceIndexed.GetElement(x, y) is ArrangerElement element)
                 {
-                    element = element.WithTarget(_df, new FileBitAddress(x * y), new Snes3bppCodec(8, 8), null);
+                    element = element.WithTarget(_df, new BitAddress(x * y), new Snes3bppCodec(8, 8), null);
                     _sourceIndexed.SetElement(element, x, y);
                 }
             }

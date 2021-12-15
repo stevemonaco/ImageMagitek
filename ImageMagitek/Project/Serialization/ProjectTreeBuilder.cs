@@ -164,7 +164,7 @@ internal sealed class ProjectTreeBuilder
         IGraphicsCodec codec = default;
         Palette palette = default;
         DataFile df = default;
-        FileBitAddress address = 0;
+        var address = BitAddress.Zero;
 
         if (elementModel is null)
         {

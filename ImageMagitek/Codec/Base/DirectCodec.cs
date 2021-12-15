@@ -45,7 +45,7 @@ public abstract class DirectCodec : IDirectCodec
         var fs = el.DataFile.Stream;
 
         // TODO: Add bit granularity to seek and read
-        if (el.FileAddress + StorageSize > fs.Length * 8)
+        if (el.FileAddress.Offset + StorageSize > fs.Length * 8)
             return null;
 
         bitStream.SeekAbsolute(0);

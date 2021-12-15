@@ -267,7 +267,7 @@ public class PaletteEditorViewModel : ResourceEditorBaseViewModel
                     .TakeWhile((x, i) => x is FileColorSource && (x as FileColorSource).Offset == (fileSource.Offset + i * size))
                     .ToList();
 
-                var fileSourceModel = new FileColorSourceModel(fileSource.Offset.FileOffset, sources.Count, fileSource.Endian);
+                var fileSourceModel = new FileColorSourceModel(fileSource.Offset.ByteOffset, sources.Count, fileSource.Endian);
                 yield return fileSourceModel;
 
                 i += sources.Count;
@@ -319,7 +319,7 @@ public class PaletteEditorViewModel : ResourceEditorBaseViewModel
             var sourceModel = ColorSourceModels[i];
             if (sourceModel is FileColorSourceModel fileModel)
             {
-                var offset = new FileBitAddress(fileModel.FileAddress, 0);
+                var offset = new BitAddress(fileModel.FileAddress, 0);
                 for (int j = 0; j < fileModel.Entries; j++)
                     yield return new FileColorSource(offset + j * size, fileModel.Endian);
             }

@@ -298,7 +298,7 @@ public sealed class XmlProjectWriter : IProjectWriter
             if (source is FileColorSourceModel fileSource)
             {
                 var fileElement = new XElement("filesource");
-                fileElement.Add(new XAttribute("fileoffset", $"{fileSource.FileAddress.FileOffset:X}"));
+                fileElement.Add(new XAttribute("fileoffset", $"{fileSource.FileAddress.ByteOffset:X}"));
                 fileElement.Add(new XAttribute("entries", fileSource.Entries));
 
                 if (fileSource.Endian == Endian.Big)
@@ -363,7 +363,7 @@ public sealed class XmlProjectWriter : IProjectWriter
                     continue;
 
                 var elNode = new XElement("element");
-                elNode.Add(new XAttribute("fileoffset", $"{el.FileAddress.FileOffset:X}"));
+                elNode.Add(new XAttribute("fileoffset", $"{el.FileAddress.ByteOffset:X}"));
                 elNode.Add(new XAttribute("posx", el.PositionX));
                 elNode.Add(new XAttribute("posy", el.PositionY));
 

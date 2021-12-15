@@ -211,7 +211,7 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
         var buffer = new byte[(StorageSize + 7) / 8];
         var fs = el.DataFile.Stream;
 
-        if (el.FileAddress + StorageSize > fs.Length * 8)
+        if (el.FileAddress.Offset + StorageSize > fs.Length * 8)
             return null;
 
         fs.ReadShifted(el.FileAddress, StorageSize, buffer);

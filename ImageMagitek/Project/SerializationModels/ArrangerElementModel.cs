@@ -5,7 +5,7 @@ public class ArrangerElementModel
     public string DataFileKey { get; set; }
     public string PaletteKey { get; set; }
     public string CodecName { get; set; }
-    public FileBitAddress FileAddress { get; set; }
+    public BitAddress FileAddress { get; set; }
     public int PositionX { get; set; }
     public int PositionY { get; set; }
     public MirrorOperation Mirror { get; set; }
