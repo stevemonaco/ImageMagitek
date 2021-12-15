@@ -29,7 +29,7 @@ public class ProjectService : IProjectService
     /// </summary>
     /// <param name="projectFileName">File name for the specified project</param>
     /// <returns></returns>
-    public virtual MagitekResult<ProjectTree> NewProject(string projectFileName)
+    public virtual MagitekResult<ProjectTree> CreateNewProject(string projectFileName)
     {
         if (_projects.Any(x => string.Equals(x.Name, projectFileName, StringComparison.OrdinalIgnoreCase)))
             return new MagitekResult<ProjectTree>.Failed($"{projectFileName} already exists in the solution");
@@ -50,6 +50,48 @@ public class ProjectService : IProjectService
         UpdateNodeModel(tree, root);
 
         return new MagitekResult<ProjectTree>.Success(tree);
+    }
+
+    public virtual MagitekResult<ProjectTree> CreateNewProjectWithExistingFile(string projectFileName, string dataFileName)
+    {
+        if (_projects.Any(x => string.Equals(x.Name, projectFileName, StringComparison.OrdinalIgnoreCase)))
+            return new MagitekResult<ProjectTree>.Failed($"{projectFileName} already exists in the solution");
+
+        if (File.Exists(projectFileName))
+        {
+            return new MagitekResult<ProjectTree>.Failed($"Project file '{projectFileName}' already exists");
+        }
+
+        if (!File.Exists(dataFileName))
+        {
+            return new MagitekResult<ProjectTree>.Failed($"Data file '{dataFileName}' does not exist");
+        }
+
+        var projectName = Path.GetFileNameWithoutExtension(projectFileName);
+        var project = new ImageProject(projectName);
+        var root = new ProjectNode(project.Name, project)
+        {
+            DiskLocation = Path.GetFullPath(projectFileName),
+            BaseDirectory = Path.GetDirectoryName(projectFileName)
+        };
+        var tree = new ProjectTree(root);
+
+        var dataFile = new DataFile(Path.GetFileNameWithoutExtension(dataFileName), dataFileName);
+        var dataNode = new DataFileNode(dataFile.Name, dataFile);
+        tree.AttachNodeToPath("", dataNode);
+
+        _projects.Add(tree);
+        var result = SaveProject(tree);
+
+        if (result.HasSucceeded)
+        {
+            UpdateNodeModel(tree, root);
+            return new MagitekResult<ProjectTree>.Success(tree);
+        }
+        else
+        {
+            return new MagitekResult<ProjectTree>.Failed(result.AsError.Reason);
+        }
     }
 
     /// <summary>

@@ -56,7 +56,7 @@ public class MenuViewModel : Screen, IHandle<ProjectLoadedEvent>
 
     public void NewEmptyProject() => ProjectTree.AddNewProject();
 
-    public void NewProjectFromFile() => ProjectTree.AddNewProjectFromFile();
+    public void NewProjectFromFile() => ProjectTree.NewProjectFromFile();
 
     public void OpenProject() => ProjectTree.OpenProject();
 

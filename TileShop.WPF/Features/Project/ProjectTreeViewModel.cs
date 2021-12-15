@@ -506,7 +506,7 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
         {
             if (projectFileName is not null)
             {
-                _projectService.NewProject(Path.GetFullPath(projectFileName)).Switch(
+                _projectService.CreateNewProject(Path.GetFullPath(projectFileName)).Switch(
                     success =>
                     {
                         var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
@@ -523,45 +523,26 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
         }
     }
 
-    public void AddNewProjectFromFile()
+    public void NewProjectFromFile()
     {
         var dataFileName = _fileSelect.GetExistingDataFileNameByUser();
-        var projectFileName = Path.ChangeExtension(dataFileName, ".xml");
+        var projectPath = Path.GetDirectoryName(dataFileName);
+        var projectFileName = Path.Combine(projectPath, Path.GetFileNameWithoutExtension(dataFileName) + "Project.xml");
 
         try
         {
             if (dataFileName is not null)
             {
-                if (File.Exists(projectFileName))
-                {
-                    MessageBox.Show($"Project file '{projectFileName}' already exists");
-                    return;
-                }
-
-                _projectService.NewProject(Path.GetFullPath(projectFileName)).Switch(
+                _projectService.CreateNewProjectWithExistingFile(Path.GetFullPath(projectFileName), Path.GetFullPath(dataFileName)).Switch(
                     success =>
                     {
                         var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
                         Projects.Add(projectVM);
+                        SelectedNode = projectVM;
+                        IsModified = true;
 
-                        var dfName = Path.GetFileName(dataFileName);
-                        var df = new DataFile(dfName, dataFileName);
-                        var result = _projectService.AddResource(projectVM.Node, df);
-
-                        result.Switch(success =>
-                        {
-                            var dfVM = new DataFileNodeViewModel(success.Result, projectVM);
-                            projectVM.Children.Add(dfVM);
-                            SelectedNode = dfVM;
-                            IsModified = true;
-
-                            NotifyOfPropertyChange(() => HasProject);
-                            _events.PublishOnUIThread(new ProjectLoadedEvent(projectVM.Node.DiskLocation));
-                        },
-                        fail =>
-                        {
-                            _windowManager.ShowMessageBox(fail.Reason, "Resource Error adding {dataFileName}");
-                        });
+                        NotifyOfPropertyChange(() => HasProject);
+                        _events.PublishOnUIThread(new ProjectLoadedEvent(projectVM.Node.DiskLocation));
                     },
                     fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Project Error"));
             }
