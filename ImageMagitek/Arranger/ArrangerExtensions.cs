@@ -184,12 +184,6 @@ public static class ArrangerExtensions
         var maxAddress = new BitAddress(arranger.FileSize * 8 - arranger.ArrangerBitSize);
         newAddress = new BitAddress(Math.Clamp(newAddress.Offset, 0, maxAddress.Offset));
 
-        //if (newAddress.Offset + arranger.ArrangerBitSize > arranger.FileSize * 8) // Calculated address is past EOF (first)
-        //    newAddress = new BitAddress(arranger.FileSize * 8 - arranger.ArrangerBitSize);
-        //
-        //if (newAddress.Offset < 0) // Calculated address is before start of file (second)
-        //    newAddress = BitAddress.Zero;
-
         if (initialAddress != newAddress)
             newAddress = arranger.Move(newAddress);
 
