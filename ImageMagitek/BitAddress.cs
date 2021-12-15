@@ -3,7 +3,7 @@
 namespace ImageMagitek;
 
 /// <summary>
-/// Struct used to store a file address that does not start on a byte-aligned address
+/// Struct used to store an address that does not necessarily start on a byte-aligned address
 /// </summary>
 public readonly struct BitAddress : IEquatable<BitAddress>
 {
@@ -13,7 +13,7 @@ public readonly struct BitAddress : IEquatable<BitAddress>
     public long ByteOffset { get; }
 
     /// <summary>
-    /// Number of bits to skip after ByteOffset
+    /// Portion of offset in bits following ByteOffset
     /// Valid range is 0-7 inclusive
     /// A zero value would result in a byte-aligned address
     /// </summary>
@@ -26,8 +26,8 @@ public readonly struct BitAddress : IEquatable<BitAddress>
 
     public BitAddress(long byteOffset, int bitOffset)
     {
-        if (bitOffset > 7)
-            throw new ArgumentOutOfRangeException($"{nameof(BitAddress)}: {nameof(bitOffset)} {bitOffset} is out of range");
+        if (bitOffset > 7 || bitOffset < 0)
+            throw new ArgumentOutOfRangeException($"{nameof(BitAddress)}: {nameof(bitOffset)} '{bitOffset}' is out of range");
 
         ByteOffset = byteOffset;
         BitOffset = bitOffset;
@@ -39,25 +39,24 @@ public readonly struct BitAddress : IEquatable<BitAddress>
     /// <param name="bits"></param>
     public BitAddress(long bits)
     {
+        if (bits < 0)
+            throw new ArgumentOutOfRangeException($"{nameof(BitAddress)}: {nameof(bits)} '{bits}' is out of range");
+
         ByteOffset = bits / 8;
         BitOffset = (int)(bits % 8);
     }
 
-    public bool Equals(BitAddress other) =>
-        ByteOffset == other.ByteOffset && BitOffset == other.BitOffset;
+    public bool Equals(BitAddress other) => ByteOffset == other.ByteOffset && BitOffset == other.BitOffset;
 
-    public override bool Equals(object obj) =>
-        Equals((BitAddress)obj);
+    public override bool Equals(object obj) => Equals((BitAddress)obj);
 
     public override int GetHashCode() => HashCode.Combine(BitOffset, ByteOffset);
 
-    public static BitAddress Zero => new BitAddress(0, 0);
+    public static BitAddress Zero => new(0, 0);
 
-    public static bool operator ==(BitAddress lhs, BitAddress rhs) =>
-        lhs.Equals(rhs);
+    public static bool operator ==(BitAddress lhs, BitAddress rhs) => lhs.Equals(rhs);
 
-    public static bool operator !=(BitAddress lhs, BitAddress rhs) =>
-        !lhs.Equals(rhs);
+    public static bool operator !=(BitAddress lhs, BitAddress rhs) => !lhs.Equals(rhs);
 
     /// <summary>
     /// Adds two FileBitAddress objects and returns the result
@@ -65,11 +64,7 @@ public readonly struct BitAddress : IEquatable<BitAddress>
     /// <param name="lhs"></param>
     /// <param name="rhs"></param>
     /// <returns></returns>
-    public static BitAddress operator +(BitAddress lhs, BitAddress rhs)
-    {
-        long bits = lhs.Offset + rhs.Offset;
-        return new BitAddress(bits);
-    }
+    public static BitAddress operator +(BitAddress lhs, BitAddress rhs) => new(lhs.Offset + rhs.Offset);
 
     /// <summary>
     /// Adds a specified number of bits to a FileBitAddress object
@@ -77,11 +72,7 @@ public readonly struct BitAddress : IEquatable<BitAddress>
     /// <param name="lhs"></param>
     /// <param name="offset">Number of bits to advance the address</param>
     /// <returns></returns>
-    public static BitAddress operator +(BitAddress lhs, long offset)
-    {
-        long bits = lhs.Offset + offset;
-        return new BitAddress(bits);
-    }
+    public static BitAddress operator +(BitAddress lhs, long offset) => new(lhs.Offset + offset);
 
     /// <summary>
     /// Subtracts two FileBitAddress objects and returns the result
@@ -89,12 +80,7 @@ public readonly struct BitAddress : IEquatable<BitAddress>
     /// <param name="lhs"></param>
     /// <param name="rhs"></param>
     /// <returns></returns>
-    public static BitAddress operator -(BitAddress lhs, BitAddress rhs)
-    {
-        long bits = lhs.Offset - rhs.Offset;
-
-        return new BitAddress(bits);
-    }
+    public static BitAddress operator -(BitAddress lhs, BitAddress rhs) => new(lhs.Offset - rhs.Offset);
 
     /// <summary>
     /// Subtracts a number of bits from a FileBitAddress object
@@ -102,29 +88,13 @@ public readonly struct BitAddress : IEquatable<BitAddress>
     /// <param name="lhs"></param>
     /// <param name="offset">Offset in number of bits</param>
     /// <returns></returns>
-    public static BitAddress operator -(BitAddress lhs, long offset)
-    {
-        long retbits = lhs.Offset - offset;
+    public static BitAddress operator -(BitAddress lhs, long offset) => new(lhs.Offset - offset);
 
-        return new BitAddress(retbits);
-    }
+    public static bool operator <(BitAddress lhs, BitAddress rhs) => lhs.Offset < rhs.Offset;
 
-    public static bool operator <(BitAddress lhs, BitAddress rhs)
-    {
-        return lhs.Offset < rhs.Offset;
-    }
+    public static bool operator <=(BitAddress lhs, BitAddress rhs) => lhs.Offset <= rhs.Offset;
 
-    public static bool operator <=(BitAddress lhs, BitAddress rhs)
-    {
-        return lhs.Offset <= rhs.Offset;
-    }
+    public static bool operator >(BitAddress lhs, BitAddress rhs) => lhs.Offset > rhs.Offset;
 
-    public static bool operator >(BitAddress lhs, BitAddress rhs)
-    {
-        return lhs.Offset > rhs.Offset;
-    }
-    public static bool operator >=(BitAddress lhs, BitAddress rhs)
-    {
-        return lhs.Offset >= rhs.Offset;
-    }
+    public static bool operator >=(BitAddress lhs, BitAddress rhs) => lhs.Offset >= rhs.Offset;
 }
