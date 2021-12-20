@@ -3,7 +3,7 @@ using OneOf;
 
 namespace ImageMagitek;
 
-public class MagitekResults : OneOfBase<MagitekResults.Success, MagitekResults.Failed>
+public sealed class MagitekResults : OneOfBase<MagitekResults.Success, MagitekResults.Failed>
 {
     public static Success SuccessResults { get; } = new Success();
 
@@ -29,7 +29,7 @@ public class MagitekResults : OneOfBase<MagitekResults.Success, MagitekResults.F
     public static implicit operator MagitekResults(Failed input) => new MagitekResults(input);
 }
 
-public class MagitekResults<T> : OneOfBase<MagitekResults<T>.Success, MagitekResults<T>.Failed>
+public sealed class MagitekResults<T> : OneOfBase<MagitekResults<T>.Success, MagitekResults<T>.Failed>
 {
     public MagitekResults(OneOf<Success, Failed> input) : base(input) { }
 

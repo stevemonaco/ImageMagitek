@@ -2,7 +2,7 @@
 
 namespace ImageMagitek;
 
-public class MagitekResult : OneOfBase<MagitekResult.Success, MagitekResult.Failed>
+public sealed class MagitekResult : OneOfBase<MagitekResult.Success, MagitekResult.Failed>
 {
     public static Success SuccessResult { get; } = new Success();
 
@@ -26,7 +26,7 @@ public class MagitekResult : OneOfBase<MagitekResult.Success, MagitekResult.Fail
     public static implicit operator MagitekResult(Failed input) => new MagitekResult(input);
 }
 
-public class MagitekResult<T> : OneOfBase<MagitekResult<T>.Success, MagitekResult<T>.Failed>
+public sealed class MagitekResult<T> : OneOfBase<MagitekResult<T>.Success, MagitekResult<T>.Failed>
 {
     public MagitekResult(OneOf<Success, Failed> input) : base(input) { }
 
