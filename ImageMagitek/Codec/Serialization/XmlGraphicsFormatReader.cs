@@ -11,7 +11,7 @@ namespace ImageMagitek.Codec;
 
 public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
 {
-    private XmlSchemaSet _schemas = new();
+    private readonly XmlSchemaSet _schemas = new();
 
     public XmlGraphicsFormatReader(string schemaFileName)
     {
@@ -60,7 +60,7 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
         };
     }
 
-    private MagitekResults<IGraphicsFormat> ReadFlowCodec(XElement flowElementRoot)
+    private static MagitekResults<IGraphicsFormat> ReadFlowCodec(XElement flowElementRoot)
     {
         var errors = new List<string>();
 
@@ -120,8 +120,10 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
         else
             errors.Add($"Unrecognized fixedsize value '{codec.FixedSize?.Value}' on line {codec.FixedSize.LineNumber()}");
 
-        var format = new FlowGraphicsFormat(name, colorType, colorDepth, layout, defaultWidth, defaultHeight);
-        format.FixedSize = fixedSize;
+        var format = new FlowGraphicsFormat(name, colorType, colorDepth, layout, defaultWidth, defaultHeight)
+        {
+            FixedSize = fixedSize
+        };
 
         string mergeString = codec.MergePriority?.Value ?? "";
         mergeString = mergeString.Replace(" ", "");
@@ -181,7 +183,7 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
             if (!bool.TryParse(image.RowInterlace.Value, out var imageRowInterlace))
                 errors.Add($"rowinterlace could not be parsed on line {codec.DefaultHeight.LineNumber()}");
 
-            ImageProperty ip = new ImageProperty(imageColorDepth, imageRowInterlace, rowPixelPattern);
+            var ip = new ImageProperty(imageColorDepth, imageRowInterlace, rowPixelPattern);
             format.ImageProperties.Add(ip);
         }
 
@@ -197,7 +199,7 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
             return new MagitekResults<IGraphicsFormat>.Success(format);
     }
 
-    private MagitekResults<IGraphicsFormat> ReadPatternCodec(XElement patternElementRoot)
+    private static MagitekResults<IGraphicsFormat> ReadPatternCodec(XElement patternElementRoot)
     {
         var errors = new List<string>();
 

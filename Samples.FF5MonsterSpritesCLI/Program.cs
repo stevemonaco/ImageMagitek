@@ -7,7 +7,7 @@ namespace FF5MonsterSpritesCLI;
 
 public class Program
 {
-    enum AppAction { Import, Export }
+    public enum AppAction { Import, Export }
 
     public static async Task<int> Main(string[] args)
     {

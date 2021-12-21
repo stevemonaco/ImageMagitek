@@ -132,7 +132,7 @@ public sealed class SequentialArranger : Arranger
         if (Mode != ArrangerMode.Sequential)
             throw new InvalidOperationException($"{nameof(Move)}: Arranger {Name} is not in sequential mode");
 
-        BitAddress testaddress = absoluteAddress + ArrangerBitSize; // Tests the bounds of the arranger vs the file size
+        var testaddress = absoluteAddress + ArrangerBitSize; // Tests the bounds of the arranger vs the file size
 
         if (FileSize * 8 < ArrangerBitSize) // Arranger needs more bits than the entire file
             FileAddress = new BitAddress(0, 0);
@@ -141,7 +141,7 @@ public sealed class SequentialArranger : Arranger
         else
             FileAddress = absoluteAddress;
 
-        BitAddress relativeChange = FileAddress - GetInitialSequentialFileAddress();
+        var relativeChange = FileAddress - GetInitialSequentialFileAddress();
 
         for (int posY = 0; posY < ArrangerElementSize.Height; posY++)
         {
@@ -169,7 +169,7 @@ public sealed class SequentialArranger : Arranger
         if (Mode != ArrangerMode.Sequential)
             throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode})");
 
-        BitAddress address = FileAddress;
+        var address = FileAddress;
 
         ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);
 

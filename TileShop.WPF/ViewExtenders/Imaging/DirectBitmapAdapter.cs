@@ -106,7 +106,7 @@ public class DirectBitmapAdapter : BitmapAdapter
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private uint TranslateColor(int x, in Span<ColorRgba32> sourceRow)
+    private static uint TranslateColor(int x, in Span<ColorRgba32> sourceRow)
     {
         var inputColor = sourceRow[x].Color;
         uint outputColor = (inputColor & 0xFF00FF00) | BitOperations.RotateLeft(inputColor & 0xFF00FF, 16);

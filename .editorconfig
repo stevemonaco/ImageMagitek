@@ -74,7 +74,7 @@ csharp_style_expression_bodied_accessors = true:suggestion
 #prefer block bodies for constructors
 csharp_style_expression_bodied_constructors = false:suggestion
 #prefer expression-bodied members for methods when they will be a single line
-csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+csharp_style_expression_bodied_methods =when_on_single_line:silent
 #prefer expression-bodied members for properties
 csharp_style_expression_bodied_properties = true:suggestion
 
@@ -103,7 +103,7 @@ dotnet_style_prefer_inferred_tuple_names = true:suggestion
 #prefer var over explicit type in all cases, unless overridden by another code style rule
 csharp_style_var_elsewhere = true:suggestion
 #prefer var is used to declare variables with built-in system types such as int
-csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_for_built_in_types =true:silent
 #prefer var when the type is already mentioned on the right-hand side of a declaration expression
 csharp_style_var_when_type_is_apparent = true:suggestion
 
@@ -143,6 +143,10 @@ dotnet_style_qualification_for_method = false:suggestion
 #prefer properties not to be prefaced with this. or Me. in Visual Basic
 dotnet_style_qualification_for_property = false:suggestion
 csharp_style_namespace_declarations=file_scoped:silent
+
+# IDE0059: Unnecessary assignment of a value
+dotnet_diagnostic.IDE0059.severity = warning
+csharp_style_deconstructed_variable_declaration=true:silent
 
 [*.{cs,vb}]
 dotnet_style_namespace_match_folder=false:suggestion

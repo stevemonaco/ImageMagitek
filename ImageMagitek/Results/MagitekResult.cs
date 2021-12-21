@@ -8,13 +8,8 @@ public sealed class MagitekResult : OneOfBase<MagitekResult.Success, MagitekResu
 
     public MagitekResult(OneOf<Success, Failed> input) : base(input) { }
 
-    public sealed class Success { }
-
-    public sealed class Failed
-    {
-        public string Reason { get; }
-        public Failed(string reason) => Reason = reason;
-    }
+    public sealed record Success();
+    public sealed record Failed(string Reason);
 
     public bool HasSucceeded => IsT0;
     public Success AsSuccess => AsT0;
@@ -22,25 +17,16 @@ public sealed class MagitekResult : OneOfBase<MagitekResult.Success, MagitekResu
     public bool HasFailed => IsT1;
     public Failed AsError => AsT1;
 
-    public static implicit operator MagitekResult(Success input) => new MagitekResult(input);
-    public static implicit operator MagitekResult(Failed input) => new MagitekResult(input);
+    public static implicit operator MagitekResult(Success input) => new(input);
+    public static implicit operator MagitekResult(Failed input) => new(input);
 }
 
 public sealed class MagitekResult<T> : OneOfBase<MagitekResult<T>.Success, MagitekResult<T>.Failed>
 {
     public MagitekResult(OneOf<Success, Failed> input) : base(input) { }
 
-    public sealed class Success
-    {
-        public T Result { get; }
-        public Success(T result) => Result = result;
-    }
-
-    public sealed class Failed
-    {
-        public string Reason { get; }
-        public Failed(string reason) => Reason = reason;
-    }
+    public sealed record Success(T Result);
+    public sealed record Failed(string Reason);
 
     public bool HasSucceeded => IsT0;
     public Success AsSuccess => AsT0;
@@ -48,6 +34,6 @@ public sealed class MagitekResult<T> : OneOfBase<MagitekResult<T>.Success, Magit
     public bool HasFailed => IsT1;
     public Failed AsError => AsT1;
 
-    public static implicit operator MagitekResult<T>(Success input) => new MagitekResult<T>(input);
-    public static implicit operator MagitekResult<T>(Failed input) => new MagitekResult<T>(input);
+    public static implicit operator MagitekResult<T>(Success input) => new(input);
+    public static implicit operator MagitekResult<T>(Failed input) => new(input);
 }

@@ -33,7 +33,7 @@ public sealed class IndexedImage : ImageBase<byte>
     public IndexedImage(Arranger arranger, int x, int y, int width, int height)
     {
         if (arranger is null)
-            throw new ArgumentNullException($"{nameof(IndexedImage)}.Ctor parameter '{nameof(arranger)}' was null");
+            throw new ArgumentNullException(nameof(arranger), $"{nameof(IndexedImage)}.Ctor parameter was null");
 
         if (arranger.ColorType != PixelColorType.Indexed)
             throw new ArgumentException($"{nameof(IndexedImage)}.Ctor: Arranger '{arranger.Name}' has an invalid color type '{arranger.ColorType}'");
@@ -82,7 +82,7 @@ public sealed class IndexedImage : ImageBase<byte>
 
         var locations = Arranger.EnumerateElementLocationsWithinPixelRange(Left, Top, Width, Height);
 
-        Rectangle imageRect = new Rectangle(Left, Top, Width, Height);
+        var imageRect = new Rectangle(Left, Top, Width, Height);
 
         foreach (var location in locations)
         {
