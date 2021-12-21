@@ -53,7 +53,6 @@ public class ArrangerBuilder :
     ISequentialArrangerBuilderSources,
     IScatteredArrangerBuilder
 {
-    private ArrangerMode _mode;
     private ICodecFactory _codecFactory;
     private PixelColorType _pixelColorType;
     private ElementLayout _elementLayout;
@@ -70,17 +69,19 @@ public class ArrangerBuilder :
 
     public static IArrangerBuilderElementPixelSize WithSingleLayout()
     {
-        var builder = new ArrangerBuilder();
-        builder._elementLayout = ElementLayout.Single;
-        builder._arrangerElementSize = new(1, 1);
-        return builder;
+        return new ArrangerBuilder
+        {
+            _elementLayout = ElementLayout.Single,
+            _arrangerElementSize = new(1, 1)
+        };
     }
 
     public static IArrangerBuilderArrangerElementSize WithTiledLayout()
     {
-        var builder = new ArrangerBuilder();
-        builder._elementLayout = ElementLayout.Tiled;
-        return builder;
+        return new ArrangerBuilder
+        {
+            _elementLayout = ElementLayout.Tiled
+        };
     }
 
     public IArrangerBuilderElementPixelSize WithArrangerElementSize(int x, int y)
@@ -109,7 +110,6 @@ public class ArrangerBuilder :
 
     public ISequentialArrangerBuilderSources AsSequentialArranger(ICodecFactory codecFactory)
     {
-        _mode = ArrangerMode.Sequential;
         _codecFactory = codecFactory;
 
         return this;
@@ -117,8 +117,6 @@ public class ArrangerBuilder :
 
     public IScatteredArrangerBuilder AsScatteredArranger()
     {
-        _mode = ArrangerMode.Scattered;
-
         return this;
     }
 
@@ -148,8 +146,11 @@ public class ArrangerBuilder :
 
     SequentialArranger ISequentialArrangerBuilderSources.Build()
     {
-        var arranger = new SequentialArranger(_arrangerElementSize.Width, _arrangerElementSize.Height, _dataFile, _palette, _codecFactory, _codecName);
-        arranger.Name = _name;
+        var arranger = new SequentialArranger(_arrangerElementSize.Width, _arrangerElementSize.Height, _dataFile, _palette, _codecFactory, _codecName)
+        {
+            Name = _name
+        };
+
         var codec = _codecFactory.GetCodec(arranger.ActiveCodec.Name, _elementPixelSize);
         arranger.ChangeCodec(codec);
         return arranger;

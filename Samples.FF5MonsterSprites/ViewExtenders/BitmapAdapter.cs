@@ -7,8 +7,8 @@ namespace FF5MonsterSprites.Imaging;
 
 public abstract class BitmapAdapter : PropertyChangedBase
 {
-    private WriteableBitmap _bitmap;
-    public WriteableBitmap Bitmap
+    private WriteableBitmap? _bitmap;
+    public WriteableBitmap? Bitmap
     {
         get => _bitmap;
         protected set => SetAndNotify(ref _bitmap, value);

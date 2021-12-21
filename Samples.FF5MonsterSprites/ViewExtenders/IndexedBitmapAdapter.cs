@@ -37,6 +37,9 @@ public class IndexedBitmapAdapter : BitmapAdapter
     /// <param name="redrawRect"></param>
     public override void Invalidate(Rectangle redrawRect)
     {
+        if (Bitmap is null)
+            throw new NullReferenceException($"{nameof(Invalidate)}: '{nameof(Bitmap)}' was null");
+
         var imageRect = new Rectangle(0, 0, Image.Width, Image.Height);
         var bitmapRect = new Rectangle(0, 0, Bitmap.PixelWidth, Bitmap.PixelHeight);
 
@@ -59,6 +62,9 @@ public class IndexedBitmapAdapter : BitmapAdapter
     /// <param name="height">Height of region</param>
     public override void Invalidate(int x, int y, int width, int height)
     {
+        if (Bitmap is null)
+            throw new NullReferenceException($"{nameof(Invalidate)}: '{nameof(Bitmap)}' was null");
+
         var imageRect = new Rectangle(0, 0, Image.Width, Image.Height);
         var bitmapRect = new Rectangle(0, 0, Bitmap.PixelWidth, Bitmap.PixelHeight);
         var redrawRect = new Rectangle(x, y, width, height);
@@ -75,6 +81,9 @@ public class IndexedBitmapAdapter : BitmapAdapter
 
     protected override void Render(int xStart, int yStart, int width, int height)
     {
+        if (Bitmap is null)
+            throw new NullReferenceException($"{nameof(Invalidate)}: '{nameof(Bitmap)}' was null");
+
         try
         {
             if (!Bitmap.TryLock(new System.Windows.Duration(TimeSpan.FromMilliseconds(500))))

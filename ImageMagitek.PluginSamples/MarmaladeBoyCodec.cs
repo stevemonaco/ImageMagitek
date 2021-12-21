@@ -43,10 +43,10 @@ public class MarmaladeBoyCodec : IndexedCodec
 
     public override byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
     {
-        if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
-            throw new ArgumentException(nameof(encodedBuffer));
+        if (encodedBuffer.Length * 8 < StorageSize)
+            throw new ArgumentException($"{nameof(DecodeElement)}: buffer size is too small", nameof(encodedBuffer));
 
-        encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
+        encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
 
         _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
 

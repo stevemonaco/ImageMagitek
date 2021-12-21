@@ -74,7 +74,7 @@ public class SpriteViewModel : Screen
     }
 
     private readonly MonsterMetadata _metadata;
-    private SpriteResourceContext _context;
+    private SpriteResourceContext? _context;
 
     public SpriteViewModel(MonsterMetadata metadata)
     {
@@ -108,7 +108,7 @@ public class SpriteViewModel : Screen
 
     protected override void OnClose()
     {
-        _context.DataFile.Stream.Close();
+        _context?.DataFile.Dispose();
         base.OnClose();
     }
 }
