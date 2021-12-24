@@ -34,7 +34,7 @@ public readonly struct BitAddress : IEquatable<BitAddress>
     }
 
     /// <summary>
-    /// Construct a new FileBitAddress from the number of bits to the address
+    /// Construct a new BitAddress from the number of bits to the address
     /// </summary>
     /// <param name="bits"></param>
     public BitAddress(long bits)
@@ -56,7 +56,7 @@ public readonly struct BitAddress : IEquatable<BitAddress>
     public static bool operator !=(BitAddress lhs, BitAddress rhs) => !lhs.Equals(rhs);
 
     /// <summary>
-    /// Adds two FileBitAddress objects and returns the result
+    /// Adds two BitAddress objects and returns the result
     /// </summary>
     /// <param name="lhs"></param>
     /// <param name="rhs"></param>
@@ -64,7 +64,7 @@ public readonly struct BitAddress : IEquatable<BitAddress>
     public static BitAddress operator +(BitAddress lhs, BitAddress rhs) => new(lhs.Offset + rhs.Offset);
 
     /// <summary>
-    /// Adds a specified number of bits to a FileBitAddress object
+    /// Adds a specified number of bits to a BitAddress object
     /// </summary>
     /// <param name="lhs"></param>
     /// <param name="offset">Number of bits to advance the address</param>
@@ -72,7 +72,7 @@ public readonly struct BitAddress : IEquatable<BitAddress>
     public static BitAddress operator +(BitAddress lhs, long offset) => new(lhs.Offset + offset);
 
     /// <summary>
-    /// Subtracts two FileBitAddress objects and returns the result
+    /// Subtracts two BitAddress objects and returns the result
     /// </summary>
     /// <param name="lhs"></param>
     /// <param name="rhs"></param>
@@ -80,7 +80,7 @@ public readonly struct BitAddress : IEquatable<BitAddress>
     public static BitAddress operator -(BitAddress lhs, BitAddress rhs) => new(lhs.Offset - rhs.Offset);
 
     /// <summary>
-    /// Subtracts a number of bits from a FileBitAddress object
+    /// Subtracts a number of bits from a BitAddress object
     /// </summary>
     /// <param name="lhs"></param>
     /// <param name="offset">Offset in number of bits</param>
