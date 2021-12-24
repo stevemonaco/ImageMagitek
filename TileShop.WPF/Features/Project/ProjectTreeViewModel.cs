@@ -526,6 +526,9 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
     public void NewProjectFromFile()
     {
         var dataFileName = _fileSelect.GetExistingDataFileNameByUser();
+        if (dataFileName is null)
+            return;
+
         var projectPath = Path.GetDirectoryName(dataFileName);
         var projectFileName = Path.Combine(projectPath, Path.GetFileNameWithoutExtension(dataFileName) + "Project.xml");
 
