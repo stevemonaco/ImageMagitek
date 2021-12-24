@@ -184,14 +184,14 @@ public sealed class SequentialArranger : Arranger
     }
 
     /// <summary>
-    /// Sets Element to an absolute position in the Arranger's ElementGrid using a shallow copy
+    /// Sets Element to an absolute position in the Arranger's ElementGrid
     /// </summary>
     /// <param name="element">Element to be placed into the ElementGrid</param>
     /// <param name="posX">x-coordinate in Element coordinates</param>
     /// <param name="posY">y-coordinate in Element coordinates</param>
     public override void SetElement(in ArrangerElement? element, int posX, int posY)
     {
-        if (posX > ArrangerElementSize.Width || posY > ArrangerElementSize.Height)
+        if (posX > ArrangerElementSize.Width || posY > ArrangerElementSize.Height || posX < 0 || posY < 0)
             throw new ArgumentOutOfRangeException($"{nameof(SetElement)} parameter was out of range: ({posX}, {posY})");
 
         if (element is ArrangerElement el)
@@ -202,16 +202,20 @@ public sealed class SequentialArranger : Arranger
             if (!ReferenceEquals(ActiveDataFile, el.DataFile))
                 throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its DataFile '{el.DataFile.Name}' does not match the SequentialArranger '{ActiveDataFile.Name}'");
 
-            if (!ReferenceEquals(ActiveDataFile, el.DataFile))
+            if (!ReferenceEquals(ActivePalette, el.Palette))
                 throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its Palette '{el.Palette.Name}' does not match the SequentialArranger '{ActivePalette.Name}'");
 
-            if (!ReferenceEquals(ActiveDataFile, el.DataFile))
+            if (el.Codec.Name != ActiveCodec.Name)
                 throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its Codec '{el.Codec.Name}' does not match the SequentialArranger '{ActiveCodec.Name}'");
+
+            var codecSize = new Size(el.Codec.Width, el.Codec.Height);
+            if (ElementPixelSize != codecSize)
+                throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its Codec dimensions '{codecSize}' does not match the SequentialArranger '{ElementPixelSize}'");
 
             ElementGrid[posY, posX] = element;
         }
         else
-            ElementGrid[posY, posX] = element;
+            ElementGrid[posY, posX] = default;
     }
 
     /// <summary>
