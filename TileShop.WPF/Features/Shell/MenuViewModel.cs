@@ -31,7 +31,7 @@ public class MenuViewModel : Screen, IHandle<ProjectLoadedEvent>
         set => SetAndNotify(ref _editors, value);
     }
 
-    private BindableCollection<string> _recentProjectFiles;
+    private BindableCollection<string> _recentProjectFiles = new();
     public BindableCollection<string> RecentProjectFiles
     {
         get => _recentProjectFiles;
@@ -51,7 +51,7 @@ public class MenuViewModel : Screen, IHandle<ProjectLoadedEvent>
         _events.Subscribe(this);
         _tracker.Track(this);
 
-        RecentProjectFiles = new(RecentProjectFiles.Where(x => File.Exists(x)).ToList());
+        RecentProjectFiles = new(RecentProjectFiles.Where(x => File.Exists(x)));
     }
 
     public void NewEmptyProject() => ProjectTree.AddNewProject();
