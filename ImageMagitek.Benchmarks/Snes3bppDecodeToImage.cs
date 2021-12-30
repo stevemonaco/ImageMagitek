@@ -17,7 +17,7 @@ public class Snes3bppDecodeToImage
 
     private IGraphicsCodec _codec;
 
-    private DataFile _df;
+    private DataSource _df;
     private Palette _pal;
     private ScatteredArranger _arranger;
 
@@ -55,7 +55,7 @@ public class Snes3bppDecodeToImage
             fs.Write(data);
         }
 
-        _df = new DataFile("df", Path.GetFullPath(dataFileName));
+        _df = new FileDataSource("FileSource", Path.GetFullPath(dataFileName));
 
         _arranger = new ScatteredArranger(arrangerName, PixelColorType.Indexed, ElementLayout.Tiled, 16, 32, 8, 8);
 

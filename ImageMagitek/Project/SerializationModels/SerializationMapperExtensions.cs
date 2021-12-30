@@ -7,15 +7,15 @@ namespace ImageMagitek.Project.Serialization;
 
 public static class SerializationMapperExtensions
 {
-    public static DataFile MapToResource(this DataFileModel df) =>
-        new DataFile(df.Name, df.Location);
+    public static DataSource MapToResource(this DataFileModel df) =>
+        new FileDataSource(df.Name, df.Location);
 
-    public static DataFileModel MapToModel(this DataFile df)
+    public static DataFileModel MapToModel(this FileDataSource fileSource)
     {
         return new DataFileModel()
         {
-            Name = df.Name,
-            Location = df.Location
+            Name = fileSource.Name,
+            Location = fileSource.FileLocation
         };
     }
 
@@ -92,11 +92,11 @@ public static class SerializationMapperExtensions
 
         foreach (var source in model.ColorSources)
         {
-            if (source is FileColorSourceModel fileSource)
+            if (source is FileColorSourceModel fileColorSource)
             {
-                var fileSources = Enumerable.Range(0, fileSource.Entries)
-                    .Select(x => fileSource.FileAddress + size * x)
-                    .Select(x => new FileColorSource(x, fileSource.Endian))
+                var fileSources = Enumerable.Range(0, fileColorSource.Entries)
+                    .Select(x => fileColorSource.FileAddress + size * x)
+                    .Select(x => new FileColorSource(x, fileColorSource.Endian))
                     .ToList();
                 sources.AddRange(fileSources);
             }

@@ -112,7 +112,7 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
                 return;
             }
 
-            var df = new DataFile(dfName, dataFileName);
+            var df = new FileDataSource(dfName, dataFileName);
             var result = _projectService.AddResource(parentNodeModel.Node, df);
 
             result.Switch(success =>
@@ -134,14 +134,14 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
         var dialogModel = new AddPaletteViewModel(parentNodeModel.Children.Select(x => x.Name));
 
         var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
-        var dataFiles = projectTree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataFile>();
-        dialogModel.DataFiles.AddRange(dataFiles);
-        dialogModel.SelectedDataFile = dialogModel.DataFiles.FirstOrDefault();
+        var dataFiles = projectTree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataSource>();
+        dialogModel.DataSources.AddRange(dataFiles);
+        dialogModel.SelectedDataSource = dialogModel.DataSources.FirstOrDefault();
         dialogModel.ColorModels.AddRange(Palette.GetColorModelNames());
 
         _tracker.Track(dialogModel);
 
-        if (dialogModel.DataFiles.Count == 0)
+        if (dialogModel.DataSources.Count == 0)
         {
             _windowManager.ShowMessageBox("Project does not contain any data files to define a palette", "Project Error");
             return;
@@ -153,7 +153,7 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
                 Palette.StringToColorModel(dialogModel.SelectedColorModel), Array.Empty<IColorSource>(),
                 dialogModel.ZeroIndexTransparent, PaletteStorageSource.Project);
 
-            pal.DataFile = dialogModel.SelectedDataFile;
+            pal.DataFile = dialogModel.SelectedDataSource;
 
             var result = _projectService.AddResource(parentNodeModel.Node, pal);
 

@@ -68,7 +68,7 @@ public sealed class XmlProjectWriter : IProjectWriter
         }
         else if (resourceNode is DataFileNode dfNode)
         {
-            var model = (dfNode.Item as DataFile).MapToModel();
+            var model = (dfNode.Item as FileDataSource).MapToModel();
             return Stringify(Serialize(model));
         }
         else if (resourceNode is PaletteNode palNode)
@@ -107,7 +107,7 @@ public sealed class XmlProjectWriter : IProjectWriter
         }
         else if (resourceNode is DataFileNode dfNode)
         {
-            var model = (dfNode.Item as DataFile).MapToModel();
+            var model = (dfNode.Item as FileDataSource).MapToModel();
             contents = Stringify(Serialize(model));
             currentModel = model;
             diskModel = dfNode.Model;
@@ -161,7 +161,7 @@ public sealed class XmlProjectWriter : IProjectWriter
             }
             else if (node is DataFileNode dfNode)
             {
-                var model = (dfNode.Item as DataFile).MapToModel();
+                var model = (dfNode.Item as FileDataSource).MapToModel();
                 currentModel = model;
                 diskModel = dfNode.Model;
             }

@@ -7,7 +7,7 @@ using ImageMagitek.PluginSample;
 
 namespace FF5MonsterSprites.Serialization;
 
-public record SpriteResourceContext(DataFile DataFile, Palette Palette, ScatteredArranger Arranger);
+public record SpriteResourceContext(DataSource DataFile, Palette Palette, ScatteredArranger Arranger);
 
 public class MonsterSerializer
 {
@@ -55,7 +55,7 @@ public class MonsterSerializer
 
     public async Task<SpriteResourceContext> DeserializeSprite(string fileName, MonsterMetadata metadata)
     {
-        var dataFile = new DataFile("monsterFile", fileName);
+        var fileSource = new FileDataSource("monsterFile", fileName);
         var palEntries = metadata.ColorDepth == TileColorDepth.Bpp4 ? 16 : 8;
 
         var paletteSources = Enumerable.Range(0, palEntries)
@@ -63,15 +63,15 @@ public class MonsterSerializer
             .ToList();
 
         var pal = new Palette("monsterPalette", new ColorFactory(), ColorModel.Bgr15, paletteSources, true, PaletteStorageSource.Project);
-        pal.DataFile = dataFile;
+        pal.DataFile = fileSource;
 
         int arrangerWidth = metadata.TileSetSize == TileSetSize.Small ? 8 : 16;
         int arrangerHeight = metadata.TileSetSize == TileSetSize.Small ? 8 : 16;
 
         var formData = new byte[arrangerWidth * arrangerHeight / 8];
         int formAddress = metadata.TileSetSize == TileSetSize.Small ? FormSmallOffset + 8 * metadata.FormID : FormLargeOffset + 32 * metadata.FormID;
-        dataFile.Stream.Seek(formAddress, SeekOrigin.Begin);
-        var length = await dataFile.Stream.ReadAsync(formData, 0, formData.Length);
+        fileSource.Stream.Seek(formAddress, SeekOrigin.Begin);
+        var length = await fileSource.Stream.ReadAsync(formData, 0, formData.Length);
         if (metadata.TileSetSize == TileSetSize.Large) // Requires endian swapping the tile form
         {
             EndianSwapArray(formData);
@@ -97,7 +97,7 @@ public class MonsterSerializer
                 if (bitStream.ReadBit() == 1)
                 {
                     IGraphicsCodec codec = metadata.ColorDepth == TileColorDepth.Bpp4 ? new Snes4bppCodec(8, 8) : new Snes3bppCodec(8, 8);
-                    var element = new ArrangerElement(x * 8, y * 8, dataFile, new BitAddress(tileOffset * 8), codec, pal);
+                    var element = new ArrangerElement(x * 8, y * 8, fileSource, new BitAddress(tileOffset * 8), codec, pal);
                     tileOffset += tileSize;
                     arranger.SetElement(element, x, y);
                     elementsStored++;
@@ -105,7 +105,7 @@ public class MonsterSerializer
             }
         }
 
-        return new SpriteResourceContext(dataFile, pal, arranger);
+        return new SpriteResourceContext(fileSource, pal, arranger);
     }
 
     private void EndianSwapArray(byte[] array)

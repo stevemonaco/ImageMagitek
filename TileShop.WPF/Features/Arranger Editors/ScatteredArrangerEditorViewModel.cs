@@ -247,10 +247,19 @@ public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
             if (el is ArrangerElement element)
             {
+                var paletteName = element.Palette?.Name ?? "Default";
+                var sourceName = element.DataFile switch
+                {
+                    FileDataSource fds => fds.FileLocation,
+                    MemoryDataSource => "Memory",
+                    _ => "None"
+                };
+                var fileOffsetDescription = $"0x{element.FileAddress.ByteOffset:X}.{(element.FileAddress.BitOffset != 0 ? element.FileAddress.BitOffset.ToString() : "")}";
+
                 string notifyMessage = WorkingArranger.ColorType switch
                 {
-                    PixelColorType.Indexed => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, Palette {element.Palette?.Name ?? "Default"}, DataFile {element.DataFile?.Location ?? "None"}, FileOffset 0x{element.FileAddress.ByteOffset:X}.{(element.FileAddress.BitOffset != 0 ? element.FileAddress.BitOffset.ToString() : "")}",
-                    PixelColorType.Direct => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, DataFile {element.DataFile?.Location ?? "None"}, FileOffset 0x{element.FileAddress.ByteOffset:X}.{(element.FileAddress.BitOffset != 0 ? element.FileAddress.BitOffset.ToString() : "")}",
+                    PixelColorType.Indexed => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, Palette {paletteName}, Source {sourceName}, FileOffset {fileOffsetDescription}",
+                    PixelColorType.Direct => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, Source {sourceName}, FileOffset {fileOffsetDescription}",
                     _ => "Unknown Color Type"
                 };
 

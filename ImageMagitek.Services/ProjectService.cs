@@ -76,7 +76,7 @@ public class ProjectService : IProjectService
         };
         var tree = new ProjectTree(root);
 
-        var dataFile = new DataFile(Path.GetFileNameWithoutExtension(dataFileName), dataFileName);
+        var dataFile = new FileDataSource(Path.GetFileNameWithoutExtension(dataFileName), dataFileName);
         var dataNode = new DataFileNode(dataFile.Name, dataFile);
         tree.AttachNodeToPath("", dataNode);
 
@@ -244,7 +244,7 @@ public class ProjectService : IProjectService
         {
             ResourceNode childNode = resource switch
             {
-                DataFile df => new DataFileNode(df.Name, df),
+                DataSource df => new DataFileNode(df.Name, df),
                 ScatteredArranger arranger => new ArrangerNode(arranger.Name, arranger),
                 Palette pal => new PaletteNode(pal.Name, pal),
                 ResourceFolder folder => new ResourceFolderNode(folder.Name, folder),
@@ -663,7 +663,7 @@ public class ProjectService : IProjectService
                     if (linkedResource is Palette && resource is Arranger)
                         lostPalette = true;
 
-                    if (linkedResource is DataFile && resource is Arranger arranger)
+                    if (linkedResource is DataSource && resource is Arranger arranger)
                     {
                         lostElements = true;
                         if (arranger.EnumerateElements().OfType<ArrangerElement>().All(x => removedDict.ContainsKey(linkedResource) || x.DataFile is null))
@@ -700,7 +700,8 @@ public class ProjectService : IProjectService
         }
         else if (node is DataFileNode dfNode)
         {
-            dfNode.Model = (dfNode.Item as DataFile).MapToModel();
+            if (dfNode.Item is FileDataSource fileSource)
+                dfNode.Model = fileSource.MapToModel();
         }
         else if (node is PaletteNode palNode)
         {

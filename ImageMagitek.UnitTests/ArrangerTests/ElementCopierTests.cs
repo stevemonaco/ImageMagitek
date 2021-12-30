@@ -8,12 +8,12 @@ namespace ImageMagitek.UnitTests;
 public class ElementCopierTests
 {
     ScatteredArranger _sourceIndexed;
-    DataFile _df;
+    DataSource _df;
 
     [OneTimeSetUp]
     public void Setup()
     {
-        _df = new DataFile("sourceDataFile", new MemoryStream());
+        _df = new MemoryDataSource("MemoryDataSource");
         _sourceIndexed = new ScatteredArranger("source", PixelColorType.Indexed, ElementLayout.Tiled, 6, 6, 8, 8);
 
         for (int y = 0; y < _sourceIndexed.ArrangerElementSize.Height; y++)

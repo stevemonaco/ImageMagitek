@@ -36,7 +36,7 @@ public sealed class SequentialArranger : Arranger
     /// <summary>
     /// DataFile that is assigned to each <see cref="ArrangerElement"/>
     /// </summary>
-    public DataFile ActiveDataFile { get; private set; }
+    public DataSource ActiveDataFile { get; private set; }
 
     /// <summary>
     /// Palette that is assigned to each <see cref="ArrangerElement"/>
@@ -55,11 +55,11 @@ public sealed class SequentialArranger : Arranger
     /// </summary>
     /// <param name="arrangerWidth">Width of arranger in elements</param>
     /// <param name="arrangerHeight">Height of arranger in elements</param>
-    /// <param name="dataFile"><see cref="DataFile"/> assigned to each <see cref="ArrangerElement"/></param>
+    /// <param name="dataFile"><see cref="DataSource"/> assigned to each <see cref="ArrangerElement"/></param>
     /// <param name="palette"><see cref="Palette"/> assigned to each <see cref="ArrangerElement"/></param>
     /// <param name="codecFactory">Factory responsible for creating new codecs</param>
     /// <param name="codecName">Name of codec each Element will be initialized to</param>
-    public SequentialArranger(int arrangerWidth, int arrangerHeight, DataFile dataFile, Palette palette, ICodecFactory codecFactory, string codecName)
+    public SequentialArranger(int arrangerWidth, int arrangerHeight, DataSource dataFile, Palette palette, ICodecFactory codecFactory, string codecName)
     {
         Mode = ArrangerMode.Sequential;
         FileSize = dataFile.Stream.Length;

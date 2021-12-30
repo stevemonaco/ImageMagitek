@@ -119,8 +119,8 @@ public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsE
                 case SequentialArranger sequentialArranger:
                     newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _events, _windowManager, _tracker, _codecService, _paletteService, _layoutService);
                     break;
-                case DataFile dataFile: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
-                    var extension = Path.GetExtension(dataFile.Location).ToLower();
+                case FileDataSource fileSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
+                    var extension = Path.GetExtension(fileSource.FileLocation).ToLower();
                     string codecName;
                     if (_settings.ExtensionCodecAssociations.ContainsKey(extension))
                         codecName = _settings.ExtensionCodecAssociations[extension];
@@ -129,7 +129,7 @@ public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsE
                     else
                         codecName = "NES 1bpp";
 
-                    var newArranger = new SequentialArranger(8, 16, dataFile, _paletteService.DefaultPalette, _codecService.CodecFactory, codecName);
+                    var newArranger = new SequentialArranger(8, 16, fileSource, _paletteService.DefaultPalette, _codecService.CodecFactory, codecName);
                     newDocument = new SequentialArrangerEditorViewModel(newArranger, _events, _windowManager, _tracker, _codecService, _paletteService, _layoutService);
                     break;
                 case ResourceFolder resourceFolder:

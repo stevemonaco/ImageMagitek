@@ -21,7 +21,7 @@ public class ProjectNodeViewModel : ResourceNodeViewModel
                 model = new FolderNodeViewModel(child, this);
             else if (child.Item is Palette)
                 model = new PaletteNodeViewModel(child, this);
-            else if (child.Item is DataFile)
+            else if (child.Item is DataSource)
                 model = new DataFileNodeViewModel(child, this);
             else if (child.Item is Arranger)
                 model = new ArrangerNodeViewModel(child, this);

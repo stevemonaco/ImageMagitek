@@ -32,7 +32,7 @@ public interface IArrangerBuilderType
 
 public interface ISequentialArrangerBuilderSources
 {
-    ISequentialArrangerBuilderSources WithDataFile(DataFile df);
+    ISequentialArrangerBuilderSources WithDataFile(DataSource df);
     ISequentialArrangerBuilderSources WithCodecName(string codecName);
     ISequentialArrangerBuilderSources WithPalette(Palette palette);
     ISequentialArrangerBuilderSources WithElementLayout(ElementLayout layout);
@@ -59,7 +59,7 @@ public class ArrangerBuilder :
     private Size _arrangerElementSize;
     private Size _elementPixelSize;
     private string _name;
-    private DataFile _dataFile;
+    private DataSource _dataFile;
     private string _codecName;
     private Palette _palette;
 
@@ -120,7 +120,7 @@ public class ArrangerBuilder :
         return this;
     }
 
-    public ISequentialArrangerBuilderSources WithDataFile(DataFile dataFile)
+    public ISequentialArrangerBuilderSources WithDataFile(DataSource dataFile)
     {
         _dataFile = dataFile;
         return this;

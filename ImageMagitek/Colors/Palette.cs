@@ -47,7 +47,7 @@ public class Palette : IProjectResource
     /// <summary>
     /// DataFile which contains the palette
     /// </summary>
-    public DataFile DataFile { get; set; }
+    public DataSource DataFile { get; set; }
 
     /// <summary>
     /// Number of color entries in the palette
@@ -165,7 +165,7 @@ public class Palette : IProjectResource
     /// <param name="model">ColorModel of the palette</param>
     /// <param name="zeroIndexTransparent">If the 0-index of the palette is automatically transparent</param>
     /// <returns>Success value</returns>
-    public bool LazyLoadPalette(DataFile dataFile, ColorModel model, bool zeroIndexTransparent)
+    public bool LazyLoadPalette(DataSource dataFile, ColorModel model, bool zeroIndexTransparent)
     {
         DataFile = dataFile;
         ColorModel = model;

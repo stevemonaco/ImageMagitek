@@ -4,7 +4,7 @@ namespace ImageMagitek.Project;
 
 public sealed class DataFileNode : ResourceNode<DataFileModel>
 {
-    public DataFileNode(string nodeName, DataFile resource) : base(nodeName, resource)
+    public DataFileNode(string nodeName, DataSource resource) : base(nodeName, resource)
     {
     }
 }

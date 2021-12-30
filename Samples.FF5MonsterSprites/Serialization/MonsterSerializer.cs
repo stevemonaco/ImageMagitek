@@ -12,7 +12,7 @@ using ImageMagitek.PluginSample;
 
 namespace FF5MonsterSprites.Serialization;
 
-public record SpriteResourceContext(DataFile DataFile, Palette Palette, ScatteredArranger Arranger);
+public record SpriteResourceContext(DataSource DataFile, Palette Palette, ScatteredArranger Arranger);
 
 public class MonsterSerializer
 {
@@ -60,7 +60,7 @@ public class MonsterSerializer
 
     public async Task<SpriteResourceContext> DeserializeSprite(string fileName, MonsterMetadata metadata)
     {
-        var dataFile = new DataFile("monsterFile", fileName);
+        var dataFile = new FileDataSource("monsterFile", fileName);
         var palEntries = metadata.ColorDepth == TileColorDepth.Bpp4 ? 16 : 8;
 
         var paletteSources = Enumerable.Range(0, palEntries)

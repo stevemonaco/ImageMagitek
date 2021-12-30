@@ -341,7 +341,7 @@ public abstract class Arranger : IProjectResource
     {
         if (resource is Palette palette)
             return UnlinkPalette(palette);
-        else if (resource is DataFile df)
+        else if (resource is DataSource df)
             return UnlinkDataFile(df);
         else
             return false;
@@ -369,7 +369,7 @@ public abstract class Arranger : IProjectResource
         return isModified;
     }
 
-    private bool UnlinkDataFile(DataFile dataFile)
+    private bool UnlinkDataFile(DataSource dataFile)
     {
         var isModified = false;
 

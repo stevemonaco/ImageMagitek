@@ -20,7 +20,7 @@ public static class ArrangerTestFactory
 
         palette.SetColorSources(colorSources);
 
-        var file = new DataFile("test", new MemoryStream(image.Width * image.Height));
+        var file = new MemoryDataSource("test", image.Width * image.Height);
         var elemsX = image.Width / codec.Width;
         var elemsY = image.Height / codec.Height;
 

@@ -62,9 +62,9 @@ internal sealed class ProjectTreeBuilder
 
     public MagitekResult AddDataFile(DataFileModel dfModel, string parentNodePath, string fileLocation)
     {
-        var df = new DataFile(dfModel.Name, dfModel.Location);
+        var fileSource = new FileDataSource(dfModel.Name, dfModel.Location);
 
-        var dfNode = new DataFileNode(df.Name, df)
+        var dfNode = new DataFileNode(fileSource.Name, fileSource)
         {
             DiskLocation = fileLocation,
             Model = dfModel
@@ -73,8 +73,8 @@ internal sealed class ProjectTreeBuilder
         Tree.TryGetNode(parentNodePath, out var parentNode);
         parentNode.AttachChildNode(dfNode);
 
-        if (!File.Exists(df.Location))
-            return new MagitekResult.Failed($"DataFile '{df.Name}' does not exist at location '{df.Location}'");
+        if (!File.Exists(fileSource.FileLocation))
+            return new MagitekResult.Failed($"DataFile '{fileSource.Name}' does not exist at location '{fileSource.FileLocation}'");
 
         return MagitekResult.SuccessResult;
     }
@@ -83,7 +83,7 @@ internal sealed class ProjectTreeBuilder
     {
         var pal = paletteModel.MapToResource(_colorFactory);
 
-        if (!Tree.TryGetItem<DataFile>(paletteModel.DataFileKey, out var df))
+        if (!Tree.TryGetItem<DataSource>(paletteModel.DataFileKey, out var df))
             return new MagitekResult.Failed($"Palette '{pal.Name}' could not locate DataFile with key '{paletteModel.DataFileKey}'");
 
         pal.DataFile = df;
@@ -163,7 +163,7 @@ internal sealed class ProjectTreeBuilder
         var elementModel = arrangerModel.ElementGrid[x, y];
         IGraphicsCodec codec = default;
         Palette palette = default;
-        DataFile df = default;
+        DataSource df = default;
         var address = BitAddress.Zero;
 
         if (elementModel is null)
@@ -173,7 +173,7 @@ internal sealed class ProjectTreeBuilder
         else if (arrangerModel.ColorType == PixelColorType.Indexed)
         {
             if (!string.IsNullOrWhiteSpace(elementModel.DataFileKey))
-                Tree.TryGetItem<DataFile>(elementModel.DataFileKey, out df);
+                Tree.TryGetItem<DataSource>(elementModel.DataFileKey, out df);
 
             address = elementModel.FileAddress;
             var paletteKey = elementModel.PaletteKey;
@@ -189,7 +189,7 @@ internal sealed class ProjectTreeBuilder
         else if (arrangerModel.ColorType == PixelColorType.Direct)
         {
             if (!string.IsNullOrWhiteSpace(elementModel.DataFileKey))
-                Tree.TryGetItem<DataFile>(elementModel.DataFileKey, out df);
+                Tree.TryGetItem<DataSource>(elementModel.DataFileKey, out df);
 
             address = elementModel.FileAddress;
             codec = _codecFactory.GetCodec(elementModel.CodecName, new Size(arrangerModel.ElementPixelSize.Width, arrangerModel.ElementPixelSize.Height));

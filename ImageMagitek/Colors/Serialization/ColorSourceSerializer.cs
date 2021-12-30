@@ -6,8 +6,8 @@ namespace ImageMagitek.Colors.Serialization;
 
 public interface IColorSourceSerializer
 {
-    IColor[] LoadColors(IColorSource[] sources, DataFile df, ColorModel colorModel, int entries);
-    void StoreColors(IList<IColorSource> sources, DataFile df, IList<ColorRgba32> nativeColors, IList<IColor> foreignColors);
+    IColor[] LoadColors(IColorSource[] sources, DataSource df, ColorModel colorModel, int entries);
+    void StoreColors(IList<IColorSource> sources, DataSource df, IList<ColorRgba32> nativeColors, IList<IColor> foreignColors);
 }
 
 public class ColorSourceSerializer : IColorSourceSerializer
@@ -19,7 +19,7 @@ public class ColorSourceSerializer : IColorSourceSerializer
         _colorFactory = colorFactory;
     }
 
-    public IColor[] LoadColors(IColorSource[] sources, DataFile df, ColorModel colorModel, int entries)
+    public IColor[] LoadColors(IColorSource[] sources, DataSource df, ColorModel colorModel, int entries)
     {
         var result = new IColor[entries];
         var currentEntry = 0;
@@ -63,7 +63,7 @@ public class ColorSourceSerializer : IColorSourceSerializer
     /// <param name="endian">Endianness of the color</param>
     /// <returns>The ColorModel-mapped color</returns>
     /// <exception cref="NotSupportedException">Size must be 32 bits or less</exception>
-    private IColor ReadFileColor(DataFile df, BitAddress offset, ColorModel colorModel, int size, Endian endian)
+    private IColor ReadFileColor(DataSource df, BitAddress offset, ColorModel colorModel, int size, Endian endian)
     {
         Span<byte> colorBuffer = stackalloc byte[4];
 
@@ -115,7 +115,7 @@ public class ColorSourceSerializer : IColorSourceSerializer
     /// <param name="nativeColors"></param>
     /// <param name="foreignColors"></param>
     /// <exception cref="NotSupportedException"></exception>
-    public void StoreColors(IList<IColorSource> sources, DataFile df, IList<ColorRgba32> nativeColors, IList<IColor> foreignColors)
+    public void StoreColors(IList<IColorSource> sources, DataSource df, IList<ColorRgba32> nativeColors, IList<IColor> foreignColors)
     {
         for (int i = 0; i < sources.Count; i++)
         {
@@ -138,7 +138,7 @@ public class ColorSourceSerializer : IColorSourceSerializer
         }
     }
 
-    private void WriteFileColor(DataFile df, BitAddress offset, IColor foreignColor, Endian endian)
+    private void WriteFileColor(DataSource df, BitAddress offset, IColor foreignColor, Endian endian)
     {
         Span<byte> colorBuffer = stackalloc byte[4];
 

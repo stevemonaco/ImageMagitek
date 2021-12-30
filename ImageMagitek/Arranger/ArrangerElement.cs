@@ -14,7 +14,7 @@ public readonly struct ArrangerElement
     /// <summary>
     /// DataFile which contains the Element's pixel data
     /// </summary>
-    public DataFile DataFile { get; }
+    public DataSource DataFile { get; }
 
     /// <summary>
     /// FileAddress of Element
@@ -77,7 +77,7 @@ public readonly struct ArrangerElement
         Rotation = RotationOperation.None;
     }
 
-    public ArrangerElement(int x1, int y1, DataFile dataFile, BitAddress address, IGraphicsCodec codec, Palette palette)
+    public ArrangerElement(int x1, int y1, DataSource dataFile, BitAddress address, IGraphicsCodec codec, Palette palette)
     {
         X1 = x1;
         Y1 = y1;
@@ -89,7 +89,7 @@ public readonly struct ArrangerElement
         Rotation = RotationOperation.None;
     }
 
-    public ArrangerElement(int x1, int y1, DataFile dataFile, BitAddress address, IGraphicsCodec codec, Palette palette,
+    public ArrangerElement(int x1, int y1, DataSource dataFile, BitAddress address, IGraphicsCodec codec, Palette palette,
         MirrorOperation mirror, RotationOperation rotation)
     {
         X1 = x1;
@@ -105,7 +105,7 @@ public readonly struct ArrangerElement
     public ArrangerElement WithLocation(int x1, int y1) =>
         new ArrangerElement(x1, y1, DataFile, FileAddress, Codec, Palette, Mirror, Rotation);
 
-    public ArrangerElement WithFile(DataFile dataFile, BitAddress fileAddress) =>
+    public ArrangerElement WithFile(DataSource dataFile, BitAddress fileAddress) =>
         new ArrangerElement(X1, Y1, dataFile, fileAddress, Codec, Palette, Mirror, Rotation);
 
     public ArrangerElement WithPalette(Palette palette) =>
@@ -120,7 +120,7 @@ public readonly struct ArrangerElement
     public ArrangerElement WithCodec(IGraphicsCodec codec, int x1, int y1) =>
         new ArrangerElement(x1, y1, DataFile, FileAddress, codec, Palette, Mirror, Rotation);
 
-    public ArrangerElement WithTarget(DataFile dataFile, BitAddress fileAddress, IGraphicsCodec codec, Palette palette) =>
+    public ArrangerElement WithTarget(DataSource dataFile, BitAddress fileAddress, IGraphicsCodec codec, Palette palette) =>
         new ArrangerElement(X1, Y1, dataFile, fileAddress, codec, palette, Mirror, Rotation);
 
     public ArrangerElement WithMirror(MirrorOperation mirror) =>

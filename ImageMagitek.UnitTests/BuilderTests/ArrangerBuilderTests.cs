@@ -32,7 +32,7 @@ public class ArrangerBuilderTests
     public void Build_SequentialArranger()
     {
         var codecFactory = new CodecFactory(new());
-        var dataFile = new DataFile("TestMemoryFile", new MemoryStream(2 * 256 * 512));
+        var memorySource = new MemoryDataSource("TestMemoryFile", 2 * 256 * 512);
 
         SequentialArranger arranger = ArrangerBuilder
             .WithSingleLayout()
@@ -40,7 +40,7 @@ public class ArrangerBuilderTests
             .WithPixelColorType(PixelColorType.Direct)
             .WithName("SequentialTestArranger")
             .AsSequentialArranger(codecFactory)
-            .WithDataFile(dataFile)
+            .WithDataFile(memorySource)
             .WithCodecName("PSX 16bpp")
             .Build();
 

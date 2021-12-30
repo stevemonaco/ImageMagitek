@@ -25,7 +25,7 @@ internal class ResourceRemovalTemplateSelector : DataTemplateSelector
             return changeVm.Resource switch
             {
                 ResourceFolder _ => FolderNodeTemplate,
-                DataFile _ => DataFileNodeTemplate,
+                DataSource _ => DataFileNodeTemplate,
                 ScatteredArranger _ => ArrangerNodeTemplate,
                 Palette _ => PaletteNodeTemplate,
                 _ => throw new ArgumentException($"{nameof(SelectTemplate)} does not contain a template for type {changeVm.Resource.GetType()}")

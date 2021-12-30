@@ -13,18 +13,18 @@ public class AddPaletteViewModel : Screen
         set => SetAndNotify(ref _paletteName, value);
     }
 
-    private BindableCollection<DataFile> _dataFiles = new BindableCollection<DataFile>();
-    public BindableCollection<DataFile> DataFiles
+    private BindableCollection<DataSource> _dataSources = new BindableCollection<DataSource>();
+    public BindableCollection<DataSource> DataSources
     {
-        get => _dataFiles;
-        set => SetAndNotify(ref _dataFiles, value);
+        get => _dataSources;
+        set => SetAndNotify(ref _dataSources, value);
     }
 
-    private DataFile _selectedDataFile;
-    public DataFile SelectedDataFile
+    private DataSource _selectedDataSource;
+    public DataSource SelectedDataSource
     {
-        get => _selectedDataFile;
-        set => SetAndNotify(ref _selectedDataFile, value);
+        get => _selectedDataSource;
+        set => SetAndNotify(ref _selectedDataSource, value);
     }
 
     private BindableCollection<string> _colorModels = new BindableCollection<string>();
