@@ -106,7 +106,7 @@ public class PaletteEditorViewModel : ResourceEditorBaseViewModel
         Colors.AddRange(CreateColorModels());
         ColorSourceModels.AddRange(CreateColorSourceModels(_palette));
 
-        PaletteSource = _palette.DataFile.Name;
+        PaletteSource = _palette.DataSource.Name;
         Entries = CountSourceColors();
 
         if (Entries > 0)
@@ -134,7 +134,7 @@ public class PaletteEditorViewModel : ResourceEditorBaseViewModel
         Colors = new(CreateColorModels());
 
         ActiveColor = Colors.FirstOrDefault();
-        PaletteSource = _palette.DataFile.Name;
+        PaletteSource = _palette.DataSource.Name;
         Entries = CountSourceColors();
         SelectedColorIndex = 0;
 

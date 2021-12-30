@@ -68,7 +68,7 @@ public class MonsterSerializer
             .ToList();
 
         var pal = new Palette("monsterPalette", new ColorFactory(), ColorModel.Bgr15, paletteSources, true, PaletteStorageSource.Project);
-        pal.DataFile = dataFile;
+        pal.DataSource = dataFile;
 
         Console.WriteLine(pal.GetNativeColor(0).ToString());
 
@@ -77,8 +77,11 @@ public class MonsterSerializer
 
         var formData = new byte[arrangerWidth * arrangerHeight / 8];
         int formAddress = metadata.TileSetSize == TileSetSize.Small ? FormSmallOffset + 8 * metadata.FormID : FormLargeOffset + 32 * metadata.FormID;
-        dataFile.Stream.Seek(formAddress, SeekOrigin.Begin);
-        var length = await dataFile.Stream.ReadAsync(formData, 0, formData.Length);
+
+        //dataFile.Stream.Seek(formAddress, SeekOrigin.Begin);
+        //var length = await dataFile.Stream.ReadAsync(formData, 0, formData.Length);
+        dataFile.Read(new BitAddress(formAddress, 0), formData.Length * 8, formData);
+        
         if (metadata.TileSetSize == TileSetSize.Large) // Requires endian swapping the tile form
         {
             EndianSwapArray(formData);

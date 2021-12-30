@@ -153,7 +153,7 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
                 Palette.StringToColorModel(dialogModel.SelectedColorModel), Array.Empty<IColorSource>(),
                 dialogModel.ZeroIndexTransparent, PaletteStorageSource.Project);
 
-            pal.DataFile = dialogModel.SelectedDataSource;
+            pal.DataSource = dialogModel.SelectedDataSource;
 
             var result = _projectService.AddResource(parentNodeModel.Node, pal);
 
@@ -622,7 +622,7 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
                 var activeContainedEditors = _editors.Editors.Where(x => projectTree.ContainsResource(x.Resource));
                 var activeSequentialEditors = _editors.Editors
                     .OfType<SequentialArrangerEditorViewModel>()
-                    .Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataFile));
+                    .Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataSource));
                 var activeIndexedPixelEditors = _editors.Editors
                     .OfType<IndexedPixelEditorViewModel>()
                     .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));

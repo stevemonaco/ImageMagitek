@@ -31,7 +31,7 @@ public enum PaletteStorageSource { Project = 0, Json }
 /// </summary>
 public class Palette : IProjectResource
 {
-    private static readonly Cie94Comparison _comparator = new Cie94Comparison(Cie94Comparison.Application.GraphicArts);
+    private static readonly Cie94Comparison _comparator = new(Cie94Comparison.Application.GraphicArts);
     private readonly IColorFactory _colorFactory;
     private readonly IColorSourceSerializer _colorSerializer;
 
@@ -45,9 +45,9 @@ public class Palette : IProjectResource
     public ColorModel ColorModel { get; private set; }
 
     /// <summary>
-    /// DataFile which contains the palette
+    /// DataSource which contains the palette colors specified by FileColorSources
     /// </summary>
-    public DataSource DataFile { get; set; }
+    public DataSource DataSource { get; set; }
 
     /// <summary>
     /// Number of color entries in the palette
@@ -155,7 +155,7 @@ public class Palette : IProjectResource
     /// <returns></returns>
     public bool Reload()
     {
-        return LazyLoadPalette(DataFile, ColorModel, ZeroIndexTransparent);
+        return LazyLoadPalette(DataSource, ColorModel, ZeroIndexTransparent);
     }
 
     /// <summary>
@@ -167,7 +167,7 @@ public class Palette : IProjectResource
     /// <returns>Success value</returns>
     public bool LazyLoadPalette(DataSource dataFile, ColorModel model, bool zeroIndexTransparent)
     {
-        DataFile = dataFile;
+        DataSource = dataFile;
         ColorModel = model;
         ZeroIndexTransparent = zeroIndexTransparent;
         StorageSource = PaletteStorageSource.Project;
@@ -200,7 +200,7 @@ public class Palette : IProjectResource
     /// </exception>
     private IColor[] LoadForeignPalette()
     {
-        return _colorSerializer.LoadColors(ColorSources, DataFile, ColorModel, Entries);
+        return _colorSerializer.LoadColors(ColorSources, DataSource, ColorModel, Entries);
     }
 
     /// <summary>
@@ -458,7 +458,7 @@ public class Palette : IProjectResource
     public bool SavePalette()
     {
         if (StorageSource == PaletteStorageSource.Project)
-            _colorSerializer.StoreColors(ColorSources, DataFile, NativePalette, ForeignPalette);
+            _colorSerializer.StoreColors(ColorSources, DataSource, NativePalette, ForeignPalette);
 
         return true;
     }
@@ -527,7 +527,7 @@ public class Palette : IProjectResource
     {
         get
         {
-            yield return DataFile;
+            yield return DataSource;
         }
     }
 }

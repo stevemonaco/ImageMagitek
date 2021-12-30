@@ -379,7 +379,7 @@ public abstract class Arranger : IProjectResource
             {
                 if (GetElement(x, y) is ArrangerElement el)
                 {
-                    if (ReferenceEquals(dataFile, el.DataFile))
+                    if (ReferenceEquals(dataFile, el.Source))
                     {
                         SetElement(el.WithFile(default, BitAddress.Zero), x, y);
                         isModified = true;

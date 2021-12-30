@@ -1,24 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using ImageMagitek.Project;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
-using System.Linq;
 
 namespace ImageMagitek;
 
 public sealed class SequentialArranger : Arranger
 {
     /// <summary>
-    /// Gets the filesize of the file associated with a <see cref="SequentialArranger"/>
+    /// Gets the filesize of the DataSource associated with a <see cref="SequentialArranger"/>
     /// </summary>
     public long FileSize { get; private set; }
 
     /// <summary>
-    /// Gets the current file address of the file associated with a <see cref="SequentialArranger"/>
+    /// Gets the current address associated with a <see cref="SequentialArranger"/>
     /// </summary>
-    public BitAddress FileAddress { get; private set; }
+    public BitAddress Address { get; private set; }
 
     /// <summary>
     /// Number of bits required to be read from file sequentially to fully display the <see cref="SequentialArranger"/>
@@ -34,9 +34,9 @@ public sealed class SequentialArranger : Arranger
     public IGraphicsCodec ActiveCodec { get; private set; }
 
     /// <summary>
-    /// DataFile that is assigned to each <see cref="ArrangerElement"/>
+    /// DataSource that is assigned to each <see cref="ArrangerElement"/>
     /// </summary>
-    public DataSource ActiveDataFile { get; private set; }
+    public DataSource ActiveDataSource { get; private set; }
 
     /// <summary>
     /// Palette that is assigned to each <see cref="ArrangerElement"/>
@@ -55,16 +55,16 @@ public sealed class SequentialArranger : Arranger
     /// </summary>
     /// <param name="arrangerWidth">Width of arranger in elements</param>
     /// <param name="arrangerHeight">Height of arranger in elements</param>
-    /// <param name="dataFile"><see cref="DataSource"/> assigned to each <see cref="ArrangerElement"/></param>
+    /// <param name="dataSource"><see cref="DataSource"/> assigned to each <see cref="ArrangerElement"/></param>
     /// <param name="palette"><see cref="Palette"/> assigned to each <see cref="ArrangerElement"/></param>
     /// <param name="codecFactory">Factory responsible for creating new codecs</param>
     /// <param name="codecName">Name of codec each Element will be initialized to</param>
-    public SequentialArranger(int arrangerWidth, int arrangerHeight, DataSource dataFile, Palette palette, ICodecFactory codecFactory, string codecName)
+    public SequentialArranger(int arrangerWidth, int arrangerHeight, DataSource dataSource, Palette palette, ICodecFactory codecFactory, string codecName)
     {
         Mode = ArrangerMode.Sequential;
-        FileSize = dataFile.Stream.Length;
-        Name = dataFile.Name;
-        ActiveDataFile = dataFile;
+        FileSize = dataSource.Length;
+        Name = dataSource.Name;
+        ActiveDataSource = dataSource;
         ActivePalette = palette;
         _codecs = codecFactory;
 
@@ -89,7 +89,7 @@ public sealed class SequentialArranger : Arranger
     /// </summary>
     private void PerformLayout()
     {
-        var address = FileAddress;
+        var address = Address;
 
         var patternsX = ArrangerElementSize.Width / TileLayout.Width;
         var patternsY = ArrangerElementSize.Height / TileLayout.Height;
@@ -104,7 +104,7 @@ public sealed class SequentialArranger : Arranger
                     var posY = y * TileLayout.Height + pos.Y;
 
                     var el = new ArrangerElement(posX * ElementPixelSize.Width,
-                        posY * ElementPixelSize.Height, ActiveDataFile, address, ActiveCodec, ActivePalette);
+                        posY * ElementPixelSize.Height, ActiveDataSource, address, ActiveCodec, ActivePalette);
 
                     if (el.Codec.Layout == ImageLayout.Tiled)
                         address += ActiveCodec.StorageSize;
@@ -118,11 +118,11 @@ public sealed class SequentialArranger : Arranger
             }
         }
 
-        Move(FileAddress);
+        Move(Address);
     }
 
     /// <summary>
-    /// Moves the sequential arranger to the specified address
+    /// Moves the sequential arranger's top-left element to the specified address with the remaining elements following
     /// If the arranger will overflow the file, then seek only to the furthest offset
     /// </summary>
     /// <param name="absoluteAddress">Specified address to move the arranger to</param>
@@ -135,13 +135,13 @@ public sealed class SequentialArranger : Arranger
         var testaddress = absoluteAddress + ArrangerBitSize; // Tests the bounds of the arranger vs the file size
 
         if (FileSize * 8 < ArrangerBitSize) // Arranger needs more bits than the entire file
-            FileAddress = new BitAddress(0, 0);
+            Address = new BitAddress(0, 0);
         else if (testaddress.Offset > FileSize * 8) // Clamp arranger to edge of viewable file
-            FileAddress = new BitAddress(FileSize * 8 - ArrangerBitSize);
+            Address = new BitAddress(FileSize * 8 - ArrangerBitSize);
         else
-            FileAddress = absoluteAddress;
+            Address = absoluteAddress;
 
-        var relativeChange = FileAddress - GetInitialSequentialFileAddress();
+        var relativeChange = Address - GetInitialSequentialFileAddress();
 
         for (int posY = 0; posY < ArrangerElementSize.Height; posY++)
         {
@@ -150,13 +150,13 @@ public sealed class SequentialArranger : Arranger
                 var el = GetElement(posX, posY);
                 if (el is ArrangerElement element)
                 {
-                    element = element.WithAddress(element.FileAddress + relativeChange);
+                    element = element.WithAddress(element.SourceAddress + relativeChange);
                     ElementGrid[posY, posX] = element;
                 }
             }
         }
 
-        return FileAddress;
+        return Address;
     }
 
     /// <summary>
@@ -169,7 +169,7 @@ public sealed class SequentialArranger : Arranger
         if (Mode != ArrangerMode.Sequential)
             throw new InvalidOperationException($"{nameof(Resize)} property '{nameof(Mode)}' is in invalid {nameof(ArrangerMode)} ({Mode})");
 
-        var address = FileAddress;
+        var address = Address;
 
         ElementPixelSize = new Size(ActiveCodec.Width, ActiveCodec.Height);
 
@@ -199,8 +199,8 @@ public sealed class SequentialArranger : Arranger
             if (el.Codec.ColorType != ColorType || el.Codec.Name != ActiveCodec.Name)
                 throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned to SequentialArranger '{Name}'");
 
-            if (!ReferenceEquals(ActiveDataFile, el.DataFile))
-                throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its DataFile '{el.DataFile.Name}' does not match the SequentialArranger '{ActiveDataFile.Name}'");
+            if (!ReferenceEquals(ActiveDataSource, el.Source))
+                throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its DataFile '{el.Source.Name}' does not match the SequentialArranger '{ActiveDataSource.Name}'");
 
             if (!ReferenceEquals(ActivePalette, el.Palette))
                 throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its Palette '{el.Palette.Name}' does not match the SequentialArranger '{ActivePalette.Name}'");
@@ -274,7 +274,7 @@ public sealed class SequentialArranger : Arranger
     }
 
     /// <summary>
-    /// Changes each element's palette to the provided palette
+    /// Changes the palette of all elements to the provided palette
     /// </summary>
     /// <param name="pal">New palette</param>
     public void ChangePalette(Palette pal)
@@ -344,12 +344,12 @@ public sealed class SequentialArranger : Arranger
 
         if (TileLayout is null)
         {
-            return ElementGrid[0, 0]?.FileAddress ?? BitAddress.Zero;
+            return ElementGrid[0, 0]?.SourceAddress ?? BitAddress.Zero;
         }
         else
         {
             var layoutElement = TileLayout.Pattern.First();
-            return ElementGrid[layoutElement.X, layoutElement.Y]?.FileAddress ?? BitAddress.Zero;
+            return ElementGrid[layoutElement.X, layoutElement.Y]?.SourceAddress ?? BitAddress.Zero;
         }
     }
 
@@ -365,8 +365,8 @@ public sealed class SequentialArranger : Arranger
                 if (el.Palette is not null)
                     set.Add(el.Palette);
 
-                if (el.DataFile is not null)
-                    set.Add(el.DataFile);
+                if (el.Source is not null)
+                    set.Add(el.Source);
             }
 
             return set;

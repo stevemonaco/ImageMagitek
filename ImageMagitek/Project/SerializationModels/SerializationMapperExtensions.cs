@@ -48,7 +48,7 @@ public static class SerializationMapperExtensions
             ZeroIndexTransparent = pal.ZeroIndexTransparent,
         };
 
-        if (pal.DataFile is not null && resourceMap.TryGetValue(pal.DataFile, out var dataFileKey))
+        if (pal.DataSource is not null && resourceMap.TryGetValue(pal.DataSource, out var dataFileKey))
             model.DataFileKey = dataFileKey;
 
         int i = 0;
@@ -158,7 +158,7 @@ public static class SerializationMapperExtensions
         {
             var model = new ArrangerElementModel
             {
-                FileAddress = el.FileAddress,
+                FileAddress = el.SourceAddress,
                 PositionX = elemX,
                 PositionY = elemY,
                 CodecName = el.Codec.Name,
@@ -166,7 +166,7 @@ public static class SerializationMapperExtensions
                 Rotation = el.Rotation
             };
 
-            if (el.DataFile is not null && resourceMap.TryGetValue(el.DataFile, out var dataFileKey))
+            if (el.Source is not null && resourceMap.TryGetValue(el.Source, out var dataFileKey))
             {
                 model.DataFileKey = dataFileKey;
             }

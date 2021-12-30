@@ -12,14 +12,14 @@ public enum RotationOperation { None, Left, Right, Turn }
 public readonly struct ArrangerElement
 {
     /// <summary>
-    /// DataFile which contains the Element's pixel data
+    /// DataSource which contains the Element's pixel data
     /// </summary>
-    public DataSource DataFile { get; }
+    public DataSource Source { get; }
 
     /// <summary>
-    /// FileAddress of Element
+    /// BitAddress into Source where the Element's pixel data is located
     /// </summary>
-    public BitAddress FileAddress { get; }
+    public BitAddress SourceAddress { get; }
 
     /// <summary>
     /// Codec used for encoding and decoding
@@ -54,12 +54,12 @@ public readonly struct ArrangerElement
     /// <summary>
     /// Right edge of the Element within the Arranger in pixel coordinates, inclusive
     /// </summary>
-    public int X2 { get => X1 + Width - 1; }
+    public int X2 => X1 + Width - 1;
 
     /// <summary>
     /// Bottom edge of the Element within the Arranger in pixel coordinates, inclusive
     /// </summary>
-    public int Y2 { get => Y1 + Height - 1; }
+    public int Y2 => Y1 + Height - 1;
 
     public MirrorOperation Mirror { get; }
 
@@ -69,8 +69,8 @@ public readonly struct ArrangerElement
     {
         X1 = x1;
         Y1 = y1;
-        FileAddress = new BitAddress(0, 0);
-        DataFile = null;
+        SourceAddress = BitAddress.Zero;
+        Source = null;
         Codec = null;
         Palette = null;
         Mirror = MirrorOperation.None;
@@ -81,8 +81,8 @@ public readonly struct ArrangerElement
     {
         X1 = x1;
         Y1 = y1;
-        DataFile = dataFile;
-        FileAddress = address;
+        Source = dataFile;
+        SourceAddress = address;
         Codec = codec;
         Palette = palette;
         Mirror = MirrorOperation.None;
@@ -94,8 +94,8 @@ public readonly struct ArrangerElement
     {
         X1 = x1;
         Y1 = y1;
-        DataFile = dataFile;
-        FileAddress = address;
+        Source = dataFile;
+        SourceAddress = address;
         Codec = codec;
         Palette = palette;
         Mirror = mirror;
@@ -103,29 +103,29 @@ public readonly struct ArrangerElement
     }
 
     public ArrangerElement WithLocation(int x1, int y1) =>
-        new ArrangerElement(x1, y1, DataFile, FileAddress, Codec, Palette, Mirror, Rotation);
+        new(x1, y1, Source, SourceAddress, Codec, Palette, Mirror, Rotation);
 
     public ArrangerElement WithFile(DataSource dataFile, BitAddress fileAddress) =>
-        new ArrangerElement(X1, Y1, dataFile, fileAddress, Codec, Palette, Mirror, Rotation);
+        new(X1, Y1, dataFile, fileAddress, Codec, Palette, Mirror, Rotation);
 
     public ArrangerElement WithPalette(Palette palette) =>
-        new ArrangerElement(X1, Y1, DataFile, FileAddress, Codec, palette, Mirror, Rotation);
+        new(X1, Y1, Source, SourceAddress, Codec, palette, Mirror, Rotation);
 
     public ArrangerElement WithAddress(BitAddress address) =>
-        new ArrangerElement(X1, Y1, DataFile, address, Codec, Palette, Mirror, Rotation);
+        new(X1, Y1, Source, address, Codec, Palette, Mirror, Rotation);
 
     public ArrangerElement WithCodec(IGraphicsCodec codec) =>
-        new ArrangerElement(X1, Y1, DataFile, FileAddress, codec, Palette, Mirror, Rotation);
+        new(X1, Y1, Source, SourceAddress, codec, Palette, Mirror, Rotation);
 
     public ArrangerElement WithCodec(IGraphicsCodec codec, int x1, int y1) =>
-        new ArrangerElement(x1, y1, DataFile, FileAddress, codec, Palette, Mirror, Rotation);
+        new(x1, y1, Source, SourceAddress, codec, Palette, Mirror, Rotation);
 
     public ArrangerElement WithTarget(DataSource dataFile, BitAddress fileAddress, IGraphicsCodec codec, Palette palette) =>
-        new ArrangerElement(X1, Y1, dataFile, fileAddress, codec, palette, Mirror, Rotation);
+        new(X1, Y1, dataFile, fileAddress, codec, palette, Mirror, Rotation);
 
     public ArrangerElement WithMirror(MirrorOperation mirror) =>
-        new ArrangerElement(X1, Y1, DataFile, FileAddress, Codec, Palette, mirror, Rotation);
+        new(X1, Y1, Source, SourceAddress, Codec, Palette, mirror, Rotation);
 
     public ArrangerElement WithRotation(RotationOperation rotation) =>
-        new ArrangerElement(X1, Y1, DataFile, FileAddress, Codec, Palette, Mirror, rotation);
+        new(X1, Y1, Source, SourceAddress, Codec, Palette, Mirror, rotation);
 }

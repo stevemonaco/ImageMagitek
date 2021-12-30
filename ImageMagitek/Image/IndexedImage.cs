@@ -156,7 +156,7 @@ public sealed class IndexedImage : ImageBase<byte>
             codec.WriteElement(el, encodedImage);
         }
 
-        foreach (var df in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.DataFile).OfType<DataSource>().Distinct())
+        foreach (var df in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Source).OfType<DataSource>().Distinct())
             df.Flush();
     }
 

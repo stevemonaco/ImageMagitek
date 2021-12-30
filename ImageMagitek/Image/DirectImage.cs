@@ -63,7 +63,7 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
 
         var locations = Arranger.EnumerateElementLocationsWithinPixelRange(Left, Top, Width, Height);
 
-        Rectangle imageRect = new Rectangle(Left, Top, Width, Height);
+        var imageRect = new Rectangle(Left, Top, Width, Height);
 
         foreach (var location in locations)
         {
@@ -121,7 +121,7 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
             var encodeResult = codec.EncodeElement(el, buffer);
             codec.WriteElement(el, encodeResult);
         }
-        foreach (var fs in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.DataFile.Stream).Distinct())
-            fs.Flush();
+        foreach (var source in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Source).Distinct())
+            source.Flush();
     }
 }

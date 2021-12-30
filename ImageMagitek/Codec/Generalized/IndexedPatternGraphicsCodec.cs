@@ -117,19 +117,23 @@ public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
     public ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
     {
         var buffer = new byte[(StorageSize + 7) / 8];
-        var fs = el.DataFile.Stream;
+        //var fs = el.DataFile.Stream;
 
-        if (el.FileAddress.Offset + StorageSize > fs.Length * 8)
+        if (el.SourceAddress.Offset + StorageSize > el.Source.Length * 8)
             return null;
 
-        fs.ReadShifted(el.FileAddress, StorageSize, buffer);
+        el.Source.Read(el.SourceAddress, StorageSize, buffer);
+
+        //fs.ReadShifted(el.FileAddress, StorageSize, buffer);
 
         return buffer;
     }
 
     public void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
     {
-        var fs = el.DataFile.Stream;
-        fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
+        //var fs = el.DataFile.Stream;
+        //fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
+
+        el.Source.Write(el.SourceAddress, StorageSize, encodedBuffer);
     }
 }

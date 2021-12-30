@@ -109,8 +109,8 @@ public sealed class ScatteredArranger : Arranger
                 if (el.Palette is not null)
                     set.Add(el.Palette);
 
-                if (el.DataFile is not null)
-                    set.Add(el.DataFile);
+                if (el.Source is not null)
+                    set.Add(el.Source);
             }
 
             return set;

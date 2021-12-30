@@ -17,10 +17,10 @@ public class ElementWithoutLocationComparer : IComparer
             if (elA.Codec.Name != elB.Codec.Name)
                 return -1;
 
-            if (elA.FileAddress != elB.FileAddress)
+            if (elA.SourceAddress != elB.SourceAddress)
                 return -1;
 
-            if (elA.DataFile.Name != elB.DataFile.Name)
+            if (elA.Source.Name != elB.Source.Name)
                 return -1;
 
             if (elA.Palette?.Name != elB.Palette?.Name)

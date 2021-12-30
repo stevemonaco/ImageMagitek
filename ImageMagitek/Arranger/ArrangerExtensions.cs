@@ -115,7 +115,7 @@ public static class ArrangerExtensions
         if (arranger.Mode != ArrangerMode.Sequential)
             throw new InvalidOperationException($"{nameof(Move)}: Arranger {arranger.Name} is not in sequential mode");
 
-        var initialAddress = arranger.FileAddress;
+        var initialAddress = arranger.Address;
         var newAddress = initialAddress;
         long bitDelta = 0;
 

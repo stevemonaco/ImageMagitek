@@ -86,8 +86,8 @@ internal sealed class ProjectTreeBuilder
         if (!Tree.TryGetItem<DataSource>(paletteModel.DataFileKey, out var df))
             return new MagitekResult.Failed($"Palette '{pal.Name}' could not locate DataFile with key '{paletteModel.DataFileKey}'");
 
-        pal.DataFile = df;
-        pal.LazyLoadPalette(pal.DataFile, pal.ColorModel, pal.ZeroIndexTransparent);
+        pal.DataSource = df;
+        pal.LazyLoadPalette(pal.DataSource, pal.ColorModel, pal.ZeroIndexTransparent);
 
         var palNode = new PaletteNode(pal.Name, pal)
         {

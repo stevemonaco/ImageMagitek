@@ -55,7 +55,7 @@ public class ArrangerBuilderTests
         Assert.That(arranger.ActiveCodec.Width == 256);
         Assert.That(arranger.ActiveCodec.Height == 512);
         Assert.That(arranger.ActivePalette is null);
-        Assert.That(arranger.ActiveDataFile.Name == "TestMemoryFile");
+        Assert.That(arranger.ActiveDataSource.Name == "TestMemoryFile");
     }
 
 }

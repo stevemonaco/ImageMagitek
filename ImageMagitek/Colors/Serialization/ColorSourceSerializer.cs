@@ -69,7 +69,7 @@ public class ColorSourceSerializer : IColorSourceSerializer
 
         int readSize = (size + 7) / 8;
 
-        df.ReadUnshifted(offset, size, colorBuffer);
+        df.Read(offset, size, colorBuffer);
 
         uint readColor;
         if (readSize == 1)

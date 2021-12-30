@@ -248,13 +248,13 @@ public class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
             if (el is ArrangerElement element)
             {
                 var paletteName = element.Palette?.Name ?? "Default";
-                var sourceName = element.DataFile switch
+                var sourceName = element.Source switch
                 {
                     FileDataSource fds => fds.FileLocation,
                     MemoryDataSource => "Memory",
                     _ => "None"
                 };
-                var fileOffsetDescription = $"0x{element.FileAddress.ByteOffset:X}.{(element.FileAddress.BitOffset != 0 ? element.FileAddress.BitOffset.ToString() : "")}";
+                var fileOffsetDescription = $"0x{element.SourceAddress.ByteOffset:X}.{(element.SourceAddress.BitOffset != 0 ? element.SourceAddress.BitOffset.ToString() : "")}";
 
                 string notifyMessage = WorkingArranger.ColorType switch
                 {

@@ -12,8 +12,7 @@ public abstract class DataSource : IProjectResource, IDisposable
     public string Name { get; set; }
     public bool CanContainChildResources => false;
     public bool ShouldBeSerialized { get; set; } = true;
-
-    public Stream Stream => _stream.Value;
+    public virtual long Length => _stream.Value.Length;
 
     protected Lazy<Stream> _stream;
     private bool disposedValue;
@@ -23,20 +22,27 @@ public abstract class DataSource : IProjectResource, IDisposable
         Name = name;
     }
 
-    public virtual byte[] ReadUnshifted(BitAddress address, int readBits) =>
+    public virtual byte[] Read(BitAddress address, int readBits) =>
         _stream.Value.ReadUnshifted(address, readBits);
 
-    public virtual void ReadUnshifted(BitAddress address, int readBits, Span<byte> buffer) =>
+    public virtual void Read(BitAddress address, int readBits, Span<byte> buffer) =>
         _stream.Value.ReadUnshifted(address, readBits, buffer);
+
+    public virtual void Write(ReadOnlySpan<byte> buffer) =>
+        _stream.Value.Write(buffer);
 
     public virtual void Write(BitAddress address, ReadOnlySpan<byte> buffer)
     {
-        _stream.Value.Seek(address.ByteOffset, SeekOrigin.Begin);
-        _stream.Value.Write(buffer);
+        _stream.Value.WriteUnshifted(address, buffer.Length * 8, buffer);
     }
 
-    public virtual void Write(ReadOnlySpan<byte> buffer) => 
-        _stream.Value.Write(buffer);
+    public virtual void Write(BitAddress address, int writeBits, ReadOnlySpan<byte> buffer)
+    {
+        _stream.Value.WriteUnshifted(address, writeBits, buffer);
+    }
+
+    public virtual void Seek(long offset, SeekOrigin origin) => 
+        _stream.Value.Seek(offset, origin);
 
     public virtual void Flush() => 
         _stream.Value.Flush();

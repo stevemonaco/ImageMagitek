@@ -640,7 +640,7 @@ public class ProjectService : IProjectService
         // Palettes with removed DataFiles must be checked early, so that Arrangers are effected in the main loop by removed Palettes
         var removedPaletteNodes = tree.EnumerateDepthFirst()
             .Where(x => x.Item is Palette)
-            .Where(x => removedDict.ContainsKey((x.Item as Palette).DataFile));
+            .Where(x => removedDict.ContainsKey((x.Item as Palette).DataSource));
 
         foreach (var paletteNode in removedPaletteNodes)
         {
@@ -666,7 +666,7 @@ public class ProjectService : IProjectService
                     if (linkedResource is DataSource && resource is Arranger arranger)
                     {
                         lostElements = true;
-                        if (arranger.EnumerateElements().OfType<ArrangerElement>().All(x => removedDict.ContainsKey(linkedResource) || x.DataFile is null))
+                        if (arranger.EnumerateElements().OfType<ArrangerElement>().All(x => removedDict.ContainsKey(linkedResource) || x.Source is null))
                             removed = true;
                     }
                 }
