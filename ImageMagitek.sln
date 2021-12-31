@@ -26,11 +26,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FF5MonsterSpritesWPF", "Samples\Samples.FF5MonsterSprites\FF5MonsterSpritesWPF.csproj", "{E582DAA6-643C-4AC2-916C-00EDA561EFCD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FF5MonsterSpritesWPF", "Samples\FF5MonsterSpritesWPF\FF5MonsterSpritesWPF.csproj", "{E582DAA6-643C-4AC2-916C-00EDA561EFCD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{A2C3C4E0-F3B4-4ACC-BBCC-23D09019F450}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FF5MonsterSpritesCLI", "Samples\Samples.FF5MonsterSpritesCLI\FF5MonsterSpritesCLI.csproj", "{0A849041-80DD-4CDB-B17F-A5F24B5F07A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FF5MonsterSpritesCLI", "Samples\FF5MonsterSpritesCLI\FF5MonsterSpritesCLI.csproj", "{0A849041-80DD-4CDB-B17F-A5F24B5F07A5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageMagitek.PluginSamples", "Samples\ImageMagitek.PluginSamples\ImageMagitek.PluginSamples.csproj", "{A385B7DE-A2F9-46A9-AD4F-6BCF68FAFF91}"
 EndProject
