@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\ImageMagitek\ImageMagitek.csproj" />
     <ProjectReference Include="..\ImageMagitek.PluginSamples\ImageMagitek.PluginSamples.csproj" />
-    <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
   </ItemGroup>
 
   <ItemGroup>
