@@ -21,7 +21,7 @@ public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
     private byte[,] _nativeBuffer;
     public byte[,] NativeBuffer => _nativeBuffer;
 
-    private BitStream _bitStream;
+    private IBitStreamReader _bitReader;
     private List<int[,]> _planeImages;
 
     public int DefaultWidth => Format.DefaultWidth;
@@ -45,11 +45,11 @@ public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
             throw new ArgumentException(nameof(encodedBuffer));
 
         encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
-        _bitStream.SeekAbsolute(0);
+        _bitReader.SeekAbsolute(0);
 
         for (int i = 0; i < StorageSize; i++)
         {
-            var bit = _bitStream.ReadBit();
+            var bit = _bitReader.ReadBit();
             var coordinate = Format.Pattern.GetDecodeIndex(i);
             _planeImages[coordinate.P][coordinate.X, coordinate.Y] = bit;
         }
@@ -104,7 +104,7 @@ public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new byte[Height, Width];
 
-        _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
 
         _planeImages = new List<int[,]>();
         for (int i = 0; i < Format.ColorDepth; i++)
@@ -117,23 +117,17 @@ public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
     public ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
     {
         var buffer = new byte[(StorageSize + 7) / 8];
-        //var fs = el.DataFile.Stream;
 
         if (el.SourceAddress.Offset + StorageSize > el.Source.Length * 8)
             return null;
 
         el.Source.Read(el.SourceAddress, StorageSize, buffer);
 
-        //fs.ReadShifted(el.FileAddress, StorageSize, buffer);
-
         return buffer;
     }
 
     public void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
     {
-        //var fs = el.DataFile.Stream;
-        //fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
-
         el.Source.Write(el.SourceAddress, StorageSize, encodedBuffer);
     }
 }

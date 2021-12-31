@@ -21,7 +21,7 @@ public sealed class N64Rgba32Codec : DirectCodec
     public override int DefaultWidth => 32;
     public override int DefaultHeight => 32;
 
-    private BitStream _bitStream;
+    private readonly IBitStreamReader _bitReader;
 
     public N64Rgba32Codec()
     {
@@ -31,7 +31,7 @@ public sealed class N64Rgba32Codec : DirectCodec
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new ColorRgba32[Height, Width];
 
-        _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public N64Rgba32Codec(int width, int height)
@@ -42,7 +42,7 @@ public sealed class N64Rgba32Codec : DirectCodec
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new ColorRgba32[Height, Width];
 
-        _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public override ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -51,16 +51,16 @@ public sealed class N64Rgba32Codec : DirectCodec
             throw new ArgumentException(nameof(encodedBuffer));
 
         encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
-        _bitStream.SeekAbsolute(0);
+        _bitReader.SeekAbsolute(0);
 
         for (int y = 0; y < el.Height; y++)
         {
             for (int x = 0; x < el.Width; x++)
             {
-                var g = _bitStream.ReadByte();
-                var r = _bitStream.ReadByte();
-                var a = _bitStream.ReadByte();
-                var b = _bitStream.ReadByte();
+                var g = _bitReader.ReadByte();
+                var r = _bitReader.ReadByte();
+                var a = _bitReader.ReadByte();
+                var b = _bitReader.ReadByte();
 
                 _nativeBuffer[y, x] = new ColorRgba32(r, g, b, a);
             }

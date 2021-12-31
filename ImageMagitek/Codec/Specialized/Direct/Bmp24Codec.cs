@@ -21,7 +21,7 @@ public sealed class Bmp24Codec : DirectCodec
     public override int DefaultWidth => 8;
     public override int DefaultHeight => 8;
 
-    private BitStream _bitStream;
+    private IBitStreamReader _bitReader;
 
     public Bmp24Codec()
     {
@@ -31,7 +31,7 @@ public sealed class Bmp24Codec : DirectCodec
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new ColorRgba32[Height, Width];
 
-        _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public Bmp24Codec(int width, int height)
@@ -42,7 +42,7 @@ public sealed class Bmp24Codec : DirectCodec
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new ColorRgba32[Height, Width];
 
-        _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public override ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -51,15 +51,15 @@ public sealed class Bmp24Codec : DirectCodec
             throw new ArgumentException(nameof(encodedBuffer));
 
         encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
-        _bitStream.SeekAbsolute(0);
+        _bitReader.SeekAbsolute(0);
 
         for (int y = el.Height - 1; y >= 0; y--)
         {
             for (int x = 0; x < el.Width; x++)
             {
-                var b = _bitStream.ReadByte();
-                var g = _bitStream.ReadByte();
-                var r = _bitStream.ReadByte();
+                var b = _bitReader.ReadByte();
+                var g = _bitReader.ReadByte();
+                var r = _bitReader.ReadByte();
 
                 _nativeBuffer[y, x] = new ColorRgba32(r, g, b, 0xFF);
             }

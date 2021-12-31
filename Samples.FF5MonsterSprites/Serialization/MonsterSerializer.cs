@@ -44,7 +44,7 @@ public class MonsterSerializer
 
         return monsters;
         
-        MonsterMetadata DeserializeMonster(BitStream stream)
+        MonsterMetadata DeserializeMonster(IBitStreamReader stream)
         {
             var depth = stream.ReadBit() == 1 ? TileColorDepth.Bpp3 : TileColorDepth.Bpp4;
             var tileSetID = stream.ReadBits(15);

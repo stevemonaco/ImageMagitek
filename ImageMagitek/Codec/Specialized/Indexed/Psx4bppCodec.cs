@@ -18,7 +18,7 @@ public sealed class Psx4bppCodec : IndexedCodec
     public override int HeightResizeIncrement => 1;
     public override bool CanResize => true;
 
-    private BitStream _bitStream;
+    private IBitStreamReader _bitReader;
 
     public Psx4bppCodec()
     {
@@ -38,7 +38,7 @@ public sealed class Psx4bppCodec : IndexedCodec
     {
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new byte[Height, Width];
-        _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public override byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -48,16 +48,16 @@ public sealed class Psx4bppCodec : IndexedCodec
 
         encodedBuffer.Slice(0, ForeignBuffer.Length).CopyTo(_foreignBuffer);
 
-        _bitStream.SeekAbsolute(0);
+        _bitReader.SeekAbsolute(0);
 
         for (int y = 0; y < el.Height; y++)
         {
             for (int x = 0; x < el.Width; x += 2)
             {
-                var palIndex = (byte)_bitStream.ReadBits(4);
+                var palIndex = (byte)_bitReader.ReadBits(4);
                 _nativeBuffer[y, x + 1] = palIndex;
 
-                palIndex = (byte)_bitStream.ReadBits(4);
+                palIndex = (byte)_bitReader.ReadBits(4);
                 _nativeBuffer[y, x] = palIndex;
             }
         }

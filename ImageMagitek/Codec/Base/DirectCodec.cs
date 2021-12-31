@@ -1,6 +1,5 @@
 ﻿using System;
 using ImageMagitek.Colors;
-using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Codec;
 
@@ -42,16 +41,11 @@ public abstract class DirectCodec : IDirectCodec
         var buffer = new byte[(StorageSize + 7) / 8];
         var bitStream = BitStream.OpenRead(buffer, StorageSize);
 
-        //var fs = el.DataFile.Stream;
-
-        // TODO: Add bit granularity to seek and read
         if (el.SourceAddress.Offset + StorageSize > el.Source.Length * 8)
             return null;
 
         bitStream.SeekAbsolute(0);
         el.Source.Read(el.SourceAddress, StorageSize, buffer);
-
-        //fs.ReadShifted(el.FileAddress, StorageSize, buffer);
 
         return buffer;
     }
@@ -61,10 +55,6 @@ public abstract class DirectCodec : IDirectCodec
     /// </summary>
     public virtual void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
     {
-        // TODO: Add bit granularity to seek and read
-        //var fs = el.DataFile.Stream;
-        //fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
-
         el.Source.Write(el.SourceAddress, StorageSize, encodedBuffer);
     }
 

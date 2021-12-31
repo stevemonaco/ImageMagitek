@@ -1,12 +1,35 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace ImageMagitek;
 
+public interface IBitStream
+{
+    byte[] Data { get; }
+    void SeekAbsolute(int seekBits);
+    void SeekRelative(int seekBits);
+}
+
+public interface IBitStreamReader : IBitStream
+{
+    int ReadBit();
+    int ReadBits(int numBits);
+    byte ReadByte();
+}
+
+public interface IBitStreamWriter : IBitStream
+{
+    void WriteBit(int bit);
+    void WriteByte(byte val);
+    void WriteBits(int val, int numBits);
+
+}
+
 /// <summary>
-/// Stream class with specific features for bit reading and writing
+/// Stream class with specific features for bit reading and writing of arrays
 /// </summary>
-public sealed class BitStream
+public sealed class BitStream : IBitStreamReader, IBitStreamWriter
 {
     private enum BitStreamAccess { Read, Write, ReadWrite };
 
@@ -41,14 +64,14 @@ public sealed class BitStream
     private BitStream() { }
 
     /// <summary>
-    /// Creates a new Bitstream with the specified array for bit reading
+    /// Creates a new Bitstream to read bits from the specified array
     /// </summary>
-    /// <param name="ReadData">Data to be read</param>
+    /// <param name="ReadData">Data to be wrapped for reading</param>
     /// <param name="DataBits">Number of valid bits to read in the array</param>
     /// <returns></returns>
-    public static BitStream OpenRead(byte[] ReadData, int DataBits)
+    public static IBitStreamReader OpenRead(byte[] ReadData, int DataBits)
     {
-        BitStream bs = new BitStream();
+        var bs = new BitStream();
 
         bs.Data = ReadData;
         bs._bitsRemaining = DataBits;
@@ -68,21 +91,9 @@ public sealed class BitStream
     /// <param name="DataBits"></param>
     /// <param name="FirstByteBits"></param>
     /// <returns>A readable BitStream instance</returns>
-    public static BitStream OpenRead(BinaryReader br, int DataBits, int FirstByteBits) =>
-        BitStream.OpenRead(br.BaseStream, DataBits, FirstByteBits);
-
-    /// <summary>
-    /// Creates a new BitStream with its own array from a Stream for bit reading
-    /// </summary>
-    /// <param name="br">Underlying stream</param>
-    /// <param name="DataBits"></param>
-    /// <param name="FirstByteBits"></param>
-    /// <returns>A readable BitStream instance</returns>
-    public static BitStream OpenRead(Stream stream, int DataBits, int FirstByteBits)
+    public static IBitStreamReader OpenRead(BinaryReader br, int DataBits, int FirstByteBits)
     {
-        BitStream bs = new BitStream();
-
-        BinaryReader br = new BinaryReader(stream);
+        var bs = new BitStream();
 
         int ReadLength = (int)Math.Ceiling((DataBits + (8 - FirstByteBits)) / 8.0);
         bs.Data = br.ReadBytes(ReadLength);
@@ -100,12 +111,25 @@ public sealed class BitStream
     }
 
     /// <summary>
+    /// Creates a new BitStream with its own array from a Stream for bit reading
+    /// </summary>
+    /// <param name="br">Underlying stream</param>
+    /// <param name="DataBits"></param>
+    /// <param name="FirstByteBits"></param>
+    /// <returns>A readable BitStream instance</returns>
+    public static IBitStreamReader OpenRead(Stream stream, int DataBits, int FirstByteBits)
+    {
+        var br = new BinaryReader(stream, Encoding.Default, true);
+        return OpenRead(br, DataBits, FirstByteBits);
+    }
+
+    /// <summary>
     /// Creates a new BitStream for writing bits to an array
     /// </summary>
     /// <param name="DataBits">Size of writable array in bits</param>
     /// <param name="FirstByteBits">Number of bits available for writing in the first byte</param>
     /// <returns>A writable BitStream instance</returns>
-    public static BitStream OpenWrite(int DataBits, int FirstByteBits)
+    public static IBitStreamWriter OpenWrite(int DataBits, int FirstByteBits)
     {
         int BufferLength = (int)Math.Ceiling((DataBits + (8 - FirstByteBits)) / 8.0);
         var data = new byte[BufferLength];
@@ -113,9 +137,9 @@ public sealed class BitStream
         return OpenWrite(data, DataBits, FirstByteBits);
     }
 
-    public static BitStream OpenWrite(byte[] Buffer, int DataBits, int FirstByteBits)
+    public static IBitStreamWriter OpenWrite(byte[] Buffer, int DataBits, int FirstByteBits)
     {
-        BitStream bs = new BitStream();
+        var bs = new BitStream();
 
         bs.Data = Buffer;
 

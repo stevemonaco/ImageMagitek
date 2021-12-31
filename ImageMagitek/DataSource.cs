@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using ImageMagitek.ExtensionMethods;
 using ImageMagitek.Project;
 
@@ -28,18 +29,29 @@ public abstract class DataSource : IProjectResource, IDisposable
     public virtual void Read(BitAddress address, int readBits, Span<byte> buffer) =>
         _stream.Value.ReadUnshifted(address, readBits, buffer);
 
+    public virtual async ValueTask<byte[]> ReadAsync(BitAddress address, int readBits) =>
+        await _stream.Value.ReadUnshiftedAsync(address, readBits);
+
+    public virtual async ValueTask ReadAsync(BitAddress address, int readBits, Memory<byte> buffer) =>
+        await _stream.Value.ReadUnshiftedAsync(address, readBits, buffer);
+
     public virtual void Write(ReadOnlySpan<byte> buffer) =>
         _stream.Value.Write(buffer);
 
-    public virtual void Write(BitAddress address, ReadOnlySpan<byte> buffer)
-    {
+    public virtual void Write(BitAddress address, ReadOnlySpan<byte> buffer) =>
         _stream.Value.WriteUnshifted(address, buffer.Length * 8, buffer);
-    }
 
-    public virtual void Write(BitAddress address, int writeBits, ReadOnlySpan<byte> buffer)
-    {
+    public virtual void Write(BitAddress address, int writeBits, ReadOnlySpan<byte> buffer) =>
         _stream.Value.WriteUnshifted(address, writeBits, buffer);
-    }
+
+    public virtual async Task WriteAsync(ReadOnlyMemory<byte> buffer) =>
+        await _stream.Value.WriteAsync(buffer);
+
+    public virtual async Task WriteAsync(BitAddress address, ReadOnlyMemory<byte> buffer) =>
+        await _stream.Value.WriteUnshiftedAsync(address, buffer.Length * 8, buffer);
+
+    public virtual async Task WriteAsync(BitAddress address, int writeBits, ReadOnlyMemory<byte> buffer) =>
+        await _stream.Value.WriteUnshiftedAsync(address, writeBits, buffer);
 
     public virtual void Seek(long offset, SeekOrigin origin) => 
         _stream.Value.Seek(offset, origin);

@@ -19,7 +19,7 @@ public class Snes4bppCodec : IndexedCodec
     public override int HeightResizeIncrement => 1;
     public override bool CanResize => true;
 
-    private BitStream _bitStream;
+    private IBitStreamReader _bitReader;
 
     public Snes4bppCodec()
     {
@@ -39,7 +39,7 @@ public class Snes4bppCodec : IndexedCodec
     {
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new byte[Height, Width];
-        _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public override byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -49,7 +49,7 @@ public class Snes4bppCodec : IndexedCodec
 
         encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
 
-        _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
 
         var offsetPlane1 = 0;
         var offsetPlane2 = Width;
@@ -60,14 +60,14 @@ public class Snes4bppCodec : IndexedCodec
         {
             for (int x = 0; x < Width; x++)
             {
-                _bitStream.SeekAbsolute(offsetPlane1);
-                var bp1 = _bitStream.ReadBit();
-                _bitStream.SeekAbsolute(offsetPlane2);
-                var bp2 = _bitStream.ReadBit();
-                _bitStream.SeekAbsolute(offsetPlane3);
-                var bp3 = _bitStream.ReadBit();
-                _bitStream.SeekAbsolute(offsetPlane4);
-                var bp4 = _bitStream.ReadBit();
+                _bitReader.SeekAbsolute(offsetPlane1);
+                var bp1 = _bitReader.ReadBit();
+                _bitReader.SeekAbsolute(offsetPlane2);
+                var bp2 = _bitReader.ReadBit();
+                _bitReader.SeekAbsolute(offsetPlane3);
+                var bp3 = _bitReader.ReadBit();
+                _bitReader.SeekAbsolute(offsetPlane4);
+                var bp4 = _bitReader.ReadBit();
 
                 var palIndex = (bp1 << 0) | (bp2 << 1) | (bp3 << 2) | (bp4 << 3);
                 _nativeBuffer[y, x] = (byte)palIndex;

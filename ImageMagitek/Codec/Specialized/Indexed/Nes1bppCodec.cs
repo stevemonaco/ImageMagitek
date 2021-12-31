@@ -18,7 +18,7 @@ public sealed class Nes1bppCodec : IndexedCodec
     public override int HeightResizeIncrement => 1;
     public override bool CanResize => true;
 
-    private BitStream _bitStream;
+    private IBitStreamReader _bitReader;
 
     public Nes1bppCodec()
     {
@@ -37,6 +37,7 @@ public sealed class Nes1bppCodec : IndexedCodec
     {
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new byte[Height, Width];
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public override byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -46,13 +47,11 @@ public sealed class Nes1bppCodec : IndexedCodec
 
         encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
 
-        _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
-
         for (int y = 0; y < Height; y++)
         {
             for (int x = 0; x < Width; x++)
             {
-                var bp1 = _bitStream.ReadBit();
+                var bp1 = _bitReader.ReadBit();
                 _nativeBuffer[y, x] = (byte)bp1;
             }
         }

@@ -39,7 +39,7 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
     /// </summary>
     private byte[] _mergedData;
 
-    private BitStream _bitStream;
+    private IBitStreamReader _bitReader;
 
     public IndexedFlowGraphicsCodec(FlowGraphicsFormat format)
     {
@@ -66,7 +66,7 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new byte[Height, Width];
 
-        _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     /// <inheritdoc/>
@@ -76,7 +76,7 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
             throw new ArgumentException(nameof(encodedBuffer));
 
         encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
-        _bitStream.SeekAbsolute(0);
+        _bitReader.SeekAbsolute(0);
 
         int plane = 0;
         int scanlinePosition;
@@ -95,7 +95,7 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
                         {
                             var mergePlane = Format.MergePlanePriority[curPlane];
                             var pixelPosition = scanlinePosition + ip.RowPixelPattern[x];
-                            _elementData[mergePlane][pixelPosition] = (byte)_bitStream.ReadBit();
+                            _elementData[mergePlane][pixelPosition] = (byte)_bitReader.ReadBit();
                         }
                     }
                 }
@@ -111,7 +111,7 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
                         {
                             var mergePlane = Format.MergePlanePriority[curPlane];
                             int pixelPosition = scanlinePosition + ip.RowPixelPattern[x];
-                            _elementData[mergePlane][pixelPosition] = (byte)_bitStream.ReadBit();
+                            _elementData[mergePlane][pixelPosition] = (byte)_bitReader.ReadBit();
                         }
                     }
                 }
@@ -209,14 +209,11 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
     public virtual ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
     {
         var buffer = new byte[(StorageSize + 7) / 8];
-        //var fs = el.DataFile.Stream;
 
         if (el.SourceAddress.Offset + StorageSize > el.Source.Length * 8)
             return null;
 
         el.Source.Read(el.SourceAddress, StorageSize, buffer);
-
-        //fs.ReadShifted(el.FileAddress, StorageSize, buffer);
 
         return buffer;
     }
@@ -226,9 +223,6 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
     /// </summary>
     public virtual void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
     {
-        //var fs = el.DataFile.Stream;
-        //fs.WriteShifted(el.FileAddress, StorageSize, encodedBuffer);
-
         el.Source.Write(el.SourceAddress, StorageSize, encodedBuffer);
     }
 

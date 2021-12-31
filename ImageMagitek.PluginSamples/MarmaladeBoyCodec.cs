@@ -27,7 +27,7 @@ public class MarmaladeBoyCodec : IndexedCodec
     public override int HeightResizeIncrement => 0;
     public override bool CanResize => false;
 
-    private BitStream _bitStream;
+    private IBitStreamReader _bitReader;
 
     public MarmaladeBoyCodec()
     {
@@ -38,7 +38,7 @@ public class MarmaladeBoyCodec : IndexedCodec
     {
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new byte[Height, Width];
-        _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public override byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -48,39 +48,39 @@ public class MarmaladeBoyCodec : IndexedCodec
 
         encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
 
-        _bitStream = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
 
         try
         {
             int yPos = 0;
             while (true)
             {
-                int characterWidth = _bitStream.ReadByte();
+                int characterWidth = _bitReader.ReadByte();
 
                 if (characterWidth == 0)
                     break;
 
                 for (int y = 0; y < characterWidth; y++, yPos++)
                 {
-                    _nativeBuffer[yPos, 8] = (byte)_bitStream.ReadBit();
-                    _nativeBuffer[yPos, 9] = (byte)_bitStream.ReadBit();
-                    _nativeBuffer[yPos, 10] = (byte)_bitStream.ReadBit();
-                    _nativeBuffer[yPos, 11] = (byte)_bitStream.ReadBit();
+                    _nativeBuffer[yPos, 8] = (byte)_bitReader.ReadBit();
+                    _nativeBuffer[yPos, 9] = (byte)_bitReader.ReadBit();
+                    _nativeBuffer[yPos, 10] = (byte)_bitReader.ReadBit();
+                    _nativeBuffer[yPos, 11] = (byte)_bitReader.ReadBit();
 
-                    _nativeBuffer[yPos, 12] = (byte)_bitStream.ReadBit();
-                    _nativeBuffer[yPos, 13] = (byte)_bitStream.ReadBit();
-                    _nativeBuffer[yPos, 14] = (byte)_bitStream.ReadBit();
-                    _nativeBuffer[yPos, 15] = (byte)_bitStream.ReadBit();
+                    _nativeBuffer[yPos, 12] = (byte)_bitReader.ReadBit();
+                    _nativeBuffer[yPos, 13] = (byte)_bitReader.ReadBit();
+                    _nativeBuffer[yPos, 14] = (byte)_bitReader.ReadBit();
+                    _nativeBuffer[yPos, 15] = (byte)_bitReader.ReadBit();
 
-                    _nativeBuffer[yPos, 0] = (byte)_bitStream.ReadBit();
-                    _nativeBuffer[yPos, 1] = (byte)_bitStream.ReadBit();
-                    _nativeBuffer[yPos, 2] = (byte)_bitStream.ReadBit();
-                    _nativeBuffer[yPos, 3] = (byte)_bitStream.ReadBit();
+                    _nativeBuffer[yPos, 0] = (byte)_bitReader.ReadBit();
+                    _nativeBuffer[yPos, 1] = (byte)_bitReader.ReadBit();
+                    _nativeBuffer[yPos, 2] = (byte)_bitReader.ReadBit();
+                    _nativeBuffer[yPos, 3] = (byte)_bitReader.ReadBit();
 
-                    _nativeBuffer[yPos, 4] = (byte)_bitStream.ReadBit();
-                    _nativeBuffer[yPos, 5] = (byte)_bitStream.ReadBit();
-                    _nativeBuffer[yPos, 6] = (byte)_bitStream.ReadBit();
-                    _nativeBuffer[yPos, 7] = (byte)_bitStream.ReadBit();
+                    _nativeBuffer[yPos, 4] = (byte)_bitReader.ReadBit();
+                    _nativeBuffer[yPos, 5] = (byte)_bitReader.ReadBit();
+                    _nativeBuffer[yPos, 6] = (byte)_bitReader.ReadBit();
+                    _nativeBuffer[yPos, 7] = (byte)_bitReader.ReadBit();
                 }
 
                 yPos += 2;
@@ -91,12 +91,11 @@ public class MarmaladeBoyCodec : IndexedCodec
 
         }
 
-
         return _nativeBuffer;
     }
 
     public override ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer)
     {
-        throw new NotImplementedException($"'{Name}' is a read-only codec");
+        throw new NotSupportedException($"'{Name}' is a read-only codec");
     }
 }
