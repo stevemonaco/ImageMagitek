@@ -2,8 +2,11 @@
 using ImageMagitek.Services;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Models;
+using TileShop.Shared.Models;
 using ImageMagitek;
 using System;
+using GongSolutions.Wpf.DragDrop;
+using System.Windows;
 
 namespace TileShop.WPF.ViewModels;
 
@@ -63,6 +66,7 @@ public abstract class PixelEditorViewModel<TColor> : ArrangerEditorViewModel
         DisplayName = "Pixel Editor";
         CanAcceptElementPastes = true;
         CanAcceptPixelPastes = true;
+        SnapMode = SnapMode.Pixel;
 
         Zoom = 3;
         MaxZoom = 32;
@@ -221,6 +225,44 @@ public abstract class PixelEditorViewModel<TColor> : ArrangerEditorViewModel
         }
         else
             base.OnMouseUp(sender, e);
+    }
+
+    public override void StartDrag(IDragInfo dragInfo)
+    {
+        if (Selection.HasSelection)
+        {
+            var rect = Selection.SelectionRect;
+
+            ArrangerCopy copy = default;
+
+            if (SnapMode == SnapMode.Pixel && WorkingArranger.ColorType == PixelColorType.Indexed)
+            {
+                copy = WorkingArranger.CopyPixelsIndexed(rect.SnappedLeft + _viewX, rect.SnappedTop + _viewY, rect.SnappedWidth, rect.SnappedHeight);
+            }
+            else if (SnapMode == SnapMode.Pixel && WorkingArranger.ColorType == PixelColorType.Direct)
+            {
+                copy = WorkingArranger.CopyPixelsDirect(rect.SnappedLeft + _viewX, rect.SnappedTop + _viewY, rect.SnappedWidth, rect.SnappedHeight);
+            }
+
+            var paste = new ArrangerPaste(copy, SnapMode)
+            {
+                DeltaX = (int)dragInfo.DragStartPosition.X - Selection.SelectionRect.SnappedLeft,
+                DeltaY = (int)dragInfo.DragStartPosition.Y - Selection.SelectionRect.SnappedTop
+            };
+            dragInfo.Data = paste;
+            dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
+
+            Selection = new ArrangerSelection(WorkingArranger, SnapMode);
+        }
+        else if (Paste is not null)
+        {
+            Paste.DeltaX = (int)dragInfo.DragStartPosition.X - Paste.Rect.SnappedLeft;
+            Paste.DeltaY = (int)dragInfo.DragStartPosition.Y - Paste.Rect.SnappedTop;
+            Paste.SnapMode = SnapMode;
+
+            dragInfo.Data = Paste;
+            dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
+        }
     }
     #endregion
 }

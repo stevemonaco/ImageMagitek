@@ -73,7 +73,6 @@ public class IndexedPixelEditorViewModel : PixelEditorViewModel<byte>
         BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
 
         DisplayName = $"Pixel Editor - {WorkingArranger.Name}";
-        SnapMode = SnapMode.Pixel;
         Selection = new ArrangerSelection(arranger, SnapMode);
 
         CreateGridlines();
