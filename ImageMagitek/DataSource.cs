@@ -70,7 +70,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         {
             if (disposing)
             {
-                if (!_stream.IsValueCreated && _stream.Value is not null)
+                if (_stream.IsValueCreated && _stream.Value is not null)
                     _stream.Value.Dispose();
             }
 
