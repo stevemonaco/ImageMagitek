@@ -254,14 +254,9 @@ public abstract class PixelEditorViewModel<TColor> : ArrangerEditorViewModel
 
             Selection = new ArrangerSelection(WorkingArranger, SnapMode);
         }
-        else if (Paste is not null)
+        else
         {
-            Paste.DeltaX = (int)dragInfo.DragStartPosition.X - Paste.Rect.SnappedLeft;
-            Paste.DeltaY = (int)dragInfo.DragStartPosition.Y - Paste.Rect.SnappedTop;
-            Paste.SnapMode = SnapMode;
-
-            dragInfo.Data = Paste;
-            dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
+            base.StartDrag(dragInfo);
         }
     }
     #endregion
