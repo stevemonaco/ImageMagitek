@@ -14,6 +14,8 @@ using Serilog;
 
 namespace TileShop.WPF.ViewModels;
 
+public enum UserSaveAction { Save, Discard, Cancel, Unmodified }
+
 public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsEvent>, IHandle<ArrangerChangedEvent>,
     IHandle<PaletteChangedEvent>
 {
@@ -73,7 +75,11 @@ public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsE
     {
         if (editor.IsModified)
         {
-            if (RequestSaveUserChanges(editor, true))
+            var userAction = RequestSaveUserChanges(editor, true);
+            if (userAction == UserSaveAction.Cancel)
+                return false;
+
+            if (userAction == UserSaveAction.Save)
             {
                 if (editor is not IndexedPixelEditorViewModel && editor is not DirectPixelEditorViewModel)
                 {
@@ -84,10 +90,6 @@ public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsE
                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                     );
                 }
-            }
-            else
-            {
-                return false;
             }
         }
 
@@ -153,6 +155,10 @@ public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsE
             ActiveEditor = openedDocument;
     }
 
+    /// <summary>
+    /// Requests to save each opened, modified editor
+    /// </summary>
+    /// <returns>True if all user actions have been followed, false if the user cancelled</returns>
     public bool RequestSaveAllUserChanges()
     {
         try
@@ -161,9 +167,12 @@ public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsE
 
             foreach (var editor in Editors.Where(x => x.IsModified))
             {
-                if (!RequestSaveUserChanges(editor, false))
+                var userAction = RequestSaveUserChanges(editor, true);
+                if (userAction == UserSaveAction.Cancel)
                     return false;
-                savedProjects.Add(_projectService.GetContainingProject(editor.Resource));
+
+                if (userAction == UserSaveAction.Save)
+                    savedProjects.Add(_projectService.GetContainingProject(editor.Resource));
             }
 
             foreach (var projectTree in savedProjects)
@@ -190,8 +199,8 @@ public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsE
     /// </summary>
     /// <param name="editor">Editor to save</param>
     /// <param name="saveTree">The project tree is also saved upon a Save confirmation</param>
-    /// <returns>True if saved/discarded, false if cancelled</returns>
-    public bool RequestSaveUserChanges(ResourceEditorBaseViewModel editor, bool saveTree)
+    /// <returns>Action requested by user</returns>
+    public UserSaveAction RequestSaveUserChanges(ResourceEditorBaseViewModel editor, bool saveTree)
     {
         if (editor.IsModified)
         {
@@ -211,17 +220,18 @@ public class EditorsViewModel : PropertyChangedBase, IHandle<EditArrangerPixelsE
                      );
                 }
 
-                return true;
+                return UserSaveAction.Save;
             }
-            if (result == MessageBoxResult.No)
+            else if (result == MessageBoxResult.No)
             {
                 editor.DiscardChanges();
-                return true;
+                return UserSaveAction.Discard;
             }
             else if (result == MessageBoxResult.Cancel)
-                return false;
+                return UserSaveAction.Cancel;
         }
-        return true;
+
+        return UserSaveAction.Unmodified;
     }
 
     public void Handle(EditArrangerPixelsEvent message)

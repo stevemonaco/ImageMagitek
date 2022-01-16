@@ -100,14 +100,16 @@ public class ShellViewModel : Screen, IHandle<ShowToolWindowEvent>
     {
         if (e.Document.Content is ResourceEditorBaseViewModel editor)
         {
-            if (Editors.RequestSaveUserChanges(editor, true))
+            var userAction = Editors.RequestSaveUserChanges(editor, true);
+
+            if (userAction == UserSaveAction.Cancel)
             {
-                Editors.Editors.Remove(editor);
-                Editors.ActiveEditor = Editors.Editors.FirstOrDefault();
+                e.Cancel = true;
             }
             else
             {
-                e.Cancel = true;
+                Editors.Editors.Remove(editor);
+                Editors.ActiveEditor = Editors.Editors.FirstOrDefault();
             }
         }
     }

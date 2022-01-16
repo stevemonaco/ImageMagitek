@@ -638,7 +638,7 @@ public class ProjectTreeViewModel : ToolViewModel, IDropTarget, IHandle<AddScatt
                 var remainingEditors = _editors.Editors
                     .Where(x => !removedEditors.Contains(x));
 
-                if (!removedEditors.All(x => _editors.RequestSaveUserChanges(x, false)))
+                if (removedEditors.Any(x => _editors.RequestSaveUserChanges(x, false) == UserSaveAction.Cancel))
                     return false;
 
                 _editors.Editors = new BindableCollection<ResourceEditorBaseViewModel>(remainingEditors);
