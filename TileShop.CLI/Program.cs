@@ -20,7 +20,7 @@ class Program
     public static IProjectService ProjectService;
     public static LoggerFactory LoggerFactory;
     private static string AppName => "TileShopCLI";
-    private static string AppVersion => "0.991";
+    private static string AppVersion => "0.992";
 
     static int Main(string[] args)
     {
