@@ -42,7 +42,6 @@ class Build : NukeBuild
     [GitRepository]
     public readonly GitRepository GitRepository;
 
-    AbsolutePath TestsDirectory => RootDirectory / "tests";
     AbsolutePath OutputDirectory => RootDirectory / "output";
 
     Project TestProject => Solution.GetProject("ImageMagitek.UnitTests");
@@ -50,7 +49,6 @@ class Build : NukeBuild
     Project TileShopProject => Solution.GetProject("TileShop.WPF");
     AbsolutePath TileShopOutputDirectory => OutputDirectory / "TileShop";
     string TileShopPublishProfilex64 = @"Properties\PublishProfiles\TileShop win-x64-single.pubxml";
-    string TileShopPublishProfilex86 = @"Properties\PublishProfiles\TileShop win-x86-single.pubxml";
 
     Project TileShopCLIProject => Solution.GetProject("TileShop.CLI");
     AbsolutePath TileShopCLIPortableOutputDirectory => OutputDirectory / "TileShopCLI";
