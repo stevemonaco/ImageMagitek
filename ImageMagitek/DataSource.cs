@@ -59,6 +59,9 @@ public abstract class DataSource : IProjectResource, IDisposable
     public virtual void Flush() => 
         _stream.Value.Flush();
 
+    public virtual async Task FlushAsync() =>
+        await _stream.Value.FlushAsync();
+
     public virtual IEnumerable<IProjectResource> LinkedResources => 
         Enumerable.Empty<IProjectResource>();
 
