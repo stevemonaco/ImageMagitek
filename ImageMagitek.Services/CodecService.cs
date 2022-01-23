@@ -38,7 +38,15 @@ public class CodecService : ICodecService
 
             result.Switch(success =>
                 {
-                    formats.Add(success.Result.Name, success.Result);
+                    if (formats.ContainsKey(success.Result.Name))
+                    {
+                        errors.Add($"Failed to load XML codec '{formatFileName}'");
+                        errors.AddRange(new[] { $"XML codec with name '{formatFileName}' already exists"});
+                    }
+                    else
+                    {
+                        formats.Add(success.Result.Name, success.Result);
+                    }
                 },
                 fail =>
                 {
