@@ -21,6 +21,7 @@ public class TileShopBootstrapper : AutofacBootstrapper<ShellViewModel>
 {
     private readonly Tracker _tracker = new Tracker();
     private LoggerFactory _loggerFactory;
+    private bool _isStarting = true;
 
     protected override void ConfigureIoC(ContainerBuilder builder)
     {
@@ -31,6 +32,7 @@ public class TileShopBootstrapper : AutofacBootstrapper<ShellViewModel>
         ConfigureJotTracker(_tracker, builder);
 
         ToolTipService.ShowOnDisabledProperty.OverrideMetadata(typeof(Control), new FrameworkPropertyMetadata(true));
+        _isStarting = false;
     }
 
     private void ConfigureImageMagitek(ContainerBuilder builder)
@@ -147,7 +149,11 @@ public class TileShopBootstrapper : AutofacBootstrapper<ShellViewModel>
         base.OnUnhandledException(e);
 
         Log.Error(e.Exception, "Unhandled exception");
-        _container?.Resolve<IWindowManager>()?.ShowMessageBox($"{e.Exception.Message}", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
-        e.Handled = true;
+        
+        if (!_isStarting)
+        {
+            _container?.Resolve<IWindowManager>()?.ShowMessageBox($"{e.Exception.Message}", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            e.Handled = true;
+        }
     }
 }
