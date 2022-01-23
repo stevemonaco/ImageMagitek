@@ -118,6 +118,9 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
             Image.CopyToArray2D(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
             var codec = el.Codec as IDirectCodec;
 
+            buffer.InverseMirrorArray2D(el.Mirror);
+            buffer.InverseRotateArray2D(el.Rotation);
+
             var encodeResult = codec.EncodeElement(el, buffer);
             codec.WriteElement(el, encodeResult);
         }
