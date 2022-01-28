@@ -1,15 +1,7 @@
 ﻿using Microsoft.Win32;
+using TileShop.Shared.Services;
 
 namespace TileShop.WPF.Services;
-
-public interface IFileSelectService
-{
-    string GetProjectFileNameByUser();
-    string GetNewProjectFileNameByUser();
-    string GetExistingDataFileNameByUser();
-    string GetExportArrangerFileNameByUser(string defaultName);
-    string GetImportArrangerFileNameByUser();
-}
 
 public class FileSelectService : IFileSelectService
 {

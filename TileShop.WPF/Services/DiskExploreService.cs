@@ -1,11 +1,7 @@
 ﻿using System.Diagnostics;
+using TileShop.Shared.Services;
 
 namespace TileShop.WPF.Services;
-
-public interface IDiskExploreService
-{
-    void ExploreDiskLocation(string location);
-}
 
 public class DiskExploreService : IDiskExploreService
 {
