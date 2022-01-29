@@ -1,0 +1,72 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="TileShop.AvaloniaUI.Views.ShellView"
+		x:DataType="vm:ShellViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+		ExtendClientAreaToDecorationsHint="True"
+		ExtendClientAreaTitleBarHeightHint="30"
+		UseLayoutRounding="True"
+		TransparencyLevelHint="AcrylicBlur"
+        Title="TileShop.Avalonia">
+
+	<Panel>
+		<ExperimentalAcrylicBorder IsHitTestVisible="False">
+			<ExperimentalAcrylicBorder.Material>
+				<ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="Black"
+                    TintOpacity="1"
+                    MaterialOpacity="0.65" />
+			</ExperimentalAcrylicBorder.Material>
+		</ExperimentalAcrylicBorder>
+		
+		<Grid Margin="0,10,0,0" RowDefinitions="auto,*,auto">
+			<StackPanel Grid.Row="0" Orientation="Horizontal">
+				<TextBlock Text="TileShop Avalonia Client" />
+				<Menu>
+					<MenuItem Header="File">
+						<MenuItem Header="Open Project..." />
+					</MenuItem>
+					<MenuItem Header="Load" Command="{CompiledBinding LoadCommand}" />
+					<MenuItem Header="Test" Command="{Binding Test}" />
+				</Menu>
+			</StackPanel>
+
+			<SplitView IsPaneOpen="True" DisplayMode="Inline" OpenPaneLength="200" Grid.Row="1">
+				<SplitView.Pane>
+					<TreeView Items="{Binding Projects}">
+						<TreeView.DataTemplates>
+							<TreeDataTemplate DataType="vm:ProjectNodeViewModel" ItemsSource="{Binding Children}">
+								<TextBlock Text="{Binding Name}" />
+							</TreeDataTemplate>
+							<TreeDataTemplate DataType="vm:FolderNodeViewModel" ItemsSource="{Binding Children}">
+								<TextBlock Text="{Binding Name}" />
+							</TreeDataTemplate>
+							<TreeDataTemplate DataType="vm:DataFileNodeViewModel" ItemsSource="{Binding Children}">
+								<TextBlock Text="{Binding Name}" />
+							</TreeDataTemplate>
+							<TreeDataTemplate DataType="vm:ArrangerNodeViewModel" ItemsSource="{Binding Children}">
+								<TextBlock Text="{Binding Name}" />
+							</TreeDataTemplate>
+							<TreeDataTemplate DataType="vm:PaletteNodeViewModel" ItemsSource="{Binding Children}">
+								<TextBlock Text="{Binding Name}" />
+							</TreeDataTemplate>
+						</TreeView.DataTemplates>
+					</TreeView>
+				</SplitView.Pane>
+				<Image Stretch="None" RenderOptions.BitmapInterpolationMode="LowQuality" Source="{Binding BitmapAdapter.Bitmap}">
+					<Image.RenderTransform>
+						<ScaleTransform ScaleX="8" ScaleY="8" />
+					</Image.RenderTransform>
+				</Image>
+			</SplitView>
+
+			<TextBlock Grid.Row="2" Text="TileShop Status Bar" />
+		</Grid>
+	</Panel>
+
+</Window>

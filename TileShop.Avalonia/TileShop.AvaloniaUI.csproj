@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <AvaloniaResource Include="Assets\**" />
+    <None Remove=".gitignore" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.10.12" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.12" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="0.10.12" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0-preview1" />
+    <PackageReference Include="Jot" Version="2.1.11" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="Serilog" Version="2.10.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ImageMagitek.Services\ImageMagitek.Services.csproj" />
+    <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
+    <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Views\Shell\ShellView.axaml.cs">
+      <DependentUpon>ShellView.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>
