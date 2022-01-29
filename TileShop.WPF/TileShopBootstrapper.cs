@@ -14,6 +14,7 @@ using TileShop.WPF.Views;
 using System.Windows.Controls;
 using Microsoft.Extensions.Logging;
 using ImageMagitek.Project.Serialization;
+using TileShop.Shared.Services;
 
 namespace TileShop.WPF;
 
