@@ -6,7 +6,6 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Folder Include="Models\" />
     <AvaloniaResource Include="Assets\**" />
     <None Remove=".gitignore" />
   </ItemGroup>
@@ -15,7 +14,10 @@
     <PackageReference Include="Avalonia.Desktop" Version="0.10.12" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="0.10.12" />
+    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.12" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0-preview1" />
+    <PackageReference Include="Dock.Avalonia" Version="0.10.12" />
+    <PackageReference Include="Dock.Model.Avalonia" Version="0.10.12" />
     <PackageReference Include="Jot" Version="2.1.11" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="Serilog" Version="2.10.0" />
@@ -28,7 +30,7 @@
     <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Views\Shell\ShellView.axaml.cs">
+    <Compile Update="Features\Shell\ShellView.axaml.cs">
       <DependentUpon>ShellView.axaml</DependentUpon>
     </Compile>
   </ItemGroup>

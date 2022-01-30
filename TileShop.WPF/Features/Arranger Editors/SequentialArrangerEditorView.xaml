@@ -9,7 +9,7 @@
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:model="clr-namespace:TileShop.WPF.Models"
+    xmlns:model="clr-namespace:TileShop.Shared.Models;assembly=TileShop.Shared"
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:sys="clr-namespace:System;assembly=System.Runtime"
     xmlns:ui="http://schemas.modernwpf.com/2019"

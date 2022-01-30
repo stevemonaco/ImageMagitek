@@ -84,7 +84,6 @@ public class IndexedBitmapAdapter : BitmapAdapter
 
         unsafe
         {
-
             var backBuffer = (uint*)frameBuffer.Address.ToPointer();
             var stride = frameBuffer.RowBytes;
 

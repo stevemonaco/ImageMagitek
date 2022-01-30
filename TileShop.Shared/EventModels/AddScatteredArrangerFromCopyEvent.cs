@@ -1,7 +1,7 @@
 ﻿using ImageMagitek;
 using ImageMagitek.Project;
 
-namespace TileShop.WPF.EventModels;
+namespace TileShop.Shared.EventModels;
 
 public class AddScatteredArrangerFromCopyEvent
 {

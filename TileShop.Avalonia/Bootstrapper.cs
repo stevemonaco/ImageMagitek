@@ -10,6 +10,8 @@ using TileShop.AvaloniaUI.ViewModels;
 using System.Threading.Tasks;
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using TileShop.AvaloniaUI.Services;
+using TileShop.AvaloniaUI.ViewExtenders;
 
 namespace TileShop.AvaloniaUI;
 
@@ -62,11 +64,11 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
     public void ConfigureServices(IServiceCollection services)
     {
-        //builder.AddTransient<IFileSelectService, FileSelectService>();
-
-        //builder.RegisterType<FileSelectService>().As<IFileSelectService>();
         //builder.RegisterType<ViewModels.MessageBoxViewModel>().As<IMessageBoxViewModel>();
-        //builder.RegisterType<DiskExploreService>().As<IDiskExploreService>();
+
+        services.AddSingleton<IWindowManager, WindowManager>();
+        services.AddSingleton<IFileSelectService, FileSelectService>();
+        services.AddSingleton<IDiskExploreService, DiskExploreService>();
     }
 
     public void ConfigureViews(IServiceCollection services)
@@ -89,6 +91,10 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
         foreach (var vmType in vmTypes)
             services.AddTransient(vmType);
+
+        services.AddSingleton<ShellViewModel>();
+        services.AddSingleton<EditorsViewModel>();
+        services.AddSingleton<ProjectTreeViewModel>();
 
         //builder.RegisterType<ShellViewModel>().SingleInstance().OnActivated(x => _tracker.Track(x.Instance));
         //builder.RegisterType<EditorsViewModel>().SingleInstance();
@@ -134,6 +140,8 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         //    .Property(p => p.FlowDirection, ElementLayoutFlowDirection.RowLeftToRight);
 
         //services.RegisterInstance(tracker);
+
+        services.AddSingleton(tracker);
     }
 
     private LoggerFactory CreateLoggerFactory(string logName)

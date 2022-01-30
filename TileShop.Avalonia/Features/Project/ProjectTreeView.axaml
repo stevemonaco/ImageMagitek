@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
+			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 x:DataType="vm:ProjectTreeViewModel"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="TileShop.AvaloniaUI.Views.ProjectTreeView">
+  	<TreeView x:Name="treeView" Items="{Binding Projects}" SelectedItem="{Binding SelectedNode}">
+		<i:Interaction.Behaviors>
+			<ia:EventTriggerBehavior EventName="DoubleTapped" SourceObject="{Binding #treeView}">
+				<ia:InvokeCommandAction Command="{Binding ActivateSelectedNodeCommand}" />
+			</ia:EventTriggerBehavior>
+		</i:Interaction.Behaviors>
+		<TreeView.DataTemplates>
+			<TreeDataTemplate DataType="vm:ProjectNodeViewModel" ItemsSource="{Binding Children}">
+				<TextBlock Text="{Binding Name}" />
+			</TreeDataTemplate>
+			<TreeDataTemplate DataType="vm:FolderNodeViewModel" ItemsSource="{Binding Children}">
+				<TextBlock Text="{Binding Name}" />
+			</TreeDataTemplate>
+			<TreeDataTemplate DataType="vm:DataFileNodeViewModel" ItemsSource="{Binding Children}">
+				<TextBlock Text="{Binding Name}" />
+			</TreeDataTemplate>
+			<TreeDataTemplate DataType="vm:ArrangerNodeViewModel" ItemsSource="{Binding Children}">
+				<TextBlock Text="{Binding Name}" />
+			</TreeDataTemplate>
+			<TreeDataTemplate DataType="vm:PaletteNodeViewModel" ItemsSource="{Binding Children}">
+				<TextBlock Text="{Binding Name}" />
+			</TreeDataTemplate>
+		</TreeView.DataTemplates>
+	</TreeView>
+</UserControl>

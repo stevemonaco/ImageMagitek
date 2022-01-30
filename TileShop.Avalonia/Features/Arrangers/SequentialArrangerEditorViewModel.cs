@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Linq;
-using Stylet;
 using ImageMagitek;
 using ImageMagitek.Services;
 using TileShop.Shared.Models;
-using TileShop.WPF.Behaviors;
-using TileShop.WPF.Imaging;
-using TileShop.WPF.EventModels;
 using Jot;
-using TileShop.WPF.Models;
 using System.Drawing;
 using System.Collections.Generic;
 using TileShop.Shared.EventModels;
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using TileShop.AvaloniaUI.Models;
+using TileShop.AvaloniaUI.ViewExtenders;
+using TileShop.AvaloniaUI.Imaging;
 
-namespace TileShop.WPF.ViewModels;
+namespace TileShop.AvaloniaUI.ViewModels;
 
-public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouseCaptureProxy
+public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
 {
     private readonly ICodecService _codecService;
     private readonly IElementLayoutService _layoutService;
@@ -24,12 +24,7 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
     private DirectImage _directImage;
     private TileLayout _activeLayout;
 
-    private BindableCollection<string> _codecNames = new BindableCollection<string>();
-    public BindableCollection<string> CodecNames
-    {
-        get => _codecNames;
-        set => SetAndNotify(ref _codecNames, value);
-    }
+    [ObservableProperty] private ObservableCollection<string> _codecNames = new();
 
     private string _selectedCodecName;
     public string SelectedCodecName
@@ -37,17 +32,12 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         get => _selectedCodecName;
         set
         {
-            if (SetAndNotify(ref _selectedCodecName, value))
+            if (SetProperty(ref _selectedCodecName, value))
                 ChangeCodec();
         }
     }
 
-    private BindableCollection<PaletteModel> _palettes = new BindableCollection<PaletteModel>();
-    public BindableCollection<PaletteModel> Palettes
-    {
-        get => _palettes;
-        set => SetAndNotify(ref _palettes, value);
-    }
+    [ObservableProperty] private ObservableCollection<PaletteModel> _palettes = new();
 
     private PaletteModel _selectedPalette;
     public PaletteModel SelectedPalette
@@ -55,17 +45,12 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         get => _selectedPalette;
         set
         {
-            if (SetAndNotify(ref _selectedPalette, value))
+            if (SetProperty(ref _selectedPalette, value))
                 ChangePalette(SelectedPalette);
         }
     }
 
-    private BindableCollection<string> _tileLayoutNames;
-    public BindableCollection<string> TileLayoutNames
-    {
-        get => _tileLayoutNames;
-        set => SetAndNotify(ref _tileLayoutNames, value);
-    }
+    [ObservableProperty] private ObservableCollection<string> _tileLayoutNames;
 
     private string _selectedTileLayoutName;
     public string SelectedTileLayoutName
@@ -73,7 +58,7 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         get => _selectedTileLayoutName;
         set
         {
-            if (SetAndNotify(ref _selectedTileLayoutName, value))
+            if (SetProperty(ref _selectedTileLayoutName, value))
                 ChangeElementLayout(_layoutService.ElementLayouts[_selectedTileLayoutName]);
         }
     }
@@ -85,7 +70,7 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         set
         {
             var preferredWidth = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
-            if (SetAndNotify(ref _tiledElementWidth, preferredWidth))
+            if (SetProperty(ref _tiledElementWidth, preferredWidth))
                 ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
         }
     }
@@ -97,7 +82,7 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         set
         {
             var preferredHeight = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredHeight(value);
-            if (SetAndNotify(ref _tiledElementHeight, preferredHeight))
+            if (SetProperty(ref _tiledElementHeight, preferredHeight))
                 ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
         }
     }
@@ -108,7 +93,7 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         get => _tiledArrangerWidth;
         set
         {
-            if (SetAndNotify(ref _tiledArrangerWidth, value))
+            if (SetProperty(ref _tiledArrangerWidth, value))
                 ResizeArranger(TiledArrangerWidth, TiledArrangerHeight);
         }
     }
@@ -119,7 +104,7 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         get => _tiledArrangerHeight;
         set
         {
-            if (SetAndNotify(ref _tiledArrangerHeight, value))
+            if (SetProperty(ref _tiledArrangerHeight, value))
                 ResizeArranger(TiledArrangerWidth, TiledArrangerHeight);
         }
     }
@@ -131,7 +116,7 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         set
         {
             var preferredWidth = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
-            SetAndNotify(ref _linearArrangerWidth, preferredWidth);
+            SetProperty(ref _linearArrangerWidth, preferredWidth);
             ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
         }
     }
@@ -143,74 +128,34 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         set
         {
             var preferredHeight = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredHeight(value);
-            SetAndNotify(ref _linearArrangerHeight, preferredHeight);
+            SetProperty(ref _linearArrangerHeight, preferredHeight);
             ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
         }
     }
 
-    private bool _canResize;
-    public bool CanResize
-    {
-        get => _canResize;
-        set => SetAndNotify(ref _canResize, value);
-    }
-
-    private int _elementWidthIncrement = 1;
-    public int ElementWidthIncrement
-    {
-        get => _elementWidthIncrement;
-        set => SetAndNotify(ref _elementWidthIncrement, value);
-    }
-
-    private int _elementHeightIncrement = 1;
-    public int ElementHeightIncrement
-    {
-        get => _elementHeightIncrement;
-        set => SetAndNotify(ref _elementHeightIncrement, value);
-    }
-
-    private int _arrangerWidthIncrement = 1;
-    public int ArrangerWidthIncrement
-    {
-        get => _arrangerWidthIncrement;
-        set => SetAndNotify(ref _arrangerWidthIncrement, value);
-    }
-
-    private int _arrangerHeightIncrement = 1;
-    public int ArrangerHeightIncrement
-    {
-        get => _arrangerHeightIncrement;
-        set => SetAndNotify(ref _arrangerHeightIncrement, value);
-    }
-
+    [ObservableProperty] private bool _canResize;
+    [ObservableProperty] private int _elementWidthIncrement = 1;
+    [ObservableProperty] private int _elementHeightIncrement = 1;
+    [ObservableProperty] private int _arrangerWidthIncrement = 1;
+    [ObservableProperty] private int _arrangerHeightIncrement = 1;
+    
     private long _fileOffset;
     public long FileOffset
     {
         get => _fileOffset;
         set
         {
-            if (SetAndNotify(ref _fileOffset, value))
+            if (SetProperty(ref _fileOffset, value))
                 Move(_fileOffset);
         }
     }
 
-    private long _maxFileDecodingOffset;
-    public long MaxFileDecodingOffset
-    {
-        get => _maxFileDecodingOffset;
-        set => SetAndNotify(ref _maxFileDecodingOffset, value);
-    }
+    [ObservableProperty] private long _maxFileDecodingOffset;
+    [ObservableProperty] private int _arrangerPageSize;
 
-    private int _arrangerPageSize;
-    public int ArrangerPageSize
-    {
-        get => _arrangerPageSize;
-        set => SetAndNotify(ref _arrangerPageSize, value);
-    }
-
-    public SequentialArrangerEditorViewModel(SequentialArranger arranger, IEventAggregator events, IWindowManager windowManager,
+    public SequentialArrangerEditorViewModel(SequentialArranger arranger, IWindowManager windowManager,
         Tracker tracker, ICodecService codecService, IPaletteService paletteService, IElementLayoutService layoutService) :
-        base(events, windowManager, paletteService)
+        base(windowManager, paletteService)
     {
         Resource = arranger;
         WorkingArranger = arranger;
@@ -248,7 +193,7 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         ElementWidthIncrement = arranger.ActiveCodec.WidthResizeIncrement;
         ElementHeightIncrement = arranger.ActiveCodec.HeightResizeIncrement;
 
-        Palettes = new BindableCollection<PaletteModel>(_paletteService.GlobalPalettes.Select(x => new PaletteModel(x)));
+        Palettes = new(_paletteService.GlobalPalettes.Select(x => new PaletteModel(x)));
         SelectedPalette = Palettes.First();
 
         ArrangerPageSize = (int)(WorkingArranger as SequentialArranger).ArrangerBitSize / 8;
@@ -310,48 +255,51 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
 
     public void JumpToOffset()
     {
-        var model = new JumpToOffsetViewModel();
-        _tracker.Track(model);
-        var result = _windowManager.ShowDialog(model);
+        throw new NotImplementedException();
+        //var model = new JumpToOffsetViewModel();
+        //_tracker.Track(model);
+        //var result = _windowManager.ShowDialog(model);
 
-        if (result is true)
-        {
-            Move(model.Result);
-            _tracker.Persist(model);
-        }
+        //if (result is true)
+        //{
+        //    Move(model.Result);
+        //    _tracker.Persist(model);
+        //}
     }
 
     public void NewScatteredArrangerFromSelection()
     {
-        if (SnapMode == SnapMode.Element)
-        {
-            int x = Selection.SelectionRect.SnappedLeft / WorkingArranger.ElementPixelSize.Width;
-            int y = Selection.SelectionRect.SnappedTop / WorkingArranger.ElementPixelSize.Height;
-            int width = Selection.SelectionRect.SnappedWidth / WorkingArranger.ElementPixelSize.Width;
-            int height = Selection.SelectionRect.SnappedHeight / WorkingArranger.ElementPixelSize.Height;
+        throw new NotImplementedException();
+        //if (SnapMode == SnapMode.Element)
+        //{
+        //    int x = Selection.SelectionRect.SnappedLeft / WorkingArranger.ElementPixelSize.Width;
+        //    int y = Selection.SelectionRect.SnappedTop / WorkingArranger.ElementPixelSize.Height;
+        //    int width = Selection.SelectionRect.SnappedWidth / WorkingArranger.ElementPixelSize.Width;
+        //    int height = Selection.SelectionRect.SnappedHeight / WorkingArranger.ElementPixelSize.Height;
 
-            var copy = new ElementCopy(WorkingArranger, x, y, width, height);
-            var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
-            _events.PublishOnUIThread(model);
-        }
-        else
-        {
-            _windowManager.ShowMessageBox("Selection must be performed in Element Snap mode to create a new Scattered Arranger", "Error");
-        }
+        //    var copy = new ElementCopy(WorkingArranger, x, y, width, height);
+        //    var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
+        //    _events.PublishOnUIThread(model);
+        //}
+        //else
+        //{
+        //    _windowManager.ShowMessageBox("Selection must be performed in Element Snap mode to create a new Scattered Arranger", "Error");
+        //}
     }
 
     public void NewScatteredArrangerFromImage()
     {
-        if (SnapMode == SnapMode.Element)
-        {
-            var copy = new ElementCopy(WorkingArranger, 0, 0, 1, 1);
-            var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
-            _events.PublishOnUIThread(model);
-        }
-        else
-        {
-            _windowManager.ShowMessageBox("Selection must be performed in Element Snap mode to create a new Scattered Arranger", "Error");
-        }
+        throw new NotImplementedException();
+        //if (SnapMode == SnapMode.Element)
+        //{
+        //    var copy = new ElementCopy(WorkingArranger, 0, 0, 1, 1);
+        //    var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
+        //    _events.PublishOnUIThread(model);
+        //}
+        //else
+        //{
+        //    _windowManager.ShowMessageBox("Selection must be performed in Element Snap mode to create a new Scattered Arranger", "Error");
+        //}
     }
 
     public void ApplyDefaultElementLayout()
@@ -361,30 +309,31 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
 
     public void CreateCustomLayout()
     {
-        var model = new CustomElementLayoutViewModel();
-        _tracker.Track(model);
+        throw new NotImplementedException();
+        //var model = new CustomElementLayoutViewModel();
+        //_tracker.Track(model);
 
-        if (_windowManager.ShowDialog(model) is true)
-        {
-            var order = new List<Point>();
-            if (model.FlowDirection == ElementLayoutFlowDirection.RowLeftToRight)
-            {
-                for (int y = 0; y < model.Height; y++)
-                    for (int x = 0; x < model.Width; x++)
-                        order.Add(new Point(x, y));
-            }
-            else if (model.FlowDirection == ElementLayoutFlowDirection.ColumnTopToBottom)
-            {
-                for (int x = 0; x < model.Width; x++)
-                    for (int y = 0; y < model.Height; y++)
-                        order.Add(new Point(x, y));
-            }
+        //if (_windowManager.ShowDialog(model) is true)
+        //{
+        //    var order = new List<Point>();
+        //    if (model.FlowDirection == ElementLayoutFlowDirection.RowLeftToRight)
+        //    {
+        //        for (int y = 0; y < model.Height; y++)
+        //            for (int x = 0; x < model.Width; x++)
+        //                order.Add(new Point(x, y));
+        //    }
+        //    else if (model.FlowDirection == ElementLayoutFlowDirection.ColumnTopToBottom)
+        //    {
+        //        for (int x = 0; x < model.Width; x++)
+        //            for (int y = 0; y < model.Height; y++)
+        //                order.Add(new Point(x, y));
+        //    }
 
-            var layout = new TileLayout("Custom", model.Width, model.Height, model.Width * model.Height, order);
-            ChangeElementLayout(layout);
+        //    var layout = new TileLayout("Custom", model.Width, model.Height, model.Width * model.Height, order);
+        //    ChangeElementLayout(layout);
 
-            _tracker.Persist(model);
-        }
+        //    _tracker.Persist(model);
+        //}
     }
 
     public void ChangeElementLayout(string layoutName)
@@ -400,7 +349,7 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         if (oldAddress != newAddress)
         {
             _fileOffset = newAddress.ByteOffset;
-            NotifyOfPropertyChange(() => FileOffset);
+            OnPropertyChanged(nameof(FileOffset));
             Render();
         }
     }
@@ -413,7 +362,7 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         if (oldAddress != newAddress)
         {
             _fileOffset = newAddress.ByteOffset;
-            NotifyOfPropertyChange(() => FileOffset);
+            OnPropertyChanged(nameof(FileOffset));
             Render();
         }
     }
@@ -467,8 +416,8 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         _tiledArrangerWidth = WorkingArranger.ArrangerElementSize.Width;
         _tiledArrangerHeight = WorkingArranger.ArrangerElementSize.Height;
 
-        NotifyOfPropertyChange(() => TiledArrangerWidth);
-        NotifyOfPropertyChange(() => TiledArrangerHeight);
+        OnPropertyChanged(nameof(TiledArrangerWidth));
+        OnPropertyChanged(nameof(TiledArrangerHeight));
 
         CreateImages();
     }
@@ -484,8 +433,8 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
             (WorkingArranger as SequentialArranger).ChangeCodec(codec, TiledArrangerWidth, TiledArrangerHeight);
             SnapMode = SnapMode.Element;
 
-            NotifyOfPropertyChange(() => TiledElementHeight);
-            NotifyOfPropertyChange(() => TiledElementWidth);
+            OnPropertyChanged(nameof(TiledElementWidth));
+            OnPropertyChanged(nameof(TiledElementHeight));
         }
         else if (codec.Layout == ImageMagitek.Codec.ImageLayout.Single)
         {
@@ -496,8 +445,8 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
             (WorkingArranger as SequentialArranger).ChangeCodec(codec, 1, 1);
             SnapMode = SnapMode.Pixel;
 
-            NotifyOfPropertyChange(() => LinearArrangerHeight);
-            NotifyOfPropertyChange(() => LinearArrangerWidth);
+            OnPropertyChanged(nameof(LinearArrangerWidth));
+            OnPropertyChanged(nameof(LinearArrangerHeight));
         }
 
         _fileOffset = (WorkingArranger as SequentialArranger).Address.ByteOffset;
@@ -508,9 +457,9 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         ElementHeightIncrement = codec.HeightResizeIncrement;
         CreateImages();
 
-        NotifyOfPropertyChange(() => FileOffset);
-        NotifyOfPropertyChange(() => IsTiledLayout);
-        NotifyOfPropertyChange(() => IsSingleLayout);
+        OnPropertyChanged(nameof(FileOffset));
+        OnPropertyChanged(nameof(IsTiledLayout));
+        OnPropertyChanged(nameof(IsSingleLayout));
     }
 
     private void ChangePalette(PaletteModel pal)
@@ -535,11 +484,11 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
             _indexedImage = new IndexedImage(WorkingArranger);
             BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
         }
-        else if (WorkingArranger.ColorType == PixelColorType.Direct)
-        {
-            _directImage = new DirectImage(WorkingArranger);
-            BitmapAdapter = new DirectBitmapAdapter(_directImage);
-        }
+        //else if (WorkingArranger.ColorType == PixelColorType.Direct)
+        //{
+        //    _directImage = new DirectImage(WorkingArranger);
+        //    BitmapAdapter = new DirectBitmapAdapter(_directImage);
+        //}
 
         CreateGridlines();
     }
@@ -563,7 +512,9 @@ public class SequentialArrangerEditorViewModel : ArrangerEditorViewModel, IMouse
         if (WorkingArranger.ColorType == PixelColorType.Indexed)
         {
             _indexedImage.Render();
-            BitmapAdapter.Invalidate();
+            BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
+            //BitmapAdapter.Invalidate();
+            //OnPropertyChanged(nameof(BitmapAdapter));
         }
         else if (WorkingArranger.ColorType == PixelColorType.Direct)
         {

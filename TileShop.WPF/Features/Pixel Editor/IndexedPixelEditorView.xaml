@@ -8,7 +8,7 @@
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:model="clr-namespace:TileShop.WPF.Models"
+    xmlns:model="clr-namespace:TileShop.Shared.Models;assembly=TileShop.Shared"
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:vm="clr-namespace:TileShop.WPF.ViewModels"
     d:DataContext="{d:DesignInstance Type=vm:IndexedPixelEditorViewModel}"
