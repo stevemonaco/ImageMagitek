@@ -7,26 +7,26 @@ namespace TileShop.AvaloniaUI.Converters;
 
 public class EnumToBooleanConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        string parameterString = parameter as string;
-        if (parameterString is null)
-            return AvaloniaProperty.UnsetValue;
+        if (parameter is string parameterString && value is Enum valueEnum)
+        {
+            if (Enum.IsDefined(valueEnum.GetType(), valueEnum) == false)
+                return AvaloniaProperty.UnsetValue;
 
-        if (Enum.IsDefined(value.GetType(), value) == false)
-            return AvaloniaProperty.UnsetValue;
+            object parameterValue = Enum.Parse(valueEnum.GetType(), parameterString);
 
-        object parameterValue = Enum.Parse(value.GetType(), parameterString);
+            return parameterValue.Equals(value);
+        }
 
-        return parameterValue.Equals(value);
+        return AvaloniaProperty.UnsetValue;
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        string parameterString = parameter as string;
-        if (parameterString is null)
-            return AvaloniaProperty.UnsetValue;
+        if (parameter is string parameterString)
+            return Enum.Parse(targetType, parameterString);
 
-        return Enum.Parse(targetType, parameterString);
+        return AvaloniaProperty.UnsetValue;
     }
 }

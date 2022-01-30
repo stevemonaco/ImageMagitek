@@ -12,6 +12,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.Models;
 using TileShop.AvaloniaUI.ViewExtenders;
 using TileShop.AvaloniaUI.Imaging;
+using CommunityToolkit.Mvvm.Input;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -210,17 +211,18 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         IsModified = false;
     }
 
-    public void MoveByteDown() => Move(ArrangerMoveType.ByteDown);
-    public void MoveByteUp() => Move(ArrangerMoveType.ByteUp);
-    public void MoveRowDown() => Move(ArrangerMoveType.RowDown);
-    public void MoveRowUp() => Move(ArrangerMoveType.RowUp);
-    public void MoveColumnRight() => Move(ArrangerMoveType.ColRight);
-    public void MoveColumnLeft() => Move(ArrangerMoveType.ColLeft);
-    public void MovePageDown() => Move(ArrangerMoveType.PageDown);
-    public void MovePageUp() => Move(ArrangerMoveType.PageUp);
-    public void MoveHome() => Move(ArrangerMoveType.Home);
-    public void MoveEnd() => Move(ArrangerMoveType.End);
+    [ICommand] public void MoveByteDown() => Move(ArrangerMoveType.ByteDown);
+    [ICommand] public void MoveByteUp() => Move(ArrangerMoveType.ByteUp);
+    [ICommand] public void MoveRowDown() => Move(ArrangerMoveType.RowDown);
+    [ICommand] public void MoveRowUp() => Move(ArrangerMoveType.RowUp);
+    [ICommand] public void MoveColumnRight() => Move(ArrangerMoveType.ColRight);
+    [ICommand] public void MoveColumnLeft() => Move(ArrangerMoveType.ColLeft);
+    [ICommand] public void MovePageDown() => Move(ArrangerMoveType.PageDown);
+    [ICommand] public void MovePageUp() => Move(ArrangerMoveType.PageUp);
+    [ICommand] public void MoveHome() => Move(ArrangerMoveType.Home);
+    [ICommand] public void MoveEnd() => Move(ArrangerMoveType.End);
 
+    [ICommand]
     public void ExpandWidth()
     {
         if (IsTiledLayout)
@@ -229,6 +231,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
             LinearArrangerWidth += ElementWidthIncrement;
     }
 
+    [ICommand]
     public void ExpandHeight()
     {
         if (IsTiledLayout)
@@ -237,6 +240,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
             LinearArrangerHeight += ElementHeightIncrement;
     }
 
+    [ICommand]
     public void ShrinkWidth()
     {
         if (IsTiledLayout)
@@ -245,6 +249,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
             LinearArrangerHeight = Math.Clamp(LinearArrangerHeight - ElementWidthIncrement, ElementWidthIncrement, int.MaxValue);
     }
 
+    [ICommand]
     public void ShrinkHeight()
     {
         if (IsTiledLayout)
@@ -253,6 +258,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
             LinearArrangerWidth = Math.Clamp(LinearArrangerWidth - ElementHeightIncrement, ElementHeightIncrement, int.MaxValue);
     }
 
+    [ICommand]
     public void JumpToOffset()
     {
         throw new NotImplementedException();
@@ -267,6 +273,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         //}
     }
 
+    [ICommand]
     public void NewScatteredArrangerFromSelection()
     {
         throw new NotImplementedException();
@@ -287,6 +294,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         //}
     }
 
+    [ICommand]
     public void NewScatteredArrangerFromImage()
     {
         throw new NotImplementedException();
@@ -386,12 +394,14 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         MaxFileDecodingOffset = (WorkingArranger as SequentialArranger).FileSize - ArrangerPageSize;
     }
 
+    [ICommand]
     public void SelectNextCodec()
     {
         var index = CodecNames.IndexOf(SelectedCodecName) + 1;
         SelectedCodecName = CodecNames[index % CodecNames.Count];
     }
 
+    [ICommand]
     public void SelectPreviousCodec()
     {
         var index = CodecNames.IndexOf(SelectedCodecName) - 1;
@@ -400,6 +410,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         SelectedCodecName = CodecNames[index];
     }
 
+    [ICommand]
     public void ToggleSnapMode()
     {
         if (SnapMode == SnapMode.Element)

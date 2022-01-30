@@ -366,7 +366,7 @@
                         <MenuItem
                             Command="{s:Action NewScatteredArrangerFromSelection}"
                             Header="New ScatteredArranger From Selection..."
-                            IsEnabled="{Binding Overlay.State, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Selected}"
+                            IsEnabled="{Binding Selection.HasSelection, Converter={StaticResource BooleanToVisibilityConverter}}"
                             Visibility="{Binding IsTiledLayout, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
                         <MenuItem
                             Command="{s:Action NewScatteredArrangerFromImage}"

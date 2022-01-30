@@ -30,6 +30,9 @@
     <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Features\Shell\MenuView.axaml.cs">
+      <DependentUpon>MenuView.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Features\Shell\ShellView.axaml.cs">
       <DependentUpon>ShellView.axaml</DependentUpon>
     </Compile>

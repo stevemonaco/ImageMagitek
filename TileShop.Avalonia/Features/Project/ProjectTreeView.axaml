@@ -6,6 +6,7 @@
              xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
 			 x:DataType="vm:ProjectTreeViewModel"
+			 x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="TileShop.AvaloniaUI.Views.ProjectTreeView">
   	<TreeView x:Name="treeView" Items="{Binding Projects}" SelectedItem="{Binding SelectedNode}">
@@ -15,19 +16,19 @@
 			</ia:EventTriggerBehavior>
 		</i:Interaction.Behaviors>
 		<TreeView.DataTemplates>
-			<TreeDataTemplate DataType="vm:ProjectNodeViewModel" ItemsSource="{Binding Children}">
+			<TreeDataTemplate x:DataType="vm:ProjectNodeViewModel" ItemsSource="{Binding Children}">
 				<TextBlock Text="{Binding Name}" />
 			</TreeDataTemplate>
-			<TreeDataTemplate DataType="vm:FolderNodeViewModel" ItemsSource="{Binding Children}">
+			<TreeDataTemplate x:DataType="vm:FolderNodeViewModel" ItemsSource="{Binding Children}">
 				<TextBlock Text="{Binding Name}" />
 			</TreeDataTemplate>
-			<TreeDataTemplate DataType="vm:DataFileNodeViewModel" ItemsSource="{Binding Children}">
+			<TreeDataTemplate x:DataType="vm:DataFileNodeViewModel" ItemsSource="{Binding Children}">
 				<TextBlock Text="{Binding Name}" />
 			</TreeDataTemplate>
-			<TreeDataTemplate DataType="vm:ArrangerNodeViewModel" ItemsSource="{Binding Children}">
+			<TreeDataTemplate x:DataType="vm:ArrangerNodeViewModel" ItemsSource="{Binding Children}">
 				<TextBlock Text="{Binding Name}" />
 			</TreeDataTemplate>
-			<TreeDataTemplate DataType="vm:PaletteNodeViewModel" ItemsSource="{Binding Children}">
+			<TreeDataTemplate x:DataType="vm:PaletteNodeViewModel" ItemsSource="{Binding Children}">
 				<TextBlock Text="{Binding Name}" />
 			</TreeDataTemplate>
 		</TreeView.DataTemplates>

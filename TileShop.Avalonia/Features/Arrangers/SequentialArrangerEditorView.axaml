@@ -3,36 +3,39 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:model="using:TileShop.Shared.Models"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 x:DataType="vm:SequentialArrangerEditorViewModel"
+			 x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="TileShop.AvaloniaUI.Views.SequentialArrangerEditorView">
 
 	<UserControl.KeyBindings>
-		<KeyBinding Gesture="OemPlus" Command="{Binding MoveByteDown}" />
-		<KeyBinding Gesture="Add" Command="{Binding MoveByteDown}" />
-		<KeyBinding Gesture="Subtract" Command="{Binding MoveByteUp}" />
-		<KeyBinding Gesture="OemMinus" Command="{Binding MoveByteUp}" />
-		<KeyBinding Gesture="Down" Command="{Binding MoveRowDown}" />
-		<KeyBinding Gesture="Up" Command="{Binding MoveRowUp}" />
-		<KeyBinding Gesture="Right" Command="{Binding MoveColumnRight}" />
-		<KeyBinding Gesture="Left" Command="{Binding MoveColumnLeft}" />
-		<KeyBinding Gesture="PageDown" Command="{Binding MovePageDown}" />
-		<KeyBinding Gesture="PageUp" Command="{Binding MovePageUp}" />
-		<KeyBinding Gesture="Home" Command="{Binding MoveHome}" />
-		<KeyBinding Gesture="End" Command="{Binding MoveEnd}" />
-		<KeyBinding Gesture="OemQuestion" Command="{Binding ExpandWidth}" />
-		<KeyBinding Gesture="OemPeriod" Command="{Binding ShrinkWidth}" />
-		<KeyBinding Gesture="L" Command="{Binding ShrinkHeight}" />
-		<KeyBinding Gesture="OemSemicolon" Command="{Binding ExpandHeight}" />
-		<KeyBinding Gesture="F" Command="{Binding SelectNextCodec}" />
-		<KeyBinding Gesture="D" Command="{Binding SelectPreviousCodec}" />
-		<KeyBinding Gesture="Z" Command="{Binding ZoomIn}" />
-		<KeyBinding Gesture="X" Command="{Binding ZoomOut}" />
-		<KeyBinding Gesture="G" Command="{Binding ToggleGridlineVisibility}" />
-		<KeyBinding Gesture="J" Command="{Binding JumpToOffset}" />
-		<KeyBinding Gesture="E" Command="{Binding EditSelection}" />
-		<KeyBinding Gesture="S" Command="{Binding ToggleSnapMode}" />
-		<KeyBinding Gesture="Escape" Command="{Binding CancelOverlay}" />
-		<KeyBinding Gesture="Ctrl+A" Command="{Binding SelectAll}" />
+		<KeyBinding Gesture="OemPlus" Command="{Binding MoveByteDownCommand}" />
+		<KeyBinding Gesture="Add" Command="{Binding MoveByteDownCommand}" />
+		<KeyBinding Gesture="Subtract" Command="{Binding MoveByteUpCommand}" />
+		<KeyBinding Gesture="OemMinus" Command="{Binding MoveByteUpCommand}" />
+		<KeyBinding Gesture="Down" Command="{Binding MoveRowDownCommand}" />
+		<KeyBinding Gesture="Up" Command="{Binding MoveRowUpCommand}" />
+		<KeyBinding Gesture="Right" Command="{Binding MoveColumnRightCommand}" />
+		<KeyBinding Gesture="Left" Command="{Binding MoveColumnLeftCommand}" />
+		<KeyBinding Gesture="PageDown" Command="{Binding MovePageDownCommand}" />
+		<KeyBinding Gesture="PageUp" Command="{Binding MovePageUpCommand}" />
+		<KeyBinding Gesture="Home" Command="{Binding MoveHomeCommand}" />
+		<KeyBinding Gesture="End" Command="{Binding MoveEndCommand}" />
+		<KeyBinding Gesture="OemQuestion" Command="{Binding ExpandWidthCommand}" />
+		<KeyBinding Gesture="OemPeriod" Command="{Binding ShrinkWidthCommand}" />
+		<KeyBinding Gesture="L" Command="{Binding ShrinkHeightCommand}" />
+		<KeyBinding Gesture="OemSemicolon" Command="{Binding ExpandHeightCommand}" />
+		<KeyBinding Gesture="F" Command="{Binding SelectNextCodecCommand}" />
+		<KeyBinding Gesture="D" Command="{Binding SelectPreviousCodecCommand}" />
+		<KeyBinding Gesture="Z" Command="{Binding ZoomInCommand}" />
+		<KeyBinding Gesture="X" Command="{Binding ZoomOutCommand}" />
+		<KeyBinding Gesture="G" Command="{Binding ToggleGridlineVisibilityCommand}" />
+		<KeyBinding Gesture="J" Command="{Binding JumpToOffsetCommand}" />
+		<KeyBinding Gesture="E" Command="{Binding EditSelectionCommand}" />
+		<KeyBinding Gesture="S" Command="{Binding ToggleSnapModeCommand}" />
+		<KeyBinding Gesture="Escape" Command="{Binding CancelOverlayCommand}" />
+		<KeyBinding Gesture="Ctrl+A" Command="{Binding SelectAllCommand}" />
 	</UserControl.KeyBindings>
 
 	<Grid UseLayoutRounding="True" RowDefinitions="auto,*">
@@ -96,7 +99,7 @@
                                 Focusable="False"
                                 Items="{Binding Palettes}"
                                 SelectedItem="{Binding SelectedPalette}"
-                                IsVisible="{Binding Palettes.Count}">
+                                IsVisible="{Binding !Palettes.Count}">
 								<ComboBox.ItemTemplate>
 									<DataTemplate>
 										<TextBlock Text="{Binding Name}" />
@@ -286,14 +289,14 @@
 
 				<Grid.ContextMenu>
 					<ContextMenu>
-						<MenuItem Command="{Binding SelectAll}" Header="Select All" />
+						<MenuItem Command="{Binding SelectAllCommand}" Header="Select All" />
 						<MenuItem
-                            Command="{Binding NewScatteredArrangerFromSelection}"
+                            Command="{Binding NewScatteredArrangerFromSelectionCommand}"
                             Header="New ScatteredArranger From Selection..."
-                            IsEnabled="{Binding Overlay.State, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Selected}"
+                            IsEnabled="{Binding Selection.HasSelection}"
                             IsVisible="{Binding IsTiledLayout}" />
 						<MenuItem
-                            Command="{Binding NewScatteredArrangerFromImage}"
+                            Command="{Binding NewScatteredArrangerFromImageCommand}"
                             Header="New ScatteredArranger From Image..."
                             IsVisible="{Binding IsSingleLayout}" />
 					</ContextMenu>

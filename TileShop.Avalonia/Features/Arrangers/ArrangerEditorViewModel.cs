@@ -10,6 +10,7 @@ using TileShop.AvaloniaUI.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using TileShop.AvaloniaUI.Models;
+using CommunityToolkit.Mvvm.Input;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -149,11 +150,12 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     }
 
     #region Commands
-    public virtual void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);
-    public virtual void ZoomOut() => Zoom = Math.Clamp(Zoom - 1, MinZoom, MaxZoom);
+    [ICommand] public virtual void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);
+    [ICommand] public virtual void ZoomOut() => Zoom = Math.Clamp(Zoom - 1, MinZoom, MaxZoom);
 
-    public virtual void ToggleGridlineVisibility() => ShowGridlines ^= true;
+    [ICommand] public virtual void ToggleGridlineVisibility() => ShowGridlines ^= true;
 
+    [ICommand]
     public virtual void EditSelection()
     {
         if (!CanEditSelection)
@@ -180,6 +182,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         CancelOverlay();
     }
 
+    [ICommand]
     public virtual void SelectAll()
     {
         CancelOverlay();
@@ -189,6 +192,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         OnPropertyChanged(nameof(CanEditSelection));
     }
 
+    [ICommand]
     public virtual void CancelOverlay()
     {
         Selection = new ArrangerSelection(WorkingArranger, SnapMode);

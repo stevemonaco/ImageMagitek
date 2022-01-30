@@ -69,6 +69,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         services.AddSingleton<IWindowManager, WindowManager>();
         services.AddSingleton<IFileSelectService, FileSelectService>();
         services.AddSingleton<IDiskExploreService, DiskExploreService>();
+        services.AddSingleton<IThemeService, ThemeService>();
     }
 
     public void ConfigureViews(IServiceCollection services)

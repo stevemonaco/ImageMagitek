@@ -9,6 +9,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="TileShop.AvaloniaUI.Views.ShellView"
 		x:DataType="vm:ShellViewModel"
+		x:CompileBindings="True"
         Icon="/Assets/avalonia-logo.ico"
 		ExtendClientAreaToDecorationsHint="True"
 		ExtendClientAreaTitleBarHeightHint="30"
@@ -30,13 +31,8 @@
 		<Grid Margin="0,10,0,0" RowDefinitions="auto,*,auto">
 			<StackPanel Grid.Row="0" Orientation="Horizontal">
 				<TextBlock Text="TileShop Avalonia Client" />
-				<Menu>
-					<MenuItem Header="File">
-						<MenuItem Header="Open Project..." />
-					</MenuItem>
-					<MenuItem Header="Load" Command="{CompiledBinding LoadCommand}" />
-					<MenuItem Header="Test" Command="{Binding Test}" />
-				</Menu>
+				<ContentControl Content="{Binding ActiveMenu}" />
+				<Button Command="{Binding LoadCommand}" Content="Load" />
 			</StackPanel>
 
 			<SplitView IsPaneOpen="True" DisplayMode="Inline" OpenPaneLength="200" Grid.Row="1">

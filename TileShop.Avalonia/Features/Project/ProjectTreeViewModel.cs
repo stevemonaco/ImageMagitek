@@ -604,53 +604,52 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
     public bool CloseProject(ProjectNodeViewModel projectVM)
     {
-        return true;
-        //var projectTree = _projectService.GetContainingProject(projectVM.Node);
+        var projectTree = _projectService.GetContainingProject(projectVM.Node);
 
-        //return _projectService.SaveProject(projectTree).Match(
-        //    success =>
-        //    {
-        //        var activeContainedEditors = _editors.Editors.Where(x => projectTree.ContainsResource(x.Resource));
-        //        var activeSequentialEditors = _editors.Editors
-        //            .OfType<SequentialArrangerEditorViewModel>()
-        //            .Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataSource));
-        //        var activeIndexedPixelEditors = _editors.Editors
-        //            .OfType<IndexedPixelEditorViewModel>()
-        //            .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
-        //        var activeDirectPixelEditors = _editors.Editors
-        //            .OfType<DirectPixelEditorViewModel>()
-        //            .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
+        return _projectService.SaveProject(projectTree).Match(
+            success =>
+            {
+                var activeContainedEditors = _editors.Editors.Where(x => projectTree.ContainsResource(x.Resource));
+                var activeSequentialEditors = _editors.Editors
+                    .OfType<SequentialArrangerEditorViewModel>()
+                    .Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataSource));
+                //var activeIndexedPixelEditors = _editors.Editors
+                //    .OfType<IndexedPixelEditorViewModel>()
+                //    .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
+                //var activeDirectPixelEditors = _editors.Editors
+                //    .OfType<DirectPixelEditorViewModel>()
+                //    .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
 
-        //        var removedEditors = new HashSet<ResourceEditorBaseViewModel>(activeContainedEditors);
-        //        removedEditors.UnionWith(activeSequentialEditors);
-        //        removedEditors.UnionWith(activeIndexedPixelEditors);
-        //        removedEditors.UnionWith(activeDirectPixelEditors);
+                var removedEditors = new HashSet<ResourceEditorBaseViewModel>(activeContainedEditors);
+                removedEditors.UnionWith(activeSequentialEditors);
+                //removedEditors.UnionWith(activeIndexedPixelEditors);
+                //removedEditors.UnionWith(activeDirectPixelEditors);
 
-        //        var remainingEditors = _editors.Editors
-        //            .Where(x => !removedEditors.Contains(x));
+                var remainingEditors = _editors.Editors
+                    .Where(x => !removedEditors.Contains(x));
 
-        //        if (removedEditors.Any(x => _editors.RequestSaveUserChanges(x, false) == UserSaveAction.Cancel))
-        //            return false;
+                if (removedEditors.Any(x => _editors.RequestSaveUserChanges(x, false) == UserSaveAction.Cancel))
+                    return false;
 
-        //        _editors.Editors = new BindableCollection<ResourceEditorBaseViewModel>(remainingEditors);
-        //        _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
+                _editors.Editors = new(remainingEditors);
+                _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
 
-        //        _projectService.SaveProject(projectTree)
-        //         .Switch(
-        //             success => IsModified = false,
-        //             fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
-        //         );
+                _projectService.SaveProject(projectTree)
+                 .Switch(
+                     success => IsModified = false,
+                     fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
+                 );
 
-        //        _projectService.CloseProject(projectTree);
-        //        Projects.Remove(projectVM);
-        //        NotifyOfPropertyChange(() => HasProject);
-        //        return true;
-        //    },
-        //    fail =>
-        //    {
-        //        _windowManager.ShowMessageBox(fail.Reason, "Project Save Error");
-        //        return false;
-        //    });
+                _projectService.CloseProject(projectTree);
+                Projects.Remove(projectVM);
+                OnPropertyChanged(nameof(HasProject));
+                return true;
+            },
+            fail =>
+            {
+                _windowManager.ShowMessageBox(fail.Reason, "Project Save Error");
+                return false;
+            });
     }
 
     public void CloseAllProjects()

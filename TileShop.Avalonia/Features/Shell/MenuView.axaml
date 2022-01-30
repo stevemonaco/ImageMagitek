@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:DataType="vm:MenuViewModel"
+			 x:CompileBindings="False"
+             x:Class="TileShop.AvaloniaUI.Views.MenuView">
+	<Grid ColumnDefinitions="*,auto">
+		<Menu x:Name="menu">
+			<MenuItem Header="_File">
+				<MenuItem Command="{Binding NewEmptyProject}" Header="_New Empty Project" />
+				<MenuItem Command="{Binding NewProjectFromFile}" Header="New Project from _Existing File" />
+				<Separator />
+				<MenuItem Command="{Binding OpenProject}" Header="Open _Project" />
+				<MenuItem
+                    Header="Open Recent Project"
+                    Items="{Binding RecentProjectFiles}"
+                    IsVisible="{Binding !RecentProjectFiles.Count}">
+					<MenuItem.ItemTemplate>
+						<DataTemplate>
+							<MenuItem
+								Command="{Binding OpenRecentProject}"
+								CommandParameter="{Binding}"
+								Header="{Binding}" />
+						</DataTemplate>
+					</MenuItem.ItemTemplate>
+				</MenuItem>
+				<Separator />
+				<MenuItem
+                    Command="{Binding CloseEditor}"
+                    Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Close \{0\}'}"
+                    IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+				<MenuItem
+                    Command="{Binding CloseAllProjects}"
+                    Header="_Close All Projects"
+                    IsEnabled="{Binding ProjectTree.HasProject}" />
+
+				<Separator IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+				<MenuItem
+                    Command="{Binding SaveEditor}"
+                    Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Save \{0\}'}"
+                    IsEnabled="{Binding Editors.ActiveEditor.IsModified}"
+                    IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+				<Separator />
+				<MenuItem Command="{Binding ExitApplication}" Header="E_xit" />
+			</MenuItem>
+
+			<MenuItem Header="_View">
+				<!--<MenuItem
+                    Command="{Binding ShowWindow}"
+                    CommandParameter="{x:Static event:ToolWindow.ProjectExplorer}"
+                    Header="Project _Explorer" />
+				<Separator />-->
+				<MenuItem Header="Set _Theme">
+					<MenuItem Command="{Binding ChangeToLightTheme}" Header="Light Theme" />
+					<MenuItem Command="{Binding ChangeToDarkTheme}" Header="Dark Theme" />
+				</MenuItem>
+			</MenuItem>
+
+			<!--<MenuItem Header="_Arranger" Visibility="{Binding Editors.ActiveEditor, Converter={StaticResource TypeToVisibilityConverter}, ConverterParameter={x:Type vm:ScatteredArrangerEditorViewModel}}">
+				<MenuItem
+                    Command="{Binding ExportArrangerToImage}"
+                    CommandParameter="{Binding Editors.ActiveEditor}"
+                    Header="Export..." />
+				<MenuItem
+                    Command="{Binding ImportArrangerFromImage}"
+                    CommandParameter="{Binding Editors.ActiveEditor}"
+                    Header="Import From Image..." />
+				<MenuItem Header="Grid Settings..." />
+			</MenuItem>-->
+
+			<!--
+        <MenuItem Header="_Plugins" />
+            -->
+		</Menu>
+	</Grid>
+</UserControl>
