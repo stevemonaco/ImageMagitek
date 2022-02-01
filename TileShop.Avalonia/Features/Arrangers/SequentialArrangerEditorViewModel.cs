@@ -310,11 +310,13 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         //}
     }
 
+    [ICommand]
     public void ApplyDefaultElementLayout()
     {
         ChangeElementLayout(_layoutService.DefaultElementLayout);
     }
 
+    [ICommand]
     public void CreateCustomLayout()
     {
         throw new NotImplementedException();
@@ -344,6 +346,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         //}
     }
 
+    [ICommand]
     public void ChangeElementLayout(string layoutName)
     {
         ChangeElementLayout(_layoutService.ElementLayouts[layoutName]);

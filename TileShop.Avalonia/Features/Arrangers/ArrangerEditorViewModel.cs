@@ -134,15 +134,15 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         _gridlines = new();
         for (int x = x1; x <= x2; x += xSpacing) // Vertical gridlines
         {
-            var gridline = new Gridline(x * Zoom + 1, 0,
-                x * Zoom + 1, y2 * Zoom);
+            var gridline = new Gridline(x * Zoom, 0,
+                x * Zoom, y2 * Zoom);
             _gridlines.Add(gridline);
         }
 
         for (int y = y1; y <= y2; y += ySpacing) // Horizontal gridlines
         {
-            var gridline = new Gridline(0, y * Zoom + 1,
-                x2 * Zoom, y * Zoom + 1);
+            var gridline = new Gridline(0, y * Zoom,
+                x2 * Zoom, y * Zoom);
             _gridlines.Add(gridline);
         }
 

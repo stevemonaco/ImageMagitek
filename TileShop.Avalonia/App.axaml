@@ -9,8 +9,16 @@
 
     <Application.Styles>
         <FluentTheme Mode="Dark"/>
+		<!--<StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/TileShop.Dark.axaml" />-->
     </Application.Styles>
 	<Application.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceInclude Source="avares://TileShop.AvaloniaUI/Styles/TileShop.Dark.axaml" />
+				<ResourceInclude Source="avares://TileShop.AvaloniaUI/Styles/Icons.axaml" />
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
 		<con:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
+		<con:SnapModeBooleanConverter x:Key="SnapModeBooleanConverter" />
 	</Application.Resources>
 </Application>

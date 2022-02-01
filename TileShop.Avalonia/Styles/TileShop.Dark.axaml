@@ -1,0 +1,32 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+	<SolidColorBrush x:Key="iconBrush" Color="White" />
+
+	<Pen
+        x:Key="iconPen"
+        Brush="{DynamicResource iconBrush}"
+        Thickness="1" />
+	<Pen
+        x:Key="iconPenThick"
+        Brush="{DynamicResource iconBrush}"
+        Thickness="2" />
+
+	<SolidColorBrush
+        x:Key="pasteSelectionFillBrush"
+        Opacity="0.5"
+        Color="Fuchsia" />
+	<SolidColorBrush
+        x:Key="editSelectionFillBrush"
+        Opacity="0.5"
+        Color="LawnGreen" />
+
+	<SolidColorBrush
+        x:Key="gridLineBrush"
+        Opacity="0.8"
+        Color="White" />
+
+	<SolidColorBrush
+        x:Key="separatorBrush"
+        Opacity="0.8"
+        Color="White" />
+</ResourceDictionary>

@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:v="using:TileShop.AvaloniaUI.Views"
         xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
 		xmlns:idc="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
 		xmlns:dma="clr-namespace:Dock.Model.Avalonia;assembly=Dock.Model.Avalonia"
@@ -10,7 +11,7 @@
         x:Class="TileShop.AvaloniaUI.Views.ShellView"
 		x:DataType="vm:ShellViewModel"
 		x:CompileBindings="True"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/tsicon.ico"
 		ExtendClientAreaToDecorationsHint="True"
 		ExtendClientAreaTitleBarHeightHint="30"
 		UseLayoutRounding="True"
@@ -28,14 +29,14 @@
 			</ExperimentalAcrylicBorder.Material>
 		</ExperimentalAcrylicBorder>
 
-		<Grid Margin="0,10,0,0" RowDefinitions="auto,*,auto">
-			<StackPanel Grid.Row="0" Orientation="Horizontal">
-				<TextBlock Text="TileShop Avalonia Client" />
+		<Grid RowDefinitions="auto,*,auto">
+			<StackPanel Margin="5,5,0,5" Grid.Row="0" Orientation="Horizontal">
+				<v:AppIconView />
 				<ContentControl Content="{Binding ActiveMenu}" />
 				<Button Command="{Binding LoadCommand}" Content="Load" />
 			</StackPanel>
 
-			<SplitView IsPaneOpen="True" DisplayMode="Inline" OpenPaneLength="200" Grid.Row="1">
+			<SplitView IsPaneOpen="True" DisplayMode="Inline" OpenPaneLength="300" Grid.Row="1">
 				<SplitView.Pane>
 					<ContentControl Content="{Binding ActiveTree}" />
 				</SplitView.Pane>
