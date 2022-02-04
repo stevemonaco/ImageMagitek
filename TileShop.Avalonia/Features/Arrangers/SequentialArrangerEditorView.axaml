@@ -189,10 +189,10 @@
                                 MinWidth="100"
                                 Margin="5,0,5,0"
                                 Focusable="False"
+								Value="{Binding Zoom}"
                                 Maximum="{Binding MaxZoom}"
                                 Minimum="{Binding MinZoom}"
-                                ToolTip.Tip="Zoom (Z, X)"
-                                Value="{Binding Zoom}" />
+                                ToolTip.Tip="Zoom (Z, X)" />
 						</StackPanel>
 					</StackPanel>
 
@@ -251,11 +251,11 @@
                         Focusable="False"
                         IsSnapToTickEnabled="True"
                         LargeChange="{Binding ArrangerPageSize}"
+						Value="{Binding FileOffset}"
                         Maximum="{Binding MaxFileDecodingOffset}"
                         Minimum="0"
                         SmallChange="{Binding ArrangerPageSize}"
-                        TickFrequency="{Binding ArrangerPageSize}"
-                        Value="{Binding FileOffset}" />
+                        TickFrequency="{Binding ArrangerPageSize}" />
 				</Grid>
 
 			</Grid>

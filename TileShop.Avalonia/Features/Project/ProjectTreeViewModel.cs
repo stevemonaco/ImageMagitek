@@ -631,7 +631,13 @@ public partial class ProjectTreeViewModel : ToolViewModel
                 if (removedEditors.Any(x => _editors.RequestSaveUserChanges(x, false) == UserSaveAction.Cancel))
                     return false;
 
-                _editors.Editors = new(remainingEditors);
+                for (int i = 0; i < _editors.Editors.Count; i++)
+                {
+                    if (!remainingEditors.Contains(_editors.Editors[i]))
+                        _editors.Editors.Remove(_editors.Editors[i]);
+                }
+                //_editors.Editors.Remove
+                //_editors.Editors = new(remainingEditors);
                 _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
 
                 _projectService.SaveProject(projectTree)

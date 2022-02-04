@@ -29,7 +29,8 @@ public partial class EditorsViewModel : ObservableObject
     private readonly AppSettings _settings;
     //private readonly IEventAggregator _events;
 
-    [ObservableProperty] private ObservableCollection<ResourceEditorBaseViewModel> _editors = new();
+    public ObservableCollection<ResourceEditorBaseViewModel> Editors { get; } = new();
+
     [ObservableProperty] private ResourceEditorBaseViewModel _activeEditor;
     [ObservableProperty] private ShellViewModel _shell;
 

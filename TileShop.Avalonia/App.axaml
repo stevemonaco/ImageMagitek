@@ -9,7 +9,7 @@
 
     <Application.Styles>
         <FluentTheme Mode="Dark"/>
-		<!--<StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/TileShop.Dark.axaml" />-->
+		<StyleInclude Source="avares://Dock.Avalonia/Themes/DockFluentTheme.axaml" />
     </Application.Styles>
 	<Application.Resources>
 		<ResourceDictionary>

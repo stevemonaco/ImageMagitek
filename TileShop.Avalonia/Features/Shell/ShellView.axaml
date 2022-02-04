@@ -16,6 +16,7 @@
 		ExtendClientAreaTitleBarHeightHint="30"
 		UseLayoutRounding="True"
 		TransparencyLevelHint="AcrylicBlur"
+		Opened="OnOpened"
         Title="TileShop.Avalonia">
 
 	<Panel>
@@ -33,10 +34,12 @@
 			<StackPanel Margin="5,5,0,5" Grid.Row="0" Orientation="Horizontal">
 				<v:AppIconView />
 				<ContentControl Content="{Binding ActiveMenu}" />
-				<Button Command="{Binding LoadCommand}" Content="Load" />
+				<Button Command="{Binding LoadCommand}" Content="Load FF2" />
 			</StackPanel>
+			
+			<idc:DockControl Grid.Row="1" Name="dock" />
 
-			<SplitView IsPaneOpen="True" DisplayMode="Inline" OpenPaneLength="300" Grid.Row="1">
+			<!--<SplitView IsPaneOpen="True" DisplayMode="Inline" OpenPaneLength="300" Grid.Row="1">
 				<SplitView.Pane>
 					<ContentControl Content="{Binding ActiveTree}" />
 				</SplitView.Pane>
@@ -48,7 +51,7 @@
 						</DataTemplate>
 					</TabControl.ItemTemplate>
 				</TabControl>
-			</SplitView>
+			</SplitView>-->
 
 			<TextBlock Grid.Row="2" Text="TileShop Status Bar" />
 		</Grid>

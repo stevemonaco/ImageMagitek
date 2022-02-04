@@ -139,7 +139,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
     [ObservableProperty] private int _elementHeightIncrement = 1;
     [ObservableProperty] private int _arrangerWidthIncrement = 1;
     [ObservableProperty] private int _arrangerHeightIncrement = 1;
-    
+
     private long _fileOffset;
     public long FileOffset
     {
