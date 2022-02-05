@@ -29,12 +29,11 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
     private LoggerFactory _loggerFactory;
     private bool _isStarting = true;
 
-    public void ConfigureIoC(IServiceCollection services)
+    public void ConfigureIoc(IServiceCollection services)
     {
         _loggerFactory = CreateLoggerFactory(BootstrapService.DefaultLogFileName);
 
         ConfigureImageMagitek(services);
-        ConfigureServices(services);
         ConfigureJotTracker(_tracker, services);
 
         _isStarting = false;

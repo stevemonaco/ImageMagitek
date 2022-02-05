@@ -18,7 +18,7 @@ public class App : Application
     {
         var services = new ServiceCollection();
         var bootstrapper = new TileShopBootstrapper();
-        bootstrapper.ConfigureIoC(services);
+        bootstrapper.ConfigureIoc(services);
         bootstrapper.ConfigureServices(services);
         bootstrapper.ConfigureViews(services);
         bootstrapper.ConfigureViewModels(services);
