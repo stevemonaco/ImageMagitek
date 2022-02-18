@@ -53,7 +53,7 @@
 				</TabControl>
 			</SplitView>-->
 
-			<TextBlock Grid.Row="2" Text="TileShop Status Bar" />
+			<ContentControl Grid.Row="2" Content="{Binding ActiveStatusBar}" />
 		</Grid>
 	</Panel>
 

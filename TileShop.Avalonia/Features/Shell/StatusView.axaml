@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="TileShop.AvaloniaUI.Views.StatusView">
+	<StackPanel Orientation="Horizontal">
+		<TextBlock Text="{Binding ActivityMessage}" />
+		<TextBlock Margin="20,0,0,0" Text="{Binding OperationMessage}">
+			<!--<TextBlock.Triggers>
+				<EventTrigger RoutedEvent="Binding.TargetUpdated">
+					<BeginStoryboard>
+						<Storyboard>
+							<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
+								<EasingDoubleKeyFrame KeyTime="0" Value="0" />
+								<EasingDoubleKeyFrame KeyTime="0:0:0.25" Value="1" />
+								<EasingDoubleKeyFrame KeyTime="0:0:14" Value="1" />
+								<EasingDoubleKeyFrame KeyTime="0:0:15" Value="0" />
+							</DoubleAnimationUsingKeyFrames>
+						</Storyboard>
+					</BeginStoryboard>
+				</EventTrigger>
+			</TextBlock.Triggers>-->
+		</TextBlock>
+	</StackPanel>
+</UserControl>

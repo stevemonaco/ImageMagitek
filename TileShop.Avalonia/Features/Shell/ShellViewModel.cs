@@ -19,16 +19,18 @@ public partial class ShellViewModel : ObservableObject
 
     [ObservableProperty] private ProjectTreeViewModel _activeTree;
     [ObservableProperty] private MenuViewModel _activeMenu;
+    [ObservableProperty] private StatusViewModel _activeStatusBar;
     [ObservableProperty] private EditorsViewModel _editors;
     [ObservableProperty] private IRootDock _layout;
 
     public ShellViewModel(Tracker tracker, IProjectService projectService, ProjectTreeViewModel activeTree,
-        MenuViewModel activeMenu, EditorsViewModel editors)
+        MenuViewModel activeMenu, StatusViewModel activeStatusBar, EditorsViewModel editors)
     {
         _tracker = tracker;
         _projectService = projectService;
         _activeTree = activeTree;
         _activeMenu = activeMenu;
+        _activeStatusBar = activeStatusBar;
         _editors = editors;
 
         _activeMenu.Shell = this;

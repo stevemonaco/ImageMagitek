@@ -21,6 +21,8 @@
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="0.10.12" />
     <PackageReference Include="Avalonia.Xaml.Behaviors" Version="0.10.12" />
+    <PackageReference Include="Avalonia.Xaml.Interactions" Version="0.10.12" />
+    <PackageReference Include="Avalonia.Xaml.Interactivity" Version="0.10.12" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0-preview1" />
     <PackageReference Include="Dock.Avalonia" Version="0.10.12" />
     <PackageReference Include="Jot" Version="2.1.11" />
@@ -53,6 +55,9 @@
     </Compile>
     <Compile Update="Features\Shell\DockableToolView.axaml.cs">
       <DependentUpon>DockableToolView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Features\Shell\StatusView.axaml.cs">
+      <DependentUpon>StatusView.axaml</DependentUpon>
     </Compile>
   </ItemGroup>
 </Project>

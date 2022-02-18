@@ -5,6 +5,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:con="using:TileShop.AvaloniaUI.Converters"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 xmlns:c="using:TileShop.AvaloniaUI.Controls"
+			 xmlns:b="using:TileShop.AvaloniaUI.Behaviors"
+			 xmlns:i="using:Avalonia.Xaml.Interactivity"
 			 x:DataType="vm:SequentialArrangerEditorViewModel"
 			 x:CompileBindings="True"
 			 x:Name="arrangerControl"
@@ -41,7 +44,7 @@
 	</UserControl.KeyBindings>
 
 	<Grid UseLayoutRounding="True" RowDefinitions="auto,*">
-		
+
 		<!--  Toolbar  -->
 		<Border BorderThickness="0,0,0,2">
 
@@ -262,11 +265,13 @@
 		</Border>
 
 		<!--  Image Display  -->
-		<ScrollViewer
-            Grid.Row="1"
-            Focusable="True"
-            HorizontalScrollBarVisibility="Auto"
-            VerticalScrollBarVisibility="Auto">
+		<c:ArrangerScrollViewer x:Name="scroll"
+			Grid.Row="1"
+			Focusable="True"
+			HorizontalScrollBarVisibility="Auto"
+			VerticalScrollBarVisibility="Auto"
+			PointerWheelChanged="OnPointerWheelChanged">
+
 			<ScrollViewer.Resources>
 				<ScaleTransform x:Key="transform" ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />
 			</ScrollViewer.Resources>
@@ -292,8 +297,9 @@
 				</Grid.ContextMenu>
 
 				<!--  Arranger Image  -->
-				<LayoutTransformControl LayoutTransform="{StaticResource transform}">
-					<Image Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap, Mode=OneWay}" />
+				<LayoutTransformControl LayoutTransform="{StaticResource transform}" RenderTransformOrigin="0,0">
+					<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap, Mode=OneWay}"
+						   PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 				</LayoutTransformControl>
 
 				<!--  Selection Overlay  -->
@@ -337,6 +343,6 @@
 				</ItemsControl>
 			</Grid>
 
-		</ScrollViewer>
+		</c:ArrangerScrollViewer>
 	</Grid>
 </UserControl>

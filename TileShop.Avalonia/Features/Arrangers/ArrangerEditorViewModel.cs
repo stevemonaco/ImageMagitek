@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using TileShop.AvaloniaUI.Models;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -178,7 +179,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
             editEvent = new EditArrangerPixelsEvent(arranger, Resource as Arranger, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
         }
 
-        //_events.PublishOnUIThread(editEvent);
+        WeakReferenceMessenger.Default.Send(editEvent);
         CancelOverlay();
     }
 
@@ -227,93 +228,6 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         }
     }
     #endregion
-
-//    #region Mouse Actions
-//    public virtual void OnMouseMove(object sender, MouseCaptureArgs e)
-//    {
-//        if (Selection is null)
-//            return;
-
-//        int x = Math.Clamp((int)e.X / Zoom, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
-//        int y = Math.Clamp((int)e.Y / Zoom, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
-
-//        if (IsSelecting)
-//            UpdateSelection(x, y);
-
-//        if (Selection.HasSelection)
-//        {
-//            string notifyMessage;
-//            var rect = Selection.SelectionRect;
-//            if (rect.SnapMode == SnapMode.Element)
-//                notifyMessage = $"Element Selection: {rect.SnappedWidth / WorkingArranger.ElementPixelSize.Width} x {rect.SnappedHeight / WorkingArranger.ElementPixelSize.Height}" +
-//                    $" at ({rect.SnappedLeft / WorkingArranger.ElementPixelSize.Width}, {rect.SnappedRight / WorkingArranger.ElementPixelSize.Height})";
-//            else
-//                notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight}" +
-//                    $" at ({rect.SnappedLeft}, {rect.SnappedTop})";
-//            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-//            _events.PublishOnUIThread(notifyEvent);
-//        }
-//        else
-//        {
-//            var notifyMessage = $"{WorkingArranger.Name}: ({(int)Math.Truncate(e.X / Zoom)}, {(int)Math.Truncate(e.Y / Zoom)})";
-//            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-//            _events.PublishOnUIThread(notifyEvent);
-//        }
-//    }
-
-//    public virtual void OnMouseLeave(object sender, MouseCaptureArgs e)
-//    {
-//        var notifyEvent = new NotifyStatusEvent("", NotifyStatusDuration.Indefinite);
-//        _events.PublishOnUIThread(notifyEvent);
-//    }
-
-//    public virtual void OnMouseUp(object sender, MouseCaptureArgs e)
-//    {
-//        if (IsSelecting)
-//        {
-//            CompleteSelection();
-//        }
-//    }
-
-//    public virtual void OnMouseDown(object sender, MouseCaptureArgs e)
-//    {
-//        int x = Math.Clamp((int)e.X / Zoom, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
-//        int y = Math.Clamp((int)e.Y / Zoom, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
-
-//        if (e.LeftButton && Paste is not null && !Paste.Rect.ContainsPointSnapped(x, y))
-//        {
-//            ApplyPaste(Paste);
-//            Paste = null;
-//        }
-
-//        if (Selection?.HasSelection is true && e.LeftButton && Selection.SelectionRect.ContainsPointSnapped(x, y))
-//        {
-//            // Start drag for selection (Handled by DragDrop in View)
-//        }
-//        else if (Paste is not null && e.LeftButton && Paste.Rect.ContainsPointSnapped(x, y))
-//        {
-//            // Start drag for paste (Handled by DragDrop in View)
-//        }
-//        else if (e.LeftButton)
-//        {
-//            StartNewSelection(x, y);
-//        }
-//    }
-
-//    public virtual void OnMouseWheel(object sender, MouseCaptureArgs e)
-//    {
-//        if (e.WheelDirection == MouseWheelDirection.Up)
-//            ZoomIn();
-//        else if (e.WheelDirection == MouseWheelDirection.Down)
-//            ZoomOut();
-//    }
-
-//#pragma warning disable CS0067
-//    // Unused events that are required to be present for IMouseCaptureProxy
-//    public virtual event EventHandler Capture;
-//    public virtual event EventHandler Release;
-//#pragma warning restore CS0067
-//    #endregion
 
 //    #region Drag and Drop Implementation
 //    public virtual void Drop(IDropInfo dropInfo)
