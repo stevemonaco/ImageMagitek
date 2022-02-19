@@ -23,6 +23,11 @@ public partial class StatusViewModel : ObservableRecipient
             ActivityMessage = notifyEvent.NotifyMessage;
         else if (notifyEvent.DisplayDuration == NotifyStatusDuration.Short)
             TimedMessages.Add(notifyEvent.NotifyMessage);
+        else if (notifyEvent.DisplayDuration == NotifyStatusDuration.Reset)
+        {
+            ActivityMessage = " ";
+            TimedMessages.Clear();
+        }    
     }
 
     public void Receive(NotifyOperationEvent notifyEvent)

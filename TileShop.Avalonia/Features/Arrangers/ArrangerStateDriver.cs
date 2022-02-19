@@ -72,7 +72,7 @@ public abstract class ArrangerStateDriver<T> : ObservableRecipient, IStateDriver
 
     public virtual void MouseLeave()
     {
-        var notifyEvent = new NotifyStatusEvent("", NotifyStatusDuration.Indefinite);
+        var notifyEvent = new NotifyStatusEvent("", NotifyStatusDuration.Reset);
         Messenger.Send(notifyEvent);
     }
 

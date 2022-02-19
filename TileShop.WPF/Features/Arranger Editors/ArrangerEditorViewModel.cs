@@ -301,7 +301,7 @@ public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMo
 
     public virtual void OnMouseLeave(object sender, MouseCaptureArgs e)
     {
-        var notifyEvent = new NotifyStatusEvent("", NotifyStatusDuration.Indefinite);
+        var notifyEvent = new NotifyStatusEvent("", NotifyStatusDuration.Reset);
         _events.PublishOnUIThread(notifyEvent);
     }
 
