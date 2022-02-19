@@ -50,7 +50,7 @@
 							<MenuItem Header="Open in Folder" Command="{ReflectionBinding #treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" />
 						</ContextMenu>
 					</StackPanel.ContextMenu>
-					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeFolder}" />
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeFolder}" RenderTransform="{StaticResource verticalFlipTransform}" />
 					<TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
 				</StackPanel>
 			</TreeDataTemplate>
@@ -81,7 +81,7 @@
 							<MenuItem Command="{ReflectionBinding #treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
 						</ContextMenu>
 					</StackPanel.ContextMenu>
-					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeArranger}" />
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeArranger}" RenderTransform="{StaticResource verticalFlipTransform}" />
 					<TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
 				</StackPanel>
 			</TreeDataTemplate>
