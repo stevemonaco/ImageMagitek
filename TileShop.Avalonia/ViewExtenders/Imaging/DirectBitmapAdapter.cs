@@ -11,11 +11,11 @@ using ImageMagitek.Colors;
 
 namespace TileShop.AvaloniaUI.Imaging;
 
-public class IndexedBitmapAdapter : BitmapAdapter
+public class DirectBitmapAdapter : BitmapAdapter
 {
-    public IndexedImage Image { get; }
+    public DirectImage Image { get; }
 
-    public IndexedBitmapAdapter(IndexedImage image)
+    public DirectBitmapAdapter(DirectImage image)
     {
         Image = image;
         Width = Image.Width;
@@ -30,7 +30,7 @@ public class IndexedBitmapAdapter : BitmapAdapter
     /// </summary>
     public override void Invalidate()
     {
-        Render(0, 0, Width, Height);
+        Render(0, 0, Image.Width, Image.Height);
     }
 
     /// <summary>
@@ -91,29 +91,17 @@ public class IndexedBitmapAdapter : BitmapAdapter
 
                 for (int x = 0; x < width; x++)
                 {
-                    dest[x] = TranslateColor(x + xStart, scanline, src);
+                    dest[x] = TranslateColor(x + xStart, src);
                 }
             });
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private uint TranslateColor(int x, int y, Span<byte> sourceRow)
+    private static uint TranslateColor(int x, in Span<ColorRgba32> sourceRow)
     {
-        uint outputColor = 0;
-
-        var el = Image.GetElementAtPixel(x, y);
-
-        if (el?.Palette is Palette pal)
-        {
-            var index = sourceRow[x];
-            var inputColor = pal[index].Color;
-
-            outputColor = (inputColor & 0xFF00FF00) | BitOperations.RotateLeft(inputColor & 0xFF00FF, 16);
-
-            if (index == 0 && pal.ZeroIndexTransparent)
-                outputColor &= 0x00FFFFFF;
-        }
+        var inputColor = sourceRow[x].Color;
+        uint outputColor = (inputColor & 0xFF00FF00) | BitOperations.RotateLeft(inputColor & 0xFF00FF, 16);
 
         return outputColor;
     }

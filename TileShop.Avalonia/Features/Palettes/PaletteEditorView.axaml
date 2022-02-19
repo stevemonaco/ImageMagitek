@@ -1,0 +1,189 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:Name="palView"
+			 xmlns:m="using:TileShop.AvaloniaUI.Models"
+			 xmlns:v="using:TileShop.AvaloniaUI.Views"
+			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 x:DataType="vm:PaletteEditorViewModel"
+			 x:CompileBindings="True"
+             x:Class="TileShop.AvaloniaUI.Views.PaletteEditorView">
+	<UserControl.DataTemplates>
+		<DataTemplate DataType="{x:Type m:FileColorSourceModel}">
+			<StackPanel Margin="10,0,0,0" Orientation="Horizontal">
+				<Button
+                    Background="#DA3633"
+                    Command="{ReflectionBinding #palView.DataContext.RemoveColorSourceCommand}"
+                    CommandParameter="{Binding}">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconTrash}" />
+				</Button>
+				<TextBlock
+                    Width="150"
+                    Margin="10,0,0,0"
+                    VerticalAlignment="Center"
+                    FontSize="18"
+                    FontWeight="Bold"
+                    Text="File Source" />
+				<TextBox
+                    Width="135"
+                    Watermark="Offset"
+                    Text="{Binding FileAddress, Converter={StaticResource LongToHexadecimalConverter}}" />
+				<TextBox
+                    Width="135"
+                    Margin="10,0,0,0"
+                    Watermark="Entries"
+                    Text="{Binding Entries}" />
+
+				<!--Watermark="Endian"-->
+				<ToggleSwitch
+                    Margin="10,0,0,0"
+                    IsChecked="{Binding Endian, Converter={StaticResource EndianToBooleanConverter}}"
+                    OffContent="Little"
+                    OnContent="Big" />
+			</StackPanel>
+		</DataTemplate>
+
+		<DataTemplate DataType="{x:Type m:NativeColorSourceModel}">
+			<StackPanel Margin="10,0,0,0" Orientation="Horizontal">
+				<Button
+                    Background="#DA3633"
+                    Command="{ReflectionBinding #palView.DataContext.RemoveColorSourceCommand}"
+                    CommandParameter="{Binding}">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconTrash}" />
+				</Button>
+				<TextBlock
+                    Width="150"
+                    Margin="10,0,0,0"
+                    VerticalAlignment="Center"
+                    FontSize="18"
+                    FontWeight="Bold"
+                    Text="Native Source" />
+				<TextBox Width="135" Watermark="Color">
+					<TextBox.Text>
+						<Binding Path="NativeHexColor">
+							<!--<Binding.ValidationRules>
+								<val:HexColorStringRule>
+									<val:HexColorStringRule.Wrapper>
+										<val:HexColorStringWrapper ColorModel="Rgba32" />
+									</val:HexColorStringRule.Wrapper>
+								</val:HexColorStringRule>
+							</Binding.ValidationRules>-->
+						</Binding>
+					</TextBox.Text>
+				</TextBox>
+			</StackPanel>
+		</DataTemplate>
+
+		<DataTemplate DataType="{x:Type m:ForeignColorSourceModel}">
+			<StackPanel Margin="10,0,0,0" Orientation="Horizontal">
+				<Button
+                    Background="#DA3633"
+                    Command="{ReflectionBinding #palView.DataContext.RemoveColorSourceCommand}"
+                    CommandParameter="{Binding}">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconTrash}" />
+				</Button>
+				<TextBlock
+                    Width="150"
+                    Margin="10,0,0,0"
+                    VerticalAlignment="Center"
+                    FontSize="18"
+                    FontWeight="Bold"
+                    Text="Foreign Source" />
+				<TextBox Width="135" Watermark="Color">
+					<TextBox.Text>
+						<Binding Path="ForeignHexColor">
+							<!--<Binding.ValidationRules>
+								<val:HexColorStringRule>
+									<val:HexColorStringRule.Wrapper>
+										<val:HexColorStringWrapper ColorModel="{Binding Data.ColorModel, Source={StaticResource editorProxy}}" />
+									</val:HexColorStringRule.Wrapper>
+								</val:HexColorStringRule>
+							</Binding.ValidationRules>-->
+						</Binding>
+					</TextBox.Text>
+				</TextBox>
+			</StackPanel>
+		</DataTemplate>
+	</UserControl.DataTemplates>
+
+	<ScrollViewer>
+		<StackPanel Margin="10">
+
+			<!--  Palette Information display  -->
+			<Expander>
+				<Expander.Header>
+					<TextBlock FontSize="24" Text="Palette Properties" />
+				</Expander.Header>
+				<StackPanel>
+					<TextBlock Text="{Binding PaletteSource, StringFormat=Source: {0}}" />
+					<TextBlock Text="{Binding Entries, StringFormat=Entries: {0}}" />
+					<TextBlock Text="{Binding ColorModel, StringFormat=Color Model: {0}}" />
+					<CheckBox Content="Zero Index Transparency" IsChecked="{Binding ZeroIndexTransparent}" />
+
+					<ListBox
+                        x:Name="colorSourceView"
+                        Items="{Binding ColorSourceModels}" />
+
+					<StackPanel Margin="20,0,0,0" Orientation="Horizontal">
+						<Button Background="#238636">
+							<Button.Content>
+								<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPlus}" />
+							</Button.Content>
+							<Button.Flyout>
+								<MenuFlyout Placement="BottomEdgeAlignedLeft">
+									<MenuItem Command="{ReflectionBinding #palView.DataContext.AddNewFileColorSourceCommand}" Header="New File Source" />
+									<MenuItem Command="{ReflectionBinding #palView.DataContext.AddNewNativeColorSourceCommand}" Header="New Native Color" />
+									<MenuItem Command="{ReflectionBinding #palView.DataContext.AddNewForeignColorSourceCommand}" Header="New Foreign Color" />
+								</MenuFlyout>
+							</Button.Flyout>
+						</Button>
+						<Button
+                            Width="80"
+                            Margin="10,0,0,0"
+                            Command="{ReflectionBinding #palView.DataContext.SaveSourcesCommand}"
+                            Content="Save" />
+					</StackPanel>
+				</StackPanel>
+			</Expander>
+
+			<!--  Selected color editor  -->
+			<Expander
+                Margin="0,10,0,0"
+                IsExpanded="True"
+                IsVisible="{Binding !ActiveColor}">
+				<Expander.Header>
+					<TextBlock FontSize="24" Text="Color Editor" />
+				</Expander.Header>
+				<ContentControl Content="{Binding ActiveColor}" />
+			</Expander>
+
+			<!--  Palette Display  -->
+			<ListBox
+                Grid.Row="1"
+                Items="{Binding Colors}"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                SelectedIndex="{Binding SelectedColorIndex}">
+				<ListBox.ItemsPanel>
+					<ItemsPanelTemplate>
+						<WrapPanel Orientation="Horizontal" />
+					</ItemsPanelTemplate>
+				</ListBox.ItemsPanel>
+				<ListBox.ItemTemplate>
+					<DataTemplate>
+						<Border BorderThickness="1" BorderBrush="#40222222">
+							<Border BorderThickness="1" BorderBrush="#40DDDDDD">
+								<Rectangle Height="24" Width="24">
+									<Rectangle.Fill>
+										<SolidColorBrush Color="{Binding Color}" />
+									</Rectangle.Fill>
+								</Rectangle>
+							</Border>
+						</Border>
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+			</ListBox>
+		</StackPanel>
+	</ScrollViewer>
+</UserControl>

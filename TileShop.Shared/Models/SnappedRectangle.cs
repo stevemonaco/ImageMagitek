@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Runtime.CompilerServices;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace TileShop.Shared.Models;
 
 public enum SnapMode { Element, Pixel }
 public enum ElementSnapRounding { Floor, Ceiling, Collapse, Expand }
-public class SnappedRectangle : INotifyPropertyChanged
+
+public class SnappedRectangle : ObservableObject
 {
     private SnapMode _snapMode;
     public SnapMode SnapMode
@@ -16,7 +15,7 @@ public class SnappedRectangle : INotifyPropertyChanged
         get => _snapMode;
         set
         {
-            SetField(ref _snapMode, value);
+            SetProperty(ref _snapMode, value);
             Snap();
         }
     }
@@ -27,7 +26,7 @@ public class SnappedRectangle : INotifyPropertyChanged
         get => _maximumSize;
         set
         {
-            SetField(ref _maximumSize, value);
+            SetProperty(ref _maximumSize, value);
             Snap();
         }
     }
@@ -38,7 +37,7 @@ public class SnappedRectangle : INotifyPropertyChanged
         get => _elementSize;
         set
         {
-            SetField(ref _maximumSize, value);
+            SetProperty(ref _maximumSize, value);
             Snap();
         }
     }
@@ -49,7 +48,7 @@ public class SnappedRectangle : INotifyPropertyChanged
         get => _left;
         set
         {
-            SetField(ref _left, value);
+            SetProperty(ref _left, value);
             Snap();
         }
     }
@@ -60,7 +59,7 @@ public class SnappedRectangle : INotifyPropertyChanged
         get => _right;
         set
         {
-            SetField(ref _right, value);
+            SetProperty(ref _right, value);
             Snap();
         }
     }
@@ -71,7 +70,7 @@ public class SnappedRectangle : INotifyPropertyChanged
         get => _top;
         set
         {
-            SetField(ref _top, value);
+            SetProperty(ref _top, value);
             Snap();
         }
     }
@@ -82,7 +81,7 @@ public class SnappedRectangle : INotifyPropertyChanged
         get => _bottom;
         set
         {
-            SetField(ref _bottom, value);
+            SetProperty(ref _bottom, value);
             Snap();
         }
     }
@@ -91,45 +90,54 @@ public class SnappedRectangle : INotifyPropertyChanged
     public int SnappedLeft
     {
         get => _snappedLeft;
-        private set => SetField(ref _snappedLeft, value);
+        private set => SetProperty(ref _snappedLeft, value);
     }
 
     private int _snappedRight;
     public int SnappedRight
     {
         get => _snappedRight;
-        private set => SetField(ref _snappedRight, value);
+        private set => SetProperty(ref _snappedRight, value);
     }
 
     private int _snappedTop;
     public int SnappedTop
     {
         get => _snappedTop;
-        private set => SetField(ref _snappedTop, value);
+        private set => SetProperty(ref _snappedTop, value);
     }
 
     private int _snappedBottom;
     public int SnappedBottom
     {
         get => _snappedBottom;
-        private set => SetField(ref _snappedBottom, value);
+        private set => SetProperty(ref _snappedBottom, value);
     }
 
     private int _snappedWidth;
     public int SnappedWidth
     {
         get => _snappedWidth;
-        private set => SetField(ref _snappedWidth, value);
+        private set => SetProperty(ref _snappedWidth, value);
     }
 
     private int _snappedHeight;
     public int SnappedHeight
     {
         get => _snappedHeight;
-        private set => SetField(ref _snappedHeight, value);
+        private set => SetProperty(ref _snappedHeight, value);
     }
 
-    public ElementSnapRounding SnapRounding { get; set; }
+    private ElementSnapRounding _snapRounding;
+    public ElementSnapRounding SnapRounding
+    {
+        get => _snapRounding;
+        set
+        {
+            SetProperty(ref _snapRounding, value);
+            Snap();
+        }
+    }
 
     public SnappedRectangle() : this(new Size(int.MaxValue, int.MaxValue), new Size(1, 1), SnapMode.Pixel) { }
 
@@ -264,19 +272,5 @@ public class SnappedRectangle : INotifyPropertyChanged
         SnappedBottom = (int)Math.Round(Math.Max(Top, Bottom));
         SnappedWidth = SnappedRight - SnappedLeft;
         SnappedHeight = SnappedBottom - SnappedTop;
-    }
-
-    public event PropertyChangedEventHandler PropertyChanged;
-    protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value))
-            return false;
-
-        field = value;
-        OnPropertyChanged(propertyName);
-        return true;
     }
 }

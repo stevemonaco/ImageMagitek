@@ -2,17 +2,292 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:model="using:TileShop.Shared.Models"
+			 xmlns:con="using:TileShop.AvaloniaUI.Converters"
+			 xmlns:b="using:TileShop.AvaloniaUI.Behaviors"
+			 xmlns:i="using:Avalonia.Xaml.Interactivity"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 xmlns:paz="using:Avalonia.Controls.PanAndZoom"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 x:DataType="vm:ScatteredArrangerEditorViewModel"
+			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.ScatteredArrangerEditorView">
-	<ScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible"
-				  PointerWheelChanged="OnPointerWheelChanged"
-				  PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased">
-		<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}">
-			<Image.RenderTransform>
-				<ScaleTransform ScaleX="8" ScaleY="8" />
-			</Image.RenderTransform>
-		</Image>
-	</ScrollViewer>
+
+	<UserControl.KeyBindings>
+		<KeyBinding Gesture="G" Command="{Binding ToggleGridlineVisibilityCommand}" />
+		<KeyBinding Gesture="E" Command="{Binding EditSelectionCommand}" />
+		<KeyBinding Gesture="S" Command="{Binding ToggleSnapModeCommand}" />
+		<KeyBinding Gesture="Delete" Command="{Binding DeleteElementSelectionCommand}" />
+		<KeyBinding Gesture="Escape" Command="{Binding CancelOverlayCommand}" />
+		<KeyBinding Gesture="Return" Command="{Binding ConfirmPendingOperationCommand}" />
+		<KeyBinding Gesture="Ctrl+S" Command="{Binding SaveChangesCommand}" />
+		<KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoCommand}" />
+		<KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoCommand}" />
+		<KeyBinding Gesture="Ctrl+A" Command="{Binding SelectAllCommand}" />
+	</UserControl.KeyBindings>
+	
+	<Grid UseLayoutRounding="True" RowDefinitions="auto,*">
+
+		<!--  Toolbar  -->
+		<StackPanel
+            Grid.Row="0"
+            Margin="5,5,0,10"
+            Orientation="Horizontal">
+
+			<!--  Tools  -->
+			<StackPanel>
+				<TextBlock HorizontalAlignment="Center" Text="Tools" />
+
+				<StackPanel Orientation="Horizontal">
+					<RadioButton
+                        HorizontalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
+                        ToolTip.Tip="Click and drag across Arranger to select a region">
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconCursor}" />
+					</RadioButton>
+					<RadioButton
+                        Margin="2,0,0,0"
+                        VerticalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
+                        ToolTip.Tip="Click on an Arranger element to apply the current palette"
+						IsVisible="{Binding IsIndexedColor}">
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPaletteBrush}" />
+					</RadioButton>
+					<RadioButton
+                        Margin="2,0,0,0"
+                        VerticalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PickPalette}"
+                        ToolTip.Tip="Click on an Arranger element to pick its associated palette"
+                        IsVisible="{Binding IsIndexedColor}">
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPalettePicker}" />
+					</RadioButton>
+					<RadioButton
+                        Margin="2,0,0,0"
+                        HorizontalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=InspectElement}"
+                        ToolTip.Tip="Hover Arranger elements to inspect their properties">
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconEye}" />
+					</RadioButton>
+					<RadioButton
+                        Margin="2,0,0,0"
+                        HorizontalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateLeft}"
+                        ToolTip.Tip="Rotate Element's Display Left"
+                        IsVisible="{Binding AreSymmetryToolsEnabled}">
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconRotateLeft}" />
+					</RadioButton>
+					<RadioButton
+                        Margin="2,0,0,0"
+                        HorizontalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateRight}"
+                        ToolTip.Tip="Rotate Element's Display Right"
+                        IsVisible="{Binding AreSymmetryToolsEnabled}">
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconRotateRight}" />
+					</RadioButton>
+					<RadioButton
+                        Margin="2,0,0,0"
+                        HorizontalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=MirrorHorizontal}"
+                        ToolTip.Tip="Mirror Element's Display Horizontally"
+                        IsVisible="{Binding AreSymmetryToolsEnabled}">
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconMirrorHorizontal}" />
+					</RadioButton>
+					<RadioButton
+                        Margin="2,0,0,0"
+                        HorizontalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=MirrorVertical}"
+                        ToolTip.Tip="Mirror Element's Display Vertically"
+                        IsVisible="{Binding AreSymmetryToolsEnabled}">
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconMirrorVertical}" />
+					</RadioButton>
+				</StackPanel>
+			</StackPanel>
+
+			<Border
+                Margin="5,6,6,0"
+                BorderBrush="{DynamicResource separatorBrush}"
+                BorderThickness="1" />
+
+			<StackPanel Margin="6,0,0,0" IsVisible="{Binding IsIndexedColor}">
+				<TextBlock HorizontalAlignment="Center" Text="Palette" />
+				<ComboBox Items="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
+					<ComboBox.ItemTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding Name}" />
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
+			</StackPanel>
+
+			<Button
+                Margin="5,0,0,0"
+                VerticalAlignment="Bottom"
+                VerticalContentAlignment="Center"
+                Command="{Binding AssociatePaletteCommand}"
+                ToolTip.Tip="Asssociate a Palette from this Project with this Arranger"
+                IsVisible="{Binding IsIndexedColor}">
+				<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPlusCircle}" />
+			</Button>
+
+			<Border
+                Margin="6,6,6,0"
+                BorderBrush="{DynamicResource separatorBrush}"
+                BorderThickness="1"
+                IsVisible="{Binding IsIndexedColor}" />
+
+			<StackPanel>
+				<TextBlock HorizontalAlignment="Center" Text="Grid" />
+				<ToggleButton
+                    Focusable="False"
+                    IsChecked="{Binding ShowGridlines}"
+                    ToolTip.Tip="Toggle gridline visibility (G)">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconGrid}" />
+				</ToggleButton>
+			</StackPanel>
+
+			<StackPanel IsVisible="{Binding CanChangeSnapMode}" Margin="5,0,0,0">
+				<TextBlock HorizontalAlignment="Center" Text="Snap" />
+				<ToggleButton
+                    Focusable="False"
+                    IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
+                    ToolTip.Tip="Snap Selection to Elements (S)">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconSnap}" />
+				</ToggleButton>
+			</StackPanel>
+
+			<Border
+                Margin="12,6,12,0"
+                BorderBrush="{DynamicResource separatorBrush}"
+                BorderThickness="1" />
+
+			<StackPanel IsVisible="{Binding IsTiledLayout}">
+				<TextBlock HorizontalAlignment="Center" Text="Resize" />
+
+				<Button
+                    Command="{Binding ResizeArrangerCommand}"
+                    ToolTip.Tip="Resizes the Arranger">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconResize}" />
+				</Button>
+			</StackPanel>
+
+			<StackPanel Margin="5,0,0,0">
+				<TextBlock HorizontalAlignment="Center" Text="Edit" />
+
+				<Button
+                    Command="{Binding EditSelectionCommand}"
+                    IsEnabled="{Binding CanEditSelection}"
+                    ToolTip.Tip="Opens selection in the pixel editor (E)">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconEdit}" />
+				</Button>
+			</StackPanel>
+		</StackPanel>
+
+		<!--  Image Display  -->
+		<ScrollViewer
+            Grid.Row="1"
+            Grid.Column="0"
+            Focusable="True"
+            HorizontalScrollBarVisibility="Auto"
+            VerticalScrollBarVisibility="Auto">
+
+			<paz:ZoomBorder Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+
+				<!--Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer}}, Converter={StaticResource ScrollViewerToMarginStringConverter}}"-->
+				<Grid>
+					<!--  Backdrop  -->
+					<Rectangle
+						x:Name="arrangerBackdrop"
+						Width="{Binding BitmapAdapter.Width}" Height="{Binding BitmapAdapter.Height}"
+						Stretch="None"
+						Fill="{DynamicResource CheckeredBrush}"/>
+					
+					<!--  Arranged Image  -->
+					<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}" 
+						   PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
+
+					<!--<Image
+						Panel.ZIndex="1"
+						RenderOptions.BitmapScalingMode="NearestNeighbor"
+						SnapsToDevicePixels="True"
+						Source="{Binding BitmapAdapter.Bitmap}"
+						Stretch="None" />-->
+
+					<!--  Selection and Paste Overlay  -->
+					<Canvas
+						x:Name="overlayCanvas"
+						MaxWidth="{Binding BitmapAdapter.Width}"
+						MaxHeight="{Binding BitmapAdapter.Height}"
+						PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased"
+						ClipToBounds="True">
+
+						<Rectangle
+							Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
+							Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
+							Width="{Binding Selection.SelectionRect.SnappedWidth}"
+							Height="{Binding Selection.SelectionRect.SnappedHeight}"
+							ClipToBounds="False"
+							Fill="{StaticResource editSelectionFillBrush}"
+							Stroke="Black"
+							StrokeDashArray="3,2"
+							StrokeThickness="0.3"
+							IsVisible="{Binding Selection.HasSelection}" />
+
+						<Rectangle
+							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+							Fill="{StaticResource editSelectionFillBrush}"
+							IsHitTestVisible="False"
+							Stroke="Black"
+							StrokeDashArray="3,2"
+							StrokeThickness="0.3" />
+
+						<Image
+							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+							RenderOptions.BitmapInterpolationMode="Default"
+							Source="{Binding Paste.OverlayImage.Bitmap}"
+							Stretch="None" />
+					</Canvas>
+
+					<!--  Gridline Overlay  -->
+					<ItemsControl
+						IsHitTestVisible="False"
+						Items="{Binding Gridlines}"
+						ClipToBounds="False"
+						MaxWidth="{Binding BitmapAdapter.Width}"
+						MaxHeight="{Binding BitmapAdapter.Height}"
+						IsVisible="{Binding ShowGridlines}">
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<Canvas />
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+						<ItemsControl.ItemTemplate>
+							<DataTemplate DataType="{x:Type model:Gridline}">
+								<Line
+									Stroke="#B0000000"
+									StrokeThickness="0.40"
+									UseLayoutRounding="True"
+									StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"
+									EndPoint="{Binding Converter={x:Static con:AppConverters.GridlineToEndPoint}}">
+								</Line>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</Grid>
+			</paz:ZoomBorder>
+		</ScrollViewer>
+	</Grid>
 </UserControl>

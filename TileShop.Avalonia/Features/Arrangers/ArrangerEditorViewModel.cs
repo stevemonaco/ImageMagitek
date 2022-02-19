@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using TileShop.Shared.EventModels;
-using TileShop.WPF.Models;
 using TileShop.Shared.Models;
 using ImageMagitek.Services;
 using ImageMagitek;
@@ -35,20 +34,6 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     [ObservableProperty] protected bool _showGridlines = false;
     [ObservableProperty] protected ObservableCollection<Gridline> _gridlines;
 
-    protected int _zoom = 1;
-    public int Zoom
-    {
-        get => _zoom;
-        set
-        {
-            if (SetProperty(ref _zoom, value))
-                CreateGridlines();
-        }
-    }
-
-    public int MinZoom => 1;
-    public int MaxZoom { get; protected set; } = 16;
-
     public bool CanChangeSnapMode { get; protected set; }
     [ObservableProperty] protected EditMode _editMode = EditMode.ArrangeGraphics;
 
@@ -78,7 +63,9 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         {
             SetProperty(ref _snapMode, value);
             if (Selection is not null)
-                Selection.SnapMode = SnapMode;
+            {
+                Selection.SelectionRect.SnapMode = SnapMode;
+            }
         }
     }
 
@@ -91,8 +78,6 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
 
     public ArrangerEditorViewModel(IWindowManager windowManager, IPaletteService paletteService)
     {
-        //_events = events;
-        //_events.Subscribe(this);
         _windowManager = windowManager;
         _paletteService = paletteService;
     }
@@ -135,15 +120,13 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         _gridlines = new();
         for (int x = x1; x <= x2; x += xSpacing) // Vertical gridlines
         {
-            var gridline = new Gridline(x * Zoom, 0,
-                x * Zoom, y2 * Zoom);
+            var gridline = new Gridline(x, 0, x, y2);
             _gridlines.Add(gridline);
         }
 
         for (int y = y1; y <= y2; y += ySpacing) // Horizontal gridlines
         {
-            var gridline = new Gridline(0, y * Zoom,
-                x2 * Zoom, y * Zoom);
+            var gridline = new Gridline(0, y, x2, y);
             _gridlines.Add(gridline);
         }
 
@@ -151,9 +134,6 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     }
 
     #region Commands
-    [ICommand] public virtual void ZoomIn() => Zoom = Math.Clamp(Zoom + 1, MinZoom, MaxZoom);
-    [ICommand] public virtual void ZoomOut() => Zoom = Math.Clamp(Zoom - 1, MinZoom, MaxZoom);
-
     [ICommand] public virtual void ToggleGridlineVisibility() => ShowGridlines ^= true;
 
     [ICommand]

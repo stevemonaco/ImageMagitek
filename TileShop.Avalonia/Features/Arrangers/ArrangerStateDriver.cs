@@ -26,7 +26,6 @@ public abstract class ArrangerStateDriver<T> : IStateDriver
     /// <param name="mouseState">State of mouse and key modifiers</param>
     public virtual void MouseDown(double x, double y, MouseState mouseState)
     {
-        var zoom = _viewModel.Zoom;
         var arranger = _viewModel.WorkingArranger;
 
         int xc = Math.Clamp((int)x, 0, arranger.ArrangerPixelSize.Width - 1);
@@ -121,14 +120,9 @@ public abstract class ArrangerStateDriver<T> : IStateDriver
 
     public virtual void KeyPress(KeyState keyState)
     {
-
     }
 
     public virtual void MouseWheel(MouseWheelDirection direction, KeyModifiers modifiers)
     {
-        if (direction == MouseWheelDirection.Up && modifiers.HasFlag(KeyModifiers.Ctrl))
-            _viewModel.ZoomIn();
-        else if (direction == MouseWheelDirection.Down && modifiers.HasFlag(KeyModifiers.Ctrl))
-            _viewModel.ZoomOut();
     }
 }

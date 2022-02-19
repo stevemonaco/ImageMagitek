@@ -18,8 +18,8 @@ public static class AppConverters
         new FuncValueConverter<string, Geometry>(x => Geometry.Parse(x));
 
     public static readonly IValueConverter ArrangerEditorToWidth =
-        new FuncValueConverter<ArrangerEditorViewModel, int>(x => x.WorkingArranger.ArrangerPixelSize.Width * x.Zoom);
+        new FuncValueConverter<ArrangerEditorViewModel, int>(x => x.WorkingArranger.ArrangerPixelSize.Width);
 
     public static readonly IValueConverter ArrangerEditorToHeight =
-        new FuncValueConverter<ArrangerEditorViewModel, int>(x => x.WorkingArranger.ArrangerPixelSize.Height * x.Zoom);
+        new FuncValueConverter<ArrangerEditorViewModel, int>(x => x.WorkingArranger.ArrangerPixelSize.Height);
 }

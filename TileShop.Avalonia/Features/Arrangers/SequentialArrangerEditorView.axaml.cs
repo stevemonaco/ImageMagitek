@@ -1,5 +1,6 @@
 using System;
 using Avalonia.Controls;
+using Avalonia.Controls.PanAndZoom;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using TileShop.AvaloniaUI.ViewModels;
@@ -13,11 +14,13 @@ public partial class SequentialArrangerEditorView : UserControl
     private SequentialArrangerStateDriver _stateDriver = null!;
 
     private readonly Image _image;
+    private readonly ZoomBorder _zoomBorder;
 
     public SequentialArrangerEditorView()
     {
         InitializeComponent();
         _image = this.FindControl<Image>("image");
+        _zoomBorder = this.FindControl<ZoomBorder>("zoomBorder");
     }
 
     private void InitializeComponent()
@@ -39,7 +42,7 @@ public partial class SequentialArrangerEditorView : UserControl
             var point = e.GetCurrentPoint(_image);
             var state = CreateMouseState(point, e.KeyModifiers);
             _stateDriver.MouseDown(point.Position.X, point.Position.Y, state);
-            e.Handled = true;
+            //e.Handled = true;
         }
     }
 
@@ -50,7 +53,7 @@ public partial class SequentialArrangerEditorView : UserControl
             var point = e.GetCurrentPoint(_image);
             var state = CreateMouseState(point, e.KeyModifiers);
             _stateDriver.MouseUp(point.Position.X, point.Position.Y, state);
-            e.Handled = true;
+            //e.Handled = true;
         }
     }
 
@@ -58,13 +61,13 @@ public partial class SequentialArrangerEditorView : UserControl
     {
         var pos = e.GetPosition(_image);
         _stateDriver.MouseMove(pos.X, pos.Y);
-        e.Handled = true;
+        //e.Handled = true;
     }
 
     private void OnPointerLeave(object sender, PointerEventArgs e)
     {
         _stateDriver.MouseLeave();
-        e.Handled = true;
+        //e.Handled = true;
     }
 
     private void OnPointerWheelChanged(object sender, PointerWheelEventArgs e)
@@ -76,12 +79,12 @@ public partial class SequentialArrangerEditorView : UserControl
             if (e.Delta.Y > 0)
             {
                 _stateDriver.MouseWheel(MouseWheelDirection.Up, modifiers);
-                e.Handled = true;
+                //e.Handled = true;
             }
             else if (e.Delta.Y < 0)
             {
                 _stateDriver.MouseWheel(MouseWheelDirection.Down, modifiers);
-                e.Handled = true;
+                //e.Handled = true;
             }
         }
     }

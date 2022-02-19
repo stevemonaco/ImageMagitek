@@ -2,21 +2,19 @@
 using TileShop.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace TileShop.WPF.Models;
+namespace TileShop.AvaloniaUI.Models;
 
 public partial class ArrangerSelection : ObservableObject
 {
     public Arranger Arranger { get; private set; }
 
     [ObservableProperty] private SnappedRectangle _selectionRect;
-    [ObservableProperty] private SnapMode _snapMode;
     [ObservableProperty] private bool _hasSelection;
 
     public ArrangerSelection(Arranger arranger, SnapMode snapMode)
     {
         Arranger = arranger;
         SelectionRect = new SnappedRectangle(Arranger.ArrangerPixelSize, Arranger.ElementPixelSize, snapMode, ElementSnapRounding.Expand);
-        SnapMode = snapMode;
     }
 
     /// <summary>

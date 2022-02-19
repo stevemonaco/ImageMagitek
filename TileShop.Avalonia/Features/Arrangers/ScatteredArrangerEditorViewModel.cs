@@ -1,19 +1,19 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Collections.ObjectModel;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Services;
 using TileShop.Shared.Models;
-using TileShop.Shared.EventModels;
-using System;
-using Monaco.PathTree;
 using ImageMagitek.ExtensionMethods;
-
-using Point = System.Drawing.Point;
-using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.ViewExtenders;
 using TileShop.AvaloniaUI.Imaging;
 using TileShop.AvaloniaUI.Models;
+using CommunityToolkit.Mvvm.ComponentModel;
+
+
+using Point = System.Drawing.Point;
+using CommunityToolkit.Mvvm.Input;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -80,6 +80,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
     public void SetApplyPaletteMode() => ActiveTool = ScatteredArrangerTool.ApplyPalette;
 
+    [ICommand]
     public override void SaveChanges()
     {
         if (WorkingArranger.Layout == ElementLayout.Tiled)
@@ -318,11 +319,11 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
             _indexedImage = new IndexedImage(WorkingArranger);
             BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
         }
-        //else if (WorkingArranger.ColorType == PixelColorType.Direct)
-        //{
-        //    _directImage = new DirectImage(WorkingArranger);
-        //    BitmapAdapter = new DirectBitmapAdapter(_directImage);
-        //}
+        else if (WorkingArranger.ColorType == PixelColorType.Direct)
+        {
+            _directImage = new DirectImage(WorkingArranger);
+            BitmapAdapter = new DirectBitmapAdapter(_directImage);
+        }
 
         CreateGridlines();
     }
@@ -352,8 +353,10 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         }
         else if (WorkingArranger.ColorType == PixelColorType.Direct)
         {
+            //_directImage.Render();
+            //BitmapAdapter.Invalidate();
             _directImage.Render();
-            BitmapAdapter.Invalidate();
+            BitmapAdapter = new DirectBitmapAdapter(_directImage);
         }
     }
 
@@ -471,6 +474,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         return true;
     }
 
+    [ICommand]
     public void ResizeArranger()
     {
         //var model = new ResizeTiledScatteredArrangerViewModel(_windowManager, WorkingArranger.ArrangerElementSize.Width, WorkingArranger.ArrangerElementSize.Height);
@@ -485,6 +489,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         //}
     }
 
+    [ICommand]
     public void AssociatePalette()
     {
         //var projectTree = _projectService.GetContainingProject(Resource);
@@ -502,6 +507,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         //}
     }
 
+    [ICommand]
     public void ToggleSnapMode()
     {
         if (SnapMode == SnapMode.Element)
@@ -510,6 +516,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
             SnapMode = SnapMode.Element;
     }
 
+    [ICommand]
     public void ConfirmPendingOperation()
     {
         if (Paste?.Copy is ElementCopy)
@@ -519,6 +526,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     /// <summary>
     /// Applies the paste as elements
     /// </summary>
+    [ICommand]
     public override void ApplyPaste(ArrangerPaste paste)
     {
         //var notifyEvent = ApplyPasteInternal(paste).Match(
@@ -535,6 +543,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         //_events.PublishOnUIThread(notifyEvent);
     }
 
+    [ICommand]
     public void DeleteElementSelection()
     {
         //if (Selection.HasSelection)
@@ -597,6 +606,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         //}
     }
 
+    [ICommand]
     public override void Undo()
     {
         if (!CanUndo)
@@ -619,6 +629,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         Render();
     }
 
+    [ICommand]
     public override void Redo()
     {
         if (!CanRedo)

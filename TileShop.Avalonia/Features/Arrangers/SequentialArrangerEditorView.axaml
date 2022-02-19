@@ -5,12 +5,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:con="using:TileShop.AvaloniaUI.Converters"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
-			 xmlns:c="using:TileShop.AvaloniaUI.Controls"
 			 xmlns:b="using:TileShop.AvaloniaUI.Behaviors"
 			 xmlns:i="using:Avalonia.Xaml.Interactivity"
+			 xmlns:paz="using:Avalonia.Controls.PanAndZoom"
 			 x:DataType="vm:SequentialArrangerEditorViewModel"
 			 x:CompileBindings="True"
-			 x:Name="arrangerControl"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="TileShop.AvaloniaUI.Views.SequentialArrangerEditorView">
 
@@ -33,8 +32,6 @@
 		<KeyBinding Gesture="OemSemicolon" Command="{Binding ExpandHeightCommand}" />
 		<KeyBinding Gesture="F" Command="{Binding SelectNextCodecCommand}" />
 		<KeyBinding Gesture="D" Command="{Binding SelectPreviousCodecCommand}" />
-		<KeyBinding Gesture="Z" Command="{Binding ZoomInCommand}" />
-		<KeyBinding Gesture="X" Command="{Binding ZoomOutCommand}" />
 		<KeyBinding Gesture="G" Command="{Binding ToggleGridlineVisibilityCommand}" />
 		<KeyBinding Gesture="J" Command="{Binding JumpToOffsetCommand}" />
 		<KeyBinding Gesture="E" Command="{Binding EditSelectionCommand}" />
@@ -186,20 +183,6 @@
                         BorderThickness="1" />
 
 					<StackPanel>
-						<StackPanel Orientation="Vertical">
-							<TextBlock HorizontalAlignment="Center" Text="Zoom" />
-							<Slider
-                                MinWidth="100"
-                                Margin="5,0,5,0"
-                                Focusable="False"
-								Value="{Binding Zoom}"
-                                Maximum="{Binding MaxZoom}"
-                                Minimum="{Binding MinZoom}"
-                                ToolTip.Tip="Zoom (Z, X)" />
-						</StackPanel>
-					</StackPanel>
-
-					<StackPanel>
 						<TextBlock HorizontalAlignment="Center" Text="Grid" />
 
 						<ToggleButton
@@ -265,84 +248,82 @@
 		</Border>
 
 		<!--  Image Display  -->
-		<c:ArrangerScrollViewer x:Name="scroll"
+		<ScrollViewer x:Name="scroll"
 			Grid.Row="1"
 			Focusable="True"
 			HorizontalScrollBarVisibility="Auto"
-			VerticalScrollBarVisibility="Auto"
-			PointerWheelChanged="OnPointerWheelChanged">
+			VerticalScrollBarVisibility="Auto">
 
-			<ScrollViewer.Resources>
-				<ScaleTransform x:Key="transform" ScaleX="{Binding Zoom}" ScaleY="{Binding Zoom}" />
-			</ScrollViewer.Resources>
+			<paz:ZoomBorder x:Name="zoomBorder" Margin="2" Stretch="None" ZoomSpeed="2" EnablePan="False" PowerFactor="0" 
+				EnableConstrains="True" MinOffsetY="0" MinOffsetX="0" MaxOffsetY="0" MaxOffsetX="0"
+				VerticalAlignment="Stretch" HorizontalAlignment="Stretch" PointerWheelChanged="OnPointerWheelChanged">
+				
+				<!--Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer}}, Converter={StaticResource ScrollViewerToMarginStringConverter}}"-->
+				<Grid
+					HorizontalAlignment="Left"
+					VerticalAlignment="Top">
 
-			<!--Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer}}, Converter={StaticResource ScrollViewerToMarginStringConverter}}"-->
-			<Grid
-				HorizontalAlignment="Left"
-				VerticalAlignment="Top">
+					<Grid.ContextMenu>
+						<ContextMenu>
+							<MenuItem Command="{Binding SelectAllCommand}" Header="Select All" />
+							<MenuItem
+								Command="{Binding NewScatteredArrangerFromSelectionCommand}"
+								Header="New ScatteredArranger From Selection..."
+								IsEnabled="{Binding Selection.HasSelection}"
+								IsVisible="{Binding IsTiledLayout}" />
+							<MenuItem
+								Command="{Binding NewScatteredArrangerFromImageCommand}"
+								Header="New ScatteredArranger From Image..."
+								IsVisible="{Binding IsSingleLayout}" />
+						</ContextMenu>
+					</Grid.ContextMenu>
 
-				<Grid.ContextMenu>
-					<ContextMenu>
-						<MenuItem Command="{Binding SelectAllCommand}" Header="Select All" />
-						<MenuItem
-							Command="{Binding NewScatteredArrangerFromSelectionCommand}"
-							Header="New ScatteredArranger From Selection..."
-							IsEnabled="{Binding Selection.HasSelection}"
-							IsVisible="{Binding IsTiledLayout}" />
-						<MenuItem
-							Command="{Binding NewScatteredArrangerFromImageCommand}"
-							Header="New ScatteredArranger From Image..."
-							IsVisible="{Binding IsSingleLayout}" />
-					</ContextMenu>
-				</Grid.ContextMenu>
-
-				<!--  Arranger Image  -->
-				<LayoutTransformControl LayoutTransform="{StaticResource transform}" RenderTransformOrigin="0,0">
+					<!--  Arranger Image  -->
 					<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap, Mode=OneWay}"
-						   PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
-				</LayoutTransformControl>
+							PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 
-				<!--  Selection Overlay  -->
-				<LayoutTransformControl LayoutTransform="{StaticResource transform}">
+					<!--  Selection Overlay  -->
 					<Canvas>
 						<Rectangle
 							Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
 							Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
 							Width="{Binding Selection.SelectionRect.SnappedWidth}"
 							Height="{Binding Selection.SelectionRect.SnappedHeight}"
+							Stretch="None"
 							Fill="{StaticResource editSelectionFillBrush}"
 							Stroke="Black"
 							StrokeDashArray="3,2"
 							StrokeThickness="0.3"
-							IsVisible="{Binding Selection.HasSelection}" />
+							IsVisible="{Binding Selection.HasSelection}"
+							PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 					</Canvas>
-				</LayoutTransformControl>
 
-				<!--  Gridline Overlay  -->
-				<ItemsControl
-					IsHitTestVisible="False"
-					Items="{Binding Gridlines}"
-					ClipToBounds="False"
-					IsVisible="{Binding ShowGridlines}">
-					<ItemsControl.ItemsPanel>
-						<ItemsPanelTemplate>
-							<Canvas />
-						</ItemsPanelTemplate>
-					</ItemsControl.ItemsPanel>
-					<ItemsControl.ItemTemplate>
-						<DataTemplate DataType="{x:Type model:Gridline}">
-							<Line
-								Stroke="Black"
-								StrokeThickness="1"
-								UseLayoutRounding="True"
-								StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"
-								EndPoint="{Binding Converter={x:Static con:AppConverters.GridlineToEndPoint}}">
-							</Line>
-						</DataTemplate>
-					</ItemsControl.ItemTemplate>
-				</ItemsControl>
-			</Grid>
-
-		</c:ArrangerScrollViewer>
+					<!--  Gridline Overlay  -->
+					<ItemsControl
+						IsHitTestVisible="False"
+						Items="{Binding Gridlines}"
+						ClipToBounds="False"
+						IsVisible="{Binding ShowGridlines}">
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<Canvas />
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+						<ItemsControl.ItemTemplate>
+							<DataTemplate DataType="{x:Type model:Gridline}">
+								<Line
+									Stroke="#B0000000"
+									StrokeThickness="0.40"
+									UseLayoutRounding="True"
+									StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"
+									EndPoint="{Binding Converter={x:Static con:AppConverters.GridlineToEndPoint}}">
+								</Line>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</Grid>
+			</paz:ZoomBorder>
+		</ScrollViewer>
+		
 	</Grid>
 </UserControl>
