@@ -5,6 +5,7 @@ using ImageMagitek.Colors;
 using ImageMagitek.Services;
 using TileShop.WPF.Imaging;
 using TileShop.WPF.Models;
+using TileShop.Shared.Models;
 using TileShop.Shared.EventModels;
 using ImageMagitek.Image;
 using System.Drawing;

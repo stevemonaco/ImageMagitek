@@ -1,8 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek.Colors;
 
-
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.Shared.Models;
 
 public partial class AssociatePaletteModel : ObservableObject
 {

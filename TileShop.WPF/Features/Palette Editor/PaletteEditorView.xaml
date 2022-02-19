@@ -6,7 +6,7 @@
     xmlns:dd="urn:gong-wpf-dragdrop"
     xmlns:h="clr-namespace:TileShop.WPF.Helpers"
     xmlns:local="clr-namespace:TileShop.WPF.Views"
-    xmlns:m="clr-namespace:TileShop.WPF.Models"
+    xmlns:m="clr-namespace:TileShop.Shared.Models;assembly=TileShop.Shared"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:s="https://github.com/canton7/Stylet"
     xmlns:sel="clr-namespace:TileShop.WPF.Selectors"

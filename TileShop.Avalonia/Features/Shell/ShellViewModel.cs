@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Dock.Model.Controls;
-using ImageMagitek;
-using ImageMagitek.Project;
 using ImageMagitek.Services;
 using Jot;
-using TileShop.AvaloniaUI.ViewExtenders.Docking;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 

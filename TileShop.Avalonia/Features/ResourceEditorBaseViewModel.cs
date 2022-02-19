@@ -2,7 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek.Project;
-using TileShop.AvaloniaUI.Models;
+using TileShop.Shared.Models;
 using TileShop.Shared.EventModels;
 
 namespace TileShop.AvaloniaUI.ViewModels;

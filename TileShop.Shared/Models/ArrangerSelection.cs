@@ -1,8 +1,7 @@
 ﻿using ImageMagitek;
-using TileShop.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.Shared.Models;
 
 public partial class ArrangerSelection : ObservableObject
 {

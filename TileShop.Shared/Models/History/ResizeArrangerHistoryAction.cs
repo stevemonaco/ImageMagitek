@@ -1,4 +1,4 @@
-﻿namespace TileShop.WPF.Models;
+﻿namespace TileShop.Shared.Models;
 
 public class ResizeArrangerHistoryAction : HistoryAction
 {

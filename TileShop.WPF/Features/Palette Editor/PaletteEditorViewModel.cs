@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Stylet;
 using TileShop.Shared.EventModels;
-using TileShop.WPF.Models;
+using TileShop.Shared.Models;
 using ImageMagitek.Colors;
 using ImageMagitek.Services;
 using ImageMagitek.Utility.Parsing;

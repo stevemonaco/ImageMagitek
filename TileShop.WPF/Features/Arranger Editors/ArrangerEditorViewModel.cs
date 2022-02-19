@@ -99,7 +99,9 @@ public abstract class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IMo
         {
             SetAndNotify(ref _snapMode, value);
             if (Selection is not null)
-                Selection.SnapMode = SnapMode;
+            {
+                Selection.SelectionRect.SnapMode = SnapMode;
+            }
         }
     }
 

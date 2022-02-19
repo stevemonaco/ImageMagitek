@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TileShop.Shared.Services;
-using Avalonia.Themes.Fluent;
 using Avalonia;
 using Avalonia.Styling;
 using Avalonia.Markup.Xaml.Styling;
-using Avalonia.Controls;
 
 namespace TileShop.AvaloniaUI.Services;
 

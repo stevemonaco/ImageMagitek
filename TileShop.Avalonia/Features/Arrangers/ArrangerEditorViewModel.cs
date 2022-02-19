@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Models;
 using ImageMagitek.Services;

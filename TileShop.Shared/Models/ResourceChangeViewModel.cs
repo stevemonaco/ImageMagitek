@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek.Project;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.Shared.Models;
 
 public partial class ResourceChangeViewModel : ObservableObject
 {

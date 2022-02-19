@@ -8,7 +8,7 @@ using ImageMagitek.Utility.Parsing;
 using ImageMagitek;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.AvaloniaUI.Models;
+using TileShop.Shared.Models;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
 

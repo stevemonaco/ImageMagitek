@@ -1,4 +1,6 @@
-﻿namespace TileShop.WPF.Models;
+﻿using TileShop.Shared.Models;
+
+namespace TileShop.WPF.Models;
 
 public class PasteArrangerHistoryAction : HistoryAction
 {

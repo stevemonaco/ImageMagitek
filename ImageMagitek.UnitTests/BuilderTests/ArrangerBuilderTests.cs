@@ -1,5 +1,4 @@
 ﻿using System.Drawing;
-using System.IO;
 using ImageMagitek.Builders;
 using ImageMagitek.Codec;
 using NUnit.Framework;

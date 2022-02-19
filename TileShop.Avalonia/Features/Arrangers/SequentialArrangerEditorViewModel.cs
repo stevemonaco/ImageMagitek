@@ -5,8 +5,6 @@ using ImageMagitek.Services;
 using TileShop.Shared.Models;
 using Jot;
 using System.Drawing;
-using System.Collections.Generic;
-using TileShop.Shared.EventModels;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.Models;

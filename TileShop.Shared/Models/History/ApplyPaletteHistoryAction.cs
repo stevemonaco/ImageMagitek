@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using TileShop.Shared.Utility;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.Shared.Models;
 
 public partial class ApplyPaletteHistoryAction : HistoryAction
 {

@@ -1,6 +1,6 @@
 ﻿using ImageMagitek;
 
-namespace TileShop.WPF.Models;
+namespace TileShop.Shared.Models;
 
 public class RotateElementHistoryAction : HistoryAction
 {

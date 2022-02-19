@@ -1,5 +1,5 @@
 ﻿using System;
-using TileShop.WPF.Models;
+using TileShop.Shared.Models;
 
 namespace TileShop.WPF.ViewModels;
 

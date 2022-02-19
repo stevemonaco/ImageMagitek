@@ -1,5 +1,4 @@
 ﻿using System.Drawing;
-using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;

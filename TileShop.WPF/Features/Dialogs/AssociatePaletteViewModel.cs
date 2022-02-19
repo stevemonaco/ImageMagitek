@@ -1,7 +1,7 @@
 ﻿using Stylet;
 using System.Collections.Generic;
 using System.Linq;
-using TileShop.WPF.Models;
+using TileShop.Shared.Models;
 
 namespace TileShop.WPF.ViewModels;
 

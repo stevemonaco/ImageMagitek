@@ -5,8 +5,6 @@ using System.Linq;
 using GongSolutions.Wpf.DragDrop;
 using Stylet;
 using TileShop.Shared.EventModels;
-using TileShop.WPF.Services;
-using TileShop.WPF.EventModels;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Services;
@@ -15,7 +13,7 @@ using Point = System.Drawing.Point;
 using ImageMagitek.Project;
 using Monaco.PathTree;
 using System.Collections.Generic;
-using TileShop.WPF.Models;
+using TileShop.Shared.Models;
 using TileShop.Shared.Services;
 
 namespace TileShop.WPF.ViewModels;

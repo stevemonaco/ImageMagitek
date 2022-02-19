@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.Shared.Models;
 
 public partial class FileColorSourceModel : ColorSourceModel
 {

@@ -6,7 +6,6 @@ using ImageMagitek.Services;
 using TileShop.Shared.Models;
 using TileShop.WPF.Behaviors;
 using TileShop.WPF.Imaging;
-using TileShop.WPF.EventModels;
 using Jot;
 using TileShop.WPF.Models;
 using System.Drawing;

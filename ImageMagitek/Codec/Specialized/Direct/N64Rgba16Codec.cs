@@ -1,6 +1,5 @@
 ﻿using System;
 using ImageMagitek.Colors;
-using ImageMagitek.Colors.Converters;
 
 namespace ImageMagitek.Codec;
 

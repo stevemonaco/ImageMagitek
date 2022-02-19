@@ -2,13 +2,11 @@
 using Serilog;
 using Jot;
 using Microsoft.Extensions.Logging;
-using ImageMagitek;
 using ImageMagitek.Services;
 using ImageMagitek.Project.Serialization;
 using TileShop.Shared.Services;
 using TileShop.AvaloniaUI.ViewModels;
 using System.Threading.Tasks;
-using System;
 using Microsoft.Extensions.DependencyInjection;
 using TileShop.AvaloniaUI.Services;
 using TileShop.AvaloniaUI.ViewExtenders;

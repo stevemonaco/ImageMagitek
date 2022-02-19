@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.Shared.Models;
 
 public abstract class ColorSourceModel : ObservableObject
 {

@@ -1,7 +1,7 @@
 ﻿using Stylet;
 using ImageMagitek.Project;
 using TileShop.Shared.EventModels;
-using TileShop.WPF.Models;
+using TileShop.Shared.Models;
 
 namespace TileShop.WPF.ViewModels;
 

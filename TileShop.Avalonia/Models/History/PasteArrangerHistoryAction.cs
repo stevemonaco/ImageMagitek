@@ -1,4 +1,6 @@
-﻿namespace TileShop.AvaloniaUI.Models;
+﻿using TileShop.Shared.Models;
+
+namespace TileShop.AvaloniaUI.Models;
 
 public class PasteArrangerHistoryAction : HistoryAction
 {

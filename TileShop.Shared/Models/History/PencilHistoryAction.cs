@@ -3,7 +3,7 @@ using System.Drawing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.Shared.Utility;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.Shared.Models;
 
 public partial class PencilHistoryAction<TColor> : HistoryAction
     where TColor : struct

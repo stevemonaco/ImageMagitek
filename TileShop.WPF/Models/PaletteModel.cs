@@ -1,7 +1,7 @@
-﻿using System.Windows.Media;
+﻿using System;
+using System.Windows.Media;
 using Stylet;
 using ImageMagitek.Colors;
-using System;
 
 namespace TileShop.WPF.Models;
 

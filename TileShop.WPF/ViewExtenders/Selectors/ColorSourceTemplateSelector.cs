@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
-using TileShop.WPF.Models;
+using TileShop.Shared.Models;
 
 namespace TileShop.WPF.Selectors;
 

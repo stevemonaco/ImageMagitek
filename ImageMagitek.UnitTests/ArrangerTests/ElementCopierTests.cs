@@ -1,5 +1,4 @@
-﻿using System.IO;
-using ImageMagitek.Codec;
+﻿using ImageMagitek.Codec;
 using NUnit.Framework;
 
 namespace ImageMagitek.UnitTests;

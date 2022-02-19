@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
-using TileShop.WPF.Models;
+using TileShop.Shared.Models;
 
 namespace TileShop.WPF.Selectors;
 

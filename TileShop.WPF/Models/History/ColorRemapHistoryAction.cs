@@ -1,5 +1,6 @@
 ﻿using Stylet;
 using System.Collections.Generic;
+using TileShop.Shared.Models;
 
 namespace TileShop.WPF.Models;
 
@@ -11,14 +12,14 @@ public class ColorRemapHistoryAction : HistoryAction
     public BindableCollection<RemappableColorModel> InitialColors
     {
         get => _initialColors;
-        set => SetAndNotify(ref _initialColors, value);
+        set => SetProperty(ref _initialColors, value);
     }
 
     private BindableCollection<RemappableColorModel> _finalColors = new BindableCollection<RemappableColorModel>();
     public BindableCollection<RemappableColorModel> FinalColors
     {
         get => _finalColors;
-        set => SetAndNotify(ref _finalColors, value);
+        set => SetProperty(ref _finalColors, value);
     }
 
     public ColorRemapHistoryAction(IList<RemappableColorModel> initialColors, IList<RemappableColorModel> finalColors)

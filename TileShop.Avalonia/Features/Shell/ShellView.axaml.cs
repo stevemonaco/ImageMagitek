@@ -3,7 +3,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
-using CommunityToolkit.Mvvm.DependencyInjection;
 using Dock.Avalonia.Controls;
 using TileShop.AvaloniaUI.ViewExtenders.Docking;
 using TileShop.AvaloniaUI.ViewModels;

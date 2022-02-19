@@ -1,6 +1,4 @@
-﻿using TileShop.Shared.Models;
-
-namespace TileShop.AvaloniaUI.Models;
+﻿namespace TileShop.Shared.Models;
 
 public class DeleteElementSelectionHistoryAction : HistoryAction
 {

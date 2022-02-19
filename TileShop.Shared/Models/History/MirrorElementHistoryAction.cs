@@ -1,6 +1,6 @@
 ﻿using ImageMagitek;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.Shared.Models;
 
 public class MirrorElementHistoryAction : HistoryAction
 {
