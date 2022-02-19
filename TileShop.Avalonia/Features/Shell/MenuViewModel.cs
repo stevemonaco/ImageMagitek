@@ -10,7 +10,7 @@ using TileShop.Shared.Services;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
-public partial class MenuViewModel : ObservableObject
+public partial class MenuViewModel : ObservableRecipient
 {
     [ObservableProperty] private ShellViewModel _shell;
     [ObservableProperty] private ProjectTreeViewModel _projectTree;
@@ -28,10 +28,7 @@ public partial class MenuViewModel : ObservableObject
         Editors = editors;
 
         _tracker.Track(this);
-        WeakReferenceMessenger.Default.Register<ProjectLoadedEvent>(this, (r, m) =>
-        {
-            Handle(m);
-        });
+        Messenger.Register<ProjectLoadedEvent>(this, (r, m) => Handle(m));
 
         RecentProjectFiles = new(RecentProjectFiles.Where(x => File.Exists(x)));
     }

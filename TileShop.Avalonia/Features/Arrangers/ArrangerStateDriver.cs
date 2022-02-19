@@ -1,4 +1,5 @@
 ﻿using System;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.Shared.EventModels;
@@ -6,16 +7,15 @@ using TileShop.Shared.Models;
 
 namespace TileShop.Shared.Input;
 
-public abstract class ArrangerStateDriver<T> : IStateDriver
+public abstract class ArrangerStateDriver<T> : ObservableRecipient, IStateDriver
     where T : ArrangerEditorViewModel
 {
-    private T _viewModel;
-
+    public T ViewModel { get; protected set; }
     public bool IsSelecting { get; set; }
 
     public ArrangerStateDriver(T ViewModel)
     {
-        _viewModel = ViewModel;
+        this.ViewModel = ViewModel;
     }
 
     /// <summary>
@@ -26,29 +26,29 @@ public abstract class ArrangerStateDriver<T> : IStateDriver
     /// <param name="mouseState">State of mouse and key modifiers</param>
     public virtual void MouseDown(double x, double y, MouseState mouseState)
     {
-        var arranger = _viewModel.WorkingArranger;
+        var arranger = ViewModel.WorkingArranger;
 
         int xc = Math.Clamp((int)x, 0, arranger.ArrangerPixelSize.Width - 1);
         int yc = Math.Clamp((int)y, 0, arranger.ArrangerPixelSize.Height - 1);
 
-        if (mouseState.LeftButtonPressed && _viewModel.Paste is not null && !_viewModel.Paste.Rect.ContainsPointSnapped(xc, yc))
+        if (mouseState.LeftButtonPressed && ViewModel.Paste is not null && !ViewModel.Paste.Rect.ContainsPointSnapped(xc, yc))
         {
-            _viewModel.ApplyPaste(_viewModel.Paste);
-            _viewModel.Paste = null;
+            ViewModel.ApplyPaste(ViewModel.Paste);
+            ViewModel.Paste = null;
         }
 
-        if (_viewModel.Selection?.HasSelection is true && mouseState.LeftButtonPressed && _viewModel.Selection.SelectionRect.ContainsPointSnapped(xc, yc))
+        if (ViewModel.Selection?.HasSelection is true && mouseState.LeftButtonPressed && ViewModel.Selection.SelectionRect.ContainsPointSnapped(xc, yc))
         {
             // Start drag for selection (Handled by DragDrop in View)
         }
-        else if (_viewModel.Paste is not null && mouseState.LeftButtonPressed && _viewModel.Paste.Rect.ContainsPointSnapped(xc, yc))
+        else if (ViewModel.Paste is not null && mouseState.LeftButtonPressed && ViewModel.Paste.Rect.ContainsPointSnapped(xc, yc))
         {
             // Start drag for paste (Handled by DragDrop in View)
         }
         else if (mouseState.LeftButtonPressed)
         {
             IsSelecting = true;
-            _viewModel.StartNewSelection(xc, yc);
+            ViewModel.StartNewSelection(xc, yc);
         }
     }
 
@@ -62,7 +62,7 @@ public abstract class ArrangerStateDriver<T> : IStateDriver
     {
         if (IsSelecting && mouseState.LeftButtonPressed == false)
         {
-            _viewModel.CompleteSelection();
+            ViewModel.CompleteSelection();
         }
     }
 
@@ -73,7 +73,7 @@ public abstract class ArrangerStateDriver<T> : IStateDriver
     public virtual void MouseLeave()
     {
         var notifyEvent = new NotifyStatusEvent("", NotifyStatusDuration.Indefinite);
-        WeakReferenceMessenger.Default.Send(notifyEvent);
+        Messenger.Send(notifyEvent);
     }
 
     /// <summary>
@@ -83,10 +83,10 @@ public abstract class ArrangerStateDriver<T> : IStateDriver
     /// <param name="y">y-coordinate in unzoomed pixels</param>
     public virtual void MouseMove(double x, double y)
     {
-        if (_viewModel.Selection is null)
+        if (ViewModel.Selection is null)
             return;
 
-        var arranger = _viewModel.WorkingArranger;
+        var arranger = ViewModel.WorkingArranger;
 
         if (x < 0 || y < 0 || x >= arranger.ArrangerPixelSize.Width || y >= arranger.ArrangerPixelSize.Height)
             return;
@@ -95,12 +95,12 @@ public abstract class ArrangerStateDriver<T> : IStateDriver
         int yc = Math.Clamp((int)y, 0, arranger.ArrangerPixelSize.Height - 1);
 
         if (IsSelecting)
-            _viewModel.UpdateSelection(xc, yc);
+            ViewModel.UpdateSelection(xc, yc);
 
-        if (_viewModel.Selection.HasSelection)
+        if (ViewModel.Selection.HasSelection)
         {
             string notifyMessage;
-            var rect = _viewModel.Selection.SelectionRect;
+            var rect = ViewModel.Selection.SelectionRect;
             if (rect.SnapMode == SnapMode.Element)
                 notifyMessage = $"Element Selection: {rect.SnappedWidth / arranger.ElementPixelSize.Width} x {rect.SnappedHeight / arranger.ElementPixelSize.Height}" +
                     $" at ({rect.SnappedLeft / arranger.ElementPixelSize.Width}, {rect.SnappedTop / arranger.ElementPixelSize.Height})";
@@ -108,13 +108,13 @@ public abstract class ArrangerStateDriver<T> : IStateDriver
                 notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight}" +
                     $" at ({rect.SnappedLeft}, {rect.SnappedTop})";
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            WeakReferenceMessenger.Default.Send(notifyEvent);
+            Messenger.Send(notifyEvent);
         }
         else
         {
             var notifyMessage = $"{arranger.Name}: ({(int)Math.Truncate(x)}, {(int)Math.Truncate(y)})";
             var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-            WeakReferenceMessenger.Default.Send(notifyEvent);
+            Messenger.Send(notifyEvent);
         }
     }
 

@@ -1,0 +1,271 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:model="using:TileShop.Shared.Models"
+			 xmlns:con="using:TileShop.AvaloniaUI.Converters"
+			 xmlns:b="using:TileShop.AvaloniaUI.Behaviors"
+			 xmlns:i="using:Avalonia.Xaml.Interactivity"
+			 xmlns:m="using:TileShop.AvaloniaUI.Models"
+			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 xmlns:paz="using:Avalonia.Controls.PanAndZoom"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:Name="pixelEditor"
+			 x:DataType="vm:IndexedPixelEditorViewModel"
+			 x:CompileBindings="True"
+             x:Class="TileShop.AvaloniaUI.Views.IndexedPixelEditorView">
+	<UserControl.KeyBindings>
+		<KeyBinding Gesture="G" Command="{Binding ToggleGridlineVisibilityCommand}" />
+		<KeyBinding Gesture="Escape" Command="{Binding CancelOverlayCommand}" />
+		<KeyBinding Gesture="Return" Command="{Binding ConfirmPendingOperationCommand}" />
+		<KeyBinding Gesture="Ctrl+S" Command="{Binding SaveChangesCommand}" />
+		<KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoCommand}" />
+		<KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoCommand}" />
+	</UserControl.KeyBindings>
+
+	<Grid UseLayoutRounding="True" RowDefinitions="auto,auto,*" ColumnDefinitions="*,*">
+
+		<!--  Toolbar  -->
+		<StackPanel Grid.ColumnSpan="2" Orientation="Horizontal">
+			<StackPanel VerticalAlignment="Center">
+				<TextBlock HorizontalAlignment="Center" Text="Grid" />
+				<ToggleButton
+                    Focusable="False"
+                    IsChecked="{Binding ShowGridlines}"
+                    ToolTip.Tip="Toggle gridline visibility (G)">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconGrid}" />
+				</ToggleButton>
+			</StackPanel>
+
+			<Border
+                Margin="5,6,5,4"
+                BorderBrush="{DynamicResource separatorBrush}"
+                BorderThickness="1" />
+
+			<!--  Tools  -->
+			<StackPanel>
+				<TextBlock HorizontalAlignment="Center" Text="Tools" />
+
+				<StackPanel Orientation="Horizontal">
+					<RadioButton
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
+                        ToolTip.Tip="Select Tool">
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconCursor}" />
+					</RadioButton>
+					<RadioButton
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Pencil}"
+                        ToolTip.Tip="Pencil Tool">
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPencil}" />
+					</RadioButton>
+					<RadioButton
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ColorPicker}"
+                        ToolTip.Tip="Color Picker Tool">
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconColorPicker}" />
+					</RadioButton>
+					<RadioButton
+                        GroupName="Tools"
+                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=FloodFill}"
+                        ToolTip.Tip="Flood Fill Tool">
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconFloodFill}" />
+					</RadioButton>
+				</StackPanel>
+			</StackPanel>
+
+			<StackPanel>
+				<TextBlock HorizontalAlignment="Center" Text="Active Colors" />
+				<StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+					<Border BorderBrush="Black" BorderThickness="2">
+						<Border BorderBrush="White" BorderThickness="2">
+							<Rectangle
+                                Width="26"
+                                Height="26"
+                                ToolTip.Tip="Primary Color">
+								<Rectangle.Fill>
+									<MultiBinding Converter="{StaticResource PaletteIndexToColorConverter}">
+										<Binding Path="ActivePalette" />
+										<Binding Path="PrimaryColor" />
+									</MultiBinding>
+								</Rectangle.Fill>
+							</Rectangle>
+						</Border>
+					</Border>
+					<Border BorderBrush="Black" BorderThickness="2">
+						<Border BorderBrush="White" BorderThickness="2">
+							<Rectangle
+                                Width="26"
+                                Height="26"
+                                ToolTip.Tip="Secondary Color">
+								<Rectangle.Fill>
+									<MultiBinding Converter="{StaticResource PaletteIndexToColorConverter}">
+										<Binding Path="ActivePalette" />
+										<Binding Path="SecondaryColor" />
+									</MultiBinding>
+								</Rectangle.Fill>
+							</Rectangle>
+						</Border>
+					</Border>
+				</StackPanel>
+			</StackPanel>
+
+			<StackPanel Margin="8,0,0,0">
+				<TextBlock HorizontalAlignment="Center" Text="Remap" />
+
+				<Button
+                    HorizontalAlignment="Center"
+                    Command="{Binding RemapColorsCommand}"
+                    IsEnabled="{Binding CanRemapColors}"
+                    ToolTip.Tip="Remap Palette Colors">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconRemap}" />
+				</Button>
+			</StackPanel>
+		</StackPanel>
+
+		<!--  Palette Display  -->
+		<StackPanel
+            Grid.Row="1"
+            Grid.ColumnSpan="2"
+            Margin="4,4,0,0"
+            Orientation="Horizontal">
+			<ComboBox Items="{Binding Palettes}" SelectedItem="{Binding ActivePalette}">
+				<ComboBox.ItemTemplate>
+					<DataTemplate>
+						<TextBlock Text="{Binding Name}" />
+					</DataTemplate>
+				</ComboBox.ItemTemplate>
+			</ComboBox>
+
+			<ItemsControl
+                Margin="1,0,3,5"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Items="{Binding ActivePalette.Colors}"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<WrapPanel
+                            Margin="0,0,3,5"
+                            Orientation="Horizontal" />
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+				<ItemsControl.ItemTemplate>
+					<DataTemplate x:DataType="m:PaletteEntry">
+						<Border
+                            Margin="1,0,1,0"
+                            BorderBrush="Black"
+                            BorderThickness="1" PointerPressed="OnPaletteEntryPressed">
+							<Border BorderBrush="White" BorderThickness="1">
+								<!--<Rectangle
+                                    Width="28"
+                                    Height="28"
+                                    Fill="{Binding Converter={StaticResource PaletteEntryToSolidColorBrushConverter}}">
+								</Rectangle>-->
+							</Border>
+						</Border>
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</StackPanel>
+
+		<!--  Image Display  -->
+		<ScrollViewer
+            Grid.Row="2"
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            Focusable="True"
+            HorizontalScrollBarVisibility="Auto"
+            VerticalScrollBarVisibility="Auto">
+
+			<paz:ZoomBorder Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+
+				<!--Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer}}, Converter={StaticResource ScrollViewerToMarginStringConverter}}"-->
+				<Grid>
+					<!--  Backdrop  -->
+					<Rectangle
+						x:Name="arrangerBackdrop"
+						Width="{Binding BitmapAdapter.Width}" Height="{Binding BitmapAdapter.Height}"
+						Stretch="None"
+						Fill="{DynamicResource CheckeredBrush}"/>
+
+					<!--  Editable Image  -->
+					<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}"
+						   PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
+
+					<!--  Selection and Paste Overlay  -->
+					<Canvas
+						x:Name="overlayCanvas"
+						MaxWidth="{Binding BitmapAdapter.Width}"
+						MaxHeight="{Binding BitmapAdapter.Height}"
+						PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased"
+						ClipToBounds="True">
+
+						<Rectangle
+							Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
+							Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
+							Width="{Binding Selection.SelectionRect.SnappedWidth}"
+							Height="{Binding Selection.SelectionRect.SnappedHeight}"
+							ClipToBounds="False"
+							Fill="{StaticResource editSelectionFillBrush}"
+							Stroke="Black"
+							StrokeDashArray="3,2"
+							StrokeThickness="0.3"
+							IsVisible="{Binding Selection.HasSelection}" />
+
+						<Rectangle
+							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+							Fill="{StaticResource editSelectionFillBrush}"
+							IsHitTestVisible="False"
+							Stroke="Black"
+							StrokeDashArray="3,2"
+							StrokeThickness="0.3" />
+
+						<Image
+							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+							RenderOptions.BitmapInterpolationMode="Default"
+							Source="{Binding Paste.OverlayImage.Bitmap}"
+							Stretch="None" />
+					</Canvas>
+
+					<!--  Gridline Overlay  -->
+					<ItemsControl
+						IsHitTestVisible="False"
+						Items="{Binding Gridlines}"
+						ClipToBounds="False"
+						MaxWidth="{Binding BitmapAdapter.Width}"
+						MaxHeight="{Binding BitmapAdapter.Height}"
+						IsVisible="{Binding ShowGridlines}">
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<Canvas />
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+						<ItemsControl.ItemTemplate>
+							<DataTemplate DataType="{x:Type model:Gridline}">
+								<Line
+									Stroke="#B0000000"
+									StrokeThickness="0.40"
+									UseLayoutRounding="True"
+									StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"
+									EndPoint="{Binding Converter={x:Static con:AppConverters.GridlineToEndPoint}}">
+								</Line>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</Grid>
+			</paz:ZoomBorder>
+		</ScrollViewer>
+
+	</Grid>
+</UserControl>

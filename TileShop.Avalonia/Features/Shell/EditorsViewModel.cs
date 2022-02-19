@@ -18,7 +18,7 @@ namespace TileShop.AvaloniaUI.ViewModels;
 
 public enum UserSaveAction { Save, Discard, Cancel, Unmodified }
 
-public partial class EditorsViewModel : ObservableObject
+public partial class EditorsViewModel : ObservableRecipient
 {
     private readonly IWindowManager _windowManager;
     private readonly Tracker _tracker;
@@ -27,7 +27,6 @@ public partial class EditorsViewModel : ObservableObject
     private readonly IProjectService _projectService;
     private readonly IElementLayoutService _layoutService;
     private readonly AppSettings _settings;
-    //private readonly IEventAggregator _events;
 
     public ObservableCollection<ResourceEditorBaseViewModel> Editors { get; } = new();
 
@@ -52,20 +51,9 @@ public partial class EditorsViewModel : ObservableObject
         _projectService = projectService;
         _layoutService = layoutService;
 
-        WeakReferenceMessenger.Default.Register<EditArrangerPixelsEvent>(this, (r, m) =>
-        {
-            Handle(m);
-        });
-
-        WeakReferenceMessenger.Default.Register<ArrangerChangedEvent>(this, (r, m) =>
-        {
-            Handle(m);
-        });
-
-        WeakReferenceMessenger.Default.Register<PaletteChangedEvent>(this, (r, m) =>
-        {
-            Handle(m);
-        });
+        Messenger.Register<EditArrangerPixelsEvent>(this, (r, m) => Receive(m));
+        Messenger.Register<ArrangerChangedEvent>(this, (r, m) => Receive(m));
+        Messenger.Register<PaletteChangedEvent>(this, (r, m) => Receive(m));
     }
 
     public bool CloseEditor(ResourceEditorBaseViewModel editor)
@@ -233,18 +221,18 @@ public partial class EditorsViewModel : ObservableObject
         return UserSaveAction.Unmodified;
     }
 
-    public void Handle(EditArrangerPixelsEvent message)
+    public void Receive(EditArrangerPixelsEvent message)
     {
-        //if (message.Arranger.ColorType == PixelColorType.Indexed)
-        //{
-        //    var editor = new IndexedPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-        //        message.Width, message.Height, _events, _windowManager, _paletteService);
+        if (message.Arranger.ColorType == PixelColorType.Indexed)
+        {
+            var editor = new IndexedPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
+                message.Width, message.Height, _windowManager, _paletteService);
 
-        //    editor.DisplayName = message.Arranger.Name;
+            editor.DisplayName = message.Arranger.Name;
 
-        //    Shell.Editors.Editors.Add(editor);
-        //    ActiveEditor = editor;
-        //}
+            Shell.Editors.Editors.Add(editor);
+            ActiveEditor = editor;
+        }
         //else if (message.Arranger.ColorType == PixelColorType.Direct)
         //{
         //    var editor = new DirectPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
@@ -257,7 +245,7 @@ public partial class EditorsViewModel : ObservableObject
         //}
     }
 
-    public void Handle(ArrangerChangedEvent message)
+    public void Receive(ArrangerChangedEvent message)
     {
         //if (message.Change == ArrangerChange.Pixels || message.Change == ArrangerChange.Elements)
         //{
@@ -274,7 +262,7 @@ public partial class EditorsViewModel : ObservableObject
         //}
     }
 
-    public void Handle(PaletteChangedEvent message)
+    public void Receive(PaletteChangedEvent message)
     {
         //var effectedEditors = Editors.OfType<ScatteredArrangerEditorViewModel>()
         //    .Where(x => x.WorkingArranger.GetReferencedPalettes().Contains(message.Palette));

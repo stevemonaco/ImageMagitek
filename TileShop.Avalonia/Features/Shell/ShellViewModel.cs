@@ -29,6 +29,7 @@ public partial class ShellViewModel : ObservableObject
         _activeStatusBar = activeStatusBar;
         _editors = editors;
 
+        _editors.Shell = this;
         _activeMenu.Shell = this;
 
         //var factory = new DockFactory(ActiveTree);

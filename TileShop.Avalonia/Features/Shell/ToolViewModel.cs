@@ -2,7 +2,7 @@
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
-public abstract partial class ToolViewModel : ObservableObject
+public abstract partial class ToolViewModel : ObservableRecipient
 {
     public abstract void SaveChanges();
     public abstract void DiscardChanges();

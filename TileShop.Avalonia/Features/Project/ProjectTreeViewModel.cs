@@ -38,10 +38,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         _diskExploreService = diskExploreService;
         _editors = editors;
 
-        WeakReferenceMessenger.Default.Register<AddScatteredArrangerFromCopyEvent>(this, (r, m) =>
-        {
-            Handle(m);
-        });
+        Messenger.Register<AddScatteredArrangerFromCopyEvent>(this, (r, m) => Handle(m));
 
         //DisplayName = "Project Tree";
     }

@@ -3,7 +3,7 @@
 namespace TileShop.Shared.Input;
 public class SequentialArrangerStateDriver : ArrangerStateDriver<SequentialArrangerEditorViewModel>
 {
-    public SequentialArrangerStateDriver(SequentialArrangerEditorViewModel ViewModel) : base(ViewModel)
+    public SequentialArrangerStateDriver(SequentialArrangerEditorViewModel viewModel) : base(viewModel)
     {
     }
 }

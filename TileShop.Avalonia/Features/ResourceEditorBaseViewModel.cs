@@ -17,7 +17,7 @@ public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
 
     public ResourceEditorBaseViewModel()
     {
-        WeakReferenceMessenger.Default.Register<ResourceRenamedEvent>(this, Handle);
+        Messenger.Register<ResourceRenamedEvent>(this, Handle);
     }
 
     public virtual bool CanUndo { get => UndoHistory.Count > 0; }

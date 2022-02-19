@@ -107,7 +107,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         _palette.Reload();
 
         var changeEvent = new PaletteChangedEvent(_palette);
-        WeakReferenceMessenger.Default.Send(changeEvent);
+        Messenger.Send(changeEvent);
 
         IsModified = false;
     }
@@ -142,7 +142,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         IsModified = false;
 
         var changeEvent = new PaletteChangedEvent(_palette);
-        WeakReferenceMessenger.Default.Send(changeEvent);
+        Messenger.Send(changeEvent);
     }
 
     public override void DiscardChanges()
@@ -158,7 +158,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     {
         string notifyMessage = $"Palette Index: {model.Index}";
         var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-        WeakReferenceMessenger.Default.Send(notifyEvent);
+        Messenger.Send(notifyEvent);
     }
 
     public override void Undo()

@@ -13,8 +13,8 @@ public partial class StatusViewModel : ObservableRecipient
 
     public StatusViewModel()
     {
-        WeakReferenceMessenger.Default.Register<StatusViewModel, NotifyStatusEvent>(this, (r, m) => r.Receive(m));
-        WeakReferenceMessenger.Default.Register<StatusViewModel, NotifyOperationEvent>(this, (r, m) => r.Receive(m));
+        Messenger.Register<NotifyStatusEvent>(this, (r, m) => Receive(m));
+        Messenger.Register<NotifyOperationEvent>(this, (r, m) => Receive(m));
     }
 
     public void Receive(NotifyStatusEvent notifyEvent)
