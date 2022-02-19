@@ -70,6 +70,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
+    [ICommand]
     public void AddNewFolder(ResourceNodeViewModel parentNodeModel)
     {
         _projectService.CreateNewFolder(parentNodeModel.Node, "New Folder").Switch(
@@ -86,6 +87,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
             });
     }
 
+    [ICommand]
     public void AddNewDataFile(ResourceNodeViewModel parentNodeModel)
     {
         var dataFileName = _fileSelect.GetExistingDataFileNameByUser();
@@ -118,6 +120,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
+    [ICommand]
     public void AddNewPalette(ResourceNodeViewModel parentNodeModel)
     {
         //var dialogModel = new AddPaletteViewModel(parentNodeModel.Children.Select(x => x.Name));
@@ -162,6 +165,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         //}
     }
 
+    [ICommand]
     public void AddNewScatteredArranger(ResourceNodeViewModel parentNodeModel)
     {
         //var dialogModel = new AddScatteredArrangerViewModel(parentNodeModel.Children.Select(x => x.Name));
@@ -192,6 +196,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         //}
     }
 
+    [ICommand]
     public void ExportArrangerNodeAs(ResourceNodeViewModel nodeModel)
     {
         //if (nodeModel is ArrangerNodeViewModel arrNodeModel)
@@ -201,6 +206,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         //}
     }
 
+    [ICommand]
     public void ExportArrangerAs(ScatteredArranger arranger)
     {
         //var exportFileName = _fileSelect.GetExportArrangerFileNameByUser($"{arranger.Name}.png");
@@ -220,6 +226,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         //}
     }
 
+    [ICommand]
     public void ImportArrangerNodeFrom(ResourceNodeViewModel nodeModel)
     {
         //if (nodeModel is ArrangerNodeViewModel arrNodeModel && arrNodeModel.Node.Item is ScatteredArranger arranger)
@@ -228,6 +235,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         //}
     }
 
+    [ICommand]
     public void ImportArrangerFrom(ScatteredArranger arranger)
     {
         //var model = new ImportImageViewModel(arranger, _fileSelect);
@@ -238,6 +246,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         //}
     }
 
+    [ICommand]
     public void RequestRemoveNode(ResourceNodeViewModel nodeModel)
     {
         //var deleteNode = nodeModel.Node;
@@ -361,6 +370,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
+    [ICommand]
     public void RenameNode(ResourceNodeViewModel nodeModel)
     {
         //var dialogModel = new RenameNodeViewModel(nodeModel);
@@ -466,6 +476,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
     //    }
     //}
 
+    [ICommand]
     public override void SaveChanges()
     {
         try
@@ -487,6 +498,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
+    [ICommand]
     public void AddNewProject()
     {
         var projectFileName = _fileSelect.GetNewProjectFileNameByUser();
@@ -512,6 +524,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
+    [ICommand]
     public void NewProjectFromFile()
     {
         var dataFileName = _fileSelect.GetExistingDataFileNameByUser();
@@ -657,6 +670,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
             });
     }
 
+    [ICommand]
     public void CloseAllProjects()
     {
         while (Projects.Count > 0)
@@ -666,6 +680,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
+    [ICommand]
     public void ExploreResource(ResourceNodeViewModel nodeVM)
     {
         _diskExploreService.ExploreDiskLocation(nodeVM.Node.DiskLocation);
