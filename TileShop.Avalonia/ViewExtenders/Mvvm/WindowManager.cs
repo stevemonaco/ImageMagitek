@@ -1,5 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Threading.Tasks;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace TileShop.AvaloniaUI.ViewExtenders;
 
@@ -19,8 +24,9 @@ public interface IWindowManager
     /// </summary>
     /// <param name="viewModel">ViewModel to show the View for</param>
     /// <returns>DialogResult of the View</returns>
-    bool? ShowDialog(object viewModel);
-
+    Task<TResult> ShowDialog<TViewModel, TResult>(DialogViewModel<TResult> viewModel)
+        where TViewModel : INotifyPropertyChanged;
+    
     /// <summary>
     /// Display a MessageBox
     /// </summary>
@@ -33,7 +39,53 @@ public interface IWindowManager
 
 internal class WindowManager : IWindowManager
 {
-    public MessageBoxResult ShowMessageBox(string messageBoxText, string caption = "", IDictionary<MessageBoxResult, string> buttonLabels = null) => throw new NotImplementedException();
-    public void ShowWindow(object viewModel) => throw new NotImplementedException();
-    public bool? ShowDialog(object viewModel) => throw new NotImplementedException();
+    private ViewLocator _viewLocator;
+
+    public WindowManager(ViewLocator viewLocator)
+    {
+        _viewLocator = viewLocator;
+    }
+
+    public MessageBoxResult ShowMessageBox(string messageBoxText, string caption = "", IDictionary<MessageBoxResult, string> buttonLabels = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void ShowWindow(object viewModel)
+    {
+        var mainWindow = GetWindow();
+
+        var newWindow = (Window)_viewLocator.Build(viewModel);
+        newWindow.DataContext = viewModel;
+        newWindow.Show(mainWindow);
+    }
+    
+    public async Task<TResult> ShowDialog<TViewModel, TResult>(DialogViewModel<TResult> viewModel)
+        where TViewModel : INotifyPropertyChanged
+    {
+        var mainWindow = GetWindow();
+
+        var dialogWindow = (Window) _viewLocator.Build(viewModel);
+        dialogWindow.DataContext = viewModel;
+
+        viewModel.PropertyChanged += Handler;
+        await dialogWindow.ShowDialog(mainWindow);
+        viewModel.PropertyChanged -= Handler;
+
+        return viewModel.DialogResult;
+
+        void Handler(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != "DialogResult")
+                return;
+
+            dialogWindow.Close();
+        }
+    }
+
+    private static Window? GetWindow()
+    {
+        var lifetime = Avalonia.Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+        return lifetime?.MainWindow;
+    }
 }

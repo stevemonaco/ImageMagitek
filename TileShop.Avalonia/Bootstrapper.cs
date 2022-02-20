@@ -62,8 +62,9 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
     public void ConfigureServices(IServiceCollection services)
     {
         //builder.RegisterType<ViewModels.MessageBoxViewModel>().As<IMessageBoxViewModel>();
+        var windowManager = new WindowManager(new ViewLocator());
 
-        services.AddSingleton<IWindowManager, WindowManager>();
+        services.AddSingleton<IWindowManager>(windowManager);
         services.AddSingleton<IFileSelectService, FileSelectService>();
         services.AddSingleton<IDiskExploreService, DiskExploreService>();
         services.AddSingleton<IThemeService, ThemeService>();

@@ -28,8 +28,7 @@ public partial class EditorsViewModel : ObservableRecipient
     private readonly IElementLayoutService _layoutService;
     private readonly AppSettings _settings;
 
-    public ObservableCollection<ResourceEditorBaseViewModel> Editors { get; } = new();
-
+    [ObservableProperty] private ObservableCollection<ResourceEditorBaseViewModel> _editors = new();
     [ObservableProperty] private ResourceEditorBaseViewModel _activeEditor;
     [ObservableProperty] private ShellViewModel _shell;
 

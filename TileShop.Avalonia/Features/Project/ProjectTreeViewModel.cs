@@ -368,29 +368,29 @@ public partial class ProjectTreeViewModel : ToolViewModel
     }
 
     [ICommand]
-    public void RenameNode(ResourceNodeViewModel nodeModel)
+    public async void RenameNode(ResourceNodeViewModel nodeModel)
     {
-        //var dialogModel = new RenameNodeViewModel(nodeModel);
-        //var dialogResult = _windowManager.ShowDialog(dialogModel);
+        var dialogModel = new RenameNodeViewModel(nodeModel);
+        var dialogResult = await _windowManager.ShowDialog<RenameNodeViewModel, string?>(dialogModel);
 
-        //if (dialogResult is true)
-        //{
-        //    var oldName = nodeModel.Name;
-        //    var newName = dialogModel.Name;
+        if (dialogResult is string)
+        {
+            var oldName = nodeModel.Name;
+            var newName = dialogModel.Name;
 
-        //    _projectService.RenameResource(nodeModel.Node, dialogModel.Name).Switch(
-        //        success =>
-        //        {
-        //            nodeModel.Name = newName;
+            _projectService.RenameResource(nodeModel.Node, dialogModel.Name).Switch(
+                success =>
+                {
+                    nodeModel.Name = newName;
 
-        //            if (nodeModel.ParentModel is FolderNodeViewModel || nodeModel.ParentModel is ProjectNodeViewModel)
-        //                nodeModel.ParentModel.NotifyChildrenChanged();
+                    if (nodeModel.ParentModel is FolderNodeViewModel || nodeModel.ParentModel is ProjectNodeViewModel)
+                        nodeModel.ParentModel.NotifyChildrenChanged();
 
-        //            var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, newName, oldName);
-        //            _events.PublishOnUIThread(renameEvent);
-        //        },
-        //        fail => _windowManager.ShowMessageBox(fail.Reason, icon: MessageBoxImage.Error));
-        //}
+                    var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, newName, oldName);
+                    Messenger.Send(renameEvent);
+                },
+                fail => { }); //_windowManager.ShowMessageBox(fail.Reason, icon: MessageBoxImage.Error));
+        }
     }
 
     public void Handle(AddScatteredArrangerFromCopyEvent message)
@@ -622,17 +622,17 @@ public partial class ProjectTreeViewModel : ToolViewModel
                 var activeSequentialEditors = _editors.Editors
                     .OfType<SequentialArrangerEditorViewModel>()
                     .Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataSource));
-                //var activeIndexedPixelEditors = _editors.Editors
-                //    .OfType<IndexedPixelEditorViewModel>()
-                //    .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
-                //var activeDirectPixelEditors = _editors.Editors
-                //    .OfType<DirectPixelEditorViewModel>()
-                //    .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
+                var activeIndexedPixelEditors = _editors.Editors
+                    .OfType<IndexedPixelEditorViewModel>()
+                    .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
+                var activeDirectPixelEditors = _editors.Editors
+                    .OfType<DirectPixelEditorViewModel>()
+                    .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
 
                 var removedEditors = new HashSet<ResourceEditorBaseViewModel>(activeContainedEditors);
                 removedEditors.UnionWith(activeSequentialEditors);
-                //removedEditors.UnionWith(activeIndexedPixelEditors);
-                //removedEditors.UnionWith(activeDirectPixelEditors);
+                removedEditors.UnionWith(activeIndexedPixelEditors);
+                removedEditors.UnionWith(activeDirectPixelEditors);
 
                 var remainingEditors = _editors.Editors
                     .Where(x => !removedEditors.Contains(x));
@@ -645,8 +645,8 @@ public partial class ProjectTreeViewModel : ToolViewModel
                     if (!remainingEditors.Contains(_editors.Editors[i]))
                         _editors.Editors.Remove(_editors.Editors[i]);
                 }
-                //_editors.Editors.Remove
-                //_editors.Editors = new(remainingEditors);
+
+                _editors.Editors = new(remainingEditors);
                 _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
 
                 _projectService.SaveProject(projectTree)
