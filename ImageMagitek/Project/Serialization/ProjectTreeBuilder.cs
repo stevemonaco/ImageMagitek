@@ -112,13 +112,13 @@ internal sealed class ProjectTreeBuilder
             {
                 var result = CreateElement(arrangerModel, x, y);
 
-                if (result.IsT0)
+                if (result.HasSucceeded)
                 {
-                    arranger.SetElement(result.AsT0.Result, x, y);
+                    arranger.SetElement(result.AsSuccess.Result, x, y);
                 }
-                else if (result.IsT1)
+                else if (result.HasFailed)
                 {
-                    return new MagitekResult.Failed(result.AsT1.Reason);
+                    return new MagitekResult.Failed(result.AsError.Reason);
                 }
             }
         }

@@ -197,7 +197,7 @@ public sealed class XmlProjectReader : IProjectReader
             var result = builder.AddDataFile(model as DataFileModel, pathKey, fileLocation);
             if (result.HasFailed)
             {
-                _errors.Add($"{result.AsT1.Reason}");
+                _errors.Add($"{result.AsError.Reason}");
             }
         }
 
@@ -206,7 +206,7 @@ public sealed class XmlProjectReader : IProjectReader
             var result = builder.AddPalette(model as PaletteModel, pathKey, fileLocation);
             if (result.HasFailed)
             {
-                _errors.Add($"{result.AsT1.Reason}");
+                _errors.Add($"{result.AsError.Reason}");
             }
         }
 
@@ -215,7 +215,7 @@ public sealed class XmlProjectReader : IProjectReader
             var result = builder.AddScatteredArranger(model as ScatteredArrangerModel, pathKey, fileLocation);
             if (result.HasFailed)
             {
-                _errors.Add($"{result.AsT1.Reason}");
+                _errors.Add($"{result.AsError.Reason}");
             }
         }
 
