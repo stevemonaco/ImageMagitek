@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 x:DataType="vm:AssociatePaletteViewModel"
+			 x:CompileBindings="True"
+             x:Class="TileShop.AvaloniaUI.Views.AssociatePaletteView">
+	<Border Padding="10">
+		<Grid RowDefinitions="auto,*,auto">
+			<TextBlock
+                Grid.Row="0"
+                Margin="5,0,0,0"
+                Text="Palettes" />
+
+			<ListBox
+                Grid.Row="1"
+                Items="{Binding Palettes}"
+                SelectedItem="{Binding SelectedPalette}">
+				<ListBox.ItemTemplate>
+					<DataTemplate>
+						<StackPanel Orientation="Horizontal">
+							<TextBlock Text="{Binding Name}" />
+							<TextBlock Margin="20,0,0,0" Text="{Binding PaletteKey}" />
+						</StackPanel>
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+				<ListBox.ItemsPanel>
+					<ItemsPanelTemplate>
+						<StackPanel />
+					</ItemsPanelTemplate>
+				</ListBox.ItemsPanel>
+			</ListBox>
+
+			<StackPanel
+                Grid.Row="2"
+                Margin="0,5,0,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Orientation="Horizontal">
+				<Button
+                    Width="80"
+                    Command="{Binding OkCommand}"
+					CommandParameter="{Binding}"
+                    Content="Associate"
+                    IsDefault="True" />
+				<Button
+                    Width="80"
+                    Margin="5,0,0,0"
+                    Command="{Binding CancelCommand}"
+                    Content="Cancel"
+                    IsCancel="True" />
+			</StackPanel>
+		</Grid>
+	</Border>
+</UserControl>

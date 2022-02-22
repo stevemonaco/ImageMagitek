@@ -2,12 +2,15 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace TileShop.AvaloniaUI.Views;
-public partial class RenameNodeView : UserControl
+namespace TileShop.AvaloniaUI.ViewExtenders;
+public partial class DialogView : Window
 {
-    public RenameNodeView()
+    public DialogView()
     {
         InitializeComponent();
+#if DEBUG
+        this.AttachDevTools();
+#endif
     }
 
     private void InitializeComponent()

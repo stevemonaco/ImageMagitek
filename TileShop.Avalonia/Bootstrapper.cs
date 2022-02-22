@@ -121,10 +121,10 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         //    .Property(p => p.ColorType, PixelColorType.Indexed)
         //    .Property(p => p.Layout, ElementLayout.Tiled);
 
-        //tracker.Configure<AddPaletteViewModel>()
-        //    .Property(p => p.PaletteName)
-        //    .Property(p => p.SelectedColorModel, "RGBA32")
-        //    .Property(p => p.ZeroIndexTransparent, true);
+        tracker.Configure<AddPaletteViewModel>()
+            .Property(p => p.PaletteName)
+            .Property(p => p.SelectedColorModel, "RGBA32")
+            .Property(p => p.ZeroIndexTransparent, true);
 
         //tracker.Configure<JumpToOffsetViewModel>()
         //    .Property(p => p.NumericBase, NumericBase.Decimal)

@@ -1,15 +1,12 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-		xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
-		x:DataType="vm:RenameNodeViewModel"
-		x:CompileBindings="True"
-        x:Class="TileShop.AvaloniaUI.Views.RenameNodeView"
-		SizeToContent="WidthAndHeight"
-		CanResize="False"
-        Title="Rename">
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"	
+			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 x:DataType="vm:RenameNodeViewModel"
+			 x:CompileBindings="True"
+             x:Class="TileShop.AvaloniaUI.Views.RenameNodeView">
 	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="*" MinWidth="200" />
@@ -36,11 +33,12 @@
 		<Button
 			Grid.Column="2"
 			Margin="5,0,0,0"
-			Command="{Binding RenameCommand}"
+			Command="{Binding OkCommand}"
+			CommandParameter="{Binding Name}"
 			Content="✓"
 			FontSize="20"
 			Foreground="Green"
 			IsDefault="True"
 			ToolTip.Tip="Confirm Rename" />
 	</Grid>
-</Window>
+</UserControl>

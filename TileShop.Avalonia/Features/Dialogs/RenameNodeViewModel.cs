@@ -12,16 +12,8 @@ public partial class RenameNodeViewModel : DialogViewModel<string?>
 
     public RenameNodeViewModel(ResourceNodeViewModel nodeModel)
     {
+        _title = "Rename Node";
         _nodeModel = nodeModel;
         Name = nodeModel.Name;
     }
-
-    [ICommand]
-    public void Rename()
-    {
-        Close(Name);
-    }
-
-    [ICommand]
-    public void Cancel() => Close(null);
 }

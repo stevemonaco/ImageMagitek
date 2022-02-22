@@ -29,7 +29,7 @@ public partial class EditorsViewModel : ObservableRecipient
     private readonly AppSettings _settings;
 
     [ObservableProperty] private ObservableCollection<ResourceEditorBaseViewModel> _editors = new();
-    [ObservableProperty] private ResourceEditorBaseViewModel _activeEditor;
+    [ObservableProperty] private ResourceEditorBaseViewModel? _activeEditor;
     [ObservableProperty] private ShellViewModel _shell;
 
     private readonly Dictionary<MessageBoxResult, string> _messageBoxLabels = new()

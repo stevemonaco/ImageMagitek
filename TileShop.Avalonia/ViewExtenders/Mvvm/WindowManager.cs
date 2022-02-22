@@ -24,8 +24,7 @@ public interface IWindowManager
     /// </summary>
     /// <param name="viewModel">ViewModel to show the View for</param>
     /// <returns>DialogResult of the View</returns>
-    Task<TResult> ShowDialog<TViewModel, TResult>(DialogViewModel<TResult> viewModel)
-        where TViewModel : INotifyPropertyChanged;
+    Task<TResult> ShowDialog<TResult>(IDialogMediator<TResult> mediator);
     
     /// <summary>
     /// Display a MessageBox
@@ -60,19 +59,18 @@ internal class WindowManager : IWindowManager
         newWindow.Show(mainWindow);
     }
     
-    public async Task<TResult> ShowDialog<TViewModel, TResult>(DialogViewModel<TResult> viewModel)
-        where TViewModel : INotifyPropertyChanged
+    public async Task<TResult> ShowDialog<TResult>(IDialogMediator<TResult> mediator)
     {
         var mainWindow = GetWindow();
 
-        var dialogWindow = (Window) _viewLocator.Build(viewModel);
-        dialogWindow.DataContext = viewModel;
+        var dialogWindow = new DialogView();
+        dialogWindow.DataContext = mediator;
 
-        viewModel.PropertyChanged += Handler;
+        mediator.PropertyChanged += Handler;
         await dialogWindow.ShowDialog(mainWindow);
-        viewModel.PropertyChanged -= Handler;
+        mediator.PropertyChanged -= Handler;
 
-        return viewModel.DialogResult;
+        return mediator.DialogResult!;
 
         void Handler(object? sender, PropertyChangedEventArgs e)
         {

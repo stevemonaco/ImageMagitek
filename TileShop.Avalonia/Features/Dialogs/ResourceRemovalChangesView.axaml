@@ -1,0 +1,103 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 xmlns:m="using:TileShop.Shared.Models"
+			 xmlns:sys="using:System"
+			 x:DataType="vm:ResourceRemovalChangesViewModel"
+			 x:CompileBindings="True"
+             x:Class="TileShop.AvaloniaUI.Features.Dialogs.ResourceRemovalChangesView">
+	<!--<UserControl.DataTemplates>
+		<DataTemplate x:DataType="vm" x:Key="arrangerTemplate">
+			<StackPanel Orientation="Horizontal">
+				<Image Style="{StaticResource iconNodeArrangerSmall}" />
+				<TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
+			</StackPanel>
+		</DataTemplate>
+		<DataTemplate x:Key="fileTemplate">
+			<StackPanel Orientation="Horizontal">
+				<Image Style="{StaticResource iconNodeFileSmall}" />
+				<TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
+			</StackPanel>
+		</DataTemplate>
+		<DataTemplate x:Key="paletteTemplate">
+			<StackPanel Orientation="Horizontal">
+				<Image Style="{StaticResource iconNodePaletteSmall}" />
+				<TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
+			</StackPanel>
+		</DataTemplate>
+		<DataTemplate x:Key="folderTemplate">
+			<StackPanel Orientation="Horizontal">
+				<Image Style="{StaticResource iconNodeFolderSmall}" />
+				<TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
+			</StackPanel>
+		</DataTemplate>
+	</UserControl.DataTemplates>-->
+	
+	<Grid RowDefinitions="*,auto" Margin="10,0,10,0">
+		<ScrollViewer
+            Grid.Row="0"
+            HorizontalScrollBarVisibility="Hidden"
+            VerticalScrollBarVisibility="Auto">
+			<StackPanel Margin="0,10,0,0" HorizontalAlignment="Center">
+				<TextBlock Text="{Binding RemovedResource.ResourceName, StringFormat=\'{0}\' will be permanently removed and all references will be reset to default}" TextWrapping="WrapWithOverflow" />
+
+				<TextBlock
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    FontWeight="Bold"
+                    Text="Removed Items"
+                    IsVisible="{Binding HasRemovedResources}" />
+				<ItemsControl
+                    Margin="10"
+                    Items="{Binding RemovedResources}"
+                    IsVisible="{Binding HasRemovedResources}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate DataType="m:ResourceChangeViewModel">
+							<TextBlock Text="{Binding ResourceName}" />
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+
+				<TextBlock
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    FontWeight="Bold"
+                    Text="Changed Items"
+                    IsVisible="{Binding HasChangedResources}" />
+				<ItemsControl
+                    Margin="10"
+                    Items="{Binding ChangedResources}"
+                    IsVisible="{Binding HasChangedResources}">
+				</ItemsControl>
+			</StackPanel>
+		</ScrollViewer>
+
+		<StackPanel
+            Grid.Row="1"
+            Margin="0,10,0,10"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Horizontal">
+			<Button
+                Width="80"
+				Command="{Binding OkCommand}"
+                Content="Remove"
+                IsDefault="True">
+				<Button.CommandParameter>
+					<sys:Boolean>True</sys:Boolean>
+				</Button.CommandParameter>
+			</Button>
+			<Button
+                Width="80"
+                Margin="5,0,0,0"
+                Command="{Binding CancelCommand}"
+                Content="Cancel"
+                IsCancel="True">
+			</Button>
+		</StackPanel>
+
+	</Grid>
+</UserControl>

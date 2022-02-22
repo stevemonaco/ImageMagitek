@@ -3,9 +3,9 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace TileShop.AvaloniaUI.Views;
-public partial class RenameNodeView : UserControl
+public partial class AddPaletteView : UserControl
 {
-    public RenameNodeView()
+    public AddPaletteView()
     {
         InitializeComponent();
     }

@@ -2,10 +2,10 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace TileShop.AvaloniaUI.Views;
-public partial class RenameNodeView : UserControl
+namespace TileShop.AvaloniaUI.Features.Dialogs;
+public partial class ResourceRemovalChangesView : UserControl
 {
-    public RenameNodeView()
+    public ResourceRemovalChangesView()
     {
         InitializeComponent();
     }

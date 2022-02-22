@@ -1,0 +1,105 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 x:DataType="vm:ColorRemapViewModel"
+			 x:CompileBindings="True"
+             x:Class="TileShop.AvaloniaUI.Views.ColorRemapView">
+	<Grid RowDefinitions="*,*,auto">
+		<StackPanel Grid.Row="0" Margin="10">
+			<TextBlock
+                HorizontalAlignment="Center"
+                FontSize="20"
+                Text="Current Colors" />
+
+			<ListBox
+                HorizontalAlignment="Center"
+                Items="{Binding InitialColors}">
+				<ListBox.ItemTemplate>
+					<DataTemplate>
+						<StackPanel Orientation="Horizontal">
+							<TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="24"
+                                Text="{Binding Index}" />
+							<Border
+                                Margin="10,2,2,2"
+                                Background="{StaticResource CheckeredBrush}"
+                                BorderBrush="Black"
+                                BorderThickness="2">
+								<Rectangle Width="24" Height="24">
+									<Rectangle.Fill>
+										<SolidColorBrush Color="{Binding Color}" />
+									</Rectangle.Fill>
+								</Rectangle>
+							</Border>
+						</StackPanel>
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+				<ListBox.ItemsPanel>
+					<ItemsPanelTemplate>
+						<WrapPanel Orientation="Horizontal" />
+					</ItemsPanelTemplate>
+				</ListBox.ItemsPanel>
+			</ListBox>
+		</StackPanel>
+
+		<StackPanel Grid.Row="1" Margin="10">
+			<TextBlock
+                HorizontalAlignment="Center"
+                FontSize="20"
+                Text="New Colors" />
+
+			<ListBox
+                Grid.Row="1"
+                HorizontalAlignment="Center"
+                Items="{Binding FinalColors}">
+				<ListBox.ItemTemplate>
+					<DataTemplate>
+						<StackPanel Orientation="Horizontal">
+							<TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="24"
+                                Text="{Binding Index}" />
+							<Border
+                                Margin="10,2,2,2"
+                                Background="{StaticResource CheckeredBrush}"
+                                BorderBrush="Black"
+                                BorderThickness="2">
+								<Rectangle Width="24" Height="24">
+									<Rectangle.Fill>
+										<SolidColorBrush Color="{Binding Color}" />
+									</Rectangle.Fill>
+								</Rectangle>
+							</Border>
+						</StackPanel>
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+				<ListBox.ItemsPanel>
+					<ItemsPanelTemplate>
+						<WrapPanel Orientation="Horizontal" />
+					</ItemsPanelTemplate>
+				</ListBox.ItemsPanel>
+			</ListBox>
+		</StackPanel>
+
+		<StackPanel
+            Grid.Row="3"
+            Margin="0,10,0,10"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal">
+			<Button
+                Width="120"
+                Margin="0,0,15,0"
+				Command="{Binding OkCommand}"
+				CommandParameter="{Binding}"
+                Content="Remap" />
+			<Button
+                Width="120"
+                Command="{Binding CancelCommand}"
+                Content="Cancel" />
+		</StackPanel>
+	</Grid>
+</UserControl>

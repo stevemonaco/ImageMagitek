@@ -1,0 +1,158 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 x:DataType="vm:AddScatteredArrangerViewModel"
+			 x:CompileBindings="True"
+             x:Class="TileShop.AvaloniaUI.Views.AddScatteredArrangerView">
+	<Grid RowDefinitions="*,auto">
+
+		<ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+			<StackPanel>
+				<Label Content="Arranger Name" Target="arrangerNameBox" />
+				<TextBox
+					x:Name="arrangerNameBox"
+                    Width="250"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Text="{Binding ArrangerName}"/>
+
+				<TextBlock
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Text="Arranger Layout" />
+
+				<StackPanel
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+					<RadioButton
+                        Content="Tiled"
+                        GroupName="Layout"
+                        IsChecked="{Binding Layout, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Tiled}"
+                        ToolTip.Tip="Allows many elements within the arranger, suitable for tile-based graphics" />
+					<RadioButton
+                        Margin="10,0,0,0"
+                        Content="Single"
+                        GroupName="Layout"
+                        IsChecked="{Binding Layout, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Single}"
+                        ToolTip.Tip="Restricts the arranger to a single element, suitable for pixel-based graphics" />
+				</StackPanel>
+
+				<TextBlock
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Text="Color Mapping" />
+
+				<StackPanel
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+					<RadioButton
+                        Content="Indexed"
+                        GroupName="ColorType"
+                        IsChecked="{Binding ColorType, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Indexed}"
+                        ToolTip.Tip="All image pixels require a palette to display colors. The default palette will be used until a user-defined palette is applied." />
+					<RadioButton
+                        Margin="10,0,0,0"
+                        Content="Direct"
+                        GroupName="ColorType"
+                        IsChecked="{Binding ColorType, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Direct}"
+                        ToolTip.Tip="All image pixels contain full color information and require no palette to display colors" />
+				</StackPanel>
+
+				<StackPanel IsVisible="{Binding Layout, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Tiled}">
+					<TextBlock
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Center"
+                        Text="Arranger Size in Elements" />
+
+					<StackPanel
+                        Margin="0,10,0,0"
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal">
+						<Label Content="Width" Target="arrangerElementWidthBox" />
+						<TextBox
+							x:Name="arrangerElementWidthBox"
+                            MinWidth="80"
+                            Text="{Binding ArrangerElementWidth}"
+                            ToolTip.Tip="Width of arranger in number of elements" />
+
+						<Label Content="Height" Target="arrangerElementHeightBox" />
+						<TextBox
+							x:Name="arrangerElementHeightBox"
+                            MinWidth="80"
+                            Margin="10,0,0,0"
+                            Text="{Binding ArrangerElementHeight}"
+                            ToolTip.Tip="Height of arranger in number of elements" />
+					</StackPanel>
+				</StackPanel>
+
+
+				<TextBlock
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Text="Element Size in Pixels" />
+
+				<StackPanel
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+
+					<Label Content="Height" Target="elementPixelHeightBox" />
+					<TextBox
+						x:Name="elementPixelHeightBox"
+                        MinWidth="80"
+                        Text="{Binding ElementPixelWidth}"
+                        ToolTip.Tip="Width of each element in pixels" />
+
+					<Label Content="Height" Target="elementPixelHeightBox" />
+					<TextBox
+						x:Name="elementPixelHeightBox"
+                        MinWidth="80"
+                        Margin="10,0,0,0"
+                        Text="{Binding ElementPixelHeight}"
+                        ToolTip.Tip="Height of each element in pixels" />
+				</StackPanel>
+
+				<ItemsControl
+                    Margin="0,5,0,5"
+                    HorizontalAlignment="Center"
+                    Items="{Binding ValidationErrors}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate>
+							<TextBlock
+                                FontWeight="Bold"
+                                Foreground="Red"
+                                Text="{Binding}" />
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+			</StackPanel>
+		</ScrollViewer>
+
+		<StackPanel
+            Grid.Row="1"
+            Margin="0,5,0,10"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Horizontal">
+			<Button
+                Width="80"
+                Command="{Binding OkCommand}"
+				CommandParameter="{Binding}"
+                Content="Add"
+                IsDefault="True"
+                IsEnabled="{Binding CanAdd}" />
+			<Button
+                Width="80"
+                Margin="5,0,0,0"
+                Command="{Binding CancelCommand}"
+                Content="Cancel"
+                IsCancel="True" />
+		</StackPanel>
+
+	</Grid>
+</UserControl>

@@ -3,8 +3,6 @@
 		xmlns:v="using:TileShop.AvaloniaUI.Views"
         xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
 		xmlns:idc="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
-		xmlns:dma="clr-namespace:Dock.Model.Avalonia;assembly=Dock.Model.Avalonia"
-		xmlns:dmac="clr-namespace:Dock.Model.Avalonia.Controls;assembly=Dock.Model.Avalonia"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"

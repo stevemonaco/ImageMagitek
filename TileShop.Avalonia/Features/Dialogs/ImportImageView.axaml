@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:paz="using:Avalonia.Controls.PanAndZoom"
+			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 x:DataType="vm:ImportImageViewModel"
+			 x:CompileBindings="True"
+             x:Class="TileShop.AvaloniaUI.Views.ImportImageView">
+	<Grid RowDefinitions="auto,*,auto,auto,auto" ColumnDefinitions="*,*">
+		<TextBlock Grid.Row="0" Grid.Column="0" Text="Original" HorizontalAlignment="Center" />
+		<TextBlock Grid.Row="0" Grid.Column="1" Text="Preview" HorizontalAlignment="Center" />
+
+		<!--  Original Image  -->
+		<ScrollViewer
+            Grid.Row="1"
+			Grid.Column="0"
+            HorizontalScrollBarVisibility="Auto"
+            VerticalScrollBarVisibility="Auto">
+			<paz:ZoomBorder Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+				<Grid>
+
+					<Rectangle Width="{Binding OriginalSource.Width}" Height="{Binding OriginalSource.Height}"
+							   Stretch="None" Fill="{DynamicResource CheckeredBrush}"/>
+
+					<Image x:Name="originalImage" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding OriginalSource.Bitmap}" />
+				</Grid>
+			</paz:ZoomBorder>
+		</ScrollViewer>
+
+		<!--  Preview Image  -->
+		<ScrollViewer
+	        Grid.Row="1"
+	        Grid.Column="1"
+	        HorizontalScrollBarVisibility="Auto"
+	        VerticalScrollBarVisibility="Auto">
+
+			<paz:ZoomBorder Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+				<Grid>
+					<Rectangle Width="{Binding ImportedSource.Width}" Height="{Binding ImportedSource.Height}"
+							   Stretch="None" Fill="{DynamicResource CheckeredBrush}"/>
+
+					<Image x:Name="importedImage" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding ImportedSource.Bitmap}" />
+				</Grid>
+			</paz:ZoomBorder>
+		</ScrollViewer>
+
+		<TextBlock
+            Grid.Row="2"
+			Grid.ColumnSpan="2"
+            HorizontalAlignment="Center"
+            Foreground="Red"
+            Text="{Binding ImportError}" />
+
+		<StackPanel
+            Grid.Row="3"
+			Grid.ColumnSpan="2"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal">
+			<TextBlock Text="Imported Source: " />
+			<TextBlock Text="{Binding ImageFileName}" />
+		</StackPanel>
+
+		<StackPanel
+            Grid.Row="4"
+			Grid.ColumnSpan="2"
+            Margin="0,10,0,10"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal">
+			<CheckBox
+                Content="Exact Color Matching"
+                IsChecked="{Binding UseExactMatching}"
+                IsVisible="{Binding IsIndexedImage}" />
+			<Button
+                Width="120"
+                Margin="10,0,0,0"
+                Command="{Binding BrowseForImportFileCommand}"
+                Content="Browse Image..."
+                IsDefault="True" />
+
+			<Button
+                Width="120"
+                Margin="15,0,15,0"
+				Command="{Binding OkCommand}"
+                CommandParameter="{Binding}"
+                Content="Import"
+                IsEnabled="{Binding CanImport}"
+                ToolTip.Tip="Imports image and saves to file" />
+			<Button
+                Width="120"
+                Command="{Binding CancelCommand}"
+                Content="Cancel"
+                IsCancel="True" />
+		</StackPanel>
+
+	</Grid>
+</UserControl>

@@ -1,0 +1,90 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 Width="400"
+			 Height="350"
+			 MinWidth="230"
+			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 x:DataType="vm:AddPaletteViewModel"
+			 x:CompileBindings="True"
+             x:Class="TileShop.AvaloniaUI.Views.AddPaletteView">
+	<Grid Margin="10">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="auto"/>
+		</Grid.RowDefinitions>
+		<StackPanel Grid.Row="0">
+			<Label Content="Palette Name" Target="paletteNameBox"/>
+			<TextBox
+				x:Name="paletteNameBox"
+                Text="{Binding PaletteName}"/>
+
+			<TextBlock
+                Margin="0,5,0,0"
+                Text="{ReflectionBinding SelectedDataSource.FileLocation, StringFormat=Data Source: {0}}"
+                TextWrapping="Wrap" />
+			<ComboBox
+                MinWidth="200"
+                Margin="0,5,0,0"
+                HorizontalAlignment="Stretch"
+                Items="{Binding DataSources}"
+                SelectedItem="{Binding SelectedDataSource}"
+                ToolTip.Tip="Palette File Source">
+				<ComboBox.ItemTemplate>
+					<DataTemplate>
+						<TextBlock Text="{Binding Name}" />
+					</DataTemplate>
+				</ComboBox.ItemTemplate>
+			</ComboBox>
+
+			<Label Content="Color Model" Target="colorModelBox" />
+			<ComboBox
+				x:Name="colorModelBox"
+                MinWidth="150"
+                Margin="0,5,0,0"
+                Items="{Binding ColorModels}"
+                SelectedIndex="1"
+                SelectedItem="{Binding SelectedColorModel}"
+                ToolTip.Tip="Palette Color Model" />
+
+			<CheckBox Content="Zero Index Transparent" IsChecked="{Binding ZeroIndexTransparent}" ToolTip.Tip="Forces the palette's first color into being transparent" />
+
+			<ItemsControl
+                Grid.Row="1"
+                Margin="0,5,0,5"
+                HorizontalAlignment="Center"
+                Items="{Binding ValidationErrors}">
+				<ItemsControl.ItemTemplate>
+					<DataTemplate>
+						<TextBlock
+                            FontWeight="Bold"
+                            Foreground="Red"
+                            Text="{Binding}" />
+					</DataTemplate>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
+		</StackPanel>
+
+		<StackPanel
+            Grid.Row="1"
+            Margin="0,5,0,5"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal">
+			<Button
+                Width="80"
+                Command="{Binding OkCommand}"
+				CommandParameter="{Binding}"
+                Content="Add"
+                IsDefault="True"
+                IsEnabled="{Binding CanAdd}" />
+			<Button
+                Width="80"
+                Margin="5,0,0,0"
+                Command="{Binding CancelCommand}"
+                Content="Cancel"
+                IsCancel="True" />
+		</StackPanel>
+	</Grid>
+</UserControl>
