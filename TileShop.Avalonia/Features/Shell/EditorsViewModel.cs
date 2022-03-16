@@ -10,9 +10,10 @@ using TileShop.Shared.EventModels;
 using Jot;
 using Serilog;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using TileShop.AvaloniaUI.ViewExtenders;
 using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.Messaging;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -232,41 +233,41 @@ public partial class EditorsViewModel : ObservableRecipient
             Shell.Editors.Editors.Add(editor);
             ActiveEditor = editor;
         }
-        //else if (message.Arranger.ColorType == PixelColorType.Direct)
-        //{
-        //    var editor = new DirectPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-        //        message.Width, message.Height, _events, _windowManager, _paletteService);
+        else if (message.Arranger.ColorType == PixelColorType.Direct)
+        {
+            var editor = new DirectPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
+                message.Width, message.Height, _windowManager, _paletteService);
 
-        //    editor.DisplayName = message.Arranger.Name;
+            editor.DisplayName = message.Arranger.Name;
 
-        //    Shell.Editors.Editors.Add(editor);
-        //    ActiveEditor = editor;
-        //}
+            Shell.Editors.Editors.Add(editor);
+            ActiveEditor = editor;
+        }
     }
 
     public void Receive(ArrangerChangedEvent message)
     {
-        //if (message.Change == ArrangerChange.Pixels || message.Change == ArrangerChange.Elements)
-        //{
-        //    var effectedEditors = Editors.OfType<ArrangerEditorViewModel>()
-        //        .Where(x => ReferenceEquals(x.Resource, message.Arranger));
+        if (message.Change == ArrangerChange.Pixels || message.Change == ArrangerChange.Elements)
+        {
+            var effectedEditors = Editors.OfType<ArrangerEditorViewModel>()
+                .Where(x => ReferenceEquals(x.Resource, message.Arranger));
 
-        //    foreach (var editor in effectedEditors)
-        //    {
-        //        if (editor is SequentialArrangerEditorViewModel || editor is ScatteredArrangerEditorViewModel)
-        //        {
-        //            editor.Render();
-        //        }
-        //    }
-        //}
+            foreach (var editor in effectedEditors)
+            {
+                if (editor is SequentialArrangerEditorViewModel || editor is ScatteredArrangerEditorViewModel)
+                {
+                    editor.Render();
+                }
+            }
+        }
     }
 
     public void Receive(PaletteChangedEvent message)
     {
-        //var effectedEditors = Editors.OfType<ScatteredArrangerEditorViewModel>()
-        //    .Where(x => x.WorkingArranger.GetReferencedPalettes().Contains(message.Palette));
+        var effectedEditors = Editors.OfType<ScatteredArrangerEditorViewModel>()
+            .Where(x => x.WorkingArranger.GetReferencedPalettes().Contains(message.Palette));
 
-        //foreach (var editor in effectedEditors)
-        //    editor.Render();
+        foreach (var editor in effectedEditors)
+            editor.Render();
     }
 }

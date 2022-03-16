@@ -2,11 +2,77 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:b="using:TileShop.AvaloniaUI.Behaviors"
+			 xmlns:dd="using:TileShop.AvaloniaUI.DragDrop"
+			 xmlns:i="using:Avalonia.Xaml.Interactivity"
+			 xmlns:id="using:Avalonia.Xaml.Interactions.Draggable"
+			 xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 xmlns:m="using:TileShop.AvaloniaUI.Models"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
 			 x:DataType="vm:ColorRemapViewModel"
 			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.ColorRemapView">
+	<UserControl.Styles>
+		<StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
+	</UserControl.Styles>
+	<UserControl.Resources>
+		<dd:ListBoxRemappableColorDropHandler x:Key="ListBoxRemappableColorDropHandler" />
+	</UserControl.Resources>
+	<UserControl.Styles>
+		<Style Selector=":is(ListBox).dragsource">
+			<Setter Property="(DragDrop.AllowDrop)" Value="False" />
+			<Setter Property="ItemsPanel">
+				<Setter.Value>
+					<ItemsPanelTemplate>
+						<WrapPanel Orientation="Horizontal" />
+					</ItemsPanelTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<Style Selector=":is(ListBox).dragsource > :is(ListBoxItem)">
+			<Setter Property="ZIndex" Value="0" />
+			<Setter Property="(i:Interaction.Behaviors)">
+				<i:BehaviorCollectionTemplate>
+					<i:BehaviorCollection>
+						<idd:TypedDragBehavior DataType="{x:Type m:RemappableColorModel}" />
+					</i:BehaviorCollection>
+				</i:BehaviorCollectionTemplate>
+			</Setter>
+		</Style>
+
+		<Style Selector=":is(ListBox).dragsource > :is(ListBoxItem):pressed">
+			<Setter Property="ZIndex" Value="1" />
+		</Style>
+		
+		<Style Selector=":is(ListBox).droptarget">
+			<Setter Property="(DragDrop.AllowDrop)" Value="True" />
+			<Setter Property="ItemsPanel">
+				<Setter.Value>
+					<ItemsPanelTemplate>
+						<WrapPanel Orientation="Horizontal" />
+					</ItemsPanelTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+
+		<Style Selector=":is(ListBox).droptarget > :is(ListBoxItem)">
+			<Setter Property="ZIndex" Value="0" />
+			<Setter Property="(i:Interaction.Behaviors)">
+				<i:BehaviorCollectionTemplate>
+					<i:BehaviorCollection>
+						<idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ListBoxRemappableColorDropHandler}" />
+					</i:BehaviorCollection>
+				</i:BehaviorCollectionTemplate>
+			</Setter>
+		</Style>
+
+		<Style Selector=":is(ListBox).droptarget > :is(ListBoxItem):pressed">
+			<Setter Property="ZIndex" Value="1" />
+		</Style>
+	</UserControl.Styles>
+	
 	<Grid RowDefinitions="*,*,auto">
 		<StackPanel Grid.Row="0" Margin="10">
 			<TextBlock
@@ -15,6 +81,7 @@
                 Text="Current Colors" />
 
 			<ListBox
+				Classes="dragsource"
                 HorizontalAlignment="Center"
                 Items="{Binding InitialColors}">
 				<ListBox.ItemTemplate>
@@ -38,11 +105,6 @@
 						</StackPanel>
 					</DataTemplate>
 				</ListBox.ItemTemplate>
-				<ListBox.ItemsPanel>
-					<ItemsPanelTemplate>
-						<WrapPanel Orientation="Horizontal" />
-					</ItemsPanelTemplate>
-				</ListBox.ItemsPanel>
 			</ListBox>
 		</StackPanel>
 
@@ -53,12 +115,14 @@
                 Text="New Colors" />
 
 			<ListBox
+				Classes="droptarget"
                 Grid.Row="1"
                 HorizontalAlignment="Center"
                 Items="{Binding FinalColors}">
+				
 				<ListBox.ItemTemplate>
 					<DataTemplate>
-						<StackPanel Orientation="Horizontal">
+						<StackPanel ZIndex="0" Orientation="Horizontal">
 							<TextBlock
                                 VerticalAlignment="Center"
                                 FontSize="24"
@@ -77,11 +141,6 @@
 						</StackPanel>
 					</DataTemplate>
 				</ListBox.ItemTemplate>
-				<ListBox.ItemsPanel>
-					<ItemsPanelTemplate>
-						<WrapPanel Orientation="Horizontal" />
-					</ItemsPanelTemplate>
-				</ListBox.ItemsPanel>
 			</ListBox>
 		</StackPanel>
 

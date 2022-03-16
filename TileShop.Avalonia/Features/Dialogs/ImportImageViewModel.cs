@@ -63,6 +63,8 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
             _originalDirect = new DirectImage(_arranger);
             OriginalSource = new DirectBitmapAdapter(_originalDirect);
         }
+
+        Title = "Import Image Into Arranger";
     }
 
     //protected override void OnViewLoaded()

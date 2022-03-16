@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using CommunityToolkit.Mvvm;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.ViewExtenders;
 
@@ -7,10 +6,10 @@ namespace TileShop.AvaloniaUI.ViewModels;
 
 public enum NumericBase { Decimal = 0, Hexadecimal = 1 }
 
-public partial class JumpToOffsetViewModel : DialogViewModel<long>
+public partial class JumpToOffsetViewModel : DialogViewModel<long?>
 {
-    private string _offsetText;
-    public string OffsetText
+    private string? _offsetText;
+    public string? OffsetText
     {
         get => _offsetText;
         set
@@ -22,9 +21,14 @@ public partial class JumpToOffsetViewModel : DialogViewModel<long>
 
     [ObservableProperty] private NumericBase numericBase;
     [ObservableProperty] private bool _canJump;
-    [ObservableProperty] private string _validationError;
+    [ObservableProperty] private string _validationError = string.Empty;
 
     public long Result { get; set; }
+
+    public JumpToOffsetViewModel()
+    {
+        Title = "Jump to Offset";
+    }
 
     public void ValidateModel()
     {

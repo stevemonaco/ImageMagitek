@@ -70,7 +70,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
 
     [ObservableProperty] private ArrangerSelection _selection;
     [ObservableProperty] private bool _isSelecting;
-    [ObservableProperty] private ArrangerPaste _paste;
+    [ObservableProperty] private ArrangerPaste? _paste;
 
     public bool CanAcceptPixelPastes { get; set; }
     public bool CanAcceptElementPastes { get; set; }

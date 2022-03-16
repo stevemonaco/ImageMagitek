@@ -41,6 +41,11 @@ public partial class CustomElementLayoutViewModel : DialogViewModel<CustomElemen
     //    ValidateModel();
     //}
 
+    public CustomElementLayoutViewModel()
+    {
+        Title = "Create Custom Tile Layout";
+    }
+
     [ICommand]
     public void ValidateModel()
     {

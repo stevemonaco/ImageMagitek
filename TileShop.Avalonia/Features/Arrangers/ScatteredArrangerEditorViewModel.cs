@@ -11,9 +11,11 @@ using TileShop.AvaloniaUI.Imaging;
 using TileShop.AvaloniaUI.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-
 using Point = System.Drawing.Point;
 using CommunityToolkit.Mvvm.Input;
+using Monaco.PathTree;
+using TileShop.Shared.EventModels;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -475,36 +477,39 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     }
 
     [ICommand]
-    public void ResizeArranger()
+    public async void ResizeArranger()
     {
-        //var model = new ResizeTiledScatteredArrangerViewModel(_windowManager, WorkingArranger.ArrangerElementSize.Width, WorkingArranger.ArrangerElementSize.Height);
+        var model = new ResizeTiledScatteredArrangerViewModel(_windowManager, WorkingArranger.ArrangerElementSize.Width, WorkingArranger.ArrangerElementSize.Height);
 
-        //if (_windowManager.ShowDialog(model) is true)
-        //{
-        //    WorkingArranger.Resize(model.Width, model.Height);
-        //    CreateImages();
-        //    AddHistoryAction(new ResizeArrangerHistoryAction(model.Width, model.Height));
+        var dialogResult = await _windowManager.ShowDialog(model);
 
-        //    IsModified = true;
-        //}
+        if (dialogResult is not null)
+        {
+            WorkingArranger.Resize(dialogResult.Width, dialogResult.Height);
+            CreateImages();
+            AddHistoryAction(new ResizeArrangerHistoryAction(dialogResult.Width, dialogResult.Height));
+
+            IsModified = true;
+        }
     }
 
     [ICommand]
-    public void AssociatePalette()
+    public async void AssociatePalette()
     {
-        //var projectTree = _projectService.GetContainingProject(Resource);
-        //var palettes = projectTree.EnumerateDepthFirst()
-        //    .Where(x => x.Item is Palette)
-        //    .Select(x => new AssociatePaletteModel(x.Item as Palette, projectTree.CreatePathKey(x)))
-        //    .Concat(_paletteService.GlobalPalettes.Select(x => new AssociatePaletteModel(x, x.Name)));
+        var projectTree = _projectService.GetContainingProject(Resource);
+        var palettes = projectTree.EnumerateDepthFirst()
+            .Where(x => x.Item is Palette)
+            .Select(x => new AssociatePaletteModel(x.Item as Palette, projectTree.CreatePathKey(x)))
+            .Concat(_paletteService.GlobalPalettes.Select(x => new AssociatePaletteModel(x, x.Name)));
 
-        //var model = new AssociatePaletteViewModel(palettes);
+        var model = new AssociatePaletteViewModel(palettes);
+        var dialogResult = await _windowManager.ShowDialog(model);
 
-        //if (_windowManager.ShowDialog(model) is true)
-        //{
-        //    var palModel = new PaletteModel(model.SelectedPalette.Palette, model.SelectedPalette.Palette.Entries);
-        //    Palettes.Add(palModel);
-        //}
+        if (dialogResult is not null)
+        {
+            var palModel = new PaletteModel(dialogResult.SelectedPalette.Palette, dialogResult.SelectedPalette.Palette.Entries);
+            Palettes.Add(palModel);
+        }
     }
 
     [ICommand]
@@ -529,18 +534,18 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     [ICommand]
     public override void ApplyPaste(ArrangerPaste paste)
     {
-        //var notifyEvent = ApplyPasteInternal(paste).Match(
-        //    success =>
-        //    {
-        //        AddHistoryAction(new PasteArrangerHistoryAction(paste));
-        //        IsModified = true;
-        //        Render();
-        //        return new NotifyOperationEvent("Paste successfully applied");
-        //    },
-        //    fail => new NotifyOperationEvent(fail.Reason)
-        //    );
+        var notifyEvent = ApplyPasteInternal(paste).Match(
+            success =>
+            {
+                AddHistoryAction(new PasteArrangerHistoryAction(paste));
+                IsModified = true;
+                Render();
+                return new NotifyOperationEvent("Paste successfully applied");
+            },
+            fail => new NotifyOperationEvent(fail.Reason)
+            );
 
-        //_events.PublishOnUIThread(notifyEvent);
+        Messenger.Send(notifyEvent);
     }
 
     [ICommand]

@@ -1,9 +1,9 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using ImageMagitek;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using ImageMagitek;
 using TileShop.AvaloniaUI.ViewExtenders;
 
 namespace TileShop.AvaloniaUI.ViewModels;
@@ -28,6 +28,7 @@ public partial class AddScatteredArrangerViewModel : DialogViewModel<AddScattere
     public AddScatteredArrangerViewModel(IEnumerable<string> existingResourceNames)
     {
         ExistingResourceNames = new(existingResourceNames);
+        Title = "Add a New Scattered Arranger";
     }
 
     public override void Ok(AddScatteredArrangerViewModel? result)

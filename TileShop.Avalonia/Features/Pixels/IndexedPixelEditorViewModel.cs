@@ -136,26 +136,28 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
     }
 
     [ICommand(CanExecute = nameof(CanRemapColors))]
-    public void RemapColors()
+    public async void RemapColors()
     {
-        //var palette = WorkingArranger.GetReferencedPalettes().FirstOrDefault();
-        //if (palette is null)
-        //    palette = _paletteService.DefaultPalette;
+        var palette = WorkingArranger.GetReferencedPalettes().FirstOrDefault();
+        if (palette is null)
+            palette = _paletteService.DefaultPalette;
 
-        //var maxArrangerColors = WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Codec?.ColorDepth ?? 0).Max();
-        //var colors = Math.Min(256, 1 << maxArrangerColors);
+        var maxArrangerColors = WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Codec?.ColorDepth ?? 0).Max();
+        var colors = Math.Min(256, 1 << maxArrangerColors);
 
-        //var remapViewModel = new ColorRemapViewModel(palette, colors, _paletteService.ColorFactory);
-        //if (_windowManager.ShowDialog(remapViewModel) is true)
-        //{
-        //    var remap = remapViewModel.FinalColors.Select(x => (byte)x.Index).ToList();
-        //    _indexedImage.RemapColors(remap);
-        //    Render();
+        var remapViewModel = new ColorRemapViewModel(palette, colors, _paletteService.ColorFactory);
+        var dialogResult = await _windowManager.ShowDialog(remapViewModel);
 
-        //    var remapAction = new ColorRemapHistoryAction(remapViewModel.InitialColors, remapViewModel.FinalColors);
-        //    UndoHistory.Add(remapAction);
-        //    IsModified = true;
-        //}
+        if (dialogResult is not null)
+        {
+            var remap = dialogResult.FinalColors.Select(x => (byte)x.Index).ToList();
+            _indexedImage.RemapColors(remap);
+            Render();
+
+            var remapAction = new ColorRemapHistoryAction(dialogResult.InitialColors, dialogResult.FinalColors);
+            UndoHistory.Add(remapAction);
+            IsModified = true;
+        }
     }
 
     public override void PickColor(int x, int y, ColorPriority priority)

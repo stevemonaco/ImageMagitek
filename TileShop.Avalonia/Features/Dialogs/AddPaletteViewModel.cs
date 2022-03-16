@@ -36,6 +36,7 @@ public partial class AddPaletteViewModel : DialogViewModel<AddPaletteViewModel>
     public AddPaletteViewModel(IEnumerable<string> existingResourceNames)
     {
         ExistingResourceNames = new(existingResourceNames);
+        Title = "Add a New Palette";
     }
 
     public void ValidateModel()

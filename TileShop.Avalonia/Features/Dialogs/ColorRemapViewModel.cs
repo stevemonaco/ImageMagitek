@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using TileShop.AvaloniaUI.Models;
 using TileShop.AvaloniaUI.ViewExtenders;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -40,23 +39,7 @@ public partial class ColorRemapViewModel : DialogViewModel<ColorRemapViewModel> 
             InitialColors.Add(new RemappableColorModel(color, i));
             FinalColors.Add(new RemappableColorModel(color, i));
         }
+
+        Title = "Color Remapper";
     }
-
-    //public void DragOver(IDropInfo dropInfo)
-    //{
-    //    if (dropInfo.Data is RemappableColorModel && dropInfo.TargetItem is RemappableColorModel)
-    //    {
-    //        dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
-    //        dropInfo.Effects = DragDropEffects.Copy;
-    //    }
-    //}
-
-    //public void Drop(IDropInfo dropInfo)
-    //{
-    //    var sourceItem = dropInfo.Data as RemappableColorModel;
-    //    var targetItem = dropInfo.TargetItem as RemappableColorModel;
-
-    //    targetItem.Index = sourceItem.Index;
-    //    targetItem.Color = sourceItem.Color;
-    //}
 }

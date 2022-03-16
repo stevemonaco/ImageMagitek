@@ -18,6 +18,7 @@ public partial class ResourceRemovalChangesViewModel : DialogViewModel<bool>
     public ResourceRemovalChangesViewModel(ResourceChangeViewModel removedResource)
     {
         RemovedResource = removedResource;
+        Title = "Resource Removal Changes";
     }
 
     public ResourceRemovalChangesViewModel(ResourceChangeViewModel removedResource, IList<ResourceChangeViewModel> changes)
@@ -32,5 +33,6 @@ public partial class ResourceRemovalChangesViewModel : DialogViewModel<bool>
 
         HasRemovedResources = RemovedResources.Any();
         HasChangedResources = ChangedResources.Any();
+        Title = "Resource Removal Changes";
     }
 }

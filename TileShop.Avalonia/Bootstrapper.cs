@@ -94,12 +94,8 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         services.AddSingleton<ShellViewModel>();
         services.AddSingleton<EditorsViewModel>();
         services.AddSingleton<ProjectTreeViewModel>();
-
-        //builder.RegisterType<ShellViewModel>().SingleInstance().OnActivated(x => _tracker.Track(x.Instance));
-        //builder.RegisterType<EditorsViewModel>().SingleInstance();
-        //builder.RegisterType<ProjectTreeViewModel>().SingleInstance();
-        //builder.RegisterType<MenuViewModel>().SingleInstance();
-        //builder.RegisterType<StatusBarViewModel>().SingleInstance();
+        services.AddSingleton<MenuViewModel>();
+        services.AddSingleton<StatusViewModel>();
     }
 
     private void ConfigureJotTracker(Tracker tracker, IServiceCollection services)
@@ -126,19 +122,17 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
             .Property(p => p.SelectedColorModel, "RGBA32")
             .Property(p => p.ZeroIndexTransparent, true);
 
-        //tracker.Configure<JumpToOffsetViewModel>()
-        //    .Property(p => p.NumericBase, NumericBase.Decimal)
-        //    .Property(p => p.Offset, string.Empty);
+        tracker.Configure<JumpToOffsetViewModel>()
+            .Property(p => p.NumericBase, NumericBase.Decimal)
+            .Property(p => p.OffsetText, string.Empty);
 
-        //tracker.Configure<MenuViewModel>()
-        //    .Property(p => p.RecentProjectFiles);
+        tracker.Configure<MenuViewModel>()
+            .Property(p => p.RecentProjectFiles);
 
-        //tracker.Configure<CustomElementLayoutViewModel>()
-        //    .Property(p => p.Width, 1)
-        //    .Property(p => p.Height, 1)
-        //    .Property(p => p.FlowDirection, ElementLayoutFlowDirection.RowLeftToRight);
-
-        //services.RegisterInstance(tracker);
+        tracker.Configure<CustomElementLayoutViewModel>()
+            .Property(p => p.Width, 1)
+            .Property(p => p.Height, 1)
+            .Property(p => p.FlowDirection, ElementLayoutFlowDirection.RowLeftToRight);
 
         services.AddSingleton(tracker);
     }

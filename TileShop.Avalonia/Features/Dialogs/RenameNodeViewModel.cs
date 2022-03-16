@@ -11,9 +11,9 @@ public partial class RenameNodeViewModel : DialogViewModel<string?>
     [ObservableProperty] private string? _name;
 
     public RenameNodeViewModel(ResourceNodeViewModel nodeModel)
-    {
-        _title = "Rename Node";
+    {        
         _nodeModel = nodeModel;
         Name = nodeModel.Name;
+        Title = $"Rename {nodeModel.Name}";
     }
 }

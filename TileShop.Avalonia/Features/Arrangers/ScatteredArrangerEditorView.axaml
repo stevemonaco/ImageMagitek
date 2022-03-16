@@ -3,15 +3,93 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:model="using:TileShop.Shared.Models"
+			 xmlns:m="using:TileShop.AvaloniaUI.Models"
 			 xmlns:con="using:TileShop.AvaloniaUI.Converters"
 			 xmlns:b="using:TileShop.AvaloniaUI.Behaviors"
 			 xmlns:i="using:Avalonia.Xaml.Interactivity"
+			 xmlns:dd="using:TileShop.AvaloniaUI.DragDrop"
+			 xmlns:id="using:Avalonia.Xaml.Interactions.Draggable"
+			 xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
 			 xmlns:paz="using:Avalonia.Controls.PanAndZoom"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 x:DataType="vm:ScatteredArrangerEditorViewModel"
 			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.ScatteredArrangerEditorView">
+	<UserControl.Resources>
+		<dd:ArrangerPasteDragHandler x:Key="ArrangerPasteDragHandler" />
+		<dd:ArrangerPasteDropHandler x:Key="ArrangerPasteDropHandler" />
+	</UserControl.Resources>
+
+	<UserControl.Styles>
+		<Style Selector=":is(Image).dragsource">
+			<Setter Property="ZIndex" Value="0" />
+			<Setter Property="(i:Interaction.Behaviors)">
+				<i:BehaviorCollectionTemplate>
+					<i:BehaviorCollection>
+						<idd:ContextDragBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDragHandler}" />
+					</i:BehaviorCollection>
+				</i:BehaviorCollectionTemplate>
+			</Setter>
+		</Style>
+
+		<Style Selector=":is(Image).droptarget">
+			<Setter Property="(DragDrop.AllowDrop)" Value="True" />
+			<Setter Property="ZIndex" Value="0" />
+			<Setter Property="(i:Interaction.Behaviors)">
+				<i:BehaviorCollectionTemplate>
+					<i:BehaviorCollection>
+						<idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDropHandler}" />
+					</i:BehaviorCollection>
+				</i:BehaviorCollectionTemplate>
+			</Setter>
+		</Style>
+
+		<Style Selector=":is(Canvas).dragsource">
+			<Setter Property="ZIndex" Value="0" />
+			<Setter Property="(i:Interaction.Behaviors)">
+				<i:BehaviorCollectionTemplate>
+					<i:BehaviorCollection>
+						<idd:ContextDragBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDragHandler}" />
+					</i:BehaviorCollection>
+				</i:BehaviorCollectionTemplate>
+			</Setter>
+		</Style>
+
+		<Style Selector=":is(Canvas).droptarget">
+			<Setter Property="(DragDrop.AllowDrop)" Value="True" />
+			<Setter Property="ZIndex" Value="0" />
+			<Setter Property="(i:Interaction.Behaviors)">
+				<i:BehaviorCollectionTemplate>
+					<i:BehaviorCollection>
+						<idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDropHandler}" />
+					</i:BehaviorCollection>
+				</i:BehaviorCollectionTemplate>
+			</Setter>
+		</Style>
+
+		<Style Selector=":is(Rectangle).dragsource">
+			<Setter Property="(i:Interaction.Behaviors)">
+				<i:BehaviorCollectionTemplate>
+					<i:BehaviorCollection>
+						<idd:ContextDragBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDragHandler}" />
+						<!--<b:ArrangerPasteDragBehavior DataType="{x:Type m:ArrangerPaste}" />-->
+					</i:BehaviorCollection>
+				</i:BehaviorCollectionTemplate>
+			</Setter>
+		</Style>
+
+		<Style Selector=":is(Rectangle).droptarget">
+			<Setter Property="(DragDrop.AllowDrop)" Value="True" />
+			<Setter Property="(i:Interaction.Behaviors)">
+				<i:BehaviorCollectionTemplate>
+					<i:BehaviorCollection>
+						<idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDropHandler}" />
+					</i:BehaviorCollection>
+				</i:BehaviorCollectionTemplate>
+			</Setter>
+		</Style>
+	</UserControl.Styles>
 
 	<UserControl.KeyBindings>
 		<KeyBinding Gesture="G" Command="{Binding ToggleGridlineVisibilityCommand}" />
@@ -199,36 +277,29 @@
             VerticalScrollBarVisibility="Auto">
 
 			<paz:ZoomBorder Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-
-				<!--Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer}}, Converter={StaticResource ScrollViewerToMarginStringConverter}}"-->
 				<Grid>
-					<!--  Backdrop  -->
-					<Rectangle
-						x:Name="arrangerBackdrop"
-						Width="{Binding BitmapAdapter.Width}" Height="{Binding BitmapAdapter.Height}"
-						Stretch="None"
-						Fill="{DynamicResource CheckeredBrush}"/>
-					
-					<!--  Arranged Image  -->
-					<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}" 
-						   PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
-
-					<!--<Image
-						Panel.ZIndex="1"
-						RenderOptions.BitmapScalingMode="NearestNeighbor"
-						SnapsToDevicePixels="True"
-						Source="{Binding BitmapAdapter.Bitmap}"
-						Stretch="None" />-->
-
 					<!--  Selection and Paste Overlay  -->
 					<Canvas
 						x:Name="overlayCanvas"
+						Classes="droptarget"
 						MaxWidth="{Binding BitmapAdapter.Width}"
 						MaxHeight="{Binding BitmapAdapter.Height}"
 						PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased"
 						ClipToBounds="True">
 
+						<!--  Backdrop  -->
 						<Rectangle
+							x:Name="arrangerBackdrop"
+							Width="{Binding BitmapAdapter.Width}" Height="{Binding BitmapAdapter.Height}"
+							Stretch="None"
+							Fill="{DynamicResource CheckeredBrush}"/>
+
+						<!--  Arranged Image  -->
+						<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}"
+							   PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
+
+						<Rectangle
+							Classes="dragsource"
 							Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
 							Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
 							Width="{Binding Selection.SelectionRect.SnappedWidth}"
@@ -245,18 +316,20 @@
 							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
 							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
 							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-							Fill="{StaticResource editSelectionFillBrush}"
-							IsHitTestVisible="False"
+							Fill="{StaticResource pasteSelectionFillBrush}"
 							Stroke="Black"
 							StrokeDashArray="3,2"
 							StrokeThickness="0.3" />
 
 						<Image
+							Classes="dragsource"
+							x:Name="pasteImage"
 							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
 							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
 							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
 							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
 							RenderOptions.BitmapInterpolationMode="Default"
+							IsHitTestVisible="True"
 							Source="{Binding Paste.OverlayImage.Bitmap}"
 							Stretch="None" />
 					</Canvas>

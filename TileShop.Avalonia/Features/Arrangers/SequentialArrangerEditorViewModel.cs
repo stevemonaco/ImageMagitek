@@ -11,6 +11,9 @@ using TileShop.AvaloniaUI.Models;
 using TileShop.AvaloniaUI.ViewExtenders;
 using TileShop.AvaloniaUI.Imaging;
 using CommunityToolkit.Mvvm.Input;
+using TileShop.Shared.EventModels;
+using System.Collections.Generic;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -257,55 +260,53 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
     }
 
     [ICommand]
-    public void JumpToOffset()
+    public async void JumpToOffset()
     {
-        throw new NotImplementedException();
-        //var model = new JumpToOffsetViewModel();
-        //_tracker.Track(model);
-        //var result = _windowManager.ShowDialog(model);
+        var model = new JumpToOffsetViewModel();
+        _tracker.Track(model);
 
-        //if (result is true)
-        //{
-        //    Move(model.Result);
-        //    _tracker.Persist(model);
-        //}
+        var dialogResult = await _windowManager.ShowDialog(model);
+
+        if (dialogResult is long result)
+        {
+            Move(result);
+            _tracker.Persist(model);
+        }
     }
 
     [ICommand]
     public void NewScatteredArrangerFromSelection()
     {
-        throw new NotImplementedException();
-        //if (SnapMode == SnapMode.Element)
-        //{
-        //    int x = Selection.SelectionRect.SnappedLeft / WorkingArranger.ElementPixelSize.Width;
-        //    int y = Selection.SelectionRect.SnappedTop / WorkingArranger.ElementPixelSize.Height;
-        //    int width = Selection.SelectionRect.SnappedWidth / WorkingArranger.ElementPixelSize.Width;
-        //    int height = Selection.SelectionRect.SnappedHeight / WorkingArranger.ElementPixelSize.Height;
+        if (SnapMode == SnapMode.Element)
+        {
+            int x = Selection.SelectionRect.SnappedLeft / WorkingArranger.ElementPixelSize.Width;
+            int y = Selection.SelectionRect.SnappedTop / WorkingArranger.ElementPixelSize.Height;
+            int width = Selection.SelectionRect.SnappedWidth / WorkingArranger.ElementPixelSize.Width;
+            int height = Selection.SelectionRect.SnappedHeight / WorkingArranger.ElementPixelSize.Height;
 
-        //    var copy = new ElementCopy(WorkingArranger, x, y, width, height);
-        //    var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
-        //    _events.PublishOnUIThread(model);
-        //}
-        //else
-        //{
-        //    _windowManager.ShowMessageBox("Selection must be performed in Element Snap mode to create a new Scattered Arranger", "Error");
-        //}
+            var copy = new ElementCopy(WorkingArranger, x, y, width, height);
+            var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
+            Messenger.Send(model);
+        }
+        else
+        {
+            _windowManager.ShowMessageBox("Selection must be performed in Element Snap mode to create a new Scattered Arranger", "Error");
+        }
     }
 
     [ICommand]
     public void NewScatteredArrangerFromImage()
     {
-        throw new NotImplementedException();
-        //if (SnapMode == SnapMode.Element)
-        //{
-        //    var copy = new ElementCopy(WorkingArranger, 0, 0, 1, 1);
-        //    var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
-        //    _events.PublishOnUIThread(model);
-        //}
-        //else
-        //{
-        //    _windowManager.ShowMessageBox("Selection must be performed in Element Snap mode to create a new Scattered Arranger", "Error");
-        //}
+        if (SnapMode == SnapMode.Element)
+        {
+            var copy = new ElementCopy(WorkingArranger, 0, 0, 1, 1);
+            var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
+            Messenger.Send(model);
+        }
+        else
+        {
+            _windowManager.ShowMessageBox("Selection must be performed in Element Snap mode to create a new Scattered Arranger", "Error");
+        }
     }
 
     [ICommand]
@@ -315,33 +316,34 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
     }
 
     [ICommand]
-    public void CreateCustomLayout()
+    public async void CreateCustomLayout()
     {
-        throw new NotImplementedException();
-        //var model = new CustomElementLayoutViewModel();
-        //_tracker.Track(model);
+        var model = new CustomElementLayoutViewModel();
+        _tracker.Track(model);
 
-        //if (_windowManager.ShowDialog(model) is true)
-        //{
-        //    var order = new List<Point>();
-        //    if (model.FlowDirection == ElementLayoutFlowDirection.RowLeftToRight)
-        //    {
-        //        for (int y = 0; y < model.Height; y++)
-        //            for (int x = 0; x < model.Width; x++)
-        //                order.Add(new Point(x, y));
-        //    }
-        //    else if (model.FlowDirection == ElementLayoutFlowDirection.ColumnTopToBottom)
-        //    {
-        //        for (int x = 0; x < model.Width; x++)
-        //            for (int y = 0; y < model.Height; y++)
-        //                order.Add(new Point(x, y));
-        //    }
+        var dialogResult = await _windowManager.ShowDialog(model);
 
-        //    var layout = new TileLayout("Custom", model.Width, model.Height, model.Width * model.Height, order);
-        //    ChangeElementLayout(layout);
+        if (dialogResult is not null)
+        {
+            var order = new List<Point>();
+            if (model.FlowDirection == ElementLayoutFlowDirection.RowLeftToRight)
+            {
+                for (int y = 0; y < model.Height; y++)
+                    for (int x = 0; x < model.Width; x++)
+                        order.Add(new Point(x, y));
+            }
+            else if (model.FlowDirection == ElementLayoutFlowDirection.ColumnTopToBottom)
+            {
+                for (int x = 0; x < model.Width; x++)
+                    for (int y = 0; y < model.Height; y++)
+                        order.Add(new Point(x, y));
+            }
 
-        //    _tracker.Persist(model);
-        //}
+            var layout = new TileLayout("Custom", model.Width, model.Height, model.Width * model.Height, order);
+            ChangeElementLayout(layout);
+
+            _tracker.Persist(model);
+        }
     }
 
     [ICommand]
@@ -496,11 +498,11 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
             _indexedImage = new IndexedImage(WorkingArranger);
             BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
         }
-        //else if (WorkingArranger.ColorType == PixelColorType.Direct)
-        //{
-        //    _directImage = new DirectImage(WorkingArranger);
-        //    BitmapAdapter = new DirectBitmapAdapter(_directImage);
-        //}
+        else if (WorkingArranger.ColorType == PixelColorType.Direct)
+        {
+            _directImage = new DirectImage(WorkingArranger);
+            BitmapAdapter = new DirectBitmapAdapter(_directImage);
+        }
 
         CreateGridlines();
     }

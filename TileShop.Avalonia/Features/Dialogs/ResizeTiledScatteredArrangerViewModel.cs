@@ -22,6 +22,7 @@ public partial class ResizeTiledScatteredArrangerViewModel : DialogViewModel<Res
         OriginalHeight = originalHeight;
         Width = originalWidth;
         Height = originalHeight;
+        Title = "Resize Scattered Arranger";
     }
 
     public override void Ok(ResizeTiledScatteredArrangerViewModel? result)
