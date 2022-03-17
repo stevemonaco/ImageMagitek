@@ -101,9 +101,9 @@
                     HorizontalAlignment="Center"
                     Orientation="Horizontal">
 
-					<Label Content="Height" Target="elementPixelHeightBox" />
+					<Label Content="Height" Target="elementPixelWidthBox" />
 					<TextBox
-						x:Name="elementPixelHeightBox"
+						x:Name="elementPixelWidthBox"
                         MinWidth="80"
                         Text="{Binding ElementPixelWidth}"
                         ToolTip.Tip="Width of each element in pixels" />
