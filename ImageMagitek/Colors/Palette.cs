@@ -15,7 +15,7 @@ namespace ImageMagitek.Colors;
 public enum ColorMatchStrategy { Exact, Nearest }
 
 //public enum ColorModel { RGBA32 = 0, RGB24, ARGB32, BGR15, ABGR16, RGB15, NES, BGR9, BGR6 }
-public enum ColorModel { Rgba32 = 0, Bgr15 = 3, Abgr16 = 4, Nes = 6, Bgr9 = 7, Bgr6 = 8 }
+public enum ColorModel { Rgba32 = 0, Bgr15 = 3, Abgr16 = 4, Nes = 6, Bgr9 = 7, Bgr6 = 8, Rgb15 = 9 }
 
 /// <summary>
 /// Storage source of the palette
@@ -480,6 +480,8 @@ public class Palette : IProjectResource
         {
             case "Rgba32":
                 return ColorModel.Rgba32;
+            case "Rgb15":
+                return ColorModel.Rgb15;
             case "Bgr15":
                 return ColorModel.Bgr15;
             case "Abgr16":
@@ -499,12 +501,14 @@ public class Palette : IProjectResource
     {
         switch (model)
         {
+            case ColorModel.Rgba32:
+                return "Rgba32";
+            case ColorModel.Rgb15:
+                return "Rgb15";
             case ColorModel.Bgr15:
                 return "Bgr15";
             case ColorModel.Abgr16:
                 return "Abgr16";
-            case ColorModel.Rgba32:
-                return "Rgba32";
             case ColorModel.Nes:
                 return "Nes";
             case ColorModel.Bgr9:

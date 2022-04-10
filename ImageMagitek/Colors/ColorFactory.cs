@@ -49,6 +49,7 @@ public interface IColorFactory
 /// <inheritdoc/>
 public class ColorFactory : IColorFactory
 {
+    private readonly ColorConverterRgb15 _rgb15Converter = new ColorConverterRgb15();
     private readonly ColorConverterBgr15 _bgr15Converter = new ColorConverterBgr15();
     private readonly ColorConverterAbgr16 _abgr16Converter = new ColorConverterAbgr16();
     private ColorConverterNes _nesConverter;
@@ -67,6 +68,7 @@ public class ColorFactory : IColorFactory
         return colorModel switch
         {
             ColorModel.Rgba32 => new ColorRgba32(color),
+            ColorModel.Rgb15 => new ColorRgb15(color),
             ColorModel.Bgr15 => new ColorBgr15(color),
             ColorModel.Abgr16 => new ColorAbgr16(color),
             ColorModel.Nes => new ColorNes(color),
@@ -81,6 +83,7 @@ public class ColorFactory : IColorFactory
         return colorModel switch
         {
             ColorModel.Rgba32 => new ColorRgba32((byte)r, (byte)g, (byte)b, (byte)a),
+            ColorModel.Rgb15 => new ColorRgb15((byte)r, (byte)g, (byte)b),
             ColorModel.Bgr15 => new ColorBgr15((byte)r, (byte)g, (byte)b),
             ColorModel.Abgr16 => new ColorAbgr16((byte)r, (byte)g, (byte)b, (byte)a),
             ColorModel.Nes => _nesConverter.ToForeignColor(new ColorRgba32((byte)r, (byte)g, (byte)b, (byte)a)),
@@ -95,6 +98,7 @@ public class ColorFactory : IColorFactory
         return color switch
         {
             ColorRgba32 rgba32 => new ColorRgba32(rgba32.Color),
+            ColorRgb15 rgb15 => new ColorRgb15(rgb15.R, rgb15.G, rgb15.B),
             ColorBgr15 bgr15 => new ColorBgr15(bgr15.R, bgr15.G, bgr15.B),
             ColorAbgr16 abgr16 => new ColorAbgr16(abgr16.R, abgr16.G, abgr16.B, abgr16.A),
             ColorNes nes => new ColorNes(color.Color),
@@ -108,6 +112,7 @@ public class ColorFactory : IColorFactory
     {
         return color switch
         {
+            ColorRgb15 colorRgb15 => _rgb15Converter.ToNativeColor(colorRgb15),
             ColorBgr15 colorBgr15 => _bgr15Converter.ToNativeColor(colorBgr15),
             ColorAbgr16 colorAbgr16 => _abgr16Converter.ToNativeColor(colorAbgr16),
             ColorRgba32 _ => new ColorRgba32(color.Color),
@@ -124,6 +129,7 @@ public class ColorFactory : IColorFactory
         return colorModel switch
         {
             ColorModel.Rgba32 => new ColorRgba32(color.Color),
+            ColorModel.Rgb15 => _rgb15Converter.ToForeignColor(color),
             ColorModel.Bgr15 => _bgr15Converter.ToForeignColor(color),
             ColorModel.Abgr16 => _abgr16Converter.ToForeignColor(color),
             ColorModel.Nes => _nesConverter?.ToForeignColor(color) ??
@@ -151,6 +157,7 @@ public class ColorFactory : IColorFactory
         return color switch
         {
             ColorRgba32 rgba32 => $"#{rgba32.R:X02}{rgba32.G:X02}{rgba32.B:X02}{rgba32.A:X02}",
+            ColorRgb15 rgb15 => $"#{rgb15.Color:X04}",
             ColorBgr15 bgr15 => $"#{bgr15.Color:X04}",
             ColorAbgr16 abgr15 => $"#{abgr15.Color:X04}",
             ColorNes nes => $"#{nes.Color:X02}",

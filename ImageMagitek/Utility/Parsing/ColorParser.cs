@@ -33,6 +33,17 @@ public static class ColorParser
                 return true;
             }
         }
+        else if (colorModel == ColorModel.Rgb15)
+        {
+            if (_twoByteRegex.IsMatch(input))
+            {
+                var a = byte.Parse(input.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
+                var b = byte.Parse(input.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber);
+                uint rgb15Raw = (uint)(a << 8) | b;
+                color = new ColorBgr15(rgb15Raw);
+                return true;
+            }
+        }
         else if (colorModel == ColorModel.Bgr15)
         {
             if (_twoByteRegex.IsMatch(input))
