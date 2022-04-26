@@ -17,7 +17,7 @@
 				<MenuItem
                     Header="Open Recent Project"
                     Items="{Binding RecentProjectFiles}"
-                    IsVisible="{Binding !RecentProjectFiles.Count}">
+                    IsVisible="{Binding RecentProjectFiles.Count}">
 					<MenuItem.ItemTemplate>
 						<DataTemplate>
 							<MenuItem

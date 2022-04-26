@@ -47,8 +47,6 @@ public partial class MenuViewModel : ObservableRecipient
 
     public void SaveEditor() => Editors.ActiveEditor?.SaveChanges();
 
-    //public void ShowWindow(ToolWindow toolWindow) => _events.PublishOnUIThread(new ShowToolWindowEvent(toolWindow));
-
     public void ExitApplication() => Shell.RequestApplicationExit();
 
     public void ChangeToLightTheme() => _themeService.SetActiveTheme("Fluent Light");
@@ -56,10 +54,10 @@ public partial class MenuViewModel : ObservableRecipient
     public void ChangeToDarkTheme() => _themeService.SetActiveTheme("Fluent Dark");
 
     public void ExportArrangerToImage(ScatteredArrangerEditorViewModel vm) =>
-        ProjectTree.ExportArrangerAs(vm.Resource as ScatteredArranger);
+        ProjectTree.ExportArrangerAs((ScatteredArranger) vm.Resource);
 
     public void ImportArrangerFromImage(ScatteredArrangerEditorViewModel vm) =>
-        ProjectTree.ImportArrangerFrom(vm.Resource as ScatteredArranger);
+        ProjectTree.ImportArrangerFrom((ScatteredArranger) vm.Resource);
 
     public void Handle(ProjectLoadedEvent message)
     {

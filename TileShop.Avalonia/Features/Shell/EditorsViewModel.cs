@@ -56,7 +56,7 @@ public partial class EditorsViewModel : ObservableRecipient
         Messenger.Register<PaletteChangedEvent>(this, (r, m) => Receive(m));
     }
 
-    public bool CloseEditor(ResourceEditorBaseViewModel editor)
+    public bool CloseEditor(ResourceEditorBaseViewModel? editor)
     {
         //if (editor.IsModified)
         //{

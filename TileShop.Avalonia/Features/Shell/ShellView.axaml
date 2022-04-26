@@ -1,21 +1,21 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		xmlns:v="using:TileShop.AvaloniaUI.Views"
-        xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
-		xmlns:idc="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="TileShop.AvaloniaUI.Views.ShellView"
-		x:DataType="vm:ShellViewModel"
-		x:CompileBindings="True"
-        Icon="/Assets/tsicon.ico"
-		ExtendClientAreaToDecorationsHint="True"
-		ExtendClientAreaTitleBarHeightHint="30"
-		UseLayoutRounding="True"
-		TransparencyLevelHint="AcrylicBlur"
-		Opened="OnOpened"
-        Title="TileShop.Avalonia">
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:v="using:TileShop.AvaloniaUI.Views"
+	xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+	xmlns:idc="clr-namespace:Dock.Avalonia.Controls;assembly=Dock.Avalonia"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+	x:Class="TileShop.AvaloniaUI.Views.ShellView"
+	x:DataType="vm:ShellViewModel"
+	x:CompileBindings="True"
+	Icon="/Assets/tsicon.ico"
+	ExtendClientAreaToDecorationsHint="True"
+	ExtendClientAreaTitleBarHeightHint="30"
+	UseLayoutRounding="True"
+	TransparencyLevelHint="AcrylicBlur"
+	Opened="OnOpened"
+	Title="TileShop.Avalonia">
 
 	<Panel>
 		<ExperimentalAcrylicBorder IsHitTestVisible="False">
@@ -34,25 +34,10 @@
 				<ContentControl Content="{Binding ActiveMenu}" />
 				<Button Command="{Binding LoadCommand}" Content="Load FF2" />
 			</StackPanel>
-			
+
 			<idc:DockControl Grid.Row="1" Name="dock" />
-
-			<!--<SplitView IsPaneOpen="True" DisplayMode="Inline" OpenPaneLength="300" Grid.Row="1">
-				<SplitView.Pane>
-					<ContentControl Content="{Binding ActiveTree}" />
-				</SplitView.Pane>
-
-				<TabControl Items="{Binding Editors.Editors}">
-					<TabControl.ItemTemplate>
-						<DataTemplate>
-							<TextBlock Text="{Binding DisplayName}" />
-						</DataTemplate>
-					</TabControl.ItemTemplate>
-				</TabControl>
-			</SplitView>-->
 
 			<ContentControl Grid.Row="2" Content="{Binding ActiveStatusBar}" />
 		</Grid>
 	</Panel>
-
 </Window>
