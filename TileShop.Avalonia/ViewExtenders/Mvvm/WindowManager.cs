@@ -63,9 +63,11 @@ internal class WindowManager : IWindowManager
     {
         var mainWindow = GetWindow();
 
-        var dialogWindow = new DialogView();
-        dialogWindow.DataContext = mediator;
-        dialogWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        var dialogWindow = new DialogView
+        {
+            DataContext = mediator,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
 
         mediator.PropertyChanged += Handler;
         await dialogWindow.ShowDialog(mainWindow);
