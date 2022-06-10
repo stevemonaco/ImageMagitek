@@ -39,7 +39,7 @@ public partial class ShellViewModel : ObservableObject
         //Layout = layout;
     }
 
-    [ICommand]
+    [RelayCommand]
     public void Load()
     {
         ActiveTree.OpenProject(_projectFile);

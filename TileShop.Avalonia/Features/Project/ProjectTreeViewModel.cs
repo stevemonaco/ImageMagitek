@@ -58,7 +58,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         { MessageBoxResult.Yes, "Save" }, { MessageBoxResult.No, "Discard" }, { MessageBoxResult.Cancel, "Cancel" }
     };
 
-    [ICommand]
+    [RelayCommand]
     public void ActivateSelectedNode()
     {
         if (SelectedNode is ProjectNodeViewModel || SelectedNode is FolderNodeViewModel)
@@ -71,7 +71,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public void AddNewFolder(ResourceNodeViewModel parentNodeModel)
     {
         _projectService.CreateNewFolder(parentNodeModel.Node, "New Folder").Switch(
@@ -88,7 +88,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
             });
     }
 
-    [ICommand]
+    [RelayCommand]
     public void AddNewDataFile(ResourceNodeViewModel parentNodeModel)
     {
         var dataFileName = _fileSelect.GetExistingDataFileNameByUser();
@@ -121,7 +121,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public async void AddNewPalette(ResourceNodeViewModel parentNodeModel)
     {
         var dialogModel = new AddPaletteViewModel(parentNodeModel.Children.Select(x => x.Name));
@@ -168,7 +168,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public async void AddNewScatteredArranger(ResourceNodeViewModel parentNodeModel)
     {
         var dialogModel = new AddScatteredArrangerViewModel(parentNodeModel.Children.Select(x => x.Name));
@@ -201,7 +201,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public void ExportArrangerNodeAs(ResourceNodeViewModel nodeModel)
     {
         if (nodeModel is ArrangerNodeViewModel arrNodeModel)
@@ -211,7 +211,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public void ExportArrangerAs(ScatteredArranger arranger)
     {
         var exportFileName = _fileSelect.GetExportArrangerFileNameByUser($"{arranger.Name}.png");
@@ -231,7 +231,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public void ImportArrangerNodeFrom(ResourceNodeViewModel nodeModel)
     {
         if (nodeModel is ArrangerNodeViewModel arrNodeModel && arrNodeModel.Node.Item is ScatteredArranger arranger)
@@ -240,7 +240,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public async void ImportArrangerFrom(ScatteredArranger arranger)
     {
         var dialogModel = new ImportImageViewModel(arranger, _fileSelect);
@@ -253,7 +253,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public async void RequestRemoveNode(ResourceNodeViewModel nodeModel)
     {
         var deleteNode = nodeModel.Node;
@@ -376,7 +376,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public async void RenameNode(ResourceNodeViewModel nodeModel)
     {
         var dialogModel = new RenameNodeViewModel(nodeModel);
@@ -484,7 +484,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
     //    }
     //}
 
-    [ICommand]
+    [RelayCommand]
     public override void SaveChanges()
     {
         try
@@ -506,7 +506,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public void AddNewProject()
     {
         var projectFileName = _fileSelect.GetNewProjectFileNameByUser();
@@ -532,7 +532,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public void NewProjectFromFile()
     {
         var dataFileName = _fileSelect.GetExistingDataFileNameByUser();
@@ -678,7 +678,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
             });
     }
 
-    [ICommand]
+    [RelayCommand]
     public void CloseAllProjects()
     {
         while (Projects.Count > 0)
@@ -688,7 +688,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public void ExploreResource(ResourceNodeViewModel nodeVM)
     {
         _diskExploreService.ExploreDiskLocation(nodeVM.Node.DiskLocation);

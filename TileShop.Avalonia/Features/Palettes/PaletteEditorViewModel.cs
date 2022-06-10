@@ -87,7 +87,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     /// <summary>
     /// Saves color sources to their project resource
     /// </summary>
-    [ICommand]
+    [RelayCommand]
     public void SaveSources()
     {
         _palette.ZeroIndexTransparent = ZeroIndexTransparent;
@@ -112,7 +112,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         IsModified = false;
     }
 
-    [ICommand]
+    [RelayCommand]
     public void SaveActiveColor()
     {
         // The order here is very important as replacing a Colors item invalidates SelectedItem to -1 and
@@ -130,7 +130,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     /// <summary>
     /// Saves palette properties and color source values to their underlying sources
     /// </summary>
-    [ICommand]
+    [RelayCommand]
     public override void SaveChanges()
     {
         _palette.ZeroIndexTransparent = ZeroIndexTransparent;
@@ -194,14 +194,14 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
             throw new NotSupportedException($"Color of type '{foreignColor.GetType()}' is not supported for editing");
     }
 
-    [ICommand]
+    [RelayCommand]
     public void AddNewFileColorSource()
     {
         ColorSourceModels.Add(new FileColorSourceModel(0, 0, Endian.Little));
         Entries = CountSourceColors();
     }
 
-    [ICommand]
+    [RelayCommand]
     public void AddNewNativeColorSource()
     {
         var color = _colorFactory.CreateColor(ColorModel.Rgba32, 0, 0, 0, 255);
@@ -210,7 +210,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         Entries = CountSourceColors();
     }
 
-    [ICommand]
+    [RelayCommand]
     public void AddNewForeignColorSource()
     {
         var color = _colorFactory.CreateColor(_palette.ColorModel, 0);
@@ -219,7 +219,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         Entries = CountSourceColors();
     }
 
-    [ICommand]
+    [RelayCommand]
     public void RemoveColorSource(ColorSourceModel model)
     {
         ColorSourceModels.Remove(model);

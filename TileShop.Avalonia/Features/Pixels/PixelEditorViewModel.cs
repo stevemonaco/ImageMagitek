@@ -43,17 +43,17 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     public abstract TColor GetPixel(int x, int y);
     public abstract void FloodFill(int x, int y, TColor fillColor);
 
-    [ICommand] public void SetPrimaryColor(TColor color) => PrimaryColor = color;
-    [ICommand] public void SetSecondaryColor(TColor color) => SecondaryColor = color;
+    [RelayCommand] public void SetPrimaryColor(TColor color) => PrimaryColor = color;
+    [RelayCommand] public void SetSecondaryColor(TColor color) => SecondaryColor = color;
 
-    [ICommand]
+    [RelayCommand]
     public virtual void ConfirmPendingOperation()
     {
         if (Paste?.Copy is ElementCopy || Paste?.Copy is IndexedPixelCopy || Paste?.Copy is DirectPixelCopy)
             ApplyPaste(Paste);
     }
 
-    [ICommand]
+    [RelayCommand]
     public override void Undo()
     {
         if (!CanUndo)
@@ -75,7 +75,7 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
         Render();
     }
 
-    [ICommand]
+    [RelayCommand]
     public override void Redo()
     {
         if (!CanRedo)

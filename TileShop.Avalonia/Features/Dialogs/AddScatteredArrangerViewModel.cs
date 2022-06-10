@@ -42,7 +42,7 @@ public partial class AddScatteredArrangerViewModel : DialogViewModel<AddScattere
         base.Ok(result);
     }
 
-    [ICommand]
+    [RelayCommand]
     public void ValidateModel()
     {
         ValidationErrors.Clear();

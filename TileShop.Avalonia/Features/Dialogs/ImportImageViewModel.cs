@@ -74,7 +74,7 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
     //    BrowseForImportFile();
     //}
 
-    [ICommand]
+    [RelayCommand]
     public void BrowseForImportFile()
     {
         var fileName = _fileSelect.GetImportArrangerFileNameByUser();

@@ -56,7 +56,7 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
 
     protected override void ReloadImage() => _directImage.Render();
 
-    [ICommand]
+    [RelayCommand]
     public override void SaveChanges()
     {
         try
@@ -111,7 +111,7 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public override void ApplyPaste(ArrangerPaste paste)
     {
         var notifyEvent = ApplyPasteInternal(paste).Match(

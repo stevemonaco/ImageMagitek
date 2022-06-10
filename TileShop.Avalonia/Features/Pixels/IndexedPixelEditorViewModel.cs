@@ -103,7 +103,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
     }
 
     #region Commands
-    [ICommand]
+    [RelayCommand]
     public override void ApplyPaste(ArrangerPaste paste)
     {
         var notifyEvent = ApplyPasteInternal(paste).Match(
@@ -135,7 +135,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         }
     }
 
-    [ICommand(CanExecute = nameof(CanRemapColors))]
+    [RelayCommand(CanExecute = nameof(CanRemapColors))]
     public async void RemapColors()
     {
         var palette = WorkingArranger.GetReferencedPalettes().FirstOrDefault();
@@ -171,7 +171,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public override void SaveChanges()
     {
         try

@@ -133,9 +133,9 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     }
 
     #region Commands
-    [ICommand] public virtual void ToggleGridlineVisibility() => ShowGridlines ^= true;
+    [RelayCommand] public virtual void ToggleGridlineVisibility() => ShowGridlines ^= true;
 
-    [ICommand]
+    [RelayCommand]
     public virtual void EditSelection()
     {
         if (!CanEditSelection)
@@ -162,7 +162,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         CancelOverlay();
     }
 
-    [ICommand]
+    [RelayCommand]
     public virtual void SelectAll()
     {
         CancelOverlay();
@@ -172,7 +172,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         OnPropertyChanged(nameof(CanEditSelection));
     }
 
-    [ICommand]
+    [RelayCommand]
     public virtual void CancelOverlay()
     {
         Selection = new ArrangerSelection(WorkingArranger, SnapMode);

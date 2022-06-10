@@ -46,7 +46,7 @@ public partial class CustomElementLayoutViewModel : DialogViewModel<CustomElemen
         Title = "Create Custom Tile Layout";
     }
 
-    [ICommand]
+    [RelayCommand]
     public void ValidateModel()
     {
         ValidationErrors.Clear();

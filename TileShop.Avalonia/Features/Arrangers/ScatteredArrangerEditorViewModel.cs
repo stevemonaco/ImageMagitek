@@ -82,7 +82,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
     public void SetApplyPaletteMode() => ActiveTool = ScatteredArrangerTool.ApplyPalette;
 
-    [ICommand]
+    [RelayCommand]
     public override void SaveChanges()
     {
         if (WorkingArranger.Layout == ElementLayout.Tiled)
@@ -476,7 +476,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         return true;
     }
 
-    [ICommand]
+    [RelayCommand]
     public async void ResizeArranger()
     {
         var model = new ResizeTiledScatteredArrangerViewModel(_windowManager, WorkingArranger.ArrangerElementSize.Width, WorkingArranger.ArrangerElementSize.Height);
@@ -493,7 +493,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public async void AssociatePalette()
     {
         var projectTree = _projectService.GetContainingProject(Resource);
@@ -512,7 +512,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         }
     }
 
-    [ICommand]
+    [RelayCommand]
     public void ToggleSnapMode()
     {
         if (SnapMode == SnapMode.Element)
@@ -521,7 +521,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
             SnapMode = SnapMode.Element;
     }
 
-    [ICommand]
+    [RelayCommand]
     public void ConfirmPendingOperation()
     {
         if (Paste?.Copy is ElementCopy)
@@ -531,7 +531,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     /// <summary>
     /// Applies the paste as elements
     /// </summary>
-    [ICommand]
+    [RelayCommand]
     public override void ApplyPaste(ArrangerPaste paste)
     {
         var notifyEvent = ApplyPasteInternal(paste).Match(
@@ -548,7 +548,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         Messenger.Send(notifyEvent);
     }
 
-    [ICommand]
+    [RelayCommand]
     public void DeleteElementSelection()
     {
         //if (Selection.HasSelection)
@@ -611,7 +611,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         //}
     }
 
-    [ICommand]
+    [RelayCommand]
     public override void Undo()
     {
         if (!CanUndo)
@@ -634,7 +634,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         Render();
     }
 
-    [ICommand]
+    [RelayCommand]
     public override void Redo()
     {
         if (!CanRedo)
