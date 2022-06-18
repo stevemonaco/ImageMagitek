@@ -3,7 +3,7 @@ using Stylet;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using TileShop.WPF.Imaging;
-using TileShop.WPF.Services;
+using TileShop.Shared.Services;
 
 namespace TileShop.WPF.ViewModels;
 
