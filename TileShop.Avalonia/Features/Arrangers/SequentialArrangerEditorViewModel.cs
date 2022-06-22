@@ -71,7 +71,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         get => _tiledElementWidth;
         set
         {
-            var preferredWidth = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
+            var preferredWidth = ((SequentialArranger)WorkingArranger).ActiveCodec.GetPreferredWidth(value);
             if (SetProperty(ref _tiledElementWidth, preferredWidth))
                 ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
         }
@@ -83,7 +83,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         get => _tiledElementHeight;
         set
         {
-            var preferredHeight = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredHeight(value);
+            var preferredHeight = ((SequentialArranger)WorkingArranger).ActiveCodec.GetPreferredHeight(value);
             if (SetProperty(ref _tiledElementHeight, preferredHeight))
                 ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
         }
@@ -117,7 +117,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         get => _linearArrangerWidth;
         set
         {
-            var preferredWidth = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredWidth(value);
+            var preferredWidth = ((SequentialArranger)WorkingArranger).ActiveCodec.GetPreferredWidth(value);
             SetProperty(ref _linearArrangerWidth, preferredWidth);
             ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
         }
@@ -129,7 +129,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         get => _linearArrangerHeight;
         set
         {
-            var preferredHeight = (WorkingArranger as SequentialArranger).ActiveCodec.GetPreferredHeight(value);
+            var preferredHeight = ((SequentialArranger)WorkingArranger).ActiveCodec.GetPreferredHeight(value);
             SetProperty(ref _linearArrangerHeight, preferredHeight);
             ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
         }
@@ -198,8 +198,8 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         Palettes = new(_paletteService.GlobalPalettes.Select(x => new PaletteModel(x)));
         SelectedPalette = Palettes.First();
 
-        ArrangerPageSize = (int)(WorkingArranger as SequentialArranger).ArrangerBitSize / 8;
-        MaxFileDecodingOffset = (WorkingArranger as SequentialArranger).FileSize - ArrangerPageSize;
+        ArrangerPageSize = (int)((SequentialArranger)WorkingArranger).ArrangerBitSize / 8;
+        MaxFileDecodingOffset = ((SequentialArranger)WorkingArranger).FileSize - ArrangerPageSize;
     }
 
     public override void SaveChanges()
@@ -354,8 +354,8 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
 
     private void Move(ArrangerMoveType moveType)
     {
-        var oldAddress = (WorkingArranger as SequentialArranger).Address;
-        var newAddress = (WorkingArranger as SequentialArranger).Move(moveType);
+        var oldAddress = ((SequentialArranger)WorkingArranger).Address;
+        var newAddress = ((SequentialArranger)WorkingArranger).Move(moveType);
 
         if (oldAddress != newAddress)
         {
@@ -367,8 +367,8 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
 
     private void Move(long offset)
     {
-        var oldAddress = (WorkingArranger as SequentialArranger).Address;
-        var newAddress = (WorkingArranger as SequentialArranger).Move(new BitAddress(offset, 0));
+        var oldAddress = ((SequentialArranger)WorkingArranger).Address;
+        var newAddress = ((SequentialArranger)WorkingArranger).Move(new BitAddress(offset, 0));
 
         if (oldAddress != newAddress)
         {
@@ -391,10 +391,10 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
             arrangerHeight == WorkingArranger.ArrangerPixelSize.Height && IsSingleLayout)
             return;
 
-        (WorkingArranger as SequentialArranger).Resize(arrangerWidth, arrangerHeight);
+        ((SequentialArranger)WorkingArranger).Resize(arrangerWidth, arrangerHeight);
         CreateImages();
-        ArrangerPageSize = (int)(WorkingArranger as SequentialArranger).ArrangerBitSize / 8;
-        MaxFileDecodingOffset = (WorkingArranger as SequentialArranger).FileSize - ArrangerPageSize;
+        ArrangerPageSize = (int)((SequentialArranger)WorkingArranger).ArrangerBitSize / 8;
+        MaxFileDecodingOffset = ((SequentialArranger)WorkingArranger).FileSize - ArrangerPageSize;
     }
 
     [RelayCommand]
@@ -424,7 +424,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
 
     private void ChangeElementLayout(TileLayout layout)
     {
-        (WorkingArranger as SequentialArranger).ChangeElementLayout(layout);
+        ((SequentialArranger)WorkingArranger).ChangeElementLayout(layout);
         ArrangerWidthIncrement = layout.Width;
         ArrangerHeightIncrement = layout.Height;
         _tiledArrangerWidth = WorkingArranger.ArrangerElementSize.Width;
@@ -444,7 +444,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
             _tiledElementHeight = codec.Height;
             _tiledElementWidth = codec.Width;
 
-            (WorkingArranger as SequentialArranger).ChangeCodec(codec, TiledArrangerWidth, TiledArrangerHeight);
+            ((SequentialArranger)WorkingArranger).ChangeCodec(codec, TiledArrangerWidth, TiledArrangerHeight);
             SnapMode = SnapMode.Element;
 
             OnPropertyChanged(nameof(TiledElementWidth));
@@ -456,16 +456,16 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
             _linearArrangerHeight = codec.Height;
             _linearArrangerWidth = codec.Width;
 
-            (WorkingArranger as SequentialArranger).ChangeCodec(codec, 1, 1);
+            ((SequentialArranger)WorkingArranger).ChangeCodec(codec, 1, 1);
             SnapMode = SnapMode.Pixel;
 
             OnPropertyChanged(nameof(LinearArrangerWidth));
             OnPropertyChanged(nameof(LinearArrangerHeight));
         }
 
-        _fileOffset = (WorkingArranger as SequentialArranger).Address.ByteOffset;
-        ArrangerPageSize = (int)(WorkingArranger as SequentialArranger).ArrangerBitSize / 8;
-        MaxFileDecodingOffset = (WorkingArranger as SequentialArranger).FileSize - ArrangerPageSize;
+        _fileOffset = ((SequentialArranger)WorkingArranger).Address.ByteOffset;
+        ArrangerPageSize = (int)((SequentialArranger)WorkingArranger).ArrangerBitSize / 8;
+        MaxFileDecodingOffset = ((SequentialArranger)WorkingArranger).FileSize - ArrangerPageSize;
         CanResize = codec.CanResize;
         ElementWidthIncrement = codec.WidthResizeIncrement;
         ElementHeightIncrement = codec.HeightResizeIncrement;
@@ -478,14 +478,14 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
 
     private void ChangePalette(PaletteModel pal)
     {
-        (WorkingArranger as SequentialArranger).ChangePalette(pal.Palette);
+        ((SequentialArranger)WorkingArranger).ChangePalette(pal.Palette);
         Render();
     }
 
     private void ChangeCodecDimensions(int width, int height)
     {
         var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, new Size(width, height));
-        (WorkingArranger as SequentialArranger).ChangeCodec(codec);
+        ((SequentialArranger)WorkingArranger).ChangeCodec(codec);
         CreateImages();
     }
 
@@ -527,8 +527,6 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         {
             _indexedImage.Render();
             BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
-            //BitmapAdapter.Invalidate();
-            //OnPropertyChanged(nameof(BitmapAdapter));
         }
         else if (WorkingArranger.ColorType == PixelColorType.Direct)
         {

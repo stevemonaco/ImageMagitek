@@ -11,10 +11,14 @@ public partial class StatusViewModel : ObservableRecipient
     [ObservableProperty] private string? _operationMessage;
     [ObservableProperty] private ObservableCollection<string> _timedMessages = new();
 
-    public StatusViewModel()
+    [ObservableProperty] private EditorsViewModel _editors;
+
+    public StatusViewModel(EditorsViewModel editors)
     {
         Messenger.Register<NotifyStatusEvent>(this, (r, m) => Receive(m));
         Messenger.Register<NotifyOperationEvent>(this, (r, m) => Receive(m));
+
+        _editors = editors;
     }
 
     public void Receive(NotifyStatusEvent notifyEvent)

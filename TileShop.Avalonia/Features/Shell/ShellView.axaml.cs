@@ -10,6 +10,9 @@ using TileShop.AvaloniaUI.ViewModels;
 namespace TileShop.AvaloniaUI.Views;
 public partial class ShellView : Window
 {
+    private ShellViewModel _viewModel = default!;
+    private DockFactory _dockFactory = default!;
+
     public ShellView()
     {
         InitializeComponent();
@@ -23,16 +26,48 @@ public partial class ShellView : Window
         AvaloniaXamlLoader.Load(this);
     }
 
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        if (DataContext is ShellViewModel viewModel)
+        {
+            _viewModel = viewModel;
+        }
+    }
+
     private void CreateDockingLayout()
     {
-        var vm = DataContext as ShellViewModel;
-        var factory = new DockFactory(vm.ActiveTree, vm.Editors);
-        var layout = factory.CreateLayout();
-        factory.InitLayout(layout);
+        _dockFactory = new DockFactory(_viewModel.ActiveTree, _viewModel.Editors);
+        var layout = _dockFactory.CreateLayout();
+        _dockFactory.InitLayout(layout);
+
+        _dockFactory.FocusedDockableChanged += Factory_FocusedDockableChanged;
+        _dockFactory.DockableClosed += Factory_DockableClosed;
+        _dockFactory.WindowClosed += Factory_WindowClosed;
 
         var dock = this.FindControl<DockControl>("dock");
         dock.Layout = layout;
     }
+
+    private void Factory_WindowClosed(object? sender, Dock.Model.Core.Events.WindowClosedEventArgs e)
+    {
+    }
+
+    private void Factory_DockableClosed(object? sender, Dock.Model.Core.Events.DockableClosedEventArgs e)
+    {
+        if (e.Dockable is DockableEditorViewModel dockEditor)
+        {
+            _viewModel.Editors.CloseEditor(dockEditor.Editor);
+        }
+    }
+
+    private void Factory_FocusedDockableChanged(object? sender, Dock.Model.Core.Events.FocusedDockableChangedEventArgs e)
+    {
+        if (e.Dockable is DockableEditorViewModel dock)
+        {
+            _viewModel.Editors.ActiveEditor = dock.Editor;
+        }
+    }
+
 
     public void LoadLayout(object sender, RoutedEventArgs e)
     {

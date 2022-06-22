@@ -16,6 +16,7 @@ using CommunityToolkit.Mvvm.Input;
 using Monaco.PathTree;
 using TileShop.Shared.EventModels;
 using CommunityToolkit.Mvvm.Messaging;
+using TileShop.Shared.Input;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -28,7 +29,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     [ObservableProperty] private bool _areSymmetryToolsEnabled;
 
     private ScatteredArrangerTool _activeTool = ScatteredArrangerTool.Select;
-    //private ApplyPaletteHistoryAction _applyPaletteHistory;
+    private ApplyPaletteHistoryAction? _applyPaletteHistory;
     private readonly IProjectService _projectService;
     private IndexedImage _indexedImage;
     private DirectImage _directImage;
@@ -87,7 +88,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     {
         if (WorkingArranger.Layout == ElementLayout.Tiled)
         {
-            var treeArranger = Resource as Arranger;
+            var treeArranger = (Arranger) Resource;
             if (WorkingArranger.ArrangerElementSize != treeArranger.ArrangerElementSize)
             {
                 if (treeArranger.Layout == ElementLayout.Tiled)
@@ -126,144 +127,140 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
     public override void DiscardChanges()
     {
-        WorkingArranger = (Resource as Arranger).CloneArranger();
+        WorkingArranger = ((Arranger)Resource).CloneArranger();
         CreateImages();
         IsModified = false;
     }
 
-    //#region Mouse Actions
-    //public override void OnMouseDown(object sender, MouseCaptureArgs e)
-    //{
-    //    int x = Math.Clamp((int)e.X / Zoom, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
-    //    int y = Math.Clamp((int)e.Y / Zoom, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
-    //    var elementX = x / WorkingArranger.ElementPixelSize.Width;
-    //    var elementY = y / WorkingArranger.ElementPixelSize.Height;
+    #region Mouse Actions
+    public override void MouseDown(double x, double y, MouseState mouseState)
+    {
+        int xc = Math.Clamp((int)x, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
+        int yc = Math.Clamp((int)y, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
+        var elementX = xc / WorkingArranger.ElementPixelSize.Width;
+        var elementY = yc / WorkingArranger.ElementPixelSize.Height;
 
-    //    if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton)
-    //    {
-    //        _applyPaletteHistory = new ApplyPaletteHistoryAction(SelectedPalette.Palette);
-    //        TryApplyPalette(x, y, SelectedPalette.Palette);
-    //    }
-    //    else if (ActiveTool == ScatteredArrangerTool.PickPalette && e.LeftButton)
-    //    {
-    //        TryPickPalette(x, y);
-    //    }
-    //    else if (ActiveTool == ScatteredArrangerTool.RotateLeft && e.LeftButton)
-    //    {
-    //        var result = WorkingArranger.TryRotateElement(elementX, elementY, RotationOperation.Left);
-    //        if (result.HasSucceeded)
-    //        {
-    //            AddHistoryAction(new RotateElementHistoryAction(elementX, elementY, RotationOperation.Left));
-    //            IsModified = true;
-    //            Render();
-    //        }
-    //    }
-    //    else if (ActiveTool == ScatteredArrangerTool.RotateRight && e.LeftButton)
-    //    {
-    //        var result = WorkingArranger.TryRotateElement(elementX, elementY, RotationOperation.Right);
-    //        if (result.HasSucceeded)
-    //        {
-    //            AddHistoryAction(new RotateElementHistoryAction(elementX, elementY, RotationOperation.Right));
-    //            IsModified = true;
-    //            Render();
-    //        }
-    //    }
-    //    else if (ActiveTool == ScatteredArrangerTool.MirrorHorizontal && e.LeftButton)
-    //    {
-    //        var result = WorkingArranger.TryMirrorElement(elementX, elementY, MirrorOperation.Horizontal);
-    //        if (result.HasSucceeded)
-    //        {
-    //            AddHistoryAction(new MirrorElementHistoryAction(elementX, elementY, MirrorOperation.Horizontal));
-    //            IsModified = true;
-    //            Render();
-    //        }
-    //    }
-    //    else if (ActiveTool == ScatteredArrangerTool.MirrorVertical && e.LeftButton)
-    //    {
-    //        var result = WorkingArranger.TryMirrorElement(elementX, elementY, MirrorOperation.Vertical);
-    //        if (result.HasSucceeded)
-    //        {
-    //            AddHistoryAction(new MirrorElementHistoryAction(elementX, elementY, MirrorOperation.Vertical));
-    //            IsModified = true;
-    //            Render();
-    //        }
-    //    }
-    //    else if (ActiveTool == ScatteredArrangerTool.Select)
-    //    {
-    //        base.OnMouseDown(sender, e);
-    //    }
-    //}
+        if (ActiveTool == ScatteredArrangerTool.ApplyPalette && mouseState.LeftButtonPressed)
+        {
+            _applyPaletteHistory = new ApplyPaletteHistoryAction(SelectedPalette.Palette);
+            TryApplyPalette(xc, yc, SelectedPalette.Palette);
+        }
+        else if (ActiveTool == ScatteredArrangerTool.PickPalette && mouseState.LeftButtonPressed)
+        {
+            TryPickPalette(xc, yc);
+        }
+        else if (ActiveTool == ScatteredArrangerTool.RotateLeft && mouseState.LeftButtonPressed)
+        {
+            var result = WorkingArranger.TryRotateElement(elementX, elementY, RotationOperation.Left);
+            if (result.HasSucceeded)
+            {
+                AddHistoryAction(new RotateElementHistoryAction(elementX, elementY, RotationOperation.Left));
+                IsModified = true;
+                Render();
+            }
+        }
+        else if (ActiveTool == ScatteredArrangerTool.RotateRight && mouseState.LeftButtonPressed)
+        {
+            var result = WorkingArranger.TryRotateElement(elementX, elementY, RotationOperation.Right);
+            if (result.HasSucceeded)
+            {
+                AddHistoryAction(new RotateElementHistoryAction(elementX, elementY, RotationOperation.Right));
+                IsModified = true;
+                Render();
+            }
+        }
+        else if (ActiveTool == ScatteredArrangerTool.MirrorHorizontal && mouseState.LeftButtonPressed)
+        {
+            var result = WorkingArranger.TryMirrorElement(elementX, elementY, MirrorOperation.Horizontal);
+            if (result.HasSucceeded)
+            {
+                AddHistoryAction(new MirrorElementHistoryAction(elementX, elementY, MirrorOperation.Horizontal));
+                IsModified = true;
+                Render();
+            }
+        }
+        else if (ActiveTool == ScatteredArrangerTool.MirrorVertical && mouseState.LeftButtonPressed)
+        {
+            var result = WorkingArranger.TryMirrorElement(elementX, elementY, MirrorOperation.Vertical);
+            if (result.HasSucceeded)
+            {
+                AddHistoryAction(new MirrorElementHistoryAction(elementX, elementY, MirrorOperation.Vertical));
+                IsModified = true;
+                Render();
+            }
+        }
+        else if (ActiveTool == ScatteredArrangerTool.Select)
+        {
+            base.MouseDown(x, y, mouseState);
+        }
+    }
 
-    //public override void OnMouseUp(object sender, MouseCaptureArgs e)
-    //{
-    //    if (ActiveTool == ScatteredArrangerTool.ApplyPalette && _applyPaletteHistory?.ModifiedElements.Count > 0)
-    //    {
-    //        AddHistoryAction(_applyPaletteHistory);
-    //        _applyPaletteHistory = null;
-    //    }
-    //    else
-    //        base.OnMouseUp(sender, e);
-    //}
+    public override void MouseUp(double x, double y, MouseState mouseState)
+    {
+        if (ActiveTool == ScatteredArrangerTool.ApplyPalette && _applyPaletteHistory?.ModifiedElements.Count > 0)
+        {
+            AddHistoryAction(_applyPaletteHistory);
+            _applyPaletteHistory = null;
+        }
+        else
+            base.MouseUp(x, y, mouseState);
+    }
 
-    //public override void OnMouseLeave(object sender, MouseCaptureArgs e)
-    //{
-    //    if (ActiveTool == ScatteredArrangerTool.ApplyPalette && _applyPaletteHistory?.ModifiedElements.Count > 0)
-    //    {
-    //        AddHistoryAction(_applyPaletteHistory);
-    //        _applyPaletteHistory = null;
-    //    }
-    //    else
-    //        base.OnMouseLeave(sender, e);
-    //}
+    public override void MouseLeave()
+    {
+        if (ActiveTool == ScatteredArrangerTool.ApplyPalette && _applyPaletteHistory?.ModifiedElements.Count > 0)
+        {
+            AddHistoryAction(_applyPaletteHistory);
+            _applyPaletteHistory = null;
+        }
+        else
+            base.MouseLeave();
+    }
 
-    //public override void OnMouseMove(object sender, MouseCaptureArgs e)
-    //{
-    //    int x = Math.Clamp((int)e.X / Zoom, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
-    //    int y = Math.Clamp((int)e.Y / Zoom, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
+    public override void MouseMove(double x, double y, MouseState mouseState)
+    {
+        int xc = Math.Clamp((int)x, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
+        int yc = Math.Clamp((int)y, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
 
-    //    if (ActiveTool == ScatteredArrangerTool.ApplyPalette && e.LeftButton && _applyPaletteHistory is not null)
-    //    {
-    //        TryApplyPalette(x, y, SelectedPalette.Palette);
-    //    }
-    //    else if (ActiveTool == ScatteredArrangerTool.InspectElement)
-    //    {
-    //        var elX = x / WorkingArranger.ElementPixelSize.Width;
-    //        var elY = y / WorkingArranger.ElementPixelSize.Height;
-    //        var el = WorkingArranger.GetElement(elX, elY);
+        if (ActiveTool == ScatteredArrangerTool.ApplyPalette && mouseState.LeftButtonPressed && _applyPaletteHistory is not null)
+        {
+            TryApplyPalette(xc, yc, SelectedPalette.Palette);
+        }
+        else if (ActiveTool == ScatteredArrangerTool.InspectElement)
+        {
+            var elX = xc / WorkingArranger.ElementPixelSize.Width;
+            var elY = yc / WorkingArranger.ElementPixelSize.Height;
+            var el = WorkingArranger.GetElement(elX, elY);
 
-    //        if (el is ArrangerElement element)
-    //        {
-    //            var paletteName = element.Palette?.Name ?? "Default";
-    //            var sourceName = element.Source switch
-    //            {
-    //                FileDataSource fds => fds.FileLocation,
-    //                MemoryDataSource => "Memory",
-    //                _ => "None"
-    //            };
-    //            var fileOffsetDescription = $"0x{element.SourceAddress.ByteOffset:X}.{(element.SourceAddress.BitOffset != 0 ? element.SourceAddress.BitOffset.ToString() : "")}";
+            if (el is ArrangerElement element)
+            {
+                var paletteName = element.Palette?.Name ?? "Default";
+                var sourceName = element.Source switch
+                {
+                    FileDataSource fds => fds.FileLocation,
+                    MemoryDataSource => "Memory",
+                    _ => "None"
+                };
+                var fileOffsetDescription = $"0x{element.SourceAddress.ByteOffset:X}.{(element.SourceAddress.BitOffset != 0 ? element.SourceAddress.BitOffset.ToString() : "")}";
 
-    //            string notifyMessage = WorkingArranger.ColorType switch
-    //            {
-    //                PixelColorType.Indexed => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, Palette {paletteName}, Source {sourceName}, FileOffset {fileOffsetDescription}",
-    //                PixelColorType.Direct => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, Source {sourceName}, FileOffset {fileOffsetDescription}",
-    //                _ => "Unknown Color Type"
-    //            };
-
-    //            var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-    //            _events.PublishOnUIThread(notifyEvent);
-    //        }
-    //        else
-    //        {
-    //            string notifyMessage = $"Element ({elX}, {elY}): Empty";
-    //            _events.PublishOnUIThread(new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite));
-    //        }
-    //    }
-    //    else if (ActiveTool == ScatteredArrangerTool.Select)
-    //    {
-    //        base.OnMouseMove(sender, e);
-    //    }
-    //}
-    //#endregion
+                ActivityMessage = WorkingArranger.ColorType switch
+                {
+                    PixelColorType.Indexed => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, Palette {paletteName}, Source {sourceName}, FileOffset {fileOffsetDescription}",
+                    PixelColorType.Direct => $"Element ({elX}, {elY}): Codec {element.Codec.Name}, Source {sourceName}, FileOffset {fileOffsetDescription}",
+                    _ => "Unknown Color Type"
+                };
+            }
+            else
+            {
+                ActivityMessage = $"Element ({elX}, {elY}): Empty";
+            }
+        }
+        else if (ActiveTool == ScatteredArrangerTool.Select)
+        {
+            base.MouseMove(x, y, mouseState);
+        }
+    }
+    #endregion
 
     //#region Drag and Drop Overrides
     //public override void DragOver(IDropInfo dropInfo)
@@ -350,13 +347,9 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         {
             _indexedImage.Render();
             BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
-            //_indexedImage.Render();
-            //BitmapAdapter.Invalidate();
         }
         else if (WorkingArranger.ColorType == PixelColorType.Direct)
         {
-            //_directImage.Render();
-            //BitmapAdapter.Invalidate();
             _directImage.Render();
             BitmapAdapter = new DirectBitmapAdapter(_directImage);
         }
@@ -457,7 +450,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         }
     }
 
-    private bool TryPickPalette(int pixelX, int pixelY)
+    public bool TryPickPalette(int pixelX, int pixelY)
     {
         var elX = pixelX / WorkingArranger.ElementPixelSize.Width;
         var elY = pixelY / WorkingArranger.ElementPixelSize.Height;
@@ -551,14 +544,14 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     [RelayCommand]
     public void DeleteElementSelection()
     {
-        //if (Selection.HasSelection)
-        //{
-        //    DeleteElementSelection(Selection.SelectionRect);
-        //    AddHistoryAction(new DeleteElementSelectionHistoryAction(Selection.SelectionRect));
+        if (Selection.HasSelection)
+        {
+            DeleteElementSelection(Selection.SelectionRect);
+            AddHistoryAction(new DeleteElementSelectionHistoryAction(Selection.SelectionRect));
 
-        //    IsModified = true;
-        //    Render();
-        //}
+            IsModified = true;
+            Render();
+        }
     }
 
     private void DeleteElementSelection(SnappedRectangle rect)
@@ -625,7 +618,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
         IsModified = UndoHistory.Count > 0;
 
-        WorkingArranger = (Resource as Arranger).CloneArranger();
+        WorkingArranger = ((Arranger)Resource).CloneArranger();
         CreateImages();
 
         foreach (var action in UndoHistory)

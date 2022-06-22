@@ -9,7 +9,8 @@
              x:Class="TileShop.AvaloniaUI.Views.StatusView">
 	<StackPanel Orientation="Horizontal">
 		<TextBlock Text="{Binding ActivityMessage, TargetNullValue=' '}" />
-		<TextBlock Margin="20,0,0,0" Text="{Binding OperationMessage}">
+		<TextBlock Margin="20,0,0,0" Text="{Binding OperationMessage}" />
+		<TextBlock Margin="8,0,0,0" Text="{Binding Editors.ActiveEditor.ActivityMessage}" />
 			<!--<TextBlock.Triggers>
 				<EventTrigger RoutedEvent="Binding.TargetUpdated">
 					<BeginStoryboard>
@@ -24,6 +25,5 @@
 					</BeginStoryboard>
 				</EventTrigger>
 			</TextBlock.Triggers>-->
-		</TextBlock>
 	</StackPanel>
 </UserControl>

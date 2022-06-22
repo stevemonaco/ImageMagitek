@@ -11,10 +11,9 @@ using KeyModifiers = TileShop.Shared.Input.KeyModifiers;
 namespace TileShop.AvaloniaUI.Views;
 public partial class SequentialArrangerEditorView : UserControl
 {
-    private SequentialArrangerStateDriver _stateDriver = null!;
-
     private readonly Image _image;
     private readonly ZoomBorder _zoomBorder;
+    private SequentialArrangerEditorViewModel _viewModel;
 
     public SequentialArrangerEditorView()
     {
@@ -30,8 +29,10 @@ public partial class SequentialArrangerEditorView : UserControl
 
     protected override void OnDataContextChanged(EventArgs e)
     {
-        var vm = (SequentialArrangerEditorViewModel)DataContext!;
-        _stateDriver = new SequentialArrangerStateDriver(vm);
+        if (DataContext is SequentialArrangerEditorViewModel vm)
+        {
+            _viewModel = vm;
+        }
         base.OnDataContextChanged(e);
     }
 
@@ -41,7 +42,7 @@ public partial class SequentialArrangerEditorView : UserControl
         {
             var point = e.GetCurrentPoint(_image);
             var state = CreateMouseState(point, e.KeyModifiers);
-            _stateDriver.MouseDown(point.Position.X, point.Position.Y, state);
+            _viewModel.MouseDown(point.Position.X, point.Position.Y, state);
             //e.Handled = true;
         }
     }
@@ -52,38 +53,42 @@ public partial class SequentialArrangerEditorView : UserControl
         {
             var point = e.GetCurrentPoint(_image);
             var state = CreateMouseState(point, e.KeyModifiers);
-            _stateDriver.MouseUp(point.Position.X, point.Position.Y, state);
+            _viewModel.MouseUp(point.Position.X, point.Position.Y, state);
             //e.Handled = true;
         }
     }
 
     private void OnPointerMoved(object sender, PointerEventArgs e)
     {
-        var pos = e.GetPosition(_image);
-        _stateDriver.MouseMove(pos.X, pos.Y);
-        //e.Handled = true;
+        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
+        {
+            var point = e.GetCurrentPoint(_image);
+            var state = CreateMouseState(point, e.KeyModifiers);
+            _viewModel.MouseMove(point.Position.X, point.Position.Y, state);
+            //e.Handled = true;
+        }
     }
 
     private void OnPointerLeave(object sender, PointerEventArgs e)
     {
-        _stateDriver.MouseLeave();
+        _viewModel?.MouseLeave();
         //e.Handled = true;
     }
 
     private void OnPointerWheelChanged(object sender, PointerWheelEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse)
+        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
         {
             var modifiers = CreateKeyModifiers(e.KeyModifiers);
 
             if (e.Delta.Y > 0)
             {
-                _stateDriver.MouseWheel(MouseWheelDirection.Up, modifiers);
+                _viewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
                 //e.Handled = true;
             }
             else if (e.Delta.Y < 0)
             {
-                _stateDriver.MouseWheel(MouseWheelDirection.Down, modifiers);
+                _viewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
                 //e.Handled = true;
             }
         }

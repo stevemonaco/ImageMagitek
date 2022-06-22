@@ -58,28 +58,28 @@ public partial class EditorsViewModel : ObservableRecipient
 
     public bool CloseEditor(ResourceEditorBaseViewModel? editor)
     {
-        //if (editor.IsModified)
-        //{
-        //    var userAction = RequestSaveUserChanges(editor, true);
-        //    if (userAction == UserSaveAction.Cancel)
-        //        return false;
+        if (editor.IsModified)
+        {
+            var userAction = RequestSaveUserChanges(editor, true);
+            if (userAction == UserSaveAction.Cancel)
+                return false;
 
-        //    if (userAction == UserSaveAction.Save)
-        //    {
-        //        if (editor is not IndexedPixelEditorViewModel && editor is not DirectPixelEditorViewModel)
-        //        {
-        //            var projectTree = _projectService.GetContainingProject(editor.Resource);
-        //            _projectService.SaveProject(projectTree)
-        //            .Switch(
-        //                success => { },
-        //                fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
-        //            );
-        //        }
-        //    }
-        //}
+            if (userAction == UserSaveAction.Save)
+            {
+                if (editor is not IndexedPixelEditorViewModel && editor is not DirectPixelEditorViewModel)
+                {
+                    var projectTree = _projectService.GetContainingProject(editor.Resource);
+                    _projectService.SaveProject(projectTree)
+                    .Switch(
+                        success => { },
+                        fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
+                    );
+                }
+            }
+        }
 
-        //Editors.Remove(editor);
-        //ActiveEditor = Editors.FirstOrDefault();
+        Editors.Remove(editor);
+        ActiveEditor = Editors.FirstOrDefault();
 
         return true;
     }

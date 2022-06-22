@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using Avalonia.Data;
 using Dock.Avalonia.Controls;
@@ -13,9 +14,10 @@ namespace TileShop.AvaloniaUI.ViewExtenders.Docking;
 public class DockFactory : Factory
 {
     private IDocumentDock _documentDock;
-    private IRootDock _rootDock;
+    private IRootDock? _rootDock;
+    private ProportionalDock _mainLayout;
 
-    private readonly object _context;
+    private readonly object? _context;
     private readonly ProjectTreeViewModel _projectTreeVm;
     private readonly EditorsViewModel _editorsVm;
 
@@ -30,23 +32,26 @@ public class DockFactory : Factory
         var _treeDockVm = new DockableToolViewModel(_projectTreeVm)
         {
             Id = "Project Tree",
-            Title = "Project Tree"
+            Title = "Project Tree",
+            CanClose = false,
+            CanPin = true,
+            CanFloat = false
         };
 
         var documents = _editorsVm.Editors.Select(x => new DockableEditorViewModel(x) as IDockable).ToArray();
 
-        var documentDock = new DocumentDock
+        _documentDock = new DocumentDock
         {
-            Id = "DocumentsPane",
-            Title = "DocumentsPane",
+            Id = "Documents",
+            Title = "Documents",
             Proportion = double.NaN,
-            VisibleDockables = CreateList(_editorsVm.Editors.Select(x => new DockableEditorViewModel(x) as IDockable).ToArray())
+            IsCollapsable = false,
+            CanClose = false,
+            VisibleDockables = CreateList(_editorsVm.Editors.Select(x => new DockableEditorViewModel(x) as IDockable).ToArray()),
+            CanCreateDocument = false
         };
 
-        documentDock.CanCreateDocument = false;
-        _editorsVm.Editors.CollectionChanged += Editors_CollectionChanged;
-
-        var mainLayout = new ProportionalDock
+        _mainLayout = new ProportionalDock
         {
             Id = "MainLayout",
             Title = "MainLayout",
@@ -76,48 +81,49 @@ public class DockFactory : Factory
                     Id = "MainSplitter",
                     Title = "MainSplitter"
                 },
-                documentDock
+                _documentDock
             )
         };
 
-        var _rootDock = CreateRootDock();
+        _rootDock = CreateRootDock();
 
         _rootDock.Id = "Root";
         _rootDock.Title = "Root";
-        _rootDock.ActiveDockable = mainLayout;
-        _rootDock.DefaultDockable = mainLayout;
-        _rootDock.VisibleDockables = CreateList<IDockable>(mainLayout);
+        _rootDock.ActiveDockable = _mainLayout;
+        _rootDock.DefaultDockable = _mainLayout;
+        _rootDock.VisibleDockables = CreateList<IDockable>(_mainLayout);
 
-        _documentDock = documentDock;
+        _editorsVm.Editors.CollectionChanged += Editors_CollectionChanged;
 
         return _rootDock;
     }
 
-    private void Editors_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void Editors_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add)
+        if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems![0] is ResourceEditorBaseViewModel newItem)
         {
-            var newItem = e.NewItems[0] as ResourceEditorBaseViewModel;
             var newDoc = new DockableEditorViewModel(newItem)
             {
                 Id = newItem.DisplayName,
                 Title = newItem.DisplayName
             };
-            //_documentDock.VisibleDockables.Add(new EditorDocumentViewModel(newItem));
-            this.AddDockable(_documentDock, newDoc);
-            this.SetActiveDockable(newDoc);
-            this.SetFocusedDockable(_documentDock, newDoc);
+
+            AddDockable(_documentDock, newDoc);
+            SetActiveDockable(newDoc);
+            SetFocusedDockable(_documentDock, newDoc);
         }
-        else if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove)
+        else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems![0] is ResourceEditorBaseViewModel oldItem)
         {
-            var removeItem = _documentDock.VisibleDockables.OfType<DockableEditorViewModel>().First(x => x.Editor == e.OldItems[0]!);
-            _documentDock.VisibleDockables.Remove(removeItem);
+            var removeItem = _documentDock.VisibleDockables?.OfType<DockableEditorViewModel>().FirstOrDefault(x => x.Editor == oldItem);
+            
+            if (removeItem is not null)
+                _documentDock.VisibleDockables?.Remove(removeItem);
         }
     }
 
     public override void InitLayout(IDockable layout)
     {
-        this.ContextLocator = new Dictionary<string, Func<object>>
+        ContextLocator = new Dictionary<string, Func<object>>
         {
             [nameof(IRootDock)] = () => _context,
             [nameof(IProportionalDock)] = () => _context,
@@ -127,12 +133,12 @@ public class DockFactory : Factory
             [nameof(IDockWindow)] = () => _context,
             [nameof(IDocument)] = () => _context,
             [nameof(ITool)] = () => _context,
-            //["TreePane"] = () => _projectTreeVm,
+            ["TreePane"] = () => _projectTreeVm,
             ["MainSplitter"] = () => _context,
             ["MainLayout"] = () => _context,
         };
 
-        this.HostWindowLocator = new Dictionary<string, Func<IHostWindow>>
+        HostWindowLocator = new Dictionary<string, Func<IHostWindow>>
         {
             [nameof(IDockWindow)] = () =>
             {
@@ -144,15 +150,15 @@ public class DockFactory : Factory
             }
         };
 
-        this.DockableLocator = new Dictionary<string, Func<IDockable?>>
+        DockableLocator = new Dictionary<string, Func<IDockable?>>
         {
             ["Root"] = () => _rootDock,
-            ["DocumentsPane"] = () => _documentDock,
+            ["Documents"] = () => _documentDock,
         };
 
         base.InitLayout(layout);
 
-        this.SetActiveDockable(_documentDock);
-        this.SetFocusedDockable(_documentDock, _documentDock.VisibleDockables?.FirstOrDefault());
+        SetActiveDockable(_documentDock);
+        SetFocusedDockable(_documentDock, _documentDock.VisibleDockables?.FirstOrDefault());
     }
 }

@@ -10,12 +10,14 @@ using System.Collections.ObjectModel;
 using TileShop.AvaloniaUI.Models;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using System;
+using TileShop.Shared.Input;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
 public enum EditMode { ArrangeGraphics, ModifyGraphics }
 
-public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewModel
+public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IStateDriver
 {
     public Arranger WorkingArranger { get; protected set; }
 
@@ -130,6 +132,112 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         }
 
         OnPropertyChanged(nameof(Gridlines));
+    }
+
+    /// <summary>
+    /// A mouse button was pressed down
+    /// </summary>
+    /// <param name="x">x-coordinate in unzoomed pixels</param>
+    /// <param name="y">y-coordinate in unzoomed pixels</param>
+    /// <param name="mouseState">State of mouse and key modifiers</param>
+    public virtual void MouseDown(double x, double y, MouseState mouseState)
+    {
+        var arranger = WorkingArranger;
+
+        int xc = Math.Clamp((int)x, 0, arranger.ArrangerPixelSize.Width - 1);
+        int yc = Math.Clamp((int)y, 0, arranger.ArrangerPixelSize.Height - 1);
+
+        if (mouseState.LeftButtonPressed && Paste is not null && !Paste.Rect.ContainsPointSnapped(xc, yc))
+        {
+            ApplyPaste(Paste);
+            Paste = null;
+        }
+
+        if (Selection?.HasSelection is true && mouseState.LeftButtonPressed && Selection.SelectionRect.ContainsPointSnapped(xc, yc))
+        {
+            // Start drag for selection (Handled by DragDrop in View)
+        }
+        else if (Paste is not null && mouseState.LeftButtonPressed && Paste.Rect.ContainsPointSnapped(xc, yc))
+        {
+            // Start drag for paste (Handled by DragDrop in View)
+        }
+        else if (mouseState.LeftButtonPressed)
+        {
+            IsSelecting = true;
+            StartNewSelection(xc, yc);
+        }
+    }
+
+    /// <summary>
+    /// A mouse button was released
+    /// </summary>
+    /// <param name="x">x-coordinate in unzoomed pixels</param>
+    /// <param name="y">y-coordinate in unzoomed pixels</param>
+    /// <param name="mouseState">State of mouse and key modifiers</param>
+    public virtual void MouseUp(double x, double y, MouseState mouseState)
+    {
+        if (IsSelecting && mouseState.LeftButtonPressed == false)
+        {
+            CompleteSelection();
+        }
+    }
+
+    public virtual void MouseEnter()
+    {
+    }
+
+    public virtual void MouseLeave()
+    {
+        ActivityMessage = string.Empty;
+    }
+
+    /// <summary>
+    /// The mouse has moved
+    /// </summary>
+    /// <param name="x">x-coordinate in unzoomed pixels</param>
+    /// <param name="y">y-coordinate in unzoomed pixels</param>
+    public virtual void MouseMove(double x, double y, MouseState mouseState)
+    {
+        if (Selection is null)
+            return;
+
+        var arranger = WorkingArranger;
+
+        if (x < 0 || y < 0 || x >= arranger.ArrangerPixelSize.Width || y >= arranger.ArrangerPixelSize.Height)
+            return;
+
+        int xc = Math.Clamp((int)x, 0, arranger.ArrangerPixelSize.Width - 1);
+        int yc = Math.Clamp((int)y, 0, arranger.ArrangerPixelSize.Height - 1);
+
+        if (IsSelecting)
+            UpdateSelection(xc, yc);
+
+        if (Selection.HasSelection)
+        {
+            string notifyMessage;
+            var rect = Selection.SelectionRect;
+            if (rect.SnapMode == SnapMode.Element)
+                notifyMessage = $"Element Selection: {rect.SnappedWidth / arranger.ElementPixelSize.Width} x {rect.SnappedHeight / arranger.ElementPixelSize.Height}" +
+                    $" at ({rect.SnappedLeft / arranger.ElementPixelSize.Width}, {rect.SnappedTop / arranger.ElementPixelSize.Height})";
+            else
+                notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight}" +
+                    $" at ({rect.SnappedLeft}, {rect.SnappedTop})";
+
+            ActivityMessage = notifyMessage;
+        }
+        else
+        {
+            var notifyMessage = $"{arranger.Name}: ({(int)Math.Truncate(x)}, {(int)Math.Truncate(y)})";
+            ActivityMessage = notifyMessage;
+        }
+    }
+
+    public virtual void KeyPress(KeyState keyState)
+    {
+    }
+
+    public virtual void MouseWheel(MouseWheelDirection direction, KeyModifiers modifiers)
+    {
     }
 
     #region Commands

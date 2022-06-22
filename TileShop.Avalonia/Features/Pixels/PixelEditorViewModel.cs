@@ -4,6 +4,8 @@ using TileShop.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.ViewExtenders;
 using CommunityToolkit.Mvvm.Input;
+using TileShop.Shared.Input;
+using System;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -130,6 +132,85 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     #endregion
 
     #region Mouse Actions
+    public override void MouseDown(double x, double y, MouseState mouseState)
+    {
+        var bounds = WorkingArranger.ArrangerPixelSize;
+        int xc = Math.Clamp((int)x, 0, bounds.Width - 1);
+        int yc = Math.Clamp((int)y, 0, bounds.Height - 1);
+
+        if (ActiveTool == PixelTool.ColorPicker && mouseState.LeftButtonPressed)
+        {
+            PickColor(xc, yc, ColorPriority.Primary);
+        }
+        else if (ActiveTool == PixelTool.ColorPicker && mouseState.RightButtonPressed)
+        {
+            PickColor(xc, yc, ColorPriority.Secondary);
+        }
+        else if (ActiveTool == PixelTool.Pencil && mouseState.LeftButtonPressed)
+        {
+            StartDraw(xc, yc, ColorPriority.Primary);
+            SetPixel(xc, yc, PrimaryColor);
+        }
+        else if (ActiveTool == PixelTool.Pencil && mouseState.RightButtonPressed)
+        {
+            StartDraw(xc, yc, ColorPriority.Secondary);
+            SetPixel(xc, yc, SecondaryColor);
+        }
+        else if (ActiveTool == PixelTool.FloodFill && mouseState.LeftButtonPressed)
+        {
+            FloodFill(xc, yc, PrimaryColor);
+        }
+        else if (ActiveTool == PixelTool.FloodFill && mouseState.RightButtonPressed)
+        {
+            FloodFill(xc, yc, SecondaryColor);
+        }
+        else
+        {
+            base.MouseDown(x, y, mouseState);
+        }
+    }
+
+    public override void MouseUp(double x, double y, MouseState mouseState)
+    {
+        if (IsDrawing && !mouseState.LeftButtonPressed && !mouseState.RightButtonPressed)
+        {
+            StopDrawing();
+        }
+        else
+        {
+            base.MouseUp(x, y, mouseState);
+        }
+    }
+
+    public override void MouseMove(double x, double y, MouseState mouseState)
+    {
+        var bounds = WorkingArranger.ArrangerPixelSize;
+        int xc = Math.Clamp((int)x, 0, bounds.Width - 1);
+        int yc = Math.Clamp((int)y, 0, bounds.Height - 1);
+
+        if (x < 0 || x >= bounds.Width || y < 0 || y >= bounds.Height)
+            return;
+
+        if (IsDrawing && ActiveTool == PixelTool.Pencil && mouseState.LeftButtonPressed)
+            SetPixel(xc, yc, PrimaryColor);
+        else if (IsDrawing && ActiveTool == PixelTool.Pencil && mouseState.RightButtonPressed)
+            SetPixel(xc, yc, SecondaryColor);
+        else
+            base.MouseMove(x, y, mouseState);
+    }
+
+    public override void MouseLeave()
+    {
+        if (ActiveTool == PixelTool.Pencil && IsDrawing)
+        {
+            StopDrawing();
+        }
+        else
+        {
+            base.MouseLeave();
+        }
+    }
+
     //public override void StartDrag(IDragInfo dragInfo)
     //{
     //    if (Selection.HasSelection)

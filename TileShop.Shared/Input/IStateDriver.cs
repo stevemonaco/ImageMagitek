@@ -2,7 +2,7 @@
 
 public interface IStateDriver
 {
-    public void MouseMove(double x, double y);
+    public void MouseMove(double x, double y, MouseState mouseState);
     public void MouseEnter();
     public void MouseLeave();
     public void MouseDown(double x, double y, MouseState mouseState);
