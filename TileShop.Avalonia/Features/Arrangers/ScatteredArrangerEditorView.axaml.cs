@@ -17,11 +17,6 @@ public partial class ScatteredArrangerEditorView : UserControl
 {
     private readonly Image _image;
     private readonly ZoomBorder _zoomBorder;
-    
-    private SKBitmap _bitmap;
-    private RenderTargetBitmap _renderTarget;
-    private ISkiaDrawingContextImpl _skiaContext;
-
     private ScatteredArrangerEditorViewModel? _viewModel;
 
     public ScatteredArrangerEditorView()
@@ -36,38 +31,11 @@ public partial class ScatteredArrangerEditorView : UserControl
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override void EndInit()
-    {
-        //_bitmap = new SKBitmap(_viewModel.WorkingArranger.ArrangerPixelSize.Width, _viewModel.WorkingArranger.ArrangerPixelSize.Height);
-        //_renderTarget = new RenderTargetBitmap(new PixelSize(_viewModel.WorkingArranger.ArrangerPixelSize.Width, _viewModel.WorkingArranger.ArrangerPixelSize.Height), new Avalonia.Vector(96, 96));
-
-        //var context = _renderTarget.CreateDrawingContext(null);
-        //_skiaContext = context as ISkiaDrawingContextImpl;
-        //_skiaContext.SkCanvas.Clear(new SKColor(200, 255, 255));
-
-        base.EndInit();
-    }
-
-    public override void Render(DrawingContext context)
-    {
-        context.DrawImage(_renderTarget,
-                        new Rect(0, 0, _renderTarget.PixelSize.Width, _renderTarget.PixelSize.Height),
-                        new Rect(0, 0, Width, Height)
-                        );
-    }
-
     protected override void OnDataContextChanged(EventArgs e)
     {
         if (DataContext is ScatteredArrangerEditorViewModel vm)
         {
             _viewModel = vm;
-
-            _bitmap = new SKBitmap(_viewModel.WorkingArranger.ArrangerPixelSize.Width, _viewModel.WorkingArranger.ArrangerPixelSize.Height);
-            _renderTarget = new RenderTargetBitmap(new PixelSize(_viewModel.WorkingArranger.ArrangerPixelSize.Width, _viewModel.WorkingArranger.ArrangerPixelSize.Height), new Avalonia.Vector(96, 96));
-
-            var context = _renderTarget.CreateDrawingContext(null);
-            _skiaContext = context as ISkiaDrawingContextImpl;
-            _skiaContext.SkCanvas.Clear(new SKColor(200, 255, 255));
         }
         
         base.OnDataContextChanged(e);
