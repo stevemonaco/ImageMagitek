@@ -526,12 +526,15 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         if (WorkingArranger.ColorType == PixelColorType.Indexed)
         {
             _indexedImage.Render();
-            BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
+            BitmapAdapter.Invalidate();
+            OnImageModified?.Invoke();
+            //BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
         }
         else if (WorkingArranger.ColorType == PixelColorType.Direct)
         {
             _directImage.Render();
             BitmapAdapter.Invalidate();
+            OnImageModified?.Invoke();
         }
     }
 

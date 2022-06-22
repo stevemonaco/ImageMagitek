@@ -77,7 +77,11 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         OnPropertyChanged(nameof(CanRemapColors));
     }
 
-    public override void Render() => BitmapAdapter.Invalidate();
+    public override void Render()
+    {
+        BitmapAdapter.Invalidate();
+        OnImageModified?.Invoke();
+    }
 
     protected override void ReloadImage() => _indexedImage.Render();
 
@@ -215,6 +219,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
                 {
                     IsModified = true;
                     BitmapAdapter.Invalidate(x, y, 1, 1);
+                    OnImageModified?.Invoke();
                 }
                 return new NotifyOperationEvent("");
             },

@@ -26,8 +26,11 @@ public partial class IndexedPixelEditorView : UserControl
 
     protected override void OnDataContextChanged(EventArgs e)
     {
-        _viewModel = (IndexedPixelEditorViewModel)DataContext!;
-        //_stateDriver = new(_viewModel);
+        if (DataContext is IndexedPixelEditorViewModel vm)
+        {
+            _viewModel = vm;
+            _viewModel.OnImageModified = () => _image.InvalidateVisual();
+        }
         base.OnDataContextChanged(e);
     }
 

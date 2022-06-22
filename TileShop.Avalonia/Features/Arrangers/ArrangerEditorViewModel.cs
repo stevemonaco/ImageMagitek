@@ -77,6 +77,8 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     public bool CanAcceptPixelPastes { get; set; }
     public bool CanAcceptElementPastes { get; set; }
 
+    public Action OnImageModified { get; set; }
+
     public ArrangerEditorViewModel(IWindowManager windowManager, IPaletteService paletteService)
     {
         _windowManager = windowManager;

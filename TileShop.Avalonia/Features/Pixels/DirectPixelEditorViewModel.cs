@@ -52,7 +52,11 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
         CreateGridlines();
     }
 
-    public override void Render() => BitmapAdapter.Invalidate();
+    public override void Render()
+    {
+        BitmapAdapter.Invalidate();
+        OnImageModified?.Invoke();
+    }
 
     protected override void ReloadImage() => _directImage.Render();
 

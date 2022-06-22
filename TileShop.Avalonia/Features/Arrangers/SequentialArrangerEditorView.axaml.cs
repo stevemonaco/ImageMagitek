@@ -32,6 +32,7 @@ public partial class SequentialArrangerEditorView : UserControl
         if (DataContext is SequentialArrangerEditorViewModel vm)
         {
             _viewModel = vm;
+            _viewModel.OnImageModified = () => _image.InvalidateVisual();
         }
         base.OnDataContextChanged(e);
     }

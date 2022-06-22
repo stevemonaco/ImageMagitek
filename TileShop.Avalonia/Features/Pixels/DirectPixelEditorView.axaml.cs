@@ -25,7 +25,11 @@ public partial class DirectPixelEditorView : UserControl
 
     protected override void OnDataContextChanged(EventArgs e)
     {
-        _viewModel = (DirectPixelEditorViewModel)DataContext!;
+        if (DataContext is DirectPixelEditorViewModel vm)
+        {
+            _viewModel = vm;
+            _viewModel.OnImageModified = () => _image.InvalidateVisual();
+        }
         base.OnDataContextChanged(e);
     }
 
