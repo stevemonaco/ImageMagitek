@@ -9,12 +9,7 @@
 			 x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="TileShop.AvaloniaUI.Views.ProjectTreeView">
-  	<TreeView x:Name="treeView" Items="{Binding Projects}" SelectedItem="{Binding SelectedNode}">
-		<i:Interaction.Behaviors>
-			<ia:EventTriggerBehavior EventName="DoubleTapped" SourceObject="{Binding #treeView}">
-				<ia:InvokeCommandAction Command="{Binding ActivateSelectedNodeCommand}" />
-			</ia:EventTriggerBehavior>
-		</i:Interaction.Behaviors>
+  	<TreeView x:Name="treeView" Items="{Binding Projects}" SelectedItem="{Binding SelectedNode}" DoubleTapped="ProjectTree_DoubleTapped">
 		<TreeView.DataTemplates>
 			<TreeDataTemplate DataType="vm:ProjectNodeViewModel" x:DataType="vm:ProjectNodeViewModel" ItemsSource="{Binding Children}">
 				<Grid ColumnDefinitions="auto,*">
