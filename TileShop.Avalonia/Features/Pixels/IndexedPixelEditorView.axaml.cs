@@ -36,13 +36,17 @@ public partial class IndexedPixelEditorView : UserControl
 
     private void OnPaletteEntryPressed(object sender, PointerPressedEventArgs e)
     {
-        var entry = (PaletteEntry)sender!;
-        var properties = e.GetCurrentPoint(this).Properties;
+        if ((sender as Control)?.DataContext is PaletteEntry entry && _viewModel is not null)
+        {
+            var properties = e.GetCurrentPoint(this).Properties;
 
-        if (properties.IsLeftButtonPressed)
-            _viewModel.SetPrimaryColor(entry.Index);
-        else if (properties.IsRightButtonPressed)
-            _viewModel.SetSecondaryColor(entry.Index);
+            if (properties.IsLeftButtonPressed)
+                _viewModel?.SetPrimaryColor(entry.Index);
+            else if (properties.IsRightButtonPressed)
+                _viewModel?.SetSecondaryColor(entry.Index);
+
+            e.Handled = true;
+        }
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)

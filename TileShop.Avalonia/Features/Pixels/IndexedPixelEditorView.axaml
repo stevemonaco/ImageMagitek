@@ -161,11 +161,10 @@
                             BorderBrush="Black"
                             BorderThickness="1" PointerPressed="OnPaletteEntryPressed">
 							<Border BorderBrush="White" BorderThickness="1">
-								<!--<Rectangle
+								<Rectangle
                                     Width="28"
                                     Height="28"
-                                    Fill="{Binding Converter={StaticResource PaletteEntryToSolidColorBrushConverter}}">
-								</Rectangle>-->
+									Fill="{Binding Converter={x:Static con:AppConverters.PaletteEntryToSolidColorBrush}}" />
 							</Border>
 						</Border>
 					</DataTemplate>

@@ -2,6 +2,7 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using ImageMagitek.Colors;
+using TileShop.AvaloniaUI.Models;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.Shared.Models;
 
@@ -26,4 +27,7 @@ public static class AppConverters
 
     public static readonly IValueConverter ColorRgba32ToMediaColor =
         new FuncValueConverter<ColorRgba32, Color>(c => new Color(c.A, c.R, c.G, c.B));
+
+    public static readonly IValueConverter PaletteEntryToSolidColorBrush =
+        new FuncValueConverter<PaletteEntry, SolidColorBrush>(p => new SolidColorBrush(p.Color));
 }
