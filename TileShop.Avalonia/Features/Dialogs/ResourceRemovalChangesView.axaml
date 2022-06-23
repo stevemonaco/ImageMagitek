@@ -6,35 +6,38 @@
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
 			 xmlns:m="using:TileShop.Shared.Models"
 			 xmlns:sys="using:System"
+			 xmlns:selectors="using:TileShop.AvaloniaUI.Selectors"
 			 x:DataType="vm:ResourceRemovalChangesViewModel"
 			 x:CompileBindings="True"
-             x:Class="TileShop.AvaloniaUI.Features.Dialogs.ResourceRemovalChangesView">
-	<!--<UserControl.DataTemplates>
-		<DataTemplate x:DataType="vm" x:Key="arrangerTemplate">
-			<StackPanel Orientation="Horizontal">
-				<Image Style="{StaticResource iconNodeArrangerSmall}" />
-				<TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
-			</StackPanel>
-		</DataTemplate>
-		<DataTemplate x:Key="fileTemplate">
-			<StackPanel Orientation="Horizontal">
-				<Image Style="{StaticResource iconNodeFileSmall}" />
-				<TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
-			</StackPanel>
-		</DataTemplate>
-		<DataTemplate x:Key="paletteTemplate">
-			<StackPanel Orientation="Horizontal">
-				<Image Style="{StaticResource iconNodePaletteSmall}" />
-				<TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
-			</StackPanel>
-		</DataTemplate>
-		<DataTemplate x:Key="folderTemplate">
-			<StackPanel Orientation="Horizontal">
-				<Image Style="{StaticResource iconNodeFolderSmall}" />
-				<TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
-			</StackPanel>
-		</DataTemplate>
-	</UserControl.DataTemplates>-->
+             x:Class="TileShop.AvaloniaUI.Views.ResourceRemovalChangesView">
+	<UserControl.DataTemplates>
+		<selectors:ResourceRemovalTemplateSelector>
+			<DataTemplate x:Key="arranger" DataType="m:ResourceChangeViewModel">
+				<StackPanel Orientation="Horizontal">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeArranger}" RenderTransform="{StaticResource verticalFlipTransform}" />
+					<TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
+				</StackPanel>
+			</DataTemplate>
+			<DataTemplate x:Key="file" DataType="m:ResourceChangeViewModel">
+				<StackPanel Orientation="Horizontal">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeFile}" />
+					<TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
+				</StackPanel>
+			</DataTemplate>
+			<DataTemplate x:Key="palette" DataType="m:ResourceChangeViewModel">
+				<StackPanel Orientation="Horizontal">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodePalette}" />
+					<TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
+				</StackPanel>
+			</DataTemplate>
+			<DataTemplate x:Key="folder" DataType="m:ResourceChangeViewModel">
+				<StackPanel Orientation="Horizontal">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeFolder}" RenderTransform="{StaticResource verticalFlipTransform}" />
+					<TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
+				</StackPanel>
+			</DataTemplate>
+		</selectors:ResourceRemovalTemplateSelector>
+	</UserControl.DataTemplates>
 	
 	<Grid RowDefinitions="*,auto" Margin="10,0,10,0">
 		<ScrollViewer
@@ -56,7 +59,7 @@
                     IsVisible="{Binding HasRemovedResources}">
 					<ItemsControl.ItemTemplate>
 						<DataTemplate DataType="m:ResourceChangeViewModel">
-							<TextBlock Text="{Binding ResourceName}" />
+							<ContentControl Content="{Binding}" />
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>

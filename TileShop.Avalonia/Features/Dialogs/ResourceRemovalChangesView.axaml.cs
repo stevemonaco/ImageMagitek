@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace TileShop.AvaloniaUI.Features.Dialogs;
+namespace TileShop.AvaloniaUI.Views;
 public partial class ResourceRemovalChangesView : UserControl
 {
     public ResourceRemovalChangesView()
