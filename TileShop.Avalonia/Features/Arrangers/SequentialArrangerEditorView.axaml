@@ -7,11 +7,44 @@
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
 			 xmlns:b="using:TileShop.AvaloniaUI.Behaviors"
 			 xmlns:i="using:Avalonia.Xaml.Interactivity"
+			 xmlns:dd="using:TileShop.AvaloniaUI.DragDrop"
+			 xmlns:id="using:Avalonia.Xaml.Interactions.Draggable"
+			 xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop"
 			 xmlns:paz="using:Avalonia.Controls.PanAndZoom"
 			 x:DataType="vm:SequentialArrangerEditorViewModel"
 			 x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="TileShop.AvaloniaUI.Views.SequentialArrangerEditorView">
+
+	<UserControl.Resources>
+		<dd:ArrangerPasteDragHandler x:Key="ArrangerPasteDragHandler" />
+		<dd:ArrangerPasteDropHandler x:Key="ArrangerPasteDropHandler" />
+	</UserControl.Resources>
+
+	<UserControl.Styles>
+		<Style Selector=":is(Control).dragsource">
+			<Setter Property="ZIndex" Value="0" />
+			<Setter Property="(i:Interaction.Behaviors)">
+				<i:BehaviorCollectionTemplate>
+					<i:BehaviorCollection>
+						<idd:ContextDragBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDragHandler}" />
+					</i:BehaviorCollection>
+				</i:BehaviorCollectionTemplate>
+			</Setter>
+		</Style>
+
+		<Style Selector=":is(Control).droptarget">
+			<Setter Property="(DragDrop.AllowDrop)" Value="True" />
+			<Setter Property="ZIndex" Value="0" />
+			<Setter Property="(i:Interaction.Behaviors)">
+				<i:BehaviorCollectionTemplate>
+					<i:BehaviorCollection>
+						<idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDropHandler}" />
+					</i:BehaviorCollection>
+				</i:BehaviorCollectionTemplate>
+			</Setter>
+		</Style>
+	</UserControl.Styles>
 
 	<UserControl.KeyBindings>
 		<KeyBinding Gesture="OemPlus" Command="{Binding MoveByteDownCommand}" />
@@ -251,8 +284,8 @@
 		<ScrollViewer x:Name="scroll"
 			Grid.Row="1"
 			Focusable="True"
-			HorizontalScrollBarVisibility="Auto"
-			VerticalScrollBarVisibility="Auto">
+			HorizontalScrollBarVisibility="Disabled"
+			VerticalScrollBarVisibility="Disabled">
 
 			<paz:ZoomBorder x:Name="zoomBorder" Margin="2" Stretch="None" ZoomSpeed="2" EnablePan="False" PowerFactor="0" 
 				EnableConstrains="True" MinOffsetY="0" MinOffsetX="0" MaxOffsetY="0" MaxOffsetX="0"
@@ -278,13 +311,21 @@
 						</ContextMenu>
 					</Grid.ContextMenu>
 
-					<!--  Arranger Image  -->
-					<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap, Mode=OneWay}"
-							PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
+					<!--  Image and Selection Overlay  -->
+					<Canvas
+						x:Name="overlayCanvas"
+						Width="{Binding BitmapAdapter.Width}"
+						Height="{Binding BitmapAdapter.Height}"
+						PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased"
+						ClipToBounds="True">
 
-					<!--  Selection Overlay  -->
-					<Canvas>
+						<!--  Arranger Image  -->
+						<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap, Mode=OneWay}"
+								PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
+
+						<!--  Selection Overlay  -->
 						<Rectangle
+							Classes="dragsource"
 							Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
 							Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
 							Width="{Binding Selection.SelectionRect.SnappedWidth}"
@@ -302,7 +343,9 @@
 					<ItemsControl
 						IsHitTestVisible="False"
 						Items="{Binding Gridlines}"
-						ClipToBounds="False"
+						ClipToBounds="True"
+						MaxWidth="{Binding BitmapAdapter.Width}"
+						MaxHeight="{Binding BitmapAdapter.Height}"
 						IsVisible="{Binding ShowGridlines}">
 						<ItemsControl.ItemsPanel>
 							<ItemsPanelTemplate>

@@ -22,7 +22,7 @@
 	</UserControl.Resources>
 
 	<UserControl.Styles>
-		<Style Selector=":is(Image).dragsource">
+		<Style Selector=":is(Control).dragsource">
 			<Setter Property="ZIndex" Value="0" />
 			<Setter Property="(i:Interaction.Behaviors)">
 				<i:BehaviorCollectionTemplate>
@@ -33,54 +33,9 @@
 			</Setter>
 		</Style>
 
-		<Style Selector=":is(Image).droptarget">
+		<Style Selector=":is(Control).droptarget">
 			<Setter Property="(DragDrop.AllowDrop)" Value="True" />
 			<Setter Property="ZIndex" Value="0" />
-			<Setter Property="(i:Interaction.Behaviors)">
-				<i:BehaviorCollectionTemplate>
-					<i:BehaviorCollection>
-						<idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDropHandler}" />
-					</i:BehaviorCollection>
-				</i:BehaviorCollectionTemplate>
-			</Setter>
-		</Style>
-
-		<Style Selector=":is(Canvas).dragsource">
-			<Setter Property="ZIndex" Value="0" />
-			<Setter Property="(i:Interaction.Behaviors)">
-				<i:BehaviorCollectionTemplate>
-					<i:BehaviorCollection>
-						<idd:ContextDragBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDragHandler}" />
-					</i:BehaviorCollection>
-				</i:BehaviorCollectionTemplate>
-			</Setter>
-		</Style>
-
-		<Style Selector=":is(Canvas).droptarget">
-			<Setter Property="(DragDrop.AllowDrop)" Value="True" />
-			<Setter Property="ZIndex" Value="0" />
-			<Setter Property="(i:Interaction.Behaviors)">
-				<i:BehaviorCollectionTemplate>
-					<i:BehaviorCollection>
-						<idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDropHandler}" />
-					</i:BehaviorCollection>
-				</i:BehaviorCollectionTemplate>
-			</Setter>
-		</Style>
-
-		<Style Selector=":is(Rectangle).dragsource">
-			<Setter Property="(i:Interaction.Behaviors)">
-				<i:BehaviorCollectionTemplate>
-					<i:BehaviorCollection>
-						<idd:ContextDragBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDragHandler}" />
-						<!--<b:ArrangerPasteDragBehavior DataType="{x:Type m:ArrangerPaste}" />-->
-					</i:BehaviorCollection>
-				</i:BehaviorCollectionTemplate>
-			</Setter>
-		</Style>
-
-		<Style Selector=":is(Rectangle).droptarget">
-			<Setter Property="(DragDrop.AllowDrop)" Value="True" />
 			<Setter Property="(i:Interaction.Behaviors)">
 				<i:BehaviorCollectionTemplate>
 					<i:BehaviorCollection>
@@ -278,12 +233,12 @@
 
 			<paz:ZoomBorder Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
 				<Grid>
-					<!--  Selection and Paste Overlay  -->
+					<!--  Image, Selection, and Paste Overlay  -->
 					<Canvas
 						x:Name="overlayCanvas"
 						Classes="droptarget"
-						MaxWidth="{Binding BitmapAdapter.Width}"
-						MaxHeight="{Binding BitmapAdapter.Height}"
+						Width="{Binding BitmapAdapter.Width}"
+						Height="{Binding BitmapAdapter.Height}"
 						PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased"
 						ClipToBounds="True">
 
@@ -292,12 +247,14 @@
 							x:Name="arrangerBackdrop"
 							Width="{Binding BitmapAdapter.Width}" Height="{Binding BitmapAdapter.Height}"
 							Stretch="None"
+							ClipToBounds="True"
 							Fill="{DynamicResource CheckeredBrush}"/>
 
 						<!--  Arranged Image  -->
 						<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}"
 							   PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 
+						<!--  Selection Overlay  -->
 						<Rectangle
 							Classes="dragsource"
 							Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
@@ -311,6 +268,7 @@
 							StrokeThickness="0.3"
 							IsVisible="{Binding Selection.HasSelection}" />
 
+						<!--  Paste Overlay  -->
 						<Rectangle
 							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
 							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
@@ -321,6 +279,7 @@
 							StrokeDashArray="3,2"
 							StrokeThickness="0.3" />
 
+						<!--  Paste Image  -->
 						<Image
 							Classes="dragsource"
 							x:Name="pasteImage"
@@ -338,7 +297,7 @@
 					<ItemsControl
 						IsHitTestVisible="False"
 						Items="{Binding Gridlines}"
-						ClipToBounds="False"
+						ClipToBounds="True"
 						MaxWidth="{Binding BitmapAdapter.Width}"
 						MaxHeight="{Binding BitmapAdapter.Height}"
 						IsVisible="{Binding ShowGridlines}">
