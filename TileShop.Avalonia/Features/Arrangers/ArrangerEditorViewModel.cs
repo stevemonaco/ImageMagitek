@@ -12,6 +12,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
 using TileShop.Shared.Input;
+using TileShop.Shared.Dialogs;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 

@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.ViewExtenders;
+using TileShop.Shared.Dialogs;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -24,16 +25,16 @@ public partial class ResizeTiledScatteredArrangerViewModel : DialogViewModel<Res
         Height = originalHeight;
         Title = "Resize Scattered Arranger";
     }
-
-    public override void Ok(ResizeTiledScatteredArrangerViewModel? result)
+    
+    public override async void Ok(ResizeTiledScatteredArrangerViewModel? result)
     {
-        //if (Width < OriginalWidth || Height < OriginalHeight)
-        //{
-        //    var result = _windowManager.ShowMessageBox("The specified dimensions will shrink the arranger. Elements outside of the new arranger dimensions will be lost. Continue?", buttons: MessageBoxButton.YesNo);
+        if (Width < OriginalWidth || Height < OriginalHeight)
+        {
+            var boxResult = await _windowManager.ShowMessageBox("The specified dimensions will shrink the arranger. Elements outside of the new arranger dimensions will be lost. Continue?", PromptChoice.YesNo);
 
-        //    if (result != MessageBoxResult.Yes)
-        //        return;
-        //}
+            if (boxResult == PromptResult.No)
+                return;
+        }
 
         base.Ok(result);
     }

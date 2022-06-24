@@ -7,11 +7,11 @@ using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
 using TileShop.Shared.EventModels;
+using TileShop.Shared.Dialogs;
 using Jot;
 using Serilog;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using TileShop.AvaloniaUI.ViewExtenders;
 using System.Collections.ObjectModel;
 
@@ -72,7 +72,7 @@ public partial class EditorsViewModel : ObservableRecipient
                     _projectService.SaveProject(projectTree)
                     .Switch(
                         success => { },
-                        fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
+                        fail => _windowManager.ShowMessageBox("", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                     );
                 }
             }
@@ -167,7 +167,7 @@ public partial class EditorsViewModel : ObservableRecipient
                 _projectService.SaveProject(projectTree)
                  .Switch(
                      success => { },
-                     fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}:\n{fail.Reason}")
+                     fail => _windowManager.ShowMessageBox("", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}:\n{fail.Reason}")
                  );
             }
 
@@ -175,7 +175,7 @@ public partial class EditorsViewModel : ObservableRecipient
         }
         catch (Exception ex)
         {
-            _windowManager.ShowMessageBox(ex.Message);
+            _windowManager.ShowMessageBox("", ex.Message);
             Log.Error(ex, "Unhandled exception");
             return false;
         }
@@ -189,34 +189,34 @@ public partial class EditorsViewModel : ObservableRecipient
     /// <returns>Action requested by user</returns>
     public UserSaveAction RequestSaveUserChanges(ResourceEditorBaseViewModel editor, bool saveTree)
     {
-        //if (editor.IsModified)
-        //{
-        //    var result = _windowManager.ShowMessageBox($"'{editor.DisplayName}' has been modified and will be closed. Save changes?",
-        //        "Save changes", MessageBoxButton.YesNoCancel, buttonLabels: _messageBoxLabels);
+        if (editor.IsModified)
+        {
+            var result = _windowManager.ShowMessageBoxSync($"'{editor.DisplayName}' has been modified and will be closed. Save changes?",
+                PromptChoice.YesNoCancel, "Save changes");
 
-        //    if (result == MessageBoxResult.Yes)
-        //    {
-        //        editor.SaveChanges();
-        //        if (saveTree)
-        //        {
-        //            var projectTree = _projectService.GetContainingProject(editor.Resource);
-        //            _projectService.SaveProject(projectTree)
-        //             .Switch(
-        //                 success => { },
-        //                 fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
-        //             );
-        //        }
+            if (result == PromptResult.Yes)
+            {
+                editor.SaveChanges();
+                if (saveTree)
+                {
+                    var projectTree = _projectService.GetContainingProject(editor.Resource);
+                    _projectService.SaveProject(projectTree)
+                     .Switch(
+                         success => { },
+                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
+                     );
+                }
 
-        //        return UserSaveAction.Save;
-        //    }
-        //    else if (result == MessageBoxResult.No)
-        //    {
-        //        editor.DiscardChanges();
-        //        return UserSaveAction.Discard;
-        //    }
-        //    else if (result == MessageBoxResult.Cancel)
-        //        return UserSaveAction.Cancel;
-        //}
+                return UserSaveAction.Save;
+            }
+            else if (result == PromptResult.No)
+            {
+                editor.DiscardChanges();
+                return UserSaveAction.Discard;
+            }
+            else if (result == PromptResult.Cancel)
+                return UserSaveAction.Cancel;
+        }
 
         return UserSaveAction.Unmodified;
     }

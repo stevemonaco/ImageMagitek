@@ -2,9 +2,9 @@
 using ImageMagitek.Services;
 using TileShop.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.AvaloniaUI.ViewExtenders;
 using CommunityToolkit.Mvvm.Input;
 using TileShop.Shared.Input;
+using TileShop.Shared.Dialogs;
 using System;
 
 namespace TileShop.AvaloniaUI.ViewModels;

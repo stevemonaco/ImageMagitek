@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.ObjectModel;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Services;
 using TileShop.Shared.EventModels;
 using TileShop.AvaloniaUI.Imaging;
 using TileShop.AvaloniaUI.Models;
-using TileShop.AvaloniaUI.ViewExtenders;
+using TileShop.Shared.Dialogs;
 using TileShop.Shared.Models;
 using ImageMagitek.Image;
 using ImageMagitek.ExtensionMethods;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Collections.ObjectModel;
 
 using Point = System.Drawing.Point;
 using CommunityToolkit.Mvvm.Input;

@@ -9,9 +9,9 @@ using TileShop.Shared.EventModels;
 using ImageMagitek.Image;
 using System.Drawing;
 using ImageMagitek.ExtensionMethods;
-using TileShop.AvaloniaUI.ViewExtenders;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using TileShop.Shared.Dialogs;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 

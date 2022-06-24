@@ -374,7 +374,9 @@ public class ProjectService : IProjectService
         var tree = _projects.FirstOrDefault(x => x.ContainsNode(node));
 
         if (node.Parent is not null && node.Parent.ContainsChildNode(newName))
-            return new MagitekResult.Failed($"Parent node '{tree.CreatePathKey(node.Parent)}' already contains a node named '{newName}'");
+        {
+            return new MagitekResult.Failed($"Parent node '{node.Parent.Name}' already contains a node named '{newName}'");
+        }
 
         var oldLocation = node.DiskLocation;
         var oldName = node.Name;

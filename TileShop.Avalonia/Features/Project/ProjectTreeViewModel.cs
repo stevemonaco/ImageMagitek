@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -14,6 +15,7 @@ using ImageMagitek.Services;
 using Jot;
 using Monaco.PathTree;
 using TileShop.AvaloniaUI.ViewExtenders;
+using TileShop.Shared.Dialogs;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Models;
 using TileShop.Shared.Services;
@@ -269,25 +271,6 @@ public partial class ProjectTreeViewModel : ToolViewModel
         {
             var modifiedEditors = _editors.Editors.Where(x => x.IsModified);
 
-            //if (modifiedEditors.Any())
-            //{
-            //    var boxResult = _windowManager.ShowMessageBox("The project contains modified items which must be saved or discarded before removing any items", "Save changes",
-            //        MessageBoxButton.YesNoCancel, buttonLabels: _messageBoxLabels);
-
-            //    if (boxResult == MessageBoxResult.Yes)
-            //    {
-            //        foreach (var editor in modifiedEditors)
-            //            editor.SaveChanges();
-            //    }
-            //    else if (boxResult == MessageBoxResult.No)
-            //    {
-            //        foreach (var editor in modifiedEditors)
-            //            editor.DiscardChanges();
-            //    }
-            //    else if (boxResult == MessageBoxResult.Cancel)
-            //        return;
-            //}
-
             _editors.Editors.Clear();
             _editors.ActiveEditor = null;
 
@@ -398,7 +381,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
                     var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, newName, oldName);
                     Messenger.Send(renameEvent);
                 },
-                fail => { }); //_windowManager.ShowMessageBox(fail.Reason, icon: MessageBoxImage.Error));
+                fail => _windowManager.ShowMessageBox(fail.Reason, "Rename failed")); //, icon: MessageBoxImage.Error); );
         }
     }
 
@@ -622,68 +605,74 @@ public partial class ProjectTreeViewModel : ToolViewModel
             });
     }
 
-    public bool CloseProject(ProjectNodeViewModel projectVM)
+    public async Task<bool> CloseProject(ProjectNodeViewModel projectVM)
     {
         var projectTree = _projectService.GetContainingProject(projectVM.Node);
 
-        return _projectService.SaveProject(projectTree).Match(
-            success =>
-            {
-                var activeContainedEditors = _editors.Editors.Where(x => projectTree.ContainsResource(x.Resource));
-                var activeSequentialEditors = _editors.Editors
-                    .OfType<SequentialArrangerEditorViewModel>()
-                    .Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataSource));
-                var activeIndexedPixelEditors = _editors.Editors
-                    .OfType<IndexedPixelEditorViewModel>()
-                    .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
-                var activeDirectPixelEditors = _editors.Editors
-                    .OfType<DirectPixelEditorViewModel>()
-                    .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
+        var projectSaveResult = _projectService.SaveProject(projectTree);
 
-                var removedEditors = new HashSet<ResourceEditorBaseViewModel>(activeContainedEditors);
-                removedEditors.UnionWith(activeSequentialEditors);
-                removedEditors.UnionWith(activeIndexedPixelEditors);
-                removedEditors.UnionWith(activeDirectPixelEditors);
+        if (projectSaveResult.HasSucceeded)
+        {
+            var activeContainedEditors = _editors.Editors.Where(x => projectTree.ContainsResource(x.Resource));
+            var activeSequentialEditors = _editors.Editors
+                .OfType<SequentialArrangerEditorViewModel>()
+                .Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataSource));
+            var activeIndexedPixelEditors = _editors.Editors
+                .OfType<IndexedPixelEditorViewModel>()
+                .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
+            var activeDirectPixelEditors = _editors.Editors
+                .OfType<DirectPixelEditorViewModel>()
+                .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
 
-                var remainingEditors = _editors.Editors
-                    .Where(x => !removedEditors.Contains(x));
+            var removedEditors = new HashSet<ResourceEditorBaseViewModel>(activeContainedEditors);
+            removedEditors.UnionWith(activeSequentialEditors);
+            removedEditors.UnionWith(activeIndexedPixelEditors);
+            removedEditors.UnionWith(activeDirectPixelEditors);
 
-                if (removedEditors.Any(x => _editors.RequestSaveUserChanges(x, false) == UserSaveAction.Cancel))
-                    return false;
+            var remainingEditors = _editors.Editors
+                .Where(x => !removedEditors.Contains(x));
 
-                for (int i = 0; i < _editors.Editors.Count; i++)
-                {
-                    if (!remainingEditors.Contains(_editors.Editors[i]))
-                        _editors.Editors.Remove(_editors.Editors[i]);
-                }
+            bool hasCanceled = false;
 
-                _editors.Editors = new(remainingEditors);
-                _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
-
-                _projectService.SaveProject(projectTree)
-                 .Switch(
-                     success => IsModified = false,
-                     fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
-                 );
-
-                _projectService.CloseProject(projectTree);
-                Projects.Remove(projectVM);
-                OnPropertyChanged(nameof(HasProject));
-                return true;
-            },
-            fail =>
-            {
-                _windowManager.ShowMessageBox(fail.Reason, "Project Save Error");
+            if (removedEditors.Any(x => _editors.RequestSaveUserChanges(x, false) == UserSaveAction.Cancel))
                 return false;
-            });
+
+            for (int i = 0; i < _editors.Editors.Count; i++)
+            {
+                if (!remainingEditors.Contains(_editors.Editors[i]))
+                    _editors.Editors.Remove(_editors.Editors[i]);
+            }
+
+            _editors.Editors = new(remainingEditors);
+            _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
+
+            _projectService.SaveProject(projectTree)
+             .Switch(
+                 success => IsModified = false,
+                 fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
+             );
+
+            _projectService.CloseProject(projectTree);
+            Projects.Remove(projectVM);
+            OnPropertyChanged(nameof(HasProject));
+            return true;
+        }
+        else if (projectSaveResult.HasFailed)
+        {
+            await _windowManager.ShowMessageBox(projectSaveResult.AsError.Reason, "Project Save Error");
+            return false;
+        }
+
+        return false;
     }
 
     [RelayCommand]
-    public void CloseAllProjects()
+    public async void CloseAllProjects()
     {
         while (Projects.Count > 0)
         {
-            if (!CloseProject(Projects.First()))
+            var result = await CloseProject(Projects.First());
+            if (result is false)
                 return;
         }
     }

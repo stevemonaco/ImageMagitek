@@ -41,23 +41,9 @@ public partial class ShellView : Window
         _dockFactory.InitLayout(layout);
 
         _dockFactory.FocusedDockableChanged += Factory_FocusedDockableChanged;
-        _dockFactory.DockableClosed += Factory_DockableClosed;
-        _dockFactory.WindowClosed += Factory_WindowClosed;
 
         var dock = this.FindControl<DockControl>("dock");
         dock.Layout = layout;
-    }
-
-    private void Factory_WindowClosed(object? sender, Dock.Model.Core.Events.WindowClosedEventArgs e)
-    {
-    }
-
-    private void Factory_DockableClosed(object? sender, Dock.Model.Core.Events.DockableClosedEventArgs e)
-    {
-        if (e.Dockable is DockableEditorViewModel dockEditor)
-        {
-            _viewModel.Editors.CloseEditor(dockEditor.Editor);
-        }
     }
 
     private void Factory_FocusedDockableChanged(object? sender, Dock.Model.Core.Events.FocusedDockableChangedEventArgs e)
@@ -67,7 +53,6 @@ public partial class ShellView : Window
             _viewModel.Editors.ActiveEditor = dock.Editor;
         }
     }
-
 
     public void LoadLayout(object sender, RoutedEventArgs e)
     {

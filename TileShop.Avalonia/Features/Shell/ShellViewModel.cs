@@ -31,12 +31,6 @@ public partial class ShellViewModel : ObservableObject
 
         _editors.Shell = this;
         _activeMenu.Shell = this;
-
-        //var factory = new DockFactory(ActiveTree);
-        //var layout = factory.CreateLayout();
-        //factory.InitLayout(layout);
-
-        //Layout = layout;
     }
 
     [RelayCommand]
@@ -47,7 +41,9 @@ public partial class ShellViewModel : ObservableObject
 
     public void RequestApplicationExit()
     {
-        if (Editors.RequestSaveAllUserChanges())
+        var canClose = Editors.RequestSaveAllUserChanges();
+
+        if (canClose)
         {
             _projectService.CloseProjects();
             _tracker.PersistAll();

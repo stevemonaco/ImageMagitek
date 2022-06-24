@@ -1,8 +1,7 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace TileShop.AvaloniaUI.ViewExtenders;
+namespace TileShop.Shared.Dialogs;
 public interface IDialogMediator<TResult> : INotifyPropertyChanged
 {
     TResult? DialogResult { get; set; }

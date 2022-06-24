@@ -17,6 +17,7 @@ using Monaco.PathTree;
 using TileShop.Shared.EventModels;
 using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Input;
+using TileShop.Shared.Dialogs;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -121,7 +122,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
                      IsModified = false;
                  },
-                 fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
+                 fail => _windowManager.ShowMessageBox("", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
              );
     }
 

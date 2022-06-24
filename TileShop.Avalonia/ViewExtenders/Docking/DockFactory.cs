@@ -38,7 +38,7 @@ public class DockFactory : Factory
             CanFloat = false
         };
 
-        var documents = _editorsVm.Editors.Select(x => new DockableEditorViewModel(x) as IDockable).ToArray();
+        var documents = _editorsVm.Editors.Select(x => new DockableEditorViewModel(x, _editorsVm) as IDockable).ToArray();
 
         _documentDock = new DocumentDock
         {
@@ -47,7 +47,7 @@ public class DockFactory : Factory
             Proportion = double.NaN,
             IsCollapsable = false,
             CanClose = false,
-            VisibleDockables = CreateList(_editorsVm.Editors.Select(x => new DockableEditorViewModel(x) as IDockable).ToArray()),
+            VisibleDockables = CreateList(_editorsVm.Editors.Select(x => new DockableEditorViewModel(x, _editorsVm) as IDockable).ToArray()),
             CanCreateDocument = false
         };
 
@@ -102,7 +102,7 @@ public class DockFactory : Factory
     {
         if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems![0] is ResourceEditorBaseViewModel newItem)
         {
-            var newDoc = new DockableEditorViewModel(newItem)
+            var newDoc = new DockableEditorViewModel(newItem, _editorsVm)
             {
                 Id = newItem.DisplayName,
                 Title = newItem.DisplayName

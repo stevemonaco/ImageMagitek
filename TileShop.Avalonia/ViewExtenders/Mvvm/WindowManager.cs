@@ -1,41 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using CommunityToolkit.Mvvm.ComponentModel;
+using MessageBox.Avalonia;
+using MessageBox.Avalonia.Enums;
+using TileShop.Shared.Dialogs;
+using TileShop.AvaloniaUI.Windowing;
+using MessageBox.Avalonia.ViewModels;
+using MessageBox.Avalonia.Views;
 
 namespace TileShop.AvaloniaUI.ViewExtenders;
-
-/// <summary>
-/// Manager capable of taking a ViewModel instance, instantiating its View and showing it as a dialog or window
-/// </summary>
-public interface IWindowManager
-{
-    /// <summary>
-    /// Given a ViewModel, show its corresponding View as a window
-    /// </summary>
-    /// <param name="viewModel">ViewModel to show the View for</param>
-    void ShowWindow(object viewModel);
-
-    /// <summary>
-    /// Given a ViewModel, show its corresponding View as a Dialog
-    /// </summary>
-    /// <param name="viewModel">ViewModel to show the View for</param>
-    /// <returns>DialogResult of the View</returns>
-    Task<TResult> ShowDialog<TResult>(IDialogMediator<TResult> mediator);
-    
-    /// <summary>
-    /// Display a MessageBox
-    /// </summary>
-    /// <param name="messageBoxText">A <see cref="System.String"/> that specifies the text to display.</param>
-    /// <param name="caption">A <see cref="System.String"/> that specifies the title bar caption to display.</param>
-    /// <param name="buttonLabels">A dictionary specifying the button labels, if desirable</param>
-    /// <returns>The result chosen by the user</returns>
-    MessageBoxResult ShowMessageBox(string messageBoxText, string caption = "", IDictionary<MessageBoxResult, string> buttonLabels = null);
-}
-
 internal class WindowManager : IWindowManager
 {
     private ViewLocator _viewLocator;
@@ -45,11 +20,83 @@ internal class WindowManager : IWindowManager
         _viewLocator = viewLocator;
     }
 
-    public MessageBoxResult ShowMessageBox(string messageBoxText, string caption = "", IDictionary<MessageBoxResult, string> buttonLabels = null)
+    /// <inheritdoc/>
+    public async Task<PromptResult> ShowMessageBox(string contentMessage, PromptChoice userChoices, string title = "")
     {
-        throw new NotImplementedException();
+        var boxChoices = ChoiceToButton(userChoices);
+
+        var box = MessageBoxManager.GetMessageBoxStandardWindow(
+            new()
+            {
+                ButtonDefinitions = boxChoices,
+                ContentTitle = title,
+                ContentMessage = contentMessage + $"{Environment.NewLine}",
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                CanResize = true,
+                ShowInCenter = true,
+                Topmost = true,
+            });
+
+        var mainWindow = GetWindow();
+
+        var boxResult = await box.ShowDialog(mainWindow);
+        var userResult = ButtonResultToChoice(boxResult);
+
+        return userResult;
     }
 
+    /// <inheritdoc/>
+    public async Task ShowMessageBox(string contentMessage, string title = "")
+    {
+        var box = MessageBoxManager.GetMessageBoxStandardWindow(
+            new()
+            {
+                Width = 800,
+                ButtonDefinitions = ButtonEnum.Ok,
+                ContentTitle = title,
+                ContentMessage = contentMessage + $"{Environment.NewLine}", // New line because SizeToContent is broken in Avalonia/MessageBox.Avalonia
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                CanResize = true,
+                ShowInCenter = true,
+                Topmost = true,
+            });
+
+        var mainWindow = GetWindow();
+
+        await box.ShowDialog(mainWindow);
+    }
+
+    /// <inheritdoc/>
+    public PromptResult ShowMessageBoxSync(string contentMessage, PromptChoice userChoices, string title = "")
+    {
+        var boxChoices = ChoiceToButton(userChoices);
+
+        var boxParameters = new MessageBox.Avalonia.DTO.MessageBoxStandardParams()
+        {
+            ButtonDefinitions = boxChoices,
+            ContentTitle = title,
+            ContentMessage = contentMessage + $"{Environment.NewLine}",
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            CanResize = true,
+            ShowInCenter = true,
+            Topmost = true,
+        };
+
+        var boxWindow = new MsBoxStandardWindow();
+        var boxViewModel = new MsBoxStandardViewModel(boxParameters, boxWindow);
+        boxWindow.DataContext = boxViewModel;
+
+        var mainWindow = GetWindow();
+
+        boxWindow.ShowDialogSync(mainWindow);
+        var boxResult = boxWindow.ButtonResult;
+
+        var userResult = ButtonResultToChoice(boxResult);
+
+        return userResult;
+    }
+
+    /// <inheritdoc/>
     public void ShowWindow(object viewModel)
     {
         var mainWindow = GetWindow();
@@ -58,7 +105,8 @@ internal class WindowManager : IWindowManager
         newWindow.DataContext = viewModel;
         newWindow.Show(mainWindow);
     }
-    
+
+    /// <inheritdoc/>
     public async Task<TResult> ShowDialog<TResult>(IDialogMediator<TResult> mediator)
     {
         var mainWindow = GetWindow();
@@ -88,5 +136,27 @@ internal class WindowManager : IWindowManager
     {
         var lifetime = Avalonia.Application.Current!.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
         return lifetime?.MainWindow;
+    }
+
+    private ButtonEnum ChoiceToButton(PromptChoice choice)
+    {
+        return choice switch
+        {
+            PromptChoice.Ok => ButtonEnum.Ok,
+            PromptChoice.OkCancel => ButtonEnum.OkCancel,
+            PromptChoice.YesNo => ButtonEnum.YesNo,
+            PromptChoice.YesNoCancel => ButtonEnum.YesNoCancel
+        };
+    }
+
+    private PromptResult ButtonResultToChoice(ButtonResult result)
+    {
+        return result switch
+        {
+            ButtonResult.Ok => PromptResult.Ok,
+            ButtonResult.Cancel => PromptResult.Cancel,
+            ButtonResult.Yes => PromptResult.Yes,
+            ButtonResult.No => PromptResult.No
+        };
     }
 }

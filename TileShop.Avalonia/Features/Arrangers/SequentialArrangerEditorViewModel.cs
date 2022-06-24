@@ -8,7 +8,7 @@ using System.Drawing;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.Models;
-using TileShop.AvaloniaUI.ViewExtenders;
+using TileShop.Shared.Dialogs;
 using TileShop.AvaloniaUI.Imaging;
 using CommunityToolkit.Mvvm.Input;
 using TileShop.Shared.EventModels;

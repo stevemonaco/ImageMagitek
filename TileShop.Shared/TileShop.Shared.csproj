@@ -5,6 +5,7 @@
     <Version>0.990</Version>
     <Authors>Klarth</Authors>
     <Product />
+	<Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
