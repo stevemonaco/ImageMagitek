@@ -10,7 +10,7 @@ using TileShop.AvaloniaUI.Windowing;
 using MessageBox.Avalonia.ViewModels;
 using MessageBox.Avalonia.Views;
 
-namespace TileShop.AvaloniaUI.ViewExtenders;
+namespace TileShop.AvaloniaUI.Windowing;
 internal class WindowManager : IWindowManager
 {
     private ViewLocator _viewLocator;

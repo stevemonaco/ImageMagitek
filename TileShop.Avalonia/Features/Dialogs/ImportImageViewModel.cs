@@ -1,7 +1,7 @@
 ﻿using ImageMagitek;
 using ImageMagitek.Colors;
 using TileShop.Shared.Services;
-using TileShop.AvaloniaUI.ViewExtenders;
+using TileShop.AvaloniaUI.Windowing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.Imaging;
 using CommunityToolkit.Mvvm.Input;

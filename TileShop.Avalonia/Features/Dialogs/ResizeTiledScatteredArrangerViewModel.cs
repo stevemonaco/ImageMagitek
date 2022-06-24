@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.AvaloniaUI.ViewExtenders;
+using TileShop.AvaloniaUI.Windowing;
 using TileShop.Shared.Dialogs;
 
 namespace TileShop.AvaloniaUI.ViewModels;

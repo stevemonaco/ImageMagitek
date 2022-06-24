@@ -4,7 +4,7 @@ using ImageMagitek;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using TileShop.AvaloniaUI.ViewExtenders;
+using TileShop.AvaloniaUI.Windowing;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 

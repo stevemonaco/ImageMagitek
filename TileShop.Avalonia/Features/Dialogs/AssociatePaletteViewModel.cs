@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TileShop.AvaloniaUI.ViewExtenders;
+using TileShop.AvaloniaUI.Windowing;
 using TileShop.Shared.Models;
 
 namespace TileShop.AvaloniaUI.ViewModels;

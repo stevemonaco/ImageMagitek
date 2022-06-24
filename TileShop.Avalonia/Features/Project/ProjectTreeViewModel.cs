@@ -14,7 +14,7 @@ using ImageMagitek.Project;
 using ImageMagitek.Services;
 using Jot;
 using Monaco.PathTree;
-using TileShop.AvaloniaUI.ViewExtenders;
+using TileShop.AvaloniaUI.Windowing;
 using TileShop.Shared.Dialogs;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Models;
@@ -52,13 +52,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
     public bool HasProject => Projects.Any();
 
     [ObservableProperty] private ObservableCollection<ProjectNodeViewModel> _projects = new();
-
     [ObservableProperty] private ResourceNodeViewModel? _selectedNode;
-
-    private readonly Dictionary<MessageBoxResult, string> _messageBoxLabels = new Dictionary<MessageBoxResult, string>
-    {
-        { MessageBoxResult.Yes, "Save" }, { MessageBoxResult.No, "Discard" }, { MessageBoxResult.Cancel, "Cancel" }
-    };
 
     [RelayCommand]
     public void ActivateSelectedNode()

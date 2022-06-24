@@ -9,7 +9,7 @@ using TileShop.AvaloniaUI.ViewModels;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TileShop.AvaloniaUI.Services;
-using TileShop.AvaloniaUI.ViewExtenders;
+using TileShop.AvaloniaUI.Windowing;
 using TileShop.Shared.Dialogs;
 
 namespace TileShop.AvaloniaUI;
@@ -62,7 +62,6 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
     public void ConfigureServices(IServiceCollection services)
     {
-        //builder.RegisterType<ViewModels.MessageBoxViewModel>().As<IMessageBoxViewModel>();
         var windowManager = new WindowManager(new ViewLocator());
 
         services.AddSingleton<IWindowManager>(windowManager);

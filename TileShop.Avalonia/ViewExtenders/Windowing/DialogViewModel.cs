@@ -1,9 +1,8 @@
-﻿using System.Windows.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TileShop.Shared.Dialogs;
 
-namespace TileShop.AvaloniaUI.ViewExtenders;
+namespace TileShop.AvaloniaUI.Windowing;
 public abstract partial class DialogViewModel<TResult> : ObservableRecipient, IDialogMediator<TResult>
 {
     [ObservableProperty] private TResult? _dialogResult = default(TResult);

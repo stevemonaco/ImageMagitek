@@ -12,8 +12,8 @@ using Jot;
 using Serilog;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using TileShop.AvaloniaUI.ViewExtenders;
 using System.Collections.ObjectModel;
+using TileShop.AvaloniaUI.Windowing;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -32,13 +32,6 @@ public partial class EditorsViewModel : ObservableRecipient
     [ObservableProperty] private ObservableCollection<ResourceEditorBaseViewModel> _editors = new();
     [ObservableProperty] private ResourceEditorBaseViewModel? _activeEditor;
     [ObservableProperty] private ShellViewModel _shell;
-
-    private readonly Dictionary<MessageBoxResult, string> _messageBoxLabels = new()
-    {
-        { MessageBoxResult.Yes, "Save" },
-        { MessageBoxResult.No, "Discard" },
-        { MessageBoxResult.Cancel, "Cancel" }
-    };
 
     public EditorsViewModel(AppSettings settings, IWindowManager windowManager, Tracker tracker,
         ICodecService codecService, IPaletteService paletteService, IProjectService projectService, IElementLayoutService layoutService)

@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace TileShop.AvaloniaUI.ViewExtenders;
+namespace TileShop.AvaloniaUI.Windowing;
 public partial class DialogView : Window
 {
     public DialogView()

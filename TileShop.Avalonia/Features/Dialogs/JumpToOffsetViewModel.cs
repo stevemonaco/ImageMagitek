@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.AvaloniaUI.ViewExtenders;
+using TileShop.AvaloniaUI.Windowing;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 

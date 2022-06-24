@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:vm="using:TileShop.AvaloniaUI.ViewExtenders"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="TileShop.AvaloniaUI.ViewExtenders.DialogView"
+        x:Class="TileShop.AvaloniaUI.Windowing.DialogView"
 		ExtendClientAreaToDecorationsHint="True"
 		ExtendClientAreaTitleBarHeightHint="30"
 		UseLayoutRounding="True"

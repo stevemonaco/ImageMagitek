@@ -2,7 +2,7 @@
 using ImageMagitek.Colors;
 using System.Collections.ObjectModel;
 using TileShop.AvaloniaUI.Models;
-using TileShop.AvaloniaUI.ViewExtenders;
+using TileShop.AvaloniaUI.Windowing;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace TileShop.AvaloniaUI.ViewModels;
