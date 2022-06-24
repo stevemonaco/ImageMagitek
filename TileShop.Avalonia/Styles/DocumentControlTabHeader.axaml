@@ -1,0 +1,14 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:vm="using:TileShop.AvaloniaUI.ViewModels">
+	<Style Selector="DocumentControl">
+		<Setter Property="HeaderTemplate">
+			<DataTemplate DataType="vm:DockableEditorViewModel">
+				<StackPanel Orientation="Horizontal" Margin="2">
+					<TextBlock Text="{Binding Editor.DisplayName}" />
+					<TextBlock Text="*" IsVisible="{Binding Editor.IsModified}" />
+				</StackPanel>
+			</DataTemplate>
+		</Setter>
+	</Style>
+</Styles>
