@@ -14,6 +14,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using TileShop.AvaloniaUI.Windowing;
+using CommunityToolkit.Mvvm;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -29,7 +30,8 @@ public partial class EditorsViewModel : ObservableRecipient
     private readonly IElementLayoutService _layoutService;
     private readonly AppSettings _settings;
 
-    [ObservableProperty] private ObservableCollection<ResourceEditorBaseViewModel> _editors = new();
+    public ObservableCollection<ResourceEditorBaseViewModel> Editors { get; } = new();
+
     [ObservableProperty] private ResourceEditorBaseViewModel? _activeEditor;
     [ObservableProperty] private ShellViewModel _shell;
 

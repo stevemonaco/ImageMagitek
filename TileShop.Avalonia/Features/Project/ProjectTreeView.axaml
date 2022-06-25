@@ -22,7 +22,7 @@
 							<Separator />
 							<MenuItem Command="{ReflectionBinding #treeView.DataContext.SaveProjectAsCommand}" CommandParameter="{Binding}" Header="Save Project As..." />
 							<MenuItem Command="{ReflectionBinding #treeView.DataContext.CloseProjectCommand}" CommandParameter="{Binding}" Header="Close Project" />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.RenameNode}Command" CommandParameter="{Binding}" Header="Rename Project" />
+							<MenuItem Command="{ReflectionBinding #treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename Project" />
 							<MenuItem Command="{ReflectionBinding #treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
 						</ContextMenu>
 					</Grid.ContextMenu>

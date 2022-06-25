@@ -578,27 +578,25 @@ public partial class ProjectTreeViewModel : ToolViewModel
             });
     }
 
-    public bool SaveProjectAs(ProjectNodeViewModel projectVM)
+    [RelayCommand]
+    public void SaveProjectAs(ProjectNodeViewModel projectVM)
     {
         var projectTree = _projectService.GetContainingProject(projectVM.Node);
 
         var newFileName = _fileSelect.GetNewProjectFileNameByUser();
 
         if (newFileName is null)
-            return false;
+            return;
 
-        return _projectService.SaveProjectAs(projectTree, newFileName).Match(
-            success =>
-            {
-                return true;
-            },
+        _projectService.SaveProjectAs(projectTree, newFileName).Switch(
+            success => { },
             fail =>
             {
                 _windowManager.ShowMessageBox(fail.Reason, "Project Save Error");
-                return false;
-            });
+        });
     }
 
+    [RelayCommand]
     public async Task<bool> CloseProject(ProjectNodeViewModel projectVM)
     {
         var projectTree = _projectService.GetContainingProject(projectVM.Node);
@@ -623,21 +621,14 @@ public partial class ProjectTreeViewModel : ToolViewModel
             removedEditors.UnionWith(activeIndexedPixelEditors);
             removedEditors.UnionWith(activeDirectPixelEditors);
 
-            var remainingEditors = _editors.Editors
-                .Where(x => !removedEditors.Contains(x));
-
-            bool hasCanceled = false;
-
             if (removedEditors.Any(x => _editors.RequestSaveUserChanges(x, false) == UserSaveAction.Cancel))
                 return false;
 
-            for (int i = 0; i < _editors.Editors.Count; i++)
+            foreach (var editor in removedEditors)
             {
-                if (!remainingEditors.Contains(_editors.Editors[i]))
-                    _editors.Editors.Remove(_editors.Editors[i]);
+                _editors.Editors.Remove(editor);
             }
 
-            _editors.Editors = new(remainingEditors);
             _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
 
             _projectService.SaveProject(projectTree)
