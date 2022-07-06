@@ -26,6 +26,7 @@
 		<con:LongToHexadecimalConverter x:Key="LongToHexadecimalConverter" />
 		<con:EndianToBooleanConverter x:Key="EndianToBooleanConverter" />
 		<con:PaletteModelIndexToSolidColorBrushConverter x:Key="PaletteIndexToColorConverter" />
+		<con:NumericBaseToBooleanConverter x:Key="NumericBaseToBooleanConverter" />
 
 		<VisualBrush x:Key="CheckeredBrush" TileMode="Tile" Stretch="None" DestinationRect="0,0,16,16">
 			<VisualBrush.Visual>

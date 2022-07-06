@@ -1,4 +1,5 @@
-﻿using Avalonia;
+﻿using System;
+using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using ImageMagitek.Colors;
@@ -30,4 +31,15 @@ public static class AppConverters
 
     public static readonly IValueConverter PaletteEntryToSolidColorBrush =
         new FuncValueConverter<PaletteEntry, SolidColorBrush>(p => new SolidColorBrush(p.Color));
+
+    public static readonly IValueConverter NumericBaseToString =
+        new FuncValueConverter<NumericBase, string>(x =>
+        {
+            return x switch
+            {
+                NumericBase.Decimal => "Dec",
+                NumericBase.Hexadecimal => "Hex",
+                _ => throw new InvalidOperationException($"{nameof(NumericBaseToString)} cannot convert from given type {x.GetType()} with value {x}"),
+            };
+        });
 }

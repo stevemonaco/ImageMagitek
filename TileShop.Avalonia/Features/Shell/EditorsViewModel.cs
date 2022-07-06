@@ -92,9 +92,9 @@ public partial class EditorsViewModel : ObservableRecipient
                 case Palette pal when pal.ColorModel != ColorModel.Nes:
                     newDocument = new PaletteEditorViewModel(pal, _paletteService, _projectService);
                     break;
-                //case Palette pal when pal.ColorModel == ColorModel.Nes:
-                //    newDocument = new PaletteEditorViewModel(pal, _paletteService, _projectService);
-                //    break;
+                case Palette pal when pal.ColorModel == ColorModel.Nes:
+                    newDocument = new PaletteEditorViewModel(pal, _paletteService, _projectService);
+                    break;
                 case ScatteredArranger scatteredArranger:
                     newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _windowManager, _paletteService, _projectService, _settings);
                     break;

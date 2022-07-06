@@ -1,5 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Data.Core;
+using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +18,9 @@ public class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
+        // Remove Avalonia data validation so that Mvvm Toolkit's data validation works
+        ExpressionObserver.DataValidators.RemoveAll(x => x is DataAnnotationsValidationPlugin);
+
         var services = new ServiceCollection();
         var bootstrapper = new TileShopBootstrapper();
         bootstrapper.ConfigureIoc(services);
@@ -23,7 +28,7 @@ public class App : Application
         bootstrapper.ConfigureViews(services);
         bootstrapper.ConfigureViewModels(services);
         await bootstrapper.LoadConfigurations();
-
+        
         var provider = services.BuildServiceProvider();
 
         Ioc.Default.ConfigureServices(provider);

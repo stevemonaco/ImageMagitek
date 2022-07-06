@@ -20,10 +20,10 @@
             Grid.RowSpan="4"
             Grid.Column="0">
 
-			<!--Command="{ReflectionBinding $parent[v:PaletteEditorView].DataContext.SaveActiveColorCommand}"-->
 			<Button
                 Height="50"
                 Margin="0,10,10,10"
+				Command="{ReflectionBinding DataContext.SaveActiveColorCommand, RelativeSource={RelativeSource AncestorType={x:Type v:PaletteEditorView}}}"
                 IsEnabled="{Binding CanSaveColor}">
 				<StackPanel>
 					<TextBlock HorizontalAlignment="Center" Text="Assign" />

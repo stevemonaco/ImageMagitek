@@ -60,19 +60,7 @@
                     FontSize="18"
                     FontWeight="Bold"
                     Text="Native Source" />
-				<TextBox Width="135" Watermark="Color">
-					<TextBox.Text>
-						<Binding Path="NativeHexColor">
-							<!--<Binding.ValidationRules>
-								<val:HexColorStringRule>
-									<val:HexColorStringRule.Wrapper>
-										<val:HexColorStringWrapper ColorModel="Rgba32" />
-									</val:HexColorStringRule.Wrapper>
-								</val:HexColorStringRule>
-							</Binding.ValidationRules>-->
-						</Binding>
-					</TextBox.Text>
-				</TextBox>
+				<TextBox Width="135" Watermark="Color" Text="{Binding NativeHexColor}" />
 			</StackPanel>
 		</DataTemplate>
 
@@ -165,6 +153,11 @@
                 Items="{Binding Colors}"
                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                 SelectedIndex="{Binding SelectedColorIndex}">
+				<ListBox.Styles>
+					<Style Selector="ListBoxItem">
+						<Setter Property="Padding" Value="4,8,4,8" />
+					</Style>
+				</ListBox.Styles>
 				<ListBox.ItemsPanel>
 					<ItemsPanelTemplate>
 						<WrapPanel Orientation="Horizontal" />

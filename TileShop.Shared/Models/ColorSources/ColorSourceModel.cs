@@ -2,6 +2,6 @@
 
 namespace TileShop.Shared.Models;
 
-public abstract class ColorSourceModel : ObservableObject
+public abstract class ColorSourceModel : ObservableValidator
 {
 }
