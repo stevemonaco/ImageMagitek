@@ -99,7 +99,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 
         Colors = new(CreateColorModels());
 
-        ActiveColor = Colors.FirstOrDefault();
+        ActiveColor = Colors.First();
         PaletteSource = _palette.DataSource.Name;
         Entries = CountSourceColors();
         SelectedColorIndex = 0;

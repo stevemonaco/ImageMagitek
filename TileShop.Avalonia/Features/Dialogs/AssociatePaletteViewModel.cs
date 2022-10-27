@@ -2,7 +2,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using TileShop.AvaloniaUI.Windowing;
 using TileShop.Shared.Models;
 
@@ -15,8 +14,8 @@ public partial class AssociatePaletteViewModel : DialogViewModel<AssociatePalett
 
     public AssociatePaletteViewModel(IEnumerable<AssociatePaletteModel> palettes)
     {
-        Palettes = new(palettes);
-        SelectedPalette = Palettes.First();
+        _palettes = new(palettes);
+        _selectedPalette = Palettes.First();
         Title = "Associate a Palette with Arranger";
     }
 }

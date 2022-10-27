@@ -5,7 +5,7 @@ namespace TileShop.AvaloniaUI.ViewModels;
 
 public partial class RenameNodeViewModel : DialogViewModel<string?>
 {
-    private ResourceNodeViewModel _nodeModel;
+    private readonly ResourceNodeViewModel _nodeModel;
 
     [ObservableProperty] private string? _name;
 

@@ -40,13 +40,13 @@
                 VerticalAlignment="Bottom"
                 Orientation="Horizontal">
 				<Button
-                    Width="80"
+                    Width="90"
                     Command="{Binding OkCommand}"
 					CommandParameter="{Binding}"
                     Content="Associate"
                     IsDefault="True" />
 				<Button
-                    Width="80"
+                    Width="90"
                     Margin="5,0,0,0"
                     Command="{Binding CancelCommand}"
                     Content="Cancel"

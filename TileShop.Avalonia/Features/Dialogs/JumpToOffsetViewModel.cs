@@ -13,7 +13,7 @@ public partial class JumpToOffsetViewModel : DialogViewModel<long?>
     [ObservableProperty]
     [NotifyDataErrorInfo]
     [CustomValidation(typeof(JumpToOffsetViewModel), nameof(ValidateModel))]
-    private string _offsetText;
+    private string? _offsetText;
 
     private NumericBase _numericBase;
     public NumericBase NumericBase
@@ -64,6 +64,6 @@ public partial class JumpToOffsetViewModel : DialogViewModel<long?>
             }
         }
 
-        return ValidationResult.Success;
+        return ValidationResult.Success!;
     }
 }

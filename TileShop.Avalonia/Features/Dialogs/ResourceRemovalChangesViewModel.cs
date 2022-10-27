@@ -17,13 +17,13 @@ public partial class ResourceRemovalChangesViewModel : DialogViewModel<bool>
 
     public ResourceRemovalChangesViewModel(ResourceChangeViewModel removedResource)
     {
-        RemovedResource = removedResource;
+        _removedResource = removedResource;
         Title = "Resource Removal Changes";
     }
 
     public ResourceRemovalChangesViewModel(ResourceChangeViewModel removedResource, IList<ResourceChangeViewModel> changes)
     {
-        RemovedResource = removedResource;
+        _removedResource = removedResource;
 
         foreach (var removedItem in changes.Where(x => x.Removed))
             RemovedResources.Add(removedItem);

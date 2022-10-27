@@ -10,7 +10,7 @@ namespace TileShop.AvaloniaUI.ViewModels;
 
 public partial class AddScatteredArrangerViewModel : DialogViewModel<AddScatteredArrangerViewModel>
 {
-    [ObservableProperty] private string _arrangerName;
+    [ObservableProperty] private string _arrangerName = "";
     [ObservableProperty] private PixelColorType _colorType;
     [ObservableProperty] private ElementLayout _layout;
     [ObservableProperty] private int _arrangerElementWidth;
@@ -27,7 +27,7 @@ public partial class AddScatteredArrangerViewModel : DialogViewModel<AddScattere
 
     public AddScatteredArrangerViewModel(IEnumerable<string> existingResourceNames)
     {
-        ExistingResourceNames = new(existingResourceNames);
+        _existingResourceNames = new(existingResourceNames);
         Title = "Add a New Scattered Arranger";
     }
 

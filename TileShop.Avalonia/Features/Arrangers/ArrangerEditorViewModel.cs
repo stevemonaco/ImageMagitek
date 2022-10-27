@@ -71,7 +71,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         }
     }
 
-    [ObservableProperty] private ArrangerSelection _selection;
+    [ObservableProperty] private ArrangerSelection? _selection;
     [ObservableProperty] private bool _isSelecting;
     [ObservableProperty] private ArrangerPaste? _paste;
 

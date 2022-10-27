@@ -5,6 +5,7 @@ using TileShop.AvaloniaUI.Windowing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.Imaging;
 using CommunityToolkit.Mvvm.Input;
+using System;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -13,15 +14,15 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
     private readonly Arranger _arranger;
     private readonly IFileSelectService _fileSelect;
 
-    private readonly IndexedImage _originalIndexed;
-    private readonly DirectImage _originalDirect;
+    private readonly IndexedImage? _originalIndexed;
+    private readonly DirectImage? _originalDirect;
 
-    private IndexedImage _importedIndexed;
-    private DirectImage _importedDirect;
+    private IndexedImage? _importedIndexed;
+    private DirectImage? _importedDirect;
 
-    [ObservableProperty] private string _imageFileName;
+    [ObservableProperty] private string? _imageFileName;
     [ObservableProperty] private BitmapAdapter _originalSource;
-    [ObservableProperty] private BitmapAdapter _importedSource;
+    [ObservableProperty] private BitmapAdapter? _importedSource;
     [ObservableProperty] private bool _isIndexedImage;
 
     private bool _useExactMatching = true;
@@ -42,7 +43,7 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
     }
 
     [ObservableProperty] private bool _canImport;
-    [ObservableProperty] private string _importError;
+    [ObservableProperty] private string _importError = "";
     [ObservableProperty] protected int _zoom = 1;
 
     public bool IsTiledArranger => _arranger.Layout == ElementLayout.Tiled;
@@ -56,12 +57,16 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
         if (_arranger.ColorType == PixelColorType.Indexed)
         {
             _originalIndexed = new IndexedImage(_arranger);
-            OriginalSource = new IndexedBitmapAdapter(_originalIndexed);
+            _originalSource = new IndexedBitmapAdapter(_originalIndexed);
         }
         else if (_arranger.ColorType == PixelColorType.Direct)
         {
             _originalDirect = new DirectImage(_arranger);
-            OriginalSource = new DirectBitmapAdapter(_originalDirect);
+            _originalSource = new DirectBitmapAdapter(_originalDirect);
+        }
+        else
+        {
+            throw new ArgumentException($"Invalid color type for '{arranger.Name}': {arranger.ColorType}");
         }
 
         Title = "Import Image Into Arranger";
@@ -128,9 +133,9 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
 
     public override void Ok(ImportImageViewModel? result)
     {
-        if (_arranger.ColorType == PixelColorType.Indexed)
+        if (_arranger.ColorType == PixelColorType.Indexed && _importedIndexed is not null)
             _importedIndexed.SaveImage();
-        else if (_arranger.ColorType == PixelColorType.Direct)
+        else if (_arranger.ColorType == PixelColorType.Direct && _importedDirect is not null)
             _importedDirect.SaveImage();
 
         base.Ok(result);
