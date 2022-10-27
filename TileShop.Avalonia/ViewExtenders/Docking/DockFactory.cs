@@ -6,7 +6,8 @@ using Avalonia.Data;
 using Dock.Avalonia.Controls;
 using Dock.Model.Controls;
 using Dock.Model.Core;
-using TileShop.AvaloniaUI.ViewExtenders.Dock;
+using Dock.Model.Mvvm;
+using Dock.Model.Mvvm.Controls;
 using TileShop.AvaloniaUI.ViewModels;
 
 namespace TileShop.AvaloniaUI.ViewExtenders.Docking;

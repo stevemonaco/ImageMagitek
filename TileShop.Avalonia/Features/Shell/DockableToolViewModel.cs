@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.AvaloniaUI.ViewExtenders.Dock;
+using Dock.Model.Mvvm.Controls;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
