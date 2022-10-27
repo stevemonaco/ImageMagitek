@@ -18,6 +18,7 @@ using TileShop.Shared.EventModels;
 using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Input;
 using TileShop.Shared.Dialogs;
+using System.Threading.Tasks;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -473,7 +474,19 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     }
 
     [RelayCommand]
-    public async void ResizeArranger()
+    public void ChangeTool(ScatteredArrangerTool tool)
+    {
+        ActiveTool = tool;
+    }
+
+    [RelayCommand]
+    public void ToggleSymmetryTools()
+    {
+        AreSymmetryToolsEnabled = !AreSymmetryToolsEnabled;
+    }
+
+    [RelayCommand]
+    public async Task ResizeArranger()
     {
         var model = new ResizeTiledScatteredArrangerViewModel(_windowManager, WorkingArranger.ArrangerElementSize.Width, WorkingArranger.ArrangerElementSize.Height);
 
@@ -490,12 +503,12 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     }
 
     [RelayCommand]
-    public async void AssociatePalette()
+    public async Task AssociatePalette()
     {
         var projectTree = _projectService.GetContainingProject(Resource);
         var palettes = projectTree.EnumerateDepthFirst()
             .Where(x => x.Item is Palette)
-            .Select(x => new AssociatePaletteModel(x.Item as Palette, projectTree.CreatePathKey(x)))
+            .Select(x => new AssociatePaletteModel((Palette)x.Item, projectTree.CreatePathKey(x)))
             .Concat(_paletteService.GlobalPalettes.Select(x => new AssociatePaletteModel(x, x.Name)));
 
         var model = new AssociatePaletteViewModel(palettes);

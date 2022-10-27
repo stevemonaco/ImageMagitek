@@ -60,87 +60,72 @@
 	</UserControl.KeyBindings>
 	
 	<Grid UseLayoutRounding="True" RowDefinitions="auto,*">
-
 		<!--  Toolbar  -->
 		<StackPanel
             Grid.Row="0"
             Margin="5,5,0,10"
             Orientation="Horizontal">
 
+			<StackPanel.ContextMenu>
+				<ContextMenu>
+					<MenuItem Header="Show Symmetry Tools" Command="{Binding ToggleSymmetryToolsCommand}">
+						<MenuItem.Icon>
+							<CheckBox BorderThickness="0" IsHitTestVisible="False" IsChecked="{Binding AreSymmetryToolsEnabled}" />
+						</MenuItem.Icon>
+					</MenuItem>
+				</ContextMenu>
+			</StackPanel.ContextMenu>
+
 			<!--  Tools  -->
 			<StackPanel>
 				<TextBlock HorizontalAlignment="Center" Text="Tools" />
 
 				<StackPanel Orientation="Horizontal">
-					<RadioButton
-                        HorizontalContentAlignment="Center"
-                        GroupName="Tools"
-                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
-                        ToolTip.Tip="Click and drag across Arranger to select a region">
+					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.Select}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
+						ToolTip.Tip="Click and drag across Arranger to select a region">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconCursor}" />
-					</RadioButton>
-					<RadioButton
-                        Margin="2,0,0,0"
-                        VerticalContentAlignment="Center"
-                        GroupName="Tools"
-                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
-                        ToolTip.Tip="Click on an Arranger element to apply the current palette"
-						IsVisible="{Binding IsIndexedColor}">
+					</ToggleButton>
+					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.ApplyPalette}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
+						ToolTip.Tip="Click on an Arranger element to apply the current palette">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPaletteBrush}" />
-					</RadioButton>
-					<RadioButton
-                        Margin="2,0,0,0"
-                        VerticalContentAlignment="Center"
-                        GroupName="Tools"
-                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PickPalette}"
-                        ToolTip.Tip="Click on an Arranger element to pick its associated palette"
-                        IsVisible="{Binding IsIndexedColor}">
+					</ToggleButton>
+					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.PickPalette}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PickPalette}"
+						ToolTip.Tip="Click on an Arranger element to pick its associated palette">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPalettePicker}" />
-					</RadioButton>
-					<RadioButton
-                        Margin="2,0,0,0"
-                        HorizontalContentAlignment="Center"
-                        GroupName="Tools"
-                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=InspectElement}"
-                        ToolTip.Tip="Hover Arranger elements to inspect their properties">
+					</ToggleButton>
+					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.InspectElement}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=InspectElement}"
+						ToolTip.Tip="Hover Arranger elements to inspect their properties">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconEye}" />
-					</RadioButton>
-					<RadioButton
-                        Margin="2,0,0,0"
-                        HorizontalContentAlignment="Center"
-                        GroupName="Tools"
-                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateLeft}"
-                        ToolTip.Tip="Rotate Element's Display Left"
-                        IsVisible="{Binding AreSymmetryToolsEnabled}">
+					</ToggleButton>
+
+					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.RotateLeft}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateLeft}"
+						IsVisible="{Binding AreSymmetryToolsEnabled}"
+						ToolTip.Tip="Rotate Element's Display Left">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconRotateLeft}" />
-					</RadioButton>
-					<RadioButton
-                        Margin="2,0,0,0"
-                        HorizontalContentAlignment="Center"
-                        GroupName="Tools"
-                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateRight}"
-                        ToolTip.Tip="Rotate Element's Display Right"
-                        IsVisible="{Binding AreSymmetryToolsEnabled}">
+					</ToggleButton>
+					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.RotateRight}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateRight}"
+						IsVisible="{Binding AreSymmetryToolsEnabled}"
+						ToolTip.Tip="Rotate Element's Display Right">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconRotateRight}" />
-					</RadioButton>
-					<RadioButton
-                        Margin="2,0,0,0"
-                        HorizontalContentAlignment="Center"
-                        GroupName="Tools"
-                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=MirrorHorizontal}"
-                        ToolTip.Tip="Mirror Element's Display Horizontally"
-                        IsVisible="{Binding AreSymmetryToolsEnabled}">
+					</ToggleButton>
+					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.MirrorHorizontal}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=MirrorHorizontal}"
+						IsVisible="{Binding AreSymmetryToolsEnabled}"
+						ToolTip.Tip="Mirror Element's Display Horizontally">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconMirrorHorizontal}" />
-					</RadioButton>
-					<RadioButton
-                        Margin="2,0,0,0"
-                        HorizontalContentAlignment="Center"
-                        GroupName="Tools"
-                        IsChecked="{Binding ActiveTool, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=MirrorVertical}"
-                        ToolTip.Tip="Mirror Element's Display Vertically"
-                        IsVisible="{Binding AreSymmetryToolsEnabled}">
+					</ToggleButton>
+					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.MirrorVertical}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=MirrorVertical}"
+						IsVisible="{Binding AreSymmetryToolsEnabled}"
+						ToolTip.Tip="Mirror Element's Display Vertically">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconMirrorVertical}" />
-					</RadioButton>
+					</ToggleButton>
 				</StackPanel>
 			</StackPanel>
 
@@ -165,7 +150,7 @@
                 VerticalAlignment="Bottom"
                 VerticalContentAlignment="Center"
                 Command="{Binding AssociatePaletteCommand}"
-                ToolTip.Tip="Asssociate a Palette from this Project with this Arranger"
+                ToolTip.Tip="Associate a Palette from this Project with this Arranger"
                 IsVisible="{Binding IsIndexedColor}">
 				<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPlusCircle}" />
 			</Button>

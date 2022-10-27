@@ -45,6 +45,12 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     public abstract TColor GetPixel(int x, int y);
     public abstract void FloodFill(int x, int y, TColor fillColor);
 
+    [RelayCommand]
+    public void ChangeTool(PixelTool tool)
+    {
+        ActiveTool = tool;
+    }
+
     [RelayCommand] public void SetPrimaryColor(TColor color) => PrimaryColor = color;
     [RelayCommand] public void SetSecondaryColor(TColor color) => SecondaryColor = color;
 
