@@ -8,6 +8,8 @@ using Avalonia.Platform;
 using Avalonia.Media.Imaging;
 using ImageMagitek;
 using ImageMagitek.Colors;
+using SixLabors.ImageSharp.PixelFormats;
+using ColorTextBlock.Avalonia;
 
 namespace TileShop.AvaloniaUI.Imaging;
 
@@ -21,7 +23,7 @@ public class IndexedBitmapAdapter : BitmapAdapter
         Width = Image.Width;
         Height = Image.Height;
 
-        Bitmap = new WriteableBitmap(new PixelSize(Width, Height), new Avalonia.Vector(DpiX, DpiY), PixelFormat, AlphaFormat.Premul);
+        Bitmap = new WriteableBitmap(new PixelSize(Width, Height), new Avalonia.Vector(DpiX, DpiY), PixelFormat, AlphaFormat.Unpremul);
         Invalidate();
     }
 
@@ -82,11 +84,11 @@ public class IndexedBitmapAdapter : BitmapAdapter
         unsafe
         {
             var backBuffer = (uint*)frameBuffer.Address.ToPointer();
-            var stride = frameBuffer.RowBytes;
+            var stride = frameBuffer.RowBytes / 4;
 
             Parallel.For(yStart, yStart + height, (scanline) =>
             {
-                var dest = backBuffer + scanline * stride / 4 + xStart;
+                var dest = backBuffer + scanline * stride + xStart;
                 var src = Image.GetPixelRowSpan(scanline);
 
                 for (int x = 0; x < width; x++)
@@ -96,6 +98,31 @@ public class IndexedBitmapAdapter : BitmapAdapter
             });
         }
     }
+
+    //protected void RenderSync(int xStart, int yStart, int width, int height)
+    //{
+    //    using var frameBuffer = Bitmap.Lock();
+
+    //    unsafe
+    //    {
+    //        var backBuffer = (uint*)frameBuffer.Address.ToPointer();
+    //        var stride = frameBuffer.RowBytes / 4;
+
+    //        var dest = backBuffer + yStart * stride + xStart;
+
+    //        for (int y = yStart; y < yStart + height; y++)
+    //        {
+    //            var rowSource = Image.GetPixelRowSpan(y);
+    //            for (int x = 0; x < width; x++)
+    //            {
+    //                var color = rowSource[x + xStart];
+    //                dest[x] = TranslateColor(x + xStart, y, rowSource);
+    //            }
+
+    //            dest += stride;
+    //        }
+    //    }
+    //}
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint TranslateColor(int x, int y, Span<byte> sourceRow)
@@ -107,8 +134,8 @@ public class IndexedBitmapAdapter : BitmapAdapter
         if (el?.Palette is Palette pal)
         {
             var index = sourceRow[x];
-            var inputColor = pal[index].Color;
 
+            var inputColor = pal[index].Color;
             outputColor = (inputColor & 0xFF00FF00) | BitOperations.RotateLeft(inputColor & 0xFF00FF, 16);
 
             if (index == 0 && pal.ZeroIndexTransparent)

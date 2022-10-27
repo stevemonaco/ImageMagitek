@@ -21,7 +21,7 @@ public class DirectBitmapAdapter : BitmapAdapter
         Width = Image.Width;
         Height = Image.Height;
 
-        Bitmap = new WriteableBitmap(new PixelSize(Width, Height), new Avalonia.Vector(DpiX, DpiY), PixelFormat, AlphaFormat.Premul);
+        Bitmap = new WriteableBitmap(new PixelSize(Width, Height), new Avalonia.Vector(DpiX, DpiY), PixelFormat, AlphaFormat.Unpremul);
         Invalidate();
     }
 
