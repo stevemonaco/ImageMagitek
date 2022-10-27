@@ -1,7 +1,6 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Markup.Xaml;
 using TileShop.AvaloniaUI.Input;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.Shared.Input;
@@ -14,11 +13,6 @@ public partial class DirectPixelEditorView : UserControl
     public DirectPixelEditorView()
     {
         InitializeComponent();
-    }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
     }
 
     protected override void OnDataContextChanged(EventArgs e)

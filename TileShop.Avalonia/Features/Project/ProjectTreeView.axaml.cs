@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Markup.Xaml;
 using Avalonia.VisualTree;
 using TileShop.AvaloniaUI.ViewModels;
 
@@ -44,10 +43,4 @@ public partial class ProjectTreeView : UserControl
             e.Handled = true;
         }
     }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
-    }
-
 }

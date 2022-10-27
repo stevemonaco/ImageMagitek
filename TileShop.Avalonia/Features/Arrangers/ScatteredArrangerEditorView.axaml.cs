@@ -1,16 +1,9 @@
 using System;
 using Avalonia.Controls;
-using Avalonia.Controls.PanAndZoom;
 using Avalonia.Input;
-using Avalonia.Markup.Xaml;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.AvaloniaUI.Input;
 using TileShop.Shared.Input;
-using SkiaSharp;
-using Avalonia.Media.Imaging;
-using Avalonia;
-using Avalonia.Skia;
-using Avalonia.Media;
 
 namespace TileShop.AvaloniaUI.Views;
 public partial class ScatteredArrangerEditorView : UserControl

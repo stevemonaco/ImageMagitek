@@ -1,7 +1,6 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Markup.Xaml;
 using TileShop.AvaloniaUI.Input;
 using TileShop.AvaloniaUI.Models;
 using TileShop.AvaloniaUI.ViewModels;
@@ -15,11 +14,6 @@ public partial class IndexedPixelEditorView : UserControl
     public IndexedPixelEditorView()
     {
         InitializeComponent();
-    }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
     }
 
     protected override void OnDataContextChanged(EventArgs e)
