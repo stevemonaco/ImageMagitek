@@ -316,12 +316,12 @@
 						x:Name="overlayCanvas"
 						Width="{Binding BitmapAdapter.Width}"
 						Height="{Binding BitmapAdapter.Height}"
-						PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased"
+						PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased"
 						ClipToBounds="True">
 
 						<!--  Arranger Image  -->
 						<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap, Mode=OneWay}"
-								PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
+								PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 
 						<!--  Selection Overlay  -->
 						<Rectangle
@@ -336,7 +336,7 @@
 							StrokeDashArray="3,2"
 							StrokeThickness="0.3"
 							IsVisible="{Binding Selection.HasSelection}"
-							PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
+							PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 					</Canvas>
 
 					<!--  Gridline Overlay  -->

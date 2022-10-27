@@ -74,7 +74,7 @@ public partial class ScatteredArrangerEditorView : UserControl
         }
     }
 
-    private void OnPointerLeave(object sender, PointerEventArgs e)
+    private void OnPointerExited(object sender, PointerEventArgs e)
     {
         _viewModel?.MouseLeave();
         //e.Handled = true;

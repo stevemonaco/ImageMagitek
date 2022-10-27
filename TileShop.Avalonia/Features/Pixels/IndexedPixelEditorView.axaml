@@ -194,14 +194,14 @@
 
 					<!--  Editable Image  -->
 					<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}"
-						   PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
+						   PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 
 					<!--  Selection and Paste Overlay  -->
 					<Canvas
 						x:Name="overlayCanvas"
 						MaxWidth="{Binding BitmapAdapter.Width}"
 						MaxHeight="{Binding BitmapAdapter.Height}"
-						PointerMoved="OnPointerMoved" PointerLeave="OnPointerLeave" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased"
+						PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased"
 						ClipToBounds="True">
 
 						<Rectangle

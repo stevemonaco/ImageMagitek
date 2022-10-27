@@ -1,11 +1,10 @@
+using System;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
-using Avalonia.Interactivity;
 using Avalonia.VisualTree;
-using System.Linq;
 using TileShop.AvaloniaUI.ViewModels;
-using System;
 
 namespace TileShop.AvaloniaUI.Views;
 public partial class ProjectTreeView : UserControl
@@ -26,7 +25,7 @@ public partial class ProjectTreeView : UserControl
         base.OnDataContextChanged(e);
     }
 
-    private void ProjectTree_DoubleTapped(object? sender, RoutedEventArgs e)
+    private void ProjectTree_DoubleTapped(object? sender, TappedEventArgs e)
     {
         var item = ((IVisual)e.Source!).GetSelfAndVisualAncestors()
             .OfType<TreeViewItem>()
