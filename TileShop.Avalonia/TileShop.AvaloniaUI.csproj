@@ -8,12 +8,9 @@
   </PropertyGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <AvaloniaResource Remove="Assets\DemoImages\**" />
+    <AvaloniaResource Remove="Assets\tslogo.svg" />
     <None Remove=".gitignore" />
-    <None Remove="Assets\tsicon.ico" />
-    <None Remove="Styles\Icons.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Assets\tsicon.ico" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.0.0-preview2" />
@@ -33,13 +30,6 @@
     <PackageReference Include="Serilog" Version="2.11.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="Styles\Icons.xaml">
-      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ImageMagitek.Services\ImageMagitek.Services.csproj" />
@@ -62,13 +52,5 @@
     <Compile Update="Features\Shell\StatusView.axaml.cs">
       <DependentUpon>StatusView.axaml</DependentUpon>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Features\Pixels\IndexedPixelEditorView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ViewExtenders\Behaviors\" />
   </ItemGroup>
 </Project>
