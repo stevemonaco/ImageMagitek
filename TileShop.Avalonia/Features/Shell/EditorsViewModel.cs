@@ -186,8 +186,8 @@ public partial class EditorsViewModel : ObservableRecipient
     {
         if (editor.IsModified)
         {
-            var result = _windowManager.ShowMessageBoxSync($"'{editor.DisplayName}' has been modified and will be closed. Save changes?",
-                PromptChoice.YesNoCancel, "Save changes");
+            var result = _windowManager.ShowMessageBoxSync("Save changes", $"'{editor.DisplayName}' has been modified and will be closed. Save changes?",
+                PromptChoice.YesNoCancel);
 
             if (result == PromptResult.Yes)
             {
@@ -198,7 +198,7 @@ public partial class EditorsViewModel : ObservableRecipient
                     _projectService.SaveProject(projectTree)
                      .Switch(
                          success => { },
-                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
+                         fail => _windowManager.ShowMessageBoxSync("Project Save Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                      );
                 }
 

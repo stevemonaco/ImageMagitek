@@ -287,7 +287,7 @@
 			HorizontalScrollBarVisibility="Disabled"
 			VerticalScrollBarVisibility="Disabled">
 
-			<paz:ZoomBorder x:Name="zoomBorder" Margin="2" Stretch="None" ZoomSpeed="2" EnablePan="False" PowerFactor="0" 
+			<paz:ZoomBorder x:Name="_zoomBorder" Margin="2" Stretch="None" ZoomSpeed="2" EnablePan="False" PowerFactor="0" 
 				EnableConstrains="True" MinOffsetY="0" MinOffsetX="0" MaxOffsetY="0" MaxOffsetX="0"
 				VerticalAlignment="Stretch" HorizontalAlignment="Stretch" PointerWheelChanged="OnPointerWheelChanged">
 				
@@ -313,14 +313,14 @@
 
 					<!--  Image and Selection Overlay  -->
 					<Canvas
-						x:Name="overlayCanvas"
+						x:Name="_overlayCanvas"
 						Width="{Binding BitmapAdapter.Width}"
 						Height="{Binding BitmapAdapter.Height}"
 						PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased"
 						ClipToBounds="True">
 
 						<!--  Arranger Image  -->
-						<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap, Mode=OneWay}"
+						<Image x:Name="_image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap, Mode=OneWay}"
 								PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 
 						<!--  Selection Overlay  -->

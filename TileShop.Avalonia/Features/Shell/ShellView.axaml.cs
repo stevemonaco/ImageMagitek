@@ -1,9 +1,6 @@
 using System;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
-using Dock.Avalonia.Controls;
 using TileShop.AvaloniaUI.ViewExtenders.Docking;
 using TileShop.AvaloniaUI.ViewModels;
 
@@ -16,14 +13,6 @@ public partial class ShellView : Window
     public ShellView()
     {
         InitializeComponent();
-#if DEBUG
-            this.AttachDevTools();
-#endif
-    }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
     }
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -42,8 +31,7 @@ public partial class ShellView : Window
 
         _dockFactory.FocusedDockableChanged += Factory_FocusedDockableChanged;
 
-        var dock = this.FindControl<DockControl>("dock");
-        dock.Layout = layout;
+        _dock.Layout = layout;
     }
 
     private void Factory_FocusedDockableChanged(object? sender, Dock.Model.Core.Events.FocusedDockableChangedEventArgs e)

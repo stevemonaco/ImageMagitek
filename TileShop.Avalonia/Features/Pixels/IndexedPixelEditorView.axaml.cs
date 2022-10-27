@@ -11,12 +11,10 @@ namespace TileShop.AvaloniaUI.Views;
 public partial class IndexedPixelEditorView : UserControl
 {
     private IndexedPixelEditorViewModel? _viewModel = null!;
-    private readonly Image _image;
 
     public IndexedPixelEditorView()
     {
         InitializeComponent();
-        _image = this.FindControl<Image>("image");
     }
 
     private void InitializeComponent()

@@ -10,12 +10,10 @@ namespace TileShop.AvaloniaUI.Views;
 public partial class DirectPixelEditorView : UserControl
 {
     private DirectPixelEditorViewModel? _viewModel = null!;
-    private readonly Image _image;
 
     public DirectPixelEditorView()
     {
         InitializeComponent();
-        _image = this.FindControl<Image>("image");
     }
 
     private void InitializeComponent()

@@ -65,7 +65,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         var windowManager = new WindowManager(new ViewLocator());
 
         services.AddSingleton<IWindowManager>(windowManager);
-        services.AddSingleton<IFileSelectService, FileSelectService>();
+        services.AddSingleton<IAsyncFileSelectService, AsyncFileSelectService>();
         services.AddSingleton<IDiskExploreService, DiskExploreService>();
         services.AddSingleton<IThemeService, ThemeService>();
     }

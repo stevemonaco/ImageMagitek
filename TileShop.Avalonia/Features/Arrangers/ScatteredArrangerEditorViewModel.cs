@@ -347,13 +347,13 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         if (WorkingArranger.ColorType == PixelColorType.Indexed)
         {
             _indexedImage.Render();
-            BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
+            //BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
             OnImageModified?.Invoke();
         }
         else if (WorkingArranger.ColorType == PixelColorType.Direct)
         {
             _directImage.Render();
-            BitmapAdapter = new DirectBitmapAdapter(_directImage);
+            //BitmapAdapter = new DirectBitmapAdapter(_directImage);
             OnImageModified?.Invoke();
         }
     }

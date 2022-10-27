@@ -1,6 +1,5 @@
 using System;
 using Avalonia.Controls;
-using Avalonia.Controls.PanAndZoom;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
 using TileShop.AvaloniaUI.ViewModels;
@@ -11,15 +10,11 @@ using KeyModifiers = TileShop.Shared.Input.KeyModifiers;
 namespace TileShop.AvaloniaUI.Views;
 public partial class SequentialArrangerEditorView : UserControl
 {
-    private readonly Image _image;
-    private readonly ZoomBorder _zoomBorder;
-    private SequentialArrangerEditorViewModel _viewModel;
+    private SequentialArrangerEditorViewModel? _viewModel;
 
     public SequentialArrangerEditorView()
     {
         InitializeComponent();
-        _image = this.FindControl<Image>("image");
-        _zoomBorder = this.FindControl<ZoomBorder>("zoomBorder");
     }
 
     private void InitializeComponent()
@@ -39,7 +34,7 @@ public partial class SequentialArrangerEditorView : UserControl
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse)
+        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
             var state = CreateMouseState(point, e.KeyModifiers);
@@ -50,7 +45,7 @@ public partial class SequentialArrangerEditorView : UserControl
 
     private void OnPointerReleased(object sender, PointerReleasedEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse)
+        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
             var state = CreateMouseState(point, e.KeyModifiers);

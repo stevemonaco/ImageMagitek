@@ -1,16 +1,15 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Models;
 using ImageMagitek.Services;
 using ImageMagitek;
-using TileShop.AvaloniaUI.ViewExtenders;
 using TileShop.AvaloniaUI.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using TileShop.AvaloniaUI.Models;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using System;
 using TileShop.Shared.Input;
 using TileShop.Shared.Dialogs;
 

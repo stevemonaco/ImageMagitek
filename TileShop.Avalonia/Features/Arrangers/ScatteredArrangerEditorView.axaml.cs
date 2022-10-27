@@ -15,20 +15,11 @@ using Avalonia.Media;
 namespace TileShop.AvaloniaUI.Views;
 public partial class ScatteredArrangerEditorView : UserControl
 {
-    private readonly Image _image;
-    private readonly ZoomBorder _zoomBorder;
     private ScatteredArrangerEditorViewModel? _viewModel;
 
     public ScatteredArrangerEditorView()
     {
         InitializeComponent();
-        _image = this.FindControl<Image>("image");
-        _zoomBorder = this.FindControl<ZoomBorder>("zoomBorder");
-    }
-
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
     }
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -36,6 +27,7 @@ public partial class ScatteredArrangerEditorView : UserControl
         if (DataContext is ScatteredArrangerEditorViewModel vm)
         {
             _viewModel = vm;
+            _viewModel.OnImageModified = () => _image.InvalidateVisual();
         }
         
         base.OnDataContextChanged(e);

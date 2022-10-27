@@ -6,13 +6,14 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.Imaging;
 using CommunityToolkit.Mvvm.Input;
 using System;
+using System.Threading.Tasks;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
 public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel>
 {
     private readonly Arranger _arranger;
-    private readonly IFileSelectService _fileSelect;
+    private readonly IAsyncFileSelectService _fileSelect;
 
     private readonly IndexedImage? _originalIndexed;
     private readonly DirectImage? _originalDirect;
@@ -49,7 +50,7 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
     public bool IsTiledArranger => _arranger.Layout == ElementLayout.Tiled;
     public bool IsSingleArranger => _arranger.Layout == ElementLayout.Single;
 
-    public ImportImageViewModel(Arranger arranger, IFileSelectService fileSelect)
+    public ImportImageViewModel(Arranger arranger, IAsyncFileSelectService fileSelect)
     {
         _arranger = arranger;
         _fileSelect = fileSelect;
@@ -80,14 +81,14 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
     //}
 
     [RelayCommand]
-    public void BrowseForImportFile()
+    public async Task BrowseForImportFile()
     {
-        var fileName = _fileSelect.GetImportArrangerFileNameByUser();
+        var fileName = await _fileSelect.GetImportArrangerFileNameByUserAsync();
 
         if (fileName is null)
             return;
 
-        ImageFileName = fileName;
+        ImageFileName = fileName.LocalPath;
 
         if (_arranger.ColorType == PixelColorType.Indexed)
         {

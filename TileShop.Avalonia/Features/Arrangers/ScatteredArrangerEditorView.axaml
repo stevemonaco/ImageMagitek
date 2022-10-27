@@ -231,11 +231,11 @@
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
 
-			<paz:ZoomBorder Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+			<paz:ZoomBorder x:Name="_zoomBorder" Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
 				<Grid>
 					<!--  Image, Selection, and Paste Overlay  -->
 					<Canvas
-						x:Name="overlayCanvas"
+						x:Name="_overlayCanvas"
 						Classes="droptarget"
 						Width="{Binding BitmapAdapter.Width}"
 						Height="{Binding BitmapAdapter.Height}"
@@ -244,14 +244,14 @@
 
 						<!--  Backdrop  -->
 						<Rectangle
-							x:Name="arrangerBackdrop"
+							x:Name="_arrangerBackdrop"
 							Width="{Binding BitmapAdapter.Width}" Height="{Binding BitmapAdapter.Height}"
 							Stretch="None"
 							ClipToBounds="True"
 							Fill="{DynamicResource CheckeredBrush}"/>
 
 						<!--  Arranged Image  -->
-						<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}"
+						<Image x:Name="_image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}"
 							   PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 
 						<!--  Selection Overlay  -->

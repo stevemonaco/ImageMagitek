@@ -43,9 +43,9 @@ public interface IWindowManager
     /// <summary>
     /// Displays a MessageBox to the user synchronously
     /// </summary>
-    /// <param name="contentMessage">A <see cref="System.String"/> that specifies the text to display.</param>
-    /// <param name="userChoices">The choices to be presented to the user</param>
     /// <param name="title">A <see cref="System.String"/> that specifies the title to display.</param>
+    /// <param name="message">A <see cref="System.String"/> that specifies the text to display.</param>
+    /// <param name="userChoices">The choices to be presented to the user</param>
     /// <returns>The result chosen by the user</returns>
-    PromptResult ShowMessageBoxSync(string contentMessage, PromptChoice userChoices, string title = "");
+    PromptResult ShowMessageBoxSync(string title, string message, PromptChoice userChoices = PromptChoice.Ok);
 }

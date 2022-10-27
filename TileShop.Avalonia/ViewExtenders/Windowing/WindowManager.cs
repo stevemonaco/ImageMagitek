@@ -6,7 +6,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using MessageBox.Avalonia;
 using MessageBox.Avalonia.Enums;
 using TileShop.Shared.Dialogs;
-using TileShop.AvaloniaUI.Windowing;
 using MessageBox.Avalonia.ViewModels;
 using MessageBox.Avalonia.Views;
 
@@ -67,7 +66,7 @@ internal class WindowManager : IWindowManager
     }
 
     /// <inheritdoc/>
-    public PromptResult ShowMessageBoxSync(string contentMessage, PromptChoice userChoices, string title = "")
+    public PromptResult ShowMessageBoxSync(string title, string message, PromptChoice userChoices = PromptChoice.Ok)
     {
         var boxChoices = ChoiceToButton(userChoices);
 
@@ -75,7 +74,7 @@ internal class WindowManager : IWindowManager
         {
             ButtonDefinitions = boxChoices,
             ContentTitle = title,
-            ContentMessage = contentMessage + $"{Environment.NewLine}",
+            ContentMessage = message + $"{Environment.NewLine}",
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             CanResize = true,
             ShowInCenter = true,
@@ -86,7 +85,7 @@ internal class WindowManager : IWindowManager
         var boxViewModel = new MsBoxStandardViewModel(boxParameters, boxWindow);
         boxWindow.DataContext = boxViewModel;
 
-        var mainWindow = GetWindow();
+        var mainWindow = GetWindow()!;
 
         boxWindow.ShowDialogSync(mainWindow);
         var boxResult = boxWindow.ButtonResult;

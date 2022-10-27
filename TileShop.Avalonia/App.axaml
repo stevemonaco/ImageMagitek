@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:TileShop.AvaloniaUI"
 			 xmlns:con="using:TileShop.AvaloniaUI.Converters"
+			 xmlns:fas="using:FluentAvalonia.Styling"
              x:Class="TileShop.AvaloniaUI.App">
     <Application.DataTemplates>
         <local:ViewLocator/>
@@ -9,6 +10,7 @@
 
     <Application.Styles>
         <FluentTheme Mode="Dark"/>
+		<fas:FluentAvaloniaTheme />
 		<StyleInclude Source="avares://Dock.Avalonia/Themes/DockFluentTheme.axaml" />
 		
 		<StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/DocumentControlTabHeader.axaml" />
@@ -29,15 +31,6 @@
 		<con:NumericBaseToBooleanConverter x:Key="NumericBaseToBooleanConverter" />
 
 		<VisualBrush x:Key="CheckeredBrush" TileMode="Tile" Stretch="None" DestinationRect="0,0,16,16">
-			<!--<VisualBrush.Visual>
-				<DrawingPresenter Width="16" Height="16">
-					<DrawingGroup>
-						<GeometryDrawing Geometry="M0,0 L2,0 2,2, 0,2Z" Brush="Transparent" />
-						<GeometryDrawing Geometry="M0,0 H1 V1 H2 V2 H1 V1 H0Z" Brush="LightGray" />
-						--><!--<GeometryDrawing Geometry="M0,1 L2,1 2,2, 1,2 1,0 0,0Z" Brush="{StaticResource SystemListLowColor}" />--><!--
-					</DrawingGroup>
-				</DrawingPresenter>
-			</VisualBrush.Visual>-->
 			<VisualBrush.Visual>
 				<Image Width="16" Height="16">
 					<Image.Source>

@@ -181,24 +181,24 @@
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
 
-			<paz:ZoomBorder Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+			<paz:ZoomBorder x:Name="_zoomBorder" Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
 
 				<!--Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer}}, Converter={StaticResource ScrollViewerToMarginStringConverter}}"-->
 				<Grid>
 					<!--  Backdrop  -->
 					<Rectangle
-						x:Name="arrangerBackdrop"
+						x:Name="_arrangerBackdrop"
 						Width="{Binding BitmapAdapter.Width}" Height="{Binding BitmapAdapter.Height}"
 						Stretch="None"
 						Fill="{DynamicResource CheckeredBrush}"/>
 
 					<!--  Editable Image  -->
-					<Image x:Name="image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}"
+					<Image x:Name="_image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}"
 						   PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 
 					<!--  Selection and Paste Overlay  -->
 					<Canvas
-						x:Name="overlayCanvas"
+						x:Name="_overlayCanvas"
 						MaxWidth="{Binding BitmapAdapter.Width}"
 						MaxHeight="{Binding BitmapAdapter.Height}"
 						PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased"
