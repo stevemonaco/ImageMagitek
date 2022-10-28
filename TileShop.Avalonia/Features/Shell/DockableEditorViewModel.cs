@@ -13,6 +13,9 @@ public partial class DockableEditorViewModel : Document
     {
         _editor = editor;
         _editors = editors;
+
+        CanClose = true;
+        CanFloat = true;
     }
 
     public override bool OnClose()

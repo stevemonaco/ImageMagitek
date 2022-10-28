@@ -1,6 +1,7 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Dock.Model.Core.Events;
 using TileShop.AvaloniaUI.ViewExtenders.Docking;
 using TileShop.AvaloniaUI.ViewModels;
 
@@ -34,7 +35,7 @@ public partial class ShellView : Window
         _dock.Layout = layout;
     }
 
-    private void Factory_FocusedDockableChanged(object? sender, Dock.Model.Core.Events.FocusedDockableChangedEventArgs e)
+    private void Factory_FocusedDockableChanged(object? sender, FocusedDockableChangedEventArgs e)
     {
         if (e.Dockable is DockableEditorViewModel dock)
         {

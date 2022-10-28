@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using Avalonia.Data;
 using Dock.Avalonia.Controls;
 using Dock.Model.Controls;
 using Dock.Model.Core;
@@ -14,9 +13,9 @@ namespace TileShop.AvaloniaUI.ViewExtenders.Docking;
 
 public class DockFactory : Factory
 {
-    private IDocumentDock _documentDock;
+    private IDocumentDock? _documentDock;
     private IRootDock? _rootDock;
-    private ProportionalDock _mainLayout;
+    private ProportionalDock? _mainLayout;
 
     private readonly object? _context;
     private readonly ProjectTreeViewModel _projectTreeVm;
@@ -90,6 +89,7 @@ public class DockFactory : Factory
 
         _rootDock.Id = "Root";
         _rootDock.Title = "Root";
+        _rootDock.IsCollapsable = false;
         _rootDock.ActiveDockable = _mainLayout;
         _rootDock.DefaultDockable = _mainLayout;
         _rootDock.VisibleDockables = CreateList<IDockable>(_mainLayout);
@@ -106,7 +106,7 @@ public class DockFactory : Factory
             var newDoc = new DockableEditorViewModel(newItem, _editorsVm)
             {
                 Id = newItem.DisplayName,
-                Title = newItem.DisplayName
+                Title = newItem.DisplayName,
             };
 
             AddDockable(_documentDock, newDoc);
@@ -126,29 +126,22 @@ public class DockFactory : Factory
     {
         ContextLocator = new Dictionary<string, Func<object>>
         {
-            [nameof(IRootDock)] = () => _context,
-            [nameof(IProportionalDock)] = () => _context,
-            [nameof(IDocumentDock)] = () => _context,
-            [nameof(IToolDock)] = () => _context,
-            [nameof(IProportionalDockSplitter)] = () => _context,
-            [nameof(IDockWindow)] = () => _context,
-            [nameof(IDocument)] = () => _context,
-            [nameof(ITool)] = () => _context,
+            //[nameof(IRootDock)] = () => _context,
+            //[nameof(IProportionalDock)] = () => _context,
+            //[nameof(IDocumentDock)] = () => _context,
+            //[nameof(IToolDock)] = () => _context,
+            //[nameof(IProportionalDockSplitter)] = () => _context,
+            //[nameof(IDockWindow)] = () => _context,
+            //[nameof(IDocument)] = () => _context,
+            //[nameof(ITool)] = () => _context,
             ["TreePane"] = () => _projectTreeVm,
-            ["MainSplitter"] = () => _context,
-            ["MainLayout"] = () => _context,
+            //["MainSplitter"] = () => _context,
+            //["MainLayout"] = () => _context,
         };
 
         HostWindowLocator = new Dictionary<string, Func<IHostWindow>>
         {
-            [nameof(IDockWindow)] = () =>
-            {
-                var hostWindow = new HostWindow()
-                {
-                    [!HostWindow.TitleProperty] = new Binding("ActiveDockable.Title")
-                };
-                return hostWindow;
-            }
+            [nameof(IDockWindow)] = () => new HostWindow()
         };
 
         DockableLocator = new Dictionary<string, Func<IDockable?>>
@@ -159,7 +152,7 @@ public class DockFactory : Factory
 
         base.InitLayout(layout);
 
-        SetActiveDockable(_documentDock);
-        SetFocusedDockable(_documentDock, _documentDock.VisibleDockables?.FirstOrDefault());
+        //SetActiveDockable(_documentDock);
+        //SetFocusedDockable(_documentDock, _documentDock.VisibleDockables?.FirstOrDefault());
     }
 }
