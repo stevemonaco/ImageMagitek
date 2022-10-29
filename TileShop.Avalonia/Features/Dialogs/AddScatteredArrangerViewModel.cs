@@ -29,6 +29,7 @@ public partial class AddScatteredArrangerViewModel : DialogViewModel<AddScattere
     {
         _existingResourceNames = new(existingResourceNames);
         Title = "Add a New Scattered Arranger";
+        AcceptName = "Add";
     }
 
     public override void Ok(AddScatteredArrangerViewModel? result)

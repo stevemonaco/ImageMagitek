@@ -49,7 +49,7 @@
                 IsCancel="True" />
 			<Button
                 Margin="8,0,0,0"
-                Command="{Binding OkCommand}"
+                Command="{Binding AcceptCommand}"
 				CommandParameter="{Binding Result}"
                 Content="✓"
 				FontSize="20"

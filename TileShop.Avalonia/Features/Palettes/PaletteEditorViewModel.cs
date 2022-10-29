@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.Shared.Models;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
+using System.Threading.Tasks;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -124,14 +125,14 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         Colors[SelectedColorIndex] = model;
 
         SelectedColorIndex = currentIndex;
-        SaveChanges();
+        SaveChangesAsync();
     }
 
     /// <summary>
     /// Saves palette properties and color source values to their underlying sources
     /// </summary>
     [RelayCommand]
-    public override void SaveChanges()
+    public override Task SaveChangesAsync()
     {
         _palette.ZeroIndexTransparent = ZeroIndexTransparent;
 
@@ -143,6 +144,8 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 
         var changeEvent = new PaletteChangedEvent(_palette);
         Messenger.Send(changeEvent);
+
+        return Task.CompletedTask;
     }
 
     public override void DiscardChanges()

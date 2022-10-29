@@ -14,5 +14,7 @@ public partial class RenameNodeViewModel : DialogViewModel<string?>
         _nodeModel = nodeModel;
         Name = nodeModel.Name;
         Title = $"Rename {nodeModel.Name}";
+        AcceptName = "✓";
+        CancelName = "x";
     }
 }

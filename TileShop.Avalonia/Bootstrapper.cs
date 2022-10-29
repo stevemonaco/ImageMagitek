@@ -9,8 +9,7 @@ using TileShop.AvaloniaUI.ViewModels;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TileShop.AvaloniaUI.Services;
-using TileShop.AvaloniaUI.Windowing;
-using TileShop.Shared.Dialogs;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.AvaloniaUI;
 
@@ -62,10 +61,10 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
     public void ConfigureServices(IServiceCollection services)
     {
-        var windowManager = new WindowManager(new ViewLocator());
+        var interactionService = new InteractionService(new ViewLocator());
 
-        services.AddSingleton<IWindowManager>(windowManager);
-        services.AddSingleton<IAsyncFileSelectService, AsyncFileSelectService>();
+        services.AddSingleton<IInteractionService>(interactionService);
+        services.AddSingleton<IAsyncFileRequestService, AsyncFileRequestService>();
         services.AddSingleton<IDiskExploreService, DiskExploreService>();
         services.AddSingleton<IThemeService, ThemeService>();
     }

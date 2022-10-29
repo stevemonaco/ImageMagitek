@@ -39,9 +39,8 @@
 		</selectors:ResourceRemovalTemplateSelector>
 	</UserControl.DataTemplates>
 	
-	<Grid RowDefinitions="*,auto" Margin="10,0,10,0">
+	<Grid Margin="10,0,10,0">
 		<ScrollViewer
-            Grid.Row="0"
             HorizontalScrollBarVisibility="Hidden"
             VerticalScrollBarVisibility="Auto">
 			<StackPanel Margin="0,10,0,0" HorizontalAlignment="Center">
@@ -77,30 +76,5 @@
 				</ItemsControl>
 			</StackPanel>
 		</ScrollViewer>
-
-		<StackPanel
-            Grid.Row="1"
-            Margin="0,10,0,10"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Orientation="Horizontal">
-			<Button
-                Width="80"
-				Command="{Binding OkCommand}"
-                Content="Remove"
-                IsDefault="True">
-				<Button.CommandParameter>
-					<sys:Boolean>True</sys:Boolean>
-				</Button.CommandParameter>
-			</Button>
-			<Button
-                Width="80"
-                Margin="5,0,0,0"
-                Command="{Binding CancelCommand}"
-                Content="Cancel"
-                IsCancel="True">
-			</Button>
-		</StackPanel>
-
 	</Grid>
 </UserControl>

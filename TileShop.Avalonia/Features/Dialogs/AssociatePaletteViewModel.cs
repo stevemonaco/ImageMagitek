@@ -17,5 +17,6 @@ public partial class AssociatePaletteViewModel : DialogViewModel<AssociatePalett
         _palettes = new(palettes);
         _selectedPalette = Palettes.First();
         Title = "Associate a Palette with Arranger";
+        AcceptName = "Associate";
     }
 }

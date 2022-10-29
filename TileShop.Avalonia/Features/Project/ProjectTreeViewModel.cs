@@ -14,11 +14,10 @@ using ImageMagitek.Project;
 using ImageMagitek.Services;
 using Jot;
 using Monaco.PathTree;
-using TileShop.AvaloniaUI.Windowing;
-using TileShop.Shared.Dialogs;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Models;
 using TileShop.Shared.Services;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -26,20 +25,20 @@ public partial class ProjectTreeViewModel : ToolViewModel
 {
     private readonly IProjectService _projectService;
     private readonly IPaletteService _paletteService;
-    private readonly IAsyncFileSelectService _fileSelect;
-    private readonly IWindowManager _windowManager;
+    private readonly IAsyncFileRequestService _fileSelect;
+    private readonly IInteractionService _interactions;
     private readonly Tracker _tracker;
     private readonly IDiskExploreService _diskExploreService;
     private readonly EditorsViewModel _editors;
 
     public ProjectTreeViewModel(IProjectService solutionService, IPaletteService paletteService,
-        IAsyncFileSelectService fileSelect, IWindowManager windowManager,
+        IAsyncFileRequestService fileSelect, IInteractionService interactionService,
         Tracker tracker, IDiskExploreService diskExploreService, EditorsViewModel editors)
     {
         _projectService = solutionService;
         _paletteService = paletteService;
         _fileSelect = fileSelect;
-        _windowManager = windowManager;
+        _interactions = interactionService;
         _tracker = tracker;
         _diskExploreService = diskExploreService;
         _editors = editors;
@@ -68,26 +67,29 @@ public partial class ProjectTreeViewModel : ToolViewModel
     }
 
     [RelayCommand]
-    public void AddNewFolder(ResourceNodeViewModel parentNodeModel)
+    public async Task AddNewFolder(ResourceNodeViewModel parentNodeModel)
     {
-        _projectService.CreateNewFolder(parentNodeModel.Node, "New Folder").Switch(
+        var result = _projectService.CreateNewFolder(parentNodeModel.Node, "New Folder");
+
+        await result.Match(
             success =>
             {
                 var folderVM = new FolderNodeViewModel(success.Result, parentNodeModel);
                 parentNodeModel.Children.Add(folderVM);
                 SelectedNode = folderVM;
                 IsModified = true;
+                return Task.CompletedTask;
             },
-            fail =>
+            async fail =>
             {
-                _windowManager.ShowMessageBoxSync("Folder Creation Error", fail.Reason);
+                await _interactions.AlertAsync("Folder Creation Error", fail.Reason);
             });
     }
 
     [RelayCommand]
     public async Task AddNewDataFile(ResourceNodeViewModel parentNodeModel)
     {
-        var dataFileName = await _fileSelect.GetExistingDataFileNameByUserAsync();
+        var dataFileName = await _fileSelect.RequestExistingDataFileName();
 
         if (dataFileName is not null)
         {
@@ -96,24 +98,26 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
             if (parentNodeModel.Children.Any(x => x.Name == dfName))
             {
-                _windowManager.ShowMessageBoxSync("Error", $"'{parentNodeModel.Name}' already contains a resource named '{dfName}'");
+                await _interactions.AlertAsync("Error", $"'{parentNodeModel.Name}' already contains a resource named '{dfName}'");
                 return;
             }
 
             var df = new FileDataSource(dfName, dataFileName.LocalPath);
             var result = _projectService.AddResource(parentNodeModel.Node, df);
 
-            result.Switch(success =>
-            {
-                var dfVM = new DataFileNodeViewModel(success.Result, parentNodeModel);
-                parentNodeModel.Children.Add(dfVM);
-                SelectedNode = dfVM;
-                IsModified = true;
-            },
-            fail =>
-            {
-                _windowManager.ShowMessageBoxSync("Resource Error", fail.Reason);
-            });
+            await result.Match(
+                success =>
+                {
+                    var dfVM = new DataFileNodeViewModel(success.Result, parentNodeModel);
+                    parentNodeModel.Children.Add(dfVM);
+                    SelectedNode = dfVM;
+                    IsModified = true;
+                    return Task.CompletedTask;
+                },
+                async fail =>
+                {
+                    await _interactions.AlertAsync("Resource Error", fail.Reason);
+                });
         }
     }
 
@@ -132,11 +136,11 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
         if (dialogModel.DataSources.Count == 0)
         {
-            _windowManager.ShowMessageBoxSync("Project Error", "Project does not contain any data files to define a palette");
+            await _interactions.AlertAsync("Project Error", "Project does not contain any data files to define a palette");
             return;
         }
 
-        var dialogResult = await _windowManager.ShowDialog(dialogModel);
+        var dialogResult = await _interactions.RequestAsync(dialogModel);
 
         if (dialogResult is not null)
         {
@@ -148,19 +152,20 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
             var result = _projectService.AddResource(parentNodeModel.Node, pal);
 
-            result.Switch(success =>
-            {
-                var palVM = new PaletteNodeViewModel(success.Result, parentNodeModel);
-                parentNodeModel.Children.Add(palVM);
-                SelectedNode = palVM;
-                IsModified = true;
-                _tracker.Persist(dialogModel);
-                _editors.ActivateEditor(pal);
-            },
-            fail =>
-            {
-                _windowManager.ShowMessageBoxSync("Resource Error", fail.Reason);
-            });
+            await result.Match(success =>
+                {
+                    var palVM = new PaletteNodeViewModel(success.Result, parentNodeModel);
+                    parentNodeModel.Children.Add(palVM);
+                    SelectedNode = palVM;
+                    IsModified = true;
+                    _tracker.Persist(dialogModel);
+                    _editors.ActivateEditor(pal);
+                    return Task.CompletedTask;
+                },
+                async fail =>
+                {
+                    await _interactions.AlertAsync("Resource Error", fail.Reason);
+                });
         }
     }
 
@@ -171,7 +176,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
         _tracker.Track(dialogModel);
 
-        var dialogResult = await _windowManager.ShowDialog(dialogModel);
+        var dialogResult = await _interactions.RequestAsync(dialogModel);
 
         if (dialogResult is not null)
         {
@@ -181,19 +186,21 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
             var result = _projectService.AddResource(parentNodeModel.Node, arranger);
 
-            result.Switch(success =>
-            {
-                var arrangerVM = new ArrangerNodeViewModel(success.Result, parentNodeModel);
-                parentNodeModel.Children.Add(arrangerVM);
-                SelectedNode = arrangerVM;
-                IsModified = true;
-                _tracker.Persist(dialogModel);
-                _editors.ActivateEditor(arranger);
-            },
-            fail =>
-            {
-                _windowManager.ShowMessageBoxSync("Resource Error", fail.Reason);
-            });
+            await result.Match(
+                success =>
+                {
+                    var arrangerVM = new ArrangerNodeViewModel(success.Result, parentNodeModel);
+                    parentNodeModel.Children.Add(arrangerVM);
+                    SelectedNode = arrangerVM;
+                    IsModified = true;
+                    _tracker.Persist(dialogModel);
+                    _editors.ActivateEditor(arranger);
+                    return Task.CompletedTask;
+                },
+                async fail =>
+                {
+                    await _interactions.AlertAsync("Resource Error", fail.Reason);
+                });
         }
     }
 
@@ -210,7 +217,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
     [RelayCommand]
     public async Task ExportArrangerAs(ScatteredArranger arranger)
     {
-        var exportFileName = await _fileSelect.GetExportArrangerFileNameByUserAsync($"{arranger.Name}.png");
+        var exportFileName = await _fileSelect.RequestExportArrangerFileName($"{arranger.Name}.png");
 
         if (exportFileName is not null)
         {
@@ -240,7 +247,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
     public async Task ImportArrangerFrom(ScatteredArranger arranger)
     {
         var dialogModel = new ImportImageViewModel(arranger, _fileSelect);
-        var dialogResult = await _windowManager.ShowDialog(dialogModel);
+        var dialogResult = await _interactions.RequestAsync(dialogModel);
 
         if (dialogResult is not null)
         {
@@ -259,7 +266,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         var changeVm = new ResourceRemovalChangesViewModel(new ResourceChangeViewModel(deleteNode, tree.CreatePathKey(deleteNode),
             true, false, false), changes.Select(x => new ResourceChangeViewModel(x)).ToList());
 
-        var dialogResult = await _windowManager.ShowDialog(changeVm);        
+        var dialogResult = await _interactions.RequestAsync(changeVm);
 
         if (dialogResult is true)
         {
@@ -275,7 +282,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
             _projectService.SaveProject(tree)
             .Switch(
                 success => IsModified = false,
-                fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {tree.Root.DiskLocation}: {fail.Reason}")
+                async fail => await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {tree.Root.DiskLocation}: {fail.Reason}")
             );
         }
     }
@@ -357,7 +364,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
     public async Task RenameNode(ResourceNodeViewModel nodeModel)
     {
         var dialogModel = new RenameNodeViewModel(nodeModel);
-        var dialogResult = await _windowManager.ShowDialog(dialogModel);
+        var dialogResult = await _interactions.RequestAsync(dialogModel);
 
         if (dialogResult is string)
         {
@@ -375,7 +382,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
                     var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, newName, oldName);
                     Messenger.Send(renameEvent);
                 },
-                fail => _windowManager.ShowMessageBox(fail.Reason, "Rename failed")); //, icon: MessageBoxImage.Error); );
+                async fail => await _interactions.AlertAsync("Rename failed", fail.Reason));
         }
     }
 
@@ -387,7 +394,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         var projectTree = _projectService.GetContainingProject(message.ProjectResource);
         var parentModel = Projects.First(x => ReferenceEquals(projectTree.Project, x.Node.Item));
 
-        var dialogResult = await _windowManager.ShowDialog(dialogModel);
+        var dialogResult = await _interactions.RequestAsync(dialogModel);
 
         if (dialogResult is string resourceName)
         {
@@ -411,10 +418,10 @@ public partial class ProjectTreeViewModel : ToolViewModel
                             IsModified = true;
                             _editors.ActivateEditor(newArranger);
                         },
-                        addFailed => _windowManager.ShowMessageBox($"{addFailed.Reason}", "Error")
+                        async addFailed => await _interactions.AlertAsync("Error", addFailed.Reason)
                     );
                 },
-                copyFailed => _windowManager.ShowMessageBox($"{copyFailed.Reason}", "Error")
+                async copyFailed => await _interactions.AlertAsync("Error", copyFailed.Reason)
             );
         }
     }
@@ -462,7 +469,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
     //}
 
     [RelayCommand]
-    public override void SaveChanges()
+    public override async Task SaveChangesAsync()
     {
         try
         {
@@ -473,20 +480,20 @@ public partial class ProjectTreeViewModel : ToolViewModel
                 _projectService.SaveProject(projectTree)
                      .Switch(
                          success => IsModified = false,
-                         fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
+                         async fail => await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                      );
             }
         }
         catch (Exception ex)
         {
-            _windowManager.ShowMessageBox($"Unable to save project:\n{ex.Message}\n{ex.StackTrace}");
+            await _interactions.AlertAsync("Project Error", $"Unable to save project:\n{ex.Message}\n{ex.StackTrace}");
         }
     }
 
     [RelayCommand]
     public async Task AddNewProject()
     {
-        var projectFileName = await _fileSelect.GetNewProjectFileNameByUserAsync();
+        var projectFileName = await _fileSelect.RequestNewProjectFileName();
 
         try
         {
@@ -500,19 +507,19 @@ public partial class ProjectTreeViewModel : ToolViewModel
                         OnPropertyChanged(nameof(HasProject));
                         Messenger.Send(new ProjectLoadedEvent(projectVM.Node.DiskLocation));
                     },
-                    fail => _windowManager.ShowMessageBoxSync("Project Error", $"{fail.Reason}"));
+                    async fail => await _interactions.AlertAsync("Project Error", $"{fail.Reason}"));
             }
         }
         catch (Exception ex)
         {
-            _windowManager.ShowMessageBox($"Unable to create new project at location '{projectFileName}'\n{ex.Message}\n{ex.StackTrace}");
+            await _interactions.AlertAsync("Failed", $"Unable to create new project at location '{projectFileName}'\n{ex.Message}\n{ex.StackTrace}");
         }
     }
 
     [RelayCommand]
     public async Task NewProjectFromFile()
     {
-        var dataFileName = await _fileSelect.GetExistingDataFileNameByUserAsync();
+        var dataFileName = await _fileSelect.RequestExistingDataFileName();
         if (dataFileName is null)
             return;
 
@@ -523,7 +530,8 @@ public partial class ProjectTreeViewModel : ToolViewModel
         {
             if (dataFileName is not null)
             {
-                _projectService.CreateNewProjectWithExistingFile(Path.GetFullPath(projectFileName), Path.GetFullPath(dataFileName.LocalPath)).Switch(
+                var result = _projectService.CreateNewProjectWithExistingFile(Path.GetFullPath(projectFileName), Path.GetFullPath(dataFileName.LocalPath));
+                await result.Match(
                     success =>
                     {
                         var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
@@ -533,47 +541,48 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
                         OnPropertyChanged(nameof(HasProject));
                         Messenger.Send(new ProjectLoadedEvent(projectVM.Node.DiskLocation));
+                        return Task.CompletedTask;
                     },
-                    fail => _windowManager.ShowMessageBoxSync("Project Error", $"{fail.Reason}"));
+                    async fail => await _interactions.AlertAsync("Project Error", $"{fail.Reason}"));
             }
         }
         catch (Exception ex)
         {
-            await _windowManager.ShowMessageBox($"Unable to create new project at location '{projectFileName}'\n{ex.Message}\n{ex.StackTrace}");
+            await _interactions.AlertAsync("Failed", $"Unable to create new project at location '{projectFileName}'\n{ex.Message}\n{ex.StackTrace}");
         }
     }
 
     public async Task<bool> OpenProject()
     {
-        var projectFileName = await _fileSelect.GetProjectFileNameByUserAsync();
+        var projectFileName = await _fileSelect.RequestProjectFileName();
 
         if (projectFileName is null)
             return false;
 
-        return OpenProject(projectFileName.LocalPath);
+        return await OpenProject(projectFileName.LocalPath);
     }
 
-    public bool OpenProject(string projectFileName)
+    public async Task<bool> OpenProject(string projectFileName)
     {
         if (projectFileName is null)
             return false;
 
         var openResult = _projectService.OpenProjectFile(projectFileName);
 
-        return openResult.Match(
+        return await openResult.Match(
             success =>
             {
                 var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
                 Projects.Add(projectVM);
                 OnPropertyChanged(nameof(HasProject));
                 Messenger.Send(new ProjectLoadedEvent(projectFileName));
-                return true;
+                return Task.FromResult(true);
             },
-            fail =>
+            async fail =>
             {
                 var message = $"Project '{projectFileName}' contained {fail.Reasons.Count} errors{Environment.NewLine}" +
                     string.Join(Environment.NewLine, fail.Reasons);
-                _windowManager.ShowMessageBoxSync("Project Open Error", message);
+                await _interactions.AlertAsync("Project Open Error", message);
                 return false;
             });
     }
@@ -583,17 +592,20 @@ public partial class ProjectTreeViewModel : ToolViewModel
     {
         var projectTree = _projectService.GetContainingProject(projectVM.Node);
 
-        var newFileName = await _fileSelect.GetNewProjectFileNameByUserAsync();
+        var newFileName = await _fileSelect.RequestNewProjectFileName();
 
         if (newFileName is null)
             return;
 
-        _projectService.SaveProjectAs(projectTree, newFileName.LocalPath).Switch(
-            success => { },
-            fail =>
+        await _projectService.SaveProjectAs(projectTree, newFileName.LocalPath).Match(
+            success =>
             {
-                _windowManager.ShowMessageBoxSync("Project Save Error", fail.Reason);
-        });
+                return Task.CompletedTask;
+            },
+            async fail =>
+            {
+                await _interactions.AlertAsync("Project Save Error", fail.Reason);
+            });
     }
 
     [RelayCommand]
@@ -621,8 +633,11 @@ public partial class ProjectTreeViewModel : ToolViewModel
             removedEditors.UnionWith(activeIndexedPixelEditors);
             removedEditors.UnionWith(activeDirectPixelEditors);
 
-            if (removedEditors.Any(x => _editors.RequestSaveUserChanges(x, false) == UserSaveAction.Cancel))
-                return false;
+            foreach (var editor in removedEditors)
+            {
+                if (await _editors.RequestSaveUserChanges(editor, false) == UserSaveAction.Cancel)
+                    return false;
+            }
 
             foreach (var editor in removedEditors)
             {
@@ -631,11 +646,16 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
             _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
 
-            _projectService.SaveProject(projectTree)
-             .Switch(
-                 success => IsModified = false,
-                 fail => _windowManager.ShowMessageBoxSync("Project Save Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
-             );
+            await _projectService.SaveProject(projectTree).Match(
+                 success =>
+                 {
+                     IsModified = false;
+                     return Task.CompletedTask;
+                 },
+                 async fail =>
+                 {
+                     await _interactions.AlertAsync("Project Save Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}");
+                 });
 
             _projectService.CloseProject(projectTree);
             Projects.Remove(projectVM);
@@ -644,7 +664,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
         else if (projectSaveResult.HasFailed)
         {
-            _windowManager.ShowMessageBoxSync("Project Save Error", projectSaveResult.AsError.Reason);
+            await _interactions.AlertAsync("Project Save Error", projectSaveResult.AsError.Reason);
             return false;
         }
 

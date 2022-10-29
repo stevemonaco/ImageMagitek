@@ -6,19 +6,18 @@ using ImageMagitek.Colors;
 using ImageMagitek.Services;
 using TileShop.Shared.Models;
 using ImageMagitek.ExtensionMethods;
-using TileShop.AvaloniaUI.ViewExtenders;
 using TileShop.AvaloniaUI.Imaging;
 using TileShop.AvaloniaUI.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
-
-using Point = System.Drawing.Point;
-using CommunityToolkit.Mvvm.Input;
 using Monaco.PathTree;
 using TileShop.Shared.EventModels;
 using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Input;
-using TileShop.Shared.Dialogs;
 using System.Threading.Tasks;
+using TileShop.Shared.Interactions;
+
+using Point = System.Drawing.Point;
+using CommunityToolkit.Mvvm.Input;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -47,9 +46,9 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         }
     }
 
-    public ScatteredArrangerEditorViewModel(Arranger arranger, IWindowManager windowManager,
+    public ScatteredArrangerEditorViewModel(Arranger arranger, IInteractionService interactionService,
         IPaletteService paletteService, IProjectService projectService, AppSettings settings) :
-        base(windowManager, paletteService)
+        base(interactionService, paletteService)
     {
         Resource = arranger;
         WorkingArranger = arranger.CloneArranger();
@@ -86,7 +85,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     public void SetApplyPaletteMode() => ActiveTool = ScatteredArrangerTool.ApplyPalette;
 
     [RelayCommand]
-    public override void SaveChanges()
+    public override async Task SaveChangesAsync()
     {
         if (WorkingArranger.Layout == ElementLayout.Tiled)
         {
@@ -123,7 +122,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
                      IsModified = false;
                  },
-                 fail => _windowManager.ShowMessageBox("", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
+                 async fail => await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
              );
     }
 
@@ -488,9 +487,10 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     [RelayCommand]
     public async Task ResizeArranger()
     {
-        var model = new ResizeTiledScatteredArrangerViewModel(_windowManager, WorkingArranger.ArrangerElementSize.Width, WorkingArranger.ArrangerElementSize.Height);
+        var model = new ResizeTiledScatteredArrangerViewModel(_interactions, WorkingArranger.ArrangerElementSize.Width, WorkingArranger.ArrangerElementSize.Height);
 
-        var dialogResult = await _windowManager.ShowDialog(model);
+        //var dialogResult = await _windowManager.ShowDialog(model);
+        var dialogResult = await _interactions.RequestAsync(model);
 
         if (dialogResult is not null)
         {
@@ -512,7 +512,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
             .Concat(_paletteService.GlobalPalettes.Select(x => new AssociatePaletteModel(x, x.Name)));
 
         var model = new AssociatePaletteViewModel(palettes);
-        var dialogResult = await _windowManager.ShowDialog(model);
+        var dialogResult = await _interactions.RequestAsync(model);
 
         if (dialogResult is not null)
         {

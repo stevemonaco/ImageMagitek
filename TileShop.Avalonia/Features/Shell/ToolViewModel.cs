@@ -1,10 +1,11 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
 public abstract partial class ToolViewModel : ObservableRecipient
 {
-    public abstract void SaveChanges();
+    public abstract Task SaveChangesAsync();
     public abstract void DiscardChanges();
 
     [ObservableProperty] private string _displayName;

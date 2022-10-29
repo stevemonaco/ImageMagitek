@@ -22,25 +22,5 @@
                 Text="{Binding Height}"
                 ToolTip.Tip="Height of arranger in number of elements" />
 		</StackPanel>
-
-		<StackPanel
-            Grid.Row="2"
-            Margin="0,10,0,10"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Orientation="Horizontal">
-			<Button
-                Width="80"
-                Command="{Binding OkCommand}"
-				CommandParameter="{Binding}"
-                Content="Resize"
-                IsDefault="True" />
-			<Button
-                Width="80"
-                Margin="5,0,0,0"
-                Command="{Binding CancelCommand}"
-                Content="Cancel"
-                IsCancel="True" />
-		</StackPanel>
 	</Grid>
 </UserControl>

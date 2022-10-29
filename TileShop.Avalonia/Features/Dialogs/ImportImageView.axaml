@@ -82,7 +82,7 @@
 			<Button
                 Width="120"
                 Margin="15,0,15,0"
-				Command="{Binding OkCommand}"
+				Command="{Binding AcceptCommand}"
                 CommandParameter="{Binding}"
                 Content="Import"
                 IsEnabled="{Binding CanImport}"

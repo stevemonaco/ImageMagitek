@@ -10,5 +10,7 @@ public partial class NameResourceViewModel : DialogViewModel<string?>
     public NameResourceViewModel()
     {
         Title = "Name Resource";
+        AcceptName = "✓";
+        CancelName = "x";
     }
 }

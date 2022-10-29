@@ -7,14 +7,13 @@ using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
 using TileShop.Shared.EventModels;
-using TileShop.Shared.Dialogs;
 using Jot;
 using Serilog;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
-using TileShop.AvaloniaUI.Windowing;
-using CommunityToolkit.Mvvm;
+using System.Threading.Tasks;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -22,7 +21,7 @@ public enum UserSaveAction { Save, Discard, Cancel, Unmodified }
 
 public partial class EditorsViewModel : ObservableRecipient
 {
-    private readonly IWindowManager _windowManager;
+    private readonly IInteractionService _interactions;
     private readonly Tracker _tracker;
     private readonly ICodecService _codecService;
     private readonly IPaletteService _paletteService;
@@ -35,11 +34,11 @@ public partial class EditorsViewModel : ObservableRecipient
     [ObservableProperty] private ResourceEditorBaseViewModel? _activeEditor;
     [ObservableProperty] private ShellViewModel _shell;
 
-    public EditorsViewModel(AppSettings settings, IWindowManager windowManager, Tracker tracker,
+    public EditorsViewModel(AppSettings settings, IInteractionService interactionService, Tracker tracker,
         ICodecService codecService, IPaletteService paletteService, IProjectService projectService, IElementLayoutService layoutService)
     {
         _settings = settings;
-        _windowManager = windowManager;
+        _interactions = interactionService;
         _tracker = tracker;
         _codecService = codecService;
         _paletteService = paletteService;
@@ -51,11 +50,14 @@ public partial class EditorsViewModel : ObservableRecipient
         Messenger.Register<PaletteChangedEvent>(this, (r, m) => Receive(m));
     }
 
-    public bool CloseEditor(ResourceEditorBaseViewModel? editor)
+    public async Task<bool> CloseEditor(ResourceEditorBaseViewModel? editor)
     {
+        if (editor is null)
+            return true;
+
         if (editor.IsModified)
         {
-            var userAction = RequestSaveUserChanges(editor, true);
+            var userAction = await RequestSaveUserChanges(editor, true);
             if (userAction == UserSaveAction.Cancel)
                 return false;
 
@@ -64,10 +66,15 @@ public partial class EditorsViewModel : ObservableRecipient
                 if (editor is not IndexedPixelEditorViewModel && editor is not DirectPixelEditorViewModel)
                 {
                     var projectTree = _projectService.GetContainingProject(editor.Resource);
-                    _projectService.SaveProject(projectTree)
-                    .Switch(
-                        success => { },
-                        fail => _windowManager.ShowMessageBox("", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
+                    await _projectService.SaveProject(projectTree).Match(
+                        success =>
+                        {
+                            return Task.CompletedTask;
+                        },
+                        async fail =>
+                        {
+                            await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}");
+                        }
                     );
                 }
             }
@@ -96,10 +103,10 @@ public partial class EditorsViewModel : ObservableRecipient
                     newDocument = new PaletteEditorViewModel(pal, _paletteService, _projectService);
                     break;
                 case ScatteredArranger scatteredArranger:
-                    newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _windowManager, _paletteService, _projectService, _settings);
+                    newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _paletteService, _projectService, _settings);
                     break;
                 case SequentialArranger sequentialArranger:
-                    newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _windowManager, _tracker, _codecService, _paletteService, _layoutService);
+                    newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _paletteService, _layoutService);
                     break;
                 case FileDataSource fileSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
                     var extension = Path.GetExtension(fileSource.FileLocation).ToLower();
@@ -112,7 +119,7 @@ public partial class EditorsViewModel : ObservableRecipient
                         codecName = "NES 1bpp";
 
                     var newArranger = new SequentialArranger(8, 16, fileSource, _paletteService.DefaultPalette, _codecService.CodecFactory, codecName);
-                    newDocument = new SequentialArrangerEditorViewModel(newArranger, _windowManager, _tracker, _codecService, _paletteService, _layoutService);
+                    newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _paletteService, _layoutService);
                     break;
                 case ResourceFolder resourceFolder:
                     newDocument = null;
@@ -141,7 +148,7 @@ public partial class EditorsViewModel : ObservableRecipient
     /// Requests to save each opened, modified editor
     /// </summary>
     /// <returns>True if all user actions have been followed, false if the user cancelled</returns>
-    public bool RequestSaveAllUserChanges()
+    public async Task<bool> RequestSaveAllUserChanges()
     {
         try
         {
@@ -149,7 +156,7 @@ public partial class EditorsViewModel : ObservableRecipient
 
             foreach (var editor in Editors.Where(x => x.IsModified))
             {
-                var userAction = RequestSaveUserChanges(editor, true);
+                var userAction = await RequestSaveUserChanges(editor, true);
                 if (userAction == UserSaveAction.Cancel)
                     return false;
 
@@ -159,18 +166,17 @@ public partial class EditorsViewModel : ObservableRecipient
 
             foreach (var projectTree in savedProjects)
             {
-                _projectService.SaveProject(projectTree)
-                 .Switch(
-                     success => { },
-                     fail => _windowManager.ShowMessageBox("", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}:\n{fail.Reason}")
-                 );
+                var result = _projectService.SaveProject(projectTree);
+
+                if (result.HasFailed)
+                    await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}:\n{result.AsError.Reason}");
             }
 
             return true;
         }
         catch (Exception ex)
         {
-            _windowManager.ShowMessageBox("", ex.Message);
+            await _interactions.AlertAsync("Error", ex.Message);
             Log.Error(ex, "Unhandled exception");
             return false;
         }
@@ -182,29 +188,32 @@ public partial class EditorsViewModel : ObservableRecipient
     /// <param name="editor">Editor to save</param>
     /// <param name="saveTree">The project tree is also saved upon a Save confirmation</param>
     /// <returns>Action requested by user</returns>
-    public UserSaveAction RequestSaveUserChanges(ResourceEditorBaseViewModel editor, bool saveTree)
+    public async Task<UserSaveAction> RequestSaveUserChanges(ResourceEditorBaseViewModel editor, bool saveTree)
     {
         if (editor.IsModified)
         {
-            var result = _windowManager.ShowMessageBoxSync("Save changes", $"'{editor.DisplayName}' has been modified and will be closed. Save changes?",
-                PromptChoice.YesNoCancel);
+            var result = await _interactions.PromptAsync(PromptChoices.YesNoCancel, "Save changes", $"'{editor.DisplayName}' has been modified and will be closed. Save changes?");
 
-            if (result == PromptResult.Yes)
+            if (result == PromptResult.Accept)
             {
-                editor.SaveChanges();
+                await editor.SaveChangesAsync();
                 if (saveTree)
                 {
                     var projectTree = _projectService.GetContainingProject(editor.Resource);
-                    _projectService.SaveProject(projectTree)
-                     .Switch(
-                         success => { },
-                         fail => _windowManager.ShowMessageBoxSync("Project Save Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
-                     );
+                    await _projectService.SaveProject(projectTree).Match(
+                         success =>
+                         {
+                             return Task.CompletedTask;
+                         },
+                         async fail =>
+                         {
+                             await _interactions.AlertAsync("Project Save Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}");
+                         });
                 }
 
                 return UserSaveAction.Save;
             }
-            else if (result == PromptResult.No)
+            else if (result == PromptResult.Reject)
             {
                 editor.DiscardChanges();
                 return UserSaveAction.Discard;
@@ -221,7 +230,7 @@ public partial class EditorsViewModel : ObservableRecipient
         if (message.Arranger.ColorType == PixelColorType.Indexed)
         {
             var editor = new IndexedPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-                message.Width, message.Height, _windowManager, _paletteService);
+                message.Width, message.Height, _interactions, _paletteService);
 
             editor.DisplayName = message.Arranger.Name;
 
@@ -231,7 +240,7 @@ public partial class EditorsViewModel : ObservableRecipient
         else if (message.Arranger.ColorType == PixelColorType.Direct)
         {
             var editor = new DirectPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-                message.Width, message.Height, _windowManager, _paletteService);
+                message.Width, message.Height, _interactions, _paletteService);
 
             editor.DisplayName = message.Arranger.Name;
 

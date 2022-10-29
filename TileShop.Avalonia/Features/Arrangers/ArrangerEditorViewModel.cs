@@ -11,7 +11,7 @@ using TileShop.AvaloniaUI.Models;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Input;
-using TileShop.Shared.Dialogs;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -22,7 +22,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     public Arranger WorkingArranger { get; protected set; }
 
     protected IPaletteService _paletteService;
-    protected IWindowManager _windowManager;
+    protected IInteractionService _interactions;
 
     [ObservableProperty] private BitmapAdapter _bitmapAdapter;
 
@@ -79,9 +79,9 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
 
     public Action OnImageModified { get; set; }
 
-    public ArrangerEditorViewModel(IWindowManager windowManager, IPaletteService paletteService)
+    public ArrangerEditorViewModel(IInteractionService interactionService, IPaletteService paletteService)
     {
-        _windowManager = windowManager;
+        _interactions = interactionService;
         _paletteService = paletteService;
     }
 

@@ -8,7 +8,7 @@
 			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.AssociatePaletteView">
 	<Border Padding="10">
-		<Grid RowDefinitions="auto,*,auto">
+		<Grid RowDefinitions="auto,*">
 			<TextBlock
                 Grid.Row="0"
                 Margin="5,0,0,0"
@@ -32,26 +32,6 @@
 					</ItemsPanelTemplate>
 				</ListBox.ItemsPanel>
 			</ListBox>
-
-			<StackPanel
-                Grid.Row="2"
-                Margin="0,5,0,0"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Bottom"
-                Orientation="Horizontal">
-				<Button
-                    Width="90"
-                    Command="{Binding OkCommand}"
-					CommandParameter="{Binding}"
-                    Content="Associate"
-                    IsDefault="True" />
-				<Button
-                    Width="90"
-                    Margin="5,0,0,0"
-                    Command="{Binding CancelCommand}"
-                    Content="Cancel"
-                    IsCancel="True" />
-			</StackPanel>
 		</Grid>
 	</Border>
 </UserControl>

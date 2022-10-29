@@ -8,27 +8,11 @@
 			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.NameResourceView">
 	<Grid>
-		<StackPanel Orientation="Horizontal">
+		<StackPanel>
 			<TextBox
                 MinWidth="220"
                 FontSize="20"
                 Text="{Binding ResourceName}" />
-			<Button
-                Margin="5,0,0,0"
-                Command="{Binding CancelCommand}"
-                Content="x"
-                FontSize="20"
-                Foreground="Red"
-                IsCancel="True"
-                ToolTip.Tip="Cancel" />
-			<Button
-                Command="{Binding OkCommand}"
-				CommandParameter="{Binding ResourceName}"
-                Content="✓"
-                FontSize="20"
-                Foreground="Green"
-                IsDefault="True"
-                ToolTip.Tip="Confirm" />
 		</StackPanel>
 	</Grid>
 </UserControl>

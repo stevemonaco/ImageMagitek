@@ -1,4 +1,7 @@
 ﻿using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Dock.Model.Mvvm.Controls;
 
@@ -20,18 +23,17 @@ public partial class DockableEditorViewModel : Document
 
     public override bool OnClose()
     {
-        var userAction = _editors.RequestSaveUserChanges(_editor, true);
+        using var cts = new CancellationTokenSource();
+        bool result = default;
 
-        if (userAction == UserSaveAction.Cancel)
-        {
-            return false;
-        }
-        else
-        {
-            _editors.Editors.Remove(_editor);
-            _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
+        _editors.RequestSaveUserChanges(_editor, true).ContinueWith(x =>
+            {
+                result = x.IsCompletedSuccessfully && x.Result != UserSaveAction.Cancel;
+                cts.Cancel();
+            },
+            TaskScheduler.FromCurrentSynchronizationContext());
 
-            return true;
-        }
+        Dispatcher.UIThread.MainLoop(cts.Token);
+        return result;
     }
 }

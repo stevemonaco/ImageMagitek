@@ -1,19 +1,19 @@
 ﻿using ImageMagitek;
 using ImageMagitek.Colors;
-using TileShop.Shared.Services;
 using TileShop.AvaloniaUI.Windowing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.Imaging;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Threading.Tasks;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
 public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel>
 {
     private readonly Arranger _arranger;
-    private readonly IAsyncFileSelectService _fileSelect;
+    private readonly IAsyncFileRequestService _fileSelect;
 
     private readonly IndexedImage? _originalIndexed;
     private readonly DirectImage? _originalDirect;
@@ -50,7 +50,7 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
     public bool IsTiledArranger => _arranger.Layout == ElementLayout.Tiled;
     public bool IsSingleArranger => _arranger.Layout == ElementLayout.Single;
 
-    public ImportImageViewModel(Arranger arranger, IAsyncFileSelectService fileSelect)
+    public ImportImageViewModel(Arranger arranger, IAsyncFileRequestService fileSelect)
     {
         _arranger = arranger;
         _fileSelect = fileSelect;
@@ -71,6 +71,7 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
         }
 
         Title = "Import Image Into Arranger";
+        AcceptName = "Import";
     }
 
     //protected override void OnViewLoaded()
@@ -83,7 +84,7 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
     [RelayCommand]
     public async Task BrowseForImportFile()
     {
-        var fileName = await _fileSelect.GetImportArrangerFileNameByUserAsync();
+        var fileName = await _fileSelect.RequestImportArrangerFileName();
 
         if (fileName is null)
             return;

@@ -1,28 +1,31 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TileShop.Shared.Dialogs;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.AvaloniaUI.Windowing;
-public abstract partial class DialogViewModel<TResult> : ObservableValidator, IDialogMediator<TResult>
+public abstract partial class DialogViewModel<TResult> : ObservableValidator, IRequestMediator<TResult>
 {
-    [ObservableProperty] private TResult? _dialogResult = default(TResult);
-    [ObservableProperty] protected string? _title;
+    [ObservableProperty] private TResult? _requestResult = default(TResult);
+    [ObservableProperty] private string _title = "";
 
-    private RelayCommand<TResult>? okCommand;
-    public IRelayCommand<TResult> OkCommand => okCommand ??= new RelayCommand<TResult>(Ok);
+    private RelayCommand<TResult>? _okCommand;
+    public IRelayCommand<TResult> AcceptCommand => _okCommand ??= new RelayCommand<TResult>(Ok);
 
-    private RelayCommand? cancelCommand;
-    public IRelayCommand CancelCommand => cancelCommand ??= new RelayCommand(Cancel);
+    private RelayCommand? _cancelCommand;
+    public IRelayCommand CancelCommand => _cancelCommand ??= new RelayCommand(Cancel);
+
+    public string AcceptName { get; protected set; } = "Ok";
+    public string CancelName { get; protected set; } = "Cancel";
 
     public virtual void Ok(TResult? result)
     {
-        _dialogResult = result;
-        OnPropertyChanged(nameof(DialogResult)); // Explicitly raise INPC, so null/default results will return
+        _requestResult = result;
+        OnPropertyChanged(nameof(RequestResult)); // Explicitly raise INPC, so null/default results will return
     }
     
     public virtual void Cancel()
     {
-        _dialogResult = default;
-        OnPropertyChanged(nameof(DialogResult));
+        _requestResult = default;
+        OnPropertyChanged(nameof(RequestResult));
     }
 }

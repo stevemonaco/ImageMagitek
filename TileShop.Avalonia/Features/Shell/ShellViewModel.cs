@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Dock.Model.Controls;
@@ -39,9 +40,9 @@ public partial class ShellViewModel : ObservableObject
         ActiveTree.OpenProject(_projectFile);
     }
 
-    public void RequestApplicationExit()
+    public async Task RequestApplicationExit()
     {
-        var canClose = Editors.RequestSaveAllUserChanges();
+        var canClose = await Editors.RequestSaveAllUserChanges();
 
         if (canClose)
         {

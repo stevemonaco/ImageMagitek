@@ -41,5 +41,6 @@ public partial class ColorRemapViewModel : DialogViewModel<ColorRemapViewModel> 
         }
 
         Title = "Color Remapper";
+        AcceptName = "Remap";
     }
 }

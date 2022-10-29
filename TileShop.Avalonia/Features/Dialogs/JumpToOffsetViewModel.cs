@@ -33,6 +33,8 @@ public partial class JumpToOffsetViewModel : DialogViewModel<long?>
     public JumpToOffsetViewModel()
     {
         Title = "Jump to Offset";
+        AcceptName = "✓";
+        CancelName = "x";
     }
 
     public static ValidationResult ValidateModel(string input, ValidationContext context)

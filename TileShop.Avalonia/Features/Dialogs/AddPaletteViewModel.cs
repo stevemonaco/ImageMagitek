@@ -1,9 +1,8 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using ImageMagitek;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
+using ImageMagitek;
 using TileShop.AvaloniaUI.Windowing;
 
 namespace TileShop.AvaloniaUI.ViewModels;
@@ -37,6 +36,7 @@ public partial class AddPaletteViewModel : DialogViewModel<AddPaletteViewModel>
     {
         _existingResourceNames = new(existingResourceNames);
         Title = "Add a New Palette";
+        AcceptName = "Add";
     }
 
     public void ValidateModel()

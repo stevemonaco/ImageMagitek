@@ -34,5 +34,6 @@ public partial class ResourceRemovalChangesViewModel : DialogViewModel<bool>
         HasRemovedResources = RemovedResources.Any();
         HasChangedResources = ChangedResources.Any();
         Title = "Resource Removal Changes";
+        AcceptName = "Remove";
     }
 }

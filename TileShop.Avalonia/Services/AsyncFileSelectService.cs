@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
-using TileShop.Shared.Services;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.AvaloniaUI.Services;
 
-internal class AsyncFileSelectService : IAsyncFileSelectService
+internal class AsyncFileRequestService : IAsyncFileRequestService
 {
     private static FilePickerFileType _projectType = new("XML Project")
     {
@@ -17,7 +18,7 @@ internal class AsyncFileSelectService : IAsyncFileSelectService
         MimeTypes = new[] { "text/xml" }
     };
 
-    public async Task<Uri?> GetProjectFileNameByUserAsync()
+    public async Task<Uri?> RequestProjectFileName()
     {
         var options = new FilePickerOpenOptions()
         {
@@ -31,7 +32,7 @@ internal class AsyncFileSelectService : IAsyncFileSelectService
         return await OpenFilePickerAsync(options);
     }
 
-    public async Task<Uri?> GetNewProjectFileNameByUserAsync()
+    public async Task<Uri?> RequestNewProjectFileName()
     {
         var options = new FilePickerSaveOptions()
         {
@@ -45,7 +46,7 @@ internal class AsyncFileSelectService : IAsyncFileSelectService
         return await SaveFilePickerAsync(options);
     }
 
-    public async Task<Uri?> GetExistingDataFileNameByUserAsync()
+    public async Task<Uri?> RequestExistingDataFileName()
     {
         var options = new FilePickerOpenOptions()
         {
@@ -59,7 +60,7 @@ internal class AsyncFileSelectService : IAsyncFileSelectService
         return await OpenFilePickerAsync(options);
     }
 
-    public async Task<Uri?> GetExportArrangerFileNameByUserAsync(string defaultName)
+    public async Task<Uri?> RequestExportArrangerFileName(string defaultName)
     {
         var options = new FilePickerSaveOptions()
         {
@@ -70,7 +71,7 @@ internal class AsyncFileSelectService : IAsyncFileSelectService
         return await SaveFilePickerAsync(options);
     }
 
-    public async Task<Uri?> GetImportArrangerFileNameByUserAsync()
+    public async Task<Uri?> RequestImportArrangerFileName()
     {
         var options = new FilePickerOpenOptions()
         {
@@ -93,7 +94,7 @@ internal class AsyncFileSelectService : IAsyncFileSelectService
 
         var pickerResult = await window.StorageProvider.OpenFilePickerAsync(options);
 
-        if (pickerResult?[0].TryGetUri(out var uri) is true)
+        if (pickerResult.FirstOrDefault()?.TryGetUri(out var uri) is true)
         {
             return uri;
         }

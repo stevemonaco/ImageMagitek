@@ -7,15 +7,16 @@ using ImageMagitek.Services;
 using TileShop.Shared.EventModels;
 using TileShop.AvaloniaUI.Imaging;
 using TileShop.AvaloniaUI.Models;
-using TileShop.Shared.Dialogs;
 using TileShop.Shared.Models;
 using ImageMagitek.Image;
 using ImageMagitek.ExtensionMethods;
 using CommunityToolkit.Mvvm.ComponentModel;
-
-using Point = System.Drawing.Point;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using System.Threading.Tasks;
+using TileShop.Shared.Interactions;
+
+using Point = System.Drawing.Point;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -27,15 +28,15 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
     [ObservableProperty] private PaletteModel _activePalette = null!;
 
     public IndexedPixelEditorViewModel(Arranger arranger, Arranger projectArranger,
-        IWindowManager windowManager, IPaletteService paletteService)
-        : base(projectArranger, windowManager, paletteService)
+        IInteractionService interactionService, IPaletteService paletteService)
+        : base(projectArranger, interactionService, paletteService)
     {
         Initialize(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
     }
 
     public IndexedPixelEditorViewModel(Arranger arranger, Arranger projectArranger, int viewX, int viewY, int viewWidth, int viewHeight,
-        IWindowManager windowManager, IPaletteService paletteService)
-        : base(projectArranger, windowManager, paletteService)
+        IInteractionService interactionService, IPaletteService paletteService)
+        : base(projectArranger, interactionService, paletteService)
     {
         Initialize(arranger, viewX, viewY, viewWidth, viewHeight);
     }
@@ -150,7 +151,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         var colors = Math.Min(256, 1 << maxArrangerColors);
 
         var remapViewModel = new ColorRemapViewModel(palette, colors, _paletteService.ColorFactory);
-        var dialogResult = await _windowManager.ShowDialog(remapViewModel);
+        var dialogResult = await _interactions.RequestAsync(remapViewModel);
 
         if (dialogResult is not null)
         {
@@ -176,7 +177,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
     }
 
     [RelayCommand]
-    public override void SaveChanges()
+    public override async Task SaveChangesAsync()
     {
         try
         {
@@ -193,7 +194,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         }
         catch (Exception ex)
         {
-            _windowManager.ShowMessageBox($"Could not save the pixel arranger contents\n{ex.Message}\n{ex.StackTrace}", "Save Error");
+            await _interactions.AlertAsync("Save Error", $"Could not save the pixel arranger contents\n{ex.Message}\n{ex.StackTrace}");
         }
     }
 

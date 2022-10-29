@@ -10,35 +10,11 @@
 	<Grid>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="*" MinWidth="200" />
-			<ColumnDefinition Width="auto" />
-			<ColumnDefinition Width="auto" />
 		</Grid.ColumnDefinitions>
 
 		<TextBox
 			x:Name="renameBox"
-			Grid.Column="0"
 			FontSize="20"
 			Text="{Binding Name}" />
-
-		<Button
-			Grid.Column="1"
-			Margin="10,0,0,0"
-			Command="{Binding CancelCommand}"
-			Content="x"
-			FontSize="20"
-			Foreground="Red"
-			IsCancel="True"
-			ToolTip.Tip="Cancel Rename" />
-
-		<Button
-			Grid.Column="2"
-			Margin="5,0,0,0"
-			Command="{Binding OkCommand}"
-			CommandParameter="{Binding Name}"
-			Content="✓"
-			FontSize="20"
-			Foreground="Green"
-			IsDefault="True"
-			ToolTip.Tip="Confirm Rename" />
 	</Grid>
 </UserControl>

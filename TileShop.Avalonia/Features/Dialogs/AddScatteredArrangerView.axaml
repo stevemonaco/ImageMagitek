@@ -7,9 +7,8 @@
 			 x:DataType="vm:AddScatteredArrangerViewModel"
 			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.AddScatteredArrangerView">
-	<Grid RowDefinitions="*,auto">
-
-		<ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+	<Grid>
+		<ScrollViewer VerticalScrollBarVisibility="Auto">
 			<StackPanel>
 				<Label Content="Arranger Name" Target="arrangerNameBox" />
 				<TextBox
@@ -132,27 +131,5 @@
 				</ItemsControl>
 			</StackPanel>
 		</ScrollViewer>
-
-		<StackPanel
-            Grid.Row="1"
-            Margin="0,5,0,10"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Orientation="Horizontal">
-			<Button
-                Width="80"
-                Command="{Binding OkCommand}"
-				CommandParameter="{Binding}"
-                Content="Add"
-                IsDefault="True"
-                IsEnabled="{Binding CanAdd}" />
-			<Button
-                Width="80"
-                Margin="5,0,0,0"
-                Command="{Binding CancelCommand}"
-                Content="Cancel"
-                IsCancel="True" />
-		</StackPanel>
-
 	</Grid>
 </UserControl>

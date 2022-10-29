@@ -45,7 +45,7 @@ public partial class MenuViewModel : ObservableRecipient
 
     public void CloseEditor() => Editors.CloseEditor(Editors.ActiveEditor);
 
-    public void SaveEditor() => Editors.ActiveEditor?.SaveChanges();
+    public void SaveEditor() => Editors.ActiveEditor?.SaveChangesAsync();
 
     public void ExitApplication() => Shell.RequestApplicationExit();
 

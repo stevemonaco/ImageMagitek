@@ -7,8 +7,8 @@
 			 x:DataType="vm:CustomElementLayoutViewModel"
 			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.CustomElementLayoutView">
-	<Grid Margin="10" RowDefinitions="*,auto">
-		<ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+	<Grid Margin="10">
+		<ScrollViewer VerticalScrollBarVisibility="Auto">
 			<StackPanel>
 				<TextBlock HorizontalAlignment="Center" Text="Flow Direction" />
 
@@ -62,25 +62,5 @@
 				</ItemsControl>
 			</StackPanel>
 		</ScrollViewer>
-
-		<StackPanel
-            Grid.Row="1"
-            Margin="0,5,0,5"
-            HorizontalAlignment="Center"
-            Orientation="Horizontal">
-			<Button
-                Width="80"
-                Command="{Binding OkCommand}"
-				CommandParameter="{Binding}"
-                Content="Ok"
-                IsDefault="True"
-                IsEnabled="{Binding CanConfirm}" />
-			<Button
-                Width="80"
-                Margin="5,0,0,0"
-                Command="{Binding CancelCommand}"
-                Content="Cancel"
-                IsCancel="True" />
-		</StackPanel>
 	</Grid>
 </UserControl>

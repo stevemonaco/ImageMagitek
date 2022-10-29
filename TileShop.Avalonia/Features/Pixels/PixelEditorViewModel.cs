@@ -4,8 +4,8 @@ using TileShop.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TileShop.Shared.Input;
-using TileShop.Shared.Dialogs;
 using System;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -28,8 +28,8 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     [ObservableProperty] private TColor _primaryColor;
     [ObservableProperty] private TColor _secondaryColor;
 
-    public PixelEditorViewModel(Arranger projectArranger, IWindowManager windowManager, IPaletteService paletteService) :
-        base(windowManager, paletteService)
+    public PixelEditorViewModel(Arranger projectArranger, IInteractionService interactionService, IPaletteService paletteService) :
+        base(interactionService, paletteService)
     {
         DisplayName = "Pixel Editor";
         CanAcceptElementPastes = true;

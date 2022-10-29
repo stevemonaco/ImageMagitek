@@ -11,11 +11,7 @@
 			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.AddPaletteView">
 	<Grid Margin="10">
-		<Grid.RowDefinitions>
-			<RowDefinition Height="*"/>
-			<RowDefinition Height="auto"/>
-		</Grid.RowDefinitions>
-		<StackPanel Grid.Row="0">
+		<StackPanel>
 			<Label Content="Palette Name" Target="paletteNameBox"/>
 			<TextBox
 				x:Name="paletteNameBox"
@@ -65,26 +61,6 @@
 					</DataTemplate>
 				</ItemsControl.ItemTemplate>
 			</ItemsControl>
-		</StackPanel>
-
-		<StackPanel
-            Grid.Row="1"
-            Margin="0,5,0,5"
-            HorizontalAlignment="Center"
-            Orientation="Horizontal">
-			<Button
-                Width="80"
-                Command="{Binding OkCommand}"
-				CommandParameter="{Binding}"
-                Content="Add"
-                IsDefault="True"
-                IsEnabled="{Binding CanAdd}" />
-			<Button
-                Width="80"
-                Margin="5,0,0,0"
-                Command="{Binding CancelCommand}"
-                Content="Cancel"
-                IsCancel="True" />
 		</StackPanel>
 	</Grid>
 </UserControl>

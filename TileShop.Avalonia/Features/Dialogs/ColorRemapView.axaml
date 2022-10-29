@@ -73,7 +73,7 @@
 		</Style>
 	</UserControl.Styles>
 	
-	<Grid RowDefinitions="*,*,auto">
+	<Grid RowDefinitions="*,*">
 		<StackPanel Grid.Row="0" Margin="10">
 			<TextBlock
                 HorizontalAlignment="Center"
@@ -142,23 +142,6 @@
 					</DataTemplate>
 				</ListBox.ItemTemplate>
 			</ListBox>
-		</StackPanel>
-
-		<StackPanel
-            Grid.Row="3"
-            Margin="0,10,0,10"
-            HorizontalAlignment="Center"
-            Orientation="Horizontal">
-			<Button
-                Width="120"
-                Margin="0,0,15,0"
-				Command="{Binding OkCommand}"
-				CommandParameter="{Binding}"
-                Content="Remap" />
-			<Button
-                Width="120"
-                Command="{Binding CancelCommand}"
-                Content="Cancel" />
 		</StackPanel>
 	</Grid>
 </UserControl>

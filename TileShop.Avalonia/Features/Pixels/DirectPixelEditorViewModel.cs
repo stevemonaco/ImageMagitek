@@ -11,7 +11,8 @@ using System.Drawing;
 using ImageMagitek.ExtensionMethods;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using TileShop.Shared.Dialogs;
+using System.Threading.Tasks;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -20,15 +21,15 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
     private DirectImage _directImage = null!;
 
     public DirectPixelEditorViewModel(Arranger arranger, Arranger projectArranger,
-        IWindowManager windowManager, IPaletteService paletteService)
-        : base(projectArranger, windowManager, paletteService)
+        IInteractionService interactionService, IPaletteService paletteService)
+        : base(projectArranger, interactionService, paletteService)
     {
         Initialize(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
     }
 
     public DirectPixelEditorViewModel(Arranger arranger, Arranger projectArranger, int viewX, int viewY, int viewWidth, int viewHeight,
-        IWindowManager windowManager, IPaletteService paletteService)
-        : base(projectArranger, windowManager, paletteService)
+        IInteractionService interactionService, IPaletteService paletteService)
+        : base(projectArranger, interactionService, paletteService)
     {
         Initialize(arranger, viewX, viewY, viewWidth, viewHeight);
     }
@@ -61,7 +62,7 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
     protected override void ReloadImage() => _directImage.Render();
 
     [RelayCommand]
-    public override void SaveChanges()
+    public override async Task SaveChangesAsync()
     {
         try
         {
@@ -78,7 +79,7 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
         }
         catch (Exception ex)
         {
-            _windowManager.ShowMessageBox($"Could not save the pixel arranger contents\n{ex.Message}\n{ex.StackTrace}", "Save Error");
+            await _interactions.AlertAsync($"Could not save the pixel arranger contents\n{ex.Message}\n{ex.StackTrace}", "Save Error");
         }
     }
 

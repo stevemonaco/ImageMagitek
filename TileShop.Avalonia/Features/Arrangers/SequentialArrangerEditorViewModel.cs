@@ -8,12 +8,13 @@ using System.Drawing;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.Models;
-using TileShop.Shared.Dialogs;
 using TileShop.AvaloniaUI.Imaging;
 using CommunityToolkit.Mvvm.Input;
 using TileShop.Shared.EventModels;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
+using System.Threading.Tasks;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -155,9 +156,9 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
     [ObservableProperty] private long _maxFileDecodingOffset;
     [ObservableProperty] private int _arrangerPageSize;
 
-    public SequentialArrangerEditorViewModel(SequentialArranger arranger, IWindowManager windowManager,
+    public SequentialArrangerEditorViewModel(SequentialArranger arranger, IInteractionService interactionService,
         Tracker tracker, ICodecService codecService, IPaletteService paletteService, IElementLayoutService layoutService) :
-        base(windowManager, paletteService)
+        base(interactionService, paletteService)
     {
         Resource = arranger;
         WorkingArranger = arranger;
@@ -202,9 +203,10 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         MaxFileDecodingOffset = ((SequentialArranger)WorkingArranger).FileSize - ArrangerPageSize;
     }
 
-    public override void SaveChanges()
+    public override Task SaveChangesAsync()
     {
         IsModified = false;
+        return Task.CompletedTask;
     }
 
     public override void DiscardChanges()
@@ -265,7 +267,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         var model = new JumpToOffsetViewModel();
         _tracker.Track(model);
 
-        var dialogResult = await _windowManager.ShowDialog(model);
+        var dialogResult = await _interactions.RequestAsync(model);
 
         if (dialogResult is long result)
         {
@@ -275,7 +277,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
     }
 
     [RelayCommand]
-    public void NewScatteredArrangerFromSelection()
+    public async Task NewScatteredArrangerFromSelection()
     {
         if (SnapMode == SnapMode.Element)
         {
@@ -290,12 +292,12 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         }
         else
         {
-            _windowManager.ShowMessageBox("Selection must be performed in Element Snap mode to create a new Scattered Arranger", "Error");
+            await _interactions.AlertAsync("Error", "Selection must be performed in Element Snap mode to create a new Scattered Arranger");
         }
     }
 
     [RelayCommand]
-    public void NewScatteredArrangerFromImage()
+    public async Task NewScatteredArrangerFromImage()
     {
         if (SnapMode == SnapMode.Element)
         {
@@ -305,7 +307,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         }
         else
         {
-            _windowManager.ShowMessageBox("Selection must be performed in Element Snap mode to create a new Scattered Arranger", "Error");
+            await _interactions.AlertAsync("Error", "Selection must be performed in Element Snap mode to create a new Scattered Arranger");
         }
     }
 
@@ -321,7 +323,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         var model = new CustomElementLayoutViewModel();
         _tracker.Track(model);
 
-        var dialogResult = await _windowManager.ShowDialog(model);
+        var dialogResult = await _interactions.RequestAsync(model);
 
         if (dialogResult is not null)
         {
