@@ -9,6 +9,6 @@ public interface IRequestMediator<TResult> : INotifyPropertyChanged
     string CancelName { get; }
     TResult? RequestResult { get; set; }
 
-    IRelayCommand<TResult> AcceptCommand { get; }
+    IRelayCommand AcceptCommand { get; }
     IRelayCommand CancelCommand { get; }
 }

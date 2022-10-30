@@ -175,8 +175,7 @@
 
 			<paz:ZoomBorder x:Name="_zoomBorder" Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
 
-				<!--Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer}}, Converter={StaticResource ScrollViewerToMarginStringConverter}}"-->
-				<Grid>
+				<Grid>					
 					<!--  Backdrop  -->
 					<Rectangle
 						x:Name="_arrangerBackdrop"

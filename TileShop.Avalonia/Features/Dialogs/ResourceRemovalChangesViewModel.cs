@@ -36,4 +36,14 @@ public partial class ResourceRemovalChangesViewModel : DialogViewModel<bool>
         Title = "Resource Removal Changes";
         AcceptName = "Remove";
     }
+
+    protected override void Accept()
+    {
+        RequestResult = true;
+    }
+
+    protected override void Cancel()
+    {
+        RequestResult = false;
+    }
 }

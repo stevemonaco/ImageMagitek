@@ -32,7 +32,7 @@ public partial class AddScatteredArrangerViewModel : DialogViewModel<AddScattere
         AcceptName = "Add";
     }
 
-    public override void Ok(AddScatteredArrangerViewModel? result)
+    protected override void Accept()
     {
         if (Layout == ElementLayout.Single)
         {
@@ -40,7 +40,8 @@ public partial class AddScatteredArrangerViewModel : DialogViewModel<AddScattere
             ArrangerElementWidth = 1;
         }
 
-        base.Ok(result);
+        _requestResult = this;
+        OnPropertyChanged(nameof(RequestResult));
     }
 
     [RelayCommand]

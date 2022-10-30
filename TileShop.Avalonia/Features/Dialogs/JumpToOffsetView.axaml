@@ -18,43 +18,21 @@
 		</Style>
 	</UserControl.Styles>
 	
-	<Grid>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="auto" />
-			<RowDefinition Height="auto" />
-		</Grid.RowDefinitions>
+	<Grid ColumnDefinitions="auto, *">
+		<ToggleButton FontSize="20" Focusable="False"
+					  Content="{Binding NumericBase, Converter={x:Static con:AppConverters.NumericBaseToString}}"
+					  IsChecked="{Binding NumericBase, Converter={StaticResource NumericBaseToBooleanConverter}}" />
 
 		<TextBox
-            x:Name="jumpBox"
+            x:Name="_jumpBox"
+			AttachedToVisualTree="JumpBox_AttachedToVisualTree"
+			KeyDown="JumpBox_KeyDown"
+			Grid.Column="1"
+			HorizontalContentAlignment="Right"
             MinWidth="120"
             FontSize="20"
             IsTabStop="True"
             TabIndex="0"
             Text="{Binding OffsetText}" />
-
-		<StackPanel
-			Grid.Row="1"
-            Margin="8,0,8,0"
-            HorizontalAlignment="Right"
-            Orientation="Horizontal">
-
-			<ToggleButton FontSize="20" Content="{Binding NumericBase, Converter={x:Static con:AppConverters.NumericBaseToString}}" IsChecked="{Binding NumericBase, Converter={StaticResource NumericBaseToBooleanConverter}}" />
-
-			<Button
-                Margin="8,0,0,0"
-                Command="{Binding CancelCommand}"
-                Content="x"
-				FontSize="20"
-                Foreground="Red"
-                IsCancel="True" />
-			<Button
-                Margin="8,0,0,0"
-                Command="{Binding AcceptCommand}"
-				CommandParameter="{Binding Result}"
-                Content="✓"
-				FontSize="20"
-                Foreground="Green"
-                IsDefault="True" />
-		</StackPanel>
 	</Grid>
 </UserControl>

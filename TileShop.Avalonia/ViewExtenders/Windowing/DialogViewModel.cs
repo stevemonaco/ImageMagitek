@@ -5,11 +5,11 @@ using TileShop.Shared.Interactions;
 namespace TileShop.AvaloniaUI.Windowing;
 public abstract partial class DialogViewModel<TResult> : ObservableValidator, IRequestMediator<TResult>
 {
-    [ObservableProperty] private TResult? _requestResult = default(TResult);
+    [ObservableProperty] protected TResult? _requestResult = default(TResult);
     [ObservableProperty] private string _title = "";
 
-    private RelayCommand<TResult>? _okCommand;
-    public IRelayCommand<TResult> AcceptCommand => _okCommand ??= new RelayCommand<TResult>(Ok);
+    private RelayCommand? _acceptCommand;
+    public IRelayCommand AcceptCommand => _acceptCommand ??= new RelayCommand(Accept, CanAccept);
 
     private RelayCommand? _cancelCommand;
     public IRelayCommand CancelCommand => _cancelCommand ??= new RelayCommand(Cancel);
@@ -17,13 +17,18 @@ public abstract partial class DialogViewModel<TResult> : ObservableValidator, IR
     public string AcceptName { get; protected set; } = "Ok";
     public string CancelName { get; protected set; } = "Cancel";
 
-    public virtual void Ok(TResult? result)
-    {
-        _requestResult = result;
-        OnPropertyChanged(nameof(RequestResult)); // Explicitly raise INPC, so null/default results will return
-    }
-    
-    public virtual void Cancel()
+    /// <summary>
+    /// Called when the user accepts the interaction
+    /// Responsible for mapping an internal result into RequestResult
+    /// </summary>
+    protected abstract void Accept();
+
+    protected virtual bool CanAccept() => true;
+
+    /// <summary>
+    /// Called when the user cancels an interaction
+    /// </summary>
+    protected virtual void Cancel()
     {
         _requestResult = default;
         OnPropertyChanged(nameof(RequestResult));

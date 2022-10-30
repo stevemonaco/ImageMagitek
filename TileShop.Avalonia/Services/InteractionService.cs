@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using FluentAvalonia.UI.Controls;
 using TileShop.Shared.Interactions;
 
@@ -22,7 +23,7 @@ internal class InteractionService : IInteractionService
             Content = message,
             IsPrimaryButtonEnabled = true,
             IsSecondaryButtonEnabled = false,
-            DefaultButton = ContentDialogButton.Primary,
+            DefaultButton = ContentDialogButton.Primary
         };
 
         await cd.ShowAsync();
@@ -42,12 +43,12 @@ internal class InteractionService : IInteractionService
     }
 
     /// <inheritdoc/>
-    public async Task<TResult> RequestAsync<TResult>(IRequestMediator<TResult> mediator)
+    public async Task<TResult?> RequestAsync<TResult>(IRequestMediator<TResult> mediator)
     {
         var content = _viewLocator.Build(mediator);
         content.DataContext = mediator;
 
-        var cd = new ContentDialog()
+        var dialog = new ContentDialog()
         {
             Title = mediator.Title,
             Content = content,
@@ -55,11 +56,19 @@ internal class InteractionService : IInteractionService
             CloseButtonCommand = mediator.CancelCommand,
             PrimaryButtonText = mediator.AcceptName,
             CloseButtonText = mediator.CancelName,
+            DefaultButton = ContentDialogButton.Primary
         };
 
-        await cd.ShowAsync();
+        mediator.AcceptCommand.CanExecuteChanged += CanExecuteChanged;
+        await dialog.ShowAsync();
+        mediator.AcceptCommand.CanExecuteChanged -= CanExecuteChanged;
 
         return mediator.RequestResult;
+
+        void CanExecuteChanged(object? sender, EventArgs e)
+        {
+            dialog.IsPrimaryButtonEnabled = mediator.AcceptCommand.CanExecute(null);
+        }
     }
 
     private ContentDialog ChoiceToDialog(PromptChoice choices)
@@ -69,8 +78,6 @@ internal class InteractionService : IInteractionService
             PrimaryButtonText = choices.Accept,
             SecondaryButtonText = choices.Reject,
             CloseButtonText = choices.Cancel,
-            //IsPrimaryButtonEnabled = choices.Accept is not null,
-            //IsSecondaryButtonEnabled = choices.Reject is not null,
             DefaultButton = ContentDialogButton.None
         };
     }

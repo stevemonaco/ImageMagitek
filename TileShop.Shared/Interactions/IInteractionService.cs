@@ -26,5 +26,5 @@ public interface IInteractionService
     /// <typeparam name="TResult">Result of the interaction</typeparam>
     /// <param name="mediator">The mediation object to interact with</param>
     /// <returns>The result of the interaction</returns>
-    Task<TResult> RequestAsync<TResult>(IRequestMediator<TResult> mediator);
+    Task<TResult?> RequestAsync<TResult>(IRequestMediator<TResult> mediator);
 }

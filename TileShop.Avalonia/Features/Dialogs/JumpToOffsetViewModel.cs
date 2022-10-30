@@ -1,34 +1,30 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using CommunityToolkit.Mvvm;
+using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.Windowing;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
-public enum NumericBase { Decimal = 0, Hexadecimal = 1 }
+public enum NumericBase { Decimal, Hexadecimal }
 
 public partial class JumpToOffsetViewModel : DialogViewModel<long?>
 {
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
     [NotifyDataErrorInfo]
     [CustomValidation(typeof(JumpToOffsetViewModel), nameof(ValidateModel))]
     private string? _offsetText;
 
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
+    [NotifyDataErrorInfo]
+    [CustomValidation(typeof(JumpToOffsetViewModel), nameof(ValidateModel))]
     private NumericBase _numericBase;
-    public NumericBase NumericBase
-    {
-        get => _numericBase;
-        set
-        {
-            if (SetProperty(ref _numericBase, value))
-                ValidateAllProperties();
-        }
-    }
 
-    [ObservableProperty] private bool _canJump;
     [ObservableProperty] private string _validationError = string.Empty;
-    [ObservableProperty] private long _result;
+
+    private bool _canJump;
 
     public JumpToOffsetViewModel()
     {
@@ -37,9 +33,23 @@ public partial class JumpToOffsetViewModel : DialogViewModel<long?>
         CancelName = "x";
     }
 
+    protected override void Accept()
+    {
+        if (OffsetText is null)
+            return;
+
+        if (NumericBase == NumericBase.Decimal)
+            RequestResult = long.Parse(OffsetText);
+        else if (NumericBase == NumericBase.Hexadecimal)
+            RequestResult = long.Parse(OffsetText, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+    }
+
+    protected override bool CanAccept() => _canJump;
+
     public static ValidationResult ValidateModel(string input, ValidationContext context)
     {
         var model = (JumpToOffsetViewModel)context.ObjectInstance;
+        model._canJump = false;
 
         if (model.NumericBase == NumericBase.Decimal)
         {
@@ -66,6 +76,7 @@ public partial class JumpToOffsetViewModel : DialogViewModel<long?>
             }
         }
 
+        model._canJump = true;
         return ValidationResult.Success!;
     }
 }

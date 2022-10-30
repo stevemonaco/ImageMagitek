@@ -26,8 +26,8 @@ public partial class ResizeTiledScatteredArrangerViewModel : DialogViewModel<Res
         Title = "Resize Scattered Arranger";
         AcceptName = "Resize";
     }
-    
-    public override async void Ok(ResizeTiledScatteredArrangerViewModel? result)
+
+    protected override async void Accept()
     {
         if (Width < OriginalWidth || Height < OriginalHeight)
         {
@@ -37,6 +37,7 @@ public partial class ResizeTiledScatteredArrangerViewModel : DialogViewModel<Res
                 return;
         }
 
-        base.Ok(result);
+        _requestResult = this;
+        OnPropertyChanged(nameof(RequestResult));
     }
 }

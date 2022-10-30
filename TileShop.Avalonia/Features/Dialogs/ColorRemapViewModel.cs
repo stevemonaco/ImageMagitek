@@ -43,4 +43,10 @@ public partial class ColorRemapViewModel : DialogViewModel<ColorRemapViewModel> 
         Title = "Color Remapper";
         AcceptName = "Remap";
     }
+
+    protected override void Accept()
+    {
+        _requestResult = this;
+        OnPropertyChanged(nameof(RequestResult));
+    }
 }

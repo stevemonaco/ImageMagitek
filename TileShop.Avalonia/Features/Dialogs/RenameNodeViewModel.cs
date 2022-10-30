@@ -17,4 +17,10 @@ public partial class RenameNodeViewModel : DialogViewModel<string?>
         AcceptName = "✓";
         CancelName = "x";
     }
+
+    protected override void Accept()
+    {
+        _requestResult = Name;
+        OnPropertyChanged(nameof(RequestResult));
+    }
 }

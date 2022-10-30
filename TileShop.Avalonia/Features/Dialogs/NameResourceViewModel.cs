@@ -13,4 +13,10 @@ public partial class NameResourceViewModel : DialogViewModel<string?>
         AcceptName = "✓";
         CancelName = "x";
     }
+
+    protected override void Accept()
+    {
+        _requestResult = ResourceName;
+        OnPropertyChanged(nameof(RequestResult));
+    }
 }

@@ -19,4 +19,10 @@ public partial class AssociatePaletteViewModel : DialogViewModel<AssociatePalett
         Title = "Associate a Palette with Arranger";
         AcceptName = "Associate";
     }
+
+    protected override void Accept()
+    {
+        _requestResult = this;
+        OnPropertyChanged(nameof(RequestResult));
+    }
 }

@@ -133,13 +133,14 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
         CanImport = true;
     }
 
-    public override void Ok(ImportImageViewModel? result)
+    protected override void Accept()
     {
         if (_arranger.ColorType == PixelColorType.Indexed && _importedIndexed is not null)
             _importedIndexed.SaveImage();
         else if (_arranger.ColorType == PixelColorType.Direct && _importedDirect is not null)
             _importedDirect.SaveImage();
 
-        base.Ok(result);
+        _requestResult = this;
+        OnPropertyChanged(nameof(RequestResult));
     }
 }

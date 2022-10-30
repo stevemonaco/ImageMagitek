@@ -39,6 +39,12 @@ public partial class AddPaletteViewModel : DialogViewModel<AddPaletteViewModel>
         AcceptName = "Add";
     }
 
+    protected override void Accept()
+    {
+        _requestResult = this;
+        OnPropertyChanged(nameof(RequestResult));
+    }
+
     public void ValidateModel()
     {
         ValidationErrors.Clear();

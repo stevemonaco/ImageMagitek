@@ -59,4 +59,10 @@ public partial class CustomElementLayoutViewModel : DialogViewModel<CustomElemen
 
         CanConfirm = ValidationErrors.Count == 0;
     }
+
+    protected override void Accept()
+    {
+        _requestResult = this;
+        OnPropertyChanged(nameof(RequestResult));
+    }
 }
