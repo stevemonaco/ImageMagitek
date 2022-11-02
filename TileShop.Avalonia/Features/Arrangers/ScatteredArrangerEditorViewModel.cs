@@ -111,8 +111,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         var projectTree = _projectService.GetContainingProject(Resource);
         projectTree.TryFindResourceNode(Resource, out var resourceNode);
 
-        _projectService.SaveResource(projectTree, resourceNode, true)
-             .Switch(
+        await _projectService.SaveResource(projectTree, resourceNode, true).Match(
                  success =>
                  {
                      UndoHistory.Clear();
@@ -121,6 +120,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
                      OnPropertyChanged(nameof(CanRedo));
 
                      IsModified = false;
+                     return Task.CompletedTask;
                  },
                  async fail => await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
              );

@@ -149,7 +149,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         return factory;
     }
 
-    public async Task<bool> LoadConfigurations() => true;
+    public async Task<bool> LoadConfigurations() => await Task.FromResult(true);
 
     //protected override void OnUnhandledException(DispatcherUnhandledExceptionEventArgs e)
     //{

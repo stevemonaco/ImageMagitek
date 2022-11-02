@@ -35,9 +35,9 @@ public partial class ShellViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public void Load()
+    public async Task Load()
     {
-        ActiveTree.OpenProject(_projectFile);
+        await ActiveTree.OpenProject(_projectFile);
     }
 
     public async Task RequestApplicationExit()

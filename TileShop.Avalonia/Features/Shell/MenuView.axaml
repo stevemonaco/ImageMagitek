@@ -5,15 +5,15 @@
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 x:DataType="vm:MenuViewModel"
-			 x:CompileBindings="False"
+			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.MenuView">
 	<Grid ColumnDefinitions="*,auto">
 		<Menu x:Name="menu">
 			<MenuItem Header="_File">
-				<MenuItem Command="{Binding NewEmptyProject}" Header="_New Empty Project" />
-				<MenuItem Command="{Binding NewProjectFromFile}" Header="New Project from _Existing File" />
+				<MenuItem Command="{Binding NewEmptyProjectCommand}" Header="_New Empty Project" />
+				<MenuItem Command="{Binding NewProjectFromFileCommand}" Header="New Project from _Existing File" />
 				<Separator />
-				<MenuItem Command="{Binding OpenProject}" Header="Open _Project" />
+				<MenuItem Command="{Binding OpenProjectCommand}" Header="Open _Project" />
 				<MenuItem
                     Header="Open Recent Project"
                     Items="{Binding RecentProjectFiles}"
@@ -21,7 +21,7 @@
 					<MenuItem.ItemTemplate>
 						<DataTemplate>
 							<MenuItem
-								Command="{Binding OpenRecentProject}"
+								Command="{ReflectionBinding OpenRecentProjectCommand}"
 								CommandParameter="{Binding}"
 								Header="{Binding}" />
 						</DataTemplate>
@@ -29,19 +29,19 @@
 				</MenuItem>
 				<Separator />
 				<MenuItem
-                    Command="{Binding CloseEditor}"
+                    Command="{Binding CloseEditorCommand}"
                     Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Close \{0\}'}"
                     IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
 				<MenuItem
-                    Command="{Binding CloseAllProjects}"
+                    Command="{Binding CloseAllProjectsCommand}"
                     Header="_Close All Projects"
                     IsEnabled="{Binding ProjectTree.HasProject}" />
 
 				<Separator IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
 				<MenuItem
-                    Command="{Binding SaveEditor}"
+                    Command="{Binding SaveEditorCommand}"
                     Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Save \{0\}'}"
                     IsEnabled="{Binding Editors.ActiveEditor.IsModified}"
                     IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
@@ -57,8 +57,8 @@
                     Header="Project _Explorer" />
 				<Separator />-->
 				<MenuItem Header="Set _Theme">
-					<MenuItem Command="{Binding ChangeToLightTheme}" Header="Light Theme" />
-					<MenuItem Command="{Binding ChangeToDarkTheme}" Header="Dark Theme" />
+					<MenuItem Command="{Binding ChangeToLightThemeCommand}" Header="Light Theme" />
+					<MenuItem Command="{Binding ChangeToDarkThemeCommand}" Header="Dark Theme" />
 				</MenuItem>
 			</MenuItem>
 

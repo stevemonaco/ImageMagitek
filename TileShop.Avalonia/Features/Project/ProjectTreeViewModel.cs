@@ -18,6 +18,7 @@ using TileShop.Shared.EventModels;
 using TileShop.Shared.Models;
 using TileShop.Shared.Services;
 using TileShop.Shared.Interactions;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -43,7 +44,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         _diskExploreService = diskExploreService;
         _editors = editors;
 
-        Messenger.Register<AddScatteredArrangerFromCopyEvent>(this, (r, m) => Handle(m));
+        Messenger.Register<AddScatteredArrangerFromCopyEvent>(this, (r, m) => ReceiveAsync(m));
 
         //DisplayName = "Project Tree";
     }
@@ -205,12 +206,11 @@ public partial class ProjectTreeViewModel : ToolViewModel
     }
 
     [RelayCommand]
-    public void ExportArrangerNodeAs(ResourceNodeViewModel nodeModel)
+    public async Task ExportArrangerNodeAs(ResourceNodeViewModel nodeModel)
     {
-        if (nodeModel is ArrangerNodeViewModel arrNodeModel)
+        if (nodeModel is ArrangerNodeViewModel arrNodeModel && arrNodeModel.Node.Item is ScatteredArranger arranger)
         {
-            var arranger = arrNodeModel.Node.Item as ScatteredArranger;
-            ExportArrangerAs(arranger);
+            await ExportArrangerAs(arranger);
         }
     }
 
@@ -386,7 +386,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
     }
 
-    public async Task Handle(AddScatteredArrangerFromCopyEvent message)
+    public async void ReceiveAsync(AddScatteredArrangerFromCopyEvent message)
     {
         var dialogModel = new NameResourceViewModel();
         var copy = message.Copy;

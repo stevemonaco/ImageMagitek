@@ -7,6 +7,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Services;
+using CommunityToolkit.Mvvm.Input;
+using System.Threading.Tasks;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -33,31 +35,43 @@ public partial class MenuViewModel : ObservableRecipient
         RecentProjectFiles = new(RecentProjectFiles.Where(x => File.Exists(x)));
     }
 
-    public void NewEmptyProject() => ProjectTree.AddNewProject();
+    [RelayCommand]
+    public async Task NewEmptyProject() => await ProjectTree.AddNewProject();
 
-    public void NewProjectFromFile() => ProjectTree.NewProjectFromFile();
+    [RelayCommand]
+    public async Task NewProjectFromFile() => await ProjectTree.NewProjectFromFile();
 
-    public void OpenProject() => ProjectTree.OpenProject();
+    [RelayCommand]
+    public async Task OpenProject() => await ProjectTree.OpenProject();
 
-    public void OpenRecentProject(string projectFileName) => ProjectTree.OpenProject(projectFileName);
+    [RelayCommand]
+    public async Task OpenRecentProject(string projectFileName) => await ProjectTree.OpenProject(projectFileName);
 
-    public void CloseAllProjects() => ProjectTree.CloseAllProjects();
+    [RelayCommand]
+    public async Task CloseAllProjects() => await ProjectTree.CloseAllProjects();
 
-    public void CloseEditor() => Editors.CloseEditor(Editors.ActiveEditor);
+    [RelayCommand]
+    public async Task CloseEditor() => await Editors.CloseEditor(Editors.ActiveEditor);
 
-    public void SaveEditor() => Editors.ActiveEditor?.SaveChangesAsync();
+    [RelayCommand]
+    public async Task SaveEditor() => await Editors.ActiveEditor?.SaveChangesAsync();
 
-    public void ExitApplication() => Shell.RequestApplicationExit();
+    [RelayCommand]
+    public async Task ExitApplication() => await Shell.RequestApplicationExit();
 
+    [RelayCommand]
     public void ChangeToLightTheme() => _themeService.SetActiveTheme("Fluent Light");
 
+    [RelayCommand]
     public void ChangeToDarkTheme() => _themeService.SetActiveTheme("Fluent Dark");
 
-    public void ExportArrangerToImage(ScatteredArrangerEditorViewModel vm) =>
-        ProjectTree.ExportArrangerAs((ScatteredArranger) vm.Resource);
+    [RelayCommand]
+    public async Task ExportArrangerToImage(ScatteredArrangerEditorViewModel vm) =>
+        await ProjectTree.ExportArrangerAs((ScatteredArranger) vm.Resource);
 
-    public void ImportArrangerFromImage(ScatteredArrangerEditorViewModel vm) =>
-        ProjectTree.ImportArrangerFrom((ScatteredArranger) vm.Resource);
+    [RelayCommand]
+    public async Task ImportArrangerFromImage(ScatteredArrangerEditorViewModel vm) =>
+        await ProjectTree.ImportArrangerFrom((ScatteredArranger) vm.Resource);
 
     public void Handle(ProjectLoadedEvent message)
     {

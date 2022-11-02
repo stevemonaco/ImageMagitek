@@ -22,6 +22,23 @@
 	</UserControl.Resources>
 
 	<UserControl.Styles>
+		<Style Selector="Rectangle.animatedBorder[IsVisible=True]">
+			<Setter Property="Stroke" Value="Black" />
+			<Setter Property="StrokeDashArray" Value="3,2" />
+			<Setter Property="StrokeThickness" Value="0.3" />
+
+			<Style.Animations>
+				<Animation Duration="0:0:0.5" IterationCount="INFINITE">
+					<KeyFrame Cue="0%">
+						<Setter Property="StrokeDashOffset" Value="5" />
+					</KeyFrame>
+					<KeyFrame Cue="100%">
+						<Setter Property="StrokeDashOffset" Value="0" />
+					</KeyFrame>
+				</Animation>
+			</Style.Animations>
+		</Style>
+		
 		<Style Selector=":is(Control).dragsource">
 			<Setter Property="ZIndex" Value="0" />
 			<Setter Property="(i:Interaction.Behaviors)">
@@ -241,7 +258,7 @@
 
 						<!--  Selection Overlay  -->
 						<Rectangle
-							Classes="dragsource"
+							Classes="dragsource animatedBorder"
 							Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
 							Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
 							Width="{Binding Selection.SelectionRect.SnappedWidth}"
@@ -255,6 +272,7 @@
 
 						<!--  Paste Overlay  -->
 						<Rectangle
+							Classes="animatedBorder"
 							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
 							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
 							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
