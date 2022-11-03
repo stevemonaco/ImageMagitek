@@ -9,7 +9,7 @@ TileShopCLI is a portable, limited implementation of TileShop where users can ex
 ![TileShop Workspace Dark Theme](https://raw.githubusercontent.com/stevemonaco/ImageMagitek/master/TileShop.WPF/Assets/DemoImages/TileShopLayoutDark10142020.png)
 
 # Tech Stack
-Language - C# / .NET 5
+Language - C# / .NET 6
 
 GUI Framework - WPF
 
