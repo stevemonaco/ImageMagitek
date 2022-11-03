@@ -11,13 +11,15 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
     {
         var width = arranger.ArrangerPixelSize.Width;
         var height = arranger.ArrangerPixelSize.Height;
+        Configuration.Default.PreferContiguousImageBuffers = true;
         using var outputImage = new Image<Rgba32>(width, height);
 
         var srcidx = 0;
 
         for (int y = 0; y < height; y++)
         {
-            var span = outputImage.GetPixelRowSpan(y);
+            outputImage.DangerousTryGetSinglePixelMemory(out var memory);
+            var span = memory.Slice(y * width, width).Span;
 
             for (int x = 0; x < width; x++, srcidx++)
             {
@@ -37,12 +39,15 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
 
     public void SaveImage(ColorRgba32[] image, int width, int height, string imagePath)
     {
+        Configuration.Default.PreferContiguousImageBuffers = true;
         using var outputImage = new Image<Rgba32>(width, height);
         var srcidx = 0;
 
         for (int y = 0; y < height; y++)
         {
-            var span = outputImage.GetPixelRowSpan(y);
+            outputImage.DangerousTryGetSinglePixelMemory(out var memory);
+            var span = memory.Slice(y * width, width).Span;
+
             for (int x = 0; x < width; x++, srcidx++)
             {
                 span[x] = image[srcidx].ToRgba32();
@@ -55,6 +60,7 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
 
     public byte[] LoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy)
     {
+        Configuration.Default.PreferContiguousImageBuffers = true;
         using var inputImage = SixLabors.ImageSharp.Image.Load<Rgba32>(imagePath);
         var width = inputImage.Width;
         var height = inputImage.Height;
@@ -64,7 +70,9 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
 
         for (int y = 0; y < height; y++)
         {
-            var span = inputImage.GetPixelRowSpan(y);
+            inputImage.DangerousTryGetSinglePixelMemory(out var memory);
+            var span = memory.Slice(y * width, width).Span;
+
             for (int x = 0; x < width; x++, destidx++)
             {
                 if (arranger.GetElementAtPixel(x, y) is ArrangerElement el)
@@ -82,6 +90,7 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
 
     public MagitekResult TryLoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy, out byte[] image)
     {
+        Configuration.Default.PreferContiguousImageBuffers = true;
         using var inputImage = SixLabors.ImageSharp.Image.Load<Rgba32>(imagePath);
         var width = inputImage.Width;
         var height = inputImage.Height;
@@ -98,7 +107,9 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
 
         for (int y = 0; y < height; y++)
         {
-            var span = inputImage.GetPixelRowSpan(y);
+            inputImage.DangerousTryGetSinglePixelMemory(out var memory);
+            var span = memory.Slice(y * width, width).Span;
+
             for (int x = 0; x < width; x++, destidx++)
             {
                 if (arranger.GetElementAtPixel(x, y) is ArrangerElement el)
@@ -123,6 +134,7 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
 
     public ColorRgba32[] LoadImage(string imagePath)
     {
+        Configuration.Default.PreferContiguousImageBuffers = true;
         using var inputImage = SixLabors.ImageSharp.Image.Load<Rgba32>(imagePath);
         var width = inputImage.Width;
         var height = inputImage.Height;
@@ -132,7 +144,9 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
 
         for (int y = 0; y < height; y++)
         {
-            var span = inputImage.GetPixelRowSpan(y);
+            inputImage.DangerousTryGetSinglePixelMemory(out var memory);
+            var span = memory.Slice(y * width, width).Span;
+
             for (int x = 0; x < width; x++)
             {
                 var color = new ColorRgba32(span[x].PackedValue);
