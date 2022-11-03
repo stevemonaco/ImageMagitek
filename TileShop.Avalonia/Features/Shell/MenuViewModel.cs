@@ -56,8 +56,6 @@ public partial class MenuViewModel : ObservableRecipient
     [RelayCommand]
     public async Task SaveEditor() => await Editors.ActiveEditor?.SaveChangesAsync();
 
-    [RelayCommand]
-    public async Task ExitApplication() => await Shell.RequestApplicationExit();
 
     [RelayCommand]
     public void ChangeToLightTheme() => _themeService.SetActiveTheme("Fluent Light");

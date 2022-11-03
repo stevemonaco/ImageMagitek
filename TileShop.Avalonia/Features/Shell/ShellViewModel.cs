@@ -40,7 +40,7 @@ public partial class ShellViewModel : ObservableObject
         await ActiveTree.OpenProject(_projectFile);
     }
 
-    public async Task RequestApplicationExit()
+    public async Task<bool> PrepareApplicationExit()
     {
         var canClose = await Editors.RequestSaveAllUserChanges();
 
@@ -48,7 +48,8 @@ public partial class ShellViewModel : ObservableObject
         {
             _projectService.CloseProjects();
             _tracker.PersistAll();
-            Environment.Exit(0);
         }
+
+        return canClose;
     }
 }
