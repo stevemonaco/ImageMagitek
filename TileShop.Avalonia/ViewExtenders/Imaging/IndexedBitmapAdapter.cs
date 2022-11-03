@@ -8,8 +8,6 @@ using Avalonia.Platform;
 using Avalonia.Media.Imaging;
 using ImageMagitek;
 using ImageMagitek.Colors;
-using SixLabors.ImageSharp.PixelFormats;
-using ColorTextBlock.Avalonia;
 
 namespace TileShop.AvaloniaUI.Imaging;
 

@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0-preview1" />
     <PackageReference Include="Monaco.PathTree" Version="1.2.0" />
-    <PackageReference Include="OneOf" Version="3.0.203" />
+    <PackageReference Include="OneOf" Version="3.0.223" />
   </ItemGroup>
 
   <ItemGroup>
