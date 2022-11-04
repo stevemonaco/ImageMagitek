@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<VersionPrefix>0.993</VersionPrefix>
+		<VersionSuffix>preview</VersionSuffix>
+		<Authors>Stephen Monaco</Authors>
+		<Company>Stephen Monaco</Company>
+		<Copyright>Copyright © Stephen Monaco 2022</Copyright>
+	</PropertyGroup>
+	<PropertyGroup>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<LangVersion>latest</LangVersion>
+		<TargetFramework>net6.0</TargetFramework>
+	</PropertyGroup>
+</Project>

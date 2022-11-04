@@ -1,10 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\Base.Props" />
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Version>0.990</Version>
-    <Authors>Klarth</Authors>
-    <Product />
 	<Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -17,5 +14,4 @@
   <ItemGroup>
     <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
   </ItemGroup>
-
 </Project>

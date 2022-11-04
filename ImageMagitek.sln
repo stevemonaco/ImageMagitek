@@ -20,6 +20,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E9EA9AD9-DD0D-47BA-87FD-D35518F233E2}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		Base.props = Base.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FF5MonsterSpritesWPF", "Samples\FF5MonsterSpritesWPF\FF5MonsterSpritesWPF.csproj", "{E582DAA6-643C-4AC2-916C-00EDA561EFCD}"
