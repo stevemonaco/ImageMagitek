@@ -44,7 +44,7 @@ class Build : NukeBuild
 
     Project TestProject => Solution.GetProject("ImageMagitek.UnitTests");
 
-    Project TileShopProject => Solution.GetProject("TileShop.WPF");
+    Project TileShopProject => Solution.GetProject("TileShop.Avalonia");
     AbsolutePath TileShopOutputDirectory => OutputDirectory / "TileShop";
     private readonly string _tileShopPublishProfilex64 = @"Properties\PublishProfiles\TileShop win-x64-single.pubxml";
 
