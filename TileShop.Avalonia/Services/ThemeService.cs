@@ -1,92 +1,80 @@
 ﻿using System;
-using System.Collections.Generic;
-using TileShop.Shared.Services;
+using System.Linq;
 using Avalonia;
 using Avalonia.Styling;
-using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Controls;
+using Avalonia.Themes.Fluent;
+using Avalonia.Markup.Xaml;
+using FluentAvalonia.Styling;
+using TileShop.Shared.Services;
 
 namespace TileShop.AvaloniaUI.Services;
 
-public class ThemeService : IThemeService
+public sealed class ThemeService : IThemeService
 {
-    //private Theme? _selectedTheme;
-    //private IList<Theme>? _themes;
-    //private IList<Window>? _windows;
+    public ThemeStyle ActiveTheme { get; private set; }
 
-    private const string FluentLightThemeName = "Fluent Light";
-    private const string FluentDarkThemeName = "Fluent Dark";
-    private const string DefaultLightThemeName = "Default Light";
-    private const string DefaultDarkThemeName = "Default Dark";
+    private FluentAvaloniaTheme _fluentAvaloniaService;
+    private string _swappableTag = "SwappableResourceId";
 
-    public string GetActiveTheme()
+    private ResourceDictionary[] _lightThemeResources = new[]
     {
-        var theme = Application.Current.Styles[0];
+        (ResourceDictionary) AvaloniaXamlLoader.Load(new Uri("avares://TileShop.AvaloniaUI/Styles/TileShop.Light.axaml"))
+    };
 
-        if (theme == FluentLight)
-            return FluentLightThemeName;
-        else if (theme == FluentDark)
-            return FluentDarkThemeName;
-        else if (theme == DefaultLight)
-            return DefaultLightThemeName;
-        else if (theme == DefaultDark)
-            return DefaultDarkThemeName;
-        else
-            throw new InvalidOperationException($"Unknown theme");
+    private ResourceDictionary[] _darkThemeResources = new[]
+    {
+        (ResourceDictionary) AvaloniaXamlLoader.Load(new Uri("avares://TileShop.AvaloniaUI/Styles/TileShop.Dark.axaml"))
+    };
+
+    public ThemeService()
+    {
+        _fluentAvaloniaService = AvaloniaLocator.Current!.GetService<FluentAvaloniaTheme>()!;
+
+        if (_fluentAvaloniaService.RequestedTheme == FluentAvaloniaTheme.LightModeString)
+            SetActiveTheme(ThemeStyle.Light);
+        else if (_fluentAvaloniaService.RequestedTheme == FluentAvaloniaTheme.DarkModeString)
+            SetActiveTheme(ThemeStyle.Dark);
     }
 
-    public IEnumerable<string> GetAvailableThemes() => new[] { FluentLightThemeName, FluentDarkThemeName, DefaultLightThemeName, DefaultDarkThemeName };
-
-    public void SetActiveTheme(string themeName)
+    public void SetActiveTheme(ThemeStyle themeStyle)
     {
-        var theme = themeName switch
-        {
-            FluentLightThemeName => FluentLight,
-            FluentDarkThemeName => FluentDark,
-            DefaultLightThemeName => DefaultLight,
-            DefaultDarkThemeName => DefaultDark,
-            _ => throw new ArgumentException($"Unsupported theme '{themeName}'")
-        };
+        var styles = Application.Current!.Styles;
+        var resources = Application.Current!.Resources;
 
-        Application.Current!.Styles[0] = theme;
+        for (int i = 0; i < resources.MergedDictionaries.Count; i++)
+        {
+            if (resources.MergedDictionaries[i].TryGetResource(_swappableTag, out _))
+            {
+                resources.MergedDictionaries.RemoveAt(i);
+                i--;
+            }
+        }
+
+        var fluentTheme = styles.OfType<FluentTheme>().FirstOrDefault();
+
+        if (themeStyle == ThemeStyle.Dark)
+        {
+            _fluentAvaloniaService.RequestedTheme = FluentAvaloniaTheme.DarkModeString;
+
+            if (fluentTheme is not null)
+                fluentTheme.Mode = FluentThemeMode.Dark;
+            
+            foreach (var resource in _darkThemeResources)
+                resources.MergedDictionaries.Add(resource);
+                
+        }
+        else if (themeStyle == ThemeStyle.Light)
+        {
+            _fluentAvaloniaService.RequestedTheme = FluentAvaloniaTheme.LightModeString;
+
+            if (fluentTheme is not null)
+                fluentTheme.Mode = FluentThemeMode.Light;
+
+            foreach (var resource in _lightThemeResources)
+                resources.MergedDictionaries.Add(resource);
+        }
+
+        ActiveTheme = themeStyle;
     }
-
-    public static Styles DefaultLight = new Styles
-    {
-        new StyleInclude(new Uri("avares://Avalonia.ThemeManager/Styles"))
-        {
-            Source = new Uri("avares://Avalonia.Themes.Default/DefaultTheme.xaml")
-        },
-        new StyleInclude(new Uri("avares://Avalonia.ThemeManager/Styles"))
-        {
-            Source = new Uri("avares://Avalonia.Themes.Default/Accents/BaseLight.xaml")
-        }
-    };
-
-    public static Styles DefaultDark = new Styles
-    {
-        new StyleInclude(new Uri("avares://Avalonia.ThemeManager/Styles"))
-        {
-            Source = new Uri("avares://Avalonia.Themes.Default/DefaultTheme.xaml")
-        },
-        new StyleInclude(new Uri("avares://Avalonia.ThemeManager/Styles"))
-        {
-            Source = new Uri("avares://Avalonia.Themes.Default/Accents/BaseDark.xaml")
-        }
-    };
-
-    public static Styles FluentLight = new Styles
-    {
-        new StyleInclude(new Uri("avares://Avalonia.ThemeManager/Styles"))
-        {
-            Source = new Uri("avares://Avalonia.Themes.Fluent/FluentLight.xaml")
-        }
-    };
-
-    public static Styles FluentDark = new Styles
-    {
-        new StyleInclude(new Uri("avares://Avalonia.ThemeManager/Styles"))
-        {
-            Source = new Uri("avares://Avalonia.Themes.Fluent/FluentDark.xaml")
-        }
-    };
 }

@@ -290,8 +290,7 @@
 			<paz:ZoomBorder x:Name="_zoomBorder" Margin="2" Stretch="None" ZoomSpeed="2" EnablePan="False" PowerFactor="0" 
 				EnableConstrains="True" MinOffsetY="0" MinOffsetX="0" MaxOffsetY="0" MaxOffsetX="0"
 				VerticalAlignment="Stretch" HorizontalAlignment="Stretch" PointerWheelChanged="OnPointerWheelChanged">
-				
-				<!--Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer}}, Converter={StaticResource ScrollViewerToMarginStringConverter}}"-->
+
 				<Grid
 					HorizontalAlignment="Left"
 					VerticalAlignment="Top">

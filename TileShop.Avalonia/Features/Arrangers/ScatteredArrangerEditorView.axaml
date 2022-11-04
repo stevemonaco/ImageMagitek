@@ -101,11 +101,11 @@
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.Select}"
 						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
 						ToolTip.Tip="Click and drag across Arranger to select a region">
-						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconCursor}" />
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconRectangularSelection}" />
 					</ToggleButton>
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.ApplyPalette}"
 						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
-						ToolTip.Tip="Click on an Arranger element to apply the current palette">
+						ToolTip.Tip="{Binding SelectedPalette.Name, StringFormat='Click on an Arranger element to apply the current palette (\{0\})'}">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPaletteBrush}" />
 					</ToggleButton>
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.PickPalette}"
@@ -167,7 +167,7 @@
                 VerticalAlignment="Bottom"
                 VerticalContentAlignment="Center"
                 Command="{Binding AssociatePaletteCommand}"
-                ToolTip.Tip="Associate a Palette from this Project with this Arranger"
+                ToolTip.Tip="Associate an existing Palette from this Project with this Arranger"
                 IsVisible="{Binding IsIndexedColor}">
 				<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPlusCircle}" />
 			</Button>

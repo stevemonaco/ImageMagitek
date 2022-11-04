@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Services;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -18,6 +19,20 @@ public partial class MenuViewModel : ObservableRecipient
     [ObservableProperty] private ProjectTreeViewModel _projectTree;
     [ObservableProperty] private EditorsViewModel _editors;
     [ObservableProperty] private ObservableCollection<string> _recentProjectFiles = new();
+    //[ObservableProperty] private ThemeStyle _activeTheme;
+
+    private ThemeStyle _activeTheme;
+    public ThemeStyle ActiveTheme
+    {
+        get => _activeTheme;
+        set
+        {
+            if (SetProperty(ref _activeTheme, value))
+            {
+                _themeService.SetActiveTheme(ActiveTheme);
+            }
+        }
+    }
 
     private readonly Tracker _tracker;
     private readonly IThemeService _themeService;
@@ -33,6 +48,7 @@ public partial class MenuViewModel : ObservableRecipient
         Messenger.Register<ProjectLoadedEvent>(this, (r, m) => Handle(m));
 
         RecentProjectFiles = new(RecentProjectFiles.Where(x => File.Exists(x)));
+        ActiveTheme = _themeService.ActiveTheme;
     }
 
     [RelayCommand]
@@ -58,10 +74,16 @@ public partial class MenuViewModel : ObservableRecipient
 
 
     [RelayCommand]
-    public void ChangeToLightTheme() => _themeService.SetActiveTheme("Fluent Light");
+    public void ChangeToLightTheme()
+    {
+        ActiveTheme = ThemeStyle.Light;
+    }
 
     [RelayCommand]
-    public void ChangeToDarkTheme() => _themeService.SetActiveTheme("Fluent Dark");
+    public void ChangeToDarkTheme()
+    {
+        ActiveTheme = ThemeStyle.Dark;
+    }
 
     [RelayCommand]
     public async Task ExportArrangerToImage(ScatteredArrangerEditorViewModel vm) =>

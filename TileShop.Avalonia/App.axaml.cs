@@ -4,9 +4,11 @@ using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using ImageMagitek.Services;
 using Microsoft.Extensions.DependencyInjection;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.AvaloniaUI.Views;
+using TileShop.Shared.Services;
 
 namespace TileShop.AvaloniaUI;
 public class App : Application
@@ -19,7 +21,7 @@ public class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override async void OnFrameworkInitializationCompleted()
+    public override void OnFrameworkInitializationCompleted()
     {
         // Remove Avalonia data validation so that Mvvm Toolkit's data validation works
         ExpressionObserver.DataValidators.RemoveAll(x => x is DataAnnotationsValidationPlugin);
@@ -30,7 +32,7 @@ public class App : Application
         bootstrapper.ConfigureServices(services);
         bootstrapper.ConfigureViews(services);
         bootstrapper.ConfigureViewModels(services);
-        await bootstrapper.LoadConfigurations();
+        bootstrapper.LoadConfigurations();
         
         var provider = services.BuildServiceProvider();
 

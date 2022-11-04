@@ -2,9 +2,11 @@
 
 namespace TileShop.Shared.Services;
 
+public enum ThemeStyle { Light, Dark };
+
 public interface IThemeService
 {
-    public void SetActiveTheme(string themeName);
-    public string GetActiveTheme();
-    public IEnumerable<string> GetAvailableThemes();
+    ThemeStyle ActiveTheme { get; }
+
+    void SetActiveTheme(ThemeStyle themeStyle);
 }

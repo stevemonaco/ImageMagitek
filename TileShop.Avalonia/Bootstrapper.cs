@@ -18,7 +18,7 @@ public interface IAppBootstrapper<TViewModel> where TViewModel : class
     void ConfigureServices(IServiceCollection services);
     void ConfigureViews(IServiceCollection services);
     void ConfigureViewModels(IServiceCollection services);
-    Task<bool> LoadConfigurations();
+    bool LoadConfigurations();
 }
 
 public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
@@ -126,6 +126,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
             .Property(p => p.OffsetText, string.Empty);
 
         tracker.Configure<MenuViewModel>()
+            .Property(p => p.ActiveTheme, ThemeStyle.Dark)
             .Property(p => p.RecentProjectFiles);
 
         tracker.Configure<CustomElementLayoutViewModel>()
@@ -149,7 +150,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         return factory;
     }
 
-    public async Task<bool> LoadConfigurations() => await Task.FromResult(true);
+    public bool LoadConfigurations() => true;
 
     //protected override void OnUnhandledException(DispatcherUnhandledExceptionEventArgs e)
     //{

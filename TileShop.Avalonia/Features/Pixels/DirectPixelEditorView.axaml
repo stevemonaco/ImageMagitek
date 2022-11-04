@@ -49,8 +49,8 @@
 				<StackPanel Orientation="Horizontal">
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:PixelTool.Select}"
 						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
-						ToolTip.Tip="Select Tool">
-						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconCursor}" />
+						ToolTip.Tip="Rectangular Selection Tool">
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconRectangularSelection}" />
 					</ToggleButton>
 
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:PixelTool.Pencil}"

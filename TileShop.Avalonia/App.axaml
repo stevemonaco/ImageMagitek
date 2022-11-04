@@ -19,7 +19,6 @@
 	<Application.Resources>
 		<ResourceDictionary>
 			<ResourceDictionary.MergedDictionaries>
-				<ResourceInclude Source="avares://TileShop.AvaloniaUI/Styles/TileShop.Dark.axaml" />
 				<ResourceInclude Source="avares://TileShop.AvaloniaUI/Styles/Icons.axaml" />
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>

@@ -19,7 +19,7 @@
 	Title="TileShop.Avalonia">
 
 	<Panel Margin="{Binding #shellView.OffScreenMargin}">
-		<ExperimentalAcrylicBorder IsHitTestVisible="False">
+		<!--<ExperimentalAcrylicBorder IsHitTestVisible="False">
 			<ExperimentalAcrylicBorder.Material>
 				<ExperimentalAcrylicMaterial
                     BackgroundSource="Digger"
@@ -27,7 +27,7 @@
                     TintOpacity="1"
                     MaterialOpacity="0.65" />
 			</ExperimentalAcrylicBorder.Material>
-		</ExperimentalAcrylicBorder>
+		</ExperimentalAcrylicBorder>-->
 
 		<Grid RowDefinitions="auto,*,auto">
 			<StackPanel Margin="5,5,0,5" Grid.Row="0" Orientation="Horizontal">
