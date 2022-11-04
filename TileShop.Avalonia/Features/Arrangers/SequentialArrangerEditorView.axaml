@@ -246,7 +246,7 @@
                             Focusable="False"
                             IsEnabled="{Binding CanEditSelection}"
                             ToolTip.Tip="Opens selection in the pixel editor (E)">
-							<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconEdit}" />
+							<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconEdit}" RenderTransform="scaleY(-1)" />
 						</Button>
 					</StackPanel>
 				</StackPanel>

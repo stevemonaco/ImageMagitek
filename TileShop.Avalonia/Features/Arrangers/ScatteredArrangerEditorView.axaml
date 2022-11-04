@@ -12,6 +12,7 @@
 			 xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
 			 xmlns:paz="using:Avalonia.Controls.PanAndZoom"
+			 xmlns:fac="using:FluentAvalonia.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 x:DataType="vm:ScatteredArrangerEditorViewModel"
 			 x:CompileBindings="True"
@@ -106,7 +107,7 @@
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.ApplyPalette}"
 						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
 						ToolTip.Tip="{Binding SelectedPalette.Name, StringFormat='Click on an Arranger element to apply the current palette (\{0\})'}">
-						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPaletteBrush}" />
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPaletteBrush}" RenderTransform="scaleY(-1)" />
 					</ToggleButton>
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.PickPalette}"
 						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PickPalette}"
@@ -220,7 +221,7 @@
                     Command="{Binding EditSelectionCommand}"
                     IsEnabled="{Binding CanEditSelection}"
                     ToolTip.Tip="Opens selection in the pixel editor (E)">
-					<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconEdit}" />
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconEdit}" RenderTransform="scaleY(-1)" />
 				</Button>
 			</StackPanel>
 		</StackPanel>

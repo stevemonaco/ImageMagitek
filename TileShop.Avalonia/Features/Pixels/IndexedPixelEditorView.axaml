@@ -60,12 +60,12 @@
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:PixelTool.ColorPicker}"
 						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ColorPicker}"
 						ToolTip.Tip="Color Picker Tool">
-						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconColorPicker}" />
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconColorPicker}" RenderTransform="scaleY(-1)" />
 					</ToggleButton>
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:PixelTool.FloodFill}"
 						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=FloodFill}"
 						ToolTip.Tip="Flood Fill Tool">
-						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconFloodFill}" />
+						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconFloodFill}" RenderTransform="scaleY(-1)" />
 					</ToggleButton>
 				</StackPanel>
 			</StackPanel>
