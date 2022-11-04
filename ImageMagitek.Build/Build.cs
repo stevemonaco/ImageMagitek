@@ -5,7 +5,6 @@ using System.Linq;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.CI.GitHubActions;
-using Nuke.Common.Execution;
 using Nuke.Common.Git;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
@@ -15,7 +14,6 @@ using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
-[CheckBuildProjectConfigurations]
 [ShutdownDotNetAfterServerBuild]
 [GitHubActions("ci",
     GitHubActionsImage.WindowsLatest,
@@ -48,13 +46,13 @@ class Build : NukeBuild
 
     Project TileShopProject => Solution.GetProject("TileShop.WPF");
     AbsolutePath TileShopOutputDirectory => OutputDirectory / "TileShop";
-    string TileShopPublishProfilex64 = @"Properties\PublishProfiles\TileShop win-x64-single.pubxml";
+    private readonly string _tileShopPublishProfilex64 = @"Properties\PublishProfiles\TileShop win-x64-single.pubxml";
 
     Project TileShopCLIProject => Solution.GetProject("TileShop.CLI");
     AbsolutePath TileShopCLIPortableOutputDirectory => OutputDirectory / "TileShopCLI";
     AbsolutePath TileShopCLIWinx64OutputDirectory => OutputDirectory / "TileShopCLI-win-x64";
-    string TileShopCliPublishProfilex64 = @"Properties\PublishProfiles\TileShop.CLI win-x64-single.pubxml";
-    string TileShopCliPublishProfilePortable = @"Properties\PublishProfiles\TileShop.CLI portable.pubxml";
+    private readonly string _tileShopCliPublishProfilex64 = @"Properties\PublishProfiles\TileShop.CLI win-x64-single.pubxml";
+    private readonly string _tileShopCliPublishProfilePortable = @"Properties\PublishProfiles\TileShop.CLI portable.pubxml";
 
     Target Clean => _ => _
         .Executes(() =>
@@ -106,7 +104,7 @@ class Build : NukeBuild
                 .EnableNoRestore()
                 .SetConfiguration(Configuration)
                 .SetOutput(TileShopOutputDirectory)
-                .SetPublishProfile(TileShopPublishProfilex64));
+                .SetPublishProfile(_tileShopPublishProfilex64));
         });
 
     Target PublishTileShopCLI => _ => _
@@ -119,7 +117,7 @@ class Build : NukeBuild
                 .EnableNoRestore()
                 .SetConfiguration(Configuration)
                 .SetOutput(TileShopCLIPortableOutputDirectory)
-                .SetPublishProfile(TileShopCliPublishProfilePortable));
+                .SetPublishProfile(_tileShopCliPublishProfilePortable));
 
             // win-x64 single file
             DotNetPublish(_ => _
@@ -127,7 +125,7 @@ class Build : NukeBuild
                 .EnableNoRestore()
                 .SetConfiguration(Configuration)
                 .SetOutput(TileShopCLIWinx64OutputDirectory)
-                .SetPublishProfile(TileShopCliPublishProfilex64));
+                .SetPublishProfile(_tileShopCliPublishProfilex64));
         });
 
     Target Package => _ => _
