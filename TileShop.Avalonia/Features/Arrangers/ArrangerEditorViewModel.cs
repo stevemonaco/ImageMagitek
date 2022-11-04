@@ -166,7 +166,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         else if (mouseState.LeftButtonPressed)
         {
             IsSelecting = true;
-            StartNewSelection(xc, yc);
+            StartNewSelection(x, y);
         }
     }
 
@@ -212,7 +212,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         int yc = Math.Clamp((int)y, 0, arranger.ArrangerPixelSize.Height - 1);
 
         if (IsSelecting)
-            UpdateSelection(xc, yc);
+            UpdateSelection(x, y);
 
         if (Selection.HasSelection)
         {
@@ -291,13 +291,13 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         OnPropertyChanged(nameof(CanEditSelection));
     }
 
-    public virtual void StartNewSelection(int x, int y)
+    public virtual void StartNewSelection(double x, double y)
     {
         Selection.StartSelection(x, y);
         IsSelecting = true;
     }
 
-    public virtual void UpdateSelection(int x, int y)
+    public virtual void UpdateSelection(double x, double y)
     {
         if (IsSelecting)
             Selection.UpdateSelectionEndpoint(x, y);

@@ -315,6 +315,7 @@
 						x:Name="_overlayCanvas"
 						Width="{Binding BitmapAdapter.Width}"
 						Height="{Binding BitmapAdapter.Height}"
+						Cursor="Cross"
 						PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased"
 						ClipToBounds="True">
 
@@ -334,6 +335,7 @@
 							Stroke="Black"
 							StrokeDashArray="3,2"
 							StrokeThickness="0.3"
+							Cursor="Hand"
 							IsVisible="{Binding Selection.HasSelection}"
 							PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 					</Canvas>

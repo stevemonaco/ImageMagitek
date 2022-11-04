@@ -1,10 +1,10 @@
-﻿using ImageMagitek;
+﻿using System;
+using ImageMagitek;
 using ImageMagitek.Services;
 using TileShop.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TileShop.Shared.Input;
-using System;
 using TileShop.Shared.Interactions;
 
 namespace TileShop.AvaloniaUI.ViewModels;

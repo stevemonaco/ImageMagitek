@@ -269,19 +269,8 @@
 							Stroke="Black"
 							StrokeDashArray="3,2"
 							StrokeThickness="0.3"
+							Cursor="Hand"
 							IsVisible="{Binding Selection.HasSelection}" />
-
-						<!--  Paste Overlay  -->
-						<Rectangle
-							Classes="animatedBorder"
-							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
-							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
-							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
-							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-							Fill="{StaticResource pasteSelectionFillBrush}"
-							Stroke="Black"
-							StrokeDashArray="3,2"
-							StrokeThickness="0.3" />
 
 						<!--  Paste Image  -->
 						<Image
@@ -294,7 +283,21 @@
 							RenderOptions.BitmapInterpolationMode="Default"
 							IsHitTestVisible="True"
 							Source="{Binding Paste.OverlayImage.Bitmap}"
+							Cursor="Hand"
 							Stretch="None" />
+
+						<!--  Paste Overlay  -->
+						<Rectangle
+							Classes="animatedBorder"
+							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+							Fill="{StaticResource pasteSelectionFillBrush}"
+							Stroke="Black"
+							IsHitTestVisible="False"
+							StrokeDashArray="3,2"
+							StrokeThickness="0.3" />
 					</Canvas>
 
 					<!--  Gridline Overlay  -->

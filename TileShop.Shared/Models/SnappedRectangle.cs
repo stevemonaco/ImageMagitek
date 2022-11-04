@@ -141,7 +141,7 @@ public class SnappedRectangle : ObservableObject
 
     public SnappedRectangle() : this(new Size(int.MaxValue, int.MaxValue), new Size(1, 1), SnapMode.Pixel) { }
 
-    public SnappedRectangle(Size maximumSize, Size elementSize, SnapMode snapMode, ElementSnapRounding snapRounding = ElementSnapRounding.Floor)
+    public SnappedRectangle(Size maximumSize, Size elementSize, SnapMode snapMode, ElementSnapRounding snapRounding = ElementSnapRounding.Expand)
     {
         _maximumSize = maximumSize;
         _elementSize = elementSize;
@@ -260,16 +260,22 @@ public class SnappedRectangle : ObservableObject
             SnappedBottom = (int)(Math.Ceiling(Math.Max(Top, Bottom) / _elementSize.Height) * _elementSize.Height);
         }
 
+        if (SnappedLeft == SnappedRight)
+            SnappedRight += _elementSize.Width;
+
+        if (SnappedTop == SnappedBottom)
+            SnappedBottom += _elementSize.Height;
+
         SnappedWidth = SnappedRight - SnappedLeft;
         SnappedHeight = SnappedBottom - SnappedTop;
     }
 
     private void SnapPixels()
     {
-        SnappedLeft = (int)Math.Round(Math.Min(Left, Right));
-        SnappedRight = (int)Math.Round(Math.Max(Left, Right));
-        SnappedTop = (int)Math.Round(Math.Min(Top, Bottom));
-        SnappedBottom = (int)Math.Round(Math.Max(Top, Bottom));
+        SnappedLeft = (int)Math.Floor(Math.Min(Left, Right));
+        SnappedRight = (int)Math.Ceiling(Math.Max(Left, Right));
+        SnappedTop = (int)Math.Floor(Math.Min(Top, Bottom));
+        SnappedBottom = (int)Math.Ceiling(Math.Max(Top, Bottom));
         SnappedWidth = SnappedRight - SnappedLeft;
         SnappedHeight = SnappedBottom - SnappedTop;
     }
