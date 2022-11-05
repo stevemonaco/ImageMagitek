@@ -5,11 +5,6 @@
 			 xmlns:model="using:TileShop.Shared.Models"
 			 xmlns:m="using:TileShop.AvaloniaUI.Models"
 			 xmlns:con="using:TileShop.AvaloniaUI.Converters"
-			 xmlns:b="using:TileShop.AvaloniaUI.Behaviors"
-			 xmlns:i="using:Avalonia.Xaml.Interactivity"
-			 xmlns:dd="using:TileShop.AvaloniaUI.DragDrop"
-			 xmlns:id="using:Avalonia.Xaml.Interactions.Draggable"
-			 xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
 			 xmlns:paz="using:Avalonia.Controls.PanAndZoom"
 			 xmlns:fac="using:FluentAvalonia.Controls"
@@ -107,24 +102,23 @@
 
 			<StackPanel Margin="6,0,0,0" IsVisible="{Binding IsIndexedColor}">
 				<TextBlock HorizontalAlignment="Center" Text="Palette" />
-				<ComboBox Items="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
+				<ComboBox Items="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}" MaxWidth="200">
 					<ComboBox.ItemTemplate>
 						<DataTemplate>
 							<TextBlock Text="{Binding Name}" />
 						</DataTemplate>
 					</ComboBox.ItemTemplate>
 				</ComboBox>
-			</StackPanel>
 
-			<Button
-                Margin="5,0,0,0"
-                VerticalAlignment="Bottom"
-                VerticalContentAlignment="Center"
-                Command="{Binding AssociatePaletteCommand}"
-                ToolTip.Tip="Associate an existing Palette from this Project with this Arranger"
-                IsVisible="{Binding IsIndexedColor}">
-				<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPlusCircle}" />
-			</Button>
+				<Button
+					Margin="5,0,0,0"
+					VerticalAlignment="Bottom"
+					VerticalContentAlignment="Center"
+					Command="{Binding AssociatePaletteCommand}"
+					ToolTip.Tip="Associate an existing Palette from this Project with this Arranger">
+					<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPlusCircle}" />
+				</Button>
+			</StackPanel>
 
 			<Border
                 Margin="6,6,6,0"

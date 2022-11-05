@@ -28,6 +28,9 @@ public static class AppConverters
     public static readonly IValueConverter PaletteEntryToSolidColorBrush =
         new FuncValueConverter<PaletteEntry, SolidColorBrush>(p => new SolidColorBrush(p.Color));
 
+    public static readonly IValueConverter PluralCountToBoolean =
+        new FuncValueConverter<int, bool>(x => x >= 2);
+
     public static readonly IValueConverter NumericBaseToString =
         new FuncValueConverter<NumericBase, string>(x =>
         {

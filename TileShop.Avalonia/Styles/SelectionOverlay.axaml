@@ -42,7 +42,6 @@
 	<Style Selector=":is(Control).arrangerDrag">
 		<Style.Resources>
 			<dd:ArrangerPasteDragHandler x:Key="ArrangerPasteDragHandler" />
-			<dd:ArrangerPasteDropHandler x:Key="ArrangerPasteDropHandler" />
 		</Style.Resources>
 		<Setter Property="ZIndex" Value="0" />
 		<Setter Property="(i:Interaction.Behaviors)">
@@ -55,6 +54,9 @@
 	</Style>
 
 	<Style Selector=":is(Control).arrangerDrop">
+		<Style.Resources>
+			<dd:ArrangerPasteDropHandler x:Key="ArrangerPasteDropHandler" />
+		</Style.Resources>
 		<Setter Property="(DragDrop.AllowDrop)" Value="True" />
 		<Setter Property="ZIndex" Value="0" />
 		<Setter Property="(i:Interaction.Behaviors)">

@@ -1,6 +1,7 @@
 ﻿using System;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactions.DragAndDrop;
 using TileShop.AvaloniaUI.Models;
@@ -10,12 +11,12 @@ namespace TileShop.AvaloniaUI.DragDrop;
 
 public sealed class ListBoxRemappableColorDropHandler : DropHandlerBase
 {
-    private bool Validate<T>(ListBoxItem listBoxItem, DragEventArgs e, object? sourceContext, object? targetContext, bool bExecute)
+    private bool Validate<T>(IControl control, DragEventArgs e, object? sourceContext, object? targetContext, bool bExecute)
         where T : RemappableColorModel
     {
         if (sourceContext is not T sourceItem
             || targetContext is not ColorRemapViewModel vm
-            || listBoxItem.GetVisualAt(e.GetPosition(listBoxItem)) is not IControl targetControl
+            || control.GetVisualAt(e.GetPosition(control)) is not IControl targetControl
             || targetControl.DataContext is not T targetItem)
         {
             return false;
@@ -40,19 +41,51 @@ public sealed class ListBoxRemappableColorDropHandler : DropHandlerBase
 
     public override bool Validate(object? sender, DragEventArgs e, object? sourceContext, object? targetContext, object? state)
     {
-        if (e.Source is IControl && sender is ListBoxItem listBoxItem)
+        if (e.Source is IControl && sender is IControl control)
         {
-            return Validate<RemappableColorModel>(listBoxItem, e, sourceContext, targetContext, false);
+            return Validate<RemappableColorModel>(control, e, sourceContext, targetContext, false);
         }
         return false;
     }
 
     public override bool Execute(object? sender, DragEventArgs e, object? sourceContext, object? targetContext, object? state)
     {
-        if (e.Source is IControl && sender is ListBoxItem listBoxItem)
+        if (e.Source is IControl && sender is IControl control)
         {
-            return Validate<RemappableColorModel>(listBoxItem, e, sourceContext, targetContext, true);
+            return Validate<RemappableColorModel>(control, e, sourceContext, targetContext, true);
         }
         return false;
+    }
+
+    public override void Enter(object? sender, DragEventArgs e, object? sourceContext, object? targetContext)
+    {
+        if (sender is not IControl control)
+            return;
+
+        if (Validate(sender, e, sourceContext, targetContext, null) == false)
+        {
+            e.DragEffects = DragDropEffects.None;
+            e.Handled = true;
+        }
+        else
+        {
+            control.Classes.Add("dropReady");
+            e.DragEffects |= DragDropEffects.Copy | DragDropEffects.Move | DragDropEffects.Link;
+            e.Handled = true;
+        }
+    }
+
+    public override void Over(object? sender, DragEventArgs e, object? sourceContext, object? targetContext)
+    {
+    }
+
+    public override void Leave(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Border control && control.Classes.Contains("colorDrop") && !control.IsPointerOver)
+        {
+            control.Classes.Remove("dropReady");
+        }
+
+        base.Leave(sender, e);
     }
 }

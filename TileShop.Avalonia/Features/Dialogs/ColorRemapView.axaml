@@ -20,19 +20,10 @@
 		<dd:ListBoxRemappableColorDropHandler x:Key="ListBoxRemappableColorDropHandler" />
 	</UserControl.Resources>
 	<UserControl.Styles>
-		<Style Selector=":is(ListBox).dragsource">
-			<Setter Property="(DragDrop.AllowDrop)" Value="False" />
-			<Setter Property="ItemsPanel">
-				<Setter.Value>
-					<ItemsPanelTemplate>
-						<WrapPanel Orientation="Horizontal" />
-					</ItemsPanelTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-
-		<Style Selector=":is(ListBox).dragsource > :is(ListBoxItem)">
-			<Setter Property="ZIndex" Value="0" />
+		<Style Selector="ListBox.colorDrag > :is(ListBoxItem)">
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="MinWidth" Value="0" />
+			<Setter Property="MinHeight" Value="0" />
 			<Setter Property="(i:Interaction.Behaviors)">
 				<i:BehaviorCollectionTemplate>
 					<i:BehaviorCollection>
@@ -42,23 +33,8 @@
 			</Setter>
 		</Style>
 
-		<Style Selector=":is(ListBox).dragsource > :is(ListBoxItem):pressed">
-			<Setter Property="ZIndex" Value="1" />
-		</Style>
-		
-		<Style Selector=":is(ListBox).droptarget">
+		<Style Selector="Border.colorDrop">
 			<Setter Property="(DragDrop.AllowDrop)" Value="True" />
-			<Setter Property="ItemsPanel">
-				<Setter.Value>
-					<ItemsPanelTemplate>
-						<WrapPanel Orientation="Horizontal" />
-					</ItemsPanelTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-
-		<Style Selector=":is(ListBox).droptarget > :is(ListBoxItem)">
-			<Setter Property="ZIndex" Value="0" />
 			<Setter Property="(i:Interaction.Behaviors)">
 				<i:BehaviorCollectionTemplate>
 					<i:BehaviorCollection>
@@ -68,8 +44,8 @@
 			</Setter>
 		</Style>
 
-		<Style Selector=":is(ListBox).droptarget > :is(ListBoxItem):pressed">
-			<Setter Property="ZIndex" Value="1" />
+		<Style Selector="Border.dropReady">
+			<Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
 		</Style>
 	</UserControl.Styles>
 	
@@ -81,13 +57,19 @@
                 Text="Current Colors" />
 
 			<ListBox
-				Classes="dragsource"
+				Classes="colorDrag"
                 HorizontalAlignment="Center"
                 Items="{Binding InitialColors}">
+				<ListBox.ItemsPanel>
+					<ItemsPanelTemplate>
+						<WrapPanel Orientation="Horizontal" />
+					</ItemsPanelTemplate>
+				</ListBox.ItemsPanel>
 				<ListBox.ItemTemplate>
 					<DataTemplate>
-						<StackPanel Orientation="Horizontal">
+						<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 							<TextBlock
+								Margin="8,0,0,0"
                                 VerticalAlignment="Center"
                                 FontSize="24"
                                 Text="{Binding Index}" />
@@ -114,34 +96,41 @@
                 FontSize="20"
                 Text="New Colors" />
 
-			<ListBox
-				Classes="droptarget"
+			<ItemsControl
                 Grid.Row="1"
                 HorizontalAlignment="Center"
                 Items="{Binding FinalColors}">
-				
-				<ListBox.ItemTemplate>
+				<ItemsControl.ItemsPanel>
+					<ItemsPanelTemplate>
+						<WrapPanel Orientation="Horizontal" />
+					</ItemsPanelTemplate>
+				</ItemsControl.ItemsPanel>
+
+				<ItemsControl.ItemTemplate>
 					<DataTemplate>
-						<StackPanel ZIndex="0" Orientation="Horizontal">
-							<TextBlock
-                                VerticalAlignment="Center"
-                                FontSize="24"
-                                Text="{Binding Index}" />
-							<Border
-                                Margin="10,2,2,2"
-                                Background="{StaticResource CheckeredBrush}"
-                                BorderBrush="Black"
-                                BorderThickness="2">
-								<Rectangle Width="24" Height="24">
-									<Rectangle.Fill>
-										<SolidColorBrush Color="{Binding Color}" />
-									</Rectangle.Fill>
-								</Rectangle>
-							</Border>
-						</StackPanel>
+						<Border Classes="colorDrop" Background="Transparent" BorderThickness="1" Width="65">
+							<StackPanel Orientation="Horizontal">
+								<TextBlock
+									Margin="8,0,0,0"
+									VerticalAlignment="Center"
+									FontSize="24"
+									Text="{Binding Index}" />
+								<Border
+									Margin="10,2,2,2"
+									Background="{StaticResource CheckeredBrush}"
+									BorderBrush="Black"
+									BorderThickness="2">
+									<Rectangle Width="24" Height="24">
+										<Rectangle.Fill>
+											<SolidColorBrush Color="{Binding Color}" />
+										</Rectangle.Fill>
+									</Rectangle>
+								</Border>
+							</StackPanel>
+						</Border>
 					</DataTemplate>
-				</ListBox.ItemTemplate>
-			</ListBox>
+				</ItemsControl.ItemTemplate>
+			</ItemsControl>
 		</StackPanel>
 	</Grid>
 </UserControl>

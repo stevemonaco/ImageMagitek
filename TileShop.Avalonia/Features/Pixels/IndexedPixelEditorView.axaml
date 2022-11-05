@@ -4,8 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:model="using:TileShop.Shared.Models"
 			 xmlns:con="using:TileShop.AvaloniaUI.Converters"
-			 xmlns:b="using:TileShop.AvaloniaUI.Behaviors"
-			 xmlns:i="using:Avalonia.Xaml.Interactivity"
 			 xmlns:m="using:TileShop.AvaloniaUI.Models"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
 			 xmlns:paz="using:Avalonia.Controls.PanAndZoom"
@@ -129,7 +127,7 @@
             Grid.ColumnSpan="2"
             Margin="4,4,0,0"
             Orientation="Horizontal">
-			<ComboBox Items="{Binding Palettes}" SelectedItem="{Binding ActivePalette}">
+			<ComboBox Items="{Binding Palettes}" SelectedItem="{Binding ActivePalette}" IsVisible="{Binding Palettes.Count, Converter={x:Static con:AppConverters.PluralCountToBoolean}}">
 				<ComboBox.ItemTemplate>
 					<DataTemplate>
 						<TextBlock Text="{Binding Name}" />

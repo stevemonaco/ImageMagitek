@@ -4,8 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:model="using:TileShop.Shared.Models"
 			 xmlns:con="using:TileShop.AvaloniaUI.Converters"
-			 xmlns:b="using:TileShop.AvaloniaUI.Behaviors"
-			 xmlns:i="using:Avalonia.Xaml.Interactivity"
 			 xmlns:m="using:TileShop.AvaloniaUI.Models"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
 			 xmlns:paz="using:Avalonia.Controls.PanAndZoom"
