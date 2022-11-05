@@ -24,13 +24,6 @@
 				<ResourceInclude Source="avares://TileShop.AvaloniaUI/Styles/Icons.axaml" />
 			</ResourceDictionary.MergedDictionaries>
 		</ResourceDictionary>
-		<con:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
-		<con:SnapModeBooleanConverter x:Key="SnapModeBooleanConverter" />
-		<con:LongToHexadecimalConverter x:Key="LongToHexadecimalConverter" />
-		<con:EndianToBooleanConverter x:Key="EndianToBooleanConverter" />
-		<con:PaletteModelIndexToSolidColorBrushConverter x:Key="PaletteIndexToColorConverter" />
-		<con:NumericBaseToBooleanConverter x:Key="NumericBaseToBooleanConverter" />
-		<con:ColorRgba32ToMediaColorConverter x:Key="ColorRgba32ToMediaColorConverter" />
 
 		<VisualBrush x:Key="CheckeredBrush" TileMode="Tile" Stretch="None" DestinationRect="0,0,16,16">
 			<VisualBrush.Visual>

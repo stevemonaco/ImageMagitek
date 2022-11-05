@@ -53,46 +53,46 @@
 
 				<StackPanel Orientation="Horizontal">
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.Select}"
-						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
 						ToolTip.Tip="Click and drag across Arranger to select a region">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconRectangularSelection}" />
 					</ToggleButton>
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.ApplyPalette}"
-						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ApplyPalette}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ApplyPalette}"
 						ToolTip.Tip="{Binding SelectedPalette.Name, StringFormat='Click on an Arranger element to apply the current palette (\{0\})'}">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPaletteBrush}" RenderTransform="scaleY(-1)" />
 					</ToggleButton>
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.PickPalette}"
-						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=PickPalette}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=PickPalette}"
 						ToolTip.Tip="Click on an Arranger element to pick its associated palette">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPalettePicker}" />
 					</ToggleButton>
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.InspectElement}"
-						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=InspectElement}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=InspectElement}"
 						ToolTip.Tip="Hover Arranger elements to inspect their properties">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconEye}" />
 					</ToggleButton>
 
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.RotateLeft}"
-						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateLeft}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateLeft}"
 						IsVisible="{Binding AreSymmetryToolsEnabled}"
 						ToolTip.Tip="Rotate Element's Display Left">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconRotateLeft}" />
 					</ToggleButton>
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.RotateRight}"
-						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RotateRight}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateRight}"
 						IsVisible="{Binding AreSymmetryToolsEnabled}"
 						ToolTip.Tip="Rotate Element's Display Right">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconRotateRight}" />
 					</ToggleButton>
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.MirrorHorizontal}"
-						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=MirrorHorizontal}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorHorizontal}"
 						IsVisible="{Binding AreSymmetryToolsEnabled}"
 						ToolTip.Tip="Mirror Element's Display Horizontally">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconMirrorHorizontal}" />
 					</ToggleButton>
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:ScatteredArrangerTool.MirrorVertical}"
-						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=MirrorVertical}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorVertical}"
 						IsVisible="{Binding AreSymmetryToolsEnabled}"
 						ToolTip.Tip="Mirror Element's Display Vertically">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconMirrorVertical}" />
@@ -146,7 +146,7 @@
 				<TextBlock HorizontalAlignment="Center" Text="Snap" />
 				<ToggleButton
                     Focusable="False"
-                    IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
+                    IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}"
                     ToolTip.Tip="Snap Selection to Elements (S)">
 					<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconSnap}" />
 				</ToggleButton>

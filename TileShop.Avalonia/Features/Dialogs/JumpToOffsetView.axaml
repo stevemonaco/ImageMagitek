@@ -21,7 +21,7 @@
 	<Grid ColumnDefinitions="auto, *">
 		<ToggleButton FontSize="20" Focusable="False"
 					  Content="{Binding NumericBase, Converter={x:Static con:AppConverters.NumericBaseToString}}"
-					  IsChecked="{Binding NumericBase, Converter={StaticResource NumericBaseToBooleanConverter}}" />
+					  IsChecked="{Binding NumericBase, Converter={x:Static con:AppConverters.NumericBaseToBoolean}}" />
 
 		<TextBox
             x:Name="_jumpBox"

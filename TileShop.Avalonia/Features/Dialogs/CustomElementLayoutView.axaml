@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 xmlns:con="using:TileShop.AvaloniaUI.Converters"
 			 x:DataType="vm:CustomElementLayoutViewModel"
 			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.CustomElementLayoutView">
@@ -19,13 +20,13 @@
 					<RadioButton
                         Content="Horizontal"
                         GroupName="Layout"
-                        IsChecked="{Binding FlowDirection, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=RowLeftToRight}"
+                        IsChecked="{Binding FlowDirection, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RowLeftToRight}"
                         ToolTip.Tip="Elements flow row-by-row, left-to-right" />
 					<RadioButton
                         Margin="10,0,0,0"
                         Content="Vertical"
                         GroupName="Layout"
-                        IsChecked="{Binding FlowDirection, Mode=TwoWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ColumnTopToBottom}"
+                        IsChecked="{Binding FlowDirection, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColumnTopToBottom}"
                         ToolTip.Tip="Elements flow column-by-column, top-to-bottom" />
 				</StackPanel>
 

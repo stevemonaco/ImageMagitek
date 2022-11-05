@@ -200,7 +200,7 @@
 
 						<ToggleButton
                             Focusable="False"
-                            IsChecked="{Binding SnapMode, Converter={StaticResource SnapModeBooleanConverter}}"
+                            IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}"
                             ToolTip.Tip="Snap Selection to Elements (S)"
                             IsVisible="{Binding CanChangeSnapMode}">
 							<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconSnap}" />

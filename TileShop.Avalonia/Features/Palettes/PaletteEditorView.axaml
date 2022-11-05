@@ -7,6 +7,7 @@
 			 xmlns:m="using:TileShop.Shared.Models"
 			 xmlns:v="using:TileShop.AvaloniaUI.Views"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+			 xmlns:con="using:TileShop.AvaloniaUI.Converters"
 			 x:DataType="vm:PaletteEditorViewModel"
 			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.PaletteEditorView">
@@ -29,7 +30,7 @@
 				<TextBox
                     Width="135"
                     Watermark="Offset"
-                    Text="{Binding FileAddress, Converter={StaticResource LongToHexadecimalConverter}}" />
+                    Text="{Binding FileAddress, Converter={x:Static con:AppConverters.LongToHexadecimal}}" />
 				<TextBox
                     Width="135"
                     Margin="10,0,0,0"
@@ -39,7 +40,7 @@
 				<!--Watermark="Endian"-->
 				<ToggleSwitch
                     Margin="10,0,0,0"
-                    IsChecked="{Binding Endian, Converter={StaticResource EndianToBooleanConverter}}"
+                    IsChecked="{Binding Endian, Converter={x:Static con:AppConverters.EndianToBoolean}}"
                     OffContent="Little"
                     OnContent="Big" />
 			</StackPanel>

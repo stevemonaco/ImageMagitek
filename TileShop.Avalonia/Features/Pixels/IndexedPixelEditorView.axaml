@@ -51,23 +51,23 @@
 
 				<StackPanel Orientation="Horizontal">
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:PixelTool.Select}"
-						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Select}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
 						ToolTip.Tip="Rectangular Selection Tool">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconRectangularSelection}" />
 					</ToggleButton>
 
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:PixelTool.Pencil}"
-						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Pencil}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Pencil}"
 						ToolTip.Tip="Pencil Tool">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconPencil}" />
 					</ToggleButton>
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:PixelTool.ColorPicker}"
-						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=ColorPicker}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColorPicker}"
 						ToolTip.Tip="Color Picker Tool">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconColorPicker}" RenderTransform="scaleY(-1)" />
 					</ToggleButton>
 					<ToggleButton Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:PixelTool.FloodFill}"
-						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=FloodFill}"
+						IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=FloodFill}"
 						ToolTip.Tip="Flood Fill Tool">
 						<PathIcon Foreground="{DynamicResource iconBrush}" Width="20" Height="20" Data="{StaticResource pathIconFloodFill}" RenderTransform="scaleY(-1)" />
 					</ToggleButton>
@@ -84,7 +84,7 @@
                                 Height="26"
                                 ToolTip.Tip="Primary Color">
 								<Rectangle.Fill>
-									<MultiBinding Converter="{StaticResource PaletteIndexToColorConverter}">
+									<MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
 										<Binding Path="ActivePalette" />
 										<Binding Path="PrimaryColor" />
 									</MultiBinding>
@@ -99,7 +99,7 @@
                                 Height="26"
                                 ToolTip.Tip="Secondary Color">
 								<Rectangle.Fill>
-									<MultiBinding Converter="{StaticResource PaletteIndexToColorConverter}">
+									<MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
 										<Binding Path="ActivePalette" />
 										<Binding Path="SecondaryColor" />
 									</MultiBinding>

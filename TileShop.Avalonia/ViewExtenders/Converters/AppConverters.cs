@@ -43,8 +43,8 @@ public static class AppConverters
     public static readonly EndianToBooleanConverter EndianToBoolean = new();
     public static readonly EnumToBooleanConverter EnumToBoolean = new();
     public static readonly LongToHexadecimalConverter LongToHexadecimal = new();
-    public static readonly NumericBaseToBooleanConverter NumericBaseTo = new();
+    public static readonly NumericBaseToBooleanConverter NumericBaseToBoolean = new();
     public static readonly PaletteEntryToIndexConverter PaletteEntryToIndex = new();
-    public static readonly PaletteModelIndexToSolidColorBrushConverter PaletteModelIndexToSolidColorBrush = new();
+    public static readonly PaletteModelIndexToSolidColorBrushConverter PaletteIndexToBrush = new();
     public static readonly SnapModeBooleanConverter SnapModeBoolean = new();
 }
