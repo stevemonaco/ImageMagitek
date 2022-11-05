@@ -2,7 +2,6 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using ImageMagitek.Colors;
 using TileShop.AvaloniaUI.Models;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.Shared.Models;
@@ -26,9 +25,6 @@ public static class AppConverters
     public static readonly IValueConverter ArrangerEditorToHeight =
         new FuncValueConverter<ArrangerEditorViewModel, int>(x => x.WorkingArranger.ArrangerPixelSize.Height);
 
-    public static readonly IValueConverter ColorRgba32ToMediaColor =
-        new FuncValueConverter<ColorRgba32, Color>(c => new Color(c.A, c.R, c.G, c.B));
-
     public static readonly IValueConverter PaletteEntryToSolidColorBrush =
         new FuncValueConverter<PaletteEntry, SolidColorBrush>(p => new SolidColorBrush(p.Color));
 
@@ -42,4 +38,13 @@ public static class AppConverters
                 _ => throw new InvalidOperationException($"{nameof(NumericBaseToString)} cannot convert from given type {x.GetType()} with value {x}"),
             };
         });
+
+    public static readonly ColorRgba32ToMediaColorConverter ColorRgba32ToMediaColor = new();
+    public static readonly EndianToBooleanConverter EndianToBoolean = new();
+    public static readonly EnumToBooleanConverter EnumToBoolean = new();
+    public static readonly LongToHexadecimalConverter LongToHexadecimal = new();
+    public static readonly NumericBaseToBooleanConverter NumericBaseTo = new();
+    public static readonly PaletteEntryToIndexConverter PaletteEntryToIndex = new();
+    public static readonly PaletteModelIndexToSolidColorBrushConverter PaletteModelIndexToSolidColorBrush = new();
+    public static readonly SnapModeBooleanConverter SnapModeBoolean = new();
 }

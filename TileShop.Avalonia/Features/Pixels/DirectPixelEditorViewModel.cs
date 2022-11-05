@@ -96,7 +96,7 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
 
     public override void SetPixel(int x, int y, ColorRgba32 color)
     {
-        _directImage.SetPixel(x + _viewX, y + _viewY, color);
+        _directImage.SetPixel(x, y, color);
 
         if (_activePencilHistory.ModifiedPoints.Add(new Point(x, y)))
         {

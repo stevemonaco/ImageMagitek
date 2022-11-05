@@ -16,6 +16,10 @@
              x:Class="TileShop.AvaloniaUI.Views.IndexedPixelEditorView">
 	<UserControl.KeyBindings>
 		<KeyBinding Gesture="G" Command="{Binding ToggleGridlineVisibilityCommand}" />
+		<KeyBinding Gesture="S" Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:PixelTool.Select}" />
+		<KeyBinding Gesture="B" Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:PixelTool.Pencil}" />
+		<KeyBinding Gesture="F" Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:PixelTool.FloodFill}" />
+		<KeyBinding Gesture="C" Command="{Binding ChangeToolCommand}" CommandParameter="{x:Static vm:PixelTool.ColorPicker}" />
 		<KeyBinding Gesture="Escape" Command="{Binding CancelOverlayCommand}" />
 		<KeyBinding Gesture="Return" Command="{Binding ConfirmPendingOperationCommand}" />
 		<KeyBinding Gesture="Ctrl+S" Command="{Binding SaveChangesCommand}" />
@@ -174,7 +178,6 @@
             VerticalScrollBarVisibility="Auto">
 
 			<paz:ZoomBorder x:Name="_zoomBorder" Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-
 				<Grid>					
 					<!--  Backdrop  -->
 					<Rectangle
@@ -184,7 +187,7 @@
 						Fill="{DynamicResource CheckeredBrush}"/>
 
 					<!--  Editable Image  -->
-					<Image x:Name="_image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}"
+					<Image x:Name="_image" Classes="pixel" Source="{Binding BitmapAdapter.Bitmap}"
 						   PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 
 					<!--  Selection and Paste Overlay  -->
@@ -196,43 +199,35 @@
 						ClipToBounds="True">
 
 						<Rectangle
+							Classes="animatedBorder selection"
 							Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
 							Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
 							Width="{Binding Selection.SelectionRect.SnappedWidth}"
 							Height="{Binding Selection.SelectionRect.SnappedHeight}"
-							ClipToBounds="False"
-							Fill="{StaticResource editSelectionFillBrush}"
-							Stroke="Black"
-							StrokeDashArray="3,2"
-							StrokeThickness="0.3"
 							IsVisible="{Binding Selection.HasSelection}" />
 
-						<Rectangle
-							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
-							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
-							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
-							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-							Fill="{StaticResource editSelectionFillBrush}"
-							IsHitTestVisible="False"
-							Stroke="Black"
-							StrokeDashArray="3,2"
-							StrokeThickness="0.3" />
-
 						<Image
+							Classes="pixel"
 							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
 							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
 							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
 							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-							RenderOptions.BitmapInterpolationMode="Default"
-							Source="{Binding Paste.OverlayImage.Bitmap}"
-							Stretch="None" />
+							Source="{Binding Paste.OverlayImage.Bitmap}" />
+
+						<Rectangle
+							Classes="animatedBorder paste"
+							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+							IsVisible="{Binding Paste, Converter={x:Static ObjectConverters.IsNotNull}}" />
 					</Canvas>
 
 					<!--  Gridline Overlay  -->
 					<ItemsControl
 						IsHitTestVisible="False"
 						Items="{Binding Gridlines}"
-						ClipToBounds="False"
+						ClipToBounds="True"
 						MaxWidth="{Binding BitmapAdapter.Width}"
 						MaxHeight="{Binding BitmapAdapter.Height}"
 						IsVisible="{Binding ShowGridlines}">

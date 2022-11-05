@@ -15,37 +15,6 @@
 			 x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="TileShop.AvaloniaUI.Views.SequentialArrangerEditorView">
-
-	<UserControl.Resources>
-		<dd:ArrangerPasteDragHandler x:Key="ArrangerPasteDragHandler" />
-		<dd:ArrangerPasteDropHandler x:Key="ArrangerPasteDropHandler" />
-	</UserControl.Resources>
-
-	<UserControl.Styles>
-		<Style Selector=":is(Control).dragsource">
-			<Setter Property="ZIndex" Value="0" />
-			<Setter Property="(i:Interaction.Behaviors)">
-				<i:BehaviorCollectionTemplate>
-					<i:BehaviorCollection>
-						<idd:ContextDragBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDragHandler}" />
-					</i:BehaviorCollection>
-				</i:BehaviorCollectionTemplate>
-			</Setter>
-		</Style>
-
-		<Style Selector=":is(Control).droptarget">
-			<Setter Property="(DragDrop.AllowDrop)" Value="True" />
-			<Setter Property="ZIndex" Value="0" />
-			<Setter Property="(i:Interaction.Behaviors)">
-				<i:BehaviorCollectionTemplate>
-					<i:BehaviorCollection>
-						<idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDropHandler}" />
-					</i:BehaviorCollection>
-				</i:BehaviorCollectionTemplate>
-			</Setter>
-		</Style>
-	</UserControl.Styles>
-
 	<UserControl.KeyBindings>
 		<KeyBinding Gesture="OemPlus" Command="{Binding MoveByteDownCommand}" />
 		<KeyBinding Gesture="Add" Command="{Binding MoveByteDownCommand}" />
@@ -320,22 +289,16 @@
 						ClipToBounds="True">
 
 						<!--  Arranger Image  -->
-						<Image x:Name="_image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap, Mode=OneWay}"
+						<Image x:Name="_image" Classes="pixel" Source="{Binding BitmapAdapter.Bitmap, Mode=OneWay}"
 								PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 
 						<!--  Selection Overlay  -->
 						<Rectangle
-							Classes="dragsource"
+							Classes="arrangerDrag animatedBorder selection"
 							Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
 							Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
 							Width="{Binding Selection.SelectionRect.SnappedWidth}"
 							Height="{Binding Selection.SelectionRect.SnappedHeight}"
-							Stretch="None"
-							Fill="{StaticResource editSelectionFillBrush}"
-							Stroke="Black"
-							StrokeDashArray="3,2"
-							StrokeThickness="0.3"
-							Cursor="Hand"
 							IsVisible="{Binding Selection.HasSelection}"
 							PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 					</Canvas>

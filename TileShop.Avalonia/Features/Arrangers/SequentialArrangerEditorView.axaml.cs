@@ -1,10 +1,9 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Input;
+using TileShop.AvaloniaUI.Input;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.Shared.Input;
-
-using KeyModifiers = TileShop.Shared.Input.KeyModifiers;
 
 namespace TileShop.AvaloniaUI.Views;
 public partial class SequentialArrangerEditorView : UserControl
@@ -31,7 +30,7 @@ public partial class SequentialArrangerEditorView : UserControl
         if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
-            var state = CreateMouseState(point, e.KeyModifiers);
+            var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             _viewModel.MouseDown(point.Position.X, point.Position.Y, state);
             //e.Handled = true;
         }
@@ -42,7 +41,7 @@ public partial class SequentialArrangerEditorView : UserControl
         if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
-            var state = CreateMouseState(point, e.KeyModifiers);
+            var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             _viewModel.MouseUp(point.Position.X, point.Position.Y, state);
             //e.Handled = true;
         }
@@ -53,7 +52,7 @@ public partial class SequentialArrangerEditorView : UserControl
         if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
-            var state = CreateMouseState(point, e.KeyModifiers);
+            var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             _viewModel.MouseMove(point.Position.X, point.Position.Y, state);
             //e.Handled = true;
         }
@@ -69,7 +68,7 @@ public partial class SequentialArrangerEditorView : UserControl
     {
         if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
         {
-            var modifiers = CreateKeyModifiers(e.KeyModifiers);
+            var modifiers = InputAdapter.CreateKeyModifiers(e.KeyModifiers);
 
             if (e.Delta.Y > 0)
             {
@@ -82,28 +81,5 @@ public partial class SequentialArrangerEditorView : UserControl
                 //e.Handled = true;
             }
         }
-    }
-
-    private MouseState CreateMouseState(PointerPoint point, Avalonia.Input.KeyModifiers keys)
-    {
-        var properties = point.Properties;
-        var modifiers = CreateKeyModifiers(keys);
-
-        return new MouseState(properties.IsLeftButtonPressed, properties.IsMiddleButtonPressed, properties.IsRightButtonPressed, modifiers);
-    }
-
-    private KeyModifiers CreateKeyModifiers(Avalonia.Input.KeyModifiers keys)
-    {
-        var modifiers = KeyModifiers.None;
-        if (keys.HasFlag(Avalonia.Input.KeyModifiers.Alt))
-            modifiers |= KeyModifiers.Alt;
-
-        if (keys.HasFlag(Avalonia.Input.KeyModifiers.Control))
-            modifiers |= KeyModifiers.Ctrl;
-
-        if (keys.HasFlag(Avalonia.Input.KeyModifiers.Shift))
-            modifiers = KeyModifiers.Shift;
-
-        return modifiers;
     }
 }

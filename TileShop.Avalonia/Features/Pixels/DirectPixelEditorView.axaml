@@ -9,6 +9,7 @@
 			 xmlns:m="using:TileShop.AvaloniaUI.Models"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
 			 xmlns:paz="using:Avalonia.Controls.PanAndZoom"
+			 xmlns:fac="using:FluentAvalonia.UI.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 x:Name="pixelEditor"
 			 x:DataType="vm:DirectPixelEditorViewModel"
@@ -27,7 +28,7 @@
 
 		<!--  Toolbar  -->
 		<StackPanel Grid.ColumnSpan="2" Orientation="Horizontal">
-			<StackPanel VerticalAlignment="Center">
+			<StackPanel>
 				<TextBlock HorizontalAlignment="Center" Text="Grid" />
 				<ToggleButton
                     Focusable="False"
@@ -74,50 +75,8 @@
 			<StackPanel>
 				<TextBlock HorizontalAlignment="Center" Text="Active Colors" />
 				<StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-					<Button Padding="0" Background="Transparent">
-						<Button.Content>
-							<Border BorderBrush="Black" BorderThickness="2">
-								<Border BorderBrush="White" BorderThickness="2">
-									<Rectangle
-                                        Width="26"
-                                        Height="26"
-                                        ToolTip.Tip="Primary Color">
-										<Rectangle.Fill>
-											<SolidColorBrush Color="{Binding PrimaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
-										</Rectangle.Fill>
-									</Rectangle>
-								</Border>
-							</Border>
-						</Button.Content>
-						<!--<ui:FlyoutService.Flyout>
-							<ui:Flyout>
-								--><!--<colorpicker:StandardColorPicker SecondaryColor="{Binding SecondaryColor, Converter={StaticResource ColorRgba32ToMediaColorConverter}, Mode=TwoWay}" SelectedColor="{Binding PrimaryColor, Converter={StaticResource ColorRgba32ToMediaColorConverter}, Mode=TwoWay}" />--><!--
-								<colorpicker:DirectColorPicker SelectedColor="{Binding PrimaryColor, Converter={StaticResource ColorRgba32ToMediaColorConverter}, Mode=TwoWay}" />
-							</ui:Flyout>
-						</ui:FlyoutService.Flyout>-->
-					</Button>
-
-					<Button Padding="0" Background="Transparent">
-						<Button.Content>
-							<Border BorderBrush="Black" BorderThickness="2">
-								<Border BorderBrush="White" BorderThickness="2">
-									<Rectangle
-                                        Width="26"
-                                        Height="26"
-                                        ToolTip.Tip="Secondary Color">
-										<Rectangle.Fill>
-											<SolidColorBrush Color="{Binding SecondaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
-										</Rectangle.Fill>
-									</Rectangle>
-								</Border>
-							</Border>
-						</Button.Content>
-						<!--<ui:FlyoutService.Flyout>
-							<ui:Flyout>
-								<colorpicker:DirectColorPicker SelectedColor="{Binding SecondaryColor, Converter={StaticResource ColorRgba32ToMediaColorConverter}, Mode=TwoWay}" />
-							</ui:Flyout>
-						</ui:FlyoutService.Flyout>-->
-					</Button>
+					<fac:ColorPickerButton ShowAcceptDismissButtons="False" Height="40" Color="{Binding PrimaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
+					<fac:ColorPickerButton ShowAcceptDismissButtons="False" Height="40" Color="{Binding SecondaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
 				</StackPanel>
 			</StackPanel>
 		</StackPanel>
@@ -132,8 +91,6 @@
             VerticalScrollBarVisibility="Auto">
 
 			<paz:ZoomBorder x:Name="_zoomBorder" Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-
-				<!--Margin="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ScrollViewer}}, Converter={StaticResource ScrollViewerToMarginStringConverter}}"-->
 				<Grid>
 					<!--  Backdrop  -->
 					<Rectangle
@@ -143,7 +100,7 @@
 						Fill="{DynamicResource CheckeredBrush}"/>
 
 					<!--  Editable Image  -->
-					<Image x:Name="_image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}"
+					<Image x:Name="_image" Classes="pixel" Source="{Binding BitmapAdapter.Bitmap}"
 						   PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 
 					<!--  Selection and Paste Overlay  -->
@@ -155,43 +112,35 @@
 						ClipToBounds="True">
 
 						<Rectangle
+							Classes="animatedBorder selection"
 							Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
 							Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
 							Width="{Binding Selection.SelectionRect.SnappedWidth}"
 							Height="{Binding Selection.SelectionRect.SnappedHeight}"
-							ClipToBounds="False"
-							Fill="{StaticResource editSelectionFillBrush}"
-							Stroke="Black"
-							StrokeDashArray="3,2"
-							StrokeThickness="0.3"
 							IsVisible="{Binding Selection.HasSelection}" />
 
-						<Rectangle
-							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
-							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
-							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
-							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-							Fill="{StaticResource editSelectionFillBrush}"
-							IsHitTestVisible="False"
-							Stroke="Black"
-							StrokeDashArray="3,2"
-							StrokeThickness="0.3" />
-
 						<Image
+							Classes="pixel"
 							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
 							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
 							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
 							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-							RenderOptions.BitmapInterpolationMode="Default"
-							Source="{Binding Paste.OverlayImage.Bitmap}"
-							Stretch="None" />
+							Source="{Binding Paste.OverlayImage.Bitmap}" />
+
+						<Rectangle
+							Classes="animatedBorder paste"
+							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+							IsVisible="{Binding Paste, Converter={x:Static ObjectConverters.IsNotNull}}" />
 					</Canvas>
 
 					<!--  Gridline Overlay  -->
 					<ItemsControl
 						IsHitTestVisible="False"
 						Items="{Binding Gridlines}"
-						ClipToBounds="False"
+						ClipToBounds="True"
 						MaxWidth="{Binding BitmapAdapter.Width}"
 						MaxHeight="{Binding BitmapAdapter.Height}"
 						IsVisible="{Binding ShowGridlines}">

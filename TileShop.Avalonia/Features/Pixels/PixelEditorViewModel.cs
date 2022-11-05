@@ -144,11 +144,11 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
         int xc = Math.Clamp((int)x, 0, bounds.Width - 1);
         int yc = Math.Clamp((int)y, 0, bounds.Height - 1);
 
-        if (ActiveTool == PixelTool.ColorPicker && mouseState.LeftButtonPressed)
+        if ((ActiveTool == PixelTool.ColorPicker || mouseState.Modifiers.HasFlag(KeyModifiers.Alt)) && mouseState.LeftButtonPressed)
         {
             PickColor(xc, yc, ColorPriority.Primary);
         }
-        else if (ActiveTool == PixelTool.ColorPicker && mouseState.RightButtonPressed)
+        else if ((ActiveTool == PixelTool.ColorPicker || mouseState.Modifiers.HasFlag(KeyModifiers.Alt)) && mouseState.RightButtonPressed)
         {
             PickColor(xc, yc, ColorPriority.Secondary);
         }

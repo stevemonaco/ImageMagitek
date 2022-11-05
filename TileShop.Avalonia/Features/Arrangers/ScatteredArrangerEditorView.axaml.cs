@@ -4,6 +4,7 @@ using Avalonia.Input;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.AvaloniaUI.Input;
 using TileShop.Shared.Input;
+using Avalonia.Interactivity;
 
 namespace TileShop.AvaloniaUI.Views;
 public partial class ScatteredArrangerEditorView : UserControl
@@ -24,6 +25,16 @@ public partial class ScatteredArrangerEditorView : UserControl
         }
         
         base.OnDataContextChanged(e);
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (_viewModel is not null)
+        {
+            var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
+            _viewModel.KeyPress(state);
+            //_viewModel.KeyPress();
+        }
     }
 
     private void OnPointerPressed(object sender, PointerPressedEventArgs e)

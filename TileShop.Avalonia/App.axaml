@@ -15,6 +15,8 @@
 		
 		<StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/DocumentControlTabHeader.axaml" />
 		<StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/VerticalNumericUpDown.axaml" />
+		<StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/SelectionOverlay.axaml" />
+		<StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/Image.axaml" />
     </Application.Styles>
 	<Application.Resources>
 		<ResourceDictionary>
@@ -28,6 +30,7 @@
 		<con:EndianToBooleanConverter x:Key="EndianToBooleanConverter" />
 		<con:PaletteModelIndexToSolidColorBrushConverter x:Key="PaletteIndexToColorConverter" />
 		<con:NumericBaseToBooleanConverter x:Key="NumericBaseToBooleanConverter" />
+		<con:ColorRgba32ToMediaColorConverter x:Key="ColorRgba32ToMediaColorConverter" />
 
 		<VisualBrush x:Key="CheckeredBrush" TileMode="Tile" Stretch="None" DestinationRect="0,0,16,16">
 			<VisualBrush.Visual>

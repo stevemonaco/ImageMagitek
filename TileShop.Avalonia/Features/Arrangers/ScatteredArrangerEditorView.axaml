@@ -17,53 +17,6 @@
 			 x:DataType="vm:ScatteredArrangerEditorViewModel"
 			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.ScatteredArrangerEditorView">
-	<UserControl.Resources>
-		<dd:ArrangerPasteDragHandler x:Key="ArrangerPasteDragHandler" />
-		<dd:ArrangerPasteDropHandler x:Key="ArrangerPasteDropHandler" />
-	</UserControl.Resources>
-
-	<UserControl.Styles>
-		<Style Selector="Rectangle.animatedBorder[IsVisible=True]">
-			<Setter Property="Stroke" Value="Black" />
-			<Setter Property="StrokeDashArray" Value="3,2" />
-			<Setter Property="StrokeThickness" Value="0.3" />
-
-			<Style.Animations>
-				<Animation Duration="0:0:0.5" IterationCount="INFINITE">
-					<KeyFrame Cue="0%">
-						<Setter Property="StrokeDashOffset" Value="5" />
-					</KeyFrame>
-					<KeyFrame Cue="100%">
-						<Setter Property="StrokeDashOffset" Value="0" />
-					</KeyFrame>
-				</Animation>
-			</Style.Animations>
-		</Style>
-		
-		<Style Selector=":is(Control).dragsource">
-			<Setter Property="ZIndex" Value="0" />
-			<Setter Property="(i:Interaction.Behaviors)">
-				<i:BehaviorCollectionTemplate>
-					<i:BehaviorCollection>
-						<idd:ContextDragBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDragHandler}" />
-					</i:BehaviorCollection>
-				</i:BehaviorCollectionTemplate>
-			</Setter>
-		</Style>
-
-		<Style Selector=":is(Control).droptarget">
-			<Setter Property="(DragDrop.AllowDrop)" Value="True" />
-			<Setter Property="ZIndex" Value="0" />
-			<Setter Property="(i:Interaction.Behaviors)">
-				<i:BehaviorCollectionTemplate>
-					<i:BehaviorCollection>
-						<idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDropHandler}" />
-					</i:BehaviorCollection>
-				</i:BehaviorCollectionTemplate>
-			</Setter>
-		</Style>
-	</UserControl.Styles>
-
 	<UserControl.KeyBindings>
 		<KeyBinding Gesture="G" Command="{Binding ToggleGridlineVisibilityCommand}" />
 		<KeyBinding Gesture="E" Command="{Binding EditSelectionCommand}" />
@@ -231,6 +184,7 @@
             Grid.Row="1"
             Grid.Column="0"
             Focusable="True"
+			KeyDown="OnKeyDown"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
 
@@ -239,7 +193,7 @@
 					<!--  Image, Selection, and Paste Overlay  -->
 					<Canvas
 						x:Name="_overlayCanvas"
-						Classes="droptarget"
+						Classes="arrangerDrop"
 						Width="{Binding BitmapAdapter.Width}"
 						Height="{Binding BitmapAdapter.Height}"
 						PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased"
@@ -254,50 +208,39 @@
 							Fill="{DynamicResource CheckeredBrush}"/>
 
 						<!--  Arranged Image  -->
-						<Image x:Name="_image" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding BitmapAdapter.Bitmap}"
+						<Image x:Name="_image" Classes="pixel" Source="{Binding BitmapAdapter.Bitmap}"
 							   PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
 
 						<!--  Selection Overlay  -->
 						<Rectangle
-							Classes="dragsource animatedBorder"
+							Classes="arrangerDrag animatedBorder selection"
 							Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
 							Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
 							Width="{Binding Selection.SelectionRect.SnappedWidth}"
 							Height="{Binding Selection.SelectionRect.SnappedHeight}"
-							ClipToBounds="False"
-							Fill="{StaticResource editSelectionFillBrush}"
-							Stroke="Black"
-							StrokeDashArray="3,2"
-							StrokeThickness="0.3"
 							Cursor="Hand"
 							IsVisible="{Binding Selection.HasSelection}" />
 
 						<!--  Paste Image  -->
 						<Image
-							Classes="dragsource"
+							Classes="arrangerDrag pixel"
 							x:Name="pasteImage"
+							Source="{Binding Paste.OverlayImage.Bitmap}"
 							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
 							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
 							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
 							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-							RenderOptions.BitmapInterpolationMode="Default"
 							IsHitTestVisible="True"
-							Source="{Binding Paste.OverlayImage.Bitmap}"
-							Cursor="Hand"
-							Stretch="None" />
+							Cursor="Hand" />
 
 						<!--  Paste Overlay  -->
 						<Rectangle
-							Classes="animatedBorder"
+							Classes="animatedBorder paste"
 							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
 							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
 							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
 							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-							Fill="{StaticResource pasteSelectionFillBrush}"
-							Stroke="Black"
-							IsHitTestVisible="False"
-							StrokeDashArray="3,2"
-							StrokeThickness="0.3" />
+							IsVisible="{Binding Paste, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 					</Canvas>
 
 					<!--  Gridline Overlay  -->

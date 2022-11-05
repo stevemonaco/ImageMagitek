@@ -20,6 +20,7 @@ internal class Program
         catch (Exception e)
         {
             Log.Fatal(e, "Unknown exception bubbled up to program root");
+            throw;
         }
         finally
         {

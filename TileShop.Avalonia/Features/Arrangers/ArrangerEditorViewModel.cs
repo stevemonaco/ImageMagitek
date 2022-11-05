@@ -13,6 +13,8 @@ using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Input;
 using TileShop.Shared.Interactions;
 
+using KeyModifiers = TileShop.Shared.Input.KeyModifiers;
+
 namespace TileShop.AvaloniaUI.ViewModels;
 
 public enum EditMode { ArrangeGraphics, ModifyGraphics }
@@ -163,6 +165,12 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         {
             // Start drag for paste (Handled by DragDrop in View)
         }
+        else if (mouseState.LeftButtonPressed && mouseState.Modifiers.HasFlag(KeyModifiers.Ctrl))
+        {
+            IsSelecting = true;
+            StartNewSelection(x, y);
+            CompleteSelection();
+        }
         else if (mouseState.LeftButtonPressed)
         {
             IsSelecting = true;
@@ -259,13 +267,13 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
             // Clone a subsection of the arranger and show the full subarranger
             WorkingArranger.CopyElements();
             var arranger = WorkingArranger.CloneArranger(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
-            editEvent = new EditArrangerPixelsEvent(arranger, Resource as Arranger, 0, 0, rect.SnappedWidth, rect.SnappedHeight);
+            editEvent = new EditArrangerPixelsEvent(arranger, (Arranger)Resource, 0, 0, rect.SnappedWidth, rect.SnappedHeight);
         }
         else
         {
             // Clone the entire arranger and show a subsection of the cloned arranger
             var arranger = WorkingArranger.CloneArranger();
-            editEvent = new EditArrangerPixelsEvent(arranger, Resource as Arranger, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+            editEvent = new EditArrangerPixelsEvent(arranger, (Arranger)Resource, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
         }
 
         WeakReferenceMessenger.Default.Send(editEvent);
