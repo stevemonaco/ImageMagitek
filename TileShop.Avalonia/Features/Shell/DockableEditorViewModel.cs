@@ -34,6 +34,10 @@ public partial class DockableEditorViewModel : Document
             TaskScheduler.FromCurrentSynchronizationContext());
 
         Dispatcher.UIThread.MainLoop(cts.Token);
+
+        if (result)
+            _editors.Editors.Remove(_editor);
+
         return result;
     }
 }
