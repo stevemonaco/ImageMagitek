@@ -82,9 +82,16 @@ public class ArrangerPasteDropHandler : DropHandlerBase
             if (!ReferenceEquals(sourceVm, targetVm))
                 sourceVm.CancelOverlay();
 
-            var notifyMessage = $"Press [Enter] to Apply Paste or [Esc] to Cancel";
-            var notifyEvent = new NotifyOperationEvent(notifyMessage);
-            WeakReferenceMessenger.Default.Send(notifyEvent);
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            {
+                targetVm.CompletePaste();
+            }
+            else
+            {
+                var notifyMessage = $"Press [Enter] to Apply Paste or [Esc] to Cancel";
+                var notifyEvent = new NotifyOperationEvent(notifyMessage);
+                WeakReferenceMessenger.Default.Send(notifyEvent);
+            }
 
             canvas.Focus();
 

@@ -6,11 +6,11 @@ namespace TileShop.Shared.Input;
 public enum KeyModifiers
 {
     None            = 0b_0000_0000,
-    Ctrl            = 0b_0000_0001,
+    Control         = 0b_0000_0001,
     Alt             = 0b_0000_0010,
     Shift           = 0b_0000_0100,
-    CtrlAlt         = Ctrl | Alt,
-    CtrlShift       = Ctrl | Shift,
+    ControlAlt      = Control | Alt,
+    ControlShift    = Control | Shift,
     AltShift        = Alt | Shift,
-    CtrlAltShift    = Ctrl | Alt | Shift
+    ControlAltShift = Control | Alt | Shift
 }

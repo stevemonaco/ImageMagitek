@@ -79,7 +79,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     public bool CanAcceptPixelPastes { get; set; }
     public bool CanAcceptElementPastes { get; set; }
 
-    public Action OnImageModified { get; set; }
+    public Action? OnImageModified { get; set; }
 
     public ArrangerEditorViewModel(IInteractionService interactionService, IPaletteService paletteService)
     {
@@ -165,7 +165,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         {
             // Start drag for paste (Handled by DragDrop in View)
         }
-        else if (mouseState.LeftButtonPressed && mouseState.Modifiers.HasFlag(KeyModifiers.Ctrl))
+        else if (mouseState.LeftButtonPressed && mouseState.Modifiers.HasFlag(KeyModifiers.Control))
         {
             IsSelecting = true;
             StartNewSelection(x, y);
@@ -219,6 +219,15 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         int xc = Math.Clamp((int)x, 0, arranger.ArrangerPixelSize.Width - 1);
         int yc = Math.Clamp((int)y, 0, arranger.ArrangerPixelSize.Height - 1);
 
+        if (mouseState.Modifiers.HasFlag(KeyModifiers.Control) && Paste is null)
+        {
+            if (TryStartNewSingleSelection(x, y))
+            {
+                CompleteSelection();
+                return;
+            }
+        }
+
         if (IsSelecting)
             UpdateSelection(x, y);
 
@@ -242,7 +251,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         }
     }
 
-    public virtual void KeyPress(KeyState keyState)
+    public virtual void KeyPress(KeyState keyState, double? x, double? y)
     {
     }
 
@@ -305,6 +314,23 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         IsSelecting = true;
     }
 
+    public virtual bool TryStartNewSingleSelection(double x, double y)
+    {
+        SnappedRectangle rect = Selection.SelectionRect;
+        if (Selection.HasSelection && rect.SnapMode == SnapMode.Element && 
+            rect.SnappedWidth == WorkingArranger.ElementPixelSize.Width && 
+            rect.SnappedHeight == WorkingArranger.ElementPixelSize.Height)
+        {
+            if (rect.ContainsPointSnapped(x, y))
+                return false;
+        }
+
+        CancelOverlay();
+        Selection.StartSelection(x, y);
+        IsSelecting = true;
+        return true;
+    }
+
     public virtual void UpdateSelection(double x, double y)
     {
         if (IsSelecting)
@@ -324,114 +350,13 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
             OnPropertyChanged(nameof(CanEditSelection));
         }
     }
+
+    public virtual void CompletePaste()
+    {
+        if (Paste is not null)
+        {
+            ApplyPaste(Paste);
+        }
+    }
     #endregion
-
-//    #region Drag and Drop Implementation
-//    public virtual void Drop(IDropInfo dropInfo)
-//    {
-//        if (dropInfo.Data is ArrangerPaste paste)
-//        {
-//            paste.SnapMode = SnapMode;
-//            Paste = paste;
-//            Paste.MoveTo((int)dropInfo.DropPosition.X, (int)dropInfo.DropPosition.Y);
-//        }
-//    }
-
-//    public virtual void DragOver(IDropInfo dropInfo)
-//    {
-//        if (dropInfo.Data is ArrangerPaste paste)
-//        {
-//            if (paste.Copy is ElementCopy && !CanAcceptElementPastes)
-//                return;
-
-//            if ((paste.Copy is IndexedPixelCopy || paste.Copy is DirectPixelCopy) && !CanAcceptPixelPastes)
-//                return;
-
-//            if (!ReferenceEquals(dropInfo.DragInfo.SourceItem, this))
-//                (dropInfo.DragInfo.SourceItem as ArrangerEditorViewModel).CancelOverlay();
-
-//            if (Paste != paste)
-//            {
-//                Paste = new ArrangerPaste(paste.Copy, SnapMode)
-//                {
-//                    DeltaX = paste.DeltaX,
-//                    DeltaY = paste.DeltaY
-//                };
-//            }
-
-//            Paste.MoveTo((int)dropInfo.DropPosition.X, (int)dropInfo.DropPosition.Y);
-//            dropInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
-//        }
-//    }
-
-//    public virtual void StartDrag(IDragInfo dragInfo)
-//    {
-//        if (Selection.HasSelection)
-//        {
-//            var rect = Selection.SelectionRect;
-
-//            ArrangerCopy copy = default;
-//            if (SnapMode == SnapMode.Element)
-//            {
-//                int x = rect.SnappedLeft / WorkingArranger.ElementPixelSize.Width;
-//                int y = rect.SnappedTop / WorkingArranger.ElementPixelSize.Height;
-//                int width = rect.SnappedWidth / WorkingArranger.ElementPixelSize.Width;
-//                int height = rect.SnappedHeight / WorkingArranger.ElementPixelSize.Height;
-//                copy = WorkingArranger.CopyElements(x, y, width, height);
-//                (copy as ElementCopy).ProjectResource = OriginatingProjectResource;
-//            }
-//            else if (SnapMode == SnapMode.Pixel && WorkingArranger.ColorType == PixelColorType.Indexed)
-//            {
-//                copy = WorkingArranger.CopyPixelsIndexed(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
-//            }
-//            else if (SnapMode == SnapMode.Pixel && WorkingArranger.ColorType == PixelColorType.Direct)
-//            {
-//                copy = WorkingArranger.CopyPixelsDirect(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
-//            }
-
-//            var paste = new ArrangerPaste(copy, SnapMode)
-//            {
-//                DeltaX = (int)dragInfo.DragStartPosition.X - Selection.SelectionRect.SnappedLeft,
-//                DeltaY = (int)dragInfo.DragStartPosition.Y - Selection.SelectionRect.SnappedTop
-//            };
-//            dragInfo.Data = paste;
-//            dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
-
-//            Selection = new ArrangerSelection(WorkingArranger, SnapMode);
-//        }
-//        else if (Paste is not null)
-//        {
-//            Paste.DeltaX = (int)dragInfo.DragStartPosition.X - Paste.Rect.SnappedLeft;
-//            Paste.DeltaY = (int)dragInfo.DragStartPosition.Y - Paste.Rect.SnappedTop;
-//            Paste.SnapMode = SnapMode;
-
-//            dragInfo.Data = Paste;
-//            dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
-//        }
-//    }
-
-//    public virtual bool CanStartDrag(IDragInfo dragInfo)
-//    {
-//        if (Selection.HasSelection)
-//        {
-//            return Selection.SelectionRect.ContainsPointSnapped(dragInfo.DragStartPosition.X, dragInfo.DragStartPosition.Y);
-//        }
-//        else if (Paste is not null)
-//        {
-//            return Paste.Rect.ContainsPointSnapped(dragInfo.DragStartPosition.X, dragInfo.DragStartPosition.Y);
-//        }
-//        else
-//            return false;
-//    }
-
-//    public virtual void Dropped(IDropInfo dropInfo) { }
-
-//    public virtual void DragDropOperationFinished(DragDropEffects operationResult, IDragInfo dragInfo) { }
-
-//    public virtual void DragCancelled()
-//    {
-//        CancelOverlay();
-//    }
-//    public virtual bool TryCatchOccurredException(Exception exception) => false;
-//    #endregion
 }

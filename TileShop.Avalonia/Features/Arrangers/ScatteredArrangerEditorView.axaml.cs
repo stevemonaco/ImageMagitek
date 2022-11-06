@@ -10,6 +10,8 @@ namespace TileShop.AvaloniaUI.Views;
 public partial class ScatteredArrangerEditorView : UserControl
 {
     private ScatteredArrangerEditorViewModel? _viewModel;
+    private double? _lastX;
+    private double? _lastY;
 
     public ScatteredArrangerEditorView()
     {
@@ -29,10 +31,10 @@ public partial class ScatteredArrangerEditorView : UserControl
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (_viewModel is not null)
+        if (_viewModel is not null && _lastX is not null && _lastY is not null)
         {
             var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
-            _viewModel.KeyPress(state);
+            _viewModel.KeyPress(state, _lastX.Value, _lastY.Value);
             //_viewModel.KeyPress();
         }
     }
@@ -64,14 +66,19 @@ public partial class ScatteredArrangerEditorView : UserControl
         if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
+            _lastX = point.Position.X;
+            _lastY = point.Position.Y;
+
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            _viewModel.MouseMove(point.Position.X, point.Position.Y, state);
+            _viewModel.MouseMove(_lastX.Value, _lastY.Value, state);
             //e.Handled = true;
         }
     }
 
     private void OnPointerExited(object sender, PointerEventArgs e)
     {
+        _lastX = null;
+        _lastY = null;
         _viewModel?.MouseLeave();
         //e.Handled = true;
     }

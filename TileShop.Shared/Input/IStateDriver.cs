@@ -9,5 +9,5 @@ public interface IStateDriver
     public void MouseUp(double x, double y, MouseState mouseState);
     public void MouseWheel(MouseWheelDirection direction, KeyModifiers modifiers);
 
-    public void KeyPress(KeyState keyState);
+    public void KeyPress(KeyState keyState, double? x, double? y);
 }

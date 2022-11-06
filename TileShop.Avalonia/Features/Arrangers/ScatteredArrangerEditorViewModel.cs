@@ -26,14 +26,14 @@ public enum ScatteredArrangerTool { Select, ApplyPalette, PickPalette, InspectEl
 public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 {
     [ObservableProperty] private ObservableCollection<PaletteModel> _palettes = new();
-    [ObservableProperty] private PaletteModel _selectedPalette;
+    [ObservableProperty] private PaletteModel? _selectedPalette;
     [ObservableProperty] private bool _areSymmetryToolsEnabled;
 
     private ScatteredArrangerTool _activeTool = ScatteredArrangerTool.Select;
     private ApplyPaletteHistoryAction? _applyPaletteHistory;
     private readonly IProjectService _projectService;
-    private IndexedImage _indexedImage;
-    private DirectImage _directImage;
+    private IndexedImage? _indexedImage;
+    private DirectImage? _directImage;
 
     public ScatteredArrangerTool ActiveTool
     {
@@ -141,7 +141,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         var elementX = xc / WorkingArranger.ElementPixelSize.Width;
         var elementY = yc / WorkingArranger.ElementPixelSize.Height;
 
-        if (ActiveTool == ScatteredArrangerTool.ApplyPalette && mouseState.LeftButtonPressed)
+        if (ActiveTool == ScatteredArrangerTool.ApplyPalette && mouseState.LeftButtonPressed && SelectedPalette is not null)
         {
             _applyPaletteHistory = new ApplyPaletteHistoryAction(SelectedPalette.Palette);
             TryApplyPalette(xc, yc, SelectedPalette.Palette);
@@ -223,7 +223,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         int xc = Math.Clamp((int)x, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
         int yc = Math.Clamp((int)y, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
 
-        if (ActiveTool == ScatteredArrangerTool.ApplyPalette && mouseState.LeftButtonPressed && _applyPaletteHistory is not null)
+        if (ActiveTool == ScatteredArrangerTool.ApplyPalette && mouseState.LeftButtonPressed && _applyPaletteHistory is not null && SelectedPalette is not null)
         {
             TryApplyPalette(xc, yc, SelectedPalette.Palette);
         }
@@ -261,54 +261,17 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
             base.MouseMove(x, y, mouseState);
         }
     }
+
+    public override void KeyPress(KeyState keyState, double? x, double? y)
+    {
+        if (keyState.Modifiers.HasFlag(KeyModifiers.Control) && x.HasValue && y.HasValue && Paste is null)
+        {
+            StartNewSelection(x.Value, y.Value);
+
+        }
+        base.KeyPress(keyState, x, y);
+    }
     #endregion
-
-    //#region Drag and Drop Overrides
-    //public override void DragOver(IDropInfo dropInfo)
-    //{
-    //    if (dropInfo.Data is not PaletteNodeViewModel nodeModel)
-    //    {
-    //        base.DragOver(dropInfo);
-    //    }
-    //    else if (WorkingArranger.ColorType == PixelColorType.Indexed)
-    //    {
-    //        var pal = nodeModel.Node.Item as Palette;
-    //        dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
-    //        dropInfo.Effects = DragDropEffects.Move | DragDropEffects.Link;
-    //    }
-    //    else if (WorkingArranger.ColorType == PixelColorType.Direct)
-    //    {
-
-    //    }
-    //    else
-    //    {
-    //        base.DragOver(dropInfo);
-    //    }
-    //}
-
-    //public override void Drop(IDropInfo dropInfo)
-    //{
-    //    if (dropInfo.Data is PaletteNodeViewModel palNodeVM)
-    //    {
-    //        if (!_projectService.AreResourcesInSameProject(OriginatingProjectResource, palNodeVM.Node.Item))
-    //        {
-    //            var notifyEvent = new NotifyOperationEvent("Copying palettes across projects is not permitted");
-    //            _events.PublishOnUIThread(notifyEvent);
-    //            return;
-    //        }
-
-    //        var pal = palNodeVM.Node.Item as Palette;
-    //        if (!Palettes.Any(x => ReferenceEquals(pal, x.Palette)))
-    //        {
-    //            var palModel = new PaletteModel(pal);
-    //            Palettes.Add(palModel);
-    //            SelectedPalette = palModel;
-    //        }
-    //    }
-    //    else
-    //        base.Drop(dropInfo);
-    //}
-    //#endregion
 
     private void CreateImages()
     {
@@ -346,14 +309,14 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
         if (WorkingArranger.ColorType == PixelColorType.Indexed)
         {
-            _indexedImage.Render();
-            //BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
+            _indexedImage?.Render();
+            BitmapAdapter.Invalidate();
             OnImageModified?.Invoke();
         }
         else if (WorkingArranger.ColorType == PixelColorType.Direct)
         {
-            _directImage.Render();
-            //BitmapAdapter = new DirectBitmapAdapter(_directImage);
+            _directImage?.Render();
+            BitmapAdapter.Invalidate();
             OnImageModified?.Invoke();
         }
     }

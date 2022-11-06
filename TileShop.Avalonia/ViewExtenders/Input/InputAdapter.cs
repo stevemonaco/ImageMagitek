@@ -2,14 +2,15 @@
 using Avalonia.Input;
 using TileShop.Shared.Input;
 
-using KeyModifiers = TileShop.Shared.Input.KeyModifiers;
 using Key = TileShop.Shared.Input.Key;
+using KeyModifiers = TileShop.Shared.Input.KeyModifiers;
 using AvKey = Avalonia.Input.Key;
+using AvKeyModifiers = Avalonia.Input.KeyModifiers;
 
 namespace TileShop.AvaloniaUI.Input;
 public static class InputAdapter
 {
-    public static MouseState CreateMouseState(PointerPoint point, Avalonia.Input.KeyModifiers keys)
+    public static MouseState CreateMouseState(PointerPoint point, AvKeyModifiers keys)
     {
         var properties = point.Properties;
         var modifiers = CreateKeyModifiers(keys);
@@ -17,7 +18,7 @@ public static class InputAdapter
         return new MouseState(properties.IsLeftButtonPressed, properties.IsMiddleButtonPressed, properties.IsRightButtonPressed, modifiers);
     }
 
-    public static KeyState CreateKeyState(Avalonia.Input.Key inputKey, Avalonia.Input.KeyModifiers keyModifiers)
+    public static KeyState CreateKeyState(AvKey inputKey, AvKeyModifiers keyModifiers)
     {
         var modifiers = CreateKeyModifiers(keyModifiers);
 
@@ -36,17 +37,17 @@ public static class InputAdapter
         return new KeyState(Key.None, modifiers);
     }
 
-    public static KeyModifiers CreateKeyModifiers(Avalonia.Input.KeyModifiers keys)
+    public static KeyModifiers CreateKeyModifiers(AvKeyModifiers keys)
     {
         var modifiers = KeyModifiers.None;
-        if (keys.HasFlag(Avalonia.Input.KeyModifiers.Alt))
+        if (keys.HasFlag(AvKeyModifiers.Alt))
             modifiers |= KeyModifiers.Alt;
 
-        if (keys.HasFlag(Avalonia.Input.KeyModifiers.Control))
-            modifiers |= KeyModifiers.Ctrl;
+        if (keys.HasFlag(AvKeyModifiers.Control))
+            modifiers |= KeyModifiers.Control;
 
-        if (keys.HasFlag(Avalonia.Input.KeyModifiers.Shift))
-            modifiers = KeyModifiers.Shift;
+        if (keys.HasFlag(AvKeyModifiers.Shift))
+            modifiers |= KeyModifiers.Shift;
 
         return modifiers;
     }
