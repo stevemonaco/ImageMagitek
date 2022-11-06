@@ -2,6 +2,7 @@
   <Import Project="..\Base.Props" />
 
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.1.0-preview1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
     <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="NUnit" Version="3.13.3" />
