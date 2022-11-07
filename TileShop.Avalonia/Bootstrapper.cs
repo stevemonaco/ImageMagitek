@@ -65,7 +65,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
         services.AddSingleton<IInteractionService>(interactionService);
         services.AddSingleton<IAsyncFileRequestService, AsyncFileRequestService>();
-        services.AddSingleton<IDiskExploreService, DiskExploreService>();
+        services.AddSingleton<IExploreService, ExploreService>();
         services.AddSingleton<IThemeService, ThemeService>();
     }
 

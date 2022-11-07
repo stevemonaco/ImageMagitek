@@ -29,12 +29,12 @@ public partial class ProjectTreeViewModel : ToolViewModel
     private readonly IAsyncFileRequestService _fileSelect;
     private readonly IInteractionService _interactions;
     private readonly Tracker _tracker;
-    private readonly IDiskExploreService _diskExploreService;
+    private readonly IExploreService _diskExploreService;
     private readonly EditorsViewModel _editors;
 
     public ProjectTreeViewModel(IProjectService solutionService, IPaletteService paletteService,
         IAsyncFileRequestService fileSelect, IInteractionService interactionService,
-        Tracker tracker, IDiskExploreService diskExploreService, EditorsViewModel editors)
+        Tracker tracker, IExploreService diskExploreService, EditorsViewModel editors)
     {
         _projectService = solutionService;
         _paletteService = paletteService;
@@ -73,14 +73,14 @@ public partial class ProjectTreeViewModel : ToolViewModel
         var result = _projectService.CreateNewFolder(parentNodeModel.Node, "New Folder");
 
         await result.Match(
-            success =>
+            (Func<MagitekResult<ResourceNode>.Success, Task>)(            success =>
             {
                 var folderVM = new FolderNodeViewModel(success.Result, parentNodeModel);
-                parentNodeModel.Children.Add(folderVM);
-                SelectedNode = folderVM;
-                IsModified = true;
+                parentNodeModel.Children.Add((ResourceNodeViewModel)folderVM);
+                this.SelectedNode = folderVM;
+                base.IsModified = true;
                 return Task.CompletedTask;
-            },
+            }),
             async fail =>
             {
                 await _interactions.AlertAsync("Folder Creation Error", fail.Reason);
@@ -107,14 +107,14 @@ public partial class ProjectTreeViewModel : ToolViewModel
             var result = _projectService.AddResource(parentNodeModel.Node, df);
 
             await result.Match(
-                success =>
+                (Func<MagitekResult<ResourceNode>.Success, Task>)(                success =>
                 {
                     var dfVM = new DataFileNodeViewModel(success.Result, parentNodeModel);
-                    parentNodeModel.Children.Add(dfVM);
-                    SelectedNode = dfVM;
-                    IsModified = true;
+                    parentNodeModel.Children.Add((ResourceNodeViewModel)dfVM);
+                    this.SelectedNode = dfVM;
+                    base.IsModified = true;
                     return Task.CompletedTask;
-                },
+                }),
                 async fail =>
                 {
                     await _interactions.AlertAsync("Resource Error", fail.Reason);
@@ -153,16 +153,16 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
             var result = _projectService.AddResource(parentNodeModel.Node, pal);
 
-            await result.Match(success =>
+            await result.Match((Func<MagitekResult<ResourceNode>.Success, Task>)(success =>
                 {
                     var palVM = new PaletteNodeViewModel(success.Result, parentNodeModel);
-                    parentNodeModel.Children.Add(palVM);
-                    SelectedNode = palVM;
-                    IsModified = true;
+                    parentNodeModel.Children.Add((ResourceNodeViewModel)palVM);
+                    this.SelectedNode = palVM;
+                    base.IsModified = true;
                     _tracker.Persist(dialogModel);
                     _editors.ActivateEditor(pal);
                     return Task.CompletedTask;
-                },
+                }),
                 async fail =>
                 {
                     await _interactions.AlertAsync("Resource Error", fail.Reason);
@@ -188,16 +188,16 @@ public partial class ProjectTreeViewModel : ToolViewModel
             var result = _projectService.AddResource(parentNodeModel.Node, arranger);
 
             await result.Match(
-                success =>
+                (Func<MagitekResult<ResourceNode>.Success, Task>)(                success =>
                 {
                     var arrangerVM = new ArrangerNodeViewModel(success.Result, parentNodeModel);
-                    parentNodeModel.Children.Add(arrangerVM);
-                    SelectedNode = arrangerVM;
-                    IsModified = true;
+                    parentNodeModel.Children.Add((ResourceNodeViewModel)arrangerVM);
+                    this.SelectedNode = arrangerVM;
+                    base.IsModified = true;
                     _tracker.Persist(dialogModel);
                     _editors.ActivateEditor(arranger);
                     return Task.CompletedTask;
-                },
+                }),
                 async fail =>
                 {
                     await _interactions.AlertAsync("Resource Error", fail.Reason);
@@ -281,7 +281,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
             _projectService.SaveProject(tree)
             .Switch(
-                success => IsModified = false,
+                (Action<MagitekResult.Success>)(                success => base.IsModified = false),
                 async fail => await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {tree.Root.DiskLocation}: {fail.Reason}")
             );
         }
@@ -371,17 +371,17 @@ public partial class ProjectTreeViewModel : ToolViewModel
             var oldName = nodeModel.Name;
             var newName = dialogModel.Name;
 
-            _projectService.RenameResource(nodeModel.Node, dialogModel.Name).Switch(
-                success =>
+            _projectService.RenameResource(nodeModel.Node, (string?)dialogModel.Name).Switch(
+                (Action<MagitekResult.Success>)(                success =>
                 {
                     nodeModel.Name = newName;
 
                     if (nodeModel.ParentModel is FolderNodeViewModel || nodeModel.ParentModel is ProjectNodeViewModel)
                         nodeModel.ParentModel.NotifyChildrenChanged();
 
-                    var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, newName, oldName);
-                    Messenger.Send(renameEvent);
-                },
+                    var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, (string?)newName, (string)oldName);
+                    Messenger.Send<ResourceRenamedEvent>(renameEvent);
+                }),
                 async fail => await _interactions.AlertAsync("Rename failed", fail.Reason));
         }
     }
@@ -405,22 +405,22 @@ public partial class ProjectTreeViewModel : ToolViewModel
             var copyResult = ElementCopier.CopyElements(copy, newArranger, source, dest, copy.Width, copy.Height);
 
             copyResult.Switch(
-                copySuccess =>
+                (Action<MagitekResult.Success>)(                copySuccess =>
                 {
-                    var addResult = _projectService.AddResource(parentModel.Node, newArranger);
+                    var addResult = _projectService.AddResource((ResourceNode)parentModel.Node, newArranger);
 
                     addResult.Switch(
-                        addSuccess =>
+                        (Action<MagitekResult<ResourceNode>.Success>)(                        addSuccess =>
                         {
-                            var arrangerVM = new ArrangerNodeViewModel(addSuccess.Result, parentModel);
-                            parentModel.Children.Add(arrangerVM);
-                            SelectedNode = arrangerVM;
-                            IsModified = true;
+                            var arrangerVM = new ArrangerNodeViewModel(addSuccess.Result, (ResourceNodeViewModel)parentModel);
+                            parentModel.Children.Add((ResourceNodeViewModel)arrangerVM);
+                            this.SelectedNode = arrangerVM;
+                            base.IsModified = true;
                             _editors.ActivateEditor(newArranger);
-                        },
+                        }),
                         async addFailed => await _interactions.AlertAsync("Error", addFailed.Reason)
                     );
-                },
+                }),
                 async copyFailed => await _interactions.AlertAsync("Error", copyFailed.Reason)
             );
         }
@@ -479,7 +479,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
                 _projectService.SaveProject(projectTree)
                      .Switch(
-                         success => IsModified = false,
+                         (Action<MagitekResult.Success>)(                         success => base.IsModified = false),
                          async fail => await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
                      );
             }
@@ -647,11 +647,11 @@ public partial class ProjectTreeViewModel : ToolViewModel
             _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
 
             await _projectService.SaveProject(projectTree).Match(
-                 success =>
+                 (Func<MagitekResult.Success, Task>)(                 success =>
                  {
-                     IsModified = false;
+                     base.IsModified = false;
                      return Task.CompletedTask;
-                 },
+                 }),
                  async fail =>
                  {
                      await _interactions.AlertAsync("Project Save Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}");

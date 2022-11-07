@@ -10,6 +10,10 @@ using TileShop.Shared.Services;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm;
+using TileShop.Shared.Interactions;
+using System;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -35,14 +39,18 @@ public partial class MenuViewModel : ObservableRecipient
 
     private readonly Tracker _tracker;
     private readonly IThemeService _themeService;
+    private readonly IInteractionService _interactions;
+    private readonly IExploreService _exploreService;
 
-    public MenuViewModel(Tracker tracker, IThemeService themeService, ProjectTreeViewModel projectTreeVM, EditorsViewModel editors)
+    public MenuViewModel(Tracker tracker, IThemeService themeService, ProjectTreeViewModel projectTreeVM, EditorsViewModel editors,
+        IInteractionService interactionService, IExploreService exploreService)
     {
         _tracker = tracker;
         _themeService = themeService;
         _projectTree = projectTreeVM;
         _editors = editors;
-
+        _interactions = interactionService;
+        _exploreService = exploreService;
         _tracker.Track(this);
         Messenger.Register<ProjectLoadedEvent>(this, (r, m) => Handle(m));
 
@@ -91,6 +99,23 @@ public partial class MenuViewModel : ObservableRecipient
     [RelayCommand]
     public async Task ImportArrangerFromImage(ScatteredArrangerEditorViewModel vm) =>
         await ProjectTree.ImportArrangerFrom((ScatteredArranger) vm.Resource);
+
+    [RelayCommand]
+    public async Task OpenAbout()
+    {
+        var version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
+
+        var heading = "TileShop";
+        var message = $"Version: {version}";
+        await _interactions.AlertAsync(heading, message);
+    }
+
+    [RelayCommand]
+    public void OpenWiki()
+    {
+        var uri = new Uri("https://github.com/stevemonaco/ImageMagitek/wiki");
+        _exploreService.ExploreWebLocation(uri);
+    }
 
     public async void Handle(ProjectLoadedEvent message)
     {

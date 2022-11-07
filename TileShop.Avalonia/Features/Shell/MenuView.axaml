@@ -73,6 +73,11 @@
 			<!--
         <MenuItem Header="_Plugins" />
             -->
+
+			<MenuItem Header="_Help">
+				<MenuItem Header="Wiki" Command="{Binding OpenWikiCommand}" />
+				<MenuItem Header="About TileShop" Command="{Binding OpenAboutCommand}" />
+			</MenuItem>
 		</Menu>
 	</Grid>
 </UserControl>
