@@ -2,11 +2,20 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:v="using:TileShop.AvaloniaUI.Views"
 			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 x:DataType="vm:MenuViewModel"
 			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.MenuView">
+	<UserControl.Styles>
+		<Style Selector="MenuItem.recent > MenuItem">
+			<Setter Property="Header" Value="{Binding}" />
+			<Setter Property="Command" Value="{ReflectionBinding #menu.DataContext.OpenRecentProjectCommand}" />
+			<Setter Property="CommandParameter" Value="{Binding}" />
+		</Style>
+	</UserControl.Styles>
+	
 	<Grid ColumnDefinitions="*,auto">
 		<Menu x:Name="menu">
 			<MenuItem Header="_File">
@@ -15,18 +24,10 @@
 				<Separator />
 				<MenuItem Command="{Binding OpenProjectCommand}" Header="Open _Project" />
 				<MenuItem
+					Classes="recent"
                     Header="Open Recent Project"
                     Items="{Binding RecentProjectFiles}"
-                    IsVisible="{Binding RecentProjectFiles.Count}">
-					<MenuItem.ItemTemplate>
-						<DataTemplate>
-							<MenuItem
-								Command="{ReflectionBinding OpenRecentProjectCommand}"
-								CommandParameter="{Binding}"
-								Header="{Binding}" />
-						</DataTemplate>
-					</MenuItem.ItemTemplate>
-				</MenuItem>
+                    IsVisible="{Binding RecentProjectFiles.Count}" />
 				<Separator />
 				<MenuItem
                     Command="{Binding CloseEditorCommand}"
@@ -51,11 +52,6 @@
 			</MenuItem>
 
 			<MenuItem Header="_View">
-				<!--<MenuItem
-                    Command="{Binding ShowWindow}"
-                    CommandParameter="{x:Static event:ToolWindow.ProjectExplorer}"
-                    Header="Project _Explorer" />
-				<Separator />-->
 				<MenuItem Header="Set _Theme">
 					<MenuItem Command="{Binding ChangeToLightThemeCommand}" Header="Light Theme" />
 					<MenuItem Command="{Binding ChangeToDarkThemeCommand}" Header="Dark Theme" />

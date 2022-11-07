@@ -19,7 +19,6 @@ public partial class MenuViewModel : ObservableRecipient
     [ObservableProperty] private ProjectTreeViewModel _projectTree;
     [ObservableProperty] private EditorsViewModel _editors;
     [ObservableProperty] private ObservableCollection<string> _recentProjectFiles = new();
-    //[ObservableProperty] private ThemeStyle _activeTheme;
 
     private ThemeStyle _activeTheme;
     public ThemeStyle ActiveTheme
@@ -41,8 +40,8 @@ public partial class MenuViewModel : ObservableRecipient
     {
         _tracker = tracker;
         _themeService = themeService;
-        ProjectTree = projectTreeVM;
-        Editors = editors;
+        _projectTree = projectTreeVM;
+        _editors = editors;
 
         _tracker.Track(this);
         Messenger.Register<ProjectLoadedEvent>(this, (r, m) => Handle(m));
@@ -93,8 +92,10 @@ public partial class MenuViewModel : ObservableRecipient
     public async Task ImportArrangerFromImage(ScatteredArrangerEditorViewModel vm) =>
         await ProjectTree.ImportArrangerFrom((ScatteredArranger) vm.Resource);
 
-    public void Handle(ProjectLoadedEvent message)
+    public async void Handle(ProjectLoadedEvent message)
     {
+        await Task.Delay(50); // Delay so that the menu closes, otherwise changing the collection keeps it open
+
         if (RecentProjectFiles.Contains(message.ProjectFileName))
         {
             RecentProjectFiles.Remove(message.ProjectFileName);
