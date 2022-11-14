@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Avalonia.Controls;
+using Avalonia.Layout;
 using FluentAvalonia.UI.Controls;
 using TileShop.Shared.Interactions;
 
@@ -16,11 +18,23 @@ internal class InteractionService : IInteractionService
     /// <inheritdoc/>
     public async Task AlertAsync(string title, string message)
     {
+        var titleBlock = new SelectableTextBlock()
+        {
+            Text = title,
+            VerticalAlignment = VerticalAlignment.Top
+        };
+
+        var contentBlock = new SelectableTextBlock()
+        {
+            Text = message,
+            VerticalAlignment = VerticalAlignment.Top
+        };
+
         var cd = new ContentDialog
         {
             PrimaryButtonText = "Ok",
-            Title = title,
-            Content = message,
+            Title = titleBlock,
+            Content = contentBlock,
             IsPrimaryButtonEnabled = true,
             IsSecondaryButtonEnabled = false,
             DefaultButton = ContentDialogButton.Primary
