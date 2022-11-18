@@ -45,20 +45,20 @@ public partial class ArrangerPaste : ObservableObject
                 var image = new IndexedImage(elementCopy.Source, x, y, width, height);
                 OverlayImage = new IndexedBitmapAdapter(image);
             }
-            //else if (elementCopy.Source.ColorType == PixelColorType.Direct)
-            //{
-            //    var image = new DirectImage(elementCopy.Source, x, y, width, height);
-            //    OverlayImage = new DirectBitmapAdapter(image);
-            //}
+            else if (elementCopy.Source.ColorType == PixelColorType.Direct)
+            {
+                var image = new DirectImage(elementCopy.Source, x, y, width, height);
+                OverlayImage = new DirectBitmapAdapter(image);
+            }
         }
         else if (copy is IndexedPixelCopy ipc)
         {
             OverlayImage = new IndexedBitmapAdapter(ipc.Image);
         }
-        //else if (copy is DirectPixelCopy dpc)
-        //{
-        //    OverlayImage = new DirectBitmapAdapter(dpc.Image);
-        //}
+        else if (copy is DirectPixelCopy dpc)
+        {
+            OverlayImage = new DirectBitmapAdapter(dpc.Image);
+        }
 
         Rect = new SnappedRectangle(new Size(OverlayImage.Width, OverlayImage.Height), copy.Source.ElementPixelSize, SnapMode, ElementSnapRounding.Floor);
         Rect.SetBounds(0, OverlayImage.Width, 0, OverlayImage.Height);

@@ -1,17 +1,22 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
-			 x:DataType="vm:StatusViewModel"
-			 x:CompileBindings="True"
-             x:Class="TileShop.AvaloniaUI.Views.StatusView">
-	<StackPanel Orientation="Horizontal">
-		<TextBlock Text="{Binding ActivityMessage, TargetNullValue=' '}" />
-		<TextBlock Margin="20,0,0,0" Text="{Binding OperationMessage}" />
-		<TextBlock Margin="8,0,0,0" Text="{Binding Editors.ActiveEditor.ActivityMessage}" />
-			<!--<TextBlock.Triggers>
+<UserControl
+    x:Class="TileShop.AvaloniaUI.Views.StatusView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:CompileBindings="True"
+    x:DataType="vm:StatusViewModel"
+    mc:Ignorable="d">
+    <Grid>
+        <DockPanel Margin="8,0,8,0">
+            <TextBlock DockPanel.Dock="Left" Text="{Binding Editors.ActiveEditor.ActivityMessage}" />
+            <TextBlock DockPanel.Dock="Right" Text="{Binding Editors.ActiveEditor.PendingOperationMessage}" />
+
+            <TextBlock Text="{Binding ActivityMessage, TargetNullValue=' '}" />
+            <!--<TextBlock.Triggers>
 				<EventTrigger RoutedEvent="Binding.TargetUpdated">
 					<BeginStoryboard>
 						<Storyboard>
@@ -25,5 +30,6 @@
 					</BeginStoryboard>
 				</EventTrigger>
 			</TextBlock.Triggers>-->
-	</StackPanel>
+        </DockPanel>
+    </Grid>
 </UserControl>

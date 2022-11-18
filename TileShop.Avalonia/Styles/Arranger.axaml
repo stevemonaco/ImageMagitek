@@ -1,70 +1,74 @@
-﻿<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		xmlns:i="using:Avalonia.Xaml.Interactivity"
-		xmlns:dd="using:TileShop.AvaloniaUI.DragDrop"
-		xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop">
+﻿<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dd="using:TileShop.AvaloniaUI.DragDrop"
+    xmlns:i="using:Avalonia.Xaml.Interactivity"
+    xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop">
     <Design.PreviewWith>
         <Border Padding="20">
-            <Rectangle Width="400" Height="200" Classes="animatedBorder" />
+            <Rectangle
+                Width="400"
+                Height="200"
+                Classes="animatedBorder" />
         </Border>
     </Design.PreviewWith>
 
-	<Style Selector="Rectangle.animatedBorder[IsVisible=True]">
-		<Style.Animations>
-			<Animation Duration="0:0:0.5" IterationCount="INFINITE">
-				<KeyFrame Cue="0%">
-					<Setter Property="StrokeDashOffset" Value="5" />
-				</KeyFrame>
-				<KeyFrame Cue="100%">
-					<Setter Property="StrokeDashOffset" Value="0" />
-				</KeyFrame>
-			</Animation>
-		</Style.Animations>
-	</Style>
+    <Style Selector="Rectangle.animatedBorder[IsVisible=True]">
+        <Style.Animations>
+            <Animation IterationCount="INFINITE" Duration="0:0:0.5">
+                <KeyFrame Cue="0%">
+                    <Setter Property="StrokeDashOffset" Value="5" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="StrokeDashOffset" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
 
-	<Style Selector="Rectangle.selection">
-		<Setter Property="Stroke" Value="Black" />
-		<Setter Property="StrokeDashArray" Value="3,2" />
-		<Setter Property="StrokeThickness" Value="0.3" />
-		<Setter Property="Fill" Value="{DynamicResource editSelectionFillBrush}" />
-		<Setter Property="Cursor" Value="Hand" />
-	</Style>
+    <Style Selector="Rectangle.selection">
+        <Setter Property="Stroke" Value="Black" />
+        <Setter Property="StrokeDashArray" Value="3,2" />
+        <Setter Property="StrokeThickness" Value="0.3" />
+        <Setter Property="Fill" Value="{DynamicResource editSelectionFillBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
 
-	<Style Selector="Rectangle.paste">
-		<Setter Property="Stroke" Value="Black" />
-		<Setter Property="StrokeDashArray" Value="3,2" />
-		<Setter Property="StrokeThickness" Value="0.3" />
-		<Setter Property="Fill" Value="{DynamicResource pasteSelectionFillBrush}" />
-		<Setter Property="Cursor" Value="Hand" />
-		<Setter Property="IsHitTestVisible" Value="False" />
-	</Style>
+    <Style Selector="Rectangle.paste">
+        <Setter Property="Stroke" Value="Black" />
+        <Setter Property="StrokeDashArray" Value="3,2" />
+        <Setter Property="StrokeThickness" Value="0.3" />
+        <Setter Property="Fill" Value="{DynamicResource pasteSelectionFillBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
 
-	<Style Selector=":is(Control).arrangerDrag">
-		<Style.Resources>
-			<dd:ArrangerPasteDragHandler x:Key="ArrangerPasteDragHandler" />
-		</Style.Resources>
-		<Setter Property="ZIndex" Value="0" />
-		<Setter Property="(i:Interaction.Behaviors)">
-			<i:BehaviorCollectionTemplate>
-				<i:BehaviorCollection>
-					<idd:ContextDragBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDragHandler}" />
-				</i:BehaviorCollection>
-			</i:BehaviorCollectionTemplate>
-		</Setter>
-	</Style>
+    <Style Selector=":is(Control).arrangerDrag">
+        <Style.Resources>
+            <dd:ArrangerDragHandler x:Key="ArrangerDragHandler" />
+        </Style.Resources>
+        <Setter Property="ZIndex" Value="0" />
+        <Setter Property="(i:Interaction.Behaviors)">
+            <i:BehaviorCollectionTemplate>
+                <i:BehaviorCollection>
+                    <dd:PayloadDragBehavior Context="{Binding}" Handler="{StaticResource ArrangerDragHandler}" />
+                </i:BehaviorCollection>
+            </i:BehaviorCollectionTemplate>
+        </Setter>
+    </Style>
 
-	<Style Selector=":is(Control).arrangerDrop">
-		<Style.Resources>
-			<dd:ArrangerPasteDropHandler x:Key="ArrangerPasteDropHandler" />
-		</Style.Resources>
-		<Setter Property="(DragDrop.AllowDrop)" Value="True" />
-		<Setter Property="ZIndex" Value="0" />
-		<Setter Property="(i:Interaction.Behaviors)">
-			<i:BehaviorCollectionTemplate>
-				<i:BehaviorCollection>
-					<idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ArrangerPasteDropHandler}" />
-				</i:BehaviorCollection>
-			</i:BehaviorCollectionTemplate>
-		</Setter>
-	</Style>
+    <Style Selector=":is(Control).arrangerDrop">
+        <Style.Resources>
+            <dd:ArrangerDropHandler x:Key="ArrangerDropHandler" />
+        </Style.Resources>
+        <Setter Property="(DragDrop.AllowDrop)" Value="True" />
+        <Setter Property="ZIndex" Value="0" />
+        <Setter Property="(i:Interaction.Behaviors)">
+            <i:BehaviorCollectionTemplate>
+                <i:BehaviorCollection>
+					<dd:PayloadDropBehavior Context="{Binding}" Handler="{StaticResource ArrangerDropHandler}" />
+                </i:BehaviorCollection>
+            </i:BehaviorCollectionTemplate>
+        </Setter>
+    </Style>
 </Styles>

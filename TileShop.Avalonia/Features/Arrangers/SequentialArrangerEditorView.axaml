@@ -296,6 +296,27 @@
 							Height="{Binding Selection.SelectionRect.SnappedHeight}"
 							IsVisible="{Binding Selection.HasSelection}"
 							PointerMoved="OnPointerMoved" PointerExited="OnPointerExited" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased" />
+
+						<!--  Paste Image  -->
+						<Image
+							Classes="arrangerDrag pixel"
+							x:Name="pasteImage"
+							Source="{Binding Paste.OverlayImage.Bitmap}"
+							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+							IsHitTestVisible="True"
+							Cursor="Hand" />
+
+						<!--  Paste Overlay  -->
+						<Rectangle
+							Classes="animatedBorder paste"
+							Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+							Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+							Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+							Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+							IsVisible="{Binding Paste, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 					</Canvas>
 
 					<!--  Gridline Overlay  -->

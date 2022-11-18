@@ -13,6 +13,7 @@ public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
     public IProjectResource OriginatingProjectResource { get; set; }
 
     [ObservableProperty] private string _activityMessage;
+    [ObservableProperty] private string _pendingOperationMessage;
     [ObservableProperty] private ObservableCollection<HistoryAction> _undoHistory = new();
     [ObservableProperty] private ObservableCollection<HistoryAction> _redoHistory = new();
 

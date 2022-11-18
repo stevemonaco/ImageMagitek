@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Xaml.Interactions.DragAndDrop;
 using ImageMagitek;
 using TileShop.AvaloniaUI.Models;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.Shared.Models;
 
 namespace TileShop.AvaloniaUI.DragDrop;
-public class ArrangerPasteDragHandler : IDragHandler
+public class ArrangerDragHandler : IDragHandlerEx
 {
+    public object? Payload { get; set; }
+
     public void AfterDragDrop(object? sender, PointerEventArgs e, object? context)
     {
         e.Handled = true;
@@ -24,14 +20,14 @@ public class ArrangerPasteDragHandler : IDragHandler
         if (context is not ArrangerEditorViewModel vm || sender is not IControl control)
         {
             return;
-        }    
+        }
 
-        if (vm.Selection.HasSelection)
+        if (vm.Selection is not null && vm.Selection.HasSelection)
         {
             var rect = vm.Selection.SelectionRect;
             var arranger = vm.WorkingArranger;
 
-            ArrangerCopy copy = default;
+            ArrangerCopy copy;
             if (vm.SnapMode == SnapMode.Element)
             {
                 int x = rect.SnappedLeft / arranger.ElementPixelSize.Width;
@@ -39,7 +35,7 @@ public class ArrangerPasteDragHandler : IDragHandler
                 int width = rect.SnappedWidth / arranger.ElementPixelSize.Width;
                 int height = rect.SnappedHeight / arranger.ElementPixelSize.Height;
                 copy = arranger.CopyElements(x, y, width, height);
-                (copy as ElementCopy).ProjectResource = vm.OriginatingProjectResource;
+                ((ElementCopy)copy).ProjectResource = vm.OriginatingProjectResource;
             }
             else if (vm.SnapMode == SnapMode.Pixel && arranger.ColorType == PixelColorType.Indexed)
             {
@@ -56,27 +52,17 @@ public class ArrangerPasteDragHandler : IDragHandler
 
             var pos = e.GetPosition(control);
 
-            vm.Paste = new ArrangerPaste(copy, vm.SnapMode)
+            var payload = new ArrangerPaste(copy, vm.SnapMode)
             {
                 DeltaX = (int)pos.X,
                 DeltaY = (int)pos.Y
             };
-            //dragInfo.Data = paste;
-            //dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
+
+            Payload = payload;
+            vm.Paste = payload;
 
             vm.Selection = new ArrangerSelection(arranger, vm.SnapMode);
             e.Handled = true;
-        }
-        else if (vm.Paste is not null)
-        {
-            var pos = e.GetPosition(control);
-            vm.Paste.DeltaX = (int)pos.X;
-            vm.Paste.DeltaY = (int)pos.Y;
-            vm.Paste.SnapMode = vm.SnapMode;
-
-            e.Handled = true;
-            //dragInfo.Data = Paste;
-            //dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
         }
     }
 }

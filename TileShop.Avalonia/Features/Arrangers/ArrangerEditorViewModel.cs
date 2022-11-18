@@ -304,6 +304,8 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     {
         Selection = new ArrangerSelection(WorkingArranger, SnapMode);
         Paste = null;
+        ActivityMessage = string.Empty;
+        PendingOperationMessage = string.Empty;
 
         OnPropertyChanged(nameof(CanEditSelection));
     }
