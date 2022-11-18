@@ -7,7 +7,7 @@ namespace TileShop.AvaloniaUI.Imaging;
 
 public abstract class BitmapAdapter : ObservableObject
 {
-    private WriteableBitmap _bitmap;
+    private WriteableBitmap _bitmap = null!;
     public WriteableBitmap Bitmap
     {
         get => _bitmap;

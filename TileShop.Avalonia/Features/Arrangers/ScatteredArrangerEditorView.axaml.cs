@@ -4,7 +4,6 @@ using Avalonia.Input;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.AvaloniaUI.Input;
 using TileShop.Shared.Input;
-using Avalonia.Interactivity;
 
 namespace TileShop.AvaloniaUI.Views;
 public partial class ScatteredArrangerEditorView : UserControl

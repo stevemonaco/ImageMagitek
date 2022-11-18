@@ -18,7 +18,6 @@ using TileShop.Shared.EventModels;
 using TileShop.Shared.Models;
 using TileShop.Shared.Services;
 using TileShop.Shared.Interactions;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -318,7 +317,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
         void SynchronizeDeletions(ResourceNode resourceNode, ResourceNodeViewModel vmNode)
         {
-            List<ResourceNodeViewModel> removedItems = default;
+            List<ResourceNodeViewModel>? removedItems = default;
 
             foreach (var vm in vmNode.Children)
             {
@@ -366,22 +365,25 @@ public partial class ProjectTreeViewModel : ToolViewModel
         var dialogModel = new RenameNodeViewModel(nodeModel);
         var dialogResult = await _interactions.RequestAsync(dialogModel);
 
-        if (dialogResult is string)
+        if (dialogResult is not null)
         {
             var oldName = nodeModel.Name;
             var newName = dialogModel.Name;
 
-            _projectService.RenameResource(nodeModel.Node, (string?)dialogModel.Name).Switch(
-                (Action<MagitekResult.Success>)(                success =>
+            var result = _projectService.RenameResource(nodeModel.Node, dialogModel.Name);
+
+            await result.Match(
+                success =>
                 {
                     nodeModel.Name = newName;
 
                     if (nodeModel.ParentModel is FolderNodeViewModel || nodeModel.ParentModel is ProjectNodeViewModel)
                         nodeModel.ParentModel.NotifyChildrenChanged();
 
-                    var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, (string?)newName, (string)oldName);
-                    Messenger.Send<ResourceRenamedEvent>(renameEvent);
-                }),
+                    var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, newName, oldName);
+                    Messenger.Send(renameEvent);
+                    return Task.CompletedTask;
+                },
                 async fail => await _interactions.AlertAsync("Rename failed", fail.Reason));
         }
     }
@@ -524,6 +526,12 @@ public partial class ProjectTreeViewModel : ToolViewModel
             return;
 
         var projectPath = Path.GetDirectoryName(dataFileName.LocalPath);
+        if (projectPath is null)
+        {
+            await _interactions.AlertAsync("Directory Error", $"Could not get the directory name for {dataFileName.LocalPath}");
+            return;
+        }
+
         var projectFileName = Path.Combine(projectPath, Path.GetFileNameWithoutExtension(dataFileName.LocalPath) + "Project.xml");
 
         try

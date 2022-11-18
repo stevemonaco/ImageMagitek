@@ -8,6 +8,6 @@ public partial class ForeignColorSourceModel : ColorSourceModel
 
     public ForeignColorSourceModel(string foreignHexColor)
     {
-        ForeignHexColor = foreignHexColor;
+        _foreignHexColor = foreignHexColor;
     }
 }

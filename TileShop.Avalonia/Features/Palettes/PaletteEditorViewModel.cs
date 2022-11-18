@@ -27,7 +27,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     [ObservableProperty] private string _paletteSource;
     [ObservableProperty] private int _entries;
     [ObservableProperty] private ColorModel _colorModel;
-    [ObservableProperty] private EditableColorBaseViewModel _activeColor;
+    [ObservableProperty] private EditableColorBaseViewModel? _activeColor;
 
     private bool _zeroIndexTransparent;
     public bool ZeroIndexTransparent
@@ -57,9 +57,8 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         }
     }
 
-    public PaletteEditorViewModel(Palette palette, IPaletteService paletteService, IProjectService projectService)
+    public PaletteEditorViewModel(Palette palette, IPaletteService paletteService, IProjectService projectService) : base(palette)
     {
-        Resource = palette;
         _palette = palette;
         _paletteService = paletteService;
         _colorFactory = _paletteService.ColorFactory;
@@ -72,7 +71,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         Colors = new(CreateColorModels());
         ColorSourceModels = new(CreateColorSourceModels(_palette));
 
-        PaletteSource = _palette.DataSource.Name;
+        _paletteSource = _palette.DataSource.Name;
         Entries = CountSourceColors();
 
         if (Entries > 0)
@@ -116,6 +115,9 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     [RelayCommand]
     public void SaveActiveColor()
     {
+        if (ActiveColor is null)
+            return;
+
         // The order here is very important as replacing a Colors item invalidates SelectedItem to -1 and
         // assigning a SelectedColorIndex reloads a color from the palette
         _palette.SetForeignColor(ActiveColor.Index, ActiveColor.WorkingColor);
@@ -239,7 +241,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
             if (pal.ColorSources[i] is FileColorSource fileSource)
             {
                 var sources = pal.ColorSources.Skip(i)
-                    .TakeWhile((x, i) => x is FileColorSource && (x as FileColorSource).Offset == (fileSource.Offset + i * size))
+                    .TakeWhile((x, i) => x is FileColorSource source && source.Offset == (fileSource.Offset + i * size))
                     .ToList();
 
                 var fileSourceModel = new FileColorSourceModel(fileSource.Offset.ByteOffset, sources.Count, fileSource.Endian);

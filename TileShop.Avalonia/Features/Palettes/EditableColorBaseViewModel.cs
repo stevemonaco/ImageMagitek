@@ -7,7 +7,7 @@ namespace TileShop.AvaloniaUI.ViewModels;
 public abstract partial class EditableColorBaseViewModel : ObservableObject
 {
     public abstract bool CanSaveColor { get; }
-    public IColor WorkingColor { get; set; }
+    public required IColor WorkingColor { get; set; }
 
     [ObservableProperty] private Color _color;
     [ObservableProperty] private int _index;

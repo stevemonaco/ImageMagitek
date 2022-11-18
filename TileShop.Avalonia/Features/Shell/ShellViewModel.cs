@@ -1,8 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Dock.Model.Controls;
 using ImageMagitek.Services;
 using Jot;
 
@@ -18,7 +16,6 @@ public partial class ShellViewModel : ObservableObject
     [ObservableProperty] private MenuViewModel _activeMenu;
     [ObservableProperty] private StatusViewModel _activeStatusBar;
     [ObservableProperty] private EditorsViewModel _editors;
-    [ObservableProperty] private IRootDock _layout;
 
     public ShellViewModel(Tracker tracker, IProjectService projectService, ProjectTreeViewModel activeTree,
         MenuViewModel activeMenu, StatusViewModel activeStatusBar, EditorsViewModel editors)

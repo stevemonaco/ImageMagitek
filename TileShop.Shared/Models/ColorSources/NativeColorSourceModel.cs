@@ -13,12 +13,12 @@ public partial class NativeColorSourceModel : ColorSourceModel
 
     public NativeColorSourceModel(string nativeHexColor)
     {
-        NativeHexColor = nativeHexColor;
+        _nativeHexColor = nativeHexColor;
     }
 
     public static ValidationResult ValidateHexColor(string hexColor, ValidationContext context)
     {
-        if (ColorParser.TryParse(hexColor, ImageMagitek.Colors.ColorModel.Rgba32, out var color))
+        if (ColorParser.TryParse(hexColor, ImageMagitek.Colors.ColorModel.Rgba32, out _))
         {
             return ValidationResult.Success!;
         }

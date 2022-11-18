@@ -22,7 +22,7 @@ public static class ResourceNodeViewModelExtensions
 
     public static IEnumerable<ResourceNodeViewModel> Ancestors(this ResourceNodeViewModel node)
     {
-        ResourceNodeViewModel nodeVisitor = node.ParentModel;
+        var nodeVisitor = node.ParentModel;
 
         while (nodeVisitor != null)
         {
@@ -36,7 +36,7 @@ public static class ResourceNodeViewModelExtensions
     /// </summary>
     /// <param name="rootNode"></param>
     /// <returns></returns>
-    public static IEnumerable<ResourceNodeViewModel> BottomUpTraversal(this ResourceNodeViewModel rootNode)
+    public static IEnumerable<ResourceNodeViewModel> BottomUpTraversal(this ResourceNodeViewModel? rootNode)
     {
         if (rootNode is null)
             return Enumerable.Empty<ResourceNodeViewModel>();

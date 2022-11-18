@@ -26,7 +26,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     protected IPaletteService _paletteService;
     protected IInteractionService _interactions;
 
-    [ObservableProperty] private BitmapAdapter _bitmapAdapter;
+    [ObservableProperty] private BitmapAdapter _bitmapAdapter = null!;
 
     public bool IsSingleLayout => WorkingArranger?.Layout == ElementLayout.Single;
     public bool IsTiledLayout => WorkingArranger?.Layout == ElementLayout.Tiled;
@@ -35,7 +35,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     public bool IsDirectColor => WorkingArranger?.ColorType == PixelColorType.Direct;
 
     [ObservableProperty] protected bool _showGridlines = false;
-    [ObservableProperty] protected ObservableCollection<Gridline> _gridlines;
+    [ObservableProperty] protected ObservableCollection<Gridline> _gridlines = new();
 
     public bool CanChangeSnapMode { get; protected set; }
     [ObservableProperty] protected EditMode _editMode = EditMode.ArrangeGraphics;
@@ -72,7 +72,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         }
     }
 
-    [ObservableProperty] private ArrangerSelection? _selection;
+    [ObservableProperty] private ArrangerSelection _selection = null!;
     [ObservableProperty] private bool _isSelecting;
     [ObservableProperty] private ArrangerPaste? _paste;
 
@@ -81,8 +81,12 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
 
     public Action? OnImageModified { get; set; }
 
-    public ArrangerEditorViewModel(IInteractionService interactionService, IPaletteService paletteService)
+    public ArrangerEditorViewModel(Arranger arranger, IInteractionService interactionService, IPaletteService paletteService) : base(arranger)
     {
+        WorkingArranger = arranger.CloneArranger();
+        Resource = arranger;
+        DisplayName = WorkingArranger.Name ?? "Unnamed Arranger";
+
         _interactions = interactionService;
         _paletteService = paletteService;
     }
@@ -239,14 +243,13 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
                 notifyMessage = $"Element Selection: {rect.SnappedWidth / arranger.ElementPixelSize.Width} x {rect.SnappedHeight / arranger.ElementPixelSize.Height}" +
                     $" at ({rect.SnappedLeft / arranger.ElementPixelSize.Width}, {rect.SnappedTop / arranger.ElementPixelSize.Height})";
             else
-                notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight}" +
-                    $" at ({rect.SnappedLeft}, {rect.SnappedTop})";
+                notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight} at ({rect.SnappedLeft}, {rect.SnappedTop})";
 
             ActivityMessage = notifyMessage;
         }
         else
         {
-            var notifyMessage = $"{arranger.Name}: ({(int)Math.Truncate(x)}, {(int)Math.Truncate(y)})";
+            var notifyMessage = $"{arranger.Name}: ({xc}, {yc})";
             ActivityMessage = notifyMessage;
         }
     }

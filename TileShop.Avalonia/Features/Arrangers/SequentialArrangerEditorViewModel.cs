@@ -23,8 +23,8 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
     private readonly ICodecService _codecService;
     private readonly IElementLayoutService _layoutService;
     private readonly Tracker _tracker;
-    private IndexedImage _indexedImage;
-    private DirectImage _directImage;
+    private IndexedImage? _indexedImage;
+    private DirectImage? _directImage;
     private TileLayout _activeLayout;
 
     [ObservableProperty] private ObservableCollection<string> _codecNames = new();
@@ -158,7 +158,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
 
     public SequentialArrangerEditorViewModel(SequentialArranger arranger, IInteractionService interactionService,
         Tracker tracker, ICodecService codecService, IPaletteService paletteService, IElementLayoutService layoutService) :
-        base(interactionService, paletteService)
+        base(arranger, interactionService, paletteService)
     {
         Resource = arranger;
         WorkingArranger = arranger;
@@ -172,7 +172,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         CodecNames = new(codecService.GetSupportedCodecNames().OrderBy(x => x));
         _selectedCodecName = arranger.ActiveCodec.Name;
 
-        TileLayoutNames = new(_layoutService.ElementLayouts.Select(x => x.Key).OrderBy(x => x));
+        _tileLayoutNames = new(_layoutService.ElementLayouts.Select(x => x.Key).OrderBy(x => x));
         _selectedTileLayoutName = _layoutService.DefaultElementLayout.Name;
         _activeLayout = arranger.TileLayout;
 
@@ -197,7 +197,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         ElementHeightIncrement = arranger.ActiveCodec.HeightResizeIncrement;
 
         Palettes = new(_paletteService.GlobalPalettes.Select(x => new PaletteModel(x)));
-        SelectedPalette = Palettes.First();
+        _selectedPalette = Palettes.First();
 
         ArrangerPageSize = (int)((SequentialArranger)WorkingArranger).ArrangerBitSize / 8;
         MaxFileDecodingOffset = ((SequentialArranger)WorkingArranger).FileSize - ArrangerPageSize;
@@ -287,7 +287,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
             int height = Selection.SelectionRect.SnappedHeight / WorkingArranger.ElementPixelSize.Height;
 
             var copy = new ElementCopy(WorkingArranger, x, y, width, height);
-            var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
+            var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource!);
             Messenger.Send(model);
         }
         else
@@ -302,7 +302,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         if (SnapMode == SnapMode.Element)
         {
             var copy = new ElementCopy(WorkingArranger, 0, 0, 1, 1);
-            var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource);
+            var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource!);
             Messenger.Send(model);
         }
         else
@@ -527,13 +527,13 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
 
         if (WorkingArranger.ColorType == PixelColorType.Indexed)
         {
-            _indexedImage.Render();
+            _indexedImage?.Render();
             BitmapAdapter.Invalidate();
             OnImageModified?.Invoke();
         }
         else if (WorkingArranger.ColorType == PixelColorType.Direct)
         {
-            _directImage.Render();
+            _directImage?.Render();
             BitmapAdapter.Invalidate();
             OnImageModified?.Invoke();
         }

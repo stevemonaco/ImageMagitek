@@ -9,7 +9,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Services;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
-using CommunityToolkit.Mvvm;
 using TileShop.Shared.Interactions;
 using System;
 using System.Diagnostics;
@@ -19,7 +18,7 @@ namespace TileShop.AvaloniaUI.ViewModels;
 
 public partial class MenuViewModel : ObservableRecipient
 {
-    [ObservableProperty] private ShellViewModel _shell;
+    [ObservableProperty] private ShellViewModel _shell = null!;
     [ObservableProperty] private ProjectTreeViewModel _projectTree;
     [ObservableProperty] private EditorsViewModel _editors;
     [ObservableProperty] private ObservableCollection<string> _recentProjectFiles = new();
@@ -74,10 +73,18 @@ public partial class MenuViewModel : ObservableRecipient
     public async Task CloseAllProjects() => await ProjectTree.CloseAllProjects();
 
     [RelayCommand]
-    public async Task CloseEditor() => await Editors.CloseEditor(Editors.ActiveEditor);
+    public async Task CloseEditor()
+    {
+        if (Editors.ActiveEditor is not null)
+            await Editors.CloseEditor(Editors.ActiveEditor);
+    }
 
     [RelayCommand]
-    public async Task SaveEditor() => await Editors.ActiveEditor?.SaveChangesAsync();
+    public async Task SaveEditor()
+    {
+        if (Editors.ActiveEditor is not null)
+            await Editors.ActiveEditor.SaveChangesAsync();
+    }
 
 
     [RelayCommand]

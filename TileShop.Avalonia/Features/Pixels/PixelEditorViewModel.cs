@@ -29,7 +29,7 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     [ObservableProperty] private TColor _secondaryColor;
 
     public PixelEditorViewModel(Arranger projectArranger, IInteractionService interactionService, IPaletteService paletteService) :
-        base(interactionService, paletteService)
+        base(projectArranger, interactionService, paletteService)
     {
         DisplayName = "Pixel Editor";
         CanAcceptElementPastes = true;

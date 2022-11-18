@@ -13,7 +13,7 @@ public partial class ArrangerSelection : ObservableObject
     public ArrangerSelection(Arranger arranger, SnapMode snapMode)
     {
         Arranger = arranger;
-        SelectionRect = new SnappedRectangle(Arranger.ArrangerPixelSize, Arranger.ElementPixelSize, snapMode, ElementSnapRounding.Expand);
+        _selectionRect = new SnappedRectangle(Arranger.ArrangerPixelSize, Arranger.ElementPixelSize, snapMode, ElementSnapRounding.Expand);
     }
 
     /// <summary>

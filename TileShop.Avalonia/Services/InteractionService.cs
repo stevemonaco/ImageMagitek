@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using Avalonia.Layout;
 using FluentAvalonia.UI.Controls;
 using TileShop.Shared.Interactions;
 
 namespace TileShop.AvaloniaUI.Services;
 internal class InteractionService : IInteractionService
 {
-    private ViewLocator _viewLocator;
+    private readonly ViewLocator _viewLocator;
 
     public InteractionService(ViewLocator viewLocator)
     {
@@ -20,14 +19,12 @@ internal class InteractionService : IInteractionService
     {
         var titleBlock = new SelectableTextBlock()
         {
-            Text = title,
-            VerticalAlignment = VerticalAlignment.Top
+            Text = title
         };
 
         var contentBlock = new SelectableTextBlock()
         {
-            Text = message,
-            VerticalAlignment = VerticalAlignment.Top
+            Text = message
         };
 
         var cd = new ContentDialog

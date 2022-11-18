@@ -8,7 +8,7 @@ namespace TileShop.AvaloniaUI.Converters;
 
 public class PaletteEntryToIndexConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is PaletteEntry entry)
             return entry.Index;
@@ -16,7 +16,7 @@ public class PaletteEntryToIndexConverter : IValueConverter
         return AvaloniaProperty.UnsetValue;
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotImplementedException();
     }

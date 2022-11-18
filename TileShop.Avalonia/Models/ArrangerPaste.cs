@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
 using TileShop.AvaloniaUI.Imaging;
@@ -43,25 +44,29 @@ public partial class ArrangerPaste : ObservableObject
             if (elementCopy.Source.ColorType == PixelColorType.Indexed)
             {
                 var image = new IndexedImage(elementCopy.Source, x, y, width, height);
-                OverlayImage = new IndexedBitmapAdapter(image);
+                _overlayImage = new IndexedBitmapAdapter(image);
             }
             else if (elementCopy.Source.ColorType == PixelColorType.Direct)
             {
                 var image = new DirectImage(elementCopy.Source, x, y, width, height);
-                OverlayImage = new DirectBitmapAdapter(image);
+                _overlayImage = new DirectBitmapAdapter(image);
             }
+            else
+                throw new NotSupportedException($"{nameof(ArrangerPaste)}: Copy of type '{copy.GetType()}' is not supported");
         }
         else if (copy is IndexedPixelCopy ipc)
         {
-            OverlayImage = new IndexedBitmapAdapter(ipc.Image);
+            _overlayImage = new IndexedBitmapAdapter(ipc.Image);
         }
         else if (copy is DirectPixelCopy dpc)
         {
-            OverlayImage = new DirectBitmapAdapter(dpc.Image);
+            _overlayImage = new DirectBitmapAdapter(dpc.Image);
         }
+        else
+            throw new NotSupportedException($"{nameof(ArrangerPaste)}: Copy of type '{copy.GetType()}' is not supported");
 
-        Rect = new SnappedRectangle(new Size(OverlayImage.Width, OverlayImage.Height), copy.Source.ElementPixelSize, SnapMode, ElementSnapRounding.Floor);
-        Rect.SetBounds(0, OverlayImage.Width, 0, OverlayImage.Height);
+        _rect = new SnappedRectangle(new Size(OverlayImage.Width, OverlayImage.Height), copy.Source.ElementPixelSize, SnapMode, ElementSnapRounding.Floor);
+        _rect.SetBounds(0, OverlayImage.Width, 0, OverlayImage.Height);
     }
 
     public void MoveTo(int x, int y) => Rect.MoveTo(x - DeltaX, y - DeltaY);

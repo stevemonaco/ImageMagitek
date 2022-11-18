@@ -14,7 +14,7 @@ internal class ResourceRemovalTemplateSelector : IDataTemplate
     [Content]
     public Dictionary<string, IDataTemplate> AvailableTemplates { get; } = new();
 
-    public IControl Build(object param)
+    public IControl Build(object? param)
     {
         if (param is not ResourceChangeViewModel changeVm)
             throw new ArgumentException(nameof(param));
@@ -24,9 +24,11 @@ internal class ResourceRemovalTemplateSelector : IDataTemplate
         if (key is null)
             throw new InvalidOperationException(nameof(key));
 
-        return AvailableTemplates[key].Build(param);
+        var control = AvailableTemplates[key].Build(param);
+
+        return control ?? new TextBlock { Text = "Not found" };
     }
-    public bool Match(object data)
+    public bool Match(object? data)
     {
         if (data is not ResourceChangeViewModel changeVm)
             return false;

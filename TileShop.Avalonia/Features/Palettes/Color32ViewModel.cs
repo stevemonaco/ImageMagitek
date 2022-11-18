@@ -1,6 +1,7 @@
 ﻿using ImageMagitek.Colors;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -71,6 +72,7 @@ public partial class Color32ViewModel : EditableColorBaseViewModel
     [ObservableProperty] private int _blueMax;
     [ObservableProperty] private int _alphaMax;
 
+    [SetsRequiredMembers]
     public Color32ViewModel(IColor32 foreignColor, int index, IColorFactory colorFactory)
     {
         _foreignColor = foreignColor;

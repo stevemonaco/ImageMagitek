@@ -17,16 +17,16 @@ public static class AppConverters
         new FuncValueConverter<Gridline, Point>(line => new Point(line!.X2, line!.Y2));
 
     public static readonly IValueConverter PathToGeometry =
-        new FuncValueConverter<string, Geometry>(x => Geometry.Parse(x));
+        new FuncValueConverter<string, Geometry?>(x => x is not null ? Geometry.Parse(x) : null);
 
     public static readonly IValueConverter ArrangerEditorToWidth =
-        new FuncValueConverter<ArrangerEditorViewModel, int>(x => x.WorkingArranger.ArrangerPixelSize.Width);
+        new FuncValueConverter<ArrangerEditorViewModel, int>(x => x!.WorkingArranger.ArrangerPixelSize.Width);
 
     public static readonly IValueConverter ArrangerEditorToHeight =
-        new FuncValueConverter<ArrangerEditorViewModel, int>(x => x.WorkingArranger.ArrangerPixelSize.Height);
+        new FuncValueConverter<ArrangerEditorViewModel, int>(x => x!.WorkingArranger.ArrangerPixelSize.Height);
 
     public static readonly IValueConverter PaletteEntryToSolidColorBrush =
-        new FuncValueConverter<PaletteEntry, SolidColorBrush>(p => new SolidColorBrush(p.Color));
+        new FuncValueConverter<PaletteEntry, SolidColorBrush>(p => new SolidColorBrush(p!.Color));
 
     public static readonly IValueConverter PluralCountToBoolean =
         new FuncValueConverter<int, bool>(x => x >= 2);

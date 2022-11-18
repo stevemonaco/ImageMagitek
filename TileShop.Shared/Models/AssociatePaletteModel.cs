@@ -12,7 +12,7 @@ public partial class AssociatePaletteModel : ObservableObject
     public AssociatePaletteModel(Palette palette, string paletteKey)
     {
         Palette = palette;
-        Name = Palette.Name;
-        PaletteKey = paletteKey;
+        _name = Palette.Name;
+        _paletteKey = paletteKey;
     }
 }

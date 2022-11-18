@@ -1,4 +1,5 @@
-﻿using ImageMagitek;
+﻿using System.Diagnostics.CodeAnalysis;
+using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 
@@ -8,6 +9,7 @@ public class ProjectNodeViewModel : ResourceNodeViewModel
 {
     public override int SortPriority => 0;
 
+    [SetsRequiredMembers]
     public ProjectNodeViewModel(ResourceNode node)
     {
         Node = node;

@@ -114,7 +114,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         var notifyEvent = ApplyPasteInternal(paste).Match(
             success =>
             {
-                AddHistoryAction(new PasteArrangerHistoryAction(Paste));
+                AddHistoryAction(new PasteArrangerHistoryAction(paste));
 
                 IsModified = true;
                 CancelOverlay();
@@ -132,7 +132,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
     {
         get
         {
-            var palettes = WorkingArranger?.GetReferencedPalettes();
+            var palettes = WorkingArranger.GetReferencedPalettes();
             if (palettes?.Count <= 1)
                 return WorkingArranger.GetReferencedCodecs().All(x => x.ColorType == PixelColorType.Indexed);
 
@@ -171,7 +171,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
 
         if (el is ArrangerElement element)
         {
-            ActivePalette = Palettes.FirstOrDefault(x => ReferenceEquals(x.Palette, element.Palette));
+            ActivePalette = Palettes.First(x => ReferenceEquals(x.Palette, element.Palette));
             base.PickColor(x, y, priority);
         }
     }
@@ -216,7 +216,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         var notifyEvent = result.Match(
             success =>
             {
-                if (_activePencilHistory.ModifiedPoints.Add(new Point(x, y)))
+                if (_activePencilHistory is not null && _activePencilHistory.ModifiedPoints.Add(new Point(x, y)))
                 {
                     IsModified = true;
                     BitmapAdapter.Invalidate(x, y, 1, 1);
@@ -253,12 +253,12 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         var destStart = new Point(destX, destY);
         var sourceStart = new Point(sourceX, sourceY);
 
-        ArrangerCopy copy;
+        ArrangerCopy? copy = default;
 
-        if (paste?.Copy is ElementCopy elementCopy)
+        if (paste.Copy is ElementCopy elementCopy)
             copy = elementCopy.ToPixelCopy();
         else
-            copy = paste?.Copy;
+            copy = paste.Copy;
 
         if (copy is IndexedPixelCopy indexedCopy)
         {
@@ -268,7 +268,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
             return ImageCopier.CopyPixels(indexedCopy.Image, _indexedImage, sourceStart, destStart, copyWidth, copyHeight,
                 PixelRemapOperation.RemapByExactPaletteColors, PixelRemapOperation.RemapByExactIndex);
         }
-        else if (Paste?.Copy is DirectPixelCopy directCopy)
+        else if (copy is DirectPixelCopy directCopy)
         {
             throw new NotImplementedException("Direct->Indexed pasting is not yet implemented");
             //var sourceImage = (Paste.OverlayImage as DirectBitmapAdapter).Image;

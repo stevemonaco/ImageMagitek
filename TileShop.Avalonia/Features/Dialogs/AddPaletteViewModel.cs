@@ -9,8 +9,8 @@ namespace TileShop.AvaloniaUI.ViewModels;
 
 public partial class AddPaletteViewModel : DialogViewModel<AddPaletteViewModel>
 {
-    private string? _paletteName;
-    public string? PaletteName
+    private string _paletteName = "";
+    public string PaletteName
     {
         get => _paletteName;
         set

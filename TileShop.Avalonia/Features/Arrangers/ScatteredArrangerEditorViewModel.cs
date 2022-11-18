@@ -11,13 +11,13 @@ using TileShop.AvaloniaUI.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Monaco.PathTree;
 using TileShop.Shared.EventModels;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Input;
 using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 
 using Point = System.Drawing.Point;
-using CommunityToolkit.Mvvm.Input;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -26,7 +26,7 @@ public enum ScatteredArrangerTool { Select, ApplyPalette, PickPalette, InspectEl
 public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 {
     [ObservableProperty] private ObservableCollection<PaletteModel> _palettes = new();
-    [ObservableProperty] private PaletteModel? _selectedPalette;
+    [ObservableProperty] private PaletteModel _selectedPalette;
     [ObservableProperty] private bool _areSymmetryToolsEnabled;
 
     private ScatteredArrangerTool _activeTool = ScatteredArrangerTool.Select;
@@ -48,11 +48,8 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
     public ScatteredArrangerEditorViewModel(Arranger arranger, IInteractionService interactionService,
         IPaletteService paletteService, IProjectService projectService, AppSettings settings) :
-        base(interactionService, paletteService)
+        base(arranger, interactionService, paletteService)
     {
-        Resource = arranger;
-        WorkingArranger = arranger.CloneArranger();
-        DisplayName = Resource?.Name ?? "Unnamed Arranger";
         AreSymmetryToolsEnabled = settings.EnableArrangerSymmetryTools;
 
         CreateImages();
@@ -75,8 +72,9 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
             .Concat(_paletteService.GlobalPalettes.OrderBy(x => x.Name))
             .Select(x => new PaletteModel(x));
 
-        Palettes = new ObservableCollection<PaletteModel>(palModels);
-        SelectedPalette = Palettes.First();
+        Selection = new(WorkingArranger, SnapMode);
+        Palettes = new(palModels);
+        _selectedPalette = Palettes.First();
         _projectService = projectService;
     }
 
@@ -266,7 +264,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     {
         if (keyState.Modifiers.HasFlag(KeyModifiers.Control) && x.HasValue && y.HasValue && Paste is null)
         {
-            StartNewSelection(x.Value, y.Value);
+            StartNewSelection(x!.Value, y!.Value);
 
         }
         base.KeyPress(keyState, x, y);
@@ -329,7 +327,6 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         if (!_projectService.AreResourcesInSameProject(elementCopy.ProjectResource, OriginatingProjectResource))
             return new MagitekResult.Failed("Copying arranger elements across projects is not permitted");
 
-        var sourceArranger = paste.Copy.Source;
         var destRect = paste.Rect;
 
         var destElemWidth = WorkingArranger.ElementPixelSize.Width;

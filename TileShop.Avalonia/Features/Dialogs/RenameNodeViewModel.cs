@@ -7,12 +7,12 @@ public partial class RenameNodeViewModel : DialogViewModel<string?>
 {
     private readonly ResourceNodeViewModel _nodeModel;
 
-    [ObservableProperty] private string? _name;
+    [ObservableProperty] private string _name;
 
     public RenameNodeViewModel(ResourceNodeViewModel nodeModel)
     {        
         _nodeModel = nodeModel;
-        Name = nodeModel.Name;
+        _name = nodeModel.Name;
         Title = $"Rename {nodeModel.Name}";
         AcceptName = "✓";
         CancelName = "x";

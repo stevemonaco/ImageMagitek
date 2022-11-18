@@ -17,7 +17,7 @@ public partial class PaletteModel : ObservableObject
 
     public PaletteModel(Palette pal, int maxColors)
     {
-        Name = pal.Name;
+        _name = pal.Name;
         Palette = pal;
 
         int colorCount = Math.Min(pal.Entries, maxColors);

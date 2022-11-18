@@ -32,7 +32,7 @@ public partial class EditorsViewModel : ObservableRecipient
     public ObservableCollection<ResourceEditorBaseViewModel> Editors { get; } = new();
 
     [ObservableProperty] private ResourceEditorBaseViewModel? _activeEditor;
-    [ObservableProperty] private ShellViewModel _shell;
+    [ObservableProperty] private ShellViewModel? _shell;
 
     public EditorsViewModel(AppSettings settings, IInteractionService interactionService, Tracker tracker,
         ICodecService codecService, IPaletteService paletteService, IProjectService projectService, IElementLayoutService layoutService)
@@ -227,6 +227,9 @@ public partial class EditorsViewModel : ObservableRecipient
 
     public void Receive(EditArrangerPixelsEvent message)
     {
+        if (Shell is null)
+            throw new NullReferenceException(nameof(Shell));
+
         if (message.Arranger.ColorType == PixelColorType.Indexed)
         {
             var editor = new IndexedPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,

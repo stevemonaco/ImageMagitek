@@ -4,11 +4,9 @@ using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Mvvm.DependencyInjection;
-using ImageMagitek.Services;
 using Microsoft.Extensions.DependencyInjection;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.AvaloniaUI.Views;
-using TileShop.Shared.Services;
 
 namespace TileShop.AvaloniaUI;
 public class App : Application

@@ -10,15 +10,16 @@ namespace TileShop.AvaloniaUI.ViewModels;
 public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
 {
     public IProjectResource Resource { get; protected set; }
-    public IProjectResource OriginatingProjectResource { get; set; }
+    public IProjectResource? OriginatingProjectResource { get; set; }
 
-    [ObservableProperty] private string _activityMessage;
-    [ObservableProperty] private string _pendingOperationMessage;
+    [ObservableProperty] private string _activityMessage = "";
+    [ObservableProperty] private string _pendingOperationMessage = "";
     [ObservableProperty] private ObservableCollection<HistoryAction> _undoHistory = new();
     [ObservableProperty] private ObservableCollection<HistoryAction> _redoHistory = new();
 
-    public ResourceEditorBaseViewModel()
+    public ResourceEditorBaseViewModel(IProjectResource resource)
     {
+        Resource = resource;
         Messenger.Register<ResourceRenamedEvent>(this, Handle);
     }
 

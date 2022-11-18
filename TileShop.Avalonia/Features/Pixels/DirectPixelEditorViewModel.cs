@@ -98,7 +98,7 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
     {
         _directImage.SetPixel(x, y, color);
 
-        if (_activePencilHistory.ModifiedPoints.Add(new Point(x, y)))
+        if (_activePencilHistory is not null && _activePencilHistory.ModifiedPoints.Add(new Point(x, y)))
         {
             IsModified = true;
             BitmapAdapter.Invalidate(x, y, 1, 1);
@@ -122,7 +122,7 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
         var notifyEvent = ApplyPasteInternal(paste).Match(
             success =>
             {
-                AddHistoryAction(new PasteArrangerHistoryAction(Paste));
+                AddHistoryAction(new PasteArrangerHistoryAction(paste));
 
                 IsModified = true;
                 CancelOverlay();
@@ -136,7 +136,7 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
         Messenger.Send(notifyEvent);
     }
 
-    public MagitekResult ApplyPasteInternal(ArrangerPaste paste)
+    private MagitekResult ApplyPasteInternal(ArrangerPaste paste)
     {
         int destX = Math.Max(0, paste.Rect.SnappedLeft);
         int destY = Math.Max(0, paste.Rect.SnappedTop);
@@ -146,12 +146,12 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
         var destStart = new Point(destX, destY);
         var sourceStart = new Point(sourceX, sourceY);
 
-        ArrangerCopy copy;
+        ArrangerCopy? copy = default;
 
-        if (paste?.Copy is ElementCopy elementCopy)
+        if (paste.Copy is ElementCopy elementCopy)
             copy = elementCopy.ToPixelCopy();
         else
-            copy = paste?.Copy;
+            copy = paste.Copy;
 
         if (copy is IndexedPixelCopy indexedCopy)
         {
@@ -168,7 +168,7 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
             return ImageCopier.CopyPixels(directCopy.Image, _directImage, sourceStart, destStart, copyWidth, copyHeight);
         }
         else
-            throw new InvalidOperationException($"{nameof(ApplyPasteInternal)} attempted to copy from an arranger of type {Paste.Copy.Source.ColorType} to {WorkingArranger.ColorType}");
+            throw new InvalidOperationException($"{nameof(ApplyPasteInternal)} attempted to copy from an arranger of type '{paste.Copy.Source.ColorType}' to {WorkingArranger.ColorType}");
     }
 
     public override void FloodFill(int x, int y, ColorRgba32 fillColor)

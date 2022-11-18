@@ -17,7 +17,6 @@ public class DockFactory : Factory
     private IRootDock? _rootDock;
     private ProportionalDock? _mainLayout;
 
-    private readonly object? _context;
     private readonly ProjectTreeViewModel _projectTreeVm;
     private readonly EditorsViewModel _editorsVm;
 
@@ -101,7 +100,7 @@ public class DockFactory : Factory
 
     private void Editors_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems![0] is ResourceEditorBaseViewModel newItem)
+        if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems![0] is ResourceEditorBaseViewModel newItem && _documentDock is not null)
         {
             var newDoc = new DockableEditorViewModel(newItem, _editorsVm)
             {
@@ -113,7 +112,7 @@ public class DockFactory : Factory
             SetActiveDockable(newDoc);
             SetFocusedDockable(_documentDock, newDoc);
         }
-        else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems![0] is ResourceEditorBaseViewModel oldItem)
+        else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems![0] is ResourceEditorBaseViewModel oldItem && _documentDock is not null)
         {
             var removeItem = _documentDock.VisibleDockables?.OfType<DockableEditorViewModel>().FirstOrDefault(x => x.Editor == oldItem);
             

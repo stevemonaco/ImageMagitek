@@ -7,6 +7,7 @@ using TileShop.AvaloniaUI.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.Shared.EventModels;
 using CommunityToolkit.Mvvm.Messaging;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -22,6 +23,7 @@ public partial class TableColorViewModel : EditableColorBaseViewModel
 
     [ObservableProperty] private ObservableCollection<ValidatedTableColorModel> _availableColors = new();
 
+    [SetsRequiredMembers]
     public TableColorViewModel(ITableColor foreignColor, int index, IColorFactory colorFactory)
     {
         _foreignColor = foreignColor;

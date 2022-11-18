@@ -42,7 +42,7 @@ public static class SyncDialogExtensions
     [return: MaybeNull]
     public static T ShowDialogSync<T>(this Window window, Window owner)
     {
-        if (window.PlatformImpl.Handle is IMacOSTopLevelPlatformHandle handle)
+        if (window.PlatformImpl?.Handle is IMacOSTopLevelPlatformHandle handle)
         {
             var nsAppStaticClass = objc_getClass("NSApplication");
             var sharedApplicationSelector = GetHandle("sharedApplication");
@@ -50,7 +50,7 @@ public static class SyncDialogExtensions
             var runModalForSelector = GetHandle("runModalForWindow:");
             var stopModalSelector = GetHandle("stopModal");
 
-            void DialogClosed(object sender, EventArgs e)
+            void DialogClosed(object? sender, EventArgs e)
             {
                 Void_objc_msgSend(sharedApplication, stopModalSelector);
                 window.Closed -= DialogClosed;

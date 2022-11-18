@@ -19,21 +19,24 @@ public partial class ResourceChangeViewModel : ObservableObject
     {
         ResourceNode = resourceNode;
         Resource = ResourceNode.Item;
-        ResourceName = Resource.Name;
-        ResourcePath = resourcePathKey;
-        Removed = removed;
-        LostPalette = lostPalette;
-        LostElement = lostElement;
+
+        _resourceName = Resource.Name;
+        _resourcePath = resourcePathKey;
+        _removed = removed;
+        _lostPalette = lostPalette;
+        _lostElement = lostElement;
     }
 
     public ResourceChangeViewModel(ResourceChange change)
     {
-        Resource = change.Resource;
-        ResourcePath = change.ResourcePath;
         ResourceNode = change.ResourceNode;
-        Removed = change.Removed;
-        LostPalette = change.LostPalette;
-        LostElement = change.LostElement;
+        Resource = change.Resource;
+
+        _resourceName = Resource.Name;
+        _resourcePath = change.ResourcePath;
+        _removed = change.Removed;
+        _lostPalette = change.LostPalette;
+        _lostElement = change.LostElement;
         IsChanged = change.IsChanged;
     }
 }

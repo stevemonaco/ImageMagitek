@@ -6,7 +6,6 @@ using ImageMagitek.Services;
 using ImageMagitek.Project.Serialization;
 using TileShop.Shared.Services;
 using TileShop.AvaloniaUI.ViewModels;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using TileShop.AvaloniaUI.Services;
 using TileShop.Shared.Interactions;
@@ -24,8 +23,7 @@ public interface IAppBootstrapper<TViewModel> where TViewModel : class
 public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 {
     private readonly Tracker _tracker = new Tracker();
-    private LoggerFactory _loggerFactory;
-    private bool _isStarting = true;
+    private LoggerFactory? _loggerFactory;
 
     public void ConfigureIoc(IServiceCollection services)
     {
@@ -33,13 +31,11 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
         ConfigureImageMagitek(services);
         ConfigureJotTracker(_tracker, services);
-
-        _isStarting = false;
     }
 
     private void ConfigureImageMagitek(IServiceCollection services)
     {
-        var bootstrapper = new BootstrapService(_loggerFactory.CreateLogger<BootstrapService>());
+        var bootstrapper = new BootstrapService(_loggerFactory!.CreateLogger<BootstrapService>());
         var settings = bootstrapper.ReadConfiguration(BootstrapService.DefaultConfigurationFileName);
         var paletteService = bootstrapper.CreatePaletteService(BootstrapService.DefaultPalettePath, settings);
         var codecService = bootstrapper.CreateCodecService(BootstrapService.DefaultCodecPath, BootstrapService.DefaultCodecSchemaFileName);
