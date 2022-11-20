@@ -20,6 +20,7 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     protected int _viewY;
     protected int _viewWidth;
     protected int _viewHeight;
+    protected PixelTool? _priorTool;
     protected PencilHistoryAction<TColor>? _activePencilHistory;
 
     [ObservableProperty] private bool _isDrawing;
@@ -49,6 +50,17 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     public void ChangeTool(PixelTool tool)
     {
         ActiveTool = tool;
+    }
+
+    public void PushTool(PixelTool tool)
+    {
+        _priorTool = ActiveTool;
+        ActiveTool = tool;
+    }
+
+    public void PopTool()
+    {
+        ActiveTool = _priorTool ?? ActiveTool;
     }
 
     [RelayCommand] public void SetPrimaryColor(TColor color) => PrimaryColor = color;
@@ -137,7 +149,29 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     }
     #endregion
 
-    #region Mouse Actions
+    #region Input Actions
+    public override void KeyPress(KeyState keyState, double? x, double? y)
+    {
+        //if (keyState.Modifiers.HasFlag(KeyModifiers.Alt) && x.HasValue && y.HasValue && Paste is null)
+        if (keyState.Key == Key.LeftAlt && x.HasValue && y.HasValue && Paste is null)
+        {
+            PushTool(PixelTool.ColorPicker);
+
+        }
+        base.KeyPress(keyState, x, y);
+    }
+
+    public override void KeyUp(KeyState keyState, double? x, double? y)
+    {
+        //if (keyState.Modifiers.HasFlag(KeyModifiers.Alt) && x.HasValue && y.HasValue && Paste is null)
+        if (keyState.Key == Key.LeftAlt && x.HasValue && y.HasValue && Paste is null)
+        {
+            PopTool();
+
+        }
+        base.KeyPress(keyState, x, y);
+    }
+
     public override void MouseDown(double x, double y, MouseState mouseState)
     {
         var bounds = WorkingArranger.ArrangerPixelSize;
@@ -193,9 +227,13 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
         var bounds = WorkingArranger.ArrangerPixelSize;
         int xc = Math.Clamp((int)x, 0, bounds.Width - 1);
         int yc = Math.Clamp((int)y, 0, bounds.Height - 1);
+        LastMousePosition = new(xc, yc);
 
         if (x < 0 || x >= bounds.Width || y < 0 || y >= bounds.Height)
+        {
+            LastMousePosition = null;
             return;
+        }
 
         if (IsDrawing && ActiveTool == PixelTool.Pencil && mouseState.LeftButtonPressed)
             SetPixel(xc, yc, PrimaryColor);
@@ -216,38 +254,5 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
             base.MouseLeave();
         }
     }
-
-    //public override void StartDrag(IDragInfo dragInfo)
-    //{
-    //    if (Selection.HasSelection)
-    //    {
-    //        var rect = Selection.SelectionRect;
-
-    //        ArrangerCopy copy = default;
-
-    //        if (SnapMode == SnapMode.Pixel && WorkingArranger.ColorType == PixelColorType.Indexed)
-    //        {
-    //            copy = WorkingArranger.CopyPixelsIndexed(rect.SnappedLeft + _viewX, rect.SnappedTop + _viewY, rect.SnappedWidth, rect.SnappedHeight);
-    //        }
-    //        else if (SnapMode == SnapMode.Pixel && WorkingArranger.ColorType == PixelColorType.Direct)
-    //        {
-    //            copy = WorkingArranger.CopyPixelsDirect(rect.SnappedLeft + _viewX, rect.SnappedTop + _viewY, rect.SnappedWidth, rect.SnappedHeight);
-    //        }
-
-    //        var paste = new ArrangerPaste(copy, SnapMode)
-    //        {
-    //            DeltaX = (int)dragInfo.DragStartPosition.X - Selection.SelectionRect.SnappedLeft,
-    //            DeltaY = (int)dragInfo.DragStartPosition.Y - Selection.SelectionRect.SnappedTop
-    //        };
-    //        dragInfo.Data = paste;
-    //        dragInfo.Effects = DragDropEffects.Copy | DragDropEffects.Move;
-
-    //        Selection = new ArrangerSelection(WorkingArranger, SnapMode);
-    //    }
-    //    else
-    //    {
-    //        base.StartDrag(dragInfo);
-    //    }
-    //}
     #endregion
 }

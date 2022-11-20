@@ -62,7 +62,7 @@
             <dd:ArrangerDropHandler x:Key="ArrangerDropHandler" />
         </Style.Resources>
         <Setter Property="(DragDrop.AllowDrop)" Value="True" />
-        <Setter Property="ZIndex" Value="0" />
+        <Setter Property="ZIndex" Value="5" />
         <Setter Property="(i:Interaction.Behaviors)">
             <i:BehaviorCollectionTemplate>
                 <i:BehaviorCollection>

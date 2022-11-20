@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using Avalonia.Controls;
 using Avalonia.Input;
 using TileShop.AvaloniaUI.Input;
@@ -7,9 +8,9 @@ using TileShop.AvaloniaUI.ViewModels;
 using TileShop.Shared.Input;
 
 namespace TileShop.AvaloniaUI.Views;
-public partial class IndexedPixelEditorView : UserControl
+public partial class IndexedPixelEditorView : UserControl, IStateViewDriver<IndexedPixelEditorViewModel>
 {
-    private IndexedPixelEditorViewModel? _viewModel = null!;
+    public IndexedPixelEditorViewModel? ViewModel { get; private set; } = null!;
 
     public IndexedPixelEditorView()
     {
@@ -20,80 +21,103 @@ public partial class IndexedPixelEditorView : UserControl
     {
         if (DataContext is IndexedPixelEditorViewModel vm)
         {
-            _viewModel = vm;
-            _viewModel.OnImageModified = () => _image.InvalidateVisual();
+            ViewModel = vm;
+            ViewModel.OnImageModified = () => _image.InvalidateVisual();
         }
         base.OnDataContextChanged(e);
     }
 
-    private void OnPaletteEntryPressed(object sender, PointerPressedEventArgs e)
+    public void OnPaletteEntryPressed(object sender, PointerPressedEventArgs e)
     {
-        if ((sender as Control)?.DataContext is PaletteEntry entry && _viewModel is not null)
+        if ((sender as Control)?.DataContext is PaletteEntry entry && ViewModel is not null)
         {
             var properties = e.GetCurrentPoint(this).Properties;
 
             if (properties.IsLeftButtonPressed)
-                _viewModel?.SetPrimaryColor(entry.Index);
+                ViewModel?.SetPrimaryColor(entry.Index);
             else if (properties.IsRightButtonPressed)
-                _viewModel?.SetSecondaryColor(entry.Index);
+                ViewModel?.SetSecondaryColor(entry.Index);
 
             e.Handled = true;
         }
     }
 
-    private void OnPointerPressed(object sender, PointerPressedEventArgs e)
+    public void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
+        if (ViewModel is not null && ViewModel.LastMousePosition is Point point)
+        {
+            var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
+            ViewModel.KeyPress(state, point.X, point.Y);
+            e.Handled = true;
+        }
+    }
+
+    public void OnKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (ViewModel is not null && ViewModel.LastMousePosition is Point point)
+        {
+            var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
+            ViewModel.KeyUp(state, point.X, point.Y);
+            e.Handled = true;
+        }
+    }
+
+    public void OnPointerPressed(object sender, PointerPressedEventArgs e)
+    {
+        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            _viewModel.MouseDown(point.Position.X, point.Position.Y, state);
+            ViewModel.MouseDown(point.Position.X, point.Position.Y, state);
             //e.Handled = true;
         }
     }
 
-    private void OnPointerReleased(object sender, PointerReleasedEventArgs e)
+    public void OnPointerReleased(object sender, PointerReleasedEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
+        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            _viewModel.MouseUp(point.Position.X, point.Position.Y, state);
+            ViewModel.MouseUp(point.Position.X, point.Position.Y, state);
             //e.Handled = true;
         }
     }
 
-    private void OnPointerMoved(object sender, PointerEventArgs e)
+    public void OnPointerMoved(object sender, PointerEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
+        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            _viewModel.MouseMove(point.Position.X, point.Position.Y, state);
+            ViewModel.MouseMove(point.Position.X, point.Position.Y, state);
+
+            Canvas.SetLeft(_penPreview, (int)point.Position.X);
+            Canvas.SetTop(_penPreview, (int)point.Position.Y);
             //e.Handled = true;
         }
     }
 
-    private void OnPointerExited(object sender, PointerEventArgs e)
+    public void OnPointerExited(object sender, PointerEventArgs e)
     {
-        _viewModel?.MouseLeave();
+        ViewModel?.MouseLeave();
         //e.Handled = true;
     }
 
-    private void OnPointerWheelChanged(object sender, PointerWheelEventArgs e)
+    public void OnPointerWheelChanged(object sender, PointerWheelEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
+        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
         {
             var modifiers = InputAdapter.CreateKeyModifiers(e.KeyModifiers);
 
             if (e.Delta.Y > 0)
             {
-                _viewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
+                ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
                 //e.Handled = true;
             }
             else if (e.Delta.Y < 0)
             {
-                _viewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
+                ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
                 //e.Handled = true;
             }
         }

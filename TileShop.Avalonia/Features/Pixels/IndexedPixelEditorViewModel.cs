@@ -143,9 +143,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
     [RelayCommand(CanExecute = nameof(CanRemapColors))]
     public async void RemapColors()
     {
-        var palette = WorkingArranger.GetReferencedPalettes().FirstOrDefault();
-        if (palette is null)
-            palette = _paletteService.DefaultPalette;
+        var palette = WorkingArranger.GetReferencedPalettes().FirstOrDefault() ?? _paletteService.DefaultPalette;
 
         var maxArrangerColors = WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Codec?.ColorDepth ?? 0).Max();
         var colors = Math.Min(256, 1 << maxArrangerColors);

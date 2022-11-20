@@ -11,7 +11,7 @@ using DragDrop = Avalonia.Input.DragDrop;
 
 public class PayloadDropBehavior : Behavior<Control>
 {
-    public static string DataFormat = nameof(Context);
+    public static string DataFormat { get; } = nameof(Context);
 
     public static readonly StyledProperty<object?> ContextProperty =
         AvaloniaProperty.Register<ContextDropBehavior, object?>(nameof(Context));
@@ -33,7 +33,7 @@ public class PayloadDropBehavior : Behavior<Control>
 
     protected override void OnAttachedToVisualTree()
     {
-        if (AssociatedObject is { })
+        if (AssociatedObject is not null)
         {
             DragDrop.SetAllowDrop(AssociatedObject, true);
         }
@@ -45,7 +45,7 @@ public class PayloadDropBehavior : Behavior<Control>
 
     protected override void OnDetachedFromVisualTree()
     {
-        if (AssociatedObject is { })
+        if (AssociatedObject is not null)
         {
             DragDrop.SetAllowDrop(AssociatedObject, false);
         }
@@ -57,8 +57,7 @@ public class PayloadDropBehavior : Behavior<Control>
 
     private void DragEnter(object? sender, DragEventArgs e)
     {
-        IDataObject d = e.Data;
-        var sourceContext = e.Data.Get(ContextDropBehavior.DataFormat);
+        var sourceContext = e.Data.Get(DataFormat);
         var targetContext = Context ?? AssociatedObject?.DataContext;
         Handler?.Enter(sender, e, sourceContext, targetContext);
     }
@@ -70,14 +69,14 @@ public class PayloadDropBehavior : Behavior<Control>
 
     private void DragOver(object? sender, DragEventArgs e)
     {
-        var sourceContext = e.Data.Get(ContextDropBehavior.DataFormat);
+        var sourceContext = e.Data.Get(DataFormat);
         var targetContext = Context ?? AssociatedObject?.DataContext;
         Handler?.Over(sender, e, sourceContext, targetContext);
     }
 
     private void Drop(object? sender, DragEventArgs e)
     {
-        var sourceContext = e.Data.Get(ContextDropBehavior.DataFormat);
+        var sourceContext = e.Data.Get(DataFormat);
         var targetContext = Context ?? AssociatedObject?.DataContext;
         Handler?.Drop(sender, e, sourceContext, targetContext);
     }

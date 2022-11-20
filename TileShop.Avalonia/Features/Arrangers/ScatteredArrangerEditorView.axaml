@@ -259,6 +259,7 @@
             Focusable="True"
             HorizontalScrollBarVisibility="Auto"
             KeyDown="OnKeyDown"
+            KeyUp="OnKeyUp"
             VerticalScrollBarVisibility="Auto">
 
             <paz:ZoomBorder
@@ -293,10 +294,6 @@
                         <Image
                             x:Name="_image"
                             Classes="pixel"
-                            PointerExited="OnPointerExited"
-                            PointerMoved="OnPointerMoved"
-                            PointerPressed="OnPointerPressed"
-                            PointerReleased="OnPointerReleased"
                             Source="{Binding BitmapAdapter.Bitmap}" />
 
                         <!--  Selection Overlay  -->
@@ -328,6 +325,7 @@
                             Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
                             Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
                             Classes="animatedBorder paste"
+                            IsHitTestVisible="True"
                             IsVisible="{Binding Paste, Converter={x:Static ObjectConverters.IsNotNull}}" />
                     </Canvas>
 
@@ -341,12 +339,13 @@
                         Items="{Binding Gridlines}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <Canvas />
+                                <Canvas IsHitTestVisible="False" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type model:Gridline}">
                                 <Line
+                                    IsHitTestVisible="False"
                                     Stroke="#B0000000"
                                     StrokeThickness="0.40"
                                     UseLayoutRounding="True"

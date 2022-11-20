@@ -4,13 +4,13 @@ using Avalonia.Input;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.AvaloniaUI.Input;
 using TileShop.Shared.Input;
+using System.Diagnostics;
+using System.Drawing;
 
 namespace TileShop.AvaloniaUI.Views;
-public partial class ScatteredArrangerEditorView : UserControl
+public partial class ScatteredArrangerEditorView : UserControl, IStateViewDriver<ScatteredArrangerEditorViewModel>
 {
-    private ScatteredArrangerEditorViewModel? _viewModel;
-    private double? _lastX;
-    private double? _lastY;
+    public ScatteredArrangerEditorViewModel? ViewModel { get; private set; }
 
     public ScatteredArrangerEditorView()
     {
@@ -21,81 +21,96 @@ public partial class ScatteredArrangerEditorView : UserControl
     {
         if (DataContext is ScatteredArrangerEditorViewModel vm)
         {
-            _viewModel = vm;
-            _viewModel.OnImageModified = () => _image.InvalidateVisual();
+            ViewModel = vm;
+            ViewModel.OnImageModified = () => _image.InvalidateVisual();
         }
         
         base.OnDataContextChanged(e);
     }
 
-    private void OnKeyDown(object? sender, KeyEventArgs e)
+    public void OnKeyUp(object? sender, KeyEventArgs e)
     {
-        if (_viewModel is not null && _lastX is not null && _lastY is not null)
+        if (ViewModel is not null && ViewModel.LastMousePosition is Point point)
         {
             var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
-            _viewModel.KeyPress(state, _lastX.Value, _lastY.Value);
-            //_viewModel.KeyPress();
-        }
-    }
-
-    private void OnPointerPressed(object sender, PointerPressedEventArgs e)
-    {
-        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
-        {
-            var point = e.GetCurrentPoint(_image);
-            var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            _viewModel.MouseDown(point.Position.X, point.Position.Y, state);
+            ViewModel.KeyUp(state, point.X, point.Y);
             //e.Handled = true;
         }
     }
 
-    private void OnPointerReleased(object sender, PointerReleasedEventArgs e)
+    public void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
+        if (ViewModel is not null && ViewModel.LastMousePosition is Point point)
+        {
+            var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
+            ViewModel.KeyPress(state, point.X, point.Y);
+        }
+    }
+
+    public void OnPointerPressed(object sender, PointerPressedEventArgs e)
+    {
+        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            _viewModel.MouseUp(point.Position.X, point.Position.Y, state);
+            ViewModel.MouseDown(point.Position.X, point.Position.Y, state);
             //e.Handled = true;
         }
     }
 
-    private void OnPointerMoved(object sender, PointerEventArgs e)
+    public void OnPointerReleased(object sender, PointerReleasedEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
+        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
-            _lastX = point.Position.X;
-            _lastY = point.Position.Y;
-
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            _viewModel.MouseMove(_lastX.Value, _lastY.Value, state);
+            ViewModel.MouseUp(point.Position.X, point.Position.Y, state);
             //e.Handled = true;
         }
     }
 
-    private void OnPointerExited(object sender, PointerEventArgs e)
+    public void OnPointerMoved(object sender, PointerEventArgs e)
     {
-        _lastX = null;
-        _lastY = null;
-        _viewModel?.MouseLeave();
-        //e.Handled = true;
+        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
+        {
+            var point = e.GetCurrentPoint(_image);
+
+            var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
+            ViewModel.MouseMove(point.Position.X, point.Position.Y, state);
+            //e.Handled = true;
+        }
     }
 
-    private void OnPointerWheelChanged(object sender, PointerWheelEventArgs e)
+    public void OnPointerExited(object sender, PointerEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
+        if (ViewModel is null)
+            return;
+
+        var pos = e.GetCurrentPoint(_image).Position;
+        Debug.WriteLine($"Exiting Arranger: {pos.X:F2}, {pos.Y:F2}");
+
+        if (pos.X < 0 || pos.X >= ViewModel.BitmapAdapter.Width || pos.Y < 0 || pos.Y >= ViewModel.BitmapAdapter.Height)
+        {
+            Debug.WriteLine("Exited Arranger");
+            ViewModel?.MouseLeave();
+            //e.Handled = true;
+        }
+    }
+
+    public void OnPointerWheelChanged(object sender, PointerWheelEventArgs e)
+    {
+        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
         {
             var modifiers = InputAdapter.CreateKeyModifiers(e.KeyModifiers);
 
             if (e.Delta.Y > 0)
             {
-                _viewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
+                ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
                 //e.Handled = true;
             }
             else if (e.Delta.Y < 0)
             {
-                _viewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
+                ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
                 //e.Handled = true;
             }
         }

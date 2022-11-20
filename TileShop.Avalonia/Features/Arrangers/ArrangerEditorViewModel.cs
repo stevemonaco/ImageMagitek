@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Drawing;
 using TileShop.Shared.EventModels;
 using TileShop.Shared.Models;
 using ImageMagitek.Services;
@@ -13,6 +14,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Input;
 using TileShop.Shared.Interactions;
 
+using Key = TileShop.Shared.Input.Key;
 using KeyModifiers = TileShop.Shared.Input.KeyModifiers;
 
 namespace TileShop.AvaloniaUI.ViewModels;
@@ -22,6 +24,8 @@ public enum EditMode { ArrangeGraphics, ModifyGraphics }
 public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewModel, IStateDriver
 {
     public Arranger WorkingArranger { get; protected set; }
+    public bool CanChangeSnapMode { get; protected set; }
+    public Point? LastMousePosition { get; protected set; }
 
     protected IPaletteService _paletteService;
     protected IInteractionService _interactions;
@@ -37,7 +41,6 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     [ObservableProperty] protected bool _showGridlines = false;
     [ObservableProperty] protected ObservableCollection<Gridline> _gridlines = new();
 
-    public bool CanChangeSnapMode { get; protected set; }
     [ObservableProperty] protected EditMode _editMode = EditMode.ArrangeGraphics;
 
     public virtual bool CanEditSelection
@@ -65,19 +68,17 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         set
         {
             SetProperty(ref _snapMode, value);
-            if (Selection is not null)
-            {
-                Selection.SelectionRect.SnapMode = SnapMode;
-            }
         }
     }
 
-    [ObservableProperty] private ArrangerSelection _selection = null!;
+    [ObservableProperty] private ArrangerSelection _selection;
     [ObservableProperty] private bool _isSelecting;
     [ObservableProperty] private ArrangerPaste? _paste;
 
     public bool CanAcceptPixelPastes { get; set; }
     public bool CanAcceptElementPastes { get; set; }
+    public Key PrimaryAltKey { get; protected set; } = Key.LeftAlt;
+    public Key SecondaryAltKey { get; protected set; } = Key.LeftShift;
 
     public Action? OnImageModified { get; set; }
 
@@ -86,6 +87,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         WorkingArranger = arranger.CloneArranger();
         Resource = arranger;
         DisplayName = WorkingArranger.Name ?? "Unnamed Arranger";
+        _selection = new ArrangerSelection(arranger, SnapMode.Pixel);
 
         _interactions = interactionService;
         _paletteService = paletteService;
@@ -202,6 +204,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
 
     public virtual void MouseLeave()
     {
+        LastMousePosition = null;
         ActivityMessage = string.Empty;
     }
 
@@ -212,25 +215,18 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     /// <param name="y">y-coordinate in unzoomed pixels</param>
     public virtual void MouseMove(double x, double y, MouseState mouseState)
     {
-        if (Selection is null)
-            return;
-
         var arranger = WorkingArranger;
 
         if (x < 0 || y < 0 || x >= arranger.ArrangerPixelSize.Width || y >= arranger.ArrangerPixelSize.Height)
+        {
+            LastMousePosition = null;
             return;
+        }
 
         int xc = Math.Clamp((int)x, 0, arranger.ArrangerPixelSize.Width - 1);
         int yc = Math.Clamp((int)y, 0, arranger.ArrangerPixelSize.Height - 1);
 
-        if (mouseState.Modifiers.HasFlag(KeyModifiers.Control) && Paste is null)
-        {
-            if (TryStartNewSingleSelection(x, y))
-            {
-                CompleteSelection();
-                return;
-            }
-        }
+        LastMousePosition = new(xc, yc);
 
         if (IsSelecting)
             UpdateSelection(x, y);
@@ -255,6 +251,10 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     }
 
     public virtual void KeyPress(KeyState keyState, double? x, double? y)
+    {
+    }
+
+    public virtual void KeyUp(KeyState keyState, double? x, double? y)
     {
     }
 
@@ -299,6 +299,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         Selection = new ArrangerSelection(WorkingArranger, SnapMode);
         Selection.StartSelection(0, 0);
         Selection.UpdateSelectionEndpoint(WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height);
+        CompleteSelection();
         OnPropertyChanged(nameof(CanEditSelection));
     }
 
@@ -321,7 +322,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
 
     public virtual bool TryStartNewSingleSelection(double x, double y)
     {
-        SnappedRectangle rect = Selection.SelectionRect;
+        var rect = Selection.SelectionRect;
         if (Selection.HasSelection && rect.SnapMode == SnapMode.Element && 
             rect.SnappedWidth == WorkingArranger.ElementPixelSize.Width && 
             rect.SnappedHeight == WorkingArranger.ElementPixelSize.Height)

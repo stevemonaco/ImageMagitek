@@ -52,7 +52,7 @@ public static class InputAdapter
         return modifiers;
     }
 
-    private static Dictionary<AvKey, Key> _keyMap = new()
+    private static readonly Dictionary<AvKey, Key> _keyMap = new()
     {
         [AvKey.A] = Key.A, [AvKey.B] = Key.B, [AvKey.C] = Key.C, [AvKey.D] = Key.D, [AvKey.E] = Key.E,
         [AvKey.F] = Key.F, [AvKey.G] = Key.G, [AvKey.H] = Key.H, [AvKey.I] = Key.I, [AvKey.J] = Key.J,
@@ -70,7 +70,7 @@ public static class InputAdapter
         [AvKey.RightAlt] = Key.RightAlt, [AvKey.Enter] = Key.Enter, [AvKey.Space] = Key.Space
     };
 
-    private static Dictionary<Key, Key> _shiftKeyMap = new()
+    private static readonly Dictionary<Key, Key> _shiftKeyMap = new()
     {
         [Key.Digit1] = Key.Exclamation, [Key.Digit2]  = Key.At, [Key.Digit3] = Key.Hash,
         [Key.Digit4] = Key.Dollar, [Key.Digit5] = Key.Percent, [Key.Digit6] = Key.Carat,

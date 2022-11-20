@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 
 using Point = System.Drawing.Point;
+using System.Drawing;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -207,6 +208,8 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
     public override void MouseLeave()
     {
+        LastMousePosition = null;
+
         if (ActiveTool == ScatteredArrangerTool.ApplyPalette && _applyPaletteHistory?.ModifiedElements.Count > 0)
         {
             AddHistoryAction(_applyPaletteHistory);
@@ -220,6 +223,19 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     {
         int xc = Math.Clamp((int)x, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
         int yc = Math.Clamp((int)y, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
+
+        LastMousePosition = new(xc, yc);
+
+        if (mouseState.Modifiers.HasFlag(KeyModifiers.Shift) && Paste is null)
+        {
+            if (TryStartNewSingleSelection(x, y))
+            {
+                CompleteSelection();
+                //var copy = new ElementCopy(WorkingArranger, (int)(Selection.SelectionRect.Left / WorkingArranger.ElementPixelSize.Width), (int)(Selection.SelectionRect.Right / WorkingArranger.ElementPixelSize.Width), 8, 8);
+                //Paste = new ArrangerPaste(copy, SnapMode.Element);
+                return;
+            }
+        }
 
         if (ActiveTool == ScatteredArrangerTool.ApplyPalette && mouseState.LeftButtonPressed && _applyPaletteHistory is not null && SelectedPalette is not null)
         {
@@ -262,12 +278,32 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
     public override void KeyPress(KeyState keyState, double? x, double? y)
     {
-        if (keyState.Modifiers.HasFlag(KeyModifiers.Control) && x.HasValue && y.HasValue && Paste is null)
+        if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null)
         {
-            StartNewSelection(x!.Value, y!.Value);
-
+            //StartNewSelection(x!.Value, y!.Value);
+            if (TryStartNewSingleSelection(x!.Value, y!.Value))
+            {
+                CompleteSelection();
+                return;
+            }
         }
-        base.KeyPress(keyState, x, y);
+        else
+        {
+            base.KeyPress(keyState, x, y);
+        }
+    }
+
+    public override void KeyUp(KeyState keyState, double? x, double? y)
+    {
+        if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null &&
+            WorkingArranger.ElementPixelSize == new Size(Selection.SelectionRect.SnappedWidth, Selection.SelectionRect.SnappedHeight))
+        {
+            CancelOverlay();
+        }
+        else
+        {
+            base.KeyPress(keyState, x, y);
+        }
     }
     #endregion
 

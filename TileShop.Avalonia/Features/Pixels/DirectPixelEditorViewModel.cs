@@ -47,10 +47,11 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
         BitmapAdapter = new DirectBitmapAdapter(_directImage);
 
         DisplayName = $"Pixel Editor - {WorkingArranger.Name}";
+        Selection = new ArrangerSelection(arranger, SnapMode);
+        CreateGridlines();
 
         PrimaryColor = new ColorRgba32(255, 255, 255, 255);
         SecondaryColor = new ColorRgba32(0, 0, 0, 255);
-        CreateGridlines();
     }
 
     public override void Render()

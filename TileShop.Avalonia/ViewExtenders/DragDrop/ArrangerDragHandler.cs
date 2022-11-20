@@ -52,10 +52,12 @@ public class ArrangerDragHandler : IDragHandlerEx
 
             var pos = e.GetPosition(control);
 
-            var payload = new ArrangerPaste(copy, vm.SnapMode)
+            var payload = new ArrangerPaste(copy, vm.SnapMode);
+
+            if (copy is not ElementCopy { Height: 1, Width: 1 })
             {
-                DeltaX = (int)pos.X,
-                DeltaY = (int)pos.Y
+                payload.DeltaX = (int)pos.X;
+                payload.DeltaY = (int)pos.Y;
             };
 
             Payload = payload;

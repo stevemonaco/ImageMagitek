@@ -6,9 +6,9 @@ using TileShop.AvaloniaUI.ViewModels;
 using TileShop.Shared.Input;
 
 namespace TileShop.AvaloniaUI.Views;
-public partial class SequentialArrangerEditorView : UserControl
+public partial class SequentialArrangerEditorView : UserControl, IStateViewDriver<SequentialArrangerEditorViewModel>
 {
-    private SequentialArrangerEditorViewModel? _viewModel;
+    public SequentialArrangerEditorViewModel? ViewModel { get; private set; }
 
     public SequentialArrangerEditorView()
     {
@@ -19,65 +19,70 @@ public partial class SequentialArrangerEditorView : UserControl
     {
         if (DataContext is SequentialArrangerEditorViewModel vm)
         {
-            _viewModel = vm;
-            _viewModel.OnImageModified = () => _image.InvalidateVisual();
+            ViewModel = vm;
+            ViewModel.OnImageModified = () => _image.InvalidateVisual();
         }
         base.OnDataContextChanged(e);
     }
 
-    private void OnPointerPressed(object sender, PointerPressedEventArgs e)
+    public void OnKeyUp(object? sender, KeyEventArgs e) { }
+
+    public void OnKeyDown(object? sender, KeyEventArgs e) { }
+
+    public void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
+        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            _viewModel.MouseDown(point.Position.X, point.Position.Y, state);
+            ViewModel.MouseDown(point.Position.X, point.Position.Y, state);
             //e.Handled = true;
         }
     }
 
-    private void OnPointerReleased(object sender, PointerReleasedEventArgs e)
+    public void OnPointerReleased(object sender, PointerReleasedEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
+        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            _viewModel.MouseUp(point.Position.X, point.Position.Y, state);
+            ViewModel.MouseUp(point.Position.X, point.Position.Y, state);
             //e.Handled = true;
         }
     }
 
-    private void OnPointerMoved(object sender, PointerEventArgs e)
+    public void OnPointerMoved(object sender, PointerEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
+        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
         {
             var point = e.GetCurrentPoint(_image);
+
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            _viewModel.MouseMove(point.Position.X, point.Position.Y, state);
+            ViewModel.MouseMove(point.Position.X, point.Position.Y, state);
             //e.Handled = true;
         }
     }
 
-    private void OnPointerExited(object sender, PointerEventArgs e)
+    public void OnPointerExited(object sender, PointerEventArgs e)
     {
-        _viewModel?.MouseLeave();
+        ViewModel?.MouseLeave();
         //e.Handled = true;
     }
 
-    private void OnPointerWheelChanged(object sender, PointerWheelEventArgs e)
+    public void OnPointerWheelChanged(object sender, PointerWheelEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && _viewModel is not null)
+        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
         {
             var modifiers = InputAdapter.CreateKeyModifiers(e.KeyModifiers);
 
             if (e.Delta.Y > 0)
             {
-                _viewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
+                ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
                 //e.Handled = true;
             }
             else if (e.Delta.Y < 0)
             {
-                _viewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
+                ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
                 //e.Handled = true;
             }
         }
