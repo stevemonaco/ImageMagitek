@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -21,7 +22,7 @@ public struct ColorRgba32 : IColor32
 
     public ColorRgba32(byte red, byte green, byte blue, byte alpha)
     {
-        color = default;
+        Unsafe.SkipInit(out color);
 
         r = red;
         g = green;
@@ -31,10 +32,11 @@ public struct ColorRgba32 : IColor32
 
     public ColorRgba32(uint packedColor)
     {
-        r = default;
-        g = default;
-        b = default;
-        a = default;
+        Unsafe.SkipInit(out r);
+        Unsafe.SkipInit(out g);
+        Unsafe.SkipInit(out b);
+        Unsafe.SkipInit(out a);
+
         color = packedColor;
     }
 
