@@ -168,17 +168,17 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 
     public override void Undo()
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
     public override void Redo()
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
     public override void ApplyHistoryAction(HistoryAction action)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 
     private IEnumerable<EditableColorBaseViewModel> CreateColorModels()

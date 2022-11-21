@@ -4,17 +4,24 @@ using ImageMagitek.Colors;
 
 namespace ImageMagitek.Utility.Parsing;
 
-public static class ColorParser
+public static partial class ColorParser
 {
-    private const string _nativeColorRegexString = "^#([A-Fa-f0-9]{2}){3,4}$";
-    private const string _nesColorRegexString = "^#([A-Fa-f0-9]{2})$";
-    private const string _twoByteColorRegexString = "^#([A-Fa-f0-9]{4})$";
-    private const string _oneByteColorRegexString = "^#([A-Fa-f0-9]{2})$";
+    private const string _nativeColorRegexString    = @"^#([A-Fa-f0-9]{2}){3,4}$";
+    private const string _nesColorRegexString       = @"^#[A-Fa-f0-9]{2}$";
+    private const string _twoByteColorRegexString   = @"^#[A-Fa-f0-9]{4}$";
+    private const string _oneByteColorRegexString   = @"^#[A-Fa-f0-9]{2}$";
 
-    private static readonly Regex _nativeRegex = new Regex(_nativeColorRegexString, RegexOptions.Compiled);
-    private static readonly Regex _nesRegex = new Regex(_nesColorRegexString, RegexOptions.Compiled);
-    private static readonly Regex _twoByteRegex = new Regex(_twoByteColorRegexString, RegexOptions.Compiled);
-    private static readonly Regex _oneByteRegex = new Regex(_twoByteColorRegexString, RegexOptions.Compiled);
+    [GeneratedRegex(_nativeColorRegexString, RegexOptions.Compiled, "en-US")]
+    private static partial Regex NativeRegex();
+
+    [GeneratedRegex(_nesColorRegexString, RegexOptions.Compiled, "en-US")]
+    private static partial Regex NesRegex();
+
+    [GeneratedRegex(_twoByteColorRegexString, RegexOptions.Compiled, "en-US")]
+    private static partial Regex TwoByteRegex();
+
+    [GeneratedRegex(_oneByteColorRegexString, RegexOptions.Compiled, "en-US")]
+    private static partial Regex OneByteRegex();
 
     /// <summary>
     /// Tries to parse a color represented as a hexadecimal string
@@ -27,7 +34,7 @@ public static class ColorParser
     {
         if (colorModel == ColorModel.Rgba32)
         {
-            if (_nativeRegex.IsMatch(input))
+            if (NativeRegex().IsMatch(input))
             {
                 color = NativeHexStringToColorRgba32(input);
                 return true;
@@ -35,7 +42,7 @@ public static class ColorParser
         }
         else if (colorModel == ColorModel.Rgb15)
         {
-            if (_twoByteRegex.IsMatch(input))
+            if (TwoByteRegex().IsMatch(input))
             {
                 var a = byte.Parse(input.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
                 var b = byte.Parse(input.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber);
@@ -46,7 +53,7 @@ public static class ColorParser
         }
         else if (colorModel == ColorModel.Bgr15)
         {
-            if (_twoByteRegex.IsMatch(input))
+            if (TwoByteRegex().IsMatch(input))
             {
                 var a = byte.Parse(input.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
                 var b = byte.Parse(input.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber);
@@ -57,7 +64,7 @@ public static class ColorParser
         }
         else if (colorModel == ColorModel.Abgr16)
         {
-            if (_twoByteRegex.IsMatch(input))
+            if (TwoByteRegex().IsMatch(input))
             {
                 var a = byte.Parse(input.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
                 var b = byte.Parse(input.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber);
@@ -68,7 +75,7 @@ public static class ColorParser
         }
         else if (colorModel == ColorModel.Nes)
         {
-            if (_nesRegex.IsMatch(input))
+            if (NesRegex().IsMatch(input))
             {
                 uint nesRaw = byte.Parse(input.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
                 color = new ColorNes(nesRaw);
@@ -77,7 +84,7 @@ public static class ColorParser
         }
         else if (colorModel == ColorModel.Bgr9)
         {
-            if (_twoByteRegex.IsMatch(input))
+            if (TwoByteRegex().IsMatch(input))
             {
                 var a = byte.Parse(input.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
                 var b = byte.Parse(input.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber);
@@ -88,7 +95,7 @@ public static class ColorParser
         }
         else if (colorModel == ColorModel.Bgr6)
         {
-            if (_oneByteRegex.IsMatch(input))
+            if (OneByteRegex().IsMatch(input))
             {
                 uint bgr6Raw = byte.Parse(input.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
                 color = new ColorBgr6(bgr6Raw);
