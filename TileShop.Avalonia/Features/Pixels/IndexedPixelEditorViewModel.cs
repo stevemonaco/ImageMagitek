@@ -41,21 +41,21 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         Initialize(arranger, viewX, viewY, viewWidth, viewHeight);
     }
 
-    private void Initialize(Arranger arranger, int viewX, int viewY, int viewWidth, int viewHeight)
+    private void Initialize(Arranger arranger, int viewDx, int viewDy, int viewWidth, int viewHeight)
     {
         Resource = arranger;
         WorkingArranger = arranger.CloneArranger();
-        _viewX = viewX;
-        _viewY = viewY;
+        ViewDx = viewDx;
+        ViewDy = viewDy;
         _viewWidth = viewWidth;
         _viewHeight = viewHeight;
 
-        var maxColors = WorkingArranger.EnumerateElementsWithinPixelRange(viewX, viewY, viewWidth, viewHeight)
+        var maxColors = WorkingArranger.EnumerateElementsWithinPixelRange(ViewDx, ViewDy, viewWidth, viewHeight)
             .OfType<ArrangerElement>()
             .Select(x => 1 << x.Codec.ColorDepth)
             .Max();
 
-        var arrangerPalettes = WorkingArranger.EnumerateElementsWithinPixelRange(viewX, viewY, viewWidth, viewHeight)
+        var arrangerPalettes = WorkingArranger.EnumerateElementsWithinPixelRange(ViewDx, ViewDy, viewWidth, viewHeight)
             .OfType<ArrangerElement>()
             .Select(x => x.Palette)
             .Distinct()
@@ -64,7 +64,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
 
         Palettes = new(arrangerPalettes);
 
-        _indexedImage = new IndexedImage(WorkingArranger, _viewX, _viewY, _viewWidth, _viewHeight);
+        _indexedImage = new IndexedImage(WorkingArranger, ViewDx, ViewDy, _viewWidth, _viewHeight);
         BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
 
         DisplayName = $"Pixel Editor - {WorkingArranger.Name}";
@@ -97,10 +97,10 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         }
         else if (WorkingArranger.Layout == ElementLayout.Tiled)
         {
-            var location = WorkingArranger.PointToElementLocation(new Point(_viewX, _viewY));
+            var location = WorkingArranger.PointToElementLocation(new Point(ViewDx, ViewDy));
 
-            int x = WorkingArranger.ElementPixelSize.Width - (_viewX - location.X * WorkingArranger.ElementPixelSize.Width);
-            int y = WorkingArranger.ElementPixelSize.Height - (_viewY - location.Y * WorkingArranger.ElementPixelSize.Height);
+            int x = WorkingArranger.ElementPixelSize.Width - (ViewDx - location.X * WorkingArranger.ElementPixelSize.Width);
+            int y = WorkingArranger.ElementPixelSize.Height - (ViewDy - location.Y * WorkingArranger.ElementPixelSize.Height);
 
             CreateGridlines(x, y, _viewWidth, _viewHeight,
                 WorkingArranger.ElementPixelSize.Width, WorkingArranger.ElementPixelSize.Height);

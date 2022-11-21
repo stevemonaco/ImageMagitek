@@ -81,6 +81,8 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     public Key SecondaryAltKey { get; protected set; } = Key.LeftShift;
 
     public Action? OnImageModified { get; set; }
+    public int ViewDx { get; protected set; }
+    public int ViewDy { get; protected set; }
 
     public ArrangerEditorViewModel(Arranger arranger, IInteractionService interactionService, IPaletteService paletteService) : base(arranger)
     {

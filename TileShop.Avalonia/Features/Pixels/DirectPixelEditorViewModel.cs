@@ -34,16 +34,16 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
         Initialize(arranger, viewX, viewY, viewWidth, viewHeight);
     }
 
-    private void Initialize(Arranger arranger, int viewX, int viewY, int viewWidth, int viewHeight)
+    private void Initialize(Arranger arranger, int viewDx, int viewDy, int viewWidth, int viewHeight)
     {
         Resource = arranger;
         WorkingArranger = arranger.CloneArranger();
-        _viewX = viewX;
-        _viewY = viewY;
+        ViewDx = viewDx;
+        ViewDy = viewDy;
         _viewWidth = viewWidth;
         _viewHeight = viewHeight;
 
-        _directImage = new DirectImage(WorkingArranger, _viewX, _viewY, _viewWidth, _viewHeight);
+        _directImage = new DirectImage(WorkingArranger, ViewDx, ViewDy, _viewWidth, _viewHeight);
         BitmapAdapter = new DirectBitmapAdapter(_directImage);
 
         DisplayName = $"Pixel Editor - {WorkingArranger.Name}";

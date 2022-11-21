@@ -16,8 +16,6 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     where TColor : struct
 {
     protected readonly Arranger _projectArranger;
-    protected int _viewX;
-    protected int _viewY;
     protected int _viewWidth;
     protected int _viewHeight;
     protected PixelTool? _priorTool;

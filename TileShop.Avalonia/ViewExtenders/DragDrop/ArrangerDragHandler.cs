@@ -39,11 +39,11 @@ public class ArrangerDragHandler : IDragHandlerEx
             }
             else if (vm.SnapMode == SnapMode.Pixel && arranger.ColorType == PixelColorType.Indexed)
             {
-                copy = arranger.CopyPixelsIndexed(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+                copy = arranger.CopyPixelsIndexed(rect.SnappedLeft + vm.ViewDx, rect.SnappedTop + vm.ViewDy, rect.SnappedWidth, rect.SnappedHeight);
             }
             else if (vm.SnapMode == SnapMode.Pixel && arranger.ColorType == PixelColorType.Direct)
             {
-                copy = arranger.CopyPixelsDirect(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+                copy = arranger.CopyPixelsDirect(rect.SnappedLeft + vm.ViewDx, rect.SnappedTop + vm.ViewDy, rect.SnappedWidth, rect.SnappedHeight);
             }
             else
             {
@@ -72,6 +72,10 @@ public class ArrangerDragHandler : IDragHandlerEx
         else if (vm.Paste is not null)
         {
             vm.Paste.IsDragging = true;
+            var pos = e.GetPosition(control);
+
+            vm.Paste.DeltaX = (int)pos.X;
+            vm.Paste.DeltaY = (int)pos.Y;
         }
     }
 }
