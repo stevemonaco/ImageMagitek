@@ -52,7 +52,10 @@ public class ArrangerDragHandler : IDragHandlerEx
 
             var pos = e.GetPosition(control);
 
-            var payload = new ArrangerPaste(copy, vm.SnapMode);
+            var payload = new ArrangerPaste(copy, vm.SnapMode)
+            {
+                IsDragging = true
+            };
 
             if (copy is not ElementCopy { Height: 1, Width: 1 })
             {
@@ -65,6 +68,10 @@ public class ArrangerDragHandler : IDragHandlerEx
 
             vm.Selection = new ArrangerSelection(arranger, vm.SnapMode);
             e.Handled = true;
+        }
+        else if (vm.Paste is not null)
+        {
+            vm.Paste.IsDragging = true;
         }
     }
 }

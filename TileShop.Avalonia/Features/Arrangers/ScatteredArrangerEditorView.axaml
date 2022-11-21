@@ -274,6 +274,7 @@
                         x:Name="_overlayCanvas"
                         Width="{Binding BitmapAdapter.Width}"
                         Height="{Binding BitmapAdapter.Height}"
+                        Background="Transparent"
                         Classes="arrangerDrop"
                         ClipToBounds="True"
                         PointerExited="OnPointerExited"
@@ -288,12 +289,14 @@
                             Height="{Binding BitmapAdapter.Height}"
                             ClipToBounds="True"
                             Fill="{DynamicResource CheckeredBrush}"
+                            IsHitTestVisible="False"
                             Stretch="None" />
 
                         <!--  Arranged Image  -->
                         <Image
                             x:Name="_image"
                             Classes="pixel"
+                            IsHitTestVisible="False"
                             Source="{Binding BitmapAdapter.Bitmap}" />
 
                         <!--  Selection Overlay  -->
@@ -303,7 +306,6 @@
                             Width="{Binding Selection.SelectionRect.SnappedWidth}"
                             Height="{Binding Selection.SelectionRect.SnappedHeight}"
                             Classes="arrangerDrag animatedBorder selection"
-                            Cursor="Hand"
                             IsVisible="{Binding Selection.HasSelection}" />
 
                         <!--  Paste Image  -->
@@ -314,8 +316,7 @@
                             Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
                             Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
                             Classes="arrangerDrag pixel"
-                            Cursor="Hand"
-                            IsHitTestVisible="True"
+                            IsHitTestVisible="{Binding !Paste.IsDragging}"
                             Source="{Binding Paste.OverlayImage.Bitmap}" />
 
                         <!--  Paste Overlay  -->
@@ -324,9 +325,7 @@
                             Canvas.Top="{Binding Paste.Rect.SnappedTop}"
                             Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
                             Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-                            Classes="animatedBorder paste"
-                            IsHitTestVisible="True"
-                            IsVisible="{Binding Paste, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            Classes="animatedBorder paste" />
                     </Canvas>
 
                     <!--  Gridline Overlay  -->

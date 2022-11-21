@@ -304,6 +304,7 @@
                         x:Name="_overlayCanvas"
                         Width="{Binding BitmapAdapter.Width}"
                         Height="{Binding BitmapAdapter.Height}"
+                        Background="Transparent"
                         ClipToBounds="True"
                         Cursor="Cross"
                         PointerExited="OnPointerExited"
@@ -315,6 +316,7 @@
                         <Image
                             x:Name="_image"
                             Classes="pixel"
+                            IsHitTestVisible="False"
                             Source="{Binding BitmapAdapter.Bitmap, Mode=OneWay}" />
 
                         <!--  Selection Overlay  -->
@@ -334,8 +336,7 @@
                             Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
                             Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
                             Classes="arrangerDrag pixel"
-                            Cursor="Hand"
-                            IsHitTestVisible="True"
+                            IsHitTestVisible="{Binding !Paste.IsDragging}"
                             Source="{Binding Paste.OverlayImage.Bitmap}" />
 
                         <!--  Paste Overlay  -->
@@ -344,8 +345,7 @@
                             Canvas.Top="{Binding Paste.Rect.SnappedTop}"
                             Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
                             Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-                            Classes="animatedBorder paste"
-                            IsVisible="{Binding Paste, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            Classes="animatedBorder paste" />
                     </Canvas>
 
                     <!--  Gridline Overlay  -->
@@ -358,12 +358,13 @@
                         Items="{Binding Gridlines}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <Canvas />
+                                <Canvas IsHitTestVisible="False" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type model:Gridline}">
                                 <Line
+                                    IsHitTestVisible="False"
                                     Stroke="#B0000000"
                                     StrokeThickness="0.40"
                                     UseLayoutRounding="True"

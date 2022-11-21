@@ -280,7 +280,6 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     {
         if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null)
         {
-            //StartNewSelection(x!.Value, y!.Value);
             if (TryStartNewSingleSelection(x!.Value, y!.Value))
             {
                 CompleteSelection();

@@ -141,23 +141,28 @@
                         x:Name="_overlayCanvas"
                         MaxWidth="{Binding BitmapAdapter.Width}"
                         MaxHeight="{Binding BitmapAdapter.Height}"
+                        Background="Transparent"
+                        Classes="arrangerDrop"
                         ClipToBounds="True"
                         PointerExited="OnPointerExited"
                         PointerMoved="OnPointerMoved"
                         PointerPressed="OnPointerPressed"
                         PointerReleased="OnPointerReleased">
+
                         <!--  Backdrop  -->
                         <Rectangle
                             x:Name="_arrangerBackdrop"
                             Width="{Binding BitmapAdapter.Width}"
                             Height="{Binding BitmapAdapter.Height}"
                             Fill="{DynamicResource CheckeredBrush}"
+                            IsHitTestVisible="False"
                             Stretch="None" />
 
                         <!--  Editable Image  -->
                         <Image
                             x:Name="_image"
                             Classes="pixel"
+                            IsHitTestVisible="False"
                             Source="{Binding BitmapAdapter.Bitmap}" />
 
                         <Rectangle
@@ -165,15 +170,17 @@
                             Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
                             Width="{Binding Selection.SelectionRect.SnappedWidth}"
                             Height="{Binding Selection.SelectionRect.SnappedHeight}"
-                            Classes="animatedBorder selection"
+                            Classes="arrangerDrag animatedBorder selection"
                             IsVisible="{Binding Selection.HasSelection}" />
 
                         <Image
+                            x:Name="pasteImage"
                             Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
                             Canvas.Top="{Binding Paste.Rect.SnappedTop}"
                             Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
                             Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-                            Classes="pixel"
+                            Classes="arrangerDrag pixel"
+                            IsHitTestVisible="{Binding !Paste.IsDragging}"
                             Source="{Binding Paste.OverlayImage.Bitmap}" />
 
                         <Rectangle
@@ -181,8 +188,7 @@
                             Canvas.Top="{Binding Paste.Rect.SnappedTop}"
                             Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
                             Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-                            Classes="animatedBorder paste"
-                            IsVisible="{Binding Paste, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                            Classes="animatedBorder paste" />
                     </Canvas>
 
                     <!--  Gridline Overlay  -->
@@ -195,12 +201,13 @@
                         Items="{Binding Gridlines}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <Canvas />
+                                <Canvas IsHitTestVisible="False" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type model:Gridline}">
                                 <Line
+                                    IsHitTestVisible="False"
                                     Stroke="#B0000000"
                                     StrokeThickness="0.40"
                                     UseLayoutRounding="True"

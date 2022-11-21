@@ -2,12 +2,13 @@
 using System.Drawing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
+using TileShop.AvaloniaUI.DragDrop;
 using TileShop.AvaloniaUI.Imaging;
 using TileShop.Shared.Models;
 
 namespace TileShop.AvaloniaUI.Models;
 
-public partial class ArrangerPaste : ObservableObject
+public partial class ArrangerPaste : ObservableObject, IDraggable
 {
     public ArrangerCopy Copy { get; private set; }
     public int DeltaX { get; set; }
@@ -26,8 +27,8 @@ public partial class ArrangerPaste : ObservableObject
     }
 
     [ObservableProperty] private BitmapAdapter _overlayImage;
-
     [ObservableProperty] private SnappedRectangle _rect;
+    [ObservableProperty] private bool _isDragging;
 
     public ArrangerPaste(ArrangerCopy copy, SnapMode snapMode)
     {
