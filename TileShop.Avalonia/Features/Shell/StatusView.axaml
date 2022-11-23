@@ -10,26 +10,9 @@
     x:CompileBindings="True"
     x:DataType="vm:StatusViewModel"
     mc:Ignorable="d">
-    <Grid>
-        <DockPanel Margin="8,0,8,0">
-            <TextBlock DockPanel.Dock="Left" Text="{Binding Editors.ActiveEditor.ActivityMessage}" />
-            <TextBlock DockPanel.Dock="Right" Text="{Binding Editors.ActiveEditor.PendingOperationMessage}" />
-
-            <TextBlock Text="{Binding ActivityMessage, TargetNullValue=' '}" />
-            <!--<TextBlock.Triggers>
-				<EventTrigger RoutedEvent="Binding.TargetUpdated">
-					<BeginStoryboard>
-						<Storyboard>
-							<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
-								<EasingDoubleKeyFrame KeyTime="0" Value="0" />
-								<EasingDoubleKeyFrame KeyTime="0:0:0.25" Value="1" />
-								<EasingDoubleKeyFrame KeyTime="0:0:14" Value="1" />
-								<EasingDoubleKeyFrame KeyTime="0:0:15" Value="0" />
-							</DoubleAnimationUsingKeyFrames>
-						</Storyboard>
-					</BeginStoryboard>
-				</EventTrigger>
-			</TextBlock.Triggers>-->
-        </DockPanel>
+    <Grid Margin="8,0,8,0" ColumnDefinitions="auto,*,auto,*,auto">
+        <TextBlock Grid.Column="0" Text="{Binding Editors.ActiveEditor.ActivityMessage}" />
+        <TextBlock Grid.Column="2" Text="{Binding Editors.ActiveEditor.PendingOperationMessage}" />
+        <TextBlock Grid.Column="4" Text="{Binding StatusMessage}" />
     </Grid>
 </UserControl>

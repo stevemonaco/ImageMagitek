@@ -120,9 +120,9 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
                 CancelOverlay();
                 BitmapAdapter.Invalidate();
 
-                return new NotifyOperationEvent("Paste successfully applied");
+                return new NotifyStatusEvent("Paste successfully applied");
             },
-            fail => new NotifyOperationEvent(fail.Reason)
+            fail => new NotifyStatusEvent(fail.Reason)
             );
 
         Messenger.Send(notifyEvent);
@@ -220,9 +220,9 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
                     BitmapAdapter.Invalidate(x, y, 1, 1);
                     OnImageModified?.Invoke();
                 }
-                return new NotifyOperationEvent("");
+                return new NotifyStatusEvent("");
             },
-            fail => new NotifyOperationEvent(fail.Reason)
+            fail => new NotifyStatusEvent(fail.Reason)
             );
         Messenger.Send(notifyEvent);
     }

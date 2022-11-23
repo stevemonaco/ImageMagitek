@@ -484,7 +484,6 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     {
         var model = new ResizeTiledScatteredArrangerViewModel(_interactions, WorkingArranger.ArrangerElementSize.Width, WorkingArranger.ArrangerElementSize.Height);
 
-        //var dialogResult = await _windowManager.ShowDialog(model);
         var dialogResult = await _interactions.RequestAsync(model);
 
         if (dialogResult is not null)
@@ -544,9 +543,9 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
                 AddHistoryAction(new PasteArrangerHistoryAction(paste));
                 IsModified = true;
                 Render();
-                return new NotifyOperationEvent("Paste successfully applied");
+                return new NotifyStatusEvent("Paste successfully applied");
             },
-            fail => new NotifyOperationEvent(fail.Reason)
+            fail => new NotifyStatusEvent(fail.Reason)
             );
 
         Messenger.Send(notifyEvent);

@@ -2,4 +2,4 @@
 
 public enum NotifyStatusDuration { Short, Indefinite, Reset }
 
-public record NotifyStatusEvent(string NotifyMessage, NotifyStatusDuration DisplayDuration);
+public record NotifyStatusEvent(string NotifyMessage, NotifyStatusDuration DisplayDuration = NotifyStatusDuration.Short);

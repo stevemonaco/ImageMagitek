@@ -129,9 +129,9 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
                 CancelOverlay();
                 BitmapAdapter.Invalidate();
 
-                return new NotifyOperationEvent("Paste successfully applied");
+                return new NotifyStatusEvent("Paste successfully applied");
             },
-            fail => new NotifyOperationEvent(fail.Reason)
+            fail => new NotifyStatusEvent(fail.Reason)
             );
 
         Messenger.Send(notifyEvent);

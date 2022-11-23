@@ -23,6 +23,7 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
 
     [ObservableProperty] private bool _isDrawing;
     [ObservableProperty] private PixelTool _activeTool = PixelTool.Pencil;
+
     [ObservableProperty] private TColor _activeColor;
     [ObservableProperty] private TColor _primaryColor;
     [ObservableProperty] private TColor _secondaryColor;
@@ -59,6 +60,7 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     public void PopTool()
     {
         ActiveTool = _priorTool ?? ActiveTool;
+        _priorTool = null;
     }
 
     [RelayCommand] public void SetPrimaryColor(TColor color) => PrimaryColor = color;
@@ -151,7 +153,7 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     public override void KeyPress(KeyState keyState, double? x, double? y)
     {
         //if (keyState.Modifiers.HasFlag(KeyModifiers.Alt) && x.HasValue && y.HasValue && Paste is null)
-        if (keyState.Key == Key.LeftAlt && x.HasValue && y.HasValue && Paste is null)
+        if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null && _priorTool is null)
         {
             PushTool(PixelTool.ColorPicker);
 
@@ -162,7 +164,7 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     public override void KeyUp(KeyState keyState, double? x, double? y)
     {
         //if (keyState.Modifiers.HasFlag(KeyModifiers.Alt) && x.HasValue && y.HasValue && Paste is null)
-        if (keyState.Key == Key.LeftAlt && x.HasValue && y.HasValue && Paste is null)
+        if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null)
         {
             PopTool();
 
@@ -249,6 +251,7 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
         }
         else
         {
+            PopTool();
             base.MouseLeave();
         }
     }
