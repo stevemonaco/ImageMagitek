@@ -103,6 +103,7 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
         {
             IsModified = true;
             BitmapAdapter.Invalidate(x, y, 1, 1);
+            OnImageModified?.Invoke();
         }
     }
 

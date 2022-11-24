@@ -225,13 +225,14 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
         var bounds = WorkingArranger.ArrangerPixelSize;
         int xc = Math.Clamp((int)x, 0, bounds.Width - 1);
         int yc = Math.Clamp((int)y, 0, bounds.Height - 1);
-        LastMousePosition = new(xc, yc);
 
-        if (x < 0 || x >= bounds.Width || y < 0 || y >= bounds.Height)
+        if (x < 0 || x >= _viewWidth || y < 0 || y >= _viewHeight)
         {
             LastMousePosition = null;
             return;
         }
+
+        LastMousePosition = new(xc, yc);
 
         if (IsDrawing && ActiveTool == PixelTool.Pencil && mouseState.LeftButtonPressed)
             SetPixel(xc, yc, PrimaryColor);
