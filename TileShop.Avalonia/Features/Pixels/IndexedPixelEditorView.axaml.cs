@@ -69,7 +69,6 @@ public partial class IndexedPixelEditorView : UserControl, IStateViewDriver<Inde
             var point = e.GetCurrentPoint(_image);
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             ViewModel.MouseDown(point.Position.X, point.Position.Y, state);
-            //e.Handled = true;
         }
     }
 
@@ -80,7 +79,6 @@ public partial class IndexedPixelEditorView : UserControl, IStateViewDriver<Inde
             var point = e.GetCurrentPoint(_image);
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             ViewModel.MouseUp(point.Position.X, point.Position.Y, state);
-            //e.Handled = true;
         }
     }
 
@@ -94,14 +92,12 @@ public partial class IndexedPixelEditorView : UserControl, IStateViewDriver<Inde
 
             Canvas.SetLeft(_penPreview, (int)point.Position.X);
             Canvas.SetTop(_penPreview, (int)point.Position.Y);
-            //e.Handled = true;
         }
     }
 
     public void OnPointerExited(object sender, PointerEventArgs e)
     {
         ViewModel?.MouseLeave();
-        //e.Handled = true;
     }
 
     public void OnPointerWheelChanged(object sender, PointerWheelEventArgs e)
@@ -113,12 +109,10 @@ public partial class IndexedPixelEditorView : UserControl, IStateViewDriver<Inde
             if (e.Delta.Y > 0)
             {
                 ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
-                //e.Handled = true;
             }
             else if (e.Delta.Y < 0)
             {
                 ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
-                //e.Handled = true;
             }
         }
     }

@@ -36,7 +36,6 @@ public partial class DirectPixelEditorView : UserControl, IStateViewDriver<Direc
             var point = e.GetCurrentPoint(_image);
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             ViewModel.MouseDown(point.Position.X, point.Position.Y, state);
-            //e.Handled = true;
         }
     }
 
@@ -47,7 +46,6 @@ public partial class DirectPixelEditorView : UserControl, IStateViewDriver<Direc
             var point = e.GetCurrentPoint(_image);
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             ViewModel.MouseUp(point.Position.X, point.Position.Y, state);
-            //e.Handled = true;
         }
     }
 
@@ -59,14 +57,12 @@ public partial class DirectPixelEditorView : UserControl, IStateViewDriver<Direc
 
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             ViewModel.MouseMove(point.Position.X, point.Position.Y, state);
-            //e.Handled = true;
         }
     }
 
     public void OnPointerExited(object sender, PointerEventArgs e)
     {
         ViewModel?.MouseLeave();
-        //e.Handled = true;
     }
 
     public void OnPointerWheelChanged(object sender, PointerWheelEventArgs e)
@@ -78,12 +74,10 @@ public partial class DirectPixelEditorView : UserControl, IStateViewDriver<Direc
             if (e.Delta.Y > 0)
             {
                 ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
-                //e.Handled = true;
             }
             else if (e.Delta.Y < 0)
             {
                 ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
-                //e.Handled = true;
             }
         }
     }

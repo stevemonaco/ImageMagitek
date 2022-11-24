@@ -152,7 +152,6 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     #region Input Actions
     public override void KeyPress(KeyState keyState, double? x, double? y)
     {
-        //if (keyState.Modifiers.HasFlag(KeyModifiers.Alt) && x.HasValue && y.HasValue && Paste is null)
         if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null && _priorTool is null)
         {
             PushTool(PixelTool.ColorPicker);
@@ -163,7 +162,6 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
 
     public override void KeyUp(KeyState keyState, double? x, double? y)
     {
-        //if (keyState.Modifiers.HasFlag(KeyModifiers.Alt) && x.HasValue && y.HasValue && Paste is null)
         if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null)
         {
             PopTool();

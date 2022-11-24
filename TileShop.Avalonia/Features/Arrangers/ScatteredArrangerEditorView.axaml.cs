@@ -4,7 +4,6 @@ using Avalonia.Input;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.AvaloniaUI.Input;
 using TileShop.Shared.Input;
-using System.Diagnostics;
 using System.Drawing;
 
 namespace TileShop.AvaloniaUI.Views;
@@ -34,7 +33,6 @@ public partial class ScatteredArrangerEditorView : UserControl, IStateViewDriver
         {
             var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
             ViewModel.KeyUp(state, point.X, point.Y);
-            //e.Handled = true;
         }
     }
 
@@ -54,7 +52,6 @@ public partial class ScatteredArrangerEditorView : UserControl, IStateViewDriver
             var point = e.GetCurrentPoint(_image);
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             ViewModel.MouseDown(point.Position.X, point.Position.Y, state);
-            //e.Handled = true;
         }
     }
 
@@ -65,7 +62,6 @@ public partial class ScatteredArrangerEditorView : UserControl, IStateViewDriver
             var point = e.GetCurrentPoint(_image);
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             ViewModel.MouseUp(point.Position.X, point.Position.Y, state);
-            //e.Handled = true;
         }
     }
 
@@ -77,7 +73,6 @@ public partial class ScatteredArrangerEditorView : UserControl, IStateViewDriver
 
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             ViewModel.MouseMove(point.Position.X, point.Position.Y, state);
-            //e.Handled = true;
         }
     }
 
@@ -87,13 +82,10 @@ public partial class ScatteredArrangerEditorView : UserControl, IStateViewDriver
             return;
 
         var pos = e.GetCurrentPoint(_image).Position;
-        Debug.WriteLine($"Exiting Arranger: {pos.X:F2}, {pos.Y:F2}");
 
         if (pos.X < 0 || pos.X >= ViewModel.BitmapAdapter.Width || pos.Y < 0 || pos.Y >= ViewModel.BitmapAdapter.Height)
         {
-            Debug.WriteLine("Exited Arranger");
             ViewModel?.MouseLeave();
-            //e.Handled = true;
         }
     }
 
@@ -106,12 +98,10 @@ public partial class ScatteredArrangerEditorView : UserControl, IStateViewDriver
             if (e.Delta.Y > 0)
             {
                 ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
-                //e.Handled = true;
             }
             else if (e.Delta.Y < 0)
             {
                 ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
-                //e.Handled = true;
             }
         }
     }

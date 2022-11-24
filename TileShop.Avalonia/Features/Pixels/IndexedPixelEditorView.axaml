@@ -70,9 +70,11 @@
                 <TextBlock HorizontalAlignment="Center" Text="Tools" />
 
                 <StackPanel Orientation="Horizontal">
-                    <ToggleButton
+                    <RadioButton
+                        Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:PixelTool.Select}"
+                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
                         ToolTip.Tip="Rectangular Selection Tool">
                         <PathIcon
@@ -80,11 +82,13 @@
                             Height="20"
                             Data="{StaticResource pathIconRectangularSelection}"
                             Foreground="{DynamicResource iconBrush}" />
-                    </ToggleButton>
+                    </RadioButton>
 
-                    <ToggleButton
+                    <RadioButton
+                        Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:PixelTool.Pencil}"
+                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Pencil}"
                         ToolTip.Tip="Pencil Tool">
                         <PathIcon
@@ -92,10 +96,12 @@
                             Height="20"
                             Data="{StaticResource pathIconPencil}"
                             Foreground="{DynamicResource iconBrush}" />
-                    </ToggleButton>
-                    <ToggleButton
+                    </RadioButton>
+                    <RadioButton
+                        Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:PixelTool.ColorPicker}"
+                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColorPicker}"
                         ToolTip.Tip="Color Picker Tool">
                         <PathIcon
@@ -104,10 +110,12 @@
                             Data="{StaticResource pathIconColorPicker}"
                             Foreground="{DynamicResource iconBrush}"
                             RenderTransform="scaleY(-1)" />
-                    </ToggleButton>
-                    <ToggleButton
+                    </RadioButton>
+                    <RadioButton
+                        Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:PixelTool.FloodFill}"
+                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=FloodFill}"
                         ToolTip.Tip="Flood Fill Tool">
                         <PathIcon
@@ -116,7 +124,7 @@
                             Data="{StaticResource pathIconFloodFill}"
                             Foreground="{DynamicResource iconBrush}"
                             RenderTransform="scaleY(-1)" />
-                    </ToggleButton>
+                    </RadioButton>
                 </StackPanel>
             </StackPanel>
 
