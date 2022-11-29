@@ -29,7 +29,7 @@
         <Thickness x:Key="ContentDialogPadding">24,12,24,12</Thickness>
         <x:Double x:Key="ContentDialogMinHeight">160</x:Double>
 
-        <VisualBrush
+        <!--<VisualBrush
             x:Key="CheckeredBrush"
             DestinationRect="0,0,16,16"
             Stretch="None"
@@ -48,6 +48,6 @@
                     </Image.Source>
                 </Image>
             </VisualBrush.Visual>
-        </VisualBrush>
+        </VisualBrush>-->
     </Application.Resources>
 </Application>

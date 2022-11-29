@@ -1,29 +1,46 @@
-﻿<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-		xmlns:vm="using:TileShop.AvaloniaUI.ViewModels">
-    <Design.PreviewWith>
-        <Border Padding="20">
-            <!-- Add Controls for Previewer Here -->
-        </Border>
-    </Design.PreviewWith>
+﻿<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:TileShop.AvaloniaUI.ViewModels">
+    <Style Selector="DocumentControl">
+        <Setter Property="HeaderTemplate">
+            <DataTemplate DataType="vm:DockableEditorViewModel">
+                <StackPanel Margin="2" Orientation="Horizontal">
+                    <TextBlock Text="{Binding Editor.DisplayName}" />
+                    <TextBlock IsVisible="{Binding Editor.IsModified}" Text="*" />
+                </StackPanel>
+            </DataTemplate>
+        </Setter>
+    </Style>
 
-	<Style Selector="DocumentControl">
-		<Setter Property="HeaderTemplate">
-			<DataTemplate DataType="vm:DockableEditorViewModel">
-				<StackPanel Orientation="Horizontal" Margin="2">
-					<TextBlock Text="{Binding Editor.DisplayName}" />
-					<TextBlock Text="*" IsVisible="{Binding Editor.IsModified}" />
-				</StackPanel>
-			</DataTemplate>
-		</Setter>
-	</Style>
+    <Style Selector="SelectableTextBlock">
+        <Setter Property="SelectionBrush" Value="{DynamicResource SystemAccentColor}" />
+    </Style>
 
-	<Style Selector="SelectableTextBlock">
-		<Setter Property="SelectionBrush" Value="{DynamicResource SystemAccentColor}" />
-	</Style>
+    <Style Selector="Image.pixel">
+        <Setter Property="RenderOptions.BitmapInterpolationMode" Value="Default" />
+        <Setter Property="Stretch" Value="None" />
+    </Style>
 
-	<Style Selector="Image.pixel">
-		<Setter Property="RenderOptions.BitmapInterpolationMode" Value="Default" />
-		<Setter Property="Stretch" Value="None" />
-	</Style>
+    <Style Selector="PathIcon.tool">
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Foreground" Value="{DynamicResource iconBrush}" />
+    </Style>
+
+    <Style Selector="PathIcon.menu">
+        <Setter Property="Foreground" Value="{DynamicResource iconBrush}" />
+    </Style>
+
+    <Style Selector="PathIcon.vflip">
+        <Setter Property="RenderTransform" Value="scaley(-1)" />
+    </Style>
+
+    <Style Selector="PathIcon.hflip">
+        <Setter Property="RenderTransform" Value="scalex(-1)" />
+    </Style>
+
+    <Style Selector="PathIcon.turn">
+        <Setter Property="RenderTransform" Value="scale(-1)" />
+    </Style>
 </Styles>

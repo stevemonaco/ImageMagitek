@@ -19,6 +19,7 @@ using TileShop.Shared.Interactions;
 
 using Point = System.Drawing.Point;
 using System.Drawing;
+using Jot;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -48,12 +49,14 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     }
 
     public ScatteredArrangerEditorViewModel(Arranger arranger, IInteractionService interactionService,
-        IPaletteService paletteService, IProjectService projectService, AppSettings settings) :
-        base(arranger, interactionService, paletteService)
+        IPaletteService paletteService, IProjectService projectService, Tracker tracker, AppSettings settings) :
+        base(arranger, interactionService, paletteService, tracker)
     {
         AreSymmetryToolsEnabled = settings.EnableArrangerSymmetryTools;
 
         CreateImages();
+        _gridSettings = GridSettingsViewModel.CreateDefault(_indexedImage!);
+        //_gridSettings = GridSettingsViewModel.CreateDefault(arranger);
 
         if (arranger.Layout == ElementLayout.Single)
         {
@@ -129,6 +132,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     {
         WorkingArranger = ((Arranger)Resource).CloneArranger();
         CreateImages();
+        GridSettings.AdjustGridlines(WorkingArranger);
         IsModified = false;
     }
 
@@ -320,20 +324,6 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
             _directImage = new DirectImage(WorkingArranger);
             BitmapAdapter = new DirectBitmapAdapter(_directImage);
         }
-
-        CreateGridlines();
-    }
-
-    protected override void CreateGridlines()
-    {
-        if (WorkingArranger.Layout == ElementLayout.Single)
-        {
-            CreateGridlines(0, 0, WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height, 8, 8);
-        }
-        else if (WorkingArranger.Layout == ElementLayout.Tiled)
-        {
-            base.CreateGridlines();
-        }
     }
 
     public override void Render()
@@ -439,7 +429,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
                     fail =>
                     {
                         //if (notify)
-                        //    _events.PublishOnUIThread(new NotifyOperationEvent(fail.Reason));
+                        //    _events.PublishOnUIThread(new NotifyStatusEvent(fail.Reason));
                         return false;
                     });
             }
@@ -490,6 +480,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         {
             WorkingArranger.Resize(dialogResult.Width, dialogResult.Height);
             CreateImages();
+            GridSettings = GridSettingsViewModel.CreateDefault(_indexedImage!);
             AddHistoryAction(new ResizeArrangerHistoryAction(dialogResult.Width, dialogResult.Height));
 
             IsModified = true;
@@ -630,6 +621,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
         WorkingArranger = ((Arranger)Resource).CloneArranger();
         CreateImages();
+        GridSettings = GridSettingsViewModel.CreateDefault(_indexedImage);
 
         foreach (var action in UndoHistory)
             ApplyHistoryAction(action);

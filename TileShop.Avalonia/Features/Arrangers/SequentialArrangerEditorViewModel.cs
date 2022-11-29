@@ -158,7 +158,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
 
     public SequentialArrangerEditorViewModel(SequentialArranger arranger, IInteractionService interactionService,
         Tracker tracker, ICodecService codecService, IPaletteService paletteService, IElementLayoutService layoutService) :
-        base(arranger, interactionService, paletteService)
+        base(arranger, interactionService, paletteService, tracker)
     {
         Resource = arranger;
         WorkingArranger = arranger;
@@ -454,7 +454,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         }
         else if (codec.Layout == ImageMagitek.Codec.ImageLayout.Single)
         {
-            ShowGridlines = false;
+            GridSettings.ShowGridlines = false;
             _linearArrangerHeight = codec.Height;
             _linearArrangerWidth = codec.Width;
 
@@ -472,6 +472,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         ElementWidthIncrement = codec.WidthResizeIncrement;
         ElementHeightIncrement = codec.HeightResizeIncrement;
         CreateImages();
+        GridSettings.AdjustGridlines(WorkingArranger);
 
         OnPropertyChanged(nameof(FileOffset));
         OnPropertyChanged(nameof(IsTiledLayout));
@@ -505,21 +506,19 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
             _directImage = new DirectImage(WorkingArranger);
             BitmapAdapter = new DirectBitmapAdapter(_directImage);
         }
-
-        CreateGridlines();
     }
 
-    protected override void CreateGridlines()
-    {
-        if (WorkingArranger.Layout == ElementLayout.Single)
-        {
-            CreateGridlines(0, 0, WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height, 8, 8);
-        }
-        else if (WorkingArranger.Layout == ElementLayout.Tiled)
-        {
-            base.CreateGridlines();
-        }
-    }
+    //protected override void CreateGridlines()
+    //{
+    //    if (WorkingArranger.Layout == ElementLayout.Single)
+    //    {
+    //        CreateGridlines(0, 0, WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height, 8, 8);
+    //    }
+    //    else if (WorkingArranger.Layout == ElementLayout.Tiled)
+    //    {
+    //        base.CreateGridlines();
+    //    }
+    //}
 
     public override void Render()
     {

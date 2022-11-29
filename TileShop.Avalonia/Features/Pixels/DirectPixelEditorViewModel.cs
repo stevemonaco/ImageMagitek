@@ -13,6 +13,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
+using Jot;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -21,15 +22,15 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
     private DirectImage _directImage = null!;
 
     public DirectPixelEditorViewModel(Arranger arranger, Arranger projectArranger,
-        IInteractionService interactionService, IPaletteService paletteService)
-        : base(projectArranger, interactionService, paletteService)
+        IInteractionService interactionService, IPaletteService paletteService, Tracker tracker)
+        : base(projectArranger, interactionService, paletteService, tracker)
     {
         Initialize(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
     }
 
     public DirectPixelEditorViewModel(Arranger arranger, Arranger projectArranger, int viewX, int viewY, int viewWidth, int viewHeight,
-        IInteractionService interactionService, IPaletteService paletteService)
-        : base(projectArranger, interactionService, paletteService)
+        IInteractionService interactionService, IPaletteService paletteService, Tracker tracker)
+        : base(projectArranger, interactionService, paletteService, tracker)
     {
         Initialize(arranger, viewX, viewY, viewWidth, viewHeight);
     }
@@ -48,7 +49,7 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
 
         DisplayName = $"Pixel Editor - {WorkingArranger.Name}";
         Selection = new ArrangerSelection(arranger, SnapMode);
-        CreateGridlines();
+        GridSettings = GridSettingsViewModel.CreateDefault(_directImage);
 
         PrimaryColor = new ColorRgba32(255, 255, 255, 255);
         SecondaryColor = new ColorRgba32(0, 0, 0, 255);

@@ -5,11 +5,14 @@
     xmlns:con="using:TileShop.AvaloniaUI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fac="using:FluentAvalonia.Controls"
+    xmlns:i="using:Avalonia.Xaml.Interactivity"
+    xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
     xmlns:m="using:TileShop.AvaloniaUI.Models"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="using:TileShop.Shared.Models"
     xmlns:paz="using:Avalonia.Controls.PanAndZoom"
     xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+    x:Name="control"
     d:DesignHeight="450"
     d:DesignWidth="800"
     x:CompileBindings="True"
@@ -26,7 +29,33 @@
         <KeyBinding Command="{Binding UndoCommand}" Gesture="Ctrl+Z" />
         <KeyBinding Command="{Binding RedoCommand}" Gesture="Ctrl+Y" />
         <KeyBinding Command="{Binding SelectAllCommand}" Gesture="Ctrl+A" />
+        <KeyBinding Command="{Binding ModifyGridSettingsCommand}" Gesture="Ctrl+G" />
     </UserControl.KeyBindings>
+
+    <UserControl.ContextMenu>
+        <ContextMenu>
+            <MenuItem Command="{Binding SelectAllCommand}" Header="Select All" />
+            <MenuItem Command="{Binding ModifyGridSettingsCommand}" Header="Grid Settings..." />
+            <MenuItem Command="{Binding ToggleSymmetryToolsCommand}" Header="Show Symmetry Tools">
+                <i:Interaction.Behaviors>
+                    <ia:DataTriggerBehavior Binding="{ReflectionBinding #control.DataContext.AreSymmetryToolsEnabled}" Value="True">
+                        <ia:ChangePropertyAction PropertyName="Icon">
+                            <ia:ChangePropertyAction.Value>
+                                <PathIcon Classes="menu" Data="{StaticResource pathIconCheckedBox}" />
+                            </ia:ChangePropertyAction.Value>
+                        </ia:ChangePropertyAction>
+                    </ia:DataTriggerBehavior>
+                    <ia:DataTriggerBehavior Binding="{ReflectionBinding #control.DataContext.AreSymmetryToolsEnabled}" Value="False">
+                        <ia:ChangePropertyAction PropertyName="Icon">
+                            <ia:ChangePropertyAction.Value>
+                                <PathIcon Classes="menu" Data="{StaticResource pathIconUncheckedBox}" />
+                            </ia:ChangePropertyAction.Value>
+                        </ia:ChangePropertyAction>
+                    </ia:DataTriggerBehavior>
+                </i:Interaction.Behaviors>
+            </MenuItem>
+        </ContextMenu>
+    </UserControl.ContextMenu>
 
     <Grid RowDefinitions="auto,*" UseLayoutRounding="True">
         <!--  Toolbar  -->
@@ -34,20 +63,6 @@
             Grid.Row="0"
             Margin="5,5,0,10"
             Orientation="Horizontal">
-
-            <StackPanel.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Command="{Binding ToggleSymmetryToolsCommand}" Header="Show Symmetry Tools">
-                        <MenuItem.Icon>
-                            <CheckBox
-                                BorderThickness="0"
-                                IsChecked="{Binding AreSymmetryToolsEnabled}"
-                                IsHitTestVisible="False" />
-                        </MenuItem.Icon>
-                    </MenuItem>
-                </ContextMenu>
-            </StackPanel.ContextMenu>
-
             <!--  Tools  -->
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Tools" />
@@ -57,111 +72,70 @@
                         Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:ScatteredArrangerTool.Select}"
-                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
                         ToolTip.Tip="Click and drag across Arranger to select a region or hold Ctrl to quickly drag single elements">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconRectangularSelection}"
-                            Foreground="{DynamicResource iconBrush}" />
+                        <PathIcon Classes="tool" Data="{StaticResource pathIconRectangularSelection}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:ScatteredArrangerTool.ApplyPalette}"
-                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ApplyPalette}"
                         ToolTip.Tip="{Binding SelectedPalette.Name, StringFormat='Click on an Arranger element to apply the current palette (\{0\})'}">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconPaletteBrush}"
-                            Foreground="{DynamicResource iconBrush}"
-                            RenderTransform="scaleY(-1)" />
+                        <PathIcon Classes="tool vflip" Data="{StaticResource pathIconPaletteBrush}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:ScatteredArrangerTool.PickPalette}"
-                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=PickPalette}"
                         ToolTip.Tip="Click on an Arranger element to pick its associated palette">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconPalettePicker}"
-                            Foreground="{DynamicResource iconBrush}" />
+                        <PathIcon Classes="tool" Data="{StaticResource pathIconPalettePicker}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:ScatteredArrangerTool.InspectElement}"
-                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=InspectElement}"
                         ToolTip.Tip="Hover Arranger elements to inspect their properties">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconEye}"
-                            Foreground="{DynamicResource iconBrush}" />
+                        <PathIcon Classes="tool" Data="{StaticResource pathIconEye}" />
                     </RadioButton>
 
                     <RadioButton
                         Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:ScatteredArrangerTool.RotateLeft}"
-                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateLeft}"
                         IsVisible="{Binding AreSymmetryToolsEnabled}"
                         ToolTip.Tip="Rotate Element's Display Left">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconRotateLeft}"
-                            Foreground="{DynamicResource iconBrush}" />
+                        <PathIcon Classes="tool" Data="{StaticResource pathIconRotateLeft}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:ScatteredArrangerTool.RotateRight}"
-                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateRight}"
                         IsVisible="{Binding AreSymmetryToolsEnabled}"
                         ToolTip.Tip="Rotate Element's Display Right">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconRotateRight}"
-                            Foreground="{DynamicResource iconBrush}" />
+                        <PathIcon Classes="tool" Data="{StaticResource pathIconRotateRight}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:ScatteredArrangerTool.MirrorHorizontal}"
-                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorHorizontal}"
                         IsVisible="{Binding AreSymmetryToolsEnabled}"
                         ToolTip.Tip="Mirror Element's Display Horizontally">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconMirrorHorizontal}"
-                            Foreground="{DynamicResource iconBrush}" />
+                        <PathIcon Classes="tool" Data="{StaticResource pathIconMirrorHorizontal}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:ScatteredArrangerTool.MirrorVertical}"
-                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorVertical}"
                         IsVisible="{Binding AreSymmetryToolsEnabled}"
                         ToolTip.Tip="Mirror Element's Display Vertically">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconMirrorVertical}"
-                            Foreground="{DynamicResource iconBrush}" />
+                        <PathIcon Classes="tool" Data="{StaticResource pathIconMirrorVertical}" />
                     </RadioButton>
                 </StackPanel>
             </StackPanel>
@@ -191,11 +165,7 @@
                         VerticalContentAlignment="Center"
                         Command="{Binding AssociatePaletteCommand}"
                         ToolTip.Tip="Associate an existing Palette from this Project with this Arranger">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconPlusCircle}"
-                            Foreground="{DynamicResource iconBrush}" />
+                        <PathIcon Classes="tool" Data="{StaticResource pathIconPlusCircle}" />
                     </Button>
                 </StackPanel>
             </StackPanel>
@@ -210,13 +180,9 @@
                 <TextBlock HorizontalAlignment="Center" Text="Grid" />
                 <ToggleButton
                     Focusable="False"
-                    IsChecked="{Binding ShowGridlines}"
+                    IsChecked="{Binding GridSettings.ShowGridlines}"
                     ToolTip.Tip="Toggle gridline visibility (G)">
-                    <PathIcon
-                        Width="20"
-                        Height="20"
-                        Data="{StaticResource pathIconGrid}"
-                        Foreground="{DynamicResource iconBrush}" />
+                    <PathIcon Classes="tool" Data="{StaticResource pathIconGrid}" />
                 </ToggleButton>
             </StackPanel>
 
@@ -226,11 +192,7 @@
                     Focusable="False"
                     IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}"
                     ToolTip.Tip="Snap Selection to Elements (S)">
-                    <PathIcon
-                        Width="20"
-                        Height="20"
-                        Data="{StaticResource pathIconSnap}"
-                        Foreground="{DynamicResource iconBrush}" />
+                    <PathIcon Classes="tool" Data="{StaticResource pathIconSnap}" />
                 </ToggleButton>
             </StackPanel>
 
@@ -243,11 +205,7 @@
                 <TextBlock HorizontalAlignment="Center" Text="Resize" />
 
                 <Button Command="{Binding ResizeArrangerCommand}" ToolTip.Tip="Resizes the Arranger">
-                    <PathIcon
-                        Width="20"
-                        Height="20"
-                        Data="{StaticResource pathIconResize}"
-                        Foreground="{DynamicResource iconBrush}" />
+                    <PathIcon Classes="tool" Data="{StaticResource pathIconResize}" />
                 </Button>
             </StackPanel>
 
@@ -258,12 +216,7 @@
                     Command="{Binding EditSelectionCommand}"
                     IsEnabled="{Binding CanEditSelection}"
                     ToolTip.Tip="Opens selection in the pixel editor (E)">
-                    <PathIcon
-                        Width="20"
-                        Height="20"
-                        Data="{StaticResource pathIconEdit}"
-                        Foreground="{DynamicResource iconBrush}"
-                        RenderTransform="scaleY(-1)" />
+                    <PathIcon Classes="tool vflip" Data="{StaticResource pathIconEdit}" />
                 </Button>
             </StackPanel>
         </StackPanel>
@@ -278,35 +231,20 @@
             KeyUp="OnKeyUp"
             VerticalScrollBarVisibility="Auto">
 
-            <paz:ZoomBorder
-                x:Name="_zoomBorder"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                PowerFactor="2"
-                Stretch="None">
+            <paz:ZoomBorder x:Name="_zoomBorder" PowerFactor="2">
                 <Grid>
                     <!--  Image, Selection, and Paste Overlay  -->
                     <Canvas
                         x:Name="_overlayCanvas"
                         Width="{Binding BitmapAdapter.Width}"
                         Height="{Binding BitmapAdapter.Height}"
-                        Background="Transparent"
+                        Background="{Binding GridSettings.BackgroundBrush}"
                         Classes="arrangerDrop"
                         ClipToBounds="True"
                         PointerExited="OnPointerExited"
                         PointerMoved="OnPointerMoved"
                         PointerPressed="OnPointerPressed"
                         PointerReleased="OnPointerReleased">
-
-                        <!--  Backdrop  -->
-                        <Rectangle
-                            x:Name="_arrangerBackdrop"
-                            Width="{Binding BitmapAdapter.Width}"
-                            Height="{Binding BitmapAdapter.Height}"
-                            ClipToBounds="True"
-                            Fill="{DynamicResource CheckeredBrush}"
-                            IsHitTestVisible="False"
-                            Stretch="None" />
 
                         <!--  Arranged Image  -->
                         <Image
@@ -350,8 +288,8 @@
                         MaxHeight="{Binding BitmapAdapter.Height}"
                         ClipToBounds="True"
                         IsHitTestVisible="False"
-                        IsVisible="{Binding ShowGridlines}"
-                        Items="{Binding Gridlines}">
+                        IsVisible="{Binding GridSettings.ShowGridlines}"
+                        Items="{Binding GridSettings.Gridlines}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <Canvas IsHitTestVisible="False" />
@@ -361,7 +299,8 @@
                             <DataTemplate DataType="{x:Type model:Gridline}">
                                 <Line
                                     IsHitTestVisible="False"
-                                    Stroke="#B0000000"
+                                    Stroke="{ReflectionBinding #_zoomBorder.DataContext.GridSettings.LineColor,
+                                                               Converter={x:Static con:AppConverters.ColorToBrush}}"
                                     StrokeThickness="0.40"
                                     UseLayoutRounding="True"
                                     StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"

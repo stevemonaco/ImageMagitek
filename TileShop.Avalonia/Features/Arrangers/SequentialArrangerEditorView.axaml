@@ -38,13 +38,19 @@
         <KeyBinding Command="{Binding ToggleSnapModeCommand}" Gesture="S" />
         <KeyBinding Command="{Binding CancelOverlayCommand}" Gesture="Escape" />
         <KeyBinding Command="{Binding SelectAllCommand}" Gesture="Ctrl+A" />
+        <KeyBinding Command="{Binding ModifyGridSettingsCommand}" Gesture="Ctrl+G" />
     </UserControl.KeyBindings>
 
-    <Grid RowDefinitions="auto,*" UseLayoutRounding="True">
+    <UserControl.ContextMenu>
+        <ContextMenu>
+            <MenuItem Command="{Binding SelectAllCommand}" Header="Select All" />
+            <MenuItem Command="{Binding ModifyGridSettingsCommand}" Header="Grid Settings..." />
+        </ContextMenu>
+    </UserControl.ContextMenu>
 
+    <Grid RowDefinitions="auto,*" UseLayoutRounding="True">
         <!--  Toolbar  -->
         <Border BorderThickness="0,0,0,2">
-
             <Grid RowDefinitions="auto,auto">
                 <!--  Top Toolbar  -->
                 <StackPanel
@@ -80,7 +86,6 @@
                                 Minimum="{Binding ElementHeightIncrement}"
                                 ToolTip.Tip="Element height in pixels"
                                 Value="{Binding TiledElementHeight}" />
-
                         </StackPanel>
                     </StackPanel>
 
@@ -93,7 +98,6 @@
                     <StackPanel>
                         <TextBlock HorizontalAlignment="Center" Text="Arranger" />
                         <StackPanel Orientation="Horizontal" Spacing="2">
-
                             <ComboBox
                                 Height="35"
                                 Focusable="False"
@@ -145,11 +149,7 @@
                                 IsVisible="{Binding IsTiledLayout}"
                                 ToolTip.Tip="Element Layout Pattern">
                                 <Button.Content>
-                                    <PathIcon
-                                        Width="20"
-                                        Height="20"
-                                        Data="{StaticResource pathIconElementLayout}"
-                                        Foreground="{DynamicResource iconBrush}" />
+                                    <PathIcon Classes="tool" Data="{StaticResource pathIconElementLayout}" />
                                 </Button.Content>
                                 <Button.Flyout>
                                     <MenuFlyout Placement="BottomEdgeAlignedLeft">
@@ -185,13 +185,9 @@
 
                         <ToggleButton
                             Focusable="False"
-                            IsChecked="{Binding ShowGridlines}"
+                            IsChecked="{Binding GridSettings.ShowGridlines}"
                             ToolTip.Tip="Toggle gridline visibility (G)">
-                            <PathIcon
-                                Width="20"
-                                Height="20"
-                                Data="{StaticResource pathIconGrid}"
-                                Foreground="{DynamicResource iconBrush}" />
+                            <PathIcon Classes="tool" Data="{StaticResource pathIconGrid}" />
                         </ToggleButton>
                     </StackPanel>
 
@@ -203,11 +199,7 @@
                             IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}"
                             IsVisible="{Binding CanChangeSnapMode}"
                             ToolTip.Tip="Snap Selection to Elements (S)">
-                            <PathIcon
-                                Width="20"
-                                Height="20"
-                                Data="{StaticResource pathIconSnap}"
-                                Foreground="{DynamicResource iconBrush}" />
+                            <PathIcon Classes="tool" Data="{StaticResource pathIconSnap}" />
                         </ToggleButton>
                     </StackPanel>
 
@@ -219,12 +211,7 @@
                             Focusable="False"
                             IsEnabled="{Binding CanEditSelection}"
                             ToolTip.Tip="Opens selection in the pixel editor (E)">
-                            <PathIcon
-                                Width="20"
-                                Height="20"
-                                Data="{StaticResource pathIconEdit}"
-                                Foreground="{DynamicResource iconBrush}"
-                                RenderTransform="scaleY(-1)" />
+                            <PathIcon Classes="tool vflip" Data="{StaticResource pathIconEdit}" />
                         </Button>
                     </StackPanel>
                 </StackPanel>
@@ -304,7 +291,7 @@
                         x:Name="_overlayCanvas"
                         Width="{Binding BitmapAdapter.Width}"
                         Height="{Binding BitmapAdapter.Height}"
-                        Background="Transparent"
+                        Background="{Binding GridSettings.BackgroundBrush}"
                         ClipToBounds="True"
                         Cursor="Cross"
                         PointerExited="OnPointerExited"
@@ -354,8 +341,8 @@
                         MaxHeight="{Binding BitmapAdapter.Height}"
                         ClipToBounds="True"
                         IsHitTestVisible="False"
-                        IsVisible="{Binding ShowGridlines}"
-                        Items="{Binding Gridlines}">
+                        IsVisible="{Binding GridSettings.ShowGridlines}"
+                        Items="{Binding GridSettings.Gridlines}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <Canvas IsHitTestVisible="False" />
@@ -365,7 +352,8 @@
                             <DataTemplate DataType="{x:Type model:Gridline}">
                                 <Line
                                     IsHitTestVisible="False"
-                                    Stroke="#B0000000"
+                                    Stroke="{ReflectionBinding #_zoomBorder.DataContext.GridSettings.LineColor,
+                                                               Converter={x:Static con:AppConverters.ColorToBrush}}"
                                     StrokeThickness="0.40"
                                     UseLayoutRounding="True"
                                     StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"

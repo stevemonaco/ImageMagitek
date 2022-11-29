@@ -2,6 +2,7 @@
 using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using TileShop.AvaloniaUI.Models;
 using TileShop.AvaloniaUI.ViewModels;
 using TileShop.Shared.Models;
@@ -41,6 +42,12 @@ public static class AppConverters
                 _ => throw new InvalidOperationException($"{nameof(NumericBaseToString)} cannot convert from given type {x.GetType()} with value {x}"),
             };
         });
+
+    public static readonly IValueConverter ZoomToInverted =
+        new FuncValueConverter<double, double>(x => 1 / x);
+
+    public static readonly IValueConverter ColorToBrush =
+        new FuncValueConverter<Color, IBrush>(x => new ImmutableSolidColorBrush(x));
 
     public static readonly ColorRgba32ToMediaColorConverter ColorRgba32ToMediaColor = new();
     public static readonly EndianToBooleanConverter EndianToBoolean = new();

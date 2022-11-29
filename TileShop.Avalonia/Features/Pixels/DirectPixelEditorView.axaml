@@ -23,7 +23,16 @@
         <KeyBinding Command="{Binding SaveChangesCommand}" Gesture="Ctrl+S" />
         <KeyBinding Command="{Binding UndoCommand}" Gesture="Ctrl+Z" />
         <KeyBinding Command="{Binding RedoCommand}" Gesture="Ctrl+Y" />
+        <KeyBinding Command="{Binding SelectAllCommand}" Gesture="Ctrl+A" />
+        <KeyBinding Command="{Binding ModifyGridSettingsCommand}" Gesture="Ctrl+G" />
     </UserControl.KeyBindings>
+
+    <UserControl.ContextMenu>
+        <ContextMenu>
+            <MenuItem Command="{Binding SelectAllCommand}" Header="Select All" />
+            <MenuItem Command="{Binding ModifyGridSettingsCommand}" Header="Grid Settings..." />
+        </ContextMenu>
+    </UserControl.ContextMenu>
 
     <Grid
         ColumnDefinitions="*,*"
@@ -31,18 +40,17 @@
         UseLayoutRounding="True">
 
         <!--  Toolbar  -->
-        <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal">
+        <StackPanel
+            Grid.ColumnSpan="2"
+            ContextMenu="{StaticResource contextMenu}"
+            Orientation="Horizontal">
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Grid" />
                 <ToggleButton
                     Focusable="False"
-                    IsChecked="{Binding ShowGridlines}"
+                    IsChecked="{Binding GridSettings.ShowGridlines}"
                     ToolTip.Tip="Toggle gridline visibility (G)">
-                    <PathIcon
-                        Width="20"
-                        Height="20"
-                        Data="{StaticResource pathIconGrid}"
-                        Foreground="{DynamicResource iconBrush}" />
+                    <PathIcon Classes="tool" Data="{StaticResource pathIconGrid}" />
                 </ToggleButton>
             </StackPanel>
 
@@ -60,55 +68,33 @@
                         Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:PixelTool.Select}"
-                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
                         ToolTip.Tip="Rectangular Selection Tool">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconRectangularSelection}"
-                            Foreground="{DynamicResource iconBrush}" />
+                        <PathIcon Classes="tool" Data="{StaticResource pathIconRectangularSelection}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:PixelTool.Pencil}"
-                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Pencil}"
                         ToolTip.Tip="Pencil Tool">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconPencil}"
-                            Foreground="{DynamicResource iconBrush}" />
+                        <PathIcon Classes="tool" Data="{StaticResource pathIconPencil}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:PixelTool.ColorPicker}"
-                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColorPicker}"
                         ToolTip.Tip="Color Picker Tool">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconColorPicker}"
-                            Foreground="{DynamicResource iconBrush}"
-                            RenderTransform="scaleY(-1)" />
+                        <PathIcon Classes="tool vflip" Data="{StaticResource pathIconColorPicker}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
                         Command="{Binding ChangeToolCommand}"
                         CommandParameter="{x:Static vm:PixelTool.FloodFill}"
-                        GroupName="tool"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=FloodFill}"
                         ToolTip.Tip="Flood Fill Tool">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconFloodFill}"
-                            Foreground="{DynamicResource iconBrush}"
-                            RenderTransform="scaleY(-1)" />
+                        <PathIcon Classes="tool vflip" Data="{StaticResource pathIconFloodFill}" />
                     </RadioButton>
                 </StackPanel>
             </StackPanel>
@@ -144,26 +130,20 @@
                 PowerFactor="2"
                 Stretch="None">
                 <Grid>
+                    <!--  Separate backing grid to ensure the Canvas uses drawing tools and doesn't popup a ContextMenu  -->
+                    <Grid Background="Transparent" ContextMenu="{StaticResource contextMenu}" />
+
                     <Canvas
                         x:Name="_overlayCanvas"
                         MaxWidth="{Binding BitmapAdapter.Width}"
                         MaxHeight="{Binding BitmapAdapter.Height}"
-                        Background="Transparent"
+                        Background="{Binding GridSettings.BackgroundBrush}"
                         Classes="arrangerDrop"
                         ClipToBounds="True"
                         PointerExited="OnPointerExited"
                         PointerMoved="OnPointerMoved"
                         PointerPressed="OnPointerPressed"
                         PointerReleased="OnPointerReleased">
-
-                        <!--  Backdrop  -->
-                        <Rectangle
-                            x:Name="_arrangerBackdrop"
-                            Width="{Binding BitmapAdapter.Width}"
-                            Height="{Binding BitmapAdapter.Height}"
-                            Fill="{DynamicResource CheckeredBrush}"
-                            IsHitTestVisible="False"
-                            Stretch="None" />
 
                         <!--  Editable Image  -->
                         <Image
@@ -204,8 +184,8 @@
                         MaxHeight="{Binding BitmapAdapter.Height}"
                         ClipToBounds="True"
                         IsHitTestVisible="False"
-                        IsVisible="{Binding ShowGridlines}"
-                        Items="{Binding Gridlines}">
+                        IsVisible="{Binding GridSettings.ShowGridlines}"
+                        Items="{Binding GridSettings.Gridlines}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <Canvas IsHitTestVisible="False" />
@@ -215,7 +195,8 @@
                             <DataTemplate DataType="{x:Type model:Gridline}">
                                 <Line
                                     IsHitTestVisible="False"
-                                    Stroke="#B0000000"
+                                    Stroke="{ReflectionBinding #_zoomBorder.DataContext.GridSettings.LineColor,
+                                                               Converter={x:Static con:AppConverters.ColorToBrush}}"
                                     StrokeThickness="0.40"
                                     UseLayoutRounding="True"
                                     StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"

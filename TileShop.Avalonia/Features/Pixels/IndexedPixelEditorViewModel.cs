@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 
 using Point = System.Drawing.Point;
+using Jot;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -28,15 +29,15 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
     [ObservableProperty] private PaletteModel _activePalette = null!;
 
     public IndexedPixelEditorViewModel(Arranger arranger, Arranger projectArranger,
-        IInteractionService interactionService, IPaletteService paletteService)
-        : base(projectArranger, interactionService, paletteService)
+        IInteractionService interactionService, IPaletteService paletteService, Tracker tracker)
+        : base(projectArranger, interactionService, paletteService, tracker)
     {
         Initialize(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
     }
 
     public IndexedPixelEditorViewModel(Arranger arranger, Arranger projectArranger, int viewX, int viewY, int viewWidth, int viewHeight,
-        IInteractionService interactionService, IPaletteService paletteService)
-        : base(projectArranger, interactionService, paletteService)
+        IInteractionService interactionService, IPaletteService paletteService, Tracker tracker)
+        : base(projectArranger, interactionService, paletteService, tracker)
     {
         Initialize(arranger, viewX, viewY, viewWidth, viewHeight);
     }
@@ -70,7 +71,8 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         DisplayName = $"Pixel Editor - {WorkingArranger.Name}";
         Selection = new ArrangerSelection(arranger, SnapMode);
 
-        CreateGridlines();
+        _gridSettings = GridSettingsViewModel.CreateDefault(_indexedImage);
+        //_gridSettings = GridSettingsViewModel.CreateDefault(arranger);
 
         ActivePalette = Palettes.First();
         PrimaryColor = 0;
@@ -86,26 +88,26 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
 
     protected override void ReloadImage() => _indexedImage.Render();
 
-    protected override void CreateGridlines()
-    {
-        if (WorkingArranger is null)
-            return;
+    //protected override void CreateGridlines()
+    //{
+    //    if (WorkingArranger is null)
+    //        return;
 
-        if (WorkingArranger.Layout == ElementLayout.Single)
-        {
-            CreateGridlines(0, 0, _viewWidth, _viewHeight, 8, 8);
-        }
-        else if (WorkingArranger.Layout == ElementLayout.Tiled)
-        {
-            var location = WorkingArranger.PointToElementLocation(new Point(ViewDx, ViewDy));
+    //    if (WorkingArranger.Layout == ElementLayout.Single)
+    //    {
+    //        CreateGridlines(0, 0, _viewWidth, _viewHeight, 8, 8);
+    //    }
+    //    else if (WorkingArranger.Layout == ElementLayout.Tiled)
+    //    {
+    //        var location = WorkingArranger.PointToElementLocation(new Point(ViewDx, ViewDy));
 
-            int x = WorkingArranger.ElementPixelSize.Width - (ViewDx - location.X * WorkingArranger.ElementPixelSize.Width);
-            int y = WorkingArranger.ElementPixelSize.Height - (ViewDy - location.Y * WorkingArranger.ElementPixelSize.Height);
+    //        int x = WorkingArranger.ElementPixelSize.Width - (ViewDx - location.X * WorkingArranger.ElementPixelSize.Width);
+    //        int y = WorkingArranger.ElementPixelSize.Height - (ViewDy - location.Y * WorkingArranger.ElementPixelSize.Height);
 
-            CreateGridlines(x, y, _viewWidth, _viewHeight,
-                WorkingArranger.ElementPixelSize.Width, WorkingArranger.ElementPixelSize.Height);
-        }
-    }
+    //        CreateGridlines(x, y, _viewWidth, _viewHeight,
+    //            WorkingArranger.ElementPixelSize.Width, WorkingArranger.ElementPixelSize.Height);
+    //    }
+    //}
 
     #region Commands
     [RelayCommand]

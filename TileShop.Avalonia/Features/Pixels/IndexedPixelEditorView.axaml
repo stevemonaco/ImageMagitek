@@ -38,105 +38,288 @@
         <KeyBinding Command="{Binding SaveChangesCommand}" Gesture="Ctrl+S" />
         <KeyBinding Command="{Binding UndoCommand}" Gesture="Ctrl+Z" />
         <KeyBinding Command="{Binding RedoCommand}" Gesture="Ctrl+Y" />
+        <KeyBinding Command="{Binding SelectAllCommand}" Gesture="Ctrl+A" />
+        <KeyBinding Command="{Binding ModifyGridSettingsCommand}" Gesture="Ctrl+G" />
     </UserControl.KeyBindings>
 
-    <Grid
-        ColumnDefinitions="*,*"
-        RowDefinitions="auto,auto,*"
-        UseLayoutRounding="True">
-        <!--  Toolbar  -->
-        <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal">
-            <StackPanel VerticalAlignment="Center">
-                <TextBlock HorizontalAlignment="Center" Text="Grid" />
-                <ToggleButton
-                    Focusable="False"
-                    IsChecked="{Binding ShowGridlines}"
-                    ToolTip.Tip="Toggle gridline visibility (G)">
-                    <PathIcon
-                        Width="20"
-                        Height="20"
-                        Data="{StaticResource pathIconGrid}"
-                        Foreground="{DynamicResource iconBrush}" />
-                </ToggleButton>
-            </StackPanel>
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary>
+                    <ContextMenu x:Key="contextMenu">
+                        <MenuItem Command="{Binding SelectAllCommand}" Header="Select All" />
+                        <MenuItem Command="{Binding ModifyGridSettingsCommand}" Header="Grid Settings..." />
+                    </ContextMenu>
+                </ResourceDictionary>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
 
-            <Border
-                Margin="5,6,5,4"
-                BorderBrush="{DynamicResource separatorBrush}"
-                BorderThickness="1" />
-
-            <!--  Tools  -->
-            <StackPanel>
-                <TextBlock HorizontalAlignment="Center" Text="Tools" />
-
-                <StackPanel Orientation="Horizontal">
-                    <RadioButton
-                        Classes="tool"
-                        Command="{Binding ChangeToolCommand}"
-                        CommandParameter="{x:Static vm:PixelTool.Select}"
-                        GroupName="tool"
-                        IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
-                        ToolTip.Tip="Rectangular Selection Tool">
+    <Grid>
+        <Grid
+            ColumnDefinitions="*,*"
+            RowDefinitions="auto,auto,*"
+            UseLayoutRounding="True">
+            <!--  Toolbar  -->
+            <StackPanel
+                Grid.ColumnSpan="2"
+                ContextMenu="{StaticResource contextMenu}"
+                Orientation="Horizontal">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock HorizontalAlignment="Center" Text="Grid" />
+                    <ToggleButton
+                        Focusable="False"
+                        IsChecked="{Binding GridSettings.ShowGridlines}"
+                        ToolTip.Tip="Toggle gridline visibility (G)">
                         <PathIcon
                             Width="20"
                             Height="20"
-                            Data="{StaticResource pathIconRectangularSelection}"
+                            Data="{StaticResource pathIconGrid}"
                             Foreground="{DynamicResource iconBrush}" />
-                    </RadioButton>
+                    </ToggleButton>
+                </StackPanel>
 
-                    <RadioButton
-                        Classes="tool"
-                        Command="{Binding ChangeToolCommand}"
-                        CommandParameter="{x:Static vm:PixelTool.Pencil}"
-                        GroupName="tool"
-                        IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Pencil}"
-                        ToolTip.Tip="Pencil Tool">
+                <Border
+                    Margin="5,6,5,4"
+                    BorderBrush="{DynamicResource separatorBrush}"
+                    BorderThickness="1" />
+
+                <!--  Tools  -->
+                <StackPanel>
+                    <TextBlock HorizontalAlignment="Center" Text="Tools" />
+
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton
+                            Classes="tool"
+                            Command="{Binding ChangeToolCommand}"
+                            CommandParameter="{x:Static vm:PixelTool.Select}"
+                            IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
+                            ToolTip.Tip="Rectangular Selection Tool">
+                            <PathIcon Classes="tool" Data="{StaticResource pathIconRectangularSelection}" />
+                        </RadioButton>
+
+                        <RadioButton
+                            Classes="tool"
+                            Command="{Binding ChangeToolCommand}"
+                            CommandParameter="{x:Static vm:PixelTool.Pencil}"
+                            IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Pencil}"
+                            ToolTip.Tip="Pencil Tool">
+                            <PathIcon Classes="tool" Data="{StaticResource pathIconPencil}" />
+                        </RadioButton>
+                        <RadioButton
+                            Classes="tool"
+                            Command="{Binding ChangeToolCommand}"
+                            CommandParameter="{x:Static vm:PixelTool.ColorPicker}"
+                            IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColorPicker}"
+                            ToolTip.Tip="Color Picker Tool">
+                            <PathIcon Classes="tool vflip" Data="{StaticResource pathIconColorPicker}" />
+                        </RadioButton>
+                        <RadioButton
+                            Classes="tool"
+                            Command="{Binding ChangeToolCommand}"
+                            CommandParameter="{x:Static vm:PixelTool.FloodFill}"
+                            IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=FloodFill}"
+                            ToolTip.Tip="Flood Fill Tool">
+                            <PathIcon Classes="tool vflip" Data="{StaticResource pathIconFloodFill}" />
+                        </RadioButton>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock HorizontalAlignment="Center" Text="Active Colors" />
+                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                        <Border BorderBrush="Black" BorderThickness="2">
+                            <Border BorderBrush="White" BorderThickness="2">
+                                <Rectangle
+                                    Width="26"
+                                    Height="26"
+                                    ToolTip.Tip="Primary Color">
+                                    <Rectangle.Fill>
+                                        <MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
+                                            <Binding Path="ActivePalette" />
+                                            <Binding Path="PrimaryColor" />
+                                        </MultiBinding>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </Border>
+                        </Border>
+                        <Border BorderBrush="Black" BorderThickness="2">
+                            <Border BorderBrush="White" BorderThickness="2">
+                                <Rectangle
+                                    Width="26"
+                                    Height="26"
+                                    ToolTip.Tip="Secondary Color">
+                                    <Rectangle.Fill>
+                                        <MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
+                                            <Binding Path="ActivePalette" />
+                                            <Binding Path="SecondaryColor" />
+                                        </MultiBinding>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </Border>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Margin="8,0,0,0">
+                    <TextBlock HorizontalAlignment="Center" Text="Remap" />
+
+                    <Button
+                        HorizontalAlignment="Center"
+                        Command="{Binding RemapColorsCommand}"
+                        IsEnabled="{Binding CanRemapColors}"
+                        ToolTip.Tip="Remap Palette Colors">
                         <PathIcon
                             Width="20"
                             Height="20"
-                            Data="{StaticResource pathIconPencil}"
+                            Data="{StaticResource pathIconRemap}"
                             Foreground="{DynamicResource iconBrush}" />
-                    </RadioButton>
-                    <RadioButton
-                        Classes="tool"
-                        Command="{Binding ChangeToolCommand}"
-                        CommandParameter="{x:Static vm:PixelTool.ColorPicker}"
-                        GroupName="tool"
-                        IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColorPicker}"
-                        ToolTip.Tip="Color Picker Tool">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconColorPicker}"
-                            Foreground="{DynamicResource iconBrush}"
-                            RenderTransform="scaleY(-1)" />
-                    </RadioButton>
-                    <RadioButton
-                        Classes="tool"
-                        Command="{Binding ChangeToolCommand}"
-                        CommandParameter="{x:Static vm:PixelTool.FloodFill}"
-                        GroupName="tool"
-                        IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=FloodFill}"
-                        ToolTip.Tip="Flood Fill Tool">
-                        <PathIcon
-                            Width="20"
-                            Height="20"
-                            Data="{StaticResource pathIconFloodFill}"
-                            Foreground="{DynamicResource iconBrush}"
-                            RenderTransform="scaleY(-1)" />
-                    </RadioButton>
+                    </Button>
                 </StackPanel>
             </StackPanel>
 
-            <StackPanel>
-                <TextBlock HorizontalAlignment="Center" Text="Active Colors" />
-                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                    <Border BorderBrush="Black" BorderThickness="2">
-                        <Border BorderBrush="White" BorderThickness="2">
+            <!--  Palette Display  -->
+            <StackPanel
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                Margin="4,4,0,0"
+                ContextMenu="{StaticResource contextMenu}"
+                Orientation="Horizontal">
+                <ComboBox
+                    IsVisible="{Binding Palettes.Count, Converter={x:Static con:AppConverters.PluralCountToBoolean}}"
+                    Items="{Binding Palettes}"
+                    SelectedItem="{Binding ActivePalette}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+
+                <ItemsControl
+                    Margin="1,0,3,5"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Items="{Binding ActivePalette.Colors}"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Margin="0,0,3,5" Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="m:PaletteEntry">
+                            <Border
+                                Margin="1,0,1,0"
+                                BorderBrush="Black"
+                                BorderThickness="1"
+                                PointerPressed="OnPaletteEntryPressed">
+                                <Border BorderBrush="White" BorderThickness="1">
+                                    <Rectangle
+                                        Width="28"
+                                        Height="28"
+                                        Fill="{Binding Converter={x:Static con:AppConverters.PaletteEntryToSolidColorBrush}}" />
+                                </Border>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!--  Image Display  -->
+            <ScrollViewer
+                Grid.Row="2"
+                Grid.Column="0"
+                Grid.ColumnSpan="2"
+                Focusable="True"
+                HorizontalScrollBarVisibility="Auto"
+                KeyDown="OnKeyDown"
+                KeyUp="OnKeyUp"
+                VerticalScrollBarVisibility="Auto">
+
+                <paz:ZoomBorder
+                    x:Name="_zoomBorder"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    PowerFactor="2"
+                    Stretch="None">
+                    <Grid>
+                        <!--  Separate backing grid to ensure the Canvas uses drawing tools and doesn't popup a ContextMenu  -->
+                        <Grid Background="Transparent" ContextMenu="{StaticResource contextMenu}" />
+
+                        <!--  Selection and Paste Overlay  -->
+                        <Canvas
+                            x:Name="_overlayCanvas"
+                            MaxWidth="{Binding BitmapAdapter.Width}"
+                            MaxHeight="{Binding BitmapAdapter.Height}"
+                            Background="{Binding GridSettings.BackgroundBrush}"
+                            Classes="arrangerDrop"
+                            ClipToBounds="True"
+                            PointerExited="OnPointerExited"
+                            PointerMoved="OnPointerMoved"
+                            PointerPressed="OnPointerPressed"
+                            PointerReleased="OnPointerReleased">
+
+                            <!--  Editable Image  -->
+                            <Image
+                                x:Name="_image"
+                                Classes="pixel"
+                                IsHitTestVisible="False"
+                                Source="{Binding BitmapAdapter.Bitmap}" />
+
                             <Rectangle
-                                Width="26"
-                                Height="26"
-                                ToolTip.Tip="Primary Color">
+                                Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
+                                Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
+                                Width="{Binding Selection.SelectionRect.SnappedWidth}"
+                                Height="{Binding Selection.SelectionRect.SnappedHeight}"
+                                Classes="arrangerDrag animatedBorder selection"
+                                IsVisible="{Binding Selection.HasSelection}" />
+
+                            <Image
+                                Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+                                Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+                                Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+                                Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+                                Classes="arrangerDrag pixel"
+                                IsHitTestVisible="{Binding !Paste.IsDragging}"
+                                Source="{Binding Paste.OverlayImage.Bitmap}" />
+
+                            <Rectangle
+                                Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+                                Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+                                Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
+                                Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
+                                Classes="animatedBorder paste" />
+
+                            <!--  Tool Preview  -->
+                            <Rectangle
+                                x:Name="_penPreview"
+                                Width="1"
+                                Height="1"
+                                IsHitTestVisible="False"
+                                RadiusX="0.1"
+                                RadiusY="0.1"
+                                StrokeThickness="0.1">
+                                <Rectangle.Stroke>
+                                    <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" Radius="1">
+                                        <GradientStop Offset="0" Color="Transparent" />
+                                        <GradientStop Offset="0.5" Color="White" />
+                                        <GradientStop Offset="1" Color="Black" />
+                                    </RadialGradientBrush>
+                                </Rectangle.Stroke>
+                                <!--<Rectangle.Stroke>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Offset="0" Color="Black" />
+                                    <GradientStop Offset="0.5" Color="White" />
+                                    <GradientStop Offset="1" Color="Black" />
+                                </LinearGradientBrush>
+                            </Rectangle.Stroke>-->
+                                <!--<Rectangle.Stroke>
+								<MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToComplementaryBrush}">
+									<Binding Path="ActivePalette" />
+									<Binding Path="PrimaryColor" />
+								</MultiBinding>
+							</Rectangle.Stroke>-->
                                 <Rectangle.Fill>
                                     <MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
                                         <Binding Path="ActivePalette" />
@@ -144,227 +327,37 @@
                                     </MultiBinding>
                                 </Rectangle.Fill>
                             </Rectangle>
-                        </Border>
-                    </Border>
-                    <Border BorderBrush="Black" BorderThickness="2">
-                        <Border BorderBrush="White" BorderThickness="2">
-                            <Rectangle
-                                Width="26"
-                                Height="26"
-                                ToolTip.Tip="Secondary Color">
-                                <Rectangle.Fill>
-                                    <MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
-                                        <Binding Path="ActivePalette" />
-                                        <Binding Path="SecondaryColor" />
-                                    </MultiBinding>
-                                </Rectangle.Fill>
-                            </Rectangle>
-                        </Border>
-                    </Border>
-                </StackPanel>
-            </StackPanel>
+                        </Canvas>
 
-            <StackPanel Margin="8,0,0,0">
-                <TextBlock HorizontalAlignment="Center" Text="Remap" />
-
-                <Button
-                    HorizontalAlignment="Center"
-                    Command="{Binding RemapColorsCommand}"
-                    IsEnabled="{Binding CanRemapColors}"
-                    ToolTip.Tip="Remap Palette Colors">
-                    <PathIcon
-                        Width="20"
-                        Height="20"
-                        Data="{StaticResource pathIconRemap}"
-                        Foreground="{DynamicResource iconBrush}" />
-                </Button>
-            </StackPanel>
-        </StackPanel>
-
-        <!--  Palette Display  -->
-        <StackPanel
-            Grid.Row="1"
-            Grid.ColumnSpan="2"
-            Margin="4,4,0,0"
-            Orientation="Horizontal">
-            <ComboBox
-                IsVisible="{Binding Palettes.Count, Converter={x:Static con:AppConverters.PluralCountToBoolean}}"
-                Items="{Binding Palettes}"
-                SelectedItem="{Binding ActivePalette}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Name}" />
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-
-            <ItemsControl
-                Margin="1,0,3,5"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Items="{Binding ActivePalette.Colors}"
-                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Margin="0,0,3,5" Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="m:PaletteEntry">
-                        <Border
-                            Margin="1,0,1,0"
-                            BorderBrush="Black"
-                            BorderThickness="1"
-                            PointerPressed="OnPaletteEntryPressed">
-                            <Border BorderBrush="White" BorderThickness="1">
-                                <Rectangle
-                                    Width="28"
-                                    Height="28"
-                                    Fill="{Binding Converter={x:Static con:AppConverters.PaletteEntryToSolidColorBrush}}" />
-                            </Border>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </StackPanel>
-
-        <!--  Image Display  -->
-        <ScrollViewer
-            Grid.Row="2"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
-            Focusable="True"
-            HorizontalScrollBarVisibility="Auto"
-            KeyDown="OnKeyDown"
-            KeyUp="OnKeyUp"
-            VerticalScrollBarVisibility="Auto">
-
-            <paz:ZoomBorder
-                x:Name="_zoomBorder"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                PowerFactor="2"
-                Stretch="None">
-                <Grid>
-                    <!--  Selection and Paste Overlay  -->
-                    <Canvas
-                        x:Name="_overlayCanvas"
-                        MaxWidth="{Binding BitmapAdapter.Width}"
-                        MaxHeight="{Binding BitmapAdapter.Height}"
-                        Background="Transparent"
-                        Classes="arrangerDrop"
-                        ClipToBounds="True"
-                        PointerExited="OnPointerExited"
-                        PointerMoved="OnPointerMoved"
-                        PointerPressed="OnPointerPressed"
-                        PointerReleased="OnPointerReleased">
-
-                        <!--  Backdrop  -->
-                        <Rectangle
-                            x:Name="_arrangerBackdrop"
-                            Width="{Binding BitmapAdapter.Width}"
-                            Height="{Binding BitmapAdapter.Height}"
-                            Fill="{DynamicResource CheckeredBrush}"
+                        <!--  Gridline Overlay  -->
+                        <ItemsControl
+                            MaxWidth="{Binding BitmapAdapter.Width}"
+                            MaxHeight="{Binding BitmapAdapter.Height}"
+                            ClipToBounds="True"
                             IsHitTestVisible="False"
-                            Stretch="None" />
-
-                        <!--  Editable Image  -->
-                        <Image
-                            x:Name="_image"
-                            Classes="pixel"
-                            IsHitTestVisible="False"
-                            Source="{Binding BitmapAdapter.Bitmap}" />
-
-                        <Rectangle
-                            Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
-                            Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
-                            Width="{Binding Selection.SelectionRect.SnappedWidth}"
-                            Height="{Binding Selection.SelectionRect.SnappedHeight}"
-                            Classes="arrangerDrag animatedBorder selection"
-                            IsVisible="{Binding Selection.HasSelection}" />
-
-                        <Image
-                            Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
-                            Canvas.Top="{Binding Paste.Rect.SnappedTop}"
-                            Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
-                            Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-                            Classes="arrangerDrag pixel"
-                            IsHitTestVisible="{Binding !Paste.IsDragging}"
-                            Source="{Binding Paste.OverlayImage.Bitmap}" />
-
-                        <Rectangle
-                            Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
-                            Canvas.Top="{Binding Paste.Rect.SnappedTop}"
-                            Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
-                            Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-                            Classes="animatedBorder paste" />
-
-                        <!--  Tool Preview  -->
-                        <Rectangle
-                            x:Name="_penPreview"
-                            Width="1"
-                            Height="1"
-                            IsHitTestVisible="False"
-                            RadiusX="0.1"
-                            RadiusY="0.1"
-                            StrokeThickness="0.1">
-                            <Rectangle.Stroke>
-                                <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" Radius="1">
-                                    <GradientStop Offset="0" Color="Transparent" />
-                                    <GradientStop Offset="0.5" Color="White" />
-                                    <GradientStop Offset="1" Color="Black" />
-                                </RadialGradientBrush>
-                            </Rectangle.Stroke>
-                            <!--<Rectangle.Stroke>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Offset="0" Color="Black" />
-                                    <GradientStop Offset="0.5" Color="White" />
-                                    <GradientStop Offset="1" Color="Black" />
-                                </LinearGradientBrush>
-                            </Rectangle.Stroke>-->
-                            <!--<Rectangle.Stroke>
-								<MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToComplementaryBrush}">
-									<Binding Path="ActivePalette" />
-									<Binding Path="PrimaryColor" />
-								</MultiBinding>
-							</Rectangle.Stroke>-->
-                            <Rectangle.Fill>
-                                <MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
-                                    <Binding Path="ActivePalette" />
-                                    <Binding Path="PrimaryColor" />
-                                </MultiBinding>
-                            </Rectangle.Fill>
-                        </Rectangle>
-                    </Canvas>
-
-                    <!--  Gridline Overlay  -->
-                    <ItemsControl
-                        MaxWidth="{Binding BitmapAdapter.Width}"
-                        MaxHeight="{Binding BitmapAdapter.Height}"
-                        ClipToBounds="True"
-                        IsHitTestVisible="False"
-                        IsVisible="{Binding ShowGridlines}"
-                        Items="{Binding Gridlines}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <Canvas IsHitTestVisible="False" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type model:Gridline}">
-                                <Line
-                                    IsHitTestVisible="False"
-                                    Stroke="#B0000000"
-                                    StrokeThickness="0.40"
-                                    UseLayoutRounding="True"
-                                    StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"
-                                    EndPoint="{Binding Converter={x:Static con:AppConverters.GridlineToEndPoint}}" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </Grid>
-            </paz:ZoomBorder>
-        </ScrollViewer>
-
+                            IsVisible="{Binding GridSettings.ShowGridlines}"
+                            Items="{Binding GridSettings.Gridlines}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas IsHitTestVisible="False" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type model:Gridline}">
+                                    <Line
+                                        IsHitTestVisible="False"
+                                        Stroke="{ReflectionBinding #_zoomBorder.DataContext.GridSettings.LineColor,
+                                                                   Converter={x:Static con:AppConverters.ColorToBrush}}"
+                                        StrokeThickness="0.40"
+                                        UseLayoutRounding="True"
+                                        StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"
+                                        EndPoint="{Binding Converter={x:Static con:AppConverters.GridlineToEndPoint}}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </paz:ZoomBorder>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </UserControl>

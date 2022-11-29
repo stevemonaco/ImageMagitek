@@ -103,7 +103,7 @@ public partial class EditorsViewModel : ObservableRecipient
                     newDocument = new PaletteEditorViewModel(pal, _paletteService, _projectService);
                     break;
                 case ScatteredArranger scatteredArranger:
-                    newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _paletteService, _projectService, _settings);
+                    newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _paletteService, _projectService, _tracker, _settings);
                     break;
                 case SequentialArranger sequentialArranger:
                     newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _paletteService, _layoutService);
@@ -233,7 +233,7 @@ public partial class EditorsViewModel : ObservableRecipient
         if (message.Arranger.ColorType == PixelColorType.Indexed)
         {
             var editor = new IndexedPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-                message.Width, message.Height, _interactions, _paletteService);
+                message.Width, message.Height, _interactions, _paletteService, _tracker);
 
             editor.DisplayName = message.Arranger.Name;
 
@@ -243,7 +243,7 @@ public partial class EditorsViewModel : ObservableRecipient
         else if (message.Arranger.ColorType == PixelColorType.Direct)
         {
             var editor = new DirectPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-                message.Width, message.Height, _interactions, _paletteService);
+                message.Width, message.Height, _interactions, _paletteService, _tracker);
 
             editor.DisplayName = message.Arranger.Name;
 

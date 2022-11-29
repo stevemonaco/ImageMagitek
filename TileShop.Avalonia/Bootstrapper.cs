@@ -9,6 +9,8 @@ using TileShop.AvaloniaUI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using TileShop.AvaloniaUI.Services;
 using TileShop.Shared.Interactions;
+using Avalonia.Media;
+using TileShop.AvaloniaUI.Models;
 
 namespace TileShop.AvaloniaUI;
 
@@ -129,6 +131,15 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
             .Property(p => p.Width, 1)
             .Property(p => p.Height, 1)
             .Property(p => p.FlowDirection, ElementLayoutFlowDirection.RowLeftToRight);
+
+        tracker.Configure<ModifyGridSettingsViewModel>()
+            .Property(p => p.ShiftX, 0)
+            .Property(p => p.ShiftY, 0)
+            .Property(p => p.WidthSpacing, 8)
+            .Property(p => p.HeightSpacing, 8)
+            .Property(p => p.PrimaryColor, GridSettingsViewModel.DefaultPrimaryColor)
+            .Property(p => p.SecondaryColor, GridSettingsViewModel.DefaultSecondaryColor)
+            .Property(p => p.LineColor, GridSettingsViewModel.DefaultLineColor);
 
         services.AddSingleton(tracker);
     }

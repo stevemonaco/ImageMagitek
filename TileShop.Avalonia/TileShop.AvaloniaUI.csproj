@@ -42,6 +42,9 @@
     <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="Features\Dialogs\ModifyGridSettingsView.axaml.cs">
+      <DependentUpon>ModifyGridSettingsView.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Features\Shell\DockableEditorView.axaml.cs">
       <DependentUpon>DockableEditorView.axaml</DependentUpon>
     </Compile>

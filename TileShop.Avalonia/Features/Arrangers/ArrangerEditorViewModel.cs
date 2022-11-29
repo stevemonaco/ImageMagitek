@@ -7,7 +7,8 @@ using ImageMagitek.Services;
 using ImageMagitek;
 using TileShop.AvaloniaUI.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using Jot;
 using TileShop.AvaloniaUI.Models;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -27,8 +28,9 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     public bool CanChangeSnapMode { get; protected set; }
     public Point? LastMousePosition { get; protected set; }
 
-    protected IPaletteService _paletteService;
-    protected IInteractionService _interactions;
+    protected readonly IPaletteService _paletteService;
+    protected readonly Tracker _tracker;
+    protected readonly IInteractionService _interactions;
 
     [ObservableProperty] private BitmapAdapter _bitmapAdapter = null!;
 
@@ -38,9 +40,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     public bool IsIndexedColor => WorkingArranger?.ColorType == PixelColorType.Indexed;
     public bool IsDirectColor => WorkingArranger?.ColorType == PixelColorType.Direct;
 
-    [ObservableProperty] protected bool _showGridlines = false;
-    [ObservableProperty] protected ObservableCollection<Gridline> _gridlines = new();
-
+    [ObservableProperty] protected GridSettingsViewModel _gridSettings;
     [ObservableProperty] protected EditMode _editMode = EditMode.ArrangeGraphics;
 
     public virtual bool CanEditSelection
@@ -68,6 +68,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         set
         {
             SetProperty(ref _snapMode, value);
+            Selection.SelectionRect.SnapMode = value;
         }
     }
 
@@ -84,7 +85,8 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     public int ViewDx { get; protected set; }
     public int ViewDy { get; protected set; }
 
-    public ArrangerEditorViewModel(Arranger arranger, IInteractionService interactionService, IPaletteService paletteService) : base(arranger)
+    public ArrangerEditorViewModel(Arranger arranger, IInteractionService interactionService, IPaletteService paletteService, Tracker tracker)
+        : base(arranger)
     {
         WorkingArranger = arranger.CloneArranger();
         Resource = arranger;
@@ -93,6 +95,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
 
         _interactions = interactionService;
         _paletteService = paletteService;
+        _tracker = tracker;
     }
 
     /// <summary>
@@ -105,46 +108,6 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     /// </summary>
     /// <param name="paste"></param>
     public abstract void ApplyPaste(ArrangerPaste paste);
-
-    /// <summary>
-    /// Creates the Gridlines for an overlay using the extents and element spacing of the Working Arranger
-    /// </summary>
-    protected virtual void CreateGridlines()
-    {
-        if (WorkingArranger is not null)
-            CreateGridlines(0, 0, WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height,
-                WorkingArranger.ElementPixelSize.Width, WorkingArranger.ElementPixelSize.Height);
-    }
-
-    /// <summary>
-    /// Creates the Gridlines for an overlay
-    /// </summary>
-    /// <param name="x">Starting x-coordinate in pixel coordinates, inclusive</param>
-    /// <param name="y">Starting y-coordinate in pixel coordinates, inclusive</param>
-    /// <param name="x2">Ending x-coordinate in pixel coordinates, inclusive</param>
-    /// <param name="y2">Ending y-coordinate in pixel coordinates, inclusive</param>
-    /// <param name="xSpacing">Spacing between gridlines in pixel coordinates</param>
-    /// <param name="height">Spacing between gridlines in pixel coordinates</param>
-    protected void CreateGridlines(int x1, int y1, int x2, int y2, int xSpacing, int ySpacing)
-    {
-        if (WorkingArranger is null)
-            return;
-
-        _gridlines = new();
-        for (int x = x1; x <= x2; x += xSpacing) // Vertical gridlines
-        {
-            var gridline = new Gridline(x, 0, x, y2);
-            _gridlines.Add(gridline);
-        }
-
-        for (int y = y1; y <= y2; y += ySpacing) // Horizontal gridlines
-        {
-            var gridline = new Gridline(0, y, x2, y);
-            _gridlines.Add(gridline);
-        }
-
-        OnPropertyChanged(nameof(Gridlines));
-    }
 
     /// <summary>
     /// A mouse button was pressed down
@@ -265,7 +228,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     }
 
     #region Commands
-    [RelayCommand] public virtual void ToggleGridlineVisibility() => ShowGridlines ^= true;
+    [RelayCommand] public virtual void ToggleGridlineVisibility() => GridSettings.ShowGridlines ^= true;
 
     [RelayCommand]
     public virtual void EditSelection()
@@ -292,6 +255,30 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
 
         WeakReferenceMessenger.Default.Send(editEvent);
         CancelOverlay();
+    }
+
+    [RelayCommand]
+    public virtual async Task ModifyGridSettings()
+    {
+        var model = new ModifyGridSettingsViewModel();
+        _tracker.Track(model);
+        var result = await _interactions.RequestAsync(model);
+
+        if (result is not null)
+        {
+            GridSettings.WidthSpacing = result.WidthSpacing;
+            GridSettings.HeightSpacing = result.HeightSpacing;
+            GridSettings.ShiftX = result.ShiftX;
+            GridSettings.ShiftY = result.ShiftY;
+            GridSettings.PrimaryColor = result.PrimaryColor;
+            GridSettings.SecondaryColor = result.SecondaryColor;
+            GridSettings.LineColor = result.LineColor;
+
+            GridSettings.AdjustGridlines(WorkingArranger);
+            GridSettings.CreateBrushes();
+
+            _tracker.Persist(result);
+        }
     }
 
     [RelayCommand]
