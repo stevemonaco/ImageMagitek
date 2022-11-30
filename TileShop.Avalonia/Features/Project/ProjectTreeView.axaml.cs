@@ -32,11 +32,27 @@ public partial class ProjectTreeView : UserControl
 
         if (item is not null)
         {
-            if (item.DataContext is FolderNodeViewModel || item.DataContext is ProjectNodeViewModel)
+            if (item.DataContext is FolderNodeViewModel or ProjectNodeViewModel)
             {
                 item.IsExpanded ^= true;
             }
             else 
+            {
+                _viewModel?.ActivateSelectedNode();
+            }
+            e.Handled = true;
+        }
+    }
+
+    private void ProjectTree_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (_viewModel?.SelectedNode is not null && e.Key == Key.Enter)
+        {
+            if (_viewModel.SelectedNode is FolderNodeViewModel or ProjectNodeViewModel)
+            {
+                _viewModel.SelectedNode.IsExpanded ^= true;
+            }
+            else
             {
                 _viewModel?.ActivateSelectedNode();
             }

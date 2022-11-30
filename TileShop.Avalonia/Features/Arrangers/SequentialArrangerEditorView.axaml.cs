@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using Avalonia.Controls;
 using Avalonia.Input;
 using TileShop.AvaloniaUI.Input;
@@ -25,9 +26,23 @@ public partial class SequentialArrangerEditorView : UserControl, IStateViewDrive
         base.OnDataContextChanged(e);
     }
 
-    public void OnKeyUp(object? sender, KeyEventArgs e) { }
+    public void OnKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (ViewModel is not null && ViewModel.LastMousePosition is Point point)
+        {
+            var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
+            ViewModel.KeyUp(state, point.X, point.Y);
+        }
+    }
 
-    public void OnKeyDown(object? sender, KeyEventArgs e) { }
+    public void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (ViewModel is not null && ViewModel.LastMousePosition is Point point)
+        {
+            var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
+            ViewModel.KeyPress(state, point.X, point.Y);
+        }
+    }
 
     public void OnPointerPressed(object sender, PointerPressedEventArgs e)
     {
