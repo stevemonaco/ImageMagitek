@@ -9,7 +9,7 @@
 			 x:CompileBindings="True"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="TileShop.AvaloniaUI.Views.ProjectTreeView">
-  	<TreeView x:Name="treeView" Items="{Binding Projects}" SelectedItem="{Binding SelectedNode}" DoubleTapped="ProjectTree_DoubleTapped" KeyDown="ProjectTree_KeyDown">
+  	<TreeView x:Name="_treeView" Background="Transparent" Items="{Binding Projects}" SelectedItem="{Binding SelectedNode}" DoubleTapped="ProjectTree_DoubleTapped" KeyDown="ProjectTree_KeyDown">
 		<TreeView.Styles>
 			<Style Selector="TreeViewItem">
 				<Setter Property="IsExpanded" Value="{ReflectionBinding IsExpanded}" />
@@ -20,15 +20,15 @@
 				<Grid ColumnDefinitions="auto,*">
 					<Grid.ContextMenu>
 						<ContextMenu>
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.AddNewFolderCommand}" CommandParameter="{Binding}" Header="Add New Folder" />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File" />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger" />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewFolderCommand}" CommandParameter="{Binding}" Header="Add New Folder" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette" />
 							<Separator />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.SaveProjectAsCommand}" CommandParameter="{Binding}" Header="Save Project As..." />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.CloseProjectCommand}" CommandParameter="{Binding}" Header="Close Project" />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename Project" />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.SaveProjectAsCommand}" CommandParameter="{Binding}" Header="Save Project As..." />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.CloseProjectCommand}" CommandParameter="{Binding}" Header="Close Project" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename Project" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
 						</ContextMenu>
 					</Grid.ContextMenu>
 					<PathIcon Grid.Column="0" Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeProject}" />
@@ -40,14 +40,14 @@
 				<StackPanel Orientation="Horizontal">
 					<StackPanel.ContextMenu>
 						<ContextMenu>
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.AddNewFolderCommand}" CommandParameter="{Binding}" Header="Add New Folder" />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File" />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger" />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewFolderCommand}" CommandParameter="{Binding}" Header="Add New Folder" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette" />
 							<Separator />
 							<MenuItem Header="Remove" Command="{ReflectionBinding #treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" />
 							<MenuItem Header="Rename" Command="{ReflectionBinding #treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" />
-							<MenuItem Header="Open in Folder" Command="{ReflectionBinding #treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" />
+							<MenuItem Header="Open in Folder" Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" />
 						</ContextMenu>
 					</StackPanel.ContextMenu>
 					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeFolder}" RenderTransform="{StaticResource verticalFlipTransform}" />
@@ -59,9 +59,9 @@
 				<StackPanel Orientation="Horizontal">
 					<StackPanel.ContextMenu>
 						<ContextMenu>
-							<MenuItem Header="Remove" Command="{ReflectionBinding #treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" />
-							<MenuItem Header="Rename" Command="{ReflectionBinding #treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" />
-							<MenuItem Header="Open in Folder" Command="{ReflectionBinding #treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" />
+							<MenuItem Header="Remove" Command="{ReflectionBinding #_treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" />
+							<MenuItem Header="Rename" Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" />
+							<MenuItem Header="Open in Folder" Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" />
 						</ContextMenu>
 					</StackPanel.ContextMenu>
 					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeFile}" />
@@ -73,12 +73,12 @@
 				<StackPanel Orientation="Horizontal">
 					<StackPanel.ContextMenu>
 						<ContextMenu>
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.ExportArrangerNodeAsCommand}"	CommandParameter="{Binding}" Header="Export As..." />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.ImportArrangerNodeFromCommand}" CommandParameter="{Binding}" Header="Import From..." />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExportArrangerNodeAsCommand}"	CommandParameter="{Binding}" Header="Export As..." />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.ImportArrangerNodeFromCommand}" CommandParameter="{Binding}" Header="Import From..." />
 							<Separator />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
-							<MenuItem Command="{ReflectionBinding #treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
+							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
 						</ContextMenu>
 					</StackPanel.ContextMenu>
 					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeArranger}" RenderTransform="{StaticResource verticalFlipTransform}" />
@@ -90,9 +90,9 @@
 				<StackPanel Orientation="Horizontal">
 					<StackPanel.ContextMenu>
 						<ContextMenu>
-							<MenuItem Header="Remove" Command="{ReflectionBinding #treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" />
-							<MenuItem Header="Rename" Command="{ReflectionBinding #treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" />
-							<MenuItem Header="Open in Folder" Command="{ReflectionBinding #treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" />
+							<MenuItem Header="Remove" Command="{ReflectionBinding #_treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" />
+							<MenuItem Header="Rename" Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" />
+							<MenuItem Header="Open in Folder" Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" />
 						</ContextMenu>
 					</StackPanel.ContextMenu>
 					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodePalette}" />

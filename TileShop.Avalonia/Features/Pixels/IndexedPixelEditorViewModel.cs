@@ -143,7 +143,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
     }
 
     [RelayCommand(CanExecute = nameof(CanRemapColors))]
-    public async void RemapColors()
+    public async Task RemapColors()
     {
         var palette = WorkingArranger.GetReferencedPalettes().FirstOrDefault() ?? _paletteService.DefaultPalette;
 

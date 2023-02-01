@@ -262,7 +262,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
     }
 
     [RelayCommand]
-    public async void JumpToOffset()
+    public async Task JumpToOffset()
     {
         var model = new JumpToOffsetViewModel();
         _tracker.Track(model);
@@ -318,7 +318,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
     }
 
     [RelayCommand]
-    public async void CreateCustomLayout()
+    public async Task CreateCustomLayout()
     {
         var model = new CustomElementLayoutViewModel();
         _tracker.Track(model);

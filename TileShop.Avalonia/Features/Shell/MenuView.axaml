@@ -9,6 +9,10 @@
 			 x:CompileBindings="True"
              x:Class="TileShop.AvaloniaUI.Views.MenuView">
 	<UserControl.Styles>
+		<Style Selector="MenuItem">
+			<Setter Property="IsTabStop" Value="False" />
+		</Style>
+		
 		<Style Selector="MenuItem.recent > MenuItem">
 			<Setter Property="Header" Value="{Binding}" />
 			<Setter Property="Command" Value="{ReflectionBinding #menu.DataContext.OpenRecentProjectCommand}" />
