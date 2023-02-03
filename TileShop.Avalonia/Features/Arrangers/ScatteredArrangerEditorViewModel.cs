@@ -10,7 +10,7 @@ using TileShop.AvaloniaUI.Imaging;
 using TileShop.AvaloniaUI.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Monaco.PathTree;
-using TileShop.Shared.EventModels;
+using TileShop.Shared.Messages;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Input;
@@ -528,18 +528,18 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     [RelayCommand]
     public override void ApplyPaste(ArrangerPaste paste)
     {
-        var notifyEvent = ApplyPasteInternal(paste).Match(
+        var message = ApplyPasteInternal(paste).Match(
             success =>
             {
                 AddHistoryAction(new PasteArrangerHistoryAction(paste));
                 IsModified = true;
                 Render();
-                return new NotifyStatusEvent("Paste successfully applied");
+                return new NotifyStatusMessage("Paste successfully applied");
             },
-            fail => new NotifyStatusEvent(fail.Reason)
+            fail => new NotifyStatusMessage(fail.Reason)
             );
 
-        Messenger.Send(notifyEvent);
+        Messenger.Send(message);
     }
 
     [RelayCommand]

@@ -6,7 +6,7 @@ using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
-using TileShop.Shared.EventModels;
+using TileShop.Shared.Messages;
 using Jot;
 using Serilog;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -45,9 +45,9 @@ public partial class EditorsViewModel : ObservableRecipient
         _projectService = projectService;
         _layoutService = layoutService;
 
-        Messenger.Register<EditArrangerPixelsEvent>(this, (r, m) => Receive(m));
-        Messenger.Register<ArrangerChangedEvent>(this, (r, m) => Receive(m));
-        Messenger.Register<PaletteChangedEvent>(this, (r, m) => Receive(m));
+        Messenger.Register<EditArrangerPixelsMessage>(this, (r, m) => Receive(m));
+        Messenger.Register<ArrangerChangedMessage>(this, (r, m) => Receive(m));
+        Messenger.Register<PaletteChangedMessage>(this, (r, m) => Receive(m));
     }
 
     public async Task<bool> CloseEditor(ResourceEditorBaseViewModel? editor)
@@ -225,7 +225,7 @@ public partial class EditorsViewModel : ObservableRecipient
         return UserSaveAction.Unmodified;
     }
 
-    public void Receive(EditArrangerPixelsEvent message)
+    public void Receive(EditArrangerPixelsMessage message)
     {
         if (Shell is null)
             throw new NullReferenceException(nameof(Shell));
@@ -252,7 +252,7 @@ public partial class EditorsViewModel : ObservableRecipient
         }
     }
 
-    public void Receive(ArrangerChangedEvent message)
+    public void Receive(ArrangerChangedMessage message)
     {
         if (message.Change == ArrangerChange.Pixels || message.Change == ArrangerChange.Elements)
         {
@@ -269,7 +269,7 @@ public partial class EditorsViewModel : ObservableRecipient
         }
     }
 
-    public void Receive(PaletteChangedEvent message)
+    public void Receive(PaletteChangedMessage message)
     {
         var effectedEditors = Editors.OfType<ScatteredArrangerEditorViewModel>()
             .Where(x => x.WorkingArranger.GetReferencedPalettes().Contains(message.Palette));

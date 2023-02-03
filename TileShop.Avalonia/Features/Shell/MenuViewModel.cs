@@ -2,7 +2,7 @@
 using System.Linq;
 using Jot;
 using ImageMagitek;
-using TileShop.Shared.EventModels;
+using TileShop.Shared.Messages;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -51,7 +51,7 @@ public partial class MenuViewModel : ObservableRecipient
         _interactions = interactionService;
         _exploreService = exploreService;
         _tracker.Track(this);
-        Messenger.Register<ProjectLoadedEvent>(this, (r, m) => Handle(m));
+        Messenger.Register<ProjectLoadedMessage>(this, (r, m) => Handle(m));
 
         RecentProjectFiles = new(RecentProjectFiles.Where(x => File.Exists(x)));
         ActiveTheme = _themeService.ActiveTheme;
@@ -124,7 +124,7 @@ public partial class MenuViewModel : ObservableRecipient
         _exploreService.ExploreWebLocation(uri);
     }
 
-    public async void Handle(ProjectLoadedEvent message)
+    public async void Handle(ProjectLoadedMessage message)
     {
         await Task.Delay(50); // Delay so that the menu closes, otherwise changing the collection keeps it open
 

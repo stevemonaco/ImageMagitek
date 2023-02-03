@@ -4,7 +4,7 @@ using ImageMagitek.Colors;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
-public abstract partial class EditableColorBaseViewModel : ObservableObject
+public abstract partial class EditableColorBaseViewModel : ObservableRecipient
 {
     public abstract bool CanSaveColor { get; }
     public required IColor WorkingColor { get; set; }

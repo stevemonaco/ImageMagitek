@@ -14,7 +14,7 @@ using ImageMagitek.Project;
 using ImageMagitek.Services;
 using Jot;
 using Monaco.PathTree;
-using TileShop.Shared.EventModels;
+using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using TileShop.Shared.Services;
 using TileShop.Shared.Interactions;
@@ -43,7 +43,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         _diskExploreService = diskExploreService;
         _editors = editors;
 
-        Messenger.Register<AddScatteredArrangerFromCopyEvent>(this, (r, m) => ReceiveAsync(m));
+        Messenger.Register<AddScatteredArrangerFromCopyMessage>(this, (r, m) => ReceiveAsync(m));
         DisplayName = "Project Tree";
     }
 
@@ -250,8 +250,8 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
         if (dialogResult is not null)
         {
-            var changeEvent = new ArrangerChangedEvent(arranger, ArrangerChange.Pixels);
-            Messenger.Send(changeEvent);
+            var changeMessage = new ArrangerChangedMessage(arranger, ArrangerChange.Pixels);
+            Messenger.Send(changeMessage);
         }
     }
 
@@ -383,15 +383,15 @@ public partial class ProjectTreeViewModel : ToolViewModel
                     if (nodeModel.ParentModel is FolderNodeViewModel || nodeModel.ParentModel is ProjectNodeViewModel)
                         nodeModel.ParentModel.NotifyChildrenChanged();
 
-                    var renameEvent = new ResourceRenamedEvent(nodeModel.Node.Item, newName, oldName);
-                    Messenger.Send(renameEvent);
+                    var renameMessage = new ResourceRenamedMessage(nodeModel.Node.Item, newName, oldName);
+                    Messenger.Send(renameMessage);
                     return Task.CompletedTask;
                 },
                 async fail => await _interactions.AlertAsync("Rename failed", fail.Reason));
         }
     }
 
-    public async void ReceiveAsync(AddScatteredArrangerFromCopyEvent message)
+    public async void ReceiveAsync(AddScatteredArrangerFromCopyMessage message)
     {
         var dialogModel = new NameResourceViewModel();
         var copy = message.Copy;
@@ -511,7 +511,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
                         var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
                         Projects.Add(projectVM);
                         OnPropertyChanged(nameof(HasProject));
-                        Messenger.Send(new ProjectLoadedEvent(projectVM.Node.DiskLocation));
+                        Messenger.Send(new ProjectLoadedMessage(projectVM.Node.DiskLocation));
                     },
                     async fail => await _interactions.AlertAsync("Project Error", $"{fail.Reason}"));
             }
@@ -552,7 +552,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
                         IsModified = true;
 
                         OnPropertyChanged(nameof(HasProject));
-                        Messenger.Send(new ProjectLoadedEvent(projectVM.Node.DiskLocation));
+                        Messenger.Send(new ProjectLoadedMessage(projectVM.Node.DiskLocation));
                         return Task.CompletedTask;
                     },
                     async fail => await _interactions.AlertAsync("Project Error", $"{fail.Reason}"));
@@ -587,7 +587,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
                 var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
                 Projects.Add(projectVM);
                 OnPropertyChanged(nameof(HasProject));
-                Messenger.Send(new ProjectLoadedEvent(projectFileName));
+                Messenger.Send(new ProjectLoadedMessage(projectFileName));
                 return Task.FromResult(true);
             },
             async fail =>

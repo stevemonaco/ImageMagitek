@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using TileShop.Shared.EventModels;
+using TileShop.Shared.Messages;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -12,17 +12,17 @@ public partial class StatusViewModel : ObservableRecipient
 
     public StatusViewModel(EditorsViewModel editors)
     {
-        Messenger.Register<NotifyStatusEvent>(this, (r, m) => Receive(m));
+        Messenger.Register<NotifyStatusMessage>(this, (r, m) => Receive(m));
         _editors = editors;
     }
 
-    public async void Receive(NotifyStatusEvent notifyEvent)
+    public async void Receive(NotifyStatusMessage message)
     {
-        if (notifyEvent.DisplayDuration == NotifyStatusDuration.Short)
+        if (message.DisplayDuration == NotifyStatusDuration.Short)
         {
-            StatusMessage = notifyEvent.NotifyMessage;
+            StatusMessage = message.NotifyMessage;
             await Task.Delay(2000);
-            if (StatusMessage == notifyEvent.NotifyMessage)
+            if (StatusMessage == message.NotifyMessage)
                 StatusMessage = "";
         }
     }

@@ -5,7 +5,7 @@ using Avalonia.Media;
 using System.Collections.ObjectModel;
 using TileShop.AvaloniaUI.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.Shared.EventModels;
+using TileShop.Shared.Messages;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Diagnostics.CodeAnalysis;
 
@@ -54,8 +54,8 @@ public partial class TableColorViewModel : EditableColorBaseViewModel
     public void MouseOver(ValidatedTableColorModel model)
     {
         string notifyMessage = $"Palette Index: {model.Index}";
-        var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-        WeakReferenceMessenger.Default.Send(notifyEvent);
+        var message = new NotifyStatusMessage(notifyMessage, NotifyStatusDuration.Indefinite);
+        Messenger.Send(message);
     }
 
     private IEnumerable<ValidatedTableColorModel> CreateTableColorModels()

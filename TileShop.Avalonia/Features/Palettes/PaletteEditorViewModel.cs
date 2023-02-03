@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using TileShop.Shared.EventModels;
+using TileShop.Shared.Messages;
 using ImageMagitek.Colors;
 using ImageMagitek.Services;
 using ImageMagitek.Utility.Parsing;
@@ -106,8 +106,8 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 
         _palette.Reload();
 
-        var changeEvent = new PaletteChangedEvent(_palette);
-        Messenger.Send(changeEvent);
+        var changeMessage = new PaletteChangedMessage(_palette);
+        Messenger.Send(changeMessage);
 
         IsModified = false;
     }
@@ -144,8 +144,8 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         _palette.SavePalette();
         IsModified = false;
 
-        var changeEvent = new PaletteChangedEvent(_palette);
-        Messenger.Send(changeEvent);
+        var changeMessage = new PaletteChangedMessage(_palette);
+        Messenger.Send(changeMessage);
 
         return Task.CompletedTask;
     }
@@ -161,9 +161,9 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 
     public void MouseOver(Color32ViewModel model)
     {
-        string notifyMessage = $"Palette Index: {model.Index}";
-        var notifyEvent = new NotifyStatusEvent(notifyMessage, NotifyStatusDuration.Indefinite);
-        Messenger.Send(notifyEvent);
+        string contents = $"Palette Index: {model.Index}";
+        var message = new NotifyStatusMessage(contents, NotifyStatusDuration.Indefinite);
+        Messenger.Send(message);
     }
 
     public override void Undo()

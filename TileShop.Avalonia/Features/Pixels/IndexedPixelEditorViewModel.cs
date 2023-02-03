@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Services;
-using TileShop.Shared.EventModels;
+using TileShop.Shared.Messages;
 using TileShop.AvaloniaUI.Imaging;
 using TileShop.AvaloniaUI.Models;
 using TileShop.Shared.Models;
@@ -113,7 +113,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
     [RelayCommand]
     public override void ApplyPaste(ArrangerPaste paste)
     {
-        var notifyEvent = ApplyPasteInternal(paste).Match(
+        var message = ApplyPasteInternal(paste).Match(
             success =>
             {
                 AddHistoryAction(new PasteArrangerHistoryAction(paste));
@@ -122,12 +122,12 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
                 CancelOverlay();
                 BitmapAdapter.Invalidate();
 
-                return new NotifyStatusEvent("Paste successfully applied");
+                return new NotifyStatusMessage("Paste successfully applied");
             },
-            fail => new NotifyStatusEvent(fail.Reason)
+            fail => new NotifyStatusMessage(fail.Reason)
             );
 
-        Messenger.Send(notifyEvent);
+        Messenger.Send(message);
     }
 
     public bool CanRemapColors
@@ -189,8 +189,8 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
             OnPropertyChanged(nameof(CanRedo));
 
             IsModified = false;
-            var changeEvent = new ArrangerChangedEvent(_projectArranger, ArrangerChange.Pixels);
-            Messenger.Send(changeEvent);
+            var changeMessage = new ArrangerChangedMessage(_projectArranger, ArrangerChange.Pixels);
+            Messenger.Send(changeMessage);
         }
         catch (Exception ex)
         {
@@ -213,7 +213,7 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         var palColor = new ColorRgba32(modelColor.R, modelColor.G, modelColor.B, modelColor.A);
         var result = _indexedImage.TrySetPixel(x, y, palColor);
 
-        var notifyEvent = result.Match(
+        var message = result.Match(
             success =>
             {
                 if (_activePencilHistory is not null && _activePencilHistory.ModifiedPoints.Add(new Point(x, y)))
@@ -222,11 +222,11 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
                     BitmapAdapter.Invalidate(x, y, 1, 1);
                     OnImageModified?.Invoke();
                 }
-                return new NotifyStatusEvent("");
+                return new NotifyStatusMessage("");
             },
-            fail => new NotifyStatusEvent(fail.Reason)
+            fail => new NotifyStatusMessage(fail.Reason)
             );
-        Messenger.Send(notifyEvent);
+        Messenger.Send(message);
     }
 
     public override byte GetPixel(int x, int y) => _indexedImage.GetPixel(x, y);

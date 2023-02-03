@@ -10,7 +10,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.AvaloniaUI.Models;
 using TileShop.AvaloniaUI.Imaging;
 using CommunityToolkit.Mvvm.Input;
-using TileShop.Shared.EventModels;
+using TileShop.Shared.Messages;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Threading.Tasks;
@@ -287,7 +287,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
             int height = Selection.SelectionRect.SnappedHeight / WorkingArranger.ElementPixelSize.Height;
 
             var copy = new ElementCopy(WorkingArranger, x, y, width, height);
-            var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource!);
+            var model = new AddScatteredArrangerFromCopyMessage(copy, OriginatingProjectResource!);
             Messenger.Send(model);
         }
         else
@@ -302,7 +302,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         if (SnapMode == SnapMode.Element)
         {
             var copy = new ElementCopy(WorkingArranger, 0, 0, 1, 1);
-            var model = new AddScatteredArrangerFromCopyEvent(copy, OriginatingProjectResource!);
+            var model = new AddScatteredArrangerFromCopyMessage(copy, OriginatingProjectResource!);
             Messenger.Send(model);
         }
         else

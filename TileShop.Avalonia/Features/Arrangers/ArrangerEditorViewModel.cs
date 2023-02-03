@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Drawing;
-using TileShop.Shared.EventModels;
+using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using ImageMagitek.Services;
 using ImageMagitek;
@@ -236,7 +236,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         if (!CanEditSelection)
             return;
 
-        EditArrangerPixelsEvent editEvent;
+        EditArrangerPixelsMessage editMessage;
         var rect = Selection.SelectionRect;
 
         if (SnapMode == SnapMode.Element && WorkingArranger.Layout == ElementLayout.Tiled)
@@ -244,16 +244,16 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
             // Clone a subsection of the arranger and show the full subarranger
             WorkingArranger.CopyElements();
             var arranger = WorkingArranger.CloneArranger(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
-            editEvent = new EditArrangerPixelsEvent(arranger, (Arranger)Resource, 0, 0, rect.SnappedWidth, rect.SnappedHeight);
+            editMessage = new EditArrangerPixelsMessage(arranger, (Arranger)Resource, 0, 0, rect.SnappedWidth, rect.SnappedHeight);
         }
         else
         {
             // Clone the entire arranger and show a subsection of the cloned arranger
             var arranger = WorkingArranger.CloneArranger();
-            editEvent = new EditArrangerPixelsEvent(arranger, (Arranger)Resource, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+            editMessage = new EditArrangerPixelsMessage(arranger, (Arranger)Resource, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
         }
 
-        WeakReferenceMessenger.Default.Send(editEvent);
+        WeakReferenceMessenger.Default.Send(editMessage);
         CancelOverlay();
     }
 

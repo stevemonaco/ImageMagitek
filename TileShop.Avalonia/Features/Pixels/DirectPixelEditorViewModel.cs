@@ -5,7 +5,7 @@ using ImageMagitek.Services;
 using TileShop.AvaloniaUI.Imaging;
 using TileShop.AvaloniaUI.Models;
 using TileShop.Shared.Models;
-using TileShop.Shared.EventModels;
+using TileShop.Shared.Messages;
 using ImageMagitek.Image;
 using System.Drawing;
 using ImageMagitek.ExtensionMethods;
@@ -76,8 +76,8 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
             OnPropertyChanged(nameof(CanRedo));
 
             IsModified = false;
-            var changeEvent = new ArrangerChangedEvent(_projectArranger, ArrangerChange.Pixels);
-            Messenger.Send(changeEvent);
+            var message = new ArrangerChangedMessage(_projectArranger, ArrangerChange.Pixels);
+            Messenger.Send(message);
         }
         catch (Exception ex)
         {
@@ -122,7 +122,7 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
     [RelayCommand]
     public override void ApplyPaste(ArrangerPaste paste)
     {
-        var notifyEvent = ApplyPasteInternal(paste).Match(
+        var message = ApplyPasteInternal(paste).Match(
             success =>
             {
                 AddHistoryAction(new PasteArrangerHistoryAction(paste));
@@ -131,12 +131,12 @@ public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<Co
                 CancelOverlay();
                 BitmapAdapter.Invalidate();
 
-                return new NotifyStatusEvent("Paste successfully applied");
+                return new NotifyStatusMessage("Paste successfully applied");
             },
-            fail => new NotifyStatusEvent(fail.Reason)
+            fail => new NotifyStatusMessage(fail.Reason)
             );
 
-        Messenger.Send(notifyEvent);
+        Messenger.Send(message);
     }
 
     private MagitekResult ApplyPasteInternal(ArrangerPaste paste)

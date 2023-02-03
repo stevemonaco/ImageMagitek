@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek.Project;
 using TileShop.Shared.Models;
-using TileShop.Shared.EventModels;
+using TileShop.Shared.Messages;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -20,7 +20,7 @@ public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
     public ResourceEditorBaseViewModel(IProjectResource resource)
     {
         Resource = resource;
-        Messenger.Register<ResourceRenamedEvent>(this, Handle);
+        Messenger.Register<ResourceRenamedMessage>(this, Handle);
     }
 
     public virtual bool CanUndo { get => UndoHistory.Count > 0; }
@@ -38,7 +38,7 @@ public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
         OnPropertyChanged(nameof(CanRedo));
     }
 
-    public virtual void Handle(object recipient, ResourceRenamedEvent message)
+    public virtual void Handle(object recipient, ResourceRenamedMessage message)
     {
         if (ReferenceEquals(Resource, message.Resource))
             DisplayName = message.NewName;
