@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace TileShop.Shared.Services;
+﻿namespace TileShop.Shared.Services;
 
 public enum ThemeStyle { Light, Dark };
 

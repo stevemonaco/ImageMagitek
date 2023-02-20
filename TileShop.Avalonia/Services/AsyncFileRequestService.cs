@@ -94,12 +94,7 @@ internal class AsyncFileRequestService : IAsyncFileRequestService
 
         var pickerResult = await window.StorageProvider.OpenFilePickerAsync(options);
 
-        if (pickerResult.FirstOrDefault()?.TryGetUri(out var uri) is true)
-        {
-            return uri;
-        }
-
-        return null;
+        return pickerResult.FirstOrDefault()?.Path;
     }
 
     private static async Task<Uri?> SaveFilePickerAsync(FilePickerSaveOptions options)
@@ -110,13 +105,7 @@ internal class AsyncFileRequestService : IAsyncFileRequestService
             return null;
 
         var pickerResult = await window.StorageProvider.SaveFilePickerAsync(options);
-
-        if (pickerResult?.TryGetUri(out var uri) is true)
-        {
-            return uri;
-        }
-
-        return null;
+        return pickerResult?.Path;
     }
 
     private static Window? GetWindow()

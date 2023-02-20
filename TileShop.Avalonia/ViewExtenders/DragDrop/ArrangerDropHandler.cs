@@ -13,7 +13,7 @@ public class ArrangerDropHandler : DropHandlerBase
     {
         if (sourceContext is ArrangerPaste paste &&
             targetContext is ArrangerEditorViewModel targetVm &&
-            sender is IControl control)
+            sender is Control control)
         {
             if (paste.Copy is ElementCopy && !targetVm.CanAcceptElementPastes)
                 return;
@@ -39,7 +39,7 @@ public class ArrangerDropHandler : DropHandlerBase
 
     public override void Leave(object? sender, RoutedEventArgs e)
     {
-        if (sender is IControl { DataContext: ArrangerEditorViewModel vm } control)
+        if (sender is Control { DataContext: ArrangerEditorViewModel vm } control)
         {
             vm.CancelOverlay();
         }
@@ -48,7 +48,7 @@ public class ArrangerDropHandler : DropHandlerBase
 
     public override bool Validate(object? sender, DragEventArgs e, object? sourceContext, object? targetContext, object? state)
     {
-        if (sender is IControl && sourceContext is ArrangerPaste && targetContext is ArrangerEditorViewModel)
+        if (sender is Control && sourceContext is ArrangerPaste && targetContext is ArrangerEditorViewModel)
         {
             return true;
         }
@@ -57,10 +57,10 @@ public class ArrangerDropHandler : DropHandlerBase
 
     public override bool Execute(object? sender, DragEventArgs e, object? sourceContext, object? targetContext, object? state)
     {
-        if (e.Source is IControl &&
+        if (e.Source is Control &&
             sourceContext is ArrangerPaste paste &&
             targetContext is ArrangerEditorViewModel targetVm &&
-            sender is IControl control
+            sender is Control control
             && Validate(control, e, sourceContext, targetContext, state))
         {
             paste.IsDragging = false;

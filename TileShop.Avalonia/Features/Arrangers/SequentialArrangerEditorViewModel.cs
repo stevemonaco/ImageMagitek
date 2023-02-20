@@ -22,7 +22,6 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
 {
     private readonly ICodecService _codecService;
     private readonly IElementLayoutService _layoutService;
-    private readonly Tracker _tracker;
     private IndexedImage? _indexedImage;
     private DirectImage? _directImage;
     private TileLayout _activeLayout;
@@ -164,7 +163,6 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         WorkingArranger = arranger;
         _codecService = codecService;
         _layoutService = layoutService;
-        _tracker = tracker;
         DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
         CreateImages();

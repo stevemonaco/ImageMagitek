@@ -13,11 +13,11 @@
 			<Setter Property="IsTabStop" Value="False" />
 		</Style>
 		
-		<Style Selector="MenuItem.recent > MenuItem">
+		<!--<Style Selector="MenuItem.recent > MenuItem">
 			<Setter Property="Header" Value="{Binding}" />
 			<Setter Property="Command" Value="{ReflectionBinding #menu.DataContext.OpenRecentProjectCommand}" />
 			<Setter Property="CommandParameter" Value="{Binding}" />
-		</Style>
+		</Style>-->
 	</UserControl.Styles>
 	
 	<Grid ColumnDefinitions="*,auto">
@@ -27,11 +27,11 @@
 				<MenuItem Command="{Binding NewProjectFromFileCommand}" Header="New Project from _Existing File" />
 				<Separator />
 				<MenuItem Command="{Binding OpenProjectCommand}" Header="Open _Project" />
-				<MenuItem
+				<!--<MenuItem
 					Classes="recent"
                     Header="Open Recent Project"
                     Items="{Binding RecentProjectFiles}"
-                    IsVisible="{Binding RecentProjectFiles.Count}" />
+                    IsVisible="{Binding RecentProjectFiles.Count}" />-->
 				<Separator />
 				<MenuItem
                     Command="{Binding CloseEditorCommand}"

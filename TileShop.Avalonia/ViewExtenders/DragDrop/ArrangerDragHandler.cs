@@ -17,7 +17,7 @@ public class ArrangerDragHandler : IDragHandlerEx
 
     public void BeforeDragDrop(object? sender, PointerEventArgs e, object? context)
     {
-        if (context is not ArrangerEditorViewModel vm || sender is not IControl control)
+        if (context is not ArrangerEditorViewModel vm || sender is not Control control)
         {
             return;
         }

@@ -4,14 +4,15 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.AvaloniaUI.Converters"
     xmlns:fas="using:FluentAvalonia.Styling"
-    xmlns:local="using:TileShop.AvaloniaUI">
+    xmlns:local="using:TileShop.AvaloniaUI"
+    RequestedThemeVariant="Dark">
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
 
     <Application.Styles>
-        <FluentTheme Mode="Dark" />
-        <fas:FluentAvaloniaTheme />
+        <FluentTheme />
+        <fas:FluentAvaloniaTheme PreferUserAccentColor="True" />
         <StyleInclude Source="avares://Dock.Avalonia/Themes/DockFluentTheme.axaml" />
 
         <StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/VerticalNumericUpDown.axaml" />
@@ -21,13 +22,15 @@
     </Application.Styles>
     <Application.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceInclude x:Key="Default" Source="avares://TileShop.AvaloniaUI/Styles/TileShop.Light.axaml" />
+                <ResourceInclude x:Key="Dark" Source="avares://TileShop.AvaloniaUI/Styles/TileShop.Dark.axaml" />
+            </ResourceDictionary.ThemeDictionaries>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://TileShop.AvaloniaUI/Styles/Icons.axaml" />
+                <ResourceInclude Source="avares://TileShop.AvaloniaUI/Styles/ResourceOverrides.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-
-        <Thickness x:Key="ContentDialogPadding">24,12,24,12</Thickness>
-        <x:Double x:Key="ContentDialogMinHeight">160</x:Double>
 
         <!--<VisualBrush
             x:Key="CheckeredBrush"

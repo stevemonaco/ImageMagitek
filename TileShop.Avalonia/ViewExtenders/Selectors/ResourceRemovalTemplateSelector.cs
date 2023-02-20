@@ -14,7 +14,7 @@ internal class ResourceRemovalTemplateSelector : IDataTemplate
     [Content]
     public Dictionary<string, IDataTemplate> AvailableTemplates { get; } = new();
 
-    public IControl Build(object? param)
+    public Control Build(object? param)
     {
         if (param is not ResourceChangeViewModel changeVm)
             throw new ArgumentException(nameof(param));

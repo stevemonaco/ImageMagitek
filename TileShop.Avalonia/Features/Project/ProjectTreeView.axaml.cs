@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.VisualTree;
@@ -26,7 +27,7 @@ public partial class ProjectTreeView : UserControl
 
     private void ProjectTree_DoubleTapped(object? sender, TappedEventArgs e)
     {
-        var item = ((IVisual)e.Source!).GetSelfAndVisualAncestors()
+        var item = ((Visual)e.Source!).GetSelfAndVisualAncestors()
             .OfType<TreeViewItem>()
             .FirstOrDefault();
 

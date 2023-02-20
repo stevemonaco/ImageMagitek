@@ -6,34 +6,33 @@ using Avalonia.Xaml.Interactions.DragAndDrop;
 using TileShop.AvaloniaUI.Models;
 using TileShop.AvaloniaUI.ViewModels;
 
-namespace TileShop.AvaloniaUI.DragDrop;
-
-public sealed class ListBoxRemappableColorDropHandler : DropHandlerBase
+namespace TileShop.AvaloniaUI.ViewExtenders.DragDrop;
+public sealed class TreeViewItemResourceNodeDropHandler : DropHandlerBase
 {
     private bool Validate<T>(Control control, DragEventArgs e, object? sourceContext, object? targetContext, bool bExecute)
-        where T : RemappableColorModel
+        where T : ResourceNodeViewModel
     {
         if (sourceContext is not T sourceItem
-            || targetContext is not ColorRemapViewModel vm
+            || targetContext is not ResourceNodeViewModel vm
             || control.GetVisualAt(e.GetPosition(control)) is not Control targetControl
             || targetControl.DataContext is not T targetItem)
         {
             return false;
         }
 
-        var items = vm.FinalColors;
-        var sourceIndex = sourceItem.Index;
-        var targetIndex = items.IndexOf(targetItem);
+        //var items = vm.FinalColors;
+        //var sourceIndex = sourceItem.Index;
+        //var targetIndex = items.IndexOf(targetItem);
 
-        if (sourceIndex < 0 || targetIndex < 0)
-        {
-            return false;
-        }
+        //if (sourceIndex < 0 || targetIndex < 0)
+        //{
+        //    return false;
+        //}
 
-        if (bExecute)
-        {
-            items[targetIndex] = new RemappableColorModel(sourceItem.Color, sourceItem.Index);
-        }
+        //if (bExecute)
+        //{
+        //    items[targetIndex] = new RemappableColorModel(sourceItem.Color, sourceItem.Index);
+        //}
 
         return true;
     }
@@ -42,7 +41,7 @@ public sealed class ListBoxRemappableColorDropHandler : DropHandlerBase
     {
         if (e.Source is Control && sender is Control control)
         {
-            return Validate<RemappableColorModel>(control, e, sourceContext, targetContext, false);
+            return Validate<ResourceNodeViewModel>(control, e, sourceContext, targetContext, false);
         }
         return false;
     }
@@ -51,7 +50,7 @@ public sealed class ListBoxRemappableColorDropHandler : DropHandlerBase
     {
         if (e.Source is Control && sender is Control control)
         {
-            return Validate<RemappableColorModel>(control, e, sourceContext, targetContext, true);
+            return Validate<ResourceNodeViewModel>(control, e, sourceContext, targetContext, true);
         }
         return false;
     }
@@ -64,14 +63,14 @@ public sealed class ListBoxRemappableColorDropHandler : DropHandlerBase
         if (Validate(sender, e, sourceContext, targetContext, null) == false)
         {
             e.DragEffects = DragDropEffects.None;
-            e.Handled = true;
         }
         else
         {
             control.Classes.Add("dropReady");
             e.DragEffects |= DragDropEffects.Copy | DragDropEffects.Move | DragDropEffects.Link;
-            e.Handled = true;
         }
+
+        e.Handled = true;
     }
 
     public override void Over(object? sender, DragEventArgs e, object? sourceContext, object? targetContext)

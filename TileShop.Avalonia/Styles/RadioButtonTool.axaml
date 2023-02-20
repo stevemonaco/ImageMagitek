@@ -8,7 +8,6 @@
     <!--  Replaces the default RadioButton with ellipse / text with a ToggleButton style  -->
     <!--  This is necessary because ToggleButton itself can be unchecked, so it can't be used directly as a RadioButton style  -->
     <Style Selector="RadioButton.tool">
-        <Setter Property="GroupName" Value="tool" />
         <Setter Property="Background" Value="{DynamicResource ToggleButtonBackground}" />
         <Setter Property="Foreground" Value="{DynamicResource ToggleButtonForeground}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ToggleButtonBorderBrush}" />
