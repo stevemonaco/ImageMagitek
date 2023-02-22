@@ -1,136 +1,143 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:b="using:TileShop.AvaloniaUI.Behaviors"
-			 xmlns:dd="using:TileShop.AvaloniaUI.DragDrop"
-			 xmlns:i="using:Avalonia.Xaml.Interactivity"
-			 xmlns:id="using:Avalonia.Xaml.Interactions.Draggable"
-			 xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-			 xmlns:m="using:TileShop.AvaloniaUI.Models"
-			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
-			 x:DataType="vm:ColorRemapViewModel"
-			 x:CompileBindings="True"
-             x:Class="TileShop.AvaloniaUI.Views.ColorRemapView">
-	<UserControl.Styles>
-		<StyleInclude Source="avares://Avalonia.Xaml.Interactions/Draggable/Styles.axaml" />
-	</UserControl.Styles>
-	<UserControl.Resources>
-		<dd:ListBoxRemappableColorDropHandler x:Key="ListBoxRemappableColorDropHandler" />
-	</UserControl.Resources>
-	<UserControl.Styles>
-		<Style Selector="ListBox.colorDrag > :is(ListBoxItem)">
-			<Setter Property="Padding" Value="0" />
-			<Setter Property="MinWidth" Value="0" />
-			<Setter Property="MinHeight" Value="0" />
-			<Setter Property="(i:Interaction.Behaviors)">
-				<i:BehaviorCollectionTemplate>
-					<i:BehaviorCollection>
-						<idd:TypedDragBehavior DataType="{x:Type m:RemappableColorModel}" />
-					</i:BehaviorCollection>
-				</i:BehaviorCollectionTemplate>
-			</Setter>
-		</Style>
+<UserControl
+    x:Class="TileShop.AvaloniaUI.Views.ColorRemapView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:b="using:TileShop.AvaloniaUI.Behaviors"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dd="using:TileShop.AvaloniaUI.DragDrop"
+    xmlns:i="using:Avalonia.Xaml.Interactivity"
+    xmlns:id="using:Avalonia.Xaml.Interactions.Draggable"
+    xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop"
+    xmlns:m="using:TileShop.AvaloniaUI.Models"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    x:CompileBindings="True"
+    x:DataType="vm:ColorRemapViewModel"
+    mc:Ignorable="d">
+    <UserControl.Styles>
+        <StyleInclude Source="avares://Avalonia.Xaml.Interactions.Draggable/Styles.axaml" />
+    </UserControl.Styles>
+    <UserControl.Resources>
+        <dd:ListBoxRemappableColorDropHandler x:Key="ListBoxRemappableColorDropHandler" />
+    </UserControl.Resources>
+    <UserControl.Styles>
+        <Style Selector="ListBox.colorDrag > :is(ListBoxItem)">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="(i:Interaction.Behaviors)">
+                <i:BehaviorCollectionTemplate>
+                    <i:BehaviorCollection>
+                        <idd:TypedDragBehavior DataType="{x:Type m:RemappableColorModel}" />
+                    </i:BehaviorCollection>
+                </i:BehaviorCollectionTemplate>
+            </Setter>
+        </Style>
 
-		<Style Selector="Border.colorDrop">
-			<Setter Property="(DragDrop.AllowDrop)" Value="True" />
-			<Setter Property="(i:Interaction.Behaviors)">
-				<i:BehaviorCollectionTemplate>
-					<i:BehaviorCollection>
-						<idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ListBoxRemappableColorDropHandler}" />
-					</i:BehaviorCollection>
-				</i:BehaviorCollectionTemplate>
-			</Setter>
-		</Style>
+        <Style Selector="Border.colorDrop">
+            <Setter Property="(DragDrop.AllowDrop)" Value="True" />
+            <Setter Property="(i:Interaction.Behaviors)">
+                <i:BehaviorCollectionTemplate>
+                    <i:BehaviorCollection>
+                        <idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ListBoxRemappableColorDropHandler}" />
+                    </i:BehaviorCollection>
+                </i:BehaviorCollectionTemplate>
+            </Setter>
+        </Style>
 
-		<Style Selector="Border.dropReady">
-			<Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
-		</Style>
-	</UserControl.Styles>
-	
-	<Grid RowDefinitions="*,*">
-		<StackPanel Grid.Row="0" Margin="10">
-			<TextBlock
+        <Style Selector="Border.dropReady">
+            <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="*,*">
+        <StackPanel Grid.Row="0" Margin="10">
+            <TextBlock
                 HorizontalAlignment="Center"
                 FontSize="20"
                 Text="Current Colors" />
 
-			<ListBox
-				Classes="colorDrag"
+            <ListBox
                 HorizontalAlignment="Center"
+                Classes="colorDrag"
                 Items="{Binding InitialColors}">
-				<ListBox.ItemsPanel>
-					<ItemsPanelTemplate>
-						<WrapPanel Orientation="Horizontal" />
-					</ItemsPanelTemplate>
-				</ListBox.ItemsPanel>
-				<ListBox.ItemTemplate>
-					<DataTemplate>
-						<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-							<TextBlock
-								Margin="8,0,0,0"
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                            <TextBlock
+                                Margin="8,0,0,0"
                                 VerticalAlignment="Center"
                                 FontSize="24"
                                 Text="{Binding Index}" />
-							<Border
+                            <Border
                                 Margin="10,2,2,2"
-                                Background="{StaticResource CheckeredBrush}"
+                                Background="{StaticResource BasicCheckeredBrush}"
                                 BorderBrush="Black"
                                 BorderThickness="2">
-								<Rectangle Width="24" Height="24">
-									<Rectangle.Fill>
-										<SolidColorBrush Color="{Binding Color}" />
-									</Rectangle.Fill>
-								</Rectangle>
-							</Border>
-						</StackPanel>
-					</DataTemplate>
-				</ListBox.ItemTemplate>
-			</ListBox>
-		</StackPanel>
+                                <Rectangle Width="24" Height="24">
+                                    <Rectangle.Fill>
+                                        <SolidColorBrush Color="{Binding Color}" />
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </Border>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </StackPanel>
 
-		<StackPanel Grid.Row="1" Margin="10">
-			<TextBlock
+        <StackPanel Grid.Row="1" Margin="10">
+            <TextBlock
                 HorizontalAlignment="Center"
                 FontSize="20"
                 Text="New Colors" />
 
-			<ItemsControl
+            <ItemsControl
                 Grid.Row="1"
                 HorizontalAlignment="Center"
                 Items="{Binding FinalColors}">
-				<ItemsControl.ItemsPanel>
-					<ItemsPanelTemplate>
-						<WrapPanel Orientation="Horizontal" />
-					</ItemsPanelTemplate>
-				</ItemsControl.ItemsPanel>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
 
-				<ItemsControl.ItemTemplate>
-					<DataTemplate>
-						<Border Classes="colorDrop" Background="Transparent" BorderThickness="1" Width="65">
-							<StackPanel Orientation="Horizontal">
-								<TextBlock
-									Margin="8,0,0,0"
-									VerticalAlignment="Center"
-									FontSize="24"
-									Text="{Binding Index}" />
-								<Border
-									Margin="10,2,2,2"
-									Background="{StaticResource CheckeredBrush}"
-									BorderBrush="Black"
-									BorderThickness="2">
-									<Rectangle Width="24" Height="24">
-										<Rectangle.Fill>
-											<SolidColorBrush Color="{Binding Color}" />
-										</Rectangle.Fill>
-									</Rectangle>
-								</Border>
-							</StackPanel>
-						</Border>
-					</DataTemplate>
-				</ItemsControl.ItemTemplate>
-			</ItemsControl>
-		</StackPanel>
-	</Grid>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border
+                            Width="65"
+                            Background="Transparent"
+                            BorderThickness="1"
+                            Classes="colorDrop">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="24"
+                                    Text="{Binding Index}" />
+                                <Border
+                                    Margin="10,2,2,2"
+                                    Background="{StaticResource BasicCheckeredBrush}"
+                                    BorderBrush="Black"
+                                    BorderThickness="2">
+                                    <Rectangle Width="24" Height="24">
+                                        <Rectangle.Fill>
+                                            <SolidColorBrush Color="{Binding Color}" />
+                                        </Rectangle.Fill>
+                                    </Rectangle>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </Grid>
 </UserControl>

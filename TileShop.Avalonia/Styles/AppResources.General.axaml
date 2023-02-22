@@ -1,0 +1,22 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <VisualBrush
+        x:Key="BasicCheckeredBrush"
+        DestinationRect="0,0,16,16"
+        Stretch="None"
+        TileMode="Tile">
+        <VisualBrush.Visual>
+            <Image Width="16" Height="16">
+                <Image.Source>
+                    <DrawingImage>
+                        <DrawingImage.Drawing>
+                            <DrawingGroup>
+                                <GeometryDrawing Brush="Transparent" Geometry="M0,0 L2,0 2,2, 0,2Z" />
+                                <GeometryDrawing Brush="#19808080" Geometry="M0,1 L2,1 2,2, 1,2 1,0 0,0Z" />
+                            </DrawingGroup>
+                        </DrawingImage.Drawing>
+                    </DrawingImage>
+                </Image.Source>
+            </Image>
+        </VisualBrush.Visual>
+    </VisualBrush>
+</ResourceDictionary>

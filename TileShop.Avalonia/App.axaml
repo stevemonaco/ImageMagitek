@@ -18,39 +18,19 @@
         <StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/VerticalNumericUpDown.axaml" />
         <StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/RadioButtonTool.axaml" />
         <StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/Arranger.axaml" />
-        <StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/TileShop.General.axaml" />
+        <StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/AppStyles.axaml" />
     </Application.Styles>
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
-                <ResourceInclude x:Key="Default" Source="avares://TileShop.AvaloniaUI/Styles/TileShop.Light.axaml" />
-                <ResourceInclude x:Key="Dark" Source="avares://TileShop.AvaloniaUI/Styles/TileShop.Dark.axaml" />
+                <ResourceInclude x:Key="Default" Source="avares://TileShop.AvaloniaUI/Styles/AppResources.Light.axaml" />
+                <ResourceInclude x:Key="Dark" Source="avares://TileShop.AvaloniaUI/Styles/AppResources.Dark.axaml" />
             </ResourceDictionary.ThemeDictionaries>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://TileShop.AvaloniaUI/Styles/Icons.axaml" />
                 <ResourceInclude Source="avares://TileShop.AvaloniaUI/Styles/ResourceOverrides.axaml" />
+                <ResourceInclude Source="avares://TileShop.AvaloniaUI/Styles/AppResources.General.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-
-        <!--<VisualBrush
-            x:Key="CheckeredBrush"
-            DestinationRect="0,0,16,16"
-            Stretch="None"
-            TileMode="Tile">
-            <VisualBrush.Visual>
-                <Image Width="16" Height="16">
-                    <Image.Source>
-                        <DrawingImage>
-                            <DrawingImage.Drawing>
-                                <DrawingGroup>
-                                    <GeometryDrawing Brush="Transparent" Geometry="M0,0 L2,0 2,2, 0,2Z" />
-                                    <GeometryDrawing Brush="#19808080" Geometry="M0,1 L2,1 2,2, 1,2 1,0 0,0Z" />
-                                </DrawingGroup>
-                            </DrawingImage.Drawing>
-                        </DrawingImage>
-                    </Image.Source>
-                </Image>
-            </VisualBrush.Visual>
-        </VisualBrush>-->
     </Application.Resources>
 </Application>

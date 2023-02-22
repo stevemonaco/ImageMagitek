@@ -39,7 +39,7 @@
 			<paz:ZoomBorder Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
 				<Grid>
 					<Rectangle Width="{Binding ImportedSource.Width}" Height="{Binding ImportedSource.Height}"
-							   Stretch="None" Fill="{DynamicResource CheckeredBrush}"/>
+							   Stretch="None" Fill="{DynamicResource BasicCheckeredBrush}"/>
 
 					<Image x:Name="importedImage" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding ImportedSource.Bitmap}" />
 				</Grid>

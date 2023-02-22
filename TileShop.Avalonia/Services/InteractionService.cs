@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Markup.Xaml.Templates;
 using FluentAvalonia.UI.Controls;
 using TileShop.Shared.Interactions;
 
@@ -8,6 +10,7 @@ namespace TileShop.AvaloniaUI.Services;
 internal class InteractionService : IInteractionService
 {
     private readonly ViewLocator _viewLocator;
+    private const int _delay = 25; // Delay to ensure any ContextMenus are closed so focus isn't stolen
 
     public InteractionService(ViewLocator viewLocator)
     {
@@ -17,6 +20,7 @@ internal class InteractionService : IInteractionService
     /// <inheritdoc/>
     public async Task AlertAsync(string title, string message)
     {
+        await Task.Delay(_delay);
         var titleBlock = new SelectableTextBlock()
         {
             Text = title
@@ -37,12 +41,20 @@ internal class InteractionService : IInteractionService
             DefaultButton = ContentDialogButton.Primary
         };
 
+        cd.AttachedToVisualTree += InitializeWithFocus;
         await cd.ShowAsync();
+        cd.AttachedToVisualTree -= InitializeWithFocus;
+
+        void InitializeWithFocus(object? sender, VisualTreeAttachmentEventArgs e)
+        {
+            cd.Focus();
+        }
     }
 
     /// <inheritdoc/>
     public async Task<PromptResult> PromptAsync(PromptChoice choices, string title, string? message = default)
     {
+        await Task.Delay(_delay);
         var cd = ChoiceToDialog(choices);
 
         cd.Title = title;
@@ -56,6 +68,7 @@ internal class InteractionService : IInteractionService
     /// <inheritdoc/>
     public async Task<TResult?> RequestAsync<TResult>(IRequestMediator<TResult> mediator)
     {
+        await Task.Delay(_delay);
         var content = _viewLocator.Build(mediator);
         content.DataContext = mediator;
 
