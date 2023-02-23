@@ -10,7 +10,6 @@ namespace TileShop.AvaloniaUI.Services;
 internal class InteractionService : IInteractionService
 {
     private readonly ViewLocator _viewLocator;
-    private const int _delay = 25; // Delay to ensure any ContextMenus are closed so focus isn't stolen
 
     public InteractionService(ViewLocator viewLocator)
     {
@@ -20,7 +19,8 @@ internal class InteractionService : IInteractionService
     /// <inheritdoc/>
     public async Task AlertAsync(string title, string message)
     {
-        await Task.Delay(_delay);
+        await Task.Yield(); // Yield ensures any ContextMenus are closed so focus isn't stolen
+
         var titleBlock = new SelectableTextBlock()
         {
             Text = title
@@ -54,7 +54,7 @@ internal class InteractionService : IInteractionService
     /// <inheritdoc/>
     public async Task<PromptResult> PromptAsync(PromptChoice choices, string title, string? message = default)
     {
-        await Task.Delay(_delay);
+        await Task.Yield(); // Yield ensures any ContextMenus are closed so focus isn't stolen
         var cd = ChoiceToDialog(choices);
 
         cd.Title = title;
@@ -68,7 +68,7 @@ internal class InteractionService : IInteractionService
     /// <inheritdoc/>
     public async Task<TResult?> RequestAsync<TResult>(IRequestMediator<TResult> mediator)
     {
-        await Task.Delay(_delay);
+        await Task.Yield(); // Yield ensures any ContextMenus are closed so focus isn't stolen
         var content = _viewLocator.Build(mediator);
         content.DataContext = mediator;
 
