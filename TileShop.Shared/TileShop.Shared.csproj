@@ -1,14 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\Base.Props" />
 
-  <PropertyGroup>
-	<Nullable>enable</Nullable>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.1.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
-    <PackageReference Include="Monaco.PathTree" Version="1.2.0" />
+    <PackageReference Include="Monaco.PathTree" Version="1.2.2" />
     <PackageReference Include="OneOf" Version="3.0.223" />
   </ItemGroup>
 

@@ -6,7 +6,8 @@ public static class ResourceFileLocator
 {
     public static string Locate(ProjectTree tree, ResourceNode node)
     {
-        var baseDirectory = (tree.Root as ProjectNode).BaseDirectory;
+        var root = (ProjectNode)tree.Root;
+        var baseDirectory = root.BaseDirectory;
         var pathKey = tree.CreatePathKey(node, Path.DirectorySeparatorChar.ToString()).TrimStart(Path.DirectorySeparatorChar);
 
         if (node.Item is ResourceFolder)
@@ -17,7 +18,8 @@ public static class ResourceFileLocator
 
     public static string LocateByParent(ProjectTree tree, ResourceNode parentNode, ResourceNode childNode)
     {
-        var baseDirectory = (tree.Root as ProjectNode).BaseDirectory;
+        var root = (ProjectNode)tree.Root;
+        var baseDirectory = root.BaseDirectory;
         var pathKey = tree.CreatePathKey(parentNode, Path.DirectorySeparatorChar.ToString()).TrimStart(Path.DirectorySeparatorChar);
 
         if (childNode is not ResourceFolderNode)

@@ -302,15 +302,15 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
             }
             else if (sourceModel is NativeColorSourceModel nativeModel)
             {
-                ColorParser.TryParse(nativeModel.NativeHexColor, ColorModel.Rgba32, out var nativeColor);
-                yield return new ProjectNativeColorSource((ColorRgba32)nativeColor);
+                if (ColorParser.TryParse(nativeModel.NativeHexColor, ColorModel.Rgba32, out var nativeColor))
+                    yield return new ProjectNativeColorSource((ColorRgba32)nativeColor);
             }
             else if (sourceModel is ForeignColorSourceModel foreignModel)
             {
-                ColorParser.TryParse(foreignModel.ForeignHexColor, _palette.ColorModel, out var foreignColor);
-                yield return new ProjectForeignColorSource(foreignColor);
+                if (ColorParser.TryParse(foreignModel.ForeignHexColor, _palette.ColorModel, out var foreignColor))
+                    yield return new ProjectForeignColorSource(foreignColor);
             }
-            else if (sourceModel is ScatteredColorSourceModel scatteredModel)
+            else if (sourceModel is ScatteredColorSourceModel)
             {
                 throw new NotSupportedException();
             }

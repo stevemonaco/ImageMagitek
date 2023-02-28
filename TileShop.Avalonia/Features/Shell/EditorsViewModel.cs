@@ -119,7 +119,10 @@ public partial class EditorsViewModel : ObservableRecipient
                         codecName = "NES 1bpp";
 
                     var newArranger = new SequentialArranger(8, 16, fileSource, _paletteService.DefaultPalette, _codecService.CodecFactory, codecName);
-                    newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _paletteService, _layoutService);
+                    newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _paletteService, _layoutService)
+                    {
+                        OriginatingProjectResource = fileSource
+                    };
                     break;
                 case ResourceFolder resourceFolder:
                     newDocument = null;
@@ -128,14 +131,11 @@ public partial class EditorsViewModel : ObservableRecipient
                     newDocument = null;
                     break;
                 default:
-                    newDocument = null;
-                    break;
-                    //throw new InvalidOperationException();
+                    throw new NotSupportedException($"Project resource of type '{resource.GetType()}' is not supported");
             }
 
             if (newDocument is not null)
             {
-                newDocument.OriginatingProjectResource = resource;
                 Editors.Add(newDocument);
                 ActiveEditor = newDocument;
             }

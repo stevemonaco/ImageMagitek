@@ -9,8 +9,15 @@ namespace TileShop.AvaloniaUI.ViewModels;
 
 public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
 {
+    /// <summary>
+    /// Resource that is being edited
+    /// </summary>
     public IProjectResource Resource { get; protected set; }
-    public IProjectResource? OriginatingProjectResource { get; set; }
+
+    /// <summary>
+    /// Resource instance contained by ProjectTree
+    /// </summary>
+    public IProjectResource OriginatingProjectResource { get; init; }
 
     [ObservableProperty] private string _activityMessage = "";
     [ObservableProperty] private string _pendingOperationMessage = "";
@@ -20,6 +27,7 @@ public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
     public ResourceEditorBaseViewModel(IProjectResource resource)
     {
         Resource = resource;
+        OriginatingProjectResource = resource;
         Messenger.Register<ResourceRenamedMessage>(this, Handle);
     }
 

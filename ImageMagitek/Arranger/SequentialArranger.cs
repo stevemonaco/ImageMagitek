@@ -203,7 +203,7 @@ public sealed class SequentialArranger : Arranger
                 throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its DataFile '{el.Source.Name}' does not match the SequentialArranger '{ActiveDataSource.Name}'");
 
             if (!ReferenceEquals(ActivePalette, el.Palette))
-                throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its Palette '{el.Palette.Name}' does not match the SequentialArranger '{ActivePalette.Name}'");
+                throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its Palette '{el.Palette!.Name}' does not match the SequentialArranger '{ActivePalette.Name}'");
 
             if (el.Codec.Name != ActiveCodec.Name)
                 throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its Codec '{el.Codec.Name}' does not match the SequentialArranger '{ActiveCodec.Name}'");

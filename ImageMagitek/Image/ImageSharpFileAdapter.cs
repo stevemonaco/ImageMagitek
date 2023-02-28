@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using ImageMagitek.Colors;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -88,7 +89,7 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
         return outputImage;
     }
 
-    public MagitekResult TryLoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy, out byte[] image)
+    public MagitekResult TryLoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy, [MaybeNullWhen(false)] out byte[] image)
     {
         Configuration.Default.PreferContiguousImageBuffers = true;
         using var inputImage = SixLabors.ImageSharp.Image.Load<Rgba32>(imagePath);

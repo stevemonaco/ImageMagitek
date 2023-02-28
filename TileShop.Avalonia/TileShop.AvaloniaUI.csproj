@@ -3,8 +3,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<RuntimeIdentifiers>win10-x64</RuntimeIdentifiers>
-    <Nullable>enable</Nullable>
+	<RuntimeIdentifiers>win7-x64</RuntimeIdentifiers>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <ApplicationIcon>Assets\tsicon.ico</ApplicationIcon>
 	<TrimMode>partial</TrimMode>

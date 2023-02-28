@@ -6,13 +6,13 @@ namespace TileShop.CLI.Commands;
 public class ImportAllOptions
 {
     [Value(0, Required = true, HelpText = "Project to import resources into")]
-    public string ProjectFileName { get; set; }
+    public string ProjectFileName { get; set; } = default!;
 
     [Value(1, Required = true, HelpText = "Directory containing all resources to be imported from")]
-    public string ImportDirectory { get; set; }
+    public string ImportDirectory { get; set; } = default!;
 
     [Option("log", HelpText = "Log file name")]
-    public string LogFileName { get; set; }
+    public string? LogFileName { get; set; }
 
     [Option('f', HelpText = "Skip missing files")]
     public bool SkipMissingFiles { get; set; }

@@ -16,15 +16,19 @@ public static class Exporter
             return false;
         }
 
+        if (node.Item is not ScatteredArranger arranger)
+        {
+            Console.WriteLine($"Exporting '{arrangerKey}'...Resource key is not a Scattered Arranger");
+            return false;
+        }
+
         var relativeFile = Path.Combine(projectTree.CreatePaths(node).ToArray());
         var exportFileName = Path.Combine(projectRoot, $"{relativeFile}.png");
 
-        var arranger = node.Item as ScatteredArranger;
-
         Console.Write($"Exporting '{arrangerKey}' to '{exportFileName}'...");
 
-        if (!Directory.Exists(Path.GetDirectoryName(exportFileName)))
-            Directory.CreateDirectory(Path.GetDirectoryName(exportFileName));
+        if (Path.GetDirectoryName(exportFileName) is string path && Directory.Exists(path))
+            Directory.CreateDirectory(path);
 
         if (File.Exists(exportFileName) && forceOverwrite == false)
         {

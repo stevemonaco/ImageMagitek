@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace ImageMagitek.Codec;
@@ -51,6 +52,7 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
         WidthResizeIncrement = format.ImageProperties.Max(x => x.RowPixelPattern.Count);
     }
 
+    [MemberNotNull(nameof(_foreignBuffer), nameof(_nativeBuffer), nameof(_elementData), nameof(_mergedData), nameof(_bitReader))]
     private void AllocateBuffers()
     {
         _elementData = new List<byte[]>();

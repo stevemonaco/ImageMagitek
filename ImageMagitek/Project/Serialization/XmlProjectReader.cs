@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable disable
+
+using System;
 using System.IO;
 using System.Xml;
 using System.Xml.Linq;
@@ -9,6 +11,7 @@ using System.Collections.Generic;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Utility.Parsing;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ImageMagitek.Project.Serialization;
 
@@ -23,7 +26,7 @@ public sealed class XmlProjectReader : IProjectReader
     private readonly List<IProjectResource> _globalResources;
     private readonly Palette _globalDefaultPalette;
 
-    private List<string> _errors;
+    private List<string> _errors = new();
     private string _baseDirectory;
 
     public XmlProjectReader(XmlSchemaSet resourceSchema,
@@ -36,7 +39,105 @@ public sealed class XmlProjectReader : IProjectReader
         _globalDefaultPalette = _globalResources.OfType<Palette>().First();
     }
 
-    private bool TryDeserializeXmlFile(string xmlFileName, XmlSchemaSet schema, out ResourceModel model)
+    public MagitekResults<ProjectTree> ReadProject(string projectFileName)
+    {
+        if (string.IsNullOrWhiteSpace(projectFileName))
+            throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
+
+        _errors = new();
+
+        if (!TryDeserializeXmlFile(projectFileName, _resourceSchema, out var rootModel))
+        {
+            return new MagitekResults<ProjectTree>.Failed(_errors);
+        }
+
+        if (rootModel is not ImageProjectModel projectModel)
+        {
+            _errors.Add($"'{projectFileName}' was expected to be a project file");
+            return new MagitekResults<ProjectTree>.Failed(_errors);
+        }
+
+        var builder = new ProjectTreeBuilder(_codecFactory, _colorFactory, _globalResources);
+
+        _baseDirectory = Path.GetDirectoryName(projectFileName);
+        if (!string.IsNullOrWhiteSpace(projectModel.Root))
+        {
+            if (Path.IsPathFullyQualified(projectModel.Root))
+                _baseDirectory = projectModel.Root;
+            else
+                _baseDirectory = Path.Combine(_baseDirectory, projectModel.Root);
+        }
+
+        builder.AddProject(projectModel, _baseDirectory, projectFileName);
+
+        // Add directories
+        var directoryNames = Directory.GetDirectories(_baseDirectory, "*", SearchOption.AllDirectories);
+        foreach (var directoryName in directoryNames)
+        {
+            var folderModel = new ResourceFolderModel();
+            folderModel.Name = Path.GetFileName(directoryName);
+
+            var parentDirectory = Directory.GetParent(directoryName).FullName;
+            var relativePath = Path.GetRelativePath(_baseDirectory, parentDirectory);
+            var parentKey = relativePath == "." ? "" : relativePath;
+            builder.AddFolder(folderModel, parentKey, Path.GetFullPath(directoryName));
+        }
+
+        // Add resources
+        string fullProjectFileName = new FileInfo(projectFileName).FullName;
+        var resourceFileNames = Directory.GetFiles(_baseDirectory, "*.xml", SearchOption.AllDirectories)
+            .Except(new[] { fullProjectFileName })
+            .ToList();
+
+        List<(ResourceModel model, string pathKey, string fileLocation)> resourceModels = new();
+
+        foreach (var resourceFileName in resourceFileNames)
+        {
+            if (!TryDeserializeXmlFile(resourceFileName, _resourceSchema, out var resourceModel))
+            {
+                return new MagitekResults<ProjectTree>.Failed(_errors);
+            }
+
+            var pathKey = LocateParentPathKey(resourceFileName);
+            if (string.IsNullOrWhiteSpace(pathKey) || pathKey == ".")
+                pathKey = string.Empty;
+            resourceModels.Add((resourceModel, pathKey, resourceFileName));
+        }
+
+        foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is DataFileModel))
+        {
+            var result = builder.AddDataFile((DataFileModel)model, pathKey, fileLocation);
+            if (result.HasFailed)
+            {
+                _errors.Add($"{result.AsError.Reason}");
+            }
+        }
+
+        foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is PaletteModel))
+        {
+            var result = builder.AddPalette((PaletteModel)model, pathKey, fileLocation);
+            if (result.HasFailed)
+            {
+                _errors.Add($"{result.AsError.Reason}");
+            }
+        }
+
+        foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is ScatteredArrangerModel))
+        {
+            var result = builder.AddScatteredArranger((ScatteredArrangerModel)model, pathKey, fileLocation);
+            if (result.HasFailed)
+            {
+                _errors.Add($"{result.AsError.Reason}");
+            }
+        }
+
+        if (_errors.Count > 0)
+            return new MagitekResults<ProjectTree>.Failed(_errors);
+
+        return new MagitekResults<ProjectTree>.Success(builder.Tree);
+    }
+
+    private bool TryDeserializeXmlFile(string xmlFileName, XmlSchemaSet schema, [MaybeNullWhen(false)] out ResourceModel model)
     {
         if (!File.Exists(xmlFileName))
         {
@@ -54,8 +155,8 @@ public sealed class XmlProjectReader : IProjectReader
             {
                 doc.Validate(schema, (o, e) =>
                 {
-                    var lineInfo = (IXmlLineInfo)o;
-                    _errors.Add($"'{xmlFileName}' line {lineInfo.LineNumber}: {e.Message}");
+                    var line = o as IXmlLineInfo;
+                    _errors.Add($"'{xmlFileName}' line {line?.LineNumber.ToString() ?? "Unknown"}: {e.Message}");
                 });
 
                 if (_errors.Any())
@@ -126,103 +227,6 @@ public sealed class XmlProjectReader : IProjectReader
     {
         var relativePath = Path.GetRelativePath(_baseDirectory, fullFileName);
         return string.Join('/', relativePath.Split('\\').Skip(1));
-    }
-
-    public MagitekResults<ProjectTree> ReadProject(string projectFileName)
-    {
-        if (string.IsNullOrWhiteSpace(projectFileName))
-            throw new ArgumentException($"{nameof(ReadProject)} cannot have a null or empty value for '{nameof(projectFileName)}'");
-
-        _errors = new();
-
-        if (!TryDeserializeXmlFile(projectFileName, _resourceSchema, out var rootModel))
-        {
-            return new MagitekResults<ProjectTree>.Failed(_errors);
-        }
-
-        if (rootModel is not ImageProjectModel projectModel)
-        {
-            _errors.Add($"'{projectFileName}' was expected to be a project file");
-            return new MagitekResults<ProjectTree>.Failed(_errors);
-        }
-
-        var builder = new ProjectTreeBuilder(_codecFactory, _colorFactory, _globalResources);
-        _baseDirectory = Path.GetDirectoryName(projectFileName);
-        if (!string.IsNullOrWhiteSpace(projectModel.Root))
-        {
-            if (Path.IsPathFullyQualified(projectModel.Root))
-                _baseDirectory = projectModel.Root;
-            else
-                _baseDirectory = Path.Combine(_baseDirectory, projectModel.Root);
-        }
-
-        builder.AddProject(projectModel, _baseDirectory, projectFileName);
-
-        // Add directories
-        var directoryNames = Directory.GetDirectories(_baseDirectory, "*", SearchOption.AllDirectories);
-        foreach (var directoryName in directoryNames)
-        {
-            var folderModel = new ResourceFolderModel();
-            folderModel.Name = Path.GetFileName(directoryName);
-
-            var parentDirectory = Directory.GetParent(directoryName).FullName;
-            var relativePath = Path.GetRelativePath(_baseDirectory, parentDirectory);
-            var parentKey = relativePath == "." ? "" : relativePath;
-            builder.AddFolder(folderModel, parentKey, Path.GetFullPath(directoryName));
-        }
-
-        // Add resources
-        string fullProjectFileName = new FileInfo(projectFileName).FullName;
-        var resourceFileNames = Directory.GetFiles(_baseDirectory, "*.xml", SearchOption.AllDirectories)
-            .Except(new[] { fullProjectFileName })
-            .ToList();
-
-        var resourceModels = new List<(ResourceModel model, string pathKey, string fileLocation)>();
-
-        foreach (var resourceFileName in resourceFileNames)
-        {
-            if (!TryDeserializeXmlFile(resourceFileName, _resourceSchema, out var resourceModel))
-            {
-                return new MagitekResults<ProjectTree>.Failed(_errors);
-            }
-
-            var pathKey = LocateParentPathKey(resourceFileName);
-            if (string.IsNullOrWhiteSpace(pathKey) || pathKey == ".")
-                pathKey = string.Empty;
-            resourceModels.Add((resourceModel, pathKey, resourceFileName));
-        }
-
-        foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is DataFileModel))
-        {
-            var result = builder.AddDataFile(model as DataFileModel, pathKey, fileLocation);
-            if (result.HasFailed)
-            {
-                _errors.Add($"{result.AsError.Reason}");
-            }
-        }
-
-        foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is PaletteModel))
-        {
-            var result = builder.AddPalette(model as PaletteModel, pathKey, fileLocation);
-            if (result.HasFailed)
-            {
-                _errors.Add($"{result.AsError.Reason}");
-            }
-        }
-
-        foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is ScatteredArrangerModel))
-        {
-            var result = builder.AddScatteredArranger(model as ScatteredArrangerModel, pathKey, fileLocation);
-            if (result.HasFailed)
-            {
-                _errors.Add($"{result.AsError.Reason}");
-            }
-        }
-
-        if (_errors.Count > 0)
-            return new MagitekResults<ProjectTree>.Failed(_errors);
-
-        return new MagitekResults<ProjectTree>.Success(builder.Tree);
     }
 
     private static bool TryDeserializeProject(XElement element, string resourceName, out ImageProjectModel projectModel)

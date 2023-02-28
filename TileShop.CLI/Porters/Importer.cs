@@ -20,7 +20,7 @@ public static class Importer
             return ImportResult.MissingFile;
         }
 
-        if (!projectTree.TryGetItem(arrangerKey, out ScatteredArranger arranger))
+        if (!projectTree.TryGetItem<ScatteredArranger>(arrangerKey, out var arranger) || arranger is null)
         {
             Console.WriteLine($"Resource key does not exist or is not a {nameof(ScatteredArranger)}");
             return ImportResult.BadResourceKey;

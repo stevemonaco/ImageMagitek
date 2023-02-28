@@ -30,11 +30,11 @@ public abstract class ProjectCommandHandler<T>
 
     public abstract ExitCode Execute(T options);
 
-    public virtual ProjectTree OpenProject(string projectFileName)
+    public virtual ProjectTree? OpenProject(string projectFileName)
     {
         var openResult = ProjectService.OpenProjectFile(projectFileName);
 
-        return openResult.Match(
+        return openResult.Match<ProjectTree?>(
             success =>
             {
                 return success.Result;

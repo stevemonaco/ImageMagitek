@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using ImageMagitek.Colors;
 
@@ -30,7 +31,7 @@ public static partial class ColorParser
     /// <param name="colorModel">Color to parse as</param>
     /// <param name="color">Result</param>
     /// <returns>True if successful, false if failed</returns>
-    public static bool TryParse(string input, ColorModel colorModel, out IColor color)
+    public static bool TryParse(string input, ColorModel colorModel, [MaybeNullWhen(false)] out IColor color)
     {
         if (colorModel == ColorModel.Rgba32)
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ImageMagitek.Codec;
 
@@ -98,6 +99,7 @@ public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
         return bs.Data;
     }
 
+    [MemberNotNull(nameof(_foreignBuffer), nameof(_nativeBuffer), nameof(_bitReader), nameof(_planeImages))]
     private void AllocateBuffers()
     {
         _foreignBuffer = new byte[(StorageSize + 7) / 8];

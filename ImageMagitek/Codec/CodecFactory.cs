@@ -13,13 +13,15 @@ public sealed class CodecFactory : ICodecFactory
     public CodecFactory(Dictionary<string, IGraphicsFormat> formats)
     {
         _formats = formats ?? new Dictionary<string, IGraphicsFormat>();
+
         _codecs = new Dictionary<string, Type>
-            {
-                { "SNES 3bpp", typeof(Snes3bppCodec) }, { "PSX 4bpp", typeof(Psx4bppCodec) }, { "PSX 8bpp", typeof(Psx8bppCodec) },
-                { "Rgb24 Tiled", typeof(Rgb24TiledCodec) }, { "Rgba32 Tiled", typeof(Rgba32TiledCodec) }, { "Bmp24", typeof(Bmp24Codec)},
-                { "N64 Rgba16", typeof(N64Rgba16Codec) }, { "N64 Rgba32", typeof(N64Rgba32Codec) },
-                { "PSX 16bpp", typeof(Psx16bppCodec) }, { "PSX 24bpp", typeof(Psx24bppCodec) }
-            };
+        {
+            // Initialize with built-in codecs
+            { "SNES 3bpp", typeof(Snes3bppCodec) }, { "PSX 4bpp", typeof(Psx4bppCodec) }, { "PSX 8bpp", typeof(Psx8bppCodec) },
+            { "Rgb24 Tiled", typeof(Rgb24TiledCodec) }, { "Rgba32 Tiled", typeof(Rgba32TiledCodec) }, { "Bmp24", typeof(Bmp24Codec)},
+            { "N64 Rgba16", typeof(N64Rgba16Codec) }, { "N64 Rgba32", typeof(N64Rgba32Codec) },
+            { "PSX 16bpp", typeof(Psx16bppCodec) }, { "PSX 24bpp", typeof(Psx24bppCodec) }
+        };
     }
 
     public void AddOrUpdateCodec(Type codecType)

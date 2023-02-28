@@ -6,7 +6,7 @@ public enum PixelPacking { Planar, Chunky }
 
 public sealed class PatternGraphicsFormat : IGraphicsFormat
 {
-    public PatternList Pattern { get; private set; }
+    public PatternList Pattern { get; }
 
     /// <summary>
     /// The name of the codec
@@ -23,9 +23,9 @@ public sealed class PatternGraphicsFormat : IGraphicsFormat
     ///   Ex: [3, 2, 0, 1] implies the first bit read will merge into plane 3,
     ///   second bit read into plane 2, third bit read into plane 0, fourth bit read into plane 1
     /// </summary>
-    public int[] MergePlanePriority { get; set; }
+    public int[] MergePlanePriority { get; }
 
-    public RepeatList RowPixelPattern { get; set; }
+    public RepeatList RowPixelPattern { get; }
 
     public int DefaultWidth { get; }
     public int DefaultHeight { get; }
@@ -36,7 +36,8 @@ public sealed class PatternGraphicsFormat : IGraphicsFormat
     public int StorageSize => Width * Height * ColorDepth;
 
     public PatternGraphicsFormat(string name, PixelColorType colorType, int colorDepth,
-        ImageLayout layout, PixelPacking packing, int defaultWidth, int defaultHeight)
+        ImageLayout layout, PixelPacking packing, int defaultWidth, int defaultHeight,
+        int[] mergePlanePriority, RepeatList rowPixelPattern, PatternList pattern)
     {
         Name = name;
         ColorType = colorType;
@@ -45,20 +46,15 @@ public sealed class PatternGraphicsFormat : IGraphicsFormat
         Packing = packing;
         DefaultWidth = defaultWidth;
         DefaultHeight = defaultHeight;
+        MergePlanePriority = mergePlanePriority;
+        RowPixelPattern = rowPixelPattern;
+        Pattern = pattern;
     }
 
     public IGraphicsFormat Clone()
     {
-        var format = new PatternGraphicsFormat(Name, ColorType, ColorDepth, Layout, Packing, DefaultWidth, DefaultHeight);
-        format.SetPattern(Pattern);
-        format.MergePlanePriority = MergePlanePriority.ToArray();
-        format.RowPixelPattern = new RepeatList(RowPixelPattern);
+        var format = new PatternGraphicsFormat(Name, ColorType, ColorDepth, Layout, Packing, DefaultWidth, DefaultHeight, MergePlanePriority, RowPixelPattern, Pattern);
 
         return format;
-    }
-
-    public void SetPattern(PatternList pattern)
-    {
-        Pattern = pattern;
     }
 }

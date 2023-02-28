@@ -29,7 +29,7 @@ public sealed class XmlProjectWriter : IProjectWriter
         _tree = tree;
         _colorFactory = colorFactory;
         _globalResources = globalResources.ToList();
-        _globalDefaultPalette = globalResources.OfType<Palette>().FirstOrDefault();
+        _globalDefaultPalette = globalResources.OfType<Palette>().First();
         _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(tree.Root.DiskLocation));
     }
 
@@ -63,26 +63,30 @@ public sealed class XmlProjectWriter : IProjectWriter
 
         if (resourceNode is ProjectNode projectNode)
         {
-            var model = (projectNode.Item as ImageProject).MapToModel();
+            var project = (ImageProject)projectNode.Item;
+            var model = project.MapToModel();
             return Stringify(Serialize(model));
         }
         else if (resourceNode is DataFileNode dfNode)
         {
-            var model = (dfNode.Item as FileDataSource).MapToModel();
+            var df = (FileDataSource)dfNode.Item;
+            var model = df.MapToModel();
             return Stringify(Serialize(model));
         }
         else if (resourceNode is PaletteNode palNode)
         {
-            var model = (palNode.Item as Palette).MapToModel(resourceMap, _colorFactory);
+            var pal = (Palette)palNode.Item;
+            var model = pal.MapToModel(resourceMap, _colorFactory);
             return Stringify(Serialize(model));
         }
         else if (resourceNode is ArrangerNode arrangerNode)
         {
-            var model = (arrangerNode.Item as ScatteredArranger).MapToModel(resourceMap);
+            var arranger = (ScatteredArranger)arrangerNode.Item;
+            var model = arranger.MapToModel(resourceMap);
             return Stringify(Serialize(model));
         }
         else
-            return null;
+            throw new NotSupportedException($"{nameof(ResourceNode)} of type '{resourceNode.GetType()}' is not supported");
     }
 
     /// <summary>
@@ -100,28 +104,32 @@ public sealed class XmlProjectWriter : IProjectWriter
 
         if (resourceNode is ProjectNode projectNode)
         {
-            var model = (projectNode.Item as ImageProject).MapToModel();
+            var project = (ImageProject)projectNode.Item;
+            var model = project.MapToModel();
             contents = Stringify(Serialize(model));
             currentModel = model;
             diskModel = projectNode.Model;
         }
         else if (resourceNode is DataFileNode dfNode)
         {
-            var model = (dfNode.Item as FileDataSource).MapToModel();
+            var df = (FileDataSource)dfNode.Item;
+            var model = df.MapToModel();
             contents = Stringify(Serialize(model));
             currentModel = model;
             diskModel = dfNode.Model;
         }
         else if (resourceNode is PaletteNode palNode)
         {
-            var model = (palNode.Item as Palette).MapToModel(resourceMap, _colorFactory);
+            var pal = (Palette)palNode.Item;
+            var model = pal.MapToModel(resourceMap, _colorFactory);
             contents = Stringify(Serialize(model));
             currentModel = model;
             diskModel = palNode.Model;
         }
         else if (resourceNode is ArrangerNode arrangerNode)
         {
-            var model = (arrangerNode.Item as ScatteredArranger).MapToModel(resourceMap);
+            var arranger = (ScatteredArranger)arrangerNode.Item;
+            var model = arranger.MapToModel(resourceMap);
             contents = Stringify(Serialize(model));
             currentModel = model;
             diskModel = arrangerNode.Model;
@@ -155,19 +163,23 @@ public sealed class XmlProjectWriter : IProjectWriter
 
             if (node is ProjectNode projectNode)
             {
-                var model = (projectNode.Item as ImageProject).MapToModel();
+                var project = (ImageProject)projectNode.Item;
+                var model = project.MapToModel();
                 currentModel = model;
+
                 diskModel = projectNode.Model;
             }
             else if (node is DataFileNode dfNode)
             {
-                var model = (dfNode.Item as FileDataSource).MapToModel();
+                var df = (FileDataSource) dfNode.Item;
+                var model = df.MapToModel();
                 currentModel = model;
+                
                 diskModel = dfNode.Model;
             }
             else if (node is PaletteNode paletteNode)
             {
-                var pal = paletteNode.Item as Palette;
+                var pal = (Palette) paletteNode.Item;
                 var model = pal.MapToModel(resourceMap, _colorFactory);
                 currentModel = model;
 
@@ -175,7 +187,7 @@ public sealed class XmlProjectWriter : IProjectWriter
             }
             else if (node is ArrangerNode arrangerNode)
             {
-                var arranger = arrangerNode.Item as ScatteredArranger;
+                var arranger = (ScatteredArranger)arrangerNode.Item;
                 var model = arranger.MapToModel(resourceMap);
                 currentModel = model;
 
@@ -206,19 +218,19 @@ public sealed class XmlProjectWriter : IProjectWriter
             {
                 if (action.node is ProjectNode projectNode)
                 {
-                    projectNode.Model = action.model as ImageProjectModel;
+                    projectNode.Model = (ImageProjectModel)action.model;
                 }
                 else if (action.node is DataFileNode dfNode)
                 {
-                    dfNode.Model = action.model as DataFileModel;
+                    dfNode.Model = (DataFileModel)action.model;
                 }
                 else if (action.node is PaletteNode paletteNode)
                 {
-                    paletteNode.Model = action.model as PaletteModel;
+                    paletteNode.Model = (PaletteModel)action.model;
                 }
                 else if (action.node is ArrangerNode arrangerNode)
                 {
-                    arrangerNode.Model = action.model as ScatteredArrangerModel;
+                    arrangerNode.Model = (ScatteredArrangerModel)action.model;
                 }
                 else
                 {
@@ -253,7 +265,9 @@ public sealed class XmlProjectWriter : IProjectWriter
 
         foreach (var path in resourcePaths.Take(resourcePaths.Length - 1))
         {
-            nodeVisitor = nodeVisitor.Elements().Where(x => (string)x.Attribute("name") == path).FirstOrDefault();
+            nodeVisitor = nodeVisitor.Elements()
+                .FirstOrDefault(x => x.Attribute("name")?.Value == path);
+
             if (nodeVisitor is null)
                 throw new KeyNotFoundException($"{nameof(AddResourceToXmlTree)}: node with path '{path}' not found");
         }
@@ -408,7 +422,7 @@ public sealed class XmlProjectWriter : IProjectWriter
             IndentChars = "\t",
         };
 
-        using TextWriter writer = new Utf8StringWriter();
+        using var writer = new Utf8StringWriter();
         using var xw = XmlWriter.Create(writer, xws);
 
         resourceElement.Save(xw);

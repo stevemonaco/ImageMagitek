@@ -39,7 +39,7 @@ public readonly struct ArrangerElement
     /// <summary>
     /// Palette to apply to the element's pixel data
     /// </summary>
-    public Palette Palette { get; }
+    public Palette? Palette { get; }
 
     /// <summary>
     /// Left edge of the Element within the Arranger in pixel coordinates, inclusive
@@ -65,19 +65,19 @@ public readonly struct ArrangerElement
 
     public RotationOperation Rotation { get; }
 
-    public ArrangerElement(int x1, int y1)
-    {
-        X1 = x1;
-        Y1 = y1;
-        SourceAddress = BitAddress.Zero;
-        Source = null;
-        Codec = null;
-        Palette = null;
-        Mirror = MirrorOperation.None;
-        Rotation = RotationOperation.None;
-    }
+    //public ArrangerElement(int x1, int y1)
+    //{
+    //    X1 = x1;
+    //    Y1 = y1;
+    //    SourceAddress = BitAddress.Zero;
+    //    Source = null;
+    //    Codec = null;
+    //    Palette = null;
+    //    Mirror = MirrorOperation.None;
+    //    Rotation = RotationOperation.None;
+    //}
 
-    public ArrangerElement(int x1, int y1, DataSource dataFile, BitAddress address, IGraphicsCodec codec, Palette palette)
+    public ArrangerElement(int x1, int y1, DataSource dataFile, BitAddress address, IGraphicsCodec codec, Palette? palette)
     {
         X1 = x1;
         Y1 = y1;
@@ -89,7 +89,7 @@ public readonly struct ArrangerElement
         Rotation = RotationOperation.None;
     }
 
-    public ArrangerElement(int x1, int y1, DataSource dataFile, BitAddress address, IGraphicsCodec codec, Palette palette,
+    public ArrangerElement(int x1, int y1, DataSource dataFile, BitAddress address, IGraphicsCodec codec, Palette? palette,
         MirrorOperation mirror, RotationOperation rotation)
     {
         X1 = x1;
@@ -108,7 +108,7 @@ public readonly struct ArrangerElement
     public ArrangerElement WithFile(DataSource dataFile, BitAddress fileAddress) =>
         new(X1, Y1, dataFile, fileAddress, Codec, Palette, Mirror, Rotation);
 
-    public ArrangerElement WithPalette(Palette palette) =>
+    public ArrangerElement WithPalette(Palette? palette) =>
         new(X1, Y1, Source, SourceAddress, Codec, palette, Mirror, Rotation);
 
     public ArrangerElement WithAddress(BitAddress address) =>
@@ -120,7 +120,7 @@ public readonly struct ArrangerElement
     public ArrangerElement WithCodec(IGraphicsCodec codec, int x1, int y1) =>
         new(x1, y1, Source, SourceAddress, codec, Palette, Mirror, Rotation);
 
-    public ArrangerElement WithTarget(DataSource dataFile, BitAddress fileAddress, IGraphicsCodec codec, Palette palette) =>
+    public ArrangerElement WithTarget(DataSource dataFile, BitAddress fileAddress, IGraphicsCodec codec, Palette? palette) =>
         new(X1, Y1, dataFile, fileAddress, codec, palette, Mirror, Rotation);
 
     public ArrangerElement WithMirror(MirrorOperation mirror) =>

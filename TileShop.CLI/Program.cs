@@ -17,8 +17,8 @@ namespace TileShop.CLI;
 class Program
 {
     public static string DefaultLogFileName = "errorlogCLI.txt";
-    public static IProjectService ProjectService;
-    public static LoggerFactory LoggerFactory;
+    public static IProjectService? ProjectService;
+    public static LoggerFactory LoggerFactory = CreateLoggerFactory(DefaultLogFileName);
     private static string AppName => "TileShopCLI";
     private static string AppVersion => "0.992";
 
@@ -26,7 +26,7 @@ class Program
     {
         Console.WriteLine($"{AppName} v{AppVersion} by Klarth");
 
-        LoggerFactory = CreateLoggerFactory(DefaultLogFileName);
+        //LoggerFactory = CreateLoggerFactory(DefaultLogFileName);
         var verbs = LoadVerbs();
 
         ExitCode code = ExitCode.Unset;
@@ -140,6 +140,9 @@ class Program
     /// <returns></returns>
     private static ExitCode ExecuteHandler(object options)
     {
+        if (ProjectService is null)
+            throw new InvalidOperationException($"{nameof(ProjectService)} was not initialized");
+
         ExitCode code = ExitCode.Unset;
 
         switch (options)

@@ -45,7 +45,13 @@ public readonly struct BitAddress : IEquatable<BitAddress>
 
     public bool Equals(BitAddress other) => ByteOffset == other.ByteOffset && BitOffset == other.BitOffset;
 
-    public override bool Equals(object obj) => Equals((BitAddress)obj);
+    public override bool Equals(object? obj)
+    {
+        if (obj is null)
+            return false;
+
+        return Equals((BitAddress)obj);
+    }
 
     public override int GetHashCode() => HashCode.Combine(BitOffset, ByteOffset);
 

@@ -11,6 +11,7 @@ using TileShop.AvaloniaUI.Services;
 using TileShop.Shared.Interactions;
 using Avalonia.Media;
 using TileShop.AvaloniaUI.Models;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace TileShop.AvaloniaUI;
 
@@ -79,6 +80,12 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
     public void ConfigureViewModels(IServiceCollection services)
     {
+        services.AddSingleton<ShellViewModel>();
+        services.AddSingleton<EditorsViewModel>();
+        services.AddSingleton<ProjectTreeViewModel>();
+        services.AddSingleton<MenuViewModel>();
+        services.AddSingleton<StatusViewModel>();
+
         var vmTypes = GetType()
             .Assembly
             .GetTypes()
@@ -86,13 +93,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
             .Where(x => !x.IsAbstract && !x.IsInterface);
 
         foreach (var vmType in vmTypes)
-            services.AddTransient(vmType);
-
-        services.AddSingleton<ShellViewModel>();
-        services.AddSingleton<EditorsViewModel>();
-        services.AddSingleton<ProjectTreeViewModel>();
-        services.AddSingleton<MenuViewModel>();
-        services.AddSingleton<StatusViewModel>();
+            services.TryAddTransient(vmType);
     }
 
     private void ConfigureJotTracker(Tracker tracker, IServiceCollection services)

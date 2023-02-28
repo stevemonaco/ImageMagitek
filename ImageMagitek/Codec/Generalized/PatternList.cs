@@ -69,10 +69,10 @@ public sealed class PatternList
         if (patternSize <= 0)
             return new MagitekResult<PatternList>.Failed($"Pattern size ({patternSize}) must be greater than 0");
 
-        if (patterns?.Any() is false)
+        if (!patterns.Any())
             throw new ArgumentException($"{nameof(TryCreatePatternList)} parameter '{nameof(patterns)}' must contain items");
 
-        if (patterns.Any(x => string.IsNullOrWhiteSpace(x)))
+        if (patterns.Any(string.IsNullOrWhiteSpace))
             throw new ArgumentException($"{nameof(TryCreatePatternList)} parameter '{nameof(patterns)}' contains items that are null or empty");
 
         int patternsLengthSum = default;

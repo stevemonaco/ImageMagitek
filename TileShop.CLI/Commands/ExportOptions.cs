@@ -7,17 +7,17 @@ namespace TileShop.CLI.Commands;
 public class ExportOptions
 {
     [Value(0, Required = true, HelpText = "Project to export resources from")]
-    public string ProjectFileName { get; set; }
+    public string ProjectFileName { get; set; } = default!;
 
     [Value(1, Required = true, HelpText = "Directory where all resources will be exported to")]
-    public string ExportDirectory { get; set; }
+    public string ExportDirectory { get; set; } = default!;
 
     [Value(2, Required = true, Min = 1, HelpText = "Project resource keys to export")]
-    public IEnumerable<string> ResourceKeys { get; set; }
+    public IEnumerable<string> ResourceKeys { get; set; } = default!;
 
     [Option("overwrite", HelpText = "Forces an overwrite of existing files")]
     public bool ForceOverwrite { get; set; }
 
     [Option("log", HelpText = "Log file name")]
-    public string LogFileName { get; set; }
+    public string? LogFileName { get; set; }
 }

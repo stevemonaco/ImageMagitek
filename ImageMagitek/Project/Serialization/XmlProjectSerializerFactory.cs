@@ -1,4 +1,5 @@
-﻿using ImageMagitek.Codec;
+﻿using CommunityToolkit.Diagnostics;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using System.Collections.Generic;
 using System.IO;
@@ -41,6 +42,7 @@ public sealed class XmlProjectSerializerFactory : IProjectSerializerFactory
         var resourceSchemaText = File.ReadAllText(resourceSchemaFileName);
 
         var resourceSchema = XmlSchema.Read(new StringReader(resourceSchemaText), null);
+        Guard.IsNotNull(resourceSchema);
 
         var resourceSchemaSet = new XmlSchemaSet();
         resourceSchemaSet.Add(resourceSchema);

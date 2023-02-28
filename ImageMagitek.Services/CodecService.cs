@@ -63,8 +63,7 @@ public class CodecService : ICodecService
             return MagitekResults.SuccessResults;
     }
 
-    public void AddOrUpdateCodec(Type codecType) =>
-        CodecFactory.AddOrUpdateCodec(codecType);
+    public void AddOrUpdateCodec(Type codecType) => CodecFactory.AddOrUpdateCodec(codecType);
 
     public IEnumerable<string> GetSupportedCodecNames() => CodecFactory?.GetSupportedCodecNames();
 }

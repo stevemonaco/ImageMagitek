@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Monaco.PathTree;
 using Monaco.PathTree.Abstractions;
@@ -7,15 +8,14 @@ namespace ImageMagitek.Project;
 
 public sealed class ProjectTree : PathTreeBase<ResourceNode, IProjectResource>
 {
-    public ImageProject Project => Root?.Item as ImageProject;
+    public ImageProject Project => (ImageProject) Root.Item;
     public string Name => Root.Item.Name;
 
     public ProjectTree(ProjectNode root) :
         base(root)
     {
-        if (root?.Item is not ImageProject)
-            throw new ArgumentException($"{nameof(ProjectTree)} ctor called with invalid" +
-                $" root type '{root.GetType()}'");
+        if (root.Item is not ImageProject)
+            throw new ArgumentException($"{nameof(ProjectTree)} ctor called with invalid root type '{root.GetType()}'");
 
         ExcludeRootFromPath = true;
     }
@@ -44,7 +44,7 @@ public sealed class ProjectTree : PathTreeBase<ResourceNode, IProjectResource>
     /// <param name="resource">Resource to locate</param>
     /// <param name="resourceNode">Result of search</param>
     /// <returns>True if found, false if not found</returns>
-    public bool TryFindResourceNode(IProjectResource resource, out ResourceNode resourceNode)
+    public bool TryFindResourceNode(IProjectResource resource, [MaybeNullWhen(false)] out ResourceNode resourceNode)
     {
         resourceNode = Root.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>()
             .FirstOrDefault(x => ReferenceEquals(x.Item, resource));
