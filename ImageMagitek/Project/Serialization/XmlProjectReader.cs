@@ -57,7 +57,7 @@ public sealed class XmlProjectReader : IProjectReader
             return new MagitekResults<ProjectTree>.Failed(_errors);
         }
 
-        var builder = new ProjectTreeBuilder(_codecFactory, _colorFactory, _globalResources);
+        var builder = new ProjectTreeBuilder(_codecFactory, _colorFactory, _globalDefaultPalette, _globalResources);
 
         _baseDirectory = Path.GetDirectoryName(projectFileName);
         if (!string.IsNullOrWhiteSpace(projectModel.Root))
@@ -363,13 +363,14 @@ public sealed class XmlProjectReader : IProjectReader
 
         foreach (var xmlElement in xmlElements)
         {
-            var el = new ArrangerElementModel();
-
-            el.DataFileKey = xmlElement.datafile?.Value ?? defaultDataFileKey;
-            el.PaletteKey = xmlElement.palette?.Value ?? defaultPaletteKey;
-            el.CodecName = xmlElement.format?.Value ?? defaultCodecName;
-            el.PositionX = xmlElement.posx;
-            el.PositionY = xmlElement.posy;
+            var el = new ArrangerElementModel()
+            {
+                DataFileKey = xmlElement.datafile?.Value ?? defaultDataFileKey,
+                PaletteKey = xmlElement.palette?.Value ?? defaultPaletteKey,
+                CodecName = xmlElement.format?.Value ?? defaultCodecName,
+                PositionX = xmlElement.posx,
+                PositionY = xmlElement.posy,
+            };
 
             if (xmlElement.bitoffset is not null)
                 el.FileAddress = new BitAddress(xmlElement.fileoffset, int.Parse(xmlElement.bitoffset.Value));

@@ -151,9 +151,9 @@ public static class IndexedImageExtensions
     {
         bool isModified = false;
         var replaceIndex = image.GetPixel(x, y);
-        var startingPalette = image.GetElementAtPixel(x, y).Value.Palette;
+        var startingPalette = image.GetElementAtPixel(x, y)?.Palette;
 
-        if (fillIndex == replaceIndex)
+        if (fillIndex == replaceIndex || startingPalette is null)
             return false;
 
         var openNodes = new Stack<(int x, int y)>();
@@ -168,7 +168,7 @@ public static class IndexedImageExtensions
                 var nodeColor = image.GetPixel(nodePosition.x, nodePosition.y);
                 if (nodeColor == replaceIndex)
                 {
-                    var destPalette = image.GetElementAtPixel(nodePosition.x, nodePosition.y).Value.Palette;
+                    var destPalette = image.GetElementAtPixel(nodePosition.x, nodePosition.y)?.Palette;
                     if (ReferenceEquals(startingPalette, destPalette))
                     {
                         isModified = true;

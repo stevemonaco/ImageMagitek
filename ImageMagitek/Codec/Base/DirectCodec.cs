@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec;
@@ -32,6 +33,23 @@ public abstract class DirectCodec : IDirectCodec
 
     public abstract ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer);
     public abstract ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, ColorRgba32[,] imageBuffer);
+
+    public DirectCodec()
+    {
+        AllocateBuffers(DefaultWidth, DefaultHeight);
+    }
+
+    public DirectCodec(int width, int height)
+    {
+        AllocateBuffers(width, height);
+    }
+
+    [MemberNotNull(nameof(_nativeBuffer), nameof(_foreignBuffer))]
+    protected virtual void AllocateBuffers(int width, int height)
+    {
+        _foreignBuffer = new byte[(StorageSize + 7) / 8];
+        _nativeBuffer = new ColorRgba32[Height, Width];
+    }
 
     /// <summary>
     /// Reads a contiguous block of encoded pixel data

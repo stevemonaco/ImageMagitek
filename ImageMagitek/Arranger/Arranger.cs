@@ -44,7 +44,8 @@ public abstract class Arranger : IProjectResource
     /// <summary>
     /// Individual Elements that compose the Arranger in [y, x] ordering
     /// </summary>
-    protected ArrangerElement?[,] ElementGrid { get; set; }
+    protected abstract ArrangerElement?[,] ElementGrid { get; set; }
+    public abstract string Name { get; set; }
 
     /// <summary>
     /// Gets the size of the entire Arranger in Element coordinates
@@ -76,8 +77,6 @@ public abstract class Arranger : IProjectResource
     /// Gets the ColorType of the Arranger
     /// </summary>
     public PixelColorType ColorType { get; protected set; }
-
-    public string Name { get; set; }
 
     public bool CanContainChildResources => false;
 
@@ -358,7 +357,8 @@ public abstract class Arranger : IProjectResource
                 {
                     if (ReferenceEquals(dataFile, el.Source))
                     {
-                        SetElement(el.WithFile(default, BitAddress.Zero), x, y);
+                        ResetElement(x, y);
+                        //SetElement(el.WithFile(default, BitAddress.Zero), x, y);
                         isModified = true;
                     }
                 }

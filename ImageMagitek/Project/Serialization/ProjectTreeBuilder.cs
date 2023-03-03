@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using CommunityToolkit.Diagnostics;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 
@@ -13,19 +14,22 @@ namespace ImageMagitek.Project.Serialization;
 /// </summary>
 internal sealed class ProjectTreeBuilder
 {
-    public ProjectTree Tree { get; private set; }
+    public ProjectTree? Tree { get; private set; }
 
     private readonly List<IProjectResource> _globalResources;
     private readonly Palette _globalDefaultPalette;
     private readonly ICodecFactory _codecFactory;
     private readonly IColorFactory _colorFactory;
 
-    public ProjectTreeBuilder(ICodecFactory codecFactory, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
+    public ProjectTreeBuilder(ICodecFactory codecFactory, IColorFactory colorFactory, Palette defaultPalette, IEnumerable<IProjectResource> globalResources)
     {
         _codecFactory = codecFactory;
         _colorFactory = colorFactory;
+        _globalDefaultPalette = defaultPalette;
         _globalResources = globalResources.ToList();
-        _globalDefaultPalette = _globalResources.OfType<Palette>().FirstOrDefault();
+
+        if (!_globalResources.Contains(defaultPalette))
+            _globalResources.Add(defaultPalette);
     }
 
     public MagitekResult AddProject(ImageProjectModel projectModel, string baseDirectory, string projectFileName)
@@ -33,9 +37,8 @@ internal sealed class ProjectTreeBuilder
         if (Tree?.Root is not null)
             return new MagitekResult.Failed($"Attempted to add a new project '{projectModel?.Name}' to an existing project");
 
-        var root = new ProjectNode(projectModel.Name, projectModel.MapToResource())
+        var root = new ProjectNode(baseDirectory, projectModel.Name, projectModel.MapToResource())
         {
-            BaseDirectory = baseDirectory,
             DiskLocation = projectFileName,
             Model = projectModel
         };
@@ -54,10 +57,7 @@ internal sealed class ProjectTreeBuilder
             DiskLocation = diskLocation
         };
 
-        Tree.TryGetNode(parentNodePath, out var parentNode);
-        parentNode.AttachChildNode(folderNode);
-
-        return MagitekResult.SuccessResult;
+        return AttachNode(folderNode, parentNodePath);
     }
 
     public MagitekResult AddDataFile(DataFileModel dfModel, string parentNodePath, string fileLocation)
@@ -70,24 +70,21 @@ internal sealed class ProjectTreeBuilder
             Model = dfModel
         };
 
-        Tree.TryGetNode(parentNodePath, out var parentNode);
-        parentNode.AttachChildNode(dfNode);
-
         if (!File.Exists(fileSource.FileLocation))
             return new MagitekResult.Failed($"DataFile '{fileSource.Name}' does not exist at location '{fileSource.FileLocation}'");
 
-        return MagitekResult.SuccessResult;
+        return AttachNode(dfNode, parentNodePath);
     }
 
     public MagitekResult AddPalette(PaletteModel paletteModel, string parentNodePath, string fileLocation)
     {
-        var pal = paletteModel.MapToResource(_colorFactory);
+        if (paletteModel.DataFileKey is not string dataFileKey)
+            return new MagitekResult.Failed($"Palette '{paletteModel.Name}' has a missing or null DataFile key");
 
-        if (!Tree.TryGetItem<DataSource>(paletteModel.DataFileKey, out var df))
-            return new MagitekResult.Failed($"Palette '{pal.Name}' could not locate DataFile with key '{paletteModel.DataFileKey}'");
+        if (Tree?.TryGetItem<DataSource>(dataFileKey, out var df) is not true)
+            return new MagitekResult.Failed($"Palette '{paletteModel.Name}' could not locate DataFile with key '{dataFileKey}'");
 
-        pal.DataSource = df;
-        pal.LazyLoadPalette(pal.DataSource, pal.ColorModel, pal.ZeroIndexTransparent);
+        var pal = paletteModel.MapToResource(_colorFactory, df);
 
         var palNode = new PaletteNode(pal.Name, pal)
         {
@@ -95,10 +92,7 @@ internal sealed class ProjectTreeBuilder
             Model = paletteModel
         };
 
-        Tree.TryGetNode(parentNodePath, out var parentNode);
-        parentNode.AttachChildNode(palNode);
-
-        return MagitekResult.SuccessResult;
+        return AttachNode(palNode, parentNodePath);
     }
 
     public MagitekResult AddScatteredArranger(ScatteredArrangerModel arrangerModel, string parentNodePath, string fileLocation)
@@ -129,41 +123,52 @@ internal sealed class ProjectTreeBuilder
             Model = arrangerModel
         };
 
-        Tree.TryGetNode(parentNodePath, out var parentNode);
-        parentNode.AttachChildNode(arrangerNode);
+        return AttachNode(arrangerNode, parentNodePath);
+    }
 
-        return MagitekResult.SuccessResult;
+    private MagitekResult AttachNode(ResourceNode node, string parentNodePath)
+    {
+        if (Tree?.TryGetNode(parentNodePath, out var parentNode) is true)
+        {
+            parentNode.AttachChildNode(node);
+            return MagitekResult.SuccessResult;
+        }
+        else
+            return new MagitekResult.Failed($"Could not find node with path '{parentNodePath}' to attach node '{node.Name}'");
     }
 
     /// <summary>
     /// Resolves a palette resource using the supplied project tree and falls back to a default palette if available
     /// </summary>
-    /// <param name="tree"></param>
     /// <param name="paletteKey"></param>
     /// <returns></returns>
-    private Palette ResolvePalette(string paletteKey)
+    private Palette ResolvePalette(string? paletteKey)
     {
-        var pal = _globalDefaultPalette;
+        Guard.IsNotNull(Tree);
 
-        if (string.IsNullOrEmpty(paletteKey))
+        if (string.IsNullOrEmpty(paletteKey)) // No key -> Use default palette
         {
             return _globalDefaultPalette;
         }
-        else if (!Tree.TryGetItem<Palette>(paletteKey, out pal))
+        else if (Tree.TryGetItem<Palette>(paletteKey, out var pal)) // Has key -> Find Palette in tree by key
+        {
+            return pal;
+        }
+        else // Key not found -> fallback to searching global palettes
         {
             var name = paletteKey.Split(Tree.PathSeparators[0]).Last();
-            pal = _globalResources.OfType<Palette>().FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
+            return _globalResources.OfType<Palette>().FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase)) ?? _globalDefaultPalette;
         }
-
-        return pal;
     }
 
     private MagitekResult<ArrangerElement?> CreateElement(ScatteredArrangerModel arrangerModel, int x, int y)
     {
+        Guard.IsNotNull(Tree);
+
         var elementModel = arrangerModel.ElementGrid[x, y];
-        IGraphicsCodec codec = default;
-        Palette palette = default;
-        DataSource df = default;
+        IGraphicsCodec? codec = default;
+        Palette? palette = default;
+        DataSource? df = default;
         var address = BitAddress.Zero;
 
         if (elementModel is null)
@@ -172,9 +177,6 @@ internal sealed class ProjectTreeBuilder
         }
         else if (arrangerModel.ColorType == PixelColorType.Indexed)
         {
-            if (!string.IsNullOrWhiteSpace(elementModel.DataFileKey))
-                Tree.TryGetItem<DataSource>(elementModel.DataFileKey, out df);
-
             address = elementModel.FileAddress;
             var paletteKey = elementModel.PaletteKey;
             palette = ResolvePalette(paletteKey);
@@ -188,9 +190,6 @@ internal sealed class ProjectTreeBuilder
         }
         else if (arrangerModel.ColorType == PixelColorType.Direct)
         {
-            if (!string.IsNullOrWhiteSpace(elementModel.DataFileKey))
-                Tree.TryGetItem<DataSource>(elementModel.DataFileKey, out df);
-
             address = elementModel.FileAddress;
             codec = _codecFactory.GetCodec(elementModel.CodecName, new Size(arrangerModel.ElementPixelSize.Width, arrangerModel.ElementPixelSize.Height));
         }
@@ -199,9 +198,22 @@ internal sealed class ProjectTreeBuilder
             return new MagitekResult<ArrangerElement?>.Failed($"{nameof(CreateElement)}: Arranger '{arrangerModel.Name}' has invalid {nameof(PixelColorType)} '{arrangerModel.ColorType}'");
         }
 
-        var pixelX = x * arrangerModel.ElementPixelSize.Width;
-        var pixelY = y * arrangerModel.ElementPixelSize.Height;
-        var el = new ArrangerElement(pixelX, pixelY, df, address, codec, palette, elementModel.Mirror, elementModel.Rotation);
-        return new MagitekResult<ArrangerElement?>.Success(el);
+        if (codec is null)
+            return new MagitekResult<ArrangerElement?>.Failed($"{nameof(CreateElement)}: Could not create codec '{elementModel.CodecName}'");
+
+        if (string.IsNullOrWhiteSpace(elementModel.DataFileKey))
+            return new MagitekResult<ArrangerElement?>.Failed($"{nameof(CreateElement)}: {nameof(ArrangerElementModel.DataFileKey)} is empty or missing");
+
+        if (Tree.TryGetItem<DataSource>(elementModel.DataFileKey, out df))
+        {
+            var pixelX = x * arrangerModel.ElementPixelSize.Width;
+            var pixelY = y * arrangerModel.ElementPixelSize.Height;
+            var el = new ArrangerElement(pixelX, pixelY, df, address, codec, palette, elementModel.Mirror, elementModel.Rotation);
+            return new MagitekResult<ArrangerElement?>.Success(el);
+        }
+        else
+        {
+            return new MagitekResult<ArrangerElement?>.Failed($"{nameof(CreateElement)}: '{nameof(elementModel.DataFileKey)}' could not be found in the {nameof(ProjectTree)}");
+        }
     }
 }

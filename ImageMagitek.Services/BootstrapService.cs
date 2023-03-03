@@ -41,7 +41,7 @@ public class BootstrapService
                 PropertyNameCaseInsensitive = true
             };
 
-            var settings = JsonSerializer.Deserialize<AppSettings>(json, options);
+            var settings = JsonSerializer.Deserialize<AppSettings>(json, options)!;
 
             var lowerDict = new Dictionary<string, string>();
             foreach (var item in settings.ExtensionCodecAssociations)

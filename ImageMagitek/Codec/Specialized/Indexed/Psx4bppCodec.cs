@@ -1,12 +1,9 @@
 ﻿using System;
 
 namespace ImageMagitek.Codec;
-
 public sealed class Psx4bppCodec : IndexedCodec
 {
     public override string Name => "PSX 4bpp";
-    public override int Width { get; }
-    public override int Height { get; }
     public override ImageLayout Layout => ImageLayout.Single;
     public override int ColorDepth => 4;
     public override int StorageSize => Width * Height * 4;
@@ -22,22 +19,11 @@ public sealed class Psx4bppCodec : IndexedCodec
 
     public Psx4bppCodec()
     {
-        Width = DefaultWidth;
-        Height = DefaultHeight;
-        Initialize();
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
-    public Psx4bppCodec(int width, int height)
+    public Psx4bppCodec(int width, int height) : base(width, height)
     {
-        Width = width;
-        Height = height;
-        Initialize();
-    }
-
-    private void Initialize()
-    {
-        _foreignBuffer = new byte[(StorageSize + 7) / 8];
-        _nativeBuffer = new byte[Height, Width];
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
@@ -46,7 +32,7 @@ public sealed class Psx4bppCodec : IndexedCodec
         if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer.Slice(0, ForeignBuffer.Length).CopyTo(_foreignBuffer);
+        encodedBuffer[..ForeignBuffer.Length].CopyTo(_foreignBuffer);
 
         _bitReader.SeekAbsolute(0);
 

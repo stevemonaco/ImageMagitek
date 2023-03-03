@@ -1,12 +1,9 @@
 ﻿using System;
 
 namespace ImageMagitek.Codec;
-
 public sealed class Psx8bppCodec : IndexedCodec
 {
     public override string Name => "PSX 8bpp";
-    public override int Width { get; }
-    public override int Height { get; }
     public override ImageLayout Layout => ImageLayout.Single;
     public override int ColorDepth => 8;
     public override int StorageSize => Width * Height * 8;
@@ -20,22 +17,10 @@ public sealed class Psx8bppCodec : IndexedCodec
 
     public Psx8bppCodec()
     {
-        Width = DefaultWidth;
-        Height = DefaultHeight;
-        Initialize();
     }
 
-    public Psx8bppCodec(int width, int height)
+    public Psx8bppCodec(int width, int height) : base(width, height)
     {
-        Width = width;
-        Height = height;
-        Initialize();
-    }
-
-    private void Initialize()
-    {
-        _foreignBuffer = new byte[(StorageSize + 7) / 8];
-        _nativeBuffer = new byte[Height, Width];
     }
 
     public override byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)

@@ -11,8 +11,6 @@ namespace ImageMagitek.PluginSamples;
 public class LastArmageddonCodec : IndexedCodec
 {
     public override string Name => "Last Armageddon Font";
-    public override int Width => 8 * 32;
-    public override int Height => 8;
     public override ImageLayout Layout => ImageLayout.Single;
     public override int ColorDepth => 1;
     public override int StorageSize => 0x3000; // 0x5D8;
@@ -26,9 +24,9 @@ public class LastArmageddonCodec : IndexedCodec
 
     private IBitStreamReader _bitReader;
 
-    public LastArmageddonCodec()
+    public LastArmageddonCodec() : base(8 * 32, 8)
     {
-        Initialize();
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     private void Initialize()

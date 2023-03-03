@@ -9,6 +9,12 @@ namespace ImageMagitek;
 public sealed class ScatteredArranger : Arranger
 {
     /// <inheritdoc/>
+    protected override ArrangerElement?[,] ElementGrid { get; set; }
+
+    /// <inheritdoc/>
+    public override string Name { get; set; }
+
+    /// <inheritdoc/>
     public override bool ShouldBeSerialized { get; set; } = true;
 
     /// <summary>

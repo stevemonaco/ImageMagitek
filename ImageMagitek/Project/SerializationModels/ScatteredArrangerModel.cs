@@ -5,7 +5,7 @@ namespace ImageMagitek.Project.Serialization;
 
 public class ScatteredArrangerModel : ResourceModel
 {
-    public ArrangerElementModel[,] ElementGrid { get; set; }
+    public required ArrangerElementModel[,] ElementGrid { get; init; }
     public Size ArrangerElementSize { get; set; }
     public Size ElementPixelSize { get; set; }
     public ElementLayout Layout { get; set; }

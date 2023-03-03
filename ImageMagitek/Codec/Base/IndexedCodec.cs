@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ImageMagitek.Codec;
 
@@ -7,8 +8,8 @@ public interface IIndexedCodec : IGraphicsCodec<byte> { }
 public abstract class IndexedCodec : IIndexedCodec
 {
     public abstract string Name { get; }
-    public abstract int Width { get; }
-    public abstract int Height { get; }
+    public int Width { get; }
+    public int Height { get; }
     public abstract ImageLayout Layout { get; }
     public PixelColorType ColorType => PixelColorType.Indexed;
     public abstract int ColorDepth { get; }
@@ -29,6 +30,29 @@ public abstract class IndexedCodec : IIndexedCodec
 
     public abstract byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer);
     public abstract ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer);
+
+    public IndexedCodec()
+    {
+        Width = DefaultWidth;
+        Height = DefaultHeight;
+
+        AllocateBuffers(Width, Height);
+    }
+
+    public IndexedCodec(int width, int height)
+    {
+        Width = width;
+        Height = height;
+
+        AllocateBuffers(Width, Height);
+    }
+
+    [MemberNotNull(nameof(_nativeBuffer), nameof(_foreignBuffer))]
+    protected virtual void AllocateBuffers(int width, int height)
+    {
+        _foreignBuffer = new byte[(StorageSize + 7) / 8];
+        _nativeBuffer = new byte[height, width];
+    }
 
     /// <summary>
     /// Reads a contiguous block of encoded pixel data

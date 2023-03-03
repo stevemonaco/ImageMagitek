@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿#nullable disable
+
+using System.Drawing;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 

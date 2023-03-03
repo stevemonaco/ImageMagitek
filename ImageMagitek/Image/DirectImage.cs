@@ -9,6 +9,9 @@ namespace ImageMagitek;
 
 public sealed class DirectImage : ImageBase<ColorRgba32>
 {
+    public override Arranger Arranger { get; }
+    public override ColorRgba32[] Image { get; protected set; }
+
     public DirectImage(Arranger arranger) :
         this(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height)
     {
@@ -116,7 +119,7 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
         foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IDirectCodec))
         {
             Image.CopyToArray2D(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
-            var codec = el.Codec as IDirectCodec;
+            var codec = (IDirectCodec)el.Codec;
 
             buffer.InverseMirrorArray2D(el.Mirror);
             buffer.InverseRotateArray2D(el.Rotation);

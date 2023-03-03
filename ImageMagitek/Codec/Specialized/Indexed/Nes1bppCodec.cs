@@ -1,12 +1,9 @@
 ﻿using System;
 
 namespace ImageMagitek.Codec;
-
 public sealed class Nes1bppCodec : IndexedCodec
 {
     public override string Name => "NES 1bpp";
-    public override int Width { get; } = 8;
-    public override int Height { get; } = 8;
     public override ImageLayout Layout => ImageLayout.Tiled;
     public override int ColorDepth => 1;
     public override int StorageSize => 1 * Width * Height;
@@ -22,21 +19,11 @@ public sealed class Nes1bppCodec : IndexedCodec
 
     public Nes1bppCodec()
     {
-        Width = DefaultWidth;
-        Height = DefaultHeight;
-        Initialize();
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
-    public Nes1bppCodec(int width, int height)
+    public Nes1bppCodec(int width, int height) : base(width, height)
     {
-        Width = width;
-        Height = height;
-    }
-
-    private void Initialize()
-    {
-        _foreignBuffer = new byte[(StorageSize + 7) / 8];
-        _nativeBuffer = new byte[Height, Width];
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
@@ -45,7 +32,7 @@ public sealed class Nes1bppCodec : IndexedCodec
         if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
+        encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
 
         for (int y = 0; y < Height; y++)
         {

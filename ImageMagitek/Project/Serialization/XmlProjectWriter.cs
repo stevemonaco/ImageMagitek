@@ -19,7 +19,7 @@ public sealed class XmlProjectWriter : IProjectWriter
     private readonly IColorFactory _colorFactory;
     private string _baseDirectory;
 
-    private HashSet<string> _activeBackupFiles;
+    private HashSet<string> _activeBackupFiles = new();
 
     public XmlProjectWriter(ProjectTree tree, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
     {
@@ -30,7 +30,7 @@ public sealed class XmlProjectWriter : IProjectWriter
         _colorFactory = colorFactory;
         _globalResources = globalResources.ToList();
         _globalDefaultPalette = globalResources.OfType<Palette>().First();
-        _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(tree.Root.DiskLocation));
+        _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(tree.Root.DiskLocation))!;
     }
 
     /// <summary>
@@ -44,7 +44,7 @@ public sealed class XmlProjectWriter : IProjectWriter
         if (string.IsNullOrWhiteSpace(projectFileName))
             throw new ArgumentException($"{nameof(WriteProject)} property '{nameof(projectFileName)}' was null or empty");
 
-        _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName));
+        _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName))!;
         _activeBackupFiles = new HashSet<string>();
 
         return TrySerializeProjectTree(_tree).Match<MagitekResult>(
@@ -303,7 +303,7 @@ public sealed class XmlProjectWriter : IProjectWriter
     private XElement Serialize(PaletteModel paletteModel)
     {
         var element = new XElement("palette");
-        element.Add(new XAttribute("datafile", paletteModel.DataFileKey));
+        element.Add(new XAttribute("datafile", paletteModel.DataFileKey!));
         element.Add(new XAttribute("color", paletteModel.ColorModel.ToString()));
         element.Add(new XAttribute("zeroindextransparent", paletteModel.ZeroIndexTransparent));
 
@@ -391,7 +391,7 @@ public sealed class XmlProjectWriter : IProjectWriter
                     elNode.Add(new XAttribute("datafile", el.DataFileKey));
 
                 if (el.PaletteKey != mostUsedPaletteKey && arrangerModel.ColorType == PixelColorType.Indexed)
-                    elNode.Add(new XAttribute("palette", el.PaletteKey));
+                    elNode.Add(new XAttribute("palette", el.PaletteKey!));
 
                 if (el.Mirror == MirrorOperation.Horizontal)
                     elNode.Add(new XAttribute("mirror", "horizontal"));

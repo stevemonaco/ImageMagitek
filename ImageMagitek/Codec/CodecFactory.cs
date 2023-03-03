@@ -28,24 +28,24 @@ public sealed class CodecFactory : ICodecFactory
     {
         if (typeof(IGraphicsCodec).IsAssignableFrom(codecType) && !codecType.IsAbstract)
         {
-            var codec = (IGraphicsCodec)Activator.CreateInstance(codecType);
-            _codecs[codec.Name] = codecType;
+            if (Activator.CreateInstance(codecType) is IGraphicsCodec codec)
+                _codecs[codec.Name] = codecType;
         }
         else
             throw new ArgumentException($"{nameof(AddOrUpdateCodec)} parameter '{nameof(codecType)}' is not of type {typeof(IGraphicsCodec)} or is not instantiable");
     }
 
-    public IGraphicsCodec GetCodec(string codecName, Size? elementSize)
+    public IGraphicsCodec? GetCodec(string codecName, Size? elementSize = default)
     {
-        if (_codecs.ContainsKey(codecName))
+        if (_codecs.ContainsKey(codecName)) // Prefer built-in codecs
         {
             var codecType = _codecs[codecName];
             if (elementSize.HasValue)
-                return (IGraphicsCodec)Activator.CreateInstance(codecType, elementSize.Value.Width, elementSize.Value.Height);
+                return Activator.CreateInstance(codecType, elementSize.Value.Width, elementSize.Value.Height) as IGraphicsCodec;
             else
-                return (IGraphicsCodec)Activator.CreateInstance(codecType);
+                return Activator.CreateInstance(codecType) as IGraphicsCodec;
         }
-        else if (_formats.ContainsKey(codecName))
+        else if (_formats.ContainsKey(codecName)) // Fallback to generalized codecs
         {
             var format = _formats[codecName].Clone();
 
@@ -60,14 +60,14 @@ public sealed class CodecFactory : ICodecFactory
                 if (format.ColorType == PixelColorType.Indexed)
                     return new IndexedFlowGraphicsCodec(flowFormat);
                 else if (format.ColorType == PixelColorType.Direct)
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
             }
             else if (format is PatternGraphicsFormat patternFormat)
             {
                 if (format.ColorType == PixelColorType.Indexed)
                     return new IndexedPatternGraphicsCodec(patternFormat);
                 else if (format.ColorType == PixelColorType.Direct)
-                    throw new NotImplementedException();
+                    throw new NotSupportedException();
             }
 
             throw new NotSupportedException($"Graphics format of type '{format}' is not supported");
@@ -78,7 +78,7 @@ public sealed class CodecFactory : ICodecFactory
         }
     }
 
-    public IGraphicsCodec CloneCodec(IGraphicsCodec codec)
+    public IGraphicsCodec? CloneCodec(IGraphicsCodec codec)
     {
         return GetCodec(codec.Name, new Size(codec.Width, codec.Height));
     }

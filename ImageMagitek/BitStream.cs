@@ -59,98 +59,95 @@ public sealed class BitStream : IBitStreamReader, IBitStreamWriter
 
     private int StreamSize { get => _streamEndOffset - _streamStartOffset; }
 
-    public byte[] Data { get; private set; }
+    public byte[] Data { get; }
 
-    private BitStream() { }
+    private BitStream(byte[] data)
+    {
+        Data = data;
+    }
 
     /// <summary>
     /// Creates a new Bitstream to read bits from the specified array
     /// </summary>
-    /// <param name="ReadData">Data to be wrapped for reading</param>
-    /// <param name="DataBits">Number of valid bits to read in the array</param>
+    /// <param name="readData">Data to be wrapped for reading</param>
+    /// <param name="dataBits">Number of valid bits to read in the array</param>
     /// <returns></returns>
-    public static IBitStreamReader OpenRead(byte[] ReadData, int DataBits)
+    public static IBitStreamReader OpenRead(byte[] readData, int dataBits)
     {
-        var bs = new BitStream();
-
-        bs.Data = ReadData;
-        bs._bitsRemaining = DataBits;
-        bs._bitIndex = 8;
-        bs._index = 0;
-        bs._access = BitStreamAccess.Read;
-        bs._streamStartOffset = 0;
-        bs._streamEndOffset = DataBits;
-
-        return bs;
+        return new BitStream(readData)
+        {
+            _bitsRemaining = dataBits,
+            _bitIndex = 8,
+            _index = 0,
+            _access = BitStreamAccess.Read,
+            _streamStartOffset = 0,
+            _streamEndOffset = dataBits
+        };
     }
 
     /// <summary>
     /// Creates a new BitStream with its own array from a BinaryReader for bit reading
     /// </summary>
     /// <param name="br">Underlying binary reader for the stream</param>
-    /// <param name="DataBits"></param>
-    /// <param name="FirstByteBits"></param>
+    /// <param name="dataBits"></param>
+    /// <param name="firstByteBits"></param>
     /// <returns>A readable BitStream instance</returns>
-    public static IBitStreamReader OpenRead(BinaryReader br, int DataBits, int FirstByteBits)
+    public static IBitStreamReader OpenRead(BinaryReader br, int dataBits, int firstByteBits)
     {
-        var bs = new BitStream();
+        int ReadLength = (int)Math.Ceiling((dataBits + (8 - firstByteBits)) / 8.0);
+        var data = br.ReadBytes(ReadLength);
+        byte mask = (byte)((1 << firstByteBits) - 1);
+        data[0] = (byte)(data[0] & mask);
 
-        int ReadLength = (int)Math.Ceiling((DataBits + (8 - FirstByteBits)) / 8.0);
-        bs.Data = br.ReadBytes(ReadLength);
-        byte mask = (byte)((1 << FirstByteBits) - 1);
-        bs.Data[0] = (byte)(bs.Data[0] & mask);
-
-        bs._bitIndex = FirstByteBits;
-        bs._bitsRemaining = DataBits;
-        bs._index = 0;
-        bs._access = BitStreamAccess.Read;
-        bs._streamStartOffset = 8 - FirstByteBits;
-        bs._streamEndOffset = DataBits - bs._streamStartOffset;
-
-        return bs;
+        return new BitStream(data)
+        {
+            _bitIndex = firstByteBits,
+            _bitsRemaining = dataBits,
+            _index = 0,
+            _access = BitStreamAccess.Read,
+            _streamStartOffset = 8 - firstByteBits,
+            _streamEndOffset = dataBits - (8 - firstByteBits),
+        };
     }
 
     /// <summary>
     /// Creates a new BitStream with its own array from a Stream for bit reading
     /// </summary>
     /// <param name="br">Underlying stream</param>
-    /// <param name="DataBits"></param>
-    /// <param name="FirstByteBits"></param>
+    /// <param name="dataBits"></param>
+    /// <param name="firstByteBits"></param>
     /// <returns>A readable BitStream instance</returns>
-    public static IBitStreamReader OpenRead(Stream stream, int DataBits, int FirstByteBits)
+    public static IBitStreamReader OpenRead(Stream stream, int dataBits, int firstByteBits)
     {
         var br = new BinaryReader(stream, Encoding.Default, true);
-        return OpenRead(br, DataBits, FirstByteBits);
+        return OpenRead(br, dataBits, firstByteBits);
     }
 
     /// <summary>
     /// Creates a new BitStream for writing bits to an array
     /// </summary>
-    /// <param name="DataBits">Size of writable array in bits</param>
-    /// <param name="FirstByteBits">Number of bits available for writing in the first byte</param>
+    /// <param name="dataBits">Size of writable array in bits</param>
+    /// <param name="firstByteBits">Number of bits available for writing in the first byte</param>
     /// <returns>A writable BitStream instance</returns>
-    public static IBitStreamWriter OpenWrite(int DataBits, int FirstByteBits)
+    public static IBitStreamWriter OpenWrite(int dataBits, int firstByteBits)
     {
-        int BufferLength = (int)Math.Ceiling((DataBits + (8 - FirstByteBits)) / 8.0);
+        int BufferLength = (int)Math.Ceiling((dataBits + (8 - firstByteBits)) / 8.0);
         var data = new byte[BufferLength];
 
-        return OpenWrite(data, DataBits, FirstByteBits);
+        return OpenWrite(data, dataBits, firstByteBits);
     }
 
-    public static IBitStreamWriter OpenWrite(byte[] Buffer, int DataBits, int FirstByteBits)
+    public static IBitStreamWriter OpenWrite(byte[] Buffer, int dataBits, int firstByteBits)
     {
-        var bs = new BitStream();
-
-        bs.Data = Buffer;
-
-        bs._bitIndex = FirstByteBits;
-        bs._bitsRemaining = DataBits;
-        bs._index = 0;
-        bs._access = BitStreamAccess.Write;
-        bs._streamStartOffset = 8 - FirstByteBits;
-        bs._streamEndOffset = DataBits - bs._streamStartOffset;
-
-        return bs;
+        return new BitStream(Buffer)
+        {
+            _bitIndex = firstByteBits,
+            _bitsRemaining = dataBits,
+            _index = 0,
+            _access = BitStreamAccess.Write,
+            _streamStartOffset = 8 - firstByteBits,
+            _streamEndOffset = dataBits - (8 - firstByteBits),
+        };
     }
 
     public void SeekAbsolute(int seekBits)
@@ -232,17 +229,17 @@ public sealed class BitStream : IBitStreamReader, IBitStreamWriter
     /// <summary>
     /// Reads the specified number of bits from the stream
     /// </summary>
-    /// <param name="numBits">Number of bits to read between 1 and 32</param>
+    /// <param name="bitReadLength">Number of bits to read between 1 and 32</param>
     /// <returns></returns>
-    public int ReadBits(int numBits)
+    public int ReadBits(int bitReadLength)
     {
-        if (numBits > 32 || numBits < 1)
-            throw new ArgumentOutOfRangeException($"{nameof(ReadBits)} parameter {nameof(numBits)} ({numBits}) is out of range");
+        if (bitReadLength > 32 || bitReadLength < 1)
+            throw new ArgumentOutOfRangeException($"{nameof(ReadBits)} parameter {nameof(bitReadLength)} ({bitReadLength}) is out of range");
 
-        if (numBits > _bitsRemaining)
+        if (bitReadLength > _bitsRemaining)
             throw new EndOfStreamException($"{nameof(ReadBits)} read past end of stream");
 
-        var readRemaining = numBits; // Number of bits remaining to be read
+        var readRemaining = bitReadLength; // Number of bits remaining to be read
         int result = 0;
 
         // Unaligned, partial read

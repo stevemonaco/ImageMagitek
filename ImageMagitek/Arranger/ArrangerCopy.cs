@@ -8,7 +8,7 @@ public abstract class ArrangerCopy
     /// <summary>
     /// Arranger being copied from
     /// </summary>
-    public Arranger Source { get; protected set; }
+    public abstract Arranger Source { get; }
 
     /// <summary>
     /// Starting x-coordinate of copy in copy units
@@ -33,6 +33,9 @@ public abstract class ArrangerCopy
 
 public sealed class ElementCopy : ArrangerCopy
 {
+    /// <inheritdoc/>
+    public override Arranger Source { get; }
+
     /// <summary>
     /// Elements to be copied into the destination
     /// </summary>
@@ -84,6 +87,9 @@ public sealed class ElementCopy : ArrangerCopy
 
 public sealed class IndexedPixelCopy : ArrangerCopy
 {
+    /// <inheritdoc/>
+    public override Arranger Source { get; }
+
     public IndexedImage Image { get; }
 
     public IndexedPixelCopy(Arranger source, int pixelX, int pixelY, int width, int height)
@@ -100,6 +106,9 @@ public sealed class IndexedPixelCopy : ArrangerCopy
 
 public sealed class DirectPixelCopy : ArrangerCopy
 {
+    /// <inheritdoc/>
+    public override Arranger Source { get; }
+
     public DirectImage Image { get; }
 
     public DirectPixelCopy(Arranger source, int pixelX, int pixelY, int width, int height)

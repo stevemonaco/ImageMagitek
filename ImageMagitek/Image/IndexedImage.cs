@@ -13,6 +13,9 @@ namespace ImageMagitek;
 /// </summary>
 public sealed class IndexedImage : ImageBase<byte>
 {
+    public override Arranger Arranger { get; }
+    public override byte[] Image { get; protected set; }
+
     /// <summary>
     /// Creates an IndexedImage of an Arranger
     /// </summary>
@@ -45,7 +48,6 @@ public sealed class IndexedImage : ImageBase<byte>
         Height = height;
 
         Image = new byte[Width * Height];
-        EnsurePalettesLoaded();
         Render();
     }
 
@@ -62,7 +64,7 @@ public sealed class IndexedImage : ImageBase<byte>
     {
         var result = adapter.TryLoadImage(imagePath, Arranger, matchStrategy, out var importImage);
 
-        if (result.Value is MagitekResult.Success)
+        if (result.Value is MagitekResult.Success && importImage is not null)
             importImage.CopyTo(Image, 0);
 
         return result;
@@ -77,7 +79,6 @@ public sealed class IndexedImage : ImageBase<byte>
         if (Width * Height != Image.Length)
             Image = new byte[Width * Height];
 
-        // TODO: Handle undefined elements explicitly and clear image subsections
         Array.Clear(Image, 0, Image.Length);
 
         var locations = Arranger.EnumerateElementLocationsWithinPixelRange(Left, Top, Width, Height);
@@ -147,7 +148,7 @@ public sealed class IndexedImage : ImageBase<byte>
         foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IIndexedCodec))
         {
             fullImage.Image.CopyToArray2D(el.X1, el.Y1, fullImage.Width, buffer, 0, 0, Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height);
-            var codec = el.Codec as IIndexedCodec;
+            var codec = (IIndexedCodec)el.Codec;
 
             buffer.InverseMirrorArray2D(el.Mirror);
             buffer.InverseRotateArray2D(el.Rotation);
@@ -156,7 +157,7 @@ public sealed class IndexedImage : ImageBase<byte>
             codec.WriteElement(el, encodedImage);
         }
 
-        foreach (var df in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Source).OfType<DataSource>().Distinct())
+        foreach (var df in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Source).Distinct())
             df.Flush();
     }
 
@@ -166,17 +167,4 @@ public sealed class IndexedImage : ImageBase<byte>
     /// <param name="remap">List containing remapped indices</param>
     public void RemapColors(IList<byte> remap) =>
         Image = Image.Select(x => remap[x]).ToArray();
-
-    private void EnsurePalettesLoaded()
-    {
-        var palettes = Arranger.EnumerateElements()
-            .OfType<ArrangerElement>()
-            .Select(x => x.Palette)
-            .Distinct();
-
-        foreach (var palette in palettes)
-        {
-            _ = palette[0];
-        }
-    }
 }

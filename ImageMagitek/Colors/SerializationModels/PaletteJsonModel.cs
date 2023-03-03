@@ -5,13 +5,13 @@ namespace ImageMagitek.Colors.Serialization;
 
 public class PaletteJsonModel
 {
-    public string Name { get; set; }
-    public List<string> Colors { get; set; }
-    public bool ZeroIndexTransparent { get; set; } = true;
+    public required string Name { get; init; }
+    public required List<string> Colors { get; init; }
+    public bool ZeroIndexTransparent { get; init; } = true;
 
     public Palette ToPalette(IColorFactory colorFactory)
     {
-        var pal = new Palette(Name, colorFactory, ColorModel.Rgba32, ZeroIndexTransparent, PaletteStorageSource.Json);
+        var pal = new Palette(Name, colorFactory, ColorModel.Rgba32, ZeroIndexTransparent, PaletteStorageSource.GlobalJson);
 
         var colors = new List<IColorSource>();
         for (int i = 0; i < Colors.Count; i++)

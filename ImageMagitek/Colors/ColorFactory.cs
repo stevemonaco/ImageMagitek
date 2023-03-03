@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using ImageMagitek.Colors.Converters;
 using ImageMagitek.Utility.Parsing;
 
@@ -39,7 +40,7 @@ public interface IColorFactory
     /// <summary>
     /// Tries to create a color from the specified hexadecimal string
     /// </summary>
-    bool FromHexString(string hexString, ColorModel colorModel, out IColor color);
+    bool FromHexString(string hexString, ColorModel colorModel, [MaybeNullWhen(false)] out IColor color);
 
     /// <summary>
     /// Converts the specified color to a hex string
@@ -52,7 +53,7 @@ public class ColorFactory : IColorFactory
     private readonly ColorConverterRgb15 _rgb15Converter = new ColorConverterRgb15();
     private readonly ColorConverterBgr15 _bgr15Converter = new ColorConverterBgr15();
     private readonly ColorConverterAbgr16 _abgr16Converter = new ColorConverterAbgr16();
-    private ColorConverterNes _nesConverter;
+    private ColorConverterNes? _nesConverter;
     private readonly ColorConverterBgr9 _bgr9Converter = new ColorConverterBgr9();
     private readonly ColorConverterBgr6 _bgr6Converter = new ColorConverterBgr6();
 
@@ -80,13 +81,16 @@ public class ColorFactory : IColorFactory
 
     public IColor CreateColor(ColorModel colorModel, int r, int g, int b, int a)
     {
+        if (colorModel == ColorModel.Nes && _nesConverter is null)
+            throw new ArgumentException($"{nameof(CreateColor)} failed because the NES color converter is not available");
+
         return colorModel switch
         {
             ColorModel.Rgba32 => new ColorRgba32((byte)r, (byte)g, (byte)b, (byte)a),
             ColorModel.Rgb15 => new ColorRgb15((byte)r, (byte)g, (byte)b),
             ColorModel.Bgr15 => new ColorBgr15((byte)r, (byte)g, (byte)b),
             ColorModel.Abgr16 => new ColorAbgr16((byte)r, (byte)g, (byte)b, (byte)a),
-            ColorModel.Nes => _nesConverter.ToForeignColor(new ColorRgba32((byte)r, (byte)g, (byte)b, (byte)a)),
+            ColorModel.Nes => _nesConverter!.ToForeignColor(new ColorRgba32((byte)r, (byte)g, (byte)b, (byte)a)),
             ColorModel.Bgr9 => new ColorBgr9((byte)r, (byte)g, (byte)b),
             ColorModel.Bgr6 => new ColorBgr6((byte)r, (byte)g, (byte)b),
             _ => throw new NotSupportedException($"{nameof(ColorModel)} '{colorModel}' is not supported")
@@ -140,7 +144,7 @@ public class ColorFactory : IColorFactory
         };
     }
 
-    public bool FromHexString(string hexString, ColorModel colorModel, out IColor color)
+    public bool FromHexString(string hexString, ColorModel colorModel, [MaybeNullWhen(false)] out IColor color)
     {
         if (ColorParser.TryParse(hexString, colorModel, out var resultColor))
         {

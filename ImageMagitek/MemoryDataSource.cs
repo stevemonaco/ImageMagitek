@@ -5,6 +5,8 @@ namespace ImageMagitek;
 
 public sealed class MemoryDataSource : DataSource
 {
+    protected override Lazy<Stream> Stream { get; }
+
     /// <summary>
     /// Creates an in-memory data source with unlimited capacity
     /// </summary>
@@ -12,7 +14,7 @@ public sealed class MemoryDataSource : DataSource
     public MemoryDataSource(string name) : base(name)
     {
         ShouldBeSerialized = false;
-        _stream = new Lazy<Stream>(() =>
+        Stream = new Lazy<Stream>(() =>
         {
             return new MemoryStream();
         });
@@ -26,7 +28,7 @@ public sealed class MemoryDataSource : DataSource
     public MemoryDataSource(string name, int maxDataSize) : base(name)
     {
         ShouldBeSerialized = false;
-        _stream = new Lazy<Stream>(() =>
+        Stream = new Lazy<Stream>(() =>
         {
             return new MemoryStream(new byte[maxDataSize]);
         });

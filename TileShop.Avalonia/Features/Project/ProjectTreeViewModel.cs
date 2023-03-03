@@ -145,9 +145,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         {
             var pal = new Palette(dialogModel.PaletteName, _paletteService.ColorFactory,
                 Palette.StringToColorModel(dialogModel.SelectedColorModel), Array.Empty<IColorSource>(),
-                dialogModel.ZeroIndexTransparent, PaletteStorageSource.Project);
-
-            pal.DataSource = dialogModel.SelectedDataSource;
+                dialogModel.ZeroIndexTransparent, PaletteStorageSource.ProjectXml, dialogModel.SelectedDataSource);
 
             var result = _projectService.AddResource(parentNodeModel.Node, pal);
 

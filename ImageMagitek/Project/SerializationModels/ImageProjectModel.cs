@@ -2,7 +2,7 @@
 
 public class ImageProjectModel : ResourceModel
 {
-    public string Root { get; set; }
+    public required string Root { get; init; }
     public decimal Version { get; set; }
 
     public override bool ResourceEquals(ResourceModel resourceModel)

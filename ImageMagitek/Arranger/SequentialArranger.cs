@@ -5,11 +5,18 @@ using System.Linq;
 using ImageMagitek.Project;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ImageMagitek;
 
 public sealed class SequentialArranger : Arranger
 {
+    /// <inheritdoc/>
+    protected override ArrangerElement?[,] ElementGrid { get; set; }
+
+    /// <inheritdoc/>
+    public override string Name { get; set; }
+
     /// <summary>
     /// Gets the filesize of the DataSource associated with a <see cref="SequentialArranger"/>
     /// </summary>
@@ -48,7 +55,7 @@ public sealed class SequentialArranger : Arranger
     /// </summary>
     public TileLayout TileLayout { get; private set; }
 
-    private readonly ICodecFactory _codecs;
+    private readonly ICodecFactory _codecFactory;
 
     /// <summary>
     /// Constructs a new SequentialArranger
@@ -66,9 +73,9 @@ public sealed class SequentialArranger : Arranger
         Name = dataSource.Name;
         ActiveDataSource = dataSource;
         ActivePalette = palette;
-        _codecs = codecFactory;
+        _codecFactory = codecFactory;
 
-        ActiveCodec = _codecs.GetCodec(codecName, default);
+        ActiveCodec = _codecFactory.GetCodec(codecName, default);
         ColorType = ActiveCodec.ColorType;
 
         Layout = ActiveCodec.Layout switch
@@ -164,6 +171,7 @@ public sealed class SequentialArranger : Arranger
     /// </summary>
     /// <param name="arrangerWidth">Width of Arranger in Elements</param>
     /// <param name="arrangerHeight">Height of Arranger in Elements</param>
+    [MemberNotNull(nameof(ElementGrid))]
     public override void Resize(int arrangerWidth, int arrangerHeight)
     {
         if (Mode != ArrangerMode.Sequential)
@@ -318,7 +326,7 @@ public sealed class SequentialArranger : Arranger
                 var elY = y * ElementPixelSize.Height;
                 if (ElementGrid[y + elemY, x + elemX] is ArrangerElement el)
                 {
-                    var codec = _codecs.CloneCodec(el.Codec);
+                    var codec = _codecFactory.CloneCodec(el.Codec);
 
                     el = el.WithCodec(codec, elX, elY);
                     arranger.SetElement(el, x, y);

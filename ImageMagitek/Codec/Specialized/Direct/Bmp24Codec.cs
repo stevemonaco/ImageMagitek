@@ -25,23 +25,11 @@ public sealed class Bmp24Codec : DirectCodec
 
     public Bmp24Codec()
     {
-        Width = DefaultWidth;
-        Height = DefaultHeight;
-
-        _foreignBuffer = new byte[(StorageSize + 7) / 8];
-        _nativeBuffer = new ColorRgba32[Height, Width];
-
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
-    public Bmp24Codec(int width, int height)
+    public Bmp24Codec(int width, int height) : base(width, height)
     {
-        Width = width;
-        Height = height;
-
-        _foreignBuffer = new byte[(StorageSize + 7) / 8];
-        _nativeBuffer = new ColorRgba32[Height, Width];
-
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
@@ -50,7 +38,7 @@ public sealed class Bmp24Codec : DirectCodec
         if (encodedBuffer.Length * 8 < StorageSize)
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
+        encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
         _bitReader.SeekAbsolute(0);
 
         for (int y = el.Height - 1; y >= 0; y--)

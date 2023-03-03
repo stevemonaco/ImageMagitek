@@ -36,10 +36,11 @@ public class ProjectService : IProjectService
 
         var projectName = Path.GetFileNameWithoutExtension(projectFileName);
         var project = new ImageProject(projectName);
-        var root = new ProjectNode(project.Name, project)
+        var baseDirectory = Path.GetDirectoryName(projectFileName)!;
+
+        var root = new ProjectNode(baseDirectory, project.Name, project)
         {
-            DiskLocation = Path.GetFullPath(projectFileName),
-            BaseDirectory = Path.GetDirectoryName(projectFileName)
+            DiskLocation = Path.GetFullPath(projectFileName)
         };
         var tree = new ProjectTree(root);
 
@@ -69,10 +70,11 @@ public class ProjectService : IProjectService
 
         var projectName = Path.GetFileNameWithoutExtension(projectFileName);
         var project = new ImageProject(projectName);
-        var root = new ProjectNode(project.Name, project)
+        var baseDirectory = Path.GetDirectoryName(projectFileName)!;
+
+        var root = new ProjectNode(baseDirectory, project.Name, project)
         {
             DiskLocation = Path.GetFullPath(projectFileName),
-            BaseDirectory = Path.GetDirectoryName(projectFileName)
         };
         var tree = new ProjectTree(root);
 

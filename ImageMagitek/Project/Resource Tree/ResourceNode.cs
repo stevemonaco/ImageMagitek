@@ -5,8 +5,8 @@ namespace ImageMagitek.Project;
 
 public abstract class ResourceNode : PathNodeBase<ResourceNode, IProjectResource>
 {
-    public string DiskLocation { get; set; }
-    public ResourceModel Model { get; set; }
+    public string? DiskLocation { get; set; }
+    public required ResourceModel Model { get; init; }
 
     public ResourceNode(string nodeName, IProjectResource resource) :
         base(nodeName, resource)

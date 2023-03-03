@@ -6,8 +6,8 @@ namespace ImageMagitek.Colors.Serialization;
 
 public interface IColorSourceSerializer
 {
-    IColor[] LoadColors(IColorSource[] sources, DataSource df, ColorModel colorModel, int entries);
-    void StoreColors(IList<IColorSource> sources, DataSource df, IList<ColorRgba32> nativeColors, IList<IColor> foreignColors);
+    IColor[] LoadColors(IColorSource[] sources, DataSource dataSource, ColorModel colorModel, int entries);
+    void StoreColors(IList<IColorSource> sources, DataSource dataSource, IList<ColorRgba32> nativeColors, IList<IColor> foreignColors);
 }
 
 public class ColorSourceSerializer : IColorSourceSerializer
@@ -19,7 +19,7 @@ public class ColorSourceSerializer : IColorSourceSerializer
         _colorFactory = colorFactory;
     }
 
-    public IColor[] LoadColors(IColorSource[] sources, DataSource df, ColorModel colorModel, int entries)
+    public IColor[] LoadColors(IColorSource[] sources, DataSource dataSource, ColorModel colorModel, int entries)
     {
         var result = new IColor[entries];
         var currentEntry = 0;
@@ -32,7 +32,7 @@ public class ColorSourceSerializer : IColorSourceSerializer
 
             if (source is FileColorSource fileSource)
             {
-                result[currentEntry] = ReadFileColor(df, fileSource.Offset, colorModel, size, fileSource.Endian);
+                result[currentEntry] = ReadFileColor(dataSource, fileSource.Offset, colorModel, size, fileSource.Endian);
             }
             else if (source is ProjectNativeColorSource nativeSource)
             {
@@ -56,20 +56,20 @@ public class ColorSourceSerializer : IColorSourceSerializer
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="df">Source to read color from</param>
+    /// <param name="dataSource">Source to read color from</param>
     /// <param name="offset">Offset into the source to read from</param>
     /// <param name="colorModel">Model to create the color with</param>
     /// <param name="size">Read size in bits</param>
     /// <param name="endian">Endianness of the color</param>
     /// <returns>The ColorModel-mapped color</returns>
     /// <exception cref="NotSupportedException">Size must be 32 bits or less</exception>
-    private IColor ReadFileColor(DataSource df, BitAddress offset, ColorModel colorModel, int size, Endian endian)
+    private IColor ReadFileColor(DataSource dataSource, BitAddress offset, ColorModel colorModel, int size, Endian endian)
     {
         Span<byte> colorBuffer = stackalloc byte[4];
 
         int readSize = (size + 7) / 8;
 
-        df.Read(offset, size, colorBuffer);
+        dataSource.Read(offset, size, colorBuffer);
 
         uint readColor;
         if (readSize == 1)

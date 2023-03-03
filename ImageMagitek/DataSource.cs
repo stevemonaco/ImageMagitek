@@ -13,10 +13,10 @@ public abstract class DataSource : IProjectResource, IDisposable
     public string Name { get; set; }
     public bool CanContainChildResources => false;
     public bool ShouldBeSerialized { get; set; } = true;
-    public virtual long Length => _stream.Value.Length;
+    public virtual long Length => Stream.Value.Length;
 
-    protected Lazy<Stream> _stream;
-    private bool disposedValue;
+    protected abstract Lazy<Stream> Stream { get; }
+    private bool _disposedValue;
 
     public DataSource(string name)
     {
@@ -24,43 +24,43 @@ public abstract class DataSource : IProjectResource, IDisposable
     }
 
     public virtual byte[] Read(BitAddress address, int readBits) =>
-        _stream.Value.ReadUnshifted(address, readBits);
+        Stream.Value.ReadUnshifted(address, readBits);
 
     public virtual void Read(BitAddress address, int readBits, Span<byte> buffer) =>
-        _stream.Value.ReadUnshifted(address, readBits, buffer);
+        Stream.Value.ReadUnshifted(address, readBits, buffer);
 
     public virtual async ValueTask<byte[]> ReadAsync(BitAddress address, int readBits) =>
-        await _stream.Value.ReadUnshiftedAsync(address, readBits);
+        await Stream.Value.ReadUnshiftedAsync(address, readBits);
 
     public virtual async ValueTask ReadAsync(BitAddress address, int readBits, Memory<byte> buffer) =>
-        await _stream.Value.ReadUnshiftedAsync(address, readBits, buffer);
+        await Stream.Value.ReadUnshiftedAsync(address, readBits, buffer);
 
     public virtual void Write(ReadOnlySpan<byte> buffer) =>
-        _stream.Value.Write(buffer);
+        Stream.Value.Write(buffer);
 
     public virtual void Write(BitAddress address, ReadOnlySpan<byte> buffer) =>
-        _stream.Value.WriteUnshifted(address, buffer.Length * 8, buffer);
+        Stream.Value.WriteUnshifted(address, buffer.Length * 8, buffer);
 
     public virtual void Write(BitAddress address, int writeBits, ReadOnlySpan<byte> buffer) =>
-        _stream.Value.WriteUnshifted(address, writeBits, buffer);
+        Stream.Value.WriteUnshifted(address, writeBits, buffer);
 
     public virtual async Task WriteAsync(ReadOnlyMemory<byte> buffer) =>
-        await _stream.Value.WriteAsync(buffer);
+        await Stream.Value.WriteAsync(buffer);
 
     public virtual async Task WriteAsync(BitAddress address, ReadOnlyMemory<byte> buffer) =>
-        await _stream.Value.WriteUnshiftedAsync(address, buffer.Length * 8, buffer);
+        await Stream.Value.WriteUnshiftedAsync(address, buffer.Length * 8, buffer);
 
     public virtual async Task WriteAsync(BitAddress address, int writeBits, ReadOnlyMemory<byte> buffer) =>
-        await _stream.Value.WriteUnshiftedAsync(address, writeBits, buffer);
+        await Stream.Value.WriteUnshiftedAsync(address, writeBits, buffer);
 
     public virtual void Seek(long offset, SeekOrigin origin) => 
-        _stream.Value.Seek(offset, origin);
+        Stream.Value.Seek(offset, origin);
 
     public virtual void Flush() => 
-        _stream.Value.Flush();
+        Stream.Value.Flush();
 
     public virtual async Task FlushAsync() =>
-        await _stream.Value.FlushAsync();
+        await Stream.Value.FlushAsync();
 
     public virtual IEnumerable<IProjectResource> LinkedResources => 
         Enumerable.Empty<IProjectResource>();
@@ -69,15 +69,15 @@ public abstract class DataSource : IProjectResource, IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!disposedValue)
+        if (!_disposedValue)
         {
             if (disposing)
             {
-                if (_stream.IsValueCreated && _stream.Value is not null)
-                    _stream.Value.Dispose();
+                if (Stream.IsValueCreated && Stream.Value is not null)
+                    Stream.Value.Dispose();
             }
 
-            disposedValue = true;
+            _disposedValue = true;
         }
     }
 

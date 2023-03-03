@@ -6,12 +6,13 @@ namespace ImageMagitek;
 public sealed class FileDataSource : DataSource
 {
     public string FileLocation { get; private set; }
+    protected override Lazy<Stream> Stream { get; }
 
     public FileDataSource(string name, string fileLocation) : base(name)
     {
         FileLocation = fileLocation;
 
-        _stream = new Lazy<Stream>(() =>
+        Stream = new Lazy<Stream>(() =>
         {
             if (string.IsNullOrWhiteSpace(FileLocation))
                 throw new ArgumentException($"{nameof(DataSource)} parameter {nameof(FileLocation)} was null or empty");

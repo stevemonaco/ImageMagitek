@@ -2,9 +2,9 @@
 
 public class ArrangerElementModel
 {
-    public string DataFileKey { get; set; }
-    public string PaletteKey { get; set; }
-    public string CodecName { get; set; }
+    public required string DataFileKey { get; init; }
+    public required string? PaletteKey { get; init; }
+    public required string CodecName { get; init; }
     public BitAddress FileAddress { get; set; }
     public int PositionX { get; set; }
     public int PositionY { get; set; }

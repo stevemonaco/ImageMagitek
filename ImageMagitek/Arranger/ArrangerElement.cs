@@ -37,7 +37,7 @@ public readonly struct ArrangerElement
     public int Height => Codec.Height;
 
     /// <summary>
-    /// Palette to apply to the element's pixel data
+    /// Palette to apply to the element's pixel data. Will be null for direct codecs.
     /// </summary>
     public Palette? Palette { get; }
 
@@ -64,18 +64,6 @@ public readonly struct ArrangerElement
     public MirrorOperation Mirror { get; }
 
     public RotationOperation Rotation { get; }
-
-    //public ArrangerElement(int x1, int y1)
-    //{
-    //    X1 = x1;
-    //    Y1 = y1;
-    //    SourceAddress = BitAddress.Zero;
-    //    Source = null;
-    //    Codec = null;
-    //    Palette = null;
-    //    Mirror = MirrorOperation.None;
-    //    Rotation = RotationOperation.None;
-    //}
 
     public ArrangerElement(int x1, int y1, DataSource dataFile, BitAddress address, IGraphicsCodec codec, Palette? palette)
     {

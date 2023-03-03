@@ -76,7 +76,7 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
         if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
+        encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
         _bitReader.SeekAbsolute(0);
 
         int plane = 0;

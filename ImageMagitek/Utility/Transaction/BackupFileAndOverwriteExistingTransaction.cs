@@ -11,7 +11,7 @@ public sealed class BackupFileAndOverwriteExistingTransaction : IFileChangeTrans
     public string Contents { get; }
     public string BackupFileName { get; }
 
-    public Exception LastException { get; private set; }
+    public Exception? LastException { get; private set; }
 
     public BackupFileAndOverwriteExistingTransaction(string fileName, string contents)
     {

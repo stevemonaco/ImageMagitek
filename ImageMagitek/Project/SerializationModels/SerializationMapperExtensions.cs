@@ -57,7 +57,7 @@ public static class SerializationMapperExtensions
             if (pal.ColorSources[i] is FileColorSource fileSource)
             {
                 var sources = pal.ColorSources.Skip(i)
-                    .TakeWhile((x, i) => x is FileColorSource && (x as FileColorSource).Offset == (fileSource.Offset + i * size))
+                    .TakeWhile((x, i) => x is FileColorSource fcs && fcs.Offset == (fileSource.Offset + i * size))
                     .ToList();
 
                 var sourceModel = new FileColorSourceModel(fileSource.Offset, sources.Count, fileSource.Endian);
@@ -85,7 +85,7 @@ public static class SerializationMapperExtensions
         return model;
     }
 
-    public static Palette MapToResource(this PaletteModel model, IColorFactory colorFactory)
+    public static Palette MapToResource(this PaletteModel model, IColorFactory colorFactory, DataSource dataSource)
     {
         var size = colorFactory.CreateColor(model.ColorModel).Size;
         var sources = new List<IColorSource>();
@@ -114,7 +114,7 @@ public static class SerializationMapperExtensions
             //}
         }
 
-        return new Palette(model.Name, colorFactory, model.ColorModel, sources, model.ZeroIndexTransparent, model.StorageSource);
+        return new Palette(model.Name, colorFactory, model.ColorModel, sources, model.ZeroIndexTransparent, model.StorageSource, dataSource);
     }
 
     public static ResourceFolderModel MapToModel(this ResourceFolder folder)
@@ -136,10 +136,9 @@ public static class SerializationMapperExtensions
             ArrangerElementSize = arranger.ArrangerElementSize,
             ElementPixelSize = arranger.ElementPixelSize,
             Layout = arranger.Layout,
-            ColorType = arranger.ColorType
+            ColorType = arranger.ColorType,
+            ElementGrid = new ArrangerElementModel[arranger.ArrangerElementSize.Width, arranger.ArrangerElementSize.Height]
         };
-
-        model.ElementGrid = new ArrangerElementModel[model.ArrangerElementSize.Width, model.ArrangerElementSize.Height];
 
         for (int x = 0; x < model.ElementGrid.GetLength(0); x++)
         {
@@ -156,8 +155,13 @@ public static class SerializationMapperExtensions
 
         ArrangerElementModel MapToModel(ArrangerElement el, int elemX, int elemY)
         {
+            var dataFileKey = resourceMap[el.Source];
+            var paletteKey = (el.Palette is not null) ? resourceMap[el.Palette] : null;
+
             var model = new ArrangerElementModel
             {
+                DataFileKey = dataFileKey,
+                PaletteKey = paletteKey,
                 FileAddress = el.SourceAddress,
                 PositionX = elemX,
                 PositionY = elemY,
@@ -165,16 +169,6 @@ public static class SerializationMapperExtensions
                 Mirror = el.Mirror,
                 Rotation = el.Rotation
             };
-
-            if (el.Source is not null && resourceMap.TryGetValue(el.Source, out var dataFileKey))
-            {
-                model.DataFileKey = dataFileKey;
-            }
-
-            if (el.Palette is not null && resourceMap.TryGetValue(el.Palette, out var paletteKey))
-            {
-                model.PaletteKey = paletteKey;
-            }
 
             return model;
         }

@@ -6,8 +6,6 @@ namespace ImageMagitek.PluginSample;
 public class Snes4bppCodec : IndexedCodec
 {
     public override string Name => "SNES 4bpp Plugin";
-    public override int Width { get; }
-    public override int Height { get; }
     public override int StorageSize => 4 * Width * Height;
     public override ImageLayout Layout => ImageLayout.Tiled;
     public override int ColorDepth => 4;
@@ -23,22 +21,11 @@ public class Snes4bppCodec : IndexedCodec
 
     public Snes4bppCodec()
     {
-        Width = DefaultWidth;
-        Height = DefaultHeight;
-        Initialize();
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
-    public Snes4bppCodec(int width, int height)
+    public Snes4bppCodec(int width, int height) : base(width, height)
     {
-        Width = width;
-        Height = height;
-        Initialize();
-    }
-
-    private void Initialize()
-    {
-        _foreignBuffer = new byte[(StorageSize + 7) / 8];
-        _nativeBuffer = new byte[Height, Width];
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 

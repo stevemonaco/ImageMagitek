@@ -67,8 +67,7 @@ public class MonsterSerializer
             .Select(x => (IColorSource) new FileColorSource(new BitAddress(PaletteOffset + 16 * metadata.PaletteID + x * 2, 0), Endian.Little))
             .ToList();
 
-        var pal = new Palette("monsterPalette", new ColorFactory(), ColorModel.Bgr15, paletteSources, true, PaletteStorageSource.Project);
-        pal.DataSource = dataFile;
+        var pal = new Palette("monsterPalette", new ColorFactory(), ColorModel.Bgr15, paletteSources, true, PaletteStorageSource.ProjectXml, dataFile);
 
         Console.WriteLine(pal.GetNativeColor(0).ToString());
 

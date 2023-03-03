@@ -14,8 +14,6 @@ namespace ImageMagitek.PluginSamples;
 public class MarmaladeBoyCodec : IndexedCodec
 {
     public override string Name => "Marmalade Boy Font";
-    public override int Width => 16;
-    public override int Height => 10000;
     public override ImageLayout Layout => ImageLayout.Single;
     public override int ColorDepth => 1;
     public override int StorageSize => 126820;
@@ -29,15 +27,8 @@ public class MarmaladeBoyCodec : IndexedCodec
 
     private IBitStreamReader _bitReader;
 
-    public MarmaladeBoyCodec()
+    public MarmaladeBoyCodec() : base(16, 10000)
     {
-        Initialize();
-    }
-
-    private void Initialize()
-    {
-        _foreignBuffer = new byte[(StorageSize + 7) / 8];
-        _nativeBuffer = new byte[Height, Width];
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 

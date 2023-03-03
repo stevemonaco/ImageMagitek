@@ -62,8 +62,7 @@ public class MonsterSerializer
             .Select(x => (IColorSource) new FileColorSource(new BitAddress(PaletteOffset + 16 * metadata.PaletteID + x * 2, 0), Endian.Little))
             .ToList();
 
-        var pal = new Palette("monsterPalette", new ColorFactory(), ColorModel.Bgr15, paletteSources, true, PaletteStorageSource.Project);
-        pal.DataSource = fileSource;
+        var pal = new Palette("monsterPalette", new ColorFactory(), ColorModel.Bgr15, paletteSources, true, PaletteStorageSource.ProjectXml, fileSource);
 
         int arrangerWidth = metadata.TileSetSize == TileSetSize.Small ? 8 : 16;
         int arrangerHeight = metadata.TileSetSize == TileSetSize.Small ? 8 : 16;

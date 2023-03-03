@@ -1,12 +1,9 @@
 ﻿using System;
 
 namespace ImageMagitek.Codec;
-
 public sealed class Snes3bppCodec : IndexedCodec
 {
     public override string Name => "SNES 3bpp";
-    public override int Width { get; }
-    public override int Height { get; }
     public override int StorageSize => 3 * Width * Height;
     public override ImageLayout Layout => ImageLayout.Tiled;
     public override int ColorDepth => 3;
@@ -22,22 +19,11 @@ public sealed class Snes3bppCodec : IndexedCodec
 
     public Snes3bppCodec()
     {
-        Width = DefaultWidth;
-        Height = DefaultHeight;
-        Initialize();
+        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
-    public Snes3bppCodec(int width, int height)
+    public Snes3bppCodec(int width, int height) : base(width, height)
     {
-        Width = width;
-        Height = height;
-        Initialize();
-    }
-
-    private void Initialize()
-    {
-        _foreignBuffer = new byte[(StorageSize + 7) / 8];
-        _nativeBuffer = new byte[Height, Width];
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
@@ -46,7 +32,7 @@ public sealed class Snes3bppCodec : IndexedCodec
         if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
+        encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
 
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
 

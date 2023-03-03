@@ -7,7 +7,11 @@ namespace ImageMagitek.Project.Serialization;
 public class PaletteModel : ResourceModel
 {
     public ColorModel ColorModel { get; set; }
-    public string DataFileKey { get; set; }
+
+    /// <summary>
+    /// Key to the DataFileSource or null if there's no source (GlobalJson)
+    /// </summary>
+    public string? DataFileKey { get; set; }
     public bool ZeroIndexTransparent { get; set; }
     public PaletteStorageSource StorageSource { get; set; }
     public List<IColorSourceModel> ColorSources { get; set; } = new();

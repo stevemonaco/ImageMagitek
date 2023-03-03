@@ -30,6 +30,9 @@ public class ElementLayoutService : IElementLayoutService
         var contents = File.ReadAllText(layoutFileName);
         var layout = JsonSerializer.Deserialize<TileLayout>(contents, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
 
+        if (layout is null)
+            return new MagitekResult.Failed($"{nameof(LoadLayout)} failed to serialize the contents of '{layoutFileName}'");
+
         if (ElementLayouts.ContainsKey(layout.Name))
             return new MagitekResult.Failed($"{nameof(LoadLayout)} failed because a layout with name '{layout.Name}' already exists");
 
