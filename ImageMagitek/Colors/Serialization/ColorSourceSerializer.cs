@@ -131,7 +131,7 @@ public class ColorSourceSerializer : IColorSourceSerializer
             {
                 foreignSource.Value = foreignColors[i];
             }
-            else if (sources[i] is ScatteredColorSource scatteredSource)
+            else if (sources[i] is ScatteredColorSource)
             {
                 throw new NotSupportedException();
             }

@@ -2,9 +2,10 @@
 
 public class DataFileModel : ResourceModel
 {
-    public string Location { get; set; }
+    public override required string Name { get; init; }
+    public required string Location { get; init; }
 
-    public override bool ResourceEquals(ResourceModel resourceModel)
+    public override bool ResourceEquals(ResourceModel? resourceModel)
     {
         if (resourceModel is not DataFileModel model)
             return false;

@@ -86,7 +86,7 @@ public partial class EditorsViewModel : ObservableRecipient
         return true;
     }
 
-    public void ActivateEditor(IProjectResource resource)
+    public async Task ActivateEditor(IProjectResource resource)
     {
         var openedDocument = Editors.FirstOrDefault(x => ReferenceEquals(x.Resource, resource));
 
@@ -118,7 +118,14 @@ public partial class EditorsViewModel : ObservableRecipient
                     else
                         codecName = "NES 1bpp";
 
-                    var newArranger = new SequentialArranger(8, 16, fileSource, _paletteService.DefaultPalette, _codecService.CodecFactory, codecName);
+                    var codec = _codecService.CodecFactory.CreateCodec(codecName);
+                    if (codec is null)
+                    {
+                        await _interactions.AlertAsync("Codec Error", $"Could not create Codec '{codecName}'");
+                        return;
+                    }
+
+                    var newArranger = new SequentialArranger(8, 16, fileSource, _paletteService.DefaultPalette, _codecService.CodecFactory, codec);
                     newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _paletteService, _layoutService)
                     {
                         OriginatingProjectResource = fileSource

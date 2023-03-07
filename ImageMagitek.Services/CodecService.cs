@@ -17,7 +17,7 @@ public interface ICodecService
 
 public class CodecService : ICodecService
 {
-    public ICodecFactory CodecFactory { get; private set; }
+    public ICodecFactory CodecFactory { get; private set; } = new CodecFactory(new());
 
     private readonly string _schemaFileName;
 
@@ -65,5 +65,5 @@ public class CodecService : ICodecService
 
     public void AddOrUpdateCodec(Type codecType) => CodecFactory.AddOrUpdateCodec(codecType);
 
-    public IEnumerable<string> GetSupportedCodecNames() => CodecFactory?.GetSupportedCodecNames();
+    public IEnumerable<string> GetSupportedCodecNames() => CodecFactory.GetRegisteredCodecNames();
 }

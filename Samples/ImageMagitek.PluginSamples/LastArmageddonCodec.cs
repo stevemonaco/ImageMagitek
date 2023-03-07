@@ -95,7 +95,7 @@ public class LastArmageddonCodec : IndexedCodec
                 //}
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
 
         }

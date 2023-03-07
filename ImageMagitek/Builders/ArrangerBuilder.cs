@@ -1,6 +1,8 @@
 ﻿#nullable disable
 
+using System;
 using System.Drawing;
+using CommunityToolkit.Diagnostics;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 
@@ -148,12 +150,16 @@ public class ArrangerBuilder :
 
     SequentialArranger ISequentialArrangerBuilderSources.Build()
     {
-        var arranger = new SequentialArranger(_arrangerElementSize.Width, _arrangerElementSize.Height, _dataFile, _palette, _codecFactory, _codecName)
+        var codec = _codecFactory.CreateCodec(_codecName, _elementPixelSize);
+
+        if (codec is null)
+            throw new ArgumentException($"Codec '{_codecName}' could not be created.");
+
+        var arranger = new SequentialArranger(_arrangerElementSize.Width, _arrangerElementSize.Height, _dataFile, _palette, _codecFactory, codec)
         {
             Name = _name
         };
 
-        var codec = _codecFactory.GetCodec(arranger.ActiveCodec.Name, _elementPixelSize);
         arranger.ChangeCodec(codec);
         return arranger;
     }

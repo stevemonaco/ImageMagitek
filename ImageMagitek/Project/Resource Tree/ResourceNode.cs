@@ -6,7 +6,7 @@ namespace ImageMagitek.Project;
 public abstract class ResourceNode : PathNodeBase<ResourceNode, IProjectResource>
 {
     public string? DiskLocation { get; set; }
-    public required ResourceModel Model { get; init; }
+    public ResourceModel? Model { get; set; }
 
     public ResourceNode(string nodeName, IProjectResource resource) :
         base(nodeName, resource)
@@ -29,11 +29,12 @@ public abstract class ResourceNode<TModel> : ResourceNode
     }
 
     /// <summary>
-    /// Representation of the Model that is currently persisted
+    /// Representation of the Model that is currently persisted on disk
+    /// Used to keep track of stale state
     /// </summary>
-    public TModel Model
+    public TModel? Model
     {
-        get => (TModel)base.Model;
+        get => (TModel?)base.Model;
         set => base.Model = value;
     }
 }

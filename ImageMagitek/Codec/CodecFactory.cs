@@ -5,14 +5,21 @@ using System.Linq;
 
 namespace ImageMagitek.Codec;
 
+/// <summary>
+/// Manages the creation of codecs from default (built-in), IGraphicsCodec (XML-based), and/or plugin codec sources
+/// </summary>
 public sealed class CodecFactory : ICodecFactory
 {
     private readonly Dictionary<string, IGraphicsFormat> _formats;
     private readonly Dictionary<string, Type> _codecs;
 
+    /// <summary>
+    /// Creates a CodecFactory and registers default codecs and provided formats
+    /// </summary>
+    /// <param name="formats">Formats to automatically register. May be empty.</param>
     public CodecFactory(Dictionary<string, IGraphicsFormat> formats)
     {
-        _formats = formats ?? new Dictionary<string, IGraphicsFormat>();
+        _formats = formats;
 
         _codecs = new Dictionary<string, Type>
         {
@@ -35,7 +42,15 @@ public sealed class CodecFactory : ICodecFactory
             throw new ArgumentException($"{nameof(AddOrUpdateCodec)} parameter '{nameof(codecType)}' is not of type {typeof(IGraphicsCodec)} or is not instantiable");
     }
 
-    public IGraphicsCodec? GetCodec(string codecName, Size? elementSize = default)
+    /// <summary>
+    /// Creates a new instance of a codec registered with the given name and optional size
+    /// </summary>
+    /// <param name="codecName">Name of the codec to create</param>
+    /// <param name="elementSize">Size in pixels of the element the codec operates on</param>
+    /// <returns>The codec if successful, null if not</returns>
+    /// <exception cref="NotSupportedException">A format type was registered that cannot be created</exception>
+    /// <exception cref="KeyNotFoundException">The codec name was not registered</exception>
+    public IGraphicsCodec? CreateCodec(string codecName, Size? elementSize = default)
     {
         if (_codecs.ContainsKey(codecName)) // Prefer built-in codecs
         {
@@ -74,16 +89,26 @@ public sealed class CodecFactory : ICodecFactory
         }
         else
         {
-            throw new KeyNotFoundException($"{nameof(GetCodec)} could not locate a codec for '{codecName}'");
+            throw new KeyNotFoundException($"{nameof(CreateCodec)} could not locate a codec for '{codecName}'");
         }
     }
 
-    public IGraphicsCodec? CloneCodec(IGraphicsCodec codec)
+    /// <summary>
+    /// Creates a new instance of the given codec with the same dimensions
+    /// </summary>
+    /// <param name="codec">The codec to be cloned</param>
+    /// <returns>A valid codec</returns>
+    public IGraphicsCodec CloneCodec(IGraphicsCodec codec)
     {
-        return GetCodec(codec.Name, new Size(codec.Width, codec.Height));
+        var clonedCodec = CreateCodec(codec.Name, new Size(codec.Width, codec.Height));
+
+        if (clonedCodec is null)
+            throw new ArgumentException($"Could not clone Codec '{codec.Name}'");
+
+        return clonedCodec;
     }
 
-    public IEnumerable<string> GetSupportedCodecNames()
+    public IEnumerable<string> GetRegisteredCodecNames()
     {
         return _formats.Keys
             .Concat(_codecs.Keys)

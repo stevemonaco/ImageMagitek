@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
+using CommunityToolkit.Diagnostics;
 using ImageMagitek.Colors;
 using ImageMagitek.Utility;
 using Monaco.PathTree;
@@ -23,8 +24,8 @@ public sealed class XmlProjectWriter : IProjectWriter
 
     public XmlProjectWriter(ProjectTree tree, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
     {
-        if (tree is null)
-            throw new ArgumentNullException($"{nameof(WriteProject)} parameter '{nameof(tree)}' was null");
+        Guard.IsNotNull(tree);
+        Guard.IsNotNull(tree.Root.DiskLocation);
 
         _tree = tree;
         _colorFactory = colorFactory;
@@ -61,32 +62,28 @@ public sealed class XmlProjectWriter : IProjectWriter
     {
         var resourceMap = CreateResourceMap();
 
-        if (resourceNode is ProjectNode projectNode)
+        if (resourceNode is ProjectNode { Item: ImageProject project })
         {
-            var project = (ImageProject)projectNode.Item;
             var model = project.MapToModel();
             return Stringify(Serialize(model));
         }
-        else if (resourceNode is DataFileNode dfNode)
+        else if (resourceNode is DataFileNode { Item: FileDataSource df })
         {
-            var df = (FileDataSource)dfNode.Item;
             var model = df.MapToModel();
             return Stringify(Serialize(model));
         }
-        else if (resourceNode is PaletteNode palNode)
+        else if (resourceNode is PaletteNode { Item: Palette pal })
         {
-            var pal = (Palette)palNode.Item;
             var model = pal.MapToModel(resourceMap, _colorFactory);
             return Stringify(Serialize(model));
         }
-        else if (resourceNode is ArrangerNode arrangerNode)
+        else if (resourceNode is ArrangerNode { Item: ScatteredArranger arranger })
         {
-            var arranger = (ScatteredArranger)arrangerNode.Item;
             var model = arranger.MapToModel(resourceMap);
             return Stringify(Serialize(model));
         }
         else
-            throw new NotSupportedException($"{nameof(ResourceNode)} of type '{resourceNode.GetType()}' is not supported");
+            throw new NotSupportedException($"{nameof(ResourceNode)} of type '{resourceNode.GetType()}' containing item of type '{resourceNode.Item.GetType()}' is not supported");
     }
 
     /// <summary>
@@ -97,47 +94,43 @@ public sealed class XmlProjectWriter : IProjectWriter
     /// <returns></returns>
     public MagitekResult WriteResource(ResourceNode resourceNode, bool alwaysOverwrite)
     {
+        if (resourceNode.DiskLocation is null)
+            return new MagitekResult.Failed($"Resource '{resourceNode.Name}' cannot be saved because '{nameof(resourceNode.DiskLocation)}' is null");
+
         string contents;
         ResourceModel currentModel;
-        ResourceModel diskModel;
         var resourceMap = CreateResourceMap();
 
-        if (resourceNode is ProjectNode projectNode)
+        if (resourceNode is ProjectNode { Item: ImageProject project })
         {
-            var project = (ImageProject)projectNode.Item;
             var model = project.MapToModel();
             contents = Stringify(Serialize(model));
             currentModel = model;
-            diskModel = projectNode.Model;
         }
-        else if (resourceNode is DataFileNode dfNode)
+        else if (resourceNode is DataFileNode { Item: FileDataSource df })
         {
-            var df = (FileDataSource)dfNode.Item;
             var model = df.MapToModel();
             contents = Stringify(Serialize(model));
             currentModel = model;
-            diskModel = dfNode.Model;
         }
-        else if (resourceNode is PaletteNode palNode)
+        else if (resourceNode is PaletteNode { Item: Palette pal })
         {
-            var pal = (Palette)palNode.Item;
             var model = pal.MapToModel(resourceMap, _colorFactory);
             contents = Stringify(Serialize(model));
             currentModel = model;
-            diskModel = palNode.Model;
         }
-        else if (resourceNode is ArrangerNode arrangerNode)
+        else if (resourceNode is ArrangerNode { Item: ScatteredArranger arranger })
         {
-            var arranger = (ScatteredArranger)arrangerNode.Item;
             var model = arranger.MapToModel(resourceMap);
             contents = Stringify(Serialize(model));
             currentModel = model;
-            diskModel = arrangerNode.Model;
         }
         else
         {
             return new MagitekResult.Failed($"{nameof(WriteResource)} cannot write resource of type '{resourceNode}'");
         }
+
+        var diskModel = resourceNode.Model;
 
         if (currentModel.ResourceEquals(diskModel) == false || alwaysOverwrite)
         {
@@ -161,7 +154,7 @@ public sealed class XmlProjectWriter : IProjectWriter
             ResourceModel diskModel;
             var resourceMap = CreateResourceMap();
 
-            if (node is ProjectNode projectNode)
+            if (node is ProjectNode { Model: ImageProjectModel } projectNode)
             {
                 var project = (ImageProject)projectNode.Item;
                 var model = project.MapToModel();
@@ -169,7 +162,7 @@ public sealed class XmlProjectWriter : IProjectWriter
 
                 diskModel = projectNode.Model;
             }
-            else if (node is DataFileNode dfNode)
+            else if (node is DataFileNode { Model: DataFileModel } dfNode)
             {
                 var df = (FileDataSource) dfNode.Item;
                 var model = df.MapToModel();
@@ -177,7 +170,7 @@ public sealed class XmlProjectWriter : IProjectWriter
                 
                 diskModel = dfNode.Model;
             }
-            else if (node is PaletteNode paletteNode)
+            else if (node is PaletteNode { Model: PaletteModel } paletteNode)
             {
                 var pal = (Palette) paletteNode.Item;
                 var model = pal.MapToModel(resourceMap, _colorFactory);
@@ -185,7 +178,7 @@ public sealed class XmlProjectWriter : IProjectWriter
 
                 diskModel = paletteNode.Model;
             }
-            else if (node is ArrangerNode arrangerNode)
+            else if (node is ArrangerNode { Model: ScatteredArrangerModel } arrangerNode)
             {
                 var arranger = (ScatteredArranger)arrangerNode.Item;
                 var model = arranger.MapToModel(resourceMap);
@@ -196,7 +189,7 @@ public sealed class XmlProjectWriter : IProjectWriter
             else
                 throw new InvalidOperationException($"Serializing project node with unexpected type '{node.GetType()}' is not supported");
 
-            var location = ResourceFileLocator.LocateByParent(tree, node.Parent, node);
+            var location = ResourceFileLocator.Locate(tree, node);
 
             if (!currentModel.ResourceEquals(diskModel) || node.DiskLocation != location)
             {
@@ -246,7 +239,7 @@ public sealed class XmlProjectWriter : IProjectWriter
 
     private BackupFileAndOverwriteExistingTransaction CreateWriteAction(ResourceModel model, string diskLocation)
     {
-        XElement element = model switch
+        var element = model switch
         {
             ResourceFolderModel folderModel => Serialize(folderModel),
             DataFileModel dataFileModel => Serialize(dataFileModel),

@@ -53,7 +53,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
     [ObservableProperty] private ResourceNodeViewModel? _selectedNode;
 
     [RelayCommand]
-    public void ActivateSelectedNode()
+    public async Task ActivateSelectedNode()
     {
         if (SelectedNode is ProjectNodeViewModel || SelectedNode is FolderNodeViewModel)
         {
@@ -61,7 +61,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         }
         else if (SelectedNode?.Node?.Item is not null)
         {
-            _editors.ActivateEditor(SelectedNode.Node.Item);
+            await _editors.ActivateEditor(SelectedNode.Node.Item);
         }
     }
 
@@ -150,15 +150,14 @@ public partial class ProjectTreeViewModel : ToolViewModel
             var result = _projectService.AddResource(parentNodeModel.Node, pal);
 
             await result.Match(
-                success =>
+                async success =>
                 {
                     var palVM = new PaletteNodeViewModel(success.Result, parentNodeModel);
                     parentNodeModel.Children.Add(palVM);
                     SelectedNode = palVM;
                     IsModified = true;
                     _tracker.Persist(dialogModel);
-                    _editors.ActivateEditor(pal);
-                    return Task.CompletedTask;
+                    await _editors.ActivateEditor(pal);
                 },
                 async fail =>
                 {
@@ -185,15 +184,14 @@ public partial class ProjectTreeViewModel : ToolViewModel
             var result = _projectService.AddResource(parentNodeModel.Node, arranger);
 
             await result.Match(
-                success =>
+                async success =>
                 {
                     var arrangerVM = new ArrangerNodeViewModel(success.Result, parentNodeModel);
                     parentNodeModel.Children.Add(arrangerVM);
                     SelectedNode = arrangerVM;
                     IsModified = true;
                     _tracker.Persist(dialogModel);
-                    _editors.ActivateEditor(arranger);
-                    return Task.CompletedTask;
+                    await _editors.ActivateEditor(arranger);
                 },
                 async fail =>
                 {
@@ -413,14 +411,13 @@ public partial class ProjectTreeViewModel : ToolViewModel
                     var addResult = _projectService.AddResource(parentModel.Node, newArranger);
 
                     await addResult.Match(
-                        addSuccess =>
+                        async addSuccess =>
                         {
                             var arrangerVM = new ArrangerNodeViewModel(addSuccess.Result, parentModel);
                             parentModel.Children.Add(arrangerVM);
                             SelectedNode = arrangerVM;
                             IsModified = true;
-                            _editors.ActivateEditor(newArranger);
-                            return Task.FromResult("");
+                            await _editors.ActivateEditor(newArranger);
                         },
                         async addFailed => await _interactions.AlertAsync("Error", addFailed.Reason)
                     );

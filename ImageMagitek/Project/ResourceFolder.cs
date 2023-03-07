@@ -2,11 +2,8 @@
 using System.Linq;
 
 namespace ImageMagitek.Project;
-
 public sealed class ResourceFolder : IProjectResource
 {
-    public ResourceFolder() : this("") { }
-
     public ResourceFolder(string name)
     {
         Name = name;

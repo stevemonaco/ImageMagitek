@@ -4,8 +4,8 @@ namespace ImageMagitek.Services;
 
 public class AppSettings
 {
-    public IDictionary<string, string> ExtensionCodecAssociations { get; set; }
-    public IList<string> GlobalPalettes { get; set; }
-    public string NesPalette { get; set; }
+    public required IDictionary<string, string> ExtensionCodecAssociations { get; init; }
+    public required IList<string> GlobalPalettes { get; init; }
+    public required string NesPalette { get; init; }
     public bool EnableArrangerSymmetryTools { get; set; }
 }

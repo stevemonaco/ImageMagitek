@@ -27,7 +27,7 @@ public sealed class FlowGraphicsFormat : IGraphicsFormat
     /// <summary>
     /// The color depth of each pixel in bits per pixel
     /// </summary>
-    public int ColorDepth { get; set; }
+    public int ColorDepth { get; }
 
     /// <summary>
     /// ColorType defines how pixel data is translated into color data
@@ -39,7 +39,7 @@ public sealed class FlowGraphicsFormat : IGraphicsFormat
     ///   Ex: [3, 2, 0, 1] implies the first bit read will merge into plane 3,
     ///   second bit read into plane 2, third bit read into plane 0, fourth bit read into plane 1
     /// </summary>
-    public int[] MergePlanePriority { get; set; }
+    public int[] MergePlanePriority { get; }
 
     /// <summary>
     /// Default width of an element
@@ -70,7 +70,7 @@ public sealed class FlowGraphicsFormat : IGraphicsFormat
     public IList<ImageProperty> ImageProperties { get; set; } = new List<ImageProperty>();
 
     public FlowGraphicsFormat(string name, PixelColorType colorType, int colorDepth,
-        ImageLayout layout, int defaultHeight, int defaultWidth)
+        ImageLayout layout, int defaultHeight, int defaultWidth, int[] mergePlanePriority)
     {
         Name = name;
         ColorType = colorType;
@@ -81,6 +81,7 @@ public sealed class FlowGraphicsFormat : IGraphicsFormat
 
         Height = defaultHeight;
         Width = defaultWidth;
+        MergePlanePriority = mergePlanePriority;
     }
 
     public void Resize(int width, int height)
@@ -91,18 +92,11 @@ public sealed class FlowGraphicsFormat : IGraphicsFormat
 
     public IGraphicsFormat Clone()
     {
-        var clone = new FlowGraphicsFormat(Name, ColorType, ColorDepth, Layout, DefaultWidth, DefaultHeight)
+        var clone = new FlowGraphicsFormat(Name, ColorType, ColorDepth, Layout, DefaultWidth, DefaultHeight, MergePlanePriority.ToArray())
         {
             FixedSize = FixedSize,
-            MergePlanePriority = MergePlanePriority.ToArray(),
-            ImageProperties = new List<ImageProperty>()
+            ImageProperties = ImageProperties.Select(x => new ImageProperty(x.ColorDepth, x.RowInterlace, x.RowPixelPattern)).ToList(),
         };
-
-        foreach (var prop in ImageProperties)
-        {
-            var propclone = new ImageProperty(prop.ColorDepth, prop.RowInterlace, prop.RowPixelPattern);
-            clone.ImageProperties.Add(propclone);
-        }
 
         return clone;
     }

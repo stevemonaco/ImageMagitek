@@ -74,8 +74,10 @@ public sealed class XmlProjectReader : IProjectReader
         var directoryNames = Directory.GetDirectories(_baseDirectory, "*", SearchOption.AllDirectories);
         foreach (var directoryName in directoryNames)
         {
-            var folderModel = new ResourceFolderModel();
-            folderModel.Name = Path.GetFileName(directoryName);
+            var folderModel = new ResourceFolderModel()
+            {
+                Name = Path.GetFileName(directoryName)
+            };
 
             var parentDirectory = Directory.GetParent(directoryName).FullName;
             var relativePath = Path.GetRelativePath(_baseDirectory, parentDirectory);
@@ -256,9 +258,10 @@ public sealed class XmlProjectReader : IProjectReader
 
     private bool TryDeserializePalette(XElement element, string resourceName, out PaletteModel paletteModel)
     {
-        var model = new PaletteModel();
-
-        model.Name = resourceName;
+        var model = new PaletteModel()
+        {
+            Name = resourceName,
+        };
         model.DataFileKey = element.Attribute("datafile").Value;
         model.ColorModel = Palette.StringToColorModel(element.Attribute("color").Value);
         model.ZeroIndexTransparent = bool.Parse(element.Attribute("zeroindextransparent").Value);
@@ -316,11 +319,16 @@ public sealed class XmlProjectReader : IProjectReader
 
     private bool TryDeserializeScatteredArranger(XElement element, string resourceName, out ScatteredArrangerModel arrangerModel)
     {
-        var model = new ScatteredArrangerModel();
-
-        model.Name = resourceName;
         var elementsx = int.Parse(element.Attribute("elementsx").Value); // Width of arranger in elements
         var elementsy = int.Parse(element.Attribute("elementsy").Value); // Height of arranger in elements
+
+        var model = new ScatteredArrangerModel()
+        {
+            Name = resourceName,
+            ElementGrid = new ArrangerElementModel[elementsx, elementsy],
+            ArrangerElementSize = new Size(elementsx, elementsy),
+        };
+
         var width = int.Parse(element.Attribute("width").Value); // Width of element in pixels
         var height = int.Parse(element.Attribute("height").Value); // Height of element in pixels
         var defaultCodecName = element.Attribute("defaultcodec").Value;
@@ -344,8 +352,6 @@ public sealed class XmlProjectReader : IProjectReader
         else
             throw new XmlException($"Unsupported pixel color type ('{colorType}') for arranger '{model.Name}'");
 
-        model.ArrangerElementSize = new Size(elementsx, elementsy);
-        model.ElementGrid = new ArrangerElementModel[elementsx, elementsy];
         model.ElementPixelSize = new Size(width, height);
 
         var xmlElements = elementList.Select(e => new

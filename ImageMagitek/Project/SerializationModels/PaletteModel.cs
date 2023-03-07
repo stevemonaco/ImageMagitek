@@ -6,6 +6,7 @@ namespace ImageMagitek.Project.Serialization;
 
 public class PaletteModel : ResourceModel
 {
+    public required override string Name { get; init; }
     public ColorModel ColorModel { get; set; }
 
     /// <summary>
@@ -16,7 +17,7 @@ public class PaletteModel : ResourceModel
     public PaletteStorageSource StorageSource { get; set; }
     public List<IColorSourceModel> ColorSources { get; set; } = new();
 
-    public override bool ResourceEquals(ResourceModel resourceModel)
+    public override bool ResourceEquals(ResourceModel? resourceModel)
     {
         if (resourceModel is not PaletteModel model)
             return false;

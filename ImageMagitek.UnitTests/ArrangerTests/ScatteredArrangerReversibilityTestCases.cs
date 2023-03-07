@@ -22,7 +22,7 @@ public class ScatteredArrangerReversibilityTestCases
                     Colors.ColorModel.Bgr15,
                     false,
                     codecFactory,
-                    codecFactory.GetCodec("NES 2bpp", new System.Drawing.Size(8, 8))),
+                    codecFactory.CreateCodec("NES 2bpp", new System.Drawing.Size(8, 8))!),
                 bubblesFontLocation);
 
             yield return new TestCaseData(
@@ -30,7 +30,7 @@ public class ScatteredArrangerReversibilityTestCases
                     Colors.ColorModel.Bgr15,
                     false,
                     codecFactory,
-                    codecFactory.GetCodec("SNES 2bpp", new System.Drawing.Size(8, 8))),
+                    codecFactory.CreateCodec("SNES 2bpp", new System.Drawing.Size(8, 8))!),
                 bubblesFontLocation);
         }
     }

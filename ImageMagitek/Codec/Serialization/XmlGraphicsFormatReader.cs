@@ -161,29 +161,28 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
         else
             AddParseError(errors, codec.FixedSize, Names.FixedSize, flowElementRoot);
 
-        var format = new FlowGraphicsFormat(name ?? "Missing", colorType, colorDepth, layout, defaultWidth, defaultHeight)
-        {
-            FixedSize = fixedSize
-        };
-
+        int[] mergePlanePriority = new int[colorDepth];
         string mergeString = codec.MergePriority?.Value ?? "";
         mergeString = mergeString.Replace(" ", "");
         var mergeItems = mergeString.Split(',');
 
-        if (mergeItems.Length == format.ColorDepth)
+        if (mergeItems.Length == colorDepth)
         {
-            format.MergePlanePriority = new int[format.ColorDepth];
-
             for (int i = 0; i < mergeItems.Length; i++)
             {
                 if (int.TryParse(mergeItems[i], out var mergePlane))
-                    format.MergePlanePriority[i] = mergePlane;
+                    mergePlanePriority[i] = mergePlane;
                 else
                     AddParseError(errors, codec.MergePriority, Names.MergePriority, flowElementRoot);
             }
         }
         else
             AddValidationError(errors, codec.MergePriority, $"The number of entries in {Names.MergePriority} do not match the {Names.ColorDepth}.");
+
+        var format = new FlowGraphicsFormat(name ?? "Missing", colorType, colorDepth, layout, defaultWidth, defaultHeight, mergePlanePriority)
+        {
+            FixedSize = fixedSize
+        };
 
         var imageElement = flowElementRoot.Element(Names.Images);
         var imageElements = imageElement?.Elements(Names.Image) ?? Enumerable.Empty<XElement>();

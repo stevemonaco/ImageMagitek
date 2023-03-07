@@ -66,7 +66,7 @@ public sealed class SequentialArranger : Arranger
     /// <param name="palette"><see cref="Palette"/> assigned to each <see cref="ArrangerElement"/></param>
     /// <param name="codecFactory">Factory responsible for creating new codecs</param>
     /// <param name="codecName">Name of codec each Element will be initialized to</param>
-    public SequentialArranger(int arrangerWidth, int arrangerHeight, DataSource dataSource, Palette palette, ICodecFactory codecFactory, string codecName)
+    public SequentialArranger(int arrangerWidth, int arrangerHeight, DataSource dataSource, Palette palette, ICodecFactory codecFactory, IGraphicsCodec codec)
     {
         Mode = ArrangerMode.Sequential;
         FileSize = dataSource.Length;
@@ -75,7 +75,7 @@ public sealed class SequentialArranger : Arranger
         ActivePalette = palette;
         _codecFactory = codecFactory;
 
-        ActiveCodec = _codecFactory.GetCodec(codecName, default);
+        ActiveCodec = _codecFactory.CloneCodec(codec);
         ColorType = ActiveCodec.ColorType;
 
         Layout = ActiveCodec.Layout switch

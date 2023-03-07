@@ -11,6 +11,7 @@ using TileShop.CLI.Commands;
 using LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory;
 using ImageMagitek.Project.Serialization;
 using CommandLine.Text;
+using CommunityToolkit.Diagnostics;
 
 namespace TileShop.CLI;
 
@@ -115,6 +116,9 @@ class Program
             var resourceSchemaFileName = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultResourceSchemaFileName);
 
             var settings = bootstrapper.ReadConfiguration(settingsFileName);
+            if (settings is null)
+                throw new InvalidOperationException($"Failed to read configuration file '{settingsFileName}'");
+
             var codecService = bootstrapper.CreateCodecService(codecPath, codecSchemaFileName);
             var paletteService = bootstrapper.CreatePaletteService(palettePath, settings);
             //var pluginService = bootstrapper.CreatePluginService(pluginPath, codecService);

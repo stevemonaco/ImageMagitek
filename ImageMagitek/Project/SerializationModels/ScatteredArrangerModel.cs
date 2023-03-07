@@ -5,13 +5,14 @@ namespace ImageMagitek.Project.Serialization;
 
 public class ScatteredArrangerModel : ResourceModel
 {
+    public override required string Name { get; init; }
     public required ArrangerElementModel[,] ElementGrid { get; init; }
     public Size ArrangerElementSize { get; set; }
     public Size ElementPixelSize { get; set; }
     public ElementLayout Layout { get; set; }
     public PixelColorType ColorType { get; set; }
 
-    public override bool ResourceEquals(ResourceModel resourceModel)
+    public override bool ResourceEquals(ResourceModel? resourceModel)
     {
         if (resourceModel is not ScatteredArrangerModel model)
             return false;

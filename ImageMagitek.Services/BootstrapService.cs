@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using ImageMagitek.Colors;
+using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
 using Microsoft.Extensions.Logging;
 
@@ -30,7 +31,7 @@ public class BootstrapService
         _logger = logger;
     }
 
-    public virtual AppSettings ReadConfiguration(string jsonFileName)
+    public virtual AppSettings? ReadConfiguration(string jsonFileName)
     {
         try
         {
@@ -41,15 +42,7 @@ public class BootstrapService
                 PropertyNameCaseInsensitive = true
             };
 
-            var settings = JsonSerializer.Deserialize<AppSettings>(json, options)!;
-
-            var lowerDict = new Dictionary<string, string>();
-            foreach (var item in settings.ExtensionCodecAssociations)
-            {
-                lowerDict.TryAdd(item.Key.ToLower(), item.Value);
-            }
-
-            settings.ExtensionCodecAssociations = lowerDict;
+            var settings = JsonSerializer.Deserialize<AppSettings>(json, options);
 
             return settings;
         }
@@ -69,14 +62,24 @@ public class BootstrapService
         {
             var paletteFileName = Path.Combine(palettesPath, $"{paletteName}.json");
             var palette = _paletteService.ReadJsonPalette(paletteFileName);
-            _paletteService.GlobalPalettes.Add(palette);
+
+            if (palette is not null)
+                _paletteService.GlobalPalettes.Add(palette);
+            else
+                _logger.LogError($"Could not load default palette named '{paletteName}' at expected location '{paletteFileName}'");
         }
         _paletteService.SetDefaultPalette(_paletteService.GlobalPalettes.First());
 
         var nesPaletteFileName = Path.Combine(palettesPath, $"{settings.NesPalette}.json");
         var nesPalette = _paletteService.ReadJsonPalette(nesPaletteFileName);
-        _colorFactory.SetNesPalette(nesPalette);
-        _paletteService.SetNesPalette(nesPalette);
+
+        if (nesPalette is not null)
+        {
+            _colorFactory.SetNesPalette(nesPalette);
+            _paletteService.SetNesPalette(nesPalette);
+        }
+        else
+            _logger.LogError($"Could not load default palette named '{settings.NesPalette}' at expected location '{nesPaletteFileName}'");
 
         return _paletteService;
     }

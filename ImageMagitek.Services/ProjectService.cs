@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using CommunityToolkit.Diagnostics;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
@@ -244,7 +246,7 @@ public class ProjectService : IProjectService
 
         try
         {
-            ResourceNode childNode = resource switch
+            ResourceNode? childNode = resource switch
             {
                 DataSource df => new DataFileNode(df.Name, df),
                 ScatteredArranger arranger => new ArrangerNode(arranger.Name, arranger),
@@ -313,7 +315,7 @@ public class ProjectService : IProjectService
             else
                 return new string[] { baseName }
                 .Concat(Enumerable.Range(1, 999).Select(x => $"{baseName} ({x})"))
-                .FirstOrDefault(x => !node.ContainsChildNode(x));
+                .First(x => !node.ContainsChildNode(x));
         }
     }
 
@@ -328,6 +330,9 @@ public class ProjectService : IProjectService
     {
         if (projectTree is null)
             throw new InvalidOperationException($"{nameof(SaveResource)} parameter '{nameof(projectTree)}' was null");
+
+        if (projectTree.Root.DiskLocation is null)
+            throw new InvalidOperationException($"{nameof(SaveResource)}: '{nameof(projectTree)}' has no disk location");
 
         string projectFileLocation = projectTree.Root.DiskLocation;
 
@@ -374,6 +379,9 @@ public class ProjectService : IProjectService
     public virtual MagitekResult RenameResource(ResourceNode node, string newName)
     {
         var tree = _projects.FirstOrDefault(x => x.ContainsNode(node));
+
+        if (tree is null)
+            return new MagitekResult.Failed($"Could not locate '{node.Name}' in any loaded project");
 
         if (node.Parent is not null && node.Parent.ContainsChildNode(newName))
         {
@@ -449,7 +457,7 @@ public class ProjectService : IProjectService
             return new MagitekResult.Failed($"Nodes must be located within the same project");
 
         if (node.Parent is null)
-            return new MagitekResult.Failed($"{node.Name} has no parent");
+            return new MagitekResult.Failed($"{node.Name} has no parent and may be a root node");
 
         if (ReferenceEquals(node, parentNode))
             return new MagitekResult.Failed($"Cannot move {node.Name} onto itself");
@@ -484,17 +492,15 @@ public class ProjectService : IProjectService
 
     /// <summary>
     /// Moves the specified node to be a child of the specified parent, if possible
+    /// Node must be moved within the same project and the root node may not be moved
     /// </summary>
     /// <param name="node">Node to move</param>
     /// <param name="parentNode">Parent destination</param>
     /// <returns></returns>
     public virtual MagitekResult MoveNode(ResourceNode node, ResourceNode parentNode)
     {
-        if (node is null)
-            throw new ArgumentNullException($"{nameof(CanMoveNode)} parameter '{node}' was null");
-
-        if (parentNode is null)
-            throw new ArgumentNullException($"{nameof(CanMoveNode)} parameter '{parentNode}' was null");
+        Guard.IsNotNull(node);
+        Guard.IsNotNull(parentNode);
 
         var canMoveResult = CanMoveNode(node, parentNode);
         var tree = GetContainingProject(node);
@@ -506,7 +512,7 @@ public class ProjectService : IProjectService
 
         if (canMoveResult.HasSucceeded)
         {
-            if (node is ResourceFolderNode folderNode)
+            if (node is ResourceFolderNode { Parent: not null } folderNode)
             {
                 try
                 {
@@ -569,7 +575,7 @@ public class ProjectService : IProjectService
     }
 
     /// <summary>
-    /// Applies deletion and modification changes to the tree
+    /// Applies deletion and modification changes to the containing tree and disk
     /// </summary>
     /// <param name="changes">Changes to be applied</param>
     /// <param name="defaultPalette">Default palette to fallback to when a resource loses a palette</param>
@@ -591,7 +597,7 @@ public class ProjectService : IProjectService
                 foreach (var (x, y) in arranger.EnumerateElementsWithinElementRange())
                 {
                     var el = arranger.GetElement(x, y);
-                    if (el is not null && el?.Palette is null)
+                    if (el is not null && el.Value.Palette is null)
                         arranger.SetElement(el.Value.WithPalette(defaultPalette), x, y);
                 }
             }
@@ -606,14 +612,16 @@ public class ProjectService : IProjectService
         foreach (var item in removedItems.Where(x => x.Resource is not ResourceFolder))
         {
             var resourceParent = item.ResourceNode.Parent;
-            resourceParent.RemoveChildNode(item.Resource.Name);
-            File.Delete(item.ResourceNode.DiskLocation);
+            resourceParent?.RemoveChildNode(item.Resource.Name);
+
+            if (item.ResourceNode.DiskLocation is string location)
+                File.Delete(location);
         }
 
         foreach (var item in removedItems.Where(x => x.Resource is ResourceFolder))
         {
             var resourceParent = item.ResourceNode.Parent;
-            resourceParent.RemoveChildNode(item.Resource.Name);
+            resourceParent?.RemoveChildNode(item.Resource.Name);
             Directory.Delete(item.ResourceNode.DiskLocation);
         }
 
@@ -627,10 +635,11 @@ public class ProjectService : IProjectService
     /// <returns></returns>
     public virtual IEnumerable<ResourceChange> PreviewResourceDeletionChanges(ResourceNode deleteNode)
     {
-        if (deleteNode is null)
-            throw new ArgumentNullException($"{nameof(PreviewResourceDeletionChanges)} parameter '{deleteNode}' was null");
+        Guard.IsNotNull(deleteNode);
 
         var tree = _projects.FirstOrDefault(x => x.ContainsNode(deleteNode));
+        if (tree is null)
+            yield break;
 
         var rootRemovalChange = new ResourceChange(deleteNode, tree.CreatePathKey(deleteNode), true, false, false);
 
@@ -643,8 +652,8 @@ public class ProjectService : IProjectService
 
         // Palettes with removed DataFiles must be checked early, so that Arrangers are effected in the main loop by removed Palettes
         var removedPaletteNodes = tree.EnumerateDepthFirst()
-            .Where(x => x.Item is Palette)
-            .Where(x => removedDict.ContainsKey((x.Item as Palette).DataSource));
+            .Where(x => x.Item is Palette pal && pal.DataSource is not null)
+            .Where(x => removedDict.ContainsKey(((Palette)x.Item).DataSource!));
 
         foreach (var paletteNode in removedPaletteNodes)
         {
@@ -698,27 +707,27 @@ public class ProjectService : IProjectService
     /// </summary>
     private void UpdateNodeModel(ProjectTree tree, ResourceNode node)
     {
-        if (node is ProjectNode projectNode)
+        if (node is ProjectNode { Item: ImageProject project } projectNode)
         {
-            projectNode.Model = (projectNode.Item as ImageProject).MapToModel();
+            projectNode.Model = project.MapToModel();
         }
         else if (node is DataFileNode dfNode)
         {
             if (dfNode.Item is FileDataSource fileSource)
                 dfNode.Model = fileSource.MapToModel();
         }
-        else if (node is PaletteNode palNode)
+        else if (node is PaletteNode { Item: Palette pal } palNode)
         {
             var map = GetResourceMap(tree);
-            palNode.Model = (palNode.Item as Palette).MapToModel(map, _colorFactory);
+            palNode.Model = pal.MapToModel(map, _colorFactory);
         }
-        else if (node is ArrangerNode arrangerNode)
+        else if (node is ArrangerNode { Item: ScatteredArranger arranger } arrangerNode)
         {
             var map = GetResourceMap(tree);
-            arrangerNode.Model = (arrangerNode.Item as ScatteredArranger).MapToModel(map);
+            arrangerNode.Model = arranger.MapToModel(map);
         }
         else
-            throw new NotSupportedException($"{nameof(UpdateNodeModel)} is not supported for node of type '{node.GetType()}'");
+            throw new NotSupportedException($"{nameof(UpdateNodeModel)} is not supported for node of type '{node.GetType()}' with model of type '{node.Item.GetType()}");
 
         Dictionary<IProjectResource, string> GetResourceMap(ProjectTree tree)
         {

@@ -15,11 +15,11 @@ public class Snes3bppDecodeToImage
     private const string _outputDirectory = @"D:\ImageMagitekTest\Benchmark\";
     private const string _codecSchemaFileName = @"_schemas\CodecSchema.xsd";
 
-    private IGraphicsCodec _codec;
+    private IGraphicsCodec? _codec;
 
-    private DataSource _df;
-    private Palette _pal;
-    private ScatteredArranger _arranger;
+    private DataSource? _df;
+    private Palette? _pal;
+    private ScatteredArranger? _arranger;
 
     [GlobalSetup(Target = nameof(DecodeNative))]
     public void GlobalSetupNative()
@@ -63,7 +63,7 @@ public class Snes3bppDecodeToImage
         {
             for (int x = 0; x < _arranger.ArrangerElementSize.Width; x++)
             {
-                var el = new ArrangerElement(x * 8, y * 8, _df, new BitAddress(24 * x + 24 * x * y), _codec, _pal);
+                var el = new ArrangerElement(x * 8, y * 8, _df, new BitAddress(24 * x + 24 * x * y), _codec!, _pal);
                 _arranger.SetElement(el, x, y);
             }
         }
@@ -72,14 +72,14 @@ public class Snes3bppDecodeToImage
     [GlobalCleanup(Target = nameof(DecodeNative))]
     public void GlobalCleanupNative()
     {
-        _df.Dispose();
+        _df?.Dispose();
         File.Delete(_nativeFileName);
     }
 
     [GlobalCleanup(Target = nameof(DecodeGeneric))]
     public void GlobalCleanupGeneric()
     {
-        _df.Dispose();
+        _df?.Dispose();
         File.Delete(_genericFileName);
     }
 
@@ -90,7 +90,7 @@ public class Snes3bppDecodeToImage
         {
             var outputFileName = Path.Combine(_outputDirectory, $"Native.{i}.bmp");
 
-            var image = new IndexedImage(_arranger);
+            var image = new IndexedImage(_arranger!);
             image.ExportImage(outputFileName, new ImageSharpFileAdapter());
         }
     }
@@ -102,7 +102,7 @@ public class Snes3bppDecodeToImage
         {
             var outputFileName = Path.Combine(_outputDirectory, $"Generic.{i}.bmp");
 
-            var image = new IndexedImage(_arranger);
+            var image = new IndexedImage(_arranger!);
             image.ExportImage(outputFileName, new ImageSharpFileAdapter());
         }
     }

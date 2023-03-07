@@ -18,10 +18,10 @@ public class Program
             return -1;
         }
 
-        var configContents = await File.ReadAllTextAsync("config.json");
+        //var configContents = await File.ReadAllTextAsync("config.json");
         var jsonOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
         jsonOptions.Converters.Add(new HexadecimalJsonConverter());
-        var config = JsonSerializer.Deserialize<Config>(configContents, jsonOptions);
+        //var config = JsonSerializer.Deserialize<Config>(configContents, jsonOptions);
 
         AppAction action;
         if (string.Equals(args[0], "Import", StringComparison.OrdinalIgnoreCase))

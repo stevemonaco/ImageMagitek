@@ -25,7 +25,7 @@ public partial class ProjectTreeView : UserControl
         base.OnDataContextChanged(e);
     }
 
-    private void ProjectTree_DoubleTapped(object? sender, TappedEventArgs e)
+    private async void ProjectTree_DoubleTapped(object? sender, TappedEventArgs e)
     {
         var item = ((Visual)e.Source!).GetSelfAndVisualAncestors()
             .OfType<TreeViewItem>()
@@ -39,13 +39,13 @@ public partial class ProjectTreeView : UserControl
             }
             else 
             {
-                _viewModel?.ActivateSelectedNode();
+                await _viewModel?.ActivateSelectedNode();
             }
             e.Handled = true;
         }
     }
 
-    private void ProjectTree_KeyDown(object? sender, KeyEventArgs e)
+    private async void ProjectTree_KeyDown(object? sender, KeyEventArgs e)
     {
         if (_viewModel?.SelectedNode is not null && e.Key == Key.Enter)
         {
@@ -55,7 +55,7 @@ public partial class ProjectTreeView : UserControl
             }
             else
             {
-                _viewModel?.ActivateSelectedNode();
+                await _viewModel.ActivateSelectedNode();
             }
             e.Handled = true;
         }

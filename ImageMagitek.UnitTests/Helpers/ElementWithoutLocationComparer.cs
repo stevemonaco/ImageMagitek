@@ -4,27 +4,27 @@ namespace ImageMagitek.UnitTests.Helpers;
 
 public class ElementWithoutLocationComparer : IComparer
 {
-    public int Compare(object a, object b)
+    public int Compare(object? a, object? b)
     {
         if (a is ArrangerElement elA && b is ArrangerElement elB)
         {
-            if (elA.Height != elA.Height)
-                return -1;
-
             if (elA.Width != elB.Width)
-                return -1;
+                return elA.Width.CompareTo(elB.Width);
+
+            if (elA.Height != elB.Height)
+                return elA.Height.CompareTo(elB.Height);
 
             if (elA.Codec.Name != elB.Codec.Name)
-                return -1;
+                return elA.Codec.Name.CompareTo(elB.Codec.Name);
 
-            if (elA.SourceAddress != elB.SourceAddress)
-                return -1;
+            if (elA.SourceAddress.BitOffset != elB.SourceAddress.BitOffset)
+                return elA.SourceAddress.BitOffset.CompareTo(elB.SourceAddress.BitOffset);
 
             if (elA.Source.Name != elB.Source.Name)
-                return -1;
+                return elA.Source.Name.CompareTo(elB.Source.Name);
 
-            if (elA.Palette?.Name != elB.Palette?.Name)
-                return -1;
+            if (elA.Palette?.Name != elB.Palette?.Name && elA.Palette is not null && elB.Palette is not null)
+                return elA.Palette.Name.CompareTo(elB.Palette.Name);
 
             return 0;
         }

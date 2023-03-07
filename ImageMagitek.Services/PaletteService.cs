@@ -12,7 +12,7 @@ public interface IPaletteService
     List<Palette> GlobalPalettes { get; }
     Palette NesPalette { get; }
 
-    Palette ReadJsonPalette(string paletteFileName);
+    Palette? ReadJsonPalette(string paletteFileName);
     void SetDefaultPalette(Palette pal);
 }
 
@@ -33,7 +33,7 @@ public class PaletteService : IPaletteService
     /// Read a palette from a JSON file
     /// </summary>
     /// <param name="paletteFileName">Path to the JSON palette file</param>
-    public Palette ReadJsonPalette(string paletteFileName)
+    public Palette? ReadJsonPalette(string paletteFileName)
     {
         if (!File.Exists(paletteFileName))
             throw new FileNotFoundException($"{nameof(ReadJsonPalette)}: Could not locate file {paletteFileName}");

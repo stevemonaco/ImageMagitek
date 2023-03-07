@@ -6,8 +6,8 @@ namespace ImageMagitek.UnitTests;
 [TestFixture]
 public class ElementCopierTests
 {
-    ScatteredArranger _sourceIndexed;
-    DataSource _df;
+    ScatteredArranger? _sourceIndexed;
+    DataSource? _df;
 
     [OneTimeSetUp]
     public void Setup()

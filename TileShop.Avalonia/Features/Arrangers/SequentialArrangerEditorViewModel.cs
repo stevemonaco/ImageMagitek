@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
+using CommunityToolkit.Diagnostics;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -438,7 +439,9 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
 
     private void ChangeCodec()
     {
-        var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, default);
+        var codec = _codecService.CodecFactory.CreateCodec(SelectedCodecName, default);
+        Guard.IsNotNull(codec);
+
         if (codec.Layout == ImageMagitek.Codec.ImageLayout.Tiled)
         {
             _tiledElementHeight = codec.Height;
@@ -483,11 +486,16 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         Render();
     }
 
-    private void ChangeCodecDimensions(int width, int height)
+    private bool ChangeCodecDimensions(int width, int height)
     {
-        var codec = _codecService.CodecFactory.GetCodec(SelectedCodecName, new Size(width, height));
+        var codec = _codecService.CodecFactory.CreateCodec(SelectedCodecName, new Size(width, height));
+
+        if (codec is null)
+            return false;
+
         ((SequentialArranger)WorkingArranger).ChangeCodec(codec);
         CreateImages();
+        return true;
     }
 
     private void CreateImages()

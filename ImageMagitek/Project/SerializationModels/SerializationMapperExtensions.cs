@@ -197,11 +197,12 @@ public static class SerializationMapperExtensions
                 yield return model.ElementGrid[x + elemX, y + elemY];
     }
 
-    public static string? FindMostFrequentElementPropertyValue(this ScatteredArrangerModel model, Func<ArrangerElementModel, string> selector)
+    public static string? FindMostFrequentElementPropertyValue(this ScatteredArrangerModel model, Func<ArrangerElementModel, string?> selector)
     {
         return EnumerateElements(model)
             .OfType<ArrangerElementModel>()
             .Select(selector)
+            .OfType<string>()
             .GroupBy(x => x)
             .Select(group => new
             {
