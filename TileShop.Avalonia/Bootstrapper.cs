@@ -1,17 +1,17 @@
-﻿using System.Linq;
-using Serilog;
-using Jot;
-using Microsoft.Extensions.Logging;
-using ImageMagitek.Services;
+﻿using System;
+using System.Linq;
 using ImageMagitek.Project.Serialization;
-using TileShop.Shared.Services;
-using TileShop.AvaloniaUI.ViewModels;
+using ImageMagitek.Services;
+using Jot;
 using Microsoft.Extensions.DependencyInjection;
-using TileShop.AvaloniaUI.Services;
-using TileShop.Shared.Interactions;
-using Avalonia.Media;
-using TileShop.AvaloniaUI.Models;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using TileShop.AvaloniaUI.Models;
+using TileShop.AvaloniaUI.Services;
+using TileShop.AvaloniaUI.ViewModels;
+using TileShop.Shared.Interactions;
+using TileShop.Shared.Services;
 
 namespace TileShop.AvaloniaUI;
 
@@ -40,22 +40,37 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
     {
         var bootstrapper = new BootstrapService(_loggerFactory!.CreateLogger<BootstrapService>());
         var settings = bootstrapper.ReadConfiguration(BootstrapService.DefaultConfigurationFileName);
-        var paletteService = bootstrapper.CreatePaletteService(BootstrapService.DefaultPalettePath, settings);
-        var codecService = bootstrapper.CreateCodecService(BootstrapService.DefaultCodecPath, BootstrapService.DefaultCodecSchemaFileName);
-        var pluginService = bootstrapper.CreatePluginService(BootstrapService.DefaultPluginPath, codecService);
-        var layoutService = bootstrapper.CreateTileLayoutService(BootstrapService.DefaultLayoutsPath);
-
-        var defaultResources = paletteService.GlobalPalettes;
-        var serializerFactory = new XmlProjectSerializerFactory(BootstrapService.DefaultResourceSchemaFileName,
-            codecService.CodecFactory, paletteService.ColorFactory, defaultResources);
-        var projectService = bootstrapper.CreateProjectService(serializerFactory, paletteService.ColorFactory);
-
+        if (settings is null)
+            throw new InvalidOperationException($"'{BootstrapService.DefaultConfigurationFileName}' could not be read during startup");
         services.AddSingleton(settings);
+
+        var colorFactory = bootstrapper.CreateColorFactory();
+        var paletteService = bootstrapper.CreatePaletteService(colorFactory);
         services.AddSingleton(paletteService);
+
+        var paletteStore = bootstrapper.CreatePaletteStore(paletteService, BootstrapService.DefaultPalettePath, settings);
+        if (paletteStore.NesPalette is not null)
+            colorFactory.SetNesPalette(paletteStore.NesPalette);
+        services.AddSingleton(paletteStore);
+        services.AddSingleton(colorFactory);
+
+        var codecService = bootstrapper.CreateCodecService(BootstrapService.DefaultCodecPath, BootstrapService.DefaultCodecSchemaFileName);
         services.AddSingleton(codecService);
+
+        var pluginService = bootstrapper.CreatePluginService(BootstrapService.DefaultPluginPath, codecService);
         services.AddSingleton(pluginService);
+
+        var layoutService = bootstrapper.CreateTileLayoutService(BootstrapService.DefaultLayoutsPath);
         services.AddSingleton(layoutService);
+
+        var defaultResources = paletteStore.GlobalPalettes;
+        var serializerFactory = new XmlProjectSerializerFactory(BootstrapService.DefaultResourceSchemaFileName,
+            codecService.CodecFactory, colorFactory, defaultResources);
+        var projectService = bootstrapper.CreateProjectService(serializerFactory, colorFactory);
         services.AddSingleton(projectService);
+
+
+        
     }
 
     public void ConfigureServices(IServiceCollection services)

@@ -24,7 +24,7 @@
 					<Rectangle Width="{Binding OriginalSource.Width}" Height="{Binding OriginalSource.Height}"
 							   Stretch="None" Fill="{DynamicResource CheckeredBrush}"/>
 
-					<Image x:Name="originalImage" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding OriginalSource.Bitmap}" />
+					<Image Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding OriginalSource.Bitmap}" />
 				</Grid>
 			</paz:ZoomBorder>
 		</ScrollViewer>
@@ -38,10 +38,10 @@
 
 			<paz:ZoomBorder Stretch="None" PowerFactor="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
 				<Grid>
-					<Rectangle Width="{Binding ImportedSource.Width}" Height="{Binding ImportedSource.Height}"
+					<Rectangle Width="{Binding PreviewSource.Width}" Height="{Binding PreviewSource.Height}"
 							   Stretch="None" Fill="{DynamicResource BasicCheckeredBrush}"/>
 
-					<Image x:Name="importedImage" Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding ImportedSource.Bitmap}" />
+					<Image Stretch="None" RenderOptions.BitmapInterpolationMode="Default" Source="{Binding PreviewSource.Bitmap}" />
 				</Grid>
 			</paz:ZoomBorder>
 		</ScrollViewer>

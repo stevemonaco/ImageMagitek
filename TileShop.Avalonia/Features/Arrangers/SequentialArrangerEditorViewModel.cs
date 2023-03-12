@@ -16,6 +16,8 @@ using CommunityToolkit.Mvvm.Messaging;
 using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 using CommunityToolkit.Diagnostics;
+using ImageMagitek.Colors;
+using ImageMagitek.Services.Stores;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -29,29 +31,13 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
 
     [ObservableProperty] private ObservableCollection<string> _codecNames = new();
 
-    private string _selectedCodecName;
-    public string SelectedCodecName
-    {
-        get => _selectedCodecName;
-        set
-        {
-            if (SetProperty(ref _selectedCodecName, value))
-                ChangeCodec();
-        }
-    }
+    [ObservableProperty] private string _selectedCodecName;
+    partial void OnSelectedCodecNameChanged(string value) => ChangeCodec();
 
     [ObservableProperty] private ObservableCollection<PaletteModel> _palettes = new();
 
-    private PaletteModel _selectedPalette;
-    public PaletteModel SelectedPalette
-    {
-        get => _selectedPalette;
-        set
-        {
-            if (SetProperty(ref _selectedPalette, value))
-                ChangePalette(SelectedPalette);
-        }
-    }
+    [ObservableProperty] private PaletteModel _selectedPalette;
+    partial void OnSelectedPaletteChanged(PaletteModel value) => ChangePalette(SelectedPalette);
 
     [ObservableProperty] private ObservableCollection<string> _tileLayoutNames;
 
@@ -157,8 +143,8 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
     [ObservableProperty] private int _arrangerPageSize;
 
     public SequentialArrangerEditorViewModel(SequentialArranger arranger, IInteractionService interactionService,
-        Tracker tracker, ICodecService codecService, IPaletteService paletteService, IElementLayoutService layoutService) :
-        base(arranger, interactionService, paletteService, tracker)
+        Tracker tracker, ICodecService codecService, IColorFactory colorFactory, PaletteStore paletteStore, IElementLayoutService layoutService) :
+        base(arranger, interactionService, colorFactory, paletteStore, tracker)
     {
         Resource = arranger;
         WorkingArranger = arranger;
@@ -195,7 +181,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         ElementWidthIncrement = arranger.ActiveCodec.WidthResizeIncrement;
         ElementHeightIncrement = arranger.ActiveCodec.HeightResizeIncrement;
 
-        Palettes = new(_paletteService.GlobalPalettes.Select(x => new PaletteModel(x)));
+        Palettes = new(_paletteStore.GlobalPalettes.Select(x => new PaletteModel(x)));
         _selectedPalette = Palettes.First();
 
         ArrangerPageSize = (int)((SequentialArranger)WorkingArranger).ArrangerBitSize / 8;

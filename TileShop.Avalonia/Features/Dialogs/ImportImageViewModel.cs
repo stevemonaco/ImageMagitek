@@ -18,12 +18,12 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
     private readonly IndexedImage? _originalIndexed;
     private readonly DirectImage? _originalDirect;
 
-    private IndexedImage? _importedIndexed;
-    private DirectImage? _importedDirect;
+    private IndexedImage? _previewIndexed;
+    private DirectImage? _previewDirect;
 
     [ObservableProperty] private string? _imageFileName;
     [ObservableProperty] private BitmapAdapter _originalSource;
-    [ObservableProperty] private BitmapAdapter? _importedSource;
+    [ObservableProperty] private BitmapAdapter? _previewSource;
     [ObservableProperty] private bool _isIndexedImage;
 
     private bool _useExactMatching = true;
@@ -104,9 +104,9 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
     private void ImportIndexed(string fileName)
     {
         var matchStrategy = UseExactMatching ? ColorMatchStrategy.Exact : ColorMatchStrategy.Nearest;
-        _importedIndexed = new IndexedImage(_arranger);
+        _previewIndexed = new IndexedImage(_arranger);
 
-        var result = _importedIndexed.TryImportImage(fileName, new ImageSharpFileAdapter(), matchStrategy);
+        var result = _previewIndexed.TryImportImage(fileName, new ImageSharpFileAdapter(), matchStrategy);
 
         result.Switch(
             success =>
@@ -114,31 +114,31 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
                 ImageFileName = fileName;
                 ImportError = string.Empty;
                 CanImport = true;
-                ImportedSource = new IndexedBitmapAdapter(_importedIndexed);
+                PreviewSource = new IndexedBitmapAdapter(_previewIndexed);
             },
             fail =>
             {
                 CanImport = false;
                 ImageFileName = fileName;
-                ImportedSource = null;
+                PreviewSource = null;
                 ImportError = fail.Reason;
             });
     }
 
     private void ImportDirect(string fileName)
     {
-        _importedDirect = new DirectImage(_arranger);
-        _importedDirect.ImportImage(ImageFileName, new ImageSharpFileAdapter());
-        ImportedSource = new DirectBitmapAdapter(_importedDirect);
+        _previewDirect = new DirectImage(_arranger);
+        _previewDirect.ImportImage(fileName, new ImageSharpFileAdapter());
+        PreviewSource = new DirectBitmapAdapter(_previewDirect);
         CanImport = true;
     }
 
     protected override void Accept()
     {
-        if (_arranger.ColorType == PixelColorType.Indexed && _importedIndexed is not null)
-            _importedIndexed.SaveImage();
-        else if (_arranger.ColorType == PixelColorType.Direct && _importedDirect is not null)
-            _importedDirect.SaveImage();
+        if (_arranger.ColorType == PixelColorType.Indexed && _previewIndexed is not null)
+            _previewIndexed.SaveImage();
+        else if (_arranger.ColorType == PixelColorType.Direct && _previewDirect is not null)
+            _previewDirect.SaveImage();
 
         _requestResult = this;
         OnPropertyChanged(nameof(RequestResult));

@@ -37,9 +37,9 @@ public partial class ProjectTreeView : UserControl
             {
                 item.IsExpanded ^= true;
             }
-            else 
+            else if (_viewModel is not null)
             {
-                await _viewModel?.ActivateSelectedNode();
+                await _viewModel.ActivateSelectedNode();
             }
             e.Handled = true;
         }

@@ -14,6 +14,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
+using ImageMagitek.Services.Stores;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -24,7 +25,8 @@ public partial class EditorsViewModel : ObservableRecipient
     private readonly IInteractionService _interactions;
     private readonly Tracker _tracker;
     private readonly ICodecService _codecService;
-    private readonly IPaletteService _paletteService;
+    private readonly IColorFactory _colorFactory;
+    private readonly PaletteStore _paletteStore;
     private readonly IProjectService _projectService;
     private readonly IElementLayoutService _layoutService;
     private readonly AppSettings _settings;
@@ -34,14 +36,15 @@ public partial class EditorsViewModel : ObservableRecipient
     [ObservableProperty] private ResourceEditorBaseViewModel? _activeEditor;
     [ObservableProperty] private ShellViewModel? _shell;
 
-    public EditorsViewModel(AppSettings settings, IInteractionService interactionService, Tracker tracker,
-        ICodecService codecService, IPaletteService paletteService, IProjectService projectService, IElementLayoutService layoutService)
+    public EditorsViewModel(AppSettings settings, IInteractionService interactionService, Tracker tracker, ICodecService codecService,
+        IColorFactory colorFactory, PaletteStore paletteStore, IProjectService projectService, IElementLayoutService layoutService)
     {
         _settings = settings;
         _interactions = interactionService;
         _tracker = tracker;
         _codecService = codecService;
-        _paletteService = paletteService;
+        _colorFactory = colorFactory;
+        _paletteStore = paletteStore;
         _projectService = projectService;
         _layoutService = layoutService;
 
@@ -97,16 +100,16 @@ public partial class EditorsViewModel : ObservableRecipient
             switch (resource)
             {
                 case Palette pal when pal.ColorModel != ColorModel.Nes:
-                    newDocument = new PaletteEditorViewModel(pal, _paletteService, _projectService);
+                    newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService);
                     break;
                 case Palette pal when pal.ColorModel == ColorModel.Nes:
-                    newDocument = new PaletteEditorViewModel(pal, _paletteService, _projectService);
+                    newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService);
                     break;
                 case ScatteredArranger scatteredArranger:
-                    newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _paletteService, _projectService, _tracker, _settings);
+                    newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _colorFactory, _paletteStore, _projectService, _tracker, _settings);
                     break;
                 case SequentialArranger sequentialArranger:
-                    newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _paletteService, _layoutService);
+                    newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _layoutService);
                     break;
                 case FileDataSource fileSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
                     var extension = Path.GetExtension(fileSource.FileLocation).ToLower();
@@ -125,8 +128,8 @@ public partial class EditorsViewModel : ObservableRecipient
                         return;
                     }
 
-                    var newArranger = new SequentialArranger(8, 16, fileSource, _paletteService.DefaultPalette, _codecService.CodecFactory, codec);
-                    newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _paletteService, _layoutService)
+                    var newArranger = new SequentialArranger(8, 16, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec);
+                    newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _layoutService)
                     {
                         OriginatingProjectResource = fileSource
                     };
@@ -240,7 +243,7 @@ public partial class EditorsViewModel : ObservableRecipient
         if (message.Arranger.ColorType == PixelColorType.Indexed)
         {
             var editor = new IndexedPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-                message.Width, message.Height, _interactions, _paletteService, _tracker);
+                message.Width, message.Height, _interactions, _colorFactory, _paletteStore, _tracker);
 
             editor.DisplayName = message.Arranger.Name;
 
@@ -250,7 +253,7 @@ public partial class EditorsViewModel : ObservableRecipient
         else if (message.Arranger.ColorType == PixelColorType.Direct)
         {
             var editor = new DirectPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-                message.Width, message.Height, _interactions, _paletteService, _tracker);
+                message.Width, message.Height, _interactions, _colorFactory, _paletteStore, _tracker);
 
             editor.DisplayName = message.Arranger.Name;
 

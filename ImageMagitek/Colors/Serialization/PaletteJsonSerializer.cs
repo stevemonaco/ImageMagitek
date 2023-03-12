@@ -5,7 +5,7 @@ namespace ImageMagitek.Colors;
 
 public static class PaletteJsonSerializer
 {
-    public static Palette? ReadPalette(string json, IColorFactory colorFactory)
+    public static Palette? DeserializePalette(string json, IColorFactory colorFactory)
     {
         var options = new JsonSerializerOptions();
         options.PropertyNameCaseInsensitive = true;

@@ -1,40 +1,42 @@
 ﻿using System;
-using ImageMagitek;
-using ImageMagitek.Colors;
-using ImageMagitek.Services;
-using TileShop.AvaloniaUI.Imaging;
-using TileShop.AvaloniaUI.Models;
-using TileShop.Shared.Models;
-using TileShop.Shared.Messages;
-using ImageMagitek.Image;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using ImageMagitek.ExtensionMethods;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using System.Threading.Tasks;
-using TileShop.Shared.Interactions;
+using ImageMagitek;
+using ImageMagitek.Colors;
+using ImageMagitek.ExtensionMethods;
+using ImageMagitek.Image;
+using ImageMagitek.Services.Stores;
 using Jot;
+using TileShop.AvaloniaUI.Imaging;
+using TileShop.AvaloniaUI.Models;
+using TileShop.Shared.Interactions;
+using TileShop.Shared.Messages;
+using TileShop.Shared.Models;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
 public sealed partial class DirectPixelEditorViewModel : PixelEditorViewModel<ColorRgba32>
 {
-    private DirectImage _directImage = null!;
+    private DirectImage _directImage;
 
     public DirectPixelEditorViewModel(Arranger arranger, Arranger projectArranger,
-        IInteractionService interactionService, IPaletteService paletteService, Tracker tracker)
-        : base(projectArranger, interactionService, paletteService, tracker)
+        IInteractionService interactionService, IColorFactory colorFactory, PaletteStore paletteStore, Tracker tracker)
+        : base(projectArranger, interactionService, colorFactory, paletteStore, tracker)
     {
         Initialize(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
     }
 
     public DirectPixelEditorViewModel(Arranger arranger, Arranger projectArranger, int viewX, int viewY, int viewWidth, int viewHeight,
-        IInteractionService interactionService, IPaletteService paletteService, Tracker tracker)
-        : base(projectArranger, interactionService, paletteService, tracker)
+        IInteractionService interactionService, IColorFactory colorFactory, PaletteStore paletteStore, Tracker tracker)
+        : base(projectArranger, interactionService, colorFactory, paletteStore, tracker)
     {
         Initialize(arranger, viewX, viewY, viewWidth, viewHeight);
     }
 
+    [MemberNotNull(nameof(_directImage))]
     private void Initialize(Arranger arranger, int viewDx, int viewDy, int viewWidth, int viewHeight)
     {
         Resource = arranger;

@@ -18,25 +18,29 @@ using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using TileShop.Shared.Services;
 using TileShop.Shared.Interactions;
+using CommunityToolkit.Diagnostics;
+using ImageMagitek.Services.Stores;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
 public partial class ProjectTreeViewModel : ToolViewModel
 {
     private readonly IProjectService _projectService;
-    private readonly IPaletteService _paletteService;
+    private readonly IColorFactory _colorFactory;
+    private readonly PaletteStore _paletteStore;
     private readonly IAsyncFileRequestService _fileSelect;
     private readonly IInteractionService _interactions;
     private readonly Tracker _tracker;
     private readonly IExploreService _diskExploreService;
     private readonly EditorsViewModel _editors;
 
-    public ProjectTreeViewModel(IProjectService solutionService, IPaletteService paletteService,
+    public ProjectTreeViewModel(IProjectService solutionService, IColorFactory colorFactory, PaletteStore paletteStore,
         IAsyncFileRequestService fileSelect, IInteractionService interactionService,
         Tracker tracker, IExploreService diskExploreService, EditorsViewModel editors)
     {
         _projectService = solutionService;
-        _paletteService = paletteService;
+        _colorFactory = colorFactory;
+        _paletteStore = paletteStore;
         _fileSelect = fileSelect;
         _interactions = interactionService;
         _tracker = tracker;
@@ -129,7 +133,6 @@ public partial class ProjectTreeViewModel : ToolViewModel
         var dataFiles = projectTree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataSource>();
         dialogModel.DataSources = new(dataFiles);
         dialogModel.SelectedDataSource = dialogModel.DataSources.FirstOrDefault();
-        dialogModel.ColorModels = new(Palette.GetColorModelNames());
 
         _tracker.Track(dialogModel);
 
@@ -141,9 +144,9 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
         var dialogResult = await _interactions.RequestAsync(dialogModel);
 
-        if (dialogResult is not null)
+        if (dialogResult is not null && dialogModel.SelectedDataSource is not null)
         {
-            var pal = new Palette(dialogModel.PaletteName, _paletteService.ColorFactory,
+            var pal = new Palette(dialogModel.PaletteName, _colorFactory,
                 Palette.StringToColorModel(dialogModel.SelectedColorModel), Array.Empty<IColorSource>(),
                 dialogModel.ZeroIndexTransparent, PaletteStorageSource.ProjectXml, dialogModel.SelectedDataSource);
 
@@ -270,7 +273,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
             _editors.Editors.Clear();
             _editors.ActiveEditor = null;
 
-            _projectService.ApplyResourceDeletionChanges(changes, _paletteService.DefaultPalette);
+            _projectService.ApplyResourceDeletionChanges(changes, _paletteStore.DefaultPalette);
             var projectRootVm = Projects.First(x => ReferenceEquals(tree.Root, x.Node));
             SynchronizeTree(projectRootVm);
 
@@ -504,6 +507,8 @@ public partial class ProjectTreeViewModel : ToolViewModel
                     success =>
                     {
                         var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
+                        Guard.IsNotNullOrWhiteSpace(projectVM.Node.DiskLocation);
+
                         Projects.Add(projectVM);
                         OnPropertyChanged(nameof(HasProject));
                         Messenger.Send(new ProjectLoadedMessage(projectVM.Node.DiskLocation));
@@ -542,6 +547,8 @@ public partial class ProjectTreeViewModel : ToolViewModel
                     success =>
                     {
                         var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
+                        Guard.IsNotNullOrEmpty(projectVM.Node.DiskLocation);
+
                         Projects.Add(projectVM);
                         SelectedNode = projectVM;
                         IsModified = true;
@@ -692,7 +699,8 @@ public partial class ProjectTreeViewModel : ToolViewModel
     [RelayCommand]
     public void ExploreResource(ResourceNodeViewModel nodeVM)
     {
-        _diskExploreService.ExploreDiskLocation(nodeVM.Node.DiskLocation);
+        if (nodeVM.Node.DiskLocation is not null)
+            _diskExploreService.ExploreDiskLocation(nodeVM.Node.DiskLocation);
     }
 
     public override void DiscardChanges()

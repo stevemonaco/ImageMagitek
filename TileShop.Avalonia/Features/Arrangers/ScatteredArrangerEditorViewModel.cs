@@ -20,6 +20,8 @@ using TileShop.Shared.Interactions;
 using Point = System.Drawing.Point;
 using System.Drawing;
 using Jot;
+using CommunityToolkit.Diagnostics;
+using ImageMagitek.Services.Stores;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -49,8 +51,8 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     }
 
     public ScatteredArrangerEditorViewModel(Arranger arranger, IInteractionService interactionService,
-        IPaletteService paletteService, IProjectService projectService, Tracker tracker, AppSettings settings) :
-        base(arranger, interactionService, paletteService, tracker)
+        IColorFactory colorFactory, PaletteStore paletteStore, IProjectService projectService, Tracker tracker, AppSettings settings) :
+        base(arranger, interactionService, colorFactory, paletteStore, tracker)
     {
         AreSymmetryToolsEnabled = settings.EnableArrangerSymmetryTools;
 
@@ -70,10 +72,10 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         }
 
         var palettes = WorkingArranger.GetReferencedPalettes();
-        palettes.ExceptWith(_paletteService.GlobalPalettes);
+        palettes.ExceptWith(_paletteStore.GlobalPalettes);
 
         var palModels = palettes.OrderBy(x => x.Name)
-            .Concat(_paletteService.GlobalPalettes.OrderBy(x => x.Name))
+            .Concat(_paletteStore.GlobalPalettes.OrderBy(x => x.Name))
             .Select(x => new PaletteModel(x));
 
         Selection = new(WorkingArranger, SnapMode);
@@ -113,7 +115,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         var projectTree = _projectService.GetContainingProject(Resource);
         projectTree.TryFindResourceNode(Resource, out var resourceNode);
 
-        await _projectService.SaveResource(projectTree, resourceNode, true).Match(
+        await _projectService.SaveResource(projectTree, resourceNode!, true).Match(
                  success =>
                  {
                      UndoHistory.Clear();
@@ -346,6 +348,9 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
     private MagitekResult ApplyPasteInternal(ArrangerPaste paste)
     {
+        if (WorkingArranger is not ScatteredArranger arranger)
+            return new MagitekResult.Failed($"Pasting elements into a '{WorkingArranger.GetType()}' is not supported");
+
         if (paste?.Copy is not ElementCopy elementCopy)
             return new MagitekResult.Failed("No valid Paste selection");
 
@@ -368,7 +373,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         int copyWidth = Math.Min(elementCopy.Width - sourceX, WorkingArranger.ArrangerElementSize.Width - destX);
         int copyHeight = Math.Min(elementCopy.Height - sourceY, WorkingArranger.ArrangerElementSize.Height - destY);
 
-        return ElementCopier.CopyElements(elementCopy, WorkingArranger as ScatteredArranger, sourceStart, destStart, copyWidth, copyHeight);
+        return ElementCopier.CopyElements(elementCopy, arranger, sourceStart, destStart, copyWidth, copyHeight);
     }
 
     #region Commands
@@ -406,6 +411,8 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
         bool TryApplySinglePalette(int pixelX, int pixelY, Palette palette, bool notify)
         {
+            Guard.IsNotNull(_indexedImage);
+
             if (pixelX >= WorkingArranger.ArrangerPixelSize.Width || pixelY >= WorkingArranger.ArrangerPixelSize.Height)
                 return false;
 
@@ -451,7 +458,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         if (el is ArrangerElement element)
         {
             SelectedPalette = Palettes.FirstOrDefault(x => ReferenceEquals(element.Palette, x.Palette)) ??
-                Palettes.First(x => ReferenceEquals(_paletteService?.DefaultPalette, x.Palette));
+                Palettes.First(x => ReferenceEquals(_paletteStore.DefaultPalette, x.Palette));
         }
 
         return true;
@@ -494,7 +501,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         var palettes = projectTree.EnumerateDepthFirst()
             .Where(x => x.Item is Palette)
             .Select(x => new AssociatePaletteModel((Palette)x.Item, projectTree.CreatePathKey(x)))
-            .Concat(_paletteService.GlobalPalettes.Select(x => new AssociatePaletteModel(x, x.Name)));
+            .Concat(_paletteStore.GlobalPalettes.Select(x => new AssociatePaletteModel(x, x.Name)));
 
         var model = new AssociatePaletteViewModel(palettes);
         var dialogResult = await _interactions.RequestAsync(model);
@@ -621,7 +628,11 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
         WorkingArranger = ((Arranger)Resource).CloneArranger();
         CreateImages();
-        GridSettings = GridSettingsViewModel.CreateDefault(_indexedImage);
+
+        if (_indexedImage is not null)
+            GridSettings = GridSettingsViewModel.CreateDefault(_indexedImage);
+        else if (_directImage is not null)
+            GridSettings = GridSettingsViewModel.CreateDefault(_directImage);
 
         foreach (var action in UndoHistory)
             ApplyHistoryAction(action);

@@ -119,14 +119,20 @@ class Program
             if (settings is null)
                 throw new InvalidOperationException($"Failed to read configuration file '{settingsFileName}'");
 
+            var colorFactory = bootstrapper.CreateColorFactory();
             var codecService = bootstrapper.CreateCodecService(codecPath, codecSchemaFileName);
-            var paletteService = bootstrapper.CreatePaletteService(palettePath, settings);
+            var paletteService = bootstrapper.CreatePaletteService(colorFactory);
+            var paletteStore = bootstrapper.CreatePaletteStore(paletteService, palettePath, settings);
+
+            if (paletteStore.NesPalette is not null)
+                colorFactory.SetNesPalette(paletteStore.NesPalette);
+
             //var pluginService = bootstrapper.CreatePluginService(pluginPath, codecService);
 
-            var defaultResources = paletteService.GlobalPalettes;
+            var defaultResources = paletteStore.GlobalPalettes;
             var serializerFactory = new XmlProjectSerializerFactory(resourceSchemaFileName,
-                codecService.CodecFactory, paletteService.ColorFactory, defaultResources);
-            ProjectService = bootstrapper.CreateProjectService(serializerFactory, paletteService.ColorFactory);
+                codecService.CodecFactory, colorFactory, defaultResources);
+            ProjectService = bootstrapper.CreateProjectService(serializerFactory, colorFactory);
 
             return true;
         }

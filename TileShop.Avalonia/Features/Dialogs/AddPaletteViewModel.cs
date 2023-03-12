@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
+using ImageMagitek.Colors;
 using TileShop.AvaloniaUI.Windowing;
 
 namespace TileShop.AvaloniaUI.ViewModels;
@@ -21,8 +22,8 @@ public partial class AddPaletteViewModel : DialogViewModel<AddPaletteViewModel>
     }
     [ObservableProperty] private ObservableCollection<DataSource> _dataSources = new();
     [ObservableProperty] private DataSource? _selectedDataSource;
-    [ObservableProperty] private ObservableCollection<string> _colorModels = new();
-    [ObservableProperty] private string? _selectedColorModel;
+    [ObservableProperty] private ObservableCollection<string> _colorModels = new(Palette.GetColorModelNames());
+    [ObservableProperty] private string _selectedColorModel;
     [ObservableProperty] private bool _zeroIndexTransparent = true;
     [ObservableProperty] private ObservableCollection<string> _existingResourceNames;
     [ObservableProperty] private ObservableCollection<string> _validationErrors = new();
@@ -37,6 +38,8 @@ public partial class AddPaletteViewModel : DialogViewModel<AddPaletteViewModel>
         _existingResourceNames = new(existingResourceNames);
         Title = "Add a New Palette";
         AcceptName = "Add";
+
+        _selectedColorModel = ColorModels.First();
     }
 
     protected override void Accept()

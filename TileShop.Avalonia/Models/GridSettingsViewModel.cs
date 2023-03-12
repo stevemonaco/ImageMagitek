@@ -32,7 +32,12 @@ public partial class GridSettingsViewModel : ObservableObject
     private int _viewDx;
     private int _viewDy;
 
-    private GridSettingsViewModel() { }
+    private GridSettingsViewModel()
+    {
+        _lineBrush = CreateLineBrush();
+        _backgroundBrush = CreateBackgroundBrush();
+        _gridlines = new();
+    }
 
     public static GridSettingsViewModel CreateDefault<TPixel>(ImageBase<TPixel> image) where TPixel : struct
     {
@@ -64,8 +69,9 @@ public partial class GridSettingsViewModel : ObservableObject
         settings._viewDx = image.Left;
         settings._viewDy = image.Top;
 
-        settings.CreateGridlines();
-        settings.CreateBrushes();
+        settings.Gridlines = settings.CreateGridlines();
+        settings.LineBrush = settings.CreateLineBrush();
+        settings.BackgroundBrush = settings.CreateBackgroundBrush();
 
         //settings.Gridlines = settings.CreateGridlines(settings.WidthSpacing - settings.ShiftX, settings.HeightSpacing - settings.ShiftY, image.Width, image.Height, settings.WidthSpacing, settings.HeightSpacing);
 
@@ -90,12 +96,16 @@ public partial class GridSettingsViewModel : ObservableObject
         //}
 
         settings.Gridlines = settings.CreateGridlines(0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height, settings.WidthSpacing, settings.HeightSpacing);
-        settings.CreateBrushes();
+        settings.LineBrush = settings.CreateLineBrush();
+        settings.BackgroundBrush = settings.CreateBackgroundBrush();
 
         return settings;
     }
 
-    public void CreateBrushes()
+    /// <summary>
+    /// Creates a checkered pattern brush
+    /// </summary>
+    public IBrush CreateBackgroundBrush()
     {
         var drawingA = new GeometryDrawing()
         {
@@ -118,7 +128,7 @@ public partial class GridSettingsViewModel : ObservableObject
 
         var image = new Image() { Width = WidthSpacing * 2, Height = HeightSpacing * 2, Source = drawing };
 
-        var brush = new VisualBrush
+        return new VisualBrush
         {
             DestinationRect = new RelativeRect(0, 0, WidthSpacing * 2, HeightSpacing * 2, RelativeUnit.Absolute),
             TileMode = TileMode.Tile,
@@ -126,10 +136,9 @@ public partial class GridSettingsViewModel : ObservableObject
             Visual = image,
             Transform = new TranslateTransform(WidthSpacing - ShiftX, HeightSpacing - ShiftY)
         };
-
-        BackgroundBrush = brush;
-        LineBrush = new ImmutableSolidColorBrush(LineColor);
     }
+
+    public IBrush CreateLineBrush() => new ImmutableSolidColorBrush(LineColor);
 
     public void AdjustGridlines(Arranger arranger)
     {
@@ -154,7 +163,7 @@ public partial class GridSettingsViewModel : ObservableObject
         return gridlines;
     }
 
-    private void CreateGridlines()
+    private ObservableCollection<Gridline> CreateGridlines()
     {
         //int x1 = (ShiftX)
         int x1 = WidthSpacing - ShiftX;
@@ -178,7 +187,7 @@ public partial class GridSettingsViewModel : ObservableObject
             gridlines.Add(gridline);
         }
 
-        Gridlines = gridlines;
+        return gridlines;
     }
 }
 

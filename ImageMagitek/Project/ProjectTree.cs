@@ -23,8 +23,7 @@ public sealed class ProjectTree : PathTreeBase<ResourceNode, IProjectResource>
     /// <summary>
     /// Searches the entire tree to determine if the specified resource is contained within the tree
     /// </summary>
-    /// <param name="resource">Resource to search</param>
-    /// <returns></returns>
+    /// <param name="resource">Resource to search for</param>
     public bool ContainsResource(IProjectResource resource)
     {
         return Root.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>()

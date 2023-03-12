@@ -44,7 +44,13 @@ public interface IColorFactory
 
     /// <summary>
     /// Converts the specified color to a hex string
+    /// </summary>
     string ToHexString(IColor color);
+
+    /// <summary>
+    /// Sets the NES palette so that NES colors can be used and created
+    /// </summary>
+    void SetNesPalette(Palette nesPalette);
 }
 
 /// <inheritdoc/>

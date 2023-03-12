@@ -17,6 +17,8 @@ using TileShop.Shared.Interactions;
 
 using Key = TileShop.Shared.Input.Key;
 using KeyModifiers = TileShop.Shared.Input.KeyModifiers;
+using ImageMagitek.Colors;
+using ImageMagitek.Services.Stores;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -28,10 +30,10 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     public bool CanChangeSnapMode { get; protected set; }
     public Point? LastMousePosition { get; protected set; }
 
-    protected readonly IPaletteService _paletteService;
     protected readonly Tracker _tracker;
     protected readonly IInteractionService _interactions;
-
+    protected readonly IColorFactory _colorFactory;
+    protected readonly PaletteStore _paletteStore;
     [ObservableProperty] private BitmapAdapter _bitmapAdapter = null!;
 
     public bool IsSingleLayout => WorkingArranger?.Layout == ElementLayout.Single;
@@ -61,16 +63,8 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         }
     }
 
-    private SnapMode _snapMode = SnapMode.Element;
-    public SnapMode SnapMode
-    {
-        get => _snapMode;
-        set
-        {
-            SetProperty(ref _snapMode, value);
-            Selection.SelectionRect.SnapMode = value;
-        }
-    }
+    [ObservableProperty] private SnapMode _snapMode = SnapMode.Element;
+    partial void OnSnapModeChanged(SnapMode value) => Selection.SelectionRect.SnapMode = value;
 
     [ObservableProperty] private ArrangerSelection _selection;
     [ObservableProperty] private bool _isSelecting;
@@ -81,11 +75,14 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     public Key PrimaryAltKey { get; protected set; } = Key.LeftAlt;
     public Key SecondaryAltKey { get; protected set; } = Key.LeftShift;
 
+    /// <summary>
+    /// Called when the image has been modified in some way
+    /// </summary>
     public Action? OnImageModified { get; set; }
     public int ViewDx { get; protected set; }
     public int ViewDy { get; protected set; }
 
-    public ArrangerEditorViewModel(Arranger arranger, IInteractionService interactionService, IPaletteService paletteService, Tracker tracker)
+    public ArrangerEditorViewModel(Arranger arranger, IInteractionService interactionService, IColorFactory colorFactory, PaletteStore paletteStore, Tracker tracker)
         : base(arranger)
     {
         WorkingArranger = arranger.CloneArranger();
@@ -95,7 +92,8 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         _gridSettings = GridSettingsViewModel.CreateDefault(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
 
         _interactions = interactionService;
-        _paletteService = paletteService;
+        _colorFactory = colorFactory;
+        _paletteStore = paletteStore;
         _tracker = tracker;
     }
 
@@ -276,7 +274,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
             GridSettings.LineColor = result.LineColor;
 
             GridSettings.AdjustGridlines(WorkingArranger);
-            GridSettings.CreateBrushes();
+            GridSettings.CreateBackgroundBrush();
 
             _tracker.Persist(result);
         }

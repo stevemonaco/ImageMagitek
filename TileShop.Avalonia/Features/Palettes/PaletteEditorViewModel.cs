@@ -18,7 +18,6 @@ namespace TileShop.AvaloniaUI.ViewModels;
 public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 {
     protected readonly Palette _palette;
-    protected readonly IPaletteService _paletteService;
     protected readonly IColorFactory _colorFactory;
     protected readonly IProjectService _projectService;
 
@@ -57,11 +56,10 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         }
     }
 
-    public PaletteEditorViewModel(Palette palette, IPaletteService paletteService, IProjectService projectService) : base(palette)
+    public PaletteEditorViewModel(Palette palette, IColorFactory colorFactory, IProjectService projectService) : base(palette)
     {
         _palette = palette;
-        _paletteService = paletteService;
-        _colorFactory = _paletteService.ColorFactory;
+        _colorFactory = colorFactory;
         _projectService = projectService;
 
         DisplayName = Resource?.Name ?? "Unnamed Palette";
@@ -71,7 +69,13 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         Colors = new(CreateColorModels());
         ColorSourceModels = new(CreateColorSourceModels(_palette));
 
-        _paletteSource = _palette.DataSource.Name;
+        if (_palette.DataSource is not null)
+            _paletteSource = _palette.DataSource.Name;
+        else if (_palette.StorageSource == PaletteStorageSource.GlobalJson)
+            _paletteSource = "[ReadOnly: JSON]";
+        else
+            _paletteSource = "[Unknown]";
+
         Entries = CountSourceColors();
 
         if (Entries > 0)
@@ -100,9 +104,15 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         Colors = new(CreateColorModels());
 
         ActiveColor = Colors.First();
-        PaletteSource = _palette.DataSource.Name;
         Entries = CountSourceColors();
         SelectedColorIndex = 0;
+
+        if (_palette.DataSource is not null)
+            _paletteSource = _palette.DataSource.Name;
+        else if (_palette.StorageSource == PaletteStorageSource.GlobalJson)
+            _paletteSource = "[ReadOnly: JSON]";
+        else
+            _paletteSource = "[Unknown]";
 
         _palette.Reload();
 

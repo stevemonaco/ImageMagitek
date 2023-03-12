@@ -18,30 +18,33 @@ using TileShop.Shared.Interactions;
 
 using Point = System.Drawing.Point;
 using Jot;
+using System.Diagnostics.CodeAnalysis;
+using ImageMagitek.Services.Stores;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
 public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<byte>
 {
-    private IndexedImage _indexedImage = null!;
+    private IndexedImage _indexedImage;
 
-    [ObservableProperty] private ObservableCollection<PaletteModel> _palettes = null!;
-    [ObservableProperty] private PaletteModel _activePalette = null!;
+    [ObservableProperty] private ObservableCollection<PaletteModel> _palettes;
+    [ObservableProperty] private PaletteModel _activePalette;
 
     public IndexedPixelEditorViewModel(Arranger arranger, Arranger projectArranger,
-        IInteractionService interactionService, IPaletteService paletteService, Tracker tracker)
-        : base(projectArranger, interactionService, paletteService, tracker)
+        IInteractionService interactionService, IColorFactory colorFactory, PaletteStore paletteStore, Tracker tracker)
+        : base(projectArranger, interactionService, colorFactory, paletteStore, tracker)
     {
         Initialize(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
     }
 
     public IndexedPixelEditorViewModel(Arranger arranger, Arranger projectArranger, int viewX, int viewY, int viewWidth, int viewHeight,
-        IInteractionService interactionService, IPaletteService paletteService, Tracker tracker)
-        : base(projectArranger, interactionService, paletteService, tracker)
+        IInteractionService interactionService, IColorFactory colorFactory, PaletteStore paletteStore, Tracker tracker)
+        : base(projectArranger, interactionService, colorFactory, paletteStore, tracker)
     {
         Initialize(arranger, viewX, viewY, viewWidth, viewHeight);
     }
 
+    [MemberNotNull(nameof(_palettes), nameof(_activePalette), nameof(_indexedImage))]
     private void Initialize(Arranger arranger, int viewDx, int viewDy, int viewWidth, int viewHeight)
     {
         Resource = arranger;
@@ -59,11 +62,13 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         var arrangerPalettes = WorkingArranger.EnumerateElementsWithinPixelRange(ViewDx, ViewDy, viewWidth, viewHeight)
             .OfType<ArrangerElement>()
             .Select(x => x.Palette)
+            .OfType<Palette>()
             .Distinct()
             .OrderBy(x => x.Name)
             .Select(x => new PaletteModel(x, Math.Min(maxColors, x.Entries)));
 
-        Palettes = new(arrangerPalettes);
+        _palettes = new(arrangerPalettes);
+        OnPropertyChanged(nameof(Palettes));
 
         _indexedImage = new IndexedImage(WorkingArranger, ViewDx, ViewDy, _viewWidth, _viewHeight);
         BitmapAdapter = new IndexedBitmapAdapter(_indexedImage);
@@ -74,7 +79,9 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
         _gridSettings = GridSettingsViewModel.CreateDefault(_indexedImage);
         //_gridSettings = GridSettingsViewModel.CreateDefault(arranger);
 
-        ActivePalette = Palettes.First();
+        _activePalette = Palettes.First();
+        OnPropertyChanged(nameof(ActivePalette));
+
         PrimaryColor = 0;
         SecondaryColor = 1;
         OnPropertyChanged(nameof(CanRemapColors));
@@ -145,12 +152,12 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
     [RelayCommand(CanExecute = nameof(CanRemapColors))]
     public async Task RemapColors()
     {
-        var palette = WorkingArranger.GetReferencedPalettes().FirstOrDefault() ?? _paletteService.DefaultPalette;
+        var palette = WorkingArranger.GetReferencedPalettes().FirstOrDefault() ?? _paletteStore.DefaultPalette;
 
         var maxArrangerColors = WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Codec?.ColorDepth ?? 0).Max();
         var colors = Math.Min(256, 1 << maxArrangerColors);
 
-        var remapViewModel = new ColorRemapViewModel(palette, colors, _paletteService.ColorFactory);
+        var remapViewModel = new ColorRemapViewModel(palette, colors, _colorFactory);
         var dialogResult = await _interactions.RequestAsync(remapViewModel);
 
         if (dialogResult is not null)
