@@ -130,19 +130,29 @@ public class BootstrapService
         return projectService;
     }
 
-    public virtual IElementLayoutService CreateTileLayoutService(string layoutPath)
+    public virtual IElementLayoutService CreateElementLayoutService()
     {
-        var layoutService = new ElementLayoutService();
-        layoutService.DefaultElementLayout = TileLayout.Default;
+        return new ElementLayoutService();
+    }
+
+    public virtual ElementStore CreateElementStore(IElementLayoutService layoutService, string layoutPath)
+    {
+        var store = new ElementStore();
+        store.DefaultElementLayout = TileLayout.Default;
 
         if (Directory.Exists(layoutPath))
         {
             foreach (var fileName in Directory.GetFiles(layoutPath, "*.json"))
             {
-                layoutService.LoadLayout(fileName);
+                var result = layoutService.ReadLayout(fileName);
+
+                result.Switch(
+                    success => store.ElementLayouts.Add(success.Result.Name, success.Result),
+                    fail => _logger.LogWarning($"Could not read layout '{fileName}': {fail.Reason}")
+                );
             }
         }
 
-        return layoutService;
+        return store;
     }
 }

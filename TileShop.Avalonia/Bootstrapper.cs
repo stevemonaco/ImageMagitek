@@ -60,8 +60,11 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         var pluginService = bootstrapper.CreatePluginService(BootstrapService.DefaultPluginPath, codecService);
         services.AddSingleton(pluginService);
 
-        var layoutService = bootstrapper.CreateTileLayoutService(BootstrapService.DefaultLayoutsPath);
+        var layoutService = bootstrapper.CreateElementLayoutService();
         services.AddSingleton(layoutService);
+
+        var elementStore = bootstrapper.CreateElementStore(layoutService, BootstrapService.DefaultLayoutsPath);
+        services.AddSingleton(elementStore);
 
         var defaultResources = paletteStore.GlobalPalettes;
         var serializerFactory = new XmlProjectSerializerFactory(BootstrapService.DefaultResourceSchemaFileName,

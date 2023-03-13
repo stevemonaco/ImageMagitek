@@ -28,7 +28,7 @@ public partial class EditorsViewModel : ObservableRecipient
     private readonly IColorFactory _colorFactory;
     private readonly PaletteStore _paletteStore;
     private readonly IProjectService _projectService;
-    private readonly IElementLayoutService _layoutService;
+    private readonly ElementStore _elementStore;
     private readonly AppSettings _settings;
 
     public ObservableCollection<ResourceEditorBaseViewModel> Editors { get; } = new();
@@ -37,7 +37,7 @@ public partial class EditorsViewModel : ObservableRecipient
     [ObservableProperty] private ShellViewModel? _shell;
 
     public EditorsViewModel(AppSettings settings, IInteractionService interactionService, Tracker tracker, ICodecService codecService,
-        IColorFactory colorFactory, PaletteStore paletteStore, IProjectService projectService, IElementLayoutService layoutService)
+        IColorFactory colorFactory, PaletteStore paletteStore, IProjectService projectService, ElementStore elementStore)
     {
         _settings = settings;
         _interactions = interactionService;
@@ -46,7 +46,7 @@ public partial class EditorsViewModel : ObservableRecipient
         _colorFactory = colorFactory;
         _paletteStore = paletteStore;
         _projectService = projectService;
-        _layoutService = layoutService;
+        _elementStore = elementStore;
 
         Messenger.Register<EditArrangerPixelsMessage>(this, (r, m) => Receive(m));
         Messenger.Register<ArrangerChangedMessage>(this, (r, m) => Receive(m));
@@ -109,7 +109,7 @@ public partial class EditorsViewModel : ObservableRecipient
                     newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _colorFactory, _paletteStore, _projectService, _tracker, _settings);
                     break;
                 case SequentialArranger sequentialArranger:
-                    newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _layoutService);
+                    newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore);
                     break;
                 case FileDataSource fileSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
                     var extension = Path.GetExtension(fileSource.FileLocation).ToLower();
@@ -129,7 +129,7 @@ public partial class EditorsViewModel : ObservableRecipient
                     }
 
                     var newArranger = new SequentialArranger(8, 16, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec);
-                    newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _layoutService)
+                    newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore)
                     {
                         OriginatingProjectResource = fileSource
                     };

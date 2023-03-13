@@ -7,7 +7,7 @@ namespace ImageMagitek.Services.Stores;
 /// <summary>
 /// Stores palettes that have been loaded from global sources. Does not store Project-specific palettes.
 /// </summary>
-public class PaletteStore
+public sealed class PaletteStore
 {
     public List<Palette> GlobalPalettes { get; }
     public Palette? NesPalette { get; set; }

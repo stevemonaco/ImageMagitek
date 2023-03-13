@@ -24,7 +24,7 @@ namespace TileShop.AvaloniaUI.ViewModels;
 public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
 {
     private readonly ICodecService _codecService;
-    private readonly IElementLayoutService _layoutService;
+    private readonly ElementStore _elementStore;
     private IndexedImage? _indexedImage;
     private DirectImage? _directImage;
     private TileLayout _activeLayout;
@@ -48,7 +48,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         set
         {
             if (SetProperty(ref _selectedTileLayoutName, value))
-                ChangeElementLayout(_layoutService.ElementLayouts[_selectedTileLayoutName]);
+                ChangeElementLayout(_elementStore.ElementLayouts[_selectedTileLayoutName]);
         }
     }
 
@@ -143,13 +143,13 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
     [ObservableProperty] private int _arrangerPageSize;
 
     public SequentialArrangerEditorViewModel(SequentialArranger arranger, IInteractionService interactionService,
-        Tracker tracker, ICodecService codecService, IColorFactory colorFactory, PaletteStore paletteStore, IElementLayoutService layoutService) :
+        Tracker tracker, ICodecService codecService, IColorFactory colorFactory, PaletteStore paletteStore, ElementStore elementStore) :
         base(arranger, interactionService, colorFactory, paletteStore, tracker)
     {
         Resource = arranger;
         WorkingArranger = arranger;
         _codecService = codecService;
-        _layoutService = layoutService;
+        _elementStore = elementStore;
         DisplayName = Resource?.Name ?? "Unnamed Arranger";
 
         CreateImages();
@@ -157,8 +157,8 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
         CodecNames = new(codecService.GetSupportedCodecNames().OrderBy(x => x));
         _selectedCodecName = arranger.ActiveCodec.Name;
 
-        _tileLayoutNames = new(_layoutService.ElementLayouts.Select(x => x.Key).OrderBy(x => x));
-        _selectedTileLayoutName = _layoutService.DefaultElementLayout.Name;
+        _tileLayoutNames = new(_elementStore.ElementLayouts.Select(x => x.Key).OrderBy(x => x));
+        _selectedTileLayoutName = _elementStore.DefaultElementLayout.Name;
         _activeLayout = arranger.TileLayout;
 
         if (arranger.Layout == ElementLayout.Tiled)
@@ -299,7 +299,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
     [RelayCommand]
     public void ApplyDefaultElementLayout()
     {
-        ChangeElementLayout(_layoutService.DefaultElementLayout);
+        ChangeElementLayout(_elementStore.DefaultElementLayout);
     }
 
     [RelayCommand]
@@ -336,7 +336,7 @@ public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
     [RelayCommand]
     public void ChangeElementLayout(string layoutName)
     {
-        ChangeElementLayout(_layoutService.ElementLayouts[layoutName]);
+        ChangeElementLayout(_elementStore.ElementLayouts[layoutName]);
     }
 
     private void Move(ArrangerMoveType moveType)
