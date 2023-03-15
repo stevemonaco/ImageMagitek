@@ -1,18 +1,13 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
-			 x:DataType="vm:NameResourceViewModel"
-			 x:CompileBindings="True"
-             x:Class="TileShop.AvaloniaUI.Views.NameResourceView">
-	<Grid>
-		<StackPanel>
-			<TextBox
-                MinWidth="220"
-                FontSize="20"
-                Text="{Binding ResourceName}" />
-		</StackPanel>
-	</Grid>
+<UserControl
+    x:Class="TileShop.AvaloniaUI.Views.NameResourceView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+    x:CompileBindings="True"
+    x:DataType="vm:NameResourceViewModel">
+    <Grid>
+        <StackPanel>
+            <TextBox MinWidth="220" FontSize="20" Text="{Binding ResourceName}" />
+        </StackPanel>
+    </Grid>
 </UserControl>

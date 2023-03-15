@@ -6,10 +6,7 @@
     xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop">
     <Design.PreviewWith>
         <Border Padding="20">
-            <Rectangle
-                Width="400"
-                Height="200"
-                Classes="animatedBorder" />
+            <Rectangle Width="400" Height="200" Classes="animatedBorder" />
         </Border>
     </Design.PreviewWith>
 
@@ -64,7 +61,7 @@
         <Setter Property="(i:Interaction.Behaviors)">
             <i:BehaviorCollectionTemplate>
                 <i:BehaviorCollection>
-					<dd:PayloadDropBehavior Context="{Binding}" Handler="{StaticResource ArrangerDropHandler}" />
+                    <dd:PayloadDropBehavior Context="{Binding}" Handler="{StaticResource ArrangerDropHandler}" />
                 </i:BehaviorCollection>
             </i:BehaviorCollectionTemplate>
         </Setter>

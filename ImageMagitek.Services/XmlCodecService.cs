@@ -11,22 +11,22 @@ public interface ICodecService
     ICodecFactory CodecFactory { get; }
 
     IEnumerable<string> GetSupportedCodecNames();
-    MagitekResults LoadXmlCodecs(string codecsPath);
+    MagitekResults LoadCodecs(string codecsPath);
     void AddOrUpdateCodec(Type codecType);
 }
 
-public class CodecService : ICodecService
+public sealed class XmlCodecService : ICodecService
 {
     public ICodecFactory CodecFactory { get; private set; } = new CodecFactory(new());
 
     private readonly string _schemaFileName;
 
-    public CodecService(string schemaFileName)
+    public XmlCodecService(string schemaFileName)
     {
         _schemaFileName = schemaFileName;
     }
 
-    public MagitekResults LoadXmlCodecs(string codecsPath)
+    public MagitekResults LoadCodecs(string codecsPath)
     {
         var formats = new Dictionary<string, IGraphicsFormat>();
         var serializer = new XmlGraphicsFormatReader(_schemaFileName);

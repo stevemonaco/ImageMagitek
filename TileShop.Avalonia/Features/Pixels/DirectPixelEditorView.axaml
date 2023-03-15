@@ -3,19 +3,14 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.AvaloniaUI.Converters"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fac="using:FluentAvalonia.UI.Controls"
     xmlns:m="using:TileShop.AvaloniaUI.Models"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="using:TileShop.Shared.Models"
     xmlns:paz="using:Avalonia.Controls.PanAndZoom"
     xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
     x:Name="pixelEditor"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
     x:CompileBindings="True"
-    x:DataType="vm:DirectPixelEditorViewModel"
-    mc:Ignorable="d">
+    x:DataType="vm:DirectPixelEditorViewModel">
     <UserControl.KeyBindings>
         <KeyBinding Command="{Binding ToggleGridlineVisibilityCommand}" Gesture="G" />
         <KeyBinding Command="{Binding CancelOverlayCommand}" Gesture="Escape" />
@@ -34,30 +29,18 @@
         </ContextMenu>
     </UserControl.ContextMenu>
 
-    <Grid
-        ColumnDefinitions="*,*"
-        RowDefinitions="auto,auto,*"
-        UseLayoutRounding="True">
+    <Grid ColumnDefinitions="*,*" RowDefinitions="auto,auto,*" UseLayoutRounding="True">
 
         <!--  Toolbar  -->
-        <StackPanel
-            Grid.ColumnSpan="2"
-            ContextMenu="{StaticResource contextMenu}"
-            Orientation="Horizontal">
+        <StackPanel Grid.ColumnSpan="2" ContextMenu="{StaticResource contextMenu}" Orientation="Horizontal">
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Grid" />
-                <ToggleButton
-                    Focusable="False"
-                    IsChecked="{Binding GridSettings.ShowGridlines}"
-                    ToolTip.Tip="Toggle gridline visibility (G)">
+                <ToggleButton Focusable="False" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
                     <PathIcon Classes="tool" Data="{StaticResource pathIconGrid}" />
                 </ToggleButton>
             </StackPanel>
 
-            <Border
-                Margin="5,6,5,4"
-                BorderBrush="{DynamicResource separatorBrush}"
-                BorderThickness="1" />
+            <Border Margin="5,6,5,4" BorderBrush="{DynamicResource separatorBrush}" BorderThickness="1" />
 
             <!--  Tools  -->
             <StackPanel>
@@ -102,14 +85,8 @@
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Active Colors" />
                 <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                    <fac:ColorPickerButton
-                        Height="40"
-                        ShowAcceptDismissButtons="False"
-                        Color="{Binding PrimaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
-                    <fac:ColorPickerButton
-                        Height="40"
-                        ShowAcceptDismissButtons="False"
-                        Color="{Binding SecondaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
+                    <fac:ColorPickerButton Height="40" ShowAcceptDismissButtons="False" Color="{Binding PrimaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
+                    <fac:ColorPickerButton Height="40" ShowAcceptDismissButtons="False" Color="{Binding SecondaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
                 </StackPanel>
             </StackPanel>
         </StackPanel>
@@ -146,11 +123,7 @@
                         PointerReleased="OnPointerReleased">
 
                         <!--  Editable Image  -->
-                        <Image
-                            x:Name="_image"
-                            Classes="pixel"
-                            IsHitTestVisible="False"
-                            Source="{Binding BitmapAdapter.Bitmap}" />
+                        <Image x:Name="_image" Classes="pixel" IsHitTestVisible="False" Source="{Binding BitmapAdapter.Bitmap}" />
 
                         <Rectangle
                             Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
@@ -195,8 +168,7 @@
                             <DataTemplate DataType="{x:Type model:Gridline}">
                                 <Line
                                     IsHitTestVisible="False"
-                                    Stroke="{ReflectionBinding #_zoomBorder.DataContext.GridSettings.LineColor,
-                                                               Converter={x:Static con:AppConverters.ColorToBrush}}"
+                                    Stroke="{ReflectionBinding #_zoomBorder.DataContext.GridSettings.LineColor, Converter={x:Static con:AppConverters.ColorToBrush}}"
                                     StrokeThickness="0.40"
                                     UseLayoutRounding="True"
                                     StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"

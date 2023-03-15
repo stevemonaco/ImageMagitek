@@ -1,136 +1,88 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
-			 xmlns:con="using:TileShop.AvaloniaUI.Converters"
-			 x:DataType="vm:AddScatteredArrangerViewModel"
-			 x:CompileBindings="True"
-             x:Class="TileShop.AvaloniaUI.Views.AddScatteredArrangerView">
-	<Grid>
-		<ScrollViewer VerticalScrollBarVisibility="Auto">
-			<StackPanel>
-				<Label Content="Arranger Name" Target="arrangerNameBox" />
-				<TextBox
-					x:Name="arrangerNameBox"
+<UserControl
+    x:Class="TileShop.AvaloniaUI.Views.AddScatteredArrangerView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:con="using:TileShop.AvaloniaUI.Converters"
+    xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+    x:CompileBindings="True"
+    x:DataType="vm:AddScatteredArrangerViewModel">
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Label Content="Arranger Name" Target="arrangerNameBox" />
+                <TextBox
+                    x:Name="arrangerNameBox"
                     Width="250"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
-                    Text="{Binding ArrangerName}"/>
+                    Text="{Binding ArrangerName}" />
 
-				<TextBlock
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Text="Arranger Layout" />
+                <TextBlock Margin="0,10,0,0" HorizontalAlignment="Center" Text="Arranger Layout" />
 
-				<StackPanel
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal">
-					<RadioButton
-                        Content="Tiled"
-                        GroupName="Layout"
-                        IsChecked="{Binding Layout, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Tiled}"
-                        ToolTip.Tip="Allows many elements within the arranger, suitable for tile-based graphics" />
-					<RadioButton
+                <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
+                    <RadioButton Content="Tiled" GroupName="Layout" IsChecked="{Binding Layout, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Tiled}" ToolTip.Tip="Allows many elements within the arranger, suitable for tile-based graphics" />
+                    <RadioButton
                         Margin="10,0,0,0"
                         Content="Single"
                         GroupName="Layout"
                         IsChecked="{Binding Layout, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Single}"
                         ToolTip.Tip="Restricts the arranger to a single element, suitable for pixel-based graphics" />
-				</StackPanel>
+                </StackPanel>
 
-				<TextBlock
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Text="Color Mapping" />
+                <TextBlock Margin="0,10,0,0" HorizontalAlignment="Center" Text="Color Mapping" />
 
-				<StackPanel
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal">
-					<RadioButton
-                        Content="Indexed"
-                        GroupName="ColorType"
-                        IsChecked="{Binding ColorType, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Indexed}"
-                        ToolTip.Tip="All image pixels require a palette to display colors. The default palette will be used until a user-defined palette is applied." />
-					<RadioButton
+                <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
+                    <RadioButton Content="Indexed" GroupName="ColorType" IsChecked="{Binding ColorType, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Indexed}" ToolTip.Tip="All image pixels require a palette to display colors. The default palette will be used until a user-defined palette is applied." />
+                    <RadioButton
                         Margin="10,0,0,0"
                         Content="Direct"
                         GroupName="ColorType"
                         IsChecked="{Binding ColorType, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Direct}"
                         ToolTip.Tip="All image pixels contain full color information and require no palette to display colors" />
-				</StackPanel>
+                </StackPanel>
 
-				<StackPanel IsVisible="{Binding Layout, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Tiled}">
-					<TextBlock
-                        Margin="0,10,0,0"
-                        HorizontalAlignment="Center"
-                        Text="Arranger Size in Elements" />
+                <StackPanel IsVisible="{Binding Layout, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Tiled}">
+                    <TextBlock Margin="0,10,0,0" HorizontalAlignment="Center" Text="Arranger Size in Elements" />
 
-					<StackPanel
-                        Margin="0,10,0,0"
-                        HorizontalAlignment="Center"
-                        Orientation="Horizontal">
-						<Label Content="Width" Target="arrangerElementWidthBox" />
-						<TextBox
-							x:Name="arrangerElementWidthBox"
-                            MinWidth="80"
-                            Text="{Binding ArrangerElementWidth}"
-                            ToolTip.Tip="Width of arranger in number of elements" />
+                    <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
+                        <Label Content="Width" Target="arrangerElementWidthBox" />
+                        <TextBox x:Name="arrangerElementWidthBox" MinWidth="80" Text="{Binding ArrangerElementWidth}" ToolTip.Tip="Width of arranger in number of elements" />
 
-						<Label Content="Height" Target="arrangerElementHeightBox" />
-						<TextBox
-							x:Name="arrangerElementHeightBox"
+                        <Label Content="Height" Target="arrangerElementHeightBox" />
+                        <TextBox
+                            x:Name="arrangerElementHeightBox"
                             MinWidth="80"
                             Margin="10,0,0,0"
                             Text="{Binding ArrangerElementHeight}"
                             ToolTip.Tip="Height of arranger in number of elements" />
-					</StackPanel>
-				</StackPanel>
+                    </StackPanel>
+                </StackPanel>
 
 
-				<TextBlock
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Text="Element Size in Pixels" />
+                <TextBlock Margin="0,10,0,0" HorizontalAlignment="Center" Text="Element Size in Pixels" />
 
-				<StackPanel
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal">
+                <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
 
-					<Label Content="Height" Target="elementPixelWidthBox" />
-					<TextBox
-						x:Name="elementPixelWidthBox"
-                        MinWidth="80"
-                        Text="{Binding ElementPixelWidth}"
-                        ToolTip.Tip="Width of each element in pixels" />
+                    <Label Content="Height" Target="elementPixelWidthBox" />
+                    <TextBox x:Name="elementPixelWidthBox" MinWidth="80" Text="{Binding ElementPixelWidth}" ToolTip.Tip="Width of each element in pixels" />
 
-					<Label Content="Height" Target="elementPixelHeightBox" />
-					<TextBox
-						x:Name="elementPixelHeightBox"
+                    <Label Content="Height" Target="elementPixelHeightBox" />
+                    <TextBox
+                        x:Name="elementPixelHeightBox"
                         MinWidth="80"
                         Margin="10,0,0,0"
                         Text="{Binding ElementPixelHeight}"
                         ToolTip.Tip="Height of each element in pixels" />
-				</StackPanel>
+                </StackPanel>
 
-				<ItemsControl
-                    Margin="0,5,0,5"
-                    HorizontalAlignment="Center"
-                    Items="{Binding ValidationErrors}">
-					<ItemsControl.ItemTemplate>
-						<DataTemplate>
-							<TextBlock
-                                FontWeight="Bold"
-                                Foreground="Red"
-                                Text="{Binding}" />
-						</DataTemplate>
-					</ItemsControl.ItemTemplate>
-				</ItemsControl>
-			</StackPanel>
-		</ScrollViewer>
-	</Grid>
+                <ItemsControl Margin="0,5,0,5" HorizontalAlignment="Center" Items="{Binding ValidationErrors}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock FontWeight="Bold" Foreground="Red" Text="{Binding}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
 </UserControl>

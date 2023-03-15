@@ -2,14 +2,9 @@
     x:Class="TileShop.AvaloniaUI.Views.StatusView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
     x:CompileBindings="True"
-    x:DataType="vm:StatusViewModel"
-    mc:Ignorable="d">
+    x:DataType="vm:StatusViewModel">
     <Grid Margin="8,0,8,0" ColumnDefinitions="auto,*,auto,*,auto">
         <TextBlock Grid.Column="0" Text="{Binding Editors.ActiveEditor.ActivityMessage}" />
         <TextBlock Grid.Column="2" Text="{Binding Editors.ActiveEditor.PendingOperationMessage}" />

@@ -1,69 +1,57 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:i="using:Avalonia.Xaml.Interactivity"
-			 xmlns:v="using:TileShop.AvaloniaUI.Views"
-			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-			 x:DataType="vm:TableColorViewModel"
-			 x:CompileBindings="True"
-             x:Class="TileShop.AvaloniaUI.Views.TableColorView">
-	<Grid>
-		<Grid.ColumnDefinitions >
-			<ColumnDefinition Width="auto" />
-			<ColumnDefinition Width="auto" MinWidth="300" />
-		</Grid.ColumnDefinitions>
-		<StackPanel Grid.Column="0" Margin="0,0,16,0">
-			<Button
+<UserControl
+    x:Class="TileShop.AvaloniaUI.Views.TableColorView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:i="using:Avalonia.Xaml.Interactivity"
+    xmlns:v="using:TileShop.AvaloniaUI.Views"
+    xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+    x:CompileBindings="True"
+    x:DataType="vm:TableColorViewModel">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" MinWidth="300" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0" Margin="0,0,16,0">
+            <Button
+                Width="65"
                 Height="65"
-				Width="65"
                 Margin="0,0,0,10"
-				VerticalContentAlignment="Center"
-				HorizontalContentAlignment="Center"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
                 Command="{ReflectionBinding DataContext.SaveActiveColorCommand, RelativeSource={RelativeSource AncestorType={x:Type v:PaletteEditorView}}}"
                 IsEnabled="{Binding CanSaveColor}">
-				<StackPanel>
-					<TextBlock HorizontalAlignment="Center" Text="Assign" />
-					<TextBlock HorizontalAlignment="Center" Text="Color" />
-				</StackPanel>
-			</Button>
+                <StackPanel>
+                    <TextBlock HorizontalAlignment="Center" Text="Assign" />
+                    <TextBlock HorizontalAlignment="Center" Text="Color" />
+                </StackPanel>
+            </Button>
 
-			<Border
+            <Border
+                Padding="0"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 BorderBrush="Black"
-				Padding="0"
                 BorderThickness="2">
-				<Rectangle Width="61" Height="61">
-					<Rectangle.Fill>
-						<SolidColorBrush Color="{Binding Color}" />
-					</Rectangle.Fill>
-				</Rectangle>
-			</Border>
-		</StackPanel>
+                <Rectangle Width="61" Height="61">
+                    <Rectangle.Fill>
+                        <SolidColorBrush Color="{Binding Color}" />
+                    </Rectangle.Fill>
+                </Rectangle>
+            </Border>
+        </StackPanel>
 
-		<!--  Color Table  -->
-		<ItemsRepeater
-            Grid.Column="1"
-            Items="{Binding AvailableColors}">
-			<ItemsRepeater.Layout>
-				<UniformGridLayout
-                    MaximumRowsOrColumns="16"
-                    MinColumnSpacing="0"
-                    MinItemWidth="38"
-                    Orientation="Horizontal" />
-			</ItemsRepeater.Layout>
+        <!--  Color Table  -->
+        <ItemsRepeater Grid.Column="1" Items="{Binding AvailableColors}">
+            <ItemsRepeater.Layout>
+                <UniformGridLayout MaximumRowsOrColumns="16" MinColumnSpacing="0" MinItemWidth="38" Orientation="Horizontal" />
+            </ItemsRepeater.Layout>
 
-			<ItemsRepeater.ItemTemplate>
-				<DataTemplate>
-					<Border
-                        Margin="1"
-                        Padding="0"
-                        BorderBrush="Black"
-                        BorderThickness="2">
-						<Rectangle Width="34" Height="32">
-							<!--<i:Interaction.Triggers>
+            <ItemsRepeater.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="1" Padding="0" BorderBrush="Black" BorderThickness="2">
+                        <Rectangle Width="34" Height="32">
+                            <!--<i:Interaction.Triggers>
 								<i:EventTrigger EventName="PreviewMouseLeftButtonDown">
 									<i:InvokeCommandAction
                                         s:View.ActionTarget="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type v:TableColorView}}}"
@@ -71,14 +59,14 @@
                                         CommandParameter="{Binding}" />
 								</i:EventTrigger>
 							</i:Interaction.Triggers>-->
-							<Rectangle.Fill>
-								<SolidColorBrush Color="{Binding Color}" />
-							</Rectangle.Fill>
-						</Rectangle>
-					</Border>
-				</DataTemplate>
-			</ItemsRepeater.ItemTemplate>
-		</ItemsRepeater>
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{Binding Color}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                    </Border>
+                </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
 
-	</Grid>
+    </Grid>
 </UserControl>

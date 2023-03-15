@@ -95,8 +95,8 @@ public class BootstrapService
 
     public virtual ICodecService CreateCodecService(string codecsPath, string schemaFileName)
     {
-        var _codecService = new CodecService(schemaFileName);
-        var result = _codecService.LoadXmlCodecs(codecsPath);
+        var _codecService = new XmlCodecService(schemaFileName);
+        var result = _codecService.LoadCodecs(codecsPath);
 
         if (result.Value is MagitekResults.Failed fail)
         {

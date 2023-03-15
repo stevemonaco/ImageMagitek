@@ -3,21 +3,16 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.AvaloniaUI.Converters"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:fac="using:FluentAvalonia.Controls"
     xmlns:i="using:Avalonia.Xaml.Interactivity"
     xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
     xmlns:m="using:TileShop.AvaloniaUI.Models"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:model="using:TileShop.Shared.Models"
     xmlns:paz="using:Avalonia.Controls.PanAndZoom"
     xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
     x:Name="control"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
     x:CompileBindings="True"
-    x:DataType="vm:ScatteredArrangerEditorViewModel"
-    mc:Ignorable="d">
+    x:DataType="vm:ScatteredArrangerEditorViewModel">
     <UserControl.KeyBindings>
         <KeyBinding Command="{Binding ToggleGridlineVisibilityCommand}" Gesture="G" />
         <KeyBinding Command="{Binding EditSelectionCommand}" Gesture="E" />
@@ -59,10 +54,7 @@
 
     <Grid RowDefinitions="auto,*" UseLayoutRounding="True">
         <!--  Toolbar  -->
-        <StackPanel
-            Grid.Row="0"
-            Margin="5,5,0,10"
-            Orientation="Horizontal">
+        <StackPanel Grid.Row="0" Margin="5,5,0,10" Orientation="Horizontal">
             <!--  Tools  -->
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Tools" />
@@ -140,18 +132,12 @@
                 </StackPanel>
             </StackPanel>
 
-            <Border
-                Margin="5,6,6,0"
-                BorderBrush="{DynamicResource separatorBrush}"
-                BorderThickness="1" />
+            <Border Margin="5,6,6,0" BorderBrush="{DynamicResource separatorBrush}" BorderThickness="1" />
 
             <StackPanel Margin="6,0,0,0" IsVisible="{Binding IsIndexedColor}">
                 <TextBlock HorizontalAlignment="Center" Text="Palette" />
                 <StackPanel Orientation="Horizontal">
-                    <ComboBox
-                        MaxWidth="200"
-                        Items="{Binding Palettes}"
-                        SelectedItem="{Binding SelectedPalette}">
+                    <ComboBox MaxWidth="200" Items="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Name}" />
@@ -170,36 +156,23 @@
                 </StackPanel>
             </StackPanel>
 
-            <Border
-                Margin="6,6,6,0"
-                BorderBrush="{DynamicResource separatorBrush}"
-                BorderThickness="1"
-                IsVisible="{Binding IsIndexedColor}" />
+            <Border Margin="6,6,6,0" BorderBrush="{DynamicResource separatorBrush}" BorderThickness="1" IsVisible="{Binding IsIndexedColor}" />
 
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Grid" />
-                <ToggleButton
-                    Focusable="False"
-                    IsChecked="{Binding GridSettings.ShowGridlines}"
-                    ToolTip.Tip="Toggle gridline visibility (G)">
+                <ToggleButton Focusable="False" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
                     <PathIcon Classes="tool" Data="{StaticResource pathIconGrid}" />
                 </ToggleButton>
             </StackPanel>
 
             <StackPanel Margin="5,0,0,0" IsVisible="{Binding CanChangeSnapMode}">
                 <TextBlock HorizontalAlignment="Center" Text="Snap" />
-                <ToggleButton
-                    Focusable="False"
-                    IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}"
-                    ToolTip.Tip="Snap Selection to Elements (S)">
+                <ToggleButton Focusable="False" IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}" ToolTip.Tip="Snap Selection to Elements (S)">
                     <PathIcon Classes="tool" Data="{StaticResource pathIconSnap}" />
                 </ToggleButton>
             </StackPanel>
 
-            <Border
-                Margin="12,6,12,0"
-                BorderBrush="{DynamicResource separatorBrush}"
-                BorderThickness="1" />
+            <Border Margin="12,6,12,0" BorderBrush="{DynamicResource separatorBrush}" BorderThickness="1" />
 
             <StackPanel IsVisible="{Binding IsTiledLayout}">
                 <TextBlock HorizontalAlignment="Center" Text="Resize" />
@@ -212,10 +185,7 @@
             <StackPanel Margin="5,0,0,0">
                 <TextBlock HorizontalAlignment="Center" Text="Edit" />
 
-                <Button
-                    Command="{Binding EditSelectionCommand}"
-                    IsEnabled="{Binding CanEditSelection}"
-                    ToolTip.Tip="Opens selection in the pixel editor (E)">
+                <Button Command="{Binding EditSelectionCommand}" IsEnabled="{Binding CanEditSelection}" ToolTip.Tip="Opens selection in the pixel editor (E)">
                     <PathIcon Classes="tool vflip" Data="{StaticResource pathIconEdit}" />
                 </Button>
             </StackPanel>
@@ -247,11 +217,7 @@
                         PointerReleased="OnPointerReleased">
 
                         <!--  Arranged Image  -->
-                        <Image
-                            x:Name="_image"
-                            Classes="pixel"
-                            IsHitTestVisible="False"
-                            Source="{Binding BitmapAdapter.Bitmap}" />
+                        <Image x:Name="_image" Classes="pixel" IsHitTestVisible="False" Source="{Binding BitmapAdapter.Bitmap}" />
 
                         <!--  Selection Overlay  -->
                         <Rectangle
@@ -299,8 +265,7 @@
                             <DataTemplate DataType="{x:Type model:Gridline}">
                                 <Line
                                     IsHitTestVisible="False"
-                                    Stroke="{ReflectionBinding #_zoomBorder.DataContext.GridSettings.LineColor,
-                                                               Converter={x:Static con:AppConverters.ColorToBrush}}"
+                                    Stroke="{ReflectionBinding #_zoomBorder.DataContext.GridSettings.LineColor, Converter={x:Static con:AppConverters.ColorToBrush}}"
                                     StrokeThickness="0.40"
                                     UseLayoutRounding="True"
                                     StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"

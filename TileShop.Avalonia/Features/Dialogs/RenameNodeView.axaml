@@ -1,20 +1,15 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"	
-			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
-			 x:DataType="vm:RenameNodeViewModel"
-			 x:CompileBindings="True"
-             x:Class="TileShop.AvaloniaUI.Views.RenameNodeView">
-	<Grid>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="*" MinWidth="200" />
-		</Grid.ColumnDefinitions>
+<UserControl
+    x:Class="TileShop.AvaloniaUI.Views.RenameNodeView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+    x:CompileBindings="True"
+    x:DataType="vm:RenameNodeViewModel">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MinWidth="200" />
+        </Grid.ColumnDefinitions>
 
-		<TextBox
-			x:Name="renameBox"
-			FontSize="20"
-			Text="{Binding Name}" />
-	</Grid>
+        <TextBox x:Name="renameBox" FontSize="20" Text="{Binding Name}" />
+    </Grid>
 </UserControl>

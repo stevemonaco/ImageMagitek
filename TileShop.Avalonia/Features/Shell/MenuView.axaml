@@ -1,68 +1,56 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:v="using:TileShop.AvaloniaUI.Views"
-			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-			 x:DataType="vm:MenuViewModel"
-			 x:CompileBindings="True"
-             x:Class="TileShop.AvaloniaUI.Views.MenuView">
-	<UserControl.Styles>
-		<Style Selector="MenuItem">
-			<Setter Property="IsTabStop" Value="False" />
-		</Style>
-		
-		<!--<Style Selector="MenuItem.recent > MenuItem">
+<UserControl
+    x:Class="TileShop.AvaloniaUI.Views.MenuView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:v="using:TileShop.AvaloniaUI.Views"
+    xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+    x:CompileBindings="True"
+    x:DataType="vm:MenuViewModel">
+    <UserControl.Styles>
+        <Style Selector="MenuItem">
+            <Setter Property="IsTabStop" Value="False" />
+        </Style>
+
+        <!--<Style Selector="MenuItem.recent > MenuItem">
 			<Setter Property="Header" Value="{Binding}" />
 			<Setter Property="Command" Value="{ReflectionBinding #menu.DataContext.OpenRecentProjectCommand}" />
 			<Setter Property="CommandParameter" Value="{Binding}" />
 		</Style>-->
-	</UserControl.Styles>
-	
-	<Grid ColumnDefinitions="*,auto">
-		<Menu x:Name="menu">
-			<MenuItem Header="_File">
-				<MenuItem Command="{Binding NewEmptyProjectCommand}" Header="_New Empty Project" />
-				<MenuItem Command="{Binding NewProjectFromFileCommand}" Header="New Project from _Existing File" />
-				<Separator />
-				<MenuItem Command="{Binding OpenProjectCommand}" Header="Open _Project" />
-				<!--<MenuItem
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="*,auto">
+        <Menu x:Name="menu">
+            <MenuItem Header="_File">
+                <MenuItem Command="{Binding NewEmptyProjectCommand}" Header="_New Empty Project" />
+                <MenuItem Command="{Binding NewProjectFromFileCommand}" Header="New Project from _Existing File" />
+                <Separator />
+                <MenuItem Command="{Binding OpenProjectCommand}" Header="Open _Project" />
+                <!--<MenuItem
 					Classes="recent"
                     Header="Open Recent Project"
                     Items="{Binding RecentProjectFiles}"
                     IsVisible="{Binding RecentProjectFiles.Count}" />-->
-				<Separator />
-				<MenuItem
-                    Command="{Binding CloseEditorCommand}"
-                    Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Close \{0\}'}"
-                    IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <Separator />
+                <MenuItem Command="{Binding CloseEditorCommand}" Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Close \{0\}'}" IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-				<MenuItem
-                    Command="{Binding CloseAllProjectsCommand}"
-                    Header="_Close All Projects"
-                    IsEnabled="{Binding ProjectTree.HasProject}" />
+                <MenuItem Command="{Binding CloseAllProjectsCommand}" Header="_Close All Projects" IsEnabled="{Binding ProjectTree.HasProject}" />
 
-				<Separator IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <Separator IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-				<MenuItem
-                    Command="{Binding SaveEditorCommand}"
-                    Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Save \{0\}'}"
-                    IsEnabled="{Binding Editors.ActiveEditor.IsModified}"
-                    IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <MenuItem Command="{Binding SaveEditorCommand}" Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Save \{0\}'}" IsEnabled="{Binding Editors.ActiveEditor.IsModified}" IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-				<Separator />
-				<MenuItem Click="Exit_Click" Header="E_xit" />
-			</MenuItem>
+                <Separator />
+                <MenuItem Click="Exit_Click" Header="E_xit" />
+            </MenuItem>
 
-			<MenuItem Header="_View">
-				<MenuItem Header="Set _Theme">
-					<MenuItem Command="{Binding ChangeToLightThemeCommand}" Header="Light Theme" />
-					<MenuItem Command="{Binding ChangeToDarkThemeCommand}" Header="Dark Theme" />
-				</MenuItem>
-			</MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="Set _Theme">
+                    <MenuItem Command="{Binding ChangeToLightThemeCommand}" Header="Light Theme" />
+                    <MenuItem Command="{Binding ChangeToDarkThemeCommand}" Header="Dark Theme" />
+                </MenuItem>
+            </MenuItem>
 
-			<!--<MenuItem Header="_Arranger" Visibility="{Binding Editors.ActiveEditor, Converter={StaticResource TypeToVisibilityConverter}, ConverterParameter={x:Type vm:ScatteredArrangerEditorViewModel}}">
+            <!--<MenuItem Header="_Arranger" Visibility="{Binding Editors.ActiveEditor, Converter={StaticResource TypeToVisibilityConverter}, ConverterParameter={x:Type vm:ScatteredArrangerEditorViewModel}}">
 				<MenuItem
                     Command="{Binding ExportArrangerToImage}"
                     CommandParameter="{Binding Editors.ActiveEditor}"
@@ -74,14 +62,14 @@
 				<MenuItem Header="Grid Settings..." />
 			</MenuItem>-->
 
-			<!--
+            <!--
         <MenuItem Header="_Plugins" />
             -->
 
-			<MenuItem Header="_Help">
-				<MenuItem Header="Wiki" Command="{Binding OpenWikiCommand}" />
-				<MenuItem Header="About TileShop" Command="{Binding OpenAboutCommand}" />
-			</MenuItem>
-		</Menu>
-	</Grid>
+            <MenuItem Header="_Help">
+                <MenuItem Command="{Binding OpenWikiCommand}" Header="Wiki" />
+                <MenuItem Command="{Binding OpenAboutCommand}" Header="About TileShop" />
+            </MenuItem>
+        </Menu>
+    </Grid>
 </UserControl>

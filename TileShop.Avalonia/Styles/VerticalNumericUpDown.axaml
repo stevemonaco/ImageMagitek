@@ -1,68 +1,73 @@
-﻿<Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Design.PreviewWith>
         <NumericUpDown Value="15" />
     </Design.PreviewWith>
 
-	<Style Selector="NumericUpDown /template/ ButtonSpinner">
-		<Setter Property="Template">
-			<ControlTemplate>
-				<DataValidationErrors>
-					<Border Background="{TemplateBinding Background}"
-							BorderBrush="{TemplateBinding BorderBrush}"
-							BorderThickness="{TemplateBinding BorderThickness}"
-							CornerRadius="{TemplateBinding CornerRadius}"
-							MinHeight="{TemplateBinding MinHeight}">
-						<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="*,*">
-							<ContentPresenter Name="PART_ContentPresenter"
-											  Grid.RowSpan="2"
-											  Grid.Column="1"
-											  ContentTemplate="{TemplateBinding ContentTemplate}"
-											  Content="{TemplateBinding Content}"
-											  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-											  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-											  Padding="{TemplateBinding Padding}" />
+    <Style Selector="NumericUpDown /template/ ButtonSpinner">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <DataValidationErrors>
+                    <Border
+                        MinHeight="{TemplateBinding MinHeight}"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                        <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="*,*">
+                            <ContentPresenter
+                                Name="PART_ContentPresenter"
+                                Grid.RowSpan="2"
+                                Grid.Column="1"
+                                Padding="{TemplateBinding Padding}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}" />
 
-							<RepeatButton Name="PART_IncreaseButton"
-										    Grid.Column="2"
-											Padding="0"
-											Classes="ButtonSpinnerRepeatButton"
-											VerticalContentAlignment="Center"
-											Foreground="{TemplateBinding Foreground}"
-											BorderBrush="{TemplateBinding BorderBrush}"
-											Background="{TemplateBinding Background}"
-											FontSize="{TemplateBinding FontSize}">
-								<Path Fill="{TemplateBinding Foreground}"
-										Width="16"
-										Height="8"
-										Stretch="Uniform"
-										HorizontalAlignment="Center"
-										VerticalAlignment="Center"
-										Data="{StaticResource ButtonSpinnerIncreaseButtonIcon}" />
-							</RepeatButton>
+                            <RepeatButton
+                                Name="PART_IncreaseButton"
+                                Grid.Column="2"
+                                Padding="0"
+                                VerticalContentAlignment="Center"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                Classes="ButtonSpinnerRepeatButton"
+                                FontSize="{TemplateBinding FontSize}"
+                                Foreground="{TemplateBinding Foreground}">
+                                <Path
+                                    Width="16"
+                                    Height="8"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Data="{StaticResource ButtonSpinnerIncreaseButtonIcon}"
+                                    Fill="{TemplateBinding Foreground}"
+                                    Stretch="Uniform" />
+                            </RepeatButton>
 
-							<RepeatButton Name="PART_DecreaseButton"
-											Grid.Row="1"
-											Grid.Column="2"
-											Padding="0"
-											Classes="ButtonSpinnerRepeatButton"
-											Foreground="{TemplateBinding Foreground}"
-											BorderBrush="{TemplateBinding BorderBrush}"
-											Background="{TemplateBinding Background}"
-											VerticalContentAlignment="Center"
-											FontSize="{TemplateBinding FontSize}">
-								<Path Fill="{TemplateBinding Foreground}"
-										Width="16"
-										Height="8"
-										Stretch="Uniform"
-										HorizontalAlignment="Center"
-										VerticalAlignment="Center"
-										Data="{StaticResource ButtonSpinnerDecreaseButtonIcon}" />
-							</RepeatButton>
-						</Grid>
-					</Border>
-				</DataValidationErrors>
-			</ControlTemplate>
-		</Setter>
-	</Style>
+                            <RepeatButton
+                                Name="PART_DecreaseButton"
+                                Grid.Row="1"
+                                Grid.Column="2"
+                                Padding="0"
+                                VerticalContentAlignment="Center"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                Classes="ButtonSpinnerRepeatButton"
+                                FontSize="{TemplateBinding FontSize}"
+                                Foreground="{TemplateBinding Foreground}">
+                                <Path
+                                    Width="16"
+                                    Height="8"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Data="{StaticResource ButtonSpinnerDecreaseButtonIcon}"
+                                    Fill="{TemplateBinding Foreground}"
+                                    Stretch="Uniform" />
+                            </RepeatButton>
+                        </Grid>
+                    </Border>
+                </DataValidationErrors>
+            </ControlTemplate>
+        </Setter>
+    </Style>
 </Styles>

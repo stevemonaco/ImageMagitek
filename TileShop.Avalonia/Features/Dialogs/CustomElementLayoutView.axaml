@@ -1,67 +1,48 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
-			 xmlns:con="using:TileShop.AvaloniaUI.Converters"
-			 x:DataType="vm:CustomElementLayoutViewModel"
-			 x:CompileBindings="True"
-             x:Class="TileShop.AvaloniaUI.Views.CustomElementLayoutView">
-	<Grid Margin="10">
-		<ScrollViewer VerticalScrollBarVisibility="Auto">
-			<StackPanel>
-				<TextBlock HorizontalAlignment="Center" Text="Flow Direction" />
+<UserControl
+    x:Class="TileShop.AvaloniaUI.Views.CustomElementLayoutView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:con="using:TileShop.AvaloniaUI.Converters"
+    xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+    x:CompileBindings="True"
+    x:DataType="vm:CustomElementLayoutViewModel">
+    <Grid Margin="10">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock HorizontalAlignment="Center" Text="Flow Direction" />
 
-				<StackPanel
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal">
-					<RadioButton
-                        Content="Horizontal"
-                        GroupName="Layout"
-                        IsChecked="{Binding FlowDirection, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RowLeftToRight}"
-                        ToolTip.Tip="Elements flow row-by-row, left-to-right" />
-					<RadioButton
+                <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
+                    <RadioButton Content="Horizontal" GroupName="Layout" IsChecked="{Binding FlowDirection, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RowLeftToRight}" ToolTip.Tip="Elements flow row-by-row, left-to-right" />
+                    <RadioButton
                         Margin="10,0,0,0"
                         Content="Vertical"
                         GroupName="Layout"
                         IsChecked="{Binding FlowDirection, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColumnTopToBottom}"
                         ToolTip.Tip="Elements flow column-by-column, top-to-bottom" />
-				</StackPanel>
+                </StackPanel>
 
-				<StackPanel
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal">
+                <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
 
-					<Label Content="Layout Width" Target="elementLayoutWidthBox" />
-					<TextBox
-						x:Name="elementLayoutWidthBox"
-                        MinWidth="80"
-                        Text="{Binding Width}"
-                        ToolTip.Tip="Layout Width in Elements" />
+                    <Label Content="Layout Width" Target="elementLayoutWidthBox" />
+                    <TextBox x:Name="elementLayoutWidthBox" MinWidth="80" Text="{Binding Width}" ToolTip.Tip="Layout Width in Elements" />
 
-					<Label Content="Layout Height" Target="elementLayoutHeightBox" />
-					<TextBox
-						x:Name="elementLayoutHeightBox"
+                    <Label Content="Layout Height" Target="elementLayoutHeightBox" />
+                    <TextBox
+                        x:Name="elementLayoutHeightBox"
                         MinWidth="80"
                         Margin="10,0,0,0"
                         Text="{Binding Height}"
                         ToolTip.Tip="Layout Height in Elements" />
-				</StackPanel>
+                </StackPanel>
 
-				<ItemsControl
-                    Margin="0,5,0,5"
-                    HorizontalAlignment="Center"
-                    Items="{Binding ValidationErrors}">
-					<ItemsControl.ItemTemplate>
-						<DataTemplate>
-							<TextBlock FontWeight="Bold" Foreground="Red" Text="{Binding}" />
-						</DataTemplate>
-					</ItemsControl.ItemTemplate>
-				</ItemsControl>
-			</StackPanel>
-		</ScrollViewer>
-	</Grid>
+                <ItemsControl Margin="0,5,0,5" HorizontalAlignment="Center" Items="{Binding ValidationErrors}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock FontWeight="Bold" Foreground="Red" Text="{Binding}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
 </UserControl>

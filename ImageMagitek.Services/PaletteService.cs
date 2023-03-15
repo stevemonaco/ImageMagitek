@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using ImageMagitek.Colors;
+using ImageMagitek.Colors.Serialization;
 
 namespace ImageMagitek.Services;
 
@@ -8,7 +9,7 @@ public interface IPaletteService
     Palette? ReadJsonPalette(string paletteFileName);
 }
 
-public class PaletteService : IPaletteService
+public sealed class PaletteService : IPaletteService
 {
     private readonly IColorFactory _colorFactory;
 

@@ -93,65 +93,66 @@ public partial class EditorsViewModel : ObservableRecipient
     {
         var openedDocument = Editors.FirstOrDefault(x => ReferenceEquals(x.Resource, resource));
 
-        if (openedDocument is null)
+        if (openedDocument is not null)
         {
-            ResourceEditorBaseViewModel? newDocument;
-
-            switch (resource)
-            {
-                case Palette pal when pal.ColorModel != ColorModel.Nes:
-                    newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService);
-                    break;
-                case Palette pal when pal.ColorModel == ColorModel.Nes:
-                    newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService);
-                    break;
-                case ScatteredArranger scatteredArranger:
-                    newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _colorFactory, _paletteStore, _projectService, _tracker, _settings);
-                    break;
-                case SequentialArranger sequentialArranger:
-                    newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore);
-                    break;
-                case FileDataSource fileSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
-                    var extension = Path.GetExtension(fileSource.FileLocation).ToLower();
-                    string codecName;
-                    if (_settings.ExtensionCodecAssociations.ContainsKey(extension))
-                        codecName = _settings.ExtensionCodecAssociations[extension];
-                    else if (_settings.ExtensionCodecAssociations.ContainsKey("default"))
-                        codecName = _settings.ExtensionCodecAssociations["default"];
-                    else
-                        codecName = "NES 1bpp";
-
-                    var codec = _codecService.CodecFactory.CreateCodec(codecName);
-                    if (codec is null)
-                    {
-                        await _interactions.AlertAsync("Codec Error", $"Could not create Codec '{codecName}'");
-                        return;
-                    }
-
-                    var newArranger = new SequentialArranger(8, 16, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec);
-                    newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore)
-                    {
-                        OriginatingProjectResource = fileSource
-                    };
-                    break;
-                case ResourceFolder resourceFolder:
-                    newDocument = null;
-                    break;
-                case ImageProject project:
-                    newDocument = null;
-                    break;
-                default:
-                    throw new NotSupportedException($"Project resource of type '{resource.GetType()}' is not supported");
-            }
-
-            if (newDocument is not null)
-            {
-                Editors.Add(newDocument);
-                ActiveEditor = newDocument;
-            }
-        }
-        else
             ActiveEditor = openedDocument;
+            return;
+        }
+
+        ResourceEditorBaseViewModel? newDocument;
+
+        switch (resource)
+        {
+            case Palette pal when pal.ColorModel != ColorModel.Nes:
+                newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService);
+                break;
+            case Palette pal when pal.ColorModel == ColorModel.Nes:
+                newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService);
+                break;
+            case ScatteredArranger scatteredArranger:
+                newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _colorFactory, _paletteStore, _projectService, _tracker, _settings);
+                break;
+            case SequentialArranger sequentialArranger:
+                newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore);
+                break;
+            case FileDataSource fileSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
+                var extension = Path.GetExtension(fileSource.FileLocation).ToLower();
+                string codecName;
+                if (_settings.ExtensionCodecAssociations.ContainsKey(extension))
+                    codecName = _settings.ExtensionCodecAssociations[extension];
+                else if (_settings.ExtensionCodecAssociations.ContainsKey("default"))
+                    codecName = _settings.ExtensionCodecAssociations["default"];
+                else
+                    codecName = "NES 1bpp";
+
+                var codec = _codecService.CodecFactory.CreateCodec(codecName);
+                if (codec is null)
+                {
+                    await _interactions.AlertAsync("Codec Error", $"Could not create Codec '{codecName}'");
+                    return;
+                }
+
+                var newArranger = new SequentialArranger(8, 16, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec);
+                newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore)
+                {
+                    OriginatingProjectResource = fileSource
+                };
+                break;
+            case ResourceFolder resourceFolder:
+                newDocument = null;
+                break;
+            case ImageProject project:
+                newDocument = null;
+                break;
+            default:
+                throw new NotSupportedException($"Project resource of type '{resource.GetType()}' is not supported");
+        }
+
+        if (newDocument is not null)
+        {
+            Editors.Add(newDocument);
+            ActiveEditor = newDocument;
+        }
     }
 
     /// <summary>

@@ -11,8 +11,8 @@ public class ScatteredArrangerReversibilityTestCases
     {
         get
         {
-            var codecService = new CodecService(@"_schemas/CodecSchema.xsd");
-            codecService.LoadXmlCodecs(@"_codecs");
+            var codecService = new XmlCodecService(@"_schemas/CodecSchema.xsd");
+            codecService.LoadCodecs(@"_codecs");
             var codecFactory = codecService.CodecFactory;
 
             string bubblesFontLocation = @"TestImages/2bpp/bubbles_font_2bpp.bmp";

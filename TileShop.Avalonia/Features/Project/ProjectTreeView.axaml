@@ -1,110 +1,129 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-			 xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
-			 xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
-			 xmlns:fac="using:FluentAvalonia.UI.Controls"
-			 x:DataType="vm:ProjectTreeViewModel"
-			 x:CompileBindings="True"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="TileShop.AvaloniaUI.Views.ProjectTreeView">
-  	<TreeView x:Name="_treeView" Background="Transparent" Items="{Binding Projects}" SelectedItem="{Binding SelectedNode}" DoubleTapped="ProjectTree_DoubleTapped" KeyDown="ProjectTree_KeyDown">
-		<TreeView.Styles>
-			<Style Selector="TreeViewItem">
-				<Setter Property="IsExpanded" Value="{ReflectionBinding IsExpanded}" />
-			</Style>
-		</TreeView.Styles>
-		<TreeView.ItemTemplate>
-			<TreeDataTemplate DataType="vm:ResourceNodeViewModel" ItemsSource="{Binding Children}">
-				<ContentControl Content="{Binding}" />
-			</TreeDataTemplate>
-		</TreeView.ItemTemplate>
-		<TreeView.DataTemplates>
-			<TreeDataTemplate DataType="vm:ProjectNodeViewModel" x:DataType="vm:ProjectNodeViewModel" ItemsSource="{Binding Children}">
-				<Grid ColumnDefinitions="auto,*">
-					<Grid.ContextMenu>
-						<ContextMenu>
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewFolderCommand}" CommandParameter="{Binding}" Header="Add New Folder" />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File" />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger" />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette" />
-							<Separator />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.SaveProjectAsCommand}" CommandParameter="{Binding}" Header="Save Project As..." />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.CloseProjectCommand}" CommandParameter="{Binding}" Header="Close Project" />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename Project" />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
-						</ContextMenu>
-					</Grid.ContextMenu>
-					<fac:FAPathIcon Grid.Column="0" Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeProject}" />
-					<TextBlock Grid.Column="1" Margin="4,0,0,0" Text="{Binding Name}" />
-				</Grid>
-			</TreeDataTemplate>
-			
-			<TreeDataTemplate DataType="vm:FolderNodeViewModel" x:DataType="vm:FolderNodeViewModel" ItemsSource="{Binding Children}">
-				<StackPanel Orientation="Horizontal">
-					<StackPanel.ContextMenu>
-						<ContextMenu>
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewFolderCommand}" CommandParameter="{Binding}" Header="Add New Folder" />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File" />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger" />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette" />
-							<Separator />
-							<MenuItem Header="Remove" Command="{ReflectionBinding #treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" />
-							<MenuItem Header="Rename" Command="{ReflectionBinding #treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" />
-							<MenuItem Header="Open in Folder" Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" />
-						</ContextMenu>
-					</StackPanel.ContextMenu>
-					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeFolder}" RenderTransform="{StaticResource verticalFlipTransform}" />
-					<TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
-				</StackPanel>
-			</TreeDataTemplate>
-			
-			<TreeDataTemplate DataType="vm:DataFileNodeViewModel" x:DataType="vm:DataFileNodeViewModel" ItemsSource="{Binding Children}">
-				<StackPanel Orientation="Horizontal">
-					<StackPanel.ContextMenu>
-						<ContextMenu>
-							<MenuItem Header="Remove" Command="{ReflectionBinding #_treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" />
-							<MenuItem Header="Rename" Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" />
-							<MenuItem Header="Open in Folder" Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" />
-						</ContextMenu>
-					</StackPanel.ContextMenu>
-					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeFile}" />
-					<TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
-				</StackPanel>
-			</TreeDataTemplate>
-			
-			<TreeDataTemplate DataType="vm:ArrangerNodeViewModel" x:DataType="vm:ArrangerNodeViewModel" ItemsSource="{Binding Children}">
-				<StackPanel Orientation="Horizontal">
-					<StackPanel.ContextMenu>
-						<ContextMenu>
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExportArrangerNodeAsCommand}"	CommandParameter="{Binding}" Header="Export As..." />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.ImportArrangerNodeFromCommand}" CommandParameter="{Binding}" Header="Import From..." />
-							<Separator />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
-							<MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
-						</ContextMenu>
-					</StackPanel.ContextMenu>
-					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodeArranger}" RenderTransform="{StaticResource verticalFlipTransform}" />
-					<TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
-				</StackPanel>
-			</TreeDataTemplate>
-			
-			<TreeDataTemplate DataType="vm:PaletteNodeViewModel" x:DataType="vm:PaletteNodeViewModel" ItemsSource="{Binding Children}">
-				<StackPanel Orientation="Horizontal">
-					<StackPanel.ContextMenu>
-						<ContextMenu>
-							<MenuItem Header="Remove" Command="{ReflectionBinding #_treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" />
-							<MenuItem Header="Rename" Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" />
-							<MenuItem Header="Open in Folder" Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" />
-						</ContextMenu>
-					</StackPanel.ContextMenu>
-					<PathIcon Foreground="{DynamicResource iconBrush}" Width="16" Height="16" Data="{StaticResource pathIconNodePalette}" />
-					<TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
-				</StackPanel>
-			</TreeDataTemplate>
-		</TreeView.DataTemplates>
-	</TreeView>
+<UserControl
+    x:Class="TileShop.AvaloniaUI.Views.ProjectTreeView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:fac="using:FluentAvalonia.UI.Controls"
+    xmlns:i="using:Avalonia.Xaml.Interactivity"
+    xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
+    xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+    x:CompileBindings="True"
+    x:DataType="vm:ProjectTreeViewModel">
+    <TreeView
+        x:Name="_treeView"
+        Background="Transparent"
+        DoubleTapped="ProjectTree_DoubleTapped"
+        Items="{Binding Projects}"
+        KeyDown="ProjectTree_KeyDown"
+        SelectedItem="{Binding SelectedNode}">
+        <TreeView.Styles>
+            <Style Selector="TreeViewItem">
+                <Setter Property="IsExpanded" Value="{ReflectionBinding IsExpanded}" />
+            </Style>
+        </TreeView.Styles>
+        <TreeView.ItemTemplate>
+            <TreeDataTemplate DataType="vm:ResourceNodeViewModel" ItemsSource="{Binding Children}">
+                <ContentControl Content="{Binding}" />
+            </TreeDataTemplate>
+        </TreeView.ItemTemplate>
+        <TreeView.DataTemplates>
+            <TreeDataTemplate x:DataType="vm:ProjectNodeViewModel" DataType="vm:ProjectNodeViewModel" ItemsSource="{Binding Children}">
+                <Grid ColumnDefinitions="auto,*">
+                    <Grid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewFolderCommand}" CommandParameter="{Binding}" Header="Add New Folder" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette" />
+                            <Separator />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.SaveProjectAsCommand}" CommandParameter="{Binding}" Header="Save Project As..." />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.CloseProjectCommand}" CommandParameter="{Binding}" Header="Close Project" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename Project" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+                        </ContextMenu>
+                    </Grid.ContextMenu>
+                    <fac:FAPathIcon
+                        Grid.Column="0"
+                        Width="16"
+                        Height="16"
+                        Data="{StaticResource pathIconNodeProject}"
+                        Foreground="{DynamicResource iconBrush}" />
+                    <TextBlock Grid.Column="1" Margin="4,0,0,0" Text="{Binding Name}" />
+                </Grid>
+            </TreeDataTemplate>
+
+            <TreeDataTemplate x:DataType="vm:FolderNodeViewModel" DataType="vm:FolderNodeViewModel" ItemsSource="{Binding Children}">
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewFolderCommand}" CommandParameter="{Binding}" Header="Add New Folder" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette" />
+                            <Separator />
+                            <MenuItem Command="{ReflectionBinding #treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
+                            <MenuItem Command="{ReflectionBinding #treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+                        </ContextMenu>
+                    </StackPanel.ContextMenu>
+                    <PathIcon
+                        Width="16"
+                        Height="16"
+                        Data="{StaticResource pathIconNodeFolder}"
+                        Foreground="{DynamicResource iconBrush}"
+                        RenderTransform="{StaticResource verticalFlipTransform}" />
+                    <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
+                </StackPanel>
+            </TreeDataTemplate>
+
+            <TreeDataTemplate x:DataType="vm:DataFileNodeViewModel" DataType="vm:DataFileNodeViewModel" ItemsSource="{Binding Children}">
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+                        </ContextMenu>
+                    </StackPanel.ContextMenu>
+                    <PathIcon Width="16" Height="16" Data="{StaticResource pathIconNodeFile}" Foreground="{DynamicResource iconBrush}" />
+                    <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
+                </StackPanel>
+            </TreeDataTemplate>
+
+            <TreeDataTemplate x:DataType="vm:ArrangerNodeViewModel" DataType="vm:ArrangerNodeViewModel" ItemsSource="{Binding Children}">
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExportArrangerNodeAsCommand}" CommandParameter="{Binding}" Header="Export As..." />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ImportArrangerNodeFromCommand}" CommandParameter="{Binding}" Header="Import From..." />
+                            <Separator />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+                        </ContextMenu>
+                    </StackPanel.ContextMenu>
+                    <PathIcon
+                        Width="16"
+                        Height="16"
+                        Data="{StaticResource pathIconNodeArranger}"
+                        Foreground="{DynamicResource iconBrush}"
+                        RenderTransform="{StaticResource verticalFlipTransform}" />
+                    <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
+                </StackPanel>
+            </TreeDataTemplate>
+
+            <TreeDataTemplate x:DataType="vm:PaletteNodeViewModel" DataType="vm:PaletteNodeViewModel" ItemsSource="{Binding Children}">
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
+                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+                        </ContextMenu>
+                    </StackPanel.ContextMenu>
+                    <PathIcon Width="16" Height="16" Data="{StaticResource pathIconNodePalette}" Foreground="{DynamicResource iconBrush}" />
+                    <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
+                </StackPanel>
+            </TreeDataTemplate>
+        </TreeView.DataTemplates>
+    </TreeView>
 </UserControl>

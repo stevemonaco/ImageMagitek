@@ -3,6 +3,7 @@ using System.IO;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using BenchmarkDotNet.Attributes;
+using ImageMagitek.Colors.Serialization;
 
 namespace ImageMagitek.Benchmarks;
 
