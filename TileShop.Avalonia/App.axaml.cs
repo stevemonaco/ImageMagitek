@@ -18,7 +18,7 @@ public class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override void OnFrameworkInitializationCompleted()
+    public override async void OnFrameworkInitializationCompleted()
     {
         // Remove Avalonia data validation so that Mvvm Toolkit's data validation works
         BindingPlugins.DataValidators.RemoveAt(0);
@@ -26,7 +26,7 @@ public class App : Application
 
         var services = new ServiceCollection();
         var bootstrapper = new TileShopBootstrapper();
-        bootstrapper.ConfigureIoc(services);
+        await bootstrapper.ConfigureIoc(services);
         bootstrapper.ConfigureServices(services);
         bootstrapper.ConfigureViews(services);
         bootstrapper.ConfigureViewModels(services);

@@ -14,7 +14,7 @@ public interface IPluginService
     void LoadCodecPlugins(string pluginsPath);
 }
 
-public class PluginService : IPluginService
+public sealed class PluginService : IPluginService
 {
     public IDictionary<string, Type> CodecPlugins { get; } = new Dictionary<string, Type>();
 

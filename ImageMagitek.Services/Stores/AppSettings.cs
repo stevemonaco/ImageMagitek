@@ -3,13 +3,15 @@ using ImageMagitek.Colors;
 
 namespace ImageMagitek.Services;
 
-public sealed class AppSettings
-{
-    public required IDictionary<string, string> ExtensionCodecAssociations { get; init; }
-    public required IList<string> GlobalPalettes { get; init; }
-    public required string NesPalette { get; init; }
-    public bool EnableArrangerSymmetryTools { get; set; }
-    public ColorRgba32 GridLineColor { get; set; }
-    public ColorRgba32 PrimaryGridBackgroundColor { get; set; }
-    public ColorRgba32 SecondaryGridBackgroundColor { get; set; }
-}
+/// <summary>
+/// Contains settings that the user may want to modify, preserve, and/or share
+/// </summary>
+public sealed record AppSettings(
+    IDictionary<string, string> ExtensionCodecAssociations,
+    IList<string> GlobalPalettes,
+    string NesPalette,
+    bool EnableArrangerSymmetryTools,
+    ColorRgba32 GridLineColor,
+    ColorRgba32 PrimaryGridBackgroundColor,
+    ColorRgba32 SecondaryGridBackgroundColor
+);

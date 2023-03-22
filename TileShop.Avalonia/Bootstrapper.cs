@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services;
 using Jot;
@@ -28,20 +29,23 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
     private readonly Tracker _tracker = new Tracker();
     private LoggerFactory? _loggerFactory;
 
-    public void ConfigureIoc(IServiceCollection services)
+    public async Task ConfigureIoc(IServiceCollection services)
     {
         _loggerFactory = CreateLoggerFactory(BootstrapService.DefaultLogFileName);
 
-        ConfigureImageMagitek(services);
+        await ConfigureImageMagitek(services);
         ConfigureJotTracker(_tracker, services);
     }
 
-    private void ConfigureImageMagitek(IServiceCollection services)
+    private async Task ConfigureImageMagitek(IServiceCollection services)
     {
         var bootstrapper = new BootstrapService(_loggerFactory!.CreateLogger<BootstrapService>());
-        var settings = bootstrapper.ReadConfiguration(BootstrapService.DefaultConfigurationFileName);
+
+        var settingsService = bootstrapper.CreateSettingsService();
+        var settings = await bootstrapper.ReadConfiguration(settingsService, BootstrapService.DefaultConfigurationFileName);
         if (settings is null)
             throw new InvalidOperationException($"'{BootstrapService.DefaultConfigurationFileName}' could not be read during startup");
+        services.AddSingleton(settingsService);
         services.AddSingleton(settings);
 
         var colorFactory = bootstrapper.CreateColorFactory();

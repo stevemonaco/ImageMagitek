@@ -12,6 +12,7 @@ using LoggerFactory = Microsoft.Extensions.Logging.LoggerFactory;
 using ImageMagitek.Project.Serialization;
 using CommandLine.Text;
 using CommunityToolkit.Diagnostics;
+using System.Threading.Tasks;
 
 namespace TileShop.CLI;
 
@@ -43,10 +44,11 @@ class Program
             {
                 code = ExitCode.InvalidCommandArguments;
             })
-            .WithParsed(options =>
+            .WithParsed(async options =>
             {
                 var logFileName = GetFullLogFileName(options);
-                if (!BootstrapTileShop(logFileName))
+                var isBootstrapped = await BootstrapTileShop(logFileName);
+                if (!isBootstrapped)
                     code = ExitCode.EnvironmentError;
                 else
                     code = ExecuteHandler(options);
@@ -102,7 +104,7 @@ class Program
             .Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToArray();
     }
 
-    private static bool BootstrapTileShop(string logFileName)
+    private static async Task<bool> BootstrapTileShop(string logFileName)
     {
         try
         {
@@ -115,7 +117,8 @@ class Program
             var pluginPath = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultPluginPath);
             var resourceSchemaFileName = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultResourceSchemaFileName);
 
-            var settings = bootstrapper.ReadConfiguration(settingsFileName);
+            var settingsService = bootstrapper.CreateSettingsService();
+            var settings = await bootstrapper.ReadConfiguration(settingsService, settingsFileName);
             if (settings is null)
                 throw new InvalidOperationException($"Failed to read configuration file '{settingsFileName}'");
 

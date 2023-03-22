@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 using ImageMagitek.Colors;
-using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services.Stores;
 using Microsoft.Extensions.Logging;
@@ -32,19 +32,13 @@ public class BootstrapService
         _logger = logger;
     }
 
-    public virtual AppSettings? ReadConfiguration(string jsonFileName)
+    public virtual SettingsService CreateSettingsService() => new SettingsService();
+
+    public virtual async Task<AppSettings?> ReadConfiguration(SettingsService settingsService, string jsonFileName)
     {
         try
         {
-            var json = File.ReadAllText(jsonFileName);
-
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
-            var settings = JsonSerializer.Deserialize<AppSettings>(json, options);
-
+            var settings = await settingsService.ReadSettings(jsonFileName);
             return settings;
         }
         catch (Exception ex)
@@ -95,15 +89,15 @@ public class BootstrapService
 
     public virtual ICodecService CreateCodecService(string codecsPath, string schemaFileName)
     {
-        var _codecService = new XmlCodecService(schemaFileName);
-        var result = _codecService.LoadCodecs(codecsPath);
+        var codecService = new XmlCodecService(schemaFileName);
+        var result = codecService.LoadCodecs(codecsPath);
 
         if (result.Value is MagitekResults.Failed fail)
         {
             _logger.LogError(string.Join(Environment.NewLine, fail.Reasons));
         }
 
-        return _codecService;
+        return codecService;
     }
 
     public virtual IPluginService CreatePluginService(string pluginPath, ICodecService codecService)
@@ -138,7 +132,6 @@ public class BootstrapService
     public virtual ElementStore CreateElementStore(IElementLayoutService layoutService, string layoutPath)
     {
         var store = new ElementStore();
-        store.DefaultElementLayout = TileLayout.Default;
 
         if (Directory.Exists(layoutPath))
         {
