@@ -16,7 +16,7 @@ public enum PixelTool { Select, Pencil, ColorPicker, FloodFill }
 public enum ColorPriority { Primary, Secondary }
 
 public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewModel
-    where TColor : struct
+    where TColor : unmanaged
 {
     protected readonly Arranger _projectArranger;
     protected int _viewWidth;

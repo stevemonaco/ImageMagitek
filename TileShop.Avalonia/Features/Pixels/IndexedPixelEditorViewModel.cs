@@ -1,25 +1,23 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.ObjectModel;
-using ImageMagitek;
-using ImageMagitek.Colors;
-using ImageMagitek.Services;
-using TileShop.Shared.Messages;
-using TileShop.AvaloniaUI.Imaging;
-using TileShop.AvaloniaUI.Models;
-using TileShop.Shared.Models;
-using ImageMagitek.Image;
-using ImageMagitek.ExtensionMethods;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using System.Threading.Tasks;
-using TileShop.Shared.Interactions;
-
-using Point = System.Drawing.Point;
-using Jot;
-using System.Diagnostics.CodeAnalysis;
+using ImageMagitek;
+using ImageMagitek.Colors;
+using ImageMagitek.ExtensionMethods;
+using ImageMagitek.Image;
 using ImageMagitek.Services.Stores;
+using Jot;
+using TileShop.AvaloniaUI.Imaging;
+using TileShop.AvaloniaUI.Models;
+using TileShop.Shared.Interactions;
+using TileShop.Shared.Messages;
+using TileShop.Shared.Models;
+using Point = System.Drawing.Point;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 

@@ -20,8 +20,8 @@ public enum PixelRemapOperation
 public static class ImageCopier
 {
     private static MagitekResult CanCopyPixelDimensions<TPixel1, TPixel2>(ImageBase<TPixel1> source, ImageBase<TPixel2> dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
-        where TPixel1 : struct
-        where TPixel2 : struct
+        where TPixel1 : unmanaged
+        where TPixel2 : unmanaged
     {
         if (copyWidth > (source.Width - sourceStart.X))
             return new MagitekResult.Failed($"Source image with width ({source.Width}) is insufficient to copy {copyWidth} pixels starting from position {sourceStart.X}");
@@ -169,7 +169,7 @@ public static class ImageCopier
     }
 
     private static bool ImageRegionContainsInvalidElements<TPixel>(ImageBase<TPixel> image, Point start, int width, int height)
-        where TPixel : struct
+        where TPixel : unmanaged
     {
         var elems = image.GetElementsByPixel(start.X, start.Y, width, height);
         return elems.Any(x => x is null);

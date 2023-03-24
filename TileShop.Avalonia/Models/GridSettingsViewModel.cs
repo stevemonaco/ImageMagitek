@@ -39,7 +39,7 @@ public partial class GridSettingsViewModel : ObservableObject
         _gridlines = new();
     }
 
-    public static GridSettingsViewModel CreateDefault<TPixel>(ImageBase<TPixel> image) where TPixel : struct
+    public static GridSettingsViewModel CreateDefault<TPixel>(ImageBase<TPixel> image) where TPixel : unmanaged
     {
         GridSettingsViewModel settings;
 

@@ -1,4 +1,4 @@
-﻿using System;
+﻿using CommunityToolkit.Diagnostics;
 
 namespace ImageMagitek.Colors;
 
@@ -8,7 +8,11 @@ public struct ColorNes : ITableColor
     public uint Color
     {
         get => _color;
-        set => _color = Math.Clamp(value, 0, (uint)ColorMax);
+        set
+        {
+            Guard.IsInRange(value, 0, ColorMax);
+            _color = value;
+        }
     }
 
     public int Size => 8;
@@ -16,6 +20,6 @@ public struct ColorNes : ITableColor
 
     public ColorNes(uint foreignColor)
     {
-        _color = Math.Clamp(foreignColor, 0, 63);
+        Color = foreignColor;
     }
 }

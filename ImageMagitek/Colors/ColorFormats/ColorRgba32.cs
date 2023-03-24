@@ -52,8 +52,8 @@ public struct ColorRgba32 : IColor32
     public int GreenMax => 255;
     public int BlueMax => 255;
     public int AlphaMax => 255;
+    private readonly static Vector4 _maxVector = new Vector4(255, 255, 255, 255);
 
-    private static Vector4 _maxVector = new Vector4(255, 255, 255, 255);
     public Vector4 ColorVector
     {
         get => new Vector4(r, g, b, a) / _maxVector;

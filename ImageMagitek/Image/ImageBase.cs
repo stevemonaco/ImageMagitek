@@ -7,7 +7,7 @@ namespace ImageMagitek;
 /// Provides an editing/viewing layer around an Arranger
 /// </summary>
 /// <typeparam name="TPixel"></typeparam>
-public abstract class ImageBase<TPixel> where TPixel : struct
+public abstract class ImageBase<TPixel> where TPixel : unmanaged
 {
     public abstract Arranger Arranger { get; }
 
@@ -36,11 +36,11 @@ public abstract class ImageBase<TPixel> where TPixel : struct
     /// <summary>
     /// Right edge of subsection in pixel-coordinates, inclusive
     /// </summary>
-    public int Right { get => Left + Width; }
+    public int Right => Left + Width;
     /// <summary>
     /// Bottom edge of subsection in pixel-coordinates, inclusive
     /// </summary>
-    public int Bottom { get => Top + Height; }
+    public int Bottom => Top + Height;
 
     public abstract void Render();
     public abstract void SaveImage();
