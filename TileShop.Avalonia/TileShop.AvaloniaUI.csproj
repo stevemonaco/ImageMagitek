@@ -15,50 +15,29 @@
     <None Remove=".gitignore" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.0.0-preview5" />
-    <PackageReference Include="Avalonia.Controls.PanAndZoom" Version="11.0.0-preview5" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview5" />
+    <PackageReference Include="Avalonia" Version="11.0.0-preview6" />
+    <PackageReference Include="Avalonia.Controls.PanAndZoom" Version="11.0.0-preview6" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.0-preview6" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.0-preview5" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview5" />
-    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.0.0-preview5" />
-    <PackageReference Include="Avalonia.Xaml.Interactions" Version="11.0.0-preview5" />
-    <PackageReference Include="Avalonia.Xaml.Interactivity" Version="11.0.0-preview5" />
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.0-preview6" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0-preview6" />
+    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.0.0-preview6" />
+    <PackageReference Include="Avalonia.Xaml.Interactions" Version="11.0.0-preview6" />
+    <PackageReference Include="Avalonia.Xaml.Interactivity" Version="11.0.0-preview6" />
     <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.0-preview1" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.0-preview1" />
-    <PackageReference Include="Dock.Avalonia" Version="11.0.0-preview5" />
-    <PackageReference Include="Dock.Model.Mvvm" Version="11.0.0-preview5" />
-    <PackageReference Include="FluentAvaloniaUI" Version="2.0.0-preview5" />
+    <PackageReference Include="Dock.Avalonia" Version="11.0.0-preview6" />
+    <PackageReference Include="Dock.Model.Mvvm" Version="11.0.0-preview6" />
+    <PackageReference Include="FluentAvaloniaUI" Version="2.0.0-preview6" />
     <PackageReference Include="Jot" Version="2.1.13" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Serilog" Version="2.12.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Include="XamlNameReferenceGenerator" Version="1.6.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ImageMagitek.Services\ImageMagitek.Services.csproj" />
     <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
     <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="Features\Dialogs\ModifyGridSettingsView.axaml.cs">
-      <DependentUpon>ModifyGridSettingsView.axaml</DependentUpon>
-    </Compile>
-    <Compile Update="Features\Shell\DockableEditorView.axaml.cs">
-      <DependentUpon>DockableEditorView.axaml</DependentUpon>
-    </Compile>
-    <Compile Update="Features\Shell\MenuView.axaml.cs">
-      <DependentUpon>MenuView.axaml</DependentUpon>
-    </Compile>
-    <Compile Update="Features\Shell\ShellView.axaml.cs">
-      <DependentUpon>ShellView.axaml</DependentUpon>
-    </Compile>
-    <Compile Update="Features\Shell\DockableToolView.axaml.cs">
-      <DependentUpon>DockableToolView.axaml</DependentUpon>
-    </Compile>
-    <Compile Update="Features\Shell\StatusView.axaml.cs">
-      <DependentUpon>StatusView.axaml</DependentUpon>
-    </Compile>
   </ItemGroup>
 </Project>
