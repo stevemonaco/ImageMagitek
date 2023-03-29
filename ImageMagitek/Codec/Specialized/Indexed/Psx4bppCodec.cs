@@ -1,4 +1,5 @@
 ﻿using System;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec;
 public sealed class Psx4bppCodec : IndexedCodec
@@ -17,12 +18,12 @@ public sealed class Psx4bppCodec : IndexedCodec
 
     private IBitStreamReader _bitReader;
 
-    public Psx4bppCodec()
+    public Psx4bppCodec(Palette palette) : base(palette)
     {
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
-    public Psx4bppCodec(int width, int height) : base(width, height)
+    public Psx4bppCodec(Palette palette, int width, int height) : base(palette, width, height)
     {
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }

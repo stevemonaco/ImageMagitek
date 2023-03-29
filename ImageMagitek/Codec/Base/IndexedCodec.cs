@@ -1,15 +1,25 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec;
 
-public interface IIndexedCodec : IGraphicsCodec<byte> { }
+public interface IIndexedCodec : IGraphicsCodec<byte>
+{
+    /// <summary>
+    /// Palette to apply to the element's pixel data. Will be null for direct codecs.
+    /// </summary>
+    public Palette Palette { get; set; }
+}
 
 public abstract class IndexedCodec : IIndexedCodec
 {
     public abstract string Name { get; }
     public int Width { get; }
     public int Height { get; }
+
+    /// <inheritdoc/>
+    public Palette Palette { get; set; }
     public abstract ImageLayout Layout { get; }
     public PixelColorType ColorType => PixelColorType.Indexed;
     public abstract int ColorDepth { get; }
@@ -31,16 +41,18 @@ public abstract class IndexedCodec : IIndexedCodec
     public abstract byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer);
     public abstract ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer);
 
-    public IndexedCodec()
+    public IndexedCodec(Palette palette)
     {
+        Palette = palette;
         Width = DefaultWidth;
         Height = DefaultHeight;
 
-        AllocateBuffers(Width, Height);
+        AllocateBuffers(Width, Height);        
     }
 
-    public IndexedCodec(int width, int height)
+    public IndexedCodec(Palette palette, int width, int height)
     {
+        Palette = palette;
         Width = width;
         Height = height;
 

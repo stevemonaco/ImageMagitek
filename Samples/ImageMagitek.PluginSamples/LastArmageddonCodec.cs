@@ -1,5 +1,6 @@
 ﻿using System;
 using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.PluginSamples;
 
@@ -24,7 +25,7 @@ public class LastArmageddonCodec : IndexedCodec
 
     private IBitStreamReader _bitReader;
 
-    public LastArmageddonCodec() : base(8 * 32, 8)
+    public LastArmageddonCodec(Palette palette) : base(palette, 8 * 32, 8)
     {
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }

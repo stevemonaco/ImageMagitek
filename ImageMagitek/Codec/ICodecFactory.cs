@@ -10,6 +10,7 @@ namespace ImageMagitek.Codec;
 public interface ICodecFactory
 {
     void AddOrUpdateCodec(Type codecType);
+    void AddOrUpdateFormat(IGraphicsFormat format);
     IGraphicsCodec? CreateCodec(string codecName, Size? elementSize = default);
     IGraphicsCodec CloneCodec(IGraphicsCodec codec);
     IEnumerable<string> GetRegisteredCodecNames();

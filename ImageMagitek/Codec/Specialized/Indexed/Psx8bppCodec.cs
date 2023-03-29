@@ -1,4 +1,5 @@
 ﻿using System;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec;
 public sealed class Psx8bppCodec : IndexedCodec
@@ -15,11 +16,11 @@ public sealed class Psx8bppCodec : IndexedCodec
     public override int HeightResizeIncrement => 1;
     public override bool CanResize => true;
 
-    public Psx8bppCodec()
+    public Psx8bppCodec(Palette palette) : base(palette)
     {
     }
 
-    public Psx8bppCodec(int width, int height) : base(width, height)
+    public Psx8bppCodec(Palette palette, int width, int height) : base(palette, width, height)
     {
     }
 

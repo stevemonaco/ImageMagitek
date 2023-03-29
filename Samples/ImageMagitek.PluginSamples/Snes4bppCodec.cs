@@ -1,5 +1,6 @@
 ﻿using System;
 using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.PluginSample;
 
@@ -19,12 +20,12 @@ public class Snes4bppCodec : IndexedCodec
 
     private IBitStreamReader _bitReader;
 
-    public Snes4bppCodec()
+    public Snes4bppCodec(Palette palette) : base(palette)
     {
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
-    public Snes4bppCodec(int width, int height) : base(width, height)
+    public Snes4bppCodec(Palette palette, int width, int height) : base(palette, width, height)
     {
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }

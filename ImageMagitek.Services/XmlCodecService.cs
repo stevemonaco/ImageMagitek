@@ -17,13 +17,14 @@ public interface ICodecService
 
 public sealed class XmlCodecService : ICodecService
 {
-    public ICodecFactory CodecFactory { get; private set; } = new CodecFactory(new());
+    public ICodecFactory CodecFactory { get; }
 
     private readonly string _schemaFileName;
 
-    public XmlCodecService(string schemaFileName)
+    public XmlCodecService(string schemaFileName, CodecFactory codecFactory)
     {
         _schemaFileName = schemaFileName;
+        CodecFactory = codecFactory;
     }
 
     public MagitekResults LoadCodecs(string codecsPath)
@@ -45,7 +46,7 @@ public sealed class XmlCodecService : ICodecService
                     }
                     else
                     {
-                        formats.Add(success.Result.Name, success.Result);
+                        CodecFactory.AddOrUpdateFormat(success.Result);
                     }
                 },
                 fail =>
@@ -54,8 +55,6 @@ public sealed class XmlCodecService : ICodecService
                     errors.AddRange(fail.Reasons);
                 });
         }
-
-        CodecFactory = new CodecFactory(formats);
 
         if (errors.Any())
             return new MagitekResults.Failed(errors);

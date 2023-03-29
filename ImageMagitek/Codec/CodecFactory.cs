@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec;
 
@@ -10,15 +11,19 @@ namespace ImageMagitek.Codec;
 /// </summary>
 public sealed class CodecFactory : ICodecFactory
 {
+    public Palette DefaultPalette { get; set; }
+
     private readonly Dictionary<string, IGraphicsFormat> _formats;
     private readonly Dictionary<string, Type> _codecs;
 
     /// <summary>
     /// Creates a CodecFactory and registers default codecs and provided formats
     /// </summary>
+    /// <param name="defaultPalette">Palette to automatically assign to indexed codecs</param>
     /// <param name="formats">Formats to automatically register. May be empty.</param>
-    public CodecFactory(Dictionary<string, IGraphicsFormat> formats)
+    public CodecFactory(Palette defaultPalette, Dictionary<string, IGraphicsFormat> formats)
     {
+        DefaultPalette = defaultPalette;
         _formats = formats;
 
         _codecs = new Dictionary<string, Type>
@@ -42,6 +47,11 @@ public sealed class CodecFactory : ICodecFactory
             throw new ArgumentException($"{nameof(AddOrUpdateCodec)} parameter '{nameof(codecType)}' is not of type {typeof(IGraphicsCodec)} or is not instantiable");
     }
 
+    public void AddOrUpdateFormat(IGraphicsFormat format)
+    {
+        _formats[format.Name] = format;
+    }
+
     /// <summary>
     /// Creates a new instance of a codec registered with the given name and optional size
     /// </summary>
@@ -55,10 +65,15 @@ public sealed class CodecFactory : ICodecFactory
         if (_codecs.ContainsKey(codecName)) // Prefer built-in codecs
         {
             var codecType = _codecs[codecName];
-            if (elementSize.HasValue)
-                return Activator.CreateInstance(codecType, elementSize.Value.Width, elementSize.Value.Height) as IGraphicsCodec;
-            else
-                return Activator.CreateInstance(codecType) as IGraphicsCodec;
+            bool usePalette = codecType.IsAssignableTo(typeof(IIndexedCodec));
+
+            return (elementSize.HasValue, codecType.IsAssignableTo(typeof(IIndexedCodec))) switch
+            {
+                (true, true) => Activator.CreateInstance(codecType, DefaultPalette, elementSize!.Value.Width, elementSize!.Value.Height) as IGraphicsCodec,
+                (false, true) => Activator.CreateInstance(codecType, DefaultPalette) as IGraphicsCodec,
+                (true, false) => Activator.CreateInstance(codecType, elementSize!.Value.Width, elementSize!.Value.Height) as IGraphicsCodec,
+                (false, false) => Activator.CreateInstance(codecType) as IGraphicsCodec
+            };
         }
         else if (_formats.ContainsKey(codecName)) // Fallback to generalized codecs
         {
@@ -73,14 +88,14 @@ public sealed class CodecFactory : ICodecFactory
                 }
 
                 if (format.ColorType == PixelColorType.Indexed)
-                    return new IndexedFlowGraphicsCodec(flowFormat);
+                    return new IndexedFlowGraphicsCodec(flowFormat, DefaultPalette);
                 else if (format.ColorType == PixelColorType.Direct)
                     throw new NotSupportedException();
             }
             else if (format is PatternGraphicsFormat patternFormat)
             {
                 if (format.ColorType == PixelColorType.Indexed)
-                    return new IndexedPatternGraphicsCodec(patternFormat);
+                    return new IndexedPatternGraphicsCodec(patternFormat, DefaultPalette);
                 else if (format.ColorType == PixelColorType.Direct)
                     throw new NotSupportedException();
             }

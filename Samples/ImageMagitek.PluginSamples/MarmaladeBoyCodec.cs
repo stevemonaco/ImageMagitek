@@ -1,5 +1,6 @@
 ﻿using System;
 using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.PluginSamples;
 
@@ -27,7 +28,7 @@ public class MarmaladeBoyCodec : IndexedCodec
 
     private IBitStreamReader _bitReader;
 
-    public MarmaladeBoyCodec() : base(16, 10000)
+    public MarmaladeBoyCodec(Palette palette) : base(palette, 16, 10000)
     {
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }

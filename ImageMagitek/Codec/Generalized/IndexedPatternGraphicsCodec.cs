@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec;
 
@@ -12,6 +13,9 @@ public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
     public ImageLayout Layout => Format.Layout;
     public PixelColorType ColorType => Format.ColorType;
     public int ColorDepth => Format.ColorDepth;
+
+    /// <inheritdoc/>
+    public Palette Palette { get; set; }
     public int Width => Format.Width;
     public int Height => Format.Height;
 
@@ -32,9 +36,10 @@ public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
 
     public bool CanEncode => true;
 
-    public IndexedPatternGraphicsCodec(PatternGraphicsFormat format)
+    public IndexedPatternGraphicsCodec(PatternGraphicsFormat format, Palette palette)
     {
         Format = format;
+        Palette = palette;
         Name = format.Name;
         AllocateBuffers();
     }

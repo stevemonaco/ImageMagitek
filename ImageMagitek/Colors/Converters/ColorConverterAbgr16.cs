@@ -3,9 +3,9 @@
 public enum AlphaBitTransparency { Transparent, BlackTransparent, SemiTransparent, Opaque }
 public sealed class ColorConverterAbgr16 : IColorConverter<ColorAbgr16>
 {
-    private const byte AlphaTransparent = 0;
-    private const byte AlphaSemiTransparent = 128;
-    private const byte AlphaOpaque = 255;
+    private const byte _alphaTransparent = 0;
+    private const byte _alphaSemiTransparent = 128;
+    private const byte _alphaOpaque = 255;
     private AlphaBitTransparency _transparency;
 
     public ColorConverterAbgr16() : this(AlphaBitTransparency.Opaque) { }
@@ -20,7 +20,7 @@ public sealed class ColorConverterAbgr16 : IColorConverter<ColorAbgr16>
         byte r = (byte)(nc.r >> 3);
         byte g = (byte)(nc.g >> 3);
         byte b = (byte)(nc.b >> 3);
-        byte a = (byte)(nc.a <= AlphaSemiTransparent ? 0 : 1);
+        byte a = (byte)(nc.a <= _alphaSemiTransparent ? 0 : 1);
 
         return new ColorAbgr16(r, g, b, a);
     }
@@ -30,26 +30,26 @@ public sealed class ColorConverterAbgr16 : IColorConverter<ColorAbgr16>
         byte r = (byte)(fc.r << 3);
         byte g = (byte)(fc.g << 3);
         byte b = (byte)(fc.b << 3);
-        byte a = AlphaOpaque;
+        byte a = _alphaOpaque;
 
         if (fc.A == 1)
         {
             switch (_transparency)
             {
                 case AlphaBitTransparency.Transparent:
-                    a = AlphaTransparent;
+                    a = _alphaTransparent;
                     break;
                 case AlphaBitTransparency.BlackTransparent:
                     if (fc.Color == 0)
-                        a = AlphaTransparent;
+                        a = _alphaTransparent;
                     else
-                        a = AlphaOpaque;
+                        a = _alphaOpaque;
                     break;
                 case AlphaBitTransparency.SemiTransparent:
-                    a = AlphaSemiTransparent;
+                    a = _alphaSemiTransparent;
                     break;
                 case AlphaBitTransparency.Opaque:
-                    a = AlphaOpaque;
+                    a = _alphaOpaque;
                     break;
             }
         }

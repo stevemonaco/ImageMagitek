@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec;
 
@@ -13,6 +14,9 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
     public ImageLayout Layout => Format.Layout;
     public PixelColorType ColorType => Format.ColorType;
     public int ColorDepth => Format.ColorDepth;
+
+    /// <inheritdoc/>
+    public Palette Palette { get; set; }
     public int Width => Format.Width;
     public int Height => Format.Height;
     public bool CanEncode => true;
@@ -41,9 +45,10 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
 
     private IBitStreamReader _bitReader;
 
-    public IndexedFlowGraphicsCodec(FlowGraphicsFormat format)
+    public IndexedFlowGraphicsCodec(FlowGraphicsFormat format, Palette palette)
     {
         Format = format;
+        Palette = palette;
         Name = format.Name;
         AllocateBuffers();
 

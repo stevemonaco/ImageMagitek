@@ -26,9 +26,9 @@ public class Snes3bppDecodeToImage
     public void GlobalSetupNative()
     {
         var palContents = File.ReadAllText(_paletteFileName);
-        _pal = PaletteJsonSerializer.DeserializePalette(palContents, new ColorFactory());
+        _pal = PaletteJsonSerializer.DeserializePalette(palContents, new ColorFactory())!;
 
-        _codec = new Snes3bppCodec(8, 8);
+        _codec = new Snes3bppCodec(_pal, 8, 8);
         Setup(_nativeFileName, "native");
     }
 
@@ -36,12 +36,12 @@ public class Snes3bppDecodeToImage
     public void GlobalSetupGeneric()
     {
         var palContents = File.ReadAllText(_paletteFileName);
-        _pal = PaletteJsonSerializer.DeserializePalette(palContents, new ColorFactory());
+        _pal = PaletteJsonSerializer.DeserializePalette(palContents, new ColorFactory())!;
 
         //var codecFileName = Path.Combine(Directory.GetCurrentDirectory(), "Resources", _genericCodecFileName);
         var serializer = new XmlGraphicsFormatReader(_codecSchemaFileName);
         var format = serializer.LoadFromFile(_genericCodecFileName);
-        _codec = new IndexedFlowGraphicsCodec((FlowGraphicsFormat)format.AsSuccess.Result);
+        _codec = new IndexedFlowGraphicsCodec((FlowGraphicsFormat)format.AsSuccess.Result, _pal);
 
         Setup(_genericFileName, "generic");
     }

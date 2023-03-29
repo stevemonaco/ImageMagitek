@@ -1,4 +1,6 @@
-﻿using ImageMagitek.Services;
+﻿using ImageMagitek.Codec;
+using ImageMagitek.Colors;
+using ImageMagitek.Services;
 using ImageMagitek.UnitTests.TestFactories;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -11,15 +13,17 @@ public class ScatteredArrangerReversibilityTestCases
     {
         get
         {
-            var codecService = new XmlCodecService(@"_schemas/CodecSchema.xsd");
+            var paletteService = new PaletteService(new ColorFactory());
+            var palette = paletteService.ReadJsonPalette(@"_palettes/DefaultRgba32.json")!;
+            var codecFactory = new CodecFactory(palette, new());
+            var codecService = new XmlCodecService(@"_schemas/CodecSchema.xsd", codecFactory);
             codecService.LoadCodecs(@"_codecs");
-            var codecFactory = codecService.CodecFactory;
 
             string bubblesFontLocation = @"TestImages/2bpp/bubbles_font_2bpp.bmp";
 
             yield return new TestCaseData(
                 ArrangerTestFactory.CreateIndexedArrangerFromImage(bubblesFontLocation,
-                    Colors.ColorModel.Bgr15,
+                    ColorModel.Bgr15,
                     false,
                     codecFactory,
                     codecFactory.CreateCodec("NES 2bpp", new System.Drawing.Size(8, 8))!),
@@ -27,7 +31,7 @@ public class ScatteredArrangerReversibilityTestCases
 
             yield return new TestCaseData(
                 ArrangerTestFactory.CreateIndexedArrangerFromImage(bubblesFontLocation,
-                    Colors.ColorModel.Bgr15,
+                    ColorModel.Bgr15,
                     false,
                     codecFactory,
                     codecFactory.CreateCodec("SNES 2bpp", new System.Drawing.Size(8, 8))!),

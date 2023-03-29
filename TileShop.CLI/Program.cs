@@ -13,6 +13,7 @@ using ImageMagitek.Project.Serialization;
 using CommandLine.Text;
 using CommunityToolkit.Diagnostics;
 using System.Threading.Tasks;
+using ImageMagitek.Codec;
 
 namespace TileShop.CLI;
 
@@ -123,9 +124,11 @@ class Program
                 throw new InvalidOperationException($"Failed to read configuration file '{settingsFileName}'");
 
             var colorFactory = bootstrapper.CreateColorFactory();
-            var codecService = bootstrapper.CreateCodecService(codecPath, codecSchemaFileName);
             var paletteService = bootstrapper.CreatePaletteService(colorFactory);
             var paletteStore = bootstrapper.CreatePaletteStore(paletteService, palettePath, settings);
+
+            var codecFactory = new CodecFactory(paletteStore.DefaultPalette, new());
+            var codecService = bootstrapper.CreateCodecService(codecPath, codecSchemaFileName, codecFactory);
 
             if (paletteStore.NesPalette is not null)
                 colorFactory.SetNesPalette(paletteStore.NesPalette);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using ImageMagitek.Codec;
 using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services;
 using Jot;
@@ -58,7 +59,8 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         services.AddSingleton(paletteStore);
         services.AddSingleton(colorFactory);
 
-        var codecService = bootstrapper.CreateCodecService(BootstrapService.DefaultCodecPath, BootstrapService.DefaultCodecSchemaFileName);
+        var codecFactory = new CodecFactory(paletteStore.DefaultPalette, new());
+        var codecService = bootstrapper.CreateCodecService(BootstrapService.DefaultCodecPath, BootstrapService.DefaultCodecSchemaFileName, codecFactory);
         services.AddSingleton(codecService);
 
         var pluginService = bootstrapper.CreatePluginService(BootstrapService.DefaultPluginPath, codecService);

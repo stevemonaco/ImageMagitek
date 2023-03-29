@@ -358,7 +358,6 @@ public abstract class Arranger : IProjectResource
                     if (ReferenceEquals(dataFile, el.Source))
                     {
                         ResetElement(x, y);
-                        //SetElement(el.WithFile(default, BitAddress.Zero), x, y);
                         isModified = true;
                     }
                 }

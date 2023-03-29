@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services.Stores;
@@ -87,9 +88,9 @@ public class BootstrapService
         return factory;
     }
 
-    public virtual ICodecService CreateCodecService(string codecsPath, string schemaFileName)
+    public virtual ICodecService CreateCodecService(string codecsPath, string schemaFileName, CodecFactory codecFactory)
     {
-        var codecService = new XmlCodecService(schemaFileName);
+        var codecService = new XmlCodecService(schemaFileName, codecFactory);
         var result = codecService.LoadCodecs(codecsPath);
 
         if (result.Value is MagitekResults.Failed fail)

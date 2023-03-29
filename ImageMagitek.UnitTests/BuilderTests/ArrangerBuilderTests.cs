@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using ImageMagitek.Builders;
 using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 using NUnit.Framework;
 
 namespace ImageMagitek.UnitTests.BuilderTests;
@@ -30,7 +31,8 @@ public class ArrangerBuilderTests
     [Test]
     public void Build_SequentialArranger()
     {
-        var codecFactory = new CodecFactory(new());
+        var emptyPal = new Palette("Default", new ColorFactory(), ColorModel.Rgba32, true, PaletteStorageSource.GlobalJson);
+        var codecFactory = new CodecFactory(emptyPal, new());
         var memorySource = new MemoryDataSource("TestMemoryFile", 2 * 256 * 512);
 
         SequentialArranger arranger = ArrangerBuilder
