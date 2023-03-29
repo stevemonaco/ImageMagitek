@@ -289,6 +289,8 @@ public abstract class Arranger : IProjectResource
     {
         return EnumerateElements()
             .OfType<ArrangerElement>()
+            .Select(x => x.Codec)
+            .OfType<IIndexedCodec>()
             .Select(x => x.Palette)
             .OfType<Palette>()
             .Distinct()
@@ -313,37 +315,44 @@ public abstract class Arranger : IProjectResource
     /// </summary>
     public abstract IEnumerable<IProjectResource> LinkedResources { get; }
 
+    /// <summary>
+    /// Unlinks project resources directly referenced by ArrangerElements. Does not unlink Palettes as they're part of the Codec.
+    /// </summary>
+    /// <param name="resource"></param>
+    /// <returns>True if unlinked, false if not</returns>
     public bool UnlinkResource(IProjectResource resource)
     {
-        if (resource is Palette palette)
-            return UnlinkPalette(palette);
+        if (resource is Palette)
+            return false;
+        //return UnlinkPalette(palette);
         else if (resource is DataSource df)
             return UnlinkDataFile(df);
         else
             return false;
     }
 
-    private bool UnlinkPalette(Palette palette)
-    {
-        var isModified = false;
+    //private bool UnlinkPalette(Palette palette)
+    //{
+    //    var isModified = false;
 
-        for (int y = 0; y < ArrangerElementSize.Height; y++)
-        {
-            for (int x = 0; x < ArrangerElementSize.Width; x++)
-            {
-                if (GetElement(x, y) is ArrangerElement el)
-                {
-                    if (ReferenceEquals(palette, el.Palette))
-                    {
-                        SetElement(el.WithPalette(default), x, y);
-                        isModified = true;
-                    }
-                }
-            }
-        }
+    //    for (int y = 0; y < ArrangerElementSize.Height; y++)
+    //    {
+    //        for (int x = 0; x < ArrangerElementSize.Width; x++)
+    //        {
+    //            if (GetElement(x, y) is ArrangerElement { Codec: IIndexedCodec codec } el)
+    //            {
+    //                if (ReferenceEquals(palette, codec.Palette))
+    //                {
+    //                    // TODO: Fix Palette Unlink to null?
+    //                    //SetElement(el.WithPalette(default), x, y);
+    //                    isModified = true;
+    //                }
+    //            }
+    //        }
+    //    }
 
-        return isModified;
-    }
+    //    return isModified;
+    //}
 
     private bool UnlinkDataFile(DataSource dataFile)
     {

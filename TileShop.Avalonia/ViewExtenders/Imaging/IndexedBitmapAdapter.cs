@@ -7,7 +7,7 @@ using Avalonia;
 using Avalonia.Platform;
 using Avalonia.Media.Imaging;
 using ImageMagitek;
-using ImageMagitek.Colors;
+using ImageMagitek.Codec;
 
 namespace TileShop.AvaloniaUI.Imaging;
 
@@ -129,8 +129,9 @@ public class IndexedBitmapAdapter : BitmapAdapter
 
         var el = Image.GetElementAtPixel(x, y);
 
-        if (el?.Palette is Palette pal)
+        if (el?.Codec is IIndexedCodec codec)
         {
+            var pal = codec.Palette;
             var index = sourceRow[x];
 
             var inputColor = pal[index].Color;

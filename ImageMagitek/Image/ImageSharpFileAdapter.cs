@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -24,8 +25,9 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
 
             for (int x = 0; x < width; x++, srcidx++)
             {
-                if (arranger.GetElementAtPixel(x, y)?.Palette is Palette pal)
+                if (arranger.GetElementAtPixel(x, y)?.Codec is IIndexedCodec codec)
                 {
+                    var pal = codec.Palette;
                     var index = image[srcidx];
                     var color = pal[index];
                     span[x] = color.ToRgba32();
@@ -75,8 +77,9 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
 
             for (int x = 0; x < width; x++, destidx++)
             {
-                if (arranger.GetElementAtPixel(x, y)?.Palette is Palette pal)
+                if (arranger.GetElementAtPixel(x, y)?.Codec is IIndexedCodec codec)
                 {
+                    var pal = codec.Palette;
                     var color = new ColorRgba32(span[x].PackedValue);
                     var palIndex = pal.GetIndexByNativeColor(color, matchStrategy);
                     outputImage[destidx] = palIndex;
@@ -111,8 +114,9 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
 
             for (int x = 0; x < width; x++, destidx++)
             {
-                if (arranger.GetElementAtPixel(x, y)?.Palette is Palette pal)
+                if (arranger.GetElementAtPixel(x, y)?.Codec is IIndexedCodec codec)
                 {
+                    var pal = codec.Palette;
                     var color = new ColorRgba32(span[x].PackedValue);
 
                     if (pal.TryGetIndexByNativeColor(color, matchStrategy, out var palIndex))

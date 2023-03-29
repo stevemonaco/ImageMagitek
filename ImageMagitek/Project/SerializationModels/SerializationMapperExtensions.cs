@@ -1,4 +1,5 @@
-﻿using ImageMagitek.Colors;
+﻿using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -156,7 +157,10 @@ public static class SerializationMapperExtensions
         ArrangerElementModel MapToModel(ArrangerElement el, int elemX, int elemY)
         {
             var dataFileKey = resourceMap[el.Source];
-            var paletteKey = (el.Palette is not null) ? resourceMap[el.Palette] : null;
+            string? paletteKey = null;
+
+            if (el.Codec is IIndexedCodec codec)
+                paletteKey = resourceMap[codec.Palette];
 
             var model = new ArrangerElementModel
             {

@@ -187,6 +187,11 @@ internal sealed class ProjectTreeBuilder
             }
 
             codec = _codecFactory.CreateCodec(elementModel.CodecName, new Size(arrangerModel.ElementPixelSize.Width, arrangerModel.ElementPixelSize.Height));
+
+            if (codec is not IIndexedCodec indexedCodec)
+                throw new InvalidOperationException($"{nameof(CreateElement)}: {arrangerModel.Name} is an indexed color type but contains non-indexed codec '{elementModel.CodecName}'");
+
+            indexedCodec.Palette = palette;
         }
         else if (arrangerModel.ColorType == PixelColorType.Direct)
         {
@@ -208,7 +213,7 @@ internal sealed class ProjectTreeBuilder
         {
             var pixelX = x * arrangerModel.ElementPixelSize.Width;
             var pixelY = y * arrangerModel.ElementPixelSize.Height;
-            var el = new ArrangerElement(pixelX, pixelY, df, address, codec, palette, elementModel.Mirror, elementModel.Rotation);
+            var el = new ArrangerElement(pixelX, pixelY, df, address, codec, elementModel.Mirror, elementModel.Rotation);
             return new MagitekResult<ArrangerElement?>.Success(el);
         }
         else

@@ -30,7 +30,11 @@ public static class ArrangerTestFactory
         {
             for (int x = 0; x < elemsX; x++)
             {
-                var element = new ArrangerElement(x, y, file, address, factory.CloneCodec(codec), palette);
+                var newCodec = factory.CloneCodec(codec);
+                if (newCodec is IIndexedCodec indexedCodec)
+                    indexedCodec.Palette = palette;
+
+                var element = new ArrangerElement(x, y, file, address, newCodec);
                 address += codec.StorageSize;
 
                 arranger.SetElement(element, x, y);

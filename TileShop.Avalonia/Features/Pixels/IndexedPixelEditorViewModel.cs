@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 using ImageMagitek.Image;
@@ -59,6 +60,8 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
 
         var arrangerPalettes = WorkingArranger.EnumerateElementsWithinPixelRange(ViewDx, ViewDy, viewWidth, viewHeight)
             .OfType<ArrangerElement>()
+            .Select(x => x.Codec)
+            .OfType<IIndexedCodec>()
             .Select(x => x.Palette)
             .OfType<Palette>()
             .Distinct()
@@ -174,9 +177,9 @@ public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<b
     {
         var el = WorkingArranger.GetElementAtPixel(x, y);
 
-        if (el is ArrangerElement element)
+        if (el is ArrangerElement { Codec: IIndexedCodec codec } element)
         {
-            ActivePalette = Palettes.First(x => ReferenceEquals(x.Palette, element.Palette));
+            ActivePalette = Palettes.First(x => ReferenceEquals(x.Palette, codec.Palette));
             base.PickColor(x, y, priority);
         }
     }

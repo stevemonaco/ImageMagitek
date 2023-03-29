@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.Linq;
+using ImageMagitek.Codec;
 using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek.Image;
@@ -64,8 +65,11 @@ public static class ImageCopier
                 if (dest.CanSetPixel(x + destStart.X, y + destStart.Y, color).Value is MagitekResult.Failed)
                 {
                     var el = dest.GetElementAtPixel(x + destStart.X, y + destStart.Y);
+                    string palName = "Default";
 
-                    var palName = el?.Palette?.Name ?? "Default";
+                    if (el?.Codec is IIndexedCodec codec)
+                        palName = codec.Palette.Name;
+
                     return new MagitekResult.Failed($"Destination image at (x: {destStart.X}, y: {destStart.Y}) with element palette '{palName}' could not be set to the source color ({color.A}, {color.R}, {color.G}, {color.B})");
                 }
             }
@@ -83,7 +87,12 @@ public static class ImageCopier
                 var color = source.GetPixel(x + sourceStart.X, y + sourceStart.Y);
                 if (dest.CanSetPixel(x + destStart.X, y + destStart.Y, color).Value is MagitekResult.Failed)
                 {
-                    var palName = dest.GetElementAtPixel(x + destStart.X, y + destStart.Y)?.Palette?.Name ?? "Undefined";
+                    var el = dest.GetElementAtPixel(x + destStart.X, y + destStart.Y);
+                    string palName = "Default";
+
+                    if (el?.Codec is IIndexedCodec codec)
+                        palName = codec.Palette.Name;
+
                     return new MagitekResult.Failed($"Destination image at (x: {destStart.X}, y: {destStart.Y}) with element palette '{palName}' could not be set to the source color ({color.A}, {color.R}, {color.G}, {color.B})");
                 }
             }

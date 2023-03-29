@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using ImageMagitek;
-using ImageMagitek.Colors;
+using ImageMagitek.Codec;
 
 namespace FF5MonsterSprites.Imaging;
 
@@ -121,8 +121,9 @@ public class IndexedBitmapAdapter : BitmapAdapter
 
         var el = Image.GetElementAtPixel(x, y);
 
-        if (el?.Palette is Palette pal)
+        if (el?.Codec is IIndexedCodec codec)
         {
+            var pal = codec.Palette;
             var index = sourceRow[x];
             var inputColor = pal[index].Color;
 

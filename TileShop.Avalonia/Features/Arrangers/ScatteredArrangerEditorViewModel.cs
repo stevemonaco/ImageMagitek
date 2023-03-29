@@ -1,27 +1,27 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.ObjectModel;
-using ImageMagitek;
-using ImageMagitek.Colors;
-using ImageMagitek.Services;
-using TileShop.Shared.Models;
-using ImageMagitek.ExtensionMethods;
-using TileShop.AvaloniaUI.Imaging;
-using TileShop.AvaloniaUI.Models;
+using System.Drawing;
+using System.Linq;
+using System.Threading.Tasks;
+using CommunityToolkit.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Monaco.PathTree;
-using TileShop.Shared.Messages;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using TileShop.Shared.Input;
-using System.Threading.Tasks;
-using TileShop.Shared.Interactions;
-
-using Point = System.Drawing.Point;
-using System.Drawing;
-using Jot;
-using CommunityToolkit.Diagnostics;
+using ImageMagitek;
+using ImageMagitek.Codec;
+using ImageMagitek.Colors;
+using ImageMagitek.ExtensionMethods;
+using ImageMagitek.Services;
 using ImageMagitek.Services.Stores;
+using Jot;
+using Monaco.PathTree;
+using TileShop.AvaloniaUI.Imaging;
+using TileShop.AvaloniaUI.Models;
+using TileShop.Shared.Input;
+using TileShop.Shared.Interactions;
+using TileShop.Shared.Messages;
+using TileShop.Shared.Models;
+using Point = System.Drawing.Point;
 
 namespace TileShop.AvaloniaUI.ViewModels;
 
@@ -255,7 +255,10 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
             if (el is ArrangerElement element)
             {
-                var paletteName = element.Palette?.Name ?? "Default";
+                string paletteName = "Default";
+                if (element.Codec is IIndexedCodec codec)
+                    paletteName = codec.Palette.Name;
+
                 var sourceName = element.Source switch
                 {
                     FileDataSource fds => fds.FileLocation,
@@ -418,9 +421,9 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
             var el = WorkingArranger.GetElementAtPixel(pixelX, pixelY);
 
-            if (el is ArrangerElement element)
+            if (el is ArrangerElement { Codec: IIndexedCodec codec } element)
             {
-                if (ReferenceEquals(palette, element.Palette))
+                if (ReferenceEquals(palette, codec.Palette))
                     return false;
 
                 var result = _indexedImage.TrySetPalette(pixelX, pixelY, palette);
@@ -455,9 +458,9 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
 
         var el = WorkingArranger.GetElement(elX, elY);
 
-        if (el is ArrangerElement element)
+        if (el is ArrangerElement { Codec: IIndexedCodec codec } element)
         {
-            SelectedPalette = Palettes.FirstOrDefault(x => ReferenceEquals(element.Palette, x.Palette)) ??
+            SelectedPalette = Palettes.FirstOrDefault(x => ReferenceEquals(codec.Palette, x.Palette)) ??
                 Palettes.First(x => ReferenceEquals(_paletteStore.DefaultPalette, x.Palette));
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CommunityToolkit.Diagnostics;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
@@ -611,8 +612,11 @@ public class ProjectService : IProjectService
                 foreach (var (x, y) in arranger.EnumerateElementsWithinElementRange())
                 {
                     var el = arranger.GetElement(x, y);
-                    if (el is not null && el.Value.Palette is null)
-                        arranger.SetElement(el.Value.WithPalette(defaultPalette), x, y);
+                    if (el is ArrangerElement { Codec: IIndexedCodec codec })
+                    {
+                        codec.Palette = defaultPalette;
+                        arranger.SetElement(el, x, y);
+                    }
                 }
             }
 

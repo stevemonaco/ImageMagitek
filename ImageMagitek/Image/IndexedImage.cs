@@ -88,7 +88,7 @@ public sealed class IndexedImage : ImageBase<byte>
         foreach (var location in locations)
         {
             var el = Arranger.GetElement(location.X, location.Y);
-            if (el is ArrangerElement element && element.Codec is IIndexedCodec codec)
+            if (el is ArrangerElement { Codec: IIndexedCodec codec } element)
             {
                 var encodedBuffer = codec.ReadElement(element);
 
@@ -122,10 +122,6 @@ public sealed class IndexedImage : ImageBase<byte>
                         destidx++;
                     }
                 }
-            }
-            else
-            {
-
             }
         }
     }

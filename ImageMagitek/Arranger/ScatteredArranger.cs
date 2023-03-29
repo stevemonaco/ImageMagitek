@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Linq;
 using System.Collections.Generic;
 using ImageMagitek.Project;
+using ImageMagitek.Codec;
 
 namespace ImageMagitek;
 
@@ -112,8 +113,8 @@ public sealed class ScatteredArranger : Arranger
 
             foreach (var el in EnumerateElements().OfType<ArrangerElement>())
             {
-                if (el.Palette is not null)
-                    set.Add(el.Palette);
+                if (el.Codec is IIndexedCodec codec && codec.Palette is not null)
+                    set.Add(codec.Palette);
 
                 if (el.Source is not null)
                     set.Add(el.Source);

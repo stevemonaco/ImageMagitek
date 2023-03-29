@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using ImageMagitek.Codec;
 
 namespace ImageMagitek.UnitTests.Helpers;
 
@@ -23,8 +24,11 @@ public class ElementWithoutLocationComparer : IComparer
             if (elA.Source.Name != elB.Source.Name)
                 return elA.Source.Name.CompareTo(elB.Source.Name);
 
-            if (elA.Palette?.Name != elB.Palette?.Name && elA.Palette is not null && elB.Palette is not null)
-                return elA.Palette.Name.CompareTo(elB.Palette.Name);
+            if (elA.Codec is IIndexedCodec codecA && elB.Codec is IIndexedCodec codecB)
+            {
+                if (codecA.Palette.Name != codecB.Palette.Name)
+                    return codecA.Palette.Name.CompareTo(codecB.Palette.Name);
+            }
 
             return 0;
         }

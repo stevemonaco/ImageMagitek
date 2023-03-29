@@ -98,7 +98,7 @@ public class MonsterSerializer
                 if (bitStream.ReadBit() == 1)
                 {
                     IGraphicsCodec codec = metadata.ColorDepth == TileColorDepth.Bpp4 ? new Snes4bppCodec(pal, 8, 8) : new Snes3bppCodec(pal, 8, 8);
-                    var element = new ArrangerElement(x * 8, y * 8, fileSource, new BitAddress(tileOffset * 8), codec, pal);
+                    var element = new ArrangerElement(x * 8, y * 8, fileSource, new BitAddress(tileOffset * 8), codec);
                     tileOffset += tileSize;
                     arranger.SetElement(element, x, y);
                     elementsStored++;

@@ -18,9 +18,9 @@ public static class IndexedImageExtensions
     {
         var el = image.Arranger.GetElementAtPixel(x + image.Left, y + image.Top);
 
-        if (el?.Palette is Palette pal)
+        if (el?.Codec is IIndexedCodec codec)
         {
-            var index = pal.GetIndexByNativeColor(color, ColorMatchStrategy.Exact);
+            var index = codec.Palette.GetIndexByNativeColor(color, ColorMatchStrategy.Exact);
             image.Image[x + image.Width * y] = index;
         }
         else
@@ -59,10 +59,10 @@ public static class IndexedImageExtensions
 
         if (el is ArrangerElement element)
         {
-            if (!(element.Codec is IIndexedCodec))
+            if (element.Codec is not IIndexedCodec codec)
                 return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because the element's codec is not an indexed color type");
 
-            var pal = element.Palette;
+            var pal = codec.Palette;
 
             if (pal is null)
                 return new MagitekResult.Failed($"Cannot set pixel at ({x}, {y}) because arranger '{image.Arranger.Name}' has no palette specified for the element");
@@ -89,10 +89,10 @@ public static class IndexedImageExtensions
     {
         var el = image.Arranger.GetElementAtPixel(x + image.Left, y + image.Top);
 
-        if (el?.Palette is Palette pal)
+        if (el?.Codec is IIndexedCodec codec)
         {
             var palIndex = image.Image[x + image.Width * y];
-            return pal[palIndex];
+            return codec.Palette[palIndex];
         }
         else
             throw new InvalidOperationException($"{nameof(GetPixelColor)} has no defined palette at ({x}, {y})");
@@ -115,7 +115,10 @@ public static class IndexedImageExtensions
 
         if (el is ArrangerElement element)
         {
-            if (ReferenceEquals(pal, element.Palette))
+            if (element.Codec is not IIndexedCodec codec)
+                return new MagitekResult.Failed($"Cannot set palette at ({x}, {y}) because the element's codec is not an indexed color type");
+
+            if (ReferenceEquals(pal, codec.Palette))
                 return MagitekResult.SuccessResult;
 
             int maxIndex = 0;
@@ -128,7 +131,7 @@ public static class IndexedImageExtensions
             {
                 var location = image.Arranger.PointToElementLocation(new Point(x + image.Left, y + image.Top));
 
-                element = element.WithPalette(pal);
+                codec.Palette = pal;
 
                 image.Arranger.SetElement(element, location.X, location.Y);
                 return MagitekResult.SuccessResult;
@@ -151,7 +154,10 @@ public static class IndexedImageExtensions
     {
         bool isModified = false;
         var replaceIndex = image.GetPixel(x, y);
-        var startingPalette = image.GetElementAtPixel(x, y)?.Palette;
+        Palette? startingPalette = default;
+
+        if (image.GetElementAtPixel(x, y)?.Codec is IIndexedCodec startingCodec)
+            startingPalette = startingCodec.Palette;
 
         if (fillIndex == replaceIndex || startingPalette is null)
             return false;
@@ -168,7 +174,10 @@ public static class IndexedImageExtensions
                 var nodeColor = image.GetPixel(nodePosition.x, nodePosition.y);
                 if (nodeColor == replaceIndex)
                 {
-                    var destPalette = image.GetElementAtPixel(nodePosition.x, nodePosition.y)?.Palette;
+                    Palette? destPalette = default;
+                    if (image.GetElementAtPixel(nodePosition.x, nodePosition.y)?.Codec is IIndexedCodec destCodec)
+                        destPalette = destCodec.Palette;
+
                     if (ReferenceEquals(startingPalette, destPalette))
                     {
                         isModified = true;

@@ -111,7 +111,7 @@ public sealed class SequentialArranger : Arranger
                     var posY = y * TileLayout.Height + pos.Y;
 
                     var el = new ArrangerElement(posX * ElementPixelSize.Width,
-                        posY * ElementPixelSize.Height, ActiveDataSource, address, ActiveCodec, ActivePalette);
+                        posY * ElementPixelSize.Height, ActiveDataSource, address, ActiveCodec);
 
                     if (el.Codec.Layout == ImageLayout.Tiled)
                         address += ActiveCodec.StorageSize;
@@ -210,11 +210,14 @@ public sealed class SequentialArranger : Arranger
             if (!ReferenceEquals(ActiveDataSource, el.Source))
                 throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its DataFile '{el.Source.Name}' does not match the SequentialArranger '{ActiveDataSource.Name}'");
 
-            if (!ReferenceEquals(ActivePalette, el.Palette))
-                throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its Palette '{el.Palette!.Name}' does not match the SequentialArranger '{ActivePalette.Name}'");
-
             if (el.Codec.Name != ActiveCodec.Name)
                 throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its Codec '{el.Codec.Name}' does not match the SequentialArranger '{ActiveCodec.Name}'");
+
+            if (el.Codec is IIndexedCodec codec)
+            {
+                if (!ReferenceEquals(ActivePalette, codec.Palette))
+                    throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its Palette '{codec.Palette.Name}' does not match the SequentialArranger '{ActivePalette.Name}'");
+            }
 
             var codecSize = new Size(el.Codec.Width, el.Codec.Height);
             if (ElementPixelSize != codecSize)
@@ -292,10 +295,9 @@ public sealed class SequentialArranger : Arranger
         {
             for (int posX = 0; posX < ArrangerElementSize.Width; posX++)
             {
-                if (ElementGrid[posY, posX] is ArrangerElement el)
+                if (ElementGrid[posY, posX] is ArrangerElement { Codec: IIndexedCodec codec } el)
                 {
-                    el = el.WithPalette(pal);
-                    ElementGrid[posY, posX] = el;
+                    codec.Palette = pal;
                 }
             }
         }
@@ -370,8 +372,8 @@ public sealed class SequentialArranger : Arranger
 
             foreach (var el in EnumerateElements().OfType<ArrangerElement>())
             {
-                if (el.Palette is not null)
-                    set.Add(el.Palette);
+                if (el.Codec is IIndexedCodec codec && codec.Palette is not null)
+                    set.Add(codec.Palette);
 
                 if (el.Source is not null)
                     set.Add(el.Source);
