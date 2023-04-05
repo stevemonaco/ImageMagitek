@@ -3,9 +3,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
-using TileShop.AvaloniaUI.ViewModels;
+using TileShop.UI.ViewModels;
 
-namespace TileShop.AvaloniaUI.Views;
+namespace TileShop.UI.Views;
 public partial class MenuView : UserControl
 {
     private MenuViewModel _viewModel = default!;

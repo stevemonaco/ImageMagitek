@@ -9,7 +9,7 @@ using Avalonia.Media.Imaging;
 using ImageMagitek;
 using ImageMagitek.Codec;
 
-namespace TileShop.AvaloniaUI.Imaging;
+namespace TileShop.UI.Imaging;
 
 public class IndexedBitmapAdapter : BitmapAdapter
 {

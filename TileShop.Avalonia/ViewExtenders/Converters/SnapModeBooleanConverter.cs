@@ -4,7 +4,7 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using TileShop.Shared.Models;
 
-namespace TileShop.AvaloniaUI.Converters;
+namespace TileShop.UI.Converters;
 
 public class SnapModeBooleanConverter : IValueConverter
 {

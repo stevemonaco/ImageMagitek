@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.Shared.Models;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.UI.Models;
 
 public partial class ColorRemapHistoryAction : HistoryAction
 {

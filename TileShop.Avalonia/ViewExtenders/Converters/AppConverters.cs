@@ -3,11 +3,11 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
-using TileShop.AvaloniaUI.Models;
-using TileShop.AvaloniaUI.ViewModels;
+using TileShop.UI.Models;
+using TileShop.UI.ViewModels;
 using TileShop.Shared.Models;
 
-namespace TileShop.AvaloniaUI.Converters;
+namespace TileShop.UI.Converters;
 
 public static class AppConverters
 {

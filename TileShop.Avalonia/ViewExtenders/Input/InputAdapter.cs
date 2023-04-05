@@ -7,7 +7,7 @@ using KeyModifiers = TileShop.Shared.Input.KeyModifiers;
 using AvKey = Avalonia.Input.Key;
 using AvKeyModifiers = Avalonia.Input.KeyModifiers;
 
-namespace TileShop.AvaloniaUI.Input;
+namespace TileShop.UI.Input;
 public static class InputAdapter
 {
     public static MouseState CreateMouseState(PointerPoint point, AvKeyModifiers keys)

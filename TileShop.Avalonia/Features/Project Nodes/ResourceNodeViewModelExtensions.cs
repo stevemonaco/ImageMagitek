@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public static class ResourceNodeViewModelExtensions
 {

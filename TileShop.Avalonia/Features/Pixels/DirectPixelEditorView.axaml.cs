@@ -1,11 +1,11 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Input;
-using TileShop.AvaloniaUI.Input;
-using TileShop.AvaloniaUI.ViewModels;
+using TileShop.UI.Input;
+using TileShop.UI.ViewModels;
 using TileShop.Shared.Input;
 
-namespace TileShop.AvaloniaUI.Views;
+namespace TileShop.UI.Views;
 public partial class DirectPixelEditorView : UserControl, IStateViewDriver<DirectPixelEditorViewModel>
 {
     public DirectPixelEditorViewModel? ViewModel { get; private set; } = null!;

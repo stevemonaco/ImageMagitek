@@ -1,7 +1,7 @@
 ﻿using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace TileShop.AvaloniaUI.Views;
+namespace TileShop.UI.Views;
 
 internal interface IStateViewDriver<TViewModel> : IStateViewDriver
     where TViewModel : ObservableObject

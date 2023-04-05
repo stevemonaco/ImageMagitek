@@ -7,9 +7,9 @@ using Dock.Model.Controls;
 using Dock.Model.Core;
 using Dock.Model.Mvvm;
 using Dock.Model.Mvvm.Controls;
-using TileShop.AvaloniaUI.ViewModels;
+using TileShop.UI.ViewModels;
 
-namespace TileShop.AvaloniaUI.ViewExtenders.Docking;
+namespace TileShop.UI.ViewExtenders.Docking;
 
 public class DockFactory : Factory
 {

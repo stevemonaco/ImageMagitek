@@ -2,7 +2,7 @@ using Avalonia;
 using Serilog;
 using System;
 
-namespace TileShop.AvaloniaUI;
+namespace TileShop.UI;
 
 internal class Program
 {

@@ -21,7 +21,7 @@ using TileShop.Shared.Interactions;
 using CommunityToolkit.Diagnostics;
 using ImageMagitek.Services.Stores;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public partial class ProjectTreeViewModel : ToolViewModel
 {

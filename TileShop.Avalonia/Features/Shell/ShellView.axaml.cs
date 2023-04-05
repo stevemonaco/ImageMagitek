@@ -2,10 +2,10 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Dock.Model.Core.Events;
-using TileShop.AvaloniaUI.ViewExtenders.Docking;
-using TileShop.AvaloniaUI.ViewModels;
+using TileShop.UI.ViewExtenders.Docking;
+using TileShop.UI.ViewModels;
 
-namespace TileShop.AvaloniaUI.Views;
+namespace TileShop.UI.Views;
 public partial class ShellView : Window
 {
     private ShellViewModel _viewModel = default!;

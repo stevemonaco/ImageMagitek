@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace TileShop.AvaloniaUI.Views;
+namespace TileShop.UI.Views;
 public partial class RenameNodeView : UserControl
 {
     public RenameNodeView()

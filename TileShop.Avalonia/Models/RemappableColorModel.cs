@@ -1,7 +1,7 @@
 ﻿using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.UI.Models;
 
 public partial class RemappableColorModel : ObservableObject
 {

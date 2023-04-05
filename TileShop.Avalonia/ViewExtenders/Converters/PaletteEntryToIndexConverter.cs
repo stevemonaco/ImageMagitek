@@ -2,9 +2,9 @@
 using System.Globalization;
 using Avalonia;
 using Avalonia.Data.Converters;
-using TileShop.AvaloniaUI.Models;
+using TileShop.UI.Models;
 
-namespace TileShop.AvaloniaUI.Converters;
+namespace TileShop.UI.Converters;
 
 public class PaletteEntryToIndexConverter : IValueConverter
 {

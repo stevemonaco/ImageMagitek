@@ -1,14 +1,14 @@
 ﻿using ImageMagitek;
 using ImageMagitek.Colors;
-using TileShop.AvaloniaUI.Windowing;
+using TileShop.UI.Windowing;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.AvaloniaUI.Imaging;
+using TileShop.UI.Imaging;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel>
 {

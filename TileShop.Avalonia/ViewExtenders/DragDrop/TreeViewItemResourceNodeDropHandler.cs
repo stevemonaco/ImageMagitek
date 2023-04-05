@@ -3,10 +3,10 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactions.DragAndDrop;
-using TileShop.AvaloniaUI.Models;
-using TileShop.AvaloniaUI.ViewModels;
+using TileShop.UI.Models;
+using TileShop.UI.ViewModels;
 
-namespace TileShop.AvaloniaUI.ViewExtenders.DragDrop;
+namespace TileShop.UI.ViewExtenders.DragDrop;
 public sealed class TreeViewItemResourceNodeDropHandler : DropHandlerBase
 {
     private bool Validate<T>(Control control, DragEventArgs e, object? sourceContext, object? targetContext, bool bExecute)

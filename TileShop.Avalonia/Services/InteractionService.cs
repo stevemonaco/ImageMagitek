@@ -6,7 +6,7 @@ using Avalonia.Markup.Xaml.Templates;
 using FluentAvalonia.UI.Controls;
 using TileShop.Shared.Interactions;
 
-namespace TileShop.AvaloniaUI.Services;
+namespace TileShop.UI.Services;
 internal class InteractionService : IInteractionService
 {
     private readonly ViewLocator _viewLocator;

@@ -2,7 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek.Colors;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public abstract partial class EditableColorBaseViewModel : ObservableRecipient
 {

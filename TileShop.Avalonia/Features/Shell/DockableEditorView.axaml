@@ -1,8 +1,8 @@
 <UserControl
-    x:Class="TileShop.AvaloniaUI.Views.DockableEditorView"
+    x:Class="TileShop.UI.Views.DockableEditorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+    xmlns:vm="using:TileShop.UI.ViewModels"
     x:CompileBindings="True"
     x:DataType="vm:DockableEditorViewModel">
     <ContentControl Content="{Binding Editor}" />

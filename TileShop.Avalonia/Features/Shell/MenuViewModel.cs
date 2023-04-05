@@ -14,7 +14,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public partial class MenuViewModel : ObservableRecipient
 {

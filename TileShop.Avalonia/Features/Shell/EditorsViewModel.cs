@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 using ImageMagitek.Services.Stores;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public enum UserSaveAction { Save, Discard, Cancel, Unmodified }
 

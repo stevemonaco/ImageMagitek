@@ -2,7 +2,7 @@
 using Avalonia.Styling;
 using TileShop.Shared.Services;
 
-namespace TileShop.AvaloniaUI.Services;
+namespace TileShop.UI.Services;
 
 public sealed class ThemeService : IThemeService
 {

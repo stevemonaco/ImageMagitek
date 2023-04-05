@@ -1,4 +1,4 @@
-﻿<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="using:TileShop.AvaloniaUI.ViewModels">
+﻿<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="using:TileShop.UI.ViewModels">
 
     <Style Selector="Image.pixel">
         <Setter Property="RenderOptions.BitmapInterpolationMode" Value="Default" />

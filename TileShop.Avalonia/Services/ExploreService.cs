@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using TileShop.Shared.Services;
 
-namespace TileShop.AvaloniaUI.Services;
+namespace TileShop.UI.Services;
 
 internal class ExploreService : IExploreService
 {

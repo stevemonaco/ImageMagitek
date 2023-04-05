@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using ImageMagitek.Services;
 using Jot;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public partial class ShellViewModel : ObservableObject
 {

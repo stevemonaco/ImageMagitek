@@ -2,10 +2,10 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.AvaloniaUI.Windowing;
+using TileShop.UI.Windowing;
 using TileShop.Shared.Models;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public partial class ResourceRemovalChangesViewModel : DialogViewModel<bool>
 {

@@ -1,10 +1,10 @@
 <Application
-    x:Class="TileShop.AvaloniaUI.App"
+    x:Class="TileShop.UI.App"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:con="using:TileShop.AvaloniaUI.Converters"
+    xmlns:con="using:TileShop.UI.Converters"
     xmlns:fas="using:FluentAvalonia.Styling"
-    xmlns:local="using:TileShop.AvaloniaUI"
+    xmlns:local="using:TileShop.UI"
     RequestedThemeVariant="Dark">
     <Application.DataTemplates>
         <local:ViewLocator />
@@ -15,21 +15,21 @@
         <fas:FluentAvaloniaTheme PreferUserAccentColor="True" />
         <StyleInclude Source="avares://Dock.Avalonia/Themes/DockFluentTheme.axaml" />
 
-        <StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/VerticalNumericUpDown.axaml" />
-        <StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/RadioButtonTool.axaml" />
-        <StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/Arranger.axaml" />
-        <StyleInclude Source="avares://TileShop.AvaloniaUI/Styles/AppStyles.axaml" />
+        <StyleInclude Source="avares://TileShop.UI/Styles/VerticalNumericUpDown.axaml" />
+        <StyleInclude Source="avares://TileShop.UI/Styles/RadioButtonTool.axaml" />
+        <StyleInclude Source="avares://TileShop.UI/Styles/Arranger.axaml" />
+        <StyleInclude Source="avares://TileShop.UI/Styles/AppStyles.axaml" />
     </Application.Styles>
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
-                <ResourceInclude x:Key="Default" Source="avares://TileShop.AvaloniaUI/Styles/AppResources.Light.axaml" />
-                <ResourceInclude x:Key="Dark" Source="avares://TileShop.AvaloniaUI/Styles/AppResources.Dark.axaml" />
+                <ResourceInclude x:Key="Default" Source="avares://TileShop.UI/Styles/AppResources.Light.axaml" />
+                <ResourceInclude x:Key="Dark" Source="avares://TileShop.UI/Styles/AppResources.Dark.axaml" />
             </ResourceDictionary.ThemeDictionaries>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://TileShop.AvaloniaUI/Styles/Icons.axaml" />
-                <ResourceInclude Source="avares://TileShop.AvaloniaUI/Styles/ResourceOverrides.axaml" />
-                <ResourceInclude Source="avares://TileShop.AvaloniaUI/Styles/AppResources.General.axaml" />
+                <ResourceInclude Source="avares://TileShop.UI/Styles/Icons.axaml" />
+                <ResourceInclude Source="avares://TileShop.UI/Styles/ResourceOverrides.axaml" />
+                <ResourceInclude Source="avares://TileShop.UI/Styles/AppResources.General.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

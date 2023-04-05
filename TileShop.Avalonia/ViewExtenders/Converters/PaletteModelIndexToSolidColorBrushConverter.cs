@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using Avalonia.Media;
 using Avalonia.Data.Converters;
 using Avalonia;
-using TileShop.AvaloniaUI.Models;
+using TileShop.UI.Models;
 
-namespace TileShop.AvaloniaUI.Converters;
+namespace TileShop.UI.Converters;
 
 public class PaletteModelIndexToSolidColorBrushConverter : IMultiValueConverter
 {

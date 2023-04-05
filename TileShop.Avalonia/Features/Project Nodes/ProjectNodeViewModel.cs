@@ -3,7 +3,7 @@ using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public class ProjectNodeViewModel : ResourceNodeViewModel
 {

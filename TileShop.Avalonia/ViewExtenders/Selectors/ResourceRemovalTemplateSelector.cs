@@ -8,7 +8,7 @@ using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using TileShop.Shared.Models;
 
-namespace TileShop.AvaloniaUI.Selectors;
+namespace TileShop.UI.Selectors;
 internal class ResourceRemovalTemplateSelector : IDataTemplate
 {
     [Content]

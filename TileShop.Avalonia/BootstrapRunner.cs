@@ -1,4 +1,4 @@
-﻿namespace TileShop.AvaloniaUI;
+﻿namespace TileShop.UI;
 
 public class BootstrapRunner
 {

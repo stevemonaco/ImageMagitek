@@ -2,11 +2,11 @@ using System;
 using System.Drawing;
 using Avalonia.Controls;
 using Avalonia.Input;
-using TileShop.AvaloniaUI.Input;
-using TileShop.AvaloniaUI.ViewModels;
+using TileShop.UI.Input;
+using TileShop.UI.ViewModels;
 using TileShop.Shared.Input;
 
-namespace TileShop.AvaloniaUI.Views;
+namespace TileShop.UI.Views;
 public partial class SequentialArrangerEditorView : UserControl, IStateViewDriver<SequentialArrangerEditorViewModel>
 {
     public SequentialArrangerEditorViewModel? ViewModel { get; private set; }

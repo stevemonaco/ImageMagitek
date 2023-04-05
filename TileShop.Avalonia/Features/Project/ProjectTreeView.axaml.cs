@@ -4,9 +4,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.VisualTree;
-using TileShop.AvaloniaUI.ViewModels;
+using TileShop.UI.ViewModels;
 
-namespace TileShop.AvaloniaUI.Views;
+namespace TileShop.UI.Views;
 public partial class ProjectTreeView : UserControl
 {
     private ProjectTreeViewModel? _viewModel;

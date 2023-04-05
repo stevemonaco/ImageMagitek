@@ -3,10 +3,10 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactions.DragAndDrop;
 using ImageMagitek;
-using TileShop.AvaloniaUI.Models;
-using TileShop.AvaloniaUI.ViewModels;
+using TileShop.UI.Models;
+using TileShop.UI.ViewModels;
 
-namespace TileShop.AvaloniaUI.DragDrop;
+namespace TileShop.UI.DragDrop;
 public class ArrangerDropHandler : DropHandlerBase
 {
     public override void Over(object? sender, DragEventArgs e, object? sourceContext, object? targetContext)

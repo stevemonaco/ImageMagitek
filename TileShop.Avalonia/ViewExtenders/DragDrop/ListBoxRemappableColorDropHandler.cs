@@ -3,10 +3,10 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactions.DragAndDrop;
-using TileShop.AvaloniaUI.Models;
-using TileShop.AvaloniaUI.ViewModels;
+using TileShop.UI.Models;
+using TileShop.UI.ViewModels;
 
-namespace TileShop.AvaloniaUI.DragDrop;
+namespace TileShop.UI.DragDrop;
 
 public sealed class ListBoxRemappableColorDropHandler : DropHandlerBase
 {

@@ -5,11 +5,11 @@ using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using ImageMagitek.Services;
 using ImageMagitek;
-using TileShop.AvaloniaUI.Imaging;
+using TileShop.UI.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Threading.Tasks;
 using Jot;
-using TileShop.AvaloniaUI.Models;
+using TileShop.UI.Models;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Input;
@@ -20,7 +20,7 @@ using KeyModifiers = TileShop.Shared.Input.KeyModifiers;
 using ImageMagitek.Colors;
 using ImageMagitek.Services.Stores;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public enum EditMode { ArrangeGraphics, ModifyGraphics }
 

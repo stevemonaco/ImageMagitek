@@ -1,16 +1,15 @@
 ﻿using System;
-using ImageMagitek;
-using ImageMagitek.Services;
-using TileShop.Shared.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TileShop.Shared.Input;
-using TileShop.Shared.Interactions;
-using Jot;
+using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Services.Stores;
+using Jot;
+using TileShop.Shared.Input;
+using TileShop.Shared.Interactions;
+using TileShop.Shared.Models;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public enum PixelTool { Select, Pencil, ColorPicker, FloodFill }
 public enum ColorPriority { Primary, Secondary }

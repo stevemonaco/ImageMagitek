@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.AvaloniaUI.Windowing;
+using TileShop.UI.Windowing;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public enum NumericBase { Decimal, Hexadecimal }
 

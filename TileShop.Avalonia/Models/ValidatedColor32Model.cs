@@ -2,7 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek.Colors;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.UI.Models;
 
 public partial class ValidatedColor32Model : ObservableObject
 {

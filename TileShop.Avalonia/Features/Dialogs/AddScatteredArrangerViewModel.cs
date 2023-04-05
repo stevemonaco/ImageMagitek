@@ -4,9 +4,9 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ImageMagitek;
-using TileShop.AvaloniaUI.Windowing;
+using TileShop.UI.Windowing;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public partial class AddScatteredArrangerViewModel : DialogViewModel<AddScatteredArrangerViewModel>
 {

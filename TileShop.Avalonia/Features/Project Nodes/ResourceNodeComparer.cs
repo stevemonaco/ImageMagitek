@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 class ResourceNodeComparer : IComparer<ResourceNodeViewModel>
 {

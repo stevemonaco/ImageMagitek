@@ -1,5 +1,5 @@
 ﻿using Avalonia.Media;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.UI.Models;
 
 public record PaletteEntry(byte Index, Color Color);

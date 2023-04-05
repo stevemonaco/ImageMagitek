@@ -3,7 +3,7 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Data.Converters;
 
-namespace TileShop.AvaloniaUI.Converters;
+namespace TileShop.UI.Converters;
 
 public class LongToHexadecimalConverter : IValueConverter
 {

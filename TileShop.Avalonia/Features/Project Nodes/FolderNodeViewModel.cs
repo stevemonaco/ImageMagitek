@@ -3,7 +3,7 @@ using ImageMagitek.Project;
 using ImageMagitek.Colors;
 using System.Diagnostics.CodeAnalysis;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public class FolderNodeViewModel : ResourceNodeViewModel
 {

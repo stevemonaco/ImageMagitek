@@ -5,7 +5,7 @@ using ImageMagitek.Project;
 using TileShop.Shared.Models;
 using TileShop.Shared.Messages;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
 {

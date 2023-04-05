@@ -1,7 +1,7 @@
 ﻿<Styles
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:dd="using:TileShop.AvaloniaUI.DragDrop"
+    xmlns:dd="using:TileShop.UI.DragDrop"
     xmlns:i="using:Avalonia.Xaml.Interactivity"
     xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop">
     <Design.PreviewWith>

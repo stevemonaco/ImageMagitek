@@ -2,9 +2,9 @@
 using System.Globalization;
 using Avalonia;
 using Avalonia.Data.Converters;
-using TileShop.AvaloniaUI.ViewModels;
+using TileShop.UI.ViewModels;
 
-namespace TileShop.AvaloniaUI.Converters;
+namespace TileShop.UI.Converters;
 public class NumericBaseToBooleanConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

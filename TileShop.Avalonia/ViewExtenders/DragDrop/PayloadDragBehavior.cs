@@ -7,7 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactions.DragAndDrop;
 using Avalonia.Xaml.Interactivity;
 
-namespace TileShop.AvaloniaUI.DragDrop;
+namespace TileShop.UI.DragDrop;
 
 using DragDrop = Avalonia.Input.DragDrop;
 

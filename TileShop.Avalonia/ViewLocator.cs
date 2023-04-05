@@ -4,7 +4,7 @@ using Avalonia.Controls.Templates;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Dock.Model.Core;
 
-namespace TileShop.AvaloniaUI;
+namespace TileShop.UI;
 public class ViewLocator : IDataTemplate
 {
     public Control Build(object? data)

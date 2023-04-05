@@ -5,7 +5,7 @@ using Avalonia.Data.Converters;
 using ImageMagitek.Colors;
 using MediaColor = Avalonia.Media.Color;
 
-namespace TileShop.AvaloniaUI.Converters;
+namespace TileShop.UI.Converters;
 public class ColorRgba32ToMediaColorConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

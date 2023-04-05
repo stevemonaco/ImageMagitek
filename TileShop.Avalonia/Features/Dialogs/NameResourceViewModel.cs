@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.AvaloniaUI.Windowing;
+using TileShop.UI.Windowing;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public partial class NameResourceViewModel : DialogViewModel<string?>
 {

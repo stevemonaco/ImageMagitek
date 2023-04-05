@@ -4,7 +4,7 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using ImageMagitek;
 
-namespace TileShop.AvaloniaUI.Converters;
+namespace TileShop.UI.Converters;
 
 public class EndianToBooleanConverter : IValueConverter
 {

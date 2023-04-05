@@ -1,12 +1,12 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Input;
-using TileShop.AvaloniaUI.ViewModels;
-using TileShop.AvaloniaUI.Input;
+using TileShop.UI.ViewModels;
+using TileShop.UI.Input;
 using TileShop.Shared.Input;
 using System.Drawing;
 
-namespace TileShop.AvaloniaUI.Views;
+namespace TileShop.UI.Views;
 public partial class ScatteredArrangerEditorView : UserControl, IStateViewDriver<ScatteredArrangerEditorViewModel>
 {
     public ScatteredArrangerEditorViewModel? ViewModel { get; private set; }

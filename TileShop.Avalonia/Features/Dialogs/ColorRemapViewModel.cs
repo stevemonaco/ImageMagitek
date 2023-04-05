@@ -1,11 +1,11 @@
 ﻿using Avalonia.Media;
 using ImageMagitek.Colors;
 using System.Collections.ObjectModel;
-using TileShop.AvaloniaUI.Models;
-using TileShop.AvaloniaUI.Windowing;
+using TileShop.UI.Models;
+using TileShop.UI.Windowing;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public partial class ColorRemapViewModel : DialogViewModel<ColorRemapViewModel> //, IDropTarget //, IDropTarget, IDragSource
 {

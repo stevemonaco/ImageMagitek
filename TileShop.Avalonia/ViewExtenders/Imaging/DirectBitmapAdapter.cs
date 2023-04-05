@@ -9,7 +9,7 @@ using Avalonia.Media.Imaging;
 using ImageMagitek;
 using ImageMagitek.Colors;
 
-namespace TileShop.AvaloniaUI.Imaging;
+namespace TileShop.UI.Imaging;
 
 public class DirectBitmapAdapter : BitmapAdapter
 {

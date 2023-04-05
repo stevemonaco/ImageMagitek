@@ -4,9 +4,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Threading;
-using TileShop.AvaloniaUI.ViewModels;
+using TileShop.UI.ViewModels;
 
-namespace TileShop.AvaloniaUI.Views;
+namespace TileShop.UI.Views;
 public partial class JumpToOffsetView : UserControl
 {
     static HashSet<Key> _acceptedHexKeys = new()

@@ -2,11 +2,11 @@
 using System.Drawing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
-using TileShop.AvaloniaUI.DragDrop;
-using TileShop.AvaloniaUI.Imaging;
+using TileShop.UI.DragDrop;
+using TileShop.UI.Imaging;
 using TileShop.Shared.Models;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.UI.Models;
 
 public partial class ArrangerPaste : ObservableObject, IDraggable
 {

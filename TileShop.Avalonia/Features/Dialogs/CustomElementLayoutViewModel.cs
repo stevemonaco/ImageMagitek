@@ -1,9 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TileShop.AvaloniaUI.Windowing;
+using TileShop.UI.Windowing;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public enum ElementLayoutFlowDirection { RowLeftToRight, ColumnTopToBottom }
 

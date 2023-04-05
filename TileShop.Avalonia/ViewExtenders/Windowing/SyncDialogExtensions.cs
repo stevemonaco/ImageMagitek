@@ -7,7 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Platform;
 using Avalonia.Threading;
 
-namespace TileShop.AvaloniaUI.Windowing;
+namespace TileShop.UI.Windowing;
 
 /// <summary>
 /// Code obtained from grokys https://github.com/grokys/ShowDialogSyncAvalonia

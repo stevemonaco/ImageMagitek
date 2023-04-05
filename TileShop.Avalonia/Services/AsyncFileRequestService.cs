@@ -7,7 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using TileShop.Shared.Interactions;
 
-namespace TileShop.AvaloniaUI.Services;
+namespace TileShop.UI.Services;
 
 internal class AsyncFileRequestService : IAsyncFileRequestService
 {

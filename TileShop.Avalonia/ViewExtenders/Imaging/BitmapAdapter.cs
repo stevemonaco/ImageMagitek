@@ -3,7 +3,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace TileShop.AvaloniaUI.Imaging;
+namespace TileShop.UI.Imaging;
 
 public abstract class BitmapAdapter : ObservableObject
 {

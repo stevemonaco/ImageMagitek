@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
 using TileShop.Shared.Models;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.UI.Models;
 public partial class GridSettingsViewModel : ObservableObject
 {
     [ObservableProperty] private int _widthSpacing;

@@ -1,9 +1,9 @@
 <UserControl
-    x:Class="TileShop.AvaloniaUI.Views.Color32View"
+    x:Class="TileShop.UI.Views.Color32View"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:v="using:TileShop.AvaloniaUI.Views"
-    xmlns:vm="using:TileShop.AvaloniaUI.ViewModels"
+    xmlns:v="using:TileShop.UI.Views"
+    xmlns:vm="using:TileShop.UI.ViewModels"
     x:CompileBindings="True"
     x:DataType="vm:Color32ViewModel">
     <Grid RowDefinitions="auto,auto,auto,auto">

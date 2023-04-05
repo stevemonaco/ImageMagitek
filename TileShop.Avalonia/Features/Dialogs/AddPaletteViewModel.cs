@@ -4,9 +4,9 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
 using ImageMagitek.Colors;
-using TileShop.AvaloniaUI.Windowing;
+using TileShop.UI.Windowing;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public partial class AddPaletteViewModel : DialogViewModel<AddPaletteViewModel>
 {

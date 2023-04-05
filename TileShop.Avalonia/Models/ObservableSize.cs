@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace TileShop.AvaloniaUI.Models;
+namespace TileShop.UI.Models;
 public sealed partial class ObservableSize : ObservableObject
 {
     [ObservableProperty] private int _width;

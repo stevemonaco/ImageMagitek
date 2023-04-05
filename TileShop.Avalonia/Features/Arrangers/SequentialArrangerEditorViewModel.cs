@@ -7,8 +7,8 @@ using Jot;
 using System.Drawing;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.AvaloniaUI.Models;
-using TileShop.AvaloniaUI.Imaging;
+using TileShop.UI.Models;
+using TileShop.UI.Imaging;
 using CommunityToolkit.Mvvm.Input;
 using TileShop.Shared.Messages;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ using CommunityToolkit.Diagnostics;
 using ImageMagitek.Colors;
 using ImageMagitek.Services.Stores;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public partial class SequentialArrangerEditorViewModel : ArrangerEditorViewModel
 {

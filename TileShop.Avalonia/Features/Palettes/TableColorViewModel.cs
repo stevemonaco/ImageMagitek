@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using ImageMagitek.Colors;
 using Avalonia.Media;
 using System.Collections.ObjectModel;
-using TileShop.AvaloniaUI.Models;
+using TileShop.UI.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.Shared.Messages;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Diagnostics.CodeAnalysis;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public partial class TableColorViewModel : EditableColorBaseViewModel
 {

@@ -2,7 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using TileShop.Shared.Interactions;
 
-namespace TileShop.AvaloniaUI.Windowing;
+namespace TileShop.UI.Windowing;
 public abstract partial class DialogViewModel<TResult> : ObservableValidator, IRequestMediator<TResult>
 {
     [ObservableProperty] protected TResult? _requestResult = default(TResult);

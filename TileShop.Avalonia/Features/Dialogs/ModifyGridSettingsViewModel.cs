@@ -1,8 +1,8 @@
 ﻿using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.AvaloniaUI.Windowing;
+using TileShop.UI.Windowing;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 public sealed partial class ModifyGridSettingsViewModel : DialogViewModel<ModifyGridSettingsViewModel?>
 {
     [ObservableProperty] private int _shiftX;

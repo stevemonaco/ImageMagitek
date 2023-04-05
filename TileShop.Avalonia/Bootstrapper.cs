@@ -9,13 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using TileShop.AvaloniaUI.Models;
-using TileShop.AvaloniaUI.Services;
-using TileShop.AvaloniaUI.ViewModels;
+using TileShop.UI.Models;
+using TileShop.UI.Services;
+using TileShop.UI.ViewModels;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Services;
 
-namespace TileShop.AvaloniaUI;
+namespace TileShop.UI;
 
 public interface IAppBootstrapper<TViewModel> where TViewModel : class
 {

@@ -13,14 +13,14 @@ using ImageMagitek.ExtensionMethods;
 using ImageMagitek.Image;
 using ImageMagitek.Services.Stores;
 using Jot;
-using TileShop.AvaloniaUI.Imaging;
-using TileShop.AvaloniaUI.Models;
+using TileShop.UI.Imaging;
+using TileShop.UI.Models;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using Point = System.Drawing.Point;
 
-namespace TileShop.AvaloniaUI.ViewModels;
+namespace TileShop.UI.ViewModels;
 
 public sealed partial class IndexedPixelEditorViewModel : PixelEditorViewModel<byte>
 {
