@@ -7,7 +7,6 @@
     xmlns:v="using:TileShop.UI.Views"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:Name="palView"
-    x:CompileBindings="True"
     x:DataType="vm:PaletteEditorViewModel">
     <UserControl.DataTemplates>
         <DataTemplate DataType="{x:Type m:FileColorSourceModel}">

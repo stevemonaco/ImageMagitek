@@ -9,7 +9,6 @@
     xmlns:paz="using:Avalonia.Controls.PanAndZoom"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:Name="pixelEditor"
-    x:CompileBindings="True"
     x:DataType="vm:DirectPixelEditorViewModel">
     <UserControl.KeyBindings>
         <KeyBinding Command="{Binding ToggleGridlineVisibilityCommand}" Gesture="G" />

@@ -9,7 +9,6 @@
     xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop"
     xmlns:m="using:TileShop.UI.Models"
     xmlns:vm="using:TileShop.UI.ViewModels"
-    x:CompileBindings="True"
     x:DataType="vm:ColorRemapViewModel">
     <UserControl.Styles>
         <StyleInclude Source="avares://Avalonia.Xaml.Interactions.Draggable/Styles.axaml" />

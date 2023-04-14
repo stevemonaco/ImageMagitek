@@ -11,7 +11,6 @@
     xmlns:paz="using:Avalonia.Controls.PanAndZoom"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:Name="control"
-    x:CompileBindings="True"
     x:DataType="vm:ScatteredArrangerEditorViewModel">
     <UserControl.KeyBindings>
         <KeyBinding Command="{Binding ToggleGridlineVisibilityCommand}" Gesture="G" />
@@ -33,14 +32,14 @@
             <MenuItem Command="{Binding ModifyGridSettingsCommand}" Header="Grid Settings..." />
             <MenuItem Command="{Binding ToggleSymmetryToolsCommand}" Header="Show Symmetry Tools">
                 <i:Interaction.Behaviors>
-                    <ia:DataTriggerBehavior Binding="{ReflectionBinding #control.DataContext.AreSymmetryToolsEnabled}" Value="True">
+                    <ia:DataTriggerBehavior Binding="{Binding #control.((vm:ScatteredArrangerEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="True">
                         <ia:ChangePropertyAction PropertyName="Icon">
                             <ia:ChangePropertyAction.Value>
                                 <PathIcon Classes="menu" Data="{StaticResource pathIconCheckedBox}" />
                             </ia:ChangePropertyAction.Value>
                         </ia:ChangePropertyAction>
                     </ia:DataTriggerBehavior>
-                    <ia:DataTriggerBehavior Binding="{ReflectionBinding #control.DataContext.AreSymmetryToolsEnabled}" Value="False">
+                    <ia:DataTriggerBehavior Binding="{Binding #control.((vm:ScatteredArrangerEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="False">
                         <ia:ChangePropertyAction PropertyName="Icon">
                             <ia:ChangePropertyAction.Value>
                                 <PathIcon Classes="menu" Data="{StaticResource pathIconUncheckedBox}" />

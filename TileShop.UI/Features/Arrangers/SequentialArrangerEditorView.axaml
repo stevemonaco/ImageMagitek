@@ -6,7 +6,6 @@
     xmlns:model="using:TileShop.Shared.Models"
     xmlns:paz="using:Avalonia.Controls.PanAndZoom"
     xmlns:vm="using:TileShop.UI.ViewModels"
-    x:CompileBindings="True"
     x:DataType="vm:SequentialArrangerEditorViewModel">
     <UserControl.KeyBindings>
         <KeyBinding Command="{Binding MoveByteDownCommand}" Gesture="OemPlus" />

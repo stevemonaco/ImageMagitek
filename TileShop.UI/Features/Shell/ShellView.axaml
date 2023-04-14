@@ -7,7 +7,6 @@
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:Name="shellView"
     Title="TileShop.Avalonia"
-    x:CompileBindings="True"
     x:DataType="vm:ShellViewModel"
     ExtendClientAreaTitleBarHeightHint="-1"
     ExtendClientAreaToDecorationsHint="True"

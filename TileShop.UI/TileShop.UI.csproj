@@ -3,10 +3,11 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<RuntimeIdentifiers>win7-x64</RuntimeIdentifiers>
+	  <RuntimeIdentifiers>win7-x64</RuntimeIdentifiers>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <ApplicationIcon>Assets\tsicon.ico</ApplicationIcon>
-	<TrimMode>partial</TrimMode>
+	  <TrimMode>partial</TrimMode>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />

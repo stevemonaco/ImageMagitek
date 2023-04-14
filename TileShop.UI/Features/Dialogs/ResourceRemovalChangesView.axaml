@@ -6,7 +6,6 @@
     xmlns:selectors="using:TileShop.UI.Selectors"
     xmlns:sys="using:System"
     xmlns:vm="using:TileShop.UI.ViewModels"
-    x:CompileBindings="True"
     x:DataType="vm:ResourceRemovalChangesViewModel">
     <UserControl.DataTemplates>
         <selectors:ResourceRemovalTemplateSelector>

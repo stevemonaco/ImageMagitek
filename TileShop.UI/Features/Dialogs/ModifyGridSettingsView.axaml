@@ -7,7 +7,6 @@
     Width="400"
     Height="350"
     MinWidth="230"
-    x:CompileBindings="True"
     x:DataType="vm:ModifyGridSettingsViewModel">
     <Grid Margin="10" ColumnDefinitions="*,*" RowDefinitions="auto,auto,auto">
         <TextBox Text="{Binding ShiftX}" />

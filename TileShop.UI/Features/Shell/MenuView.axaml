@@ -4,18 +4,17 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:v="using:TileShop.UI.Views"
     xmlns:vm="using:TileShop.UI.ViewModels"
-    x:CompileBindings="True"
     x:DataType="vm:MenuViewModel">
     <UserControl.Styles>
         <Style Selector="MenuItem">
             <Setter Property="IsTabStop" Value="False" />
         </Style>
 
-        <!--<Style Selector="MenuItem.recent > MenuItem">
-			<Setter Property="Header" Value="{Binding}" />
-			<Setter Property="Command" Value="{ReflectionBinding #menu.DataContext.OpenRecentProjectCommand}" />
-			<Setter Property="CommandParameter" Value="{Binding}" />
-		</Style>-->
+        <Style Selector="MenuItem.recent > MenuItem">
+            <Setter Property="Header" Value="{Binding}" />
+            <Setter Property="Command" Value="{Binding #menu.((vm:MenuViewModel)DataContext).OpenRecentProjectCommand}" />
+            <Setter Property="CommandParameter" Value="{Binding}" />
+        </Style>
     </UserControl.Styles>
 
     <Grid ColumnDefinitions="*,auto">
@@ -25,11 +24,7 @@
                 <MenuItem Command="{Binding NewProjectFromFileCommand}" Header="New Project from _Existing File" />
                 <Separator />
                 <MenuItem Command="{Binding OpenProjectCommand}" Header="Open _Project" />
-                <!--<MenuItem
-					Classes="recent"
-                    Header="Open Recent Project"
-                    Items="{Binding RecentProjectFiles}"
-                    IsVisible="{Binding RecentProjectFiles.Count}" />-->
+                <MenuItem Classes="recent" Header="Open Recent Project" IsVisible="{Binding RecentProjectFiles.Count}" Items="{Binding RecentProjectFiles}" />
                 <Separator />
                 <MenuItem Command="{Binding CloseEditorCommand}" Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Close \{0\}'}" IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
 

@@ -47,7 +47,7 @@
         <Setter Property="(i:Interaction.Behaviors)">
             <i:BehaviorCollectionTemplate>
                 <i:BehaviorCollection>
-                    <dd:PayloadDragBehavior Context="{Binding}" Handler="{StaticResource ArrangerDragHandler}" />
+                    <dd:PayloadDragBehavior Context="{ReflectionBinding}" Handler="{StaticResource ArrangerDragHandler}" />
                 </i:BehaviorCollection>
             </i:BehaviorCollectionTemplate>
         </Setter>
@@ -61,7 +61,7 @@
         <Setter Property="(i:Interaction.Behaviors)">
             <i:BehaviorCollectionTemplate>
                 <i:BehaviorCollection>
-                    <dd:PayloadDropBehavior Context="{Binding}" Handler="{StaticResource ArrangerDropHandler}" />
+                    <dd:PayloadDropBehavior Context="{ReflectionBinding}" Handler="{StaticResource ArrangerDropHandler}" />
                 </i:BehaviorCollection>
             </i:BehaviorCollectionTemplate>
         </Setter>
