@@ -3,6 +3,7 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Data.Converters;
 using ImageMagitek;
+using TileShop.Shared.Models;
 
 namespace TileShop.UI.Converters;
 
@@ -10,27 +11,21 @@ public class EndianToBooleanConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is Endian endian)
+        return value switch
         {
-            if (endian == Endian.Big)
-                return true;
-            else if (endian == Endian.Little)
-                return false;
-        }
-
-        return AvaloniaProperty.UnsetValue;
+            Endian.Big => true,
+            Endian.Little => false,
+            _ => AvaloniaProperty.UnsetValue
+        };
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is bool endianBool)
+        return value switch
         {
-            if (endianBool == true)
-                return Endian.Big;
-            else
-                return Endian.Little;
-        }
-
-        return AvaloniaProperty.UnsetValue;
+            true => Endian.Big,
+            false => Endian.Little,
+            _ => AvaloniaProperty.UnsetValue
+        };
     }
 }

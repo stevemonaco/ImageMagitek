@@ -127,7 +127,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
             Paste = null;
         }
 
-        if (Selection?.HasSelection is true && mouseState.LeftButtonPressed && Selection.SelectionRect.ContainsPointSnapped(xc, yc))
+        if (Selection.HasSelection && mouseState.LeftButtonPressed && Selection.SelectionRect.ContainsPointSnapped(xc, yc))
         {
             // Start drag for selection (Handled by DragDrop in View)
         }

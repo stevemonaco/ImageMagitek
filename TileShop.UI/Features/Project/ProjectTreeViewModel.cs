@@ -59,7 +59,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
     [RelayCommand]
     public async Task ActivateSelectedNode()
     {
-        if (SelectedNode is ProjectNodeViewModel || SelectedNode is FolderNodeViewModel)
+        if (SelectedNode is ProjectNodeViewModel or FolderNodeViewModel)
         {
             SelectedNode.IsExpanded ^= true;
         }
@@ -379,7 +379,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
                 {
                     nodeModel.Name = newName;
 
-                    if (nodeModel.ParentModel is FolderNodeViewModel || nodeModel.ParentModel is ProjectNodeViewModel)
+                    if (nodeModel.ParentModel is FolderNodeViewModel or ProjectNodeViewModel)
                         nodeModel.ParentModel.NotifyChildrenChanged();
 
                     var renameMessage = new ResourceRenamedMessage(nodeModel.Node.Item, newName, oldName);

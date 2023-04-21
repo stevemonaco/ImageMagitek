@@ -27,7 +27,7 @@ public static class StreamReadExtensionMethods
     {
         if (readBits < 0)
             throw new ArgumentOutOfRangeException($"{nameof(ReadUnshiftedAsync)} parameter '{nameof(readBits)}' ({readBits}) must be positive");
-        if (skipBits > 7 || skipBits < 0)
+        if (skipBits is > 7 or < 0)
             throw new ArgumentOutOfRangeException($"{nameof(ReadUnshiftedAsync)} parameter '{nameof(skipBits)}' ({skipBits}) is not within the valid range [0-7]");
 
         int readBytes = (skipBits + readBits + 7) / 8;
@@ -58,7 +58,7 @@ public static class StreamReadExtensionMethods
     {
         if (readBits < 0)
             throw new ArgumentOutOfRangeException($"{nameof(ReadUnshifted)} parameter '{nameof(readBits)}' ({readBits}) must be positive");
-        if (skipBits > 7 || skipBits < 0)
+        if (skipBits is > 7 or < 0)
             throw new ArgumentOutOfRangeException($"{nameof(ReadUnshifted)} parameter '{nameof(skipBits)}' ({skipBits}) is not within the valid range [0-7]");
 
         int readBytes = (skipBits + readBits + 7) / 8;
@@ -101,7 +101,7 @@ public static class StreamReadExtensionMethods
     {
         if (readBits < 0)
             throw new ArgumentOutOfRangeException($"{nameof(ReadUnshifted)} parameter '{nameof(readBits)}' ({readBits}) must be positive");
-        if (skipBits > 7 || skipBits < 0)
+        if (skipBits is > 7 or < 0)
             throw new ArgumentOutOfRangeException($"{nameof(ReadUnshifted)} parameter '{nameof(skipBits)}' ({skipBits}) is not within the valid range [0-7]");
 
         if (skipBits == 0)
@@ -169,7 +169,7 @@ public static class StreamReadExtensionMethods
     {
         if (readBits < 0)
             throw new ArgumentOutOfRangeException($"{nameof(ReadUnshifted)} parameter '{nameof(readBits)}' ({readBits}) must be positive");
-        if (skipBits > 7 || skipBits < 0)
+        if (skipBits is > 7 or < 0)
             throw new ArgumentOutOfRangeException($"{nameof(ReadUnshifted)} parameter '{nameof(skipBits)}' ({skipBits}) is not within the valid range [0-7]");
 
         if (skipBits == 0)

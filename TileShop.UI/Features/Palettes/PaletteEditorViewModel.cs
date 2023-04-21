@@ -123,7 +123,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     }
 
     [RelayCommand]
-    public void SaveActiveColor()
+    public async Task SaveActiveColor()
     {
         if (ActiveColor is null)
             return;
@@ -137,7 +137,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         Colors[SelectedColorIndex] = model;
 
         SelectedColorIndex = currentIndex;
-        SaveChangesAsync();
+        await SaveChangesAsync();
     }
 
     /// <summary>

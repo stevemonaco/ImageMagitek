@@ -10,27 +10,21 @@ public class SnapModeBooleanConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is SnapMode mode)
+        return value switch
         {
-            if (mode == SnapMode.Element)
-                return true;
-            else if (mode == SnapMode.Pixel)
-                return false;
-        }
-
-        return AvaloniaProperty.UnsetValue;
+            SnapMode.Element => true,
+            SnapMode.Pixel => false,
+            _ => AvaloniaProperty.UnsetValue
+        };
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is bool snapBool)
+        return value switch
         {
-            if (snapBool == true)
-                return SnapMode.Element;
-            else
-                return SnapMode.Pixel;
-        }
-
-        return AvaloniaProperty.UnsetValue;
+            true => SnapMode.Element,
+            false => SnapMode.Pixel,
+            _ => AvaloniaProperty.UnsetValue
+        };
     }
 }

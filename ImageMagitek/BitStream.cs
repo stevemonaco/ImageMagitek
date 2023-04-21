@@ -233,7 +233,7 @@ public sealed class BitStream : IBitStreamReader, IBitStreamWriter
     /// <returns></returns>
     public int ReadBits(int bitReadLength)
     {
-        if (bitReadLength > 32 || bitReadLength < 1)
+        if (bitReadLength is > 32 or < 1)
             throw new ArgumentOutOfRangeException($"{nameof(ReadBits)} parameter {nameof(bitReadLength)} ({bitReadLength}) is out of range");
 
         if (bitReadLength > _bitsRemaining)
@@ -347,7 +347,7 @@ public sealed class BitStream : IBitStreamReader, IBitStreamWriter
 
     public void WriteBits(int val, int numBits)
     {
-        if (numBits > 32 || numBits < 1)
+        if (numBits is > 32 or < 1)
             throw new ArgumentOutOfRangeException($"{nameof(WriteBits)} parameter {nameof(numBits)} ({numBits}) is out of range");
 
         if (numBits > _bitsRemaining)

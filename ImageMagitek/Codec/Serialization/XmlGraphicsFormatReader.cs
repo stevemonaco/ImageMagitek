@@ -142,7 +142,7 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
         if (!int.TryParse(codec.ColorDepth?.Value, out var colorDepth))
             AddParseError(errors, codec.ColorDepth, Names.ColorDepth, flowElementRoot);
 
-        if (colorDepth < 1 && colorDepth > 32)
+        if (colorDepth is < 1 or > 32)
             AddValidationError(errors, codec.ColorDepth, $"{Names.ColorDepth} is out of range: '{colorDepth}'.");
 
         ImageLayout layout = default;
@@ -289,7 +289,7 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
         if (!int.TryParse(codec.ColorDepth?.Value, out var colorDepth))
             AddParseError(errors, codec.ColorDepth, Names.ColorDepth, patternElementRoot);
 
-        if (colorDepth < 1 || colorDepth > 32)
+        if (colorDepth is < 1 or > 32)
             AddValidationError(errors, codec.ColorDepth, $"{Names.ColorDepth} is out of range: '{colorDepth}'.");
 
         ImageLayout layout = default;

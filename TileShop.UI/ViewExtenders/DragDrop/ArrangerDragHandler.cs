@@ -22,7 +22,7 @@ public class ArrangerDragHandler : IDragHandlerEx
             return;
         }
 
-        if (vm.Selection is not null && vm.Selection.HasSelection)
+        if (vm.Selection?.HasSelection is true)
         {
             var rect = vm.Selection.SelectionRect;
             var arranger = vm.WorkingArranger;

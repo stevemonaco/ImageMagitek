@@ -72,7 +72,7 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     [RelayCommand]
     public virtual void ConfirmPendingOperation()
     {
-        if (Paste?.Copy is ElementCopy || Paste?.Copy is IndexedPixelCopy || Paste?.Copy is DirectPixelCopy)
+        if (Paste?.Copy is ElementCopy or IndexedPixelCopy or DirectPixelCopy)
             ApplyPaste(Paste);
     }
 

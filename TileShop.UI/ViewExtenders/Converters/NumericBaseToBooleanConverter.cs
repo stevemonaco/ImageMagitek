@@ -9,27 +9,21 @@ public class NumericBaseToBooleanConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is NumericBase numericBase)
+        return value switch
         {
-            if (numericBase == NumericBase.Decimal)
-                return false;
-            else if (numericBase == NumericBase.Hexadecimal)
-                return true;
-        }
-
-        return AvaloniaProperty.UnsetValue;
+            NumericBase.Hexadecimal => true,
+            NumericBase.Decimal => false,
+            _ => AvaloniaProperty.UnsetValue
+        };
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is bool baseBool)
+        return value switch
         {
-            if (baseBool == false)
-                return NumericBase.Decimal;
-            else
-                return NumericBase.Hexadecimal;
-        }
-
-        return AvaloniaProperty.UnsetValue;
+            true => NumericBase.Hexadecimal,
+            false => NumericBase.Decimal,
+            _ => AvaloniaProperty.UnsetValue
+        };
     }
 }

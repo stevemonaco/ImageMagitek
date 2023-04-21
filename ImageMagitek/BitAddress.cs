@@ -26,7 +26,7 @@ public readonly struct BitAddress : IEquatable<BitAddress>
 
     public BitAddress(long byteOffset, int bitOffset)
     {
-        if (bitOffset > 7 || bitOffset < 0)
+        if (bitOffset is > 7 or < 0)
             throw new ArgumentOutOfRangeException($"{nameof(BitAddress)}: {nameof(bitOffset)} '{bitOffset}' is out of range");
 
         ByteOffset = byteOffset;

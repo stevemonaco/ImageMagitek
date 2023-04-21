@@ -11,7 +11,7 @@ public static class ByteArrayExtensions
     /// <param name="count">Number of times to left shift [0-7]</param>
     public static void ShiftLeft(this Span<byte> array, int count)
     {
-        if (count < 0 || count > 7)
+        if (count is < 0 or > 7)
             throw new ArgumentOutOfRangeException($"{nameof(ShiftLeft)} parameter '{nameof(count)}' ({count}) is not within the valid range [0-7]");
 
         if (count == 0 || array.Length == 0)
@@ -34,7 +34,7 @@ public static class ByteArrayExtensions
     /// <param name="count">Number of times to right shift [0-7]</param>
     public static void ShiftRight(this Span<byte> array, int count)
     {
-        if (count < 0 || count > 7)
+        if (count is < 0 or > 7)
             throw new ArgumentOutOfRangeException($"{nameof(ShiftLeft)} parameter '{nameof(count)}' ({count}) is not within the valid range [0-7]");
 
         if (count == 0 || array.Length == 0)

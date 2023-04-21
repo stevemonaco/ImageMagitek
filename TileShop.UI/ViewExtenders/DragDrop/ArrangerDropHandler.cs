@@ -18,7 +18,7 @@ public class ArrangerDropHandler : DropHandlerBase
             if (paste.Copy is ElementCopy && !targetVm.CanAcceptElementPastes)
                 return;
 
-            if ((paste.Copy is IndexedPixelCopy || paste.Copy is DirectPixelCopy) && !targetVm.CanAcceptPixelPastes)
+            if (paste.Copy is IndexedPixelCopy or DirectPixelCopy && !targetVm.CanAcceptPixelPastes)
                 return;
 
             targetVm.Paste = paste;
