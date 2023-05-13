@@ -40,9 +40,14 @@ public static class SyncDialogExtensions
     }
 
     [return: MaybeNull]
-    public static T ShowDialogSync<T>(this Window window, Window owner)
+    public static T? ShowDialogSync<T>(this Window window, Window owner)
     {
-        if (window.PlatformImpl?.Handle is IMacOSTopLevelPlatformHandle handle)
+        var handle = window.TryGetPlatformHandle();
+
+        if (handle is null)
+            return default;
+
+        if (handle is IMacOSTopLevelPlatformHandle macHandle)
         {
             var nsAppStaticClass = objc_getClass("NSApplication");
             var sharedApplicationSelector = GetHandle("sharedApplication");
@@ -58,7 +63,7 @@ public static class SyncDialogExtensions
 
             window.Closed += DialogClosed;
             var task = window.ShowDialog<T>(owner);
-            Int64_objc_msgSend_IntPtr(sharedApplication, runModalForSelector, handle.NSWindow);
+            Int64_objc_msgSend_IntPtr(sharedApplication, runModalForSelector, macHandle.NSWindow);
             return task.Result;
         }
         else

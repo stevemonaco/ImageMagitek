@@ -34,7 +34,7 @@
                         ToolTip.Tip="Layout Height in Elements" />
                 </StackPanel>
 
-                <ItemsControl Margin="0,5,0,5" HorizontalAlignment="Center" Items="{Binding ValidationErrors}">
+                <ItemsControl Margin="0,5,0,5" HorizontalAlignment="Center" ItemsSource="{Binding ValidationErrors}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <TextBlock FontWeight="Bold" Foreground="Red" Text="{Binding}" />

@@ -17,18 +17,14 @@
 
     <Panel Margin="{Binding #shellView.OffScreenMargin}">
         <!--<ExperimentalAcrylicBorder IsHitTestVisible="False">
-			<ExperimentalAcrylicBorder.Material>
-				<ExperimentalAcrylicMaterial
-                    BackgroundSource="Digger"
-                    TintColor="Black"
-                    TintOpacity="1"
-                    MaterialOpacity="0.65" />
-			</ExperimentalAcrylicBorder.Material>
-		</ExperimentalAcrylicBorder>-->
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial BackgroundSource="Digger" MaterialOpacity="0.65" TintColor="Black" TintOpacity="1" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>-->
 
         <Grid RowDefinitions="auto,*,auto">
             <StackPanel Grid.Row="0" Margin="5,5,0,5" Orientation="Horizontal">
-                <v:AppIconView />
+                <v:AppIconView IsHitTestVisible="False" />
                 <ContentControl Content="{Binding ActiveMenu}" />
                 <Button Command="{Binding LoadCommand}" Content="Load FF2" />
             </StackPanel>

@@ -57,7 +57,7 @@
                     FontWeight="Bold"
                     IsVisible="{Binding HasRemovedResources}"
                     Text="Removed Items" />
-                <ItemsControl Margin="10" IsVisible="{Binding HasRemovedResources}" Items="{Binding RemovedResources}">
+                <ItemsControl Margin="10" IsVisible="{Binding HasRemovedResources}" ItemsSource="{Binding RemovedResources}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="m:ResourceChangeViewModel">
                             <ContentControl Content="{Binding}" />
@@ -71,7 +71,7 @@
                     FontWeight="Bold"
                     IsVisible="{Binding HasChangedResources}"
                     Text="Changed Items" />
-                <ItemsControl Margin="10" IsVisible="{Binding HasChangedResources}" Items="{Binding ChangedResources}" />
+                <ItemsControl Margin="10" IsVisible="{Binding HasChangedResources}" ItemsSource="{Binding ChangedResources}" />
             </StackPanel>
         </ScrollViewer>
     </Grid>

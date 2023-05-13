@@ -58,7 +58,7 @@
                                 Height="35"
                                 MinWidth="180"
                                 Focusable="False"
-                                Items="{Binding CodecNames}"
+                                ItemsSource="{Binding CodecNames}"
                                 SelectedItem="{Binding SelectedCodecName}"
                                 ToolTip.Tip="Active Codec (F, D)" />
 
@@ -90,7 +90,7 @@
                                 Height="35"
                                 Focusable="False"
                                 IsVisible="{Binding !Palettes.Count}"
-                                Items="{Binding Palettes}"
+                                ItemsSource="{Binding Palettes}"
                                 SelectedItem="{Binding SelectedPalette}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
@@ -139,7 +139,7 @@
                                 <Button.Flyout>
                                     <MenuFlyout Placement="BottomEdgeAlignedLeft">
                                         <MenuItem Command="{Binding ApplyDefaultElementLayoutCommand}" Header="Default" />
-                                        <MenuItem Header="Saved Layouts" IsVisible="{Binding !TileLayoutNames.Count}" Items="{Binding TileLayoutNames}">
+                                        <MenuItem Header="Saved Layouts" IsVisible="{Binding !TileLayoutNames.Count}" ItemsSource="{Binding TileLayoutNames}">
                                             <MenuItem.ItemTemplate>
                                                 <DataTemplate>
                                                     <MenuItem CommandParameter="{Binding}" Header="{Binding}">
@@ -299,7 +299,7 @@
                         ClipToBounds="True"
                         IsHitTestVisible="False"
                         IsVisible="{Binding GridSettings.ShowGridlines}"
-                        Items="{Binding GridSettings.Gridlines}">
+                        ItemsSource="{Binding GridSettings.Gridlines}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <Canvas IsHitTestVisible="False" />

@@ -13,10 +13,8 @@
         <ScrollViewer Grid.Row="1" Grid.Column="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
             <paz:ZoomBorder HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PowerFactor="2" Stretch="None">
                 <Grid>
-
                     <Rectangle Width="{Binding OriginalSource.Width}" Height="{Binding OriginalSource.Height}" Fill="{DynamicResource CheckeredBrush}" Stretch="None" />
-
-                    <Image RenderOptions.BitmapInterpolationMode="Default" Source="{Binding OriginalSource.Bitmap}" Stretch="None" />
+                    <Image Source="{Binding OriginalSource.Bitmap}" Stretch="None" />
                 </Grid>
             </paz:ZoomBorder>
         </ScrollViewer>
@@ -27,8 +25,7 @@
             <paz:ZoomBorder HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PowerFactor="2" Stretch="None">
                 <Grid>
                     <Rectangle Width="{Binding PreviewSource.Width}" Height="{Binding PreviewSource.Height}" Fill="{DynamicResource BasicCheckeredBrush}" Stretch="None" />
-
-                    <Image RenderOptions.BitmapInterpolationMode="Default" Source="{Binding PreviewSource.Bitmap}" Stretch="None" />
+                    <Image Source="{Binding PreviewSource.Bitmap}" Stretch="None" />
                 </Grid>
             </paz:ZoomBorder>
         </ScrollViewer>

@@ -41,7 +41,7 @@
         </StackPanel>
 
         <!--  Color Table  -->
-        <ItemsRepeater Grid.Column="1" Items="{Binding AvailableColors}">
+        <ItemsRepeater Grid.Column="1" ItemsSource="{Binding AvailableColors}">
             <ItemsRepeater.Layout>
                 <UniformGridLayout MaximumRowsOrColumns="16" MinColumnSpacing="0" MinItemWidth="38" Orientation="Horizontal" />
             </ItemsRepeater.Layout>

@@ -136,7 +136,7 @@
             <StackPanel Margin="6,0,0,0" IsVisible="{Binding IsIndexedColor}">
                 <TextBlock HorizontalAlignment="Center" Text="Palette" />
                 <StackPanel Orientation="Horizontal">
-                    <ComboBox MaxWidth="200" Items="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
+                    <ComboBox MaxWidth="200" ItemsSource="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Name}" />
@@ -254,7 +254,7 @@
                         ClipToBounds="True"
                         IsHitTestVisible="False"
                         IsVisible="{Binding GridSettings.ShowGridlines}"
-                        Items="{Binding GridSettings.Gridlines}">
+                        ItemsSource="{Binding GridSettings.Gridlines}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <Canvas IsHitTestVisible="False" />

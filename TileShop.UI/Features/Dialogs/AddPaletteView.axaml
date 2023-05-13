@@ -17,7 +17,7 @@
                 MinWidth="200"
                 Margin="0,5,0,0"
                 HorizontalAlignment="Stretch"
-                Items="{Binding DataSources}"
+                ItemsSource="{Binding DataSources}"
                 SelectedItem="{Binding SelectedDataSource}"
                 ToolTip.Tip="Palette File Source">
                 <ComboBox.ItemTemplate>
@@ -32,14 +32,14 @@
                 x:Name="colorModelBox"
                 MinWidth="150"
                 Margin="0,5,0,0"
-                Items="{Binding ColorModels}"
+                ItemsSource="{Binding ColorModels}"
                 SelectedIndex="1"
                 SelectedItem="{Binding SelectedColorModel}"
                 ToolTip.Tip="Palette Color Model" />
 
             <CheckBox Content="Zero Index Transparent" IsChecked="{Binding ZeroIndexTransparent}" ToolTip.Tip="Forces the palette's first color into being transparent" />
 
-            <ItemsControl Grid.Row="1" Margin="0,5,0,5" HorizontalAlignment="Center" Items="{Binding ValidationErrors}">
+            <ItemsControl Grid.Row="1" Margin="0,5,0,5" HorizontalAlignment="Center" ItemsSource="{Binding ValidationErrors}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <TextBlock FontWeight="Bold" Foreground="Red" Text="{Binding}" />

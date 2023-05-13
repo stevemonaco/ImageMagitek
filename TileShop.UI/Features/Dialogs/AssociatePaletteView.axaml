@@ -8,7 +8,7 @@
         <Grid RowDefinitions="auto,*">
             <TextBlock Grid.Row="0" Margin="5,0,0,0" Text="Palettes" />
 
-            <ListBox Grid.Row="1" Items="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
+            <ListBox Grid.Row="1" ItemsSource="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">

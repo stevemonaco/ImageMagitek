@@ -24,7 +24,7 @@
                 <MenuItem Command="{Binding NewProjectFromFileCommand}" Header="New Project from _Existing File" />
                 <Separator />
                 <MenuItem Command="{Binding OpenProjectCommand}" Header="Open _Project" />
-                <MenuItem Classes="recent" Header="Open Recent Project" IsVisible="{Binding RecentProjectFiles.Count}" Items="{Binding RecentProjectFiles}" />
+                <MenuItem Classes="recent" Header="Open Recent Project" IsVisible="{Binding RecentProjectFiles.Count}" ItemsSource="{Binding RecentProjectFiles}" />
                 <Separator />
                 <MenuItem Command="{Binding CloseEditorCommand}" Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Close \{0\}'}" IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
 

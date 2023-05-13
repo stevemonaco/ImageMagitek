@@ -50,7 +50,7 @@
         <StackPanel Grid.Row="0" Margin="10">
             <TextBlock HorizontalAlignment="Center" FontSize="20" Text="Current Colors" />
 
-            <ListBox HorizontalAlignment="Center" Classes="colorDrag" Items="{Binding InitialColors}">
+            <ListBox HorizontalAlignment="Center" Classes="colorDrag" ItemsSource="{Binding InitialColors}">
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Orientation="Horizontal" />
@@ -76,7 +76,7 @@
         <StackPanel Grid.Row="1" Margin="10">
             <TextBlock HorizontalAlignment="Center" FontSize="20" Text="New Colors" />
 
-            <ItemsControl Grid.Row="1" HorizontalAlignment="Center" Items="{Binding FinalColors}">
+            <ItemsControl Grid.Row="1" HorizontalAlignment="Center" ItemsSource="{Binding FinalColors}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Orientation="Horizontal" />

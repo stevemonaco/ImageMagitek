@@ -88,7 +88,7 @@
                     <TextBlock Text="{Binding ColorModel, StringFormat=Color Model: {0}}" />
                     <CheckBox Content="Zero Index Transparency" IsChecked="{Binding ZeroIndexTransparent}" />
 
-                    <ListBox x:Name="colorSourceView" Items="{Binding ColorSourceModels}" />
+                    <ListBox x:Name="colorSourceView" ItemsSource="{Binding ColorSourceModels}" />
 
                     <StackPanel Margin="20,0,0,0" Orientation="Horizontal">
                         <Button Background="#238636">
@@ -117,7 +117,7 @@
             </Expander>
 
             <!--  Palette Display  -->
-            <ListBox Grid.Row="1" Items="{Binding Colors}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectedIndex="{Binding SelectedColorIndex}">
+            <ListBox Grid.Row="1" ItemsSource="{Binding Colors}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectedIndex="{Binding SelectedColorIndex}">
                 <ListBox.Styles>
                     <Style Selector="ListBoxItem">
                         <Setter Property="Padding" Value="4, 0, 6, 0" />

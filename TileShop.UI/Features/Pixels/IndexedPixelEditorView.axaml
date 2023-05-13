@@ -137,7 +137,7 @@
                 Margin="4,4,0,0"
                 ContextMenu="{StaticResource contextMenu}"
                 Orientation="Horizontal">
-                <ComboBox IsVisible="{Binding Palettes.Count, Converter={x:Static con:AppConverters.PluralCountToBoolean}}" Items="{Binding Palettes}" SelectedItem="{Binding ActivePalette}">
+                <ComboBox IsVisible="{Binding Palettes.Count, Converter={x:Static con:AppConverters.PluralCountToBoolean}}" ItemsSource="{Binding Palettes}" SelectedItem="{Binding ActivePalette}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Name}" />
@@ -149,7 +149,7 @@
                     Margin="1,0,3,5"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Top"
-                    Items="{Binding ActivePalette.Colors}"
+                    ItemsSource="{Binding ActivePalette.Colors}"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -274,7 +274,7 @@
                             ClipToBounds="True"
                             IsHitTestVisible="False"
                             IsVisible="{Binding GridSettings.ShowGridlines}"
-                            Items="{Binding GridSettings.Gridlines}">
+                            ItemsSource="{Binding GridSettings.Gridlines}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <Canvas IsHitTestVisible="False" />

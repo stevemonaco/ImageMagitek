@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml.Templates;
 using FluentAvalonia.UI.Controls;
 using TileShop.Shared.Interactions;
 

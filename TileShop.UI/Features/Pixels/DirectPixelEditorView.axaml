@@ -157,7 +157,7 @@
                         ClipToBounds="True"
                         IsHitTestVisible="False"
                         IsVisible="{Binding GridSettings.ShowGridlines}"
-                        Items="{Binding GridSettings.Gridlines}">
+                        ItemsSource="{Binding GridSettings.Gridlines}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <Canvas IsHitTestVisible="False" />
