@@ -18,11 +18,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ColorMinePortable" Version="2.0.1" />
+    <PackageReference Include="ColorMinePortable" Version="2.0.2" />
     <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.0" />
     <PackageReference Include="Monaco.PathTree" Version="1.2.2" />
-    <PackageReference Include="OneOf" Version="3.0.223" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
+    <PackageReference Include="OneOf" Version="3.0.243" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
   </ItemGroup>
 
   <ItemGroup>

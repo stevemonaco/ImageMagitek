@@ -10,7 +10,7 @@ public struct ColorNes : ITableColor
         get => _color;
         set
         {
-            Guard.IsInRange(value, 0, ColorMax);
+            Guard.IsInRange(value, 0, ColorMax+1);
             _color = value;
         }
     }

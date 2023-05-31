@@ -130,8 +130,8 @@ public abstract class Arranger : IProjectResource
     /// <param name="elemY">y-coordinate in Element coordinates</param>
     public virtual void SetElement(in ArrangerElement? element, int elemX, int elemY)
     {
-        Guard.IsInRange(elemX, 0, ArrangerElementSize.Width);
-        Guard.IsInRange(elemY, 0, ArrangerElementSize.Height);
+        Guard.IsInRange(elemX, 0, ArrangerElementSize.Width+1);
+        Guard.IsInRange(elemY, 0, ArrangerElementSize.Height+1);
 
         if (element is ArrangerElement)
         {

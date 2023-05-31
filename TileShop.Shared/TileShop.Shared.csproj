@@ -5,7 +5,7 @@
     <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.0" />
     <PackageReference Include="Monaco.PathTree" Version="1.2.2" />
-    <PackageReference Include="OneOf" Version="3.0.223" />
+    <PackageReference Include="OneOf" Version="3.0.243" />
   </ItemGroup>
 
   <ItemGroup>

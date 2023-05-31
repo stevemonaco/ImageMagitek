@@ -21,7 +21,7 @@
         </TreeView.Styles>
         <TreeView.ItemTemplate>
             <TreeDataTemplate DataType="vm:ResourceNodeViewModel" ItemsSource="{Binding Children}">
-                <ContentControl Content="{Binding}" />
+                <ContentControl Content="{Binding}" KeyDown="ProjectNode_KeyDown" />
             </TreeDataTemplate>
         </TreeView.ItemTemplate>
         <TreeView.DataTemplates>

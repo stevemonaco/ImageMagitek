@@ -13,7 +13,7 @@ public static class ArrangerTestFactory
         var image = new Bitmap(imageFile);
         var imagePalette = image.Palette;
 
-        var palette = new Palette("testPalette", new ColorFactory(), colorModel, zeroIndexTransparent, PaletteStorageSource.ProjectXml);
+        var palette = new Palette("testPalette", new ColorFactory(), colorModel, zeroIndexTransparent, PaletteStorageSource.GlobalJson);
         var colorSources = imagePalette.Entries
             .Select(x => new ProjectNativeColorSource(new ColorRgba32(x.R, x.G, x.B, x.A)));
 

@@ -32,7 +32,7 @@ public struct ColorAbgr16 : IColor32
         get => r;
         set
         {
-            Guard.IsInRange(value, 0, RedMax);
+            Guard.IsInRange(value, 0, RedMax+1);
             r = value;
         }
     }
@@ -42,7 +42,7 @@ public struct ColorAbgr16 : IColor32
         get => g;
         set
         {
-            Guard.IsInRange(value, 0, GreenMax);
+            Guard.IsInRange(value, 0, GreenMax+1);
             g = value;
         }
     }
@@ -52,7 +52,7 @@ public struct ColorAbgr16 : IColor32
         get => b;
         set
         {
-            Guard.IsInRange(value, 0, BlueMax);
+            Guard.IsInRange(value, 0, BlueMax+1);
             b = value;
         }
     }
@@ -62,7 +62,7 @@ public struct ColorAbgr16 : IColor32
         get => a;
         set
         {
-            Guard.IsInRange(value, 0, AlphaMax);
+            Guard.IsInRange(value, 0, AlphaMax+1);
             a = value;
         }
     }

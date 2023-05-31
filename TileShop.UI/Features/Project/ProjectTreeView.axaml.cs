@@ -60,4 +60,20 @@ public partial class ProjectTreeView : UserControl
             e.Handled = true;
         }
     }
+
+    private async void ProjectNode_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (_viewModel?.SelectedNode is not null && e.Key == Key.Enter)
+        {
+            if (_viewModel.SelectedNode is FolderNodeViewModel or ProjectNodeViewModel)
+            {
+                _viewModel.SelectedNode.IsExpanded ^= true;
+            }
+            else
+            {
+                await _viewModel.ActivateSelectedNode();
+            }
+            e.Handled = true;
+        }
+    }
 }
