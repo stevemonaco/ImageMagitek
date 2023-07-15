@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Threading;
 using TileShop.UI.ViewModels;
 
 namespace TileShop.UI.Views;
@@ -35,14 +34,8 @@ public partial class JumpToOffsetView : UserControl
 
     public void JumpBox_AttachedToVisualTree(object sender, VisualTreeAttachmentEventArgs e)
     {
-        if (sender is InputElement inputElement && _viewModel is not null && KeyboardDevice.Instance is not null)
-        {
-            Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                KeyboardDevice.Instance.SetFocusedElement(inputElement, NavigationMethod.Unspecified, KeyModifiers.None);
-                _jumpBox.SelectAll();
-            });
-        }
+        _jumpBox.Focus();
+        _jumpBox.SelectAll();
     }
 
     public void JumpBox_KeyDown(object sender, KeyEventArgs e)

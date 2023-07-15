@@ -1,4 +1,4 @@
-﻿<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:vm="using:TileShop.UI.ViewModels">
+﻿<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:media="using:Avalonia.Media" xmlns:vm="using:TileShop.UI.ViewModels">
 
     <Style Selector="Image.pixel">
         <Setter Property="Stretch" Value="None" />

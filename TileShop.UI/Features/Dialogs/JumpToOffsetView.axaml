@@ -8,19 +8,13 @@
     <UserControl.Resources>
         <SolidColorBrush x:Key="SystemControlErrorTextForegroundBrush" Color="Red" />
     </UserControl.Resources>
-    <UserControl.Styles>
-        <Style Selector="DataValidationErrors">
-            <Setter Property="Template" Value="{DynamicResource TooltipDataValidationContentTemplate}" />
-            <Setter Property="ErrorTemplate" Value="{DynamicResource TooltipDataValidationErrorTemplate}" />
-        </Style>
-    </UserControl.Styles>
 
-    <Grid ColumnDefinitions="auto, *">
+    <Grid ColumnDefinitions="auto, 8, *">
         <ToggleButton Content="{Binding NumericBase, Converter={x:Static con:AppConverters.NumericBaseToString}}" Focusable="False" FontSize="20" IsChecked="{Binding NumericBase, Converter={x:Static con:AppConverters.NumericBaseToBoolean}}" />
 
         <TextBox
             x:Name="_jumpBox"
-            Grid.Column="1"
+            Grid.Column="2"
             MinWidth="120"
             HorizontalContentAlignment="Right"
             AttachedToVisualTree="JumpBox_AttachedToVisualTree"
