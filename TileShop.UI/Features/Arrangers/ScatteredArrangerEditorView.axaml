@@ -3,12 +3,13 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.UI.Converters"
-    xmlns:fac="using:FluentAvalonia.Controls"
+    xmlns:fac="using:FluentAvalonia.UI.Controls"
     xmlns:i="using:Avalonia.Xaml.Interactivity"
     xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
     xmlns:m="using:TileShop.UI.Models"
     xmlns:model="using:TileShop.Shared.Models"
     xmlns:paz="using:Avalonia.Controls.PanAndZoom"
+    xmlns:res="using:TileShop.UI.Resources"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:Name="control"
     x:DataType="vm:ScatteredArrangerEditorViewModel">
@@ -35,14 +36,14 @@
                     <ia:DataTriggerBehavior Binding="{Binding #control.((vm:ScatteredArrangerEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="True">
                         <ia:ChangePropertyAction PropertyName="Icon">
                             <ia:ChangePropertyAction.Value>
-                                <PathIcon Classes="menu" Data="{StaticResource pathIconCheckedBox}" />
+                                <fac:FAPathIcon Classes="menu" Data="{x:Static res:AppIcons.CheckedBox}" />
                             </ia:ChangePropertyAction.Value>
                         </ia:ChangePropertyAction>
                     </ia:DataTriggerBehavior>
                     <ia:DataTriggerBehavior Binding="{Binding #control.((vm:ScatteredArrangerEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="False">
                         <ia:ChangePropertyAction PropertyName="Icon">
                             <ia:ChangePropertyAction.Value>
-                                <PathIcon Classes="menu" Data="{StaticResource pathIconUncheckedBox}" />
+                                <fac:FAPathIcon Classes="menu" Data="{x:Static res:AppIcons.UncheckedBox}" />
                             </ia:ChangePropertyAction.Value>
                         </ia:ChangePropertyAction>
                     </ia:DataTriggerBehavior>
@@ -53,7 +54,7 @@
 
     <Grid RowDefinitions="auto,*" UseLayoutRounding="True">
         <!--  Toolbar  -->
-        <StackPanel Grid.Row="0" Margin="5,5,0,10" Orientation="Horizontal">
+        <StackPanel Grid.Row="0" Margin="6,6,0,12" Orientation="Horizontal">
             <!--  Tools  -->
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Tools" />
@@ -65,7 +66,7 @@
                         CommandParameter="{x:Static vm:ScatteredArrangerTool.Select}"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
                         ToolTip.Tip="Click and drag across Arranger to select a region or hold Ctrl to quickly drag single elements">
-                        <PathIcon Classes="tool" Data="{StaticResource pathIconRectangularSelection}" />
+                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RectangularSelection}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
@@ -73,7 +74,7 @@
                         CommandParameter="{x:Static vm:ScatteredArrangerTool.ApplyPalette}"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ApplyPalette}"
                         ToolTip.Tip="{Binding SelectedPalette.Name, StringFormat='Click on an Arranger element to apply the current palette (\{0\})'}">
-                        <PathIcon Classes="tool vflip" Data="{StaticResource pathIconPaletteBrush}" />
+                        <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.PaletteBrush}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
@@ -81,7 +82,7 @@
                         CommandParameter="{x:Static vm:ScatteredArrangerTool.PickPalette}"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=PickPalette}"
                         ToolTip.Tip="Click on an Arranger element to pick its associated palette">
-                        <PathIcon Classes="tool" Data="{StaticResource pathIconPalettePicker}" />
+                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.PalettePicker}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
@@ -89,7 +90,7 @@
                         CommandParameter="{x:Static vm:ScatteredArrangerTool.InspectElement}"
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=InspectElement}"
                         ToolTip.Tip="Hover Arranger elements to inspect their properties">
-                        <PathIcon Classes="tool" Data="{StaticResource pathIconEye}" />
+                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Eye}" />
                     </RadioButton>
 
                     <RadioButton
@@ -99,7 +100,7 @@
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateLeft}"
                         IsVisible="{Binding AreSymmetryToolsEnabled}"
                         ToolTip.Tip="Rotate Element's Display Left">
-                        <PathIcon Classes="tool" Data="{StaticResource pathIconRotateLeft}" />
+                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RotateLeft}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
@@ -108,7 +109,7 @@
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateRight}"
                         IsVisible="{Binding AreSymmetryToolsEnabled}"
                         ToolTip.Tip="Rotate Element's Display Right">
-                        <PathIcon Classes="tool" Data="{StaticResource pathIconRotateRight}" />
+                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RotateRight}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
@@ -117,7 +118,7 @@
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorHorizontal}"
                         IsVisible="{Binding AreSymmetryToolsEnabled}"
                         ToolTip.Tip="Mirror Element's Display Horizontally">
-                        <PathIcon Classes="tool" Data="{StaticResource pathIconMirrorHorizontal}" />
+                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.MirrorHorizontal}" />
                     </RadioButton>
                     <RadioButton
                         Classes="tool"
@@ -126,7 +127,7 @@
                         IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorVertical}"
                         IsVisible="{Binding AreSymmetryToolsEnabled}"
                         ToolTip.Tip="Mirror Element's Display Vertically">
-                        <PathIcon Classes="tool" Data="{StaticResource pathIconMirrorVertical}" />
+                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.MirrorVertical}" />
                     </RadioButton>
                 </StackPanel>
             </StackPanel>
@@ -150,7 +151,7 @@
                         VerticalContentAlignment="Center"
                         Command="{Binding AssociatePaletteCommand}"
                         ToolTip.Tip="Associate an existing Palette from this Project with this Arranger">
-                        <PathIcon Classes="tool" Data="{StaticResource pathIconPlusCircle}" />
+                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.PlusCircle}" />
                     </Button>
                 </StackPanel>
             </StackPanel>
@@ -160,14 +161,14 @@
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Grid" />
                 <ToggleButton Focusable="False" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
-                    <PathIcon Classes="tool" Data="{StaticResource pathIconGrid}" />
+                    <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Grid}" />
                 </ToggleButton>
             </StackPanel>
 
             <StackPanel Margin="5,0,0,0" IsVisible="{Binding CanChangeSnapMode}">
                 <TextBlock HorizontalAlignment="Center" Text="Snap" />
                 <ToggleButton Focusable="False" IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}" ToolTip.Tip="Snap Selection to Elements (S)">
-                    <PathIcon Classes="tool" Data="{StaticResource pathIconSnap}" />
+                    <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Snap}" />
                 </ToggleButton>
             </StackPanel>
 
@@ -177,7 +178,7 @@
                 <TextBlock HorizontalAlignment="Center" Text="Resize" />
 
                 <Button Command="{Binding ResizeArrangerCommand}" ToolTip.Tip="Resizes the Arranger">
-                    <PathIcon Classes="tool" Data="{StaticResource pathIconResize}" />
+                    <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Resize}" />
                 </Button>
             </StackPanel>
 
@@ -185,7 +186,7 @@
                 <TextBlock HorizontalAlignment="Center" Text="Edit" />
 
                 <Button Command="{Binding EditSelectionCommand}" IsEnabled="{Binding CanEditSelection}" ToolTip.Tip="Opens selection in the pixel editor (E)">
-                    <PathIcon Classes="tool vflip" Data="{StaticResource pathIconEdit}" />
+                    <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.Edit}" />
                 </Button>
             </StackPanel>
         </StackPanel>

@@ -3,7 +3,9 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.UI.Converters"
+    xmlns:fac="using:FluentAvalonia.UI.Controls"
     xmlns:m="using:TileShop.Shared.Models"
+    xmlns:res="using:TileShop.UI.Resources"
     xmlns:v="using:TileShop.UI.Views"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:Name="palView"
@@ -12,7 +14,7 @@
         <DataTemplate DataType="{x:Type m:FileColorSourceModel}">
             <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
                 <Button Background="#DA3633" Command="{ReflectionBinding #palView.DataContext.RemoveColorSourceCommand}" CommandParameter="{Binding}">
-                    <PathIcon Width="20" Height="20" Data="{StaticResource pathIconTrash}" Foreground="{DynamicResource iconBrush}" />
+                    <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Trash}" />
                 </Button>
                 <TextBlock
                     Width="150"
@@ -32,7 +34,7 @@
         <DataTemplate DataType="{x:Type m:NativeColorSourceModel}">
             <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
                 <Button Background="#DA3633" Command="{ReflectionBinding #palView.DataContext.RemoveColorSourceCommand}" CommandParameter="{Binding}">
-                    <PathIcon Width="20" Height="20" Data="{StaticResource pathIconTrash}" Foreground="{DynamicResource iconBrush}" />
+                    <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Trash}" />
                 </Button>
                 <TextBlock
                     Width="150"
@@ -48,7 +50,7 @@
         <DataTemplate DataType="{x:Type m:ForeignColorSourceModel}">
             <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
                 <Button Background="#DA3633" Command="{ReflectionBinding #palView.DataContext.RemoveColorSourceCommand}" CommandParameter="{Binding}">
-                    <PathIcon Width="20" Height="20" Data="{StaticResource pathIconTrash}" Foreground="{DynamicResource iconBrush}" />
+                    <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Trash}" />
                 </Button>
                 <TextBlock
                     Width="150"
@@ -93,7 +95,7 @@
                     <StackPanel Margin="20,0,0,0" Orientation="Horizontal">
                         <Button Background="#238636">
                             <Button.Content>
-                                <PathIcon Width="20" Height="20" Data="{StaticResource pathIconPlus}" Foreground="{DynamicResource iconBrush}" />
+                                <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Plus}" />
                             </Button.Content>
                             <Button.Flyout>
                                 <MenuFlyout Placement="BottomEdgeAlignedLeft">

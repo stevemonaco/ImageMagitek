@@ -3,9 +3,11 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.UI.Converters"
+    xmlns:fac="using:FluentAvalonia.UI.Controls"
     xmlns:m="using:TileShop.UI.Models"
     xmlns:model="using:TileShop.Shared.Models"
     xmlns:paz="using:Avalonia.Controls.PanAndZoom"
+    xmlns:res="using:TileShop.UI.Resources"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:Name="pixelEditor"
     x:DataType="vm:IndexedPixelEditorViewModel">
@@ -44,7 +46,7 @@
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock HorizontalAlignment="Center" Text="Grid" />
                     <ToggleButton Focusable="False" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
-                        <PathIcon Width="20" Height="20" Data="{StaticResource pathIconGrid}" Foreground="{DynamicResource iconBrush}" />
+                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Grid}" />
                     </ToggleButton>
                 </StackPanel>
 
@@ -61,7 +63,7 @@
                             CommandParameter="{x:Static vm:PixelTool.Select}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
                             ToolTip.Tip="Rectangular Selection Tool">
-                            <PathIcon Classes="tool" Data="{StaticResource pathIconRectangularSelection}" />
+                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RectangularSelection}" />
                         </RadioButton>
 
                         <RadioButton
@@ -70,7 +72,7 @@
                             CommandParameter="{x:Static vm:PixelTool.Pencil}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Pencil}"
                             ToolTip.Tip="Pencil Tool">
-                            <PathIcon Classes="tool" Data="{StaticResource pathIconPencil}" />
+                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Pencil}" />
                         </RadioButton>
                         <RadioButton
                             Classes="tool"
@@ -78,7 +80,7 @@
                             CommandParameter="{x:Static vm:PixelTool.ColorPicker}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColorPicker}"
                             ToolTip.Tip="Color Picker Tool">
-                            <PathIcon Classes="tool vflip" Data="{StaticResource pathIconColorPicker}" />
+                            <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.ColorPicker}" />
                         </RadioButton>
                         <RadioButton
                             Classes="tool"
@@ -86,7 +88,7 @@
                             CommandParameter="{x:Static vm:PixelTool.FloodFill}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=FloodFill}"
                             ToolTip.Tip="Flood Fill Tool">
-                            <PathIcon Classes="tool vflip" Data="{StaticResource pathIconFloodFill}" />
+                            <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.FloodFill}" />
                         </RadioButton>
                     </StackPanel>
                 </StackPanel>
@@ -125,7 +127,7 @@
                     <TextBlock HorizontalAlignment="Center" Text="Remap" />
 
                     <Button HorizontalAlignment="Center" Command="{Binding RemapColorsCommand}" IsEnabled="{Binding CanRemapColors}" ToolTip.Tip="Remap Palette Colors">
-                        <PathIcon Width="20" Height="20" Data="{StaticResource pathIconRemap}" Foreground="{DynamicResource iconBrush}" />
+                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Remap}" Foreground="{DynamicResource iconBrush}" />
                     </Button>
                 </StackPanel>
             </StackPanel>

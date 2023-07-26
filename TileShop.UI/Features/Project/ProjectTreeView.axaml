@@ -5,6 +5,7 @@
     xmlns:fac="using:FluentAvalonia.UI.Controls"
     xmlns:i="using:Avalonia.Xaml.Interactivity"
     xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
+    xmlns:res="using:TileShop.UI.Resources"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:DataType="vm:ProjectTreeViewModel">
     <TreeView
@@ -40,12 +41,7 @@
                             <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </Grid.ContextMenu>
-                    <fac:FAPathIcon
-                        Grid.Column="0"
-                        Width="16"
-                        Height="16"
-                        Data="{StaticResource pathIconNodeProject}"
-                        Foreground="{DynamicResource iconBrush}" />
+                    <fac:FAPathIcon Grid.Column="0" Classes="small" Data="{x:Static res:AppIcons.NodeProject}" />
                     <TextBlock Grid.Column="1" Margin="4,0,0,0" Text="{Binding Name}" />
                 </Grid>
             </TreeDataTemplate>
@@ -64,12 +60,7 @@
                             <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </StackPanel.ContextMenu>
-                    <PathIcon
-                        Width="16"
-                        Height="16"
-                        Data="{StaticResource pathIconNodeFolder}"
-                        Foreground="{DynamicResource iconBrush}"
-                        RenderTransform="{StaticResource verticalFlipTransform}" />
+                    <fac:FAPathIcon Classes="small vflip" Data="{x:Static res:AppIcons.NodeFolder}" />
                     <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
                 </StackPanel>
             </TreeDataTemplate>
@@ -83,7 +74,7 @@
                             <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </StackPanel.ContextMenu>
-                    <PathIcon Width="16" Height="16" Data="{StaticResource pathIconNodeFile}" Foreground="{DynamicResource iconBrush}" />
+                    <fac:FAPathIcon Classes="small" Data="{x:Static res:AppIcons.NodeFile}" />
                     <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
                 </StackPanel>
             </TreeDataTemplate>
@@ -100,12 +91,7 @@
                             <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </StackPanel.ContextMenu>
-                    <PathIcon
-                        Width="16"
-                        Height="16"
-                        Data="{StaticResource pathIconNodeArranger}"
-                        Foreground="{DynamicResource iconBrush}"
-                        RenderTransform="{StaticResource verticalFlipTransform}" />
+                    <fac:FAPathIcon Classes="small vflip" Data="{x:Static res:AppIcons.NodeArranger}" />
                     <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
                 </StackPanel>
             </TreeDataTemplate>
@@ -119,7 +105,7 @@
                             <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </StackPanel.ContextMenu>
-                    <PathIcon Width="16" Height="16" Data="{StaticResource pathIconNodePalette}" Foreground="{DynamicResource iconBrush}" />
+                    <fac:FAPathIcon Classes="small" Data="{x:Static res:AppIcons.NodePalette}" />
                     <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
                 </StackPanel>
             </TreeDataTemplate>
