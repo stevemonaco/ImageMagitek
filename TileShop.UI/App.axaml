@@ -27,8 +27,7 @@
                 <ResourceInclude x:Key="Dark" Source="avares://TileShop.UI/Styles/AppResources.Dark.axaml" />
             </ResourceDictionary.ThemeDictionaries>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://TileShop.UI/Styles/Icons.axaml" />
-                <ResourceInclude Source="avares://TileShop.UI/Styles/ResourceOverrides.axaml" />
+                <ResourceInclude Source="avares://TileShop.UI/Styles/ExternalResourceOverrides.axaml" />
                 <ResourceInclude Source="avares://TileShop.UI/Styles/AppResources.General.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
