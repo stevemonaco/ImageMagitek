@@ -36,24 +36,23 @@ public partial class MenuViewModel : ObservableRecipient
         }
     }
 
-    private readonly Tracker _tracker;
     private readonly IThemeService _themeService;
     private readonly IInteractionService _interactions;
     private readonly IExploreService _exploreService;
 
-    public MenuViewModel(Tracker tracker, IThemeService themeService, ProjectTreeViewModel projectTreeVM, EditorsViewModel editors,
+    public MenuViewModel(Tracker tracker, IThemeService themeService, ProjectTreeViewModel projectTreeVm, EditorsViewModel editors,
         IInteractionService interactionService, IExploreService exploreService)
     {
-        _tracker = tracker;
         _themeService = themeService;
-        _projectTree = projectTreeVM;
+        _projectTree = projectTreeVm;
         _editors = editors;
         _interactions = interactionService;
         _exploreService = exploreService;
-        _tracker.Track(this);
+        
+        tracker.Track(this);
         Messenger.Register<ProjectLoadedMessage>(this, (r, m) => Handle(m));
 
-        RecentProjectFiles = new(RecentProjectFiles.Where(x => File.Exists(x)));
+        RecentProjectFiles = new(RecentProjectFiles.Where(File.Exists));
         ActiveTheme = _themeService.ActiveTheme;
     }
 
@@ -124,7 +123,7 @@ public partial class MenuViewModel : ObservableRecipient
         _exploreService.ExploreWebLocation(uri);
     }
 
-    public async void Handle(ProjectLoadedMessage message)
+    private async void Handle(ProjectLoadedMessage message)
     {
         await Task.Delay(50); // Delay so that the menu closes, otherwise changing the collection keeps it open
 

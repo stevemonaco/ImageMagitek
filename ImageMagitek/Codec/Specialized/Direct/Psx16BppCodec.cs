@@ -4,7 +4,7 @@ using ImageMagitek.Colors.Converters;
 
 namespace ImageMagitek.Codec;
 
-public sealed class Psx16bppCodec : DirectCodec
+public sealed class Psx16BppCodec : DirectCodec
 {
     public override string Name => "PSX 16bpp";
     public override int Width { get; } = 8;
@@ -25,7 +25,7 @@ public sealed class Psx16bppCodec : DirectCodec
     private readonly IBitStreamReader _bitReader;
     private readonly ColorConverterAbgr16 _colorConverter = new ColorConverterAbgr16();
 
-    public Psx16bppCodec()
+    public Psx16BppCodec()
     {
         Width = DefaultWidth;
         Height = DefaultHeight;
@@ -36,7 +36,7 @@ public sealed class Psx16bppCodec : DirectCodec
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
-    public Psx16bppCodec(int width, int height)
+    public Psx16BppCodec(int width, int height)
     {
         Width = width;
         Height = height;

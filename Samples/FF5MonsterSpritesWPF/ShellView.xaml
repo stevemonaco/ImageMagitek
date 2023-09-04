@@ -16,7 +16,7 @@
         <ListBox Grid.Column="0" ItemsSource="{Binding Sprites}" SelectedItem="{Binding ActiveItem}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding MonsterID, StringFormat=Monster {0}}" />
+                    <TextBlock Text="{Binding MonsterId, StringFormat=Monster {0}}" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

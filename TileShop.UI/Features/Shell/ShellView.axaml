@@ -28,7 +28,7 @@
                 <ContentControl Content="{Binding ActiveMenu}" />
                 <Button Command="{Binding LoadCommand}" Content="Load FF2" />
             </StackPanel>
-
+            
             <idc:DockControl Name="_dock" Grid.Row="1" />
 
             <ContentControl Grid.Row="2" Content="{Binding ActiveStatusBar}" />

@@ -18,9 +18,9 @@
             <TextBlock Text="{Binding HasShadow, StringFormat=Has Shadow: {0}}" />
             <TextBlock Text="{Binding Unused, StringFormat=Unused Flags: {0}}" />
 
-            <TextBlock Text="{Binding TileSetID, StringFormat=Tile Set ID: {0}}" />
-            <TextBlock Text="{Binding PaletteID, StringFormat=Palette ID: {0}}" />
-            <TextBlock Text="{Binding FormID, StringFormat=Form ID: {0}}" />
+            <TextBlock Text="{Binding TileSetId, StringFormat=Tile Set ID: {0}}" />
+            <TextBlock Text="{Binding PaletteId, StringFormat=Palette ID: {0}}" />
+            <TextBlock Text="{Binding FormId, StringFormat=Form ID: {0}}" />
         </StackPanel>
         <StackPanel Grid.Column="1">
             <Border BorderBrush="Black" BorderThickness="1">

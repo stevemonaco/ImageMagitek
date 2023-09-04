@@ -15,7 +15,7 @@ public sealed class PatternList
     public static int MaxPatternSize { get; } = 64 * 8;
 
     private const string _letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz" + "23456789" + "!?@*";
-    private readonly static Dictionary<char, int> _letterMapper = new Dictionary<char, int>
+    private static readonly Dictionary<char, int> _letterMapper = new Dictionary<char, int>
     (
         _letters.Select((x, i) => new KeyValuePair<char, int>(x, i))
     );

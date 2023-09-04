@@ -14,5 +14,5 @@ public interface IColor32 : IColor
     int RedMax { get; }
     int GreenMax { get; }
     int BlueMax { get; }
-    void Deconstruct(out byte R, out byte G, out byte B, out byte A);
+    void Deconstruct(out byte r, out byte g, out byte b, out byte a);
 }

@@ -94,8 +94,8 @@ public sealed class BitStream : IBitStreamReader, IBitStreamWriter
     /// <returns>A readable BitStream instance</returns>
     public static IBitStreamReader OpenRead(BinaryReader br, int dataBits, int firstByteBits)
     {
-        int ReadLength = (int)Math.Ceiling((dataBits + (8 - firstByteBits)) / 8.0);
-        var data = br.ReadBytes(ReadLength);
+        int readLength = (int)Math.Ceiling((dataBits + (8 - firstByteBits)) / 8.0);
+        var data = br.ReadBytes(readLength);
         byte mask = (byte)((1 << firstByteBits) - 1);
         data[0] = (byte)(data[0] & mask);
 
@@ -131,15 +131,15 @@ public sealed class BitStream : IBitStreamReader, IBitStreamWriter
     /// <returns>A writable BitStream instance</returns>
     public static IBitStreamWriter OpenWrite(int dataBits, int firstByteBits)
     {
-        int BufferLength = (int)Math.Ceiling((dataBits + (8 - firstByteBits)) / 8.0);
-        var data = new byte[BufferLength];
+        int bufferLength = (int)Math.Ceiling((dataBits + (8 - firstByteBits)) / 8.0);
+        var data = new byte[bufferLength];
 
         return OpenWrite(data, dataBits, firstByteBits);
     }
 
-    public static IBitStreamWriter OpenWrite(byte[] Buffer, int dataBits, int firstByteBits)
+    public static IBitStreamWriter OpenWrite(byte[] buffer, int dataBits, int firstByteBits)
     {
-        return new BitStream(Buffer)
+        return new BitStream(buffer)
         {
             _bitIndex = firstByteBits,
             _bitsRemaining = dataBits,

@@ -5,8 +5,8 @@ namespace ImageMagitek.UnitTests.ExtensionMethodTests;
 
 public class TransposeArray2DTestCases
 {
-    private static byte[,] _scalarArray = new byte[1, 1] { { 1 } };
-    private static byte[,] _evenSquareArray = new byte[,]
+    private static readonly byte[,] _scalarArray = new byte[1, 1] { { 1 } };
+    private static readonly byte[,] _evenSquareArray = new byte[,]
     {
             { 00, 01, 02, 03, 04, 05, 06, 07 },
             { 10, 11, 12, 13, 14, 15, 16, 17 },
@@ -18,7 +18,7 @@ public class TransposeArray2DTestCases
             { 70, 71, 72, 73, 74, 75, 76, 77 }
     };
 
-    private static byte[,] _oddSquareArray = new byte[,]
+    private static readonly byte[,] _oddSquareArray = new byte[,]
     {
             { 00, 01, 02, 03, 04, 05, 06 },
             { 10, 11, 12, 13, 14, 15, 16 },
@@ -33,7 +33,7 @@ public class TransposeArray2DTestCases
     {
         get
         {
-            var _evenExpected = new byte[,]
+            var evenExpected = new byte[,]
             {
                     { 00, 10, 20, 30, 40, 50, 60, 70 },
                     { 01, 11, 21, 31, 41, 51, 61, 71 },
@@ -45,7 +45,7 @@ public class TransposeArray2DTestCases
                     { 07, 17, 27, 37, 47, 57, 67, 77 }
             };
 
-            var _oddExpected = new byte[,]
+            var oddExpected = new byte[,]
             {
                     { 00, 10, 20, 30, 40, 50, 60 },
                     { 01, 11, 21, 31, 41, 51, 61 },
@@ -56,8 +56,8 @@ public class TransposeArray2DTestCases
                     { 06, 16, 26, 36, 46, 56, 66 }
             };
 
-            yield return new TestCaseData(_evenSquareArray.Clone(), _evenExpected);
-            yield return new TestCaseData(_oddSquareArray.Clone(), _oddExpected);
+            yield return new TestCaseData(_evenSquareArray.Clone(), evenExpected);
+            yield return new TestCaseData(_oddSquareArray.Clone(), oddExpected);
             yield return new TestCaseData(_scalarArray.Clone(), _scalarArray);
         }
     }

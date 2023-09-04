@@ -29,7 +29,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     public Arranger WorkingArranger { get; protected set; }
     public bool CanChangeSnapMode { get; protected set; }
     public Point? LastMousePosition { get; protected set; }
-
+    
     protected readonly Tracker _tracker;
     protected readonly IInteractionService _interactions;
     protected readonly IColorFactory _colorFactory;
@@ -70,8 +70,8 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     [ObservableProperty] private bool _isSelecting;
     [ObservableProperty] private ArrangerPaste? _paste;
 
-    public bool CanAcceptPixelPastes { get; set; }
-    public bool CanAcceptElementPastes { get; set; }
+    public bool CanAcceptPixelPastes { get; init; }
+    public bool CanAcceptElementPastes { get; init; }
     public Key PrimaryAltKey { get; protected set; } = Key.LeftAlt;
     public Key SecondaryAltKey { get; protected set; } = Key.LeftShift;
 
@@ -82,7 +82,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     public int ViewDx { get; protected set; }
     public int ViewDy { get; protected set; }
 
-    public ArrangerEditorViewModel(Arranger arranger, IInteractionService interactionService, IColorFactory colorFactory, PaletteStore paletteStore, Tracker tracker)
+    protected ArrangerEditorViewModel(Arranger arranger, IInteractionService interactionService, IColorFactory colorFactory, PaletteStore paletteStore, Tracker tracker)
         : base(arranger)
     {
         WorkingArranger = arranger.CloneArranger();

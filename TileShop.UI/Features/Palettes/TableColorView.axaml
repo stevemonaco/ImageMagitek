@@ -47,7 +47,7 @@
             </ItemsRepeater.Layout>
 
             <ItemsRepeater.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="vm:TableColorViewModel">
                     <Border Margin="1" Padding="0" BorderBrush="Black" BorderThickness="2">
                         <Rectangle Width="34" Height="32">
                             <!--<i:Interaction.Triggers>

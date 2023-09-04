@@ -77,9 +77,9 @@ public partial class ProjectTreeViewModel : ToolViewModel
         await result.Match(
             success =>
             {
-                var folderVM = new FolderNodeViewModel(success.Result, parentNodeModel);
-                parentNodeModel.Children.Add(folderVM);
-                SelectedNode = folderVM;
+                var folderVm = new FolderNodeViewModel(success.Result, parentNodeModel);
+                parentNodeModel.Children.Add(folderVm);
+                SelectedNode = folderVm;
                 IsModified = true;
                 return Task.CompletedTask;
             },
@@ -111,9 +111,9 @@ public partial class ProjectTreeViewModel : ToolViewModel
             await result.Match(
                 success =>
                 {
-                    var dfVM = new DataFileNodeViewModel(success.Result, parentNodeModel);
-                    parentNodeModel.Children.Add(dfVM);
-                    SelectedNode = dfVM;
+                    var dfVm = new DataFileNodeViewModel(success.Result, parentNodeModel);
+                    parentNodeModel.Children.Add(dfVm);
+                    SelectedNode = dfVm;
                     IsModified = true;
                     return Task.CompletedTask;
                 },
@@ -155,9 +155,9 @@ public partial class ProjectTreeViewModel : ToolViewModel
             await result.Match(
                 async success =>
                 {
-                    var palVM = new PaletteNodeViewModel(success.Result, parentNodeModel);
-                    parentNodeModel.Children.Add(palVM);
-                    SelectedNode = palVM;
+                    var palVm = new PaletteNodeViewModel(success.Result, parentNodeModel);
+                    parentNodeModel.Children.Add(palVm);
+                    SelectedNode = palVm;
                     IsModified = true;
                     _tracker.Persist(dialogModel);
                     await _editors.ActivateEditor(pal);
@@ -189,9 +189,9 @@ public partial class ProjectTreeViewModel : ToolViewModel
             await result.Match(
                 async success =>
                 {
-                    var arrangerVM = new ArrangerNodeViewModel(success.Result, parentNodeModel);
-                    parentNodeModel.Children.Add(arrangerVM);
-                    SelectedNode = arrangerVM;
+                    var arrangerVm = new ArrangerNodeViewModel(success.Result, parentNodeModel);
+                    parentNodeModel.Children.Add(arrangerVm);
+                    SelectedNode = arrangerVm;
                     IsModified = true;
                     _tracker.Persist(dialogModel);
                     await _editors.ActivateEditor(arranger);
@@ -416,9 +416,9 @@ public partial class ProjectTreeViewModel : ToolViewModel
                     await addResult.Match(
                         async addSuccess =>
                         {
-                            var arrangerVM = new ArrangerNodeViewModel(addSuccess.Result, parentModel);
-                            parentModel.Children.Add(arrangerVM);
-                            SelectedNode = arrangerVM;
+                            var arrangerVm = new ArrangerNodeViewModel(addSuccess.Result, parentModel);
+                            parentModel.Children.Add(arrangerVm);
+                            SelectedNode = arrangerVm;
                             IsModified = true;
                             await _editors.ActivateEditor(newArranger);
                         },
@@ -506,12 +506,12 @@ public partial class ProjectTreeViewModel : ToolViewModel
                 _projectService.CreateNewProject(Path.GetFullPath(projectFileName.LocalPath)).Switch(
                     success =>
                     {
-                        var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
-                        Guard.IsNotNullOrWhiteSpace(projectVM.Node.DiskLocation);
+                        var projectVm = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
+                        Guard.IsNotNullOrWhiteSpace(projectVm.Node.DiskLocation);
 
-                        Projects.Add(projectVM);
+                        Projects.Add(projectVm);
                         OnPropertyChanged(nameof(HasProject));
-                        Messenger.Send(new ProjectLoadedMessage(projectVM.Node.DiskLocation));
+                        Messenger.Send(new ProjectLoadedMessage(projectVm.Node.DiskLocation));
                     },
                     async fail => await _interactions.AlertAsync("Project Error", $"{fail.Reason}"));
             }
@@ -546,15 +546,15 @@ public partial class ProjectTreeViewModel : ToolViewModel
                 await result.Match(
                     success =>
                     {
-                        var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
-                        Guard.IsNotNullOrEmpty(projectVM.Node.DiskLocation);
+                        var projectVm = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
+                        Guard.IsNotNullOrEmpty(projectVm.Node.DiskLocation);
 
-                        Projects.Add(projectVM);
-                        SelectedNode = projectVM;
+                        Projects.Add(projectVm);
+                        SelectedNode = projectVm;
                         IsModified = true;
 
                         OnPropertyChanged(nameof(HasProject));
-                        Messenger.Send(new ProjectLoadedMessage(projectVM.Node.DiskLocation));
+                        Messenger.Send(new ProjectLoadedMessage(projectVm.Node.DiskLocation));
                         return Task.CompletedTask;
                     },
                     async fail => await _interactions.AlertAsync("Project Error", $"{fail.Reason}"));
@@ -586,8 +586,8 @@ public partial class ProjectTreeViewModel : ToolViewModel
         return await openResult.Match(
             success =>
             {
-                var projectVM = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
-                Projects.Add(projectVM);
+                var projectVm = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
+                Projects.Add(projectVm);
                 OnPropertyChanged(nameof(HasProject));
                 Messenger.Send(new ProjectLoadedMessage(projectFileName));
                 return Task.FromResult(true);
@@ -602,9 +602,9 @@ public partial class ProjectTreeViewModel : ToolViewModel
     }
 
     [RelayCommand]
-    public async Task SaveProjectAs(ProjectNodeViewModel projectVM)
+    public async Task SaveProjectAs(ProjectNodeViewModel projectVm)
     {
-        var projectTree = _projectService.GetContainingProject(projectVM.Node);
+        var projectTree = _projectService.GetContainingProject(projectVm.Node);
 
         var newFileName = await _fileSelect.RequestNewProjectFileName();
 
@@ -623,9 +623,9 @@ public partial class ProjectTreeViewModel : ToolViewModel
     }
 
     [RelayCommand]
-    public async Task<bool> CloseProject(ProjectNodeViewModel projectVM)
+    public async Task<bool> CloseProject(ProjectNodeViewModel projectVm)
     {
-        var projectTree = _projectService.GetContainingProject(projectVM.Node);
+        var projectTree = _projectService.GetContainingProject(projectVm.Node);
 
         var projectSaveResult = _projectService.SaveProject(projectTree);
 
@@ -672,7 +672,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
                  });
 
             _projectService.CloseProject(projectTree);
-            Projects.Remove(projectVM);
+            Projects.Remove(projectVm);
             OnPropertyChanged(nameof(HasProject));
             return true;
         }
@@ -697,10 +697,10 @@ public partial class ProjectTreeViewModel : ToolViewModel
     }
 
     [RelayCommand]
-    public void ExploreResource(ResourceNodeViewModel nodeVM)
+    public void ExploreResource(ResourceNodeViewModel nodeVm)
     {
-        if (nodeVM.Node.DiskLocation is not null)
-            _diskExploreService.ExploreDiskLocation(nodeVM.Node.DiskLocation);
+        if (nodeVm.Node.DiskLocation is not null)
+            _diskExploreService.ExploreDiskLocation(nodeVm.Node.DiskLocation);
     }
 
     public override void DiscardChanges()

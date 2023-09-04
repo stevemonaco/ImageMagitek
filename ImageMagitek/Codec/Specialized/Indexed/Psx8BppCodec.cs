@@ -2,30 +2,26 @@
 using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec;
-public sealed class Psx4bppCodec : IndexedCodec
+public sealed class Psx8BppCodec : IndexedCodec
 {
-    public override string Name => "PSX 4bpp";
+    public override string Name => "PSX 8bpp";
     public override ImageLayout Layout => ImageLayout.Single;
-    public override int ColorDepth => 4;
-    public override int StorageSize => Width * Height * 4;
+    public override int ColorDepth => 8;
+    public override int StorageSize => Width * Height * 8;
     public override bool CanEncode => true;
 
     public override int DefaultWidth => 64;
     public override int DefaultHeight => 64;
-    public override int WidthResizeIncrement => 2;
+    public override int WidthResizeIncrement => 1;
     public override int HeightResizeIncrement => 1;
     public override bool CanResize => true;
 
-    private IBitStreamReader _bitReader;
-
-    public Psx4bppCodec(Palette palette) : base(palette)
+    public Psx8BppCodec(Palette palette) : base(palette)
     {
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
-    public Psx4bppCodec(Palette palette, int width, int height) : base(palette, width, height)
+    public Psx8BppCodec(Palette palette, int width, int height) : base(palette, width, height)
     {
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public override byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -33,18 +29,13 @@ public sealed class Psx4bppCodec : IndexedCodec
         if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer[..ForeignBuffer.Length].CopyTo(_foreignBuffer);
-
-        _bitReader.SeekAbsolute(0);
+        int srcidx = 0;
 
         for (int y = 0; y < el.Height; y++)
         {
-            for (int x = 0; x < el.Width; x += 2)
+            for (int x = 0; x < el.Width; x++, srcidx++)
             {
-                var palIndex = (byte)_bitReader.ReadBits(4);
-                _nativeBuffer[y, x + 1] = palIndex;
-
-                palIndex = (byte)_bitReader.ReadBits(4);
+                var palIndex = encodedBuffer[srcidx];
                 _nativeBuffer[y, x] = palIndex;
             }
         }
@@ -57,16 +48,14 @@ public sealed class Psx4bppCodec : IndexedCodec
         if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
             throw new ArgumentException(nameof(imageBuffer));
 
-        int dest = 0;
+        int destidx = 0;
+
         for (int y = 0; y < el.Height; y++)
         {
-            for (int x = 0; x < el.Width; x += 2, dest++)
+            for (int x = 0; x < el.Width; x++, destidx++)
             {
-                byte indexLow = imageBuffer[y, x];
-                byte indexHigh = imageBuffer[y, x + 1];
-
-                byte index = (byte)(indexLow | (indexHigh << 4));
-                _foreignBuffer[dest] = index;
+                byte index = imageBuffer[y, x];
+                _foreignBuffer[destidx] = index;
             }
         }
 

@@ -7,17 +7,17 @@ namespace ImageMagitek.Colors;
 // Based on info from https://segaretro.org/Palette#Mega_Drive_Palette
 public struct ColorBgr9 : IColor32
 {
-    public byte r;
-    public byte g;
-    public byte b;
-    public byte a;
+    private byte _r;
+    private byte _g;
+    private byte _b;
+    private byte _a;
 
     public ColorBgr9(uint foreignColor)
     {
-        r = (byte)(foreignColor & 0xf);
-        g = (byte)((foreignColor & 0xf0) >> 4);
-        b = (byte)((foreignColor & 0xf00) >> 8);
-        a = 0;
+        _r = (byte)(foreignColor & 0xf);
+        _g = (byte)((foreignColor & 0xf0) >> 4);
+        _b = (byte)((foreignColor & 0xf00) >> 8);
+        _a = 0;
     }
 
     public ColorBgr9(byte red, byte green, byte blue)
@@ -25,55 +25,55 @@ public struct ColorBgr9 : IColor32
         R = red;
         G = green;
         B = blue;
-        a = 0;
+        _a = 0;
     }
 
     public byte R
     {
-        get => r;
+        get => _r;
         set
         {
             Guard.IsInRange(value, 0, RedMax+1);
-            r = value;
+            _r = value;
         }
     }
 
     public byte G
     {
-        get => g;
+        get => _g;
         set
         {
             Guard.IsInRange(value, 0, GreenMax+1);
-            g = value;
+            _g = value;
         }
     }
 
     public byte B
     {
-        get => b;
+        get => _b;
         set
         {
             Guard.IsInRange(value, 0, BlueMax+1);
-            b = value;
+            _b = value;
         }
     }
 
-    public byte A { get => 0; set => a = 0; }
+    public byte A { get => 0; set => _a = 0; }
 
     public uint Color
     {
         get
         {
-            uint value = r;
-            value |= (uint)g << 4;
-            value |= (uint)b << 8;
+            uint value = _r;
+            value |= (uint)_g << 4;
+            value |= (uint)_b << 8;
             return value;
         }
         set
         {
-            r = (byte)(value & 0xf);
-            g = (byte)((value & 0xf0) >> 4);
-            b = (byte)((value & 0xf00) >> 8);
+            _r = (byte)(value & 0xf);
+            _g = (byte)((value & 0xf0) >> 4);
+            _b = (byte)((value & 0xf00) >> 8);
         }
     }
 
@@ -82,26 +82,26 @@ public struct ColorBgr9 : IColor32
     public int RedMax => 15;
     public int GreenMax => 15;
     public int BlueMax => 15;
-    private readonly static Vector4 _maxVector = new Vector4(15f, 15f, 15f, 1f);
+    private static readonly Vector4 _maxVector = new Vector4(15f, 15f, 15f, 1f);
 
     public Vector4 ColorVector
     {
-        get => new Vector4(r, g, b, 1f) / _maxVector;
+        get => new Vector4(_r, _g, _b, 1f) / _maxVector;
         set
         {
             var vec = value * _maxVector;
-            r = (byte)Math.Round(vec.X);
-            g = (byte)Math.Round(vec.Y);
-            b = (byte)Math.Round(vec.Z);
-            a = 0;
+            _r = (byte)Math.Round(vec.X);
+            _g = (byte)Math.Round(vec.Y);
+            _b = (byte)Math.Round(vec.Z);
+            _a = 0;
         }
     }
 
-    public void Deconstruct(out byte R, out byte G, out byte B, out byte A)
+    public void Deconstruct(out byte r, out byte g, out byte b, out byte a)
     {
-        R = r;
-        G = g;
-        B = b;
-        A = 0;
+        r = _r;
+        g = _g;
+        b = _b;
+        a = 0;
     }
 }

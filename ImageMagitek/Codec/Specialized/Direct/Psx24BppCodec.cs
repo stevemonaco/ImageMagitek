@@ -3,7 +3,7 @@ using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec;
 
-public sealed class Psx24bppCodec : DirectCodec
+public sealed class Psx24BppCodec : DirectCodec
 {
     public override string Name => "PSX 24bpp";
     public override int Width { get; } = 8;
@@ -23,7 +23,7 @@ public sealed class Psx24bppCodec : DirectCodec
 
     private readonly IBitStreamReader _bitReader;
 
-    public Psx24bppCodec()
+    public Psx24BppCodec()
     {
         Width = DefaultWidth;
         Height = DefaultHeight;
@@ -34,7 +34,7 @@ public sealed class Psx24bppCodec : DirectCodec
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
-    public Psx24bppCodec(int width, int height)
+    public Psx24BppCodec(int width, int height)
     {
         Width = width;
         Height = height;

@@ -28,7 +28,7 @@ public class DockFactory : Factory
 
     public override IRootDock CreateLayout()
     {
-        var _treeDockVm = new DockableToolViewModel(_projectTreeVm)
+        var treeDockVm = new DockableToolViewModel(_projectTreeVm)
         {
             Id = "Project Tree",
             Title = "Project Tree",
@@ -67,10 +67,10 @@ public class DockFactory : Factory
                     CanPin = true,
                     CanClose = false,
                     Proportion = double.NaN,
-                    ActiveDockable = _treeDockVm,
+                    ActiveDockable = treeDockVm,
                     VisibleDockables = CreateList<IDockable>
                     (
-                        _treeDockVm
+                        treeDockVm
                     ),
                     Alignment = Alignment.Left,
                     GripMode = GripMode.Visible

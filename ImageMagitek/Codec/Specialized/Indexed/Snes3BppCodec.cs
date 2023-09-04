@@ -1,15 +1,13 @@
 ﻿using System;
-using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 
-namespace ImageMagitek.PluginSample;
-
-public class Snes4bppCodec : IndexedCodec
+namespace ImageMagitek.Codec;
+public sealed class Snes3BppCodec : IndexedCodec
 {
-    public override string Name => "SNES 4bpp Plugin";
-    public override int StorageSize => 4 * Width * Height;
+    public override string Name => "SNES 3bpp";
+    public override int StorageSize => 3 * Width * Height;
     public override ImageLayout Layout => ImageLayout.Tiled;
-    public override int ColorDepth => 4;
+    public override int ColorDepth => 3;
     public override bool CanEncode => true;
 
     public override int DefaultWidth => 8;
@@ -20,12 +18,12 @@ public class Snes4bppCodec : IndexedCodec
 
     private IBitStreamReader _bitReader;
 
-    public Snes4bppCodec(Palette palette) : base(palette)
+    public Snes3BppCodec(Palette palette) : base(palette)
     {
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
-    public Snes4bppCodec(Palette palette, int width, int height) : base(palette, width, height)
+    public Snes3BppCodec(Palette palette, int width, int height) : base(palette, width, height)
     {
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
@@ -35,14 +33,13 @@ public class Snes4bppCodec : IndexedCodec
         if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
+        encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
 
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
 
         var offsetPlane1 = 0;
         var offsetPlane2 = Width;
         var offsetPlane3 = Width * Height * 2;
-        var offsetPlane4 = Width * Height * 2 + Width;
 
         for (int y = 0; y < Height; y++)
         {
@@ -54,22 +51,17 @@ public class Snes4bppCodec : IndexedCodec
                 var bp2 = _bitReader.ReadBit();
                 _bitReader.SeekAbsolute(offsetPlane3);
                 var bp3 = _bitReader.ReadBit();
-                _bitReader.SeekAbsolute(offsetPlane4);
-                var bp4 = _bitReader.ReadBit();
 
-                var palIndex = (bp1 << 0) | (bp2 << 1) | (bp3 << 2) | (bp4 << 3);
+                var palIndex = (bp1 << 0) | (bp2 << 1) | (bp3 << 2);
                 _nativeBuffer[y, x] = (byte)palIndex;
 
                 offsetPlane1++;
                 offsetPlane2++;
                 offsetPlane3++;
-                offsetPlane4++;
             }
 
             offsetPlane1 += Width;
             offsetPlane2 += Width;
-            offsetPlane3 += Width;
-            offsetPlane4 += Width;
         }
 
         return _nativeBuffer;
@@ -85,7 +77,6 @@ public class Snes4bppCodec : IndexedCodec
         var offsetPlane1 = 0;
         var offsetPlane2 = Width;
         var offsetPlane3 = Width * Height * 2;
-        var offsetPlane4 = Width * Height * 2 + Width;
 
         for (int y = 0; y < Height; y++)
         {
@@ -96,7 +87,6 @@ public class Snes4bppCodec : IndexedCodec
                 byte bp1 = (byte)(index & 1);
                 byte bp2 = (byte)((index >> 1) & 1);
                 byte bp3 = (byte)((index >> 2) & 1);
-                byte bp4 = (byte)((index >> 3) & 1);
 
                 bs.SeekAbsolute(offsetPlane1);
                 bs.WriteBit(bp1);
@@ -104,18 +94,13 @@ public class Snes4bppCodec : IndexedCodec
                 bs.WriteBit(bp2);
                 bs.SeekAbsolute(offsetPlane3);
                 bs.WriteBit(bp3);
-                bs.SeekAbsolute(offsetPlane4);
-                bs.WriteBit(bp4);
 
                 offsetPlane1++;
                 offsetPlane2++;
                 offsetPlane3++;
-                offsetPlane3++;
             }
             offsetPlane1 += Width;
             offsetPlane2 += Width;
-            offsetPlane3 += Width;
-            offsetPlane4 += Width;
         }
 
         return bs.Data;

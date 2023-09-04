@@ -29,10 +29,10 @@ public sealed class CodecFactory : ICodecFactory
         _codecs = new Dictionary<string, Type>
         {
             // Initialize with built-in codecs
-            { "SNES 3bpp", typeof(Snes3bppCodec) }, { "PSX 4bpp", typeof(Psx4bppCodec) }, { "PSX 8bpp", typeof(Psx8bppCodec) },
+            { "SNES 3bpp", typeof(Snes3BppCodec) }, { "PSX 4bpp", typeof(Psx4BppCodec) }, { "PSX 8bpp", typeof(Psx8BppCodec) },
             { "Rgb24 Tiled", typeof(Rgb24TiledCodec) }, { "Rgba32 Tiled", typeof(Rgba32TiledCodec) }, { "Bmp24", typeof(Bmp24Codec)},
             { "N64 Rgba16", typeof(N64Rgba16Codec) }, { "N64 Rgba32", typeof(N64Rgba32Codec) },
-            { "PSX 16bpp", typeof(Psx16bppCodec) }, { "PSX 24bpp", typeof(Psx24bppCodec) }
+            { "PSX 16bpp", typeof(Psx16BppCodec) }, { "PSX 24bpp", typeof(Psx24BppCodec) }
         };
     }
 

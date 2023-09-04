@@ -13,11 +13,12 @@ public partial class ResizeTiledScatteredArrangerViewModel : DialogViewModel<Res
     [ObservableProperty] private int _originalWidth;
     [ObservableProperty] private int _originalHeight;
 
+    /// <param name="interactionService"></param>
     /// <param name="originalWidth">Width of the original arranger in elements</param>
     /// <param name="originalHeight">Height of the original arranger in elements</param>
-    public ResizeTiledScatteredArrangerViewModel(IInteractionService _interactionService, int originalWidth, int originalHeight)
+    public ResizeTiledScatteredArrangerViewModel(IInteractionService interactionService, int originalWidth, int originalHeight)
     {
-        _interactions = _interactionService;
+        _interactions = interactionService;
 
         OriginalWidth = originalWidth;
         OriginalHeight = originalHeight;

@@ -11,18 +11,18 @@ public sealed class ColorConverterBgr9 : IColorConverter<ColorBgr9>
 
     public ColorBgr9 ToForeignColor(ColorRgba32 nc)
     {
-        byte r = (byte)MathF.Round(nc.r / (255f / 7f));
-        byte g = (byte)MathF.Round(nc.g / (255f / 7f));
-        byte b = (byte)MathF.Round(nc.b / (255f / 7f));
+        byte r = (byte)MathF.Round(nc.R / (255f / 7f));
+        byte g = (byte)MathF.Round(nc.G / (255f / 7f));
+        byte b = (byte)MathF.Round(nc.B / (255f / 7f));
 
         return new ColorBgr9(r, g, b);
     }
 
     public ColorRgba32 ToNativeColor(ColorBgr9 fc)
     {
-        byte r = _toNativeTable[fc.r & 0xFE];
-        byte g = _toNativeTable[fc.g & 0xFE];
-        byte b = _toNativeTable[fc.b & 0xFE];
+        byte r = _toNativeTable[fc.R & 0xFE];
+        byte g = _toNativeTable[fc.G & 0xFE];
+        byte b = _toNativeTable[fc.B & 0xFE];
         byte a = 0xFF;
 
         return new ColorRgba32(r, g, b, a);

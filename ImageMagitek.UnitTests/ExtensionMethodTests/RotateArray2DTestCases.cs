@@ -33,7 +33,7 @@ public class RotateArray2DTestCases
     {
         get
         {
-            var _leftEvenExpected = new byte[,]
+            var leftEvenExpected = new byte[,]
             {
                     { 07, 17, 27, 37, 47, 57, 67, 77 },
                     { 06, 16, 26, 36, 46, 56, 66, 76 },
@@ -45,7 +45,7 @@ public class RotateArray2DTestCases
                     { 00, 10, 20, 30, 40, 50, 60, 70 }
             };
 
-            var _leftOddExpected = new byte[,]
+            var leftOddExpected = new byte[,]
             {
                     { 06, 16, 26, 36, 46, 56, 66 },
                     { 05, 15, 25, 35, 45, 55, 65 },
@@ -56,8 +56,8 @@ public class RotateArray2DTestCases
                     { 00, 10, 20, 30, 40, 50, 60 }
             };
 
-            yield return new TestCaseData(_evenSquareArray.Clone(), _leftEvenExpected);
-            yield return new TestCaseData(_oddSquareArray.Clone(), _leftOddExpected);
+            yield return new TestCaseData(_evenSquareArray.Clone(), leftEvenExpected);
+            yield return new TestCaseData(_oddSquareArray.Clone(), leftOddExpected);
             yield return new TestCaseData(_scalarArray.Clone(), _scalarArray);
         }
     }
@@ -66,7 +66,7 @@ public class RotateArray2DTestCases
     {
         get
         {
-            var _leftEvenExpected = new byte[,]
+            var leftEvenExpected = new byte[,]
             {
                     { 70, 60, 50, 40, 30, 20, 10, 00 },
                     { 71, 61, 51, 41, 31, 21, 11, 01 },
@@ -78,7 +78,7 @@ public class RotateArray2DTestCases
                     { 77, 67, 57, 47, 37, 27, 17, 07 }
             };
 
-            var _leftOddExpected = new byte[,]
+            var leftOddExpected = new byte[,]
             {
                     { 60, 50, 40, 30, 20, 10, 00 },
                     { 61, 51, 41, 31, 21, 11, 01 },
@@ -89,8 +89,8 @@ public class RotateArray2DTestCases
                     { 66, 56, 46, 36, 26, 16, 06 }
             };
 
-            yield return new TestCaseData(_evenSquareArray.Clone(), _leftEvenExpected);
-            yield return new TestCaseData(_oddSquareArray.Clone(), _leftOddExpected);
+            yield return new TestCaseData(_evenSquareArray.Clone(), leftEvenExpected);
+            yield return new TestCaseData(_oddSquareArray.Clone(), leftOddExpected);
             yield return new TestCaseData(_scalarArray.Clone(), _scalarArray);
         }
     }
@@ -99,7 +99,7 @@ public class RotateArray2DTestCases
     {
         get
         {
-            var _turnEvenExpected = new byte[,]
+            var turnEvenExpected = new byte[,]
             {
                     { 77, 76, 75, 74, 73, 72, 71, 70 },
                     { 67, 66, 65, 64, 63, 62, 61, 60 },
@@ -111,7 +111,7 @@ public class RotateArray2DTestCases
                     { 07, 06, 05, 04, 03, 02, 01, 00 }
             };
 
-            var _turnOddExpected = new byte[,]
+            var turnOddExpected = new byte[,]
             {
                     { 66, 65, 64, 63, 62, 61, 60 },
                     { 56, 55, 54, 53, 52, 51, 50 },
@@ -122,8 +122,8 @@ public class RotateArray2DTestCases
                     { 06, 05, 04, 03, 02, 01, 00 }
             };
 
-            yield return new TestCaseData(_evenSquareArray.Clone(), _turnEvenExpected);
-            yield return new TestCaseData(_oddSquareArray.Clone(), _turnOddExpected);
+            yield return new TestCaseData(_evenSquareArray.Clone(), turnEvenExpected);
+            yield return new TestCaseData(_oddSquareArray.Clone(), turnOddExpected);
             yield return new TestCaseData(_scalarArray.Clone(), _scalarArray);
         }
     }

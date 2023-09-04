@@ -24,7 +24,7 @@ internal class ShellViewModel : Conductor<SpriteViewModel>
 
         var sprites = monsters.Select((x, i) => new SpriteViewModel(x)
         {
-            MonsterID = i,
+            MonsterId = i,
         });
 
         Sprites = new BindableCollection<SpriteViewModel>(sprites);

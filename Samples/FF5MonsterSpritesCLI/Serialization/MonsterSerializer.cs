@@ -42,14 +42,14 @@ public class MonsterSerializer
         MonsterMetadata DeserializeMonster(IBitStreamReader stream)
         {
             var depth = stream.ReadBit() == 1 ? TileColorDepth.Bpp3 : TileColorDepth.Bpp4;
-            var tileSetID = stream.ReadBits(15);
+            var tileSetId = stream.ReadBits(15);
             var size = stream.ReadBit() == 1 ? TileSetSize.Large : TileSetSize.Small;
             bool hasShadow = stream.ReadBit() == 0;
             int unused = stream.ReadBits(4);
-            var paletteID = stream.ReadBits(10);
-            var formID = stream.ReadBits(8);
+            var paletteId = stream.ReadBits(10);
+            var formId = stream.ReadBits(8);
 
-            return new MonsterMetadata(depth, tileSetID, size, hasShadow, paletteID, formID, unused);
+            return new MonsterMetadata(depth, tileSetId, size, hasShadow, paletteId, formId, unused);
         }
     }
 
@@ -59,7 +59,7 @@ public class MonsterSerializer
         var palEntries = metadata.ColorDepth == TileColorDepth.Bpp4 ? 16 : 8;
 
         var paletteSources = Enumerable.Range(0, palEntries)
-            .Select(x => (IColorSource) new FileColorSource(new BitAddress(PaletteOffset + 16 * metadata.PaletteID + x * 2, 0), Endian.Little))
+            .Select(x => (IColorSource) new FileColorSource(new BitAddress(PaletteOffset + 16 * metadata.PaletteId + x * 2, 0), Endian.Little))
             .ToList();
 
         var pal = new Palette("monsterPalette", new ColorFactory(), ColorModel.Bgr15, paletteSources, true, PaletteStorageSource.ProjectXml, fileSource);
@@ -68,7 +68,7 @@ public class MonsterSerializer
         int arrangerHeight = metadata.TileSetSize == TileSetSize.Small ? 8 : 16;
 
         var formData = new byte[arrangerWidth * arrangerHeight / 8];
-        int formAddress = metadata.TileSetSize == TileSetSize.Small ? FormSmallOffset + 8 * metadata.FormID : FormLargeOffset + 32 * metadata.FormID;
+        int formAddress = metadata.TileSetSize == TileSetSize.Small ? FormSmallOffset + 8 * metadata.FormId : FormLargeOffset + 32 * metadata.FormId;
 
         await fileSource.ReadAsync(new BitAddress(formAddress, 0), formData.Length * 8, formData);
         //fileSource.Read(new BitAddress(formAddress, 0), formData.Length * 8, formData);
@@ -88,7 +88,7 @@ public class MonsterSerializer
             .Build();
 
         int elementsStored = 0;
-        int tileOffset = TileSetOffset + 8 * metadata.TileSetID;
+        int tileOffset = TileSetOffset + 8 * metadata.TileSetId;
         int tileSize = metadata.ColorDepth == TileColorDepth.Bpp4 ? 32 : 24;
 
         for (int y = 0; y < arrangerHeight; y++)
@@ -97,7 +97,7 @@ public class MonsterSerializer
             {
                 if (bitStream.ReadBit() == 1)
                 {
-                    IGraphicsCodec codec = metadata.ColorDepth == TileColorDepth.Bpp4 ? new Snes4bppCodec(pal, 8, 8) : new Snes3bppCodec(pal, 8, 8);
+                    IGraphicsCodec codec = metadata.ColorDepth == TileColorDepth.Bpp4 ? new Snes4BppCodec(pal, 8, 8) : new Snes3BppCodec(pal, 8, 8);
                     var element = new ArrangerElement(x * 8, y * 8, fileSource, new BitAddress(tileOffset * 8), codec);
                     tileOffset += tileSize;
                     arranger.SetElement(element, x, y);

@@ -2,7 +2,7 @@
 using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec;
-public sealed class Nes1bppCodec : IndexedCodec
+public sealed class Nes1BppCodec : IndexedCodec
 {
     public override string Name => "NES 1bpp";
     public override ImageLayout Layout => ImageLayout.Tiled;
@@ -18,12 +18,12 @@ public sealed class Nes1bppCodec : IndexedCodec
 
     private IBitStreamReader _bitReader;
 
-    public Nes1bppCodec(Palette palette) : base(palette)
+    public Nes1BppCodec(Palette palette) : base(palette)
     {
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
-    public Nes1bppCodec(Palette palette, int width, int height) : base(palette, width, height)
+    public Nes1BppCodec(Palette palette, int width, int height) : base(palette, width, height)
     {
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }

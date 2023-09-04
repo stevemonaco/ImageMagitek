@@ -261,8 +261,8 @@ public class Palette : IProjectResource
             var c1 = new ColorMine.ColorSpaces.Rgb { R = color.R, G = color.G, B = color.B };
             var h1 = c1.To<ColorMine.ColorSpaces.Hsl>();
 
-            double MinDistance = double.MaxValue;
-            byte MinIndex = 0;
+            double minDistance = double.MaxValue;
+            byte minIndex = 0;
 
             for (byte i = 0; i < Entries; i++)
             {
@@ -270,16 +270,16 @@ public class Palette : IProjectResource
                 var c2 = new ColorMine.ColorSpaces.Rgb { R = palColor.R, G = palColor.G, B = palColor.B };
                 var h2 = c2.To<ColorMine.ColorSpaces.Hsl>();
 
-                double Distance = h1.Compare(h2, _comparator);
+                double distance = h1.Compare(h2, _comparator);
 
-                if (Distance < MinDistance)
+                if (distance < minDistance)
                 {
-                    MinDistance = Distance;
-                    MinIndex = i;
+                    minDistance = distance;
+                    minIndex = i;
                 }
             }
 
-            index = MinIndex;
+            index = minIndex;
             return true;
         }
 
@@ -384,9 +384,9 @@ public class Palette : IProjectResource
     /// Additionally, updates the native color in the palette
     /// </summary>
     /// <param name="index">Zero-based palette index</param>
-    public void SetForeignColor(int index, byte R, byte G, byte B, byte A)
+    public void SetForeignColor(int index, byte r, byte g, byte b, byte a)
     {
-        var fc = _colorFactory.CreateColor(ColorModel, R, G, B, A);
+        var fc = _colorFactory.CreateColor(ColorModel, r, g, b, a);
 
         SetForeignColor(index, fc);
     }
@@ -414,9 +414,9 @@ public class Palette : IProjectResource
     /// Additionally, updates the foreign color in the palette
     /// </summary>
     /// <param name="index">Zero-based palette index</param>
-    public void SetNativeColor(int index, byte R, byte G, byte B, byte A)
+    public void SetNativeColor(int index, byte r, byte g, byte b, byte a)
     {
-        var nc = _colorFactory.CreateColor(ColorModel.Rgba32, R, G, B, A);
+        var nc = _colorFactory.CreateColor(ColorModel.Rgba32, r, g, b, a);
 
         SetForeignColor(index, nc);
     }
@@ -445,11 +445,11 @@ public class Palette : IProjectResource
     /// <summary>
     /// Gets the string name associated with a ColorModel object
     /// </summary>
-    /// <param name="ColorModelName">Name of the ColorModel to retrieve</param>
+    /// <param name="colorModelName">Name of the ColorModel to retrieve</param>
     /// <returns>A string name describing the ColorModel</returns>
-    public static ColorModel StringToColorModel(string ColorModelName)
+    public static ColorModel StringToColorModel(string colorModelName)
     {
-        return ColorModelName switch
+        return colorModelName switch
         {
             "Rgba32" => ColorModel.Rgba32,
             "Rgb15" => ColorModel.Rgb15,
@@ -458,7 +458,7 @@ public class Palette : IProjectResource
             "Nes" => ColorModel.Nes,
             "Bgr9" => ColorModel.Bgr9,
             "Bgr6" => ColorModel.Bgr6,
-            _ => throw new ArgumentException($"{nameof(StringToColorModel)} {nameof(ColorModel)} '{ColorModelName}' is not supported"),
+            _ => throw new ArgumentException($"{nameof(StringToColorModel)} {nameof(ColorModel)} '{colorModelName}' is not supported"),
         };
     }
 

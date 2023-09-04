@@ -112,18 +112,18 @@ public static partial class ColorParser
     {
         if (hexString.Length == 7)
         {
-            var R = byte.Parse(hexString.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
-            var G = byte.Parse(hexString.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber);
-            var B = byte.Parse(hexString.AsSpan(5, 2), System.Globalization.NumberStyles.HexNumber);
-            return new ColorRgba32(R, G, B, 0xFF);
+            var r = byte.Parse(hexString.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
+            var g = byte.Parse(hexString.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber);
+            var b = byte.Parse(hexString.AsSpan(5, 2), System.Globalization.NumberStyles.HexNumber);
+            return new ColorRgba32(r, g, b, 0xFF);
         }
         else if (hexString.Length == 9)
         {
-            var R = byte.Parse(hexString.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
-            var G = byte.Parse(hexString.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber);
-            var B = byte.Parse(hexString.AsSpan(5, 2), System.Globalization.NumberStyles.HexNumber);
-            var A = byte.Parse(hexString.AsSpan(7, 2), System.Globalization.NumberStyles.HexNumber);
-            return new ColorRgba32(R, G, B, A);
+            var r = byte.Parse(hexString.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
+            var g = byte.Parse(hexString.AsSpan(3, 2), System.Globalization.NumberStyles.HexNumber);
+            var b = byte.Parse(hexString.AsSpan(5, 2), System.Globalization.NumberStyles.HexNumber);
+            var a = byte.Parse(hexString.AsSpan(7, 2), System.Globalization.NumberStyles.HexNumber);
+            return new ColorRgba32(r, g, b, a);
         }
         else
             throw new NotSupportedException($"{nameof(NativeHexStringToColorRgba32)} does not support strings of length {hexString.Length}");

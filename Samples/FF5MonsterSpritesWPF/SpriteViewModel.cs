@@ -9,11 +9,11 @@ namespace FF5MonsterSprites;
 
 public class SpriteViewModel : Screen
 {
-    private int _monsterID;
-    public int MonsterID
+    private int _monsterId;
+    public int MonsterId
     {
-        get => _monsterID;
-        set => SetAndNotify(ref _monsterID, value);
+        get => _monsterId;
+        set => SetAndNotify(ref _monsterId, value);
     }
 
     private TileColorDepth _colorDepth;
@@ -23,11 +23,11 @@ public class SpriteViewModel : Screen
         set => SetAndNotify(ref _colorDepth, value);
     }
 
-    private int _tileSetID;
-    public int TileSetID
+    private int _tileSetId;
+    public int TileSetId
     {
-        get => _tileSetID;
-        set => SetAndNotify(ref _tileSetID, value);
+        get => _tileSetId;
+        set => SetAndNotify(ref _tileSetId, value);
     }
 
     private TileSetSize _tileSetSize;
@@ -44,18 +44,18 @@ public class SpriteViewModel : Screen
         set => SetAndNotify(ref _hasShadow, value);
     }
 
-    private int _paletteID;
-    public int PaletteID
+    private int _paletteId;
+    public int PaletteId
     {
-        get => _paletteID;
-        set => SetAndNotify(ref _paletteID, value);
+        get => _paletteId;
+        set => SetAndNotify(ref _paletteId, value);
     }
 
-    private int _formID;
-    public int FormID
+    private int _formId;
+    public int FormId
     {
-        get => _formID;
-        set => SetAndNotify(ref _formID, value);
+        get => _formId;
+        set => SetAndNotify(ref _formId, value);
     }
 
     private int _unused;
@@ -81,11 +81,11 @@ public class SpriteViewModel : Screen
         _metadata = metadata;
 
         ColorDepth = metadata.ColorDepth;
-        TileSetID = metadata.TileSetID;
+        TileSetId = metadata.TileSetId;
         TileSetSize = metadata.TileSetSize;
-        HasShadow = metadata.hasShadow;
-        PaletteID = metadata.PaletteID;
-        FormID = metadata.FormID;
+        HasShadow = metadata.HasShadow;
+        PaletteId = metadata.PaletteId;
+        FormId = metadata.FormId;
         Unused = metadata.Unused;
     }
 

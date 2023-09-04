@@ -7,7 +7,7 @@ using ImageMagitek.Colors.Serialization;
 
 namespace ImageMagitek.Benchmarks;
 
-public class Snes3bppDecodeToImage
+public class Snes3BppDecodeToImage
 {
     private const string _nativeFileName = "Snes3bppDecodeToImageNative.bin";
     private const string _genericFileName = "Snes3bppDecodeToImageGeneric.bin";
@@ -28,7 +28,7 @@ public class Snes3bppDecodeToImage
         var palContents = File.ReadAllText(_paletteFileName);
         _pal = PaletteJsonSerializer.DeserializePalette(palContents, new ColorFactory())!;
 
-        _codec = new Snes3bppCodec(_pal, 8, 8);
+        _codec = new Snes3BppCodec(_pal, 8, 8);
         Setup(_nativeFileName, "native");
     }
 
