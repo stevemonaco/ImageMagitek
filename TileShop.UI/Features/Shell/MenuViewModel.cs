@@ -125,7 +125,7 @@ public partial class MenuViewModel : ObservableRecipient
 
     private async void Handle(ProjectLoadedMessage message)
     {
-        await Task.Delay(50); // Delay so that the menu closes, otherwise changing the collection keeps it open
+        await Task.Yield(); // Delay so that the menu closes, otherwise changing the collection keeps it open
 
         if (RecentProjectFiles.Contains(message.ProjectFileName))
         {

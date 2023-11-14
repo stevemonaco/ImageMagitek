@@ -123,7 +123,12 @@
                         PointerReleased="OnPointerReleased">
 
                         <!--  Editable Image  -->
-                        <Image x:Name="_image" Classes="pixel" IsHitTestVisible="False" Source="{Binding BitmapAdapter.Bitmap}" />
+                        <Image
+                            x:Name="_image"
+                            Classes="pixel"
+                            IsHitTestVisible="False"
+                            RenderOptions.BitmapInterpolationMode="None"
+                            Source="{Binding BitmapAdapter.Bitmap}" />
 
                         <Rectangle
                             Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
@@ -141,6 +146,7 @@
                             Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
                             Classes="arrangerDrag pixel"
                             IsHitTestVisible="{Binding !Paste.IsDragging}"
+                            RenderOptions.BitmapInterpolationMode="None"
                             Source="{Binding Paste.OverlayImage.Bitmap}" />
 
                         <Rectangle

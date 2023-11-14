@@ -37,8 +37,6 @@ public class DockFactory : Factory
             CanFloat = false
         };
 
-        var documents = _editorsVm.Editors.Select(x => new DockableEditorViewModel(x, _editorsVm) as IDockable).ToArray();
-
         _documentDock = new DocumentDock
         {
             Id = "Documents",

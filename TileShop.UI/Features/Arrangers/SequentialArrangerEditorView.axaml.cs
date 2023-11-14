@@ -28,7 +28,7 @@ public partial class SequentialArrangerEditorView : UserControl, IStateViewDrive
 
     public void OnKeyUp(object? sender, KeyEventArgs e)
     {
-        if (ViewModel is not null && ViewModel.LastMousePosition is Point point)
+        if (ViewModel?.LastMousePosition is Point point) // is not null && ViewModel.LastMousePosition is Point point)
         {
             var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
             ViewModel.KeyUp(state, point.X, point.Y);
@@ -37,7 +37,7 @@ public partial class SequentialArrangerEditorView : UserControl, IStateViewDrive
 
     public void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (ViewModel is not null && ViewModel.LastMousePosition is Point point)
+        if (ViewModel is { LastMousePosition: Point point })
         {
             var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
             ViewModel.KeyPress(state, point.X, point.Y);
