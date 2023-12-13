@@ -32,7 +32,7 @@ public partial class ShellViewModel : ObservableObject
     }
 
     [RelayCommand]
-    public async Task Load()
+    public async Task DebugLoad()
     {
         await ActiveTree.OpenProject(_projectFile);
     }

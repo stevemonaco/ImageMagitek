@@ -14,6 +14,9 @@ public partial class ShellView : Window
     public ShellView()
     {
         InitializeComponent();
+#if DEBUG
+        debugLoadButton.IsVisible = true;
+#endif
     }
 
     protected override void OnDataContextChanged(EventArgs e)

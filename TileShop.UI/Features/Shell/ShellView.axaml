@@ -26,9 +26,9 @@
             <StackPanel Grid.Row="0" Margin="5,5,0,5" Orientation="Horizontal">
                 <v:AppIconView IsHitTestVisible="False" />
                 <ContentControl Content="{Binding ActiveMenu}" />
-                <Button Command="{Binding LoadCommand}" Content="Load FF2" />
+                <Button x:Name="debugLoadButton" Command="{Binding DebugLoadCommand}" Content="Load FF2" IsVisible="False" />
             </StackPanel>
-            
+
             <idc:DockControl Name="_dock" Grid.Row="1" />
 
             <ContentControl Grid.Row="2" Content="{Binding ActiveStatusBar}" />
