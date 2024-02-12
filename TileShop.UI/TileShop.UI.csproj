@@ -21,7 +21,6 @@
     <AvaloniaResource Include="Assets\**" />
     <AvaloniaResource Remove="Assets\DemoImages\**" />
     <AvaloniaResource Remove="Assets\tslogo.svg" />
-    <None Remove=".gitignore" />
   </ItemGroup>
   
   <ItemGroup>
