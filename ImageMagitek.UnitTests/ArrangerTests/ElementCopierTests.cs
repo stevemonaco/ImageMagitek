@@ -1,34 +1,31 @@
 ﻿using ImageMagitek.Codec;
 using ImageMagitek.Colors;
-using NUnit.Framework;
 
 namespace ImageMagitek.UnitTests;
-
-[TestFixture]
 public class ElementCopierTests
 {
     ScatteredArranger? _sourceIndexed;
     DataSource? _df;
 
-    [OneTimeSetUp]
-    public void Setup()
-    {
-        _df = new MemoryDataSource("MemoryDataSource");
-        _sourceIndexed = new ScatteredArranger("source", PixelColorType.Indexed, ElementLayout.Tiled, 6, 6, 8, 8);
-        var emptyPal = new Palette("Default", new ColorFactory(), ColorModel.Rgba32, true, PaletteStorageSource.GlobalJson);
+    //[OneTimeSetUp]
+    //public void Setup()
+    //{
+    //    _df = new MemoryDataSource("MemoryDataSource");
+    //    _sourceIndexed = new ScatteredArranger("source", PixelColorType.Indexed, ElementLayout.Tiled, 6, 6, 8, 8);
+    //    var emptyPal = new Palette("Default", new ColorFactory(), ColorModel.Rgba32, true, PaletteStorageSource.GlobalJson);
 
-        for (int y = 0; y < _sourceIndexed.ArrangerElementSize.Height; y++)
-        {
-            for (int x = 0; x < _sourceIndexed.ArrangerElementSize.Width; x++)
-            {
-                if (_sourceIndexed.GetElement(x, y) is ArrangerElement element)
-                {
-                    element = element.WithTarget(_df, new BitAddress(x * y), new Snes3BppCodec(emptyPal, 8, 8));
-                    _sourceIndexed.SetElement(element, x, y);
-                }
-            }
-        }
-    }
+    //    for (int y = 0; y < _sourceIndexed.ArrangerElementSize.Height; y++)
+    //    {
+    //        for (int x = 0; x < _sourceIndexed.ArrangerElementSize.Width; x++)
+    //        {
+    //            if (_sourceIndexed.GetElement(x, y) is ArrangerElement element)
+    //            {
+    //                element = element.WithTarget(_df, new BitAddress(x * y), new Snes3BppCodec(emptyPal, 8, 8));
+    //                _sourceIndexed.SetElement(element, x, y);
+    //            }
+    //        }
+    //    }
+    //}
 
     //[Test]
     //public void CopyElements_ValidIndexedToIndexed_ReturnsTrue()

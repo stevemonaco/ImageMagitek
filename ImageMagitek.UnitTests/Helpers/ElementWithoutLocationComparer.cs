@@ -2,7 +2,6 @@
 using ImageMagitek.Codec;
 
 namespace ImageMagitek.UnitTests.Helpers;
-
 public class ElementWithoutLocationComparer : IComparer
 {
     public int Compare(object? a, object? b)

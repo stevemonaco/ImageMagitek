@@ -1,9 +1,7 @@
-﻿using NUnit.Framework;
-using System.Collections.Generic;
+﻿using Xunit;
 
 namespace ImageMagitek.UnitTests.ExtensionMethodTests;
-
-public class MirrorArray2DTestCases
+public partial class MirrorArray2DTests
 {
     private static readonly byte[,] _scalarArray = new byte[1, 1] { { 1 } };
     private static readonly byte[,] _evenSquareArray = new byte[,]
@@ -36,11 +34,11 @@ public class MirrorArray2DTestCases
             { 20, 21, 22, 23, 24, 25, 26 }
     };
 
-    public static IEnumerable<TestCaseData> MirrorHorizontalCases
+    public static TheoryData<byte[,], byte[,]> MirrorHorizontalCases => new()
     {
-        get
         {
-            var horizontalEvenExpected = new byte[,]
+            (byte[,])_evenSquareArray.Clone(),
+            new byte[,]
             {
                     { 07, 06, 05, 04, 03, 02, 01, 00 },
                     { 17, 16, 15, 14, 13, 12, 11, 10 },
@@ -50,9 +48,11 @@ public class MirrorArray2DTestCases
                     { 57, 56, 55, 54, 53, 52, 51, 50 },
                     { 67, 66, 65, 64, 63, 62, 61, 60 },
                     { 77, 76, 75, 74, 73, 72, 71, 70 }
-            };
-
-            var horizontalOddExpected = new byte[,]
+            }
+        },
+        {
+            (byte[,])_oddSquareArray.Clone(),
+            new byte[,]
             {
                     { 06, 05, 04, 03, 02, 01, 00 },
                     { 16, 15, 14, 13, 12, 11, 10 },
@@ -61,27 +61,28 @@ public class MirrorArray2DTestCases
                     { 46, 45, 44, 43, 42, 41, 40 },
                     { 56, 55, 54, 53, 52, 51, 50 },
                     { 66, 65, 64, 63, 62, 61, 60 },
-            };
-
-            var horizontalRectangleExpected = new byte[,]
+            }
+        },
+        {
+            (byte[,])_rectangleArray.Clone(),
+            new byte[,]
             {
                     { 06, 05, 04, 03, 02, 01, 00 },
                     { 16, 15, 14, 13, 12, 11, 10 },
                     { 26, 25, 24, 23, 22, 21, 20 }
-            };
-
-            yield return new TestCaseData(_evenSquareArray.Clone(), horizontalEvenExpected);
-            yield return new TestCaseData(_oddSquareArray.Clone(), horizontalOddExpected);
-            yield return new TestCaseData(_rectangleArray.Clone(), horizontalRectangleExpected);
-            yield return new TestCaseData(_scalarArray.Clone(), _scalarArray);
-        }
-    }
-
-    public static IEnumerable<TestCaseData> MirrorVerticalCases
-    {
-        get
+            }
+        },
         {
-            var verticalEvenExpected = new byte[,]
+            (byte[,])_scalarArray.Clone(),
+            _scalarArray
+        },
+    };
+
+    public static TheoryData<byte[,], byte[,]> MirrorVerticalCases => new()
+    {
+        {
+            (byte[,])_evenSquareArray.Clone(),
+            new byte[,]
             {
                     { 70, 71, 72, 73, 74, 75, 76, 77 },
                     { 60, 61, 62, 63, 64, 65, 66, 67 },
@@ -91,9 +92,11 @@ public class MirrorArray2DTestCases
                     { 20, 21, 22, 23, 24, 25, 26, 27 },
                     { 10, 11, 12, 13, 14, 15, 16, 17 },
                     { 00, 01, 02, 03, 04, 05, 06, 07 }
-            };
-
-            var verticalOddExpected = new byte[,]
+            }
+        },
+        {
+            (byte[,])_oddSquareArray.Clone(),
+            new byte[,]
             {
                     { 60, 61, 62, 63, 64, 65, 66 },
                     { 50, 51, 52, 53, 54, 55, 56 },
@@ -102,27 +105,27 @@ public class MirrorArray2DTestCases
                     { 20, 21, 22, 23, 24, 25, 26 },
                     { 10, 11, 12, 13, 14, 15, 16 },
                     { 00, 01, 02, 03, 04, 05, 06 }
-            };
-
-            var verticalRectangleExpected = new byte[,]
+            }
+        },
+        {
+            (byte[,])_rectangleArray.Clone(),
+            new byte[,]
             {
                     { 20, 21, 22, 23, 24, 25, 26 },
                     { 10, 11, 12, 13, 14, 15, 16 },
                     { 00, 01, 02, 03, 04, 05, 06 }
-            };
-
-            yield return new TestCaseData(_evenSquareArray.Clone(), verticalEvenExpected);
-            yield return new TestCaseData(_oddSquareArray.Clone(), verticalOddExpected);
-            yield return new TestCaseData(_rectangleArray.Clone(), verticalRectangleExpected);
-            yield return new TestCaseData(_scalarArray.Clone(), _scalarArray);
-        }
-    }
-
-    public static IEnumerable<TestCaseData> MirrorBothCases
-    {
-        get
+            }
+        },
         {
-            var bothEvenExpected = new byte[,]
+            (byte[,])_scalarArray.Clone(), _scalarArray
+        },
+    };
+
+    public static TheoryData<byte[,], byte[,]> MirrorBothCases => new()
+    {
+        {
+            (byte[,])_evenSquareArray.Clone(),
+            new byte[,]
             {
                     { 77, 76, 75, 74, 73, 72, 71, 70 },
                     { 67, 66, 65, 64, 63, 62, 61, 60 },
@@ -132,9 +135,11 @@ public class MirrorArray2DTestCases
                     { 27, 26, 25, 24, 23, 22, 21, 20 },
                     { 17, 16, 15, 14, 13, 12, 11, 10 },
                     { 07, 06, 05, 04, 03, 02, 01, 00 }
-            };
-
-            var bothOddExpected = new byte[,]
+            }
+        },
+        {
+            (byte[,])_oddSquareArray.Clone(),
+            new byte[,]
             {
                     { 66, 65, 64, 63, 62, 61, 60 },
                     { 56, 55, 54, 53, 52, 51, 50 },
@@ -143,19 +148,19 @@ public class MirrorArray2DTestCases
                     { 26, 25, 24, 23, 22, 21, 20 },
                     { 16, 15, 14, 13, 12, 11, 10 },
                     { 06, 05, 04, 03, 02, 01, 00 }
-            };
-
-            var bothRectangleExpected = new byte[,]
+            }
+        },
+        {
+            (byte[,])_rectangleArray.Clone(),
+            new byte[,]
             {
                     { 26, 25, 24, 23, 22, 21, 20 },
                     { 16, 15, 14, 13, 12, 11, 10 },
                     { 06, 05, 04, 03, 02, 01, 00 }
-            };
-
-            yield return new TestCaseData(_evenSquareArray.Clone(), bothEvenExpected);
-            yield return new TestCaseData(_oddSquareArray.Clone(), bothOddExpected);
-            yield return new TestCaseData(_rectangleArray.Clone(), bothRectangleExpected);
-            yield return new TestCaseData(_scalarArray.Clone(), _scalarArray);
-        }
-    }
+            }
+        },
+        {
+            (byte[,])_scalarArray.Clone(), _scalarArray
+        },
+    };
 }

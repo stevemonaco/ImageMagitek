@@ -1,41 +1,43 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 namespace ImageMagitek.UnitTests;
-
-[TestFixture]
-public class BitStreamTests
+public partial class BitStreamTests
 {
-    [TestCaseSource(typeof(BitStreamTestCases), "ReadBitCases")]
-    public void ReadBit_ReturnsExpected(BitStream stream, int bitSeek, int expected)
+    [Theory]
+    [MemberData(nameof(ReadBitCases))]
+    public void ReadBit_ReturnsExpected(IBitStreamReader stream, int bitSeek, int expected)
     {
         stream.SeekAbsolute(bitSeek);
         var actual = stream.ReadBit();
 
-        Assert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 
-    [TestCaseSource(typeof(BitStreamTestCases), "ReadBitMultipleCases")]
-    public void ReadBit_Multiple_ReturnsExpected(BitStream stream, int[] expected)
+    [Theory]
+    [MemberData(nameof(ReadBitMultipleCases))]
+    public void ReadBit_Multiple_ReturnsExpected(IBitStreamReader stream, int[] expected)
     {
         var actual = new int[expected.Length];
 
         for (int i = 0; i < expected.Length; i++)
             actual[i] = stream.ReadBit();
 
-        CollectionAssert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 
-    [TestCaseSource(typeof(BitStreamTestCases), "ReadByteCases")]
-    public void ReadByte_ReturnsExpected(BitStream stream, int bitSeek, byte expected)
+    [Theory]
+    [MemberData(nameof(ReadByteCases))]
+    public void ReadByte_ReturnsExpected(IBitStreamReader stream, int bitSeek, byte expected)
     {
         stream.SeekAbsolute(bitSeek);
         var actual = stream.ReadByte();
 
-        Assert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 
-    [TestCaseSource(typeof(BitStreamTestCases), "ReadByteMultipleCases")]
-    public void ReadByte_Multiple_ReturnsExpected(BitStream stream, int bitSeek, int[] expected)
+    [Theory]
+    [MemberData(nameof(ReadByteMultipleCases))]
+    public void ReadByte_Multiple_ReturnsExpected(IBitStreamReader stream, int bitSeek, int[] expected)
     {
         stream.SeekAbsolute(bitSeek);
         var actual = new int[expected.Length];
@@ -43,41 +45,45 @@ public class BitStreamTests
         for (int i = 0; i < expected.Length; i++)
             actual[i] = stream.ReadByte();
 
-        CollectionAssert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 
-    [TestCaseSource(typeof(BitStreamTestCases), "ReadBitsCases")]
-    public void ReadBits_ReturnsExpected(BitStream stream, int bitSeek, int bitReadSize, int expected)
+    [Theory]
+    [MemberData(nameof(ReadBitsCases))]
+    public void ReadBits_ReturnsExpected(IBitStreamReader stream, int bitSeek, int bitReadSize, int expected)
     {
         stream.SeekAbsolute(bitSeek);
         var actual = stream.ReadBits(bitReadSize);
 
-        Assert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 
-    [TestCaseSource(typeof(BitStreamTestCases), "ReadBitsMultipleCases")]
-    public void ReadBits_Multiple_ReturnsExpected(BitStream stream, int[] readSizes, int[] expected)
+    [Theory]
+    [MemberData(nameof(ReadBitsMultipleCases))]
+    public void ReadBits_Multiple_ReturnsExpected(IBitStreamReader stream, int[] readSizes, int[] expected)
     {
         var actual = new int[readSizes.Length];
 
         for (int i = 0; i < readSizes.Length; i++)
             actual[i] = stream.ReadBits(readSizes[i]);
 
-        CollectionAssert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 
-    [TestCaseSource(typeof(BitStreamTestCases), "WriteBitCases")]
-    public void WriteBit_AsExpected(BitStream stream, int bitSeek, int writeBit, int expected)
+    [Theory]
+    [MemberData(nameof(WriteBitCases))]
+    public void WriteBit_AsExpected(IBitStreamWriter stream, int bitSeek, int writeBit, int expected)
     {
         stream.SeekAbsolute(bitSeek);
         stream.WriteBit(writeBit);
         int actual = (int)stream.Data[bitSeek / 8];
 
-        Assert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 
-    [TestCaseSource(typeof(BitStreamTestCases), "WriteBitMultipleCases")]
-    public void WriteBit_Multiple_AsExpected(BitStream stream, int bitSeek, int[] writeBits, byte[] expected)
+    [Theory]
+    [MemberData(nameof(WriteBitMultipleCases))]
+    public void WriteBit_Multiple_AsExpected(IBitStreamWriter stream, int bitSeek, int[] writeBits, byte[] expected)
     {
         stream.SeekAbsolute(bitSeek);
 
@@ -86,21 +92,23 @@ public class BitStreamTests
 
         var actual = stream.Data;
 
-        Assert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 
-    [TestCaseSource(typeof(BitStreamTestCases), "WriteByteCases")]
-    public void WriteByte_AsExpected(BitStream stream, int bitSeek, int writeByte, byte[] expected)
+    [Theory]
+    [MemberData(nameof(WriteByteCases))]
+    public void WriteByte_AsExpected(IBitStreamWriter stream, int bitSeek, int writeByte, byte[] expected)
     {
         stream.SeekAbsolute(bitSeek);
         stream.WriteByte((byte)writeByte);
         var actual = stream.Data;
 
-        CollectionAssert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 
-    [TestCaseSource(typeof(BitStreamTestCases), "WriteByteMultipleCases")]
-    public void WriteByte_Multiple_AsExpected(BitStream stream, int bitSeek, int[] writeBytes, byte[] expected)
+    [Theory]
+    [MemberData(nameof(WriteByteMultipleCases))]
+    public void WriteByte_Multiple_AsExpected(IBitStreamWriter stream, int bitSeek, int[] writeBytes, byte[] expected)
     {
         stream.SeekAbsolute(bitSeek);
 
@@ -109,21 +117,23 @@ public class BitStreamTests
 
         var actual = stream.Data;
 
-        CollectionAssert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 
-    [TestCaseSource(typeof(BitStreamTestCases), "WriteBitsCases")]
-    public void WriteBits_AsExpected(BitStream stream, int bitSeek, int writeBits, int bitWriteSize, byte[] expected)
+    [Theory]
+    [MemberData(nameof(WriteBitsCases))]
+    public void WriteBits_AsExpected(IBitStreamWriter stream, int bitSeek, int writeBits, int bitWriteSize, byte[] expected)
     {
         stream.SeekAbsolute(bitSeek);
         stream.WriteBits(writeBits, bitWriteSize);
         var actual = stream.Data;
 
-        CollectionAssert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 
-    [TestCaseSource(typeof(BitStreamTestCases), "WriteBitsMultipleCases")]
-    public void WriteBits_Multiple_AsExpected(BitStream stream, int bitSeek, int[] writeBits, int[] bitWriteSize, byte[] expected)
+    [Theory]
+    [MemberData(nameof(WriteBitsMultipleCases))]
+    public void WriteBits_Multiple_AsExpected(IBitStreamWriter stream, int bitSeek, int[] writeBits, int[] bitWriteSize, byte[] expected)
     {
         stream.SeekAbsolute(bitSeek);
 
@@ -131,6 +141,6 @@ public class BitStreamTests
             stream.WriteBits(writeBits[i], bitWriteSize[i]);
         var actual = stream.Data;
 
-        CollectionAssert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 }

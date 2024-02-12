@@ -1,8 +1,4 @@
-﻿using NUnit.Framework;
-
-namespace ImageMagitek.UnitTests;
-
-[TestFixture]
+﻿namespace ImageMagitek.UnitTests;
 public class ImageCopierTests
 {
 

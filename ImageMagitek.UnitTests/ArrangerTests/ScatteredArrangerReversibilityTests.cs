@@ -1,14 +1,13 @@
 ﻿using ImageMagitek.Colors;
-using NUnit.Framework;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Xunit;
 
 namespace ImageMagitek.UnitTests;
-
-[TestFixture]
-public class ScatteredArrangerReversibilityTests
+public partial class ScatteredArrangerReversibilityTests
 {
-    [TestCaseSource(typeof(ScatteredArrangerReversibilityTestCases), "ReverseCases")]
+    [Theory]
+    [MemberData(nameof(ReverseCases))]
     public void ScatteredArranger_Reversibility_CanReverse(ScatteredArranger arranger, string imageFileName)
     {
         var exportedImageFileName = $"test.png";

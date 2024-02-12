@@ -1,16 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using MoreLinq;
-using NUnit.Framework;
+using Xunit;
 
 namespace ImageMagitek.Codec.UnitTests;
-
-[TestFixture]
-public class PatternListTests
+public partial class PatternListTests
 {
-    [TestCaseSource(typeof(PatternListTestCases), "TryCreateRemapPlanarPatternTestCases")]
-    public void TryCreateRemapPattern_DecodePlanar_AsExpected(IList<string> patterns, int width, int height,
-        int planes, int size, IList<PlaneCoordinate> expectedDecoded, IList<int> expectedEncoded)
+    [Theory]
+    [MemberData(nameof(TryCreateRemapPlanarPatternTestCases))]
+    public void TryCreateRemapPattern_DecodePlanar_AsExpected(string[] patterns, int width, int height,
+        int planes, int size, IList<PlaneCoordinate> expectedDecoded, int[] expectedEncoded)
     {
         var result = PatternList.TryCreatePatternList(patterns, PixelPacking.Planar, width, height, planes, size);
 
@@ -21,14 +20,15 @@ public class PatternListTests
                     .Select(x => success.Result.GetDecodeIndex(x))
                     .ToArray();
 
-                CollectionAssert.AreEqual(expectedDecoded, actual);
+                Assert.Equal(expectedDecoded, actual);
             },
             failed => Assert.Fail(failed.Reason));
     }
 
-    [TestCaseSource(typeof(PatternListTestCases), "TryCreateRemapPlanarPatternTestCases")]
-    public void TryCreateRemapPattern_EncodePlanar_AsExpected(IList<string> patterns, int width, int height,
-        int planes, int size, IList<PlaneCoordinate> expectedDecoded, IList<int> expectedEncoded)
+    [Theory]
+    [MemberData(nameof(TryCreateRemapPlanarPatternTestCases))]
+    public void TryCreateRemapPattern_EncodePlanar_AsExpected(string[] patterns, int width, int height,
+        int planes, int size, IList<PlaneCoordinate> expectedDecoded, int[] expectedEncoded)
     {
         var result = PatternList.TryCreatePatternList(patterns, PixelPacking.Planar, width, height, planes, size);
 
@@ -43,14 +43,15 @@ public class PatternListTests
                     .Select(x => success.Result.GetEncodeIndex(x))
                     .ToArray();
 
-                CollectionAssert.AreEqual(expectedEncoded, actual);
+                Assert.Equal(expectedEncoded, actual);
             },
             failed => Assert.Fail(failed.Reason));
     }
 
-    [TestCaseSource(typeof(PatternListTestCases), "TryCreateRemapChunkyPatternTestCases")]
-    public void TryCreateRemapPattern_DecodeChunky_AsExpected(IList<string> patterns, int width, int height,
-        int planes, int size, IList<PlaneCoordinate> expectedDecoded, IList<int> expectedEncoded)
+    [Theory]
+    [MemberData(nameof(TryCreateRemapChunkyPatternTestCases))]
+    public void TryCreateRemapPattern_DecodeChunky_AsExpected(string[] patterns, int width, int height,
+        int planes, int size, IList<PlaneCoordinate> expectedDecoded, int[] expectedEncoded)
     {
         var result = PatternList.TryCreatePatternList(patterns, PixelPacking.Chunky, width, height, planes, size);
 
@@ -61,14 +62,15 @@ public class PatternListTests
                     .Select(x => success.Result.GetDecodeIndex(x))
                     .ToArray();
 
-                CollectionAssert.AreEqual(expectedDecoded, actual);
+                Assert.Equal(expectedDecoded, actual);
             },
             failed => Assert.Fail(failed.Reason));
     }
 
-    [TestCaseSource(typeof(PatternListTestCases), "TryCreateRemapChunkyPatternTestCases")]
+    [Theory]
+    [MemberData(nameof(TryCreateRemapChunkyPatternTestCases))]
     public void TryCreateRemapPattern_EncodeChunky_AsExpected(IList<string> patterns, int width, int height,
-        int planes, int size, IList<PlaneCoordinate> expectedDecoded, IList<int> expectedEncoded)
+        int planes, int size, IList<PlaneCoordinate> expectedDecoded, int[] expectedEncoded)
     {
         var result = PatternList.TryCreatePatternList(patterns, PixelPacking.Chunky, width, height, planes, size);
 
@@ -83,13 +85,14 @@ public class PatternListTests
                     .Select(x => success.Result.GetEncodeIndex(x))
                     .ToArray();
 
-                CollectionAssert.AreEqual(expectedEncoded, actual);
+                Assert.Equal(expectedEncoded, actual);
             },
             failed => Assert.Fail(failed.Reason));
     }
 
-    [TestCaseSource(typeof(PatternListTestCases), "TryCreateRemapPatternTooManyLettersTestCases")]
-    public void TryCreateRemapPattern_TooManyLetters_Fails(IList<string> patterns, int width, int height, int planes, int size)
+    [Theory]
+    [MemberData(nameof(TryCreateRemapPatternTooManyLettersTestCases))]
+    public void TryCreateRemapPattern_TooManyLetters_Fails(string[] patterns, int width, int height, int planes, int size)
     {
         var result = PatternList.TryCreatePatternList(patterns, PixelPacking.Planar, width, height, planes, size);
 
@@ -98,8 +101,9 @@ public class PatternListTests
             failed => { });
     }
 
-    [TestCaseSource(typeof(PatternListTestCases), "TryCreateRemapPatternOutOfRangeTestCases")]
-    public void TryCreateRemapPattern_OutOfRange_Fails(IList<string> patterns, int width, int height, int planes, int size)
+    [Theory]
+    [MemberData(nameof(TryCreateRemapPatternOutOfRangeTestCases))]
+    public void TryCreateRemapPattern_OutOfRange_Fails(string[] patterns, int width, int height, int planes, int size)
     {
         var result = PatternList.TryCreatePatternList(patterns, PixelPacking.Planar, width, height, planes, size);
 
@@ -108,8 +112,9 @@ public class PatternListTests
             failed => { });
     }
 
-    [TestCaseSource(typeof(PatternListTestCases), "TryCreateRemapPatternInvalidSizeTestCases")]
-    public void TryCreateRemapPattern_InvalidSize_Fails(IList<string> patterns, int width, int height, int planes, int size)
+    [Theory]
+    [MemberData(nameof(TryCreateRemapPatternInvalidSizeTestCases))]
+    public void TryCreateRemapPattern_InvalidSize_Fails(string[] patterns, int width, int height, int planes, int size)
     {
         var result = PatternList.TryCreatePatternList(patterns, PixelPacking.Planar, width, height, planes, size);
 
@@ -118,8 +123,9 @@ public class PatternListTests
             failed => { });
     }
 
-    [TestCaseSource(typeof(PatternListTestCases), "TryCreateRemapPatternInvalidCharacterTestCases")]
-    public void TryCreateRemapPattern_InvalidCharacter_Fails(IList<string> patterns, int width, int height, int planes, int size)
+    [Theory]
+    [MemberData(nameof(TryCreateRemapPatternInvalidCharacterTestCases))]
+    public void TryCreateRemapPattern_InvalidCharacter_Fails(string[] patterns, int width, int height, int planes, int size)
     {
         var result = PatternList.TryCreatePatternList(patterns, PixelPacking.Planar, width, height, planes, size);
 

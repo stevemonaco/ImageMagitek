@@ -1,9 +1,6 @@
 ﻿using ImageMagitek.Codec;
-using NUnit.Framework;
 
 namespace ImageMagitek.UnitTests;
-
-[TestFixture]
 public class GraphicsCodecTests
 {
     public void IndexedCodec_Reverses_AsExpected(IGraphicsCodec codec, byte[] i)

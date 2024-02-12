@@ -1,29 +1,31 @@
 ﻿using System.Linq;
-using NUnit.Framework;
 using ImageMagitek.ExtensionMethods;
+using Xunit;
 
 namespace ImageMagitek.UnitTests.ExtensionMethodTests;
-
-public class MirrorArray2DTests
+public partial class MirrorArray2DTests
 {
-    [TestCaseSource(typeof(MirrorArray2DTestCases), "MirrorHorizontalCases")]
+    [Theory]
+    [MemberData(nameof(MirrorHorizontalCases))]
     public void MirrorArray2D_HorizontalMirroring_AsExpected(byte[,] source, byte[,] expected)
     {
         source.MirrorArray2D(MirrorOperation.Horizontal);
-        CollectionAssert.AreEqual(source.Cast<byte>(), expected.Cast<byte>());
+        Assert.Equal(source.Cast(), expected.Cast());
     }
 
-    [TestCaseSource(typeof(MirrorArray2DTestCases), "MirrorVerticalCases")]
+    [Theory]
+    [MemberData(nameof(MirrorVerticalCases))]
     public void MirrorArray2D_VerticalMirroring_AsExpected(byte[,] source, byte[,] expected)
     {
         source.MirrorArray2D(MirrorOperation.Vertical);
-        CollectionAssert.AreEqual(source.Cast<byte>(), expected.Cast<byte>());
+        Assert.Equal(source.Cast(), expected.Cast());
     }
 
-    [TestCaseSource(typeof(MirrorArray2DTestCases), "MirrorBothCases")]
+    [Theory]
+    [MemberData(nameof(MirrorBothCases))]
     public void MirrorArray2D_BothMirroring_AsExpected(byte[,] source, byte[,] expected)
     {
         source.MirrorArray2D(MirrorOperation.Both);
-        CollectionAssert.AreEqual(source.Cast<byte>(), expected.Cast<byte>());
+        Assert.Equal(source.Cast(), expected.Cast());
     }
 }

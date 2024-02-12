@@ -1,25 +1,25 @@
 ﻿using System;
-using NUnit.Framework;
 using ImageMagitek.ExtensionMethods;
+using Xunit;
 
-namespace ImageMagitek.UnitTests;
-
-[TestFixture]
-public class ByteArrayExtensionTests
+namespace ImageMagitek.UnitTests.ExtensionMethodTests;
+public partial class ByteArrayExtensionTests
 {
-    [TestCaseSource(typeof(ByteArrayExtensionTestCases), "ShiftLeftCases")]
+    [Theory]
+    [MemberData(nameof(ShiftLeftCases))]
     public void ShiftLeft_AsExpected(byte[] array, int count, byte[] expected)
     {
         var span = new Span<byte>(array);
         span.ShiftLeft(count);
-        CollectionAssert.AreEqual(expected, array);
+        Assert.Equal(expected, array);
     }
 
-    [TestCaseSource(typeof(ByteArrayExtensionTestCases), "ShiftRightCases")]
+    [Theory]
+    [MemberData(nameof(ShiftRightCases))]
     public void ShiftRight_AsExpected(byte[] array, int count, byte[] expected)
     {
         var span = new Span<byte>(array);
         span.ShiftRight(count);
-        CollectionAssert.AreEqual(expected, array);
+        Assert.Equal(expected, array);
     }
 }

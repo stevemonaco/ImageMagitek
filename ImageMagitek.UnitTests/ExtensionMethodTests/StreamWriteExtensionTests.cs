@@ -1,13 +1,12 @@
-﻿using NUnit.Framework;
-using System.IO;
+﻿using System.IO;
 using ImageMagitek.ExtensionMethods;
+using Xunit;
 
 namespace ImageMagitek.UnitTests.ExtensionMethodTests;
-
-[TestFixture]
-public class StreamWriteExtensionTests
+public partial class StreamWriteExtensionTests
 {
-    [TestCaseSource(typeof(StreamWriteExtensionTestCases), "WriteUnshiftedCases")]
+    [Theory]
+    [MemberData(nameof(WriteUnshiftedCases))]
     public void WriteUnshifted_AsExpected(byte[] data, BitAddress offset, int numBits, byte[] writeData, byte[] expected)
     {
         using var stream = new MemoryStream(data);
@@ -17,10 +16,11 @@ public class StreamWriteExtensionTests
         var actual = new byte[expected.Length];
         stream.Read(actual);
 
-        CollectionAssert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 
-    [TestCaseSource(typeof(StreamWriteExtensionTestCases), "WriteShiftedCases")]
+    [Theory]
+    [MemberData(nameof(WriteShiftedCases))]
     public void WriteShifted_AsExpected(byte[] data, BitAddress offset, int numBits, byte[] writeData, byte[] expected)
     {
         using var stream = new MemoryStream(data);
@@ -30,6 +30,6 @@ public class StreamWriteExtensionTests
         var actual = new byte[expected.Length];
         stream.Read(actual);
 
-        CollectionAssert.AreEqual(expected, actual);
+        Assert.Equal(expected, actual);
     }
 }
