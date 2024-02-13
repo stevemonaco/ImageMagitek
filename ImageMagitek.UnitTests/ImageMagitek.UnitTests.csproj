@@ -31,9 +31,4 @@
     <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Resources\" />
-    <Folder Include="TestImages\RealColor\" />
-  </ItemGroup>
-
 </Project>

@@ -6,8 +6,8 @@ namespace ImageMagitek.UnitTests;
 public static class TestImages
 {
     private static string _projectFileName = "ImageMagitek.UnitTests.csproj";
-    private static Lazy<string> TestImagePathLazy { get; } = new Lazy<string>(LocateSolution);
-    public static string TestImagePath => TestImagePathLazy.Value;
+    private static Lazy<string> TestRootLazy { get; } = new Lazy<string>(LocateRoot);
+    public static string TestRoot => TestRootLazy.Value;
 
     public static string Pattern1bpp = Locate(@"1bpp/pattern_1bpp.png");
     public static string Bubbles = Locate(@"2bpp/bubbles_font_2bpp.png");
@@ -28,9 +28,9 @@ public static class TestImages
     public static string DragonForm = Locate(@"8bpp/dragon_from_8bpp.png");
     public static string Torment = Locate(@"8bpp/symbol_of_torment_8bpp.png");
 
-    private static string Locate(string relative) => Path.Combine(TestImagePath, "TestImages", relative);
+    private static string Locate(string relative) => Path.Combine(TestRoot, "TestFiles", relative);
 
-    private static string LocateSolution()
+    private static string LocateRoot()
     {
         var start = new DirectoryInfo(Directory.GetCurrentDirectory());
         var visitor = start;
