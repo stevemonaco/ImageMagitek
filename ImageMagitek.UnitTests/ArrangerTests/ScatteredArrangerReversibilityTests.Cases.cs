@@ -1,47 +1,17 @@
-﻿using ImageMagitek.Codec;
-using ImageMagitek.Colors;
-using ImageMagitek.Services;
-using ImageMagitek.UnitTests.TestFactories;
+﻿using ImageMagitek.Colors;
+using SixLabors.ImageSharp;
 using Xunit;
 
 namespace ImageMagitek.UnitTests;
+
 public partial class ScatteredArrangerReversibilityTests
 {
-    public static TheoryData<ScatteredArranger, string> ReverseCases()
+    public static TheoryData<string, ColorModel, bool, string, Size> ReverseCases => new()
     {
-        var paletteService = new PaletteService(new ColorFactory());
-        var palette = paletteService.ReadJsonPalette(@"_palettes/DefaultRgba32.json")!;
-        var codecFactory = new CodecFactory(palette, new());
-        var codecService = new XmlCodecService(@"_schemas/CodecSchema.xsd", codecFactory);
-        codecService.LoadCodecs(@"_codecs");
-
-        string bubblesFontLocation = @"TestImages/2bpp/bubbles_font_2bpp.bmp";
-
-        var items = new TheoryData<ScatteredArranger, string>();
-
-        items.Add(
-            ArrangerTestFactory.CreateIndexedArrangerFromImage(bubblesFontLocation,
-                    ColorModel.Bgr15,
-                    false,
-                    codecFactory,
-                    codecFactory.CreateCodec("NES 2bpp", new System.Drawing.Size(8, 8))!),
-            bubblesFontLocation);
-
-        items.Add(
-            ArrangerTestFactory.CreateIndexedArrangerFromImage(bubblesFontLocation,
-                ColorModel.Bgr15,
-                false,
-                codecFactory,
-                codecFactory.CreateCodec("NES 2bpp", new System.Drawing.Size(8, 8))!),
-            bubblesFontLocation);
-
-        items.Add(
-            ArrangerTestFactory.CreateIndexedArrangerFromImage(bubblesFontLocation,
-                ColorModel.Bgr15,
-                false,
-                codecFactory,
-                codecFactory.CreateCodec("SNES 2bpp", new System.Drawing.Size(8, 8))!),
-            bubblesFontLocation);
-        return items;
-    }
+        { TestImages.Pattern1bpp, ColorModel.Nes, false, "NES 1bpp", new Size(8, 8) },
+        { TestImages.Bubbles, ColorModel.Bgr15, false, "NES 2bpp", new Size(8, 8) },
+        { TestImages.EnsorcelledHiberation, ColorModel.Bgr15, false, "SNES 3bpp", new Size(8, 8) },
+        { TestImages.Fireball, ColorModel.Bgr15, false, "SNES 4bpp", new Size(8, 8) },
+        { TestImages.Ice, ColorModel.Bgr15, false, "Genesis 4bpp", new Size(8, 8) },
+    };
 }

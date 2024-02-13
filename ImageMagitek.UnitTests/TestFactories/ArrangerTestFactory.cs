@@ -1,7 +1,10 @@
-﻿using System.Drawing;
+﻿using System;
 using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace ImageMagitek.UnitTests.TestFactories;
 
@@ -10,11 +13,17 @@ public static class ArrangerTestFactory
     public static ScatteredArranger CreateIndexedArrangerFromImage(string imageFile, ColorModel colorModel,
         bool zeroIndexTransparent, ICodecFactory factory, IGraphicsCodec codec)
     {
-        var image = new Bitmap(imageFile);
-        var imagePalette = image.Palette;
+        using var image = Image<Rgba32>.Load<Rgba32>(imageFile);
+
+        var imagePalette = image.Metadata.DecodedImageFormat switch
+        {
+            PngFormat => image.Metadata.GetPngMetadata().ColorTable,
+            _ => throw new ArgumentException($"{imageFile} is not a supported palettized image type")
+        };
 
         var palette = new Palette("testPalette", new ColorFactory(), colorModel, zeroIndexTransparent, PaletteStorageSource.GlobalJson);
-        var colorSources = imagePalette.Entries
+        var colorSources = imagePalette.Value.Span.ToArray()
+            .Select(x => x.ToPixel<Rgba32>())
             .Select(x => new ProjectNativeColorSource(new ColorRgba32(x.R, x.G, x.B, x.A)));
 
         palette.SetColorSources(colorSources);
