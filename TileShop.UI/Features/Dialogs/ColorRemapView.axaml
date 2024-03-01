@@ -4,7 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:b="using:TileShop.UI.Behaviors"
     xmlns:dd="using:TileShop.UI.DragDrop"
-    xmlns:i="using:Avalonia.Xaml.Interactivity"
     xmlns:id="using:Avalonia.Xaml.Interactions.Draggable"
     xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop"
     xmlns:m="using:TileShop.UI.Models"
@@ -21,23 +20,23 @@
             <Setter Property="Padding" Value="0" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="MinHeight" Value="0" />
-            <Setter Property="(i:Interaction.Behaviors)">
-                <i:BehaviorCollectionTemplate>
-                    <i:BehaviorCollection>
+            <Setter Property="(Interaction.Behaviors)">
+                <BehaviorCollectionTemplate>
+                    <BehaviorCollection>
                         <idd:TypedDragBehavior DataType="{x:Type m:RemappableColorModel}" />
-                    </i:BehaviorCollection>
-                </i:BehaviorCollectionTemplate>
+                    </BehaviorCollection>
+                </BehaviorCollectionTemplate>
             </Setter>
         </Style>
 
         <Style Selector="Border.colorDrop">
             <Setter Property="(DragDrop.AllowDrop)" Value="True" />
-            <Setter Property="(i:Interaction.Behaviors)">
-                <i:BehaviorCollectionTemplate>
-                    <i:BehaviorCollection>
+            <Setter Property="(Interaction.Behaviors)">
+                <BehaviorCollectionTemplate>
+                    <BehaviorCollection>
                         <idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ListBoxRemappableColorDropHandler}" />
-                    </i:BehaviorCollection>
-                </i:BehaviorCollectionTemplate>
+                    </BehaviorCollection>
+                </BehaviorCollectionTemplate>
             </Setter>
         </Style>
 

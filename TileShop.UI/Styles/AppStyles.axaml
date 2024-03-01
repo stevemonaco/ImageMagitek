@@ -3,17 +3,16 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:b="using:TileShop.UI.Behaviors"
     xmlns:fac="using:FluentAvalonia.UI.Controls"
-    xmlns:i="using:Avalonia.Xaml.Interactivity"
     xmlns:media="using:Avalonia.Media"
     xmlns:vm="using:TileShop.UI.ViewModels">
 
     <Style Selector="TextBox">
-        <Setter Property="(i:Interaction.Behaviors)">
-            <i:BehaviorCollectionTemplate>
-                <i:BehaviorCollection>
+        <Setter Property="(Interaction.Behaviors)">
+            <BehaviorCollectionTemplate>
+                <BehaviorCollection>
                     <b:TextBoxFocusSelectionBehavior />
-                </i:BehaviorCollection>
-            </i:BehaviorCollectionTemplate>
+                </BehaviorCollection>
+            </BehaviorCollectionTemplate>
         </Setter>
     </Style>
 

@@ -4,8 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.UI.Converters"
     xmlns:fac="using:FluentAvalonia.UI.Controls"
-    xmlns:i="using:Avalonia.Xaml.Interactivity"
-    xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
     xmlns:m="using:TileShop.UI.Models"
     xmlns:model="using:TileShop.Shared.Models"
     xmlns:paz="using:Avalonia.Controls.PanAndZoom"
@@ -32,22 +30,22 @@
             <MenuItem Command="{Binding SelectAllCommand}" Header="Select All" />
             <MenuItem Command="{Binding ModifyGridSettingsCommand}" Header="Grid Settings..." />
             <MenuItem Command="{Binding ToggleSymmetryToolsCommand}" Header="Show Symmetry Tools">
-                <i:Interaction.Behaviors>
-                    <ia:DataTriggerBehavior Binding="{Binding #control.((vm:ScatteredArrangerEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="True">
-                        <ia:ChangePropertyAction PropertyName="Icon">
-                            <ia:ChangePropertyAction.Value>
+                <Interaction.Behaviors>
+                    <DataTriggerBehavior Binding="{Binding #control.((vm:ScatteredArrangerEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="True">
+                        <ChangePropertyAction PropertyName="Icon">
+                            <ChangePropertyAction.Value>
                                 <fac:FAPathIcon Classes="menu" Data="{x:Static res:AppIcons.CheckedBox}" />
-                            </ia:ChangePropertyAction.Value>
-                        </ia:ChangePropertyAction>
-                    </ia:DataTriggerBehavior>
-                    <ia:DataTriggerBehavior Binding="{Binding #control.((vm:ScatteredArrangerEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="False">
-                        <ia:ChangePropertyAction PropertyName="Icon">
-                            <ia:ChangePropertyAction.Value>
+                            </ChangePropertyAction.Value>
+                        </ChangePropertyAction>
+                    </DataTriggerBehavior>
+                    <DataTriggerBehavior Binding="{Binding #control.((vm:ScatteredArrangerEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="False">
+                        <ChangePropertyAction PropertyName="Icon">
+                            <ChangePropertyAction.Value>
                                 <fac:FAPathIcon Classes="menu" Data="{x:Static res:AppIcons.UncheckedBox}" />
-                            </ia:ChangePropertyAction.Value>
-                        </ia:ChangePropertyAction>
-                    </ia:DataTriggerBehavior>
-                </i:Interaction.Behaviors>
+                            </ChangePropertyAction.Value>
+                        </ChangePropertyAction>
+                    </DataTriggerBehavior>
+                </Interaction.Behaviors>
             </MenuItem>
         </ContextMenu>
     </UserControl.ContextMenu>
