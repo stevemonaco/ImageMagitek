@@ -269,7 +269,7 @@
                             <DataTemplate DataType="{x:Type model:Gridline}">
                                 <Line
                                     IsHitTestVisible="False"
-                                    Stroke="{ReflectionBinding #_zoomBorder.DataContext.GridSettings.LineColor, Converter={x:Static con:AppConverters.ColorToBrush}}"
+                                    Stroke="{Binding #_zoomBorder.((vm:ArrangerEditorViewModel)DataContext).GridSettings.LineColor, Converter={x:Static con:AppConverters.ColorToBrush}}"
                                     StrokeThickness="0.40"
                                     UseLayoutRounding="True"
                                     StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"

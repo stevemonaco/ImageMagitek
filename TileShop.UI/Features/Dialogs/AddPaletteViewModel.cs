@@ -20,8 +20,9 @@ public partial class AddPaletteViewModel : DialogViewModel<AddPaletteViewModel>
                 ValidateModel();
         }
     }
-    [ObservableProperty] private ObservableCollection<DataSource> _dataSources = new();
-    [ObservableProperty] private DataSource? _selectedDataSource;
+
+    [ObservableProperty] private ObservableCollection<FileDataSource> _dataSources = new();
+    [ObservableProperty] private FileDataSource? _selectedDataSource;
     [ObservableProperty] private ObservableCollection<string> _colorModels = new(Palette.GetColorModelNames());
     [ObservableProperty] private string _selectedColorModel;
     [ObservableProperty] private bool _zeroIndexTransparent = true;

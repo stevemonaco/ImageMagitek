@@ -27,7 +27,7 @@ public static class AppConverters
         new FuncValueConverter<ArrangerEditorViewModel, int>(x => x!.WorkingArranger.ArrangerPixelSize.Height);
 
     public static IValueConverter PaletteEntryToSolidColorBrush { get; } =
-        new FuncValueConverter<PaletteEntry, SolidColorBrush>(p => new SolidColorBrush(p!.Color));
+        new FuncValueConverter<PaletteEntry, SolidColorBrush>(p => new SolidColorBrush(p?.Color ?? Colors.Transparent));
 
     public static IValueConverter PluralCountToBoolean { get; } =
         new FuncValueConverter<int, bool>(x => x >= 2);

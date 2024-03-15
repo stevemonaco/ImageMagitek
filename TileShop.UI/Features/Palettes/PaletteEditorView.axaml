@@ -13,7 +13,7 @@
     <UserControl.DataTemplates>
         <DataTemplate DataType="{x:Type m:FileColorSourceModel}">
             <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
-                <Button Background="#DA3633" Command="{ReflectionBinding #palView.DataContext.RemoveColorSourceCommand}" CommandParameter="{Binding}">
+                <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}">
                     <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Trash}" />
                 </Button>
                 <TextBlock
@@ -33,7 +33,7 @@
 
         <DataTemplate DataType="{x:Type m:NativeColorSourceModel}">
             <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
-                <Button Background="#DA3633" Command="{ReflectionBinding #palView.DataContext.RemoveColorSourceCommand}" CommandParameter="{Binding}">
+                <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}">
                     <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Trash}" />
                 </Button>
                 <TextBlock
@@ -49,7 +49,7 @@
 
         <DataTemplate DataType="{x:Type m:ForeignColorSourceModel}">
             <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
-                <Button Background="#DA3633" Command="{ReflectionBinding #palView.DataContext.RemoveColorSourceCommand}" CommandParameter="{Binding}">
+                <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}">
                     <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Trash}" />
                 </Button>
                 <TextBlock
@@ -99,13 +99,13 @@
                             </Button.Content>
                             <Button.Flyout>
                                 <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                                    <MenuItem Command="{ReflectionBinding #palView.DataContext.AddNewFileColorSourceCommand}" Header="New File Source" />
-                                    <MenuItem Command="{ReflectionBinding #palView.DataContext.AddNewNativeColorSourceCommand}" Header="New Native Color" />
-                                    <MenuItem Command="{ReflectionBinding #palView.DataContext.AddNewForeignColorSourceCommand}" Header="New Foreign Color" />
+                                    <MenuItem Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).AddNewFileColorSourceCommand}" Header="New File Source" />
+                                    <MenuItem Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).AddNewNativeColorSourceCommand}" Header="New Native Color" />
+                                    <MenuItem Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).AddNewForeignColorSourceCommand}" Header="New Foreign Color" />
                                 </MenuFlyout>
                             </Button.Flyout>
                         </Button>
-                        <Button Width="80" Margin="10,0,0,0" Command="{ReflectionBinding #palView.DataContext.SaveSourcesCommand}" Content="Save" />
+                        <Button Width="80" Margin="10,0,0,0" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).SaveSourcesCommand}" Content="Save" />
                     </StackPanel>
                 </StackPanel>
             </Expander>

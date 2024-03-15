@@ -18,7 +18,7 @@
                 Margin="0,0,0,10"
                 HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center"
-                Command="{ReflectionBinding DataContext.SaveActiveColorCommand, RelativeSource={RelativeSource AncestorType={x:Type v:PaletteEditorView}}}"
+                Command="{Binding $parent[v:PaletteEditorView].((vm:PaletteEditorViewModel)DataContext).SaveActiveColorCommand}"
                 IsEnabled="{Binding CanSaveColor}">
                 <StackPanel>
                     <TextBlock HorizontalAlignment="Center" Text="Assign" />

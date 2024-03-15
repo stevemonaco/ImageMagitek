@@ -21,7 +21,7 @@
             </Style>
         </TreeView.Styles>
         <TreeView.ItemTemplate>
-            <TreeDataTemplate DataType="vm:ResourceNodeViewModel" ItemsSource="{Binding Children}">
+            <TreeDataTemplate x:DataType="vm:ResourceNodeViewModel" ItemsSource="{Binding Children}">
                 <ContentControl Content="{Binding}" KeyDown="ProjectNode_KeyDown" />
             </TreeDataTemplate>
         </TreeView.ItemTemplate>
@@ -30,15 +30,15 @@
                 <Grid ColumnDefinitions="auto,*">
                     <Grid.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewFolderCommand}" CommandParameter="{Binding}" Header="Add New Folder" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewFolderCommand}" CommandParameter="{Binding}" Header="Add New Folder" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette" />
                             <Separator />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.SaveProjectAsCommand}" CommandParameter="{Binding}" Header="Save Project As..." />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.CloseProjectCommand}" CommandParameter="{Binding}" Header="Close Project" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename Project" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).SaveProjectAsCommand}" CommandParameter="{Binding}" Header="Save Project As..." />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).CloseProjectCommand}" CommandParameter="{Binding}" Header="Close Project" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename Project" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </Grid.ContextMenu>
                     <fac:FAPathIcon Grid.Column="0" Classes="small" Data="{x:Static res:AppIcons.NodeProject}" />
@@ -50,14 +50,14 @@
                 <StackPanel Orientation="Horizontal">
                     <StackPanel.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewFolderCommand}" CommandParameter="{Binding}" Header="Add New Folder" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewFolderCommand}" CommandParameter="{Binding}" Header="Add New Folder" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette" />
                             <Separator />
-                            <MenuItem Command="{ReflectionBinding #treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
-                            <MenuItem Command="{ReflectionBinding #treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </StackPanel.ContextMenu>
                     <fac:FAPathIcon Classes="small vflip" Data="{x:Static res:AppIcons.NodeFolder}" />
@@ -69,9 +69,9 @@
                 <StackPanel Orientation="Horizontal">
                     <StackPanel.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </StackPanel.ContextMenu>
                     <fac:FAPathIcon Classes="small" Data="{x:Static res:AppIcons.NodeFile}" />
@@ -83,12 +83,12 @@
                 <StackPanel Orientation="Horizontal">
                     <StackPanel.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExportArrangerNodeAsCommand}" CommandParameter="{Binding}" Header="Export As..." />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ImportArrangerNodeFromCommand}" CommandParameter="{Binding}" Header="Import From..." />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExportArrangerNodeAsCommand}" CommandParameter="{Binding}" Header="Export As..." />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ImportArrangerNodeFromCommand}" CommandParameter="{Binding}" Header="Import From..." />
                             <Separator />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </StackPanel.ContextMenu>
                     <fac:FAPathIcon Classes="small vflip" Data="{x:Static res:AppIcons.NodeArranger}" />
@@ -100,9 +100,9 @@
                 <StackPanel Orientation="Horizontal">
                     <StackPanel.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
-                            <MenuItem Command="{ReflectionBinding #_treeView.DataContext.ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename" />
+                            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </StackPanel.ContextMenu>
                     <fac:FAPathIcon Classes="small" Data="{x:Static res:AppIcons.NodePalette}" />

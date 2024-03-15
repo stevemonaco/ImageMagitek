@@ -130,7 +130,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         var dialogModel = new AddPaletteViewModel(parentNodeModel.Children.Select(x => x.Name));
 
         var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
-        var dataFiles = projectTree.EnumerateDepthFirst().Select(x => x.Item).OfType<DataSource>();
+        var dataFiles = projectTree.EnumerateDepthFirst().Select(x => x.Item).OfType<FileDataSource>();
         dialogModel.DataSources = new(dataFiles);
         dialogModel.SelectedDataSource = dialogModel.DataSources.FirstOrDefault();
 

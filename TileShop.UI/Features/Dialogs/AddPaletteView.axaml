@@ -12,7 +12,7 @@
             <Label Content="Palette Name" Target="paletteNameBox" />
             <TextBox x:Name="paletteNameBox" Text="{Binding PaletteName}" />
 
-            <TextBlock Margin="0,5,0,0" Text="{ReflectionBinding SelectedDataSource.FileLocation, StringFormat=Data Source: {0}}" TextWrapping="Wrap" />
+            <TextBlock Margin="0,5,0,0" Text="{Binding SelectedDataSource.FileLocation, StringFormat=Data Source: {0}}" TextWrapping="Wrap" />
             <ComboBox
                 MinWidth="200"
                 Margin="0,5,0,0"

@@ -1,4 +1,9 @@
-﻿<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:dd="using:TileShop.UI.DragDrop" xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop">
+﻿<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dd="using:TileShop.UI.DragDrop"
+    xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop"
+    xmlns:vm="using:TileShop.UI.ViewModels">
     <Design.PreviewWith>
         <Border Padding="20">
             <Rectangle Width="400" Height="200" Classes="animatedBorder" />
@@ -42,7 +47,7 @@
         <Setter Property="(Interaction.Behaviors)">
             <BehaviorCollectionTemplate>
                 <BehaviorCollection>
-                    <dd:PayloadDragBehavior Context="{ReflectionBinding}" Handler="{StaticResource ArrangerDragHandler}" />
+                    <dd:PayloadDragBehavior x:DataType="vm:ArrangerEditorViewModel" Context="{Binding}" Handler="{StaticResource ArrangerDragHandler}" />
                 </BehaviorCollection>
             </BehaviorCollectionTemplate>
         </Setter>
@@ -56,7 +61,7 @@
         <Setter Property="(Interaction.Behaviors)">
             <BehaviorCollectionTemplate>
                 <BehaviorCollection>
-                    <dd:PayloadDropBehavior Context="{ReflectionBinding}" Handler="{StaticResource ArrangerDropHandler}" />
+                    <dd:PayloadDropBehavior x:DataType="vm:ArrangerEditorViewModel" Context="{Binding}" Handler="{StaticResource ArrangerDropHandler}" />
                 </BehaviorCollection>
             </BehaviorCollectionTemplate>
         </Setter>
