@@ -1,11 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\Base.Props" />
-
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.2" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
-    <PackageReference Include="Monaco.PathTree" Version="1.2.2" />
-    <PackageReference Include="OneOf" Version="3.0.263" />
+    <PackageReference Include="CommunityToolkit.Diagnostics" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Monaco.PathTree" />
+    <PackageReference Include="OneOf" />
   </ItemGroup>
 
   <ItemGroup>

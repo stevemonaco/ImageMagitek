@@ -1,11 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\ImageMagitek\ImageMagitek.csproj" />
   </ItemGroup>
-
 </Project>

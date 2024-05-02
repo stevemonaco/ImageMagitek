@@ -1,6 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\Base.Props" />
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
 	  <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
@@ -24,25 +22,22 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.1.0-beta1" />
-    <PackageReference Include="Avalonia.Controls.PanAndZoom" Version="11.0.0.3" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.1.0-beta1" />
-    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.1.0-beta1" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.1.0-beta1" />
-    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.1.0-beta1" />
-    <PackageReference Include="Avalonia.Xaml.Interactions" Version="11.1.0-beta1" />
-    <PackageReference Include="Avalonia.Xaml.Interactivity" Version="11.1.0-beta1" />
-    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.2" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
-    <PackageReference Include="Dock.Avalonia" Version="11.0.0" />
-    <PackageReference Include="Dock.Model.Mvvm" Version="11.0.0" />
-    <PackageReference Include="FluentAvaloniaUI" Version="2.0.5" />
-    <PackageReference Include="Jot" Version="2.1.17" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="Serilog" Version="3.1.1" />
-    <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Controls.PanAndZoom" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Xaml.Behaviors" />
+    <PackageReference Include="CommunityToolkit.Diagnostics" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Dock.Avalonia" />
+    <PackageReference Include="Dock.Model.Mvvm" />
+    <PackageReference Include="FluentAvaloniaUI" />
+    <PackageReference Include="Jot" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Extensions.Logging" />
+    <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>
   
   <ItemGroup>

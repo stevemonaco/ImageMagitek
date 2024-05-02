@@ -1,6 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<Import Project="..\Base.Props" />
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <RootNamespace></RootNamespace>
@@ -11,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.2" />
-    <PackageReference Include="Nuke.Common" Version="7.0.6" />
+    <PackageReference Include="CommunityToolkit.Diagnostics" />
+    <PackageReference Include="Nuke.Common" />
   </ItemGroup>
 
   <ItemGroup>
