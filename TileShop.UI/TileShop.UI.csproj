@@ -14,6 +14,10 @@
     <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
   </PropertyGroup>-->
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DefineConstants>$(DefineConstants);ENABLE_XAML_HOT_RELOAD</DefineConstants>
+  </PropertyGroup>
   
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
@@ -38,6 +42,10 @@
     <PackageReference Include="Serilog" />
     <PackageReference Include="Serilog.Extensions.Logging" />
     <PackageReference Include="Serilog.Sinks.File" />
+
+    <PackageReference Condition="$(DefineConstants.Contains(ENABLE_XAML_HOT_RELOAD))" Include="Avalonia.Markup.Xaml.Loader" />
+    <PackageReference Condition="$(DefineConstants.Contains(ENABLE_XAML_HOT_RELOAD))" Include="HotAvalonia" />
+    <PackageReference Include="HotAvalonia.Extensions" />
   </ItemGroup>
   
   <ItemGroup>

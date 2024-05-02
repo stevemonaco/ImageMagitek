@@ -1,8 +1,10 @@
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using HotAvalonia;
 using Microsoft.Extensions.DependencyInjection;
 using TileShop.UI.ViewModels;
 using TileShop.UI.Views;
@@ -15,14 +17,15 @@ public class App : Application
 
     public override void Initialize()
     {
+        this.EnableHotReload(); // Ensure this line **precedes** `AvaloniaXamlLoader.Load(this);
         AvaloniaXamlLoader.Load(this);
     }
 
     public override async void OnFrameworkInitializationCompleted()
     {
         // Remove Avalonia data validation so that Mvvm Toolkit's data validation works
-        BindingPlugins.DataValidators.RemoveAt(0);
-        //ExpressionObserver.DataValidators.RemoveAll(x => x is DataAnnotationsValidationPlugin);
+        var annotationPlugin = BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().First();
+        BindingPlugins.DataValidators.Remove(annotationPlugin);
 
         var services = new ServiceCollection();
         var bootstrapper = new TileShopBootstrapper();
