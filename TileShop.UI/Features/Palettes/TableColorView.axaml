@@ -2,7 +2,6 @@
     x:Class="TileShop.UI.Views.TableColorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:i="using:Avalonia.Xaml.Interactivity"
     xmlns:v="using:TileShop.UI.Views"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:DataType="vm:TableColorViewModel">
