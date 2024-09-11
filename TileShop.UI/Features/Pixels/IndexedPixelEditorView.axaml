@@ -206,7 +206,7 @@
 
                             <!--  Editable Image  -->
                             <Image
-                                x:Name="_image"
+                                x:Name="image"
                                 Classes="pixel"
                                 IsHitTestVisible="False"
                                 RenderOptions.BitmapInterpolationMode="None"
@@ -239,7 +239,7 @@
 
                             <!--  Tool Preview  -->
                             <Rectangle
-                                x:Name="_penPreview"
+                                x:Name="penPreview"
                                 Width="1"
                                 Height="1"
                                 IsHitTestVisible="False"
@@ -253,19 +253,7 @@
                                         <GradientStop Offset="1" Color="Black" />
                                     </RadialGradientBrush>
                                 </Rectangle.Stroke>
-                                <!--<Rectangle.Stroke>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Offset="0" Color="Black" />
-                                    <GradientStop Offset="0.5" Color="White" />
-                                    <GradientStop Offset="1" Color="Black" />
-                                </LinearGradientBrush>
-                            </Rectangle.Stroke>-->
-                                <!--<Rectangle.Stroke>
-								<MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToComplementaryBrush}">
-									<Binding Path="ActivePalette" />
-									<Binding Path="PrimaryColor" />
-								</MultiBinding>
-							</Rectangle.Stroke>-->
+
                                 <Rectangle.Fill>
                                     <MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
                                         <Binding Path="ActivePalette" />
