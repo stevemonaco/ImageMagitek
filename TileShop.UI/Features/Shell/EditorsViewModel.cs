@@ -15,6 +15,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 using ImageMagitek.Services.Stores;
+using ImageMagitek.Codec;
 
 namespace TileShop.UI.ViewModels;
 
@@ -132,7 +133,10 @@ public partial class EditorsViewModel : ObservableRecipient
                     return;
                 }
 
-                var newArranger = new SequentialArranger(8, 16, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec);
+                var newArranger = codec.Layout == ImageLayout.Tiled
+                    ? new SequentialArranger(8, 16, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec)
+                    : new SequentialArranger(1, 1, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec);
+
                 newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore)
                 {
                     OriginatingProjectResource = fileSource
