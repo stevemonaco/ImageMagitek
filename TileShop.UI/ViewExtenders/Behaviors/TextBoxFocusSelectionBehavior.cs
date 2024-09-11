@@ -30,7 +30,6 @@ public class TextBoxFocusSelectionBehavior : Behavior<TextBox>
         if (AssociatedObject?.IsKeyboardFocusWithin is false)
         {
             AssociatedObject.Focus();
-            AssociatedObject.SelectAll();
             e.Handled = true;
         }
     }
