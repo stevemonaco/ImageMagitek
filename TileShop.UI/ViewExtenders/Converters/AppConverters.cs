@@ -12,10 +12,10 @@ namespace TileShop.UI.Converters;
 public static class AppConverters
 {
     public static IValueConverter GridlineToStartPoint { get; } =
-        new FuncValueConverter<Gridline, Point>(line => new Point(line!.X1, line!.Y1));
+        new FuncValueConverter<Gridline, Point>(line => line is not null ? new Point(line!.X1, line!.Y1) : new Point(0, 0));
 
     public static IValueConverter GridlineToEndPoint { get; } =
-        new FuncValueConverter<Gridline, Point>(line => new Point(line!.X2, line!.Y2));
+        new FuncValueConverter<Gridline, Point>(line => line is not null ? new Point(line!.X2, line!.Y2) : new Point(0, 0));
 
     public static IValueConverter PathToGeometry { get; } =
         new FuncValueConverter<string, Geometry?>(x => x is not null ? Geometry.Parse(x) : null);
