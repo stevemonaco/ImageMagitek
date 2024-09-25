@@ -6,6 +6,12 @@
     xmlns:media="using:Avalonia.Media"
     xmlns:vm="using:TileShop.UI.ViewModels">
 
+    <!--  Replaces the default RadioButton with ellipse / text with a ToggleButton style  -->
+    <!--  This is necessary because a ToggleButton itself can be unchecked, so it can't be used directly as a RadioButton style  -->
+    <Style Selector="RadioButton.tool">
+        <Setter Property="Theme" Value="{StaticResource {x:Type ToggleButton}}" />
+    </Style>
+
     <Style Selector="TextBox">
         <Setter Property="(Interaction.Behaviors)">
             <BehaviorCollectionTemplate>

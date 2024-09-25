@@ -16,7 +16,6 @@
         <StyleInclude Source="avares://Dock.Avalonia/Themes/DockFluentTheme.axaml" />
 
         <StyleInclude Source="avares://TileShop.UI/Styles/VerticalNumericUpDown.axaml" />
-        <StyleInclude Source="avares://TileShop.UI/Styles/RadioButtonTool.axaml" />
         <StyleInclude Source="avares://TileShop.UI/Styles/Arranger.axaml" />
         <StyleInclude Source="avares://TileShop.UI/Styles/AppStyles.axaml" />
     </Application.Styles>
