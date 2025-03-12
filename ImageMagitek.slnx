@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/Samples/">
+    <Project Path="Samples/FF5MonsterSpritesCLI/FF5MonsterSpritesCLI.csproj" />
+    <Project Path="Samples/FF5MonsterSpritesWPF/FF5MonsterSpritesWPF.csproj" />
+    <Project Path="Samples/ImageMagitek.PluginSamples/ImageMagitek.PluginSamples.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
+  <Project Path="ImageMagitek.Benchmarks/ImageMagitek.Benchmarks.csproj" />
+  <Project Path="ImageMagitek.Build/ImageMagitek.Build.csproj">
+    <Build Project="false" />
+  </Project>
+  <Project Path="ImageMagitek.Services/ImageMagitek.Services.csproj" />
+  <Project Path="ImageMagitek.UnitTests/ImageMagitek.UnitTests.csproj" />
+  <Project Path="ImageMagitek/ImageMagitek.csproj" />
+  <Project Path="TileShop.CLI/TileShop.CLI.csproj" />
+  <Project Path="TileShop.Shared/TileShop.Shared.csproj" />
+  <Project Path="TileShop.UI/TileShop.UI.csproj" />
+</Solution>
