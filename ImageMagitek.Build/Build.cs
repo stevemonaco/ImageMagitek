@@ -10,9 +10,8 @@ using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Utilities.Collections;
-using static Nuke.Common.IO.FileSystemTasks;
-using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
+// ReSharper disable AllUnderscoreLocalParameterName
 
 [ShutdownDotNetAfterServerBuild]
 [GitHubActions("ci",
@@ -32,7 +31,7 @@ class Build : NukeBuild
     public readonly string TileShopVersion;
 
     [Parameter("TileShopCLI version")]
-    public readonly string TileShopCLIVersion;
+    public readonly string TileShopCliVersion;
 
     [Solution]
     public readonly Solution Solution;
@@ -48,9 +47,9 @@ class Build : NukeBuild
     AbsolutePath TileShopOutputDirectory => OutputDirectory / "TileShop";
     private readonly string _tileShopPublishProfilex64 = @"Properties\PublishProfiles\TileShop win-x64-single.pubxml";
 
-    Project TileShopCLIProject => Solution.GetProject("TileShop.CLI");
-    AbsolutePath TileShopCLIPortableOutputDirectory => OutputDirectory / "TileShopCLI";
-    AbsolutePath TileShopCLIWinx64OutputDirectory => OutputDirectory / "TileShopCLI-win-x64";
+    Project TileShopCliProject => Solution.GetProject("TileShop.CLI");
+    AbsolutePath TileShopCliPortableOutputDirectory => OutputDirectory / "TileShopCLI";
+    AbsolutePath TileShopCliWinx64OutputDirectory => OutputDirectory / "TileShopCLI-win-x64";
     private readonly string _tileShopCliPublishProfilex64 = @"Properties\PublishProfiles\TileShop.CLI win-x64-single.pubxml";
     private readonly string _tileShopCliPublishProfilePortable = @"Properties\PublishProfiles\TileShop.CLI portable.pubxml";
 
@@ -60,9 +59,8 @@ class Build : NukeBuild
             var dirs = RootDirectory.GlobDirectories("**/bin", "**/obj")
                 .Where(x => !x.ToString().Contains("ImageMagitek.Build"));
 
-            dirs.ForEach(DeleteDirectory);
-
-            EnsureCleanDirectory(OutputDirectory);
+            dirs.ForEach(d => d.DeleteDirectory());
+            OutputDirectory.CreateOrCleanDirectory();
         });
 
     Target Restore => _ => _
@@ -113,18 +111,18 @@ class Build : NukeBuild
         {
             // Portable
             DotNetPublish(_ => _
-                .SetProject(TileShopCLIProject)
+                .SetProject(TileShopCliProject)
                 .EnableNoRestore()
                 .SetConfiguration(Configuration)
-                .SetOutput(TileShopCLIPortableOutputDirectory)
+                .SetOutput(TileShopCliPortableOutputDirectory)
                 .SetPublishProfile(_tileShopCliPublishProfilePortable));
 
             // win-x64 single file
             DotNetPublish(_ => _
-                .SetProject(TileShopCLIProject)
+                .SetProject(TileShopCliProject)
                 .EnableNoRestore()
                 .SetConfiguration(Configuration)
-                .SetOutput(TileShopCLIWinx64OutputDirectory)
+                .SetOutput(TileShopCliWinx64OutputDirectory)
                 .SetPublishProfile(_tileShopCliPublishProfilex64));
         });
 
@@ -135,21 +133,21 @@ class Build : NukeBuild
         .Executes(() =>
         {
             var files = Directory.GetFiles(TileShopOutputDirectory)
-                .Concat(Directory.GetFiles(TileShopCLIPortableOutputDirectory))
+                .Concat(Directory.GetFiles(TileShopCliPortableOutputDirectory))
                 .Where(filename => Path.GetExtension(filename).Equals(".pdb", StringComparison.OrdinalIgnoreCase));
             
             foreach (var file in files)
                 File.Delete(file);
             
-            File.Copy(TileShopCLIWinx64OutputDirectory / "TileShopCLI.exe", TileShopOutputDirectory / "TileShopCLI.exe");
+            File.Copy(TileShopCliWinx64OutputDirectory / "TileShopCLI.exe", TileShopOutputDirectory / "TileShopCLI.exe");
             
             ZipFile.CreateFromDirectory(TileShopOutputDirectory,
                 OutputDirectory / $"TileShop v{TileShopVersion}.zip",
                 CompressionLevel.Optimal,
                 true);
 
-            ZipFile.CreateFromDirectory(TileShopCLIPortableOutputDirectory,
-                OutputDirectory / $"TileShopCLI v{TileShopCLIVersion}.zip",
+            ZipFile.CreateFromDirectory(TileShopCliPortableOutputDirectory,
+                OutputDirectory / $"TileShopCLI v{TileShopCliVersion}.zip",
                 CompressionLevel.Optimal, 
                 true);
         });
