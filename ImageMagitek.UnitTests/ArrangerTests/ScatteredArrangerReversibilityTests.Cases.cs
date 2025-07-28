@@ -8,7 +8,7 @@ public partial class ScatteredArrangerReversibilityTests
 {
     public static TheoryData<string, ColorModel, bool, string, Size> ReverseCases => new()
     {
-        { TestImages.Pattern1bpp, ColorModel.Nes, false, "NES 1bpp", new Size(8, 8) },
+        { TestImages.Pattern1Bpp, ColorModel.Nes, false, "NES 1bpp", new Size(8, 8) },
         { TestImages.Bubbles, ColorModel.Bgr15, false, "NES 2bpp", new Size(8, 8) },
         { TestImages.EnsorcelledHiberation, ColorModel.Bgr15, false, "SNES 3bpp", new Size(8, 8) },
         { TestImages.Fireball, ColorModel.Bgr15, false, "SNES 4bpp", new Size(8, 8) },

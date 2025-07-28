@@ -52,142 +52,163 @@
 
     <Grid RowDefinitions="auto,*" UseLayoutRounding="True">
         <!--  Toolbar  -->
-        <StackPanel Grid.Row="0" Margin="6,6,0,12" Orientation="Horizontal">
-            <!--  Tools  -->
-            <StackPanel>
-                <TextBlock HorizontalAlignment="Center" Text="Tools" />
+        <Border Padding="8">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <!--  Tools  -->
+                <StackPanel Margin="0,8,0,8" Spacing="4">
+                    <TextBlock HorizontalAlignment="Center" Text="Tools" />
 
-                <StackPanel Orientation="Horizontal">
-                    <RadioButton
-                        Classes="tool"
-                        Command="{Binding ChangeToolCommand}"
-                        CommandParameter="{x:Static vm:ScatteredArrangerTool.Select}"
-                        IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
-                        ToolTip.Tip="Click and drag across Arranger to select a region or hold Ctrl to quickly drag single elements">
-                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RectangularSelection}" />
-                    </RadioButton>
-                    <RadioButton
-                        Classes="tool"
-                        Command="{Binding ChangeToolCommand}"
-                        CommandParameter="{x:Static vm:ScatteredArrangerTool.ApplyPalette}"
-                        IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ApplyPalette}"
-                        ToolTip.Tip="{Binding SelectedPalette.Name, StringFormat='Click on an Arranger element to apply the current palette (\{0\})'}">
-                        <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.PaletteBrush}" />
-                    </RadioButton>
-                    <RadioButton
-                        Classes="tool"
-                        Command="{Binding ChangeToolCommand}"
-                        CommandParameter="{x:Static vm:ScatteredArrangerTool.PickPalette}"
-                        IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=PickPalette}"
-                        ToolTip.Tip="Click on an Arranger element to pick its associated palette">
-                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.PalettePicker}" />
-                    </RadioButton>
-                    <RadioButton
-                        Classes="tool"
-                        Command="{Binding ChangeToolCommand}"
-                        CommandParameter="{x:Static vm:ScatteredArrangerTool.InspectElement}"
-                        IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=InspectElement}"
-                        ToolTip.Tip="Hover Arranger elements to inspect their properties">
-                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Eye}" />
-                    </RadioButton>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <RadioButton
+                            Classes="tool"
+                            Command="{Binding ChangeToolCommand}"
+                            CommandParameter="{x:Static vm:ScatteredArrangerTool.Select}"
+                            IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
+                            ToolTip.Tip="Click and drag across Arranger to select a region or hold Ctrl to quickly drag single elements">
+                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RectangularSelection}" />
+                        </RadioButton>
+                        <RadioButton
+                            Classes="tool"
+                            Command="{Binding ChangeToolCommand}"
+                            CommandParameter="{x:Static vm:ScatteredArrangerTool.ApplyPalette}"
+                            IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ApplyPalette}"
+                            ToolTip.Tip="{Binding SelectedPalette.Name, StringFormat='Click on an Arranger element to apply the current palette (\{0\})'}">
+                            <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.PaletteBrush}" />
+                        </RadioButton>
+                        <RadioButton
+                            Classes="tool"
+                            Command="{Binding ChangeToolCommand}"
+                            CommandParameter="{x:Static vm:ScatteredArrangerTool.PickPalette}"
+                            IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=PickPalette}"
+                            ToolTip.Tip="Click on an Arranger element to pick its associated palette">
+                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.PalettePicker}" />
+                        </RadioButton>
+                        <RadioButton
+                            Classes="tool"
+                            Command="{Binding ChangeToolCommand}"
+                            CommandParameter="{x:Static vm:ScatteredArrangerTool.InspectElement}"
+                            IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=InspectElement}"
+                            ToolTip.Tip="Hover Arranger elements to inspect their properties">
+                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Eye}" />
+                        </RadioButton>
 
-                    <RadioButton
-                        Classes="tool"
-                        Command="{Binding ChangeToolCommand}"
-                        CommandParameter="{x:Static vm:ScatteredArrangerTool.RotateLeft}"
-                        IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateLeft}"
-                        IsVisible="{Binding AreSymmetryToolsEnabled}"
-                        ToolTip.Tip="Rotate Element's Display Left">
-                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RotateLeft}" />
-                    </RadioButton>
-                    <RadioButton
-                        Classes="tool"
-                        Command="{Binding ChangeToolCommand}"
-                        CommandParameter="{x:Static vm:ScatteredArrangerTool.RotateRight}"
-                        IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateRight}"
-                        IsVisible="{Binding AreSymmetryToolsEnabled}"
-                        ToolTip.Tip="Rotate Element's Display Right">
-                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RotateRight}" />
-                    </RadioButton>
-                    <RadioButton
-                        Classes="tool"
-                        Command="{Binding ChangeToolCommand}"
-                        CommandParameter="{x:Static vm:ScatteredArrangerTool.MirrorHorizontal}"
-                        IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorHorizontal}"
-                        IsVisible="{Binding AreSymmetryToolsEnabled}"
-                        ToolTip.Tip="Mirror Element's Display Horizontally">
-                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.MirrorHorizontal}" />
-                    </RadioButton>
-                    <RadioButton
-                        Classes="tool"
-                        Command="{Binding ChangeToolCommand}"
-                        CommandParameter="{x:Static vm:ScatteredArrangerTool.MirrorVertical}"
-                        IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorVertical}"
-                        IsVisible="{Binding AreSymmetryToolsEnabled}"
-                        ToolTip.Tip="Mirror Element's Display Vertically">
-                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.MirrorVertical}" />
-                    </RadioButton>
+                        <RadioButton
+                            Classes="tool"
+                            Command="{Binding ChangeToolCommand}"
+                            CommandParameter="{x:Static vm:ScatteredArrangerTool.RotateLeft}"
+                            IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateLeft}"
+                            IsVisible="{Binding AreSymmetryToolsEnabled}"
+                            ToolTip.Tip="Rotate Element's Display Left">
+                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RotateLeft}" />
+                        </RadioButton>
+                        <RadioButton
+                            Classes="tool"
+                            Command="{Binding ChangeToolCommand}"
+                            CommandParameter="{x:Static vm:ScatteredArrangerTool.RotateRight}"
+                            IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateRight}"
+                            IsVisible="{Binding AreSymmetryToolsEnabled}"
+                            ToolTip.Tip="Rotate Element's Display Right">
+                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RotateRight}" />
+                        </RadioButton>
+                        <RadioButton
+                            Classes="tool"
+                            Command="{Binding ChangeToolCommand}"
+                            CommandParameter="{x:Static vm:ScatteredArrangerTool.MirrorHorizontal}"
+                            IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorHorizontal}"
+                            IsVisible="{Binding AreSymmetryToolsEnabled}"
+                            ToolTip.Tip="Mirror Element's Display Horizontally">
+                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.MirrorHorizontal}" />
+                        </RadioButton>
+                        <RadioButton
+                            Classes="tool"
+                            Command="{Binding ChangeToolCommand}"
+                            CommandParameter="{x:Static vm:ScatteredArrangerTool.MirrorVertical}"
+                            IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorVertical}"
+                            IsVisible="{Binding AreSymmetryToolsEnabled}"
+                            ToolTip.Tip="Mirror Element's Display Vertically">
+                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.MirrorVertical}" />
+                        </RadioButton>
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
 
-            <Border Margin="5,6,6,0" BorderBrush="{DynamicResource separatorBrush}" BorderThickness="1" />
+                <Border
+                    Margin="8,0,8,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Stretch"
+                    Background="{DynamicResource separatorBrush}"
+                    BorderBrush="{DynamicResource separatorBrush}"
+                    BorderThickness="1"
+                    CornerRadius="1"
+                    Opacity="0.1" />
 
-            <StackPanel Margin="6,0,0,0" IsVisible="{Binding IsIndexedColor}">
-                <TextBlock HorizontalAlignment="Center" Text="Palette" />
-                <StackPanel Orientation="Horizontal">
-                    <ComboBox MaxWidth="200" ItemsSource="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
+                <StackPanel Margin="0,8,0,8" IsVisible="{Binding IsIndexedColor}" Spacing="4">
+                    <TextBlock HorizontalAlignment="Center" Text="Palette" />
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <ComboBox MaxWidth="200" ItemsSource="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
 
-                    <Button
-                        Margin="5,0,0,0"
-                        VerticalAlignment="Bottom"
-                        VerticalContentAlignment="Center"
-                        Command="{Binding AssociatePaletteCommand}"
-                        ToolTip.Tip="Associate an existing Palette from this Project with this Arranger">
-                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.PlusCircle}" />
+                        <Button VerticalAlignment="Bottom" VerticalContentAlignment="Center" Command="{Binding AssociatePaletteCommand}" ToolTip.Tip="Associate an existing Palette from this Project with this Arranger">
+                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.PlusCircle}" />
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+
+                <Border
+                    Margin="8,0,8,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Stretch"
+                    Background="{DynamicResource separatorBrush}"
+                    BorderBrush="{DynamicResource separatorBrush}"
+                    BorderThickness="1"
+                    CornerRadius="1"
+                    Opacity="0.1" />
+
+                <StackPanel Margin="0,8,0,8" Spacing="4">
+                    <TextBlock HorizontalAlignment="Center" Text="Grid" />
+                    <ToggleButton Focusable="False" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
+                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Grid}" />
+                    </ToggleButton>
+                </StackPanel>
+
+                <StackPanel Margin="0,8,0,8" IsVisible="{Binding CanChangeSnapMode}" Spacing="4">
+                    <TextBlock HorizontalAlignment="Center" Text="Snap" />
+                    <ToggleButton Focusable="False" IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}" ToolTip.Tip="Snap Selection to Elements (S)">
+                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Snap}" />
+                    </ToggleButton>
+                </StackPanel>
+
+                <Border
+                    Margin="8,0,8,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Stretch"
+                    Background="{DynamicResource separatorBrush}"
+                    BorderBrush="{DynamicResource separatorBrush}"
+                    BorderThickness="1"
+                    CornerRadius="1"
+                    Opacity="0.1" />
+
+                <StackPanel Margin="0,8,0,8" IsVisible="{Binding IsTiledLayout}" Spacing="4">
+                    <TextBlock HorizontalAlignment="Center" Text="Resize" />
+
+                    <Button Command="{Binding ResizeArrangerCommand}" ToolTip.Tip="Resizes the Arranger">
+                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Resize}" />
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Margin="0,8,0,8" Spacing="4">
+                    <TextBlock HorizontalAlignment="Center" Text="Edit" />
+
+                    <Button Command="{Binding EditSelectionCommand}" IsEnabled="{Binding CanEditSelection}" ToolTip.ShowOnDisabled="True" ToolTip.Tip="Opens selection in the pixel editor (E)">
+                        <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.Edit}" />
                     </Button>
                 </StackPanel>
             </StackPanel>
-
-            <Border Margin="6,6,6,0" BorderBrush="{DynamicResource separatorBrush}" BorderThickness="1" IsVisible="{Binding IsIndexedColor}" />
-
-            <StackPanel>
-                <TextBlock HorizontalAlignment="Center" Text="Grid" />
-                <ToggleButton Focusable="False" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
-                    <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Grid}" />
-                </ToggleButton>
-            </StackPanel>
-
-            <StackPanel Margin="5,0,0,0" IsVisible="{Binding CanChangeSnapMode}">
-                <TextBlock HorizontalAlignment="Center" Text="Snap" />
-                <ToggleButton Focusable="False" IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}" ToolTip.Tip="Snap Selection to Elements (S)">
-                    <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Snap}" />
-                </ToggleButton>
-            </StackPanel>
-
-            <Border Margin="12,6,12,0" BorderBrush="{DynamicResource separatorBrush}" BorderThickness="1" />
-
-            <StackPanel IsVisible="{Binding IsTiledLayout}">
-                <TextBlock HorizontalAlignment="Center" Text="Resize" />
-
-                <Button Command="{Binding ResizeArrangerCommand}" ToolTip.Tip="Resizes the Arranger">
-                    <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Resize}" />
-                </Button>
-            </StackPanel>
-
-            <StackPanel Margin="5,0,0,0">
-                <TextBlock HorizontalAlignment="Center" Text="Edit" />
-
-                <Button Command="{Binding EditSelectionCommand}" IsEnabled="{Binding CanEditSelection}" ToolTip.Tip="Opens selection in the pixel editor (E)">
-                    <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.Edit}" />
-                </Button>
-            </StackPanel>
-        </StackPanel>
+        </Border>
 
         <!--  Image Display  -->
         <ScrollViewer
