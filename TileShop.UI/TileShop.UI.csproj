@@ -1,19 +1,32 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	  <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <AssemblyTitle>TileShop</AssemblyTitle>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
     <ApplicationIcon>Assets\tsicon.ico</ApplicationIcon>
+    
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
-  <!--<PropertyGroup Label="Trimming-related">
-    <PublishTrimmed>true</PublishTrimmed>
-    <IsTrimmable>true</IsTrimmable>
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+  <PropertyGroup Label="Trimming-related">
+	<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+	<PublishTrimmed>true</PublishTrimmed>
+	<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+	  
+    <!--<IsTrimmable>true</IsTrimmable>-->
+    <!--<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>-->
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
-  </PropertyGroup>-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="Avalonia.Themes.Fluent" />
+	<TrimmerRootAssembly Include="FluentAvalonia" />
+    <TrimmerRootAssembly Include="System.Text.Json" />
+    <TrimmerRootAssembly Include="ImageMagitek" />
+    <TrimmerRootAssembly Include="ImageMagitek.Services" />
+	<TrimmerRootAssembly Include="TileShop.UI" />
+  </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <DefineConstants>$(DefineConstants);ENABLE_XAML_HOT_RELOAD</DefineConstants>

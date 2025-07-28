@@ -3,9 +3,27 @@
     <OutputType>Exe</OutputType>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>TileShopCLI</AssemblyName>
+    <AssemblyTitle>TileShop CLI</AssemblyTitle>
     <PackageProjectUrl>https://github.com/stevemonaco/ImageMagitek</PackageProjectUrl>
     <RepositoryUrl>https://github.com/stevemonaco/ImageMagitek</RepositoryUrl>
   </PropertyGroup>
+
+  <PropertyGroup Label="Trimming-related">
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <PublishTrimmed>true</PublishTrimmed>
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="System.Text.Json" />
+    <TrimmerRootAssembly Include="CommandLine" />
+    <TrimmerRootAssembly Include="ImageMagitek" />
+    <TrimmerRootAssembly Include="ImageMagitek.Services" />
+    <TrimmerRootAssembly Include="TileShopCLI" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" />

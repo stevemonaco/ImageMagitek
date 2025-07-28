@@ -4,8 +4,9 @@
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	  <RepositoryUrl>https://github.com/stevemonaco/ImageMagitek</RepositoryUrl>
-	  <PackageProjectUrl>https://github.com/stevemonaco/ImageMagitek</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/stevemonaco/ImageMagitek</RepositoryUrl>
+	<PackageProjectUrl>https://github.com/stevemonaco/ImageMagitek</PackageProjectUrl>
+	<IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -16,9 +16,9 @@
         <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding HeightSpacing}" />
 
         <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal">
-            <fac:ColorPickerButton ShowAcceptDismissButtons="False" Color="{Binding PrimaryColor}" />
-            <fac:ColorPickerButton ShowAcceptDismissButtons="False" Color="{Binding SecondaryColor}" />
-            <fac:ColorPickerButton ShowAcceptDismissButtons="False" Color="{Binding LineColor}" />
+            <ColorPicker Color="{Binding PrimaryColor}" />
+            <ColorPicker Color="{Binding SecondaryColor}" />
+            <ColorPicker Color="{Binding LineColor}" />
         </StackPanel>
     </Grid>
 </UserControl>

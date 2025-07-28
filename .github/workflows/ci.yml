@@ -23,17 +23,18 @@ jobs:
     name: windows-latest
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Cache .nuke/temp, ~/.nuget/packages
-        uses: actions/cache@v3
+      - uses: actions/checkout@v4
+      - name: 'Cache: .nuke/temp, ~/.nuget/packages'
+        uses: actions/cache@v4
         with:
           path: |
             .nuke/temp
             ~/.nuget/packages
-          key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj') }}
-      - name: Run './build.cmd Package'
+          key: ${{ runner.os }}-${{ hashFiles('**/global.json', '**/*.csproj', '**/Directory.Packages.props') }}
+      - name: 'Run: Package'
         run: ./build.cmd Package
-      - uses: actions/upload-artifact@v3
+      - name: 'Publish: output'
+        uses: actions/upload-artifact@v4
         with:
           name: output
           path: output

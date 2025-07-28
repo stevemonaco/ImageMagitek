@@ -126,7 +126,7 @@
                 <StackPanel Margin="8,0,0,0">
                     <TextBlock HorizontalAlignment="Center" Text="Remap" />
 
-                    <Button HorizontalAlignment="Center" Command="{Binding RemapColorsCommand}" IsEnabled="{Binding CanRemapColors}" ToolTip.Tip="Remap Palette Colors">
+                    <Button HorizontalAlignment="Center" ToolTip.ShowOnDisabled="True" Command="{Binding RemapColorsCommand}" IsEnabled="{Binding CanRemapColors}" ToolTip.Tip="Remap Palette Colors">
                         <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Remap}" Foreground="{DynamicResource iconBrush}" />
                     </Button>
                 </StackPanel>
@@ -182,7 +182,7 @@
                 VerticalScrollBarVisibility="Auto">
 
                 <paz:ZoomBorder
-                    x:Name="_zoomBorder"
+                    x:Name="zoomBorder"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"
                     PowerFactor="2"
@@ -193,7 +193,7 @@
 
                         <!--  Selection and Paste Overlay  -->
                         <Canvas
-                            x:Name="_overlayCanvas"
+                            x:Name="overlayCanvas"
                             MaxWidth="{Binding BitmapAdapter.Width}"
                             MaxHeight="{Binding BitmapAdapter.Height}"
                             Background="{Binding GridSettings.BackgroundBrush}"
@@ -247,7 +247,7 @@
                                 RadiusY="0.1"
                                 StrokeThickness="0.1">
                                 <Rectangle.Stroke>
-                                    <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" Radius="1">
+                                    <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="100%" RadiusY="100%">
                                         <GradientStop Offset="0" Color="Transparent" />
                                         <GradientStop Offset="0.5" Color="White" />
                                         <GradientStop Offset="1" Color="Black" />
@@ -280,7 +280,7 @@
                                 <DataTemplate DataType="{x:Type model:Gridline}">
                                     <Line
                                         IsHitTestVisible="False"
-                                        Stroke="{Binding #_zoomBorder.((vm:ArrangerEditorViewModel)DataContext).GridSettings.LineColor, Converter={x:Static con:AppConverters.ColorToBrush}}"
+                                        Stroke="{Binding #zoomBorder.((vm:ArrangerEditorViewModel)DataContext).GridSettings.LineColor, Converter={x:Static con:AppConverters.ColorToBrush}}"
                                         StrokeThickness="0.40"
                                         UseLayoutRounding="True"
                                         StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"

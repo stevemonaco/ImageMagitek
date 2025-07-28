@@ -85,8 +85,8 @@
             <StackPanel>
                 <TextBlock HorizontalAlignment="Center" Text="Active Colors" />
                 <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                    <fac:ColorPickerButton Height="40" ShowAcceptDismissButtons="False" Color="{Binding PrimaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
-                    <fac:ColorPickerButton Height="40" ShowAcceptDismissButtons="False" Color="{Binding SecondaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
+                    <ColorPicker Height="40" Color="{Binding PrimaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
+                    <ColorPicker Height="40" Color="{Binding SecondaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
                 </StackPanel>
             </StackPanel>
         </StackPanel>
@@ -100,8 +100,7 @@
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Auto">
 
-            <paz:ZoomBorder
-                x:Name="_zoomBorder"
+            <paz:ZoomBorder x:Name="zoomBorder"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 PowerFactor="2"
@@ -111,7 +110,7 @@
                     <Grid Background="Transparent" ContextMenu="{StaticResource contextMenu}" />
 
                     <Canvas
-                        x:Name="_overlayCanvas"
+                        x:Name="overlayCanvas"
                         MaxWidth="{Binding BitmapAdapter.Width}"
                         MaxHeight="{Binding BitmapAdapter.Height}"
                         Background="{Binding GridSettings.BackgroundBrush}"
@@ -167,7 +166,7 @@
                             RadiusY="0.1"
                             StrokeThickness="0.1">
                             <Rectangle.Stroke>
-                                <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" Radius="1">
+                                <RadialGradientBrush Center="0.5,0.5" GradientOrigin="0.5,0.5" RadiusX="100%" RadiusY="100%">
                                     <GradientStop Offset="0" Color="Transparent" />
                                     <GradientStop Offset="0.5" Color="White" />
                                     <GradientStop Offset="1" Color="Black" />
@@ -193,7 +192,7 @@
                             <DataTemplate DataType="{x:Type model:Gridline}">
                                 <Line
                                     IsHitTestVisible="False"
-                                    Stroke="{Binding #_zoomBorder.((vm:ArrangerEditorViewModel)DataContext).GridSettings.LineColor, Converter={x:Static con:AppConverters.ColorToBrush}}"
+                                    Stroke="{Binding #zoomBorder.((vm:ArrangerEditorViewModel)DataContext).GridSettings.LineColor, Converter={x:Static con:AppConverters.ColorToBrush}}"
                                     StrokeThickness="0.40"
                                     UseLayoutRounding="True"
                                     StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"
