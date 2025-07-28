@@ -9,7 +9,7 @@ public static class TestImages
     private static Lazy<string> TestRootLazy { get; } = new Lazy<string>(LocateRoot);
     public static string TestRoot => TestRootLazy.Value;
 
-    public static string Pattern1bpp = Locate(@"1bpp/pattern_1bpp.png");
+    public static string Pattern1Bpp = Locate(@"1bpp/pattern_1bpp.png");
     public static string Bubbles = Locate(@"2bpp/bubbles_font_2bpp.png");
     public static string Lightning = Locate(@"2bpp/lightning_2bpp.png");
     public static string NetTrap = Locate(@"2bpp/net_trap_2bpp.png");
