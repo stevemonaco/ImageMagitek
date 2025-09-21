@@ -1,5 +1,4 @@
-<UserControl
-    x:Class="TileShop.UI.Views.ScatteredArrangerEditorView"
+﻿<UserControl x:Class="TileShop.UI.Views.ScatteredArrangerEditorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.UI.Converters"
@@ -59,87 +58,61 @@
                     <TextBlock HorizontalAlignment="Center" Text="Tools" />
 
                     <StackPanel Orientation="Horizontal" Spacing="4">
-                        <RadioButton
-                            Classes="tool"
-                            Command="{Binding ChangeToolCommand}"
+                        <RadioButton Classes="tool" Command="{Binding ChangeToolCommand}"
                             CommandParameter="{x:Static vm:ScatteredArrangerTool.Select}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
                             ToolTip.Tip="Click and drag across Arranger to select a region or hold Ctrl to quickly drag single elements">
                             <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RectangularSelection}" />
                         </RadioButton>
-                        <RadioButton
-                            Classes="tool"
-                            Command="{Binding ChangeToolCommand}"
+                        <RadioButton Classes="tool" Command="{Binding ChangeToolCommand}"
                             CommandParameter="{x:Static vm:ScatteredArrangerTool.ApplyPalette}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ApplyPalette}"
                             ToolTip.Tip="{Binding SelectedPalette.Name, StringFormat='Click on an Arranger element to apply the current palette (\{0\})'}">
                             <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.PaletteBrush}" />
                         </RadioButton>
-                        <RadioButton
-                            Classes="tool"
-                            Command="{Binding ChangeToolCommand}"
+                        <RadioButton Classes="tool" Command="{Binding ChangeToolCommand}"
                             CommandParameter="{x:Static vm:ScatteredArrangerTool.PickPalette}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=PickPalette}"
                             ToolTip.Tip="Click on an Arranger element to pick its associated palette">
                             <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.PalettePicker}" />
                         </RadioButton>
-                        <RadioButton
-                            Classes="tool"
-                            Command="{Binding ChangeToolCommand}"
+                        <RadioButton Classes="tool" Command="{Binding ChangeToolCommand}"
                             CommandParameter="{x:Static vm:ScatteredArrangerTool.InspectElement}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=InspectElement}"
                             ToolTip.Tip="Hover Arranger elements to inspect their properties">
                             <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Eye}" />
                         </RadioButton>
 
-                        <RadioButton
-                            Classes="tool"
-                            Command="{Binding ChangeToolCommand}"
+                        <RadioButton Classes="tool" Command="{Binding ChangeToolCommand}"
                             CommandParameter="{x:Static vm:ScatteredArrangerTool.RotateLeft}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateLeft}"
-                            IsVisible="{Binding AreSymmetryToolsEnabled}"
-                            ToolTip.Tip="Rotate Element's Display Left">
+                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Rotate Element's Display Left">
                             <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RotateLeft}" />
                         </RadioButton>
-                        <RadioButton
-                            Classes="tool"
-                            Command="{Binding ChangeToolCommand}"
+                        <RadioButton Classes="tool" Command="{Binding ChangeToolCommand}"
                             CommandParameter="{x:Static vm:ScatteredArrangerTool.RotateRight}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateRight}"
-                            IsVisible="{Binding AreSymmetryToolsEnabled}"
-                            ToolTip.Tip="Rotate Element's Display Right">
+                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Rotate Element's Display Right">
                             <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RotateRight}" />
                         </RadioButton>
-                        <RadioButton
-                            Classes="tool"
-                            Command="{Binding ChangeToolCommand}"
+                        <RadioButton Classes="tool" Command="{Binding ChangeToolCommand}"
                             CommandParameter="{x:Static vm:ScatteredArrangerTool.MirrorHorizontal}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorHorizontal}"
-                            IsVisible="{Binding AreSymmetryToolsEnabled}"
-                            ToolTip.Tip="Mirror Element's Display Horizontally">
+                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Mirror Element's Display Horizontally">
                             <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.MirrorHorizontal}" />
                         </RadioButton>
-                        <RadioButton
-                            Classes="tool"
-                            Command="{Binding ChangeToolCommand}"
+                        <RadioButton Classes="tool" Command="{Binding ChangeToolCommand}"
                             CommandParameter="{x:Static vm:ScatteredArrangerTool.MirrorVertical}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorVertical}"
-                            IsVisible="{Binding AreSymmetryToolsEnabled}"
-                            ToolTip.Tip="Mirror Element's Display Vertically">
+                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Mirror Element's Display Vertically">
                             <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.MirrorVertical}" />
                         </RadioButton>
                     </StackPanel>
                 </StackPanel>
 
-                <Border
-                    Margin="8,0,8,0"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Stretch"
-                    Background="{DynamicResource separatorBrush}"
-                    BorderBrush="{DynamicResource separatorBrush}"
-                    BorderThickness="1"
-                    CornerRadius="1"
-                    Opacity="0.1" />
+                <Border Margin="8,0,8,0" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                    Background="{DynamicResource separatorBrush}" BorderBrush="{DynamicResource separatorBrush}"
+                    BorderThickness="1" CornerRadius="1" Opacity="0.1" />
 
                 <StackPanel Margin="0,8,0,8" IsVisible="{Binding IsIndexedColor}" Spacing="4">
                     <TextBlock HorizontalAlignment="Center" Text="Palette" />
@@ -152,21 +125,17 @@
                             </ComboBox.ItemTemplate>
                         </ComboBox>
 
-                        <Button VerticalAlignment="Bottom" VerticalContentAlignment="Center" Command="{Binding AssociatePaletteCommand}" ToolTip.Tip="Associate an existing Palette from this Project with this Arranger">
+                        <Button VerticalAlignment="Bottom" VerticalContentAlignment="Center"
+                            Command="{Binding AssociatePaletteCommand}"
+                            ToolTip.Tip="Associate an existing Palette from this Project with this Arranger">
                             <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.PlusCircle}" />
                         </Button>
                     </StackPanel>
                 </StackPanel>
 
-                <Border
-                    Margin="8,0,8,0"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Stretch"
-                    Background="{DynamicResource separatorBrush}"
-                    BorderBrush="{DynamicResource separatorBrush}"
-                    BorderThickness="1"
-                    CornerRadius="1"
-                    Opacity="0.1" />
+                <Border Margin="8,0,8,0" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                    Background="{DynamicResource separatorBrush}" BorderBrush="{DynamicResource separatorBrush}"
+                    BorderThickness="1" CornerRadius="1" Opacity="0.1" />
 
                 <StackPanel Margin="0,8,0,8" Spacing="4">
                     <TextBlock HorizontalAlignment="Center" Text="Grid" />
@@ -182,15 +151,9 @@
                     </ToggleButton>
                 </StackPanel>
 
-                <Border
-                    Margin="8,0,8,0"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Stretch"
-                    Background="{DynamicResource separatorBrush}"
-                    BorderBrush="{DynamicResource separatorBrush}"
-                    BorderThickness="1"
-                    CornerRadius="1"
-                    Opacity="0.1" />
+                <Border Margin="8,0,8,0" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                    Background="{DynamicResource separatorBrush}" BorderBrush="{DynamicResource separatorBrush}"
+                    BorderThickness="1" CornerRadius="1" Opacity="0.1" />
 
                 <StackPanel Margin="0,8,0,8" IsVisible="{Binding IsTiledLayout}" Spacing="4">
                     <TextBlock HorizontalAlignment="Center" Text="Resize" />
@@ -203,7 +166,8 @@
                 <StackPanel Margin="0,8,0,8" Spacing="4">
                     <TextBlock HorizontalAlignment="Center" Text="Edit" />
 
-                    <Button Command="{Binding EditSelectionCommand}" IsEnabled="{Binding CanEditSelection}" ToolTip.ShowOnDisabled="True" ToolTip.Tip="Opens selection in the pixel editor (E)">
+                    <Button Command="{Binding EditSelectionCommand}" IsEnabled="{Binding CanEditSelection}"
+                        ToolTip.ShowOnDisabled="True" ToolTip.Tip="Opens selection in the pixel editor (E)">
                         <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.Edit}" />
                     </Button>
                 </StackPanel>
@@ -211,75 +175,45 @@
         </Border>
 
         <!--  Image Display  -->
-        <ScrollViewer
-            Grid.Row="1"
-            Grid.Column="0"
-            Focusable="True"
-            HorizontalScrollBarVisibility="Auto"
-            KeyDown="OnKeyDown"
-            KeyUp="OnKeyUp"
-            VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="1" Grid.Column="0" Focusable="True" HorizontalScrollBarVisibility="Auto"
+            KeyDown="OnKeyDown" KeyUp="OnKeyUp" VerticalScrollBarVisibility="Auto">
 
             <paz:ZoomBorder x:Name="_zoomBorder" PowerFactor="2">
                 <Grid>
                     <!--  Image, Selection, and Paste Overlay  -->
-                    <Canvas
-                        x:Name="_overlayCanvas"
-                        Width="{Binding BitmapAdapter.Width}"
-                        Height="{Binding BitmapAdapter.Height}"
-                        Background="{Binding GridSettings.BackgroundBrush}"
-                        Classes="arrangerDrop"
-                        ClipToBounds="True"
-                        PointerExited="OnPointerExited"
-                        PointerMoved="OnPointerMoved"
-                        PointerPressed="OnPointerPressed"
-                        PointerReleased="OnPointerReleased">
+                    <Canvas x:Name="_overlayCanvas" Width="{Binding BitmapAdapter.Width}"
+                        Height="{Binding BitmapAdapter.Height}" Background="{Binding GridSettings.BackgroundBrush}"
+                        Classes="arrangerDrop" ClipToBounds="True" PointerExited="OnPointerExited"
+                        PointerMoved="OnPointerMoved" PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased">
 
                         <!--  Arranged Image  -->
-                        <Image
-                            x:Name="_image"
-                            Classes="pixel"
-                            IsHitTestVisible="False"
-                            RenderOptions.BitmapInterpolationMode="None"
-                            Source="{Binding BitmapAdapter.Bitmap}" />
+                        <Image x:Name="_image" Classes="pixel" IsHitTestVisible="False"
+                            RenderOptions.BitmapInterpolationMode="None" Source="{Binding BitmapAdapter.Bitmap}" />
 
                         <!--  Selection Overlay  -->
-                        <Rectangle
-                            Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
+                        <Rectangle Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
                             Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
                             Width="{Binding Selection.SelectionRect.SnappedWidth}"
                             Height="{Binding Selection.SelectionRect.SnappedHeight}"
-                            Classes="arrangerDrag animatedBorder selection"
-                            IsVisible="{Binding Selection.HasSelection}" />
+                            Classes="arrangerDrag animatedBorder selection" IsVisible="{Binding Selection.HasSelection}" />
 
                         <!--  Paste Image  -->
-                        <Image
-                            x:Name="pasteImage"
-                            Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+                        <Image x:Name="pasteImage" Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
                             Canvas.Top="{Binding Paste.Rect.SnappedTop}"
                             Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
-                            Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-                            Classes="arrangerDrag pixel"
-                            IsHitTestVisible="{Binding !Paste.IsDragging}"
-                            RenderOptions.BitmapInterpolationMode="None"
+                            Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}" Classes="arrangerDrag pixel"
+                            IsHitTestVisible="{Binding !Paste.IsDragging}" RenderOptions.BitmapInterpolationMode="None"
                             Source="{Binding Paste.OverlayImage.Bitmap}" />
 
                         <!--  Paste Overlay  -->
-                        <Rectangle
-                            Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
-                            Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+                        <Rectangle Canvas.Left="{Binding Paste.Rect.SnappedLeft}" Canvas.Top="{Binding Paste.Rect.SnappedTop}"
                             Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
-                            Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-                            Classes="animatedBorder paste" />
+                            Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}" Classes="animatedBorder paste" />
                     </Canvas>
 
                     <!--  Gridline Overlay  -->
-                    <ItemsControl
-                        MaxWidth="{Binding BitmapAdapter.Width}"
-                        MaxHeight="{Binding BitmapAdapter.Height}"
-                        ClipToBounds="True"
-                        IsHitTestVisible="False"
-                        IsVisible="{Binding GridSettings.ShowGridlines}"
+                    <ItemsControl MaxWidth="{Binding BitmapAdapter.Width}" MaxHeight="{Binding BitmapAdapter.Height}"
+                        ClipToBounds="True" IsHitTestVisible="False" IsVisible="{Binding GridSettings.ShowGridlines}"
                         ItemsSource="{Binding GridSettings.Gridlines}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -288,11 +222,9 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type model:Gridline}">
-                                <Line
-                                    IsHitTestVisible="False"
+                                <Line IsHitTestVisible="False"
                                     Stroke="{Binding #_zoomBorder.((vm:ArrangerEditorViewModel)DataContext).GridSettings.LineColor, Converter={x:Static con:AppConverters.ColorToBrush}}"
-                                    StrokeThickness="0.40"
-                                    UseLayoutRounding="True"
+                                    StrokeThickness="0.40" UseLayoutRounding="True"
                                     StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"
                                     EndPoint="{Binding Converter={x:Static con:AppConverters.GridlineToEndPoint}}" />
                             </DataTemplate>

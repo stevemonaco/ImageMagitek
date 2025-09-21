@@ -1,5 +1,4 @@
-<UserControl
-    x:Class="TileShop.UI.Views.AddPaletteView"
+﻿<UserControl x:Class="TileShop.UI.Views.AddPaletteView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:TileShop.UI.ViewModels"
@@ -13,13 +12,8 @@
             <TextBox x:Name="paletteNameBox" Text="{Binding PaletteName}" />
 
             <TextBlock Margin="0,5,0,0" Text="{Binding SelectedDataSource.FileLocation, StringFormat=Data Source: {0}}" TextWrapping="Wrap" />
-            <ComboBox
-                MinWidth="200"
-                Margin="0,5,0,0"
-                HorizontalAlignment="Stretch"
-                ItemsSource="{Binding DataSources}"
-                SelectedItem="{Binding SelectedDataSource}"
-                ToolTip.Tip="Palette File Source">
+            <ComboBox MinWidth="200" Margin="0,5,0,0" HorizontalAlignment="Stretch" ItemsSource="{Binding DataSources}"
+                SelectedItem="{Binding SelectedDataSource}" ToolTip.Tip="Palette File Source">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Name}" />
@@ -28,14 +22,8 @@
             </ComboBox>
 
             <Label Content="Color Model" Target="colorModelBox" />
-            <ComboBox
-                x:Name="colorModelBox"
-                MinWidth="150"
-                Margin="0,5,0,0"
-                ItemsSource="{Binding ColorModels}"
-                SelectedIndex="1"
-                SelectedItem="{Binding SelectedColorModel}"
-                ToolTip.Tip="Palette Color Model" />
+            <ComboBox x:Name="colorModelBox" MinWidth="150" Margin="0,5,0,0" ItemsSource="{Binding ColorModels}"
+                SelectedIndex="1" SelectedItem="{Binding SelectedColorModel}" ToolTip.Tip="Palette Color Model" />
 
             <CheckBox Content="Zero Index Transparent" IsChecked="{Binding ZeroIndexTransparent}" ToolTip.Tip="Forces the palette's first color into being transparent" />
 

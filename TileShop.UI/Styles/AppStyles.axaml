@@ -1,5 +1,4 @@
-﻿<Styles
-    xmlns="https://github.com/avaloniaui"
+﻿<Styles xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:b="using:TileShop.UI.Behaviors"
     xmlns:fac="using:FluentAvalonia.UI.Controls"

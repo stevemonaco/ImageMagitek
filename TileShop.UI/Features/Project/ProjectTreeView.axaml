@@ -1,5 +1,4 @@
-<UserControl
-    x:Class="TileShop.UI.Views.ProjectTreeView"
+﻿<UserControl x:Class="TileShop.UI.Views.ProjectTreeView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:fac="using:FluentAvalonia.UI.Controls"
@@ -8,13 +7,8 @@
     xmlns:res="using:TileShop.UI.Resources"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:DataType="vm:ProjectTreeViewModel">
-    <TreeView
-        x:Name="_treeView"
-        Background="Transparent"
-        DoubleTapped="ProjectTree_DoubleTapped"
-        ItemsSource="{Binding Projects}"
-        KeyDown="ProjectTree_KeyDown"
-        SelectedItem="{Binding SelectedNode}">
+    <TreeView x:Name="_treeView" Background="Transparent" DoubleTapped="ProjectTree_DoubleTapped"
+        ItemsSource="{Binding Projects}" KeyDown="ProjectTree_KeyDown" SelectedItem="{Binding SelectedNode}">
         <TreeView.Styles>
             <Style x:DataType="vm:ResourceNodeViewModel" Selector="TreeViewItem">
                 <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />

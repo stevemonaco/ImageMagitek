@@ -1,5 +1,4 @@
-<UserControl
-    x:Class="TileShop.UI.Views.ImportImageView"
+﻿<UserControl x:Class="TileShop.UI.Views.ImportImageView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:paz="using:Avalonia.Controls.PanAndZoom"
@@ -13,7 +12,8 @@
         <ScrollViewer Grid.Row="1" Grid.Column="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
             <paz:ZoomBorder HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PowerFactor="2" Stretch="None">
                 <Grid>
-                    <Rectangle Width="{Binding OriginalSource.Width}" Height="{Binding OriginalSource.Height}" Fill="{DynamicResource CheckeredBrush}" Stretch="None" />
+                    <Rectangle Width="{Binding OriginalSource.Width}" Height="{Binding OriginalSource.Height}"
+                        Fill="{DynamicResource CheckeredBrush}" Stretch="None" />
                     <Image Source="{Binding OriginalSource.Bitmap}" Stretch="None" />
                 </Grid>
             </paz:ZoomBorder>
@@ -24,17 +24,14 @@
 
             <paz:ZoomBorder HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PowerFactor="2" Stretch="None">
                 <Grid>
-                    <Rectangle Width="{Binding PreviewSource.Width}" Height="{Binding PreviewSource.Height}" Fill="{DynamicResource BasicCheckeredBrush}" Stretch="None" />
+                    <Rectangle Width="{Binding PreviewSource.Width}" Height="{Binding PreviewSource.Height}"
+                        Fill="{DynamicResource BasicCheckeredBrush}" Stretch="None" />
                     <Image Source="{Binding PreviewSource.Bitmap}" Stretch="None" />
                 </Grid>
             </paz:ZoomBorder>
         </ScrollViewer>
 
-        <TextBlock
-            Grid.Row="2"
-            Grid.ColumnSpan="2"
-            HorizontalAlignment="Center"
-            Foreground="Red"
+        <TextBlock Grid.Row="2" Grid.ColumnSpan="2" HorizontalAlignment="Center" Foreground="Red"
             Text="{Binding ImportError}" />
 
         <StackPanel Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Center" Orientation="Horizontal">
@@ -42,28 +39,14 @@
             <TextBlock Text="{Binding ImageFileName}" />
         </StackPanel>
 
-        <StackPanel
-            Grid.Row="4"
-            Grid.ColumnSpan="2"
-            Margin="0,10,0,10"
-            HorizontalAlignment="Center"
+        <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Margin="0,10,0,10" HorizontalAlignment="Center"
             Orientation="Horizontal">
             <CheckBox Content="Exact Color Matching" IsChecked="{Binding UseExactMatching}" IsVisible="{Binding IsIndexedImage}" />
-            <Button
-                Width="120"
-                Margin="10,0,0,0"
-                Command="{Binding BrowseForImportFileCommand}"
-                Content="Browse Image..."
-                IsDefault="True" />
+            <Button Width="120" Margin="10,0,0,0" Command="{Binding BrowseForImportFileCommand}"
+                Content="Browse Image..." IsDefault="True" />
 
-            <Button
-                Width="120"
-                Margin="15,0,15,0"
-                Command="{Binding AcceptCommand}"
-                CommandParameter="{Binding}"
-                Content="Import"
-                IsEnabled="{Binding CanImport}"
-                ToolTip.Tip="Imports image and saves to file" />
+            <Button Width="120" Margin="15,0,15,0" Command="{Binding AcceptCommand}" CommandParameter="{Binding}"
+                Content="Import" IsEnabled="{Binding CanImport}" ToolTip.Tip="Imports image and saves to file" />
             <Button Width="120" Command="{Binding CancelCommand}" Content="Cancel" IsCancel="True" />
         </StackPanel>
 

@@ -1,5 +1,4 @@
-<UserControl
-    x:Class="TileShop.UI.Views.PaletteEditorView"
+﻿<UserControl x:Class="TileShop.UI.Views.PaletteEditorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.UI.Converters"
@@ -16,18 +15,15 @@
                 <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}">
                     <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Trash}" />
                 </Button>
-                <TextBlock
-                    Width="150"
-                    Margin="10,0,0,0"
-                    VerticalAlignment="Center"
-                    FontSize="18"
-                    FontWeight="Bold"
+                <TextBlock Width="150" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
                     Text="File Source" />
                 <TextBox Width="135" Text="{Binding FileAddress, Converter={x:Static con:AppConverters.LongToHexadecimal}}" Watermark="Offset" />
                 <TextBox Width="135" Margin="10,0,0,0" Text="{Binding Entries}" Watermark="Entries" />
 
                 <!--  Watermark="Endian"  -->
-                <ToggleSwitch Margin="10,0,0,0" IsChecked="{Binding Endian, Converter={x:Static con:AppConverters.EndianToBoolean}}" OffContent="Little" OnContent="Big" />
+                <ToggleSwitch Margin="10,0,0,0"
+                    IsChecked="{Binding Endian, Converter={x:Static con:AppConverters.EndianToBoolean}}"
+                    OffContent="Little" OnContent="Big" />
             </StackPanel>
         </DataTemplate>
 
@@ -36,12 +32,7 @@
                 <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}">
                     <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Trash}" />
                 </Button>
-                <TextBlock
-                    Width="150"
-                    Margin="10,0,0,0"
-                    VerticalAlignment="Center"
-                    FontSize="18"
-                    FontWeight="Bold"
+                <TextBlock Width="150" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
                     Text="Native Source" />
                 <TextBox Width="135" Text="{Binding NativeHexColor}" Watermark="Color" />
             </StackPanel>
@@ -52,12 +43,7 @@
                 <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}">
                     <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Trash}" />
                 </Button>
-                <TextBlock
-                    Width="150"
-                    Margin="10,0,0,0"
-                    VerticalAlignment="Center"
-                    FontSize="18"
-                    FontWeight="Bold"
+                <TextBlock Width="150" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
                     Text="Foreign Source" />
                 <TextBox Width="135" Watermark="Color">
                     <TextBox.Text>
@@ -105,7 +91,9 @@
                                 </MenuFlyout>
                             </Button.Flyout>
                         </Button>
-                        <Button Width="80" Margin="10,0,0,0" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).SaveSourcesCommand}" Content="Save" />
+                        <Button Width="80" Margin="10,0,0,0"
+                            Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).SaveSourcesCommand}"
+                            Content="Save" />
                     </StackPanel>
                 </StackPanel>
             </Expander>
@@ -119,7 +107,8 @@
             </Expander>
 
             <!--  Palette Display  -->
-            <ListBox Grid.Row="1" ItemsSource="{Binding Colors}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectedIndex="{Binding SelectedColorIndex}">
+            <ListBox Grid.Row="1" ItemsSource="{Binding Colors}" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                SelectedIndex="{Binding SelectedColorIndex}">
                 <ListBox.Styles>
                     <Style Selector="ListBoxItem">
                         <Setter Property="Padding" Value="4, 0, 6, 0" />

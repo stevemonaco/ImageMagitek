@@ -1,4 +1,5 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <VisualBrush x:Key="BasicCheckeredBrush" DestinationRect="0,0,16,16" Stretch="None" TileMode="Tile">
         <VisualBrush.Visual>
             <Image Width="16" Height="16">

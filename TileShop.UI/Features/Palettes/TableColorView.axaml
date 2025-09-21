@@ -1,5 +1,4 @@
-<UserControl
-    x:Class="TileShop.UI.Views.TableColorView"
+﻿<UserControl x:Class="TileShop.UI.Views.TableColorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:v="using:TileShop.UI.Views"
@@ -11,11 +10,7 @@
             <ColumnDefinition Width="auto" MinWidth="300" />
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" Margin="0,0,16,0">
-            <Button
-                Width="65"
-                Height="65"
-                Margin="0,0,0,10"
-                HorizontalContentAlignment="Center"
+            <Button Width="65" Height="65" Margin="0,0,0,10" HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center"
                 Command="{Binding $parent[v:PaletteEditorView].((vm:PaletteEditorViewModel)DataContext).SaveActiveColorCommand}"
                 IsEnabled="{Binding CanSaveColor}">
@@ -25,11 +20,7 @@
                 </StackPanel>
             </Button>
 
-            <Border
-                Padding="0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                BorderBrush="Black"
+            <Border Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="Black"
                 BorderThickness="2">
                 <Rectangle Width="61" Height="61">
                     <Rectangle.Fill>

@@ -1,5 +1,4 @@
-<UserControl
-    x:Class="TileShop.UI.Views.MenuView"
+﻿<UserControl x:Class="TileShop.UI.Views.MenuView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:v="using:TileShop.UI.Views"
@@ -10,7 +9,7 @@
             <Setter Property="IsTabStop" Value="False" />
         </Style>
 
-        <Style Selector="MenuItem.recent > MenuItem">
+        <Style Selector="MenuItem.recent &gt; MenuItem">
             <Setter Property="Header" Value="{Binding}" />
             <Setter Property="Command" Value="{Binding #menu.((vm:MenuViewModel)DataContext).OpenRecentProjectCommand}" />
             <Setter Property="CommandParameter" Value="{Binding}" />
@@ -24,7 +23,8 @@
                 <MenuItem Command="{Binding NewProjectFromFileCommand}" Header="New Project from _Existing File" />
                 <Separator />
                 <MenuItem Command="{Binding OpenProjectCommand}" Header="Open _Project" />
-                <MenuItem Classes="recent" Header="Open Recent Project" IsVisible="{Binding RecentProjectFiles.Count}" ItemsSource="{Binding RecentProjectFiles}" />
+                <MenuItem Classes="recent" Header="Open Recent Project" IsVisible="{Binding RecentProjectFiles.Count}"
+                    ItemsSource="{Binding RecentProjectFiles}" />
                 <Separator />
                 <MenuItem Command="{Binding CloseEditorCommand}" Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Close \{0\}'}" IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
@@ -32,7 +32,10 @@
 
                 <Separator IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-                <MenuItem Command="{Binding SaveEditorCommand}" Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Save \{0\}'}" IsEnabled="{Binding Editors.ActiveEditor.IsModified}" IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <MenuItem Command="{Binding SaveEditorCommand}"
+                    Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Save \{0\}'}"
+                    IsEnabled="{Binding Editors.ActiveEditor.IsModified}"
+                    IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
                 <Separator />
                 <MenuItem Click="Exit_Click" Header="E_xit" />

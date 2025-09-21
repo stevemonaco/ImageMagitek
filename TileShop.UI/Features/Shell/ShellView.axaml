@@ -1,5 +1,4 @@
-<Window
-    x:Class="TileShop.UI.Views.ShellView"
+﻿<Window x:Class="TileShop.UI.Views.ShellView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:idc="using:Dock.Avalonia.Controls"

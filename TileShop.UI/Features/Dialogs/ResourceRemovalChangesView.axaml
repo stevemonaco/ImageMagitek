@@ -1,5 +1,4 @@
-<UserControl
-    x:Class="TileShop.UI.Views.ResourceRemovalChangesView"
+﻿<UserControl x:Class="TileShop.UI.Views.ResourceRemovalChangesView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:fac="using:FluentAvalonia.UI.Controls"
@@ -43,12 +42,8 @@
             <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center">
                 <TextBlock Text="{Binding RemovedResource.ResourceName, StringFormat=\'{0}\' will be permanently removed and all references will be reset to default}" TextWrapping="WrapWithOverflow" />
 
-                <TextBlock
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    FontWeight="Bold"
-                    IsVisible="{Binding HasRemovedResources}"
-                    Text="Removed Items" />
+                <TextBlock Margin="0,10,0,0" HorizontalAlignment="Center" FontWeight="Bold"
+                    IsVisible="{Binding HasRemovedResources}" Text="Removed Items" />
                 <ItemsControl Margin="10" IsVisible="{Binding HasRemovedResources}" ItemsSource="{Binding RemovedResources}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="m:ResourceChangeViewModel">
@@ -57,12 +52,8 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <TextBlock
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    FontWeight="Bold"
-                    IsVisible="{Binding HasChangedResources}"
-                    Text="Changed Items" />
+                <TextBlock Margin="0,10,0,0" HorizontalAlignment="Center" FontWeight="Bold"
+                    IsVisible="{Binding HasChangedResources}" Text="Changed Items" />
                 <ItemsControl Margin="10" IsVisible="{Binding HasChangedResources}" ItemsSource="{Binding ChangedResources}" />
             </StackPanel>
         </ScrollViewer>

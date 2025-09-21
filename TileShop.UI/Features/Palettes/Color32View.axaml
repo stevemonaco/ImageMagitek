@@ -1,5 +1,4 @@
-<UserControl
-    x:Class="TileShop.UI.Views.Color32View"
+﻿<UserControl x:Class="TileShop.UI.Views.Color32View"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:v="using:TileShop.UI.Views"
@@ -14,18 +13,16 @@
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Row="0" Grid.RowSpan="4" Grid.Column="0">
 
-            <Button Height="50" Margin="0,10,10,10" Command="{Binding $parent[v:PaletteEditorView].((vm:PaletteEditorViewModel)DataContext).SaveActiveColorCommand}" IsEnabled="{Binding CanSaveColor}">
+            <Button Height="50" Margin="0,10,10,10"
+                Command="{Binding $parent[v:PaletteEditorView].((vm:PaletteEditorViewModel)DataContext).SaveActiveColorCommand}"
+                IsEnabled="{Binding CanSaveColor}">
                 <StackPanel>
                     <TextBlock HorizontalAlignment="Center" Text="Assign" />
                     <TextBlock HorizontalAlignment="Center" Text="Color" />
                 </StackPanel>
             </Button>
 
-            <Border
-                Margin="0,0,10,0"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                BorderBrush="Black"
+            <Border Margin="0,0,10,0" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="Black"
                 BorderThickness="2">
 
                 <Rectangle Width="55" Height="55">
@@ -37,41 +34,17 @@
         </StackPanel>
 
         <!--  RGBA Sliders  -->
-        <Slider
-            Grid.Row="0"
-            Grid.Column="1"
-            Margin="10,0,10,5"
-            Foreground="Red"
-            Maximum="{Binding RedMax}"
-            Minimum="0"
-            Value="{Binding Red, Mode=TwoWay}" />
+        <Slider Grid.Row="0" Grid.Column="1" Margin="10,0,10,5" Foreground="Red" Maximum="{Binding RedMax}"
+            Minimum="0" Value="{Binding Red, Mode=TwoWay}" />
 
-        <Slider
-            Grid.Row="1"
-            Grid.Column="1"
-            Margin="10,0,10,5"
-            Foreground="Green"
-            Maximum="{Binding GreenMax}"
-            Minimum="0"
-            Value="{Binding Green, Mode=TwoWay}" />
+        <Slider Grid.Row="1" Grid.Column="1" Margin="10,0,10,5" Foreground="Green" Maximum="{Binding GreenMax}"
+            Minimum="0" Value="{Binding Green, Mode=TwoWay}" />
 
-        <Slider
-            Grid.Row="2"
-            Grid.Column="1"
-            Margin="10,0,10,5"
-            Foreground="Blue"
-            Maximum="{Binding BlueMax}"
-            Minimum="0"
-            Value="{Binding Blue, Mode=TwoWay}" />
+        <Slider Grid.Row="2" Grid.Column="1" Margin="10,0,10,5" Foreground="Blue" Maximum="{Binding BlueMax}"
+            Minimum="0" Value="{Binding Blue, Mode=TwoWay}" />
 
-        <Slider
-            Grid.Row="3"
-            Grid.Column="1"
-            Margin="10,0,10,0"
-            Foreground="{StaticResource BasicCheckeredBrush}"
-            Maximum="{Binding AlphaMax}"
-            Minimum="0"
-            Value="{Binding Alpha, Mode=TwoWay}" />
+        <Slider Grid.Row="3" Grid.Column="1" Margin="10,0,10,0" Foreground="{StaticResource BasicCheckeredBrush}"
+            Maximum="{Binding AlphaMax}" Minimum="0" Value="{Binding Alpha, Mode=TwoWay}" />
 
         <!--  RGBA Numeric Values  -->
         <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Text="{Binding Red}" />

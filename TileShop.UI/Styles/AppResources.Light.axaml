@@ -1,4 +1,6 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="using:System">
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="using:System">
     <SolidColorBrush x:Key="iconBrush" Color="Black" />
 
     <Pen x:Key="iconPen" Brush="{DynamicResource iconBrush}" Thickness="1" />

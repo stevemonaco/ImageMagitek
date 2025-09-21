@@ -1,5 +1,4 @@
-<UserControl
-    x:Class="TileShop.UI.Views.SequentialArrangerEditorView"
+﻿<UserControl x:Class="TileShop.UI.Views.SequentialArrangerEditorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.UI.Converters"
@@ -56,51 +55,28 @@
                         <TextBlock HorizontalAlignment="Center" Text="Codec" />
 
                         <StackPanel Orientation="Horizontal" Spacing="2">
-                            <ComboBox
-                                Height="35"
-                                MinWidth="180"
-                                Focusable="False"
-                                ItemsSource="{Binding CodecNames}"
-                                SelectedItem="{Binding SelectedCodecName}"
-                                ToolTip.Tip="Active Codec (F, D)" />
+                            <ComboBox Height="35" MinWidth="180" Focusable="False" ItemsSource="{Binding CodecNames}"
+                                SelectedItem="{Binding SelectedCodecName}" ToolTip.Tip="Active Codec (F, D)" />
 
-                            <NumericUpDown
-                                Increment="{Binding ElementWidthIncrement}"
-                                IsEnabled="{Binding CanResize}"
-                                IsVisible="{Binding IsTiledLayout}"
-                                Minimum="{Binding ElementWidthIncrement}"
-                                ToolTip.Tip="Element width in pixels"
-                                Value="{Binding TiledElementWidth}" />
+                            <NumericUpDown Increment="{Binding ElementWidthIncrement}" IsEnabled="{Binding CanResize}"
+                                IsVisible="{Binding IsTiledLayout}" Minimum="{Binding ElementWidthIncrement}"
+                                ToolTip.Tip="Element width in pixels" Value="{Binding TiledElementWidth}" />
 
-                            <NumericUpDown
-                                Increment="{Binding ElementHeightIncrement}"
-                                IsEnabled="{Binding CanResize}"
-                                IsVisible="{Binding IsTiledLayout}"
-                                Minimum="{Binding ElementHeightIncrement}"
-                                ToolTip.Tip="Element height in pixels"
-                                Value="{Binding TiledElementHeight}" />
+                            <NumericUpDown Increment="{Binding ElementHeightIncrement}" IsEnabled="{Binding CanResize}"
+                                IsVisible="{Binding IsTiledLayout}" Minimum="{Binding ElementHeightIncrement}"
+                                ToolTip.Tip="Element height in pixels" Value="{Binding TiledElementHeight}" />
                         </StackPanel>
                     </StackPanel>
 
-                    <Border
-                        Margin="8,0,8,0"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Stretch"
-                        Background="{DynamicResource separatorBrush}"
-                        BorderBrush="{DynamicResource separatorBrush}"
-                        BorderThickness="1"
-                        CornerRadius="1"
-                        Opacity="0.1" />
+                    <Border Margin="8,0,8,0" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                        Background="{DynamicResource separatorBrush}" BorderBrush="{DynamicResource separatorBrush}"
+                        BorderThickness="1" CornerRadius="1" Opacity="0.1" />
 
                     <!--  Arranger Tools  -->
                     <StackPanel Margin="0,8,0,8" Spacing="4">
                         <TextBlock HorizontalAlignment="Center" Text="Arranger" />
                         <StackPanel Orientation="Horizontal" Spacing="4">
-                            <ComboBox
-                                Height="35"
-                                Focusable="False"
-                                IsVisible="{Binding !Palettes.Count}"
-                                ItemsSource="{Binding Palettes}"
+                            <ComboBox Height="35" Focusable="False" IsVisible="{Binding !Palettes.Count}" ItemsSource="{Binding Palettes}"
                                 SelectedItem="{Binding SelectedPalette}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
@@ -110,36 +86,22 @@
                             </ComboBox>
 
                             <!--  Resize Arranger Dimensions in Elements  -->
-                            <NumericUpDown
-                                Increment="{Binding ArrangerWidthIncrement}"
-                                IsVisible="{Binding IsTiledLayout}"
-                                Minimum="{Binding ArrangerWidthIncrement}"
-                                ToolTip.Tip="Arranger width in elements (/, .)"
+                            <NumericUpDown Increment="{Binding ArrangerWidthIncrement}" IsVisible="{Binding IsTiledLayout}"
+                                Minimum="{Binding ArrangerWidthIncrement}" ToolTip.Tip="Arranger width in elements (/, .)"
                                 Value="{Binding TiledArrangerWidth}" />
 
-                            <NumericUpDown
-                                Increment="{Binding ArrangerHeightIncrement}"
-                                IsVisible="{Binding IsTiledLayout}"
-                                Minimum="{Binding ArrangerHeightIncrement}"
-                                ToolTip.Tip="Arranger height in elements (;, L)"
+                            <NumericUpDown Increment="{Binding ArrangerHeightIncrement}" IsVisible="{Binding IsTiledLayout}"
+                                Minimum="{Binding ArrangerHeightIncrement}" ToolTip.Tip="Arranger height in elements (;, L)"
                                 Value="{Binding TiledArrangerHeight}" />
 
                             <!--  Resize Arranger Dimensions in Pixels  -->
-                            <NumericUpDown
-                                Increment="{Binding ElementWidthIncrement}"
-                                IsEnabled="{Binding CanResize}"
-                                IsVisible="{Binding IsSingleLayout}"
-                                Minimum="{Binding ElementWidthIncrement}"
-                                ToolTip.Tip="Arranger width in pixels (/, .)"
-                                Value="{Binding LinearArrangerWidth}" />
+                            <NumericUpDown Increment="{Binding ElementWidthIncrement}" IsEnabled="{Binding CanResize}"
+                                IsVisible="{Binding IsSingleLayout}" Minimum="{Binding ElementWidthIncrement}"
+                                ToolTip.Tip="Arranger width in pixels (/, .)" Value="{Binding LinearArrangerWidth}" />
 
-                            <NumericUpDown
-                                Increment="{Binding ElementHeightIncrement}"
-                                IsEnabled="{Binding CanResize}"
-                                IsVisible="{Binding IsSingleLayout}"
-                                Minimum="{Binding ElementHeightIncrement}"
-                                ToolTip.Tip="Arranger height in pixels (;, L)"
-                                Value="{Binding LinearArrangerHeight}" />
+                            <NumericUpDown Increment="{Binding ElementHeightIncrement}" IsEnabled="{Binding CanResize}"
+                                IsVisible="{Binding IsSingleLayout}" Minimum="{Binding ElementHeightIncrement}"
+                                ToolTip.Tip="Arranger height in pixels (;, L)" Value="{Binding LinearArrangerHeight}" />
 
                             <!--  Element Layout  -->
                             <Button VerticalAlignment="Top" IsVisible="{Binding IsTiledLayout}" ToolTip.Tip="Element Layout Pattern">
@@ -167,15 +129,9 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <Border
-                        Margin="8,0,8,0"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Stretch"
-                        Background="{DynamicResource separatorBrush}"
-                        BorderBrush="{DynamicResource separatorBrush}"
-                        BorderThickness="1"
-                        CornerRadius="1"
-                        Opacity="0.1" />
+                    <Border Margin="8,0,8,0" HorizontalAlignment="Center" VerticalAlignment="Stretch"
+                        Background="{DynamicResource separatorBrush}" BorderBrush="{DynamicResource separatorBrush}"
+                        BorderThickness="1" CornerRadius="1" Opacity="0.1" />
 
                     <StackPanel Margin="0,8,0,8" Spacing="4">
                         <TextBlock HorizontalAlignment="Center" Text="Grid" />
@@ -188,7 +144,9 @@
                     <StackPanel Margin="0,8,0,8" Spacing="4">
                         <TextBlock HorizontalAlignment="Center" Text="Snap" />
 
-                        <ToggleButton Focusable="False" IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}" IsVisible="{Binding CanChangeSnapMode}" ToolTip.Tip="Snap Selection to Elements (S)">
+                        <ToggleButton Focusable="False"
+                            IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}"
+                            IsVisible="{Binding CanChangeSnapMode}" ToolTip.Tip="Snap Selection to Elements (S)">
                             <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Snap}" />
                         </ToggleButton>
                     </StackPanel>
@@ -196,12 +154,8 @@
                     <StackPanel Margin="0,8,0,8" Spacing="4">
                         <TextBlock HorizontalAlignment="Center" Text="Edit" />
 
-                        <Button
-                            Command="{Binding EditSelectionCommand}"
-                            Focusable="False"
-                            IsEnabled="{Binding CanEditSelection}"
-                            ToolTip.ShowOnDisabled="True"
-                            ToolTip.Tip="Opens selection in the pixel editor (E)">
+                        <Button Command="{Binding EditSelectionCommand}" Focusable="False" IsEnabled="{Binding CanEditSelection}"
+                            ToolTip.ShowOnDisabled="True" ToolTip.Tip="Opens selection in the pixel editor (E)">
                             <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.Edit}" />
                         </Button>
                     </StackPanel>
@@ -213,23 +167,12 @@
                         <ColumnDefinition Width="auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <TextBlock
-                        MinWidth="60"
-                        Margin="5,0,0,0"
-                        VerticalAlignment="Center"
-                        Text="{Binding FileOffset, StringFormat={}{0:X}}"
-                        TextAlignment="Right"
+                    <TextBlock MinWidth="60" Margin="5,0,0,0" VerticalAlignment="Center"
+                        Text="{Binding FileOffset, StringFormat={}{0:X}}" TextAlignment="Right"
                         ToolTip.Tip="Current File Offset in Hexadecimal" />
-                    <Slider
-                        Grid.Column="1"
-                        Margin="10,0,10,0"
-                        Focusable="False"
-                        IsSnapToTickEnabled="True"
-                        LargeChange="{Binding ArrangerPageSize}"
-                        Maximum="{Binding MaxFileDecodingOffset}"
-                        Minimum="0"
-                        SmallChange="{Binding ArrangerPageSize}"
-                        TickFrequency="{Binding ArrangerPageSize}"
+                    <Slider Grid.Column="1" Margin="10,0,10,0" Focusable="False" IsSnapToTickEnabled="True"
+                        LargeChange="{Binding ArrangerPageSize}" Maximum="{Binding MaxFileDecodingOffset}" Minimum="0"
+                        SmallChange="{Binding ArrangerPageSize}" TickFrequency="{Binding ArrangerPageSize}"
                         Value="{Binding FileOffset}" />
                 </Grid>
 
@@ -237,27 +180,12 @@
         </Border>
 
         <!--  Image Display  -->
-        <ScrollViewer
-            x:Name="scroll"
-            Grid.Row="1"
-            Focusable="True"
-            HorizontalScrollBarVisibility="Disabled"
+        <ScrollViewer x:Name="scroll" Grid.Row="1" Focusable="True" HorizontalScrollBarVisibility="Disabled"
             VerticalScrollBarVisibility="Disabled">
 
-            <paz:ZoomBorder
-                x:Name="_zoomBorder"
-                Margin="2"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch"
-                EnableConstrains="True"
-                EnablePan="False"
-                MaxOffsetX="0"
-                MaxOffsetY="0"
-                MinOffsetX="0"
-                MinOffsetY="0"
-                PointerWheelChanged="OnPointerWheelChanged"
-                PowerFactor="0"
-                Stretch="None"
+            <paz:ZoomBorder x:Name="_zoomBorder" Margin="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                EnableConstrains="True" EnablePan="False" MaxOffsetX="0" MaxOffsetY="0" MinOffsetX="0"
+                MinOffsetY="0" PointerWheelChanged="OnPointerWheelChanged" PowerFactor="0" Stretch="None"
                 ZoomSpeed="2">
 
                 <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -265,69 +193,47 @@
                     <Grid.ContextMenu>
                         <ContextMenu>
                             <MenuItem Command="{Binding SelectAllCommand}" Header="Select All" />
-                            <MenuItem Command="{Binding NewScatteredArrangerFromSelectionCommand}" Header="New ScatteredArranger From Selection..." IsEnabled="{Binding Selection.HasSelection}" IsVisible="{Binding IsTiledLayout}" />
+                            <MenuItem Command="{Binding NewScatteredArrangerFromSelectionCommand}"
+                                Header="New ScatteredArranger From Selection..." IsEnabled="{Binding Selection.HasSelection}"
+                                IsVisible="{Binding IsTiledLayout}" />
                             <MenuItem Command="{Binding NewScatteredArrangerFromImageCommand}" Header="New ScatteredArranger From Image..." IsVisible="{Binding IsSingleLayout}" />
                         </ContextMenu>
                     </Grid.ContextMenu>
 
                     <!--  Image and Selection Overlay  -->
-                    <Canvas
-                        x:Name="_overlayCanvas"
-                        Width="{Binding BitmapAdapter.Width}"
-                        Height="{Binding BitmapAdapter.Height}"
-                        Background="{Binding GridSettings.BackgroundBrush}"
-                        ClipToBounds="True"
-                        Cursor="Cross"
-                        PointerExited="OnPointerExited"
-                        PointerMoved="OnPointerMoved"
-                        PointerPressed="OnPointerPressed"
-                        PointerReleased="OnPointerReleased">
+                    <Canvas x:Name="_overlayCanvas" Width="{Binding BitmapAdapter.Width}"
+                        Height="{Binding BitmapAdapter.Height}" Background="{Binding GridSettings.BackgroundBrush}"
+                        ClipToBounds="True" Cursor="Cross" PointerExited="OnPointerExited" PointerMoved="OnPointerMoved"
+                        PointerPressed="OnPointerPressed" PointerReleased="OnPointerReleased">
 
                         <!--  Arranger Image  -->
-                        <Image
-                            x:Name="_image"
-                            Classes="pixel"
-                            IsHitTestVisible="False"
-                            RenderOptions.BitmapInterpolationMode="None"
-                            Source="{Binding BitmapAdapter.Bitmap, Mode=OneWay}" />
+                        <Image x:Name="_image" Classes="pixel" IsHitTestVisible="False"
+                            RenderOptions.BitmapInterpolationMode="None" Source="{Binding BitmapAdapter.Bitmap, Mode=OneWay}" />
 
                         <!--  Selection Overlay  -->
-                        <Rectangle
-                            Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
+                        <Rectangle Canvas.Left="{Binding Selection.SelectionRect.SnappedLeft}"
                             Canvas.Top="{Binding Selection.SelectionRect.SnappedTop}"
                             Width="{Binding Selection.SelectionRect.SnappedWidth}"
                             Height="{Binding Selection.SelectionRect.SnappedHeight}"
-                            Classes="arrangerDrag animatedBorder selection"
-                            IsVisible="{Binding Selection.HasSelection}" />
+                            Classes="arrangerDrag animatedBorder selection" IsVisible="{Binding Selection.HasSelection}" />
 
                         <!--  Paste Image  -->
-                        <Image
-                            x:Name="pasteImage"
-                            Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
+                        <Image x:Name="pasteImage" Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
                             Canvas.Top="{Binding Paste.Rect.SnappedTop}"
                             Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
-                            Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-                            Classes="arrangerDrag pixel"
-                            IsHitTestVisible="{Binding !Paste.IsDragging}"
-                            RenderOptions.BitmapInterpolationMode="None"
+                            Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}" Classes="arrangerDrag pixel"
+                            IsHitTestVisible="{Binding !Paste.IsDragging}" RenderOptions.BitmapInterpolationMode="None"
                             Source="{Binding Paste.OverlayImage.Bitmap}" />
 
                         <!--  Paste Overlay  -->
-                        <Rectangle
-                            Canvas.Left="{Binding Paste.Rect.SnappedLeft}"
-                            Canvas.Top="{Binding Paste.Rect.SnappedTop}"
+                        <Rectangle Canvas.Left="{Binding Paste.Rect.SnappedLeft}" Canvas.Top="{Binding Paste.Rect.SnappedTop}"
                             Width="{Binding Paste.Rect.SnappedWidth, FallbackValue=0}"
-                            Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}"
-                            Classes="animatedBorder paste" />
+                            Height="{Binding Paste.Rect.SnappedHeight, FallbackValue=0}" Classes="animatedBorder paste" />
                     </Canvas>
 
                     <!--  Gridline Overlay  -->
-                    <ItemsControl
-                        MaxWidth="{Binding BitmapAdapter.Width}"
-                        MaxHeight="{Binding BitmapAdapter.Height}"
-                        ClipToBounds="True"
-                        IsHitTestVisible="False"
-                        IsVisible="{Binding GridSettings.ShowGridlines}"
+                    <ItemsControl MaxWidth="{Binding BitmapAdapter.Width}" MaxHeight="{Binding BitmapAdapter.Height}"
+                        ClipToBounds="True" IsHitTestVisible="False" IsVisible="{Binding GridSettings.ShowGridlines}"
                         ItemsSource="{Binding GridSettings.Gridlines}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -336,11 +242,9 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type model:Gridline}">
-                                <Line
-                                    IsHitTestVisible="False"
+                                <Line IsHitTestVisible="False"
                                     Stroke="{Binding #_zoomBorder.((vm:ArrangerEditorViewModel)DataContext).GridSettings.LineColor, Converter={x:Static con:AppConverters.ColorToBrush}}"
-                                    StrokeThickness="0.40"
-                                    UseLayoutRounding="True"
+                                    StrokeThickness="0.40" UseLayoutRounding="True"
                                     StartPoint="{Binding Converter={x:Static con:AppConverters.GridlineToStartPoint}}"
                                     EndPoint="{Binding Converter={x:Static con:AppConverters.GridlineToEndPoint}}" />
                             </DataTemplate>

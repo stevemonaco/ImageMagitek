@@ -1,5 +1,4 @@
-<UserControl
-    x:Class="TileShop.UI.Views.CustomElementLayoutView"
+﻿<UserControl x:Class="TileShop.UI.Views.CustomElementLayoutView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.UI.Converters"
@@ -11,11 +10,10 @@
                 <TextBlock HorizontalAlignment="Center" Text="Flow Direction" />
 
                 <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
-                    <RadioButton Content="Horizontal" GroupName="Layout" IsChecked="{Binding FlowDirection, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RowLeftToRight}" ToolTip.Tip="Elements flow row-by-row, left-to-right" />
-                    <RadioButton
-                        Margin="10,0,0,0"
-                        Content="Vertical"
-                        GroupName="Layout"
+                    <RadioButton Content="Horizontal" GroupName="Layout"
+                        IsChecked="{Binding FlowDirection, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RowLeftToRight}"
+                        ToolTip.Tip="Elements flow row-by-row, left-to-right" />
+                    <RadioButton Margin="10,0,0,0" Content="Vertical" GroupName="Layout"
                         IsChecked="{Binding FlowDirection, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColumnTopToBottom}"
                         ToolTip.Tip="Elements flow column-by-column, top-to-bottom" />
                 </StackPanel>
@@ -23,14 +21,11 @@
                 <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
 
                     <Label Content="Layout Width" Target="elementLayoutWidthBox" />
-                    <TextBox x:Name="elementLayoutWidthBox" MinWidth="80" Text="{Binding Width}" ToolTip.Tip="Layout Width in Elements" />
+                    <TextBox x:Name="elementLayoutWidthBox" MinWidth="80" Text="{Binding Width}"
+                        ToolTip.Tip="Layout Width in Elements" />
 
                     <Label Content="Layout Height" Target="elementLayoutHeightBox" />
-                    <TextBox
-                        x:Name="elementLayoutHeightBox"
-                        MinWidth="80"
-                        Margin="10,0,0,0"
-                        Text="{Binding Height}"
+                    <TextBox x:Name="elementLayoutHeightBox" MinWidth="80" Margin="10,0,0,0" Text="{Binding Height}"
                         ToolTip.Tip="Layout Height in Elements" />
                 </StackPanel>
 

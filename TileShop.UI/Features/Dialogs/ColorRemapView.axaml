@@ -1,5 +1,4 @@
-<UserControl
-    x:Class="TileShop.UI.Views.ColorRemapView"
+﻿<UserControl x:Class="TileShop.UI.Views.ColorRemapView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:b="using:TileShop.UI.Behaviors"
@@ -16,7 +15,7 @@
         <dd:ListBoxRemappableColorDropHandler x:Key="ListBoxRemappableColorDropHandler" />
     </UserControl.Resources>
     <UserControl.Styles>
-        <Style Selector="ListBox.colorDrag > :is(ListBoxItem)">
+        <Style Selector="ListBox.colorDrag &gt; :is(ListBoxItem)">
             <Setter Property="Padding" Value="0" />
             <Setter Property="MinWidth" Value="0" />
             <Setter Property="MinHeight" Value="0" />
@@ -59,7 +58,8 @@
                     <DataTemplate>
                         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                             <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" FontSize="24" Text="{Binding Index}" />
-                            <Border Margin="10,2,2,2" Background="{StaticResource BasicCheckeredBrush}" BorderBrush="Black" BorderThickness="2">
+                            <Border Margin="10,2,2,2" Background="{StaticResource BasicCheckeredBrush}" BorderBrush="Black"
+                                BorderThickness="2">
                                 <Rectangle Width="24" Height="24">
                                     <Rectangle.Fill>
                                         <SolidColorBrush Color="{Binding Color}" />
@@ -87,7 +87,8 @@
                         <Border Width="65" Background="Transparent" BorderThickness="1" Classes="colorDrop">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" FontSize="24" Text="{Binding Index}" />
-                                <Border Margin="10,2,2,2" Background="{StaticResource BasicCheckeredBrush}" BorderBrush="Black" BorderThickness="2">
+                                <Border Margin="10,2,2,2" Background="{StaticResource BasicCheckeredBrush}" BorderBrush="Black"
+                                    BorderThickness="2">
                                     <Rectangle Width="24" Height="24">
                                         <Rectangle.Fill>
                                             <SolidColorBrush Color="{Binding Color}" />

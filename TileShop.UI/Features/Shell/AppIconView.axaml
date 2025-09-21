@@ -1,4 +1,6 @@
-<UserControl x:Class="TileShop.UI.Views.AppIconView" xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<UserControl x:Class="TileShop.UI.Views.AppIconView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Canvas Width="32" Height="24">
         <Canvas.Styles>
             <Style Selector="Rectangle.orange">
