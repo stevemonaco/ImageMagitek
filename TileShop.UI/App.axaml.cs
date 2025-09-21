@@ -4,7 +4,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Mvvm.DependencyInjection;
-using HotAvalonia;
 using Microsoft.Extensions.DependencyInjection;
 using TileShop.UI.ViewModels;
 using TileShop.UI.Views;
@@ -17,7 +16,6 @@ public class App : Application
 
     public override void Initialize()
     {
-        this.EnableHotReload(); // Ensure this line **precedes** `AvaloniaXamlLoader.Load(this);
         AvaloniaXamlLoader.Load(this);
     }
 
