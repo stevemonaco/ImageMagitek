@@ -1,7 +1,6 @@
 ﻿<UserControl x:Class="TileShop.UI.Views.ProjectTreeView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:fac="using:FluentAvalonia.UI.Controls"
     xmlns:i="using:Avalonia.Xaml.Interactivity"
     xmlns:ia="using:Avalonia.Xaml.Interactions.Core"
     xmlns:res="using:TileShop.UI.Resources"
@@ -35,7 +34,7 @@
                             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </Grid.ContextMenu>
-                    <fac:FAPathIcon Grid.Column="0" Classes="small" Data="{x:Static res:AppIcons.NodeProject}" />
+                    <PathIcon Grid.Column="0" Classes="small" Data="{x:Static res:AppIcons.NodeProject}" />
                     <TextBlock Grid.Column="1" Margin="4,0,0,0" Text="{Binding Name}" />
                 </Grid>
             </TreeDataTemplate>
@@ -54,7 +53,7 @@
                             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </StackPanel.ContextMenu>
-                    <fac:FAPathIcon Classes="small vflip" Data="{x:Static res:AppIcons.NodeFolder}" />
+                    <PathIcon Classes="small vflip" Data="{x:Static res:AppIcons.NodeFolder}" />
                     <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
                 </StackPanel>
             </TreeDataTemplate>
@@ -68,7 +67,7 @@
                             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </StackPanel.ContextMenu>
-                    <fac:FAPathIcon Classes="small" Data="{x:Static res:AppIcons.NodeFile}" />
+                    <PathIcon Classes="small" Data="{x:Static res:AppIcons.NodeFile}" />
                     <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
                 </StackPanel>
             </TreeDataTemplate>
@@ -85,7 +84,7 @@
                             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </StackPanel.ContextMenu>
-                    <fac:FAPathIcon Classes="small vflip" Data="{x:Static res:AppIcons.NodeArranger}" />
+                    <PathIcon Classes="small vflip" Data="{x:Static res:AppIcons.NodeArranger}" />
                     <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
                 </StackPanel>
             </TreeDataTemplate>
@@ -99,7 +98,7 @@
                             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
                         </ContextMenu>
                     </StackPanel.ContextMenu>
-                    <fac:FAPathIcon Classes="small" Data="{x:Static res:AppIcons.NodePalette}" />
+                    <PathIcon Classes="small" Data="{x:Static res:AppIcons.NodePalette}" />
                     <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
                 </StackPanel>
             </TreeDataTemplate>

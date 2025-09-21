@@ -2,7 +2,6 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.UI.Converters"
-    xmlns:fac="using:FluentAvalonia.UI.Controls"
     xmlns:model="using:TileShop.Shared.Models"
     xmlns:paz="using:Avalonia.Controls.PanAndZoom"
     xmlns:res="using:TileShop.UI.Resources"
@@ -106,7 +105,7 @@
                             <!--  Element Layout  -->
                             <Button VerticalAlignment="Top" IsVisible="{Binding IsTiledLayout}" ToolTip.Tip="Element Layout Pattern">
                                 <Button.Content>
-                                    <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.ElementLayout}" />
+                                    <PathIcon Classes="medium" Data="{x:Static res:AppIcons.ElementLayout}" />
                                 </Button.Content>
                                 <Button.Flyout>
                                     <MenuFlyout Placement="BottomEdgeAlignedLeft">
@@ -137,7 +136,7 @@
                         <TextBlock HorizontalAlignment="Center" Text="Grid" />
 
                         <ToggleButton Focusable="False" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
-                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Grid}" />
+                            <PathIcon Classes="medium" Data="{x:Static res:AppIcons.Grid}" />
                         </ToggleButton>
                     </StackPanel>
 
@@ -147,7 +146,7 @@
                         <ToggleButton Focusable="False"
                             IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}"
                             IsVisible="{Binding CanChangeSnapMode}" ToolTip.Tip="Snap Selection to Elements (S)">
-                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Snap}" />
+                            <PathIcon Classes="medium" Data="{x:Static res:AppIcons.Snap}" />
                         </ToggleButton>
                     </StackPanel>
 
@@ -156,7 +155,7 @@
 
                         <Button Command="{Binding EditSelectionCommand}" Focusable="False" IsEnabled="{Binding CanEditSelection}"
                             ToolTip.ShowOnDisabled="True" ToolTip.Tip="Opens selection in the pixel editor (E)">
-                            <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.Edit}" />
+                            <PathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.Edit}" />
                         </Button>
                     </StackPanel>
                 </StackPanel>

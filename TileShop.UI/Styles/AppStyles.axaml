@@ -1,7 +1,6 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:b="using:TileShop.UI.Behaviors"
-    xmlns:fac="using:FluentAvalonia.UI.Controls"
     xmlns:media="using:Avalonia.Media"
     xmlns:vm="using:TileShop.UI.ViewModels">
 
@@ -25,31 +24,31 @@
         <Setter Property="Stretch" Value="None" />
     </Style>
 
-    <Style Selector="fac|FAPathIcon.medium">
+    <Style Selector="PathIcon.medium">
         <Setter Property="Height" Value="20" />
         <Setter Property="Width" Value="20" />
         <Setter Property="Foreground" Value="{DynamicResource iconBrush}" />
     </Style>
 
-    <Style Selector="fac|FAPathIcon.menu">
+    <Style Selector="PathIcon.menu">
         <Setter Property="Foreground" Value="{DynamicResource iconBrush}" />
     </Style>
 
-    <Style Selector="fac|FAPathIcon.small">
+    <Style Selector="PathIcon.small">
         <Setter Property="Height" Value="16" />
         <Setter Property="Width" Value="16" />
         <Setter Property="Foreground" Value="{DynamicResource iconBrush}" />
     </Style>
 
-    <Style Selector="fac|FAPathIcon.vflip">
+    <Style Selector="PathIcon.vflip">
         <Setter Property="RenderTransform" Value="scaley(-1)" />
     </Style>
 
-    <Style Selector="fac|FAPathIcon.hflip">
+    <Style Selector="PathIcon.hflip">
         <Setter Property="RenderTransform" Value="scalex(-1)" />
     </Style>
 
-    <Style Selector="fac|FAPathIcon.turn">
+    <Style Selector="PathIcon.turn">
         <Setter Property="RenderTransform" Value="scale(-1)" />
     </Style>
 

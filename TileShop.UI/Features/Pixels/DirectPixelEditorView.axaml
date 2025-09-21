@@ -2,7 +2,6 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.UI.Converters"
-    xmlns:fac="using:FluentAvalonia.UI.Controls"
     xmlns:m="using:TileShop.UI.Models"
     xmlns:model="using:TileShop.Shared.Models"
     xmlns:paz="using:Avalonia.Controls.PanAndZoom"
@@ -36,7 +35,7 @@
                 <StackPanel Margin="0,8,0,8" Spacing="4">
                     <TextBlock HorizontalAlignment="Center" Text="Grid" />
                     <ToggleButton Focusable="False" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
-                        <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Grid}" />
+                        <PathIcon Classes="medium" Data="{x:Static res:AppIcons.Grid}" />
                     </ToggleButton>
                 </StackPanel>
 
@@ -53,25 +52,25 @@
                             CommandParameter="{x:Static vm:PixelTool.Select}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
                             ToolTip.Tip="Rectangular Selection Tool">
-                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.RectangularSelection}" />
+                            <PathIcon Classes="medium" Data="{x:Static res:AppIcons.RectangularSelection}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeToolCommand}"
                             CommandParameter="{x:Static vm:PixelTool.Pencil}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Pencil}"
                             ToolTip.Tip="Pencil Tool">
-                            <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Pencil}" />
+                            <PathIcon Classes="medium" Data="{x:Static res:AppIcons.Pencil}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeToolCommand}"
                             CommandParameter="{x:Static vm:PixelTool.ColorPicker}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColorPicker}"
                             ToolTip.Tip="Color Picker Tool">
-                            <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.ColorPicker}" />
+                            <PathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.ColorPicker}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeToolCommand}"
                             CommandParameter="{x:Static vm:PixelTool.FloodFill}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=FloodFill}"
                             ToolTip.Tip="Flood Fill Tool">
-                            <fac:FAPathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.FloodFill}" />
+                            <PathIcon Classes="medium vflip" Data="{x:Static res:AppIcons.FloodFill}" />
                         </RadioButton>
                     </StackPanel>
                 </StackPanel>

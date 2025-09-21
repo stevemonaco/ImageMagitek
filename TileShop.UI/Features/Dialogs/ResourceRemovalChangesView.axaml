@@ -1,7 +1,6 @@
 ﻿<UserControl x:Class="TileShop.UI.Views.ResourceRemovalChangesView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:fac="using:FluentAvalonia.UI.Controls"
     xmlns:m="using:TileShop.Shared.Models"
     xmlns:res="using:TileShop.UI.Resources"
     xmlns:selectors="using:TileShop.UI.Selectors"
@@ -12,25 +11,25 @@
         <selectors:ResourceRemovalTemplateSelector>
             <DataTemplate x:Key="arranger" DataType="m:ResourceChangeViewModel">
                 <StackPanel Orientation="Horizontal">
-                    <fac:FAPathIcon Classes="small vflip" Data="{x:Static res:AppIcons.NodeArranger}" />
+                    <PathIcon Classes="small vflip" Data="{x:Static res:AppIcons.NodeArranger}" />
                     <TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
                 </StackPanel>
             </DataTemplate>
             <DataTemplate x:Key="file" DataType="m:ResourceChangeViewModel">
                 <StackPanel Orientation="Horizontal">
-                    <fac:FAPathIcon Classes="small" Data="{x:Static res:AppIcons.NodeFile}" />
+                    <PathIcon Classes="small" Data="{x:Static res:AppIcons.NodeFile}" />
                     <TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
                 </StackPanel>
             </DataTemplate>
             <DataTemplate x:Key="palette" DataType="m:ResourceChangeViewModel">
                 <StackPanel Orientation="Horizontal">
-                    <fac:FAPathIcon Classes="small" Data="{x:Static res:AppIcons.NodePalette}" />
+                    <PathIcon Classes="small" Data="{x:Static res:AppIcons.NodePalette}" />
                     <TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
                 </StackPanel>
             </DataTemplate>
             <DataTemplate x:Key="folder" DataType="m:ResourceChangeViewModel">
                 <StackPanel Orientation="Horizontal">
-                    <fac:FAPathIcon Classes="small vflip" Data="{x:Static res:AppIcons.NodeFolder}" />
+                    <PathIcon Classes="small vflip" Data="{x:Static res:AppIcons.NodeFolder}" />
                     <TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
                 </StackPanel>
             </DataTemplate>

@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using FluentAvalonia.UI.Controls;
 using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.Services;
@@ -30,38 +29,39 @@ internal class InteractionService : IInteractionService
             Text = message
         };
 
-        var cd = new ContentDialog
-        {
-            PrimaryButtonText = "Ok",
-            Title = titleBlock,
-            Content = contentBlock,
-            IsPrimaryButtonEnabled = true,
-            IsSecondaryButtonEnabled = false,
-            DefaultButton = ContentDialogButton.Primary
-        };
+        //var cd = new ContentDialog
+        //{
+        //    PrimaryButtonText = "Ok",
+        //    Title = titleBlock,
+        //    Content = contentBlock,
+        //    IsPrimaryButtonEnabled = true,
+        //    IsSecondaryButtonEnabled = false,
+        //    DefaultButton = ContentDialogButton.Primary
+        //};
 
-        cd.AttachedToVisualTree += InitializeWithFocus;
-        await cd.ShowAsync();
-        cd.AttachedToVisualTree -= InitializeWithFocus;
+        //cd.AttachedToVisualTree += InitializeWithFocus;
+        //await cd.ShowAsync();
+        //cd.AttachedToVisualTree -= InitializeWithFocus;
 
-        void InitializeWithFocus(object? sender, VisualTreeAttachmentEventArgs e)
-        {
-            cd.Focus();
-        }
+        //void InitializeWithFocus(object? sender, VisualTreeAttachmentEventArgs e)
+        //{
+        //    cd.Focus();
+        //}
     }
 
     /// <inheritdoc/>
     public async Task<PromptResult> PromptAsync(PromptChoice choices, string title, string? message = default)
     {
         await Task.Yield(); // Yield ensures any ContextMenus are closed so focus isn't stolen
-        var cd = ChoiceToDialog(choices);
+        return PromptResult.Cancel;
+        //var cd = ChoiceToDialog(choices);
 
-        cd.Title = title;
-        cd.Content = message;
+        //cd.Title = title;
+        //cd.Content = message;
 
-        var dialogResult = await cd.ShowAsync();
+        //var dialogResult = await cd.ShowAsync();
 
-        return DialogResultToPromptResult(dialogResult);
+        //return DialogResultToPromptResult(dialogResult);
     }
 
     /// <inheritdoc/>
@@ -71,47 +71,49 @@ internal class InteractionService : IInteractionService
         var content = _viewLocator.Build(mediator);
         content.DataContext = mediator;
 
-        var dialog = new ContentDialog()
-        {
-            Title = mediator.Title,
-            Content = content,
-            PrimaryButtonCommand = mediator.AcceptCommand,
-            CloseButtonCommand = mediator.CancelCommand,
-            PrimaryButtonText = mediator.AcceptName,
-            CloseButtonText = mediator.CancelName,
-            DefaultButton = ContentDialogButton.Primary
-        };
+        return default;
 
-        mediator.AcceptCommand.CanExecuteChanged += CanExecuteChanged;
-        await dialog.ShowAsync();
-        mediator.AcceptCommand.CanExecuteChanged -= CanExecuteChanged;
+        //var dialog = new ContentDialog()
+        //{
+        //    Title = mediator.Title,
+        //    Content = content,
+        //    PrimaryButtonCommand = mediator.AcceptCommand,
+        //    CloseButtonCommand = mediator.CancelCommand,
+        //    PrimaryButtonText = mediator.AcceptName,
+        //    CloseButtonText = mediator.CancelName,
+        //    DefaultButton = ContentDialogButton.Primary
+        //};
 
-        return mediator.RequestResult;
+        //mediator.AcceptCommand.CanExecuteChanged += CanExecuteChanged;
+        //await dialog.ShowAsync();
+        //mediator.AcceptCommand.CanExecuteChanged -= CanExecuteChanged;
 
-        void CanExecuteChanged(object? sender, EventArgs e)
-        {
-            dialog.IsPrimaryButtonEnabled = mediator.AcceptCommand.CanExecute(null);
-        }
+        //return mediator.RequestResult;
+
+        //void CanExecuteChanged(object? sender, EventArgs e)
+        //{
+        //    dialog.IsPrimaryButtonEnabled = mediator.AcceptCommand.CanExecute(null);
+        //}
     }
 
-    private ContentDialog ChoiceToDialog(PromptChoice choices)
-    {
-        return new()
-        {
-            PrimaryButtonText = choices.Accept,
-            SecondaryButtonText = choices.Reject,
-            CloseButtonText = choices.Cancel,
-            DefaultButton = ContentDialogButton.None
-        };
-    }
+    //private ContentDialog ChoiceToDialog(PromptChoice choices)
+    //{
+    //    return new()
+    //    {
+    //        PrimaryButtonText = choices.Accept,
+    //        SecondaryButtonText = choices.Reject,
+    //        CloseButtonText = choices.Cancel,
+    //        DefaultButton = ContentDialogButton.None
+    //    };
+    //}
 
-    private PromptResult DialogResultToPromptResult(ContentDialogResult result)
-    {
-        return result switch
-        {
-            ContentDialogResult.None => PromptResult.Cancel,
-            ContentDialogResult.Primary => PromptResult.Accept,
-            ContentDialogResult.Secondary => PromptResult.Reject,
-        };
-    }
+    //private PromptResult DialogResultToPromptResult(ContentDialogResult result)
+    //{
+    //    return result switch
+    //    {
+    //        ContentDialogResult.None => PromptResult.Cancel,
+    //        ContentDialogResult.Primary => PromptResult.Accept,
+    //        ContentDialogResult.Secondary => PromptResult.Reject,
+    //    };
+    //}
 }
