@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="TileShop.UI.Views.SequentialArrangerEditorView"
+<UserControl x:Class="TileShop.UI.Views.SequentialArrangerEditorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.UI.Converters"
@@ -53,7 +53,7 @@
                     <StackPanel Margin="0,8,0,8" Spacing="4">
                         <TextBlock HorizontalAlignment="Center" Text="Codec" />
 
-                        <StackPanel Orientation="Horizontal" Spacing="2">
+                        <StackPanel Classes="toolbar-group">
                             <ComboBox Height="35" MinWidth="180" Focusable="False" ItemsSource="{Binding CodecNames}"
                                 SelectedItem="{Binding SelectedCodecName}" ToolTip.Tip="Active Codec (F, D)" />
 
@@ -74,7 +74,7 @@
                     <!--  Arranger Tools  -->
                     <StackPanel Margin="0,8,0,8" Spacing="4">
                         <TextBlock HorizontalAlignment="Center" Text="Arranger" />
-                        <StackPanel Orientation="Horizontal" Spacing="4">
+                        <StackPanel Classes="toolbar-group">
                             <ComboBox Height="35" Focusable="False" IsVisible="{Binding !Palettes.Count}" ItemsSource="{Binding Palettes}"
                                 SelectedItem="{Binding SelectedPalette}">
                                 <ComboBox.ItemTemplate>

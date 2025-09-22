@@ -1,4 +1,4 @@
-﻿<Window x:Class="TileShop.UI.Views.ShellView"
+<Window x:Class="TileShop.UI.Views.ShellView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:idc="using:Dock.Avalonia.Controls"
@@ -7,7 +7,7 @@
     x:Name="shellView"
     Title="TileShop.Avalonia"
     x:DataType="vm:ShellViewModel"
-    ExtendClientAreaTitleBarHeightHint="-1"
+    ExtendClientAreaTitleBarHeightHint="40"
     ExtendClientAreaToDecorationsHint="True"
     Icon="/Assets/tsicon.ico"
     Opened="OnOpened"
@@ -15,14 +15,8 @@
     UseLayoutRounding="True">
 
     <Panel Margin="{Binding #shellView.OffScreenMargin}">
-        <!--<ExperimentalAcrylicBorder IsHitTestVisible="False">
-            <ExperimentalAcrylicBorder.Material>
-                <ExperimentalAcrylicMaterial BackgroundSource="Digger" MaterialOpacity="0.65" TintColor="Black" TintOpacity="1" />
-            </ExperimentalAcrylicBorder.Material>
-        </ExperimentalAcrylicBorder>-->
-
         <Grid RowDefinitions="auto,*,auto">
-            <StackPanel Grid.Row="0" Margin="5,5,0,5" Orientation="Horizontal">
+            <StackPanel Grid.Row="0" Margin="8,4,0,4" Orientation="Horizontal" Spacing="4">
                 <v:AppIconView IsHitTestVisible="False" />
                 <ContentControl Content="{Binding ActiveMenu}" />
                 <Button x:Name="debugLoadButton" Command="{Binding DebugLoadCommand}" Content="Load FF2" IsVisible="False" />

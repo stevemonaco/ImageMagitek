@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="TileShop.UI.Views.ScatteredArrangerEditorView"
+<UserControl x:Class="TileShop.UI.Views.ScatteredArrangerEditorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:con="using:TileShop.UI.Converters"
@@ -56,7 +56,7 @@
                 <StackPanel Margin="0,8,0,8" Spacing="4">
                     <TextBlock HorizontalAlignment="Center" Text="Tools" />
 
-                    <StackPanel Orientation="Horizontal" Spacing="4">
+                    <StackPanel Classes="toolbar-group">
                         <RadioButton Classes="tool" Command="{Binding ChangeToolCommand}"
                             CommandParameter="{x:Static vm:ScatteredArrangerTool.Select}"
                             IsChecked="{Binding ActiveTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
@@ -115,7 +115,7 @@
 
                 <StackPanel Margin="0,8,0,8" IsVisible="{Binding IsIndexedColor}" Spacing="4">
                     <TextBlock HorizontalAlignment="Center" Text="Palette" />
-                    <StackPanel Orientation="Horizontal" Spacing="4">
+                    <StackPanel Classes="toolbar-group">
                         <ComboBox MaxWidth="200" ItemsSource="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>

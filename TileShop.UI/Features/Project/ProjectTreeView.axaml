@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="TileShop.UI.Views.ProjectTreeView"
+<UserControl x:Class="TileShop.UI.Views.ProjectTreeView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:i="using:Avalonia.Xaml.Interactivity"
@@ -15,7 +15,7 @@
         </TreeView.Styles>
         <TreeView.ItemTemplate>
             <TreeDataTemplate x:DataType="vm:ResourceNodeViewModel" ItemsSource="{Binding Children}">
-                <ContentControl Content="{Binding}" KeyDown="ProjectNode_KeyDown" />
+                <ContentControl Content="{Binding}" />
             </TreeDataTemplate>
         </TreeView.ItemTemplate>
         <TreeView.DataTemplates>

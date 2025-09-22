@@ -1,4 +1,4 @@
-﻿<Styles xmlns="https://github.com/avaloniaui"
+<Styles xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:b="using:TileShop.UI.Behaviors"
     xmlns:media="using:Avalonia.Media"
@@ -52,13 +52,22 @@
         <Setter Property="RenderTransform" Value="scale(-1)" />
     </Style>
 
-    <!--  Avalonia Restyles  -->
-    <Style Selector="SelectableTextBlock">
-        <Setter Property="SelectionBrush" Value="{DynamicResource SystemAccentColor}" />
+    <Style Selector="StackPanel.toolbar-group">
+        <Setter Property="Spacing" Value="4" />
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Style Selector="^ > NumericUpDown">
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="MinWidth" Value="60" />
+        </Style>
     </Style>
 
+    <!--  Avalonia Restyles  -->
+<!--    <Style Selector="SelectableTextBlock">
+        <Setter Property="SelectionBrush" Value="{DynamicResource SystemAccentColor}" />
+    </Style>-->
+
     <!--  Dock Restyles  -->
-    <Style Selector="DocumentControl">
+<!--    <Style Selector="DocumentControl">
         <Setter Property="HeaderTemplate">
             <DataTemplate DataType="vm:DockableEditorViewModel">
                 <StackPanel Margin="2" Orientation="Horizontal">
@@ -88,5 +97,5 @@
     <Style Selector="DocumentTabStripItem:not(:active):selected">
         <Setter Property="Background" Value="{DynamicResource DockApplicationAccentBrushMed}" />
         <Setter Property="Foreground" Value="{DynamicResource DockApplicationAccentForegroundBrush}" />
-    </Style>
+    </Style>-->
 </Styles>

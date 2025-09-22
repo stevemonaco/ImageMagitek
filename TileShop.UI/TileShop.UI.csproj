@@ -45,6 +45,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Dock.Avalonia" />
     <PackageReference Include="Dock.Model.Mvvm" />
+	<PackageReference Include="HotAvalonia" />
     <PackageReference Include="Jot" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Semi.Avalonia" />
