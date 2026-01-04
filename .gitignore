@@ -7,6 +7,9 @@
 output
 tests
 
+# Local settings
+settings.local.json
+
 # User-specific files
 *.suo
 *.user
