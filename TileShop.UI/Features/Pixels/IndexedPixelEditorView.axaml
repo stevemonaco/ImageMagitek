@@ -129,8 +129,7 @@
             </Border>
 
             <!--  Palette Display  -->
-            <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="4,4,0,0" ContextMenu="{StaticResource contextMenu}"
-                Orientation="Horizontal">
+            <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="4,4,0,0" ContextMenu="{x:Null}" Orientation="Horizontal">
                 <ComboBox IsVisible="{Binding Palettes.Count, Converter={x:Static con:AppConverters.PluralCountToBoolean}}" ItemsSource="{Binding Palettes}" SelectedItem="{Binding ActivePalette}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
