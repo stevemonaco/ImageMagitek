@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.LogicalTree;
 using TileShop.Shared.Interactions;
+using TileShop.UI.Controls;
+using TileShop.UI.Controls.Dialogs;
 
 namespace TileShop.UI.Services;
 internal class InteractionService : IInteractionService
@@ -19,15 +24,20 @@ internal class InteractionService : IInteractionService
     {
         await Task.Yield(); // Yield ensures any ContextMenus are closed so focus isn't stolen
 
-        var titleBlock = new SelectableTextBlock()
-        {
-            Text = title
-        };
+        // var titleBlock = new SelectableTextBlock()
+        // {
+        //     Text = title
+        // };
+        //
+        // var contentBlock = new SelectableTextBlock()
+        // {
+        //     Text = message
+        // };
 
-        var contentBlock = new SelectableTextBlock()
-        {
-            Text = message
-        };
+        var mediator = new AlertViewModel(title, message);
+        var host = GetDialogHost();
+
+        await host.ShowMediatorAsync(mediator);
 
         //var cd = new ContentDialog
         //{
@@ -116,4 +126,19 @@ internal class InteractionService : IInteractionService
     //        ContentDialogResult.Secondary => PromptResult.Reject,
     //    };
     //}
+
+    private DialogHost GetDialogHost(string hostId = "RootDialogHost")
+    {
+        DialogHost? host = null;
+        var lifetime = (IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!;
+        
+        foreach (var window in lifetime.Windows)
+        {
+            host = window.GetLogicalDescendants().OfType<DialogHost>().FirstOrDefault(x => x.Name == hostId);
+            if (host is not null)
+                break;
+        }
+        
+        return host ?? throw new InvalidOperationException($"Could not find a DialogHost with the name '{hostId}'");
+    }
 }

@@ -1,4 +1,4 @@
-namespace TileShop.UI.ViewExtenders.Dialogs;
+namespace TileShop.UI.Controls;
 
 /// <summary>
 /// Specifies the visual mode of a dialog, affecting icon and button styling.

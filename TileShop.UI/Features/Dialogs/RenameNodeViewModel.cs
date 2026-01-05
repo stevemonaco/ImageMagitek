@@ -1,9 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.UI.Windowing;
+using TileShop.UI.Controls;
 
 namespace TileShop.UI.ViewModels;
 
-public partial class RenameNodeViewModel : DialogViewModel<string?>
+public partial class RenameNodeViewModel : RequestBaseViewModel<string?>
 {
     private readonly ResourceNodeViewModel _nodeModel;
 
@@ -18,9 +18,11 @@ public partial class RenameNodeViewModel : DialogViewModel<string?>
         CancelName = "x";
     }
 
+    public override string? ProduceResult() => Name;
+
     protected override void Accept()
     {
-        _requestResult = Name;
+        RequestResult = Name;
         OnPropertyChanged(nameof(RequestResult));
     }
 }

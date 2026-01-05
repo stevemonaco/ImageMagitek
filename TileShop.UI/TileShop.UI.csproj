@@ -60,5 +60,6 @@
     <ProjectReference Include="..\ImageMagitek.Services\ImageMagitek.Services.csproj" />
     <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
     <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
+    <ProjectReference Include="..\TileShop.UI.Controls\TileShop.UI.Controls.csproj" />
   </ItemGroup>
 </Project>

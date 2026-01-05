@@ -1,135 +1,68 @@
-using System;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Styling;
-using CommunityToolkit.Mvvm.Input;
 
-namespace TileShop.UI.ViewExtenders.Dialogs;
+namespace TileShop.UI.Controls;
 
 /// <summary>
 /// A single dialog layer with overlay backdrop and dialog content.
 /// </summary>
-public class OverlayDialog : TemplatedControl
+[TemplatePart(Name = "PART_Overlay", Type = typeof(Border), IsRequired = true)]
+[TemplatePart(Name = "PART_DialogCard", Type = typeof(Border))]
+[TemplatePart(Name = "PART_AcceptButton", Type = typeof(Button), IsRequired = true)]
+[TemplatePart(Name = "PART_RejectButton", Type = typeof(Button), IsRequired = true)]
+[TemplatePart(Name = "PART_CancelButton", Type = typeof(Button), IsRequired = true)]
+[TemplatePart(Name = "PART_CloseButton", Type = typeof(Button), IsRequired = true)]
+public partial class OverlayDialog : TemplatedControl
 {
     private TaskCompletionSource<bool>? _dialogCompletion;
-    private IRelayCommand? _acceptCommand;
-    private IRelayCommand? _cancelCommand;
     private Border? _overlay;
     private Border? _dialogCard;
     private Button? _acceptButton;
+    private Button? _rejectButton;
     private Button? _cancelButton;
+    private Button? _closeButton;
 
-    public static readonly StyledProperty<Control?> DialogContentProperty =
-        AvaloniaProperty.Register<OverlayDialog, Control?>(nameof(DialogContent));
-
-    public static readonly StyledProperty<string> TitleProperty =
-        AvaloniaProperty.Register<OverlayDialog, string>(nameof(Title), string.Empty);
-
-    public static readonly StyledProperty<string> AcceptTextProperty =
-        AvaloniaProperty.Register<OverlayDialog, string>(nameof(AcceptText), "Ok");
-
-    public static readonly StyledProperty<string> CancelTextProperty =
-        AvaloniaProperty.Register<OverlayDialog, string>(nameof(CancelText), "Cancel");
-
-    public static readonly StyledProperty<bool> IsAcceptEnabledProperty =
-        AvaloniaProperty.Register<OverlayDialog, bool>(nameof(IsAcceptEnabled), true);
-
-    public static readonly StyledProperty<bool> ShowCancelButtonProperty =
-        AvaloniaProperty.Register<OverlayDialog, bool>(nameof(ShowCancelButton), true);
-
-    public static readonly StyledProperty<DialogMode> ModeProperty =
-        AvaloniaProperty.Register<OverlayDialog, DialogMode>(nameof(Mode), DialogMode.None);
-
-    public Control? DialogContent
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        get => GetValue(DialogContentProperty);
-        set => SetValue(DialogContentProperty, value);
+        AddHandler(Button.ClickEvent, Handler);
     }
 
-    public string Title
+    private void Handler(object? sender, RoutedEventArgs e)
     {
-        get => GetValue(TitleProperty);
-        set => SetValue(TitleProperty, value);
-    }
-
-    public string AcceptText
-    {
-        get => GetValue(AcceptTextProperty);
-        set => SetValue(AcceptTextProperty, value);
-    }
-
-    public string CancelText
-    {
-        get => GetValue(CancelTextProperty);
-        set => SetValue(CancelTextProperty, value);
-    }
-
-    public bool IsAcceptEnabled
-    {
-        get => GetValue(IsAcceptEnabledProperty);
-        set => SetValue(IsAcceptEnabledProperty, value);
-    }
-
-    public bool ShowCancelButton
-    {
-        get => GetValue(ShowCancelButtonProperty);
-        set => SetValue(ShowCancelButtonProperty, value);
-    }
-
-    public DialogMode Mode
-    {
-        get => GetValue(ModeProperty);
-        set => SetValue(ModeProperty, value);
+        if (ReferenceEquals(sender, _acceptButton))
+            _ = CloseAsync(true);
+        
+        if (ReferenceEquals(sender, _rejectButton) || 
+            ReferenceEquals(sender, _cancelButton) || 
+            ReferenceEquals(sender, _closeButton))
+            _ = CloseAsync(false);
     }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
 
-        _overlay = e.NameScope.Find<Border>("PART_Overlay");
+        _overlay = e.NameScope.Get<Border>("PART_Overlay");
         _dialogCard = e.NameScope.Find<Border>("PART_DialogCard");
-        _acceptButton = e.NameScope.Find<Button>("PART_AcceptButton");
-        _cancelButton = e.NameScope.Find<Button>("PART_CancelButton");
+        _acceptButton = e.NameScope.Get<Button>("PART_AcceptButton");
+        _rejectButton = e.NameScope.Get<Button>("PART_RejectButton");
+        _cancelButton = e.NameScope.Get<Button>("PART_CancelButton");
+        _closeButton = e.NameScope.Get<Button>("PART_CloseButton");
 
-        if (_acceptButton is not null)
-            _acceptButton.Click += OnAcceptClick;
-
-        if (_cancelButton is not null)
-            _cancelButton.Click += OnCancelClick;
+        _overlay.PointerPressed += OnLightDismiss;
+        // _acceptButton.Click += OnAcceptClick;
+        // _rejectButton.Click += OnRejectClick;
+        // _cancelButton.Click += OnCancelClick;
+        // _closeButton.Click += OnCloseClick;
     }
-
-    internal void BindCommands(IRelayCommand? acceptCommand, IRelayCommand? cancelCommand)
-    {
-        _acceptCommand = acceptCommand;
-        _cancelCommand = cancelCommand;
-
-        if (_acceptCommand is not null)
-        {
-            _acceptCommand.CanExecuteChanged += OnAcceptCanExecuteChanged;
-            IsAcceptEnabled = _acceptCommand.CanExecute(null);
-        }
-    }
-
-    internal void UnbindCommands()
-    {
-        if (_acceptCommand is not null)
-        {
-            _acceptCommand.CanExecuteChanged -= OnAcceptCanExecuteChanged;
-        }
-        _acceptCommand = null;
-        _cancelCommand = null;
-    }
-
-    private void OnAcceptCanExecuteChanged(object? sender, EventArgs e)
-    {
-        IsAcceptEnabled = _acceptCommand?.CanExecute(null) ?? true;
-    }
-
+    
     internal Task<bool> ShowAsync()
     {
         _dialogCompletion = new TaskCompletionSource<bool>();
@@ -145,31 +78,49 @@ public class OverlayDialog : TemplatedControl
         _dialogCompletion?.TrySetResult(result);
     }
 
-    private void OnAcceptClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    // private void OnAcceptClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    // {
+    //     _acceptCommand?.Execute(null);
+    //     _ = CloseAsync(true);
+    // }
+    //
+    // private void OnRejectClick(object? sender, RoutedEventArgs e)
+    // {
+    //     _rejectCommand?.Execute(null);
+    //     _ = CloseAsync(true);
+    // }
+    //
+    // private void OnCancelClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    // {
+    //     _cancelCommand?.Execute(null);
+    //     _ = CloseAsync(false);
+    // }
+    //
+    // private void OnCloseClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    // {
+    //     _cancelCommand?.Execute(null);
+    //     _ = CloseAsync(false);
+    // }
+    
+    private async void OnLightDismiss(object? sender, PointerPressedEventArgs e)
     {
-        _acceptCommand?.Execute(null);
-        _ = CloseAsync(true);
-    }
-
-    private void OnCancelClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        _cancelCommand?.Execute(null);
-        _ = CloseAsync(false);
+        if (IsLightDismiss)
+            await CloseAsync(false);
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);
 
-        if (e.Key == Key.Escape && ShowCancelButton)
+        if (e.Key == Key.Escape && (ShowCancelButton || ShowCloseButton))
         {
-            _cancelCommand?.Execute(null);
+            CancelCommand?.Execute(null);
             _ = CloseAsync(false);
             e.Handled = true;
         }
         else if (e.Key == Key.Enter && IsAcceptEnabled)
         {
-            _acceptCommand?.Execute(null);
+            AcceptCommand?.Execute(null);
             _ = CloseAsync(true);
             e.Handled = true;
         }

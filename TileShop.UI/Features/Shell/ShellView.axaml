@@ -1,7 +1,7 @@
 <Window x:Class="TileShop.UI.Views.ShellView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:dialogs="using:TileShop.UI.ViewExtenders.Dialogs"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
     xmlns:idc="using:Dock.Avalonia.Controls"
     xmlns:v="using:TileShop.UI.Views"
     xmlns:vm="using:TileShop.UI.ViewModels"
@@ -21,13 +21,15 @@
                 <v:AppIconView IsHitTestVisible="False" />
                 <ContentControl Content="{Binding ActiveMenu}" />
                 <Button x:Name="debugLoadButton" Command="{Binding DebugLoadCommand}" Content="Load FF2" IsVisible="False" />
+                <Button Click="Button_OnClick" Content="Alert View" />
+                <Button Command="{Binding ShowAlertCommand}" Content="Alert VM" />
             </StackPanel>
 
             <idc:DockControl Name="_dock" Grid.Row="1" />
 
             <ContentControl Grid.Row="2" Content="{Binding ActiveStatusBar}" />
 
-            <dialogs:DialogHost x:Name="RootDialogHost" Grid.Row="1" Grid.RowSpan="2" />
+            <cc:DialogHost x:Name="RootDialogHost" Grid.Row="1" Grid.RowSpan="2" />
         </Grid>
     </Panel>
 </Window>

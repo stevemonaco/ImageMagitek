@@ -32,6 +32,10 @@ public class App : Application
         bootstrapper.ConfigureViews(services);
         bootstrapper.ConfigureViewModels(services);
         bootstrapper.LoadConfigurations();
+
+        var viewLocator = new ViewLocator();
+        bootstrapper.ConfigureViewLocator(viewLocator);
+        DataTemplates.Add(viewLocator);
         
         var provider = services.BuildServiceProvider();
 

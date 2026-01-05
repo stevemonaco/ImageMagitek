@@ -1,16 +1,16 @@
 ﻿using ImageMagitek;
 using ImageMagitek.Colors;
-using TileShop.UI.Windowing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.UI.Imaging;
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
+using TileShop.UI.Controls;
 
 namespace TileShop.UI.ViewModels;
 
-public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel>
+public partial class ImportImageViewModel : RequestBaseViewModel<ImportImageViewModel>
 {
     private readonly Arranger _arranger;
     private readonly IAsyncFileRequestService _fileSelect;
@@ -133,6 +133,8 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
         CanImport = true;
     }
 
+    public override ImportImageViewModel? ProduceResult() => this;
+
     protected override void Accept()
     {
         if (_arranger.ColorType == PixelColorType.Indexed && _previewIndexed is not null)
@@ -140,7 +142,7 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
         else if (_arranger.ColorType == PixelColorType.Direct && _previewDirect is not null)
             _previewDirect.SaveImage();
 
-        _requestResult = this;
+        RequestResult = this;
         OnPropertyChanged(nameof(RequestResult));
     }
 }

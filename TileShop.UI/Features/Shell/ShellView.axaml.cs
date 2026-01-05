@@ -1,7 +1,9 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using Dock.Model.Core.Events;
+using TileShop.Shared.Interactions;
 using TileShop.UI.ViewExtenders.Docking;
 using TileShop.UI.ViewModels;
 
@@ -54,5 +56,14 @@ public partial class ShellView : Window
     public void OnOpened(object sender, EventArgs e)
     {
         CreateDockingLayout();
+    }
+
+    private async void Button_OnClick(object? sender, RoutedEventArgs e)
+    {
+        var interactionService = Ioc.Default.GetRequiredService<IInteractionService>();
+        await interactionService.AlertAsync("Title", "Message");
+        
+        
+        //await RootDialogHost.ShowAlertAsync("Title", "Message");
     }
 }

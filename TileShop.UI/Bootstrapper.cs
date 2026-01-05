@@ -14,6 +14,7 @@ using TileShop.UI.Services;
 using TileShop.UI.ViewModels;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Services;
+using TileShop.UI.Views;
 
 namespace TileShop.UI;
 
@@ -77,9 +78,6 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
             codecService.CodecFactory, colorFactory, defaultResources);
         var projectService = bootstrapper.CreateProjectService(serializerFactory, colorFactory);
         services.AddSingleton(projectService);
-
-
-        
     }
 
     public void ConfigureServices(IServiceCollection services)
@@ -118,6 +116,34 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
         foreach (var vmType in vmTypes)
             services.TryAddTransient(vmType);
+    }
+
+    public void ConfigureViewLocator(ViewLocator locator)
+    {
+        locator.RegisterViewFactory<ScatteredArrangerEditorViewModel, ScatteredArrangerEditorView>();
+        locator.RegisterViewFactory<SequentialArrangerEditorViewModel, SequentialArrangerEditorView>();
+        locator.RegisterViewFactory<PaletteEditorViewModel, PaletteEditorView>();
+        locator.RegisterViewFactory<TableColorViewModel, TableColorView>();
+        locator.RegisterViewFactory<DirectPixelEditorViewModel, DirectPixelEditorView>();
+        locator.RegisterViewFactory<IndexedPixelEditorViewModel, IndexedPixelEditorView>();
+        locator.RegisterViewFactory<ProjectTreeViewModel, ProjectTreeView>();
+        locator.RegisterViewFactory<DockableEditorViewModel, DockableEditorView>();
+        locator.RegisterViewFactory<DockableToolViewModel, DockableToolView>();
+        locator.RegisterViewFactory<MenuViewModel, MenuView>();
+        locator.RegisterViewFactory<ShellViewModel, ShellView>();
+        locator.RegisterViewFactory<StatusViewModel, StatusView>();
+        locator.RegisterViewFactory<AddPaletteViewModel, AddPaletteView>();
+        locator.RegisterViewFactory<AddScatteredArrangerViewModel, AddScatteredArrangerView>();
+        locator.RegisterViewFactory<AssociatePaletteViewModel, AssociatePaletteView>();
+        locator.RegisterViewFactory<ColorRemapViewModel, ColorRemapView>();
+        locator.RegisterViewFactory<CustomElementLayoutViewModel, CustomElementLayoutView>();
+        locator.RegisterViewFactory<ImportImageViewModel, ImportImageView>();
+        locator.RegisterViewFactory<JumpToOffsetViewModel, JumpToOffsetView>();
+        locator.RegisterViewFactory<ModifyGridSettingsViewModel, ModifyGridSettingsView>();
+        locator.RegisterViewFactory<NameResourceViewModel, NameResourceView>();
+        locator.RegisterViewFactory<RenameNodeViewModel, RenameNodeView>();
+        locator.RegisterViewFactory<ResizeTiledScatteredArrangerViewModel, ResizeTiledScatteredArrangerView>();
+        locator.RegisterViewFactory<ResourceRemovalChangesViewModel, ResourceRemovalChangesView>();
     }
 
     private void ConfigureJotTracker(Tracker tracker, IServiceCollection services)

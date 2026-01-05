@@ -4,11 +4,11 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
 using ImageMagitek.Colors;
-using TileShop.UI.Windowing;
+using TileShop.UI.Controls;
 
 namespace TileShop.UI.ViewModels;
 
-public partial class AddPaletteViewModel : DialogViewModel<AddPaletteViewModel>
+public partial class AddPaletteViewModel : RequestBaseViewModel<AddPaletteViewModel>
 {
     private string _paletteName = "";
     public string PaletteName
@@ -43,9 +43,11 @@ public partial class AddPaletteViewModel : DialogViewModel<AddPaletteViewModel>
         _selectedColorModel = ColorModels.First();
     }
 
+    public override AddPaletteViewModel? ProduceResult() => this;
+
     protected override void Accept()
     {
-        _requestResult = this;
+        RequestResult = this;
         OnPropertyChanged(nameof(RequestResult));
     }
 

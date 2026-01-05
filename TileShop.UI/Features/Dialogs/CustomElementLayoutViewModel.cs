@@ -1,13 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TileShop.UI.Windowing;
+using TileShop.UI.Controls;
 
 namespace TileShop.UI.ViewModels;
 
 public enum ElementLayoutFlowDirection { RowLeftToRight, ColumnTopToBottom }
 
-public partial class CustomElementLayoutViewModel : DialogViewModel<CustomElementLayoutViewModel>
+public partial class CustomElementLayoutViewModel : RequestBaseViewModel<CustomElementLayoutViewModel>
 {
     [ObservableProperty] private ElementLayoutFlowDirection _flowDirection;
 
@@ -60,9 +60,11 @@ public partial class CustomElementLayoutViewModel : DialogViewModel<CustomElemen
         CanConfirm = ValidationErrors.Count == 0;
     }
 
+    public override CustomElementLayoutViewModel? ProduceResult() => this;
+
     protected override void Accept()
     {
-        _requestResult = this;
+        RequestResult = this;
         OnPropertyChanged(nameof(RequestResult));
     }
 }

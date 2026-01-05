@@ -13,5 +13,6 @@
   <Project Path="ImageMagitek/ImageMagitek.csproj" />
   <Project Path="TileShop.CLI/TileShop.CLI.csproj" />
   <Project Path="TileShop.Shared/TileShop.Shared.csproj" />
+  <Project Path="TileShop.UI.Controls/TileShop.UI.Controls.csproj" />
   <Project Path="TileShop.UI/TileShop.UI.csproj" />
 </Solution>

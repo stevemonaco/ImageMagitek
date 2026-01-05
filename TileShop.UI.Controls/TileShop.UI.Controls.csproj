@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia" />
+        <PackageReference Include="CommunityToolkit.Mvvm" />
+        <PackageReference Include="HotAvalonia" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+        <PackageReference Include="Semi.Avalonia" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
+    </ItemGroup>
+</Project>

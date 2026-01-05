@@ -1,13 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.UI.Windowing;
+using TileShop.UI.Controls;
 
 namespace TileShop.UI.ViewModels;
 
 public enum NumericBase { Decimal, Hexadecimal }
 
-public partial class JumpToOffsetViewModel : DialogViewModel<long?>
+public partial class JumpToOffsetViewModel : RequestBaseViewModel<long?>
 {
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
@@ -30,6 +31,16 @@ public partial class JumpToOffsetViewModel : DialogViewModel<long?>
         Title = "Jump to Offset";
         AcceptName = "✓";
         CancelName = "x";
+    }
+
+    public override long? ProduceResult()
+    {
+        if (NumericBase == NumericBase.Decimal)
+            return long.Parse(OffsetText);
+        else if (NumericBase == NumericBase.Hexadecimal)
+            return long.Parse(OffsetText, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+
+        throw new InvalidOperationException();
     }
 
     protected override void Accept()

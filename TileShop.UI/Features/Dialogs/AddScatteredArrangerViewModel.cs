@@ -4,11 +4,11 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ImageMagitek;
-using TileShop.UI.Windowing;
+using TileShop.UI.Controls;
 
 namespace TileShop.UI.ViewModels;
 
-public partial class AddScatteredArrangerViewModel : DialogViewModel<AddScatteredArrangerViewModel>
+public partial class AddScatteredArrangerViewModel : RequestBaseViewModel<AddScatteredArrangerViewModel>
 {
     [ObservableProperty] private string _arrangerName = "";
     [ObservableProperty] private PixelColorType _colorType;
@@ -32,6 +32,8 @@ public partial class AddScatteredArrangerViewModel : DialogViewModel<AddScattere
         AcceptName = "Add";
     }
 
+    public override AddScatteredArrangerViewModel? ProduceResult() => this;
+
     protected override void Accept()
     {
         if (Layout == ElementLayout.Single)
@@ -40,7 +42,7 @@ public partial class AddScatteredArrangerViewModel : DialogViewModel<AddScattere
             ArrangerElementWidth = 1;
         }
 
-        _requestResult = this;
+        RequestResult = this;
         OnPropertyChanged(nameof(RequestResult));
     }
 

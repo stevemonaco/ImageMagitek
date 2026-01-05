@@ -1,10 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.UI.Windowing;
 using TileShop.Shared.Interactions;
+using TileShop.UI.Controls;
 
 namespace TileShop.UI.ViewModels;
 
-public partial class ResizeTiledScatteredArrangerViewModel : DialogViewModel<ResizeTiledScatteredArrangerViewModel>
+public partial class ResizeTiledScatteredArrangerViewModel : RequestBaseViewModel<ResizeTiledScatteredArrangerViewModel>
 {
     private readonly IInteractionService _interactions;
 
@@ -28,6 +28,8 @@ public partial class ResizeTiledScatteredArrangerViewModel : DialogViewModel<Res
         AcceptName = "Resize";
     }
 
+    public override ResizeTiledScatteredArrangerViewModel? ProduceResult() => this;
+
     protected override async void Accept()
     {
         if (Width < OriginalWidth || Height < OriginalHeight)
@@ -38,7 +40,7 @@ public partial class ResizeTiledScatteredArrangerViewModel : DialogViewModel<Res
                 return;
         }
 
-        _requestResult = this;
+        RequestResult = this;
         OnPropertyChanged(nameof(RequestResult));
     }
 }

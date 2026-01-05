@@ -1,11 +1,13 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TileShop.Shared.Interactions;
 
-namespace TileShop.UI.Windowing;
-public abstract partial class DialogViewModel<TResult> : ObservableValidator, IRequestMediator<TResult>
+namespace TileShop.UI.Controls;
+public abstract partial class RequestBaseViewModel<TResult> : ObservableValidator, IRequestMediator<TResult>
 {
-    [ObservableProperty] protected TResult? _requestResult = default(TResult);
+    public TResult? RequestResult { get; protected set; }
+    
     [ObservableProperty] private string _title = "";
 
     private RelayCommand? _acceptCommand;
@@ -13,9 +15,14 @@ public abstract partial class DialogViewModel<TResult> : ObservableValidator, IR
 
     private RelayCommand? _cancelCommand;
     public IRelayCommand CancelCommand => _cancelCommand ??= new RelayCommand(Cancel);
+    
+    public event EventHandler<CancelEventArgs>? Closing;
+    public event EventHandler? Closed;
 
     public string AcceptName { get; protected set; } = "Ok";
     public string CancelName { get; protected set; } = "Cancel";
+    
+    public abstract TResult? ProduceResult();
 
     /// <summary>
     /// Called when the user accepts the interaction
@@ -30,7 +37,7 @@ public abstract partial class DialogViewModel<TResult> : ObservableValidator, IR
     /// </summary>
     protected virtual void Cancel()
     {
-        _requestResult = default;
+        RequestResult = default;
         OnPropertyChanged(nameof(RequestResult));
     }
 }
