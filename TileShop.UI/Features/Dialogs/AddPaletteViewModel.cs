@@ -45,12 +45,6 @@ public partial class AddPaletteViewModel : RequestBaseViewModel<AddPaletteViewMo
 
     public override AddPaletteViewModel? ProduceResult() => this;
 
-    protected override void Accept()
-    {
-        RequestResult = this;
-        OnPropertyChanged(nameof(RequestResult));
-    }
-
     public void ValidateModel()
     {
         ValidationErrors.Clear();

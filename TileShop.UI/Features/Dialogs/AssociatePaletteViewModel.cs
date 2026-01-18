@@ -21,10 +21,4 @@ public partial class AssociatePaletteViewModel : RequestBaseViewModel<AssociateP
     }
 
     public override AssociatePaletteViewModel? ProduceResult() => this;
-
-    protected override void Accept()
-    {
-        RequestResult = this;
-        OnPropertyChanged(nameof(RequestResult));
-    }
 }

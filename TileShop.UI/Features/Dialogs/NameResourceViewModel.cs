@@ -15,10 +15,4 @@ public partial class NameResourceViewModel : RequestBaseViewModel<string?>
     }
 
     public override string? ProduceResult() => ResourceName;
-
-    protected override void Accept()
-    {
-        RequestResult = ResourceName;
-        OnPropertyChanged(nameof(RequestResult));
-    }
 }

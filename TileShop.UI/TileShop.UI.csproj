@@ -20,12 +20,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <TrimmerRootAssembly Include="Avalonia.Themes.Fluent" />
-	<TrimmerRootAssembly Include="FluentAvalonia" />
+    <TrimmerRootAssembly Include="Semi.Avalonia" />
     <TrimmerRootAssembly Include="System.Text.Json" />
     <TrimmerRootAssembly Include="ImageMagitek" />
     <TrimmerRootAssembly Include="ImageMagitek.Services" />
 	<TrimmerRootAssembly Include="TileShop.UI" />
+    <TrimmerRootAssembly Include="TileShop.UI.Controls" />
   </ItemGroup>
   
   <ItemGroup>

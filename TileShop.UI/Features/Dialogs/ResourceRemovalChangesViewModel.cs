@@ -38,14 +38,14 @@ public partial class ResourceRemovalChangesViewModel : RequestBaseViewModel<bool
     }
 
     public override bool ProduceResult() => true;
-
-    protected override void Accept()
-    {
-        RequestResult = true;
-    }
-
-    protected override void Cancel()
-    {
-        RequestResult = false;
-    }
+    //
+    // protected override void Accept()
+    // {
+    //     Result = true;
+    // }
+    //
+    // protected override Task<bool> TryCancel()
+    // {
+    //     Result = false;
+    // }
 }

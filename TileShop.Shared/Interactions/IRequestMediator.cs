@@ -3,16 +3,16 @@ using System.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace TileShop.Shared.Interactions;
-public interface IRequestMediator<TResult> : INotifyPropertyChanged
+public interface IRequestMediator<out TResult> : INotifyPropertyChanged
 {
     string Title { get; }
     string AcceptName { get; }
     string CancelName { get; }
-    TResult? RequestResult { get; }
+    TResult? Result { get; }
 
-    IRelayCommand AcceptCommand { get; }
-    IRelayCommand CancelCommand { get; }
+    IAsyncRelayCommand TryAcceptCommand { get; }
+    IAsyncRelayCommand TryCancelCommand { get; }
     
-    public event EventHandler<CancelEventArgs>? Closing;
-    public event EventHandler? Closed;
+    event EventHandler<CancelEventArgs>? Closing;
+    event EventHandler? Closed;
 }

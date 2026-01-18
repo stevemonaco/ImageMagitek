@@ -14,6 +14,7 @@ using TileShop.UI.Services;
 using TileShop.UI.ViewModels;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Services;
+using TileShop.UI.Controls.Dialogs;
 using TileShop.UI.Views;
 
 namespace TileShop.UI;
@@ -92,7 +93,13 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
     public void ConfigureViews(IServiceCollection services)
     {
-        var viewTypes = GetType().Assembly.GetTypes().Where(x => x.Name.EndsWith("View"));
+        var assemblyNames = new[] { "TileShop.UI", "TileShop.UI.Controls" };
+        
+        var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+            .Where(a => assemblyNames.Contains(a.GetName().Name));
+        
+        var viewTypes = assemblies.SelectMany(x => x.ExportedTypes)
+            .Where(x => x.Name.EndsWith("View"));
 
         foreach (var viewType in viewTypes)
             services.AddTransient(viewType);
@@ -144,6 +151,8 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         locator.RegisterViewFactory<RenameNodeViewModel, RenameNodeView>();
         locator.RegisterViewFactory<ResizeTiledScatteredArrangerViewModel, ResizeTiledScatteredArrangerView>();
         locator.RegisterViewFactory<ResourceRemovalChangesViewModel, ResourceRemovalChangesView>();
+        locator.RegisterViewFactory<AlertViewModel, AlertView>();
+        locator.RegisterViewFactory<PromptViewModel, PromptView>();
     }
 
     private void ConfigureJotTracker(Tracker tracker, IServiceCollection services)

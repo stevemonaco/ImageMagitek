@@ -19,10 +19,15 @@ public class DialogHost : Panel
         {
             Content = mediator,
             Title = mediator.Title,
+            AcceptCommand = mediator.TryAcceptCommand,
+            CancelCommand = mediator.TryCancelCommand,
+            AcceptText = mediator.AcceptName,
+            CancelText = mediator.CancelName
         };
 
         Children.Add(dialog);
         mediator.Closed += MediatorOnClosed;
+        await tcs.Task;
         
         void MediatorOnClosed(object? sender, EventArgs e)
         {
@@ -88,11 +93,11 @@ public class DialogHost : Panel
             content,
             mediator.Title,
             mediator.AcceptName,
-            acceptCommand: mediator.AcceptCommand,
+            acceptCommand: mediator.TryAcceptCommand,
             cancelText: mediator.CancelName,
-            cancelCommand: mediator.CancelCommand);
+            cancelCommand: mediator.TryCancelCommand);
 
-        return mediator.RequestResult;
+        return mediator.Result;
     }
 
     /// <summary>

@@ -45,10 +45,4 @@ public partial class ColorRemapViewModel : RequestBaseViewModel<ColorRemapViewMo
     }
 
     public override ColorRemapViewModel? ProduceResult() => this;
-
-    protected override void Accept()
-    {
-        RequestResult = this;
-        OnPropertyChanged(nameof(RequestResult));
-    }
 }

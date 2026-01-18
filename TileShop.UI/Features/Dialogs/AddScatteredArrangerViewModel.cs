@@ -32,9 +32,7 @@ public partial class AddScatteredArrangerViewModel : RequestBaseViewModel<AddSca
         AcceptName = "Add";
     }
 
-    public override AddScatteredArrangerViewModel? ProduceResult() => this;
-
-    protected override void Accept()
+    public override AddScatteredArrangerViewModel? ProduceResult()
     {
         if (Layout == ElementLayout.Single)
         {
@@ -42,8 +40,7 @@ public partial class AddScatteredArrangerViewModel : RequestBaseViewModel<AddSca
             ArrangerElementWidth = 1;
         }
 
-        RequestResult = this;
-        OnPropertyChanged(nameof(RequestResult));
+        return this;
     }
 
     [RelayCommand]

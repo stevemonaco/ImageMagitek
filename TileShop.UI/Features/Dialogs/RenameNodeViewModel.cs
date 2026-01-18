@@ -19,10 +19,4 @@ public partial class RenameNodeViewModel : RequestBaseViewModel<string?>
     }
 
     public override string? ProduceResult() => Name;
-
-    protected override void Accept()
-    {
-        RequestResult = Name;
-        OnPropertyChanged(nameof(RequestResult));
-    }
 }

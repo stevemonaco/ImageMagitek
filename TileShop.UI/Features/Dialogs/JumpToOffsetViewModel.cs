@@ -11,13 +11,13 @@ public enum NumericBase { Decimal, Hexadecimal }
 public partial class JumpToOffsetViewModel : RequestBaseViewModel<long?>
 {
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
+    [NotifyCanExecuteChangedFor(nameof(TryAcceptCommand))]
     [NotifyDataErrorInfo]
     [CustomValidation(typeof(JumpToOffsetViewModel), nameof(ValidateModel))]
     private string? _offsetText;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
+    [NotifyCanExecuteChangedFor(nameof(TryAcceptCommand))]
     [NotifyDataErrorInfo]
     [CustomValidation(typeof(JumpToOffsetViewModel), nameof(ValidateModel))]
     private NumericBase _numericBase;
@@ -43,16 +43,16 @@ public partial class JumpToOffsetViewModel : RequestBaseViewModel<long?>
         throw new InvalidOperationException();
     }
 
-    protected override void Accept()
-    {
-        if (OffsetText is null)
-            return;
-
-        if (NumericBase == NumericBase.Decimal)
-            RequestResult = long.Parse(OffsetText);
-        else if (NumericBase == NumericBase.Hexadecimal)
-            RequestResult = long.Parse(OffsetText, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-    }
+    // protected override void Accept()
+    // {
+    //     if (OffsetText is null)
+    //         return;
+    //
+    //     if (NumericBase == NumericBase.Decimal)
+    //         Result = long.Parse(OffsetText);
+    //     else if (NumericBase == NumericBase.Hexadecimal)
+    //         Result = long.Parse(OffsetText, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+    // }
 
     protected override bool CanAccept() => _canJump;
 

@@ -61,10 +61,4 @@ public partial class CustomElementLayoutViewModel : RequestBaseViewModel<CustomE
     }
 
     public override CustomElementLayoutViewModel? ProduceResult() => this;
-
-    protected override void Accept()
-    {
-        RequestResult = this;
-        OnPropertyChanged(nameof(RequestResult));
-    }
 }

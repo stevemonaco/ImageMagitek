@@ -135,14 +135,13 @@ public partial class ImportImageViewModel : RequestBaseViewModel<ImportImageView
 
     public override ImportImageViewModel? ProduceResult() => this;
 
-    protected override void Accept()
+    protected override Task<bool> OnAccepting()
     {
         if (_arranger.ColorType == PixelColorType.Indexed && _previewIndexed is not null)
             _previewIndexed.SaveImage();
         else if (_arranger.ColorType == PixelColorType.Direct && _previewDirect is not null)
             _previewDirect.SaveImage();
-
-        RequestResult = this;
-        OnPropertyChanged(nameof(RequestResult));
+        
+        return Task.FromResult(true);
     }
 }

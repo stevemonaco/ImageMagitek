@@ -14,9 +14,4 @@ public sealed partial class ModifyGridSettingsViewModel : RequestBaseViewModel<M
     [ObservableProperty] private Color _lineColor;
 
     public override ModifyGridSettingsViewModel? ProduceResult() => this;
-
-    protected override void Accept()
-    {
-        RequestResult = this;
-    }
 }
