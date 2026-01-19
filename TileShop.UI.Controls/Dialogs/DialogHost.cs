@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.Input;
 using TileShop.Shared.Interactions;
@@ -11,30 +12,33 @@ public class DialogHost : Panel
 {
     private readonly Stack<OverlayDialog> _dialogStack = new();
 
-    public async Task ShowMediatorAsync<TResult>(IRequestMediator<TResult> mediator)
+    public async Task<TResult?> ShowMediatorAsync<TResult>(IRequestMediator<TResult> mediator)
     {
-        var tcs = new TaskCompletionSource();
+        var tcs = new TaskCompletionSource<TResult?>();
+
+        await mediator.OnOpening();
         
         var dialog = new OverlayDialog()
         {
             Content = mediator,
             Title = mediator.Title,
-            AcceptCommand = mediator.TryAcceptCommand,
-            CancelCommand = mediator.TryCancelCommand,
-            AcceptText = mediator.AcceptName,
-            CancelText = mediator.CancelName
+            Options = mediator.Options,
+            // AcceptCommand = mediator.TryAcceptCommand,
+            // CancelCommand = mediator.TryCancelCommand,
+            // AcceptText = mediator.AcceptName,
+            // CancelText = mediator.CancelName
         };
-
+        
         Children.Add(dialog);
         mediator.Closed += MediatorOnClosed;
-        await tcs.Task;
+        return await tcs.Task;
         
         void MediatorOnClosed(object? sender, EventArgs e)
         {
             mediator.Closed -= MediatorOnClosed;
             
             Children.Remove(dialog);
-            tcs.SetResult();
+            tcs.SetResult(mediator.Result);
         }
     }
     
@@ -44,27 +48,28 @@ public class DialogHost : Panel
     public async Task<bool> ShowDialogAsync(
         Control content,
         string title,
-        string acceptText = "Ok",
-        string rejectText = "No",
-        string? cancelText = "Cancel",
-        IRelayCommand? acceptCommand = null,
-        IRelayCommand? rejectCommand = null,
-        IRelayCommand? cancelCommand = null)
+        ObservableCollection<RequestOption> options,
+        bool showCancelButton = true)
+        // string acceptText = "Ok",
+        // string rejectText = "No",
+        // string? cancelText = "Cancel",
+        // IRelayCommand? acceptCommand = null,
+        // IRelayCommand? rejectCommand = null,
+        // IRelayCommand? cancelCommand = null)
     {
         var layer = new OverlayDialog
         {
             Content = content,
             Title = title,
-            AcceptText = acceptText,
-            RejectText = rejectText,
-            CancelText = cancelText ?? "Cancel",
-            AcceptCommand = acceptCommand,
-            RejectCommand = rejectCommand,
-            CancelCommand = cancelCommand,
-            ShowCancelButton = cancelText is not null
+            Options = options,
+            // AcceptText = acceptText,
+            // RejectText = rejectText,
+            // CancelText = cancelText ?? "Cancel",
+            // AcceptCommand = acceptCommand,
+            // RejectCommand = rejectCommand,
+            // CancelCommand = cancelCommand,
+            ShowCancelButton = showCancelButton
         };
-
-        //layer.BindCommands(acceptCommand, cancelCommand);
 
         Children.Add(layer);
         _dialogStack.Push(layer);
@@ -76,7 +81,6 @@ public class DialogHost : Panel
         }
         finally
         {
-            //layer.UnbindCommands();
             _dialogStack.Pop();
             Children.Remove(layer);
         }
@@ -85,20 +89,21 @@ public class DialogHost : Panel
     /// <summary>
     /// Shows a dialog using an IRequestMediator.
     /// </summary>
-    public async Task<TResult?> ShowDialogAsync<TResult>(IRequestMediator<TResult> mediator, Control content)
-    {
-        content.DataContext = mediator;
-
-        await ShowDialogAsync(
-            content,
-            mediator.Title,
-            mediator.AcceptName,
-            acceptCommand: mediator.TryAcceptCommand,
-            cancelText: mediator.CancelName,
-            cancelCommand: mediator.TryCancelCommand);
-
-        return mediator.Result;
-    }
+    // public async Task<TResult?> ShowDialogAsync<TResult>(IRequestMediator<TResult> mediator, Control content)
+    // {
+    //     content.DataContext = mediator;
+    //
+    //     await ShowDialogAsync(
+    //         content,
+    //         mediator.Title,
+    //         mediator.Options,
+    //         mediator.AcceptName,
+    //         acceptCommand: mediator.TryAcceptCommand,
+    //         cancelText: mediator.CancelName,
+    //         cancelCommand: mediator.TryCancelCommand);
+    //
+    //     return mediator.Result;
+    // }
 
     /// <summary>
     /// Shows an alert dialog with a message.

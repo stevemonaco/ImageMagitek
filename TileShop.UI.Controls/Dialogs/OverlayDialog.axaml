@@ -1,6 +1,7 @@
 <ResourceDictionary
     xmlns="https://github.com/avaloniaui"
     xmlns:cc="https://github.com/stevemonaco/TileShop"
+    xmlns:shared="using:TileShop.Shared.Interactions"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--  Icon Geometries  -->
@@ -13,13 +14,20 @@
 
     <SolidColorBrush x:Key="OverlayDialogBackdrop">#80000000</SolidColorBrush>
 
+    <DataTemplate DataType="shared:RequestOption" x:Key="RequestOptionTemplate">
+        <Button
+            Classes="Tertiary"
+            Command="{Binding OptionCommand}"
+            Content="{Binding OptionText}"
+            MinWidth="80" />
+    </DataTemplate>
+
     <ControlTheme TargetType="cc:OverlayDialog" x:Key="{x:Type cc:OverlayDialog}">
-        <!-- <Setter Property="IsVisible" Value="False" /> -->
         <Setter Property="Focusable" Value="True" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Panel>
-                    <Border x:Name="PART_Backdrop" />
+                    <Border Background="{StaticResource OverlayDialogBackdrop}" x:Name="PART_Backdrop" />
 
                     <Border
                         Background="{DynamicResource SemiColorBackground1}"
@@ -94,37 +102,47 @@
 
                             <!--  Button bar  -->
                             <Border Grid.Row="2" Padding="24,16,24,20">
-                                <StackPanel
-                                    HorizontalAlignment="Right"
-                                    Orientation="Horizontal"
-                                    Spacing="12">
-                                    <Button
-                                        Classes="Tertiary"
-                                        Command="{TemplateBinding CancelCommand}"
-                                        Content="{TemplateBinding CancelText}"
-                                        IsVisible="{TemplateBinding CancelCommand,
-                                                                    Converter={x:Static ObjectConverters.IsNotNull}}"
-                                        MinWidth="80"
-                                        x:Name="PART_CancelButton" />
-
-                                    <Button
-                                        Classes="Tertiary"
-                                        Command="{TemplateBinding RejectCommand}"
-                                        Content="{TemplateBinding RejectText}"
-                                        IsVisible="{TemplateBinding RejectCommand,
-                                                                    Converter={x:Static ObjectConverters.IsNotNull}}"
-                                        MinWidth="80"
-                                        x:Name="PART_RejectButton" />
-
-                                    <Button
-                                        Classes="Primary"
-                                        Command="{TemplateBinding AcceptCommand}"
-                                        Content="{TemplateBinding AcceptText}"
-                                        IsVisible="{TemplateBinding AcceptCommand,
-                                                                    Converter={x:Static ObjectConverters.IsNotNull}}"
-                                        MinWidth="80"
-                                        x:Name="PART_AcceptButton" />
-                                </StackPanel>
+                                <ItemsControl ItemTemplate="{StaticResource RequestOptionTemplate}" ItemsSource="{TemplateBinding Options}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel
+                                                HorizontalAlignment="Right"
+                                                Orientation="Horizontal"
+                                                Spacing="12" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                </ItemsControl>
+                                <!--  <StackPanel  -->
+                                <!--  HorizontalAlignment="Right"  -->
+                                <!--  Orientation="Horizontal"  -->
+                                <!--  Spacing="12">  -->
+                                <!--  <Button  -->
+                                <!--  Classes="Tertiary"  -->
+                                <!--  Command="{TemplateBinding CancelCommand}"  -->
+                                <!--  Content="{TemplateBinding CancelText}"  -->
+                                <!--  IsVisible="{TemplateBinding CancelCommand,  -->
+                                <!--  Converter={x:Static ObjectConverters.IsNotNull}}"  -->
+                                <!--  MinWidth="80"  -->
+                                <!--  x:Name="PART_CancelButton" />  -->
+                                <!--    -->
+                                <!--  <Button  -->
+                                <!--  Classes="Tertiary"  -->
+                                <!--  Command="{TemplateBinding RejectCommand}"  -->
+                                <!--  Content="{TemplateBinding RejectText}"  -->
+                                <!--  IsVisible="{TemplateBinding RejectCommand,  -->
+                                <!--  Converter={x:Static ObjectConverters.IsNotNull}}"  -->
+                                <!--  MinWidth="80"  -->
+                                <!--  x:Name="PART_RejectButton" />  -->
+                                <!--    -->
+                                <!--  <Button  -->
+                                <!--  Classes="Primary"  -->
+                                <!--  Command="{TemplateBinding AcceptCommand}"  -->
+                                <!--  Content="{TemplateBinding AcceptText}"  -->
+                                <!--  IsVisible="{TemplateBinding AcceptCommand,  -->
+                                <!--  Converter={x:Static ObjectConverters.IsNotNull}}"  -->
+                                <!--  MinWidth="80"  -->
+                                <!--  x:Name="PART_AcceptButton" />  -->
+                                <!-- </StackPanel> -->
                             </Border>
                         </Grid>
                     </Border>

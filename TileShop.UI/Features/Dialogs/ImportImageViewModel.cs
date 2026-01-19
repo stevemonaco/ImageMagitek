@@ -6,11 +6,9 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
-using TileShop.UI.Controls;
 
 namespace TileShop.UI.ViewModels;
-
-public partial class ImportImageViewModel : RequestBaseViewModel<ImportImageViewModel>
+public partial class ImportImageViewModel : RequestViewModel<ImportImageViewModel>
 {
     private readonly Arranger _arranger;
     private readonly IAsyncFileRequestService _fileSelect;
@@ -135,7 +133,7 @@ public partial class ImportImageViewModel : RequestBaseViewModel<ImportImageView
 
     public override ImportImageViewModel? ProduceResult() => this;
 
-    protected override Task<bool> OnAccepting()
+    protected override Task<bool> OnAccepted()
     {
         if (_arranger.ColorType == PixelColorType.Indexed && _previewIndexed is not null)
             _previewIndexed.SaveImage();

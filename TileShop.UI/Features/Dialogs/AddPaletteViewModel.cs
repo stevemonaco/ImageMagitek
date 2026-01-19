@@ -4,11 +4,10 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
 using ImageMagitek.Colors;
-using TileShop.UI.Controls;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
-
-public partial class AddPaletteViewModel : RequestBaseViewModel<AddPaletteViewModel>
+public partial class AddPaletteViewModel : RequestViewModel<AddPaletteViewModel>
 {
     private string _paletteName = "";
     public string PaletteName

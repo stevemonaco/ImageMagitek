@@ -1,13 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TileShop.UI.Controls;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
 
 public enum ElementLayoutFlowDirection { RowLeftToRight, ColumnTopToBottom }
 
-public partial class CustomElementLayoutViewModel : RequestBaseViewModel<CustomElementLayoutViewModel>
+public partial class CustomElementLayoutViewModel : RequestViewModel<CustomElementLayoutViewModel>
 {
     [ObservableProperty] private ElementLayoutFlowDirection _flowDirection;
 

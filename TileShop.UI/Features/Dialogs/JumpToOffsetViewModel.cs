@@ -2,13 +2,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.UI.Controls;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
 
 public enum NumericBase { Decimal, Hexadecimal }
 
-public partial class JumpToOffsetViewModel : RequestBaseViewModel<long?>
+public partial class JumpToOffsetViewModel : RequestViewModel<long?>
 {
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(TryAcceptCommand))]

@@ -62,8 +62,13 @@ public partial class ShellView : Window
     {
         var interactionService = Ioc.Default.GetRequiredService<IInteractionService>();
         await interactionService.AlertAsync("Title", "Message");
+    }
+    
+    private async void PromptButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        var interactionService = Ioc.Default.GetRequiredService<IInteractionService>();
+        var result = await interactionService.PromptAsync(PromptChoices.YesNoCancel, "Title", "Message");
         
-        
-        //await RootDialogHost.ShowAlertAsync("Title", "Message");
+        await interactionService.AlertAsync("Result", result.ToString());
     }
 }

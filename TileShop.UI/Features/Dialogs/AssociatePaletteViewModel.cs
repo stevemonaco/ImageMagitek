@@ -2,12 +2,11 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using TileShop.Shared.Interactions;
 using TileShop.Shared.Models;
-using TileShop.UI.Controls;
 
 namespace TileShop.UI.ViewModels;
-
-public partial class AssociatePaletteViewModel : RequestBaseViewModel<AssociatePaletteViewModel>
+public partial class AssociatePaletteViewModel : RequestViewModel<AssociatePaletteViewModel>
 {
     [ObservableProperty] private ObservableCollection<AssociatePaletteModel> _palettes;
     [ObservableProperty] private AssociatePaletteModel _selectedPalette;

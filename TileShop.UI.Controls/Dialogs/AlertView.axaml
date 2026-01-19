@@ -4,12 +4,12 @@
     d:DesignWidth="800"
     mc:Ignorable="d"
     x:Class="TileShop.UI.Controls.Dialogs.AlertView"
-    x:DataType="dialog:AlertViewModel"
+    x:DataType="tsi:AlertViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:dialog="using:TileShop.UI.Controls.Dialogs"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:tsi="using:TileShop.Shared.Interactions"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <TextBlock Text="{Binding Message}" />
+    <SelectableTextBlock Text="{Binding Message}" TextWrapping="Wrap" />
 </UserControl>
 

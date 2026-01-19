@@ -1,11 +1,9 @@
 ﻿using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.Shared.Interactions;
-using TileShop.UI.Controls;
 
 namespace TileShop.UI.ViewModels;
-
-public partial class ResizeTiledScatteredArrangerViewModel : RequestBaseViewModel<ResizeTiledScatteredArrangerViewModel>
+public partial class ResizeTiledScatteredArrangerViewModel : RequestViewModel<ResizeTiledScatteredArrangerViewModel>
 {
     private readonly IInteractionService _interactions;
 
@@ -31,16 +29,16 @@ public partial class ResizeTiledScatteredArrangerViewModel : RequestBaseViewMode
 
     public override ResizeTiledScatteredArrangerViewModel? ProduceResult() => this;
 
-    protected override async Task<bool> OnAccepting()
+    protected override async Task<bool> OnAccepted()
     {
-        if (Width < OriginalWidth || Height < OriginalHeight)
-        {
-            var boxResult = await _interactions.PromptAsync(PromptChoices.YesNo, "The specified dimensions will shrink the arranger. Elements outside of the new arranger dimensions will be lost. Continue?");
+        if (Width >= OriginalWidth && Height >= OriginalHeight)
+            return true;
+        
+        var boxResult = await _interactions.PromptAsync(
+            PromptChoices.YesNo, 
+            "Resize", 
+            "The specified dimensions will shrink the arranger. Elements outside of the new arranger dimensions will be lost. Continue?");
 
-            if (boxResult == PromptResult.Reject)
-                return false;
-        }
-
-        return true;
+        return boxResult is PromptResult.Accept;
     }
 }

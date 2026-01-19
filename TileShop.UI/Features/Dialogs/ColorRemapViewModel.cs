@@ -2,12 +2,11 @@
 using ImageMagitek.Colors;
 using System.Collections.ObjectModel;
 using TileShop.UI.Models;
-using TileShop.UI.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
-
-public partial class ColorRemapViewModel : RequestBaseViewModel<ColorRemapViewModel> //, IDropTarget //, IDropTarget, IDragSource
+public partial class ColorRemapViewModel : RequestViewModel<ColorRemapViewModel> //, IDropTarget //, IDropTarget, IDragSource
 {
     private readonly IColorFactory _colorFactory;
 

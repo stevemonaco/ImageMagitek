@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
@@ -15,9 +16,9 @@ namespace TileShop.UI.Controls;
 /// </summary>
 [TemplatePart(Name = "PART_Backdrop", Type = typeof(Border), IsRequired = true)]
 [TemplatePart(Name = "PART_DialogCard", Type = typeof(Border))]
-[TemplatePart(Name = "PART_AcceptButton", Type = typeof(Button), IsRequired = true)]
-[TemplatePart(Name = "PART_RejectButton", Type = typeof(Button), IsRequired = true)]
-[TemplatePart(Name = "PART_CancelButton", Type = typeof(Button), IsRequired = true)]
+// [TemplatePart(Name = "PART_AcceptButton", Type = typeof(Button), IsRequired = true)]
+// [TemplatePart(Name = "PART_RejectButton", Type = typeof(Button), IsRequired = true)]
+// [TemplatePart(Name = "PART_CancelButton", Type = typeof(Button), IsRequired = true)]
 [TemplatePart(Name = "PART_CloseButton", Type = typeof(Button), IsRequired = true)]
 public partial class OverlayDialog : TemplatedControl
 {
@@ -28,6 +29,11 @@ public partial class OverlayDialog : TemplatedControl
     private Button? _rejectButton;
     private Button? _cancelButton;
     private Button? _closeButton;
+
+    public OverlayDialog()
+    {
+        SetCurrentValue(OptionsProperty, []);
+    }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
@@ -51,9 +57,9 @@ public partial class OverlayDialog : TemplatedControl
 
         _backdrop = e.NameScope.Get<Border>("PART_Backdrop");
         _dialogCard = e.NameScope.Find<Border>("PART_DialogCard");
-        _acceptButton = e.NameScope.Get<Button>("PART_AcceptButton");
-        _rejectButton = e.NameScope.Get<Button>("PART_RejectButton");
-        _cancelButton = e.NameScope.Get<Button>("PART_CancelButton");
+        // _acceptButton = e.NameScope.Get<Button>("PART_AcceptButton");
+        // _rejectButton = e.NameScope.Get<Button>("PART_RejectButton");
+        // _cancelButton = e.NameScope.Get<Button>("PART_CancelButton");
         _closeButton = e.NameScope.Get<Button>("PART_CloseButton");
 
         _backdrop.PointerPressed += OnLightDismiss;
@@ -62,7 +68,6 @@ public partial class OverlayDialog : TemplatedControl
     internal Task<bool> ShowAsync()
     {
         _dialogCompletion = new TaskCompletionSource<bool>();
-        IsVisible = true;
         _ = AnimateInAsync();
         return _dialogCompletion.Task;
     }
@@ -70,7 +75,6 @@ public partial class OverlayDialog : TemplatedControl
     internal async Task CloseAsync(bool result)
     {
         await AnimateOutAsync();
-        IsVisible = false;
         _dialogCompletion?.TrySetResult(result);
     }
     
@@ -83,21 +87,44 @@ public partial class OverlayDialog : TemplatedControl
         await CloseAsync(false);
     }
 
-    protected override void OnKeyDown(KeyEventArgs e)
+    protected override async void OnKeyDown(KeyEventArgs e)
     {
-        base.OnKeyDown(e);
+        try
+        {
+            base.OnKeyDown(e);
+            
+            if (e.Key == Key.Escape && (ShowCancelButton || ShowCloseButton))
+            {
+                var cancelOption = Options.FirstOrDefault(o => o.IsCancel);
 
-        if (e.Key == Key.Escape && (ShowCancelButton || ShowCloseButton))
-        {
-            CancelCommand?.Execute(null);
-            _ = CloseAsync(false);
-            e.Handled = true;
+                if (cancelOption is not null && cancelOption.OptionCommand.CanExecute(null))
+                {
+                    e.Handled = true;
+                    await cancelOption.OptionCommand.ExecuteAsync(null);
+                }
+                else
+                {
+                    e.Handled = true;
+                    _dialogCompletion?.TrySetCanceled();
+                }
+                
+                _ = CloseAsync(false);
+            }
+            else if (e.Key == Key.Enter)
+            {
+                var defaultOption = Options.FirstOrDefault(o => o.IsDefault);
+                if (defaultOption is not null && defaultOption.OptionCommand.CanExecute(null))
+                {
+                    e.Handled = true;
+                    await defaultOption.OptionCommand.ExecuteAsync(null);
+                    _ = CloseAsync(true);
+                }
+            }
         }
-        else if (e.Key == Key.Enter && IsAcceptEnabled)
+        catch (Exception exception)
         {
-            AcceptCommand?.Execute(null);
-            _ = CloseAsync(true);
-            e.Handled = true;
+            Debug.WriteLine(exception);
+            throw;
         }
     }
 
@@ -106,8 +133,8 @@ public partial class OverlayDialog : TemplatedControl
         if (_backdrop is null || _dialogCard is null)
             return;
 
-        _backdrop.Opacity = 0;
-        _dialogCard.Opacity = 0;
+        _backdrop.SetCurrentValue(OpacityProperty, 0);
+        _dialogCard.SetCurrentValue(OpacityProperty, 0);
         _dialogCard.RenderTransform = new Avalonia.Media.ScaleTransform(0.9, 0.9);
 
         var overlayAnimation = new Animation
@@ -116,8 +143,8 @@ public partial class OverlayDialog : TemplatedControl
             Easing = new CubicEaseOut(),
             Children =
             {
-                new KeyFrame { Cue = new Cue(0), Setters = { new Setter(OpacityProperty, 0.0) } },
-                new KeyFrame { Cue = new Cue(1), Setters = { new Setter(OpacityProperty, 1.0) } }
+                new KeyFrame { Cue = new Cue(0), Setters = { new Setter(OpacityProperty, 0.0d) } },
+                new KeyFrame { Cue = new Cue(1), Setters = { new Setter(OpacityProperty, 1.0d) } }
             }
         };
 
@@ -132,9 +159,9 @@ public partial class OverlayDialog : TemplatedControl
                     Cue = new Cue(0),
                     Setters =
                     {
-                        new Setter(OpacityProperty, 0.0),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, 0.9),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, 0.9)
+                        new Setter(OpacityProperty, 0.0d),
+                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, 0.9d),
+                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, 0.9d)
                     }
                 },
                 new KeyFrame
@@ -142,9 +169,9 @@ public partial class OverlayDialog : TemplatedControl
                     Cue = new Cue(1),
                     Setters =
                     {
-                        new Setter(OpacityProperty, 1.0),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, 1.0),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, 1.0)
+                        new Setter(OpacityProperty, 1.0d),
+                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, 1.0d),
+                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, 1.0d)
                     }
                 }
             }
@@ -167,8 +194,8 @@ public partial class OverlayDialog : TemplatedControl
             Easing = new CubicEaseIn(),
             Children =
             {
-                new KeyFrame { Cue = new Cue(0), Setters = { new Setter(OpacityProperty, 1.0) } },
-                new KeyFrame { Cue = new Cue(1), Setters = { new Setter(OpacityProperty, 0.0) } }
+                new KeyFrame { Cue = new Cue(0), Setters = { new Setter(OpacityProperty, 1.0d) } },
+                new KeyFrame { Cue = new Cue(1), Setters = { new Setter(OpacityProperty, 0.0d) } }
             }
         };
 
@@ -183,9 +210,9 @@ public partial class OverlayDialog : TemplatedControl
                     Cue = new Cue(0),
                     Setters =
                     {
-                        new Setter(OpacityProperty, 1.0),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, 1.0),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, 1.0)
+                        new Setter(OpacityProperty, 1.0d),
+                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, 1.0d),
+                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, 1.0d)
                     }
                 },
                 new KeyFrame
@@ -194,8 +221,8 @@ public partial class OverlayDialog : TemplatedControl
                     Setters =
                     {
                         new Setter(OpacityProperty, 0.0),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, 0.9),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, 0.9)
+                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, 0.9d),
+                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, 0.9d)
                     }
                 }
             }

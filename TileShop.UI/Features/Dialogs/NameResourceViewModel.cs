@@ -1,9 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.UI.Controls;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
 
-public partial class NameResourceViewModel : RequestBaseViewModel<string?>
+public partial class NameResourceViewModel : RequestViewModel<string?>
 {
     [ObservableProperty] private string? _resourceName;
 

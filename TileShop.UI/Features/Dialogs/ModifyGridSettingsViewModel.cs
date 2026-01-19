@@ -1,9 +1,9 @@
 ﻿using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.UI.Controls;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
-public sealed partial class ModifyGridSettingsViewModel : RequestBaseViewModel<ModifyGridSettingsViewModel?>
+public sealed partial class ModifyGridSettingsViewModel : RequestViewModel<ModifyGridSettingsViewModel?>
 {
     [ObservableProperty] private int _shiftX;
     [ObservableProperty] private int _shiftY;

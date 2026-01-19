@@ -10,7 +10,7 @@ using Dock.Model.Core;
 namespace TileShop.UI;
 public class ViewLocator : IDataTemplate
 {
-    private Dictionary<Type, Func<Control>> _locatorMap = new();
+    private readonly Dictionary<Type, Func<Control>> _locatorMap = new();
     
     public Control Build(object? data)
     {

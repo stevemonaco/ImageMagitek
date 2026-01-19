@@ -45,6 +45,14 @@ public partial class ShellViewModel : ObservableObject
     {
         await _interactionService.AlertAsync("Title", "Hello World");
     }
+    
+    [RelayCommand]
+    public async Task ShowPrompt()
+    {
+        var result = await _interactionService.PromptAsync(PromptChoices.YesNoCancel, "Title", "Hello World");
+        
+        await _interactionService.AlertAsync("Result from VM", result.ToString());
+    }
 
     public async Task<bool> PrepareApplicationExit()
     {

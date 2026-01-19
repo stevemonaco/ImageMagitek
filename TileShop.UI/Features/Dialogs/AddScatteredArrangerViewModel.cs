@@ -4,11 +4,10 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ImageMagitek;
-using TileShop.UI.Controls;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
-
-public partial class AddScatteredArrangerViewModel : RequestBaseViewModel<AddScatteredArrangerViewModel>
+public partial class AddScatteredArrangerViewModel : RequestViewModel<AddScatteredArrangerViewModel>
 {
     [ObservableProperty] private string _arrangerName = "";
     [ObservableProperty] private PixelColorType _colorType;

@@ -1,6 +1,5 @@
-﻿namespace TileShop.UI.Controls.Dialogs;
-
-public class AlertViewModel : RequestBaseViewModel<bool>
+﻿namespace TileShop.Shared.Interactions;
+public class AlertViewModel : RequestViewModel<bool>
 {
     public string Message { get; }
 

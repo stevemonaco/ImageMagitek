@@ -24,46 +24,21 @@ internal class InteractionService : IInteractionService
     {
         await Task.Yield(); // Yield ensures any ContextMenus are closed so focus isn't stolen
 
-        // var titleBlock = new SelectableTextBlock()
-        // {
-        //     Text = title
-        // };
-        //
-        // var contentBlock = new SelectableTextBlock()
-        // {
-        //     Text = message
-        // };
-
         var mediator = new AlertViewModel(title, message);
         var host = GetDialogHost();
 
         await host.ShowMediatorAsync(mediator);
-
-        //var cd = new ContentDialog
-        //{
-        //    PrimaryButtonText = "Ok",
-        //    Title = titleBlock,
-        //    Content = contentBlock,
-        //    IsPrimaryButtonEnabled = true,
-        //    IsSecondaryButtonEnabled = false,
-        //    DefaultButton = ContentDialogButton.Primary
-        //};
-
-        //cd.AttachedToVisualTree += InitializeWithFocus;
-        //await cd.ShowAsync();
-        //cd.AttachedToVisualTree -= InitializeWithFocus;
-
-        //void InitializeWithFocus(object? sender, VisualTreeAttachmentEventArgs e)
-        //{
-        //    cd.Focus();
-        //}
     }
 
     /// <inheritdoc/>
-    public async Task<PromptResult> PromptAsync(PromptChoice choices, string title, string? message = default)
+    public async Task<PromptResult> PromptAsync(PromptChoice choices, string title, string message)
     {
         await Task.Yield(); // Yield ensures any ContextMenus are closed so focus isn't stolen
-        return PromptResult.Cancel;
+
+        var mediator = new PromptViewModel(choices, title, message);
+        var host = GetDialogHost();
+        
+        return await host.ShowMediatorAsync(mediator);
         //var cd = ChoiceToDialog(choices);
 
         //cd.Title = title;
@@ -80,8 +55,9 @@ internal class InteractionService : IInteractionService
         await Task.Yield(); // Yield ensures any ContextMenus are closed so focus isn't stolen
         var content = _viewLocator.Build(mediator);
         content.DataContext = mediator;
-
-        return default;
+        
+        var host = GetDialogHost();
+        return await host.ShowMediatorAsync(mediator);
 
         //var dialog = new ContentDialog()
         //{

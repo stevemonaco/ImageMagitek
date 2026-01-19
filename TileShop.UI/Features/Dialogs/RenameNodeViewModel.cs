@@ -1,9 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.UI.Controls;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
-
-public partial class RenameNodeViewModel : RequestBaseViewModel<string?>
+public partial class RenameNodeViewModel : RequestViewModel<string?>
 {
     private readonly ResourceNodeViewModel _nodeModel;
 

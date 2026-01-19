@@ -23,6 +23,8 @@
                 <Button x:Name="debugLoadButton" Command="{Binding DebugLoadCommand}" Content="Load FF2" IsVisible="False" />
                 <Button Click="Button_OnClick" Content="Alert View" />
                 <Button Command="{Binding ShowAlertCommand}" Content="Alert VM" />
+                <Button Click="PromptButton_OnClick" Content="Prompt View" />
+                <Button Command="{Binding ShowPromptCommand}" Content="Prompt VM" />
             </StackPanel>
 
             <idc:DockControl Name="_dock" Grid.Row="1" />

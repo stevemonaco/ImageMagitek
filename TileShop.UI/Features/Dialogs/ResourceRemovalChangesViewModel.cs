@@ -2,12 +2,11 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using TileShop.Shared.Interactions;
 using TileShop.Shared.Models;
-using TileShop.UI.Controls;
 
 namespace TileShop.UI.ViewModels;
-
-public partial class ResourceRemovalChangesViewModel : RequestBaseViewModel<bool>
+public partial class ResourceRemovalChangesViewModel : RequestViewModel<bool>
 {
     [ObservableProperty] private ResourceChangeViewModel _removedResource;
     [ObservableProperty] private ObservableCollection<ResourceChangeViewModel> _removedResources = new();
