@@ -31,7 +31,7 @@
         <Setter Property="Focusable" Value="True" />
         <Setter Property="Template">
             <ControlTemplate>
-                <Panel>
+                <Panel Name="PART_RootPanel">
                     <Border Background="{StaticResource OverlayDialogBackdrop}" x:Name="PART_Backdrop" />
 
                     <Border
@@ -41,7 +41,7 @@
                         BoxShadow="0 8 24 0 #40000000"
                         CornerRadius="8"
                         HorizontalAlignment="Center"
-                        MaxHeight="800"
+                        MaxHeight="{Binding #PART_RootPanel.Bounds.Height}"
                         MaxWidth="600"
                         MinWidth="320"
                         Padding="8"
@@ -57,8 +57,7 @@
                             <Border
                                 BorderBrush="{DynamicResource SemiColorBorder}"
                                 BorderThickness="0,0,0,1"
-                                Grid.Row="0"
-                                Margin="0,0,0,8">
+                                Grid.Row="0">
                                 <Grid ColumnDefinitions="Auto,*,Auto">
                                     <!--  Mode Icon  -->
                                     <PathIcon
@@ -114,26 +113,27 @@
                             <ScrollViewer
                                 Grid.Row="1"
                                 HorizontalScrollBarVisibility="Disabled"
-                                Margin="0,8,0,8"
                                 MinHeight="80"
                                 VerticalScrollBarVisibility="Auto">
                                 <ContentPresenter Content="{TemplateBinding Content}" />
                             </ScrollViewer>
 
                             <!--  Button bar  -->
-                            <Border Grid.Row="2">
-                                <ItemsControl ItemTemplate="{StaticResource RequestOptionTemplate}" ItemsSource="{TemplateBinding Options}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <!--  <StackPanel  -->
-                                            <!--  HorizontalAlignment="Right"  -->
-                                            <!--  Orientation="Horizontal"  -->
-                                            <!--  Spacing="12" />  -->
-                                            <UniformGrid ColumnSpacing="8" Rows="1" />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                </ItemsControl>
-                            </Border>
+                            <ItemsControl
+                                Grid.Row="2"
+                                ItemTemplate="{StaticResource RequestOptionTemplate}"
+                                ItemsSource="{TemplateBinding Options}"
+                                Margin="0,8,0,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <!--  <StackPanel  -->
+                                        <!--  HorizontalAlignment="Right"  -->
+                                        <!--  Orientation="Horizontal"  -->
+                                        <!--  Spacing="12" />  -->
+                                        <UniformGrid ColumnSpacing="8" Rows="1" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
                         </Grid>
                     </Border>
                 </Panel>
