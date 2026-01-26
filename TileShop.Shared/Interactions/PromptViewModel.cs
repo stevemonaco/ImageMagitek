@@ -1,9 +1,11 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Input;
 
 namespace TileShop.Shared.Interactions;
-public class PromptViewModel : RequestViewModel<PromptResult>
+public class PromptViewModel : RequestBaseViewModel<PromptResult>
 {
     public string Message { get; }
     private PromptResult _result = PromptResult.Cancel;
@@ -14,6 +16,10 @@ public class PromptViewModel : RequestViewModel<PromptResult>
         _choices = choices;
         Title = title;
         Message = message;
+        
+        TryAcceptCommand = new AsyncRelayCommand(Accept, CanAccept); 
+        TryCancelCommand = new AsyncRelayCommand(TryCancel, CanTryCancel); 
+        TryRejectCommand = new AsyncRelayCommand(TryReject, CanTryReject);
 
         Options = [];
         
@@ -27,6 +33,7 @@ public class PromptViewModel : RequestViewModel<PromptResult>
             Options.Add(new RequestOption(choices.Accept, TryAcceptCommand));
     }
 
+    public override ObservableCollection<RequestOption> Options { get; protected set; }
     public override PromptResult ProduceResult() => _result;
 
     public override ObservableCollection<RequestOption> CreateOptions()
@@ -45,12 +52,14 @@ public class PromptViewModel : RequestViewModel<PromptResult>
         return options;
     }
 
-    public IAsyncRelayCommand TryRejectCommand => field ??= new AsyncRelayCommand(TryReject, CanTryReject);
+    public IAsyncRelayCommand TryAcceptCommand { get; }
+    public IAsyncRelayCommand TryCancelCommand { get; }
+    public IAsyncRelayCommand TryRejectCommand { get; }
 
-    protected virtual Task TryReject()
+    protected virtual Task<bool> TryReject()
     {
         _result = PromptResult.Reject;
-        return Task.CompletedTask;
+        return Task.FromResult(TryClose());
     }
     
     protected virtual bool CanTryReject() => true;

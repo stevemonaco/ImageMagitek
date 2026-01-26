@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.Input;
 using TileShop.Shared.Interactions;
 
@@ -23,22 +24,29 @@ public class DialogHost : Panel
             Content = mediator,
             Title = mediator.Title,
             Options = mediator.Options,
-            // AcceptCommand = mediator.TryAcceptCommand,
-            // CancelCommand = mediator.TryCancelCommand,
-            // AcceptText = mediator.AcceptName,
-            // CancelText = mediator.CancelName
         };
         
         Children.Add(dialog);
         mediator.Closed += MediatorOnClosed;
+        dialog.Dismiss += DialogOnDismiss;
+        
         return await tcs.Task;
+
+        async void DialogOnDismiss(object? sender, RoutedEventArgs e)
+        {
+            var isCanceled = await mediator.TryCancel();
+
+            if (isCanceled)
+            {
+                dialog.Dismiss -= DialogOnDismiss;
+            }
+        }
         
         void MediatorOnClosed(object? sender, EventArgs e)
         {
             mediator.Closed -= MediatorOnClosed;
-            
             Children.Remove(dialog);
-            tcs.SetResult(mediator.Result);
+            tcs.SetResult(mediator.RequestResult);
         }
     }
     

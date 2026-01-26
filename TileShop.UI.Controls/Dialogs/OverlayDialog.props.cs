@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using Avalonia;
+using Avalonia.Interactivity;
 using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.Controls;
@@ -112,6 +113,15 @@ public partial class OverlayDialog
     {
         get => GetValue(ModeProperty);
         set => SetValue(ModeProperty, value);
+    }
+    
+    public static readonly RoutedEvent<RoutedEventArgs> DismissEvent =
+        RoutedEvent.Register<OverlayDialog, RoutedEventArgs>(nameof(Dismiss), RoutingStrategies.Bubble);
+
+    public event EventHandler<RoutedEventArgs> Dismiss
+    {
+        add => AddHandler(DismissEvent, value);
+        remove => RemoveHandler(DismissEvent, value);
     }
 
     public static readonly StyledProperty<bool> IsLightDismissProperty =

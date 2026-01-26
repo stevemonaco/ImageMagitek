@@ -10,7 +10,7 @@ public interface IRequestMediator<out TResult> : INotifyPropertyChanged
     string Title { get; }
     // string AcceptName { get; }
     // string CancelName { get; }
-    TResult? Result { get; }
+    TResult? RequestResult { get; }
 
     // IAsyncRelayCommand TryAcceptCommand { get; }
     // IAsyncRelayCommand TryCancelCommand { get; }
@@ -18,6 +18,7 @@ public interface IRequestMediator<out TResult> : INotifyPropertyChanged
     ObservableCollection<RequestOption> Options { get; }
 
     Task OnOpening();
+    Task<bool> TryCancel();
     
     event EventHandler<CancelEventArgs>? Closing;
     event EventHandler? Closed;

@@ -12,7 +12,7 @@ namespace TileShop.Shared.Interactions;
 /// <typeparam name="TResult"></typeparam>
 public abstract partial class RequestBaseViewModel<TResult> : ObservableValidator, IRequestMediator<TResult>
 {
-    public TResult? Result { get; private set; }
+    public TResult? RequestResult { get; private set; }
     public abstract ObservableCollection<RequestOption> Options { get; protected set; }
 
     [ObservableProperty] private string _title = "";
@@ -50,8 +50,8 @@ public abstract partial class RequestBaseViewModel<TResult> : ObservableValidato
         if (cancelArgs.Cancel)
             return;
         
-        Result = ProduceResult();
-        OnPropertyChanged(nameof(Result));
+        RequestResult = ProduceResult();
+        OnPropertyChanged(nameof(RequestResult));
         
         var hasAccepted = await OnAccepted();
         
@@ -66,7 +66,7 @@ public abstract partial class RequestBaseViewModel<TResult> : ObservableValidato
     /// <summary>
     /// Called when the user cancels an interaction
     /// </summary>
-    protected virtual Task<bool> TryCancel()
+    public virtual Task<bool> TryCancel()
     {
         var cancelArgs = new CancelEventArgs();
         Closing?.Invoke(this, cancelArgs);
@@ -74,8 +74,8 @@ public abstract partial class RequestBaseViewModel<TResult> : ObservableValidato
         if (cancelArgs.Cancel)
             return Task.FromResult(false);
         
-        Result = default;
-        OnPropertyChanged(nameof(Result));
+        RequestResult = default;
+        OnPropertyChanged(nameof(RequestResult));
         
         Closed?.Invoke(this, EventArgs.Empty);
         return Task.FromResult(true);
@@ -91,8 +91,8 @@ public abstract partial class RequestBaseViewModel<TResult> : ObservableValidato
         if (cancelArgs.Cancel)
             return false;
         
-        Result = ProduceResult();
-        OnPropertyChanged(nameof(Result));
+        RequestResult = ProduceResult();
+        OnPropertyChanged(nameof(RequestResult));
         
         Closed?.Invoke(this, EventArgs.Empty);
         return true;

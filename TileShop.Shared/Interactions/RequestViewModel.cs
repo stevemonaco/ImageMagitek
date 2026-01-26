@@ -10,7 +10,7 @@ public abstract class RequestViewModel<TResult> : RequestBaseViewModel<TResult>
 {
     public override ObservableCollection<RequestOption> Options { get; protected set; } = [];
     
-    public override TResult? ProduceResult() => Result;
+    public override TResult? ProduceResult() => RequestResult;
 
     public override ObservableCollection<RequestOption> CreateOptions()
     {

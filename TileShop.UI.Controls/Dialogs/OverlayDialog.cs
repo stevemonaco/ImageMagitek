@@ -16,18 +16,12 @@ namespace TileShop.UI.Controls;
 /// </summary>
 [TemplatePart(Name = "PART_Backdrop", Type = typeof(Border), IsRequired = true)]
 [TemplatePart(Name = "PART_DialogCard", Type = typeof(Border))]
-// [TemplatePart(Name = "PART_AcceptButton", Type = typeof(Button), IsRequired = true)]
-// [TemplatePart(Name = "PART_RejectButton", Type = typeof(Button), IsRequired = true)]
-// [TemplatePart(Name = "PART_CancelButton", Type = typeof(Button), IsRequired = true)]
-[TemplatePart(Name = "PART_CloseButton", Type = typeof(Button), IsRequired = true)]
+[TemplatePart(Name = "PART_CloseButton", Type = typeof(Button), IsRequired = false)]
 public partial class OverlayDialog : TemplatedControl
 {
     private TaskCompletionSource<bool>? _dialogCompletion;
     private Border? _backdrop;
     private Border? _dialogCard;
-    private Button? _acceptButton;
-    private Button? _rejectButton;
-    private Button? _cancelButton;
     private Button? _closeButton;
 
     public OverlayDialog()
@@ -35,34 +29,18 @@ public partial class OverlayDialog : TemplatedControl
         SetCurrentValue(OptionsProperty, []);
     }
 
-    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        AddHandler(Button.ClickEvent, Handler);
-    }
-
-    private void Handler(object? sender, RoutedEventArgs e)
-    {
-        if (ReferenceEquals(sender, _acceptButton))
-            _ = CloseAsync(true);
-        
-        if (ReferenceEquals(sender, _rejectButton) || 
-            ReferenceEquals(sender, _cancelButton) || 
-            ReferenceEquals(sender, _closeButton))
-            _ = CloseAsync(false);
-    }
-
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
+        
+        _closeButton?.RemoveHandler(Button.ClickEvent, CloseButtonHandler);
 
         _backdrop = e.NameScope.Get<Border>("PART_Backdrop");
         _dialogCard = e.NameScope.Find<Border>("PART_DialogCard");
-        // _acceptButton = e.NameScope.Get<Button>("PART_AcceptButton");
-        // _rejectButton = e.NameScope.Get<Button>("PART_RejectButton");
-        // _cancelButton = e.NameScope.Get<Button>("PART_CancelButton");
         _closeButton = e.NameScope.Get<Button>("PART_CloseButton");
 
-        _backdrop.PointerPressed += OnLightDismiss;
+        _backdrop?.AddHandler(PointerPressedEvent, OnLightDismissPressed);
+        _closeButton?.AddHandler(Button.ClickEvent, CloseButtonHandler);
     }
     
     internal Task<bool> ShowAsync()
@@ -78,13 +56,23 @@ public partial class OverlayDialog : TemplatedControl
         _dialogCompletion?.TrySetResult(result);
     }
     
-    private async void OnLightDismiss(object? sender, PointerPressedEventArgs e)
+    private async void OnLightDismissPressed(object? sender, PointerPressedEventArgs e)
     {
         if (!IsLightDismiss)
             return;
 
         e.Handled = true;
         await CloseAsync(false);
+        RaiseEvent(new RoutedEventArgs(DismissEvent));
+    }
+    
+    private async void CloseButtonHandler(object? sender, RoutedEventArgs e)
+    {
+        if (ReferenceEquals(sender, _closeButton))
+        {
+            await CloseAsync(false);
+            RaiseEvent(new RoutedEventArgs(DismissEvent));
+        }
     }
 
     protected override async void OnKeyDown(KeyEventArgs e)

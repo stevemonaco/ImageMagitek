@@ -1,6 +1,6 @@
 ﻿namespace TileShop.Shared.Interactions;
 
-public enum PromptResult { Accept, Reject, Cancel }
+public enum PromptResult { Cancel, Accept, Reject }
 public record PromptChoice(string? Accept = null, string? Reject = null, string? Cancel = null);
 
 public static class PromptChoices
