@@ -5,6 +5,10 @@
     <Styles.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!--  Re-templates and alternate looks  -->
+                <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/ClearButton.axaml" />
+
+                <!--  Custom controls  -->
                 <MergeResourceInclude Source="avares://TileShop.UI.Controls/Dialogs/OverlayDialog.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

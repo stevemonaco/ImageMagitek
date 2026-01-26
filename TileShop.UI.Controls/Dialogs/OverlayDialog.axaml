@@ -5,7 +5,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--  Icon Geometries  -->
-    <StreamGeometry x:Key="DialogCloseIconGlyph">M764.3 205.7a8.03 8.03 0 0 0-11.3 0L512 446.9 271 205.7a8.03 8.03 0 0 0-11.3 0l-45.2 45.2a8.03 8.03 0 0 0 0 11.3L455.7 503 214.5 744.2a8.03 8.03 0 0 0 0 11.3l45.2 45.2c3.1 3.1 8.2 3.1 11.3 0L512 559.1l241 241c3.1 3.1 8.2 3.1 11.3 0l45.2-45.2c3.1-3.1 3.1-8.2 0-11.3L568.3 503l241-241.2c3.1-3.1 3.1-8.2 0-11.3l-45-44.8z</StreamGeometry>
+    <StreamGeometry x:Key="DialogCloseIconGlyph">M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z</StreamGeometry>
+    <!-- <StreamGeometry x:Key="DialogCloseIconGlyph">M764.3 205.7a8.03 8.03 0 0 0-11.3 0L512 446.9 271 205.7a8.03 8.03 0 0 0-11.3 0l-45.2 45.2a8.03 8.03 0 0 0 0 11.3L455.7 503 214.5 744.2a8.03 8.03 0 0 0 0 11.3l45.2 45.2c3.1 3.1 8.2 3.1 11.3 0L512 559.1l241 241c3.1 3.1 8.2 3.1 11.3 0l45.2-45.2c3.1-3.1 3.1-8.2 0-11.3L568.3 503l241-241.2c3.1-3.1 3.1-8.2 0-11.3l-45-44.8z</StreamGeometry> -->
+
     <StreamGeometry x:Key="DialogInfoIconGlyph">M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm32 664c0 4.4-3.6 8-8 8h-48c-4.4 0-8-3.6-8-8V456c0-4.4 3.6-8 8-8h48c4.4 0 8 3.6 8 8v272zm-32-344a48.01 48.01 0 0 1 0-96 48.01 48.01 0 0 1 0 96z</StreamGeometry>
     <StreamGeometry x:Key="DialogWarningIconGlyph">M955.7 856l-416-720c-6.2-10.7-16.9-16-27.7-16s-21.6 5.3-27.7 16l-416 720C56 877.4 71.4 904 96 904h832c24.6 0 40-26.6 27.7-48zM480 416c0-4.4 3.6-8 8-8h48c4.4 0 8 3.6 8 8v184c0 4.4-3.6 8-8 8h-48c-4.4 0-8-3.6-8-8V416zm32 352a48.01 48.01 0 0 1 0-96 48.01 48.01 0 0 1 0 96z</StreamGeometry>
     <StreamGeometry x:Key="DialogErrorIconGlyph">M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm165.4 618.2l-66-.3L512 563.4l-99.3 118.4-66.1.3c-4.4 0-8-3.5-8-8 0-1.9.7-3.7 1.9-5.2l130.1-155L340.5 359a8.32 8.32 0 0 1-1.9-5.2c0-4.4 3.6-8 8-8l66.1.3L512 464.6l99.3-118.4 66-.3c4.4 0 8 3.5 8 8 0 1.9-.7 3.7-1.9 5.2L553.5 514l130 155c1.2 1.5 1.9 3.3 1.9 5.2 0 4.4-3.6 8-8 8z</StreamGeometry>
@@ -19,6 +21,8 @@
             Classes="Tertiary"
             Command="{Binding OptionCommand}"
             Content="{Binding OptionText}"
+            FontFamily="{x:Static cc:AppFonts.IbmPlexSans}"
+            HorizontalAlignment="Stretch"
             MinWidth="80" />
     </DataTemplate>
 
@@ -65,27 +69,40 @@
 
                                     <!--  Title  -->
                                     <TextBlock
-                                        FontSize="16"
+                                        FontFamily="{x:Static cc:AppFonts.IbmPlexSans}"
+                                        FontSize="15"
                                         FontWeight="SemiBold"
+                                        Foreground="#F4F4F4"
                                         Grid.Column="1"
+                                        HorizontalAlignment="Left"
                                         Text="{TemplateBinding Title}"
                                         TextWrapping="Wrap"
                                         VerticalAlignment="Center" />
 
                                     <!--  Close Button  -->
                                     <Button
-                                        Classes="Borderless"
                                         Grid.Column="2"
-                                        Height="32"
                                         IsVisible="{TemplateBinding ShowCloseButton}"
-                                        Margin="12,0,0,0"
-                                        Padding="0"
+                                        Padding="8"
+                                        Theme="{StaticResource ClearButton}"
                                         VerticalAlignment="Center"
-                                        Width="32"
+                                        VerticalContentAlignment="Center"
                                         x:Name="PART_CloseButton">
+                                        <Button.Styles>
+                                            <Style Selector="Button">
+                                                <Style Selector="^:pointerover  /template/ ContentPresenter#PART_ContentPresenter">
+                                                    <Setter Property="Foreground" Value="{DynamicResource CaptionButtonCloseForeground}" />
+                                                    <Setter Property="Background" Value="{DynamicResource CaptionButtonClosePointeroverBackground}" />
+                                                </Style>
+                                                <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                                                    <Setter Property="Foreground" Value="{DynamicResource CaptionButtonCloseForeground}" />
+                                                    <Setter Property="Background" Value="{DynamicResource CaptionButtonClosePressedBackground}" />
+                                                </Style>
+                                            </Style>
+                                        </Button.Styles>
                                         <PathIcon
                                             Data="{StaticResource DialogCloseIconGlyph}"
-                                            Foreground="{DynamicResource SemiColorTextSecondary}"
+                                            Foreground="{DynamicResource CaptionButtonForeground}"
                                             Height="16"
                                             Width="16" />
                                     </Button>
@@ -105,13 +122,16 @@
                                 <ItemsControl ItemTemplate="{StaticResource RequestOptionTemplate}" ItemsSource="{TemplateBinding Options}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
-                                            <StackPanel
-                                                HorizontalAlignment="Right"
-                                                Orientation="Horizontal"
-                                                Spacing="12" />
+                                            <!--  <StackPanel  -->
+                                            <!--  HorizontalAlignment="Right"  -->
+                                            <!--  Orientation="Horizontal"  -->
+                                            <!--  Spacing="12" />  -->
+                                            <UniformGrid ColumnSpacing="8" Rows="1" />
                                         </ItemsPanelTemplate>
                                     </ItemsControl.ItemsPanel>
                                 </ItemsControl>
+
+
                                 <!--  <StackPanel  -->
                                 <!--  HorizontalAlignment="Right"  -->
                                 <!--  Orientation="Horizontal"  -->

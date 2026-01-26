@@ -17,4 +17,39 @@
     <ItemGroup>
       <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-Bold.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-Bold.ttf" />
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-BoldItalic.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-BoldItalic.ttf" />
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-ExtraLight.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-ExtraLight.ttf" />
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-ExtraLightItalic.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-ExtraLightItalic.ttf" />
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-Italic.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-Italic.ttf" />
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-Light.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-Light.ttf" />
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-LightItalic.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-LightItalic.ttf" />
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-Medium.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-Medium.ttf" />
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-MediumItalic.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-MediumItalic.ttf" />
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-Regular.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-Regular.ttf" />
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-SemiBold.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-SemiBold.ttf" />
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-SemiBoldItalic.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-SemiBoldItalic.ttf" />
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-Thin.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-Thin.ttf" />
+      <None Remove="Assets\Fonts\IBM Plex Sans\IBMPlexSans-ThinItalic.ttf" />
+      <AvaloniaResource Include="Assets\Fonts\IBM Plex Sans\IBMPlexSans-ThinItalic.ttf" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Styles\" />
+    </ItemGroup>
 </Project>
