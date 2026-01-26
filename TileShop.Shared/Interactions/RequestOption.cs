@@ -11,12 +11,17 @@ public partial class RequestOption : ObservableObject
     [ObservableProperty] private string _optionText;
     [ObservableProperty] private bool _isDefault;
     [ObservableProperty] private bool _isCancel;
+    [ObservableProperty] private bool _isDanger;
     
     public IAsyncRelayCommand OptionCommand { get; }
 
-    public RequestOption(string optionText, IAsyncRelayCommand optionCommand)
+    public RequestOption(string optionText, IAsyncRelayCommand optionCommand,
+        bool isDefault = false, bool isCancel = false, bool isDanger = false)
     {
         _optionText = optionText;
         OptionCommand = optionCommand;
+        _isDefault = isDefault;
+        _isCancel = isCancel;
+        _isDanger = isDanger;
     }
 }

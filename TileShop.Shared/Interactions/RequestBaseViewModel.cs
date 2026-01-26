@@ -17,12 +17,6 @@ public abstract partial class RequestBaseViewModel<TResult> : ObservableValidato
 
     [ObservableProperty] private string _title = "";
 
-    // private AsyncRelayCommand? _acceptCommand;
-    // public IAsyncRelayCommand TryAcceptCommand => _acceptCommand ??= new AsyncRelayCommand(Accept, CanAccept);
-    //
-    // private AsyncRelayCommand? _cancelCommand;
-    // public IAsyncRelayCommand TryCancelCommand => _cancelCommand ??= new AsyncRelayCommand(TryCancel, CanTryCancel);
-    
     public event EventHandler<CancelEventArgs>? Closing;
     public event EventHandler? Closed;
 

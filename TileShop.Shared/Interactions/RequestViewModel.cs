@@ -14,17 +14,11 @@ public abstract class RequestViewModel<TResult> : RequestBaseViewModel<TResult>
 
     public override ObservableCollection<RequestOption> CreateOptions()
     {
-        return new()
-        {
-            new RequestOption(CancelName, TryCancelCommand!)
-            {
-                IsCancel = true
-            },
-            new RequestOption(AcceptName, TryAcceptCommand!)
-            {
-                IsDefault = true
-            },
-        };
+        return
+        [
+            new RequestOption(CancelName, TryCancelCommand) { IsCancel = true },
+            new RequestOption(AcceptName, TryAcceptCommand) { IsDefault = true }
+        ];
     }
 
     public IAsyncRelayCommand TryAcceptCommand => field ??= new AsyncRelayCommand(Accept, CanAccept);

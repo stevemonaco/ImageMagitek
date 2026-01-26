@@ -20,20 +20,9 @@ public class PromptViewModel : RequestBaseViewModel<PromptResult>
         TryAcceptCommand = new AsyncRelayCommand(Accept, CanAccept); 
         TryCancelCommand = new AsyncRelayCommand(TryCancel, CanTryCancel); 
         TryRejectCommand = new AsyncRelayCommand(TryReject, CanTryReject);
-
-        Options = [];
-        
-        if (choices.Cancel is not null)
-            Options.Add(new RequestOption(choices.Cancel, TryCancelCommand));
-        
-        if (choices.Reject is not null)
-            Options.Add(new RequestOption(choices.Reject, TryRejectCommand!));
-        
-        if (choices.Accept is not null)
-            Options.Add(new RequestOption(choices.Accept, TryAcceptCommand));
     }
 
-    public override ObservableCollection<RequestOption> Options { get; protected set; }
+    public override ObservableCollection<RequestOption> Options { get; protected set; } = [];
     public override PromptResult ProduceResult() => _result;
 
     public override ObservableCollection<RequestOption> CreateOptions()
@@ -41,13 +30,13 @@ public class PromptViewModel : RequestBaseViewModel<PromptResult>
         var options = new ObservableCollection<RequestOption>();
         
         if (_choices.Cancel is not null)
-            options.Add(new RequestOption(_choices.Cancel, TryCancelCommand));
+            options.Add(new RequestOption(_choices.Cancel, TryCancelCommand, isCancel: true));
         
         if (_choices.Reject is not null)
-            options.Add(new RequestOption(_choices.Reject, TryRejectCommand!));
+            options.Add(new RequestOption(_choices.Reject, TryRejectCommand, isDanger: true));
         
         if (_choices.Accept is not null)
-            options.Add(new RequestOption(_choices.Accept, TryAcceptCommand));
+            options.Add(new RequestOption(_choices.Accept, TryAcceptCommand, isDefault: true));
 
         return options;
     }
