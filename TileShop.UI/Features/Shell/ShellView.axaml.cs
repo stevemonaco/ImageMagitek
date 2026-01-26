@@ -57,18 +57,4 @@ public partial class ShellView : Window
     {
         CreateDockingLayout();
     }
-
-    private async void Button_OnClick(object? sender, RoutedEventArgs e)
-    {
-        var interactionService = Ioc.Default.GetRequiredService<IInteractionService>();
-        await interactionService.AlertAsync("Title", "Message");
-    }
-    
-    private async void PromptButton_OnClick(object? sender, RoutedEventArgs e)
-    {
-        var interactionService = Ioc.Default.GetRequiredService<IInteractionService>();
-        var result = await interactionService.PromptAsync(PromptChoices.YesNoCancel, "Title", "Message");
-        
-        await interactionService.AlertAsync("Result", result.ToString());
-    }
 }
