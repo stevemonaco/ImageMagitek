@@ -2,12 +2,11 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.UI.Windowing;
+using TileShop.Shared.Interactions;
 using TileShop.Shared.Models;
 
 namespace TileShop.UI.ViewModels;
-
-public partial class AssociatePaletteViewModel : DialogViewModel<AssociatePaletteViewModel>
+public partial class AssociatePaletteViewModel : RequestViewModel<AssociatePaletteViewModel>
 {
     [ObservableProperty] private ObservableCollection<AssociatePaletteModel> _palettes;
     [ObservableProperty] private AssociatePaletteModel _selectedPalette;
@@ -20,9 +19,5 @@ public partial class AssociatePaletteViewModel : DialogViewModel<AssociatePalett
         AcceptName = "Associate";
     }
 
-    protected override void Accept()
-    {
-        _requestResult = this;
-        OnPropertyChanged(nameof(RequestResult));
-    }
+    public override AssociatePaletteViewModel? ProduceResult() => this;
 }

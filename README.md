@@ -19,7 +19,7 @@ Big thanks to the authors of these open source libraries for making this project
 
 [Dock](https://github.com/wieslawsoltes/Dock) for the docking window layout
 
-[FluentAvalonia](https://github.com/amwx/FluentAvalonia) for styling/theming
+[Semi.Avalonia](https://github.com/irihitech/Semi.Avalonia) for styling/theming
 
 [PanAndZoom](https://github.com/wieslawsoltes/PanAndZoom) for the infinite canvas control
 

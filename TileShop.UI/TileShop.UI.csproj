@@ -20,12 +20,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <TrimmerRootAssembly Include="Avalonia.Themes.Fluent" />
-	<TrimmerRootAssembly Include="FluentAvalonia" />
+    <TrimmerRootAssembly Include="Semi.Avalonia" />
     <TrimmerRootAssembly Include="System.Text.Json" />
     <TrimmerRootAssembly Include="ImageMagitek" />
     <TrimmerRootAssembly Include="ImageMagitek.Services" />
 	<TrimmerRootAssembly Include="TileShop.UI" />
+    <TrimmerRootAssembly Include="TileShop.UI.Controls" />
   </ItemGroup>
   
   <ItemGroup>
@@ -40,16 +40,17 @@
     <PackageReference Include="Avalonia.Controls.PanAndZoom" />
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
-    <PackageReference Include="Avalonia.Themes.Fluent" />
     <PackageReference Include="Avalonia.Xaml.Behaviors" />
     <PackageReference Include="CommunityToolkit.Diagnostics" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Dock.Avalonia" />
-    <PackageReference Include="Dock.Avalonia.Themes.Fluent" />
     <PackageReference Include="Dock.Model.Mvvm" />
-    <PackageReference Include="FluentAvaloniaUI" />
+	<PackageReference Include="HotAvalonia" />
     <PackageReference Include="Jot" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Semi.Avalonia" />
+    <PackageReference Include="Semi.Avalonia.ColorPicker" />
+    <PackageReference Include="Semi.Avalonia.Dock" />
     <PackageReference Include="Serilog" />
     <PackageReference Include="Serilog.Extensions.Logging" />
     <PackageReference Include="Serilog.Sinks.File" />
@@ -59,5 +60,6 @@
     <ProjectReference Include="..\ImageMagitek.Services\ImageMagitek.Services.csproj" />
     <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
     <ProjectReference Include="..\TileShop.Shared\TileShop.Shared.csproj" />
+    <ProjectReference Include="..\TileShop.UI.Controls\TileShop.UI.Controls.csproj" />
   </ItemGroup>
 </Project>

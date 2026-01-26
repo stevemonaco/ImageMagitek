@@ -1,9 +1,9 @@
 ﻿using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.UI.Windowing;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
-public sealed partial class ModifyGridSettingsViewModel : DialogViewModel<ModifyGridSettingsViewModel?>
+public sealed partial class ModifyGridSettingsViewModel : RequestViewModel<ModifyGridSettingsViewModel?>
 {
     [ObservableProperty] private int _shiftX;
     [ObservableProperty] private int _shiftY;
@@ -13,9 +13,5 @@ public sealed partial class ModifyGridSettingsViewModel : DialogViewModel<Modify
     [ObservableProperty] private Color _secondaryColor;
     [ObservableProperty] private Color _lineColor;
 
-    protected override void Accept()
-    {
-        _requestResult = this;
-        OnPropertyChanged(nameof(RequestResult));
-    }
+    public override ModifyGridSettingsViewModel? ProduceResult() => this;
 }

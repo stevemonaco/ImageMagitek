@@ -1,7 +1,9 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using Dock.Model.Core.Events;
+using TileShop.Shared.Interactions;
 using TileShop.UI.ViewExtenders.Docking;
 using TileShop.UI.ViewModels;
 

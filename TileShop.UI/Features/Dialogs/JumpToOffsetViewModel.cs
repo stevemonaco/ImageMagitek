@@ -1,22 +1,23 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.UI.Windowing;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
 
 public enum NumericBase { Decimal, Hexadecimal }
 
-public partial class JumpToOffsetViewModel : DialogViewModel<long?>
+public partial class JumpToOffsetViewModel : RequestViewModel<long?>
 {
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
+    [NotifyCanExecuteChangedFor(nameof(TryAcceptCommand))]
     [NotifyDataErrorInfo]
     [CustomValidation(typeof(JumpToOffsetViewModel), nameof(ValidateModel))]
     private string? _offsetText;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AcceptCommand))]
+    [NotifyCanExecuteChangedFor(nameof(TryAcceptCommand))]
     [NotifyDataErrorInfo]
     [CustomValidation(typeof(JumpToOffsetViewModel), nameof(ValidateModel))]
     private NumericBase _numericBase;
@@ -32,16 +33,26 @@ public partial class JumpToOffsetViewModel : DialogViewModel<long?>
         CancelName = "x";
     }
 
-    protected override void Accept()
+    public override long? ProduceResult()
     {
-        if (OffsetText is null)
-            return;
-
         if (NumericBase == NumericBase.Decimal)
-            RequestResult = long.Parse(OffsetText);
+            return long.Parse(OffsetText);
         else if (NumericBase == NumericBase.Hexadecimal)
-            RequestResult = long.Parse(OffsetText, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            return long.Parse(OffsetText, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+
+        throw new InvalidOperationException();
     }
+
+    // protected override void Accept()
+    // {
+    //     if (OffsetText is null)
+    //         return;
+    //
+    //     if (NumericBase == NumericBase.Decimal)
+    //         Result = long.Parse(OffsetText);
+    //     else if (NumericBase == NumericBase.Hexadecimal)
+    //         Result = long.Parse(OffsetText, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+    // }
 
     protected override bool CanAccept() => _canJump;
 

@@ -14,6 +14,7 @@ public partial class ProjectTreeView : UserControl
     public ProjectTreeView()
     {
         InitializeComponent();
+        AddHandler(KeyDownEvent, ProjectTree_KeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);
     }
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -49,6 +50,8 @@ public partial class ProjectTreeView : UserControl
     {
         if (_viewModel?.SelectedNode is not null && e.Key == Key.Enter)
         {
+            e.Handled = true;
+
             if (_viewModel.SelectedNode is FolderNodeViewModel or ProjectNodeViewModel)
             {
                 _viewModel.SelectedNode.IsExpanded ^= true;
@@ -57,7 +60,6 @@ public partial class ProjectTreeView : UserControl
             {
                 await _viewModel.ActivateSelectedNode();
             }
-            e.Handled = true;
         }
     }
 

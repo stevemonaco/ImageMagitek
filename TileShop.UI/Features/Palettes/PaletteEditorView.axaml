@@ -1,11 +1,9 @@
 ﻿<UserControl x:Class="TileShop.UI.Views.PaletteEditorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
     xmlns:con="using:TileShop.UI.Converters"
-    xmlns:fac="using:FluentAvalonia.UI.Controls"
     xmlns:m="using:TileShop.Shared.Models"
-    xmlns:res="using:TileShop.UI.Resources"
-    xmlns:v="using:TileShop.UI.Views"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:Name="palView"
     x:DataType="vm:PaletteEditorViewModel">
@@ -13,7 +11,7 @@
         <DataTemplate DataType="{x:Type m:FileColorSourceModel}">
             <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
                 <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}">
-                    <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Trash}" />
+                    <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Trash}" />
                 </Button>
                 <TextBlock Width="150" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
                     Text="File Source" />
@@ -30,7 +28,7 @@
         <DataTemplate DataType="{x:Type m:NativeColorSourceModel}">
             <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
                 <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}">
-                    <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Trash}" />
+                    <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Trash}" />
                 </Button>
                 <TextBlock Width="150" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
                     Text="Native Source" />
@@ -41,7 +39,7 @@
         <DataTemplate DataType="{x:Type m:ForeignColorSourceModel}">
             <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
                 <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}">
-                    <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Trash}" />
+                    <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Trash}" />
                 </Button>
                 <TextBlock Width="150" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
                     Text="Foreign Source" />
@@ -81,7 +79,7 @@
                     <StackPanel Margin="20,0,0,0" Orientation="Horizontal">
                         <Button Background="#238636">
                             <Button.Content>
-                                <fac:FAPathIcon Classes="medium" Data="{x:Static res:AppIcons.Plus}" />
+                                <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Plus}" />
                             </Button.Content>
                             <Button.Flyout>
                                 <MenuFlyout Placement="BottomEdgeAlignedLeft">

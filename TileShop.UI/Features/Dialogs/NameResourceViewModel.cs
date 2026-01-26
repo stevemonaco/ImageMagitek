@@ -1,9 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.UI.Windowing;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
 
-public partial class NameResourceViewModel : DialogViewModel<string?>
+public partial class NameResourceViewModel : RequestViewModel<string?>
 {
     [ObservableProperty] private string? _resourceName;
 
@@ -14,9 +14,5 @@ public partial class NameResourceViewModel : DialogViewModel<string?>
         CancelName = "x";
     }
 
-    protected override void Accept()
-    {
-        _requestResult = ResourceName;
-        OnPropertyChanged(nameof(RequestResult));
-    }
+    public override string? ProduceResult() => ResourceName;
 }

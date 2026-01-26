@@ -1,6 +1,6 @@
 ﻿using Avalonia.Media;
 
-namespace TileShop.UI.Resources;
+namespace TileShop.UI.Controls;
 public static class AppIcons
 {
     // Editor Icons

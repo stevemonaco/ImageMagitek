@@ -18,7 +18,7 @@ public interface IInteractionService
     /// <param name="heading">Heading text</param>
     /// <param name="message">Main body of text</param>
     /// <returns>The result of the user choice</returns>
-    Task<PromptResult> PromptAsync(PromptChoice choices, string heading, string? message = default);
+    Task<PromptResult> PromptAsync(PromptChoice choices, string heading, string message);
 
     /// <summary>
     /// Requests an interaction with the user

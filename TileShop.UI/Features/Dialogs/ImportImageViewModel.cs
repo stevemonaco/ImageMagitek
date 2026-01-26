@@ -1,6 +1,5 @@
 ﻿using ImageMagitek;
 using ImageMagitek.Colors;
-using TileShop.UI.Windowing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.UI.Imaging;
 using CommunityToolkit.Mvvm.Input;
@@ -9,8 +8,7 @@ using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
-
-public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel>
+public partial class ImportImageViewModel : RequestViewModel<ImportImageViewModel>
 {
     private readonly Arranger _arranger;
     private readonly IAsyncFileRequestService _fileSelect;
@@ -133,14 +131,15 @@ public partial class ImportImageViewModel : DialogViewModel<ImportImageViewModel
         CanImport = true;
     }
 
-    protected override void Accept()
+    public override ImportImageViewModel? ProduceResult() => this;
+
+    protected override Task<bool> OnAccepted()
     {
         if (_arranger.ColorType == PixelColorType.Indexed && _previewIndexed is not null)
             _previewIndexed.SaveImage();
         else if (_arranger.ColorType == PixelColorType.Direct && _previewDirect is not null)
             _previewDirect.SaveImage();
-
-        _requestResult = this;
-        OnPropertyChanged(nameof(RequestResult));
+        
+        return Task.FromResult(true);
     }
 }

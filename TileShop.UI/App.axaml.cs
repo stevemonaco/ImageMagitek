@@ -34,13 +34,15 @@ public class App : Application
         bootstrapper.LoadConfigurations();
         
         var provider = services.BuildServiceProvider();
-
         Ioc.Default.ConfigureServices(provider);
+        
+        var viewLocator = provider.GetRequiredService<ViewLocator>();
+        DataTemplates.Add(viewLocator);
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            _shellViewModel = provider.GetService<ShellViewModel>();
-            _shellView = provider.GetService<ShellView>();
+            _shellViewModel = provider.GetRequiredService<ShellViewModel>();
+            _shellView = provider.GetRequiredService<ShellView>();
             _shellView!.DataContext = _shellViewModel;
 
             desktop.MainWindow = _shellView;

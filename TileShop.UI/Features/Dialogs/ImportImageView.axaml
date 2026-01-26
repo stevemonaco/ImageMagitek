@@ -45,9 +45,9 @@
             <Button Width="120" Margin="10,0,0,0" Command="{Binding BrowseForImportFileCommand}"
                 Content="Browse Image..." IsDefault="True" />
 
-            <Button Width="120" Margin="15,0,15,0" Command="{Binding AcceptCommand}" CommandParameter="{Binding}"
+            <Button Width="120" Margin="15,0,15,0" Command="{Binding TryAcceptCommand}" CommandParameter="{Binding}"
                 Content="Import" IsEnabled="{Binding CanImport}" ToolTip.Tip="Imports image and saves to file" />
-            <Button Width="120" Command="{Binding CancelCommand}" Content="Cancel" IsCancel="True" />
+            <Button Width="120" Command="{Binding TryCancelCommand}" Content="Cancel" IsCancel="True" />
         </StackPanel>
 
     </Grid>

@@ -14,6 +14,8 @@ using TileShop.UI.Services;
 using TileShop.UI.ViewModels;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Services;
+using TileShop.UI.Controls.Dialogs;
+using TileShop.UI.Views;
 
 namespace TileShop.UI;
 
@@ -77,15 +79,15 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
             codecService.CodecFactory, colorFactory, defaultResources);
         var projectService = bootstrapper.CreateProjectService(serializerFactory, colorFactory);
         services.AddSingleton(projectService);
-
-
-        
     }
 
     public void ConfigureServices(IServiceCollection services)
     {
-        var interactionService = new InteractionService(new ViewLocator());
-
+        var viewLocator = new ViewLocator();
+        ConfigureViewLocator(viewLocator);
+        services.AddSingleton(viewLocator);
+        
+        var interactionService = new InteractionService(viewLocator);
         services.AddSingleton<IInteractionService>(interactionService);
         services.AddSingleton<IAsyncFileRequestService, AsyncFileRequestService>();
         services.AddSingleton<IExploreService, ExploreService>();
@@ -94,7 +96,13 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
     public void ConfigureViews(IServiceCollection services)
     {
-        var viewTypes = GetType().Assembly.GetTypes().Where(x => x.Name.EndsWith("View"));
+        var assemblyNames = new[] { "TileShop.UI", "TileShop.UI.Controls" };
+        
+        var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+            .Where(a => assemblyNames.Contains(a.GetName().Name));
+        
+        var viewTypes = assemblies.SelectMany(x => x.ExportedTypes)
+            .Where(x => x.Name.EndsWith("View"));
 
         foreach (var viewType in viewTypes)
             services.AddTransient(viewType);
@@ -118,6 +126,36 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
         foreach (var vmType in vmTypes)
             services.TryAddTransient(vmType);
+    }
+
+    public void ConfigureViewLocator(ViewLocator locator)
+    {
+        locator.RegisterViewFactory<ScatteredArrangerEditorViewModel, ScatteredArrangerEditorView>();
+        locator.RegisterViewFactory<SequentialArrangerEditorViewModel, SequentialArrangerEditorView>();
+        locator.RegisterViewFactory<PaletteEditorViewModel, PaletteEditorView>();
+        locator.RegisterViewFactory<TableColorViewModel, TableColorView>();
+        locator.RegisterViewFactory<DirectPixelEditorViewModel, DirectPixelEditorView>();
+        locator.RegisterViewFactory<IndexedPixelEditorViewModel, IndexedPixelEditorView>();
+        locator.RegisterViewFactory<ProjectTreeViewModel, ProjectTreeView>();
+        locator.RegisterViewFactory<DockableEditorViewModel, DockableEditorView>();
+        locator.RegisterViewFactory<DockableToolViewModel, DockableToolView>();
+        locator.RegisterViewFactory<MenuViewModel, MenuView>();
+        locator.RegisterViewFactory<ShellViewModel, ShellView>();
+        locator.RegisterViewFactory<StatusViewModel, StatusView>();
+        locator.RegisterViewFactory<AddPaletteViewModel, AddPaletteView>();
+        locator.RegisterViewFactory<AddScatteredArrangerViewModel, AddScatteredArrangerView>();
+        locator.RegisterViewFactory<AssociatePaletteViewModel, AssociatePaletteView>();
+        locator.RegisterViewFactory<ColorRemapViewModel, ColorRemapView>();
+        locator.RegisterViewFactory<CustomElementLayoutViewModel, CustomElementLayoutView>();
+        locator.RegisterViewFactory<ImportImageViewModel, ImportImageView>();
+        locator.RegisterViewFactory<JumpToOffsetViewModel, JumpToOffsetView>();
+        locator.RegisterViewFactory<ModifyGridSettingsViewModel, ModifyGridSettingsView>();
+        locator.RegisterViewFactory<NameResourceViewModel, NameResourceView>();
+        locator.RegisterViewFactory<RenameNodeViewModel, RenameNodeView>();
+        locator.RegisterViewFactory<ResizeTiledScatteredArrangerViewModel, ResizeTiledScatteredArrangerView>();
+        locator.RegisterViewFactory<ResourceRemovalChangesViewModel, ResourceRemovalChangesView>();
+        locator.RegisterViewFactory<AlertViewModel, AlertView>();
+        locator.RegisterViewFactory<PromptViewModel, PromptView>();
     }
 
     private void ConfigureJotTracker(Tracker tracker, IServiceCollection services)

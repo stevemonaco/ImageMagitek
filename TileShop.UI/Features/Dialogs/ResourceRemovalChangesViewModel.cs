@@ -2,12 +2,11 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.UI.Windowing;
+using TileShop.Shared.Interactions;
 using TileShop.Shared.Models;
 
 namespace TileShop.UI.ViewModels;
-
-public partial class ResourceRemovalChangesViewModel : DialogViewModel<bool>
+public partial class ResourceRemovalChangesViewModel : RequestViewModel<bool>
 {
     [ObservableProperty] private ResourceChangeViewModel _removedResource;
     [ObservableProperty] private ObservableCollection<ResourceChangeViewModel> _removedResources = new();
@@ -37,13 +36,15 @@ public partial class ResourceRemovalChangesViewModel : DialogViewModel<bool>
         AcceptName = "Remove";
     }
 
-    protected override void Accept()
-    {
-        RequestResult = true;
-    }
-
-    protected override void Cancel()
-    {
-        RequestResult = false;
-    }
+    public override bool ProduceResult() => true;
+    //
+    // protected override void Accept()
+    // {
+    //     Result = true;
+    // }
+    //
+    // protected override Task<bool> TryCancel()
+    // {
+    //     Result = false;
+    // }
 }

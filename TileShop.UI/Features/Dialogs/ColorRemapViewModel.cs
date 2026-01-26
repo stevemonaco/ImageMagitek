@@ -2,12 +2,11 @@
 using ImageMagitek.Colors;
 using System.Collections.ObjectModel;
 using TileShop.UI.Models;
-using TileShop.UI.Windowing;
 using CommunityToolkit.Mvvm.ComponentModel;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.ViewModels;
-
-public partial class ColorRemapViewModel : DialogViewModel<ColorRemapViewModel> //, IDropTarget //, IDropTarget, IDragSource
+public partial class ColorRemapViewModel : RequestViewModel<ColorRemapViewModel> //, IDropTarget //, IDropTarget, IDragSource
 {
     private readonly IColorFactory _colorFactory;
 
@@ -44,9 +43,5 @@ public partial class ColorRemapViewModel : DialogViewModel<ColorRemapViewModel> 
         AcceptName = "Remap";
     }
 
-    protected override void Accept()
-    {
-        _requestResult = this;
-        OnPropertyChanged(nameof(RequestResult));
-    }
+    public override ColorRemapViewModel? ProduceResult() => this;
 }
