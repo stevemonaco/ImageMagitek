@@ -1,9 +1,8 @@
 ﻿<UserControl x:Class="TileShop.UI.Views.ColorRemapView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:b="using:TileShop.UI.Behaviors"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
     xmlns:dd="using:TileShop.UI.DragDrop"
-    xmlns:id="using:Avalonia.Xaml.Interactions.Draggable"
     xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop"
     xmlns:m="using:TileShop.UI.Models"
     xmlns:vm="using:TileShop.UI.ViewModels"
@@ -46,7 +45,8 @@
 
     <Grid RowDefinitions="*,*">
         <StackPanel Grid.Row="0" Margin="10">
-            <TextBlock HorizontalAlignment="Center" FontSize="20" Text="Current Colors" />
+            <TextBlock HorizontalAlignment="Center" FontFamily="{x:Static cc:AppFonts.IbmPlexSans}" FontSize="20"
+                Text="Current Colors" />
 
             <ListBox HorizontalAlignment="Center" Classes="colorDrag" ItemsSource="{Binding InitialColors}">
                 <ListBox.ItemsPanel>
@@ -73,9 +73,10 @@
         </StackPanel>
 
         <StackPanel Grid.Row="1" Margin="10">
-            <TextBlock HorizontalAlignment="Center" FontSize="20" Text="New Colors" />
+            <TextBlock HorizontalAlignment="Center" FontFamily="{x:Static cc:AppFonts.IbmPlexSans}" FontSize="20"
+                Text="New Colors" />
 
-            <ItemsControl Grid.Row="1" HorizontalAlignment="Center" ItemsSource="{Binding FinalColors}">
+            <ItemsControl HorizontalAlignment="Center" ItemsSource="{Binding FinalColors}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Orientation="Horizontal" />
