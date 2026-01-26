@@ -34,69 +34,6 @@ public partial class OverlayDialog
         set => SetValue(OptionsProperty, value);
     }
 
-    // public static readonly StyledProperty<string> AcceptTextProperty =
-    //     AvaloniaProperty.Register<OverlayDialog, string>(nameof(AcceptText), defaultValue: "Ok");
-    //
-    // public string AcceptText
-    // {
-    //     get => GetValue(AcceptTextProperty);
-    //     set => SetValue(AcceptTextProperty, value);
-    // }
-    //
-    // public static readonly StyledProperty<string> RejectTextProperty =
-    //     AvaloniaProperty.Register<OverlayDialog, string>(nameof(RejectText), defaultValue: "Reject");
-    //
-    // public string? RejectText
-    // {
-    //     get => GetValue(RejectTextProperty);
-    //     set => SetValue(RejectTextProperty, value);
-    // }
-    //
-    // public static readonly StyledProperty<string> CancelTextProperty =
-    //     AvaloniaProperty.Register<OverlayDialog, string>(nameof(CancelText), defaultValue: "Cancel");
-    //
-    // public string CancelText
-    // {
-    //     get => GetValue(CancelTextProperty);
-    //     set => SetValue(CancelTextProperty, value);
-    // }
-    //
-    // public static readonly StyledProperty<ICommand?> AcceptCommandProperty =
-    //     AvaloniaProperty.Register<OverlayDialog, ICommand?>(nameof(AcceptCommand));
-    //
-    // public ICommand? AcceptCommand
-    // {
-    //     get => GetValue(AcceptCommandProperty);
-    //     set => SetValue(AcceptCommandProperty, value);
-    // }
-    //
-    // public static readonly StyledProperty<ICommand?> RejectCommandProperty =
-    //     AvaloniaProperty.Register<OverlayDialog, ICommand?>(nameof(RejectCommand));
-    //
-    // public ICommand? RejectCommand
-    // {
-    //     get => GetValue(RejectCommandProperty);
-    //     set => SetValue(RejectCommandProperty, value);
-    // }
-    //
-    // public static readonly StyledProperty<ICommand?> CancelCommandProperty =
-    //     AvaloniaProperty.Register<OverlayDialog, ICommand?>(nameof(CancelCommand));
-    //
-    // public ICommand? CancelCommand
-    // {
-    //     get => GetValue(CancelCommandProperty);
-    //     set => SetValue(CancelCommandProperty, value);
-    // }
-    //
-    // public static readonly StyledProperty<bool> IsAcceptEnabledProperty =
-    //     AvaloniaProperty.Register<OverlayDialog, bool>(nameof(IsAcceptEnabled), defaultValue: true);
-    //
-    // public bool IsAcceptEnabled
-    // {
-    //     get => GetValue(IsAcceptEnabledProperty);
-    //     set => SetValue(IsAcceptEnabledProperty, value);
-    // }
-
     public static readonly StyledProperty<bool> ShowCancelButtonProperty =
         AvaloniaProperty.Register<OverlayDialog, bool>(nameof(ShowCancelButton), defaultValue: true);
     

@@ -39,14 +39,6 @@ internal class InteractionService : IInteractionService
         var host = GetDialogHost();
         
         return await host.ShowMediatorAsync(mediator);
-        //var cd = ChoiceToDialog(choices);
-
-        //cd.Title = title;
-        //cd.Content = message;
-
-        //var dialogResult = await cd.ShowAsync();
-
-        //return DialogResultToPromptResult(dialogResult);
     }
 
     /// <inheritdoc/>
@@ -58,50 +50,7 @@ internal class InteractionService : IInteractionService
         
         var host = GetDialogHost();
         return await host.ShowMediatorAsync(mediator);
-
-        //var dialog = new ContentDialog()
-        //{
-        //    Title = mediator.Title,
-        //    Content = content,
-        //    PrimaryButtonCommand = mediator.AcceptCommand,
-        //    CloseButtonCommand = mediator.CancelCommand,
-        //    PrimaryButtonText = mediator.AcceptName,
-        //    CloseButtonText = mediator.CancelName,
-        //    DefaultButton = ContentDialogButton.Primary
-        //};
-
-        //mediator.AcceptCommand.CanExecuteChanged += CanExecuteChanged;
-        //await dialog.ShowAsync();
-        //mediator.AcceptCommand.CanExecuteChanged -= CanExecuteChanged;
-
-        //return mediator.RequestResult;
-
-        //void CanExecuteChanged(object? sender, EventArgs e)
-        //{
-        //    dialog.IsPrimaryButtonEnabled = mediator.AcceptCommand.CanExecute(null);
-        //}
     }
-
-    //private ContentDialog ChoiceToDialog(PromptChoice choices)
-    //{
-    //    return new()
-    //    {
-    //        PrimaryButtonText = choices.Accept,
-    //        SecondaryButtonText = choices.Reject,
-    //        CloseButtonText = choices.Cancel,
-    //        DefaultButton = ContentDialogButton.None
-    //    };
-    //}
-
-    //private PromptResult DialogResultToPromptResult(ContentDialogResult result)
-    //{
-    //    return result switch
-    //    {
-    //        ContentDialogResult.None => PromptResult.Cancel,
-    //        ContentDialogResult.Primary => PromptResult.Accept,
-    //        ContentDialogResult.Secondary => PromptResult.Reject,
-    //    };
-    //}
 
     private DialogHost GetDialogHost(string hostId = "RootDialogHost")
     {
