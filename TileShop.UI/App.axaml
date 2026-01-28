@@ -7,7 +7,7 @@
 
     <Application.Styles>
         <semi:ColorPickerSemiTheme />
-        <semi:DockSemiTheme />
+        <semi:DockSemiTheme Locale="en-US" />
         <semi:SemiTheme Locale="en-US" />
         <cc:TileShopTheme />
 
