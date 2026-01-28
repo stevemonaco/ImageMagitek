@@ -14,6 +14,7 @@ public class ProjectNodeViewModel : ResourceNodeViewModel
     {
         Node = node;
         Name = node.Name;
+        IsExpanded = true;
 
         foreach (var child in Node.ChildNodes)
         {
