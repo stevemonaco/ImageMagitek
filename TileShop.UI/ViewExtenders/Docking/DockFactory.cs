@@ -41,7 +41,7 @@ public class DockFactory : Factory
         {
             Id = "Documents",
             Title = "Documents",
-            Proportion = double.NaN,
+            Proportion = 0.7,
             IsCollapsable = false,
             CanClose = false,
             VisibleDockables = CreateList(_editorsVm.Editors.Select(x => new DockableEditorViewModel(x, _editorsVm) as IDockable).ToArray()),
@@ -64,7 +64,7 @@ public class DockFactory : Factory
                     CanFloat = false,
                     CanPin = true,
                     CanClose = false,
-                    Proportion = double.NaN,
+                    Proportion = 0.3,
                     ActiveDockable = treeDockVm,
                     VisibleDockables = CreateList<IDockable>
                     (
