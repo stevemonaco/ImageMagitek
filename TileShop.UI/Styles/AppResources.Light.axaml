@@ -11,4 +11,9 @@
 
     <SolidColorBrush x:Key="gridLineBrush" Opacity="0.8" Color="Black" />
     <SolidColorBrush x:Key="separatorBrush" Opacity="0.8" Color="Black" />
+
+    <!--  Semi.Avalonia Light Overrides  -->
+    <SolidColorBrush x:Key="TextBoxDefaultBackground" Opacity="0.05" Color="{StaticResource SemiGrey8Color}" />
+    <SolidColorBrush x:Key="TextBoxPointeroverBackground" Opacity="0.09" Color="{StaticResource SemiGrey8Color}" />
+    <SolidColorBrush x:Key="TextBoxPressedBackground" Opacity="0.13" Color="{StaticResource SemiGrey8Color}" />
 </ResourceDictionary>

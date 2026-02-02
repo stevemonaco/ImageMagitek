@@ -12,4 +12,12 @@
     <SolidColorBrush x:Key="gridLineBrush" Opacity="0.8" Color="White" />
 
     <SolidColorBrush x:Key="separatorBrush" Opacity="0.8" Color="White" />
+
+    <!--  Semi.Avalonia Dark Overrides  -->
+    <!--  TextBox: SemiColorFill0, 1, 2  -->
+    <!-- <SolidColorBrush x:Key="TextBoxDefaultBackground" Opacity="0.12" Color="Purple" /> -->
+
+    <SolidColorBrush x:Key="TextBoxDefaultBackground" Opacity="0.12" Color="{StaticResource SemiWhiteColor}" />
+    <SolidColorBrush x:Key="TextBoxPointeroverBackground" Opacity="0.16" Color="{StaticResource SemiWhiteColor}" />
+    <SolidColorBrush x:Key="TextBoxPressedBackground" Opacity="0.20" Color="{StaticResource SemiWhiteColor}" />
 </ResourceDictionary>

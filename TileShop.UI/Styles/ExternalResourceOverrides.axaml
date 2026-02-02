@@ -8,4 +8,11 @@
 
     <!--  Dock overrides  -->
     <SolidColorBrush x:Key="DockThemeBackgroundBrush" Color="{DynamicResource ThemeBackgroundColor}" />
+
+    <!-- <StaticResource x:Key="TextBoxDefaultBackground" ResourceKey="SemiColorFill0" /> -->
+    <SolidColorBrush x:Key="TextBoxDefaultBackground" Opacity="0.12" Color="{StaticResource SemiWhiteColor}" />
+
+    <SolidColorBrush x:Key="TextBoxPointeroverBackground" Opacity="0.16" Color="{StaticResource SemiWhiteColor}" />
+    <SolidColorBrush x:Key="TextBoxPressedBackground" Opacity="0.20" Color="{StaticResource SemiWhiteColor}" />
+    <!-- <StaticResource x:Key="TextBoxDisabledBackground" ResourceKey="SemiColorDisabledFill" /> -->
 </ResourceDictionary>

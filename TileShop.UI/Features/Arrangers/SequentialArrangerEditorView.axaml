@@ -54,7 +54,7 @@
                         <TextBlock HorizontalAlignment="Center" Text="Codec" />
 
                         <StackPanel Classes="toolbar-group">
-                            <ComboBox Height="35" MinWidth="180" Focusable="False" ItemsSource="{Binding CodecNames}"
+                            <ComboBox MinWidth="180" Focusable="False" ItemsSource="{Binding CodecNames}"
                                 SelectedItem="{Binding SelectedCodecName}" ToolTip.Tip="Active Codec (F, D)" />
 
                             <NumericUpDown Increment="{Binding ElementWidthIncrement}" IsEnabled="{Binding CanResize}"
@@ -75,7 +75,7 @@
                     <StackPanel Margin="0,8,0,8" Spacing="4">
                         <TextBlock HorizontalAlignment="Center" Text="Arranger" />
                         <StackPanel Classes="toolbar-group">
-                            <ComboBox Height="35" Focusable="False" IsVisible="{Binding !Palettes.Count}" ItemsSource="{Binding Palettes}"
+                            <ComboBox Focusable="False" IsVisible="{Binding !Palettes.Count}" ItemsSource="{Binding Palettes}"
                                 SelectedItem="{Binding SelectedPalette}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
