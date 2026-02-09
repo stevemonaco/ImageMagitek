@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 using ImageMagitek.Services.Stores;
 using ImageMagitek.Codec;
+using TileShop.UI.Features.Graphics;
 
 namespace TileShop.UI.ViewModels;
 
@@ -111,10 +112,12 @@ public partial class EditorsViewModel : ObservableRecipient
                 newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService);
                 break;
             case ScatteredArranger scatteredArranger:
-                newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _colorFactory, _paletteStore, _projectService, _tracker, _settings);
+                // newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _colorFactory, _paletteStore, _projectService, _tracker, _settings);
+                newDocument = new GraphicsEditorViewModel(scatteredArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker);
                 break;
             case SequentialArranger sequentialArranger:
-                newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore);
+                //newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore);
+                newDocument = new GraphicsEditorViewModel(sequentialArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker);
                 break;
             case FileDataSource fileSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
                 var extension = Path.GetExtension(fileSource.FileLocation).ToLower();
@@ -137,7 +140,12 @@ public partial class EditorsViewModel : ObservableRecipient
                     ? new SequentialArranger(8, 16, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec)
                     : new SequentialArranger(1, 1, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec);
 
-                newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore)
+                // newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore)
+                // {
+                //     OriginatingProjectResource = fileSource
+                // };
+                
+                newDocument = new GraphicsEditorViewModel(newArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker)
                 {
                     OriginatingProjectResource = fileSource
                 };

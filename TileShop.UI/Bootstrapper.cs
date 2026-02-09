@@ -15,6 +15,7 @@ using TileShop.UI.ViewModels;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Services;
 using TileShop.UI.Controls.Dialogs;
+using TileShop.UI.Features.Graphics;
 using TileShop.UI.Views;
 
 namespace TileShop.UI;
@@ -132,6 +133,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
     {
         locator.RegisterViewFactory<ScatteredArrangerEditorViewModel, ScatteredArrangerEditorView>();
         locator.RegisterViewFactory<SequentialArrangerEditorViewModel, SequentialArrangerEditorView>();
+        locator.RegisterViewFactory<GraphicsEditorViewModel, GraphicsEditorView>();
         locator.RegisterViewFactory<PaletteEditorViewModel, PaletteEditorView>();
         locator.RegisterViewFactory<TableColorViewModel, TableColorView>();
         locator.RegisterViewFactory<DirectPixelEditorViewModel, DirectPixelEditorView>();

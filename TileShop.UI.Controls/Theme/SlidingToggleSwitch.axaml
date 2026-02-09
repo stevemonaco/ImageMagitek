@@ -1,0 +1,99 @@
+﻿<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:con="using:TileShop.UI.Controls.Converters"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <StackPanel
+            Margin="20"
+            Spacing="24"
+            Width="250">
+            <StackPanel Spacing="12">
+                <ToggleSwitch />
+                <ToggleSwitch IsChecked="True" />
+                <ToggleSwitch
+                    Content="Header"
+                    HorizontalContentAlignment="Left"
+                    OffContent="Off"
+                    OnContent="On" />
+                <ToggleSwitch Background="Yellow" />
+            </StackPanel>
+        </StackPanel>
+    </Design.PreviewWith>
+
+    <ControlTheme TargetType="ToggleSwitch" x:Key="SlidingToggleSwitchTheme">
+        <Setter Property="Foreground" Value="{DynamicResource ToggleSwitchContentForeground}" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+        <Setter Property="KnobTransitions">
+            <Transitions>
+                <DoubleTransition
+                    Duration="0:0:0.2"
+                    Easing="CubicEaseOut"
+                    Property="Canvas.Left" />
+            </Transitions>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border
+                    Background="#202020"
+                    BorderBrush="#202020"
+                    BorderThickness="2"
+                    CornerRadius="4">
+                    <Grid ColumnDefinitions="*,*" x:Name="ContentGrid">
+                        <Canvas
+                            HorizontalAlignment="Stretch"
+                            IsHitTestVisible="False"
+                            VerticalAlignment="Stretch"
+                            x:Name="PART_SwitchKnob">
+                            <Panel x:Name="PART_MovingKnobs">
+                                <Rectangle
+                                    Fill="#444444"
+                                    Height="{Binding #ContentGrid.Bounds.Height}"
+                                    RadiusX="4"
+                                    RadiusY="4"
+                                    Width="{Binding #ContentGrid.Bounds.Width, Converter={x:Static con:ControlConverters.DoubleToHalf}}" />
+                            </Panel>
+                        </Canvas>
+
+                        <ContentPresenter
+                            Background="{x:Null}"
+                            Content="{TemplateBinding OffContent}"
+                            ContentTemplate="{TemplateBinding OffContentTemplate}"
+                            Grid.Column="0"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            x:Name="PART_OffContentPresenter" />
+
+                        <ContentPresenter
+                            Background="{x:Null}"
+                            Content="{TemplateBinding OnContent}"
+                            ContentTemplate="{TemplateBinding OnContentTemplate}"
+                            Grid.Column="1"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            x:Name="PART_OnContentPresenter" />
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:checked /template/ ContentPresenter#PART_OnContentPresenter">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <Style Selector="^:unchecked /template/ ContentPresenter#PART_OffContentPresenter">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <Style Selector="^:unchecked /template/ ContentPresenter#PART_OnContentPresenter">
+            <Setter Property="Foreground" Value="#888888" />
+        </Style>
+
+        <Style Selector="^:checked /template/ ContentPresenter#PART_OffContentPresenter">
+            <Setter Property="Foreground" Value="#888888" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

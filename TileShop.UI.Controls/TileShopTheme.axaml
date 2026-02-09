@@ -7,6 +7,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <!--  Re-templates and alternate looks  -->
                 <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/ClearButton.axaml" />
+                <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/SlidingToggleSwitch.axaml" />
                 <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/NumericUpDown/NumericUpDown.axaml" />
                 <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/NumericUpDown/ButtonSpinner.axaml" />
 

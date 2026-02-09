@@ -66,3 +66,7 @@ DI setup in `Bootstrapper.cs`. Views auto-registered by naming convention (FooVi
 - Prefer `var` for type inference
 - Allman brace style (braces on new lines)
 - 4-space indentation
+
+## Workflow
+
+- Do NOT build or run tests as part of your process. These are expensive operations in this repo and should only be done when explicitly requested.

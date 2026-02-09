@@ -1,0 +1,60 @@
+<UserControl x:Class="TileShop.UI.Views.GraphicsEditorView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
+    xmlns:con="using:TileShop.UI.Converters"
+    xmlns:gfx="using:TileShop.UI.Features.Graphics"
+    xmlns:vm="using:TileShop.UI.ViewModels"
+    x:Name="control"
+    x:DataType="gfx:GraphicsEditorViewModel">
+    <!-- <UserControl.KeyBindings> -->
+    <!--     <KeyBinding Command="{Binding ToggleGridlineVisibilityCommand}" Gesture="G" /> -->
+    <!--     <KeyBinding Command="{Binding ToggleSnapModeCommand}" Gesture="S" /> -->
+    <!--     <KeyBinding Command="{Binding EditSelectionCommand}" Gesture="E" /> -->
+    <!--     <KeyBinding Command="{Binding DeleteElementSelectionCommand}" Gesture="Delete" /> -->
+    <!--     <KeyBinding Command="{Binding CancelOverlayCommand}" Gesture="Escape" /> -->
+    <!--     <KeyBinding Command="{Binding ConfirmPendingOperationCommand}" Gesture="Return" /> -->
+    <!--     <KeyBinding Command="{Binding SaveChangesCommand}" Gesture="Ctrl+S" /> -->
+    <!--     <KeyBinding Command="{Binding UndoCommand}" Gesture="Ctrl+Z" /> -->
+    <!--     <KeyBinding Command="{Binding RedoCommand}" Gesture="Ctrl+Y" /> -->
+    <!--     <KeyBinding Command="{Binding SelectAllCommand}" Gesture="Ctrl+A" /> -->
+    <!--     <KeyBinding Command="{Binding ModifyGridSettingsCommand}" Gesture="Ctrl+G" /> -->
+    <!-- </UserControl.KeyBindings> -->
+
+    <UserControl.ContextMenu>
+        <ContextMenu>
+            <MenuItem Command="{Binding SelectAllCommand}" Header="Select All" />
+            <MenuItem Command="{Binding ModifyGridSettingsCommand}" Header="Grid Settings..." />
+            <MenuItem Command="{Binding ToggleSymmetryToolsCommand}" Header="Show Symmetry Tools">
+                <Interaction.Behaviors>
+                    <DataTriggerBehavior Binding="{Binding #control.((gfx:GraphicsEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="True">
+                        <ChangePropertyAction PropertyName="Icon">
+                            <ChangePropertyAction.Value>
+                                <PathIcon Classes="menu" Data="{x:Static cc:AppIcons.CheckedBox}" />
+                            </ChangePropertyAction.Value>
+                        </ChangePropertyAction>
+                    </DataTriggerBehavior>
+                    <DataTriggerBehavior Binding="{Binding #control.((gfx:GraphicsEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="False">
+                        <ChangePropertyAction PropertyName="Icon">
+                            <ChangePropertyAction.Value>
+                                <PathIcon Classes="menu" Data="{x:Static cc:AppIcons.UncheckedBox}" />
+                            </ChangePropertyAction.Value>
+                        </ChangePropertyAction>
+                    </DataTriggerBehavior>
+                </Interaction.Behaviors>
+            </MenuItem>
+        </ContextMenu>
+    </UserControl.ContextMenu>
+
+    <Grid Margin="8,4,0,0" ColumnDefinitions="Auto, *" UseLayoutRounding="True">
+        <!--  Sidebar  -->
+        <gfx:GraphicsEditorToolbarView />
+
+        <!--  Image Display Placeholder  -->
+        <Panel Grid.Column="1">
+            <Button VerticalAlignment="Bottom" Click="Button_OnClick" Content="Redraw" />
+            <Image x:Name="EditorImage" Width="{Binding BitmapAdapter.Width}" Height="{Binding BitmapAdapter.Height}"
+                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="{Binding BitmapAdapter.Bitmap}" />
+        </Panel>
+    </Grid>
+</UserControl>
