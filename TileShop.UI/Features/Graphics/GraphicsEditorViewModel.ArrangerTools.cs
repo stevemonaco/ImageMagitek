@@ -23,6 +23,16 @@ public partial class GraphicsEditorViewModel
     [ObservableProperty] private PixelTool _activePixelTool = PixelTool.Pencil;
     [ObservableProperty] private ArrangerTool _activeArrangerTool = ArrangerTool.Select;
     [ObservableProperty] private bool _areSymmetryToolsEnabled;
+
+    partial void OnActivePixelToolChanged(PixelTool oldValue, PixelTool newValue)
+    {
+        if (_pixelTools.TryGetValue(oldValue, out var outgoing))
+        {
+            var historyAction = outgoing.Deactivate(this);
+            if (historyAction is not null)
+                AddHistoryAction(historyAction);
+        }
+    }
     
     [RelayCommand]
     public void ChangeArrangerTool(ArrangerTool tool)
@@ -71,7 +81,7 @@ public partial class GraphicsEditorViewModel
         }
     }
 
-    private void TryApplyPalette(int pixelX, int pixelY, Palette palette)
+    internal void TryApplyPalette(int pixelX, int pixelY, Palette palette)
     {
         if (!IsIndexedColor)
             return;

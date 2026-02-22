@@ -110,6 +110,8 @@ public partial class GraphicsEditorView : UserControl
             point.Pointer.Capture(null);
             isHandled = false;
         }
+        
+        e.Handled = isHandled;
     }
 
     public void CanvasOnPointerMoved(object sender, PointerEventArgs e)
@@ -130,28 +132,32 @@ public partial class GraphicsEditorView : UserControl
 
     public void CanvasOnPointerExited(object sender, PointerEventArgs e)
     {
-        ViewModel.MouseLeave();
+        e.Handled = ViewModel.MouseLeave();
     }
 
     public void CanvasOnPointerWheelChanged(object sender, PointerWheelEventArgs e)
     {
         var modifiers = InputAdapter.CreateKeyModifiers(e.KeyModifiers);
+        bool isHandled = false;
 
         if (e.Delta.Y > 0)
         {
-            if (ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers))
-                return;
+            isHandled = ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
         }
         else if (e.Delta.Y < 0)
         {
-            if (ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers))
-                return;
+            isHandled = ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
         }
 
-        if (e.Delta.Y > 0)
-            EditorCanvas.ZoomIn();
-        else if (e.Delta.Y < 0)
-            EditorCanvas.ZoomOut();
+        if (!isHandled)
+        {
+            if (e.Delta.Y > 0)
+                EditorCanvas.ZoomIn();
+            else if (e.Delta.Y < 0)
+                EditorCanvas.ZoomOut();
+        }
+        
+        e.Handled = true;
     }
     
     private void CanvasOnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)

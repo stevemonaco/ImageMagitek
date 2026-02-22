@@ -18,18 +18,6 @@ public partial class GraphicsEditorViewModel
         ActivePixelTool = tool;
     }
 
-    public void PushPixelTool(PixelTool tool)
-    {
-        _priorPixelTool = ActivePixelTool;
-        ActivePixelTool = tool;
-    }
-
-    public void PopPixelTool()
-    {
-        ActivePixelTool = _priorPixelTool ?? ActivePixelTool;
-        _priorPixelTool = null;
-    }
-
     [RelayCommand]
     public void ToggleSnapMode()
     {
@@ -85,7 +73,7 @@ public partial class GraphicsEditorViewModel
         }
     }
 
-    private void SetPixelAtPosition(int x, int y, ColorPriority priority)
+    internal void SetPixelAtPosition(int x, int y, ColorPriority priority)
     {
         if (IsIndexedColor)
         {
@@ -136,7 +124,7 @@ public partial class GraphicsEditorViewModel
         }
     }
 
-    private void FloodFillAtPosition(int x, int y, ColorPriority priority)
+    internal void FloodFillAtPosition(int x, int y, ColorPriority priority)
     {
         if (IsIndexedColor)
         {

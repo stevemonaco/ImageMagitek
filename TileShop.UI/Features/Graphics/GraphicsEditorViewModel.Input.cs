@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using ImageMagitek;
 using ImageMagitek.Codec;
 using TileShop.Shared.Input;
 using TileShop.Shared.Models;
+using TileShop.UI.Features.Graphics.Tools;
 
 namespace TileShop.UI.Features.Graphics;
 
@@ -12,12 +14,53 @@ public partial class GraphicsEditorViewModel
     public Point? LastMousePosition { get; private set; }
     public Key PrimaryAltKey { get; private set; } = Key.LeftAlt;
     public Key SecondaryAltKey { get; private set; } = Key.LeftShift;
-    
+
+    private readonly Dictionary<ArrangerTool, IToolHandler<GraphicsEditorViewModel>> _arrangerTools = new()
+    {
+        [ArrangerTool.Select] = new SelectToolHandler(),
+        [ArrangerTool.ApplyPalette] = new ApplyPaletteToolHandler(),
+        [ArrangerTool.PickPalette] = new PickPaletteToolHandler(),
+        [ArrangerTool.InspectElement] = new InspectElementToolHandler(),
+        [ArrangerTool.RotateLeft] = new RotateToolHandler(RotationOperation.Left),
+        [ArrangerTool.RotateRight] = new RotateToolHandler(RotationOperation.Right),
+        [ArrangerTool.MirrorHorizontal] = new MirrorToolHandler(MirrorOperation.Horizontal),
+        [ArrangerTool.MirrorVertical] = new MirrorToolHandler(MirrorOperation.Vertical),
+    };
+
+    private readonly Dictionary<PixelTool, IToolHandler<GraphicsEditorViewModel>> _pixelTools = new()
+    {
+        [PixelTool.Select] = new SelectToolHandler(),
+        [PixelTool.Pencil] = new PencilToolHandler(),
+        [PixelTool.ColorPicker] = new ColorPickerToolHandler(),
+        [PixelTool.FloodFill] = new FloodFillToolHandler(),
+    };
+
+    private IToolHandler<GraphicsEditorViewModel>? _modifierOverrideTool;
+
+    private IToolHandler<GraphicsEditorViewModel> ResolveActiveTool()
+    {
+        if (_modifierOverrideTool is not null)
+            return _modifierOverrideTool;
+
+        return EditMode == GraphicsEditMode.Arrange
+            ? _arrangerTools[ActiveArrangerTool]
+            : _pixelTools[ActivePixelTool];
+    }
+
+    private IToolHandler<GraphicsEditorViewModel> ResolveToolWithModifiers(KeyModifiers modifiers)
+    {
+        if (_modifierOverrideTool is not null)
+            return _modifierOverrideTool;
+
+        if (EditMode == GraphicsEditMode.Draw && modifiers.HasFlag(KeyModifiers.Alt))
+            return _pixelTools[PixelTool.ColorPicker];
+
+        return ResolveActiveTool();
+    }
+
     public bool MouseDown(double x, double y, MouseState mouseState)
     {
-        bool isHandled = false;
         var arranger = WorkingArranger;
-
         int xc = Math.Clamp((int)x, 0, arranger.ArrangerPixelSize.Width - 1);
         int yc = Math.Clamp((int)y, 0, arranger.ArrangerPixelSize.Height - 1);
 
@@ -27,179 +70,22 @@ public partial class GraphicsEditorViewModel
             Paste = null;
         }
 
-        if (EditMode == GraphicsEditMode.Draw)
-        {
-            isHandled = MouseDownPixelMode(x, y, xc, yc, mouseState);
-        }
-        else if (EditMode == GraphicsEditMode.Arrange)
-        {
-            isHandled = MouseDownArrangerMode(x, y, xc, yc, mouseState);
-        }
+        var ctx = new ToolContext(x, y, xc, yc, mouseState);
+        var tool = ResolveToolWithModifiers(mouseState.Modifiers);
 
-        return isHandled;
-    }
-
-    private bool MouseDownArrangerMode(double x, double y, int xc, int yc, MouseState mouseState)
-    {
-        var elementX = xc / WorkingArranger.ElementPixelSize.Width;
-        var elementY = yc / WorkingArranger.ElementPixelSize.Height;
-
-        if (ActiveArrangerTool == ArrangerTool.ApplyPalette && mouseState.LeftButtonPressed && SelectedPalette is not null && IsIndexedColor)
-        {
-            _applyPaletteHistory = new ApplyPaletteHistoryAction(SelectedPalette.Palette);
-            TryApplyPalette(xc, yc, SelectedPalette.Palette);
-            return true;
-        }
-
-        if (ActiveArrangerTool == ArrangerTool.PickPalette && mouseState.LeftButtonPressed && IsIndexedColor)
-        {
-            return TryPickPalette(xc, yc);
-        }
-
-        if (ActiveArrangerTool == ArrangerTool.RotateLeft && mouseState.LeftButtonPressed)
-        {
-            var result = WorkingArranger.TryRotateElement(elementX, elementY, RotationOperation.Left);
-            if (result.HasSucceeded)
-            {
-                AddHistoryAction(new RotateElementHistoryAction(elementX, elementY, RotationOperation.Left));
-                IsModified = true;
-                Render();
-            }
-
-            return true;
-        }
-
-        if (ActiveArrangerTool == ArrangerTool.RotateRight && mouseState.LeftButtonPressed)
-        {
-            var result = WorkingArranger.TryRotateElement(elementX, elementY, RotationOperation.Right);
-            if (result.HasSucceeded)
-            {
-                AddHistoryAction(new RotateElementHistoryAction(elementX, elementY, RotationOperation.Right));
-                IsModified = true;
-                Render();
-            }
-            return true;
-        }
-
-        if (ActiveArrangerTool == ArrangerTool.MirrorHorizontal && mouseState.LeftButtonPressed)
-        {
-            var result = WorkingArranger.TryMirrorElement(elementX, elementY, MirrorOperation.Horizontal);
-            if (result.HasSucceeded)
-            {
-                AddHistoryAction(new MirrorElementHistoryAction(elementX, elementY, MirrorOperation.Horizontal));
-                IsModified = true;
-                Render();
-            }
-            return true;
-        }
-
-        if (ActiveArrangerTool == ArrangerTool.MirrorVertical && mouseState.LeftButtonPressed)
-        {
-            var result = WorkingArranger.TryMirrorElement(elementX, elementY, MirrorOperation.Vertical);
-            if (result.HasSucceeded)
-            {
-                AddHistoryAction(new MirrorElementHistoryAction(elementX, elementY, MirrorOperation.Vertical));
-                IsModified = true;
-                Render();
-            }
-            return true;
-        }
-
-        if (ActiveArrangerTool == ArrangerTool.Select)
-        {
-            return MouseDownSelectMode(x, y, xc, yc, mouseState);
-        }
-
-        return false;
-    }
-
-    private bool MouseDownSelectMode(double x, double y, int xc, int yc, MouseState mouseState)
-    {
-        if (Selection.HasSelection && mouseState.LeftButtonPressed && Selection.SelectionRect.ContainsPointSnapped(xc, yc))
-        {
-            // Start drag for selection (Handled by DragDrop in View)
-        }
-        else if (Paste is not null && mouseState.LeftButtonPressed && Paste.Rect.ContainsPointSnapped(xc, yc))
-        {
-            // Start drag for paste (Handled by DragDrop in View)
-        }
-        else if (mouseState.LeftButtonPressed && mouseState.Modifiers.HasFlag(KeyModifiers.Control))
-        {
-            IsSelecting = true;
-            StartNewSelection(x, y);
-            CompleteSelection();
-        }
-        else if (mouseState.LeftButtonPressed)
-        {
-            IsSelecting = true;
-            StartNewSelection(x, y);
-        }
-        else
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    private bool MouseDownPixelMode(double x, double y, int xc, int yc, MouseState mouseState)
-    {
-        if ((ActivePixelTool == PixelTool.ColorPicker || mouseState.Modifiers.HasFlag(KeyModifiers.Alt)) && mouseState.LeftButtonPressed)
-        {
-            return PickColor(xc, yc, ColorPriority.Primary);
-        }
-        
-        if ((ActivePixelTool == PixelTool.ColorPicker || mouseState.Modifiers.HasFlag(KeyModifiers.Alt)) && mouseState.RightButtonPressed)
-        {
-            return PickColor(xc, yc, ColorPriority.Secondary);
-        }
-        
-        if (ActivePixelTool == PixelTool.Pencil && mouseState.LeftButtonPressed)
-        {
-            StartPencilDraw(xc, yc, ColorPriority.Primary);
-            SetPixelAtPosition(xc, yc, ColorPriority.Primary);
-            return true;
-        }
-        
-        if (ActivePixelTool == PixelTool.Pencil && mouseState.RightButtonPressed)
-        {
-            StartPencilDraw(xc, yc, ColorPriority.Secondary);
-            SetPixelAtPosition(xc, yc, ColorPriority.Secondary);
-            return true;
-        }
-        
-        if (ActivePixelTool == PixelTool.FloodFill && mouseState.LeftButtonPressed)
-        {
-            FloodFillAtPosition(xc, yc, ColorPriority.Primary);
-            return true;
-        }
-        
-        if (ActivePixelTool == PixelTool.FloodFill && mouseState.RightButtonPressed)
-        {
-            FloodFillAtPosition(xc, yc, ColorPriority.Secondary);
-            return true;
-        }
-
-        return MouseDownSelectMode(x, y, xc, yc, mouseState);
+        return tool.OnMouseDown(ctx, this);
     }
 
     public bool MouseUp(double x, double y, MouseState mouseState)
     {
-        if (EditMode == GraphicsEditMode.Arrange && ActiveArrangerTool == ArrangerTool.ApplyPalette && _applyPaletteHistory?.ModifiedElements.Count > 0)
-        {
-            AddHistoryAction(_applyPaletteHistory);
-            _applyPaletteHistory = null;
-        }
-        else if (EditMode == GraphicsEditMode.Draw && IsPencilDrawing && !mouseState.LeftButtonPressed && !mouseState.RightButtonPressed)
-        {
-            StopPencilDraw();
-        }
-        else if (IsSelecting && mouseState.LeftButtonPressed == false)
-        {
-            CompleteSelection();
-        }
+        var arranger = WorkingArranger;
+        int xc = Math.Clamp((int)x, 0, arranger.ArrangerPixelSize.Width - 1);
+        int yc = Math.Clamp((int)y, 0, arranger.ArrangerPixelSize.Height - 1);
 
-        return true;
+        var ctx = new ToolContext(x, y, xc, yc, mouseState);
+        var tool = ResolveActiveTool();
+
+        return tool.OnMouseUp(ctx, this);
     }
 
     public bool MouseEnter()
@@ -212,22 +98,10 @@ public partial class GraphicsEditorViewModel
         LastMousePosition = null;
         ActivityMessage = string.Empty;
 
-        if (EditMode == GraphicsEditMode.Arrange && ActiveArrangerTool == ArrangerTool.ApplyPalette && _applyPaletteHistory?.ModifiedElements.Count > 0)
-        {
-            AddHistoryAction(_applyPaletteHistory);
-            _applyPaletteHistory = null;
-        }
-        else if (EditMode == GraphicsEditMode.Draw)
-        {
-            if (ActivePixelTool == PixelTool.Pencil && IsPencilDrawing)
-            {
-                StopPencilDraw();
-            }
-            else
-            {
-                PopPixelTool();
-            }
-        }
+        var tool = ResolveActiveTool();
+        var historyAction = tool.Deactivate(this);
+        if (historyAction is not null)
+            AddHistoryAction(historyAction);
 
         return true;
     }
@@ -247,72 +121,93 @@ public partial class GraphicsEditorViewModel
 
         LastMousePosition = new Point(xc, yc);
 
-        if (EditMode == GraphicsEditMode.Draw)
-        {
-            MouseMovePixelMode(x, y, xc, yc, mouseState);
-            return true;
-        }
-        else if (EditMode == GraphicsEditMode.Arrange)
-        {
-            MouseMoveArrangerMode(x, y, xc, yc, mouseState);
-            return true;
-        }
-
-        return false;
-    }
-
-    private void MouseMoveArrangerMode(double x, double y, int xc, int yc, MouseState mouseState)
-    {
-        if (mouseState.Modifiers.HasFlag(KeyModifiers.Shift) && Paste is null)
+        // Shift+move in arranger mode for single-element selection
+        if (EditMode == GraphicsEditMode.Arrange && mouseState.Modifiers.HasFlag(KeyModifiers.Shift) && Paste is null)
         {
             if (TryStartNewSingleSelection(x, y))
             {
                 CompleteSelection();
-                return;
+                return true;
             }
         }
 
-        if (ActiveArrangerTool == ArrangerTool.ApplyPalette && mouseState.LeftButtonPressed && _applyPaletteHistory is not null && SelectedPalette is not null && IsIndexedColor)
-        {
-            TryApplyPalette(xc, yc, SelectedPalette.Palette);
-        }
-        else if (ActiveArrangerTool == ArrangerTool.InspectElement)
-        {
-            InspectElementAtPosition(xc, yc);
-        }
-        else if (ActiveArrangerTool == ArrangerTool.Select)
-        {
-            if (IsSelecting)
-                UpdateSelection(x, y);
-            UpdateActivityMessage(xc, yc);
-        }
-        else
-        {
-            UpdateActivityMessage(xc, yc);
-        }
+        var ctx = new ToolContext(x, y, xc, yc, mouseState);
+        var tool = ResolveToolWithModifiers(mouseState.Modifiers);
+
+        return tool.OnMouseMove(ctx, this);
     }
 
-    private void MouseMovePixelMode(double x, double y, int xc, int yc, MouseState mouseState)
+    public bool MouseWheel(MouseWheelDirection direction, KeyModifiers modifiers)
     {
-        if (x < 0 || x >= WorkingArranger.ArrangerPixelSize.Width || y < 0 || y >= WorkingArranger.ArrangerPixelSize.Height)
+        return false;
+    }
+
+    public bool KeyPress(KeyState keyState, double? x, double? y)
+    {
+        if (!x.HasValue || !y.HasValue)
+            return false;
+
+        int xc = Math.Clamp((int)x.Value, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
+        int yc = Math.Clamp((int)y.Value, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
+
+        // Handle modifier key override (e.g., Alt pushes ColorPicker in pixel mode)
+        if (EditMode == GraphicsEditMode.Draw && keyState.Key == SecondaryAltKey && _modifierOverrideTool is null)
         {
-            LastMousePosition = null;
+            _modifierOverrideTool = _pixelTools[PixelTool.ColorPicker];
+            return true;
+        }
+
+        var ctx = new ToolContext(x.Value, y.Value, xc, yc, keyState);
+        var tool = ResolveActiveTool();
+
+        return tool.OnKeyDown(ctx, this);
+    }
+
+    public void KeyUp(KeyState keyState, double? x, double? y)
+    {
+        if (!x.HasValue || !y.HasValue)
+            return;
+
+        int xc = Math.Clamp((int)x.Value, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
+        int yc = Math.Clamp((int)y.Value, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
+
+        // Release modifier override
+        if (keyState.Key == SecondaryAltKey && _modifierOverrideTool is not null)
+        {
+            _modifierOverrideTool = null;
             return;
         }
 
-        if (IsPencilDrawing && ActivePixelTool == PixelTool.Pencil && mouseState.LeftButtonPressed)
-            SetPixelAtPosition(xc, yc, ColorPriority.Primary);
-        else if (IsPencilDrawing && ActivePixelTool == PixelTool.Pencil && mouseState.RightButtonPressed)
-            SetPixelAtPosition(xc, yc, ColorPriority.Secondary);
+        var ctx = new ToolContext(x.Value, y.Value, xc, yc, keyState);
+        var tool = ResolveActiveTool();
+
+        tool.OnKeyUp(ctx, this);
+    }
+
+    internal void UpdateActivityMessage(int xc, int yc)
+    {
+        var arranger = WorkingArranger;
+
+        if (Selection.HasSelection)
+        {
+            string notifyMessage;
+            var rect = Selection.SelectionRect;
+            if (rect.SnapMode == SnapMode.Element)
+                notifyMessage = $"Element Selection: {rect.SnappedWidth / arranger.ElementPixelSize.Width} x {rect.SnappedHeight / arranger.ElementPixelSize.Height}" +
+                    $" at ({rect.SnappedLeft / arranger.ElementPixelSize.Width}, {rect.SnappedTop / arranger.ElementPixelSize.Height})";
+            else
+                notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight} at ({rect.SnappedLeft}, {rect.SnappedTop})";
+
+            ActivityMessage = notifyMessage;
+        }
         else
         {
-            if (IsSelecting)
-                UpdateSelection(x, y);
-            UpdateActivityMessage(xc, yc);
+            var notifyMessage = $"{arranger.Name}: ({xc}, {yc})";
+            ActivityMessage = notifyMessage;
         }
     }
 
-    private void InspectElementAtPosition(int xc, int yc)
+    internal void InspectElementAtPosition(int xc, int yc)
     {
         var elX = xc / WorkingArranger.ElementPixelSize.Width;
         var elY = yc / WorkingArranger.ElementPixelSize.Height;
@@ -339,79 +234,6 @@ public partial class GraphicsEditorViewModel
         else
         {
             ActivityMessage = $"Element ({elX}, {elY}): Empty";
-        }
-    }
-
-    private void UpdateActivityMessage(int xc, int yc)
-    {
-        var arranger = WorkingArranger;
-
-        if (Selection.HasSelection)
-        {
-            string notifyMessage;
-            var rect = Selection.SelectionRect;
-            if (rect.SnapMode == SnapMode.Element)
-                notifyMessage = $"Element Selection: {rect.SnappedWidth / arranger.ElementPixelSize.Width} x {rect.SnappedHeight / arranger.ElementPixelSize.Height}" +
-                    $" at ({rect.SnappedLeft / arranger.ElementPixelSize.Width}, {rect.SnappedTop / arranger.ElementPixelSize.Height})";
-            else
-                notifyMessage = $"Pixel Selection: {rect.SnappedWidth} x {rect.SnappedHeight} at ({rect.SnappedLeft}, {rect.SnappedTop})";
-
-            ActivityMessage = notifyMessage;
-        }
-        else
-        {
-            var notifyMessage = $"{arranger.Name}: ({xc}, {yc})";
-            ActivityMessage = notifyMessage;
-        }
-    }
-
-    public bool MouseWheel(MouseWheelDirection direction, KeyModifiers modifiers)
-    {
-        return false;
-    }
-
-    public bool KeyPress(KeyState keyState, double? x, double? y)
-    {
-        if (EditMode == GraphicsEditMode.Arrange)
-        {
-            if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null)
-            {
-                if (TryStartNewSingleSelection(x.Value, y.Value))
-                {
-                    CompleteSelection();
-                    return true;
-                }
-            }
-        }
-        else if (EditMode == GraphicsEditMode.Draw)
-        {
-            if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null && _priorPixelTool is null)
-            {
-                PushPixelTool(PixelTool.ColorPicker);
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public void KeyUp(KeyState keyState, double? x, double? y)
-    {
-        if (EditMode == GraphicsEditMode.Arrange)
-        {
-            if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null &&
-                WorkingArranger.ElementPixelSize == new Size(Selection.SelectionRect.SnappedWidth, Selection.SelectionRect.SnappedHeight))
-            {
-                CancelOverlay();
-                return;
-            }
-        }
-        else if (EditMode == GraphicsEditMode.Draw)
-        {
-            if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null)
-            {
-                PopPixelTool();
-            }
         }
     }
 }

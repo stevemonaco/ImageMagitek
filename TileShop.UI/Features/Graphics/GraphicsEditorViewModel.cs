@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -54,8 +55,22 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     [ObservableProperty] private GraphicsEditMode _editMode = GraphicsEditMode.Arrange;
 
-    partial void OnEditModeChanged(GraphicsEditMode value)
+    partial void OnEditModeChanged(GraphicsEditMode oldValue, GraphicsEditMode newValue)
     {
+        // Deactivate the outgoing tool
+        var outgoingTool = oldValue == GraphicsEditMode.Arrange
+            ? _arrangerTools.GetValueOrDefault(ActiveArrangerTool)
+            : _pixelTools.GetValueOrDefault(ActivePixelTool);
+
+        if (outgoingTool is not null)
+        {
+            var historyAction = outgoingTool.Deactivate(this);
+            if (historyAction is not null)
+                AddHistoryAction(historyAction);
+        }
+
+        _modifierOverrideTool = null;
+
         CancelOverlay();
         OnPropertyChanged(nameof(IsArrangerMode));
         OnPropertyChanged(nameof(IsDrawMode));
@@ -112,13 +127,18 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     [ObservableProperty] private byte _primaryColorIndex;
     [ObservableProperty] private byte _secondaryColorIndex = 1;
 
-    private PixelTool? _priorPixelTool;
     private HistoryAction? _activePencilHistory;
-    private ApplyPaletteHistoryAction? _applyPaletteHistory;
 
-    partial void OnActiveArrangerToolChanged(ArrangerTool value)
+    partial void OnActiveArrangerToolChanged(ArrangerTool oldValue, ArrangerTool newValue)
     {
-        if (value != ArrangerTool.Select && value != ArrangerTool.ApplyPalette)
+        if (_arrangerTools.TryGetValue(oldValue, out var outgoing))
+        {
+            var historyAction = outgoing.Deactivate(this);
+            if (historyAction is not null)
+                AddHistoryAction(historyAction);
+        }
+
+        if (newValue != ArrangerTool.Select && newValue != ArrangerTool.ApplyPalette)
             CancelOverlay();
     }
 
