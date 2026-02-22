@@ -29,8 +29,6 @@ public partial class GridSettingsViewModel : ObservableObject
 
     private int _width;
     private int _height;
-    private int _viewDx;
-    private int _viewDy;
 
     private GridSettingsViewModel()
     {
@@ -66,8 +64,6 @@ public partial class GridSettingsViewModel : ObservableObject
 
         settings._width = image.Width;
         settings._height = image.Height;
-        settings._viewDx = image.Left;
-        settings._viewDy = image.Top;
 
         settings.Gridlines = settings.CreateGridlines();
         settings.LineBrush = settings.CreateLineBrush();
