@@ -30,9 +30,10 @@ public partial class GraphicsEditorView : UserControl, IStateViewDriver<Graphics
         EditorCanvas.PointerMoved += CanvasOnPointerMoved;
         EditorCanvas.PointerExited += CanvasOnPointerExited;
         EditorCanvas.PointerWheelChanged += CanvasOnPointerWheelChanged;
+        EditorCanvas.PointerCaptureLost += CanvasOnPointerCaptureLost;
         //EditorCanvas.KeyDown += CanvasOnKeyDown;
     }
-    
+
     private void OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
         _renderer?.Render(ViewModel, e.Surface.Canvas);
@@ -95,25 +96,62 @@ public partial class GraphicsEditorView : UserControl, IStateViewDriver<Graphics
 
     public void CanvasOnPointerPressed(object sender, PointerPressedEventArgs e)
     {
-        var point = e.GetCurrentPoint(this);
+        var point = e.GetCurrentPoint(EditorCanvas);
         var localPoint = EditorCanvas.ScreenToLocalPoint(point.Position);
+
+        bool isHandled = false;
+
+        if (ViewModel.ContainsPoint((int)localPoint.X, (int)localPoint.Y))
+        {
+            var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
+            isHandled = ViewModel.MouseDown(localPoint.X, localPoint.Y, state);
+        }
+
+        if (!isHandled && point.Properties.PointerUpdateKind == PointerUpdateKind.MiddleButtonPressed)
+        {
+            EditorCanvas.StartPan(point.Position);
+            point.Pointer.Capture(EditorCanvas);
+            isHandled = true;
+        }
         
-        var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-        ViewModel.MouseDown(point.Position.X, point.Position.Y, state);
+        e.Handled = isHandled;
     }
 
     public void CanvasOnPointerReleased(object sender, PointerReleasedEventArgs e)
     {
-        var point = e.GetCurrentPoint(this);
-        var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-        ViewModel.MouseUp(point.Position.X, point.Position.Y, state);
+        var point = e.GetCurrentPoint(EditorCanvas);
+        var localPoint = EditorCanvas.ScreenToLocalPoint(point.Position);
+
+        bool isHandled = false;
+        
+        if (ViewModel.ContainsPoint((int)localPoint.X, (int)localPoint.Y))
+        {
+            var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
+            isHandled = ViewModel.MouseUp(localPoint.X, localPoint.Y, state);
+        }
+
+        if (!isHandled && point.Properties.PointerUpdateKind == PointerUpdateKind.MiddleButtonReleased)
+        {
+            EditorCanvas.EndPan();
+            point.Pointer.Capture(null);
+            isHandled = false;
+        }
     }
 
     public void CanvasOnPointerMoved(object sender, PointerEventArgs e)
     {
-        var point = e.GetCurrentPoint(this);
-        var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-        ViewModel.MouseMove(point.Position.X, point.Position.Y, state);
+        var point = e.GetCurrentPoint(EditorCanvas);
+        var localPoint = EditorCanvas.ScreenToLocalPoint(point.Position);
+
+        bool isHandled = false;
+        
+        if (ViewModel.ContainsPoint((int)localPoint.X, (int)localPoint.Y))
+        {
+            var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
+            isHandled = ViewModel.MouseMove(localPoint.X, localPoint.Y, state);
+        }
+
+        e.Handled = isHandled;
     }
 
     public void CanvasOnPointerExited(object sender, PointerEventArgs e)
@@ -127,12 +165,24 @@ public partial class GraphicsEditorView : UserControl, IStateViewDriver<Graphics
 
         if (e.Delta.Y > 0)
         {
-            ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
+            if (ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers))
+                return;
         }
         else if (e.Delta.Y < 0)
         {
-            ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
+            if (ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers))
+                return;
         }
+
+        if (e.Delta.Y > 0)
+            EditorCanvas.ZoomIn();
+        else if (e.Delta.Y < 0)
+            EditorCanvas.ZoomOut();
+    }
+    
+    private void CanvasOnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        EditorCanvas.EndPan();
     }
 
     private void Button_OnClick(object? sender, RoutedEventArgs e)

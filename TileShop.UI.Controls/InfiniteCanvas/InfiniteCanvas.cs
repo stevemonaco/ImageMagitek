@@ -204,7 +204,7 @@ public partial class InfiniteCanvas : Control
 
         _frameTextFont ??= new SKFont()
         {
-            Size = 24 //, Edging = SKFontEdging.SubpixelAntialias
+            Size = 14
         };
 
         var canvas = surface.Canvas;

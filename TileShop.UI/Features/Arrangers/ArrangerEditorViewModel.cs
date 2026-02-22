@@ -114,7 +114,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     /// <param name="x">x-coordinate in unzoomed pixels</param>
     /// <param name="y">y-coordinate in unzoomed pixels</param>
     /// <param name="mouseState">State of mouse and key modifiers</param>
-    public virtual void MouseDown(double x, double y, MouseState mouseState)
+    public virtual bool MouseDown(double x, double y, MouseState mouseState)
     {
         var arranger = WorkingArranger;
 
@@ -146,6 +146,8 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
             IsSelecting = true;
             StartNewSelection(x, y);
         }
+        
+        return true;
     }
 
     /// <summary>
@@ -154,22 +156,26 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     /// <param name="x">x-coordinate in unzoomed pixels</param>
     /// <param name="y">y-coordinate in unzoomed pixels</param>
     /// <param name="mouseState">State of mouse and key modifiers</param>
-    public virtual void MouseUp(double x, double y, MouseState mouseState)
+    public virtual bool MouseUp(double x, double y, MouseState mouseState)
     {
         if (IsSelecting && mouseState.LeftButtonPressed == false)
         {
             CompleteSelection();
         }
+
+        return true;
     }
 
-    public virtual void MouseEnter()
+    public virtual bool MouseEnter()
     {
+        return true;
     }
 
-    public virtual void MouseLeave()
+    public virtual bool MouseLeave()
     {
         LastMousePosition = null;
         ActivityMessage = string.Empty;
+        return true;
     }
 
     /// <summary>
@@ -177,14 +183,14 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
     /// </summary>
     /// <param name="x">x-coordinate in unzoomed pixels</param>
     /// <param name="y">y-coordinate in unzoomed pixels</param>
-    public virtual void MouseMove(double x, double y, MouseState mouseState)
+    public virtual bool MouseMove(double x, double y, MouseState mouseState)
     {
         var arranger = WorkingArranger;
 
         if (x < 0 || y < 0 || x >= arranger.ArrangerPixelSize.Width || y >= arranger.ArrangerPixelSize.Height)
         {
             LastMousePosition = null;
-            return;
+            return false;
         }
 
         int xc = Math.Clamp((int)x, 0, arranger.ArrangerPixelSize.Width - 1);
@@ -212,18 +218,22 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
             var notifyMessage = $"{arranger.Name}: ({xc}, {yc})";
             ActivityMessage = notifyMessage;
         }
+        
+        return true;
     }
 
-    public virtual void KeyPress(KeyState keyState, double? x, double? y)
+    public virtual bool KeyPress(KeyState keyState, double? x, double? y)
     {
+        return true;
     }
 
     public virtual void KeyUp(KeyState keyState, double? x, double? y)
     {
     }
 
-    public virtual void MouseWheel(MouseWheelDirection direction, KeyModifiers modifiers)
+    public virtual bool MouseWheel(MouseWheelDirection direction, KeyModifiers modifiers)
     {
+        return true;
     }
 
     #region Commands

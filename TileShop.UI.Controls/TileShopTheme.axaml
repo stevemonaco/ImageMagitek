@@ -1,5 +1,4 @@
-﻿<Styles
-    x:Class="TileShop.UI.Controls.TileShopTheme"
+﻿<Styles x:Class="TileShop.UI.Controls.TileShopTheme"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Styles.Resources>
@@ -17,5 +16,5 @@
         </ResourceDictionary>
     </Styles.Resources>
 
-    <StyleInclude Source="avares://TileShop.UI.Controls/Styles/TextStyles.axaml" />
+    <StyleInclude Source="avares://TileShop.UI.Controls/Styles/Typography.axaml" />
 </Styles>

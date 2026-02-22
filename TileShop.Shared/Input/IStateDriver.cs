@@ -6,12 +6,12 @@ public interface IStateDriver
 {
     Point? LastMousePosition { get; }
 
-    void MouseMove(double x, double y, MouseState mouseState);
-    void MouseEnter();
-    void MouseLeave();
-    void MouseDown(double x, double y, MouseState mouseState);
-    void MouseUp(double x, double y, MouseState mouseState);
-    void MouseWheel(MouseWheelDirection direction, KeyModifiers modifiers);
+    bool MouseMove(double x, double y, MouseState mouseState);
+    bool MouseEnter();
+    bool MouseLeave();
+    bool MouseDown(double x, double y, MouseState mouseState);
+    bool MouseUp(double x, double y, MouseState mouseState);
+    bool MouseWheel(MouseWheelDirection direction, KeyModifiers modifiers);
 
-    void KeyPress(KeyState keyState, double? x, double? y);
+    bool KeyPress(KeyState keyState, double? x, double? y);
 }

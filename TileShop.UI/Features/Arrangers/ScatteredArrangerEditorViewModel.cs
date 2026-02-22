@@ -139,7 +139,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
     }
 
     #region Mouse Actions
-    public override void MouseDown(double x, double y, MouseState mouseState)
+    public override bool MouseDown(double x, double y, MouseState mouseState)
     {
         int xc = Math.Clamp((int)x, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
         int yc = Math.Clamp((int)y, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
@@ -199,9 +199,11 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         {
             base.MouseDown(x, y, mouseState);
         }
+
+        return true;
     }
 
-    public override void MouseUp(double x, double y, MouseState mouseState)
+    public override bool MouseUp(double x, double y, MouseState mouseState)
     {
         if (ActiveTool == ScatteredArrangerTool.ApplyPalette && _applyPaletteHistory?.ModifiedElements.Count > 0)
         {
@@ -210,9 +212,11 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         }
         else
             base.MouseUp(x, y, mouseState);
+        
+        return true;
     }
 
-    public override void MouseLeave()
+    public override bool MouseLeave()
     {
         LastMousePosition = null;
 
@@ -223,9 +227,11 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         }
         else
             base.MouseLeave();
+        
+        return true;
     }
 
-    public override void MouseMove(double x, double y, MouseState mouseState)
+    public override bool MouseMove(double x, double y, MouseState mouseState)
     {
         int xc = Math.Clamp((int)x, 0, WorkingArranger.ArrangerPixelSize.Width - 1);
         int yc = Math.Clamp((int)y, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
@@ -239,7 +245,7 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
                 CompleteSelection();
                 //var copy = new ElementCopy(WorkingArranger, (int)(Selection.SelectionRect.Left / WorkingArranger.ElementPixelSize.Width), (int)(Selection.SelectionRect.Right / WorkingArranger.ElementPixelSize.Width), 8, 8);
                 //Paste = new ArrangerPaste(copy, SnapMode.Element);
-                return;
+                return true;
             }
         }
 
@@ -283,22 +289,26 @@ public partial class ScatteredArrangerEditorViewModel : ArrangerEditorViewModel
         {
             base.MouseMove(x, y, mouseState);
         }
+        
+        return true;
     }
 
-    public override void KeyPress(KeyState keyState, double? x, double? y)
+    public override bool KeyPress(KeyState keyState, double? x, double? y)
     {
         if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null)
         {
             if (TryStartNewSingleSelection(x!.Value, y!.Value))
             {
                 CompleteSelection();
-                return;
+                return true;
             }
         }
         else
         {
             base.KeyPress(keyState, x, y);
         }
+        
+        return true;
     }
 
     public override void KeyUp(KeyState keyState, double? x, double? y)

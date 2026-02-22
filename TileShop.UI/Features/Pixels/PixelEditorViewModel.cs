@@ -153,14 +153,14 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
     #endregion
 
     #region Input Actions
-    public override void KeyPress(KeyState keyState, double? x, double? y)
+    public override bool KeyPress(KeyState keyState, double? x, double? y)
     {
         if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null && _priorTool is null)
         {
             PushTool(PixelTool.ColorPicker);
-
+            return true;
         }
-        base.KeyPress(keyState, x, y);
+        return base.KeyPress(keyState, x, y);
     }
 
     public override void KeyUp(KeyState keyState, double? x, double? y)
@@ -168,12 +168,11 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
         if (keyState.Key == SecondaryAltKey && x.HasValue && y.HasValue && Paste is null)
         {
             PopTool();
-
         }
         base.KeyPress(keyState, x, y);
     }
 
-    public override void MouseDown(double x, double y, MouseState mouseState)
+    public override bool MouseDown(double x, double y, MouseState mouseState)
     {
         var bounds = WorkingArranger.ArrangerPixelSize;
         int xc = Math.Clamp((int)x, 0, bounds.Width - 1);
@@ -209,21 +208,22 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
         {
             base.MouseDown(x, y, mouseState);
         }
+
+        return true;
     }
 
-    public override void MouseUp(double x, double y, MouseState mouseState)
+    public override bool MouseUp(double x, double y, MouseState mouseState)
     {
         if (IsDrawing && !mouseState.LeftButtonPressed && !mouseState.RightButtonPressed)
         {
             StopDrawing();
+            return true;
         }
-        else
-        {
-            base.MouseUp(x, y, mouseState);
-        }
+
+        return base.MouseUp(x, y, mouseState);
     }
 
-    public override void MouseMove(double x, double y, MouseState mouseState)
+    public override bool MouseMove(double x, double y, MouseState mouseState)
     {
         var bounds = WorkingArranger.ArrangerPixelSize;
         int xc = Math.Clamp((int)x, 0, bounds.Width - 1);
@@ -232,20 +232,27 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
         if (x < 0 || x >= _viewWidth || y < 0 || y >= _viewHeight)
         {
             LastMousePosition = null;
-            return;
+            return false;
         }
 
         LastMousePosition = new(xc, yc);
 
         if (IsDrawing && ActiveTool == PixelTool.Pencil && mouseState.LeftButtonPressed)
+        {
             SetPixel(xc, yc, PrimaryColor);
-        else if (IsDrawing && ActiveTool == PixelTool.Pencil && mouseState.RightButtonPressed)
+            return true;
+        }
+
+        if (IsDrawing && ActiveTool == PixelTool.Pencil && mouseState.RightButtonPressed)
+        {
             SetPixel(xc, yc, SecondaryColor);
-        else
-            base.MouseMove(x, y, mouseState);
+            return true;
+        }
+        
+        return base.MouseMove(x, y, mouseState);
     }
 
-    public override void MouseLeave()
+    public override bool MouseLeave()
     {
         if (ActiveTool == PixelTool.Pencil && IsDrawing)
         {
@@ -256,6 +263,8 @@ public abstract partial class PixelEditorViewModel<TColor> : ArrangerEditorViewM
             PopTool();
             base.MouseLeave();
         }
+        
+        return true;
     }
     #endregion
 }

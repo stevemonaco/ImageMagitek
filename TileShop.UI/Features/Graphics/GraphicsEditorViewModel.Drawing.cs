@@ -160,7 +160,7 @@ public partial class GraphicsEditorViewModel
         }
     }
 
-    public void PickColor(int x, int y, ColorPriority priority)
+    public bool PickColor(int x, int y, ColorPriority priority)
     {
         if (IsIndexedColor)
         {
@@ -175,6 +175,8 @@ public partial class GraphicsEditorViewModel
                     PrimaryColorIndex = colorIndex;
                 else
                     SecondaryColorIndex = colorIndex;
+
+                return true;
             }
         }
         else
@@ -185,7 +187,11 @@ public partial class GraphicsEditorViewModel
                 PrimaryColor = color;
             else
                 SecondaryColor = color;
+
+            return true;
         }
+
+        return false;
     }
 
     [RelayCommand]
