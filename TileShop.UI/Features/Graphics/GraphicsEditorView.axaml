@@ -1,14 +1,13 @@
-<UserControl
-    Focusable="True"
-    x:Class="TileShop.UI.Views.GraphicsEditorView"
-    x:DataType="gfx:GraphicsEditorViewModel"
-    x:Name="control"
+<UserControl x:Class="TileShop.UI.Views.GraphicsEditorView"
     xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="https://github.com/stevemonaco/TileShop"
     xmlns:con="using:TileShop.UI.Converters"
     xmlns:gfx="using:TileShop.UI.Features.Graphics"
     xmlns:vm="using:TileShop.UI.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    x:Name="control"
+    x:DataType="gfx:GraphicsEditorViewModel"
+    Focusable="True">
     <UserControl.KeyBindings>
         <KeyBinding Command="{Binding ToggleGridlineVisibilityCommand}" Gesture="G" />
         <KeyBinding Command="{Binding ToggleSnapModeCommand}" Gesture="S" />
@@ -21,6 +20,17 @@
         <KeyBinding Command="{Binding RedoCommand}" Gesture="Ctrl+Y" />
         <KeyBinding Command="{Binding SelectAllCommand}" Gesture="Ctrl+A" />
         <KeyBinding Command="{Binding ModifyGridSettingsCommand}" Gesture="Ctrl+G" />
+        <!--  Sequential Arranger Navigation  -->
+        <KeyBinding Command="{Binding MoveByteDownCommand}" Gesture="Add" />
+        <KeyBinding Command="{Binding MoveByteUpCommand}" Gesture="Subtract" />
+        <KeyBinding Command="{Binding MoveRowDownCommand}" Gesture="Down" />
+        <KeyBinding Command="{Binding MoveRowUpCommand}" Gesture="Up" />
+        <KeyBinding Command="{Binding MoveColumnRightCommand}" Gesture="Right" />
+        <KeyBinding Command="{Binding MoveColumnLeftCommand}" Gesture="Left" />
+        <KeyBinding Command="{Binding MovePageDownCommand}" Gesture="PageDown" />
+        <KeyBinding Command="{Binding MovePageUpCommand}" Gesture="PageUp" />
+        <KeyBinding Command="{Binding MoveHomeCommand}" Gesture="Home" />
+        <KeyBinding Command="{Binding MoveEndCommand}" Gesture="End" />
     </UserControl.KeyBindings>
 
     <UserControl.ContextMenu>
@@ -48,15 +58,16 @@
         </ContextMenu>
     </UserControl.ContextMenu>
 
-    <Grid
-        ColumnDefinitions="Auto, *"
-        Margin="8,4,0,0"
-        RowDefinitions="*"
-        UseLayoutRounding="True">
+    <Grid Margin="8,4,0,0" ColumnDefinitions="Auto, *, Auto" RowDefinitions="*" UseLayoutRounding="True">
         <!--  Sidebar  -->
         <gfx:GraphicsEditorToolbarView Grid.RowSpan="1" />
 
         <!--  Image Display  -->
-        <cc:InfiniteCanvas Grid.Column="1" x:Name="EditorCanvas" />
+        <cc:InfiniteCanvas x:Name="EditorCanvas" Grid.Column="1" />
+
+        <!--  File Scroller  -->
+        <ScrollBar Grid.Column="2" HorizontalAlignment="Right" AllowAutoHide="False"
+            IsVisible="{Binding IsSequentialArranger}" LargeChange="{Binding ArrangerPageSize}"
+            Maximum="{Binding MaxFileDecodingOffset}" Minimum="0" SmallChange="1" Value="{Binding FileOffset}" />
     </Grid>
 </UserControl>

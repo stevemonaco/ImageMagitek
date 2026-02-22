@@ -52,6 +52,80 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     public bool IsTiledLayout => WorkingArranger?.Layout == ElementLayout.Tiled;
     public bool IsIndexedColor => WorkingArranger?.ColorType == PixelColorType.Indexed;
     public bool IsDirectColor => WorkingArranger?.ColorType == PixelColorType.Direct;
+    public bool IsSequentialArranger => WorkingArranger is SequentialArranger;
+
+    // Sequential arranger file offset navigation
+    private long _fileOffset;
+    public long FileOffset
+    {
+        get => _fileOffset;
+        set
+        {
+            if (SetProperty(ref _fileOffset, value))
+                MoveToOffset(_fileOffset);
+        }
+    }
+
+    [ObservableProperty] private long _maxFileDecodingOffset;
+    [ObservableProperty] private int _arrangerPageSize;
+
+    // Sequential arranger sizing properties
+    private int _tiledArrangerWidth = 8;
+    public int TiledArrangerWidth
+    {
+        get => _tiledArrangerWidth;
+        set
+        {
+            if (SetProperty(ref _tiledArrangerWidth, value))
+                ResizeSequentialArranger(TiledArrangerWidth, TiledArrangerHeight);
+        }
+    }
+
+    private int _tiledArrangerHeight = 16;
+    public int TiledArrangerHeight
+    {
+        get => _tiledArrangerHeight;
+        set
+        {
+            if (SetProperty(ref _tiledArrangerHeight, value))
+                ResizeSequentialArranger(TiledArrangerWidth, TiledArrangerHeight);
+        }
+    }
+
+    private int _linearArrangerWidth = 256;
+    public int LinearArrangerWidth
+    {
+        get => _linearArrangerWidth;
+        set
+        {
+            if (WorkingArranger is SequentialArranger seqArr)
+            {
+                var preferredWidth = seqArr.ActiveCodec.GetPreferredWidth(value);
+                SetProperty(ref _linearArrangerWidth, preferredWidth);
+                ResizeSequentialArranger(LinearArrangerWidth, LinearArrangerHeight);
+            }
+        }
+    }
+
+    private int _linearArrangerHeight = 256;
+    public int LinearArrangerHeight
+    {
+        get => _linearArrangerHeight;
+        set
+        {
+            if (WorkingArranger is SequentialArranger seqArr)
+            {
+                var preferredHeight = seqArr.ActiveCodec.GetPreferredHeight(value);
+                SetProperty(ref _linearArrangerHeight, preferredHeight);
+                ResizeSequentialArranger(LinearArrangerWidth, LinearArrangerHeight);
+            }
+        }
+    }
+
+    [ObservableProperty] private int _arrangerWidthIncrement = 1;
+    [ObservableProperty] private int _arrangerHeightIncrement = 1;
+    [ObservableProperty] private int _elementWidthIncrement = 1;
+    [ObservableProperty] private int _elementHeightIncrement = 1;
 
     [ObservableProperty] private GraphicsEditMode _editMode = GraphicsEditMode.Arrange;
 
@@ -147,7 +221,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         ElementStore elementStore, IProjectService projectService, Tracker tracker)
         : base(arranger)
     {
-        WorkingArranger = arranger.CloneArranger();
+        WorkingArranger = arranger.Mode == ArrangerMode.Scattered ? arranger.CloneArranger() : arranger;
         _projectArranger = arranger;
         Resource = arranger;
         OriginatingProjectResource = arranger;
@@ -188,6 +262,28 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         {
             SnapMode = SnapMode.Element;
             CanChangeSnapMode = true;
+        }
+
+        if (WorkingArranger is SequentialArranger seqArr)
+        {
+            ArrangerPageSize = (int)seqArr.ArrangerBitSize / 8;
+            MaxFileDecodingOffset = seqArr.FileSize - ArrangerPageSize;
+
+            if (seqArr.Layout == ElementLayout.Tiled)
+            {
+                _tiledArrangerWidth = seqArr.ArrangerElementSize.Width;
+                _tiledArrangerHeight = seqArr.ArrangerElementSize.Height;
+            }
+            else if (seqArr.Layout == ElementLayout.Single)
+            {
+                _linearArrangerWidth = seqArr.ArrangerPixelSize.Width;
+                _linearArrangerHeight = seqArr.ArrangerPixelSize.Height;
+            }
+
+            ArrangerWidthIncrement = 1;
+            ArrangerHeightIncrement = 1;
+            ElementWidthIncrement = seqArr.ActiveCodec.WidthResizeIncrement;
+            ElementHeightIncrement = seqArr.ActiveCodec.HeightResizeIncrement;
         }
     }
 

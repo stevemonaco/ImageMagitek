@@ -53,7 +53,7 @@ public partial class GraphicsEditorViewModel
     public void ToggleGridlineVisibility()
     {
         GridSettings.ShowGridlines ^= true;
-        OnImageModified?.Invoke();
+        Render();
     }
 
     [RelayCommand]
@@ -341,6 +341,123 @@ public partial class GraphicsEditorViewModel
             IsModified = true;
         }
     }
+
+    #region Sequential Arranger Move Commands
+    [RelayCommand] public void MoveByteDown() => Move(ArrangerMoveType.ByteDown);
+    [RelayCommand] public void MoveByteUp() => Move(ArrangerMoveType.ByteUp);
+    [RelayCommand] public void MoveRowDown() => Move(ArrangerMoveType.RowDown);
+    [RelayCommand] public void MoveRowUp() => Move(ArrangerMoveType.RowUp);
+    [RelayCommand] public void MoveColumnRight() => Move(ArrangerMoveType.ColRight);
+    [RelayCommand] public void MoveColumnLeft() => Move(ArrangerMoveType.ColLeft);
+    [RelayCommand] public void MovePageDown() => Move(ArrangerMoveType.PageDown);
+    [RelayCommand] public void MovePageUp() => Move(ArrangerMoveType.PageUp);
+    [RelayCommand] public void MoveHome() => Move(ArrangerMoveType.Home);
+    [RelayCommand] public void MoveEnd() => Move(ArrangerMoveType.End);
+
+    private void Move(ArrangerMoveType moveType)
+    {
+        if (WorkingArranger is not SequentialArranger seqArr)
+            return;
+
+        var oldAddress = seqArr.Address;
+        var newAddress = seqArr.Move(moveType);
+
+        if (oldAddress != newAddress)
+        {
+            _fileOffset = newAddress.ByteOffset;
+            OnPropertyChanged(nameof(FileOffset));
+            Render();
+        }
+    }
+
+    private void MoveToOffset(long offset)
+    {
+        if (WorkingArranger is not SequentialArranger seqArr)
+            return;
+
+        var oldAddress = seqArr.Address;
+        var newAddress = seqArr.Move(new BitAddress(offset, 0));
+
+        if (oldAddress != newAddress)
+        {
+            _fileOffset = newAddress.ByteOffset;
+            OnPropertyChanged(nameof(FileOffset));
+            Render();
+        }
+    }
+    #endregion
+
+    #region Sequential Arranger Expand/Shrink Commands
+    [RelayCommand]
+    public void ExpandWidth()
+    {
+        if (WorkingArranger is not SequentialArranger)
+            return;
+
+        if (IsTiledLayout)
+            TiledArrangerWidth += ArrangerWidthIncrement;
+        else
+            LinearArrangerWidth += ElementWidthIncrement;
+    }
+
+    [RelayCommand]
+    public void ExpandHeight()
+    {
+        if (WorkingArranger is not SequentialArranger)
+            return;
+
+        if (IsTiledLayout)
+            TiledArrangerHeight += ArrangerHeightIncrement;
+        else
+            LinearArrangerHeight += ElementHeightIncrement;
+    }
+
+    [RelayCommand]
+    public void ShrinkWidth()
+    {
+        if (WorkingArranger is not SequentialArranger)
+            return;
+
+        if (IsTiledLayout)
+            TiledArrangerWidth = Math.Clamp(TiledArrangerWidth - ArrangerWidthIncrement, ArrangerWidthIncrement, int.MaxValue);
+        else
+            LinearArrangerWidth = Math.Clamp(LinearArrangerWidth - ElementWidthIncrement, ElementWidthIncrement, int.MaxValue);
+    }
+
+    [RelayCommand]
+    public void ShrinkHeight()
+    {
+        if (WorkingArranger is not SequentialArranger)
+            return;
+
+        if (IsTiledLayout)
+            TiledArrangerHeight = Math.Clamp(TiledArrangerHeight - ArrangerHeightIncrement, ArrangerHeightIncrement, int.MaxValue);
+        else
+            LinearArrangerHeight = Math.Clamp(LinearArrangerHeight - ElementHeightIncrement, ElementHeightIncrement, int.MaxValue);
+    }
+
+    private void ResizeSequentialArranger(int arrangerWidth, int arrangerHeight)
+    {
+        if (WorkingArranger is not SequentialArranger seqArr)
+            return;
+
+        if (arrangerWidth <= 0 || arrangerHeight <= 0)
+            return;
+
+        if (arrangerWidth == WorkingArranger.ArrangerElementSize.Width &&
+            arrangerHeight == WorkingArranger.ArrangerElementSize.Height && IsTiledLayout)
+            return;
+
+        if (arrangerWidth == WorkingArranger.ArrangerPixelSize.Width &&
+            arrangerHeight == WorkingArranger.ArrangerPixelSize.Height && IsSingleLayout)
+            return;
+
+        seqArr.Resize(arrangerWidth, arrangerHeight);
+        CreateImages();
+        ArrangerPageSize = (int)seqArr.ArrangerBitSize / 8;
+        MaxFileDecodingOffset = seqArr.FileSize - ArrangerPageSize;
+    }
+    #endregion
 
     public bool CanRemapColors
     {
