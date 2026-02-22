@@ -1,6 +1,5 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -157,10 +156,10 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     private void Initialize()
     {
-        ViewDx = 0;
-        ViewDy = 0;
-        _viewWidth = WorkingArranger.ArrangerPixelSize.Width;
-        _viewHeight = WorkingArranger.ArrangerPixelSize.Height;
+        // ViewDx = 0;
+        // ViewDy = 0;
+        // _viewWidth = WorkingArranger.ArrangerPixelSize.Width;
+        // _viewHeight = WorkingArranger.ArrangerPixelSize.Height;
 
         CreateImages();
         InitializePalettes();
@@ -213,6 +212,11 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     }
 
     private void ReloadImage() => _imageAdapter.Render();
+
+    public bool ContainsPoint(int x, int y)
+    {
+        return x > 0 && y > 0 && x < WorkingArranger.ArrangerPixelSize.Width && y < WorkingArranger.ArrangerPixelSize.Height;
+    }
 
     public override Task SaveChangesAsync() => SaveChangesInternalAsync();
 

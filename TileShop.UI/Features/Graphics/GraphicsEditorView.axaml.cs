@@ -6,23 +6,44 @@ using TileShop.UI.Input;
 using TileShop.Shared.Input;
 using System.Drawing;
 using Avalonia.Interactivity;
+using TileShop.UI.Controls;
+using TileShop.UI.Renderer;
 
 namespace TileShop.UI.Views;
 public partial class GraphicsEditorView : UserControl, IStateViewDriver<GraphicsEditorViewModel>
 {
-    public GraphicsEditorViewModel? ViewModel { get; private set; }
+    public GraphicsEditorViewModel ViewModel => (GraphicsEditorViewModel)DataContext!;
+
+    private ArrangerRenderer? _renderer;
 
     public GraphicsEditorView()
     {
         InitializeComponent();
+        
+#if DEBUG
+        EditorCanvas.ShowFrameTimings = true;
+#endif
+
+        EditorCanvas.PaintSurface += OnPaintSurface;
+        EditorCanvas.PointerPressed += CanvasOnPointerPressed;
+        EditorCanvas.PointerReleased += CanvasOnPointerReleased;
+        EditorCanvas.PointerMoved += CanvasOnPointerMoved;
+        EditorCanvas.PointerExited += CanvasOnPointerExited;
+        EditorCanvas.PointerWheelChanged += CanvasOnPointerWheelChanged;
+        //EditorCanvas.KeyDown += CanvasOnKeyDown;
+    }
+    
+    private void OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
+    {
+        _renderer?.Render(ViewModel, e.Surface.Canvas);
     }
 
     protected override void OnDataContextChanged(EventArgs e)
     {
         if (DataContext is GraphicsEditorViewModel vm)
         {
-            ViewModel = vm;
-            vm.OnImageModified = () => EditorImage.InvalidateVisual();
+            _renderer = new ArrangerRenderer(vm.WorkingArranger);
+            //vm.OnImageModified = () => EditorImage.InvalidateVisual();
             //EditorImage.Source = vm.BitmapAdapter.Bitmap;
         }
 
@@ -31,83 +52,92 @@ public partial class GraphicsEditorView : UserControl, IStateViewDriver<Graphics
 
     public void OnKeyUp(object? sender, KeyEventArgs e)
     {
-        if (ViewModel is not null && ViewModel.LastMousePosition is Point point)
+        if (ViewModel.LastMousePosition is { } point)
         {
             var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
             ViewModel.KeyUp(state, point.X, point.Y);
         }
     }
 
+    public void OnPointerPressed(object sender, PointerPressedEventArgs e)
+    {
+        
+    }
+
+    public void OnPointerReleased(object sender, PointerReleasedEventArgs e)
+    {
+        
+    }
+
+    public void OnPointerMoved(object sender, PointerEventArgs e)
+    {
+        
+    }
+
+    public void OnPointerExited(object sender, PointerEventArgs e)
+    {
+        
+    }
+
+    public void OnPointerWheelChanged(object sender, PointerWheelEventArgs e)
+    {
+        
+    }
+
     public void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (ViewModel is not null && ViewModel.LastMousePosition is Point point)
+        if (ViewModel.LastMousePosition is { } point)
         {
             var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
             ViewModel.KeyPress(state, point.X, point.Y);
         }
     }
 
-    public void OnPointerPressed(object sender, PointerPressedEventArgs e)
+    public void CanvasOnPointerPressed(object sender, PointerPressedEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
-        {
-            var point = e.GetCurrentPoint(this);
-            var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            ViewModel.MouseDown(point.Position.X, point.Position.Y, state);
-        }
+        var point = e.GetCurrentPoint(this);
+        var localPoint = EditorCanvas.ScreenToLocalPoint(point.Position);
+        
+        var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
+        ViewModel.MouseDown(point.Position.X, point.Position.Y, state);
     }
 
-    public void OnPointerReleased(object sender, PointerReleasedEventArgs e)
+    public void CanvasOnPointerReleased(object sender, PointerReleasedEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
-        {
-            var point = e.GetCurrentPoint(this);
-            var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            ViewModel.MouseUp(point.Position.X, point.Position.Y, state);
-        }
+        var point = e.GetCurrentPoint(this);
+        var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
+        ViewModel.MouseUp(point.Position.X, point.Position.Y, state);
     }
 
-    public void OnPointerMoved(object sender, PointerEventArgs e)
+    public void CanvasOnPointerMoved(object sender, PointerEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
-        {
-            var point = e.GetCurrentPoint(this);
-            var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            ViewModel.MouseMove(point.Position.X, point.Position.Y, state);
-        }
+        var point = e.GetCurrentPoint(this);
+        var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
+        ViewModel.MouseMove(point.Position.X, point.Position.Y, state);
     }
 
-    public void OnPointerExited(object sender, PointerEventArgs e)
+    public void CanvasOnPointerExited(object sender, PointerEventArgs e)
     {
-        if (ViewModel is null)
-            return;
-
         ViewModel.MouseLeave();
     }
 
-    public void OnPointerWheelChanged(object sender, PointerWheelEventArgs e)
+    public void CanvasOnPointerWheelChanged(object sender, PointerWheelEventArgs e)
     {
-        if (e.Pointer.Type == PointerType.Mouse && ViewModel is not null)
-        {
-            var modifiers = InputAdapter.CreateKeyModifiers(e.KeyModifiers);
+        var modifiers = InputAdapter.CreateKeyModifiers(e.KeyModifiers);
 
-            if (e.Delta.Y > 0)
-            {
-                ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
-            }
-            else if (e.Delta.Y < 0)
-            {
-                ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
-            }
+        if (e.Delta.Y > 0)
+        {
+            ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
+        }
+        else if (e.Delta.Y < 0)
+        {
+            ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
         }
     }
 
     private void Button_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is GraphicsEditorViewModel vm)
-        {
-            vm.Render();
-            // EditorImage.InvalidateImage();
-        }
+        ViewModel.Render();
+        // EditorImage.InvalidateImage();
     }
 }

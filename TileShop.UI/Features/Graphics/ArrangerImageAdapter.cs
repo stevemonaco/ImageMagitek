@@ -19,6 +19,8 @@ public sealed class ArrangerImageAdapter
     private IndexedImage? _indexedImage;
     private DirectImage? _directImage;
 
+    public byte[] RawPixels { get; private set; }
+
     public Arranger Arranger { get; private set; }
     public PixelColorType ColorType => Arranger.ColorType;
     public bool IsIndexed => ColorType == PixelColorType.Indexed;
@@ -74,6 +76,14 @@ public sealed class ArrangerImageAdapter
             return new IndexedBitmapAdapter(_indexedImage!);
         else
             return new DirectBitmapAdapter(_directImage!);
+    }
+
+    public ArrangerSkiaBitmap CreateSkiaBitmap()
+    {
+        if (IsIndexed)
+            return new ArrangerSkiaBitmap(_indexedImage!);
+        else
+            return new ArrangerSkiaBitmap(_directImage!);
     }
 
     public void Render()

@@ -2,14 +2,17 @@
 
     <PropertyGroup>
         <ImplicitUsings>enable</ImplicitUsings>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Avalonia" />
+        <PackageReference Include="Avalonia.Skia" />
         <PackageReference Include="CommunityToolkit.Mvvm" />
 <!--        <PackageReference Include="HotAvalonia" />-->
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <PackageReference Include="Semi.Avalonia" />
+        <PackageReference Include="SkiaSharp" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,12 +1,13 @@
-<UserControl x:Class="TileShop.UI.Views.GraphicsEditorView"
+<UserControl
+    x:Class="TileShop.UI.Views.GraphicsEditorView"
+    x:DataType="gfx:GraphicsEditorViewModel"
+    x:Name="control"
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="https://github.com/stevemonaco/TileShop"
     xmlns:con="using:TileShop.UI.Converters"
     xmlns:gfx="using:TileShop.UI.Features.Graphics"
     xmlns:vm="using:TileShop.UI.ViewModels"
-    x:Name="control"
-    x:DataType="gfx:GraphicsEditorViewModel">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- <UserControl.KeyBindings> -->
     <!--     <KeyBinding Command="{Binding ToggleGridlineVisibilityCommand}" Gesture="G" /> -->
     <!--     <KeyBinding Command="{Binding ToggleSnapModeCommand}" Gesture="S" /> -->
@@ -46,15 +47,30 @@
         </ContextMenu>
     </UserControl.ContextMenu>
 
-    <Grid Margin="8,4,0,0" ColumnDefinitions="Auto, *" UseLayoutRounding="True">
+    <Grid
+        ColumnDefinitions="Auto, *"
+        Margin="8,4,0,0"
+        RowDefinitions="* auto"
+        UseLayoutRounding="True">
         <!--  Sidebar  -->
-        <gfx:GraphicsEditorToolbarView />
+        <gfx:GraphicsEditorToolbarView Grid.RowSpan="2" />
 
-        <!--  Image Display Placeholder  -->
-        <Panel Grid.Column="1">
-            <Button VerticalAlignment="Bottom" Click="Button_OnClick" Content="Redraw" />
-            <Image x:Name="EditorImage" Width="{Binding BitmapAdapter.Width}" Height="{Binding BitmapAdapter.Height}"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Source="{Binding BitmapAdapter.Bitmap}" />
-        </Panel>
+        <!--  Image Display  -->
+        <cc:InfiniteCanvas Grid.Column="1" x:Name="EditorCanvas" />
+
+
+        <Button
+            Click="Button_OnClick"
+            Content="Redraw"
+            Grid.Column="1"
+            Grid.Row="1"
+            VerticalAlignment="Bottom" />
+        <!--  <gfx:BitmapRenderControl x:Name="EditorImage"  -->
+        <!--  BitmapAdapter="{Binding BitmapAdapter}"  -->
+        <!--  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  -->
+        <!--  PointerPressed="OnPointerPressed"  -->
+        <!--  PointerReleased="OnPointerReleased"  -->
+        <!--  PointerMoved="OnPointerMoved"  -->
+        <!--  PointerExited="OnPointerExited" />  -->
     </Grid>
 </UserControl>
