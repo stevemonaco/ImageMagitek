@@ -8,6 +8,17 @@ public class ArrangerRenderer
 {
     private static readonly SKPaint _backdropPaint = new() { Color = new SKColor(0, 0, 0) };
 
+    private static readonly SKPaint _greyscalePaint = new()
+    {
+        ColorFilter = SKColorFilter.CreateColorMatrix(
+        [
+            0.299f, 0.587f, 0.114f, 0, 0,
+            0.299f, 0.587f, 0.114f, 0, 0,
+            0.299f, 0.587f, 0.114f, 0, 0,
+            0,      0,      0,      1, 0
+        ])
+    };
+
     private static readonly SKPaint _selectionFillPaint = new()
     {
         Color = new SKColor(0x7C, 0xFC, 0, 64),
@@ -60,7 +71,23 @@ public class ArrangerRenderer
         {
             var imageInfo = new SKImageInfo(bitmap.PixelSize.Width, bitmap.PixelSize.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using var image = SKImage.FromPixels(imageInfo, pixels.Address, pixels.RowBytes);
-            canvas.DrawImage(image, rect);
+
+            if (state.Selection.HasSelection)
+            {
+                canvas.DrawImage(image, rect, _greyscalePaint);
+
+                var sel = state.Selection.SelectionRect;
+                var selectionClip = new SKRect(sel.SnappedLeft, sel.SnappedTop, sel.SnappedRight, sel.SnappedBottom);
+
+                canvas.Save();
+                canvas.ClipRect(selectionClip);
+                canvas.DrawImage(image, rect);
+                canvas.Restore();
+            }
+            else
+            {
+                canvas.DrawImage(image, rect);
+            }
         }
 
         RenderGridlines(state, canvas);
