@@ -251,7 +251,7 @@ public partial class GraphicsEditorViewModel
 
     private void MouseMovePixelMode(double x, double y, int xc, int yc, MouseState mouseState)
     {
-        if (x < 0 || x >= _viewWidth || y < 0 || y >= _viewHeight)
+        if (x < 0 || x >= WorkingArranger.ArrangerPixelSize.Width || y < 0 || y >= WorkingArranger.ArrangerPixelSize.Height)
         {
             LastMousePosition = null;
             return;

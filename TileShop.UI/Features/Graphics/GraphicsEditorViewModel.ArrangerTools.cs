@@ -319,8 +319,6 @@ public partial class GraphicsEditorViewModel
         if (dialogResult is not null)
         {
             WorkingArranger.Resize(dialogResult.Width, dialogResult.Height);
-            _viewWidth = WorkingArranger.ArrangerPixelSize.Width;
-            _viewHeight = WorkingArranger.ArrangerPixelSize.Height;
             CreateImages();
             AddHistoryAction(new ResizeArrangerHistoryAction(dialogResult.Width, dialogResult.Height));
 

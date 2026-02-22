@@ -78,7 +78,7 @@ public partial class GridSettingsViewModel : ObservableObject
         return settings;
     }
 
-    public static GridSettingsViewModel CreateDefault(Arranger arranger, int xStart, int yStart, int width, int height)
+    public static GridSettingsViewModel CreateDefault(Arranger arranger)
     {
         var settings = new GridSettingsViewModel()
         {

@@ -99,11 +99,6 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     public Action? OnImageModified { get; set; }
 
-    public int ViewDx { get; private set; }
-    public int ViewDy { get; private set; }
-    private int _viewWidth;
-    private int _viewHeight;
-
     [ObservableProperty] private ObservableCollection<PaletteModel> _palettes = new();
     [ObservableProperty] private PaletteModel? _selectedPalette;
     [ObservableProperty] private PaletteModel? _activePalette;
@@ -179,9 +174,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     {
         CancelOverlay();
 
-        _imageAdapter = new ArrangerImageAdapter(WorkingArranger, ViewDx, ViewDy, _viewWidth, _viewHeight);
+        _imageAdapter = new ArrangerImageAdapter(WorkingArranger);
         BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
-        GridSettings = GridSettingsViewModel.CreateDefault(WorkingArranger, ViewDx, ViewDy, _viewWidth, _viewHeight);
+        GridSettings = GridSettingsViewModel.CreateDefault(WorkingArranger);
     }
 
     private void InitializePalettes()
@@ -254,7 +249,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     public override void DiscardChanges()
     {
         WorkingArranger = _projectArranger.CloneArranger();
-        _imageAdapter.Reinitialize(WorkingArranger, ViewDx, ViewDy, _viewWidth, _viewHeight);
+        _imageAdapter.Reinitialize(WorkingArranger);
         BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
         GridSettings.AdjustGridlines(WorkingArranger);
         ClearHistory();

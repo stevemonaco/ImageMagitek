@@ -89,7 +89,7 @@ public abstract partial class ArrangerEditorViewModel : ResourceEditorBaseViewMo
         Resource = arranger;
         DisplayName = WorkingArranger.Name ?? "Unnamed Arranger";
         _selection = new ArrangerSelection(arranger, SnapMode.Pixel);
-        _gridSettings = GridSettingsViewModel.CreateDefault(arranger, 0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
+        _gridSettings = GridSettingsViewModel.CreateDefault(arranger);
 
         _interactions = interactionService;
         _colorFactory = colorFactory;

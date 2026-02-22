@@ -37,11 +37,11 @@ public sealed class ArrangerImageAdapter
         CreateImage(0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
     }
 
-    public ArrangerImageAdapter(Arranger arranger, int x, int y, int width, int height)
-    {
-        Arranger = arranger;
-        CreateImage(x, y, width, height);
-    }
+    // public ArrangerImageAdapter(Arranger arranger, int x, int y, int width, int height)
+    // {
+    //     Arranger = arranger;
+    //     CreateImage(x, y, width, height);
+    // }
 
     private void CreateImage(int x, int y, int width, int height)
     {
