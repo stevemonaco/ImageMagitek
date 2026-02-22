@@ -1,4 +1,5 @@
 <UserControl
+    Focusable="True"
     x:Class="TileShop.UI.Views.GraphicsEditorView"
     x:DataType="gfx:GraphicsEditorViewModel"
     x:Name="control"
@@ -8,19 +9,19 @@
     xmlns:gfx="using:TileShop.UI.Features.Graphics"
     xmlns:vm="using:TileShop.UI.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- <UserControl.KeyBindings> -->
-    <!--     <KeyBinding Command="{Binding ToggleGridlineVisibilityCommand}" Gesture="G" /> -->
-    <!--     <KeyBinding Command="{Binding ToggleSnapModeCommand}" Gesture="S" /> -->
-    <!--     <KeyBinding Command="{Binding EditSelectionCommand}" Gesture="E" /> -->
-    <!--     <KeyBinding Command="{Binding DeleteElementSelectionCommand}" Gesture="Delete" /> -->
-    <!--     <KeyBinding Command="{Binding CancelOverlayCommand}" Gesture="Escape" /> -->
-    <!--     <KeyBinding Command="{Binding ConfirmPendingOperationCommand}" Gesture="Return" /> -->
-    <!--     <KeyBinding Command="{Binding SaveChangesCommand}" Gesture="Ctrl+S" /> -->
-    <!--     <KeyBinding Command="{Binding UndoCommand}" Gesture="Ctrl+Z" /> -->
-    <!--     <KeyBinding Command="{Binding RedoCommand}" Gesture="Ctrl+Y" /> -->
-    <!--     <KeyBinding Command="{Binding SelectAllCommand}" Gesture="Ctrl+A" /> -->
-    <!--     <KeyBinding Command="{Binding ModifyGridSettingsCommand}" Gesture="Ctrl+G" /> -->
-    <!-- </UserControl.KeyBindings> -->
+    <UserControl.KeyBindings>
+        <KeyBinding Command="{Binding ToggleGridlineVisibilityCommand}" Gesture="G" />
+        <KeyBinding Command="{Binding ToggleSnapModeCommand}" Gesture="S" />
+        <!-- <KeyBinding Command="{Binding EditSelectionCommand}" Gesture="E" /> -->
+        <KeyBinding Command="{Binding DeleteElementSelectionCommand}" Gesture="Delete" />
+        <KeyBinding Command="{Binding CancelOverlayCommand}" Gesture="Escape" />
+        <KeyBinding Command="{Binding ConfirmPendingOperationCommand}" Gesture="Return" />
+        <KeyBinding Command="{Binding SaveChangesCommand}" Gesture="Ctrl+S" />
+        <KeyBinding Command="{Binding UndoCommand}" Gesture="Ctrl+Z" />
+        <KeyBinding Command="{Binding RedoCommand}" Gesture="Ctrl+Y" />
+        <KeyBinding Command="{Binding SelectAllCommand}" Gesture="Ctrl+A" />
+        <KeyBinding Command="{Binding ModifyGridSettingsCommand}" Gesture="Ctrl+G" />
+    </UserControl.KeyBindings>
 
     <UserControl.ContextMenu>
         <ContextMenu>
@@ -50,27 +51,12 @@
     <Grid
         ColumnDefinitions="Auto, *"
         Margin="8,4,0,0"
-        RowDefinitions="* auto"
+        RowDefinitions="*"
         UseLayoutRounding="True">
         <!--  Sidebar  -->
-        <gfx:GraphicsEditorToolbarView Grid.RowSpan="2" />
+        <gfx:GraphicsEditorToolbarView Grid.RowSpan="1" />
 
         <!--  Image Display  -->
         <cc:InfiniteCanvas Grid.Column="1" x:Name="EditorCanvas" />
-
-
-        <Button
-            Click="Button_OnClick"
-            Content="Redraw"
-            Grid.Column="1"
-            Grid.Row="1"
-            VerticalAlignment="Bottom" />
-        <!--  <gfx:BitmapRenderControl x:Name="EditorImage"  -->
-        <!--  BitmapAdapter="{Binding BitmapAdapter}"  -->
-        <!--  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  -->
-        <!--  PointerPressed="OnPointerPressed"  -->
-        <!--  PointerReleased="OnPointerReleased"  -->
-        <!--  PointerMoved="OnPointerMoved"  -->
-        <!--  PointerExited="OnPointerExited" />  -->
     </Grid>
 </UserControl>

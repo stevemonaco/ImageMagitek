@@ -4,13 +4,11 @@ using Avalonia.Input;
 using TileShop.UI.Features.Graphics;
 using TileShop.UI.Input;
 using TileShop.Shared.Input;
-using System.Drawing;
-using Avalonia.Interactivity;
 using TileShop.UI.Controls;
 using TileShop.UI.Renderer;
 
 namespace TileShop.UI.Views;
-public partial class GraphicsEditorView : UserControl, IStateViewDriver<GraphicsEditorViewModel>
+public partial class GraphicsEditorView : UserControl
 {
     public GraphicsEditorViewModel ViewModel => (GraphicsEditorViewModel)DataContext!;
 
@@ -19,7 +17,7 @@ public partial class GraphicsEditorView : UserControl, IStateViewDriver<Graphics
     public GraphicsEditorView()
     {
         InitializeComponent();
-        
+
 #if DEBUG
         EditorCanvas.ShowFrameTimings = true;
 #endif
@@ -31,7 +29,9 @@ public partial class GraphicsEditorView : UserControl, IStateViewDriver<Graphics
         EditorCanvas.PointerExited += CanvasOnPointerExited;
         EditorCanvas.PointerWheelChanged += CanvasOnPointerWheelChanged;
         EditorCanvas.PointerCaptureLost += CanvasOnPointerCaptureLost;
-        //EditorCanvas.KeyDown += CanvasOnKeyDown;
+
+        KeyDown += OnKeyDown;
+        KeyUp += OnKeyUp;
     }
 
     private void OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
@@ -44,48 +44,13 @@ public partial class GraphicsEditorView : UserControl, IStateViewDriver<Graphics
         if (DataContext is GraphicsEditorViewModel vm)
         {
             _renderer = new ArrangerRenderer(vm.WorkingArranger);
-            //vm.OnImageModified = () => EditorImage.InvalidateVisual();
-            //EditorImage.Source = vm.BitmapAdapter.Bitmap;
+            vm.OnImageModified = () => EditorCanvas.Invalidate();
         }
 
         base.OnDataContextChanged(e);
     }
 
-    public void OnKeyUp(object? sender, KeyEventArgs e)
-    {
-        if (ViewModel.LastMousePosition is { } point)
-        {
-            var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
-            ViewModel.KeyUp(state, point.X, point.Y);
-        }
-    }
-
-    public void OnPointerPressed(object sender, PointerPressedEventArgs e)
-    {
-        
-    }
-
-    public void OnPointerReleased(object sender, PointerReleasedEventArgs e)
-    {
-        
-    }
-
-    public void OnPointerMoved(object sender, PointerEventArgs e)
-    {
-        
-    }
-
-    public void OnPointerExited(object sender, PointerEventArgs e)
-    {
-        
-    }
-
-    public void OnPointerWheelChanged(object sender, PointerWheelEventArgs e)
-    {
-        
-    }
-
-    public void OnKeyDown(object? sender, KeyEventArgs e)
+    private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (ViewModel.LastMousePosition is { } point)
         {
@@ -94,7 +59,16 @@ public partial class GraphicsEditorView : UserControl, IStateViewDriver<Graphics
         }
     }
 
-    public void CanvasOnPointerPressed(object sender, PointerPressedEventArgs e)
+    private void OnKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (ViewModel.LastMousePosition is { } point)
+        {
+            var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
+            ViewModel.KeyUp(state, point.X, point.Y);
+        }
+    }
+
+    private void CanvasOnPointerPressed(object sender, PointerPressedEventArgs e)
     {
         var point = e.GetCurrentPoint(EditorCanvas);
         var localPoint = EditorCanvas.ScreenToLocalPoint(point.Position);
@@ -183,11 +157,5 @@ public partial class GraphicsEditorView : UserControl, IStateViewDriver<Graphics
     private void CanvasOnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
     {
         EditorCanvas.EndPan();
-    }
-
-    private void Button_OnClick(object? sender, RoutedEventArgs e)
-    {
-        ViewModel.Render();
-        // EditorImage.InvalidateImage();
     }
 }

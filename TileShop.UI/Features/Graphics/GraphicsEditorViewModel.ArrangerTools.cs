@@ -40,7 +40,11 @@ public partial class GraphicsEditorViewModel
     public void SetApplyPaletteMode() => ActiveArrangerTool = ArrangerTool.ApplyPalette;
 
     [RelayCommand]
-    public void ToggleGridlineVisibility() => GridSettings.ShowGridlines ^= true;
+    public void ToggleGridlineVisibility()
+    {
+        GridSettings.ShowGridlines ^= true;
+        OnImageModified?.Invoke();
+    }
 
     [RelayCommand]
     public async Task ModifyGridSettings()
@@ -61,6 +65,7 @@ public partial class GraphicsEditorViewModel
 
             GridSettings.AdjustGridlines(WorkingArranger);
             GridSettings.CreateBackgroundBrush();
+            OnImageModified?.Invoke();
 
             _tracker.Persist(result);
         }
@@ -183,6 +188,7 @@ public partial class GraphicsEditorViewModel
                 IsModified = true;
                 CancelOverlay();
                 BitmapAdapter.Invalidate();
+                OnImageModified?.Invoke();
                 return new NotifyStatusMessage("Paste successfully applied");
             },
             fail => new NotifyStatusMessage(fail.Reason)

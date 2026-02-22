@@ -313,15 +313,6 @@
                 </Button>
 
                 <Button
-                    Command="{Binding EditSelectionCommand}"
-                    Focusable="False"
-                    IsEnabled="{Binding CanEditSelection}"
-                    ToolTip.ShowOnDisabled="True"
-                    ToolTip.Tip="Opens selection in the pixel editor (E)">
-                    <PathIcon Classes="medium vflip" Data="{x:Static cc:AppIcons.Edit}" />
-                </Button>
-
-                <Button
                     Command="{Binding RemapColorsCommand}"
                     Focusable="False"
                     IsEnabled="{Binding CanRemapColors}"

@@ -17,6 +17,7 @@ public partial class GraphicsEditorViewModel
         Selection.UpdateSelectionEndpoint(WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height);
         CompleteSelection();
         OnPropertyChanged(nameof(CanEditSelection));
+        OnImageModified?.Invoke();
     }
 
     [RelayCommand]
@@ -28,6 +29,7 @@ public partial class GraphicsEditorViewModel
         PendingOperationMessage = string.Empty;
 
         OnPropertyChanged(nameof(CanEditSelection));
+        OnImageModified?.Invoke();
     }
 
     [RelayCommand]
@@ -88,7 +90,10 @@ public partial class GraphicsEditorViewModel
     public void UpdateSelection(double x, double y)
     {
         if (IsSelecting)
+        {
             Selection.UpdateSelectionEndpoint(x, y);
+            OnImageModified?.Invoke();
+        }
     }
 
     public void CompleteSelection()
@@ -102,6 +107,7 @@ public partial class GraphicsEditorViewModel
 
             IsSelecting = false;
             OnPropertyChanged(nameof(CanEditSelection));
+            OnImageModified?.Invoke();
         }
     }
 

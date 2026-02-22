@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
 using ImageMagitek.Colors;
@@ -213,6 +214,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         return x > 0 && y > 0 && x < WorkingArranger.ArrangerPixelSize.Width && y < WorkingArranger.ArrangerPixelSize.Height;
     }
 
+    [RelayCommand]
     public override Task SaveChangesAsync() => SaveChangesInternalAsync();
 
     private async Task SaveChangesInternalAsync()
