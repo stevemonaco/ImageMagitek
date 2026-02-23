@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -164,7 +165,11 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     public bool IsDrawMode => EditMode == GraphicsEditMode.Draw;
 
     [ObservableProperty] private SnapMode _snapMode = SnapMode.Element;
-    partial void OnSnapModeChanged(SnapMode value) => Selection.SelectionRect.SnapMode = value;
+    partial void OnSnapModeChanged(SnapMode value)
+    {
+        Selection.SelectionRect.SnapMode = value;
+        OnImageModified?.Invoke();
+    }
 
     [ObservableProperty] private ArrangerSelection _selection;
     [ObservableProperty] private bool _isSelecting;
@@ -193,6 +198,24 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     }
 
     [ObservableProperty] private GridSettingsViewModel _gridSettings;
+
+    partial void OnGridSettingsChanged(GridSettingsViewModel? oldValue, GridSettingsViewModel newValue)
+    {
+        if (oldValue is not null)
+            oldValue.PropertyChanged -= OnGridSettingsPropertyChanged;
+
+        newValue.PropertyChanged += OnGridSettingsPropertyChanged;
+    }
+
+    private void OnGridSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(GridSettingsViewModel.ShowGridlines) or
+            nameof(GridSettingsViewModel.LineColor) or
+            nameof(GridSettingsViewModel.Gridlines))
+        {
+            OnImageModified?.Invoke();
+        }
+    }
 
     public Action? OnImageModified { get; set; }
     public Action? OnCenterContent { get; set; }
