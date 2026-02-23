@@ -127,6 +127,8 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     [ObservableProperty] private int _elementWidthIncrement = 1;
     [ObservableProperty] private int _elementHeightIncrement = 1;
 
+    [ObservableProperty] private double _zoom = 1.0;
+
     [ObservableProperty] private GraphicsEditMode _editMode = GraphicsEditMode.Arrange;
 
     partial void OnEditModeChanged(GraphicsEditMode oldValue, GraphicsEditMode newValue)

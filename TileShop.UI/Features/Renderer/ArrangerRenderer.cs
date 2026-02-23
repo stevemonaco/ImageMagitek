@@ -1,3 +1,4 @@
+using System;
 using ImageMagitek;
 using SkiaSharp;
 using TileShop.UI.ViewModels;
@@ -6,6 +7,8 @@ namespace TileShop.UI.Renderer;
 
 public class ArrangerRenderer
 {
+    private const float HandleScreenSize = 8f;
+
     private static readonly SKPaint _backdropPaint = new() { Color = new SKColor(0, 0, 0) };
 
     private static readonly SKPaint _greyscalePaint = new()
@@ -54,6 +57,20 @@ public class ArrangerRenderer
         IsAntialias = false,
     };
 
+    private static readonly SKPaint _handleFillPaint = new()
+    {
+        Color = SKColors.White,
+        Style = SKPaintStyle.Fill,
+    };
+
+    private static readonly SKPaint _handleStrokePaint = new()
+    {
+        Color = new SKColor(0x7C, 0xFC, 0, 220),
+        Style = SKPaintStyle.Stroke,
+        StrokeWidth = 1,
+        IsAntialias = false,
+    };
+
     public ArrangerRenderer(Arranger arranger)
     {
     }
@@ -92,6 +109,7 @@ public class ArrangerRenderer
 
         RenderGridlines(state, canvas);
         RenderSelection(state, canvas);
+        RenderSelectionHandles(state, canvas);
         RenderPaste(state, canvas);
 
         canvas.Restore();
@@ -107,6 +125,40 @@ public class ArrangerRenderer
 
         canvas.DrawRect(selectionRect, _selectionFillPaint);
         canvas.DrawRect(selectionRect, _selectionStrokePaint);
+    }
+
+    private static void RenderSelectionHandles(GraphicsEditorViewModel state, SKCanvas canvas)
+    {
+        if (!state.Selection.HasSelection || state.IsDisplayMode)
+            return;
+
+        var sel = state.Selection.SelectionRect;
+        var zoom = Math.Max(state.Zoom, 0.01);
+        var handleSize = HandleScreenSize / (float)zoom;
+        var halfHandle = handleSize / 2f;
+
+        float left = sel.SnappedLeft;
+        float right = sel.SnappedRight;
+        float top = sel.SnappedTop;
+        float bottom = sel.SnappedBottom;
+        float midX = (left + right) / 2f;
+        float midY = (top + bottom) / 2f;
+
+        DrawHandle(canvas, left, top, halfHandle);
+        DrawHandle(canvas, midX, top, halfHandle);
+        DrawHandle(canvas, right, top, halfHandle);
+        DrawHandle(canvas, right, midY, halfHandle);
+        DrawHandle(canvas, right, bottom, halfHandle);
+        DrawHandle(canvas, midX, bottom, halfHandle);
+        DrawHandle(canvas, left, bottom, halfHandle);
+        DrawHandle(canvas, left, midY, halfHandle);
+    }
+
+    private static void DrawHandle(SKCanvas canvas, float cx, float cy, float halfHandle)
+    {
+        var handleRect = new SKRect(cx - halfHandle, cy - halfHandle, cx + halfHandle, cy + halfHandle);
+        canvas.DrawRect(handleRect, _handleFillPaint);
+        canvas.DrawRect(handleRect, _handleStrokePaint);
     }
 
     private static void RenderPaste(GraphicsEditorViewModel state, SKCanvas canvas)

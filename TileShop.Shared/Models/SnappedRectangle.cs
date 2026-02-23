@@ -207,6 +207,34 @@ public class SnappedRectangle : ObservableObject
         OnPropertyChanged(nameof(Bottom));
     }
 
+    public void SetLeftEdge(double x)
+    {
+        _left = x;
+        Snap();
+        OnPropertyChanged(nameof(Left));
+    }
+
+    public void SetRightEdge(double x)
+    {
+        _right = x;
+        Snap();
+        OnPropertyChanged(nameof(Right));
+    }
+
+    public void SetTopEdge(double y)
+    {
+        _top = y;
+        Snap();
+        OnPropertyChanged(nameof(Top));
+    }
+
+    public void SetBottomEdge(double y)
+    {
+        _bottom = y;
+        Snap();
+        OnPropertyChanged(nameof(Bottom));
+    }
+
     /// <summary>
     /// Checks if the specified point is within the unsnapped bounds of the rectangle
     /// </summary>

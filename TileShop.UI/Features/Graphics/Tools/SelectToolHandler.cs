@@ -8,6 +8,16 @@ public class SelectToolHandler : IToolHandler<GraphicsEditorViewModel>
 {
     public bool OnMouseDown(ToolContext ctx, GraphicsEditorViewModel state)
     {
+        if (ctx.MouseState.LeftButtonPressed && state.Selection.HasSelection)
+        {
+            var handle = state.HitTestHandle(ctx.X, ctx.Y);
+            if (handle != SelectionHandle.None)
+            {
+                state.StartResize(handle);
+                return true;
+            }
+        }
+
         if (state.Selection.HasSelection && ctx.MouseState.LeftButtonPressed &&
             state.Selection.SelectionRect.ContainsPointSnapped(ctx.PixelX, ctx.PixelY))
         {
@@ -40,6 +50,12 @@ public class SelectToolHandler : IToolHandler<GraphicsEditorViewModel>
 
     public bool OnMouseMove(ToolContext ctx, GraphicsEditorViewModel state)
     {
+        if (state.IsResizing)
+        {
+            state.UpdateResize(ctx.X, ctx.Y);
+            return true;
+        }
+
         if (state.IsSelecting)
             state.UpdateSelection(ctx.X, ctx.Y);
 
@@ -49,6 +65,12 @@ public class SelectToolHandler : IToolHandler<GraphicsEditorViewModel>
 
     public bool OnMouseUp(ToolContext ctx, GraphicsEditorViewModel state)
     {
+        if (state.IsResizing && !ctx.MouseState.LeftButtonPressed)
+        {
+            state.CompleteResize();
+            return true;
+        }
+
         if (state.IsSelecting && !ctx.MouseState.LeftButtonPressed)
         {
             state.CompleteSelection();
@@ -90,6 +112,9 @@ public class SelectToolHandler : IToolHandler<GraphicsEditorViewModel>
 
     public HistoryAction? Deactivate(GraphicsEditorViewModel state)
     {
+        if (state.IsResizing)
+            state.CompleteResize();
+
         if (state.IsSelecting)
             state.CompleteSelection();
 

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using TileShop.UI.Input;
 using TileShop.Shared.Input;
+using TileShop.Shared.Models;
 using TileShop.UI.Controls;
 using TileShop.UI.Renderer;
 using TileShop.UI.ViewModels;
@@ -91,7 +92,7 @@ public partial class GraphicsEditorView : UserControl
             point.Pointer.Capture(EditorCanvas);
             isHandled = true;
         }
-        
+
         e.Handled = isHandled;
     }
 
@@ -101,7 +102,7 @@ public partial class GraphicsEditorView : UserControl
         var localPoint = EditorCanvas.ScreenToLocalPoint(point.Position);
 
         bool isHandled = false;
-        
+
         if (ViewModel.ContainsPoint((int)localPoint.X, (int)localPoint.Y))
         {
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
@@ -114,7 +115,7 @@ public partial class GraphicsEditorView : UserControl
             point.Pointer.Capture(null);
             isHandled = false;
         }
-        
+
         e.Handled = isHandled;
     }
 
@@ -124,18 +125,35 @@ public partial class GraphicsEditorView : UserControl
         var localPoint = EditorCanvas.ScreenToLocalPoint(point.Position);
 
         bool isHandled = false;
-        
+
         if (ViewModel.ContainsPoint((int)localPoint.X, (int)localPoint.Y))
         {
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             isHandled = ViewModel.MouseMove(localPoint.X, localPoint.Y, state);
+
+            var handle = ViewModel.HitTestHandle(localPoint.X, localPoint.Y);
+            EditorCanvas.Cursor = GetHandleCursor(handle);
+        }
+        else
+        {
+            EditorCanvas.Cursor = Cursor.Default;
         }
 
         e.Handled = isHandled;
     }
 
+    private static Cursor GetHandleCursor(SelectionHandle handle) => handle switch
+    {
+        SelectionHandle.TopLeft or SelectionHandle.BottomRight => new Cursor(StandardCursorType.TopLeftCorner),
+        SelectionHandle.TopRight or SelectionHandle.BottomLeft => new Cursor(StandardCursorType.TopRightCorner),
+        SelectionHandle.Top or SelectionHandle.Bottom => new Cursor(StandardCursorType.SizeNorthSouth),
+        SelectionHandle.Left or SelectionHandle.Right => new Cursor(StandardCursorType.SizeWestEast),
+        _ => Cursor.Default,
+    };
+
     public void CanvasOnPointerExited(object sender, PointerEventArgs e)
     {
+        EditorCanvas.Cursor = Cursor.Default;
         e.Handled = ViewModel.MouseLeave();
     }
 
@@ -160,10 +178,10 @@ public partial class GraphicsEditorView : UserControl
             else if (e.Delta.Y < 0)
                 EditorCanvas.ZoomOut();
         }
-        
+
         e.Handled = true;
     }
-    
+
     private void CanvasOnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
     {
         EditorCanvas.EndPan();
