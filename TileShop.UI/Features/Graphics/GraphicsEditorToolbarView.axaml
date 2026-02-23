@@ -6,9 +6,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:gfx="using:TileShop.UI.Features.Graphics"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="using:TileShop.UI.ViewModels"
     d:DesignHeight="450"
     d:DesignWidth="800"
-    x:DataType="gfx:GraphicsEditorViewModel"
+    x:DataType="vm:GraphicsEditorViewModel"
     mc:Ignorable="d">
     <!-- <UserControl.ContextMenu> -->
     <!--     <ContextMenu> -->
@@ -39,7 +40,7 @@
         <StackPanel Spacing="4">
             <!--  Arrange <-> Draw Toggle  -->
             <ToggleSwitch x:Name="ArrangeDrawSwitch" Height="34" HorizontalAlignment="Stretch"
-                IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter={x:Static gfx:GraphicsEditMode.Draw}}"
+                IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter={x:Static vm:GraphicsEditMode.Draw}}"
                 OffContent="Arrange" OnContent="Draw" Theme="{StaticResource SlidingToggleSwitchTheme}" />
 
             <TextBlock Classes="muted" IsVisible="{Binding IsSequentialArranger}"
@@ -51,50 +52,50 @@
 
                 <StackPanel Classes="toolbar-group">
                     <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static gfx:ArrangerTool.Select}"
+                        CommandParameter="{x:Static vm:ArrangerTool.Select}"
                         IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
                         ToolTip.Tip="Click and drag across Arranger to select a region or hold Ctrl to quickly drag single elements">
                         <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
                     </RadioButton>
                     <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static gfx:ArrangerTool.ApplyPalette}"
+                        CommandParameter="{x:Static vm:ArrangerTool.ApplyPalette}"
                         IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ApplyPalette}"
                         ToolTip.Tip="{Binding SelectedPalette.Name, StringFormat='Click on an Arranger element to apply the current palette (\{0\})'}">
                         <PathIcon Classes="medium vflip" Data="{x:Static cc:AppIcons.PaletteBrush}" />
                     </RadioButton>
                     <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static gfx:ArrangerTool.PickPalette}"
+                        CommandParameter="{x:Static vm:ArrangerTool.PickPalette}"
                         IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=PickPalette}"
                         ToolTip.Tip="Click on an Arranger element to pick its associated palette">
                         <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.PalettePicker}" />
                     </RadioButton>
                     <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static gfx:ArrangerTool.InspectElement}"
+                        CommandParameter="{x:Static vm:ArrangerTool.InspectElement}"
                         IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=InspectElement}"
                         ToolTip.Tip="Hover Arranger elements to inspect their properties">
                         <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Eye}" />
                     </RadioButton>
 
                     <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static gfx:ArrangerTool.RotateLeft}"
+                        CommandParameter="{x:Static vm:ArrangerTool.RotateLeft}"
                         IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateLeft}"
                         IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Rotate Element's Display Left">
                         <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RotateLeft}" />
                     </RadioButton>
                     <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static gfx:ArrangerTool.RotateRight}"
+                        CommandParameter="{x:Static vm:ArrangerTool.RotateRight}"
                         IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateRight}"
                         IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Rotate Element's Display Right">
                         <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RotateRight}" />
                     </RadioButton>
                     <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static gfx:ArrangerTool.MirrorHorizontal}"
+                        CommandParameter="{x:Static vm:ArrangerTool.MirrorHorizontal}"
                         IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorHorizontal}"
                         IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Mirror Element's Display Horizontally">
                         <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.MirrorHorizontal}" />
                     </RadioButton>
                     <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static gfx:ArrangerTool.MirrorVertical}"
+                        CommandParameter="{x:Static vm:ArrangerTool.MirrorVertical}"
                         IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorVertical}"
                         IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Mirror Element's Display Vertically">
                         <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.MirrorVertical}" />
@@ -108,25 +109,25 @@
 
                 <StackPanel Classes="toolbar-group">
                     <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
-                        CommandParameter="{x:Static gfx:PixelTool.Select}"
+                        CommandParameter="{x:Static vm:PixelTool.Select}"
                         IsChecked="{Binding ActivePixelTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
                         ToolTip.Tip="Click and drag to select a region">
                         <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
                     </RadioButton>
                     <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
-                        CommandParameter="{x:Static gfx:PixelTool.Pencil}"
+                        CommandParameter="{x:Static vm:PixelTool.Pencil}"
                         IsChecked="{Binding ActivePixelTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Pencil}"
                         ToolTip.Tip="Draw pixels with primary (left click) or secondary (right click) color">
                         <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Pencil}" />
                     </RadioButton>
                     <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
-                        CommandParameter="{x:Static gfx:PixelTool.ColorPicker}"
+                        CommandParameter="{x:Static vm:PixelTool.ColorPicker}"
                         IsChecked="{Binding ActivePixelTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColorPicker}"
                         ToolTip.Tip="Pick a color from the image">
                         <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.ColorPicker}" />
                     </RadioButton>
                     <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
-                        CommandParameter="{x:Static gfx:PixelTool.FloodFill}"
+                        CommandParameter="{x:Static vm:PixelTool.FloodFill}"
                         IsChecked="{Binding ActivePixelTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=FloodFill}"
                         ToolTip.Tip="Flood fill an area with primary (left click) or secondary (right click) color">
                         <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.FloodFill}" />

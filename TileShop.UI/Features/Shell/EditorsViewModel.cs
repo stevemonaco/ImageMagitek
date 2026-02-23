@@ -68,7 +68,8 @@ public partial class EditorsViewModel : ObservableRecipient
 
             if (userAction == UserSaveAction.Save)
             {
-                if (editor is not IndexedPixelEditorViewModel and not DirectPixelEditorViewModel)
+                // if (editor is not IndexedPixelEditorViewModel and not DirectPixelEditorViewModel)
+                if (editor is not GraphicsEditorViewModel { EditMode: GraphicsEditMode.Draw})
                 {
                     var projectTree = _projectService.GetContainingProject(editor.Resource);
                     await _projectService.SaveProject(projectTree).Match(
@@ -253,48 +254,48 @@ public partial class EditorsViewModel : ObservableRecipient
         if (Shell is null)
             throw new NullReferenceException(nameof(Shell));
 
-        if (message.Arranger.ColorType == PixelColorType.Indexed)
-        {
-            var editor = new IndexedPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-                message.Width, message.Height, _interactions, _colorFactory, _paletteStore, _tracker);
-
-            editor.DisplayName = message.Arranger.Name;
-
-            Shell.Editors.Editors.Add(editor);
-            ActiveEditor = editor;
-        }
-        else if (message.Arranger.ColorType == PixelColorType.Direct)
-        {
-            var editor = new DirectPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-                message.Width, message.Height, _interactions, _colorFactory, _paletteStore, _tracker);
-
-            editor.DisplayName = message.Arranger.Name;
-
-            Shell.Editors.Editors.Add(editor);
-            ActiveEditor = editor;
-        }
+        // if (message.Arranger.ColorType == PixelColorType.Indexed)
+        // {
+        //     var editor = new IndexedPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
+        //         message.Width, message.Height, _interactions, _colorFactory, _paletteStore, _tracker);
+        //
+        //     editor.DisplayName = message.Arranger.Name;
+        //
+        //     Shell.Editors.Editors.Add(editor);
+        //     ActiveEditor = editor;
+        // }
+        // else if (message.Arranger.ColorType == PixelColorType.Direct)
+        // {
+        //     var editor = new DirectPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
+        //         message.Width, message.Height, _interactions, _colorFactory, _paletteStore, _tracker);
+        //
+        //     editor.DisplayName = message.Arranger.Name;
+        //
+        //     Shell.Editors.Editors.Add(editor);
+        //     ActiveEditor = editor;
+        // }
     }
 
     public void Receive(ArrangerChangedMessage message)
     {
         if (message.Change is ArrangerChange.Pixels or ArrangerChange.Elements)
         {
-            var effectedEditors = Editors.OfType<ArrangerEditorViewModel>()
-                .Where(x => ReferenceEquals(x.Resource, message.Arranger));
-
-            foreach (var editor in effectedEditors)
-            {
-                if (editor is SequentialArrangerEditorViewModel or ScatteredArrangerEditorViewModel)
-                {
-                    editor.Render();
-                }
-            }
+            // var effectedEditors = Editors.OfType<ArrangerEditorViewModel>()
+            //     .Where(x => ReferenceEquals(x.Resource, message.Arranger));
+            //
+            // foreach (var editor in effectedEditors)
+            // {
+            //     if (editor is SequentialArrangerEditorViewModel or ScatteredArrangerEditorViewModel)
+            //     {
+            //         editor.Render();
+            //     }
+            // }
         }
     }
 
     public void Receive(PaletteChangedMessage message)
     {
-        var effectedEditors = Editors.OfType<ScatteredArrangerEditorViewModel>()
+        var effectedEditors = Editors.OfType<GraphicsEditorViewModel>()
             .Where(x => x.WorkingArranger.GetReferencedPalettes().Contains(message.Palette));
 
         foreach (var editor in effectedEditors)

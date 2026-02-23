@@ -1,11 +1,11 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Input;
-using TileShop.UI.Features.Graphics;
 using TileShop.UI.Input;
 using TileShop.Shared.Input;
 using TileShop.UI.Controls;
 using TileShop.UI.Renderer;
+using TileShop.UI.ViewModels;
 
 namespace TileShop.UI.Views;
 public partial class GraphicsEditorView : UserControl

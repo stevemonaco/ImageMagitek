@@ -16,11 +16,11 @@ using TileShop.Shared.Input;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
+using TileShop.UI.Features.Graphics;
 using TileShop.UI.Imaging;
 using TileShop.UI.Models;
-using TileShop.UI.ViewModels;
 
-namespace TileShop.UI.Features.Graphics;
+namespace TileShop.UI.ViewModels;
 
 public enum GraphicsEditMode { Arrange, Draw }
 public enum PixelTool { Select, Pencil, ColorPicker, FloodFill }

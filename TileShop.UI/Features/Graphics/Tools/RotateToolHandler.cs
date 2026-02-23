@@ -1,6 +1,7 @@
 using ImageMagitek;
 using TileShop.Shared.Input;
 using TileShop.Shared.Models;
+using TileShop.UI.ViewModels;
 
 namespace TileShop.UI.Features.Graphics.Tools;
 

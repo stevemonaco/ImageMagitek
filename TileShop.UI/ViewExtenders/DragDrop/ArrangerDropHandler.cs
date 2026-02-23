@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactions.DragAndDrop;
 using ImageMagitek;
+using TileShop.UI.Features.Graphics;
 using TileShop.UI.Models;
 using TileShop.UI.ViewModels;
 
@@ -12,7 +13,7 @@ public class ArrangerDropHandler : DropHandlerBase
     public override void Over(object? sender, DragEventArgs e, object? sourceContext, object? targetContext)
     {
         if (sourceContext is ArrangerPaste paste &&
-            targetContext is ArrangerEditorViewModel targetVm &&
+            targetContext is GraphicsEditorViewModel targetVm &&
             sender is Control control)
         {
             if (paste.Copy is ElementCopy && !targetVm.CanAcceptElementPastes)
@@ -39,7 +40,7 @@ public class ArrangerDropHandler : DropHandlerBase
 
     public override void Leave(object? sender, RoutedEventArgs e)
     {
-        if (sender is Control { DataContext: ArrangerEditorViewModel vm } control)
+        if (sender is Control { DataContext: GraphicsEditorViewModel vm } control)
         {
             vm.CancelOverlay();
         }
@@ -48,7 +49,7 @@ public class ArrangerDropHandler : DropHandlerBase
 
     public override bool Validate(object? sender, DragEventArgs e, object? sourceContext, object? targetContext, object? state)
     {
-        if (sender is Control && sourceContext is ArrangerPaste && targetContext is ArrangerEditorViewModel)
+        if (sender is Control && sourceContext is ArrangerPaste && targetContext is GraphicsEditorViewModel)
         {
             return true;
         }
@@ -59,7 +60,7 @@ public class ArrangerDropHandler : DropHandlerBase
     {
         if (e.Source is Control &&
             sourceContext is ArrangerPaste paste &&
-            targetContext is ArrangerEditorViewModel targetVm &&
+            targetContext is GraphicsEditorViewModel targetVm &&
             sender is Control control
             && Validate(control, e, sourceContext, targetContext, state))
         {

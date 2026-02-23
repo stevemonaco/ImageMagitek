@@ -6,7 +6,7 @@
     xmlns:gfx="using:TileShop.UI.Features.Graphics"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:Name="control"
-    x:DataType="gfx:GraphicsEditorViewModel"
+    x:DataType="vm:GraphicsEditorViewModel"
     Focusable="True">
     <UserControl.KeyBindings>
         <KeyBinding Command="{Binding ToggleGridlineVisibilityCommand}" Gesture="G" />
@@ -39,14 +39,14 @@
             <MenuItem Command="{Binding ModifyGridSettingsCommand}" Header="Grid Settings..." />
             <MenuItem Command="{Binding ToggleSymmetryToolsCommand}" Header="Show Symmetry Tools">
                 <Interaction.Behaviors>
-                    <DataTriggerBehavior Binding="{Binding #control.((gfx:GraphicsEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="True">
+                    <DataTriggerBehavior Binding="{Binding #control.((vm:GraphicsEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="True">
                         <ChangePropertyAction PropertyName="Icon">
                             <ChangePropertyAction.Value>
                                 <PathIcon Classes="menu" Data="{x:Static cc:AppIcons.CheckedBox}" />
                             </ChangePropertyAction.Value>
                         </ChangePropertyAction>
                     </DataTriggerBehavior>
-                    <DataTriggerBehavior Binding="{Binding #control.((gfx:GraphicsEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="False">
+                    <DataTriggerBehavior Binding="{Binding #control.((vm:GraphicsEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="False">
                         <ChangePropertyAction PropertyName="Icon">
                             <ChangePropertyAction.Value>
                                 <PathIcon Classes="menu" Data="{x:Static cc:AppIcons.UncheckedBox}" />

@@ -6,7 +6,7 @@ using ImageMagitek.Colors;
 using TileShop.Shared.Models;
 using TileShop.UI.Models;
 
-namespace TileShop.UI.Features.Graphics;
+namespace TileShop.UI.ViewModels;
 
 public partial class GraphicsEditorViewModel
 {

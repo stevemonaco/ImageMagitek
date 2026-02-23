@@ -46,7 +46,7 @@
         <Setter Property="(Interaction.Behaviors)">
             <BehaviorCollectionTemplate>
                 <BehaviorCollection>
-                    <dd:PayloadDragBehavior x:DataType="vm:ArrangerEditorViewModel" Context="{Binding}" Handler="{StaticResource ArrangerDragHandler}" />
+                    <dd:PayloadDragBehavior x:DataType="vm:GraphicsEditorViewModel" Context="{Binding}" Handler="{StaticResource ArrangerDragHandler}" />
                 </BehaviorCollection>
             </BehaviorCollectionTemplate>
         </Setter>
@@ -60,7 +60,7 @@
         <Setter Property="(Interaction.Behaviors)">
             <BehaviorCollectionTemplate>
                 <BehaviorCollection>
-                    <dd:PayloadDropBehavior x:DataType="vm:ArrangerEditorViewModel" Context="{Binding}" Handler="{StaticResource ArrangerDropHandler}" />
+                    <dd:PayloadDropBehavior x:DataType="vm:GraphicsEditorViewModel" Context="{Binding}" Handler="{StaticResource ArrangerDropHandler}" />
                 </BehaviorCollection>
             </BehaviorCollectionTemplate>
         </Setter>

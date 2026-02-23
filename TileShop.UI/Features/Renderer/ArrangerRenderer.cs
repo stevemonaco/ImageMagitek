@@ -1,6 +1,6 @@
 using ImageMagitek;
 using SkiaSharp;
-using TileShop.UI.Features.Graphics;
+using TileShop.UI.ViewModels;
 
 namespace TileShop.UI.Renderer;
 

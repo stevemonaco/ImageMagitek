@@ -632,20 +632,20 @@ public partial class ProjectTreeViewModel : ToolViewModel
         if (projectSaveResult.HasSucceeded)
         {
             var activeContainedEditors = _editors.Editors.Where(x => projectTree.ContainsResource(x.Resource));
-            var activeSequentialEditors = _editors.Editors
-                .OfType<SequentialArrangerEditorViewModel>()
-                .Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataSource));
-            var activeIndexedPixelEditors = _editors.Editors
-                .OfType<IndexedPixelEditorViewModel>()
-                .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
-            var activeDirectPixelEditors = _editors.Editors
-                .OfType<DirectPixelEditorViewModel>()
-                .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
+            // var activeSequentialEditors = _editors.Editors
+            //     .OfType<SequentialArrangerEditorViewModel>()
+            //     .Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataSource));
+            // var activeIndexedPixelEditors = _editors.Editors
+            //     .OfType<IndexedPixelEditorViewModel>()
+            //     .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
+            // var activeDirectPixelEditors = _editors.Editors
+            //     .OfType<DirectPixelEditorViewModel>()
+            //     .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
 
             var removedEditors = new HashSet<ResourceEditorBaseViewModel>(activeContainedEditors);
-            removedEditors.UnionWith(activeSequentialEditors);
-            removedEditors.UnionWith(activeIndexedPixelEditors);
-            removedEditors.UnionWith(activeDirectPixelEditors);
+            // removedEditors.UnionWith(activeSequentialEditors);
+            // removedEditors.UnionWith(activeIndexedPixelEditors);
+            // removedEditors.UnionWith(activeDirectPixelEditors);
 
             foreach (var editor in removedEditors)
             {

@@ -13,6 +13,7 @@ using TileShop.Shared.Interactions;
 using System;
 using System.Diagnostics;
 using System.Reflection;
+using TileShop.UI.Features.Graphics;
 
 namespace TileShop.UI.ViewModels;
 
@@ -99,11 +100,11 @@ public partial class MenuViewModel : ObservableRecipient
     }
 
     [RelayCommand]
-    public async Task ExportArrangerToImage(ScatteredArrangerEditorViewModel vm) =>
+    public async Task ExportArrangerToImage(GraphicsEditorViewModel vm) =>
         await ProjectTree.ExportArrangerAs((ScatteredArranger) vm.Resource);
 
     [RelayCommand]
-    public async Task ImportArrangerFromImage(ScatteredArrangerEditorViewModel vm) =>
+    public async Task ImportArrangerFromImage(GraphicsEditorViewModel vm) =>
         await ProjectTree.ImportArrangerFrom((ScatteredArranger) vm.Resource);
 
     [RelayCommand]

@@ -7,7 +7,7 @@ using TileShop.Shared.Input;
 using TileShop.Shared.Models;
 using TileShop.UI.Features.Graphics.Tools;
 
-namespace TileShop.UI.Features.Graphics;
+namespace TileShop.UI.ViewModels;
 
 public partial class GraphicsEditorViewModel
 {

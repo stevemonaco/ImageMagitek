@@ -13,9 +13,8 @@ using Monaco.PathTree;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using TileShop.UI.Models;
-using TileShop.UI.ViewModels;
 
-namespace TileShop.UI.Features.Graphics;
+namespace TileShop.UI.ViewModels;
 
 public partial class GraphicsEditorViewModel
 {

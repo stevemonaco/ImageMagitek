@@ -131,13 +131,9 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
     public void ConfigureViewLocator(ViewLocator locator)
     {
-        locator.RegisterViewFactory<ScatteredArrangerEditorViewModel, ScatteredArrangerEditorView>();
-        locator.RegisterViewFactory<SequentialArrangerEditorViewModel, SequentialArrangerEditorView>();
         locator.RegisterViewFactory<GraphicsEditorViewModel, GraphicsEditorView>();
         locator.RegisterViewFactory<PaletteEditorViewModel, PaletteEditorView>();
         locator.RegisterViewFactory<TableColorViewModel, TableColorView>();
-        locator.RegisterViewFactory<DirectPixelEditorViewModel, DirectPixelEditorView>();
-        locator.RegisterViewFactory<IndexedPixelEditorViewModel, IndexedPixelEditorView>();
         locator.RegisterViewFactory<ProjectTreeViewModel, ProjectTreeView>();
         locator.RegisterViewFactory<DockableEditorViewModel, DockableEditorView>();
         locator.RegisterViewFactory<DockableToolViewModel, DockableToolView>();

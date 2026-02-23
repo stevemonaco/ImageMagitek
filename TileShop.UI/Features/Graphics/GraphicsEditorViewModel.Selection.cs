@@ -4,7 +4,7 @@ using ImageMagitek;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 
-namespace TileShop.UI.Features.Graphics;
+namespace TileShop.UI.ViewModels;
 
 public partial class GraphicsEditorViewModel
 {
