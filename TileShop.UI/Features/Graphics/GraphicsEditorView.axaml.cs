@@ -20,9 +20,9 @@ public partial class GraphicsEditorView : UserControl
     {
         InitializeComponent();
 
-#if DEBUG
-        EditorCanvas.ShowFrameTimings = true;
-#endif
+// #if DEBUG
+//         EditorCanvas.ShowFrameTimings = true;
+// #endif
 
         EditorCanvas.PaintSurface += OnPaintSurface;
         EditorCanvas.PointerPressed += CanvasOnPointerPressed;
