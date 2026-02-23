@@ -10,6 +10,29 @@ public class ArrangerRenderer
     private const float _handleScreenSize = 8f;
 
     private static readonly SKPaint _backdropPaint = new() { Color = new SKColor(0, 0, 0) };
+    private static readonly SKPaint _checkerboardPaint = CreateCheckerboardPaint();
+
+    private static SKPaint CreateCheckerboardPaint()
+    {
+        const int cellSize = 8;
+        const int size = cellSize * 2;
+
+        var bitmap = new SKBitmap(size, size);
+        var white = new SKColor(0xFF, 0xFF, 0xFF);
+        var grey = new SKColor(0xC8, 0xC8, 0xC8);
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                bool isGreyCell = ((x / cellSize) + (y / cellSize)) % 2 == 0;
+                bitmap.SetPixel(x, y, isGreyCell ? grey : white);
+            }
+        }
+
+        var shader = SKShader.CreateBitmap(bitmap, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat);
+        return new SKPaint { Shader = shader };
+    }
 
     private static readonly SKPaint _greyscalePaint = new()
     {
@@ -82,7 +105,7 @@ public class ArrangerRenderer
         var bitmap = state.BitmapAdapter.Bitmap;
         var rect = new SKRect(0, 0, bitmap.PixelSize.Width, bitmap.PixelSize.Height);
 
-        canvas.DrawRect(rect, _backdropPaint);
+        canvas.DrawRect(rect, _checkerboardPaint);
 
         using (var pixels = bitmap.Lock())
         {
