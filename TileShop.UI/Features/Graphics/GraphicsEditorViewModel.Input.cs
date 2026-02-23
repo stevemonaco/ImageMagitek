@@ -28,6 +28,11 @@ public partial class GraphicsEditorViewModel
         [ArrangerTool.MirrorVertical] = new MirrorToolHandler(MirrorOperation.Vertical),
     };
 
+    private readonly Dictionary<ViewTool, IToolHandler<GraphicsEditorViewModel>> _viewTools = new()
+    {
+        [ViewTool.Select] = new SelectToolHandler(),
+    };
+
     private readonly Dictionary<PixelTool, IToolHandler<GraphicsEditorViewModel>> _pixelTools = new()
     {
         [PixelTool.Select] = new SelectToolHandler(),
@@ -45,6 +50,7 @@ public partial class GraphicsEditorViewModel
 
         return EditMode switch
         {
+            GraphicsEditMode.View => _viewTools[ActiveViewTool],
             GraphicsEditMode.Arrange => _arrangerTools[ActiveArrangerTool],
             GraphicsEditMode.Draw => _pixelTools[ActivePixelTool],
             _ => null

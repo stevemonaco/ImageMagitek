@@ -25,6 +25,7 @@ namespace TileShop.UI.ViewModels;
 
 public enum GraphicsEditMode { View, Arrange, Draw }
 public enum PixelTool { Select, Pencil, ColorPicker, FloodFill }
+public enum ViewTool { Select }
 public enum ArrangerTool { Select, ApplyPalette, PickPalette, InspectElement, RotateLeft, RotateRight, MirrorHorizontal, MirrorVertical }
 public enum ColorPriority { Primary, Secondary }
 
@@ -137,6 +138,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         // Deactivate the outgoing tool (Display mode has no tools)
         IToolHandler<GraphicsEditorViewModel>? outgoingTool = oldValue switch
         {
+            GraphicsEditMode.View => _viewTools.GetValueOrDefault(ActiveViewTool),
             GraphicsEditMode.Arrange => _arrangerTools.GetValueOrDefault(ActiveArrangerTool),
             GraphicsEditMode.Draw => _pixelTools.GetValueOrDefault(ActivePixelTool),
             _ => null

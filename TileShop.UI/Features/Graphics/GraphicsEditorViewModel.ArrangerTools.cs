@@ -21,6 +21,7 @@ public partial class GraphicsEditorViewModel
     [ObservableProperty] private bool _isPencilDrawing;
     [ObservableProperty] private PixelTool _activePixelTool = PixelTool.Pencil;
     [ObservableProperty] private ArrangerTool _activeArrangerTool = ArrangerTool.Select;
+    [ObservableProperty] private ViewTool _activeViewTool = ViewTool.Select;
     [ObservableProperty] private bool _areSymmetryToolsEnabled;
 
     partial void OnActivePixelToolChanged(PixelTool oldValue, PixelTool newValue)
@@ -33,6 +34,12 @@ public partial class GraphicsEditorViewModel
         }
     }
     
+    [RelayCommand]
+    public void ChangeViewTool(ViewTool tool)
+    {
+        ActiveViewTool = tool;
+    }
+
     [RelayCommand]
     public void ChangeArrangerTool(ArrangerTool tool)
     {

@@ -54,6 +54,20 @@
             <TextBlock Classes="muted" IsVisible="{Binding IsSequentialArranger}"
                 Text="{Binding FileOffset, StringFormat='Offset: 0x{0:X}'}" TextWrapping="Wrap" />
 
+            <!--  View Tools  -->
+            <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Tools" />
+
+                <StackPanel Classes="toolbar-group">
+                    <RadioButton Classes="tool" Command="{Binding ChangeViewToolCommand}"
+                        CommandParameter="{x:Static vm:ViewTool.Select}"
+                        IsChecked="{Binding ActiveViewTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
+                        ToolTip.Tip="Click and drag to select a region">
+                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
+                    </RadioButton>
+                </StackPanel>
+            </StackPanel>
+
             <!--  Arranger Tools  -->
             <StackPanel IsVisible="{Binding IsArrangerMode}" Spacing="4">
                 <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Tools" />
