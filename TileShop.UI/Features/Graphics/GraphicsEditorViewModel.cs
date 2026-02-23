@@ -23,7 +23,7 @@ using TileShop.UI.Models;
 
 namespace TileShop.UI.ViewModels;
 
-public enum GraphicsEditMode { Display, Arrange, Draw }
+public enum GraphicsEditMode { View, Arrange, Draw }
 public enum PixelTool { Select, Pencil, ColorPicker, FloodFill }
 public enum ArrangerTool { Select, ApplyPalette, PickPalette, InspectElement, RotateLeft, RotateRight, MirrorHorizontal, MirrorVertical }
 public enum ColorPriority { Primary, Secondary }
@@ -130,7 +130,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     [ObservableProperty] private double _zoom = 1.0;
 
-    [ObservableProperty] private GraphicsEditMode _editMode = GraphicsEditMode.Arrange;
+    [ObservableProperty] private GraphicsEditMode _editMode;
 
     partial void OnEditModeChanged(GraphicsEditMode oldValue, GraphicsEditMode newValue)
     {
@@ -152,15 +152,16 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         _modifierOverrideTool = null;
 
         CancelOverlay();
-        OnPropertyChanged(nameof(IsDisplayMode));
+        OnPropertyChanged(nameof(IsViewMode));
         OnPropertyChanged(nameof(IsArrangerMode));
         OnPropertyChanged(nameof(IsDrawMode));
     }
 
+    [ObservableProperty] private bool _canView;
     [ObservableProperty] private bool _canArrange;
-    [ObservableProperty] private bool _canEdit;
+    [ObservableProperty] private bool _canDraw;
 
-    public bool IsDisplayMode => EditMode == GraphicsEditMode.Display;
+    public bool IsViewMode => EditMode == GraphicsEditMode.View;
     public bool IsArrangerMode => EditMode == GraphicsEditMode.Arrange;
     public bool IsDrawMode => EditMode == GraphicsEditMode.Draw;
 
@@ -281,8 +282,13 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         _projectService = projectService;
         _tracker = tracker;
 
+        CanView = arranger.Mode == ArrangerMode.Sequential;
+        CanArrange = arranger.Mode == ArrangerMode.Scattered;
+        CanDraw = true;
         CanAcceptElementPastes = true;
         CanAcceptPixelPastes = true;
+
+        _editMode = CanView ? GraphicsEditMode.View : GraphicsEditMode.Arrange;
 
         Initialize();
 
@@ -292,11 +298,6 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     private void Initialize()
     {
-        // ViewDx = 0;
-        // ViewDy = 0;
-        // _viewWidth = WorkingArranger.ArrangerPixelSize.Width;
-        // _viewHeight = WorkingArranger.ArrangerPixelSize.Height;
-
         CreateImages();
         InitializePalettes();
 

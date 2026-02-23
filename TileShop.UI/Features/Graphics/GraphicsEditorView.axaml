@@ -67,12 +67,12 @@
         <gfx:GraphicsEditorToolbarView Grid.RowSpan="1" />
 
         <!--  Image Display  -->
-        <cc:InfiniteCanvas x:Name="EditorCanvas" Grid.Column="1" MaxZoom="32" MinZoom="0.25" ZoomPower="1.25"
-            Zoom="{Binding Zoom, Mode=TwoWay}" />
+        <cc:InfiniteCanvas x:Name="EditorCanvas" Grid.Column="1" MaxZoom="32" MinZoom="0.25" Zoom="{Binding Zoom, Mode=TwoWay}"
+            ZoomPower="1.25" />
 
         <!--  File Scroller  -->
-        <ScrollBar Grid.Column="2" HorizontalAlignment="Right" AllowAutoHide="False"
-            IsVisible="{Binding IsSequentialArranger}" LargeChange="{Binding ArrangerPageSize}"
-            Maximum="{Binding MaxFileDecodingOffset}" Minimum="0" SmallChange="1" Value="{Binding FileOffset}" />
+        <ScrollBar Grid.Column="2" HorizontalAlignment="Right" AllowAutoHide="False" IsVisible="{Binding IsViewMode}"
+            LargeChange="{Binding ArrangerPageSize}" Maximum="{Binding MaxFileDecodingOffset}" Minimum="0"
+            SmallChange="1" Value="{Binding FileOffset}" />
     </Grid>
 </UserControl>

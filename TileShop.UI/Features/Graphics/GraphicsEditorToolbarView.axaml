@@ -40,15 +40,15 @@
         <StackPanel Spacing="4">
             <!--  Edit Mode Selector  -->
             <StackPanel Classes="toolbar-group">
-                <RadioButton Classes="tool" Content="Display"
-                    IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Display}"
-                    IsVisible="{Binding IsSequentialArranger}" ToolTip.Tip="Display mode for adjusting codec properties" />
+                <RadioButton Classes="tool" Content="View"
+                    IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=View}"
+                    IsVisible="{Binding CanView}" ToolTip.Tip="View-only mode for adjusting codec properties" />
                 <RadioButton Classes="tool" Content="Arrange"
                     IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Arrange}"
-                    ToolTip.Tip="Arrange elements within the arranger" />
+                    IsVisible="{Binding CanArrange}" ToolTip.Tip="Arrange elements within the arranger" />
                 <RadioButton Classes="tool" Content="Draw"
                     IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Draw}"
-                    ToolTip.Tip="Draw and edit pixels" />
+                    IsVisible="{Binding CanDraw}" ToolTip.Tip="Draw and edit pixels" />
             </StackPanel>
 
             <TextBlock Classes="muted" IsVisible="{Binding IsSequentialArranger}"
@@ -220,7 +220,7 @@
             </StackPanel>
 
             <!--  Arranger Size (Sequential Arranger in Display mode only)  -->
-            <StackPanel IsVisible="{Binding IsDisplayMode}" Spacing="4">
+            <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
                 <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Arranger Size" />
                 <StackPanel Orientation="Horizontal" Spacing="4">
                     <Button Command="{Binding ExpandWidthCommand}" Focusable="False" ToolTip.Tip="Expand Width">

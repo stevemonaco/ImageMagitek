@@ -129,7 +129,7 @@ public class ArrangerRenderer
 
     private static void RenderSelectionHandles(GraphicsEditorViewModel state, SKCanvas canvas)
     {
-        if (!state.Selection.HasSelection || state.IsDisplayMode)
+        if (!state.Selection.HasSelection || state.IsViewMode)
             return;
 
         var sel = state.Selection.SelectionRect;
