@@ -7,6 +7,7 @@ using TileShop.Shared.Models;
 using TileShop.UI.Controls;
 using TileShop.UI.Renderer;
 using TileShop.UI.ViewModels;
+using KeyModifiers = Avalonia.Input.KeyModifiers;
 
 namespace TileShop.UI.Views;
 public partial class GraphicsEditorView : UserControl
@@ -160,26 +161,23 @@ public partial class GraphicsEditorView : UserControl
     public void CanvasOnPointerWheelChanged(object sender, PointerWheelEventArgs e)
     {
         var modifiers = InputAdapter.CreateKeyModifiers(e.KeyModifiers);
-        bool isHandled = false;
 
-        if (e.Delta.Y > 0)
-        {
-            isHandled = ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
-        }
-        else if (e.Delta.Y < 0)
-        {
-            isHandled = ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
-        }
-
-        if (!isHandled)
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
             if (e.Delta.Y > 0)
                 EditorCanvas.ZoomIn();
             else if (e.Delta.Y < 0)
                 EditorCanvas.ZoomOut();
-        }
 
-        e.Handled = true;
+            e.Handled = true;
+        }
+        else
+        {
+            if (e.Delta.Y > 0)
+                e.Handled = ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
+            else if (e.Delta.Y < 0)
+                e.Handled = ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
+        }
     }
 
     private void CanvasOnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)

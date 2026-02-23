@@ -158,6 +158,21 @@ public partial class GraphicsEditorViewModel
 
     public bool MouseWheel(MouseWheelDirection direction, KeyModifiers modifiers)
     {
+        if (EditMode != GraphicsEditMode.View)
+            return false;
+
+        if (direction == MouseWheelDirection.Down)
+        {
+            MovePageDown();
+            return true;
+        }
+
+        if (direction == MouseWheelDirection.Up)
+        {
+            MovePageUp();
+            return true;
+        }
+
         return false;
     }
 
