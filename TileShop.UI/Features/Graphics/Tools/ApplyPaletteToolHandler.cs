@@ -1,5 +1,5 @@
-using TileShop.Shared.Input;
 using TileShop.Shared.Models;
+using TileShop.Shared.Tools;
 using TileShop.UI.ViewModels;
 
 namespace TileShop.UI.Features.Graphics.Tools;
@@ -8,36 +8,36 @@ public class ApplyPaletteToolHandler : IToolHandler<GraphicsEditorViewModel>
 {
     private ApplyPaletteHistoryAction? _activeHistory;
 
-    public bool OnMouseDown(ToolContext ctx, GraphicsEditorViewModel state)
+    public ToolResult OnMouseDown(ToolContext ctx, GraphicsEditorViewModel state)
     {
         if (!ctx.MouseState.LeftButtonPressed || state.SelectedPalette is null || !state.IsIndexedColor)
-            return false;
+            return ToolResult.Unhandled;
 
         _activeHistory = new ApplyPaletteHistoryAction(state.SelectedPalette.Palette);
         state.TryApplyPalette(ctx.PixelX, ctx.PixelY, state.SelectedPalette.Palette);
-        return true;
+        return ToolResult.HandledPixelData;
     }
 
-    public bool OnMouseMove(ToolContext ctx, GraphicsEditorViewModel state)
+    public ToolResult OnMouseMove(ToolContext ctx, GraphicsEditorViewModel state)
     {
         if (ctx.MouseState.LeftButtonPressed && _activeHistory is not null &&
             state.SelectedPalette is not null && state.IsIndexedColor)
         {
             state.TryApplyPalette(ctx.PixelX, ctx.PixelY, state.SelectedPalette.Palette);
-            return true;
+            return ToolResult.HandledPixelData;
         }
 
         state.UpdateActivityMessage(ctx.PixelX, ctx.PixelY);
-        return false;
+        return ToolResult.Unhandled;
     }
 
-    public bool OnMouseUp(ToolContext ctx, GraphicsEditorViewModel state)
+    public ToolResult OnMouseUp(ToolContext ctx, GraphicsEditorViewModel state)
     {
-        return FinalizeHistory(state);
+        return new ToolResult(FinalizeHistory(state), InvalidationLevel.None);
     }
 
-    public bool OnKeyDown(ToolContext ctx, GraphicsEditorViewModel state) => false;
-    public bool OnKeyUp(ToolContext ctx, GraphicsEditorViewModel state) => false;
+    public ToolResult OnKeyDown(ToolContext ctx, GraphicsEditorViewModel state) => ToolResult.Unhandled;
+    public ToolResult OnKeyUp(ToolContext ctx, GraphicsEditorViewModel state) => ToolResult.Unhandled;
 
     public HistoryAction? Deactivate(GraphicsEditorViewModel state)
     {

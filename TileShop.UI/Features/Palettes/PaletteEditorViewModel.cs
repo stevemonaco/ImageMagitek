@@ -8,10 +8,10 @@ using ImageMagitek.Utility.Parsing;
 using ImageMagitek;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.Shared.Models;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
+using TileShop.Shared.Models;
 
 namespace TileShop.UI.ViewModels;
 

@@ -5,6 +5,7 @@ using ImageMagitek;
 using ImageMagitek.Codec;
 using TileShop.Shared.Input;
 using TileShop.Shared.Models;
+using TileShop.Shared.Tools;
 using TileShop.UI.Features.Graphics.Tools;
 
 namespace TileShop.UI.ViewModels;
@@ -76,7 +77,10 @@ public partial class GraphicsEditorViewModel
         var ctx = new ToolContext(x, y, xc, yc, mouseState);
         var tool = ResolveToolWithModifiers(mouseState.Modifiers);
 
-        return tool?.OnMouseDown(ctx, this) ?? false;
+        var result = tool?.OnMouseDown(ctx, this) ?? default;
+        if (result.Invalidation != InvalidationLevel.None)
+            InvalidateEditor(result.Invalidation);
+        return result.Handled;
     }
 
     public bool MouseUp(double x, double y, MouseState mouseState)
@@ -88,7 +92,10 @@ public partial class GraphicsEditorViewModel
         var ctx = new ToolContext(x, y, xc, yc, mouseState);
         var tool = ResolveActiveTool();
 
-        return tool?.OnMouseUp(ctx, this) ?? false;
+        var result = tool?.OnMouseUp(ctx, this) ?? default;
+        if (result.Invalidation != InvalidationLevel.None)
+            InvalidateEditor(result.Invalidation);
+        return result.Handled;
     }
 
     public bool MouseEnter()
@@ -137,7 +144,10 @@ public partial class GraphicsEditorViewModel
         var ctx = new ToolContext(x, y, xc, yc, mouseState);
         var tool = ResolveToolWithModifiers(mouseState.Modifiers);
 
-        return tool?.OnMouseMove(ctx, this) ?? false;
+        var result = tool?.OnMouseMove(ctx, this) ?? default;
+        if (result.Invalidation != InvalidationLevel.None)
+            InvalidateEditor(result.Invalidation);
+        return result.Handled;
     }
 
     public bool MouseWheel(MouseWheelDirection direction, KeyModifiers modifiers)
@@ -163,7 +173,10 @@ public partial class GraphicsEditorViewModel
         var ctx = new ToolContext(x.Value, y.Value, xc, yc, keyState);
         var tool = ResolveActiveTool();
 
-        return tool?.OnKeyDown(ctx, this) ?? false;
+        var result = tool?.OnKeyDown(ctx, this) ?? default;
+        if (result.Invalidation != InvalidationLevel.None)
+            InvalidateEditor(result.Invalidation);
+        return result.Handled;
     }
 
     public void KeyUp(KeyState keyState, double? x, double? y)
@@ -184,7 +197,9 @@ public partial class GraphicsEditorViewModel
         var ctx = new ToolContext(x.Value, y.Value, xc, yc, keyState);
         var tool = ResolveActiveTool();
 
-        tool?.OnKeyUp(ctx, this);
+        var result = tool?.OnKeyUp(ctx, this) ?? default;
+        if (result.Invalidation != InvalidationLevel.None)
+            InvalidateEditor(result.Invalidation);
     }
 
     internal void UpdateActivityMessage(int xc, int yc)

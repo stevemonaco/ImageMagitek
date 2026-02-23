@@ -133,7 +133,6 @@ public partial class GraphicsEditorViewModel
             {
                 AddHistoryAction(new FloodFillAction<byte>(x, y, colorIndex));
                 IsModified = true;
-                Render();
             }
         }
         else
@@ -143,7 +142,6 @@ public partial class GraphicsEditorViewModel
             {
                 AddHistoryAction(new FloodFillAction<ColorRgba32>(x, y, color));
                 IsModified = true;
-                Render();
             }
         }
     }

@@ -1,10 +1,9 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
 using ImageMagitek;
+using TileShop.Shared.Models;
 using TileShop.UI.Models;
 using TileShop.UI.ViewModels;
-using TileShop.Shared.Models;
-using TileShop.UI.Features.Graphics;
 
 namespace TileShop.UI.DragDrop;
 public class ArrangerDragHandler : IDragHandlerEx

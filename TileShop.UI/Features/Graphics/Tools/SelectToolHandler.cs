@@ -1,12 +1,13 @@
 using TileShop.Shared.Input;
 using TileShop.Shared.Models;
+using TileShop.Shared.Tools;
 using TileShop.UI.ViewModels;
 
 namespace TileShop.UI.Features.Graphics.Tools;
 
 public class SelectToolHandler : IToolHandler<GraphicsEditorViewModel>
 {
-    public bool OnMouseDown(ToolContext ctx, GraphicsEditorViewModel state)
+    public ToolResult OnMouseDown(ToolContext ctx, GraphicsEditorViewModel state)
     {
         if (ctx.MouseState.LeftButtonPressed && state.Selection.HasSelection)
         {
@@ -14,7 +15,7 @@ public class SelectToolHandler : IToolHandler<GraphicsEditorViewModel>
             if (handle != SelectionHandle.None)
             {
                 state.StartResize(handle);
-                return true;
+                return ToolResult.HandledNoInvalidation;
             }
         }
 
@@ -22,65 +23,68 @@ public class SelectToolHandler : IToolHandler<GraphicsEditorViewModel>
             state.Selection.SelectionRect.ContainsPointSnapped(ctx.PixelX, ctx.PixelY))
         {
             // Start drag for selection (handled by DragDrop in View)
-            return true;
+            return ToolResult.HandledNoInvalidation;
         }
 
         if (state.Paste is not null && ctx.MouseState.LeftButtonPressed &&
             state.Paste.Rect.ContainsPointSnapped(ctx.PixelX, ctx.PixelY))
         {
             // Start drag for paste (handled by DragDrop in View)
-            return true;
+            return ToolResult.HandledNoInvalidation;
         }
 
         if (ctx.MouseState.LeftButtonPressed && ctx.MouseState.Modifiers.HasFlag(KeyModifiers.Control))
         {
             state.StartNewSelection(ctx.X, ctx.Y);
             state.CompleteSelection();
-            return true;
+            return ToolResult.HandledOverlay;
         }
 
         if (ctx.MouseState.LeftButtonPressed)
         {
             state.StartNewSelection(ctx.X, ctx.Y);
-            return true;
+            return ToolResult.HandledOverlay;
         }
 
-        return false;
+        return ToolResult.Unhandled;
     }
 
-    public bool OnMouseMove(ToolContext ctx, GraphicsEditorViewModel state)
+    public ToolResult OnMouseMove(ToolContext ctx, GraphicsEditorViewModel state)
     {
         if (state.IsResizing)
         {
             state.UpdateResize(ctx.X, ctx.Y);
-            return true;
+            return ToolResult.HandledNoInvalidation;
         }
 
         if (state.IsSelecting)
+        {
             state.UpdateSelection(ctx.X, ctx.Y);
+            return ToolResult.HandledNoInvalidation;
+        }
 
         state.UpdateActivityMessage(ctx.PixelX, ctx.PixelY);
-        return true;
+        return ToolResult.HandledNoInvalidation;
     }
 
-    public bool OnMouseUp(ToolContext ctx, GraphicsEditorViewModel state)
+    public ToolResult OnMouseUp(ToolContext ctx, GraphicsEditorViewModel state)
     {
         if (state.IsResizing && !ctx.MouseState.LeftButtonPressed)
         {
             state.CompleteResize();
-            return true;
+            return ToolResult.HandledNoInvalidation;
         }
 
         if (state.IsSelecting && !ctx.MouseState.LeftButtonPressed)
         {
             state.CompleteSelection();
-            return true;
+            return ToolResult.HandledNoInvalidation;
         }
 
-        return false;
+        return ToolResult.Unhandled;
     }
 
-    public bool OnKeyDown(ToolContext ctx, GraphicsEditorViewModel state)
+    public ToolResult OnKeyDown(ToolContext ctx, GraphicsEditorViewModel state)
     {
         if (state.EditMode == GraphicsEditMode.Arrange &&
             ctx.KeyState.Key == state.SecondaryAltKey && state.Paste is null)
@@ -88,14 +92,14 @@ public class SelectToolHandler : IToolHandler<GraphicsEditorViewModel>
             if (state.TryStartNewSingleSelection(ctx.X, ctx.Y))
             {
                 state.CompleteSelection();
-                return true;
+                return ToolResult.HandledNoInvalidation;
             }
         }
 
-        return false;
+        return ToolResult.Unhandled;
     }
 
-    public bool OnKeyUp(ToolContext ctx, GraphicsEditorViewModel state)
+    public ToolResult OnKeyUp(ToolContext ctx, GraphicsEditorViewModel state)
     {
         if (state.EditMode == GraphicsEditMode.Arrange &&
             ctx.KeyState.Key == state.SecondaryAltKey && state.Paste is null &&
@@ -104,10 +108,10 @@ public class SelectToolHandler : IToolHandler<GraphicsEditorViewModel>
                 state.Selection.SelectionRect.SnappedHeight))
         {
             state.CancelOverlay();
-            return true;
+            return ToolResult.HandledNoInvalidation;
         }
 
-        return false;
+        return ToolResult.Unhandled;
     }
 
     public HistoryAction? Deactivate(GraphicsEditorViewModel state)

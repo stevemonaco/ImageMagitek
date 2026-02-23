@@ -5,12 +5,13 @@ using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
+using TileShop.Shared.Tools;
 
 namespace TileShop.UI.ViewModels;
 
 public partial class GraphicsEditorViewModel
 {
-    private const double HandleScreenSize = 8.0;
+    private const double _handleScreenSize = 8.0;
 
     [ObservableProperty] private SelectionHandle _activeResizeHandle = SelectionHandle.None;
     [ObservableProperty] private bool _isResizing;
@@ -24,7 +25,7 @@ public partial class GraphicsEditorViewModel
         Selection.UpdateSelectionEndpoint(WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height);
         CompleteSelection();
         OnPropertyChanged(nameof(CanEditSelection));
-        OnImageModified?.Invoke();
+        InvalidateEditor(InvalidationLevel.Overlay);
     }
 
     [RelayCommand]
@@ -36,7 +37,7 @@ public partial class GraphicsEditorViewModel
         PendingOperationMessage = string.Empty;
 
         OnPropertyChanged(nameof(CanEditSelection));
-        OnImageModified?.Invoke();
+        InvalidateEditor(InvalidationLevel.Overlay);
     }
 
     [RelayCommand]
@@ -99,7 +100,7 @@ public partial class GraphicsEditorViewModel
         if (IsSelecting)
         {
             Selection.UpdateSelectionEndpoint(x, y);
-            OnImageModified?.Invoke();
+            InvalidateEditor(InvalidationLevel.Overlay);
         }
     }
 
@@ -114,7 +115,7 @@ public partial class GraphicsEditorViewModel
 
             IsSelecting = false;
             OnPropertyChanged(nameof(CanEditSelection));
-            OnImageModified?.Invoke();
+            InvalidateEditor(InvalidationLevel.Overlay);
         }
     }
 
@@ -132,7 +133,7 @@ public partial class GraphicsEditorViewModel
             return SelectionHandle.None;
 
         var sel = Selection.SelectionRect;
-        var handleSize = HandleScreenSize / Math.Max(Zoom, 0.01);
+        var handleSize = _handleScreenSize / Math.Max(Zoom, 0.01);
         var halfHandle = handleSize / 2.0;
 
         double left = sel.SnappedLeft;
@@ -205,7 +206,7 @@ public partial class GraphicsEditorViewModel
                 break;
         }
 
-        OnImageModified?.Invoke();
+        InvalidateEditor(InvalidationLevel.Overlay);
     }
 
     public void CompleteResize()
@@ -221,7 +222,7 @@ public partial class GraphicsEditorViewModel
             IsResizing = false;
             ActiveResizeHandle = SelectionHandle.None;
             OnPropertyChanged(nameof(CanEditSelection));
-            OnImageModified?.Invoke();
+            InvalidateEditor(InvalidationLevel.Overlay);
         }
     }
 }

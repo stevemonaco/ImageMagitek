@@ -1,4 +1,6 @@
-namespace TileShop.Shared.Input;
+using TileShop.Shared.Input;
+
+namespace TileShop.Shared.Tools;
 
 public readonly struct ToolContext
 {

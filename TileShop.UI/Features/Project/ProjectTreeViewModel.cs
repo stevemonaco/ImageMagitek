@@ -15,11 +15,11 @@ using ImageMagitek.Services;
 using Jot;
 using Monaco.PathTree;
 using TileShop.Shared.Messages;
-using TileShop.Shared.Models;
 using TileShop.Shared.Services;
 using TileShop.Shared.Interactions;
 using CommunityToolkit.Diagnostics;
 using ImageMagitek.Services.Stores;
+using TileShop.Shared.Models;
 
 namespace TileShop.UI.ViewModels;
 

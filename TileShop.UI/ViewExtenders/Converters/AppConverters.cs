@@ -3,10 +3,9 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using TileShop.Shared.Models;
 using TileShop.UI.Models;
 using TileShop.UI.ViewModels;
-using TileShop.Shared.Models;
-using TileShop.UI.Features.Graphics;
 
 namespace TileShop.UI.Converters;
 

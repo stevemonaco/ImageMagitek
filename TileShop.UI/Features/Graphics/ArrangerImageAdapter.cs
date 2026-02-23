@@ -6,7 +6,7 @@ using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
-using TileShop.Shared.Models;
+using TileShop.Shared.Tools;
 using TileShop.UI.Imaging;
 
 namespace TileShop.UI.Features.Graphics;

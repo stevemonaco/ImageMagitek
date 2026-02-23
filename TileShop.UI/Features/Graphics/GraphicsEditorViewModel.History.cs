@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ImageMagitek.Colors;
 using TileShop.Shared.Models;
+using TileShop.Shared.Tools;
 using TileShop.UI.Models;
 
 namespace TileShop.UI.ViewModels;
@@ -81,7 +82,7 @@ public partial class GraphicsEditorViewModel
         foreach (var action in UndoHistory)
             ApplyHistoryAction(action);
 
-        Render();
+        InvalidateEditor(InvalidationLevel.PixelData);
     }
 
     [RelayCommand]
@@ -98,6 +99,6 @@ public partial class GraphicsEditorViewModel
 
         ApplyHistoryAction(redoAction);
         IsModified = true;
-        Render();
+        InvalidateEditor(InvalidationLevel.PixelData);
     }
 }

@@ -9,7 +9,6 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
 using ImageMagitek.Colors;
-using ImageMagitek.Project;
 using ImageMagitek.Services;
 using ImageMagitek.Services.Stores;
 using Jot;
@@ -17,6 +16,7 @@ using TileShop.Shared.Input;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
+using TileShop.Shared.Tools;
 using TileShop.UI.Features.Graphics;
 using TileShop.UI.Imaging;
 using TileShop.UI.Models;
@@ -168,7 +168,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     partial void OnSnapModeChanged(SnapMode value)
     {
         Selection.SelectionRect.SnapMode = value;
-        OnImageModified?.Invoke();
+        InvalidateEditor(InvalidationLevel.Overlay);
     }
 
     [ObservableProperty] private ArrangerSelection _selection;
@@ -213,7 +213,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
             nameof(GridSettingsViewModel.LineColor) or
             nameof(GridSettingsViewModel.Gridlines))
         {
-            OnImageModified?.Invoke();
+            InvalidateEditor(InvalidationLevel.Overlay);
         }
     }
 
@@ -362,12 +362,21 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         }
     }
 
-    public void Render()
+    public void InvalidateEditor(InvalidationLevel level)
     {
-        _imageAdapter.Render();
-        BitmapAdapter.Invalidate();
+        if (level == InvalidationLevel.None)
+            return;
+
+        if (level.HasFlag(InvalidationLevel.PixelData))
+        {
+            _imageAdapter.Render();
+            BitmapAdapter.Invalidate();
+        }
+
         OnImageModified?.Invoke();
     }
+
+    public void Render() => InvalidateEditor(InvalidationLevel.PixelData);
 
     private void ReloadImage() => _imageAdapter.Render();
 

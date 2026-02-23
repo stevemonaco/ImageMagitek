@@ -11,6 +11,7 @@ using ImageMagitek.Colors;
 using Monaco.PathTree;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
+using TileShop.Shared.Tools;
 using TileShop.UI.Models;
 
 namespace TileShop.UI.ViewModels;
@@ -51,7 +52,7 @@ public partial class GraphicsEditorViewModel
     public void ToggleGridlineVisibility()
     {
         GridSettings.ShowGridlines ^= true;
-        Render();
+        InvalidateEditor(InvalidationLevel.PixelData);
     }
 
     [RelayCommand]
@@ -73,7 +74,7 @@ public partial class GraphicsEditorViewModel
 
             GridSettings.AdjustGridlines(WorkingArranger);
             GridSettings.CreateBackgroundBrush();
-            OnImageModified?.Invoke();
+            InvalidateEditor(InvalidationLevel.Overlay);
 
             _tracker.Persist(result);
         }
@@ -112,7 +113,7 @@ public partial class GraphicsEditorViewModel
         }
 
         if (needsRender)
-            Render();
+            InvalidateEditor(InvalidationLevel.PixelData);
     }
 
     private bool TryApplySinglePalette(int pixelX, int pixelY, Palette palette, bool notify)
@@ -132,7 +133,6 @@ public partial class GraphicsEditorViewModel
             return result.Match(
                 success =>
                 {
-                    Render();
                     IsModified = true;
                     return true;
                 },
@@ -195,8 +195,7 @@ public partial class GraphicsEditorViewModel
                 AddHistoryAction(new PasteArrangerHistoryAction(paste));
                 IsModified = true;
                 CancelOverlay();
-                BitmapAdapter.Invalidate();
-                OnImageModified?.Invoke();
+                InvalidateEditor(InvalidationLevel.PixelData);
                 return new NotifyStatusMessage("Paste successfully applied");
             },
             fail => new NotifyStatusMessage(fail.Reason)
@@ -303,7 +302,7 @@ public partial class GraphicsEditorViewModel
             AddHistoryAction(new DeleteElementSelectionHistoryAction(Selection.SelectionRect));
 
             IsModified = true;
-            Render();
+            InvalidateEditor(InvalidationLevel.PixelData);
         }
     }
 
@@ -364,7 +363,7 @@ public partial class GraphicsEditorViewModel
         {
             _fileOffset = newAddress.ByteOffset;
             OnPropertyChanged(nameof(FileOffset));
-            Render();
+            InvalidateEditor(InvalidationLevel.PixelData);
         }
     }
 
@@ -380,7 +379,7 @@ public partial class GraphicsEditorViewModel
         {
             _fileOffset = newAddress.ByteOffset;
             OnPropertyChanged(nameof(FileOffset));
-            Render();
+            InvalidateEditor(InvalidationLevel.PixelData);
         }
     }
     #endregion
@@ -490,7 +489,7 @@ public partial class GraphicsEditorViewModel
         {
             var remap = dialogResult.FinalColors.Select(x => (byte)x.Index).ToList();
             _imageAdapter.RemapColors(remap);
-            Render();
+            InvalidateEditor(InvalidationLevel.PixelData);
 
             var remapAction = new ColorRemapHistoryAction(dialogResult.InitialColors, dialogResult.FinalColors);
             UndoHistory.Add(remapAction);
