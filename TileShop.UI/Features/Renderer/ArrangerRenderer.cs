@@ -7,7 +7,7 @@ namespace TileShop.UI.Renderer;
 
 public class ArrangerRenderer
 {
-    private const float HandleScreenSize = 8f;
+    private const float _handleScreenSize = 8f;
 
     private static readonly SKPaint _backdropPaint = new() { Color = new SKColor(0, 0, 0) };
 
@@ -134,7 +134,7 @@ public class ArrangerRenderer
 
         var sel = state.Selection.SelectionRect;
         var zoom = Math.Max(state.Zoom, 0.01);
-        var handleSize = HandleScreenSize / (float)zoom;
+        var handleSize = _handleScreenSize / (float)zoom;
         var halfHandle = handleSize / 2f;
 
         float left = sel.SnappedLeft;
