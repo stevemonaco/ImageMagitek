@@ -71,8 +71,8 @@
             ZoomPower="1.25" />
 
         <!--  File Scroller  -->
-        <ScrollBar Grid.Column="2" HorizontalAlignment="Right" AllowAutoHide="False" IsVisible="{Binding IsViewMode}"
-            LargeChange="{Binding ArrangerPageSize}" Maximum="{Binding MaxFileDecodingOffset}" Minimum="0"
-            SmallChange="1" Value="{Binding FileOffset}" />
+        <ScrollBar Grid.Column="2" Margin="0,0,8,0" HorizontalAlignment="Right" AllowAutoHide="False"
+            IsVisible="{Binding IsViewMode}" LargeChange="{Binding ArrangerPageSize}"
+            Maximum="{Binding MaxFileDecodingOffset}" Minimum="0" SmallChange="1" Value="{Binding FileOffset}" />
     </Grid>
 </UserControl>
