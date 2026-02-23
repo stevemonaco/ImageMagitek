@@ -54,19 +54,79 @@
             <TextBlock Classes="muted" IsVisible="{Binding IsSequentialArranger}"
                 Text="{Binding FileOffset, StringFormat='Offset: 0x{0:X}'}" TextWrapping="Wrap" />
 
-            <!--  View Tools  -->
+            <!--  Codec (Sequential Arranger in View mode only)  -->
             <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Tools" />
-
-                <StackPanel Classes="toolbar-group">
-                    <RadioButton Classes="tool" Command="{Binding ChangeViewToolCommand}"
-                        CommandParameter="{x:Static vm:ViewTool.Select}"
-                        IsChecked="{Binding ActiveViewTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
-                        ToolTip.Tip="Click and drag to select a region">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
-                    </RadioButton>
-                </StackPanel>
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Codec" />
+                <ComboBox HorizontalAlignment="Stretch" Focusable="False" ItemsSource="{Binding CodecNames}"
+                    SelectedItem="{Binding SelectedCodecName}" />
             </StackPanel>
+
+            <!--  Element Size (Sequential Arranger, Tiled codec with resizable dimensions)  -->
+            <StackPanel Spacing="4">
+                <StackPanel.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="IsViewMode" />
+                        <Binding Path="IsTiledLayout" />
+                        <Binding Path="CanCodecResize" />
+                    </MultiBinding>
+                </StackPanel.IsVisible>
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Element Size" />
+                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*, *" ColumnSpacing="8">
+                    <NumericUpDown Grid.Column="0" Focusable="False" FormatString="0" Increment="{Binding ElementWidthIncrement}"
+                        InnerLeftContent="W" Minimum="{Binding ElementWidthIncrement}" Value="{Binding TiledElementWidth}" />
+                    <NumericUpDown Grid.Column="1" Focusable="False" FormatString="0" Increment="{Binding ElementHeightIncrement}"
+                        InnerLeftContent="H" Minimum="{Binding ElementHeightIncrement}" Value="{Binding TiledElementHeight}" />
+                </Grid>
+            </StackPanel>
+
+            <!--  Arranger Size (Sequential Arranger in View mode only)  -->
+            <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Arranger Size" />
+
+                <!--  Tiled layout: element count  -->
+                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="Auto,*" IsVisible="{Binding IsTiledLayout}"
+                    RowDefinitions="Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,6,2" VerticalAlignment="Center" Classes="muted"
+                        Text="W" />
+                    <NumericUpDown Grid.Row="0" Grid.Column="1" Margin="0,0,0,2" Focusable="False" FormatString="0"
+                        Increment="{Binding ArrangerWidthIncrement}" Minimum="{Binding ArrangerWidthIncrement}"
+                        Value="{Binding TiledArrangerWidth}" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,6,0" VerticalAlignment="Center" Classes="muted"
+                        Text="H" />
+                    <NumericUpDown Grid.Row="1" Grid.Column="1" Focusable="False" FormatString="0"
+                        Increment="{Binding ArrangerHeightIncrement}" Minimum="{Binding ArrangerHeightIncrement}"
+                        Value="{Binding TiledArrangerHeight}" />
+                </Grid>
+
+                <!--  Linear/Single layout: pixel dimensions  -->
+                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="Auto,*" IsVisible="{Binding IsSingleLayout}"
+                    RowDefinitions="Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,6,2" VerticalAlignment="Center" Classes="muted"
+                        Text="W" />
+                    <NumericUpDown Grid.Row="0" Grid.Column="1" Margin="0,0,0,2" Focusable="False" FormatString="0"
+                        Increment="{Binding ElementWidthIncrement}" Minimum="{Binding ElementWidthIncrement}"
+                        Value="{Binding LinearArrangerWidth}" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,6,0" VerticalAlignment="Center" Classes="muted"
+                        Text="H" />
+                    <NumericUpDown Grid.Row="1" Grid.Column="1" Focusable="False" FormatString="0"
+                        Increment="{Binding ElementHeightIncrement}" Minimum="{Binding ElementHeightIncrement}"
+                        Value="{Binding LinearArrangerHeight}" />
+                </Grid>
+            </StackPanel>
+
+            <!--  View Tools  -->
+            <!-- <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4"> -->
+            <!--     <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Tools" /> -->
+            <!--    -->
+            <!--     <StackPanel Classes="toolbar-group"> -->
+            <!--  <RadioButton Classes="tool" Command="{Binding ChangeViewToolCommand}"  -->
+            <!--  CommandParameter="{x:Static vm:ViewTool.Select}"  -->
+            <!--  IsChecked="{Binding ActiveViewTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"  -->
+            <!--  ToolTip.Tip="Click and drag to select a region">  -->
+            <!--             <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" /> -->
+            <!--         </RadioButton> -->
+            <!--     </StackPanel> -->
+            <!-- </StackPanel> -->
 
             <!--  Arranger Tools  -->
             <StackPanel IsVisible="{Binding IsArrangerMode}" Spacing="4">
@@ -231,27 +291,6 @@
                     IsVisible="{Binding CanChangeSnapMode}" ToolTip.Tip="Snap Selection to Elements (S)">
                     <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Snap}" Foreground="#F9F9F9" />
                 </ToggleButton>
-            </StackPanel>
-
-            <!--  Arranger Size (Sequential Arranger in Display mode only)  -->
-            <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Arranger Size" />
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <Button Command="{Binding ExpandWidthCommand}" Focusable="False" ToolTip.Tip="Expand Width">
-                        W+
-                    </Button>
-                    <Button Command="{Binding ShrinkWidthCommand}" Focusable="False" ToolTip.Tip="Shrink Width">
-                        W-
-                    </Button>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <Button Command="{Binding ExpandHeightCommand}" Focusable="False" ToolTip.Tip="Expand Height">
-                        H+
-                    </Button>
-                    <Button Command="{Binding ShrinkHeightCommand}" Focusable="False" ToolTip.Tip="Shrink Height">
-                        H-
-                    </Button>
-                </StackPanel>
             </StackPanel>
 
             <!--  Actions  -->

@@ -1,5 +1,4 @@
-﻿<Styles
-    x:Class="TileShop.UI.Controls.TileShopTheme"
+﻿<Styles x:Class="TileShop.UI.Controls.TileShopTheme"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Styles.Resources>
@@ -8,8 +7,8 @@
                 <!--  Re-templates and alternate looks  -->
                 <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/ClearButton.axaml" />
                 <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/SlidingToggleSwitch.axaml" />
-                <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/NumericUpDown/NumericUpDown.axaml" />
-                <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/NumericUpDown/ButtonSpinner.axaml" />
+                <!-- <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/NumericUpDown/NumericUpDown.axaml" /> -->
+                <!-- <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/NumericUpDown/ButtonSpinner.axaml" /> -->
 
                 <!--  Custom controls  -->
                 <MergeResourceInclude Source="avares://TileShop.UI.Controls/Dialogs/OverlayDialog.axaml" />

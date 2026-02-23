@@ -333,6 +333,14 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
             ArrangerHeightIncrement = 1;
             ElementWidthIncrement = seqArr.ActiveCodec.WidthResizeIncrement;
             ElementHeightIncrement = seqArr.ActiveCodec.HeightResizeIncrement;
+            CanCodecResize = seqArr.ActiveCodec.CanResize;
+
+            _tiledElementWidth = seqArr.ActiveCodec.Width;
+            _tiledElementHeight = seqArr.ActiveCodec.Height;
+
+            CodecNames = _codecService.GetSupportedCodecNames().ToList();
+            _selectedCodecName = seqArr.ActiveCodec.Name;
+            OnPropertyChanged(nameof(SelectedCodecName));
         }
     }
 
