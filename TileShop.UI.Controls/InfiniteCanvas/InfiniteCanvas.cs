@@ -403,6 +403,47 @@ public partial class InfiniteCanvas : Control
     }
 
     /// <summary>
+    /// Centers the content within the viewport at the current zoom level
+    /// </summary>
+    public void CenterContent(double contentWidth, double contentHeight)
+    {
+        OffsetX = (contentWidth * Zoom - Bounds.Width) / 2;
+        OffsetY = (contentHeight * Zoom - Bounds.Height) / 2;
+        Invalidate();
+    }
+
+    /// <summary>
+    /// Calculates zoom to fit content within viewport, then centers
+    /// </summary>
+    public void FitToViewport(double contentWidth, double contentHeight)
+    {
+        if (contentWidth <= 0 || contentHeight <= 0 || Bounds.Width <= 0 || Bounds.Height <= 0)
+            return;
+
+        Zoom = Math.Min(Bounds.Width / contentWidth, Bounds.Height / contentHeight);
+        CenterContent(contentWidth, contentHeight);
+    }
+
+    /// <summary>
+    /// Resets zoom to 1.0
+    /// </summary>
+    public void ResetZoom()
+    {
+        Zoom = 1.0;
+        Invalidate();
+    }
+
+    /// <summary>
+    /// Snaps content origin to viewport top-left
+    /// </summary>
+    public void AlignTopLeft()
+    {
+        OffsetX = 0;
+        OffsetY = 0;
+        Invalidate();
+    }
+
+    /// <summary>
     /// Transforms a canvas location into a local coordinate (before scaling)
     /// </summary>
     public Point ScreenToLocalPoint(Point screen)

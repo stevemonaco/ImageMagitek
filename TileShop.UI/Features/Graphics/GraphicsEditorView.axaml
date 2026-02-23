@@ -19,6 +19,11 @@
         <KeyBinding Command="{Binding RedoCommand}" Gesture="Ctrl+Y" />
         <KeyBinding Command="{Binding SelectAllCommand}" Gesture="Ctrl+A" />
         <KeyBinding Command="{Binding ModifyGridSettingsCommand}" Gesture="Ctrl+G" />
+        <!--  Viewport Management  -->
+        <KeyBinding Command="{Binding CenterContentCommand}" Gesture="Ctrl+E" />
+        <KeyBinding Command="{Binding FitToViewportCommand}" Gesture="Ctrl+W" />
+        <KeyBinding Command="{Binding ResetZoomCommand}" Gesture="Ctrl+R" />
+        <KeyBinding Command="{Binding AlignTopLeftCommand}" Gesture="Ctrl+Q" />
         <!--  Sequential Arranger Navigation  -->
         <KeyBinding Command="{Binding MoveByteDownCommand}" Gesture="Add" />
         <KeyBinding Command="{Binding MoveByteUpCommand}" Gesture="Subtract" />
@@ -62,7 +67,7 @@
         <gfx:GraphicsEditorToolbarView Grid.RowSpan="1" />
 
         <!--  Image Display  -->
-        <cc:InfiniteCanvas x:Name="EditorCanvas" Grid.Column="1" />
+        <cc:InfiniteCanvas x:Name="EditorCanvas" Grid.Column="1" MaxZoom="32" MinZoom="0.25" ZoomPower="1.25" />
 
         <!--  File Scroller  -->
         <ScrollBar Grid.Column="2" HorizontalAlignment="Right" AllowAutoHide="False"

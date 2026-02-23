@@ -193,6 +193,22 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     [ObservableProperty] private GridSettingsViewModel _gridSettings;
 
     public Action? OnImageModified { get; set; }
+    public Action? OnCenterContent { get; set; }
+    public Action? OnFitToViewport { get; set; }
+    public Action? OnResetZoom { get; set; }
+    public Action? OnAlignTopLeft { get; set; }
+
+    [RelayCommand]
+    private void CenterContent() => OnCenterContent?.Invoke();
+
+    [RelayCommand]
+    private void FitToViewport() => OnFitToViewport?.Invoke();
+
+    [RelayCommand]
+    private void ResetZoom() => OnResetZoom?.Invoke();
+
+    [RelayCommand]
+    private void AlignTopLeft() => OnAlignTopLeft?.Invoke();
 
     [ObservableProperty] private ObservableCollection<PaletteModel> _palettes = new();
     [ObservableProperty] private PaletteModel? _selectedPalette;

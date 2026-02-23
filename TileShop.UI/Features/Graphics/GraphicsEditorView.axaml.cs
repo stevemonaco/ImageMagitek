@@ -45,6 +45,10 @@ public partial class GraphicsEditorView : UserControl
         {
             _renderer = new ArrangerRenderer(vm.WorkingArranger);
             vm.OnImageModified = () => EditorCanvas.Invalidate();
+            vm.OnCenterContent = () => EditorCanvas.CenterContent(vm.WorkingArranger.ArrangerPixelSize.Width, vm.WorkingArranger.ArrangerPixelSize.Height);
+            vm.OnFitToViewport = () => EditorCanvas.FitToViewport(vm.WorkingArranger.ArrangerPixelSize.Width, vm.WorkingArranger.ArrangerPixelSize.Height);
+            vm.OnResetZoom = () => EditorCanvas.ResetZoom();
+            vm.OnAlignTopLeft = () => EditorCanvas.AlignTopLeft();
         }
 
         base.OnDataContextChanged(e);
