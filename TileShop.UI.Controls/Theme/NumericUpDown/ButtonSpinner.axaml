@@ -1,26 +1,22 @@
-﻿<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Design.PreviewWith>
         <StackPanel Margin="20" Spacing="20">
             <ButtonSpinner Content="Hello World" />
         </StackPanel>
     </Design.PreviewWith>
 
-    <SolidColorBrush Color="#20DDDDDD" x:Key="SpinnerDividerBrush" />
-    <SolidColorBrush Color="#60DDDDDD" x:Key="SpinnerChevronBrush" />
-
-    <ControlTheme TargetType="RepeatButton" x:Key="NumericButtonSpinnerRepeatButton">
+    <ControlTheme x:Key="NumericUpDownDenseRepeatButton" TargetType="RepeatButton">
+        <Setter Property="Background" Value="{DynamicResource ButtonSpinnerRepeatButtonBackground}" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <ControlTemplate>
-                <ContentPresenter
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    Content="{TemplateBinding Content}"
-                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                <ContentPresenter Name="PART_ContentPresenter" Padding="{TemplateBinding Padding}"
                     HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                    Name="PART_ContentPresenter"
-                    Padding="{TemplateBinding Padding}"
-                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                    Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}" Content="{TemplateBinding Content}"
+                    ContentTemplate="{TemplateBinding ContentTemplate}" CornerRadius="{TemplateBinding CornerRadius}" />
             </ControlTemplate>
         </Setter>
         <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
@@ -36,69 +32,41 @@
         </Style>
     </ControlTheme>
 
-    <ControlTheme TargetType="ButtonSpinner" x:Key="{x:Type ButtonSpinner}">
+    <ControlTheme x:Key="NumericUpDownDenseButtonSpinner" TargetType="ButtonSpinner">
         <Setter Property="BorderBrush" Value="{DynamicResource ButtonSpinnerRepeatButtonBorderBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="MinWidth" Value="300" />
         <Setter Property="Template">
             <ControlTemplate TargetType="ButtonSpinner">
-                <Border
-                    Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="{TemplateBinding CornerRadius}">
-                    <Grid ColumnDefinitions="*, 1, Auto">
-
-                        <ContentPresenter
-                            Content="{TemplateBinding Content}"
-                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                <Grid ColumnDefinitions="Auto, *, Auto">
+                    <Border Grid.Column="1" BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}">
+                        <ContentPresenter Name="PART_ContentPresenter" Padding="{TemplateBinding Padding}"
                             HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                            Name="PART_ContentPresenter"
-                            Padding="{TemplateBinding Padding}"
-                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
-
-                        <Border
-                            BorderBrush="{DynamicResource SpinnerDividerBrush}"
-                            BorderThickness="1,0,0,0"
-                            Grid.Column="1"
-                            RenderTransform="scaley(0.6)"
-                            Width="1" />
-
-                        <UniformGrid
-                            Columns="1"
-                            Grid.Column="2"
-                            IsVisible="{TemplateBinding ShowButtonSpinner}"
-                            MinWidth="16"
-                            Name="ButtonGroup"
-                            Rows="2">
-                            <RepeatButton
-                                BorderBrush="{DynamicResource SpinnerDividerBrush}"
-                                BorderThickness="0,0,0,1"
-                                Name="PART_IncreaseButton"
-                                Theme="{StaticResource NumericButtonSpinnerRepeatButton}">
-                                <PathIcon
-                                    Classes="ExtraSmall"
-                                    Data="{DynamicResource ButtonSpinnerIncreaseButtonGlyph}"
-                                    Foreground="{DynamicResource SpinnerChevronBrush}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                    <Border Name="ButtonGroup" Grid.Column="2" MinWidth="16" BorderThickness="0" CornerRadius="0, 3, 3, 0"
+                        IsVisible="{TemplateBinding ShowButtonSpinner}">
+                        <Grid RowDefinitions="*, *">
+                            <RepeatButton Name="PART_IncreaseButton" Grid.Row="0" CornerRadius="0, 3, 0, 0"
+                                Theme="{StaticResource NumericUpDownDenseRepeatButton}">
+                                <PathIcon Classes="ExtraSmall" Data="{DynamicResource ButtonSpinnerIncreaseButtonGlyph}"
+                                    Foreground="{DynamicResource ButtonSpinnerRepeatButtonForeground}"
                                     Theme="{DynamicResource InnerPathIcon}" />
                             </RepeatButton>
-                            <RepeatButton
-                                Margin="0,1,0,0"
-                                Name="PART_DecreaseButton"
-                                Theme="{StaticResource NumericButtonSpinnerRepeatButton}">
-                                <PathIcon
-                                    Classes="ExtraSmall"
-                                    Data="{DynamicResource ButtonSpinnerDecreaseButtonGlyph}"
-                                    Foreground="{StaticResource SpinnerChevronBrush}"
+                            <RepeatButton Name="PART_DecreaseButton" Grid.Row="1" CornerRadius="0, 0, 3, 0"
+                                Theme="{StaticResource NumericUpDownDenseRepeatButton}">
+                                <PathIcon Classes="ExtraSmall" Data="{DynamicResource ButtonSpinnerDecreaseButtonGlyph}"
+                                    Foreground="{DynamicResource ButtonSpinnerRepeatButtonForeground}"
                                     Theme="{DynamicResource InnerPathIcon}" />
                             </RepeatButton>
-                        </UniformGrid>
-                    </Grid>
-                </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
             </ControlTemplate>
         </Setter>
-        <Style Selector="^:pointerover /template/ Border#ButtonGroup">
-            <Setter Property="BorderBrush" Value="{DynamicResource ButtonSpinnerRepeatButtonPointeroverBorderBrush}" />
+        <Style Selector="^[ButtonSpinnerLocation=Left] /template/ Border#ButtonGroup">
+            <Setter Property="Grid.Column" Value="0" />
         </Style>
     </ControlTheme>
 </ResourceDictionary>

@@ -72,10 +72,12 @@
                 </StackPanel.IsVisible>
                 <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Element Size" />
                 <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*, *" ColumnSpacing="8">
-                    <NumericUpDown Grid.Column="0" Focusable="False" FormatString="0" Increment="{Binding ElementWidthIncrement}"
-                        InnerLeftContent="W" Minimum="{Binding ElementWidthIncrement}" Value="{Binding TiledElementWidth}" />
-                    <NumericUpDown Grid.Column="1" Focusable="False" FormatString="0" Increment="{Binding ElementHeightIncrement}"
-                        InnerLeftContent="H" Minimum="{Binding ElementHeightIncrement}" Value="{Binding TiledElementHeight}" />
+                    <NumericUpDown Grid.Column="0" Classes="dense" Focusable="False" FormatString="0"
+                        Increment="{Binding ElementWidthIncrement}" InnerLeftContent="W"
+                        Minimum="{Binding ElementWidthIncrement}" Value="{Binding TiledElementWidth}" />
+                    <NumericUpDown Grid.Column="1" Classes="dense" Focusable="False" FormatString="0"
+                        Increment="{Binding ElementHeightIncrement}" InnerLeftContent="H"
+                        Minimum="{Binding ElementHeightIncrement}" Value="{Binding TiledElementHeight}" />
                 </Grid>
             </StackPanel>
 
@@ -88,12 +90,12 @@
                     RowDefinitions="Auto,Auto">
                     <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,6,2" VerticalAlignment="Center" Classes="muted"
                         Text="W" />
-                    <NumericUpDown Grid.Row="0" Grid.Column="1" Margin="0,0,0,2" Focusable="False" FormatString="0"
-                        Increment="{Binding ArrangerWidthIncrement}" Minimum="{Binding ArrangerWidthIncrement}"
-                        Value="{Binding TiledArrangerWidth}" />
+                    <NumericUpDown Grid.Row="0" Grid.Column="1" Margin="0,0,0,2" Classes="dense" Focusable="False"
+                        FormatString="0" Increment="{Binding ArrangerWidthIncrement}"
+                        Minimum="{Binding ArrangerWidthIncrement}" Value="{Binding TiledArrangerWidth}" />
                     <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,6,0" VerticalAlignment="Center" Classes="muted"
                         Text="H" />
-                    <NumericUpDown Grid.Row="1" Grid.Column="1" Focusable="False" FormatString="0"
+                    <NumericUpDown Grid.Row="1" Grid.Column="1" Classes="dense" Focusable="False" FormatString="0"
                         Increment="{Binding ArrangerHeightIncrement}" Minimum="{Binding ArrangerHeightIncrement}"
                         Value="{Binding TiledArrangerHeight}" />
                 </Grid>
@@ -103,12 +105,12 @@
                     RowDefinitions="Auto,Auto">
                     <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,6,2" VerticalAlignment="Center" Classes="muted"
                         Text="W" />
-                    <NumericUpDown Grid.Row="0" Grid.Column="1" Margin="0,0,0,2" Focusable="False" FormatString="0"
-                        Increment="{Binding ElementWidthIncrement}" Minimum="{Binding ElementWidthIncrement}"
-                        Value="{Binding LinearArrangerWidth}" />
+                    <NumericUpDown Grid.Row="0" Grid.Column="1" Margin="0,0,0,2" Classes="dense" Focusable="False"
+                        FormatString="0" Increment="{Binding ElementWidthIncrement}"
+                        Minimum="{Binding ElementWidthIncrement}" Value="{Binding LinearArrangerWidth}" />
                     <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,6,0" VerticalAlignment="Center" Classes="muted"
                         Text="H" />
-                    <NumericUpDown Grid.Row="1" Grid.Column="1" Focusable="False" FormatString="0"
+                    <NumericUpDown Grid.Row="1" Grid.Column="1" Classes="dense" Focusable="False" FormatString="0"
                         Increment="{Binding ElementHeightIncrement}" Minimum="{Binding ElementHeightIncrement}"
                         Value="{Binding LinearArrangerHeight}" />
                 </Grid>

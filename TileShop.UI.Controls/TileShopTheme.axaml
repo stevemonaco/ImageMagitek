@@ -7,8 +7,9 @@
                 <!--  Re-templates and alternate looks  -->
                 <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/ClearButton.axaml" />
                 <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/SlidingToggleSwitch.axaml" />
-                <!-- <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/NumericUpDown/NumericUpDown.axaml" /> -->
-                <!-- <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/NumericUpDown/ButtonSpinner.axaml" /> -->
+
+                <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/NumericUpDown/ButtonSpinner.axaml" />
+                <MergeResourceInclude Source="avares://TileShop.UI.Controls/Theme/NumericUpDown/NumericUpDown.axaml" />
 
                 <!--  Custom controls  -->
                 <MergeResourceInclude Source="avares://TileShop.UI.Controls/Dialogs/OverlayDialog.axaml" />
@@ -17,4 +18,5 @@
     </Styles.Resources>
 
     <StyleInclude Source="avares://TileShop.UI.Controls/Styles/Typography.axaml" />
+    <StyleInclude Source="avares://TileShop.UI.Controls/Styles/NumericUpDownStyles.axaml" />
 </Styles>
