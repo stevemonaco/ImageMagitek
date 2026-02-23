@@ -6,7 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:gfx="using:TileShop.UI.Features.Graphics"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:me="using:TileShop.UI.MarkupExtensions"
     xmlns:vm="using:TileShop.UI.ViewModels"
     d:DesignHeight="450"
     d:DesignWidth="800"
@@ -43,8 +42,7 @@
             <StackPanel Classes="toolbar-group">
                 <RadioButton Classes="tool" Content="Display"
                     IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Display}"
-                    IsVisible="{Binding IsSequentialArranger}"
-                    ToolTip.Tip="Display mode for adjusting codec properties" />
+                    IsVisible="{Binding IsSequentialArranger}" ToolTip.Tip="Display mode for adjusting codec properties" />
                 <RadioButton Classes="tool" Content="Arrange"
                     IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Arrange}"
                     ToolTip.Tip="Arrange elements within the arranger" />
