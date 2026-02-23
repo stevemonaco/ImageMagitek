@@ -22,7 +22,7 @@ using TileShop.UI.Models;
 
 namespace TileShop.UI.ViewModels;
 
-public enum GraphicsEditMode { Arrange, Draw }
+public enum GraphicsEditMode { Display, Arrange, Draw }
 public enum PixelTool { Select, Pencil, ColorPicker, FloodFill }
 public enum ArrangerTool { Select, ApplyPalette, PickPalette, InspectElement, RotateLeft, RotateRight, MirrorHorizontal, MirrorVertical }
 public enum ColorPriority { Primary, Secondary }
@@ -131,10 +131,13 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     partial void OnEditModeChanged(GraphicsEditMode oldValue, GraphicsEditMode newValue)
     {
-        // Deactivate the outgoing tool
-        var outgoingTool = oldValue == GraphicsEditMode.Arrange
-            ? _arrangerTools.GetValueOrDefault(ActiveArrangerTool)
-            : _pixelTools.GetValueOrDefault(ActivePixelTool);
+        // Deactivate the outgoing tool (Display mode has no tools)
+        IToolHandler<GraphicsEditorViewModel>? outgoingTool = oldValue switch
+        {
+            GraphicsEditMode.Arrange => _arrangerTools.GetValueOrDefault(ActiveArrangerTool),
+            GraphicsEditMode.Draw => _pixelTools.GetValueOrDefault(ActivePixelTool),
+            _ => null
+        };
 
         if (outgoingTool is not null)
         {
@@ -146,6 +149,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         _modifierOverrideTool = null;
 
         CancelOverlay();
+        OnPropertyChanged(nameof(IsDisplayMode));
         OnPropertyChanged(nameof(IsArrangerMode));
         OnPropertyChanged(nameof(IsDrawMode));
     }
@@ -153,6 +157,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     [ObservableProperty] private bool _canArrange;
     [ObservableProperty] private bool _canEdit;
 
+    public bool IsDisplayMode => EditMode == GraphicsEditMode.Display;
     public bool IsArrangerMode => EditMode == GraphicsEditMode.Arrange;
     public bool IsDrawMode => EditMode == GraphicsEditMode.Draw;
 

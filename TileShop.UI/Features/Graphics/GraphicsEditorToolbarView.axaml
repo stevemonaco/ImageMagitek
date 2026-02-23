@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:gfx="using:TileShop.UI.Features.Graphics"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:me="using:TileShop.UI.MarkupExtensions"
     xmlns:vm="using:TileShop.UI.ViewModels"
     d:DesignHeight="450"
     d:DesignWidth="800"
@@ -38,10 +39,19 @@
 
     <Border Width="200" MinWidth="160" Padding="0,0,12,4" TextElement.Foreground="#F9F9F9">
         <StackPanel Spacing="4">
-            <!--  Arrange <-> Draw Toggle  -->
-            <ToggleSwitch x:Name="ArrangeDrawSwitch" Height="34" HorizontalAlignment="Stretch"
-                IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter={x:Static vm:GraphicsEditMode.Draw}}"
-                OffContent="Arrange" OnContent="Draw" Theme="{StaticResource SlidingToggleSwitchTheme}" />
+            <!--  Edit Mode Selector  -->
+            <StackPanel Classes="toolbar-group">
+                <RadioButton Classes="tool" Content="Display"
+                    IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Display}"
+                    IsVisible="{Binding IsSequentialArranger}"
+                    ToolTip.Tip="Display mode for adjusting codec properties" />
+                <RadioButton Classes="tool" Content="Arrange"
+                    IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Arrange}"
+                    ToolTip.Tip="Arrange elements within the arranger" />
+                <RadioButton Classes="tool" Content="Draw"
+                    IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Draw}"
+                    ToolTip.Tip="Draw and edit pixels" />
+            </StackPanel>
 
             <TextBlock Classes="muted" IsVisible="{Binding IsSequentialArranger}"
                 Text="{Binding FileOffset, StringFormat='Offset: 0x{0:X}'}" TextWrapping="Wrap" />
@@ -211,8 +221,8 @@
                 </ToggleButton>
             </StackPanel>
 
-            <!--  Arranger Size (Sequential Arranger only)  -->
-            <StackPanel IsVisible="{Binding IsSequentialArranger}" Spacing="4">
+            <!--  Arranger Size (Sequential Arranger in Display mode only)  -->
+            <StackPanel IsVisible="{Binding IsDisplayMode}" Spacing="4">
                 <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Arranger Size" />
                 <StackPanel Orientation="Horizontal" Spacing="4">
                     <Button Command="{Binding ExpandWidthCommand}" Focusable="False" ToolTip.Tip="Expand Width">

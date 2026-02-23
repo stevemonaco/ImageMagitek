@@ -8,7 +8,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
-using ImageMagitek.ExtensionMethods;
 using Monaco.PathTree;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;

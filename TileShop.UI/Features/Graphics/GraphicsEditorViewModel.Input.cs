@@ -37,17 +37,20 @@ public partial class GraphicsEditorViewModel
 
     private IToolHandler<GraphicsEditorViewModel>? _modifierOverrideTool;
 
-    private IToolHandler<GraphicsEditorViewModel> ResolveActiveTool()
+    private IToolHandler<GraphicsEditorViewModel>? ResolveActiveTool()
     {
         if (_modifierOverrideTool is not null)
             return _modifierOverrideTool;
 
-        return EditMode == GraphicsEditMode.Arrange
-            ? _arrangerTools[ActiveArrangerTool]
-            : _pixelTools[ActivePixelTool];
+        return EditMode switch
+        {
+            GraphicsEditMode.Arrange => _arrangerTools[ActiveArrangerTool],
+            GraphicsEditMode.Draw => _pixelTools[ActivePixelTool],
+            _ => null
+        };
     }
 
-    private IToolHandler<GraphicsEditorViewModel> ResolveToolWithModifiers(KeyModifiers modifiers)
+    private IToolHandler<GraphicsEditorViewModel>? ResolveToolWithModifiers(KeyModifiers modifiers)
     {
         if (_modifierOverrideTool is not null)
             return _modifierOverrideTool;
@@ -73,7 +76,7 @@ public partial class GraphicsEditorViewModel
         var ctx = new ToolContext(x, y, xc, yc, mouseState);
         var tool = ResolveToolWithModifiers(mouseState.Modifiers);
 
-        return tool.OnMouseDown(ctx, this);
+        return tool?.OnMouseDown(ctx, this) ?? false;
     }
 
     public bool MouseUp(double x, double y, MouseState mouseState)
@@ -85,7 +88,7 @@ public partial class GraphicsEditorViewModel
         var ctx = new ToolContext(x, y, xc, yc, mouseState);
         var tool = ResolveActiveTool();
 
-        return tool.OnMouseUp(ctx, this);
+        return tool?.OnMouseUp(ctx, this) ?? false;
     }
 
     public bool MouseEnter()
@@ -99,7 +102,7 @@ public partial class GraphicsEditorViewModel
         ActivityMessage = string.Empty;
 
         var tool = ResolveActiveTool();
-        var historyAction = tool.Deactivate(this);
+        var historyAction = tool?.Deactivate(this);
         if (historyAction is not null)
             AddHistoryAction(historyAction);
 
@@ -134,7 +137,7 @@ public partial class GraphicsEditorViewModel
         var ctx = new ToolContext(x, y, xc, yc, mouseState);
         var tool = ResolveToolWithModifiers(mouseState.Modifiers);
 
-        return tool.OnMouseMove(ctx, this);
+        return tool?.OnMouseMove(ctx, this) ?? false;
     }
 
     public bool MouseWheel(MouseWheelDirection direction, KeyModifiers modifiers)
@@ -160,7 +163,7 @@ public partial class GraphicsEditorViewModel
         var ctx = new ToolContext(x.Value, y.Value, xc, yc, keyState);
         var tool = ResolveActiveTool();
 
-        return tool.OnKeyDown(ctx, this);
+        return tool?.OnKeyDown(ctx, this) ?? false;
     }
 
     public void KeyUp(KeyState keyState, double? x, double? y)
@@ -181,7 +184,7 @@ public partial class GraphicsEditorViewModel
         var ctx = new ToolContext(x.Value, y.Value, xc, yc, keyState);
         var tool = ResolveActiveTool();
 
-        tool.OnKeyUp(ctx, this);
+        tool?.OnKeyUp(ctx, this);
     }
 
     internal void UpdateActivityMessage(int xc, int yc)
