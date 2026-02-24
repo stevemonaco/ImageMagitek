@@ -103,7 +103,6 @@ public class DockFactory : Factory
             var newDoc = new DockableEditorViewModel(newItem, _editorsVm)
             {
                 Id = newItem.DisplayName,
-                Title = newItem.DisplayName,
             };
 
             AddDockable(_documentDock, newDoc);

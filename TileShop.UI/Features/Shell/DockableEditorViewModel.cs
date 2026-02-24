@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.ComponentModel;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -18,6 +19,20 @@ public partial class DockableEditorViewModel : Document
 
         CanClose = true;
         CanFloat = true;
+
+        UpdateTitle();
+        _editor.PropertyChanged += Editor_PropertyChanged;
+    }
+
+    private void Editor_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ToolViewModel.DisplayName) or nameof(ToolViewModel.IsModified))
+            UpdateTitle();
+    }
+
+    private void UpdateTitle()
+    {
+        Title = _editor.IsModified ? $"{_editor.DisplayName} *" : _editor.DisplayName;
     }
 
     public override bool OnClose()
