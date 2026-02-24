@@ -391,7 +391,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     private void ReloadImage() => _imageAdapter.Render();
 
-    public bool ContainsPoint(int x, int y)
+    public bool ContainsPoint(double x, double y)
     {
         return x >= 0 && y >= 0 && x < WorkingArranger.ArrangerPixelSize.Width && y < WorkingArranger.ArrangerPixelSize.Height;
     }

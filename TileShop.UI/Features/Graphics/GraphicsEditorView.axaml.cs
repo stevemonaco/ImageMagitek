@@ -44,6 +44,7 @@ public partial class GraphicsEditorView : UserControl
         EditorCanvas.PointerExited += CanvasOnPointerExited;
         EditorCanvas.PointerWheelChanged += CanvasOnPointerWheelChanged;
         EditorCanvas.PointerCaptureLost += CanvasOnPointerCaptureLost;
+        EditorCanvas.ContextRequested += CanvasOnContextRequested;
 
         KeyDown += OnKeyDown;
         KeyUp += OnKeyUp;
@@ -109,7 +110,7 @@ public partial class GraphicsEditorView : UserControl
 
         bool isHandled = false;
 
-        if (ViewModel.ContainsPoint((int)localPoint.X, (int)localPoint.Y))
+        if (ViewModel.ContainsPoint(localPoint.X, localPoint.Y))
         {
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
 
@@ -147,7 +148,7 @@ public partial class GraphicsEditorView : UserControl
 
         bool isHandled = false;
 
-        if (ViewModel.ContainsPoint((int)localPoint.X, (int)localPoint.Y))
+        if (ViewModel.ContainsPoint(localPoint.X, localPoint.Y))
         {
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             isHandled = ViewModel.MouseUp(localPoint.X, localPoint.Y, state);
@@ -201,7 +202,7 @@ public partial class GraphicsEditorView : UserControl
 
         bool isHandled = false;
 
-        if (ViewModel.ContainsPoint((int)localPoint.X, (int)localPoint.Y))
+        if (ViewModel.ContainsPoint(localPoint.X, localPoint.Y))
         {
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
             isHandled = ViewModel.MouseMove(localPoint.X, localPoint.Y, state);
@@ -251,6 +252,18 @@ public partial class GraphicsEditorView : UserControl
                 e.Handled = ViewModel.MouseWheel(MouseWheelDirection.Up, modifiers);
             else if (e.Delta.Y < 0)
                 e.Handled = ViewModel.MouseWheel(MouseWheelDirection.Down, modifiers);
+        }
+    }
+
+    private void CanvasOnContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        if (ViewModel.EditMode == GraphicsEditMode.Draw && e.TryGetPosition(EditorCanvas, out var position))
+        {
+            var localPoint = EditorCanvas.ScreenToLocalPoint(position);
+            if (ViewModel.ContainsPoint(localPoint.X, localPoint.Y))
+            {
+                e.Handled = true;
+            }
         }
     }
 
