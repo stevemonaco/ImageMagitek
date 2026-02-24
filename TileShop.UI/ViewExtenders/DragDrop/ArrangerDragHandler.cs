@@ -2,6 +2,7 @@
 using Avalonia.Input;
 using ImageMagitek;
 using TileShop.Shared.Models;
+using TileShop.UI.Controls;
 using TileShop.UI.Models;
 using TileShop.UI.ViewModels;
 
@@ -50,17 +51,22 @@ public class ArrangerDragHandler : IDragHandlerEx
                 return;
             }
 
-            var pos = e.GetPosition(control);
+            var screenPos = e.GetPosition(control);
+            var pos = control is InfiniteCanvas canvas
+                ? canvas.ScreenToLocalPoint(screenPos)
+                : screenPos;
 
             var payload = new ArrangerPaste(copy, vm.SnapMode)
             {
                 IsDragging = true
             };
 
+            payload.Rect.MoveTo(rect.SnappedLeft, rect.SnappedTop);
+
             if (copy is not ElementCopy { Height: 1, Width: 1 })
             {
-                payload.DeltaX = (int)pos.X;
-                payload.DeltaY = (int)pos.Y;
+                payload.DeltaX = (int)pos.X - rect.SnappedLeft;
+                payload.DeltaY = (int)pos.Y - rect.SnappedTop;
             };
 
             Payload = payload;
@@ -72,10 +78,13 @@ public class ArrangerDragHandler : IDragHandlerEx
         else if (vm.Paste is not null)
         {
             vm.Paste.IsDragging = true;
-            var pos = e.GetPosition(control);
+            var screenPos2 = e.GetPosition(control);
+            var pos2 = control is InfiniteCanvas canvas2
+                ? canvas2.ScreenToLocalPoint(screenPos2)
+                : screenPos2;
 
-            vm.Paste.DeltaX = (int)pos.X;
-            vm.Paste.DeltaY = (int)pos.Y;
+            vm.Paste.DeltaX = (int)pos2.X - vm.Paste.Rect.SnappedLeft;
+            vm.Paste.DeltaY = (int)pos2.Y - vm.Paste.Rect.SnappedTop;
         }
     }
 }

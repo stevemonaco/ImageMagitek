@@ -3,6 +3,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactions.DragAndDrop;
 using ImageMagitek;
+using TileShop.Shared.Tools;
+using TileShop.UI.Controls;
 using TileShop.UI.Features.Graphics;
 using TileShop.UI.Models;
 using TileShop.UI.ViewModels;
@@ -24,8 +26,12 @@ public class ArrangerDropHandler : DropHandlerBase
 
             targetVm.Paste = paste;
 
-            var p = e.GetPosition(control);
+            var screenPos = e.GetPosition(control);
+            var p = control is InfiniteCanvas canvas
+                ? canvas.ScreenToLocalPoint(screenPos)
+                : screenPos;
             targetVm.Paste.MoveTo((int)p.X, (int)p.Y);
+            targetVm.InvalidateEditor(InvalidationLevel.Overlay);
 
             e.Handled = true;
         }
@@ -74,7 +80,8 @@ public class ArrangerDropHandler : DropHandlerBase
                 targetVm.PendingOperationMessage = $"Press [Enter] to Apply Paste or [Esc] to Cancel";
             }
 
-            control.Focus();
+            // Focus the parent UserControl so key bindings (Enter/Esc) work
+            (control.Parent as Control)?.Focus();
             return true;
         }
 

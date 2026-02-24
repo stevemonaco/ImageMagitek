@@ -189,6 +189,12 @@ public class ArrangerRenderer
         if (state.Paste is not { } paste)
             return;
 
+        var arranger = state.WorkingArranger;
+        var clipRect = new SKRect(0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
+
+        canvas.Save();
+        canvas.ClipRect(clipRect);
+
         if (paste.OverlayImage is { } overlayImage)
         {
             var pasteBitmap = overlayImage.Bitmap;
@@ -205,6 +211,8 @@ public class ArrangerRenderer
         var pasteRect = new SKRect(paste.Rect.SnappedLeft, paste.Rect.SnappedTop, paste.Rect.SnappedRight, paste.Rect.SnappedBottom);
         canvas.DrawRect(pasteRect, _pasteFillPaint);
         canvas.DrawRect(pasteRect, _pasteStrokePaint);
+
+        canvas.Restore();
     }
 
     private static void RenderGridlines(GraphicsEditorViewModel state, SKCanvas canvas)

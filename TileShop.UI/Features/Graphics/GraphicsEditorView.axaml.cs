@@ -1,6 +1,10 @@
 using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Xaml.Interactions.DragAndDrop;
+using TileShop.Shared.Tools;
+using TileShop.UI.DragDrop;
 using TileShop.UI.Input;
 using TileShop.Shared.Input;
 using TileShop.Shared.Models;
@@ -10,11 +14,20 @@ using TileShop.UI.ViewModels;
 using KeyModifiers = Avalonia.Input.KeyModifiers;
 
 namespace TileShop.UI.Views;
+
+using DragDrop = Avalonia.Input.DragDrop;
+
 public partial class GraphicsEditorView : UserControl
 {
     public GraphicsEditorViewModel ViewModel => (GraphicsEditorViewModel)DataContext!;
 
     private ArrangerRenderer? _renderer;
+
+    private readonly ArrangerDragHandler _dragHandler = new();
+    private Point _dragStartPoint;
+    private PointerPressedEventArgs? _dragTriggerEvent;
+    private bool _isDragPending;
+    private const double DragThreshold = 3;
 
     public GraphicsEditorView()
     {
@@ -74,6 +87,21 @@ public partial class GraphicsEditorView : UserControl
         }
     }
 
+    private bool IsPointOnDraggable(double localX, double localY)
+    {
+        var vm = ViewModel;
+        int xc = Math.Clamp((int)localX, 0, vm.WorkingArranger.ArrangerPixelSize.Width - 1);
+        int yc = Math.Clamp((int)localY, 0, vm.WorkingArranger.ArrangerPixelSize.Height - 1);
+
+        if (vm.Selection.HasSelection && vm.Selection.SelectionRect.ContainsPointSnapped(xc, yc))
+            return true;
+
+        if (vm.Paste is not null && vm.Paste.Rect.ContainsPointSnapped(xc, yc))
+            return true;
+
+        return false;
+    }
+
     private void CanvasOnPointerPressed(object sender, PointerPressedEventArgs e)
     {
         var point = e.GetCurrentPoint(EditorCanvas);
@@ -84,7 +112,19 @@ public partial class GraphicsEditorView : UserControl
         if (ViewModel.ContainsPoint((int)localPoint.X, (int)localPoint.Y))
         {
             var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
+
+            // Check if clicking on a draggable region before MouseDown processes it
+            bool onDraggable = point.Properties.PointerUpdateKind == PointerUpdateKind.LeftButtonPressed
+                && IsPointOnDraggable(localPoint.X, localPoint.Y);
+
             isHandled = ViewModel.MouseDown(localPoint.X, localPoint.Y, state);
+
+            if (onDraggable)
+            {
+                _isDragPending = true;
+                _dragStartPoint = e.GetPosition(null);
+                _dragTriggerEvent = e;
+            }
         }
 
         if (!isHandled && point.Properties.PointerUpdateKind == PointerUpdateKind.MiddleButtonPressed)
@@ -99,6 +139,9 @@ public partial class GraphicsEditorView : UserControl
 
     public void CanvasOnPointerReleased(object sender, PointerReleasedEventArgs e)
     {
+        _isDragPending = false;
+        _dragTriggerEvent = null;
+
         var point = e.GetCurrentPoint(EditorCanvas);
         var localPoint = EditorCanvas.ScreenToLocalPoint(point.Position);
 
@@ -120,8 +163,39 @@ public partial class GraphicsEditorView : UserControl
         e.Handled = isHandled;
     }
 
-    public void CanvasOnPointerMoved(object sender, PointerEventArgs e)
+    public async void CanvasOnPointerMoved(object sender, PointerEventArgs e)
     {
+        if (_isDragPending && _dragTriggerEvent is not null)
+        {
+            var currentPos = e.GetPosition(null);
+            var diff = _dragStartPoint - currentPos;
+
+            if (Math.Abs(diff.X) > DragThreshold || Math.Abs(diff.Y) > DragThreshold)
+            {
+                _isDragPending = false;
+                var triggerEvent = _dragTriggerEvent;
+                _dragTriggerEvent = null;
+
+                _dragHandler.BeforeDragDrop(EditorCanvas, triggerEvent, ViewModel);
+
+                var payload = _dragHandler.Payload;
+                if (payload is not null)
+                {
+                    ViewModel.InvalidateEditor(InvalidationLevel.Overlay);
+
+                    var data = new DataObject();
+                    data.Set(PayloadDropBehavior.DataFormat, payload);
+
+                    var effect = DragDropEffects.Move;
+                    await DragDrop.DoDragDrop(triggerEvent, data, effect);
+
+                    _dragHandler.AfterDragDrop(EditorCanvas, triggerEvent, ViewModel);
+                }
+
+                return;
+            }
+        }
+
         var point = e.GetCurrentPoint(EditorCanvas);
         var localPoint = EditorCanvas.ScreenToLocalPoint(point.Position);
 
@@ -182,6 +256,8 @@ public partial class GraphicsEditorView : UserControl
 
     private void CanvasOnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
     {
+        _isDragPending = false;
+        _dragTriggerEvent = null;
         EditorCanvas.EndPan();
     }
 }
