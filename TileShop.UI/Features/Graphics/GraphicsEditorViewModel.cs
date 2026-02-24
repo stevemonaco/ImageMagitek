@@ -393,7 +393,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     public bool ContainsPoint(int x, int y)
     {
-        return x > 0 && y > 0 && x < WorkingArranger.ArrangerPixelSize.Width && y < WorkingArranger.ArrangerPixelSize.Height;
+        return x >= 0 && y >= 0 && x < WorkingArranger.ArrangerPixelSize.Width && y < WorkingArranger.ArrangerPixelSize.Height;
     }
 
     [RelayCommand]
