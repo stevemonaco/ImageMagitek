@@ -405,6 +405,19 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         {
             _imageAdapter.SaveImage();
 
+            // Sync element changes from WorkingArranger back to the project arranger
+            if (WorkingArranger is ScatteredArranger workingScattered && _projectArranger is ScatteredArranger projectScattered)
+            {
+                for (int y = 0; y < workingScattered.ArrangerElementSize.Height; y++)
+                {
+                    for (int x = 0; x < workingScattered.ArrangerElementSize.Width; x++)
+                    {
+                        var element = workingScattered.GetElement(x, y);
+                        projectScattered.SetElement(element, x, y);
+                    }
+                }
+            }
+
             var projectTree = _projectService.GetContainingProject(Resource);
             projectTree.TryFindResourceNode(Resource, out var resourceNode);
 
