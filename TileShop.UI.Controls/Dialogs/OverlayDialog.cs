@@ -16,13 +16,18 @@ namespace TileShop.UI.Controls;
 /// </summary>
 [TemplatePart(Name = "PART_Backdrop", Type = typeof(Border), IsRequired = true)]
 [TemplatePart(Name = "PART_DialogCard", Type = typeof(Border))]
+[TemplatePart(Name = "PART_TitleBar", Type = typeof(Border), IsRequired = false)]
 [TemplatePart(Name = "PART_CloseButton", Type = typeof(Button), IsRequired = false)]
 public partial class OverlayDialog : TemplatedControl
 {
     private TaskCompletionSource<bool>? _dialogCompletion;
     private Border? _backdrop;
     private Border? _dialogCard;
+    private Border? _titleBar;
     private Button? _closeButton;
+
+    private bool _isDragging;
+    private Point _dragStartPoint;
 
     public OverlayDialog()
     {
@@ -34,13 +39,22 @@ public partial class OverlayDialog : TemplatedControl
         base.OnApplyTemplate(e);
         
         _closeButton?.RemoveHandler(Button.ClickEvent, CloseButtonHandler);
+        _titleBar?.RemoveHandler(PointerPressedEvent, OnTitleBarPointerPressed);
+        _titleBar?.RemoveHandler(PointerMovedEvent, OnTitleBarPointerMoved);
+        _titleBar?.RemoveHandler(PointerReleasedEvent, OnTitleBarPointerReleased);
+        _titleBar?.RemoveHandler(PointerCaptureLostEvent, OnTitleBarPointerCaptureLost);
 
         _backdrop = e.NameScope.Get<Border>("PART_Backdrop");
         _dialogCard = e.NameScope.Find<Border>("PART_DialogCard");
+        _titleBar = e.NameScope.Find<Border>("PART_TitleBar");
         _closeButton = e.NameScope.Get<Button>("PART_CloseButton");
 
         _backdrop?.AddHandler(PointerPressedEvent, OnLightDismissPressed);
         _closeButton?.AddHandler(Button.ClickEvent, CloseButtonHandler);
+        _titleBar?.AddHandler(PointerPressedEvent, OnTitleBarPointerPressed);
+        _titleBar?.AddHandler(PointerMovedEvent, OnTitleBarPointerMoved);
+        _titleBar?.AddHandler(PointerReleasedEvent, OnTitleBarPointerReleased);
+        _titleBar?.AddHandler(PointerCaptureLostEvent, OnTitleBarPointerCaptureLost);
     }
     
     internal Task<bool> ShowAsync()
@@ -73,6 +87,48 @@ public partial class OverlayDialog : TemplatedControl
             await CloseAsync(false);
             RaiseEvent(new RoutedEventArgs(DismissEvent));
         }
+    }
+
+    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (_dialogCard is null || _backdrop is null)
+            return;
+
+        if (!e.GetCurrentPoint(_backdrop).Properties.IsLeftButtonPressed)
+            return;
+
+        _isDragging = true;
+        _dragStartPoint = e.GetPosition(_backdrop) - new Point(_dialogCard.Margin.Left, _dialogCard.Margin.Top);
+        e.Pointer.Capture(_titleBar);
+        e.Handled = true;
+    }
+
+    private void OnTitleBarPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (!_isDragging || _dialogCard is null || _backdrop is null)
+            return;
+
+        var current = e.GetPosition(_backdrop);
+        var deltaX = current.X - _dragStartPoint.X;
+        var deltaY = current.Y - _dragStartPoint.Y;
+
+        _dialogCard.Margin = new Thickness(deltaX, deltaY, -deltaX, -deltaY);
+        e.Handled = true;
+    }
+
+    private void OnTitleBarPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (!_isDragging)
+            return;
+
+        _isDragging = false;
+        e.Pointer.Capture(null);
+        e.Handled = true;
+    }
+
+    private void OnTitleBarPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        _isDragging = false;
     }
 
     protected override async void OnKeyDown(KeyEventArgs e)

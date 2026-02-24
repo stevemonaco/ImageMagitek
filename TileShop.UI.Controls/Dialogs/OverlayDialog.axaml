@@ -38,8 +38,9 @@
                         </Border.RenderTransform>
 
                         <Grid RowDefinitions="Auto,*,Auto">
-                            <!--  Header  -->
-                            <Border Grid.Row="0" BorderBrush="{DynamicResource SemiColorBorder}" BorderThickness="0,0,0,1">
+                            <!--  Header (drag handle)  -->
+                            <Border x:Name="PART_TitleBar" Grid.Row="0" Background="Transparent"
+                                BorderBrush="{DynamicResource SemiColorBorder}" BorderThickness="0,0,0,1">
                                 <Grid ColumnDefinitions="Auto,*,Auto">
                                     <!--  Mode Icon  -->
                                     <PathIcon x:Name="PART_ModeIcon" Width="24" Height="24" Margin="0,0,12,0" VerticalAlignment="Center"
