@@ -6,6 +6,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <AvaloniaResource Include="Assets\**" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Avalonia" />
         <PackageReference Include="Avalonia.Skia" />
         <PackageReference Include="CommunityToolkit.Mvvm" />
