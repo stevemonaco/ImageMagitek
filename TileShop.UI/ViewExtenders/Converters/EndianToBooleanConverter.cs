@@ -3,7 +3,7 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Data.Converters;
 using ImageMagitek;
-using TileShop.Shared.Models;
+using TileShop.Shared.Tools;
 
 namespace TileShop.UI.Converters;
 

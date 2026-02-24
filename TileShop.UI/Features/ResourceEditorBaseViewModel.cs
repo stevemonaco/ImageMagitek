@@ -2,8 +2,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek.Project;
-using TileShop.Shared.Models;
 using TileShop.Shared.Messages;
+using TileShop.Shared.Models;
 
 namespace TileShop.UI.ViewModels;
 

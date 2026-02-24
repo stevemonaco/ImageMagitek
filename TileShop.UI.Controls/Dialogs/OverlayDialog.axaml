@@ -1,8 +1,7 @@
-<ResourceDictionary
-    xmlns="https://github.com/avaloniaui"
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="https://github.com/stevemonaco/TileShop"
-    xmlns:shared="using:TileShop.Shared.Interactions"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:shared="using:TileShop.Shared.Interactions">
 
     <!--  Icon Geometries  -->
     <StreamGeometry x:Key="DialogCloseIconGlyph">M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z</StreamGeometry>
@@ -15,79 +14,45 @@
 
     <SolidColorBrush x:Key="OverlayDialogBackdrop">#80000000</SolidColorBrush>
 
-    <DataTemplate DataType="shared:RequestOption" x:Key="RequestOptionTemplate">
-        <Button
-            Classes.Danger="{Binding IsDanger}"
-            Classes.Default="{Binding IsDefault}"
-            Classes.Tertiary="{Binding IsCancel}"
-            Command="{Binding OptionCommand}"
-            Content="{Binding OptionText}"
-            HorizontalAlignment="Stretch"
-            MinWidth="80" />
+    <DataTemplate x:Key="RequestOptionTemplate" DataType="shared:RequestOption">
+        <Button MinWidth="80" HorizontalAlignment="Stretch" Classes.Danger="{Binding IsDanger}"
+            Classes.Default="{Binding IsDefault}" Classes.Tertiary="{Binding IsCancel}"
+            Command="{Binding OptionCommand}" Content="{Binding OptionText}" />
     </DataTemplate>
 
-    <ControlTheme TargetType="cc:OverlayDialog" x:Key="{x:Type cc:OverlayDialog}">
+    <ControlTheme x:Key="{x:Type cc:OverlayDialog}" TargetType="cc:OverlayDialog">
         <Setter Property="FontFamily" Value="{x:Static cc:AppFonts.IbmPlexSans}" />
         <Setter Property="Focusable" Value="True" />
         <Setter Property="Template">
             <ControlTemplate>
                 <Panel Name="PART_RootPanel">
-                    <Border Background="{StaticResource OverlayDialogBackdrop}" x:Name="PART_Backdrop" />
+                    <Border x:Name="PART_Backdrop" Background="{StaticResource OverlayDialogBackdrop}" />
 
-                    <Border
-                        Background="{DynamicResource SemiColorBackground1}"
-                        BorderBrush="{DynamicResource SemiColorBorder}"
-                        BorderThickness="1"
-                        BoxShadow="0 8 24 0 #40000000"
-                        CornerRadius="8"
-                        HorizontalAlignment="Center"
-                        MaxHeight="{Binding #PART_RootPanel.Bounds.Height}"
-                        MaxWidth="600"
-                        MinWidth="320"
-                        Padding="8"
-                        RenderTransformOrigin="0.5,0.5"
-                        VerticalAlignment="Center"
-                        x:Name="PART_DialogCard">
+                    <Border x:Name="PART_DialogCard" MinWidth="320" MaxWidth="600"
+                        MaxHeight="{Binding #PART_RootPanel.Bounds.Height}" Padding="8" HorizontalAlignment="Center"
+                        VerticalAlignment="Center" Background="{DynamicResource SemiColorBackground1}"
+                        BorderBrush="{DynamicResource SemiColorBorder}" BorderThickness="1" BoxShadow="0 8 24 0 #40000000"
+                        CornerRadius="8" RenderTransformOrigin="0.5,0.5">
                         <Border.RenderTransform>
                             <ScaleTransform ScaleX="1" ScaleY="1" />
                         </Border.RenderTransform>
 
                         <Grid RowDefinitions="Auto,*,Auto">
                             <!--  Header  -->
-                            <Border
-                                BorderBrush="{DynamicResource SemiColorBorder}"
-                                BorderThickness="0,0,0,1"
-                                Grid.Row="0">
+                            <Border Grid.Row="0" BorderBrush="{DynamicResource SemiColorBorder}" BorderThickness="0,0,0,1">
                                 <Grid ColumnDefinitions="Auto,*,Auto">
                                     <!--  Mode Icon  -->
-                                    <PathIcon
-                                        Height="24"
-                                        IsVisible="False"
-                                        Margin="0,0,12,0"
-                                        VerticalAlignment="Center"
-                                        Width="24"
-                                        x:Name="PART_ModeIcon" />
+                                    <PathIcon x:Name="PART_ModeIcon" Width="24" Height="24" Margin="0,0,12,0" VerticalAlignment="Center"
+                                        IsVisible="False" />
 
                                     <!--  Title  -->
-                                    <TextBlock
-                                        FontSize="20"
-                                        FontWeight="SemiBold"
-                                        Foreground="#F4F4F4"
-                                        Grid.Column="1"
-                                        HorizontalAlignment="Left"
-                                        Text="{TemplateBinding Title}"
-                                        TextWrapping="Wrap"
-                                        VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="20"
+                                        FontWeight="SemiBold" Foreground="#F4F4F4" Text="{TemplateBinding Title}" TextWrapping="Wrap" />
 
                                     <!--  Close Button  -->
-                                    <Button
-                                        Grid.Column="2"
-                                        IsVisible="{TemplateBinding ShowCloseButton}"
-                                        Padding="8"
-                                        Theme="{StaticResource ClearButton}"
-                                        VerticalAlignment="Center"
-                                        VerticalContentAlignment="Center"
-                                        x:Name="PART_CloseButton">
+                                    <Button x:Name="PART_CloseButton" Grid.Column="2" Padding="8" VerticalAlignment="Center"
+                                        VerticalContentAlignment="Center" IsVisible="{TemplateBinding ShowCloseButton}"
+                                        Theme="{StaticResource ClearButton}">
                                         <Button.Styles>
                                             <Style Selector="Button">
                                                 <Style Selector="^:pointerover  /template/ ContentPresenter#PART_ContentPresenter">
@@ -100,30 +65,21 @@
                                                 </Style>
                                             </Style>
                                         </Button.Styles>
-                                        <PathIcon
-                                            Data="{StaticResource DialogCloseIconGlyph}"
-                                            Foreground="{DynamicResource CaptionButtonForeground}"
-                                            Height="16"
-                                            Width="16" />
+                                        <PathIcon Width="16" Height="16" Data="{StaticResource DialogCloseIconGlyph}"
+                                            Foreground="{DynamicResource CaptionButtonForeground}" />
                                     </Button>
                                 </Grid>
                             </Border>
 
                             <!--  Content area  -->
-                            <ScrollViewer
-                                Grid.Row="1"
-                                HorizontalScrollBarVisibility="Disabled"
-                                MinHeight="80"
+                            <ScrollViewer Grid.Row="1" MinHeight="80" HorizontalScrollBarVisibility="Disabled"
                                 VerticalScrollBarVisibility="Auto">
                                 <ContentPresenter Content="{TemplateBinding Content}" />
                             </ScrollViewer>
 
                             <!--  Button bar  -->
-                            <ItemsControl
-                                Grid.Row="2"
-                                ItemTemplate="{StaticResource RequestOptionTemplate}"
-                                ItemsSource="{TemplateBinding Options}"
-                                Margin="0,8,0,0">
+                            <ItemsControl Grid.Row="2" Margin="0,8,0,0" ItemTemplate="{StaticResource RequestOptionTemplate}"
+                                ItemsSource="{TemplateBinding Options}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <!--  <StackPanel  -->

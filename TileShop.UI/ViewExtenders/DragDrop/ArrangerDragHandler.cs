@@ -1,9 +1,9 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
 using ImageMagitek;
+using TileShop.Shared.Models;
 using TileShop.UI.Models;
 using TileShop.UI.ViewModels;
-using TileShop.Shared.Models;
 
 namespace TileShop.UI.DragDrop;
 public class ArrangerDragHandler : IDragHandlerEx
@@ -17,7 +17,7 @@ public class ArrangerDragHandler : IDragHandlerEx
 
     public void BeforeDragDrop(object? sender, PointerEventArgs e, object? context)
     {
-        if (context is not ArrangerEditorViewModel vm || sender is not Control control)
+        if (context is not GraphicsEditorViewModel vm || sender is not Control control)
         {
             return;
         }
@@ -39,11 +39,11 @@ public class ArrangerDragHandler : IDragHandlerEx
             }
             else if (vm.SnapMode == SnapMode.Pixel && arranger.ColorType == PixelColorType.Indexed)
             {
-                copy = arranger.CopyPixelsIndexed(rect.SnappedLeft + vm.ViewDx, rect.SnappedTop + vm.ViewDy, rect.SnappedWidth, rect.SnappedHeight);
+                copy = arranger.CopyPixelsIndexed(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
             }
             else if (vm.SnapMode == SnapMode.Pixel && arranger.ColorType == PixelColorType.Direct)
             {
-                copy = arranger.CopyPixelsDirect(rect.SnappedLeft + vm.ViewDx, rect.SnappedTop + vm.ViewDy, rect.SnappedWidth, rect.SnappedHeight);
+                copy = arranger.CopyPixelsDirect(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
             }
             else
             {

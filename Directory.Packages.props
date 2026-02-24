@@ -4,18 +4,20 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Avalonia" Version="11.3.11" />
+    <PackageVersion Include="Avalonia" Version="11.3.12" />
     <PackageVersion Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
-    <PackageVersion Include="Avalonia.Desktop" Version="11.3.11" />
-    <PackageVersion Include="Avalonia.Fonts.Inter" Version="11.3.11" />
-    <PackageVersion Include="Avalonia.Diagnostics" Version="11.3.11" />
-    <PackageVersion Include="Avalonia.Markup.Xaml.Loader" Version="11.3.11" />
+    <PackageVersion Include="Avalonia.Desktop" Version="11.3.12" />
+    <PackageVersion Include="Avalonia.Fonts.Inter" Version="11.3.12" />
+    <PackageVersion Include="Avalonia.Diagnostics" Version="11.3.12" />
+    <PackageVersion Include="Avalonia.Markup.Xaml.Loader" Version="11.3.12" />
+    <PackageVersion Include="Avalonia.Skia" Version="11.3.12" />
+    <PackageVersion Include="SkiaSharp" Version="3.119.2" />
     <PackageVersion Include="Avalonia.Xaml.Behaviors" Version="11.3.0.6" />
     <PackageVersion Include="PanAndZoom" Version="11.3.9.1" />
     <PackageVersion Include="Dock.Avalonia" Version="11.3.9" />
     <PackageVersion Include="Dock.Model.Mvvm" Version="11.3.9" />
-    <PackageVersion Include="HotAvalonia" Version="3.0.2" />
-    <PackageVersion Include="HotAvalonia.Extensions" Version="3.0.0" />
+    <PackageVersion Include="HotAvalonia" Version="3.1.0" />
+    <PackageVersion Include="HotAvalonia.Extensions" Version="3.1.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.02" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.02" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.02" />

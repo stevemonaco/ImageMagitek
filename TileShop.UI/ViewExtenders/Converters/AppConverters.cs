@@ -3,9 +3,9 @@ using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Avalonia.Media.Immutable;
+using TileShop.Shared.Models;
 using TileShop.UI.Models;
 using TileShop.UI.ViewModels;
-using TileShop.Shared.Models;
 
 namespace TileShop.UI.Converters;
 
@@ -21,10 +21,10 @@ public static class AppConverters
         new FuncValueConverter<string, Geometry?>(x => x is not null ? Geometry.Parse(x) : null);
 
     public static IValueConverter ArrangerEditorToWidth { get; } =
-        new FuncValueConverter<ArrangerEditorViewModel, int>(x => x!.WorkingArranger.ArrangerPixelSize.Width);
+        new FuncValueConverter<GraphicsEditorViewModel, int>(x => x!.WorkingArranger.ArrangerPixelSize.Width);
 
     public static IValueConverter ArrangerEditorToHeight { get; } =
-        new FuncValueConverter<ArrangerEditorViewModel, int>(x => x!.WorkingArranger.ArrangerPixelSize.Height);
+        new FuncValueConverter<GraphicsEditorViewModel, int>(x => x!.WorkingArranger.ArrangerPixelSize.Height);
 
     public static IValueConverter PaletteEntryToSolidColorBrush { get; } =
         new FuncValueConverter<PaletteEntry, SolidColorBrush>(p => new SolidColorBrush(p?.Color ?? Colors.Transparent));

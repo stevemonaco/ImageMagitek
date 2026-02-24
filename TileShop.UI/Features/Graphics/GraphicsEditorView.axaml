@@ -1,0 +1,78 @@
+<UserControl x:Class="TileShop.UI.Views.GraphicsEditorView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
+    xmlns:gfx="using:TileShop.UI.Features.Graphics"
+    xmlns:vm="using:TileShop.UI.ViewModels"
+    x:Name="control"
+    x:DataType="vm:GraphicsEditorViewModel"
+    Focusable="True">
+    <UserControl.KeyBindings>
+        <KeyBinding Command="{Binding ToggleGridlineVisibilityCommand}" Gesture="G" />
+        <KeyBinding Command="{Binding ToggleSnapModeCommand}" Gesture="S" />
+        <!-- <KeyBinding Command="{Binding EditSelectionCommand}" Gesture="E" /> -->
+        <KeyBinding Command="{Binding DeleteElementSelectionCommand}" Gesture="Delete" />
+        <KeyBinding Command="{Binding CancelOverlayCommand}" Gesture="Escape" />
+        <KeyBinding Command="{Binding ConfirmPendingOperationCommand}" Gesture="Return" />
+        <KeyBinding Command="{Binding SaveChangesCommand}" Gesture="Ctrl+S" />
+        <KeyBinding Command="{Binding UndoCommand}" Gesture="Ctrl+Z" />
+        <KeyBinding Command="{Binding RedoCommand}" Gesture="Ctrl+Y" />
+        <KeyBinding Command="{Binding SelectAllCommand}" Gesture="Ctrl+A" />
+        <KeyBinding Command="{Binding ModifyGridSettingsCommand}" Gesture="Ctrl+G" />
+        <!--  Viewport Management  -->
+        <KeyBinding Command="{Binding CenterContentCommand}" Gesture="Ctrl+E" />
+        <KeyBinding Command="{Binding FitToViewportCommand}" Gesture="Ctrl+W" />
+        <KeyBinding Command="{Binding ResetZoomCommand}" Gesture="Ctrl+R" />
+        <KeyBinding Command="{Binding AlignTopLeftCommand}" Gesture="Ctrl+Q" />
+        <!--  Sequential Arranger Navigation  -->
+        <KeyBinding Command="{Binding MoveByteDownCommand}" Gesture="Add" />
+        <KeyBinding Command="{Binding MoveByteUpCommand}" Gesture="Subtract" />
+        <KeyBinding Command="{Binding MoveRowDownCommand}" Gesture="Down" />
+        <KeyBinding Command="{Binding MoveRowUpCommand}" Gesture="Up" />
+        <KeyBinding Command="{Binding MoveColumnRightCommand}" Gesture="Right" />
+        <KeyBinding Command="{Binding MoveColumnLeftCommand}" Gesture="Left" />
+        <KeyBinding Command="{Binding MovePageDownCommand}" Gesture="PageDown" />
+        <KeyBinding Command="{Binding MovePageUpCommand}" Gesture="PageUp" />
+        <KeyBinding Command="{Binding MoveHomeCommand}" Gesture="Home" />
+        <KeyBinding Command="{Binding MoveEndCommand}" Gesture="End" />
+    </UserControl.KeyBindings>
+
+    <UserControl.ContextMenu>
+        <ContextMenu>
+            <MenuItem Command="{Binding SelectAllCommand}" Header="Select All" />
+            <MenuItem Command="{Binding ModifyGridSettingsCommand}" Header="Grid Settings..." />
+            <MenuItem Command="{Binding ToggleSymmetryToolsCommand}" Header="Show Symmetry Tools">
+                <Interaction.Behaviors>
+                    <DataTriggerBehavior Binding="{Binding #control.((vm:GraphicsEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="True">
+                        <ChangePropertyAction PropertyName="Icon">
+                            <ChangePropertyAction.Value>
+                                <PathIcon Classes="menu" Data="{x:Static cc:AppIcons.CheckedBox}" />
+                            </ChangePropertyAction.Value>
+                        </ChangePropertyAction>
+                    </DataTriggerBehavior>
+                    <DataTriggerBehavior Binding="{Binding #control.((vm:GraphicsEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="False">
+                        <ChangePropertyAction PropertyName="Icon">
+                            <ChangePropertyAction.Value>
+                                <PathIcon Classes="menu" Data="{x:Static cc:AppIcons.UncheckedBox}" />
+                            </ChangePropertyAction.Value>
+                        </ChangePropertyAction>
+                    </DataTriggerBehavior>
+                </Interaction.Behaviors>
+            </MenuItem>
+        </ContextMenu>
+    </UserControl.ContextMenu>
+
+    <Grid Margin="8,4,0,0" ColumnDefinitions="Auto, *, Auto" RowDefinitions="*" UseLayoutRounding="True">
+        <!--  Sidebar  -->
+        <gfx:GraphicsEditorToolbarView Grid.RowSpan="1" />
+
+        <!--  Image Display  -->
+        <cc:InfiniteCanvas x:Name="EditorCanvas" Grid.Column="1" MaxZoom="32" MinZoom="0.25" Zoom="{Binding Zoom, Mode=TwoWay}"
+            ZoomPower="1.25" />
+
+        <!--  File Scroller  -->
+        <ScrollBar Grid.Column="2" Margin="0,0,8,0" HorizontalAlignment="Right" AllowAutoHide="False"
+            IsVisible="{Binding IsViewMode}" LargeChange="{Binding ArrangerPageSize}"
+            Maximum="{Binding MaxFileDecodingOffset}" Minimum="0" SmallChange="1" Value="{Binding FileOffset}" />
+    </Grid>
+</UserControl>

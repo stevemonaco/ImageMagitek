@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 using ImageMagitek.Services.Stores;
 using ImageMagitek.Codec;
+using TileShop.UI.Features.Graphics;
 
 namespace TileShop.UI.ViewModels;
 
@@ -67,7 +68,8 @@ public partial class EditorsViewModel : ObservableRecipient
 
             if (userAction == UserSaveAction.Save)
             {
-                if (editor is not IndexedPixelEditorViewModel and not DirectPixelEditorViewModel)
+                // if (editor is not IndexedPixelEditorViewModel and not DirectPixelEditorViewModel)
+                if (editor is not GraphicsEditorViewModel { EditMode: GraphicsEditMode.Draw})
                 {
                     var projectTree = _projectService.GetContainingProject(editor.Resource);
                     await _projectService.SaveProject(projectTree).Match(
@@ -111,10 +113,12 @@ public partial class EditorsViewModel : ObservableRecipient
                 newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService);
                 break;
             case ScatteredArranger scatteredArranger:
-                newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _colorFactory, _paletteStore, _projectService, _tracker, _settings);
+                // newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _colorFactory, _paletteStore, _projectService, _tracker, _settings);
+                newDocument = new GraphicsEditorViewModel(scatteredArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker);
                 break;
             case SequentialArranger sequentialArranger:
-                newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore);
+                //newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore);
+                newDocument = new GraphicsEditorViewModel(sequentialArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker);
                 break;
             case FileDataSource fileSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
                 var extension = Path.GetExtension(fileSource.FileLocation).ToLower();
@@ -137,7 +141,12 @@ public partial class EditorsViewModel : ObservableRecipient
                     ? new SequentialArranger(8, 16, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec)
                     : new SequentialArranger(1, 1, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec);
 
-                newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore)
+                // newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore)
+                // {
+                //     OriginatingProjectResource = fileSource
+                // };
+                
+                newDocument = new GraphicsEditorViewModel(newArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker)
                 {
                     OriginatingProjectResource = fileSource
                 };
@@ -245,48 +254,48 @@ public partial class EditorsViewModel : ObservableRecipient
         if (Shell is null)
             throw new NullReferenceException(nameof(Shell));
 
-        if (message.Arranger.ColorType == PixelColorType.Indexed)
-        {
-            var editor = new IndexedPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-                message.Width, message.Height, _interactions, _colorFactory, _paletteStore, _tracker);
-
-            editor.DisplayName = message.Arranger.Name;
-
-            Shell.Editors.Editors.Add(editor);
-            ActiveEditor = editor;
-        }
-        else if (message.Arranger.ColorType == PixelColorType.Direct)
-        {
-            var editor = new DirectPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-                message.Width, message.Height, _interactions, _colorFactory, _paletteStore, _tracker);
-
-            editor.DisplayName = message.Arranger.Name;
-
-            Shell.Editors.Editors.Add(editor);
-            ActiveEditor = editor;
-        }
+        // if (message.Arranger.ColorType == PixelColorType.Indexed)
+        // {
+        //     var editor = new IndexedPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
+        //         message.Width, message.Height, _interactions, _colorFactory, _paletteStore, _tracker);
+        //
+        //     editor.DisplayName = message.Arranger.Name;
+        //
+        //     Shell.Editors.Editors.Add(editor);
+        //     ActiveEditor = editor;
+        // }
+        // else if (message.Arranger.ColorType == PixelColorType.Direct)
+        // {
+        //     var editor = new DirectPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
+        //         message.Width, message.Height, _interactions, _colorFactory, _paletteStore, _tracker);
+        //
+        //     editor.DisplayName = message.Arranger.Name;
+        //
+        //     Shell.Editors.Editors.Add(editor);
+        //     ActiveEditor = editor;
+        // }
     }
 
     public void Receive(ArrangerChangedMessage message)
     {
         if (message.Change is ArrangerChange.Pixels or ArrangerChange.Elements)
         {
-            var effectedEditors = Editors.OfType<ArrangerEditorViewModel>()
-                .Where(x => ReferenceEquals(x.Resource, message.Arranger));
-
-            foreach (var editor in effectedEditors)
-            {
-                if (editor is SequentialArrangerEditorViewModel or ScatteredArrangerEditorViewModel)
-                {
-                    editor.Render();
-                }
-            }
+            // var effectedEditors = Editors.OfType<ArrangerEditorViewModel>()
+            //     .Where(x => ReferenceEquals(x.Resource, message.Arranger));
+            //
+            // foreach (var editor in effectedEditors)
+            // {
+            //     if (editor is SequentialArrangerEditorViewModel or ScatteredArrangerEditorViewModel)
+            //     {
+            //         editor.Render();
+            //     }
+            // }
         }
     }
 
     public void Receive(PaletteChangedMessage message)
     {
-        var effectedEditors = Editors.OfType<ScatteredArrangerEditorViewModel>()
+        var effectedEditors = Editors.OfType<GraphicsEditorViewModel>()
             .Where(x => x.WorkingArranger.GetReferencedPalettes().Contains(message.Palette));
 
         foreach (var editor in effectedEditors)

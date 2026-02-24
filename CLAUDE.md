@@ -4,28 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Tech Stack
 
-- **Language**: C# with .NET 9 (SDK 10.0)
+- **Language**: C# with .NET 10 (SDK 10.0)
 - **UI Framework**: Avalonia with Semi theme
 - **MVVM**: CommunityToolkit.Mvvm
 - **Dependency Injection**: Microsoft.Extensions.DependencyInjection
 - **Testing**: xUnit
 - **Benchmarking**: BenchmarkDotNet
-
-## Build Commands
-
-```bash
-# Build solution
-dotnet build ImageMagitek.slnx
-
-# Run tests
-dotnet test ImageMagitek.UnitTests/ImageMagitek.UnitTests.csproj
-
-# Run a single test
-dotnet test ImageMagitek.UnitTests/ImageMagitek.UnitTests.csproj --filter "FullyQualifiedName~TestMethodName"
-
-# Run the UI application
-dotnet run --project TileShop.UI/TileShop.UI.csproj
-```
 
 ## Project Structure
 
@@ -49,8 +33,8 @@ dotnet run --project TileShop.UI/TileShop.UI.csproj
 ### UI Architecture (TileShop.UI)
 
 Feature-based folder organization under `Features/`:
-- `Arrangers/` - Arranger editors (sequential and scattered)
-- `Pixels/` - Pixel-level editing (indexed and direct color)
+- `Graphics/` - Display, Arranging, and Pixel-level editing of images (indexed and direct color)
+- `Renderer/` - Renders the graphics editor state
 - `Palettes/` - Palette editors
 - `Dialogs/` - Modal dialogs
 - `Shell/` - Main window, menu, status bar
@@ -66,3 +50,7 @@ DI setup in `Bootstrapper.cs`. Views auto-registered by naming convention (FooVi
 - Prefer `var` for type inference
 - Allman brace style (braces on new lines)
 - 4-space indentation
+
+## Workflow
+
+- Do NOT build or run tests as part of your process. These are expensive operations in this repo and should only be done when explicitly requested.

@@ -1,11 +1,13 @@
-﻿<UserControl x:Class="TileShop.UI.Views.StatusView"
+﻿<UserControl
+    x:Class="TileShop.UI.Views.StatusView"
+    x:DataType="vm:StatusViewModel"
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:TileShop.UI.ViewModels"
-    x:DataType="vm:StatusViewModel">
-    <Grid Margin="8,0,8,0" ColumnDefinitions="auto,*,auto,*,auto">
-        <TextBlock Grid.Column="0" Text="{Binding Editors.ActiveEditor.ActivityMessage}" />
-        <TextBlock Grid.Column="2" Text="{Binding Editors.ActiveEditor.PendingOperationMessage}" />
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid ColumnDefinitions="auto,*,auto,*,auto" Margin="8,0,8,0">
+        <TextBlock Grid.Column="0" Text="{ReflectionBinding Editors.ActiveEditor.ActivityMessage}" />
+        <TextBlock Grid.Column="2" Text="{ReflectionBinding Editors.ActiveEditor.PendingOperationMessage}" />
         <TextBlock Grid.Column="4" Text="{Binding StatusMessage}" />
     </Grid>
+
 </UserControl>
