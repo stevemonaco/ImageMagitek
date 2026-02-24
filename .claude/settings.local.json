@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(grep:*)"
+    ]
+  }
+}

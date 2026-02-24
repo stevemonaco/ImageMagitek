@@ -22,28 +22,28 @@ public class PluginService : IPluginService
     {
         var loaders = new List<PluginLoader>();
 
-        foreach (var dir in Directory.GetDirectories(pluginsPath))
-        {
-            {
-                var dirName = Path.GetFileName(dir);
-                var pluginDll = Path.Combine(dir, dirName + ".dll");
-                if (File.Exists(pluginDll))
-                {
-                    var codecLoader = PluginLoader.CreateFromAssemblyFile(
-                        pluginDll,
-                        sharedTypes: new[] { typeof(IGraphicsCodec) });
+        //foreach (var dir in Directory.GetDirectories(pluginsPath))
+        //{
+        //    {
+        //        var dirName = Path.GetFileName(dir);
+        //        var pluginDll = Path.Combine(dir, dirName + ".dll");
+        //        if (File.Exists(pluginDll))
+        //        {
+        //            var codecLoader = PluginLoader.CreateFromAssemblyFile(
+        //                pluginDll,
+        //                sharedTypes: new[] { typeof(IGraphicsCodec) });
 
-                    var pluginTypes = codecLoader.LoadDefaultAssembly()
-                        .GetTypes()
-                        .Where(t => typeof(IGraphicsCodec).IsAssignableFrom(t) && !t.IsAbstract);
+        //            var pluginTypes = codecLoader.LoadDefaultAssembly()
+        //                .GetTypes()
+        //                .Where(t => typeof(IGraphicsCodec).IsAssignableFrom(t) && !t.IsAbstract);
 
-                    foreach (var codecType in pluginTypes)
-                    {
-                        var codec = (IGraphicsCodec)Activator.CreateInstance(codecType);
-                        CodecPlugins.Add(codec.Name, codecType);
-                    }
-                }
-            }
-        }
+        //            foreach (var codecType in pluginTypes)
+        //            {
+        //                var codec = (IGraphicsCodec)Activator.CreateInstance(codecType);
+        //                CodecPlugins.Add(codec.Name, codecType);
+        //            }
+        //        }
+        //    }
+        //}
     }
 }

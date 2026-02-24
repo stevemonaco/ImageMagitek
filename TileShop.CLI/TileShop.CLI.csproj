@@ -2,16 +2,16 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>TileShopCLI</AssemblyName>
-    <Authors>Klarth</Authors>
-    <PackageProjectUrl>https://github.com/stevemonaco/ImageMagitek</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/stevemonaco/ImageMagitek</RepositoryUrl>
+    <Version>0.992</Version>
+    <Authors>Steve Monaco</Authors>
+    <Copyright>2022</Copyright>
     <AssemblyVersion>0.992.0.0</AssemblyVersion>
     <FileVersion>0.992.0.0</FileVersion>
-    <Version>0.992</Version>
-    <Company />
+    <PackageProjectUrl>https://github.com/stevemonaco/ImageMagitek</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/stevemonaco/ImageMagitek</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
