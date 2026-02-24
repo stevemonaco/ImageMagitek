@@ -67,11 +67,11 @@
                     <MultiBinding Converter="{x:Static BoolConverters.And}">
                         <Binding Path="IsViewMode" />
                         <Binding Path="IsTiledLayout" />
-                        <Binding Path="CanCodecResize" />
                     </MultiBinding>
                 </StackPanel.IsVisible>
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Element Size" />
-                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*, *" ColumnSpacing="8">
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Element Pixel Size" />
+                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*, *" ColumnSpacing="8"
+                    IsEnabled="{Binding CanCodecResize}">
                     <NumericUpDown Grid.Column="0" Classes="dense" Focusable="False" FormatString="0"
                         Increment="{Binding ElementWidthIncrement}" InnerLeftContent="W"
                         Minimum="{Binding ElementWidthIncrement}" Value="{Binding TiledElementWidth}" />
@@ -83,36 +83,31 @@
 
             <!--  Arranger Size (Sequential Arranger in View mode only)  -->
             <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Arranger Size" />
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" IsVisible="{Binding IsTiledLayout}"
+                    Text="Arranger Element Size" />
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" IsVisible="{Binding IsSingleLayout}"
+                    Text="Arranger Pixel Size" />
 
                 <!--  Tiled layout: element count  -->
-                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="Auto,*" IsVisible="{Binding IsTiledLayout}"
-                    RowDefinitions="Auto,Auto">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,6,2" VerticalAlignment="Center" Classes="muted"
-                        Text="W" />
-                    <NumericUpDown Grid.Row="0" Grid.Column="1" Margin="0,0,0,2" Classes="dense" Focusable="False"
-                        FormatString="0" Increment="{Binding ArrangerWidthIncrement}"
+                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*,*" ColumnSpacing="8"
+                    IsVisible="{Binding IsTiledLayout}">
+                    <NumericUpDown Grid.Column="0" Classes="dense" Focusable="False" FormatString="0"
+                        Increment="{Binding ArrangerWidthIncrement}" InnerLeftContent="W"
                         Minimum="{Binding ArrangerWidthIncrement}" Value="{Binding TiledArrangerWidth}" />
-                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,6,0" VerticalAlignment="Center" Classes="muted"
-                        Text="H" />
-                    <NumericUpDown Grid.Row="1" Grid.Column="1" Classes="dense" Focusable="False" FormatString="0"
-                        Increment="{Binding ArrangerHeightIncrement}" Minimum="{Binding ArrangerHeightIncrement}"
-                        Value="{Binding TiledArrangerHeight}" />
+                    <NumericUpDown Grid.Column="1" Classes="dense" Focusable="False" FormatString="0"
+                        Increment="{Binding ArrangerHeightIncrement}" InnerLeftContent="H"
+                        Minimum="{Binding ArrangerHeightIncrement}" Value="{Binding TiledArrangerHeight}" />
                 </Grid>
 
                 <!--  Linear/Single layout: pixel dimensions  -->
-                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="Auto,*" IsVisible="{Binding IsSingleLayout}"
-                    RowDefinitions="Auto,Auto">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,6,2" VerticalAlignment="Center" Classes="muted"
-                        Text="W" />
-                    <NumericUpDown Grid.Row="0" Grid.Column="1" Margin="0,0,0,2" Classes="dense" Focusable="False"
-                        FormatString="0" Increment="{Binding ElementWidthIncrement}"
+                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*,*" ColumnSpacing="8"
+                    IsVisible="{Binding IsSingleLayout}">
+                    <NumericUpDown Grid.Column="0" Classes="dense" Focusable="False" FormatString="0"
+                        Increment="{Binding ElementWidthIncrement}" InnerLeftContent="W"
                         Minimum="{Binding ElementWidthIncrement}" Value="{Binding LinearArrangerWidth}" />
-                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,6,0" VerticalAlignment="Center" Classes="muted"
-                        Text="H" />
-                    <NumericUpDown Grid.Row="1" Grid.Column="1" Classes="dense" Focusable="False" FormatString="0"
-                        Increment="{Binding ElementHeightIncrement}" Minimum="{Binding ElementHeightIncrement}"
-                        Value="{Binding LinearArrangerHeight}" />
+                    <NumericUpDown Grid.Column="1" Classes="dense" Focusable="False" FormatString="0"
+                        Increment="{Binding ElementHeightIncrement}" InnerLeftContent="H"
+                        Minimum="{Binding ElementHeightIncrement}" Value="{Binding LinearArrangerHeight}" />
                 </Grid>
             </StackPanel>
 
@@ -233,8 +228,8 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
 
-                    <Button VerticalAlignment="Bottom" VerticalContentAlignment="Center"
-                        Command="{Binding AssociatePaletteCommand}" Focusable="False"
+                    <Button Margin="8,0,0,0" VerticalAlignment="Bottom" VerticalContentAlignment="Center"
+                        Command="{Binding AssociatePaletteCommand}" Focusable="False" IsVisible="{Binding IsArrangerMode}"
                         ToolTip.Tip="Associate an existing Palette from this Project with this Arranger">
                         <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.PlusCircle}" />
                     </Button>
@@ -283,7 +278,7 @@
             <!--  Options  -->
             <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Options" />
 
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" Spacing="4">
                 <ToggleButton Focusable="False" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
                     <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Grid}" Foreground="#F9F9F9" />
                 </ToggleButton>
@@ -299,14 +294,24 @@
             <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Actions" />
 
             <StackPanel Orientation="Horizontal" Spacing="4">
-                <Button Command="{Binding ResizeArrangerCommand}" Focusable="False" IsVisible="{Binding IsTiledLayout}"
-                    ToolTip.Tip="Resizes the Arranger">
+                <Button Command="{Binding ResizeArrangerCommand}" Focusable="False" ToolTip.Tip="Resizes the Arranger">
+                    <Button.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="IsArrangerMode" />
+                            <Binding Path="IsTiledLayout" />
+                        </MultiBinding>
+                    </Button.IsVisible>
                     <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Resize}" />
                 </Button>
 
                 <Button Command="{Binding RemapColorsCommand}" Focusable="False" IsEnabled="{Binding CanRemapColors}"
-                    IsVisible="{Binding IsIndexedColor}" ToolTip.ShowOnDisabled="True"
-                    ToolTip.Tip="Remap Palette Colors">
+                    ToolTip.ShowOnDisabled="True" ToolTip.Tip="Remap Palette Colors">
+                    <Button.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="IsDrawMode" />
+                            <Binding Path="IsIndexedColor" />
+                        </MultiBinding>
+                    </Button.IsVisible>
                     <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Remap}" />
                 </Button>
             </StackPanel>
