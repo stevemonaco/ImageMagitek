@@ -67,7 +67,7 @@ public static class StreamReadExtensionMethods
             throw new ArgumentException($"{nameof(ReadUnshifted)} parameter '{nameof(buffer)}' has insufficient length ({buffer.Length}) than required ({readBytes})");
 
         var readBuffer = buffer.Slice(0, readBytes);
-        stream.Read(readBuffer);
+        stream.ReadExactly(readBuffer);
 
         MaskUnshiftedEndBytes(readBuffer, skipBits, readBits, readBytes);
     }

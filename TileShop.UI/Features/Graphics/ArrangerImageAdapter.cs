@@ -19,8 +19,6 @@ public sealed class ArrangerImageAdapter
     private IndexedImage? _indexedImage;
     private DirectImage? _directImage;
 
-    public byte[] RawPixels { get; private set; }
-
     public Arranger Arranger { get; private set; }
     public PixelColorType ColorType => Arranger.ColorType;
     public bool IsIndexed => ColorType == PixelColorType.Indexed;
