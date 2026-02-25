@@ -10,6 +10,7 @@ using TileShop.Shared.Input;
 using TileShop.Shared.Models;
 using TileShop.UI.Controls;
 using TileShop.UI.Renderer;
+using TileShop.UI.ViewExtenders.DragDrop;
 using TileShop.UI.ViewModels;
 using KeyModifiers = Avalonia.Input.KeyModifiers;
 
@@ -27,7 +28,7 @@ public partial class GraphicsEditorView : UserControl
     private Point _dragStartPoint;
     private PointerPressedEventArgs? _dragTriggerEvent;
     private bool _isDragPending;
-    private const double DragThreshold = 3;
+    private const double _dragThreshold = 3;
 
     public GraphicsEditorView()
     {
@@ -171,7 +172,7 @@ public partial class GraphicsEditorView : UserControl
             var currentPos = e.GetPosition(null);
             var diff = _dragStartPoint - currentPos;
 
-            if (Math.Abs(diff.X) > DragThreshold || Math.Abs(diff.Y) > DragThreshold)
+            if (Math.Abs(diff.X) > _dragThreshold || Math.Abs(diff.Y) > _dragThreshold)
             {
                 _isDragPending = false;
                 var triggerEvent = _dragTriggerEvent;
@@ -184,11 +185,9 @@ public partial class GraphicsEditorView : UserControl
                 {
                     ViewModel.InvalidateEditor(InvalidationLevel.Overlay);
 
-                    var data = new DataObject();
-                    data.Set(PayloadDropBehavior.DataFormat, payload);
-
+                    var dataTransfer = IDataTransfer.CreateInProcessTransfer(payload);
                     var effect = DragDropEffects.Move;
-                    await DragDrop.DoDragDrop(triggerEvent, data, effect);
+                    await DragDrop.DoDragDropAsync(triggerEvent, dataTransfer, effect);
 
                     _dragHandler.AfterDragDrop(EditorCanvas, triggerEvent, ViewModel);
                 }

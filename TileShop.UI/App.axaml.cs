@@ -21,10 +21,6 @@ public class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
-        // Remove Avalonia data validation so that Mvvm Toolkit's data validation works
-        var annotationPlugin = BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().First();
-        BindingPlugins.DataValidators.Remove(annotationPlugin);
-
         var services = new ServiceCollection();
         var bootstrapper = new TileShopBootstrapper();
         await bootstrapper.ConfigureIoc(services);

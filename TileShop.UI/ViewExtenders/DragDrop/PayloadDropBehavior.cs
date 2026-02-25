@@ -4,6 +4,8 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactions.DragAndDrop;
 using Avalonia.Xaml.Interactivity;
+using TileShop.UI.ViewExtenders.DragDrop;
+using TileShop.UI.ViewModels;
 
 namespace TileShop.UI.DragDrop;
 
@@ -57,7 +59,12 @@ public class PayloadDropBehavior : Behavior<Control>
 
     private void DragEnter(object? sender, DragEventArgs e)
     {
-        var sourceContext = e.Data.Get(DataFormat);
+        if (!e.DataTransfer.TryGet(out GraphicsEditorViewModel sourceContext))
+        {
+            return;
+        }
+        
+        // var sourceContext = e.DataTransfer.TryGet(DataFormat);
         var targetContext = Context ?? AssociatedObject?.DataContext;
         Handler?.Enter(sender, e, sourceContext, targetContext);
     }
@@ -69,14 +76,22 @@ public class PayloadDropBehavior : Behavior<Control>
 
     private void DragOver(object? sender, DragEventArgs e)
     {
-        var sourceContext = e.Data.Get(DataFormat);
+        if (!e.DataTransfer.TryGet(out GraphicsEditorViewModel sourceContext))
+        {
+            return;
+        }
+        
         var targetContext = Context ?? AssociatedObject?.DataContext;
         Handler?.Over(sender, e, sourceContext, targetContext);
     }
 
     private void Drop(object? sender, DragEventArgs e)
     {
-        var sourceContext = e.Data.Get(DataFormat);
+        if (!e.DataTransfer.TryGet(out GraphicsEditorViewModel sourceContext))
+        {
+            return;
+        }
+        
         var targetContext = Context ?? AssociatedObject?.DataContext;
         Handler?.Drop(sender, e, sourceContext, targetContext);
     }

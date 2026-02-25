@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Xaml.Interactions.DragAndDrop;
 using Avalonia.Xaml.Interactivity;
+using TileShop.UI.ViewExtenders.DragDrop;
 
 namespace TileShop.UI.DragDrop;
 
@@ -67,11 +68,9 @@ public class PayloadDragBehavior : Behavior<Control>
         AssociatedObject?.RemoveHandler(InputElement.PointerMovedEvent, AssociatedObject_PointerMoved);
     }
 
-    private async Task DoDragDrop(PointerEventArgs triggerEvent, object? value)
+    private async Task DoDragDrop<T>(PointerEventArgs triggerEvent, T value)
+        where T : class
     {
-        var data = new DataObject();
-        data.Set(ContextDropBehavior.DataFormat, value!);
-
         var effect = DragDropEffects.None;
 
         if (triggerEvent.KeyModifiers.HasFlag(KeyModifiers.Alt))
@@ -91,7 +90,8 @@ public class PayloadDragBehavior : Behavior<Control>
             effect |= DragDropEffects.Move;
         }
 
-        await DragDrop.DoDragDrop(triggerEvent, data, effect);
+        var dataTransfer = IDataTransfer.CreateInProcessTransfer(value);
+        await DragDrop.DoDragDropAsync(triggerEvent, dataTransfer, effect);
     }
 
     private void AssociatedObject_PointerPressed(object? sender, PointerPressedEventArgs e)
