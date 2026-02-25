@@ -39,6 +39,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     private readonly PaletteStore _paletteStore;
     private readonly ElementStore _elementStore;
     private readonly IProjectService _projectService;
+    private readonly ILogger<GraphicsEditorViewModel> _logger;
 
     public Arranger WorkingArranger { get; private set; }
     private Arranger _projectArranger;
@@ -194,8 +195,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     }
 
     public GraphicsEditorViewModel(Arranger arranger, IInteractionService interactionService,
-        ICodecService codecService, IColorFactory colorFactory, PaletteStore paletteStore, 
-        ElementStore elementStore, IProjectService projectService, Tracker tracker)
+        ICodecService codecService, IColorFactory colorFactory, PaletteStore paletteStore,
+        ElementStore elementStore, IProjectService projectService, Tracker tracker,
+        ILogger<GraphicsEditorViewModel> logger)
         : base(arranger)
     {
         WorkingArranger = arranger.Mode == ArrangerMode.Scattered ? arranger.CloneArranger() : arranger;
@@ -211,6 +213,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         _elementStore = elementStore;
         _projectService = projectService;
         _tracker = tracker;
+        _logger = logger;
 
         CanView = arranger.Mode == ArrangerMode.Sequential;
         CanArrange = arranger.Mode == ArrangerMode.Scattered;
@@ -284,7 +287,8 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         }
         catch (Exception e)
         {
-            _interactions.AlertAsync("Error", $"Could not create the image\n\n{e.Message}");
+            _logger.LogError(e, "Could not create image for arranger '{ArrangerName}'", WorkingArranger.Name);
+            _ = _interactions.AlertAsync("Error", $"Could not create the image\n\n{e.Message}");
         }
     }
 
@@ -365,7 +369,11 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
                         IsModified = false;
                         return Task.CompletedTask;
                     },
-                    async fail => await _interactions.AlertAsync("Project Error", $"An error occurred while saving: {fail.Reason}")
+                    async fail =>
+                    {
+                        _logger.LogError("Failed to save resource '{ResourceName}': {Reason}", Resource.Name, fail.Reason);
+                        await _interactions.AlertAsync("Project Error", $"An error occurred while saving: {fail.Reason}");
+                    }
                 );
             }
 
@@ -374,6 +382,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Could not save graphics contents for '{ArrangerName}'", WorkingArranger.Name);
             await _interactions.AlertAsync("Save Error", $"Could not save the graphics contents\n{ex.Message}\n{ex.StackTrace}");
         }
     }

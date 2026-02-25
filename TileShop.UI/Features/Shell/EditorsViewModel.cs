@@ -8,6 +8,7 @@ using ImageMagitek.Project;
 using ImageMagitek.Services;
 using TileShop.Shared.Messages;
 using Jot;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -32,6 +33,7 @@ public partial class EditorsViewModel : ObservableRecipient
     private readonly IProjectService _projectService;
     private readonly ElementStore _elementStore;
     private readonly AppSettings _settings;
+    private readonly ILoggerFactory _loggerFactory;
 
     public ObservableCollection<ResourceEditorBaseViewModel> Editors { get; } = new();
 
@@ -39,7 +41,8 @@ public partial class EditorsViewModel : ObservableRecipient
     [ObservableProperty] private ShellViewModel? _shell;
 
     public EditorsViewModel(AppSettings settings, IInteractionService interactionService, Tracker tracker, ICodecService codecService,
-        IColorFactory colorFactory, PaletteStore paletteStore, IProjectService projectService, ElementStore elementStore)
+        IColorFactory colorFactory, PaletteStore paletteStore, IProjectService projectService, ElementStore elementStore,
+        ILoggerFactory loggerFactory)
     {
         _settings = settings;
         _interactions = interactionService;
@@ -49,6 +52,7 @@ public partial class EditorsViewModel : ObservableRecipient
         _paletteStore = paletteStore;
         _projectService = projectService;
         _elementStore = elementStore;
+        _loggerFactory = loggerFactory;
 
         Messenger.Register<EditArrangerPixelsMessage>(this, (r, m) => Receive(m));
         Messenger.Register<ArrangerChangedMessage>(this, (r, m) => Receive(m));
@@ -114,11 +118,11 @@ public partial class EditorsViewModel : ObservableRecipient
                 break;
             case ScatteredArranger scatteredArranger:
                 // newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _colorFactory, _paletteStore, _projectService, _tracker, _settings);
-                newDocument = new GraphicsEditorViewModel(scatteredArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker);
+                newDocument = new GraphicsEditorViewModel(scatteredArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
                 break;
             case SequentialArranger sequentialArranger:
                 //newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore);
-                newDocument = new GraphicsEditorViewModel(sequentialArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker);
+                newDocument = new GraphicsEditorViewModel(sequentialArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
                 break;
             case FileDataSource fileSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
                 var extension = Path.GetExtension(fileSource.FileLocation).ToLower();
@@ -146,7 +150,7 @@ public partial class EditorsViewModel : ObservableRecipient
                 //     OriginatingProjectResource = fileSource
                 // };
                 
-                newDocument = new GraphicsEditorViewModel(newArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker)
+                newDocument = new GraphicsEditorViewModel(newArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker, _loggerFactory.CreateLogger<GraphicsEditorViewModel>())
                 {
                     OriginatingProjectResource = fileSource
                 };

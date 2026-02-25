@@ -84,10 +84,13 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddSingleton<ILoggerFactory>(_loggerFactory!);
+        services.Add(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(Logger<>)));
+
         var viewLocator = new ViewLocator();
         ConfigureViewLocator(viewLocator);
         services.AddSingleton(viewLocator);
-        
+
         var interactionService = new InteractionService(viewLocator);
         services.AddSingleton<IInteractionService>(interactionService);
         services.AddSingleton<IAsyncFileRequestService, AsyncFileRequestService>();
