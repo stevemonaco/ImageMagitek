@@ -112,6 +112,26 @@ public partial class OverlayDialog : TemplatedControl
         var deltaX = current.X - _dragStartPoint.X;
         var deltaY = current.Y - _dragStartPoint.Y;
 
+        var backdropWidth = _backdrop.Bounds.Width;
+        var backdropHeight = _backdrop.Bounds.Height;
+        var cardWidth = _dialogCard.Bounds.Width;
+        var cardHeight = _dialogCard.Bounds.Height;
+        var titleBarHeight = _titleBar?.Bounds.Height ?? 40;
+
+        // The dialog is centered by default, so margin offsets are relative to center.
+        var centeredLeft = (backdropWidth - cardWidth) / 2;
+        var centeredTop = (backdropHeight - cardHeight) / 2;
+
+        // Clamp so the dialog stays within the backdrop horizontally,
+        // and the title bar stays within the backdrop vertically.
+        var minX = -centeredLeft;
+        var maxX = backdropWidth - cardWidth - centeredLeft;
+        var minY = -centeredTop;
+        var maxY = backdropHeight - titleBarHeight - centeredTop;
+
+        deltaX = Math.Clamp(deltaX, minX, maxX);
+        deltaY = Math.Clamp(deltaY, minY, maxY);
+
         _dialogCard.Margin = new Thickness(deltaX, deltaY, -deltaX, -deltaY);
         e.Handled = true;
     }
