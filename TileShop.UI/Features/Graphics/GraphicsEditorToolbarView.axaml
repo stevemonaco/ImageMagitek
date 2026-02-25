@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:gfx="using:TileShop.UI.Features.Graphics"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:TileShop.UI.Models"
     xmlns:vm="using:TileShop.UI.ViewModels"
     d:DesignHeight="450"
     d:DesignWidth="800"
@@ -37,278 +38,316 @@
     <!-- </UserControl.ContextMenu> -->
 
     <Border Width="200" MinWidth="160" Padding="0,0,12,4" TextElement.Foreground="#F9F9F9">
-        <StackPanel Spacing="4">
-            <!--  Edit Mode Selector  -->
-            <StackPanel Classes="toolbar-group">
-                <RadioButton Classes="tool" Content="View"
-                    IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=View}"
-                    IsVisible="{Binding CanView}" ToolTip.Tip="View-only mode for adjusting codec properties" />
-                <RadioButton Classes="tool" Content="Arrange"
-                    IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Arrange}"
-                    IsVisible="{Binding CanArrange}" ToolTip.Tip="Arrange elements within the arranger" />
-                <RadioButton Classes="tool" Content="Draw"
-                    IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Draw}"
-                    IsVisible="{Binding CanDraw}" ToolTip.Tip="Draw and edit pixels" />
-            </StackPanel>
-
-            <TextBlock Classes="muted" IsVisible="{Binding IsSequentialArranger}"
-                Text="{Binding FileOffset, StringFormat='Offset: 0x{0:X}'}" TextWrapping="Wrap" />
-
-            <!--  Codec (Sequential Arranger in View mode only)  -->
-            <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Codec" />
-                <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding CodecNames}" SelectedItem="{Binding SelectedCodecName}" />
-            </StackPanel>
-
-            <!--  Element Size (Sequential Arranger, Tiled codec with resizable dimensions)  -->
+        <ScrollViewer AllowAutoHide="True">
             <StackPanel Spacing="4">
-                <StackPanel.IsVisible>
-                    <MultiBinding Converter="{x:Static BoolConverters.And}">
-                        <Binding Path="IsViewMode" />
-                        <Binding Path="IsTiledLayout" />
-                    </MultiBinding>
-                </StackPanel.IsVisible>
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Element Pixel Size" />
-                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*, *" ColumnSpacing="8"
-                    IsEnabled="{Binding CanCodecResize}">
-                    <NumericUpDown Grid.Column="0" Classes="dense" FormatString="0" Increment="{Binding ElementWidthIncrement}"
-                        InnerLeftContent="W" Minimum="{Binding ElementWidthIncrement}" Value="{Binding TiledElementWidth}" />
-                    <NumericUpDown Grid.Column="1" Classes="dense" FormatString="0" Increment="{Binding ElementHeightIncrement}"
-                        InnerLeftContent="H" Minimum="{Binding ElementHeightIncrement}" Value="{Binding TiledElementHeight}" />
-                </Grid>
-            </StackPanel>
-
-            <!--  Arranger Size (Sequential Arranger in View mode only)  -->
-            <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" IsVisible="{Binding IsTiledLayout}"
-                    Text="Arranger Element Size" />
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" IsVisible="{Binding IsSingleLayout}"
-                    Text="Arranger Pixel Size" />
-
-                <!--  Tiled layout: element count  -->
-                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*,*" ColumnSpacing="8"
-                    IsVisible="{Binding IsTiledLayout}">
-                    <NumericUpDown Grid.Column="0" Classes="dense" FormatString="0" Increment="{Binding ArrangerWidthIncrement}"
-                        InnerLeftContent="W" Minimum="{Binding ArrangerWidthIncrement}" Value="{Binding TiledArrangerWidth}" />
-                    <NumericUpDown Grid.Column="1" Classes="dense" FormatString="0" Increment="{Binding ArrangerHeightIncrement}"
-                        InnerLeftContent="H" Minimum="{Binding ArrangerHeightIncrement}"
-                        Value="{Binding TiledArrangerHeight}" />
-                </Grid>
-
-                <!--  Linear/Single layout: pixel dimensions  -->
-                <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*,*" ColumnSpacing="8"
-                    IsVisible="{Binding IsSingleLayout}">
-                    <NumericUpDown Grid.Column="0" Classes="dense" FormatString="0" Increment="{Binding ElementWidthIncrement}"
-                        InnerLeftContent="W" Minimum="{Binding ElementWidthIncrement}"
-                        Value="{Binding LinearArrangerWidth, UpdateSourceTrigger=LostFocus}" />
-                    <NumericUpDown Grid.Column="1" Classes="dense" FormatString="0" Increment="{Binding ElementHeightIncrement}"
-                        InnerLeftContent="H" Minimum="{Binding ElementHeightIncrement}"
-                        Value="{Binding LinearArrangerHeight, UpdateSourceTrigger=LostFocus}" />
-                </Grid>
-            </StackPanel>
-
-            <!--  View Tools  -->
-            <!-- <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4"> -->
-            <!--     <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Tools" /> -->
-            <!--    -->
-            <!--     <StackPanel Classes="toolbar-group"> -->
-            <!--  <RadioButton Classes="tool" Command="{Binding ChangeViewToolCommand}"  -->
-            <!--  CommandParameter="{x:Static vm:ViewTool.Select}"  -->
-            <!--  IsChecked="{Binding ActiveViewTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"  -->
-            <!--  ToolTip.Tip="Click and drag to select a region">  -->
-            <!--             <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" /> -->
-            <!--         </RadioButton> -->
-            <!--     </StackPanel> -->
-            <!-- </StackPanel> -->
-
-            <!--  Arranger Tools  -->
-            <StackPanel IsVisible="{Binding IsArrangerMode}" Spacing="4">
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Tools" />
-
+                <!--  Edit Mode Selector  -->
                 <StackPanel Classes="toolbar-group">
-                    <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static vm:ArrangerTool.Select}"
-                        IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
-                        ToolTip.Tip="Click and drag across Arranger to select a region or hold Ctrl to quickly drag single elements">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
-                    </RadioButton>
-                    <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static vm:ArrangerTool.ApplyPalette}"
-                        IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ApplyPalette}"
-                        ToolTip.Tip="{Binding SelectedPalette.Name, StringFormat='Click on an Arranger element to apply the current palette (\{0\})'}">
-                        <PathIcon Classes="medium vflip" Data="{x:Static cc:AppIcons.PaletteBrush}" />
-                    </RadioButton>
-                    <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static vm:ArrangerTool.PickPalette}"
-                        IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=PickPalette}"
-                        ToolTip.Tip="Click on an Arranger element to pick its associated palette">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.PalettePicker}" />
-                    </RadioButton>
-                    <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static vm:ArrangerTool.InspectElement}"
-                        IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=InspectElement}"
-                        ToolTip.Tip="Hover Arranger elements to inspect their properties">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Eye}" />
-                    </RadioButton>
-
-                    <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static vm:ArrangerTool.RotateLeft}"
-                        IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateLeft}"
-                        IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Rotate Element's Display Left">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RotateLeft}" />
-                    </RadioButton>
-                    <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static vm:ArrangerTool.RotateRight}"
-                        IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateRight}"
-                        IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Rotate Element's Display Right">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RotateRight}" />
-                    </RadioButton>
-                    <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static vm:ArrangerTool.MirrorHorizontal}"
-                        IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorHorizontal}"
-                        IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Mirror Element's Display Horizontally">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.MirrorHorizontal}" />
-                    </RadioButton>
-                    <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
-                        CommandParameter="{x:Static vm:ArrangerTool.MirrorVertical}"
-                        IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorVertical}"
-                        IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Mirror Element's Display Vertically">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.MirrorVertical}" />
-                    </RadioButton>
+                    <RadioButton Classes="tool" Content="View"
+                        IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=View}"
+                        IsVisible="{Binding CanView}" ToolTip.Tip="View-only mode for adjusting codec properties" />
+                    <RadioButton Classes="tool" Content="Arrange"
+                        IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Arrange}"
+                        IsVisible="{Binding CanArrange}" ToolTip.Tip="Arrange elements within the arranger" />
+                    <RadioButton Classes="tool" Content="Draw"
+                        IsChecked="{Binding EditMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Draw}"
+                        IsVisible="{Binding CanDraw}" ToolTip.Tip="Draw and edit pixels" />
                 </StackPanel>
-            </StackPanel>
 
-            <!--  Pixel Tools  -->
-            <StackPanel IsVisible="{Binding IsDrawMode}" Spacing="4">
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Tools" />
+                <TextBlock Classes="muted" IsVisible="{Binding IsSequentialArranger}"
+                    Text="{Binding FileOffset, StringFormat='Offset: 0x{0:X}'}" TextWrapping="Wrap" />
 
-                <StackPanel Classes="toolbar-group">
-                    <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
-                        CommandParameter="{x:Static vm:PixelTool.Select}"
-                        IsChecked="{Binding ActivePixelTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
-                        ToolTip.Tip="Click and drag to select a region">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
-                    </RadioButton>
-                    <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
-                        CommandParameter="{x:Static vm:PixelTool.Pencil}"
-                        IsChecked="{Binding ActivePixelTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Pencil}"
-                        ToolTip.Tip="Draw pixels with primary (left click) or secondary (right click) color">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Pencil}" />
-                    </RadioButton>
-                    <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
-                        CommandParameter="{x:Static vm:PixelTool.ColorPicker}"
-                        IsChecked="{Binding ActivePixelTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColorPicker}"
-                        ToolTip.Tip="Pick a color from the image">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.ColorPicker}" />
-                    </RadioButton>
-                    <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
-                        CommandParameter="{x:Static vm:PixelTool.FloodFill}"
-                        IsChecked="{Binding ActivePixelTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=FloodFill}"
-                        ToolTip.Tip="Flood fill an area with primary (left click) or secondary (right click) color">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.FloodFill}" />
-                    </RadioButton>
+                <!--  Codec (Sequential Arranger in View mode only)  -->
+                <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Codec" />
+                    <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding CodecNames}" SelectedItem="{Binding SelectedCodecName}" />
                 </StackPanel>
-            </StackPanel>
 
-            <!--  Palette  -->
-            <StackPanel IsVisible="{Binding IsIndexedColor}" Spacing="4">
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Palette" />
+                <!--  Element Size (Sequential Arranger, Tiled codec with resizable dimensions)  -->
+                <StackPanel Spacing="4">
+                    <StackPanel.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="IsViewMode" />
+                            <Binding Path="IsTiledLayout" />
+                        </MultiBinding>
+                    </StackPanel.IsVisible>
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Element Pixel Size" />
+                    <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*, *" ColumnSpacing="8"
+                        IsEnabled="{Binding CanCodecResize}">
+                        <NumericUpDown Grid.Column="0" Classes="dense" FormatString="0" Increment="{Binding ElementWidthIncrement}"
+                            InnerLeftContent="W" Minimum="{Binding ElementWidthIncrement}" Value="{Binding TiledElementWidth}" />
+                        <NumericUpDown Grid.Column="1" Classes="dense" FormatString="0" Increment="{Binding ElementHeightIncrement}"
+                            InnerLeftContent="H" Minimum="{Binding ElementHeightIncrement}" Value="{Binding TiledElementHeight}" />
+                    </Grid>
+                </StackPanel>
 
-                <StackPanel Orientation="Horizontal">
-                    <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}" />
+                <!--  Arranger Size (Sequential Arranger in View mode only)  -->
+                <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" IsVisible="{Binding IsTiledLayout}"
+                        Text="Arranger Element Size" />
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" IsVisible="{Binding IsSingleLayout}"
+                        Text="Arranger Pixel Size" />
+
+                    <!--  Tiled layout: element count  -->
+                    <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*,*" ColumnSpacing="8"
+                        IsVisible="{Binding IsTiledLayout}">
+                        <NumericUpDown Grid.Column="0" Classes="dense" FormatString="0" Increment="{Binding ArrangerWidthIncrement}"
+                            InnerLeftContent="W" Minimum="{Binding ArrangerWidthIncrement}" Value="{Binding TiledArrangerWidth}" />
+                        <NumericUpDown Grid.Column="1" Classes="dense" FormatString="0" Increment="{Binding ArrangerHeightIncrement}"
+                            InnerLeftContent="H" Minimum="{Binding ArrangerHeightIncrement}"
+                            Value="{Binding TiledArrangerHeight}" />
+                    </Grid>
+
+                    <!--  Linear/Single layout: pixel dimensions  -->
+                    <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*,*" ColumnSpacing="8"
+                        IsVisible="{Binding IsSingleLayout}">
+                        <NumericUpDown Grid.Column="0" Classes="dense" FormatString="0" Increment="{Binding ElementWidthIncrement}"
+                            InnerLeftContent="W" Minimum="{Binding ElementWidthIncrement}"
+                            Value="{Binding LinearArrangerWidth, UpdateSourceTrigger=LostFocus}" />
+                        <NumericUpDown Grid.Column="1" Classes="dense" FormatString="0" Increment="{Binding ElementHeightIncrement}"
+                            InnerLeftContent="H" Minimum="{Binding ElementHeightIncrement}"
+                            Value="{Binding LinearArrangerHeight, UpdateSourceTrigger=LostFocus}" />
+                    </Grid>
+                </StackPanel>
+
+                <!--  View Tools  -->
+                <!-- <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4"> -->
+                <!--     <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Tools" /> -->
+                <!--    -->
+                <!--     <StackPanel Classes="toolbar-group"> -->
+                <!--  <RadioButton Classes="tool" Command="{Binding ChangeViewToolCommand}"  -->
+                <!--  CommandParameter="{x:Static vm:ViewTool.Select}"  -->
+                <!--  IsChecked="{Binding ActiveViewTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"  -->
+                <!--  ToolTip.Tip="Click and drag to select a region">  -->
+                <!--             <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" /> -->
+                <!--         </RadioButton> -->
+                <!--     </StackPanel> -->
+                <!-- </StackPanel> -->
+
+                <!--  Arranger Tools  -->
+                <StackPanel IsVisible="{Binding IsArrangerMode}" Spacing="4">
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Tools" />
+
+                    <StackPanel Classes="toolbar-group">
+                        <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
+                            CommandParameter="{x:Static vm:ArrangerTool.Select}"
+                            IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
+                            ToolTip.Tip="Click and drag across Arranger to select a region or hold Ctrl to quickly drag single elements">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
+                        </RadioButton>
+                        <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
+                            CommandParameter="{x:Static vm:ArrangerTool.ApplyPalette}"
+                            IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ApplyPalette}"
+                            ToolTip.Tip="{Binding SelectedPalette.Name, StringFormat='Click on an Arranger element to apply the current palette (\{0\})'}">
+                            <PathIcon Classes="medium vflip" Data="{x:Static cc:AppIcons.PaletteBrush}" />
+                        </RadioButton>
+                        <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
+                            CommandParameter="{x:Static vm:ArrangerTool.PickPalette}"
+                            IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=PickPalette}"
+                            ToolTip.Tip="Click on an Arranger element to pick its associated palette">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.PalettePicker}" />
+                        </RadioButton>
+                        <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
+                            CommandParameter="{x:Static vm:ArrangerTool.InspectElement}"
+                            IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=InspectElement}"
+                            ToolTip.Tip="Hover Arranger elements to inspect their properties">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Eye}" />
+                        </RadioButton>
+
+                        <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
+                            CommandParameter="{x:Static vm:ArrangerTool.RotateLeft}"
+                            IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateLeft}"
+                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Rotate Element's Display Left">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RotateLeft}" />
+                        </RadioButton>
+                        <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
+                            CommandParameter="{x:Static vm:ArrangerTool.RotateRight}"
+                            IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateRight}"
+                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Rotate Element's Display Right">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RotateRight}" />
+                        </RadioButton>
+                        <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
+                            CommandParameter="{x:Static vm:ArrangerTool.MirrorHorizontal}"
+                            IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorHorizontal}"
+                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Mirror Element's Display Horizontally">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.MirrorHorizontal}" />
+                        </RadioButton>
+                        <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
+                            CommandParameter="{x:Static vm:ArrangerTool.MirrorVertical}"
+                            IsChecked="{Binding ActiveArrangerTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorVertical}"
+                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Mirror Element's Display Vertically">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.MirrorVertical}" />
+                        </RadioButton>
+                    </StackPanel>
+                </StackPanel>
+
+                <!--  Pixel Tools  -->
+                <StackPanel IsVisible="{Binding IsDrawMode}" Spacing="4">
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Tools" />
+
+                    <StackPanel Classes="toolbar-group">
+                        <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
+                            CommandParameter="{x:Static vm:PixelTool.Select}"
+                            IsChecked="{Binding ActivePixelTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Select}"
+                            ToolTip.Tip="Click and drag to select a region">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
+                        </RadioButton>
+                        <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
+                            CommandParameter="{x:Static vm:PixelTool.Pencil}"
+                            IsChecked="{Binding ActivePixelTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Pencil}"
+                            ToolTip.Tip="Draw pixels with primary (left click) or secondary (right click) color">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Pencil}" />
+                        </RadioButton>
+                        <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
+                            CommandParameter="{x:Static vm:PixelTool.ColorPicker}"
+                            IsChecked="{Binding ActivePixelTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColorPicker}"
+                            ToolTip.Tip="Pick a color from the image">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.ColorPicker}" />
+                        </RadioButton>
+                        <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
+                            CommandParameter="{x:Static vm:PixelTool.FloodFill}"
+                            IsChecked="{Binding ActivePixelTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=FloodFill}"
+                            ToolTip.Tip="Flood fill an area with primary (left click) or secondary (right click) color">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.FloodFill}" />
+                        </RadioButton>
+                    </StackPanel>
+                </StackPanel>
+
+                <!--  Palette  -->
+                <StackPanel IsVisible="{Binding IsIndexedColor}" Spacing="4">
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Palette" />
+
+                    <StackPanel Orientation="Horizontal">
+                        <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <Button Margin="8,0,0,0" VerticalAlignment="Bottom" VerticalContentAlignment="Center"
+                            Command="{Binding AssociatePaletteCommand}" IsVisible="{Binding IsArrangerMode}"
+                            ToolTip.Tip="Associate an existing Palette from this Project with this Arranger">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.PlusCircle}" />
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+
+                <!--  Active Colors (Indexed)  -->
+                <StackPanel IsVisible="{Binding IsDrawMode}" Spacing="4">
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Colors" />
+
+                    <!--  Indexed Colors  -->
+                    <StackPanel HorizontalAlignment="Left" IsVisible="{Binding IsIndexedColor}" Orientation="Horizontal" Spacing="2">
+                        <Border BorderBrush="Black" BorderThickness="2">
+                            <Border BorderBrush="White" BorderThickness="2">
+                                <Rectangle Width="26" Height="26" ToolTip.Tip="Primary Color">
+                                    <Rectangle.Fill>
+                                        <MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
+                                            <Binding Path="ActivePalette" />
+                                            <Binding Path="PrimaryColorIndex" />
+                                        </MultiBinding>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </Border>
+                        </Border>
+                        <Border BorderBrush="Black" BorderThickness="2">
+                            <Border BorderBrush="White" BorderThickness="2">
+                                <Rectangle Width="26" Height="26" ToolTip.Tip="Secondary Color">
+                                    <Rectangle.Fill>
+                                        <MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
+                                            <Binding Path="ActivePalette" />
+                                            <Binding Path="SecondaryColorIndex" />
+                                        </MultiBinding>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </Border>
+                        </Border>
+                    </StackPanel>
+
+                    <!--  Palette Swatch Grid (Indexed)  -->
+                    <ItemsControl Name="PaletteSwatchGrid" ContextMenu="{x:Null}" IsVisible="{Binding IsIndexedColor}"
+                        ItemsSource="{Binding ActivePalette.Colors}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:PaletteEntry">
+                                <Border Margin="1" BorderBrush="#555" BorderThickness="1" Cursor="Hand" ToolTip.ShowDelay="2000"
+                                    ToolTip.Tip="{Binding Index, StringFormat='Index: {0}'}">
+                                    <Panel>
+                                        <Rectangle Fill="{Binding Color, Converter={x:Static con:AppConverters.ColorToBrush}}">
+                                            <Rectangle.Width>
+                                                <Binding Converter="{x:Static con:AppConverters.PaletteCountToSwatchSize}" Path="$parent[ItemsControl].((vm:GraphicsEditorViewModel)DataContext).ActivePalette.Colors.Count" />
+                                            </Rectangle.Width>
+                                            <Rectangle.Height>
+                                                <Binding Converter="{x:Static con:AppConverters.PaletteCountToSwatchSize}" Path="$parent[ItemsControl].((vm:GraphicsEditorViewModel)DataContext).ActivePalette.Colors.Count" />
+                                            </Rectangle.Height>
+                                        </Rectangle>
+                                        <Border BorderThickness="2">
+                                            <Border.BorderBrush>
+                                                <MultiBinding Converter="{x:Static con:AppConverters.SwatchSelectionBorder}">
+                                                    <Binding Path="Index" />
+                                                    <Binding Path="$parent[ItemsControl].((vm:GraphicsEditorViewModel)DataContext).PrimaryColorIndex" />
+                                                    <Binding Path="$parent[ItemsControl].((vm:GraphicsEditorViewModel)DataContext).SecondaryColorIndex" />
+                                                </MultiBinding>
+                                            </Border.BorderBrush>
+                                        </Border>
+                                    </Panel>
+                                </Border>
                             </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
-                    <Button Margin="8,0,0,0" VerticalAlignment="Bottom" VerticalContentAlignment="Center"
-                        Command="{Binding AssociatePaletteCommand}" IsVisible="{Binding IsArrangerMode}"
-                        ToolTip.Tip="Associate an existing Palette from this Project with this Arranger">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.PlusCircle}" />
+                    <!--  Direct Colors  -->
+                    <StackPanel HorizontalAlignment="Left" IsVisible="{Binding IsDirectColor}" Orientation="Horizontal" Spacing="2">
+                        <ColorPicker Height="40" Color="{Binding PrimaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
+                        <ColorPicker Height="40" Color="{Binding SecondaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!--  Options  -->
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Options" />
+
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <ToggleButton IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
+                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Grid}" Foreground="#F9F9F9" />
+                    </ToggleButton>
+
+                    <ToggleButton IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}" IsVisible="{Binding CanChangeSnapMode}" ToolTip.Tip="Snap Selection to Elements (S)">
+                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Snap}" Foreground="#F9F9F9" />
+                    </ToggleButton>
+                </StackPanel>
+
+                <!--  Actions  -->
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Actions" />
+
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <Button Command="{Binding ResizeArrangerCommand}" ToolTip.Tip="Resizes the Arranger">
+                        <Button.IsVisible>
+                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                <Binding Path="IsArrangerMode" />
+                                <Binding Path="IsTiledLayout" />
+                            </MultiBinding>
+                        </Button.IsVisible>
+                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Resize}" />
+                    </Button>
+
+                    <Button Command="{Binding RemapColorsCommand}" IsEnabled="{Binding CanRemapColors}"
+                        ToolTip.ShowOnDisabled="True" ToolTip.Tip="Remap Palette Colors">
+                        <Button.IsVisible>
+                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                <Binding Path="IsDrawMode" />
+                                <Binding Path="IsIndexedColor" />
+                            </MultiBinding>
+                        </Button.IsVisible>
+                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Remap}" />
                     </Button>
                 </StackPanel>
             </StackPanel>
-
-            <!--  Active Colors (Indexed)  -->
-            <StackPanel IsVisible="{Binding IsDrawMode}" Spacing="4">
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Colors" />
-
-                <!--  Indexed Colors  -->
-                <StackPanel HorizontalAlignment="Left" IsVisible="{Binding IsIndexedColor}" Orientation="Horizontal" Spacing="2">
-                    <Border BorderBrush="Black" BorderThickness="2">
-                        <Border BorderBrush="White" BorderThickness="2">
-                            <Rectangle Width="26" Height="26" ToolTip.Tip="Primary Color">
-                                <Rectangle.Fill>
-                                    <MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
-                                        <Binding Path="ActivePalette" />
-                                        <Binding Path="PrimaryColorIndex" />
-                                    </MultiBinding>
-                                </Rectangle.Fill>
-                            </Rectangle>
-                        </Border>
-                    </Border>
-                    <Border BorderBrush="Black" BorderThickness="2">
-                        <Border BorderBrush="White" BorderThickness="2">
-                            <Rectangle Width="26" Height="26" ToolTip.Tip="Secondary Color">
-                                <Rectangle.Fill>
-                                    <MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
-                                        <Binding Path="ActivePalette" />
-                                        <Binding Path="SecondaryColorIndex" />
-                                    </MultiBinding>
-                                </Rectangle.Fill>
-                            </Rectangle>
-                        </Border>
-                    </Border>
-                </StackPanel>
-
-                <!--  Direct Colors  -->
-                <StackPanel HorizontalAlignment="Left" IsVisible="{Binding IsDirectColor}" Orientation="Horizontal" Spacing="2">
-                    <ColorPicker Height="40" Color="{Binding PrimaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
-                    <ColorPicker Height="40" Color="{Binding SecondaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
-                </StackPanel>
-            </StackPanel>
-
-            <!--  Options  -->
-            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Options" />
-
-            <StackPanel Orientation="Horizontal" Spacing="4">
-                <ToggleButton IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
-                    <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Grid}" Foreground="#F9F9F9" />
-                </ToggleButton>
-
-                <ToggleButton IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}" IsVisible="{Binding CanChangeSnapMode}" ToolTip.Tip="Snap Selection to Elements (S)">
-                    <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Snap}" Foreground="#F9F9F9" />
-                </ToggleButton>
-            </StackPanel>
-
-            <!--  Actions  -->
-            <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Actions" />
-
-            <StackPanel Orientation="Horizontal" Spacing="4">
-                <Button Command="{Binding ResizeArrangerCommand}" ToolTip.Tip="Resizes the Arranger">
-                    <Button.IsVisible>
-                        <MultiBinding Converter="{x:Static BoolConverters.And}">
-                            <Binding Path="IsArrangerMode" />
-                            <Binding Path="IsTiledLayout" />
-                        </MultiBinding>
-                    </Button.IsVisible>
-                    <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Resize}" />
-                </Button>
-
-                <Button Command="{Binding RemapColorsCommand}" IsEnabled="{Binding CanRemapColors}"
-                    ToolTip.ShowOnDisabled="True" ToolTip.Tip="Remap Palette Colors">
-                    <Button.IsVisible>
-                        <MultiBinding Converter="{x:Static BoolConverters.And}">
-                            <Binding Path="IsDrawMode" />
-                            <Binding Path="IsIndexedColor" />
-                        </MultiBinding>
-                    </Button.IsVisible>
-                    <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Remap}" />
-                </Button>
-            </StackPanel>
-        </StackPanel>
+        </ScrollViewer>
     </Border>
 </UserControl>
 

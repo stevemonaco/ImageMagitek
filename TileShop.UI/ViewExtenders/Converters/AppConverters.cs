@@ -55,6 +55,8 @@ public static class AppConverters
     public static LongToHexadecimalConverter LongToHexadecimal { get; } = new();
     public static NumericBaseToBooleanConverter NumericBaseToBoolean { get; } = new();
     public static PaletteEntryToIndexConverter PaletteEntryToIndex { get; } = new();
+    public static PaletteCountToSwatchSizeConverter PaletteCountToSwatchSize { get; } = new();
     public static PaletteModelIndexToSolidColorBrushConverter PaletteIndexToBrush { get; } = new();
     public static SnapModeBooleanConverter SnapModeBoolean { get; } = new();
+    public static SwatchSelectionBorderConverter SwatchSelectionBorder { get; } = new();
 }

@@ -169,6 +169,7 @@ public partial class GraphicsEditorViewModel
         ElementWidthIncrement = codec.WidthResizeIncrement;
         ElementHeightIncrement = codec.HeightResizeIncrement;
         CreateImages();
+        InitializePalettes();
         GridSettings.AdjustGridlines(WorkingArranger);
 
         OnPropertyChanged(nameof(FileOffset));

@@ -169,7 +169,20 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     [ObservableProperty] private ObservableCollection<PaletteModel> _palettes = new();
     [ObservableProperty] private PaletteModel? _selectedPalette;
+
+    partial void OnSelectedPaletteChanged(PaletteModel? value)
+    {
+        if (value is not null)
+            ActivePalette = value;
+    }
+
     [ObservableProperty] private PaletteModel? _activePalette;
+
+    partial void OnActivePaletteChanged(PaletteModel? value)
+    {
+        if (value is not null && SelectedPalette != value)
+            SelectedPalette = value;
+    }
 
     [ObservableProperty] private ColorRgba32 _activeColor = new(255, 255, 255, 255);
     [ObservableProperty] private ColorRgba32 _primaryColor = new(255, 255, 255, 255);
@@ -178,6 +191,18 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     [ObservableProperty] private byte _activeColorIndex;
     [ObservableProperty] private byte _primaryColorIndex;
     [ObservableProperty] private byte _secondaryColorIndex = 1;
+
+    [RelayCommand]
+    private void SetPrimaryColorFromSwatch(byte index)
+    {
+        PrimaryColorIndex = index;
+    }
+
+    [RelayCommand]
+    private void SetSecondaryColorFromSwatch(byte index)
+    {
+        SecondaryColorIndex = index;
+    }
 
     private HistoryAction? _activePencilHistory;
 
@@ -296,12 +321,19 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     {
         if (IsIndexedColor)
         {
+            var maxColors = WorkingArranger.EnumerateElements()
+                .OfType<ArrangerElement>()
+                .Select(x => x.Codec?.ColorDepth ?? 0)
+                .DefaultIfEmpty(0)
+                .Max();
+            var colorLimit = Math.Min(256, 1 << maxColors);
+
             var arrangerPalettes = WorkingArranger.GetReferencedPalettes();
             arrangerPalettes.ExceptWith(_paletteStore.GlobalPalettes);
 
             var palModels = arrangerPalettes.OrderBy(x => x.Name)
                 .Concat(_paletteStore.GlobalPalettes.OrderBy(x => x.Name))
-                .Select(x => new PaletteModel(x));
+                .Select(x => new PaletteModel(x, colorLimit));
 
             Palettes = new(palModels);
             if (Palettes.Count > 0)
