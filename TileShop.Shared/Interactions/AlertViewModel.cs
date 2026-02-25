@@ -1,4 +1,6 @@
-﻿namespace TileShop.Shared.Interactions;
+﻿using System.Collections.ObjectModel;
+
+namespace TileShop.Shared.Interactions;
 public class AlertViewModel : RequestViewModel<bool>
 {
     public string Message { get; }
@@ -10,4 +12,12 @@ public class AlertViewModel : RequestViewModel<bool>
     }
 
     public override bool ProduceResult() => true;
+    
+    public override ObservableCollection<RequestOption> CreateOptions()
+    {
+        return
+        [
+            new RequestOption(AcceptName, TryAcceptCommand) { IsDefault = true }
+        ];
+    }
 }

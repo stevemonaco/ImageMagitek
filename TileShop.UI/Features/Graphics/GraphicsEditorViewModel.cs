@@ -12,6 +12,7 @@ using ImageMagitek.Colors;
 using ImageMagitek.Services;
 using ImageMagitek.Services.Stores;
 using Jot;
+using Microsoft.Extensions.Logging;
 using TileShop.Shared.Input;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Messages;
@@ -273,11 +274,18 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     private void CreateImages()
     {
-        CancelOverlay();
+        try
+        {
+            CancelOverlay();
 
-        _imageAdapter = new ArrangerImageAdapter(WorkingArranger);
-        BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
-        GridSettings = GridSettingsViewModel.CreateDefault(WorkingArranger);
+            _imageAdapter = new ArrangerImageAdapter(WorkingArranger);
+            BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
+            GridSettings = GridSettingsViewModel.CreateDefault(WorkingArranger);
+        }
+        catch (Exception e)
+        {
+            _interactions.AlertAsync("Error", $"Could not create the image\n\n{e.Message}");
+        }
     }
 
     private void InitializePalettes()
