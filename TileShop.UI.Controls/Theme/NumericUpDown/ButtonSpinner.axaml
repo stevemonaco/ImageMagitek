@@ -48,14 +48,14 @@
                     <Border Name="ButtonGroup" Grid.Column="2" MinWidth="16" BorderThickness="0" CornerRadius="0, 3, 3, 0"
                         IsVisible="{TemplateBinding ShowButtonSpinner}">
                         <Grid RowDefinitions="*, *">
-                            <RepeatButton Name="PART_IncreaseButton" Grid.Row="0" CornerRadius="0, 3, 0, 0"
-                                Theme="{StaticResource NumericUpDownDenseRepeatButton}">
+                            <RepeatButton Name="PART_IncreaseButton" Grid.Row="0" CornerRadius="0, 3, 0, 0" Focusable="False"
+                                IsTabStop="False" Theme="{StaticResource NumericUpDownDenseRepeatButton}">
                                 <PathIcon Classes="ExtraSmall" Data="{DynamicResource ButtonSpinnerIncreaseButtonGlyph}"
                                     Foreground="{DynamicResource ButtonSpinnerRepeatButtonForeground}"
                                     Theme="{DynamicResource InnerPathIcon}" />
                             </RepeatButton>
-                            <RepeatButton Name="PART_DecreaseButton" Grid.Row="1" CornerRadius="0, 0, 3, 0"
-                                Theme="{StaticResource NumericUpDownDenseRepeatButton}">
+                            <RepeatButton Name="PART_DecreaseButton" Grid.Row="1" CornerRadius="0, 0, 3, 0" Focusable="False"
+                                IsTabStop="False" Theme="{StaticResource NumericUpDownDenseRepeatButton}">
                                 <PathIcon Classes="ExtraSmall" Data="{DynamicResource ButtonSpinnerDecreaseButtonGlyph}"
                                     Foreground="{DynamicResource ButtonSpinnerRepeatButtonForeground}"
                                     Theme="{DynamicResource InnerPathIcon}" />

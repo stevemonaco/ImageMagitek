@@ -50,84 +50,11 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     [ObservableProperty] private string _activityMessage = "";
     [ObservableProperty] private string _pendingOperationMessage = "";
 
-    public bool IsSingleLayout => WorkingArranger?.Layout == ElementLayout.Single;
-    public bool IsTiledLayout => WorkingArranger?.Layout == ElementLayout.Tiled;
-    public bool IsIndexedColor => WorkingArranger?.ColorType == PixelColorType.Indexed;
-    public bool IsDirectColor => WorkingArranger?.ColorType == PixelColorType.Direct;
+    public bool IsSingleLayout => WorkingArranger.Layout == ElementLayout.Single;
+    public bool IsTiledLayout => WorkingArranger.Layout == ElementLayout.Tiled;
+    public bool IsIndexedColor => WorkingArranger.ColorType == PixelColorType.Indexed;
+    public bool IsDirectColor => WorkingArranger.ColorType == PixelColorType.Direct;
     public bool IsSequentialArranger => WorkingArranger is SequentialArranger;
-
-    // Sequential arranger file offset navigation
-    private long _fileOffset;
-    public long FileOffset
-    {
-        get => _fileOffset;
-        set
-        {
-            if (SetProperty(ref _fileOffset, value))
-                MoveToOffset(_fileOffset);
-        }
-    }
-
-    [ObservableProperty] private long _maxFileDecodingOffset;
-    [ObservableProperty] private int _arrangerPageSize;
-
-    // Sequential arranger sizing properties
-    private int _tiledArrangerWidth = 8;
-    public int TiledArrangerWidth
-    {
-        get => _tiledArrangerWidth;
-        set
-        {
-            if (SetProperty(ref _tiledArrangerWidth, value))
-                ResizeSequentialArranger(TiledArrangerWidth, TiledArrangerHeight);
-        }
-    }
-
-    private int _tiledArrangerHeight = 16;
-    public int TiledArrangerHeight
-    {
-        get => _tiledArrangerHeight;
-        set
-        {
-            if (SetProperty(ref _tiledArrangerHeight, value))
-                ResizeSequentialArranger(TiledArrangerWidth, TiledArrangerHeight);
-        }
-    }
-
-    private int _linearArrangerWidth = 256;
-    public int LinearArrangerWidth
-    {
-        get => _linearArrangerWidth;
-        set
-        {
-            if (WorkingArranger is SequentialArranger seqArr)
-            {
-                var preferredWidth = seqArr.ActiveCodec.GetPreferredWidth(value);
-                SetProperty(ref _linearArrangerWidth, preferredWidth);
-                ResizeSequentialArranger(LinearArrangerWidth, LinearArrangerHeight);
-            }
-        }
-    }
-
-    private int _linearArrangerHeight = 256;
-    public int LinearArrangerHeight
-    {
-        get => _linearArrangerHeight;
-        set
-        {
-            if (WorkingArranger is SequentialArranger seqArr)
-            {
-                var preferredHeight = seqArr.ActiveCodec.GetPreferredHeight(value);
-                SetProperty(ref _linearArrangerHeight, preferredHeight);
-                ResizeSequentialArranger(LinearArrangerWidth, LinearArrangerHeight);
-            }
-        }
-    }
-
-    [ObservableProperty] private int _arrangerWidthIncrement = 1;
-    [ObservableProperty] private int _arrangerHeightIncrement = 1;
-    [ObservableProperty] private int _elementWidthIncrement = 1;
-    [ObservableProperty] private int _elementHeightIncrement = 1;
 
     [ObservableProperty] private double _zoom = 1.0;
 

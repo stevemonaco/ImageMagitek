@@ -456,7 +456,11 @@ public partial class GraphicsEditorViewModel
             arrangerHeight == WorkingArranger.ArrangerPixelSize.Height && IsSingleLayout)
             return;
 
-        seqArr.Resize(arrangerWidth, arrangerHeight);
+        if (IsTiledLayout)
+        {
+            seqArr.Resize(arrangerWidth, arrangerHeight);
+        }
+
         CreateImages();
         ArrangerPageSize = (int)seqArr.ArrangerBitSize / 8;
         MaxFileDecodingOffset = seqArr.FileSize - ArrangerPageSize;

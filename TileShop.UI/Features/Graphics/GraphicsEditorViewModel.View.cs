@@ -7,30 +7,116 @@ using TileShop.Shared.Models;
 
 namespace TileShop.UI.ViewModels;
 
+/// <summary>
+/// Contains View properties, primarily for Sequential Arrangers
+/// </summary>
 public partial class GraphicsEditorViewModel
 {
     [ObservableProperty] private List<string> _codecNames = [];
     [ObservableProperty] private string _selectedCodecName;
     [ObservableProperty] private bool _canCodecResize;
-    [ObservableProperty] private int? _tiledElementWidth;
-    [ObservableProperty] private int? _tiledElementHeight;
+    
+    private long _fileOffset;
+    public long FileOffset
+    {
+        get => _fileOffset;
+        set
+        {
+            if (SetProperty(ref _fileOffset, value))
+                MoveToOffset(_fileOffset);
+        }
+    }
+
+    [ObservableProperty] private long _maxFileDecodingOffset;
+    [ObservableProperty] private int _arrangerPageSize;
+
+    private int _tiledArrangerWidth = 8;
+    public int TiledArrangerWidth
+    {
+        get => _tiledArrangerWidth;
+        set
+        {
+            if (SetProperty(ref _tiledArrangerWidth, value))
+                ResizeSequentialArranger(TiledArrangerWidth, TiledArrangerHeight);
+        }
+    }
+
+    private int _tiledArrangerHeight = 16;
+    public int TiledArrangerHeight
+    {
+        get => _tiledArrangerHeight;
+        set
+        {
+            if (SetProperty(ref _tiledArrangerHeight, value))
+            {
+                ResizeSequentialArranger(TiledArrangerWidth, TiledArrangerHeight);
+            }
+        }
+    }
+
+    private int _linearArrangerWidth = 256;
+    public int LinearArrangerWidth
+    {
+        get => _linearArrangerWidth;
+        set
+        {
+            if (WorkingArranger is SequentialArranger seqArr)
+            {
+                var preferredWidth = ((SequentialArranger)WorkingArranger).ActiveCodec.GetPreferredWidth(value);
+                SetProperty(ref _linearArrangerWidth, preferredWidth);
+                ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
+            }
+        }
+    }
+
+    private int _linearArrangerHeight = 256;
+    public int LinearArrangerHeight
+    {
+        get => _linearArrangerHeight;
+        set
+        {
+            if (WorkingArranger is SequentialArranger seqArr)
+            {
+                var preferredHeight = ((SequentialArranger)WorkingArranger).ActiveCodec.GetPreferredHeight(value);
+                SetProperty(ref _linearArrangerHeight, preferredHeight);
+                ChangeCodecDimensions(LinearArrangerWidth, LinearArrangerHeight);
+            }
+        }
+    }
+
+    [ObservableProperty] private int _arrangerWidthIncrement = 1;
+    [ObservableProperty] private int _arrangerHeightIncrement = 1;
+    [ObservableProperty] private int _elementWidthIncrement = 1;
+    [ObservableProperty] private int _elementHeightIncrement = 1;
+
+    private int _tiledElementWidth = 8;
+    public int TiledElementWidth
+    {
+        get => _tiledElementWidth;
+        set
+        {
+            var preferredWidth = ((SequentialArranger)WorkingArranger).ActiveCodec.GetPreferredWidth(value);
+            if (SetProperty(ref _tiledElementWidth, preferredWidth))
+                ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
+        }
+    }
+
+    private int _tiledElementHeight = 8;
+    public int TiledElementHeight
+    {
+        get => _tiledElementHeight;
+        set
+        {
+            var preferredHeight = ((SequentialArranger)WorkingArranger).ActiveCodec.GetPreferredHeight(value);
+            if (SetProperty(ref _tiledElementHeight, preferredHeight))
+                ChangeCodecDimensions(TiledElementWidth, TiledElementHeight);
+        }
+    }
 
     partial void OnSelectedCodecNameChanged(string value)
     {
         if (value is not null)
             ChangeCodec();
-    }
-
-    partial void OnTiledElementWidthChanged(int? value)
-    {
-        if (value is > 0 && CanCodecResize)
-            ChangeCodecDimensions(value.Value, TiledElementHeight ?? value.Value);
-    }
-
-    partial void OnTiledElementHeightChanged(int? value)
-    {
-        if (value is > 0 && CanCodecResize)
-            ChangeCodecDimensions(TiledElementWidth ?? value.Value, value.Value);
     }
     
     private void ChangeElementLayout(TileLayout layout)
