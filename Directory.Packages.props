@@ -22,7 +22,6 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.02" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.02" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageVersion Include="ReactiveProperty" Version="9.5.0" />
     <PackageVersion Include="Jot" Version="2.1.17" />
     <PackageVersion Include="CsvHelper" Version="32.0.1" />
     <PackageVersion Include="ColorMinePortable" Version="2.0.4" />
@@ -34,7 +33,6 @@
     <PackageVersion Include="Semi.Avalonia.Dock" Version="11.3.6.2" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
-    <PackageVersion Include="Nuke.Common" Version="9.0.4" />
     <PackageVersion Include="McMaster.NETCore.Plugins" Version="2.0.0" />
     <PackageVersion Include="Codeuctivity.ImageSharpCompare" Version="4.1.379" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
