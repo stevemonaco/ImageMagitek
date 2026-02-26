@@ -540,25 +540,22 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
         try
         {
-            if (dataFileName is not null)
-            {
-                var result = _projectService.CreateNewProjectWithExistingFile(Path.GetFullPath(projectFileName), Path.GetFullPath(dataFileName.LocalPath));
-                await result.Match(
-                    success =>
-                    {
-                        var projectVm = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
-                        Guard.IsNotNullOrEmpty(projectVm.Node.DiskLocation);
+            var result = _projectService.CreateNewProjectWithExistingFile(Path.GetFullPath(projectFileName), Path.GetFullPath(dataFileName.LocalPath));
+            await result.Match(
+                success =>
+                {
+                    var projectVm = new ProjectNodeViewModel((ProjectNode)success.Result.Root);
+                    Guard.IsNotNullOrEmpty(projectVm.Node.DiskLocation);
 
-                        Projects.Add(projectVm);
-                        SelectedNode = projectVm;
-                        IsModified = true;
+                    Projects.Add(projectVm);
+                    SelectedNode = projectVm;
+                    IsModified = true;
 
-                        OnPropertyChanged(nameof(HasProject));
-                        Messenger.Send(new ProjectLoadedMessage(projectVm.Node.DiskLocation));
-                        return Task.CompletedTask;
-                    },
-                    async fail => await _interactions.AlertAsync("Project Error", $"{fail.Reason}"));
-            }
+                    OnPropertyChanged(nameof(HasProject));
+                    Messenger.Send(new ProjectLoadedMessage(projectVm.Node.DiskLocation));
+                    return Task.CompletedTask;
+                },
+                async fail => await _interactions.AlertAsync("Project Error", $"{fail.Reason}"));
         }
         catch (Exception ex)
         {

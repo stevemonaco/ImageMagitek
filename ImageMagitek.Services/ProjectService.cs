@@ -76,7 +76,7 @@ public class ProjectService : IProjectService
 
         var root = new ProjectNode(baseDirectory, project.Name, project)
         {
-            DiskLocation = Path.GetFullPath(projectFileName),
+            DiskLocation = Path.GetFullPath(projectFileName)
         };
         var tree = new ProjectTree(root);
 
@@ -89,7 +89,6 @@ public class ProjectService : IProjectService
 
         if (result.HasSucceeded)
         {
-            UpdateNodeModel(tree, root);
             return new MagitekResult<ProjectTree>.Success(tree);
         }
         else

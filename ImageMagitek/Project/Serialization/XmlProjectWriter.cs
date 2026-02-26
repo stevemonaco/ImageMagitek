@@ -151,39 +151,31 @@ public sealed class XmlProjectWriter : IProjectWriter
         foreach (var node in tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
         {
             ResourceModel currentModel;
-            ResourceModel diskModel;
+            ResourceModel? diskModel;
             var resourceMap = CreateResourceMap();
 
-            if (node is ProjectNode { Model: ImageProjectModel } projectNode)
+            if (node is ProjectNode projectNode)
             {
                 var project = (ImageProject)projectNode.Item;
-                var model = project.MapToModel();
-                currentModel = model;
-
+                currentModel = project.MapToModel();
                 diskModel = projectNode.Model;
             }
-            else if (node is DataFileNode { Model: DataFileModel } dfNode)
+            else if (node is DataFileNode dfNode)
             {
-                var df = (FileDataSource) dfNode.Item;
-                var model = df.MapToModel();
-                currentModel = model;
-                
+                var df = (FileDataSource)dfNode.Item;
+                currentModel = df.MapToModel();
                 diskModel = dfNode.Model;
             }
-            else if (node is PaletteNode { Model: PaletteModel } paletteNode)
+            else if (node is PaletteNode paletteNode)
             {
                 var pal = (Palette) paletteNode.Item;
-                var model = pal.MapToModel(resourceMap, _colorFactory);
-                currentModel = model;
-
+                currentModel = pal.MapToModel(resourceMap, _colorFactory);
                 diskModel = paletteNode.Model;
             }
-            else if (node is ArrangerNode { Model: ScatteredArrangerModel } arrangerNode)
+            else if (node is ArrangerNode arrangerNode)
             {
                 var arranger = (ScatteredArranger)arrangerNode.Item;
-                var model = arranger.MapToModel(resourceMap);
-                currentModel = model;
-
+                currentModel = arranger.MapToModel(resourceMap);
                 diskModel = arrangerNode.Model;
             }
             else
