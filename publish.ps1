@@ -60,7 +60,7 @@ dotnet publish $tileshopProject `
     -p:PublishSingleFile=true `
     -o $tileshopPublishPath
     
-Compress-Archive -Path $tileshopPublishPath -DestinationPath $tileshopZipName
+Compress-Archive -Path $tileshopPublishPath -DestinationPath (Join-Path $publishPath $tileshopZipName)
 
 ### Build TileShop.CLI
 
@@ -74,4 +74,4 @@ dotnet publish $tileshopCliProject `
     -p:PublishSingleFile=true `
     -o $tileshopCliPublishPath
 
-Compress-Archive -Path $tileshopCliPublishPath -DestinationPath $tileshopCliZipName
+Compress-Archive -Path $tileshopCliPublishPath -DestinationPath (Join-Path $publishPath $tileshopCliZipName)
