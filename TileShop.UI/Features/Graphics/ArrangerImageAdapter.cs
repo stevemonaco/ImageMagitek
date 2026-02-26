@@ -146,11 +146,25 @@ public sealed class ArrangerImageAdapter
         return _indexedImage!.FloodFill(x, y, fillIndex);
     }
 
+    public bool FloodFill(int x, int y, byte fillIndex, Rectangle? clipBounds)
+    {
+        if (!IsIndexed)
+            throw new InvalidOperationException("Cannot flood fill with index on direct image");
+        return _indexedImage!.FloodFill(x, y, fillIndex, clipBounds);
+    }
+
     public bool FloodFill(int x, int y, ColorRgba32 fillColor)
     {
         if (!IsDirect)
             throw new InvalidOperationException("Cannot flood fill with color on indexed image");
         return _directImage!.FloodFill(x, y, fillColor);
+    }
+
+    public bool FloodFill(int x, int y, ColorRgba32 fillColor, Rectangle? clipBounds)
+    {
+        if (!IsDirect)
+            throw new InvalidOperationException("Cannot flood fill with color on indexed image");
+        return _directImage!.FloodFill(x, y, fillColor, clipBounds);
     }
 
     public MagitekResult TrySetPalette(int pixelX, int pixelY, Palette palette)

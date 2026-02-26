@@ -19,6 +19,17 @@ public partial class GraphicsEditorViewModel
     }
 
     [RelayCommand]
+    public void CycleDrawClipEffect()
+    {
+        DrawClipEffect = DrawClipEffect switch
+        {
+            DrawClipEffect.Greyscale => DrawClipEffect.Hidden,
+            DrawClipEffect.Hidden => DrawClipEffect.Greyscale,
+            _ => DrawClipEffect.Greyscale,
+        };
+    }
+
+    [RelayCommand]
     public void ToggleSnapMode()
     {
         if (SnapMode == SnapMode.Element)
@@ -73,8 +84,19 @@ public partial class GraphicsEditorViewModel
         }
     }
 
+    internal bool IsPointInDrawClip(int x, int y)
+    {
+        if (!IsDrawClipActive || DrawClipRect is not { } clip)
+            return true;
+        return x >= clip.SnappedLeft && x < clip.SnappedRight &&
+               y >= clip.SnappedTop && y < clip.SnappedBottom;
+    }
+
     internal void SetPixelAtPosition(int x, int y, ColorPriority priority)
     {
+        if (!IsPointInDrawClip(x, y))
+            return;
+
         if (IsIndexedColor)
         {
             var colorIndex = priority == ColorPriority.Primary ? PrimaryColorIndex : SecondaryColorIndex;
@@ -126,10 +148,17 @@ public partial class GraphicsEditorViewModel
 
     internal void FloodFillAtPosition(int x, int y, ColorPriority priority)
     {
+        if (!IsPointInDrawClip(x, y))
+            return;
+
+        Rectangle? clipBounds = null;
+        if (IsDrawClipActive && DrawClipRect is { } clip)
+            clipBounds = new Rectangle(clip.SnappedLeft, clip.SnappedTop, clip.SnappedWidth, clip.SnappedHeight);
+
         if (IsIndexedColor)
         {
             var colorIndex = priority == ColorPriority.Primary ? PrimaryColorIndex : SecondaryColorIndex;
-            if (_imageAdapter.FloodFill(x, y, colorIndex))
+            if (_imageAdapter.FloodFill(x, y, colorIndex, clipBounds))
             {
                 AddHistoryAction(new FloodFillAction<byte>(x, y, colorIndex));
                 IsModified = true;
@@ -138,7 +167,7 @@ public partial class GraphicsEditorViewModel
         else
         {
             var color = priority == ColorPriority.Primary ? PrimaryColor : SecondaryColor;
-            if (_imageAdapter.FloodFill(x, y, color))
+            if (_imageAdapter.FloodFill(x, y, color, clipBounds))
             {
                 AddHistoryAction(new FloodFillAction<ColorRgba32>(x, y, color));
                 IsModified = true;

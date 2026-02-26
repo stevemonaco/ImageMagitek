@@ -29,6 +29,7 @@ public enum PixelTool { Select, Pencil, ColorPicker, FloodFill }
 public enum ViewTool { Select }
 public enum ArrangerTool { Select, ApplyPalette, PickPalette, InspectElement, RotateLeft, RotateRight, MirrorHorizontal, MirrorVertical }
 public enum ColorPriority { Primary, Secondary }
+public enum DrawClipEffect { Greyscale, Hidden }
 
 public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewModel, IStateDriver
 {
@@ -82,10 +83,23 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
         _modifierOverrideTool = null;
 
+        // Capture selection before CancelOverlay clears it
+        SnappedRectangle? clipRect = null;
+        if (newValue == GraphicsEditMode.Draw && Selection.HasSelection)
+        {
+            clipRect = new SnappedRectangle(Selection.SelectionRect);
+        }
+
         CancelOverlay();
+
+        // Set after CancelOverlay so it doesn't get cleared
+        DrawClipRect = clipRect;
+        IsDrawClipActive = clipRect is not null;
+
         OnPropertyChanged(nameof(IsViewMode));
         OnPropertyChanged(nameof(IsArrangerMode));
         OnPropertyChanged(nameof(IsDrawMode));
+        OnPropertyChanged(nameof(HasDrawClipRect));
     }
 
     [ObservableProperty] private bool _canView;
@@ -106,6 +120,23 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     [ObservableProperty] private ArrangerSelection _selection;
     [ObservableProperty] private bool _isSelecting;
     [ObservableProperty] private ArrangerPaste? _paste;
+
+    [ObservableProperty] private SnappedRectangle? _drawClipRect;
+    public bool HasDrawClipRect => DrawClipRect is not null;
+
+    [ObservableProperty] private bool _isDrawClipActive;
+
+    partial void OnIsDrawClipActiveChanged(bool value)
+    {
+        InvalidateEditor(InvalidationLevel.Overlay);
+    }
+
+    [ObservableProperty] private DrawClipEffect _drawClipEffect = DrawClipEffect.Greyscale;
+
+    partial void OnDrawClipEffectChanged(DrawClipEffect value)
+    {
+        InvalidateEditor(InvalidationLevel.Overlay);
+    }
 
     public bool CanChangeSnapMode { get; private set; }
     public bool CanAcceptPixelPastes { get; init; }

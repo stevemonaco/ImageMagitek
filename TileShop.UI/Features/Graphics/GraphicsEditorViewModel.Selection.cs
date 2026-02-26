@@ -25,6 +25,7 @@ public partial class GraphicsEditorViewModel
         Selection.UpdateSelectionEndpoint(WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height);
         CompleteSelection();
         OnPropertyChanged(nameof(CanEditSelection));
+        OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
         InvalidateEditor(InvalidationLevel.Overlay);
     }
 
@@ -37,7 +38,32 @@ public partial class GraphicsEditorViewModel
         PendingOperationMessage = string.Empty;
 
         OnPropertyChanged(nameof(CanEditSelection));
+        OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
         InvalidateEditor(InvalidationLevel.Overlay);
+    }
+
+    [RelayCommand]
+    public void ClearDrawClipRect()
+    {
+        DrawClipRect = null;
+        IsDrawClipActive = false;
+        OnPropertyChanged(nameof(HasDrawClipRect));
+        InvalidateEditor(InvalidationLevel.Overlay);
+    }
+
+    public bool CanSetDrawClipFromSelection => IsDrawMode && Selection.HasSelection;
+
+    [RelayCommand]
+    public void SetDrawClipFromSelection()
+    {
+        if (!Selection.HasSelection)
+            return;
+
+        DrawClipRect = new SnappedRectangle(Selection.SelectionRect);
+        IsDrawClipActive = true;
+        OnPropertyChanged(nameof(HasDrawClipRect));
+
+        CancelOverlay();
     }
 
     [RelayCommand]
@@ -115,6 +141,7 @@ public partial class GraphicsEditorViewModel
 
             IsSelecting = false;
             OnPropertyChanged(nameof(CanEditSelection));
+        OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
             InvalidateEditor(InvalidationLevel.Overlay);
         }
     }
@@ -222,6 +249,7 @@ public partial class GraphicsEditorViewModel
             IsResizing = false;
             ActiveResizeHandle = SelectionHandle.None;
             OnPropertyChanged(nameof(CanEditSelection));
+        OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
             InvalidateEditor(InvalidationLevel.Overlay);
         }
     }

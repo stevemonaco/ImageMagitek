@@ -210,6 +210,15 @@
                             <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.FloodFill}" />
                         </RadioButton>
                     </StackPanel>
+
+                    <Button Command="{Binding SetDrawClipFromSelectionCommand}"
+                        IsVisible="{Binding CanSetDrawClipFromSelection}"
+                        ToolTip.Tip="Use current selection as draw clip">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.DrawClip}" Foreground="#F9F9F9" />
+                            <TextBlock Text="Set Draw Clip" Foreground="#F9F9F9" FontSize="11" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
 
                 <!--  Palette  -->
@@ -305,6 +314,25 @@
                     <StackPanel HorizontalAlignment="Left" IsVisible="{Binding IsDirectColor}" Orientation="Horizontal" Spacing="2">
                         <ColorPicker Height="40" Color="{Binding PrimaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
                         <ColorPicker Height="40" Color="{Binding SecondaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!--  Draw Clip  -->
+                <StackPanel IsVisible="{Binding HasDrawClipRect}" Spacing="4">
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Draw Clip" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <ToggleButton IsChecked="{Binding IsDrawClipActive}" ToolTip.Tip="Toggle draw clip mask">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.DrawClip}" Foreground="#F9F9F9" />
+                        </ToggleButton>
+
+                        <Button Command="{Binding CycleDrawClipEffectCommand}" ToolTip.Tip="{Binding DrawClipEffect, StringFormat='Clip effect: {0} (click to cycle)'}">
+                            <TextBlock Text="{Binding DrawClipEffect}" Foreground="#F9F9F9" FontSize="11" />
+                        </Button>
+
+                        <Button Command="{Binding ClearDrawClipRectCommand}" ToolTip.Tip="Remove draw clip">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Trash}" Foreground="#F9F9F9" />
+                        </Button>
                     </StackPanel>
                 </StackPanel>
 

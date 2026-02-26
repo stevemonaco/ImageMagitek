@@ -141,6 +141,12 @@ public class SnappedRectangle : ObservableObject
 
     public SnappedRectangle() : this(new Size(int.MaxValue, int.MaxValue), new Size(1, 1), SnapMode.Pixel) { }
 
+    public SnappedRectangle(SnappedRectangle other)
+        : this(other.MaximumSize, other.ElementSize, other.SnapMode, other.SnapRounding)
+    {
+        SetBounds(other.Left, other.Right, other.Top, other.Bottom);
+    }
+
     public SnappedRectangle(Size maximumSize, Size elementSize, SnapMode snapMode, ElementSnapRounding snapRounding = ElementSnapRounding.Expand)
     {
         _maximumSize = maximumSize;

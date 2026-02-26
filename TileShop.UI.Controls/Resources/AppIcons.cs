@@ -50,5 +50,8 @@ public static class AppIcons
     public static StreamGeometry NodeArranger { get; } = Parse("M167 446q0 104 104 104t104 -104t-104 -104t-104 104zM583 383q33 0 62 -49q41 -74 63 -201h-583l13 42q14 43 44.5 84t67.5 41q43 0 101 -31q20 -11 45 -11q30 0 69 44q46 52 73 68q22 13 45 13zM0 592q0 34 24 58.5t59 24.5h667q34 0 58.5 -24.5t24.5 -58.5v-500 q0 -35 -24.5 -59.5t-58.5 -24.5h-667q-34 0 -58.5 24.5t-24.5 59.5v500zM750 92v500h-667v-500h667z");
     public static StreamGeometry NodePixel { get; } = Parse("M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM124.1 339.9c-5.5-5.5-5.5-14.3 0-19.8l154-154c5.5-5.5 14.3-5.5 19.8 0s5.5 14.3 0 19.8l-154 154c-5.5 5.5-14.3 5.5-19.8 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z");
 
+    // Material Design Icons - CropFree (draw clip mask outline)
+    public static StreamGeometry DrawClip { get; } = Parse("M19,3H5C3.9,3 3,3.9 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.9 20.1,3 19,3M19,19H5V5H19V19M7,7V9H9V7H7M7,15V17H9V15H7M15,7V9H17V7H15M15,15V17H17V15H15Z");
+
     private static StreamGeometry Parse(string path) => StreamGeometry.Parse(path);
 }

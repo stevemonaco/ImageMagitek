@@ -150,8 +150,24 @@ public static class IndexedImageExtensions
     /// <param name="y">y-coordinate to start at in pixel coordinates</param>
     /// <param name="fillIndex">Palette index to fill with</param>
     /// <returns>True if any pixels were modified</returns>
-    public static bool FloodFill(this IndexedImage image, int x, int y, byte fillIndex)
+    public static bool FloodFill(this IndexedImage image, int x, int y, byte fillIndex) =>
+        FloodFill(image, x, y, fillIndex, null);
+
+    /// <summary>
+    /// Fills the surrounding, contiguous color area with a new color, constrained by optional clip bounds
+    /// </summary>
+    /// <param name="x">x-coordinate to start at in pixel coordinates</param>
+    /// <param name="y">y-coordinate to start at in pixel coordinates</param>
+    /// <param name="fillIndex">Palette index to fill with</param>
+    /// <param name="clipBounds">Optional clip rectangle to constrain the fill area</param>
+    /// <returns>True if any pixels were modified</returns>
+    public static bool FloodFill(this IndexedImage image, int x, int y, byte fillIndex, Rectangle? clipBounds)
     {
+        int minX = clipBounds?.Left ?? 0;
+        int minY = clipBounds?.Top ?? 0;
+        int maxX = clipBounds?.Right ?? image.Width;
+        int maxY = clipBounds?.Bottom ?? image.Height;
+
         bool isModified = false;
         var replaceIndex = image.GetPixel(x, y);
         Palette? startingPalette = default;
@@ -169,7 +185,7 @@ public static class IndexedImageExtensions
         {
             var nodePosition = openNodes.Pop();
 
-            if (nodePosition.x >= 0 && nodePosition.x < image.Width && nodePosition.y >= 0 && nodePosition.y < image.Height)
+            if (nodePosition.x >= minX && nodePosition.x < maxX && nodePosition.y >= minY && nodePosition.y < maxY)
             {
                 var nodeColor = image.GetPixel(nodePosition.x, nodePosition.y);
                 if (nodeColor == replaceIndex)

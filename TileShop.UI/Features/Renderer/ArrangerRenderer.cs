@@ -18,8 +18,8 @@ public class ArrangerRenderer
         const int size = cellSize * 2;
 
         var bitmap = new SKBitmap(size, size);
-        var white = new SKColor(0xFF, 0xFF, 0xFF);
-        var grey = new SKColor(0xC8, 0xC8, 0xC8);
+        var white = new SKColor(0xC0, 0xC0, 0xC0);
+        var grey = new SKColor(0x80, 0x80, 0x80);
 
         for (int y = 0; y < size; y++)
         {
@@ -105,24 +105,71 @@ public class ArrangerRenderer
         var bitmap = state.BitmapAdapter.Bitmap;
         var rect = new SKRect(0, 0, bitmap.PixelSize.Width, bitmap.PixelSize.Height);
 
-        canvas.DrawRect(rect, _checkerboardPaint);
+        bool hasClip = state.IsDrawClipActive && state.DrawClipRect is not null;
+        bool hasSel = state.Selection.HasSelection;
+        bool isHiddenClip = hasClip && state.DrawClipEffect == DrawClipEffect.Hidden;
+
+        // Clip the checkerboard backdrop when using Hidden draw clip effect
+        if (isHiddenClip)
+        {
+            var clip = state.DrawClipRect!;
+            var clipRect = new SKRect(clip.SnappedLeft, clip.SnappedTop, clip.SnappedRight, clip.SnappedBottom);
+            canvas.Save();
+            canvas.ClipRect(clipRect);
+            canvas.DrawRect(rect, _checkerboardPaint);
+            canvas.Restore();
+        }
+        else
+        {
+            canvas.DrawRect(rect, _checkerboardPaint);
+        }
 
         using (var pixels = bitmap.Lock())
         {
             var imageInfo = new SKImageInfo(bitmap.PixelSize.Width, bitmap.PixelSize.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
             using var image = SKImage.FromPixels(imageInfo, pixels.Address, pixels.RowBytes);
 
-            if (state.Selection.HasSelection)
+            if (hasClip || hasSel)
             {
-                canvas.DrawImage(image, rect, _greyscalePaint);
+                if (isHiddenClip)
+                {
+                    // Draw only the clipped region, nothing outside
+                    var clip = state.DrawClipRect!;
+                    var clipRect = new SKRect(clip.SnappedLeft, clip.SnappedTop, clip.SnappedRight, clip.SnappedBottom);
+                    canvas.Save();
+                    canvas.ClipRect(clipRect);
+                    canvas.DrawImage(image, rect);
+                    canvas.Restore();
+                }
+                else
+                {
+                    canvas.DrawImage(image, rect, _greyscalePaint);
 
-                var sel = state.Selection.SelectionRect;
-                var selectionClip = new SKRect(sel.SnappedLeft, sel.SnappedTop, sel.SnappedRight, sel.SnappedBottom);
+                    if (hasClip)
+                    {
+                        var clip = state.DrawClipRect!;
+                        var clipRect = new SKRect(clip.SnappedLeft, clip.SnappedTop, clip.SnappedRight, clip.SnappedBottom);
+                        canvas.Save();
+                        canvas.ClipRect(clipRect);
+                        canvas.DrawImage(image, rect);
+                        canvas.Restore();
+                    }
+                }
 
-                canvas.Save();
-                canvas.ClipRect(selectionClip);
-                canvas.DrawImage(image, rect);
-                canvas.Restore();
+                if (hasSel)
+                {
+                    var sel = state.Selection.SelectionRect;
+                    var selectionClip = new SKRect(sel.SnappedLeft, sel.SnappedTop, sel.SnappedRight, sel.SnappedBottom);
+                    canvas.Save();
+                    if (hasClip)
+                    {
+                        var clip = state.DrawClipRect!;
+                        canvas.ClipRect(new SKRect(clip.SnappedLeft, clip.SnappedTop, clip.SnappedRight, clip.SnappedBottom));
+                    }
+                    canvas.ClipRect(selectionClip);
+                    canvas.DrawImage(image, rect);
+                    canvas.Restore();
+                }
             }
             else
             {
