@@ -52,7 +52,7 @@ class Program
                 if (!isBootstrapped)
                     code = ExitCode.EnvironmentError;
                 else
-                    code = ExecuteHandler(options);
+                    code = await ExecuteHandler(options);
             });
 
         var errorCodeDescription = code switch
@@ -154,7 +154,7 @@ class Program
     /// </summary>
     /// <param name="options"></param>
     /// <returns></returns>
-    private static ExitCode ExecuteHandler(object options)
+    private static async Task<ExitCode> ExecuteHandler(object options)
     {
         if (ProjectService is null)
             throw new InvalidOperationException($"{nameof(ProjectService)} was not initialized");
@@ -165,23 +165,23 @@ class Program
         {
             case PrintOptions printOptions:
                 var printHandler = new PrintHandler(ProjectService);
-                code = printHandler.TryExecute(printOptions);
+                code = await printHandler.TryExecute(printOptions);
                 break;
             case ExportOptions exportOptions:
                 var exportHandler = new ExportHandler(ProjectService);
-                code = exportHandler.TryExecute(exportOptions);
+                code = await exportHandler.TryExecute(exportOptions);
                 break;
             case ExportAllOptions exportAllOptions:
                 var exportAllHandler = new ExportAllHandler(ProjectService);
-                code = exportAllHandler.TryExecute(exportAllOptions);
+                code = await exportAllHandler.TryExecute(exportAllOptions);
                 break;
             case ImportOptions importOptions:
                 var importHandler = new ImportHandler(ProjectService);
-                code = importHandler.TryExecute(importOptions);
+                code = await importHandler.TryExecute(importOptions);
                 break;
             case ImportAllOptions importAllOptions:
                 var importAllHandler = new ImportAllHandler(ProjectService);
-                code = importAllHandler.TryExecute(importAllOptions);
+                code = await importAllHandler.TryExecute(importAllOptions);
                 break;
         }
 

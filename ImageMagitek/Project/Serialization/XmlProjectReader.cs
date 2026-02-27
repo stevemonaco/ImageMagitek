@@ -70,6 +70,14 @@ public sealed class XmlProjectReader : IProjectReader
 
         builder.AddProject(projectModel, _baseDirectory, projectFileName);
 
+        // Fail if an incomplete transaction journal exists — recovery must be performed first
+        var journalPath = Path.Combine(_baseDirectory, "_transaction.json");
+        if (File.Exists(journalPath))
+        {
+            _errors.Add($"Project directory contains an incomplete transaction journal '{journalPath}'. Recovery must be performed before the project can be loaded.");
+            return new MagitekResults<ProjectTree>.Failed(_errors);
+        }
+
         // Add directories
         var directoryNames = Directory.GetDirectories(_baseDirectory, "*", SearchOption.AllDirectories);
         foreach (var directoryName in directoryNames)

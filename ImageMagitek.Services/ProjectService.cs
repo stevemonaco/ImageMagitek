@@ -8,6 +8,7 @@ using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
+using ImageMagitek.Utility;
 using Monaco.PathTree;
 
 namespace ImageMagitek.Services;
@@ -99,14 +100,15 @@ public class ProjectService : IProjectService
     }
 
     /// <summary>
-    /// Opens the specified project and makes it active in the service
+    /// Opens the specified project and makes it active in the service.
+    /// Performs WAL transaction recovery before reading the project.
     /// </summary>
     /// <param name="projectFileName">Project to be opened</param>
     /// <returns>The opened project</returns>
-    public virtual MagitekResults<ProjectTree> OpenProjectFile(string projectFileName)
+    public virtual async Task<MagitekResults<ProjectTree>> OpenProjectFileAsync(string projectFileName)
     {
         if (string.IsNullOrWhiteSpace(projectFileName))
-            throw new ArgumentException($"{nameof(OpenProjectFile)} cannot have a null or empty value for '{nameof(projectFileName)}'");
+            throw new ArgumentException($"{nameof(OpenProjectFileAsync)} cannot have a null or empty value for '{nameof(projectFileName)}'");
 
         if (!File.Exists(projectFileName))
             return new MagitekResults<ProjectTree>.Failed($"File '{projectFileName}' does not exist");
@@ -116,6 +118,12 @@ public class ProjectService : IProjectService
 
         try
         {
+            var baseDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName))!;
+            var recoveryResult = await WriteAheadLogTransaction.RecoverAsync(baseDirectory);
+
+            if (recoveryResult.HasFailed)
+                return new MagitekResults<ProjectTree>.Failed($"Transaction recovery failed for '{projectFileName}': {recoveryResult.AsError.Reason}");
+
             var reader = _serializerFactory.CreateReader();
             var result = reader.ReadProject(projectFileName);
 

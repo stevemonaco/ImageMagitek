@@ -47,12 +47,12 @@ public sealed class XmlProjectWriter : IProjectWriter
         if (string.IsNullOrWhiteSpace(projectFileName))
             throw new ArgumentException($"{nameof(WriteProjectAsync)} property '{nameof(projectFileName)}' was null or empty");
 
-        await _writeLock.WaitAsync();
+        await _writeLock.WaitAsync().ConfigureAwait(false);
         try
         {
             _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName))!;
 
-            var serializeResult = await TrySerializeProjectTreeAsync(_tree);
+            var serializeResult = await TrySerializeProjectTreeAsync(_tree).ConfigureAwait(false);
             return serializeResult.Match<MagitekResult>(
                 success => MagitekResult.SuccessResult,
                 failed => new MagitekResult.Failed(failed.Reasons.First()));
@@ -107,7 +107,7 @@ public sealed class XmlProjectWriter : IProjectWriter
         if (resourceNode.DiskLocation is null)
             return new MagitekResult.Failed($"Resource '{resourceNode.Name}' cannot be saved because '{nameof(resourceNode.DiskLocation)}' is null");
 
-        await _writeLock.WaitAsync();
+        await _writeLock.WaitAsync().ConfigureAwait(false);
         try
         {
             string contents;
@@ -149,7 +149,7 @@ public sealed class XmlProjectWriter : IProjectWriter
             {
                 var actions = new[] { (resourceNode.DiskLocation, contents, resourceNode, currentModel) };
 
-                var transactionResult = await RunTransactionsAsync(actions);
+                var transactionResult = await RunTransactionsAsync(actions).ConfigureAwait(false);
                 return transactionResult.Match<MagitekResult>(
                     success => MagitekResult.SuccessResult,
                     failed => new MagitekResult.Failed(failed.Reasons.First()));
@@ -209,7 +209,7 @@ public sealed class XmlProjectWriter : IProjectWriter
             }
         }
 
-        return await RunTransactionsAsync(actions);
+        return await RunTransactionsAsync(actions).ConfigureAwait(false);
     }
 
     private async Task<MagitekResults> RunTransactionsAsync(IEnumerable<(string targetPath, string contents, ResourceNode node, ResourceModel model)> actions)
@@ -226,7 +226,7 @@ public sealed class XmlProjectWriter : IProjectWriter
             transaction.AddWriteFile(action.targetPath, action.contents);
         }
 
-        var result = await transaction.ExecuteAsync();
+        var result = await transaction.ExecuteAsync().ConfigureAwait(false);
 
         if (result.HasSucceeded)
         {

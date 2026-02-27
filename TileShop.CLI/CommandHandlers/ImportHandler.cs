@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using ImageMagitek.Services;
 using TileShop.CLI.Porters;
 
@@ -11,9 +12,9 @@ public class ImportHandler : ProjectCommandHandler<ImportOptions>
     {
     }
 
-    public override ExitCode Execute(ImportOptions options)
+    public override async Task<ExitCode> Execute(ImportOptions options)
     {
-        var project = OpenProject(options.ProjectFileName);
+        var project = await OpenProject(options.ProjectFileName);
 
         if (project is null)
             return ExitCode.ProjectOpenError;

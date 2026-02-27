@@ -579,7 +579,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         if (projectFileName is null)
             return false;
 
-        var openResult = _projectService.OpenProjectFile(projectFileName);
+        var openResult = await _projectService.OpenProjectFileAsync(projectFileName);
 
         return await openResult.Match(
             success =>

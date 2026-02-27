@@ -55,7 +55,7 @@ public sealed class WriteAheadLogTransaction
         {
             for (int i = 0; i < _pendingWrites.Count; i++)
             {
-                await File.WriteAllTextAsync(journal.Operations[i].StagingPath, _pendingWrites[i].Contents);
+                await File.WriteAllTextAsync(journal.Operations[i].StagingPath, _pendingWrites[i].Contents).ConfigureAwait(false);
             }
         }
         catch (Exception ex)
@@ -68,7 +68,7 @@ public sealed class WriteAheadLogTransaction
         // Phase 2: Write journal — transaction is now active
         try
         {
-            await WriteJournalAsync(journal);
+            await WriteJournalAsync(journal).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -94,7 +94,7 @@ public sealed class WriteAheadLogTransaction
 
                 // Mark completed and rewrite journal
                 op.State = WalOperationState.Completed;
-                await WriteJournalAsync(journal);
+                await WriteJournalAsync(journal).ConfigureAwait(false);
             }
         }
         catch (Exception ex)
@@ -127,7 +127,7 @@ public sealed class WriteAheadLogTransaction
         WalJournal? journal;
         try
         {
-            var json = await File.ReadAllTextAsync(journalPath);
+            var json = await File.ReadAllTextAsync(journalPath).ConfigureAwait(false);
             journal = JsonSerializer.Deserialize<WalJournal>(json, _jsonOptions);
         }
         catch (Exception ex)
@@ -205,7 +205,7 @@ public sealed class WriteAheadLogTransaction
     private async Task WriteJournalAsync(WalJournal journal)
     {
         var json = JsonSerializer.Serialize(journal, _jsonOptions);
-        await File.WriteAllTextAsync(_journalPath, json);
+        await File.WriteAllTextAsync(_journalPath, json).ConfigureAwait(false);
     }
 
     private static List<string> RollbackCompletedOperations(WalJournal journal)

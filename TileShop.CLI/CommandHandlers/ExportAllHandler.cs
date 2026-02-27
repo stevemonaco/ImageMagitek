@@ -1,8 +1,9 @@
-﻿using Monaco.PathTree;
-using ImageMagitek.Services;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using Monaco.PathTree;
 using ImageMagitek;
+using ImageMagitek.Services;
 using TileShop.CLI.Porters;
-using System.Linq;
 
 namespace TileShop.CLI.Commands;
 
@@ -13,9 +14,9 @@ public class ExportAllHandler : ProjectCommandHandler<ExportAllOptions>
     {
     }
 
-    public override ExitCode Execute(ExportAllOptions options)
+    public override async Task<ExitCode> Execute(ExportAllOptions options)
     {
-        var projectTree = OpenProject(options.ProjectFileName);
+        var projectTree = await OpenProject(options.ProjectFileName);
 
         if (projectTree is null)
             return ExitCode.ProjectOpenError;

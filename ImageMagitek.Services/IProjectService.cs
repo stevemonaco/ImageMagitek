@@ -10,7 +10,7 @@ public interface IProjectService
     MagitekResult<ProjectTree> CreateNewProject(string projectName);
     Task<MagitekResult<ProjectTree>> CreateNewProjectWithExistingFileAsync(string projectFileName, string fileName);
 
-    MagitekResults<ProjectTree> OpenProjectFile(string projectFileName);
+    Task<MagitekResults<ProjectTree>> OpenProjectFileAsync(string projectFileName);
     Task<MagitekResult> SaveProjectAsync(ProjectTree projectTree);
     Task<MagitekResult> SaveProjectAsAsync(ProjectTree projectTree, string projectFileName);
     void CloseProject(ProjectTree projectTree);
