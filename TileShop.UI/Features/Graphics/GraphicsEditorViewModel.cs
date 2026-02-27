@@ -425,7 +425,8 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
             if (resourceNode is not null)
             {
-                await _projectService.SaveResource(projectTree, resourceNode, true).Match(
+                var saveResourceResult = await _projectService.SaveResourceAsync(projectTree, resourceNode, true);
+                await saveResourceResult.Match(
                     success =>
                     {
                         ClearHistory();

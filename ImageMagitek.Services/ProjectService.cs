@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using CommunityToolkit.Diagnostics;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
@@ -55,7 +56,7 @@ public class ProjectService : IProjectService
         return new MagitekResult<ProjectTree>.Success(tree);
     }
 
-    public virtual MagitekResult<ProjectTree> CreateNewProjectWithExistingFile(string projectFileName, string dataFileName)
+    public virtual async Task<MagitekResult<ProjectTree>> CreateNewProjectWithExistingFileAsync(string projectFileName, string dataFileName)
     {
         if (_projects.Any(x => string.Equals(x.Name, projectFileName, StringComparison.OrdinalIgnoreCase)))
             return new MagitekResult<ProjectTree>.Failed($"{projectFileName} already exists in the solution");
@@ -85,7 +86,7 @@ public class ProjectService : IProjectService
         tree.AttachNodeToPath("", dataNode);
 
         _projects.Add(tree);
-        var result = SaveProject(tree);
+        var result = await SaveProjectAsync(tree);
 
         if (result.HasSucceeded)
         {
@@ -138,20 +139,20 @@ public class ProjectService : IProjectService
     /// </summary>
     /// <param name="projectTree">Project to be saved</param>
     /// <returns></returns>
-    public virtual MagitekResult SaveProject(ProjectTree projectTree)
+    public virtual async Task<MagitekResult> SaveProjectAsync(ProjectTree projectTree)
     {
         if (projectTree is null)
-            throw new InvalidOperationException($"{nameof(SaveProject)} parameter '{nameof(projectTree)}' was null");
+            throw new InvalidOperationException($"{nameof(SaveProjectAsync)} parameter '{nameof(projectTree)}' was null");
 
         var projectFileLocation = projectTree.Root.DiskLocation;
 
         if (string.IsNullOrWhiteSpace(projectFileLocation))
-            throw new InvalidOperationException($"{nameof(SaveProject)} cannot have a null or empty value for the project's file location");
+            throw new InvalidOperationException($"{nameof(SaveProjectAsync)} cannot have a null or empty value for the project's file location");
 
         try
         {
             var writer = _serializerFactory.CreateWriter(projectTree);
-            return writer.WriteProject(projectFileLocation);
+            return await writer.WriteProjectAsync(projectFileLocation);
         }
         catch (Exception ex)
         {
@@ -165,18 +166,18 @@ public class ProjectService : IProjectService
     /// <param name="projectTree">Project to be saved</param>
     /// <param name="projectFileName">New location</param>
     /// <returns></returns>
-    public virtual MagitekResult SaveProjectAs(ProjectTree projectTree, string projectFileName)
+    public virtual async Task<MagitekResult> SaveProjectAsAsync(ProjectTree projectTree, string projectFileName)
     {
         if (projectTree is null)
-            throw new InvalidOperationException($"{nameof(SaveProjectAs)} parameter '{nameof(projectTree)}' was null");
+            throw new InvalidOperationException($"{nameof(SaveProjectAsAsync)} parameter '{nameof(projectTree)}' was null");
 
         if (string.IsNullOrWhiteSpace(projectFileName))
-            throw new ArgumentException($"{nameof(SaveProjectAs)} cannot have a null or empty value for '{nameof(projectFileName)}'");
+            throw new ArgumentException($"{nameof(SaveProjectAsAsync)} cannot have a null or empty value for '{nameof(projectFileName)}'");
 
         try
         {
             var serializer = _serializerFactory.CreateWriter(projectTree);
-            var result = serializer.WriteProject(projectFileName);
+            var result = await serializer.WriteProjectAsync(projectFileName);
             if (result.Value is MagitekResult.Success)
             {
                 projectTree.Root.DiskLocation = Path.GetFullPath(projectFileName);
@@ -325,23 +326,23 @@ public class ProjectService : IProjectService
     /// <param name="resourceNode">Resource to persist</param>
     /// <param name="alwaysOverwrite">Persist the resource even if unchanged</param>
     /// <returns>The result of the operation</returns>
-    public virtual MagitekResult SaveResource(ProjectTree projectTree, ResourceNode resourceNode, bool alwaysOverwrite)
+    public virtual async Task<MagitekResult> SaveResourceAsync(ProjectTree projectTree, ResourceNode resourceNode, bool alwaysOverwrite)
     {
         if (projectTree is null)
-            throw new InvalidOperationException($"{nameof(SaveResource)} parameter '{nameof(projectTree)}' was null");
+            throw new InvalidOperationException($"{nameof(SaveResourceAsync)} parameter '{nameof(projectTree)}' was null");
 
         if (projectTree.Root.DiskLocation is null)
-            throw new InvalidOperationException($"{nameof(SaveResource)}: '{nameof(projectTree)}' has no disk location");
+            throw new InvalidOperationException($"{nameof(SaveResourceAsync)}: '{nameof(projectTree)}' has no disk location");
 
         string projectFileLocation = projectTree.Root.DiskLocation;
 
         if (string.IsNullOrWhiteSpace(projectFileLocation))
-            throw new InvalidOperationException($"{nameof(SaveResource)} cannot have a null or empty value for the project's file location");
+            throw new InvalidOperationException($"{nameof(SaveResourceAsync)} cannot have a null or empty value for the project's file location");
 
         try
         {
             var writer = _serializerFactory.CreateWriter(projectTree);
-            return writer.WriteResource(resourceNode, alwaysOverwrite);
+            return await writer.WriteResourceAsync(resourceNode, alwaysOverwrite);
         }
         catch (Exception ex)
         {
@@ -374,7 +375,7 @@ public class ProjectService : IProjectService
     /// </summary>
     /// <param name="node">Node to be renamed. Must be attached to a loaded project.</param>
     /// <param name="newName">New name</param>
-    public virtual MagitekResult RenameResource(ResourceNode node, string newName)
+    public virtual async Task<MagitekResult> RenameResourceAsync(ResourceNode node, string newName)
     {
         var tree = _projects.FirstOrDefault(x => x.ContainsNode(node));
 
@@ -409,8 +410,8 @@ public class ProjectService : IProjectService
             }
 
             var serializer = _serializerFactory.CreateWriter(tree);
-            return serializer.WriteProject(tree.Root.DiskLocation)
-                .Match<MagitekResult>(
+            var writeResult = await serializer.WriteProjectAsync(tree.Root.DiskLocation);
+            return writeResult.Match<MagitekResult>(
                 success => MagitekResult.SuccessResult,
                 failed =>
                 {
@@ -429,7 +430,7 @@ public class ProjectService : IProjectService
                 Guard.IsNotNull(tree.Root.DiskLocation);
                 node.Rename(newName);
                 var serializer = _serializerFactory.CreateWriter(tree);
-                serializer.WriteProject(tree.Root.DiskLocation);
+                await serializer.WriteProjectAsync(tree.Root.DiskLocation);
             }
             catch (Exception ex)
             {
@@ -509,7 +510,7 @@ public class ProjectService : IProjectService
     /// <param name="node">Node to move</param>
     /// <param name="parentNode">Parent destination</param>
     /// <returns></returns>
-    public virtual MagitekResult MoveNode(ResourceNode node, ResourceNode parentNode)
+    public virtual async Task<MagitekResult> MoveNodeAsync(ResourceNode node, ResourceNode parentNode)
     {
         Guard.IsNotNull(node);
         Guard.IsNotNull(parentNode);
@@ -544,8 +545,8 @@ public class ProjectService : IProjectService
                 return new MagitekResult.Failed($"Failed to move node '{node.Name}': {ex.Message}");
             }
 
-            return serializer.WriteProject(tree.Root.DiskLocation)
-                .Match<MagitekResult>(
+            var writeResult = await serializer.WriteProjectAsync(tree.Root.DiskLocation);
+            return writeResult.Match<MagitekResult>(
                 success => MagitekResult.SuccessResult,
                 failed =>
                 {
@@ -567,7 +568,7 @@ public class ProjectService : IProjectService
 
                 node.Parent?.DetachChildNode(node.Name);
                 parentNode.AttachChildNode(node);
-                var result = serializer.WriteProject(tree.Root.DiskLocation);
+                var result = await serializer.WriteProjectAsync(tree.Root.DiskLocation);
 
                 if (result.HasFailed)
                 {
@@ -580,7 +581,7 @@ public class ProjectService : IProjectService
             }
             catch (Exception ex)
             {
-                File.Move(oldLocation, newLocation);
+                File.Move(newLocation, oldLocation);
                 node.Parent?.DetachChildNode(node.Name);
                 oldParent?.AttachChildNode(node);
                 return new MagitekResult.Failed($"Failed to move node '{node.Name}': {ex.Message}");
