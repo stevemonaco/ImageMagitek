@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
 
@@ -15,11 +16,11 @@ public abstract class ProjectCommandHandler<T>
         ProjectService = projectService;
     }
 
-    public virtual ExitCode TryExecute(T options)
+    public virtual async Task<ExitCode> TryExecute(T options)
     {
         try
         {
-            return Execute(options);
+            return await Execute(options);
         }
         catch (Exception ex)
         {
@@ -28,11 +29,11 @@ public abstract class ProjectCommandHandler<T>
         }
     }
 
-    public abstract ExitCode Execute(T options);
+    public abstract Task<ExitCode> Execute(T options);
 
-    public virtual ProjectTree? OpenProject(string projectFileName)
+    public virtual async Task<ProjectTree?> OpenProject(string projectFileName)
     {
-        var openResult = ProjectService.OpenProjectFile(projectFileName);
+        var openResult = await ProjectService.OpenProjectFileAsync(projectFileName);
 
         return openResult.Match<ProjectTree?>(
             success =>

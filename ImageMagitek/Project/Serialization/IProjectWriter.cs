@@ -1,10 +1,12 @@
-﻿namespace ImageMagitek.Project.Serialization;
+using System.Threading.Tasks;
+
+namespace ImageMagitek.Project.Serialization;
 
 public interface IProjectWriter
 {
     string Version { get; }
 
-    MagitekResult WriteProject(string fileName);
+    Task<MagitekResult> WriteProjectAsync(string fileName);
     string SerializeResource(ResourceNode resourceNode);
-    MagitekResult WriteResource(ResourceNode resourceNode, bool alwaysOverwrite);
+    Task<MagitekResult> WriteResourceAsync(ResourceNode resourceNode, bool alwaysOverwrite);
 }

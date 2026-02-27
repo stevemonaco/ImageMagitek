@@ -277,7 +277,8 @@ public partial class ProjectTreeViewModel : ToolViewModel
             var projectRootVm = Projects.First(x => ReferenceEquals(tree.Root, x.Node));
             SynchronizeTree(projectRootVm);
 
-            await _projectService.SaveProject(tree).Match(
+            var saveResult = await _projectService.SaveProjectAsync(tree);
+            await saveResult.Match(
                 success =>
                 {
                     IsModified = false;
@@ -372,7 +373,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
             var oldName = nodeModel.Name;
             var newName = dialogModel.Name;
 
-            var result = _projectService.RenameResource(nodeModel.Node, dialogModel.Name);
+            var result = await _projectService.RenameResourceAsync(nodeModel.Node, dialogModel.Name);
 
             await result.Match(
                 success =>
@@ -481,11 +482,11 @@ public partial class ProjectTreeViewModel : ToolViewModel
             {
                 var projectTree = _projectService.GetContainingProject(project.Node);
 
-                _projectService.SaveProject(projectTree)
-                     .Switch(
-                                                  success => base.IsModified = false,
-                         async fail => await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
-                     );
+                var saveResult = await _projectService.SaveProjectAsync(projectTree);
+                saveResult.Switch(
+                    success => base.IsModified = false,
+                    async fail => await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
+                );
             }
         }
         catch (Exception ex)
@@ -540,7 +541,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
         try
         {
-            var result = _projectService.CreateNewProjectWithExistingFile(Path.GetFullPath(projectFileName), Path.GetFullPath(dataFileName.LocalPath));
+            var result = await _projectService.CreateNewProjectWithExistingFileAsync(Path.GetFullPath(projectFileName), Path.GetFullPath(dataFileName.LocalPath));
             await result.Match(
                 success =>
                 {
@@ -578,7 +579,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         if (projectFileName is null)
             return false;
 
-        var openResult = _projectService.OpenProjectFile(projectFileName);
+        var openResult = await _projectService.OpenProjectFileAsync(projectFileName);
 
         return await openResult.Match(
             success =>
@@ -608,7 +609,8 @@ public partial class ProjectTreeViewModel : ToolViewModel
         if (newFileName is null)
             return;
 
-        await _projectService.SaveProjectAs(projectTree, newFileName.LocalPath).Match(
+        var saveAsResult = await _projectService.SaveProjectAsAsync(projectTree, newFileName.LocalPath);
+        await saveAsResult.Match(
             success =>
             {
                 return Task.CompletedTask;
@@ -624,7 +626,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
     {
         var projectTree = _projectService.GetContainingProject(projectVm.Node);
 
-        var projectSaveResult = _projectService.SaveProject(projectTree);
+        var projectSaveResult = await _projectService.SaveProjectAsync(projectTree);
 
         if (projectSaveResult.HasSucceeded)
         {
@@ -657,16 +659,17 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
             _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
 
-            await _projectService.SaveProject(projectTree).Match(
-                                  success =>
-                 {
-                     base.IsModified = false;
-                     return Task.CompletedTask;
-                 },
-                 async fail =>
-                 {
-                     await _interactions.AlertAsync("Project Save Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}");
-                 });
+            var finalSaveResult = await _projectService.SaveProjectAsync(projectTree);
+            await finalSaveResult.Match(
+                success =>
+                {
+                    base.IsModified = false;
+                    return Task.CompletedTask;
+                },
+                async fail =>
+                {
+                    await _interactions.AlertAsync("Project Save Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}");
+                });
 
             _projectService.CloseProject(projectTree);
             Projects.Remove(projectVm);

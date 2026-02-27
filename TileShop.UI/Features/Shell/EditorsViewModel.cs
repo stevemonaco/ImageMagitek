@@ -76,7 +76,8 @@ public partial class EditorsViewModel : ObservableRecipient
                 if (editor is not GraphicsEditorViewModel { EditMode: GraphicsEditMode.Draw})
                 {
                     var projectTree = _projectService.GetContainingProject(editor.Resource);
-                    await _projectService.SaveProject(projectTree).Match(
+                    var saveResult = await _projectService.SaveProjectAsync(projectTree);
+                    await saveResult.Match(
                         success =>
                         {
                             return Task.CompletedTask;
@@ -194,7 +195,7 @@ public partial class EditorsViewModel : ObservableRecipient
 
             foreach (var projectTree in savedProjects)
             {
-                var result = _projectService.SaveProject(projectTree);
+                var result = await _projectService.SaveProjectAsync(projectTree);
 
                 if (result.HasFailed)
                     await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}:\n{result.AsError.Reason}");
@@ -228,7 +229,8 @@ public partial class EditorsViewModel : ObservableRecipient
                 if (saveTree)
                 {
                     var projectTree = _projectService.GetContainingProject(editor.Resource);
-                    await _projectService.SaveProject(projectTree).Match(
+                    var saveTreeResult = await _projectService.SaveProjectAsync(projectTree);
+                    await saveTreeResult.Match(
                          success =>
                          {
                              return Task.CompletedTask;

@@ -1,4 +1,5 @@
-﻿using ImageMagitek.Services;
+﻿using System.Threading.Tasks;
+using ImageMagitek.Services;
 using TileShop.CLI.Porters;
 
 namespace TileShop.CLI.Commands;
@@ -10,9 +11,9 @@ public class ExportHandler : ProjectCommandHandler<ExportOptions>
     {
     }
 
-    public override ExitCode Execute(ExportOptions options)
+    public override async Task<ExitCode> Execute(ExportOptions options)
     {
-        var project = OpenProject(options.ProjectFileName);
+        var project = await OpenProject(options.ProjectFileName);
 
         if (project is null)
             return ExitCode.ProjectOpenError;

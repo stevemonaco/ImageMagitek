@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using ImageMagitek;
 using ImageMagitek.Services;
 using Monaco.PathTree;
@@ -14,9 +15,9 @@ public class ImportAllHandler : ProjectCommandHandler<ImportAllOptions>
     {
     }
 
-    public override ExitCode Execute(ImportAllOptions options)
+    public override async Task<ExitCode> Execute(ImportAllOptions options)
     {
-        var project = OpenProject(options.ProjectFileName);
+        var project = await OpenProject(options.ProjectFileName);
 
         if (project is null)
             return ExitCode.ProjectOpenError;

@@ -92,14 +92,14 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     /// Saves color sources to their project resource
     /// </summary>
     [RelayCommand]
-    public void SaveSources()
+    public async Task SaveSources()
     {
         _palette.ZeroIndexTransparent = ZeroIndexTransparent;
 
         _palette.SetColorSources(CreateColorSources());
         var projectTree = _projectService.GetContainingProject(_palette);
         var paletteNode = projectTree.GetResourceNode(_palette);
-        _projectService.SaveResource(projectTree, paletteNode, false);
+        await _projectService.SaveResourceAsync(projectTree, paletteNode, false);
 
         Colors = new(CreateColorModels());
 
@@ -144,20 +144,18 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     /// Saves palette properties and color source values to their underlying sources
     /// </summary>
     [RelayCommand]
-    public override Task SaveChangesAsync()
+    public override async Task SaveChangesAsync()
     {
         _palette.ZeroIndexTransparent = ZeroIndexTransparent;
 
         var projectTree = _projectService.GetContainingProject(_palette);
         var paletteNode = projectTree.GetResourceNode(_palette);
-        _projectService.SaveResource(projectTree, paletteNode, false);
+        await _projectService.SaveResourceAsync(projectTree, paletteNode, false);
         _palette.SavePalette();
         IsModified = false;
 
         var changeMessage = new PaletteChangedMessage(_palette);
         Messenger.Send(changeMessage);
-
-        return Task.CompletedTask;
     }
 
     public override void DiscardChanges()

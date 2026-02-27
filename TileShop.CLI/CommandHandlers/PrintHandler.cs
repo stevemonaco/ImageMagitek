@@ -1,4 +1,5 @@
-﻿using ImageMagitek.Services;
+﻿using System.Threading.Tasks;
+using ImageMagitek.Services;
 using Monaco.PathTree;
 using Serilog;
 
@@ -11,9 +12,9 @@ public class PrintHandler : ProjectCommandHandler<PrintOptions>
     {
     }
 
-    public override ExitCode Execute(PrintOptions options)
+    public override async Task<ExitCode> Execute(PrintOptions options)
     {
-        var projectTree = OpenProject(options.ProjectFileName);
+        var projectTree = await OpenProject(options.ProjectFileName);
 
         if (projectTree is null)
             return ExitCode.ProjectOpenError;
