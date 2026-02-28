@@ -383,11 +383,11 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         if (level == InvalidationLevel.None)
             return;
 
-        if (level.HasFlag(InvalidationLevel.PixelData))
-        {
+        if (level >= InvalidationLevel.PixelData)
             _imageAdapter.Render();
+
+        if (level >= InvalidationLevel.Display)
             BitmapAdapter.Invalidate();
-        }
 
         OnImageModified?.Invoke();
     }

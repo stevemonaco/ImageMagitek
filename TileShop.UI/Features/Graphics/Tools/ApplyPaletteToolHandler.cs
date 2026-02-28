@@ -15,7 +15,7 @@ public class ApplyPaletteToolHandler : IToolHandler<GraphicsEditorViewModel>
 
         _activeHistory = new ApplyPaletteHistoryAction(state.SelectedPalette.Palette);
         state.TryApplyPalette(ctx.PixelX, ctx.PixelY, state.SelectedPalette.Palette);
-        return ToolResult.HandledPixelData;
+        return ToolResult.HandledDisplay;
     }
 
     public ToolResult OnMouseMove(ToolContext ctx, GraphicsEditorViewModel state)
@@ -24,7 +24,7 @@ public class ApplyPaletteToolHandler : IToolHandler<GraphicsEditorViewModel>
             state.SelectedPalette is not null && state.IsIndexedColor)
         {
             state.TryApplyPalette(ctx.PixelX, ctx.PixelY, state.SelectedPalette.Palette);
-            return ToolResult.HandledPixelData;
+            return ToolResult.HandledDisplay;
         }
 
         state.UpdateActivityMessage(ctx.PixelX, ctx.PixelY);

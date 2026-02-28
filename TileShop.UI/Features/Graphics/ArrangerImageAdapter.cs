@@ -24,6 +24,9 @@ public sealed class ArrangerImageAdapter
     public bool IsIndexed => ColorType == PixelColorType.Indexed;
     public bool IsDirect => ColorType == PixelColorType.Direct;
 
+    public IndexedImage? IndexedImage => _indexedImage;
+    public DirectImage? DirectImage => _directImage;
+
     public int Width => IsIndexed ? _indexedImage!.Width : _directImage!.Width;
     public int Height => IsIndexed ? _indexedImage!.Height : _directImage!.Height;
     public int Left => IsIndexed ? _indexedImage!.Left : _directImage!.Left;

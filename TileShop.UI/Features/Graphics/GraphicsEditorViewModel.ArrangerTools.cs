@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using ImageMagitek.Image;
 using Monaco.PathTree;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
@@ -59,7 +60,7 @@ public partial class GraphicsEditorViewModel
     public void ToggleGridlineVisibility()
     {
         GridSettings.ShowGridlines ^= true;
-        InvalidateEditor(InvalidationLevel.PixelData);
+        InvalidateEditor(InvalidationLevel.Overlay);
     }
 
     [RelayCommand]
@@ -120,7 +121,7 @@ public partial class GraphicsEditorViewModel
         }
 
         if (needsRender)
-            InvalidateEditor(InvalidationLevel.PixelData);
+            InvalidateEditor(InvalidationLevel.Display);
     }
 
     private bool TryApplySinglePalette(int pixelX, int pixelY, Palette palette, bool notify)
@@ -202,7 +203,13 @@ public partial class GraphicsEditorViewModel
                 AddHistoryAction(new PasteArrangerHistoryAction(paste));
                 IsModified = true;
                 CancelOverlay();
-                InvalidateEditor(InvalidationLevel.PixelData);
+
+                var invalidationLevel = (IsArrangerMode && IsTiledLayout
+                    && paste.Copy is ElementCopy && WorkingArranger is ScatteredArranger)
+                    ? InvalidationLevel.PixelData
+                    : InvalidationLevel.Display;
+                InvalidateEditor(invalidationLevel);
+
                 return new NotifyStatusMessage("Paste successfully applied");
             },
             fail => new NotifyStatusMessage(fail.Reason)
@@ -267,34 +274,47 @@ public partial class GraphicsEditorViewModel
 
         if (IsIndexedColor)
         {
+            var destImage = _imageAdapter.IndexedImage!;
+
             if (copy is IndexedPixelCopy indexedCopy)
             {
-                int copyWidth = Math.Min(copy.Width - sourceX, _imageAdapter.Width - destX);
-                int copyHeight = Math.Min(copy.Height - sourceY, _imageAdapter.Height - destY);
+                int copyWidth = Math.Min(indexedCopy.Width - sourceX, _imageAdapter.Width - destX);
+                int copyHeight = Math.Min(indexedCopy.Height - sourceY, _imageAdapter.Height - destY);
 
-                // Need to get the underlying IndexedImage for ImageCopier
-                return new MagitekResult.Failed("Pixel paste not yet supported in unified editor");
+                return ImageCopier.CopyPixels(indexedCopy.Image, destImage, sourceStart, destStart,
+                    copyWidth, copyHeight,
+                    PixelRemapOperation.RemapByExactIndex,
+                    PixelRemapOperation.RemapByExactPaletteColors);
             }
-            else if (copy is DirectPixelCopy)
+            else if (copy is DirectPixelCopy directCopy)
             {
-                return new MagitekResult.Failed("Direct->Indexed pasting is not yet implemented");
+                int copyWidth = Math.Min(directCopy.Width - sourceX, _imageAdapter.Width - destX);
+                int copyHeight = Math.Min(directCopy.Height - sourceY, _imageAdapter.Height - destY);
+
+                return ImageCopier.CopyPixels(directCopy.Image, destImage, sourceStart, destStart,
+                    copyWidth, copyHeight,
+                    PixelRemapOperation.RemapByExactPaletteColors);
             }
         }
         else
         {
+            var destImage = _imageAdapter.DirectImage!;
+
             if (copy is DirectPixelCopy directCopy)
             {
-                int copyWidth = Math.Min(copy.Width - sourceX, _imageAdapter.Width - destX);
-                int copyHeight = Math.Min(copy.Height - sourceY, _imageAdapter.Height - destY);
+                int copyWidth = Math.Min(directCopy.Width - sourceX, _imageAdapter.Width - destX);
+                int copyHeight = Math.Min(directCopy.Height - sourceY, _imageAdapter.Height - destY);
 
-                return new MagitekResult.Failed("Pixel paste not yet supported in unified editor");
+                return ImageCopier.CopyPixels(directCopy.Image, destImage, sourceStart, destStart,
+                    copyWidth, copyHeight);
             }
             else if (copy is IndexedPixelCopy indexedCopy)
             {
-                int copyWidth = Math.Min(copy.Width - sourceX, _imageAdapter.Width - destX);
-                int copyHeight = Math.Min(copy.Height - sourceY, _imageAdapter.Height - destY);
+                int copyWidth = Math.Min(indexedCopy.Width - sourceX, _imageAdapter.Width - destX);
+                int copyHeight = Math.Min(indexedCopy.Height - sourceY, _imageAdapter.Height - destY);
 
-                return new MagitekResult.Failed("Pixel paste not yet supported in unified editor");
+                return ImageCopier.CopyPixels(indexedCopy.Image, destImage, sourceStart, destStart,
+                    copyWidth, copyHeight);
             }
         }
 
@@ -501,7 +521,7 @@ public partial class GraphicsEditorViewModel
         {
             var remap = dialogResult.FinalColors.Select(x => (byte)x.Index).ToList();
             _imageAdapter.RemapColors(remap);
-            InvalidateEditor(InvalidationLevel.PixelData);
+            InvalidateEditor(InvalidationLevel.Display);
 
             var remapAction = new ColorRemapHistoryAction(dialogResult.InitialColors, dialogResult.FinalColors);
             UndoHistory.Add(remapAction);

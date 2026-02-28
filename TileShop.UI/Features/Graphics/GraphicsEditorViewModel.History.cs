@@ -82,7 +82,7 @@ public partial class GraphicsEditorViewModel
         foreach (var action in UndoHistory)
             ApplyHistoryAction(action);
 
-        InvalidateEditor(InvalidationLevel.PixelData);
+        InvalidateEditor(InvalidationLevel.Display);
     }
 
     [RelayCommand]
