@@ -211,12 +211,10 @@
                         </RadioButton>
                     </StackPanel>
 
-                    <Button Command="{Binding SetDrawClipFromSelectionCommand}"
-                        IsVisible="{Binding CanSetDrawClipFromSelection}"
-                        ToolTip.Tip="Use current selection as draw clip">
+                    <Button Command="{Binding SetDrawClipFromSelectionCommand}" IsVisible="{Binding CanSetDrawClipFromSelection}" ToolTip.Tip="Use current selection as draw clip">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.DrawClip}" Foreground="#F9F9F9" />
-                            <TextBlock Text="Set Draw Clip" Foreground="#F9F9F9" FontSize="11" VerticalAlignment="Center" />
+                            <TextBlock VerticalAlignment="Center" FontSize="11" Foreground="#F9F9F9" Text="Set Draw Clip" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
@@ -310,6 +308,20 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
+                    <!--  Edit Color Button (Indexed only)  -->
+                    <Button Command="{Binding OpenColorEditorFlyoutCommand}" IsEnabled="{Binding CanEditSelectedColor}"
+                        IsVisible="{Binding IsIndexedColor}" ToolTip.Tip="Edit selected palette color">
+                        <Button.Flyout>
+                            <Flyout Placement="RightEdgeAlignedTop">
+                                <ContentControl MinWidth="400" Content="{Binding ColorEditorFlyout.ColorEditor}" />
+                            </Flyout>
+                        </Button.Flyout>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Edit}" Foreground="#F9F9F9" />
+                            <TextBlock VerticalAlignment="Center" FontSize="11" Foreground="#F9F9F9" Text="Edit Color" />
+                        </StackPanel>
+                    </Button>
+
                     <!--  Direct Colors  -->
                     <StackPanel HorizontalAlignment="Left" IsVisible="{Binding IsDirectColor}" Orientation="Horizontal" Spacing="2">
                         <ColorPicker Height="40" Color="{Binding PrimaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
@@ -327,7 +339,7 @@
                         </ToggleButton>
 
                         <Button Command="{Binding CycleDrawClipEffectCommand}" ToolTip.Tip="{Binding DrawClipEffect, StringFormat='Clip effect: {0} (click to cycle)'}">
-                            <TextBlock Text="{Binding DrawClipEffect}" Foreground="#F9F9F9" FontSize="11" />
+                            <TextBlock FontSize="11" Foreground="#F9F9F9" Text="{Binding DrawClipEffect}" />
                         </Button>
 
                         <Button Command="{Binding ClearDrawClipRectCommand}" ToolTip.Tip="Remove draw clip">

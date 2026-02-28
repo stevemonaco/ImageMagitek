@@ -100,6 +100,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         OnPropertyChanged(nameof(IsArrangerMode));
         OnPropertyChanged(nameof(IsDrawMode));
         OnPropertyChanged(nameof(HasDrawClipRect));
+        OnPropertyChanged(nameof(CanEditSelectedColor));
     }
 
     [ObservableProperty] private bool _canView;
@@ -141,6 +142,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     public bool CanChangeSnapMode { get; private set; }
     public bool CanAcceptPixelPastes { get; init; }
     public bool CanAcceptElementPastes { get; init; }
+
+    public bool IsElementPasteActive => Paste?.Copy is ElementCopy
+        && IsArrangerMode && IsTiledLayout && WorkingArranger is ScatteredArranger;
 
     public bool CanEditSelection
     {
@@ -213,6 +217,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     {
         if (value is not null && SelectedPalette != value)
             SelectedPalette = value;
+        OnPropertyChanged(nameof(CanEditSelectedColor));
     }
 
     [ObservableProperty] private ColorRgba32 _activeColor = new(255, 255, 255, 255);
@@ -380,11 +385,11 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         if (level == InvalidationLevel.None)
             return;
 
-        if (level.HasFlag(InvalidationLevel.PixelData))
-        {
+        if (level >= InvalidationLevel.PixelData)
             _imageAdapter.Render();
+
+        if (level >= InvalidationLevel.Display)
             BitmapAdapter.Invalidate();
-        }
 
         OnImageModified?.Invoke();
     }

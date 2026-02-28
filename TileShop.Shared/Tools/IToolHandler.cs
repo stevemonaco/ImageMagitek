@@ -7,6 +7,7 @@ public readonly record struct ToolResult(bool Handled, InvalidationLevel Invalid
     public static ToolResult Unhandled => default;
     public static ToolResult HandledNoInvalidation => new(true, InvalidationLevel.None);
     public static ToolResult HandledOverlay => new(true, InvalidationLevel.Overlay);
+    public static ToolResult HandledDisplay => new(true, InvalidationLevel.Display);
     public static ToolResult HandledPixelData => new(true, InvalidationLevel.PixelData);
 }
 

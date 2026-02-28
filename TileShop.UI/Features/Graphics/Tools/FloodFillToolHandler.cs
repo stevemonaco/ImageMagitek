@@ -11,13 +11,13 @@ public class FloodFillToolHandler : IToolHandler<GraphicsEditorViewModel>
         if (ctx.MouseState.LeftButtonPressed)
         {
             state.FloodFillAtPosition(ctx.PixelX, ctx.PixelY, ColorPriority.Primary);
-            return ToolResult.HandledPixelData;
+            return ToolResult.HandledDisplay;
         }
 
         if (ctx.MouseState.RightButtonPressed)
         {
             state.FloodFillAtPosition(ctx.PixelX, ctx.PixelY, ColorPriority.Secondary);
-            return ToolResult.HandledPixelData;
+            return ToolResult.HandledDisplay;
         }
 
         return ToolResult.Unhandled;

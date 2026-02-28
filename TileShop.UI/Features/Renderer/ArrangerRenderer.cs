@@ -73,6 +73,20 @@ public class ArrangerRenderer
         IsAntialias = false,
     };
 
+    private static readonly SKPaint _pixelPasteFillPaint = new()
+    {
+        Color = new SKColor(0, 180, 255, 64),
+        Style = SKPaintStyle.Fill,
+    };
+
+    private static readonly SKPaint _pixelPasteStrokePaint = new()
+    {
+        Color = new SKColor(0, 180, 255, 220),
+        Style = SKPaintStyle.Stroke,
+        StrokeWidth = 1,
+        IsAntialias = false,
+    };
+
     private static readonly SKPaint _gridlinePaint = new()
     {
         Style = SKPaintStyle.Stroke,
@@ -256,8 +270,10 @@ public class ArrangerRenderer
         }
 
         var pasteRect = new SKRect(paste.Rect.SnappedLeft, paste.Rect.SnappedTop, paste.Rect.SnappedRight, paste.Rect.SnappedBottom);
-        canvas.DrawRect(pasteRect, _pasteFillPaint);
-        canvas.DrawRect(pasteRect, _pasteStrokePaint);
+        var fillPaint = state.IsElementPasteActive ? _pasteFillPaint : _pixelPasteFillPaint;
+        var strokePaint = state.IsElementPasteActive ? _pasteStrokePaint : _pixelPasteStrokePaint;
+        canvas.DrawRect(pasteRect, fillPaint);
+        canvas.DrawRect(pasteRect, strokePaint);
 
         canvas.Restore();
     }
