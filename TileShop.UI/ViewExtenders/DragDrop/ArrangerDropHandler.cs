@@ -77,7 +77,8 @@ public class ArrangerDropHandler : DropHandlerBase
             }
             else
             {
-                targetVm.PendingOperationMessage = $"Press [Enter] to Apply Paste or [Esc] to Cancel";
+                var pasteType = targetVm.IsElementPasteActive ? "Element" : "Pixel";
+                targetVm.PendingOperationMessage = $"Press [Enter] to Apply {pasteType} Paste or [Esc] to Cancel";
             }
 
             // Focus the parent UserControl so key bindings (Enter/Esc) work

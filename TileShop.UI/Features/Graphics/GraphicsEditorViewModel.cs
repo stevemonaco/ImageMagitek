@@ -142,6 +142,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     public bool CanAcceptPixelPastes { get; init; }
     public bool CanAcceptElementPastes { get; init; }
 
+    public bool IsElementPasteActive => Paste?.Copy is ElementCopy
+        && IsArrangerMode && IsTiledLayout && WorkingArranger is ScatteredArranger;
+
     public bool CanEditSelection
     {
         get

@@ -213,7 +213,8 @@ public partial class GraphicsEditorViewModel
 
     private MagitekResult ApplyPasteInternal(ArrangerPaste paste)
     {
-        if (paste.Copy is ElementCopy elementCopy)
+        if (IsArrangerMode && IsTiledLayout && paste.Copy is ElementCopy elementCopy
+            && WorkingArranger is ScatteredArranger)
         {
             return ApplyElementPaste(paste, elementCopy);
         }
