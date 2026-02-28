@@ -1,5 +1,7 @@
+using System;
 using System.Drawing;
 using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
@@ -7,11 +9,50 @@ using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
+using TileShop.Shared.Tools;
+using TileShop.UI.Features.Graphics;
+using TileShop.UI.Models;
 
 namespace TileShop.UI.ViewModels;
 
 public partial class GraphicsEditorViewModel
 {
+    [ObservableProperty] private ColorEditorFlyoutViewModel? _colorEditorFlyout;
+
+    public bool CanEditSelectedColor =>
+        IsDrawMode && IsIndexedColor && ActivePalette is not null &&
+        ActivePalette.Palette.StorageSource != PaletteStorageSource.GlobalJson;
+
+    [RelayCommand]
+    private void OpenColorEditorFlyout()
+    {
+        if (ActivePalette is null)
+            return;
+
+        ColorEditorFlyout = new ColorEditorFlyoutViewModel(
+            ActivePalette.Palette,
+            PrimaryColorIndex,
+            _colorFactory,
+            OnColorEditorConfirm);
+    }
+
+    private void OnColorEditorConfirm(Palette palette, int colorIndex, IColor newColor)
+    {
+        palette.SetForeignColor(colorIndex, newColor);
+        palette.SavePalette();
+
+        // Update the swatch grid
+        var nativeColor = _colorFactory.ToNative(newColor);
+        var mediaColor = global::Avalonia.Media.Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
+
+        if (ActivePalette is not null && colorIndex < ActivePalette.Colors.Count)
+            ActivePalette.Colors[colorIndex] = new PaletteEntry((byte)colorIndex, mediaColor);
+
+        // Re-render and broadcast change
+        InvalidateEditor(InvalidationLevel.PixelData);
+        Messenger.Send(new PaletteChangedMessage(palette));
+    }
+
     [RelayCommand]
     public void ChangePixelTool(PixelTool tool)
     {

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="TileShop.UI.Views.PaletteEditorView"
+<UserControl x:Class="TileShop.UI.Views.PaletteEditorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="https://github.com/stevemonaco/TileShop"
@@ -10,50 +10,49 @@
     <UserControl.DataTemplates>
         <DataTemplate DataType="{x:Type m:FileColorSourceModel}">
             <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
-                <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}">
+                <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}"
+                    IsVisible="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).IsReadOnly, Converter={x:Static BoolConverters.Not}}">
                     <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Trash}" />
                 </Button>
                 <TextBlock Width="150" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
                     Text="File Source" />
-                <TextBox Width="135" Text="{Binding FileAddress, Converter={x:Static con:AppConverters.LongToHexadecimal}}" Watermark="Offset" />
-                <TextBox Width="135" Margin="10,0,0,0" Text="{Binding Entries}" Watermark="Entries" />
+                <TextBox Width="135" Text="{Binding FileAddress, Converter={x:Static con:AppConverters.LongToHexadecimal}}" Watermark="Offset"
+                    IsReadOnly="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).IsReadOnly}" />
+                <TextBox Width="135" Margin="10,0,0,0" Text="{Binding Entries}" Watermark="Entries"
+                    IsReadOnly="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).IsReadOnly}" />
 
-                <!--  Watermark="Endian"  -->
                 <ToggleSwitch Margin="10,0,0,0"
                     IsChecked="{Binding Endian, Converter={x:Static con:AppConverters.EndianToBoolean}}"
+                    IsEnabled="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).IsReadOnly, Converter={x:Static BoolConverters.Not}}"
                     OffContent="Little" OnContent="Big" />
             </StackPanel>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type m:NativeColorSourceModel}">
             <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
-                <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}">
+                <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}"
+                    IsVisible="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).IsReadOnly, Converter={x:Static BoolConverters.Not}}">
                     <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Trash}" />
                 </Button>
                 <TextBlock Width="150" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
                     Text="Native Source" />
-                <TextBox Width="135" Text="{Binding NativeHexColor}" Watermark="Color" />
+                <TextBox Width="135" Text="{Binding NativeHexColor}" Watermark="Color"
+                    IsReadOnly="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).IsReadOnly}" />
             </StackPanel>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type m:ForeignColorSourceModel}">
             <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
-                <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}">
+                <Button Background="#DA3633" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}" CommandParameter="{Binding}"
+                    IsVisible="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).IsReadOnly, Converter={x:Static BoolConverters.Not}}">
                     <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Trash}" />
                 </Button>
                 <TextBlock Width="150" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
                     Text="Foreign Source" />
-                <TextBox Width="135" Watermark="Color">
+                <TextBox Width="135" Watermark="Color"
+                    IsReadOnly="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).IsReadOnly}">
                     <TextBox.Text>
-                        <Binding Path="ForeignHexColor">
-                            <!--<Binding.ValidationRules>
-								<val:HexColorStringRule>
-									<val:HexColorStringRule.Wrapper>
-										<val:HexColorStringWrapper ColorModel="{Binding Data.ColorModel, Source={StaticResource editorProxy}}" />
-									</val:HexColorStringRule.Wrapper>
-								</val:HexColorStringRule>
-							</Binding.ValidationRules>-->
-                        </Binding>
+                        <Binding Path="ForeignHexColor" />
                     </TextBox.Text>
                 </TextBox>
             </StackPanel>
@@ -61,22 +60,32 @@
     </UserControl.DataTemplates>
 
     <ScrollViewer>
-        <StackPanel Margin="10">
+        <StackPanel Margin="10" Spacing="8">
 
             <!--  Palette Information display  -->
             <Expander>
                 <Expander.Header>
                     <TextBlock FontSize="24" Text="Palette Properties" />
                 </Expander.Header>
-                <StackPanel>
-                    <TextBlock Text="{Binding PaletteSource, StringFormat=Source: {0}}" />
-                    <TextBlock Text="{Binding Entries, StringFormat=Entries: {0}}" />
-                    <TextBlock Text="{Binding ColorModel, StringFormat=Color Model: {0}}" />
-                    <CheckBox Content="Zero Index Transparency" IsChecked="{Binding ZeroIndexTransparent}" />
+                <StackPanel Spacing="6">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="4" ColumnSpacing="12">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Classes="muted" VerticalAlignment="Center" Text="Source" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Text="{Binding PaletteSource}" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Classes="muted" VerticalAlignment="Center" Text="Entries" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Text="{Binding Entries}" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Classes="muted" VerticalAlignment="Center" Text="Color Model" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Text="{Binding ColorModel}" />
+                    </Grid>
+
+                    <CheckBox Content="Zero Index Transparency" IsChecked="{Binding ZeroIndexTransparent}"
+                        IsEnabled="{Binding IsReadOnly, Converter={x:Static BoolConverters.Not}}" />
 
                     <ListBox x:Name="colorSourceView" ItemsSource="{Binding ColorSourceModels}" />
 
-                    <StackPanel Margin="20,0,0,0" Orientation="Horizontal">
+                    <StackPanel Margin="20,0,0,0" Orientation="Horizontal"
+                        IsVisible="{Binding IsReadOnly, Converter={x:Static BoolConverters.Not}}">
                         <Button Background="#238636">
                             <Button.Content>
                                 <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Plus}" />
@@ -96,16 +105,8 @@
                 </StackPanel>
             </Expander>
 
-            <!--  Selected color editor  -->
-            <Expander Margin="0,10,0,0" IsExpanded="True" IsVisible="{Binding !ActiveColor}">
-                <Expander.Header>
-                    <TextBlock FontSize="24" Text="Color Editor" />
-                </Expander.Header>
-                <ContentControl Content="{Binding ActiveColor}" />
-            </Expander>
-
-            <!--  Palette Display  -->
-            <ListBox Grid.Row="1" ItemsSource="{Binding Colors}" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+            <!--  Palette Display (swatch grid above editor for intuitive select-then-edit flow)  -->
+            <ListBox ItemsSource="{Binding Colors}" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                 SelectedIndex="{Binding SelectedColorIndex}">
                 <ListBox.Styles>
                     <Style Selector="ListBoxItem">
@@ -136,6 +137,17 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
+
+            <!--  Selected color editor  -->
+            <Expander Margin="0,4,0,0" IsExpanded="True" IsVisible="{Binding ActiveColor, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <Expander.Header>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock FontSize="24" Text="Color Editor" />
+                        <TextBlock VerticalAlignment="Center" Classes="muted" Text="[Read Only]" IsVisible="{Binding IsReadOnly}" />
+                    </StackPanel>
+                </Expander.Header>
+                <ContentControl Content="{Binding ActiveColor}" />
+            </Expander>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

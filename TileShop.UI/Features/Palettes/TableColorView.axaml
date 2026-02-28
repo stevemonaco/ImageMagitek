@@ -1,7 +1,6 @@
-﻿<UserControl x:Class="TileShop.UI.Views.TableColorView"
+<UserControl x:Class="TileShop.UI.Views.TableColorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:v="using:TileShop.UI.Views"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:DataType="vm:TableColorViewModel">
     <Grid>
@@ -12,8 +11,9 @@
         <StackPanel Grid.Column="0" Margin="0,0,16,0">
             <Button Width="65" Height="65" Margin="0,0,0,10" HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center"
-                Command="{Binding $parent[v:PaletteEditorView].((vm:PaletteEditorViewModel)DataContext).SaveActiveColorCommand}"
-                IsEnabled="{Binding CanSaveColor}">
+                Command="{Binding SaveColorCommand}"
+                IsEnabled="{Binding CanSave}"
+                IsVisible="{Binding !IsReadOnly}">
                 <StackPanel>
                     <TextBlock HorizontalAlignment="Center" Text="Assign" />
                     <TextBlock HorizontalAlignment="Center" Text="Color" />
@@ -38,16 +38,9 @@
 
             <ItemsRepeater.ItemTemplate>
                 <DataTemplate x:DataType="vm:TableColorViewModel">
-                    <Border Margin="1" Padding="0" BorderBrush="Black" BorderThickness="2">
+                    <Border Name="ColorBorder" Margin="1" Padding="0" BorderBrush="Black" BorderThickness="2"
+                        Cursor="Hand" Tapped="OnColorTapped">
                         <Rectangle Width="34" Height="32">
-                            <!--<i:Interaction.Triggers>
-								<i:EventTrigger EventName="PreviewMouseLeftButtonDown">
-									<i:InvokeCommandAction
-                                        s:View.ActionTarget="{Binding DataContext, RelativeSource={RelativeSource AncestorType={x:Type v:TableColorView}}}"
-                                        Command="{s:Action SetWorkingColor}"
-                                        CommandParameter="{Binding}" />
-								</i:EventTrigger>
-							</i:Interaction.Triggers>-->
                             <Rectangle.Fill>
                                 <SolidColorBrush Color="{Binding Color}" />
                             </Rectangle.Fill>

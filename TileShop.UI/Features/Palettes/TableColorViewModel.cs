@@ -40,7 +40,13 @@ public partial class TableColorViewModel : EditableColorBaseViewModel
     public void SaveColor()
     {
         _foreignColor = (ITableColor)_colorFactory.CloneColor(WorkingColor);
+        NotifyCanSaveChanged();
+    }
+
+    private void NotifyCanSaveChanged()
+    {
         OnPropertyChanged(nameof(CanSaveColor));
+        OnPropertyChanged(nameof(CanSave));
     }
 
     public void SetWorkingColor(ValidatedTableColorModel model)
@@ -48,7 +54,7 @@ public partial class TableColorViewModel : EditableColorBaseViewModel
         WorkingColor = (ITableColor)_colorFactory.CloneColor(model.WorkingColor);
         var nativeColor = _colorFactory.ToNative(WorkingColor);
         Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-        OnPropertyChanged(nameof(CanSaveColor));
+        NotifyCanSaveChanged();
     }
 
     public void MouseOver(ValidatedTableColorModel model)

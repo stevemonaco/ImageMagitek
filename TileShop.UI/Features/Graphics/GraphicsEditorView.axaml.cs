@@ -19,7 +19,7 @@ using DragDrop = Avalonia.Input.DragDrop;
 
 public partial class GraphicsEditorView : UserControl
 {
-    public GraphicsEditorViewModel ViewModel => (GraphicsEditorViewModel)DataContext!;
+    public GraphicsEditorViewModel? ViewModel { get; private set; }
 
     private ArrangerRenderer? _renderer;
 
@@ -27,7 +27,7 @@ public partial class GraphicsEditorView : UserControl
     private Point _dragStartPoint;
     private PointerPressedEventArgs? _dragTriggerEvent;
     private bool _isDragPending;
-    private const double DragThreshold = 3;
+    private const double _dragThreshold = 3;
 
     public GraphicsEditorView()
     {
@@ -59,6 +59,7 @@ public partial class GraphicsEditorView : UserControl
     {
         if (DataContext is GraphicsEditorViewModel vm)
         {
+            ViewModel = vm;
             _renderer = new ArrangerRenderer(vm.WorkingArranger);
             vm.OnImageModified = () => EditorCanvas.Invalidate();
             vm.OnCenterContent = () => EditorCanvas.CenterContent(vm.WorkingArranger.ArrangerPixelSize.Width, vm.WorkingArranger.ArrangerPixelSize.Height);
@@ -66,13 +67,17 @@ public partial class GraphicsEditorView : UserControl
             vm.OnResetZoom = () => EditorCanvas.ResetZoom();
             vm.OnAlignTopLeft = () => EditorCanvas.AlignTopLeft();
         }
+        else
+        {
+            ViewModel = null;
+        }
 
         base.OnDataContextChanged(e);
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (ViewModel.LastMousePosition is { } point)
+        if (ViewModel?.LastMousePosition is { } point)
         {
             var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
             ViewModel.KeyPress(state, point.X, point.Y);
@@ -81,7 +86,7 @@ public partial class GraphicsEditorView : UserControl
 
     private void OnKeyUp(object? sender, KeyEventArgs e)
     {
-        if (ViewModel.LastMousePosition is { } point)
+        if (ViewModel?.LastMousePosition is { } point)
         {
             var state = InputAdapter.CreateKeyState(e.Key, e.KeyModifiers);
             ViewModel.KeyUp(state, point.X, point.Y);
@@ -90,7 +95,9 @@ public partial class GraphicsEditorView : UserControl
 
     private bool IsPointOnDraggable(double localX, double localY)
     {
-        var vm = ViewModel;
+        if (ViewModel is not { } vm)
+            return false;
+        
         int xc = Math.Clamp((int)localX, 0, vm.WorkingArranger.ArrangerPixelSize.Width - 1);
         int yc = Math.Clamp((int)localY, 0, vm.WorkingArranger.ArrangerPixelSize.Height - 1);
 
@@ -105,6 +112,9 @@ public partial class GraphicsEditorView : UserControl
 
     private void CanvasOnPointerPressed(object sender, PointerPressedEventArgs e)
     {
+        if (ViewModel is null)
+            return;
+        
         var point = e.GetCurrentPoint(EditorCanvas);
         var localPoint = EditorCanvas.ScreenToLocalPoint(point.Position);
 
@@ -140,6 +150,9 @@ public partial class GraphicsEditorView : UserControl
 
     public void CanvasOnPointerReleased(object sender, PointerReleasedEventArgs e)
     {
+        if (ViewModel is null)
+            return;
+        
         _isDragPending = false;
         _dragTriggerEvent = null;
 
@@ -166,12 +179,15 @@ public partial class GraphicsEditorView : UserControl
 
     public async void CanvasOnPointerMoved(object sender, PointerEventArgs e)
     {
+        if (ViewModel is null)
+            return;
+        
         if (_isDragPending && _dragTriggerEvent is not null)
         {
             var currentPos = e.GetPosition(null);
             var diff = _dragStartPoint - currentPos;
 
-            if (Math.Abs(diff.X) > DragThreshold || Math.Abs(diff.Y) > DragThreshold)
+            if (Math.Abs(diff.X) > _dragThreshold || Math.Abs(diff.Y) > _dragThreshold)
             {
                 _isDragPending = false;
                 var triggerEvent = _dragTriggerEvent;
@@ -229,12 +245,18 @@ public partial class GraphicsEditorView : UserControl
 
     public void CanvasOnPointerExited(object sender, PointerEventArgs e)
     {
+        if (ViewModel is null)
+            return;
+        
         EditorCanvas.Cursor = Cursor.Default;
         e.Handled = ViewModel.MouseLeave();
     }
 
     public void CanvasOnPointerWheelChanged(object sender, PointerWheelEventArgs e)
     {
+        if (ViewModel is null)
+            return;
+        
         var modifiers = InputAdapter.CreateKeyModifiers(e.KeyModifiers);
 
         if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
@@ -257,6 +279,9 @@ public partial class GraphicsEditorView : UserControl
 
     private void CanvasOnContextRequested(object? sender, ContextRequestedEventArgs e)
     {
+        if (ViewModel is null)
+            return;
+        
         if (ViewModel.EditMode == GraphicsEditMode.Draw && e.TryGetPosition(EditorCanvas, out var position))
         {
             var localPoint = EditorCanvas.ScreenToLocalPoint(position);

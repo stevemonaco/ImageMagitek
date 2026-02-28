@@ -100,6 +100,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         OnPropertyChanged(nameof(IsArrangerMode));
         OnPropertyChanged(nameof(IsDrawMode));
         OnPropertyChanged(nameof(HasDrawClipRect));
+        OnPropertyChanged(nameof(CanEditSelectedColor));
     }
 
     [ObservableProperty] private bool _canView;
@@ -216,6 +217,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     {
         if (value is not null && SelectedPalette != value)
             SelectedPalette = value;
+        OnPropertyChanged(nameof(CanEditSelectedColor));
     }
 
     [ObservableProperty] private ColorRgba32 _activeColor = new(255, 255, 255, 255);

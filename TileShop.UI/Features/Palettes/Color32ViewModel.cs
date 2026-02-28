@@ -24,7 +24,7 @@ public partial class Color32ViewModel : EditableColorBaseViewModel
             OnPropertyChanged(nameof(Red));
             var nativeColor = _colorFactory.ToNative(WorkingColor);
             Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-            OnPropertyChanged(nameof(CanSaveColor));
+            NotifyCanSaveChanged();
         }
     }
 
@@ -37,7 +37,7 @@ public partial class Color32ViewModel : EditableColorBaseViewModel
             OnPropertyChanged(nameof(Blue));
             var nativeColor = _colorFactory.ToNative(WorkingColor);
             Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-            OnPropertyChanged(nameof(CanSaveColor));
+            NotifyCanSaveChanged();
         }
     }
 
@@ -50,7 +50,7 @@ public partial class Color32ViewModel : EditableColorBaseViewModel
             OnPropertyChanged(nameof(Green));
             var nativeColor = _colorFactory.ToNative(WorkingColor);
             Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-            OnPropertyChanged(nameof(CanSaveColor));
+            NotifyCanSaveChanged();
         }
     }
 
@@ -63,7 +63,7 @@ public partial class Color32ViewModel : EditableColorBaseViewModel
             OnPropertyChanged(nameof(Alpha));
             var nativeColor = _colorFactory.ToNative(WorkingColor);
             Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-            OnPropertyChanged(nameof(CanSaveColor));
+            NotifyCanSaveChanged();
         }
     }
 
@@ -96,6 +96,12 @@ public partial class Color32ViewModel : EditableColorBaseViewModel
     public void SaveColor()
     {
         _foreignColor = (IColor32)_colorFactory.CloneColor(WorkingColor);
+        NotifyCanSaveChanged();
+    }
+
+    private void NotifyCanSaveChanged()
+    {
         OnPropertyChanged(nameof(CanSaveColor));
+        OnPropertyChanged(nameof(CanSave));
     }
 }

@@ -28,6 +28,8 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     [ObservableProperty] private ColorModel _colorModel;
     [ObservableProperty] private EditableColorBaseViewModel? _activeColor;
 
+    public bool IsReadOnly => _palette.StorageSource == PaletteStorageSource.GlobalJson;
+
     private bool _zeroIndexTransparent;
     public bool ZeroIndexTransparent
     {
@@ -48,10 +50,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
             if (SetProperty(ref _selectedColorIndex, value) && value >= 0 && value < Colors.Count)
             {
                 var color = _palette.GetForeignColor(value);
-                if (color is IColor32 color32)
-                    ActiveColor = new Color32ViewModel(color32, value, _colorFactory);
-                else if (color is ITableColor tableColor)
-                    ActiveColor = new TableColorViewModel(tableColor, value, _colorFactory);
+                ActiveColor = CreateActiveColorEditor(color, value);
             }
         }
     }
@@ -81,10 +80,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         if (Entries > 0)
         {
             var color = _palette.GetForeignColor(0);
-            if (color is IColor32 color32)
-                ActiveColor = new Color32ViewModel(color32, 0, _colorFactory);
-            else if (color is ITableColor tableColor)
-                ActiveColor = new TableColorViewModel(tableColor, 0, _colorFactory);
+            ActiveColor = CreateActiveColorEditor(color, 0);
         }
     }
 
@@ -103,7 +99,6 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 
         Colors = new(CreateColorModels());
 
-        ActiveColor = Colors.First();
         Entries = CountSourceColors();
         SelectedColorIndex = 0;
 
@@ -195,6 +190,14 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         {
             yield return CreateColorModel(_palette.GetForeignColor(i), i);
         }
+    }
+
+    private EditableColorBaseViewModel CreateActiveColorEditor(IColor foreignColor, int index)
+    {
+        var editor = CreateColorModel(foreignColor, index);
+        editor.SaveColorCommand = SaveActiveColorCommand;
+        editor.IsReadOnly = IsReadOnly;
+        return editor;
     }
 
     private EditableColorBaseViewModel CreateColorModel(IColor foreignColor, int index)
