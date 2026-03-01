@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
@@ -76,6 +75,7 @@ public partial class SegmentedControl : TemplatedControl
         {
             var presenter = new ContentPresenter
             {
+                Background = Brushes.Transparent,
                 Content = item,
                 ContentTemplate = ItemTemplate,
                 HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center,
@@ -88,6 +88,9 @@ public partial class SegmentedControl : TemplatedControl
             _itemsHost.Children.Add(presenter);
         }
 
+        // Sync selection state after items are regenerated
+        SyncSelectionFromItem();
+
         // Defer indicator positioning until layout is complete
         _itemsHost.LayoutUpdated += OnFirstLayout;
     }
@@ -98,6 +101,34 @@ public partial class SegmentedControl : TemplatedControl
             _itemsHost.LayoutUpdated -= OnFirstLayout;
 
         UpdateIndicator(snap: true);
+        UpdateItemForegrounds();
+    }
+
+    private void SyncSelectionFromItem()
+    {
+        if (_itemsHost is null)
+            return;
+
+        var selectedItem = SelectedItem;
+        if (selectedItem is null)
+            return;
+
+        for (var i = 0; i < _itemsHost.Children.Count; i++)
+        {
+            if (_itemsHost.Children[i] is ContentPresenter cp && Equals(cp.Content, selectedItem))
+            {
+                _updatingSelection = true;
+                try
+                {
+                    SetCurrentValue(SelectedIndexProperty, i);
+                }
+                finally
+                {
+                    _updatingSelection = false;
+                }
+                return;
+            }
+        }
     }
 
     private void OnItemPointerPressed(object? sender, PointerPressedEventArgs e)
