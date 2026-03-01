@@ -2,10 +2,8 @@ using System.Collections.Specialized;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
-using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
-using Avalonia.Media;
 
 namespace TileShop.UI.Controls;
 
@@ -24,6 +22,7 @@ public partial class SegmentedControl : TemplatedControl
         ItemTemplateProperty.Changed.AddClassHandler<SegmentedControl>((c, _) => c.RegenerateItems());
         SelectedItemProperty.Changed.AddClassHandler<SegmentedControl>((c, _) => c.OnSelectedItemChanged());
         SelectedIndexProperty.Changed.AddClassHandler<SegmentedControl>((c, _) => c.OnSelectedIndexChanged());
+        ItemContainerThemeProperty.Changed.AddClassHandler<SegmentedControl>((c, _) => c.RegenerateItems());
     }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -73,19 +72,17 @@ public partial class SegmentedControl : TemplatedControl
 
         foreach (var item in ItemsSource)
         {
-            var presenter = new ContentPresenter
+            var container = new SegmentedControlItem
             {
-                Background = Brushes.Transparent,
                 Content = item,
                 ContentTemplate = ItemTemplate,
-                HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-                VerticalContentAlignment = Avalonia.Layout.VerticalAlignment.Center,
-                Padding = new Thickness(12, 6),
-                Cursor = new Cursor(StandardCursorType.Hand),
             };
 
-            presenter.PointerPressed += OnItemPointerPressed;
-            _itemsHost.Children.Add(presenter);
+            if (ItemContainerTheme is { } theme)
+                container.Theme = theme;
+
+            container.PointerPressed += OnItemPointerPressed;
+            _itemsHost.Children.Add(container);
         }
 
         // Sync selection state after items are regenerated
@@ -101,7 +98,7 @@ public partial class SegmentedControl : TemplatedControl
             _itemsHost.LayoutUpdated -= OnFirstLayout;
 
         UpdateIndicator(snap: true);
-        UpdateItemForegrounds();
+        UpdateItemSelectionStates();
     }
 
     private void SyncSelectionFromItem()
@@ -115,7 +112,7 @@ public partial class SegmentedControl : TemplatedControl
 
         for (var i = 0; i < _itemsHost.Children.Count; i++)
         {
-            if (_itemsHost.Children[i] is ContentPresenter cp && Equals(cp.Content, selectedItem))
+            if (_itemsHost.Children[i] is SegmentedControlItem container && Equals(container.Content, selectedItem))
             {
                 _updatingSelection = true;
                 try
@@ -133,10 +130,10 @@ public partial class SegmentedControl : TemplatedControl
 
     private void OnItemPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is not ContentPresenter presenter || _itemsHost is null)
+        if (sender is not SegmentedControlItem container || _itemsHost is null)
             return;
 
-        var index = _itemsHost.Children.IndexOf(presenter);
+        var index = _itemsHost.Children.IndexOf(container);
         if (index < 0)
             return;
 
@@ -144,9 +141,9 @@ public partial class SegmentedControl : TemplatedControl
         try
         {
             SetCurrentValue(SelectedIndexProperty, index);
-            SetCurrentValue(SelectedItemProperty, presenter.Content);
+            SetCurrentValue(SelectedItemProperty, container.Content);
             UpdateIndicator(snap: false);
-            UpdateItemForegrounds();
+            UpdateItemSelectionStates();
         }
         finally
         {
@@ -169,7 +166,7 @@ public partial class SegmentedControl : TemplatedControl
             {
                 for (var i = 0; i < _itemsHost.Children.Count; i++)
                 {
-                    if (_itemsHost.Children[i] is ContentPresenter cp && Equals(cp.Content, selectedItem))
+                    if (_itemsHost.Children[i] is SegmentedControlItem container && Equals(container.Content, selectedItem))
                     {
                         index = i;
                         break;
@@ -179,7 +176,7 @@ public partial class SegmentedControl : TemplatedControl
 
             SetCurrentValue(SelectedIndexProperty, index);
             UpdateIndicator(snap: false);
-            UpdateItemForegrounds();
+            UpdateItemSelectionStates();
         }
         finally
         {
@@ -198,9 +195,9 @@ public partial class SegmentedControl : TemplatedControl
             var index = SelectedIndex;
 
             if (index >= 0 && index < _itemsHost.Children.Count &&
-                _itemsHost.Children[index] is ContentPresenter cp)
+                _itemsHost.Children[index] is SegmentedControlItem container)
             {
-                SetCurrentValue(SelectedItemProperty, cp.Content);
+                SetCurrentValue(SelectedItemProperty, container.Content);
             }
             else
             {
@@ -208,7 +205,7 @@ public partial class SegmentedControl : TemplatedControl
             }
 
             UpdateIndicator(snap: false);
-            UpdateItemForegrounds();
+            UpdateItemSelectionStates();
         }
         finally
         {
@@ -256,7 +253,7 @@ public partial class SegmentedControl : TemplatedControl
         }
     }
 
-    private void UpdateItemForegrounds()
+    private void UpdateItemSelectionStates()
     {
         if (_itemsHost is null)
             return;
@@ -265,11 +262,9 @@ public partial class SegmentedControl : TemplatedControl
 
         for (var i = 0; i < _itemsHost.Children.Count; i++)
         {
-            if (_itemsHost.Children[i] is ContentPresenter cp)
+            if (_itemsHost.Children[i] is SegmentedControlItem container)
             {
-                cp.Foreground = i == selectedIndex
-                    ? Brushes.White
-                    : new SolidColorBrush(Color.Parse("#888888"));
+                container.IsSelected = i == selectedIndex;
             }
         }
     }

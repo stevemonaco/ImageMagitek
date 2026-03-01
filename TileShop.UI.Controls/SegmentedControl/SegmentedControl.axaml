@@ -8,8 +8,7 @@
                 <Border Background="#202020" CornerRadius="4">
                     <Panel>
                         <Canvas IsHitTestVisible="False">
-                            <Border x:Name="PART_Indicator" Background="#444444" CornerRadius="4"
-                                IsVisible="False">
+                            <Border x:Name="PART_Indicator" Background="#444444" CornerRadius="4" IsVisible="False">
                                 <Border.Transitions>
                                     <Transitions>
                                         <DoubleTransition Easing="CubicEaseOut" Property="Canvas.Left" Duration="0:0:0.2" />
@@ -23,5 +22,27 @@
                 </Border>
             </ControlTemplate>
         </Setter>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type cc:SegmentedControlItem}" TargetType="cc:SegmentedControlItem">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#888888" />
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ContentPresenter Padding="{TemplateBinding Padding}"
+                    HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                    Background="{TemplateBinding Background}" Content="{TemplateBinding Content}"
+                    ContentTemplate="{TemplateBinding ContentTemplate}" />
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:selected">
+            <Setter Property="Foreground" Value="{DynamicResource ButtonDefaultPrimaryForeground}" />
+        </Style>
     </ControlTheme>
 </ResourceDictionary>

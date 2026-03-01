@@ -8,22 +8,24 @@
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <TextBlock HorizontalAlignment="Center" Text="Arranger Name" />
-                <TextBox x:Name="arrangerNameBox" Width="250" Margin="0,8,0,0" HorizontalAlignment="Center"
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" Text="Arranger Name" />
+                <TextBox x:Name="arrangerNameBox" Width="250" Margin="0,4,0,0" HorizontalAlignment="Center"
                     Text="{Binding ArrangerName}" />
 
-                <TextBlock Margin="0,20,0,0" HorizontalAlignment="Center" Text="Color Mapping" />
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" Text="Pixel Color Type" />
 
-                <cc:SegmentedControl HorizontalAlignment="Center" ItemsSource="{Binding AvailableColorTypes}" SelectedItem="{Binding SelectedColorType}" />
+                <cc:SegmentedControl Margin="0,4,0,0" HorizontalAlignment="Center" ItemsSource="{Binding AvailableColorTypes}"
+                    SelectedItem="{Binding SelectedColorType}" />
 
-                <TextBlock Margin="0,20,0,0" HorizontalAlignment="Center" Text="Arranger Layout" />
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" Text="Arranger Layout" />
 
-                <cc:SegmentedControl HorizontalAlignment="Center" ItemsSource="{Binding AvailableElementLayouts}" SelectedItem="{Binding SelectedLayout}" />
+                <cc:SegmentedControl Margin="0,4,0,0" HorizontalAlignment="Center" ItemsSource="{Binding AvailableElementLayouts}"
+                    SelectedItem="{Binding SelectedLayout}" />
 
-                <StackPanel IsVisible="{Binding SelectedLayout, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Tiled}" Spacing="8">
+                <StackPanel Margin="0,8,0,0" IsVisible="{Binding SelectedLayout, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Tiled}" Spacing="8">
                     <TextBlock HorizontalAlignment="Center" Text="Element Size in Pixels" />
 
-                    <Grid HorizontalAlignment="Center" ColumnDefinitions="Auto,16,Auto">
+                    <Grid Margin="0,4,0,0" HorizontalAlignment="Center" ColumnDefinitions="Auto,16,Auto">
                         <NumericUpDown x:Name="elementPixelWidthBox" Grid.Column="0" MinWidth="80" Classes="dense" FormatString="0"
                             InnerLeftContent="W" Minimum="1" ToolTip.Tip="Width of each element in pixels"
                             Value="{Binding TiledElementPixelWidth}" />
@@ -33,9 +35,9 @@
                             Value="{Binding TiledElementPixelHeight}" />
                     </Grid>
 
-                    <TextBlock HorizontalAlignment="Center" Text="Arranger Size in Elements" />
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" Text="Arranger Size in Elements" />
 
-                    <Grid HorizontalAlignment="Center" ColumnDefinitions="*,16,*">
+                    <Grid Margin="0,4,0,0" HorizontalAlignment="Center" ColumnDefinitions="*,16,*">
                         <NumericUpDown x:Name="arrangerElementWidthBox" Grid.Column="0" MinWidth="80" Classes="dense" FormatString="0"
                             InnerLeftContent="W" Minimum="1" ToolTip.Tip="Width of arranger in number of elements"
                             Value="{Binding TiledArrangerElementWidth}" />
@@ -45,8 +47,8 @@
                             Value="{Binding TiledArrangerElementHeight}" />
                     </Grid>
 
-                    <TextBlock HorizontalAlignment="Center">
-                        <Run Text="Arranger Pixel Size: (" />
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center">
+                        <Run Text="Total Arranger Pixel Size: (" />
                         <Run Text="{Binding TiledArrangerPixelWidth}" />
                         <Run Text=" x " />
                         <Run Text="{Binding TiledArrangerPixelHeight}" />
@@ -54,10 +56,10 @@
                     </TextBlock>
                 </StackPanel>
 
-                <StackPanel IsVisible="{Binding SelectedLayout, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Single}">
-                    <TextBlock Margin="0,20,0,0" HorizontalAlignment="Center" Text="Arranger Size in Pixels" />
+                <StackPanel Margin="0,8,0,0" IsVisible="{Binding SelectedLayout, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Single}">
+                    <TextBlock HorizontalAlignment="Center" Text="Arranger Size in Pixels" />
 
-                    <Grid Margin="0,8,0,0" HorizontalAlignment="Center" ColumnDefinitions="*,16,*">
+                    <Grid Margin="0,4,0,0" HorizontalAlignment="Center" ColumnDefinitions="*,16,*">
                         <NumericUpDown x:Name="singleArrangerElementWidthBox" Grid.Column="0" MinWidth="80" Classes="dense"
                             FormatString="0" InnerLeftContent="W" Minimum="1"
                             ToolTip.Tip="Width of arranger in number of elements" Value="{Binding SingleArrangerPixelWidth}" />
@@ -68,7 +70,8 @@
                     </Grid>
                 </StackPanel>
 
-                <ItemsControl Margin="0,8,0,8" HorizontalAlignment="Center" ItemsSource="{Binding ValidationErrors}">
+                <ItemsControl Margin="0,8,0,8" HorizontalAlignment="Center" IsVisible="{Binding !!ValidationErrors.Count}"
+                    ItemsSource="{Binding ValidationErrors}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <TextBlock FontWeight="Bold" Foreground="Red" Text="{Binding}" />
