@@ -37,8 +37,8 @@
     <!--     </ContextMenu> -->
     <!-- </UserControl.ContextMenu> -->
 
-    <Border Width="200" MinWidth="160" Padding="0,0,12,4" TextElement.Foreground="#F9F9F9">
-        <ScrollViewer AllowAutoHide="True">
+    <Border Width="200" MinWidth="160" TextElement.Foreground="#F9F9F9">
+        <ScrollViewer AllowAutoHide="True" Classes="InsetContent">
             <StackPanel Spacing="4">
                 <!--  Edit Mode Selector  -->
                 <StackPanel Classes="toolbar-group">

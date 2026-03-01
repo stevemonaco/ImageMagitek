@@ -51,7 +51,7 @@ public static class AppConverters
 
     public static ColorRgba32ToMediaColorConverter ColorRgba32ToMediaColor { get; } = new();
     public static EndianToBooleanConverter EndianToBoolean { get; } = new();
-    public static EnumToBooleanConverter EnumToBoolean { get; } = new();
+    public static EnumToBoolConverter EnumToBoolean { get; } = new();
     public static LongToHexadecimalConverter LongToHexadecimal { get; } = new();
     public static NumericBaseToBooleanConverter NumericBaseToBoolean { get; } = new();
     public static PaletteEntryToIndexConverter PaletteEntryToIndex { get; } = new();
