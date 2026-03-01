@@ -14,7 +14,7 @@ namespace ImageMagitek;
 /// <para>SequentialArrangers are used for simple sequential file access</para>
 /// <para>ScatteredArrangers are capable of accessing many files, file offsets, palettes, and codecs in a single arranger</para>
 /// </summary>
-public enum ArrangerMode { Sequential = 1, Scattered };
+public enum ArrangerMode { Sequential, Scattered };
 
 /// <summary>
 /// Layout of graphics for the arranger
@@ -22,19 +22,19 @@ public enum ArrangerMode { Sequential = 1, Scattered };
 /// <para>Tiled will snap selection rectangles to tile boundaries</para>
 /// <para>Single will snap selection rectangles to pixel boundaries</para>
 /// </summary>
-public enum ElementLayout { Tiled = 1, Single };
+public enum ElementLayout { Tiled, Single };
 
 /// <summary>
 /// Specifies how the pixels' colors are determined for the graphic
 /// <para>Indexed graphics have their full color determined by a palette</para>
 /// <para>Direct graphics have their full color determined by the pixel image data alone</para>
 /// </summary>
-public enum PixelColorType { Indexed = 1, Direct }
+public enum PixelColorType { Indexed, Direct }
 
 /// <summary>
 /// Move operations for sequential arrangers
 /// </summary>
-public enum ArrangerMoveType { ByteDown = 1, ByteUp, RowDown, RowUp, ColRight, ColLeft, PageDown, PageUp, Home, End, Absolute };
+public enum ArrangerMoveType { ByteDown, ByteUp, RowDown, RowUp, ColRight, ColLeft, PageDown, PageUp, Home, End, Absolute };
 
 /// <summary>
 /// Arranger base class for graphical screen elements
