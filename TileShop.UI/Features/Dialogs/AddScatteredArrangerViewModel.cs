@@ -10,19 +10,23 @@ namespace TileShop.UI.ViewModels;
 public partial class AddScatteredArrangerViewModel : RequestViewModel<AddScatteredArrangerViewModel>
 {
     [ObservableProperty] private string _arrangerName = "";
-    [ObservableProperty] private PixelColorType _colorType;
-    [ObservableProperty] private ElementLayout _layout;
-    [ObservableProperty] private int _arrangerElementWidth;
-    [ObservableProperty] private int _arrangerElementHeight;
-    [ObservableProperty] private int _elementPixelWidth;
-    [ObservableProperty] private int _elementPixelHeight;
+    [ObservableProperty] private PixelColorType _selectedColorType = PixelColorType.Indexed;
+    [ObservableProperty] private ElementLayout _selectedLayout = ElementLayout.Tiled;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TiledArrangerPixelWidth))] private int _tiledArrangerElementWidth = 16;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TiledArrangerPixelHeight))] private int _tiledArrangerElementHeight = 8;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TiledArrangerPixelWidth))] private int _tiledElementPixelWidth = 8;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TiledArrangerPixelHeight))] private int _tiledElementPixelHeight = 8;
+    public int TiledArrangerPixelWidth => TiledArrangerElementWidth * TiledElementPixelWidth;
+    public int TiledArrangerPixelHeight => TiledArrangerElementHeight * TiledElementPixelHeight;
+
+    [ObservableProperty] private int _singleArrangerPixelWidth = 256;
+    [ObservableProperty] private int _singleArrangerPixelHeight = 256;
     [ObservableProperty] private ObservableCollection<string> _existingResourceNames;
-    [ObservableProperty] private ObservableCollection<string> _validationErrors = new();
+    [ObservableProperty] private ObservableCollection<string> _validationErrors = [];
     [ObservableProperty] private bool _canAdd;
 
-    public AddScatteredArrangerViewModel() : this(Enumerable.Empty<string>())
-    {
-    }
+    public List<PixelColorType> AvailableColorTypes { get; } = [PixelColorType.Indexed, PixelColorType.Direct];
+    public List<ElementLayout> AvailableElementLayouts { get; } = [ElementLayout.Tiled, ElementLayout.Single];
 
     public AddScatteredArrangerViewModel(IEnumerable<string> existingResourceNames)
     {
@@ -31,16 +35,7 @@ public partial class AddScatteredArrangerViewModel : RequestViewModel<AddScatter
         AcceptName = "Add";
     }
 
-    public override AddScatteredArrangerViewModel? ProduceResult()
-    {
-        if (Layout == ElementLayout.Single)
-        {
-            ArrangerElementHeight = 1;
-            ArrangerElementWidth = 1;
-        }
-
-        return this;
-    }
+    public override AddScatteredArrangerViewModel? ProduceResult() => this;
 
     [RelayCommand]
     public void ValidateModel()

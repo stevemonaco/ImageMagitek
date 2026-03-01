@@ -180,9 +180,16 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
         if (dialogResult is not null)
         {
-            var arranger = new ScatteredArranger(dialogModel.ArrangerName, dialogModel.ColorType,
-                dialogModel.Layout, dialogModel.ArrangerElementWidth, dialogModel.ArrangerElementHeight,
-                dialogModel.ElementPixelWidth, dialogModel.ElementPixelHeight);
+            var arranger = dialogModel.SelectedLayout switch
+            {
+                ElementLayout.Tiled => new ScatteredArranger(dialogModel.ArrangerName, dialogModel.SelectedColorType,
+                    dialogModel.SelectedLayout, dialogModel.TiledArrangerElementWidth, dialogModel.TiledArrangerElementHeight,
+                    dialogModel.TiledElementPixelWidth, dialogModel.TiledElementPixelHeight),
+                ElementLayout.Single => new ScatteredArranger(dialogModel.ArrangerName, dialogModel.SelectedColorType,
+                    dialogModel.SelectedLayout, 1, 1,
+                    dialogModel.SingleArrangerPixelWidth, dialogModel.SingleArrangerPixelHeight),
+                _ => throw new InvalidOperationException($"Invalid layout: {dialogModel.SelectedLayout}")
+            };
 
             var result = _projectService.AddResource(parentNodeModel.Node, arranger);
 

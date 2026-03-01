@@ -1,0 +1,27 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="https://github.com/stevemonaco/TileShop">
+
+    <ControlTheme x:Key="{x:Type cc:SegmentedControl}" TargetType="cc:SegmentedControl">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="#202020" CornerRadius="4">
+                    <Panel>
+                        <Canvas IsHitTestVisible="False">
+                            <Border x:Name="PART_Indicator" Background="#444444" CornerRadius="4"
+                                IsVisible="False">
+                                <Border.Transitions>
+                                    <Transitions>
+                                        <DoubleTransition Easing="CubicEaseOut" Property="Canvas.Left" Duration="0:0:0.2" />
+                                        <DoubleTransition Easing="CubicEaseOut" Property="Width" Duration="0:0:0.2" />
+                                    </Transitions>
+                                </Border.Transitions>
+                            </Border>
+                        </Canvas>
+                        <StackPanel x:Name="PART_ItemsHost" Orientation="Horizontal" />
+                    </Panel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

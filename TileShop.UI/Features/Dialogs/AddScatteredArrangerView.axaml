@@ -1,6 +1,7 @@
 <UserControl x:Class="TileShop.UI.Views.AddScatteredArrangerView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
     xmlns:con="using:TileShop.UI.Converters"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:DataType="vm:AddScatteredArrangerViewModel">
@@ -11,56 +12,61 @@
                 <TextBox x:Name="arrangerNameBox" Width="250" Margin="0,8,0,0" HorizontalAlignment="Center"
                     Text="{Binding ArrangerName}" />
 
-                <TextBlock Margin="0,20,0,0" HorizontalAlignment="Center" Text="Arranger Layout" />
-                <ToggleSwitch Padding="8" HorizontalAlignment="Center"
-                    IsChecked="{Binding Layout, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Tiled}"
-                    OffContent="Single" OnContent="Tiled" Theme="{StaticResource SlidingToggleSwitchTheme}" />
-
-                <!-- <StackPanel Margin="0,8,0,0" HorizontalAlignment="Center" Classes="toolbar-group"> -->
-                <!--  <RadioButton Classes="tool" Content="Tiled" GroupName="Layout"  -->
-                <!--  IsChecked="{Binding Layout, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Tiled}"  -->
-                <!--  ToolTip.Tip="Allows many elements within the arranger, suitable for tile-based graphics" />  -->
-                <!--  <RadioButton Classes="tool" Content="Single" GroupName="Layout"  -->
-                <!--  IsChecked="{Binding Layout, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Single}"  -->
-                <!--  ToolTip.Tip="Restricts the arranger to a single element, suitable for pixel-based graphics" />  -->
-                <!-- </StackPanel> -->
-
                 <TextBlock Margin="0,20,0,0" HorizontalAlignment="Center" Text="Color Mapping" />
 
-                <StackPanel Margin="0,8,0,0" HorizontalAlignment="Center" Classes="toolbar-group">
-                    <RadioButton Classes="tool" Content="Indexed" GroupName="ColorType"
-                        IsChecked="{Binding ColorType, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Indexed}"
-                        ToolTip.Tip="All image pixels require a palette to display colors. The default palette will be used until a user-defined palette is applied." />
-                    <RadioButton Classes="tool" Content="Direct" GroupName="ColorType"
-                        IsChecked="{Binding ColorType, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Direct}"
-                        ToolTip.Tip="All image pixels contain full color information and require no palette to display colors" />
-                </StackPanel>
+                <cc:SegmentedControl HorizontalAlignment="Center" ItemsSource="{Binding AvailableColorTypes}" SelectedItem="{Binding SelectedColorType}" />
 
-                <StackPanel IsVisible="{Binding Layout, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Tiled}">
-                    <TextBlock Margin="0,20,0,0" HorizontalAlignment="Center" Text="Arranger Size in Elements" />
+                <TextBlock Margin="0,20,0,0" HorizontalAlignment="Center" Text="Arranger Layout" />
 
-                    <Grid Margin="0,8,0,0" HorizontalAlignment="Center" ColumnDefinitions="*,16,*">
+                <cc:SegmentedControl HorizontalAlignment="Center" ItemsSource="{Binding AvailableElementLayouts}" SelectedItem="{Binding SelectedLayout}" />
+
+                <StackPanel IsVisible="{Binding SelectedLayout, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Tiled}" Spacing="8">
+                    <TextBlock HorizontalAlignment="Center" Text="Element Size in Pixels" />
+
+                    <Grid HorizontalAlignment="Center" ColumnDefinitions="Auto,16,Auto">
+                        <NumericUpDown x:Name="elementPixelWidthBox" Grid.Column="0" MinWidth="80" Classes="dense" FormatString="0"
+                            InnerLeftContent="W" Minimum="1" ToolTip.Tip="Width of each element in pixels"
+                            Value="{Binding TiledElementPixelWidth}" />
+
+                        <NumericUpDown x:Name="elementPixelHeightBox" Grid.Column="2" MinWidth="80" Classes="dense" FormatString="0"
+                            InnerLeftContent="H" Minimum="1" ToolTip.Tip="Height of each element in pixels"
+                            Value="{Binding TiledElementPixelHeight}" />
+                    </Grid>
+
+                    <TextBlock HorizontalAlignment="Center" Text="Arranger Size in Elements" />
+
+                    <Grid HorizontalAlignment="Center" ColumnDefinitions="*,16,*">
                         <NumericUpDown x:Name="arrangerElementWidthBox" Grid.Column="0" MinWidth="80" Classes="dense" FormatString="0"
                             InnerLeftContent="W" Minimum="1" ToolTip.Tip="Width of arranger in number of elements"
-                            Value="{Binding ArrangerElementWidth}" />
+                            Value="{Binding TiledArrangerElementWidth}" />
 
                         <NumericUpDown x:Name="arrangerElementHeightBox" Grid.Column="2" MinWidth="80" Classes="dense" FormatString="0"
                             InnerLeftContent="H" Minimum="1" ToolTip.Tip="Height of arranger in number of elements"
-                            Value="{Binding ArrangerElementHeight}" />
+                            Value="{Binding TiledArrangerElementHeight}" />
                     </Grid>
+
+                    <TextBlock HorizontalAlignment="Center">
+                        <Run Text="Arranger Pixel Size: (" />
+                        <Run Text="{Binding TiledArrangerPixelWidth}" />
+                        <Run Text=" x " />
+                        <Run Text="{Binding TiledArrangerPixelHeight}" />
+                        <Run Text=")" />
+                    </TextBlock>
                 </StackPanel>
 
-                <TextBlock Margin="0,20,0,0" HorizontalAlignment="Center" Text="Element Size in Pixels" />
+                <StackPanel IsVisible="{Binding SelectedLayout, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Single}">
+                    <TextBlock Margin="0,20,0,0" HorizontalAlignment="Center" Text="Arranger Size in Pixels" />
 
-                <Grid Margin="0,8,0,0" HorizontalAlignment="Center" ColumnDefinitions="Auto,16,Auto">
-                    <NumericUpDown x:Name="elementPixelWidthBox" Grid.Column="0" MinWidth="80" Classes="dense" FormatString="0"
-                        InnerLeftContent="W" Minimum="1" ToolTip.Tip="Width of each element in pixels"
-                        Value="{Binding ElementPixelWidth}" />
+                    <Grid Margin="0,8,0,0" HorizontalAlignment="Center" ColumnDefinitions="*,16,*">
+                        <NumericUpDown x:Name="singleArrangerElementWidthBox" Grid.Column="0" MinWidth="80" Classes="dense"
+                            FormatString="0" InnerLeftContent="W" Minimum="1"
+                            ToolTip.Tip="Width of arranger in number of elements" Value="{Binding SingleArrangerPixelWidth}" />
 
-                    <NumericUpDown x:Name="elementPixelHeightBox" Grid.Column="2" MinWidth="80" Classes="dense" FormatString="0"
-                        InnerLeftContent="H" Minimum="1" ToolTip.Tip="Height of each element in pixels"
-                        Value="{Binding ElementPixelHeight}" />
-                </Grid>
+                        <NumericUpDown x:Name="singleArrangerElementHeightBox" Grid.Column="2" MinWidth="80" Classes="dense"
+                            FormatString="0" InnerLeftContent="H" Minimum="1"
+                            ToolTip.Tip="Height of arranger in number of elements" Value="{Binding SingleArrangerPixelHeight}" />
+                    </Grid>
+                </StackPanel>
 
                 <ItemsControl Margin="0,8,0,8" HorizontalAlignment="Center" ItemsSource="{Binding ValidationErrors}">
                     <ItemsControl.ItemTemplate>
