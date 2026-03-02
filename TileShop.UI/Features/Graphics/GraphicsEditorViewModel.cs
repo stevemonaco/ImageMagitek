@@ -25,9 +25,9 @@ using TileShop.UI.Models;
 namespace TileShop.UI.ViewModels;
 
 public enum GraphicsEditMode { View, Arrange, Draw }
-public enum PixelTool { Select, Pencil, ColorPicker, FloodFill }
-public enum ViewTool { Select }
-public enum ArrangerTool { Select, ApplyPalette, PickPalette, InspectElement, RotateLeft, RotateRight, MirrorHorizontal, MirrorVertical }
+public enum ViewTool { ElementSelect, PixelSelect }
+public enum ArrangeTool { ElementSelect, PixelSelect, ApplyPalette, PickPalette, InspectElement, RotateLeft, RotateRight, MirrorHorizontal, MirrorVertical }
+public enum DrawTool { PixelSelect, Pencil, ColorPicker, FloodFill }
 public enum ColorPriority { Primary, Secondary }
 public enum DrawClipEffect { Greyscale, Hidden }
 
@@ -69,8 +69,8 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         IToolHandler<GraphicsEditorViewModel>? outgoingTool = oldValue switch
         {
             GraphicsEditMode.View => _viewTools.GetValueOrDefault(ActiveViewTool),
-            GraphicsEditMode.Arrange => _arrangerTools.GetValueOrDefault(ActiveArrangerTool),
-            GraphicsEditMode.Draw => _pixelTools.GetValueOrDefault(ActivePixelTool),
+            GraphicsEditMode.Arrange => _arrangerTools.GetValueOrDefault(ActiveArrangeTool),
+            GraphicsEditMode.Draw => _pixelTools.GetValueOrDefault(ActiveDrawTool),
             _ => null
         };
 
@@ -242,7 +242,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     private HistoryAction? _activePencilHistory;
 
-    partial void OnActiveArrangerToolChanged(ArrangerTool oldValue, ArrangerTool newValue)
+    partial void OnActiveArrangeToolChanged(ArrangeTool oldValue, ArrangeTool newValue)
     {
         if (_arrangerTools.TryGetValue(oldValue, out var outgoing))
         {
@@ -251,7 +251,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
                 AddHistoryAction(historyAction);
         }
 
-        if (newValue != ArrangerTool.Select && newValue != ArrangerTool.ApplyPalette)
+        if (newValue != ArrangeTool.ElementSelect && newValue != ArrangeTool.PixelSelect && newValue != ArrangeTool.ApplyPalette)
             CancelOverlay();
     }
 

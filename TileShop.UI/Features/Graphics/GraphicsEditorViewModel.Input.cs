@@ -16,29 +16,31 @@ public partial class GraphicsEditorViewModel
     public Key PrimaryAltKey { get; private set; } = Key.LeftAlt;
     public Key SecondaryAltKey { get; private set; } = Key.LeftShift;
 
-    private readonly Dictionary<ArrangerTool, IToolHandler<GraphicsEditorViewModel>> _arrangerTools = new()
+    private readonly Dictionary<ArrangeTool, IToolHandler<GraphicsEditorViewModel>> _arrangerTools = new()
     {
-        [ArrangerTool.Select] = new SelectToolHandler(),
-        [ArrangerTool.ApplyPalette] = new ApplyPaletteToolHandler(),
-        [ArrangerTool.PickPalette] = new PickPaletteToolHandler(),
-        [ArrangerTool.InspectElement] = new InspectElementToolHandler(),
-        [ArrangerTool.RotateLeft] = new RotateToolHandler(RotationOperation.Left),
-        [ArrangerTool.RotateRight] = new RotateToolHandler(RotationOperation.Right),
-        [ArrangerTool.MirrorHorizontal] = new MirrorToolHandler(MirrorOperation.Horizontal),
-        [ArrangerTool.MirrorVertical] = new MirrorToolHandler(MirrorOperation.Vertical),
+        [ArrangeTool.ElementSelect] = new ElementSelectToolHandler(),
+        [ArrangeTool.PixelSelect] = new PixelSelectToolHandler(),
+        [ArrangeTool.ApplyPalette] = new ApplyPaletteToolHandler(),
+        [ArrangeTool.PickPalette] = new PickPaletteToolHandler(),
+        [ArrangeTool.InspectElement] = new InspectElementToolHandler(),
+        [ArrangeTool.RotateLeft] = new RotateToolHandler(RotationOperation.Left),
+        [ArrangeTool.RotateRight] = new RotateToolHandler(RotationOperation.Right),
+        [ArrangeTool.MirrorHorizontal] = new MirrorToolHandler(MirrorOperation.Horizontal),
+        [ArrangeTool.MirrorVertical] = new MirrorToolHandler(MirrorOperation.Vertical),
     };
 
     private readonly Dictionary<ViewTool, IToolHandler<GraphicsEditorViewModel>> _viewTools = new()
     {
-        [ViewTool.Select] = new SelectToolHandler(),
+        [ViewTool.ElementSelect] = new ElementSelectToolHandler(),
+        [ViewTool.PixelSelect] = new PixelSelectToolHandler(),
     };
 
-    private readonly Dictionary<PixelTool, IToolHandler<GraphicsEditorViewModel>> _pixelTools = new()
+    private readonly Dictionary<DrawTool, IToolHandler<GraphicsEditorViewModel>> _pixelTools = new()
     {
-        [PixelTool.Select] = new SelectToolHandler(),
-        [PixelTool.Pencil] = new PencilToolHandler(),
-        [PixelTool.ColorPicker] = new ColorPickerToolHandler(),
-        [PixelTool.FloodFill] = new FloodFillToolHandler(),
+        [DrawTool.PixelSelect] = new PixelSelectToolHandler(),
+        [DrawTool.Pencil] = new PencilToolHandler(),
+        [DrawTool.ColorPicker] = new ColorPickerToolHandler(),
+        [DrawTool.FloodFill] = new FloodFillToolHandler(),
     };
 
     private IToolHandler<GraphicsEditorViewModel>? _modifierOverrideTool;
@@ -51,8 +53,8 @@ public partial class GraphicsEditorViewModel
         return EditMode switch
         {
             GraphicsEditMode.View => _viewTools[ActiveViewTool],
-            GraphicsEditMode.Arrange => _arrangerTools[ActiveArrangerTool],
-            GraphicsEditMode.Draw => _pixelTools[ActivePixelTool],
+            GraphicsEditMode.Arrange => _arrangerTools[ActiveArrangeTool],
+            GraphicsEditMode.Draw => _pixelTools[ActiveDrawTool],
             _ => null
         };
     }
@@ -63,7 +65,7 @@ public partial class GraphicsEditorViewModel
             return _modifierOverrideTool;
 
         if (EditMode == GraphicsEditMode.Draw && modifiers.HasFlag(KeyModifiers.Alt))
-            return _pixelTools[PixelTool.ColorPicker];
+            return _pixelTools[DrawTool.ColorPicker];
 
         return ResolveActiveTool();
     }
@@ -187,7 +189,7 @@ public partial class GraphicsEditorViewModel
         // Handle modifier key override (e.g., Alt pushes ColorPicker in pixel mode)
         if (EditMode == GraphicsEditMode.Draw && keyState.Key == SecondaryAltKey && _modifierOverrideTool is null)
         {
-            _modifierOverrideTool = _pixelTools[PixelTool.ColorPicker];
+            _modifierOverrideTool = _pixelTools[DrawTool.ColorPicker];
             return true;
         }
 

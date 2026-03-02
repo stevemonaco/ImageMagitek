@@ -20,12 +20,12 @@ namespace TileShop.UI.ViewModels;
 public partial class GraphicsEditorViewModel
 {
     [ObservableProperty] private bool _isPencilDrawing;
-    [ObservableProperty] private PixelTool _activePixelTool = PixelTool.Pencil;
-    [ObservableProperty] private ArrangerTool _activeArrangerTool = ArrangerTool.Select;
-    [ObservableProperty] private ViewTool _activeViewTool = ViewTool.Select;
+    [ObservableProperty] private DrawTool _activeDrawTool = DrawTool.Pencil;
+    [ObservableProperty] private ArrangeTool _activeArrangeTool = ArrangeTool.ElementSelect;
+    [ObservableProperty] private ViewTool _activeViewTool = ViewTool.ElementSelect;
     [ObservableProperty] private bool _areSymmetryToolsEnabled;
 
-    partial void OnActivePixelToolChanged(PixelTool oldValue, PixelTool newValue)
+    partial void OnActiveDrawToolChanged(DrawTool oldValue, DrawTool newValue)
     {
         if (_pixelTools.TryGetValue(oldValue, out var outgoing))
         {
@@ -42,9 +42,9 @@ public partial class GraphicsEditorViewModel
     }
 
     [RelayCommand]
-    public void ChangeArrangerTool(ArrangerTool tool)
+    public void ChangeArrangerTool(ArrangeTool tool)
     {
-        ActiveArrangerTool = tool;
+        ActiveArrangeTool = tool;
     }
 
     [RelayCommand]
@@ -53,8 +53,8 @@ public partial class GraphicsEditorViewModel
         AreSymmetryToolsEnabled = !AreSymmetryToolsEnabled;
     }
 
-    public void SetSelectToolMode() => ActiveArrangerTool = ArrangerTool.Select;
-    public void SetApplyPaletteMode() => ActiveArrangerTool = ArrangerTool.ApplyPalette;
+    public void SetSelectToolMode() => ActiveArrangeTool = ArrangeTool.ElementSelect;
+    public void SetApplyPaletteMode() => ActiveArrangeTool = ArrangeTool.ApplyPalette;
 
     [RelayCommand]
     public void ToggleGridlineVisibility()

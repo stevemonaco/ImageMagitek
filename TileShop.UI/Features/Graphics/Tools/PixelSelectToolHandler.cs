@@ -5,7 +5,7 @@ using TileShop.UI.ViewModels;
 
 namespace TileShop.UI.Features.Graphics.Tools;
 
-public class SelectToolHandler : IToolHandler<GraphicsEditorViewModel>
+public class PixelSelectToolHandler : IToolHandler<GraphicsEditorViewModel>
 {
     public ToolResult OnMouseDown(ToolContext ctx, GraphicsEditorViewModel state)
     {
@@ -35,6 +35,7 @@ public class SelectToolHandler : IToolHandler<GraphicsEditorViewModel>
 
         if (ctx.MouseState.LeftButtonPressed && ctx.MouseState.Modifiers.HasFlag(KeyModifiers.Control))
         {
+            state.Selection.SelectionRect.SnapMode = state.SnapMode;
             state.StartNewSelection(ctx.X, ctx.Y);
             state.CompleteSelection();
             return ToolResult.HandledOverlay;
@@ -42,6 +43,7 @@ public class SelectToolHandler : IToolHandler<GraphicsEditorViewModel>
 
         if (ctx.MouseState.LeftButtonPressed)
         {
+            state.Selection.SelectionRect.SnapMode = state.SnapMode;
             state.StartNewSelection(ctx.X, ctx.Y);
             return ToolResult.HandledOverlay;
         }
@@ -86,31 +88,11 @@ public class SelectToolHandler : IToolHandler<GraphicsEditorViewModel>
 
     public ToolResult OnKeyDown(ToolContext ctx, GraphicsEditorViewModel state)
     {
-        if (state.EditMode == GraphicsEditMode.Arrange &&
-            ctx.KeyState.Key == state.SecondaryAltKey && state.Paste is null)
-        {
-            if (state.TryStartNewSingleSelection(ctx.X, ctx.Y))
-            {
-                state.CompleteSelection();
-                return ToolResult.HandledNoInvalidation;
-            }
-        }
-
         return ToolResult.Unhandled;
     }
 
     public ToolResult OnKeyUp(ToolContext ctx, GraphicsEditorViewModel state)
     {
-        if (state.EditMode == GraphicsEditMode.Arrange &&
-            ctx.KeyState.Key == state.SecondaryAltKey && state.Paste is null &&
-            state.WorkingArranger.ElementPixelSize == new System.Drawing.Size(
-                state.Selection.SelectionRect.SnappedWidth,
-                state.Selection.SelectionRect.SnappedHeight))
-        {
-            state.CancelOverlay();
-            return ToolResult.HandledNoInvalidation;
-        }
-
         return ToolResult.Unhandled;
     }
 
