@@ -73,6 +73,9 @@ public partial class GraphicsEditorViewModel
     [RelayCommand]
     public void ToggleSnapMode()
     {
+        if (!CanChangeSnapMode)
+            return;
+
         if (SnapMode == SnapMode.Element)
             SnapMode = SnapMode.Pixel;
         else if (SnapMode == SnapMode.Pixel)

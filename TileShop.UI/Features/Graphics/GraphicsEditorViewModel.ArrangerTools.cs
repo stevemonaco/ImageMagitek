@@ -23,6 +23,14 @@ public partial class GraphicsEditorViewModel
     [ObservableProperty] private DrawTool _activeDrawTool = DrawTool.Pencil;
     [ObservableProperty] private ArrangeTool _activeArrangeTool = ArrangeTool.ElementSelect;
     [ObservableProperty] private ViewTool _activeViewTool = ViewTool.ElementSelect;
+    partial void OnActiveViewToolChanged(ViewTool value)
+    {
+        if (value == ViewTool.ElementSelect)
+            SnapMode = SnapMode.Element;
+
+        OnPropertyChanged(nameof(CanChangeSnapMode));
+    }
+
     [ObservableProperty] private bool _areSymmetryToolsEnabled;
 
     partial void OnActiveDrawToolChanged(DrawTool oldValue, DrawTool newValue)

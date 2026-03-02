@@ -101,6 +101,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         OnPropertyChanged(nameof(IsDrawMode));
         OnPropertyChanged(nameof(HasDrawClipRect));
         OnPropertyChanged(nameof(CanEditSelectedColor));
+        OnPropertyChanged(nameof(CanChangeSnapMode));
     }
 
     [ObservableProperty] private bool _canView;
@@ -139,7 +140,15 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         InvalidateEditor(InvalidationLevel.Overlay);
     }
 
-    public bool CanChangeSnapMode { get; private set; }
+    private bool _canChangeSnapMode;
+    public bool CanChangeSnapMode => _canChangeSnapMode && !IsElementSelectToolActive;
+
+    private bool IsElementSelectToolActive => EditMode switch
+    {
+        GraphicsEditMode.View => ActiveViewTool == ViewTool.ElementSelect,
+        GraphicsEditMode.Arrange => ActiveArrangeTool == ArrangeTool.ElementSelect,
+        _ => false
+    };
     public bool CanAcceptPixelPastes { get; init; }
     public bool CanAcceptElementPastes { get; init; }
 
@@ -253,6 +262,11 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
         if (newValue != ArrangeTool.ElementSelect && newValue != ArrangeTool.PixelSelect && newValue != ArrangeTool.ApplyPalette)
             CancelOverlay();
+
+        if (newValue == ArrangeTool.ElementSelect)
+            SnapMode = SnapMode.Element;
+
+        OnPropertyChanged(nameof(CanChangeSnapMode));
     }
 
     public GraphicsEditorViewModel(Arranger arranger, IInteractionService interactionService,
@@ -302,7 +316,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         else if (WorkingArranger.Layout == ElementLayout.Tiled)
         {
             SnapMode = SnapMode.Element;
-            CanChangeSnapMode = true;
+            _canChangeSnapMode = true;
         }
 
         if (WorkingArranger is SequentialArranger seqArr)
