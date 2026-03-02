@@ -3,26 +3,45 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="https://github.com/stevemonaco/TileShop"
     xmlns:con="using:TileShop.UI.Converters"
+    xmlns:m="using:TileShop.Shared.Models"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:DataType="vm:AddScatteredArrangerViewModel">
+    <UserControl.Styles>
+        <Style x:DataType="m:SelectionOption" Selector="cc|SegmentControl.option">
+            <Setter Property="ItemTemplate" Value="{DynamicResource SegmentSelectionOptionTemplate}" />
+            <Style Selector="^  &gt; cc|SegmentItem">
+                <Setter Property="(ToolTip.Tip)" Value="{Binding Description}" />
+                <Setter Property="IsSelected" Value="{Binding IsSelected}" />
+            </Style>
+        </Style>
+    </UserControl.Styles>
+    <UserControl.Resources>
+        <!-- <ControlTheme x:Key="SegmentSelectionOption" BasedOn="{StaticResource {x:Type cc:SegmentItem}}" TargetType="cc:SegmentItem"> -->
+        <!--     <Setter Property="ToolTip.Tip" Value="{ReflectionBinding Content.Description, RelativeSource={RelativeSource Self}}" /> -->
+        <!-- </ControlTheme> -->
+
+        <DataTemplate x:Key="SegmentSelectionOptionTemplate" x:DataType="m:SelectionOption">
+            <TextBlock Text="{Binding DisplayText}" />
+        </DataTemplate>
+    </UserControl.Resources>
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" Text="Arranger Name" />
+                <TextBlock Margin="0,16,0,0" HorizontalAlignment="Center" Text="Arranger Name" />
                 <TextBox x:Name="arrangerNameBox" Width="250" Margin="0,4,0,0" HorizontalAlignment="Center"
                     Text="{Binding ArrangerName}" />
 
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" Text="Pixel Color Type" />
+                <TextBlock Margin="0,16,0,0" HorizontalAlignment="Center" Text="Pixel Color Type" />
 
-                <cc:SegmentedControl Margin="0,4,0,0" HorizontalAlignment="Center" ItemsSource="{Binding AvailableColorTypes}"
-                    SelectedItem="{Binding SelectedColorType}" />
+                <cc:SegmentControl Margin="0,4,0,0" HorizontalAlignment="Center" Classes="option"
+                    ItemsSource="{Binding AvailableColorTypes}" SelectedItem="{Binding SelectedColorType}" />
 
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" Text="Arranger Layout" />
+                <TextBlock Margin="0,16,0,0" HorizontalAlignment="Center" Text="Arranger Layout" />
 
-                <cc:SegmentedControl Margin="0,4,0,0" HorizontalAlignment="Center" ItemsSource="{Binding AvailableElementLayouts}"
-                    SelectedItem="{Binding SelectedLayout}" />
+                <cc:SegmentControl Margin="0,4,0,0" HorizontalAlignment="Center" Classes="option"
+                    ItemsSource="{Binding AvailableElementLayouts}" SelectedItem="{Binding SelectedLayout}" />
 
-                <StackPanel Margin="0,8,0,0" IsVisible="{Binding SelectedLayout, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Tiled}" Spacing="8">
+                <StackPanel Margin="0,16,0,0" IsVisible="{Binding SelectedLayout.Value, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Tiled}">
                     <TextBlock HorizontalAlignment="Center" Text="Element Size in Pixels" />
 
                     <Grid Margin="0,4,0,0" HorizontalAlignment="Center" ColumnDefinitions="Auto,16,Auto">
@@ -35,7 +54,7 @@
                             Value="{Binding TiledElementPixelHeight}" />
                     </Grid>
 
-                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" Text="Arranger Size in Elements" />
+                    <TextBlock Margin="0,16,0,0" HorizontalAlignment="Center" Text="Arranger Size in Elements" />
 
                     <Grid Margin="0,4,0,0" HorizontalAlignment="Center" ColumnDefinitions="*,16,*">
                         <NumericUpDown x:Name="arrangerElementWidthBox" Grid.Column="0" MinWidth="80" Classes="dense" FormatString="0"
@@ -47,7 +66,7 @@
                             Value="{Binding TiledArrangerElementHeight}" />
                     </Grid>
 
-                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center">
+                    <TextBlock Margin="0,16,0,0" HorizontalAlignment="Center">
                         <Run Text="Total Arranger Pixel Size: (" />
                         <Run Text="{Binding TiledArrangerPixelWidth}" />
                         <Run Text=" x " />
@@ -56,7 +75,7 @@
                     </TextBlock>
                 </StackPanel>
 
-                <StackPanel Margin="0,8,0,0" IsVisible="{Binding SelectedLayout, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Single}">
+                <StackPanel Margin="0,16,0,0" IsVisible="{Binding SelectedLayout.Value, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Single}">
                     <TextBlock HorizontalAlignment="Center" Text="Arranger Size in Pixels" />
 
                     <Grid Margin="0,4,0,0" HorizontalAlignment="Center" ColumnDefinitions="*,16,*">
@@ -70,7 +89,7 @@
                     </Grid>
                 </StackPanel>
 
-                <ItemsControl Margin="0,8,0,8" HorizontalAlignment="Center" IsVisible="{Binding !!ValidationErrors.Count}"
+                <ItemsControl Margin="0,16,0,8" HorizontalAlignment="Center" IsVisible="{Binding !!ValidationErrors.Count}"
                     ItemsSource="{Binding ValidationErrors}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>

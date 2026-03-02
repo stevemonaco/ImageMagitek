@@ -9,20 +9,20 @@ namespace TileShop.UI.Controls;
 
 [TemplatePart(Name = "PART_ItemsHost", Type = typeof(StackPanel), IsRequired = true)]
 [TemplatePart(Name = "PART_Indicator", Type = typeof(Border), IsRequired = true)]
-public partial class SegmentedControl : TemplatedControl
+public partial class SegmentControl : TemplatedControl
 {
     private StackPanel? _itemsHost;
     private Border? _indicator;
     private bool _updatingSelection;
     private bool _hasAppliedTemplate;
 
-    static SegmentedControl()
+    static SegmentControl()
     {
-        ItemsSourceProperty.Changed.AddClassHandler<SegmentedControl>((c, e) => c.OnItemsSourceChanged(e));
-        ItemTemplateProperty.Changed.AddClassHandler<SegmentedControl>((c, _) => c.RegenerateItems());
-        SelectedItemProperty.Changed.AddClassHandler<SegmentedControl>((c, _) => c.OnSelectedItemChanged());
-        SelectedIndexProperty.Changed.AddClassHandler<SegmentedControl>((c, _) => c.OnSelectedIndexChanged());
-        ItemContainerThemeProperty.Changed.AddClassHandler<SegmentedControl>((c, _) => c.RegenerateItems());
+        ItemsSourceProperty.Changed.AddClassHandler<SegmentControl>((c, e) => c.OnItemsSourceChanged(e));
+        ItemTemplateProperty.Changed.AddClassHandler<SegmentControl>((c, _) => c.RegenerateItems());
+        SelectedItemProperty.Changed.AddClassHandler<SegmentControl>((c, _) => c.OnSelectedItemChanged());
+        SelectedIndexProperty.Changed.AddClassHandler<SegmentControl>((c, _) => c.OnSelectedIndexChanged());
+        ItemContainerThemeProperty.Changed.AddClassHandler<SegmentControl>((c, _) => c.RegenerateItems());
     }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -72,7 +72,7 @@ public partial class SegmentedControl : TemplatedControl
 
         foreach (var item in ItemsSource)
         {
-            var container = new SegmentedControlItem
+            var container = new SegmentItem
             {
                 Content = item,
                 ContentTemplate = ItemTemplate,
@@ -112,7 +112,7 @@ public partial class SegmentedControl : TemplatedControl
 
         for (var i = 0; i < _itemsHost.Children.Count; i++)
         {
-            if (_itemsHost.Children[i] is SegmentedControlItem container && Equals(container.Content, selectedItem))
+            if (_itemsHost.Children[i] is SegmentItem container && Equals(container.Content, selectedItem))
             {
                 _updatingSelection = true;
                 try
@@ -130,7 +130,7 @@ public partial class SegmentedControl : TemplatedControl
 
     private void OnItemPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is not SegmentedControlItem container || _itemsHost is null)
+        if (sender is not SegmentItem container || _itemsHost is null)
             return;
 
         var index = _itemsHost.Children.IndexOf(container);
@@ -166,7 +166,7 @@ public partial class SegmentedControl : TemplatedControl
             {
                 for (var i = 0; i < _itemsHost.Children.Count; i++)
                 {
-                    if (_itemsHost.Children[i] is SegmentedControlItem container && Equals(container.Content, selectedItem))
+                    if (_itemsHost.Children[i] is SegmentItem container && Equals(container.Content, selectedItem))
                     {
                         index = i;
                         break;
@@ -195,7 +195,7 @@ public partial class SegmentedControl : TemplatedControl
             var index = SelectedIndex;
 
             if (index >= 0 && index < _itemsHost.Children.Count &&
-                _itemsHost.Children[index] is SegmentedControlItem container)
+                _itemsHost.Children[index] is SegmentItem container)
             {
                 SetCurrentValue(SelectedItemProperty, container.Content);
             }
@@ -262,7 +262,7 @@ public partial class SegmentedControl : TemplatedControl
 
         for (var i = 0; i < _itemsHost.Children.Count; i++)
         {
-            if (_itemsHost.Children[i] is SegmentedControlItem container)
+            if (_itemsHost.Children[i] is SegmentItem container)
             {
                 container.IsSelected = i == selectedIndex;
             }

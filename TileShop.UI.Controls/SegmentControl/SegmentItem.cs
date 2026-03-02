@@ -3,10 +3,10 @@ using Avalonia.Controls;
 
 namespace TileShop.UI.Controls;
 
-public class SegmentedControlItem : ContentControl
+public class SegmentItem : ContentControl
 {
     public static readonly StyledProperty<bool> IsSelectedProperty =
-        AvaloniaProperty.Register<SegmentedControlItem, bool>(nameof(IsSelected));
+        AvaloniaProperty.Register<SegmentItem, bool>(nameof(IsSelected));
 
     public bool IsSelected
     {
@@ -14,9 +14,9 @@ public class SegmentedControlItem : ContentControl
         set => SetValue(IsSelectedProperty, value);
     }
 
-    static SegmentedControlItem()
+    static SegmentItem()
     {
-        IsSelectedProperty.Changed.AddClassHandler<SegmentedControlItem>((item, _) =>
+        IsSelectedProperty.Changed.AddClassHandler<SegmentItem>((item, _) =>
             item.PseudoClasses.Set(":selected", item.IsSelected));
     }
 }

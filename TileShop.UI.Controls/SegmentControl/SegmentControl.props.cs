@@ -6,10 +6,10 @@ using Avalonia.Styling;
 
 namespace TileShop.UI.Controls;
 
-public partial class SegmentedControl
+public partial class SegmentControl
 {
     public static readonly StyledProperty<ControlTheme?> ItemContainerThemeProperty =
-        AvaloniaProperty.Register<SegmentedControl, ControlTheme?>(nameof(ItemContainerTheme));
+        AvaloniaProperty.Register<SegmentControl, ControlTheme?>(nameof(ItemContainerTheme));
 
     public ControlTheme? ItemContainerTheme
     {
@@ -18,7 +18,7 @@ public partial class SegmentedControl
     }
 
     public static readonly StyledProperty<IEnumerable?> ItemsSourceProperty =
-        AvaloniaProperty.Register<SegmentedControl, IEnumerable?>(nameof(ItemsSource));
+        AvaloniaProperty.Register<SegmentControl, IEnumerable?>(nameof(ItemsSource));
 
     public IEnumerable? ItemsSource
     {
@@ -27,7 +27,7 @@ public partial class SegmentedControl
     }
 
     public static readonly StyledProperty<IDataTemplate?> ItemTemplateProperty =
-        AvaloniaProperty.Register<SegmentedControl, IDataTemplate?>(nameof(ItemTemplate));
+        AvaloniaProperty.Register<SegmentControl, IDataTemplate?>(nameof(ItemTemplate));
 
     [InheritDataTypeFromItems(nameof(ItemsSource))]
     public IDataTemplate? ItemTemplate
@@ -37,7 +37,7 @@ public partial class SegmentedControl
     }
 
     public static readonly StyledProperty<object?> SelectedItemProperty =
-        AvaloniaProperty.Register<SegmentedControl, object?>(nameof(SelectedItem), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+        AvaloniaProperty.Register<SegmentControl, object?>(nameof(SelectedItem), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
     public object? SelectedItem
     {
@@ -46,7 +46,7 @@ public partial class SegmentedControl
     }
 
     public static readonly StyledProperty<int> SelectedIndexProperty =
-        AvaloniaProperty.Register<SegmentedControl, int>(nameof(SelectedIndex), defaultValue: -1, defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+        AvaloniaProperty.Register<SegmentControl, int>(nameof(SelectedIndex), defaultValue: -1, defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
     public int SelectedIndex
     {
