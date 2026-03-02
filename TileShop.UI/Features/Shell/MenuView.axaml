@@ -19,10 +19,10 @@
     <Grid ColumnDefinitions="*,auto">
         <Menu x:Name="menu">
             <MenuItem Header="_File">
-                <MenuItem Command="{Binding NewEmptyProjectCommand}" Header="_New Empty Project" />
-                <MenuItem Command="{Binding NewProjectFromFileCommand}" Header="New Project from _Existing File" />
+                <MenuItem Command="{Binding NewEmptyProjectCommand}" Header="_New Empty Project..." />
+                <MenuItem Command="{Binding NewProjectFromFileCommand}" Header="New Project from _Existing File..." />
                 <Separator />
-                <MenuItem Command="{Binding OpenProjectCommand}" Header="Open _Project" />
+                <MenuItem Command="{Binding OpenProjectCommand}" Header="Open _Project..." />
                 <MenuItem Classes="recent" Header="Open Recent Project" IsVisible="{Binding RecentProjectFiles.Count}"
                     ItemsSource="{Binding RecentProjectFiles}" />
                 <Separator />

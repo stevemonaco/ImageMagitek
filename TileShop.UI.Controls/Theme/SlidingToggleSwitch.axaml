@@ -1,80 +1,51 @@
-﻿<ResourceDictionary
-    xmlns="https://github.com/avaloniaui"
-    xmlns:con="using:TileShop.UI.Controls.Converters"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:con="using:TileShop.UI.Controls.Converters">
     <Design.PreviewWith>
-        <StackPanel
-            Margin="20"
-            Spacing="24"
-            Width="250">
+        <StackPanel Width="250" Margin="20" Spacing="24">
             <StackPanel Spacing="12">
                 <ToggleSwitch />
                 <ToggleSwitch IsChecked="True" />
-                <ToggleSwitch
-                    Content="Header"
-                    HorizontalContentAlignment="Left"
-                    OffContent="Off"
-                    OnContent="On" />
+                <ToggleSwitch HorizontalContentAlignment="Left" Content="Header" OffContent="Off" OnContent="On" />
                 <ToggleSwitch Background="Yellow" />
             </StackPanel>
         </StackPanel>
     </Design.PreviewWith>
 
-    <ControlTheme TargetType="ToggleSwitch" x:Key="SlidingToggleSwitchTheme">
+    <ControlTheme x:Key="SlidingToggleSwitchTheme" TargetType="ToggleSwitch">
         <Setter Property="Foreground" Value="{DynamicResource ToggleSwitchContentForeground}" />
         <Setter Property="HorizontalAlignment" Value="Left" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="FontSize" Value="{DynamicResource ControlContentThemeFontSize}" />
+        <Setter Property="MinHeight" Value="32" />
         <Setter Property="KnobTransitions">
             <Transitions>
-                <DoubleTransition
-                    Duration="0:0:0.2"
-                    Easing="CubicEaseOut"
-                    Property="Canvas.Left" />
+                <DoubleTransition Easing="CubicEaseOut" Property="Canvas.Left" Duration="0:0:0.2" />
             </Transitions>
         </Setter>
         <Setter Property="Template">
             <ControlTemplate>
-                <Border
-                    Background="#202020"
-                    BorderBrush="#202020"
-                    BorderThickness="2"
-                    CornerRadius="4">
-                    <Grid ColumnDefinitions="*,*" x:Name="ContentGrid">
-                        <Canvas
-                            HorizontalAlignment="Stretch"
-                            IsHitTestVisible="False"
-                            VerticalAlignment="Stretch"
-                            x:Name="PART_SwitchKnob">
+                <Border Background="#202020" BorderBrush="#202020" BorderThickness="2" CornerRadius="4">
+                    <Grid x:Name="ContentGrid" ColumnDefinitions="*,*">
+                        <Canvas x:Name="PART_SwitchKnob" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                            IsHitTestVisible="False">
                             <Panel x:Name="PART_MovingKnobs">
-                                <Rectangle
-                                    Fill="#444444"
-                                    Height="{Binding #ContentGrid.Bounds.Height}"
-                                    RadiusX="4"
-                                    RadiusY="4"
-                                    Width="{Binding #ContentGrid.Bounds.Width, Converter={x:Static con:ControlConverters.DoubleToHalf}}" />
+                                <Rectangle Width="{Binding #ContentGrid.Bounds.Width, Converter={x:Static con:ControlConverters.DoubleToHalf}}"
+                                    Height="{Binding #ContentGrid.Bounds.Height}" Fill="#444444" RadiusX="4" RadiusY="4" />
                             </Panel>
                         </Canvas>
 
-                        <ContentPresenter
-                            Background="{x:Null}"
-                            Content="{TemplateBinding OffContent}"
-                            ContentTemplate="{TemplateBinding OffContentTemplate}"
-                            Grid.Column="0"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            x:Name="PART_OffContentPresenter" />
+                        <ContentPresenter x:Name="PART_OffContentPresenter" Grid.Column="0" MinHeight="{TemplateBinding MinHeight}"
+                            Padding="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{x:Null}"
+                            Content="{TemplateBinding OffContent}" ContentTemplate="{TemplateBinding OffContentTemplate}" />
 
-                        <ContentPresenter
-                            Background="{x:Null}"
-                            Content="{TemplateBinding OnContent}"
-                            ContentTemplate="{TemplateBinding OnContentTemplate}"
-                            Grid.Column="1"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            x:Name="PART_OnContentPresenter" />
+                        <ContentPresenter x:Name="PART_OnContentPresenter" Grid.Column="1" MinHeight="{TemplateBinding MinHeight}"
+                            Padding="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{x:Null}"
+                            Content="{TemplateBinding OnContent}" ContentTemplate="{TemplateBinding OnContentTemplate}" />
                     </Grid>
                 </Border>
             </ControlTemplate>

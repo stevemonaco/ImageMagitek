@@ -13,6 +13,7 @@
 
                 <!--  Custom controls  -->
                 <MergeResourceInclude Source="avares://TileShop.UI.Controls/Dialogs/OverlayDialog.axaml" />
+                <MergeResourceInclude Source="avares://TileShop.UI.Controls/SegmentControl/SegmentControl.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Styles.Resources>
