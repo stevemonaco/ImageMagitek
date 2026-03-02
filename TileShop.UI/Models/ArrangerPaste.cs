@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
@@ -37,20 +37,15 @@ public partial class ArrangerPaste : ObservableObject, IDraggable
 
         if (copy is ElementCopy elementCopy)
         {
-            var x = elementCopy.X * elementCopy.ElementPixelWidth;
-            var y = elementCopy.Y * elementCopy.ElementPixelHeight;
-            var width = elementCopy.Width * elementCopy.Source.ElementPixelSize.Width;
-            var height = elementCopy.Height * elementCopy.Source.ElementPixelSize.Height;
+            var pixelCopy = elementCopy.ToPixelCopy();
 
-            if (elementCopy.Source.ColorType == PixelColorType.Indexed)
+            if (pixelCopy is IndexedPixelCopy ipc)
             {
-                var image = new IndexedImage(elementCopy.Source, x, y, width, height);
-                _overlayImage = new IndexedBitmapAdapter(image);
+                _overlayImage = new IndexedBitmapAdapter(ipc.Image);
             }
-            else if (elementCopy.Source.ColorType == PixelColorType.Direct)
+            else if (pixelCopy is DirectPixelCopy dpc)
             {
-                var image = new DirectImage(elementCopy.Source, x, y, width, height);
-                _overlayImage = new DirectBitmapAdapter(image);
+                _overlayImage = new DirectBitmapAdapter(dpc.Image);
             }
             else
                 throw new NotSupportedException($"{nameof(ArrangerPaste)}: Copy of type '{copy.GetType()}' is not supported");
@@ -66,7 +61,7 @@ public partial class ArrangerPaste : ObservableObject, IDraggable
         else
             throw new NotSupportedException($"{nameof(ArrangerPaste)}: Copy of type '{copy.GetType()}' is not supported");
 
-        _rect = new SnappedRectangle(new Size(OverlayImage.Width, OverlayImage.Height), copy.Source.ElementPixelSize, SnapMode, ElementSnapRounding.Floor);
+        _rect = new SnappedRectangle(new Size(OverlayImage.Width, OverlayImage.Height), copy.ElementPixelSize, SnapMode, ElementSnapRounding.Floor);
         _rect.SetBounds(0, OverlayImage.Width, 0, OverlayImage.Height);
     }
 

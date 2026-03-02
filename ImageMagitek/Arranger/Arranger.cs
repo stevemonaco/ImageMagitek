@@ -133,16 +133,16 @@ public abstract class Arranger : IProjectResource
         Guard.IsInRange(elemX, 0, ArrangerElementSize.Width+1);
         Guard.IsInRange(elemY, 0, ArrangerElementSize.Height+1);
 
-        if (element is ArrangerElement)
+        if (element is not null)
         {
-            if (element?.Codec.ColorType != ColorType)
+            if (element.Value.Codec.ColorType != ColorType)
                 throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' did not match the Arranger's {nameof(PixelColorType)}");
 
-            var relocatedElement = element?.WithLocation(elemX * ElementPixelSize.Width, elemY * ElementPixelSize.Height);
+            var relocatedElement = element.Value.WithLocation(elemX * ElementPixelSize.Width, elemY * ElementPixelSize.Height);
             ElementGrid[elemY, elemX] = relocatedElement;
         }
         else
-            ElementGrid[elemY, elemX] = element;
+            ElementGrid[elemY, elemX] = null;
     }
 
     /// <summary>

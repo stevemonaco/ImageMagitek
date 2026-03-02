@@ -25,14 +25,14 @@ public static class ElementCopier
         if (copyHeight > source.Height - sourceStart.Y)
             return new MagitekResult.Failed($"Source copy with height ({source.Height}) is insufficient to copy {copyHeight} elements starting from position {sourceStart.Y}");
 
-        if (source.Source.ElementPixelSize != dest.ElementPixelSize)
-            return new MagitekResult.Failed($"Source arranger '{source.Source.Name}' with element size ({source.Source.ElementPixelSize.Width}, {source.Source.ElementPixelSize.Height}) does not match destination arranger '{dest.Name}' with element size ({dest.ElementPixelSize.Width}, {dest.ElementPixelSize.Height})");
+        if (source.ElementPixelSize != dest.ElementPixelSize)
+            return new MagitekResult.Failed($"Source copy with element pixel size ({source.ElementPixelSize.Width}, {source.ElementPixelSize.Height}) does not match destination arranger '{dest.Name}' with element pixel size ({dest.ElementPixelSize.Width}, {dest.ElementPixelSize.Height})");
 
         if (dest.Layout != ElementLayout.Tiled && (copyWidth != 1 || copyHeight != 1))
             return new MagitekResult.Failed($"Destination arranger '{dest.Name}' is not a tiled layout");
 
-        if (source.Source.ColorType != dest.ColorType)
-            return new MagitekResult.Failed($"Source arranger '{source.Source.Name}' ColorType {source.Source.ColorType} does not match destination arranger ColorType {dest.ColorType}");
+        if (source.ColorType != dest.ColorType)
+            return new MagitekResult.Failed($"Source copy ColorType {source.ColorType} does not match destination arranger ColorType {dest.ColorType}");
 
         return MagitekResult.SuccessResult;
     }

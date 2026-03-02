@@ -404,7 +404,6 @@ public partial class ProjectTreeViewModel : ToolViewModel
     {
         var dialogModel = new NameResourceViewModel();
         var copy = message.Copy;
-        var arranger = message.Copy.Source;
         var projectTree = _projectService.GetContainingProject(message.ProjectResource);
         var parentModel = Projects.First(x => ReferenceEquals(projectTree.Project, x.Node.Item));
 
@@ -412,7 +411,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
         if (dialogResult is string resourceName)
         {
-            var newArranger = new ScatteredArranger(resourceName, arranger.ColorType, arranger.Layout, copy.Width, copy.Height, copy.ElementPixelWidth, copy.ElementPixelHeight);
+            var newArranger = new ScatteredArranger(resourceName, copy.ColorType, copy.Layout, copy.Width, copy.Height, copy.ElementPixelWidth, copy.ElementPixelHeight);
             var source = new Point(0, 0);
             var dest = new Point(0, 0);
 
