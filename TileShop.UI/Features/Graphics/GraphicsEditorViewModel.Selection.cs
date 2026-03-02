@@ -26,6 +26,7 @@ public partial class GraphicsEditorViewModel
         CompleteSelection();
         OnPropertyChanged(nameof(CanEditSelection));
         OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
+        OnPropertyChanged(nameof(CanAddSelectionAsScatteredArranger));
         InvalidateEditor(InvalidationLevel.Overlay);
     }
 
@@ -39,6 +40,7 @@ public partial class GraphicsEditorViewModel
 
         OnPropertyChanged(nameof(CanEditSelection));
         OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
+        OnPropertyChanged(nameof(CanAddSelectionAsScatteredArranger));
         InvalidateEditor(InvalidationLevel.Overlay);
     }
 
@@ -141,7 +143,8 @@ public partial class GraphicsEditorViewModel
 
             IsSelecting = false;
             OnPropertyChanged(nameof(CanEditSelection));
-        OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
+            OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
+            OnPropertyChanged(nameof(CanAddSelectionAsScatteredArranger));
             InvalidateEditor(InvalidationLevel.Overlay);
         }
     }
@@ -249,7 +252,8 @@ public partial class GraphicsEditorViewModel
             IsResizing = false;
             ActiveResizeHandle = SelectionHandle.None;
             OnPropertyChanged(nameof(CanEditSelection));
-        OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
+            OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
+            OnPropertyChanged(nameof(CanAddSelectionAsScatteredArranger));
             InvalidateEditor(InvalidationLevel.Overlay);
         }
     }

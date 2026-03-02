@@ -465,6 +465,29 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         ClearHistory();
         IsModified = false;
     }
+    
+    public bool CanAddSelectionAsScatteredArranger =>
+        Selection?.HasSelection == true
+        && OriginatingProjectResource is not null;
+
+    [RelayCommand]
+    public void AddSelectionAsScatteredArranger()
+    {
+        if (Selection?.HasSelection != true || OriginatingProjectResource is null)
+            return;
+
+        var rect = Selection.SelectionRect;
+        var arranger = WorkingArranger;
+        int x = rect.SnappedLeft / arranger.ElementPixelSize.Width;
+        int y = rect.SnappedTop / arranger.ElementPixelSize.Height;
+        int width = rect.SnappedWidth / arranger.ElementPixelSize.Width;
+        int height = rect.SnappedHeight / arranger.ElementPixelSize.Height;
+
+        var copy = arranger.CopyElements(x, y, width, height);
+        copy.ProjectResource = OriginatingProjectResource;
+
+        Messenger.Send(new AddScatteredArrangerFromCopyMessage(copy, OriginatingProjectResource));
+    }
 
     private void HandleResourceRenamed(object recipient, ResourceRenamedMessage message)
     {

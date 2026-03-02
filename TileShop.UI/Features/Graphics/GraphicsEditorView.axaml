@@ -39,6 +39,7 @@
 
     <UserControl.ContextMenu>
         <ContextMenu>
+            <MenuItem Command="{Binding AddSelectionAsScatteredArrangerCommand}" Header="Add as New Scattered Arranger..." />
             <MenuItem Command="{Binding SelectAllCommand}" Header="Select All" />
             <MenuItem Command="{Binding ModifyGridSettingsCommand}" Header="Grid Settings..." />
             <MenuItem Command="{Binding ToggleSymmetryToolsCommand}" Header="Show Symmetry Tools">
