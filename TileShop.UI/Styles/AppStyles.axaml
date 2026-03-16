@@ -3,6 +3,7 @@
     xmlns:b="using:TileShop.UI.Behaviors"
     xmlns:conv="using:TileShop.UI.Converters"
     xmlns:media="using:Avalonia.Media"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
     xmlns:vm="using:TileShop.UI.ViewModels">
 
     <!--  Replaces the default RadioButton with ellipse / text with a ToggleButton style  -->
@@ -59,6 +60,43 @@
     <Style Selector="Image.tool-icon-medium">
         <Setter Property="Height" Value="24" />
         <Setter Property="Width" Value="24" />
+    </Style>
+
+    <Style Selector="cc|TintableImage.tool-icon-medium">
+        <Setter Property="Height" Value="24" />
+        <Setter Property="Width" Value="24" />
+        <Setter Property="TintBrush" Value="White" />
+    </Style>
+
+    <!--  Show colored icons on hover or when checked  -->
+    <Style Selector="RadioButton.tool:pointerover cc|TintableImage.tool-icon-medium">
+        <Setter Property="TintBrush" Value="{x:Null}" />
+    </Style>
+    <Style Selector="RadioButton.tool:checked cc|TintableImage.tool-icon-medium">
+        <Setter Property="TintBrush" Value="{x:Null}" />
+    </Style>
+    <Style Selector="ToggleButton:pointerover cc|TintableImage.tool-icon-medium">
+        <Setter Property="TintBrush" Value="{x:Null}" />
+    </Style>
+    <Style Selector="ToggleButton:checked cc|TintableImage.tool-icon-medium">
+        <Setter Property="TintBrush" Value="{x:Null}" />
+    </Style>
+
+    <!--  Override ToggleButton checked state: border-only highlight instead of solid blue background  -->
+    <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonDefaultBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonSolidPrimaryBackground}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="ToggleButton:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonDefaultPointeroverBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonSolidPrimaryPointeroverBackground}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="ToggleButton:checked:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonDefaultPressedBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonSolidPrimaryPressedBackground}" />
+        <Setter Property="BorderThickness" Value="2" />
     </Style>
 
     <Style Selector="PathIcon.tool-icon-medium">
