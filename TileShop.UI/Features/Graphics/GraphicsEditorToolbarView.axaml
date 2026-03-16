@@ -42,21 +42,18 @@
             <StackPanel Spacing="4">
                 <!--  Edit Mode Selector  -->
                 <StackPanel Name="EditModeGroup" Classes="toolbar-group">
-                    <RadioButton Classes="tool" Content="View"
+                    <RadioButton Classes="tool" Click="OnEditModeClick" Content="View"
                         IsChecked="{Binding EditMode, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=View}"
-                        Tag="{x:Static vm:GraphicsEditMode.View}"
-                        Click="OnEditModeClick"
-                        IsVisible="{Binding CanView}" ToolTip.Tip="View-only mode for adjusting codec properties" />
-                    <RadioButton Classes="tool" Content="Arrange"
+                        IsVisible="{Binding CanView}" Tag="{x:Static vm:GraphicsEditMode.View}"
+                        ToolTip.Tip="View-only mode for adjusting codec properties" />
+                    <RadioButton Classes="tool" Click="OnEditModeClick" Content="Arrange"
                         IsChecked="{Binding EditMode, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Arrange}"
-                        Tag="{x:Static vm:GraphicsEditMode.Arrange}"
-                        Click="OnEditModeClick"
-                        IsVisible="{Binding CanArrange}" ToolTip.Tip="Arrange elements within the arranger" />
-                    <RadioButton Classes="tool" Content="Draw"
+                        IsVisible="{Binding CanArrange}" Tag="{x:Static vm:GraphicsEditMode.Arrange}"
+                        ToolTip.Tip="Arrange elements within the arranger" />
+                    <RadioButton Classes="tool" Click="OnEditModeClick" Content="Draw"
                         IsChecked="{Binding EditMode, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Draw}"
-                        Tag="{x:Static vm:GraphicsEditMode.Draw}"
-                        Click="OnEditModeClick"
-                        IsVisible="{Binding CanDraw}" ToolTip.Tip="Draw and edit pixels" />
+                        IsVisible="{Binding CanDraw}" Tag="{x:Static vm:GraphicsEditMode.Draw}"
+                        ToolTip.Tip="Draw and edit pixels" />
                 </StackPanel>
 
                 <TextBlock Classes="muted" IsVisible="{Binding IsSequentialArranger}"
@@ -124,13 +121,13 @@
                             CommandParameter="{x:Static vm:ViewTool.ElementSelect}"
                             IsChecked="{Binding SelectedViewTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ElementSelect}"
                             ToolTip.Tip="Select elements (always snaps to element boundaries)">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
+                            <PathIcon Classes="tool-icon-medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeViewToolCommand}"
                             CommandParameter="{x:Static vm:ViewTool.PixelSelect}"
                             IsChecked="{Binding SelectedViewTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=PixelSelect}"
                             ToolTip.Tip="Select pixels (respects current snap mode)">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
+                            <PathIcon Classes="tool-icon-medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
                         </RadioButton>
                     </StackPanel>
                 </WrapPanel>
@@ -144,56 +141,56 @@
                             CommandParameter="{x:Static vm:ArrangeTool.ElementSelect}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ElementSelect}"
                             ToolTip.Tip="Select elements (always snaps to element boundaries)">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
+                            <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewSelectElements}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
                             CommandParameter="{x:Static vm:ArrangeTool.PixelSelect}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=PixelSelect}"
                             ToolTip.Tip="Select pixels (respects current snap mode)">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
+                            <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewSelectPixels}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
                             CommandParameter="{x:Static vm:ArrangeTool.ApplyPalette}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ApplyPalette}"
                             ToolTip.Tip="{Binding SelectedPalette.Name, StringFormat='Click on an Arranger element to apply the current palette (\{0\})'}">
-                            <PathIcon Classes="medium vflip" Data="{x:Static cc:AppIcons.PaletteBrush}" />
+                            <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewApplyPalette}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
                             CommandParameter="{x:Static vm:ArrangeTool.PickPalette}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=PickPalette}"
                             ToolTip.Tip="Click on an Arranger element to pick its associated palette">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.PalettePicker}" />
+                            <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewPickPalette}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
                             CommandParameter="{x:Static vm:ArrangeTool.InspectElement}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=InspectElement}"
                             ToolTip.Tip="Hover Arranger elements to inspect their properties">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Eye}" />
+                            <PathIcon Classes="tool-icon-medium" Data="{x:Static cc:AppIcons.Eye}" />
                         </RadioButton>
 
                         <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
                             CommandParameter="{x:Static vm:ArrangeTool.RotateLeft}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateLeft}"
                             IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Rotate Element's Display Left">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RotateLeft}" />
+                            <PathIcon Classes="tool-icon-medium" Data="{x:Static cc:AppIcons.RotateLeft}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
                             CommandParameter="{x:Static vm:ArrangeTool.RotateRight}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateRight}"
                             IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Rotate Element's Display Right">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RotateRight}" />
+                            <PathIcon Classes="tool-icon-medium" Data="{x:Static cc:AppIcons.RotateRight}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
                             CommandParameter="{x:Static vm:ArrangeTool.MirrorHorizontal}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorHorizontal}"
                             IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Mirror Element's Display Horizontally">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.MirrorHorizontal}" />
+                            <PathIcon Classes="tool-icon-medium" Data="{x:Static cc:AppIcons.MirrorHorizontal}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
                             CommandParameter="{x:Static vm:ArrangeTool.MirrorVertical}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorVertical}"
                             IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Mirror Element's Display Vertically">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.MirrorVertical}" />
+                            <PathIcon Classes="tool-icon-medium" Data="{x:Static cc:AppIcons.MirrorVertical}" />
                         </RadioButton>
                     </StackPanel>
                 </WrapPanel>
@@ -207,31 +204,31 @@
                             CommandParameter="{x:Static vm:DrawTool.PixelSelect}"
                             IsChecked="{Binding DisplayedDrawTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=PixelSelect}"
                             ToolTip.Tip="Select pixels (respects current snap mode)">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.RectangularSelection}" />
+                            <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewSelectPixels}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
                             CommandParameter="{x:Static vm:DrawTool.Pencil}"
                             IsChecked="{Binding DisplayedDrawTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Pencil}"
                             ToolTip.Tip="Draw pixels with primary (left click) or secondary (right click) color">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Pencil}" />
+                            <PathIcon Classes="tool-icon-medium" Data="{x:Static cc:AppIcons.Pencil}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
                             CommandParameter="{x:Static vm:DrawTool.ColorPicker}"
                             IsChecked="{Binding DisplayedDrawTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColorPicker}"
                             ToolTip.Tip="Pick a color from the image">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.ColorPicker}" />
+                            <PathIcon Classes="tool-icon-medium" Data="{x:Static cc:AppIcons.ColorPicker}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangePixelToolCommand}"
                             CommandParameter="{x:Static vm:DrawTool.FloodFill}"
                             IsChecked="{Binding DisplayedDrawTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=FloodFill}"
                             ToolTip.Tip="Flood fill an area with primary (left click) or secondary (right click) color">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.FloodFill}" />
+                            <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewFloodFill}" />
                         </RadioButton>
                     </StackPanel>
 
                     <Button Command="{Binding SetDrawClipFromSelectionCommand}" IsVisible="{Binding CanSetDrawClipFromSelection}" ToolTip.Tip="Use current selection as draw clip">
                         <StackPanel Orientation="Horizontal" Spacing="4">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.DrawClip}" Foreground="#F9F9F9" />
+                            <PathIcon Classes="tool-icon-medium" Data="{x:Static cc:AppIcons.DrawClip}" Foreground="#F9F9F9" />
                             <TextBlock VerticalAlignment="Center" FontSize="11" Foreground="#F9F9F9" Text="Set Draw Clip" />
                         </StackPanel>
                     </Button>
@@ -253,7 +250,8 @@
                         <Button Margin="8,0,0,0" VerticalAlignment="Bottom" VerticalContentAlignment="Center"
                             Command="{Binding AssociatePaletteCommand}" IsVisible="{Binding IsArrangerMode}"
                             ToolTip.Tip="Associate an existing Palette from this Project with this Arranger">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.PlusCircle}" />
+                            <!-- <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.PlusCircle}" /> -->
+                            <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewAddPalette}" />
                         </Button>
                     </StackPanel>
                 </StackPanel>
@@ -353,7 +351,8 @@
 
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <ToggleButton IsChecked="{Binding IsDrawClipActive}" ToolTip.Tip="Toggle draw clip mask">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.DrawClip}" Foreground="#F9F9F9" />
+                            <!-- <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.DrawClip}" Foreground="#F9F9F9" /> -->
+                            <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewDrawClip}" />
                         </ToggleButton>
 
                         <Button Command="{Binding CycleDrawClipEffectCommand}" ToolTip.Tip="{Binding DrawClipEffect, StringFormat='Clip effect: {0} (click to cycle)'}">
@@ -361,7 +360,7 @@
                         </Button>
 
                         <Button Command="{Binding ClearDrawClipRectCommand}" ToolTip.Tip="Remove draw clip">
-                            <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Trash}" Foreground="#F9F9F9" />
+                            <PathIcon Classes="tool-icon-medium" Data="{x:Static cc:AppIcons.Trash}" Foreground="#F9F9F9" />
                         </Button>
                     </StackPanel>
                 </StackPanel>
@@ -371,11 +370,13 @@
 
                 <StackPanel Orientation="Horizontal" Spacing="4">
                     <ToggleButton IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Grid}" Foreground="#F9F9F9" />
+                        <!-- <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Grid}" Foreground="#F9F9F9" /> -->
+                        <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewToggleGridlines}" />
                     </ToggleButton>
 
                     <ToggleButton IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}" IsVisible="{Binding CanChangeSnapMode}" ToolTip.Tip="Snap Selection to Elements (S)">
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Snap}" Foreground="#F9F9F9" />
+                        <!-- <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Snap}" Foreground="#F9F9F9" /> -->
+                        <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewSnapToGrid}" />
                     </ToggleButton>
                 </StackPanel>
 
@@ -390,7 +391,8 @@
                                 <Binding Path="IsTiledLayout" />
                             </MultiBinding>
                         </Button.IsVisible>
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Resize}" />
+                        <!-- <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Resize}" /> -->
+                        <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewResizeArranger}" />
                     </Button>
 
                     <Button Command="{Binding RemapColorsCommand}" IsEnabled="{Binding CanRemapColors}"
@@ -401,7 +403,8 @@
                                 <Binding Path="IsIndexedColor" />
                             </MultiBinding>
                         </Button.IsVisible>
-                        <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Remap}" />
+                        <!-- <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Remap}" /> -->
+                        <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewRemapColors}" />
                     </Button>
                 </StackPanel>
             </StackPanel>

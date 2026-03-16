@@ -62,6 +62,20 @@ public static class AppIcons
     public static DrawingImage NewNodeFile { get; } = CreateNewNodeFile();
     public static DrawingImage NewNodeProject { get; } = CreateNewNodeProject();
 
+    // New DrawingImage-based toolbar icons
+    public static DrawingImage NewSelectElements { get; } = CreateNewSelectElements();
+    public static DrawingImage NewSelectPixels { get; } = CreateNewSelectPixels();
+    public static DrawingImage NewApplyPalette { get; } = CreateNewApplyPalette();
+    public static DrawingImage NewPickPalette { get; } = CreateNewPickPalette();
+    public static DrawingImage NewAddPalette { get; } = CreateNewAddPalette();
+    public static DrawingImage NewToggleGridlines { get; } = CreateNewToggleGridlines();
+    public static DrawingImage NewResizeArranger { get; } = CreateNewResizeArranger();
+    public static DrawingImage NewFloodFill { get; } = CreateNewFloodFill();
+    public static DrawingImage NewEditPaletteColor { get; } = CreateNewEditPaletteColor();
+    public static DrawingImage NewSnapToGrid { get; } = CreateNewSnapToGrid();
+    public static DrawingImage NewRemapColors { get; } = CreateNewRemapColors();
+    public static DrawingImage NewDrawClip { get; } = CreateNewDrawClip();
+
     private static DrawingImage CreateNewNodeFolder()
     {
         var group = new DrawingGroup();
@@ -214,6 +228,514 @@ public static class AppIcons
         {
             Geometry = StreamGeometry.Parse("M6 6H12M6 9H12M6 12H10"),
             Pen = new Pen(indigoBrush, 1.2) { LineCap = PenLineCap.Round },
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewSelectElements()
+    {
+        var cc = Color.Parse("#9CA3AF");
+        var accent = Color.Parse("#5DCAA5");
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M8.5,8 L21.5,8 Q22,8 22,8.5 L22,21.5 Q22,22 21.5,22 L8.5,22 Q8,22 8,21.5 L8,8.5 Q8,8 8.5,8 Z"),
+            Pen = new Pen(new SolidColorBrush(Color.FromArgb(140, cc.R, cc.G, cc.B)), 1.2)
+            {
+                DashStyle = new DashStyle(new double[] { 2.08, 1.67 }, 0)
+            },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(8, 8, 7, 7)),
+            Brush = new SolidColorBrush(Color.FromArgb(89, accent.R, accent.G, accent.B)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M15,8 L15,22"),
+            Pen = new Pen(new SolidColorBrush(Color.FromArgb(64, cc.R, cc.G, cc.B)), 0.4),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M8,15 L22,15"),
+            Pen = new Pen(new SolidColorBrush(Color.FromArgb(64, cc.R, cc.G, cc.B)), 0.4),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M2 1L2 12L5.5 9L8 13.5L9.8 12.6L7.3 8.2L11 8Z"),
+            Brush = new SolidColorBrush(accent),
+            Pen = new Pen(new SolidColorBrush(Color.Parse("#085041")), 0.6) { LineJoin = PenLineJoin.Round },
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewSelectPixels()
+    {
+        var crosshair = new SolidColorBrush(Color.Parse("#85B7EB"));
+        var crosshairHalf = new SolidColorBrush(Color.FromArgb(128, 0x85, 0xB7, 0xEB));
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M15,4 L15,10"),
+            Pen = new Pen(crosshair, 0.8) { LineCap = PenLineCap.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M15,16 L15,22"),
+            Pen = new Pen(crosshair, 0.8) { LineCap = PenLineCap.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M9,13 L4,13"),
+            Pen = new Pen(crosshairHalf, 0.8) { LineCap = PenLineCap.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M18,13 L22,13"),
+            Pen = new Pen(crosshair, 0.8) { LineCap = PenLineCap.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(12, 10.5, 5, 5)),
+            Brush = new SolidColorBrush(Color.Parse("#378ADD")),
+            Pen = new Pen(crosshair, 0.6),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M2 1L2 10L4.5 8L6.5 11L8 10.2L6 7.5L9 7Z"),
+            Brush = crosshair,
+            Pen = new Pen(new SolidColorBrush(Color.Parse("#0C447C")), 0.5) { LineJoin = PenLineJoin.Round },
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewApplyPalette()
+    {
+        var cc = Color.Parse("#9CA3AF");
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M9.5,2 L14.5,2 Q16,2 16,3.5 L16,5.5 Q16,7 14.5,7 L9.5,7 Q8,7 8,5.5 L8,3.5 Q8,2 9.5,2 Z"),
+            Brush = new SolidColorBrush(Color.Parse("#D4537E")),
+            Pen = new Pen(new SolidColorBrush(Color.Parse("#993556")), 0.5),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M9.8,3 L11.4,3 Q11.7,3 11.7,3.3 L11.7,5.7 Q11.7,6 11.4,6 L9.8,6 Q9.5,6 9.5,5.7 L9.5,3.3 Q9.5,3 9.8,3 Z"),
+            Brush = new SolidColorBrush(Color.Parse("#ED93B1")),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M12.6,3 L14.2,3 Q14.5,3 14.5,3.3 L14.5,5.7 Q14.5,6 14.2,6 L12.6,6 Q12.3,6 12.3,5.7 L12.3,3.3 Q12.3,3 12.6,3 Z"),
+            Brush = new SolidColorBrush(Color.Parse("#993556")),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(11, 7, 2, 3.5)),
+            Brush = new SolidColorBrush(Color.FromArgb(140, cc.R, cc.G, cc.B)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M7,10.5 L17,10.5 Q18,10.5 18,11.5 L18,13 Q18,14 17,14 L7,14 Q6,14 6,13 L6,11.5 Q6,10.5 7,10.5 Z"),
+            Brush = new SolidColorBrush(Color.FromArgb(115, cc.R, cc.G, cc.B)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M4.5,15 L19.5,15 Q20,15 20,15.5 L20,21.5 Q20,22 19.5,22 L4.5,22 Q4,22 4,21.5 L4,15.5 Q4,15 4.5,15 Z"),
+            Pen = new Pen(new SolidColorBrush(Color.FromArgb(89, cc.R, cc.G, cc.B)), 0.8),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M5.3,16 L11.7,16 Q12,16 12,16.3 L12,20.7 Q12,21 11.7,21 L5.3,21 Q5,21 5,20.7 L5,16.3 Q5,16 5.3,16 Z"),
+            Brush = new SolidColorBrush(Color.FromArgb(77, 0xD4, 0x53, 0x7E)),
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewPickPalette()
+    {
+        var cc = Color.Parse("#9CA3AF");
+        var orange = Color.Parse("#EF9F27");
+        var orangeBrush = new SolidColorBrush(orange);
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M3.5,14 L14.5,14 Q15,14 15,14.5 L15,21.5 Q15,22 14.5,22 L3.5,22 Q3,22 3,21.5 L3,14.5 Q3,14 3.5,14 Z"),
+            Pen = new Pen(new SolidColorBrush(Color.FromArgb(89, cc.R, cc.G, cc.B)), 0.8),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(3.5, 14.5, 5.5, 3.5)),
+            Brush = new SolidColorBrush(Color.FromArgb(102, 0xEF, 0x9F, 0x27)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(9, 14.5, 5.5, 3.5)),
+            Brush = new SolidColorBrush(Color.FromArgb(102, 0xBA, 0x75, 0x17)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(3.5, 18, 5.5, 3.5)),
+            Brush = new SolidColorBrush(Color.FromArgb(102, 0x85, 0x4F, 0x0B)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(9, 18, 5.5, 3.5)),
+            Brush = new SolidColorBrush(Color.FromArgb(102, 0x63, 0x38, 0x06)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M18,16 L18,7"),
+            Pen = new Pen(orangeBrush, 1.5) { LineCap = PenLineCap.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M15.5,9.5 L18,6 L20.5,9.5"),
+            Pen = new Pen(orangeBrush, 1.5) { LineCap = PenLineCap.Round, LineJoin = PenLineJoin.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M16.5,2 L19.5,2 Q20.5,2 20.5,3 L20.5,4.5 Q20.5,5.5 19.5,5.5 L16.5,5.5 Q15.5,5.5 15.5,4.5 L15.5,3 Q15.5,2 16.5,2 Z"),
+            Brush = new SolidColorBrush(Color.FromArgb(179, orange.R, orange.G, orange.B)),
+            Pen = new Pen(new SolidColorBrush(Color.Parse("#BA7517")), 0.5),
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewAddPalette()
+    {
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(4.5, 4.5, 7, 7)),
+            Brush = new SolidColorBrush(Color.Parse("#D4537E")),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(12.5, 4.5, 7, 7)),
+            Brush = new SolidColorBrush(Color.Parse("#378ADD")),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(4.5, 12.5, 7, 7)),
+            Brush = new SolidColorBrush(Color.Parse("#EF9F27")),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(12.5, 12.5, 7, 7)),
+            Brush = new SolidColorBrush(Color.Parse("#5DCAA5")),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(16.5, 0.5, 7, 7)),
+            Brush = new SolidColorBrush(Color.Parse("#97C459")),
+            Pen = new Pen(new SolidColorBrush(Color.Parse("#3B6D11")), 0.6),
+        });
+        var plusPen = new Pen(new SolidColorBrush(Color.Parse("#173404")), 1.4) { LineCap = PenLineCap.Round };
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M20,2 L20,6"),
+            Pen = plusPen,
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M18,4 L22,4"),
+            Pen = plusPen,
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewToggleGridlines()
+    {
+        var cc = Color.Parse("#9CA3AF");
+        var gridColor = new SolidColorBrush(Color.Parse("#AFA9EC"));
+        var dotColor = new SolidColorBrush(Color.Parse("#7F77DD"));
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M4.5,3 L19.5,3 Q21,3 21,4.5 L21,19.5 Q21,21 19.5,21 L4.5,21 Q3,21 3,19.5 L3,4.5 Q3,3 4.5,3 Z"),
+            Pen = new Pen(new SolidColorBrush(cc), 1.2),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M3,9 L21,9 M3,15 L21,15"),
+            Pen = new Pen(gridColor, 0.8),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M9,3 L9,21 M15,3 L15,21"),
+            Pen = new Pen(gridColor, 0.8),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(8, 8, 2, 2)),
+            Brush = dotColor,
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(14, 8, 2, 2)),
+            Brush = dotColor,
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(8, 14, 2, 2)),
+            Brush = dotColor,
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(14, 14, 2, 2)),
+            Brush = dotColor,
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewResizeArranger()
+    {
+        var cc = Color.Parse("#9CA3AF");
+        var fill = Color.Parse("#F0997B");
+        var arrow = new SolidColorBrush(Color.Parse("#D85A30"));
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M3.5,3 L14.5,3 Q15,3 15,3.5 L15,14.5 Q15,15 14.5,15 L3.5,15 Q3,15 3,14.5 L3,3.5 Q3,3 3.5,3 Z"),
+            Pen = new Pen(new SolidColorBrush(Color.FromArgb(102, cc.R, cc.G, cc.B)), 0.7),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(3.5, 3.5, 5.5, 5.5)),
+            Brush = new SolidColorBrush(Color.FromArgb(128, fill.R, fill.G, fill.B)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(9.5, 3.5, 5, 5.5)),
+            Brush = new SolidColorBrush(Color.FromArgb(64, fill.R, fill.G, fill.B)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(3.5, 9.5, 5.5, 5)),
+            Brush = new SolidColorBrush(Color.FromArgb(64, fill.R, fill.G, fill.B)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(9.5, 9.5, 5, 5)),
+            Brush = new SolidColorBrush(Color.FromArgb(26, fill.R, fill.G, fill.B)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M17,9 L22,9"),
+            Pen = new Pen(arrow, 1.5) { LineCap = PenLineCap.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M20,7.5 L22,9 L20,10.5"),
+            Pen = new Pen(arrow, 1.5) { LineCap = PenLineCap.Round, LineJoin = PenLineJoin.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M9,17 L9,22"),
+            Pen = new Pen(arrow, 1.5) { LineCap = PenLineCap.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M7.5,20 L9,22 L10.5,20"),
+            Pen = new Pen(arrow, 1.5) { LineCap = PenLineCap.Round, LineJoin = PenLineJoin.Round },
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewFloodFill()
+    {
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M12 1C12 1 4 10.5 4 15C4 19.4 7.6 22.5 12 22.5C16.4 22.5 20 19.4 20 15C20 10.5 12 1 12 1Z"),
+            Brush = new SolidColorBrush(Color.FromArgb(204, 0xEF, 0x9F, 0x27)),
+            Pen = new Pen(new SolidColorBrush(Color.Parse("#854F0B")), 0.7),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M9 13.5C9 11 12 5.5 12 5.5"),
+            Pen = new Pen(new SolidColorBrush(Color.FromArgb(102, 255, 255, 255)), 1.3) { LineCap = PenLineCap.Round },
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewEditPaletteColor()
+    {
+        var cc = Color.Parse("#9CA3AF");
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M8.5,4 L19.5,4 Q21,4 21,5.5 L21,5.5 Q21,7 19.5,7 L8.5,7 Q7,7 7,5.5 L7,5.5 Q7,4 8.5,4 Z"),
+            Brush = new SolidColorBrush(Color.FromArgb(153, 0xE2, 0x4B, 0x4A)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(11.8, 3.3, 4.4, 4.4)),
+            Brush = new SolidColorBrush(Color.Parse("#E24B4A")),
+            Pen = new Pen(new SolidColorBrush(cc), 0.6),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M8.5,10.5 L19.5,10.5 Q21,10.5 21,12 L21,12 Q21,13.5 19.5,13.5 L8.5,13.5 Q7,13.5 7,12 L7,12 Q7,10.5 8.5,10.5 Z"),
+            Brush = new SolidColorBrush(Color.FromArgb(153, 0x97, 0xC4, 0x59)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(14.8, 9.8, 4.4, 4.4)),
+            Brush = new SolidColorBrush(Color.Parse("#97C459")),
+            Pen = new Pen(new SolidColorBrush(cc), 0.6),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M8.5,17 L19.5,17 Q21,17 21,18.5 L21,18.5 Q21,20 19.5,20 L8.5,20 Q7,20 7,18.5 L7,18.5 Q7,17 8.5,17 Z"),
+            Brush = new SolidColorBrush(Color.FromArgb(153, 0x37, 0x8A, 0xDD)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(8.8, 16.3, 4.4, 4.4)),
+            Brush = new SolidColorBrush(Color.Parse("#378ADD")),
+            Pen = new Pen(new SolidColorBrush(cc), 0.6),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M3.5,3 L3.5,3 Q5,3 5,4.5 L5,18.5 Q5,20 3.5,20 L3.5,20 Q2,20 2,18.5 L2,4.5 Q2,3 3.5,3 Z"),
+            Brush = new SolidColorBrush(Color.Parse("#D4537E")),
+            Pen = new Pen(new SolidColorBrush(Color.Parse("#993556")), 0.5),
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewSnapToGrid()
+    {
+        var cc = Color.Parse("#9CA3AF");
+        var accent = Color.Parse("#1D9E75");
+        var accentBrush = new SolidColorBrush(accent);
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(3, 3, 18, 18)),
+            Pen = new Pen(new SolidColorBrush(Color.FromArgb(64, cc.R, cc.G, cc.B)), 0.5),
+        });
+        var gridPen = new Pen(new SolidColorBrush(Color.FromArgb(46, cc.R, cc.G, cc.B)), 0.3);
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M9,3 L9,21 M15,3 L15,21 M3,9 L21,9 M3,15 L21,15"),
+            Pen = gridPen,
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(9, 9, 6, 6)),
+            Brush = new SolidColorBrush(Color.FromArgb(102, 0x5D, 0xCA, 0xA5)),
+            Pen = new Pen(accentBrush, 1),
+        });
+        var snapPen = new Pen(accentBrush, 1) { LineCap = PenLineCap.Round, DashStyle = new DashStyle(new double[] { 1, 1.5 }, 0) };
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M5.5,5.5 L9,9"),
+            Pen = snapPen,
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M18.5,5.5 L15,9"),
+            Pen = snapPen,
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M5.5,18.5 L9,15"),
+            Pen = snapPen,
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M18.5,18.5 L15,15"),
+            Pen = snapPen,
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewRemapColors()
+    {
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(2, 7.5, 9, 9)),
+            Brush = new SolidColorBrush(Color.Parse("#378ADD")),
+            Pen = new Pen(new SolidColorBrush(Color.Parse("#185FA5")), 0.5),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(13, 7.5, 9, 9)),
+            Brush = new SolidColorBrush(Color.Parse("#EF9F27")),
+            Pen = new Pen(new SolidColorBrush(Color.Parse("#854F0B")), 0.5),
+        });
+        var topSwap = new SolidColorBrush(Color.Parse("#85B7EB"));
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M10 6C12 3.5 16 4 17 6"),
+            Pen = new Pen(topSwap, 1.2) { LineCap = PenLineCap.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M15.5 4.5L17 6L15.5 7.5"),
+            Pen = new Pen(topSwap, 1.2) { LineCap = PenLineCap.Round, LineJoin = PenLineJoin.Round },
+        });
+        var botSwap = new SolidColorBrush(Color.Parse("#FAC775"));
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M14 18C12 20.5 8 20 7 18"),
+            Pen = new Pen(botSwap, 1.2) { LineCap = PenLineCap.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M8.5 19.5L7 18L8.5 16.5"),
+            Pen = new Pen(botSwap, 1.2) { LineCap = PenLineCap.Round, LineJoin = PenLineJoin.Round },
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewDrawClip()
+    {
+        var cc = Color.Parse("#9CA3AF");
+        var pink = new SolidColorBrush(Color.Parse("#ED93B1"));
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M3,2 L21,2 Q22,2 22,3 L22,21 Q22,22 21,22 L3,22 Q2,22 2,21 L2,3 Q2,2 3,2 Z"),
+            Brush = new SolidColorBrush(Color.FromArgb(31, cc.R, cc.G, cc.B)),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M7.5,7 L16.5,7 Q17,7 17,7.5 L17,16.5 Q17,17 16.5,17 L7.5,17 Q7,17 7,16.5 L7,7.5 Q7,7 7.5,7 Z"),
+            Pen = new Pen(pink, 1.5),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new RectangleGeometry(new Rect(8, 8, 8, 8)),
+            Brush = new SolidColorBrush(Color.FromArgb(51, 0xD4, 0x53, 0x7E)),
+        });
+        var cornerPen = new Pen(new SolidColorBrush(Color.FromArgb(128, 0xED, 0x93, 0xB1)), 0.5)
+        {
+            DashStyle = new DashStyle(new double[] { 3, 2 }, 0)
+        };
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M2,2 L7,7"),
+            Pen = cornerPen,
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M22,2 L17,7"),
+            Pen = cornerPen,
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M2,22 L7,17"),
+            Pen = cornerPen,
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M22,22 L17,17"),
+            Pen = cornerPen,
         });
         return new DrawingImage(group);
     }

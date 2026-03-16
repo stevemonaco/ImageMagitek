@@ -9,6 +9,27 @@
     <!--  This is necessary because a ToggleButton itself can be unchecked, so it can't be used directly as a RadioButton style  -->
     <Style Selector="RadioButton.tool">
         <Setter Property="Theme" Value="{StaticResource {x:Type ToggleButton}}" />
+
+        <!--  Override checked state: border-only highlight instead of solid blue background  -->
+        <Style Selector="^:checked /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ButtonDefaultBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ButtonSolidPrimaryBackground}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+
+        <!--  Checked + pointerover  -->
+        <Style Selector="^:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ButtonDefaultPointeroverBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ButtonSolidPrimaryPointeroverBackground}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+
+        <!--  Checked + pressed  -->
+        <Style Selector="^:checked:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ButtonDefaultPressedBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ButtonSolidPrimaryPressedBackground}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
     </Style>
 
     <Style Selector="TextBox">
@@ -35,9 +56,14 @@
         <Setter Property="Width" Value="20" />
     </Style>
 
-    <Style Selector="PathIcon.medium">
-        <Setter Property="Height" Value="20" />
-        <Setter Property="Width" Value="20" />
+    <Style Selector="Image.tool-icon-medium">
+        <Setter Property="Height" Value="24" />
+        <Setter Property="Width" Value="24" />
+    </Style>
+
+    <Style Selector="PathIcon.tool-icon-medium">
+        <Setter Property="Height" Value="24" />
+        <Setter Property="Width" Value="24" />
         <Setter Property="Foreground" Value="{DynamicResource iconBrush}" />
     </Style>
 
