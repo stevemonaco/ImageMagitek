@@ -370,13 +370,14 @@
                 <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Options" />
 
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                    <ToggleButton IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
-                        <!-- <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Grid}" Foreground="#F9F9F9" /> -->
+                    <ToggleButton Padding="4" BorderThickness="2"
+                        IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
                         <cc:TintableImage Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewToggleGridlines}" />
                     </ToggleButton>
 
-                    <ToggleButton IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}" IsVisible="{Binding CanChangeSnapMode}" ToolTip.Tip="Snap Selection to Elements (S)">
-                        <!-- <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Snap}" Foreground="#F9F9F9" /> -->
+                    <ToggleButton Padding="4" BorderThickness="2"
+                        IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}"
+                        IsVisible="{Binding CanChangeSnapMode}" ToolTip.Tip="Snap Selection to Elements (S)">
                         <cc:TintableImage Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewSnapToGrid}" />
                     </ToggleButton>
                 </StackPanel>
@@ -385,18 +386,17 @@
                 <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Actions" />
 
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                    <Button Command="{Binding ResizeArrangerCommand}" ToolTip.Tip="Resizes the Arranger">
+                    <Button Padding="4" Command="{Binding ResizeArrangerCommand}" ToolTip.Tip="Resizes the Arranger">
                         <Button.IsVisible>
                             <MultiBinding Converter="{x:Static BoolConverters.And}">
                                 <Binding Path="IsArrangerMode" />
                                 <Binding Path="IsTiledLayout" />
                             </MultiBinding>
                         </Button.IsVisible>
-                        <!-- <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Resize}" /> -->
                         <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewResizeArranger}" />
                     </Button>
 
-                    <Button Command="{Binding RemapColorsCommand}" IsEnabled="{Binding CanRemapColors}"
+                    <Button Padding="4" Command="{Binding RemapColorsCommand}" IsEnabled="{Binding CanRemapColors}"
                         ToolTip.ShowOnDisabled="True" ToolTip.Tip="Remap Palette Colors">
                         <Button.IsVisible>
                             <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -404,7 +404,6 @@
                                 <Binding Path="IsIndexedColor" />
                             </MultiBinding>
                         </Button.IsVisible>
-                        <!-- <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Remap}" /> -->
                         <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewRemapColors}" />
                     </Button>
                 </StackPanel>
