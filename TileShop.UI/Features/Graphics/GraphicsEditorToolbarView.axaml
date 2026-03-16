@@ -42,15 +42,15 @@
             <StackPanel Spacing="4">
                 <!--  Edit Mode Selector  -->
                 <StackPanel Name="EditModeGroup" Classes="toolbar-group">
-                    <RadioButton Classes="tool" Click="OnEditModeClick" Content="View"
+                    <RadioButton Classes="toggle" Click="OnEditModeClick" Content="View"
                         IsChecked="{Binding EditMode, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=View}"
                         IsVisible="{Binding CanView}" Tag="{x:Static vm:GraphicsEditMode.View}"
                         ToolTip.Tip="View-only mode for adjusting codec properties" />
-                    <RadioButton Classes="tool" Click="OnEditModeClick" Content="Arrange"
+                    <RadioButton Classes="toggle" Click="OnEditModeClick" Content="Arrange"
                         IsChecked="{Binding EditMode, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Arrange}"
                         IsVisible="{Binding CanArrange}" Tag="{x:Static vm:GraphicsEditMode.Arrange}"
                         ToolTip.Tip="Arrange elements within the arranger" />
-                    <RadioButton Classes="tool" Click="OnEditModeClick" Content="Draw"
+                    <RadioButton Classes="toggle" Click="OnEditModeClick" Content="Draw"
                         IsChecked="{Binding EditMode, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Draw}"
                         IsVisible="{Binding CanDraw}" Tag="{x:Static vm:GraphicsEditMode.Draw}"
                         ToolTip.Tip="Draw and edit pixels" />

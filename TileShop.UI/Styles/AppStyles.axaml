@@ -1,15 +1,21 @@
 <Styles xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:b="using:TileShop.UI.Behaviors"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
     xmlns:conv="using:TileShop.UI.Converters"
     xmlns:media="using:Avalonia.Media"
-    xmlns:cc="https://github.com/stevemonaco/TileShop"
     xmlns:vm="using:TileShop.UI.ViewModels">
+
+    <Style Selector="RadioButton.toggle">
+        <Setter Property="Theme" Value="{StaticResource {x:Type ToggleButton}}" />
+    </Style>
 
     <!--  Replaces the default RadioButton with ellipse / text with a ToggleButton style  -->
     <!--  This is necessary because a ToggleButton itself can be unchecked, so it can't be used directly as a RadioButton style  -->
     <Style Selector="RadioButton.tool">
         <Setter Property="Theme" Value="{StaticResource {x:Type ToggleButton}}" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="BorderThickness" Value="2" />
 
         <!--  Override checked state: border-only highlight instead of solid blue background  -->
         <Style Selector="^:checked /template/ ContentPresenter#PART_ContentPresenter">
