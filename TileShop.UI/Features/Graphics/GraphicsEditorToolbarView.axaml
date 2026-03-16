@@ -261,10 +261,10 @@
                     <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Colors" />
 
                     <!--  Indexed Colors  -->
-                    <StackPanel HorizontalAlignment="Left" IsVisible="{Binding IsIndexedColor}" Orientation="Horizontal" Spacing="2">
-                        <Border BorderBrush="Black" BorderThickness="2">
-                            <Border BorderBrush="White" BorderThickness="2">
-                                <Rectangle Width="26" Height="26" ToolTip.Tip="Primary Color">
+                    <StackPanel HorizontalAlignment="Left" IsVisible="{Binding IsIndexedColor}" Orientation="Horizontal" Spacing="4">
+                        <Border BorderBrush="Black" BorderThickness="1">
+                            <Border BorderBrush="White" BorderThickness="1">
+                                <Rectangle Width="28" Height="30" ToolTip.Tip="Primary Color">
                                     <Rectangle.Fill>
                                         <MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
                                             <Binding Path="ActivePalette" />
@@ -274,9 +274,9 @@
                                 </Rectangle>
                             </Border>
                         </Border>
-                        <Border BorderBrush="Black" BorderThickness="2">
-                            <Border BorderBrush="White" BorderThickness="2">
-                                <Rectangle Width="26" Height="26" ToolTip.Tip="Secondary Color">
+                        <Border BorderBrush="Black" BorderThickness="1">
+                            <Border BorderBrush="White" BorderThickness="1">
+                                <Rectangle Width="28" Height="30" ToolTip.Tip="Secondary Color">
                                     <Rectangle.Fill>
                                         <MultiBinding Converter="{x:Static con:AppConverters.PaletteIndexToBrush}">
                                             <Binding Path="ActivePalette" />
@@ -286,6 +286,16 @@
                                 </Rectangle>
                             </Border>
                         </Border>
+
+                        <Button Padding="4" BorderThickness="0" Command="{Binding OpenColorEditorFlyoutCommand}"
+                            IsEnabled="{Binding CanEditSelectedColor}" ToolTip.Tip="Edit primary palette color">
+                            <Button.Flyout>
+                                <Flyout Placement="RightEdgeAlignedTop">
+                                    <ContentControl MinWidth="400" Content="{Binding ColorEditorFlyout.ColorEditor}" />
+                                </Flyout>
+                            </Button.Flyout>
+                            <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewEditPaletteColor}" />
+                        </Button>
                     </StackPanel>
 
                     <!--  Palette Swatch Grid (Indexed)  -->
@@ -324,21 +334,6 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <!--  Edit Color Button (Indexed only)  -->
-                    <Button Command="{Binding OpenColorEditorFlyoutCommand}" IsEnabled="{Binding CanEditSelectedColor}"
-                        IsVisible="{Binding IsIndexedColor}" ToolTip.Tip="Edit selected palette color">
-                        <Button.Flyout>
-                            <Flyout Placement="RightEdgeAlignedTop">
-                                <ContentControl MinWidth="400" Content="{Binding ColorEditorFlyout.ColorEditor}" />
-                            </Flyout>
-                        </Button.Flyout>
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewEditPaletteColor}" />
-                            <!-- <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.Edit}" Foreground="#F9F9F9" /> -->
-                            <TextBlock VerticalAlignment="Center" FontSize="11" Foreground="#F9F9F9" Text="Edit Color" />
-                        </StackPanel>
-                    </Button>
-
                     <!--  Direct Colors  -->
                     <StackPanel HorizontalAlignment="Left" IsVisible="{Binding IsDirectColor}" Orientation="Horizontal" Spacing="2">
                         <ColorPicker Height="40" Color="{Binding PrimaryColor, Converter={x:Static con:AppConverters.ColorRgba32ToMediaColor}}" />
@@ -370,8 +365,8 @@
                 <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Options" />
 
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                    <ToggleButton Padding="4" BorderThickness="2"
-                        IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
+                    <ToggleButton Padding="4" BorderThickness="2" IsChecked="{Binding GridSettings.ShowGridlines}"
+                        ToolTip.Tip="Toggle gridline visibility (G)">
                         <cc:TintableImage Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewToggleGridlines}" />
                     </ToggleButton>
 
