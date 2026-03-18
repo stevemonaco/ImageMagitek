@@ -165,7 +165,8 @@
                             CommandParameter="{x:Static vm:ArrangeTool.InspectElement}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=InspectElement}"
                             ToolTip.Tip="Hover Arranger elements to inspect their properties">
-                            <PathIcon Classes="tool-icon-medium" Data="{x:Static cc:AppIcons.Eye}" />
+                            <cc:TintableImage Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewInspectElement}" />
+                            <!-- <PathIcon Classes="tool-icon-medium" Data="{x:Static cc:AppIcons.Eye}" /> -->
                         </RadioButton>
 
                         <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
@@ -238,7 +239,7 @@
                 <StackPanel IsVisible="{Binding IsIndexedColor}" Spacing="4">
                     <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Palette" />
 
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
                         <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Palettes}" SelectedItem="{Binding SelectedPalette}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
@@ -247,8 +248,8 @@
                             </ComboBox.ItemTemplate>
                         </ComboBox>
 
-                        <Button Margin="8,0,0,0" VerticalAlignment="Bottom" VerticalContentAlignment="Center"
-                            Command="{Binding AssociatePaletteCommand}" IsVisible="{Binding IsArrangerMode}"
+                        <Button Padding="4" BorderThickness="0" Command="{Binding AssociatePaletteCommand}"
+                            IsVisible="{Binding IsArrangerMode}"
                             ToolTip.Tip="Associate an existing Palette from this Project with this Arranger">
                             <!-- <PathIcon Classes="medium" Data="{x:Static cc:AppIcons.PlusCircle}" /> -->
                             <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewAddPalette}" />
@@ -381,7 +382,8 @@
                 <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Actions" />
 
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                    <Button Padding="4" Command="{Binding ResizeArrangerCommand}" ToolTip.Tip="Resizes the Arranger">
+                    <Button Padding="4" BorderThickness="0" Command="{Binding ResizeArrangerCommand}"
+                        ToolTip.Tip="Resizes the Arranger">
                         <Button.IsVisible>
                             <MultiBinding Converter="{x:Static BoolConverters.And}">
                                 <Binding Path="IsArrangerMode" />
@@ -391,8 +393,9 @@
                         <Image Classes="tool-icon-medium" Source="{x:Static cc:AppIcons.NewResizeArranger}" />
                     </Button>
 
-                    <Button Padding="4" Command="{Binding RemapColorsCommand}" IsEnabled="{Binding CanRemapColors}"
-                        ToolTip.ShowOnDisabled="True" ToolTip.Tip="Remap Palette Colors">
+                    <Button Padding="4" BorderThickness="0" Command="{Binding RemapColorsCommand}"
+                        IsEnabled="{Binding CanRemapColors}" ToolTip.ShowOnDisabled="True"
+                        ToolTip.Tip="Remap Palette Colors">
                         <Button.IsVisible>
                             <MultiBinding Converter="{x:Static BoolConverters.And}">
                                 <Binding Path="IsDrawMode" />

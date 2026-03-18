@@ -75,6 +75,7 @@ public static class AppIcons
     public static DrawingImage NewSnapToGrid { get; } = CreateNewSnapToGrid();
     public static DrawingImage NewRemapColors { get; } = CreateNewRemapColors();
     public static DrawingImage NewDrawClip { get; } = CreateNewDrawClip();
+    public static DrawingImage NewInspectElement { get; } = CreateNewInspectElement();
 
     private static DrawingImage CreateNewNodeFolder()
     {
@@ -404,87 +405,85 @@ public static class AppIcons
 
     private static DrawingImage CreateNewAddPalette()
     {
+        var green = new SolidColorBrush(Color.Parse("#97C459"));
         var group = new DrawingGroup();
         group.Children.Add(new GeometryDrawing
         {
-            Geometry = new EllipseGeometry(new Rect(4.5, 4.5, 7, 7)),
+            Geometry = new EllipseGeometry(new Rect(5.5, 3.5, 13, 13)),
+            Pen = new Pen(green, 1.5),
+        });
+        var plusPen = new Pen(green, 2.5) { LineCap = PenLineCap.Round };
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M12,6 L12,14"),
+            Pen = plusPen,
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M8,10 L16,10"),
+            Pen = plusPen,
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(2.5, 18.5, 4, 4)),
             Brush = new SolidColorBrush(Color.Parse("#D4537E")),
         });
         group.Children.Add(new GeometryDrawing
         {
-            Geometry = new EllipseGeometry(new Rect(12.5, 4.5, 7, 7)),
+            Geometry = new EllipseGeometry(new Rect(7.5, 18.5, 4, 4)),
             Brush = new SolidColorBrush(Color.Parse("#378ADD")),
         });
         group.Children.Add(new GeometryDrawing
         {
-            Geometry = new EllipseGeometry(new Rect(4.5, 12.5, 7, 7)),
+            Geometry = new EllipseGeometry(new Rect(12.5, 18.5, 4, 4)),
             Brush = new SolidColorBrush(Color.Parse("#EF9F27")),
         });
         group.Children.Add(new GeometryDrawing
         {
-            Geometry = new EllipseGeometry(new Rect(12.5, 12.5, 7, 7)),
+            Geometry = new EllipseGeometry(new Rect(17.5, 18.5, 4, 4)),
             Brush = new SolidColorBrush(Color.Parse("#5DCAA5")),
-        });
-        group.Children.Add(new GeometryDrawing
-        {
-            Geometry = new EllipseGeometry(new Rect(16.5, 0.5, 7, 7)),
-            Brush = new SolidColorBrush(Color.Parse("#97C459")),
-            Pen = new Pen(new SolidColorBrush(Color.Parse("#3B6D11")), 0.6),
-        });
-        var plusPen = new Pen(new SolidColorBrush(Color.Parse("#173404")), 1.4) { LineCap = PenLineCap.Round };
-        group.Children.Add(new GeometryDrawing
-        {
-            Geometry = StreamGeometry.Parse("M20,2 L20,6"),
-            Pen = plusPen,
-        });
-        group.Children.Add(new GeometryDrawing
-        {
-            Geometry = StreamGeometry.Parse("M18,4 L22,4"),
-            Pen = plusPen,
         });
         return new DrawingImage(group);
     }
 
     private static DrawingImage CreateNewToggleGridlines()
     {
-        var cc = Color.Parse("#9CA3AF");
-        var gridColor = new SolidColorBrush(Color.Parse("#AFA9EC"));
-        var dotColor = new SolidColorBrush(Color.Parse("#7F77DD"));
+        var blue = new SolidColorBrush(Color.Parse("#85B7EB"));
         var group = new DrawingGroup();
         group.Children.Add(new GeometryDrawing
         {
             Geometry = StreamGeometry.Parse("M4.5,3 L19.5,3 Q21,3 21,4.5 L21,19.5 Q21,21 19.5,21 L4.5,21 Q3,21 3,19.5 L3,4.5 Q3,3 4.5,3 Z"),
-            Pen = new Pen(new SolidColorBrush(cc), 1.2),
+            Pen = new Pen(blue, 1.3),
         });
         group.Children.Add(new GeometryDrawing
         {
             Geometry = StreamGeometry.Parse("M3,9 L21,9 M3,15 L21,15"),
-            Pen = new Pen(gridColor, 0.8),
+            Pen = new Pen(blue, 0.8),
         });
         group.Children.Add(new GeometryDrawing
         {
             Geometry = StreamGeometry.Parse("M9,3 L9,21 M15,3 L15,21"),
-            Pen = new Pen(gridColor, 0.8),
+            Pen = new Pen(blue, 0.8),
         });
         group.Children.Add(new GeometryDrawing
         {
             Geometry = new EllipseGeometry(new Rect(8, 8, 2, 2)),
-            Brush = dotColor,
+            Brush = blue,
         });
         group.Children.Add(new GeometryDrawing
         {
             Geometry = new EllipseGeometry(new Rect(14, 8, 2, 2)),
-            Brush = dotColor,
+            Brush = blue,
         });
         group.Children.Add(new GeometryDrawing
         {
             Geometry = new EllipseGeometry(new Rect(8, 14, 2, 2)),
-            Brush = dotColor,
+            Brush = blue,
         });
         group.Children.Add(new GeometryDrawing
         {
             Geometry = new EllipseGeometry(new Rect(14, 14, 2, 2)),
-            Brush = dotColor,
+            Brush = blue,
         });
         return new DrawingImage(group);
     }
@@ -736,6 +735,31 @@ public static class AppIcons
         {
             Geometry = StreamGeometry.Parse("M22,22 L17,17"),
             Pen = cornerPen,
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewInspectElement()
+    {
+        var green = Color.Parse("#5DCAA5");
+        var greenBrush = new SolidColorBrush(green);
+        var darkGreen = new SolidColorBrush(Color.Parse("#1D9E75"));
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M2,12 C2,12 6,5 12,5 C18,5 22,12 22,12 C22,12 18,19 12,19 C6,19 2,12 2,12 Z"),
+            Pen = new Pen(greenBrush, 1.5) { LineJoin = PenLineJoin.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(8.5, 8.5, 7, 7)),
+            Brush = new SolidColorBrush(Color.FromArgb(77, green.R, green.G, green.B)),
+            Pen = new Pen(greenBrush, 1),
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = new EllipseGeometry(new Rect(10.5, 10.5, 3, 3)),
+            Brush = darkGreen,
         });
         return new DrawingImage(group);
     }
