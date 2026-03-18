@@ -99,6 +99,19 @@ public class TintableImage : Control
                 sourceSize.Height);
         }
 
+        if (stretch == Stretch.Uniform)
+        {
+            var scale = Math.Min(boundsSize.Width / sourceSize.Width, boundsSize.Height / sourceSize.Height);
+            var scaledWidth = sourceSize.Width * scale;
+            var scaledHeight = sourceSize.Height * scale;
+
+            return new Rect(
+                (boundsSize.Width - scaledWidth) / 2,
+                (boundsSize.Height - scaledHeight) / 2,
+                scaledWidth,
+                scaledHeight);
+        }
+
         return new Rect(boundsSize);
     }
 
