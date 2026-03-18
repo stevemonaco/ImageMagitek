@@ -76,6 +76,8 @@ public static class AppIcons
     public static DrawingImage NewRemapColors { get; } = CreateNewRemapColors();
     public static DrawingImage NewDrawClip { get; } = CreateNewDrawClip();
     public static DrawingImage NewInspectElement { get; } = CreateNewInspectElement();
+    public static DrawingImage NewMirrorHorizontal { get; } = CreateNewMirrorHorizontal();
+    public static DrawingImage NewMirrorVertical { get; } = CreateNewMirrorVertical();
 
     private static DrawingImage CreateNewNodeFolder()
     {
@@ -760,6 +762,58 @@ public static class AppIcons
         {
             Geometry = new EllipseGeometry(new Rect(10.5, 10.5, 3, 3)),
             Brush = darkGreen,
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewMirrorHorizontal()
+    {
+        var teal = Color.Parse("#5DCAA5");
+        var tealBrush = new SolidColorBrush(teal);
+        var strokeBrush = new SolidColorBrush(Color.Parse("#1D9E75"));
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M12,2 L12,22"),
+            Pen = new Pen(tealBrush, 1) { DashStyle = new DashStyle(new double[] { 2, 2 }, 0) },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M4,7 L10,12 L4,17 Z"),
+            Brush = new SolidColorBrush(Color.FromArgb(140, teal.R, teal.G, teal.B)),
+            Pen = new Pen(strokeBrush, 0.8) { LineJoin = PenLineJoin.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M20,7 L14,12 L20,17 Z"),
+            Brush = new SolidColorBrush(Color.FromArgb(140, teal.R, teal.G, teal.B)),
+            Pen = new Pen(strokeBrush, 0.8) { LineJoin = PenLineJoin.Round },
+        });
+        return new DrawingImage(group);
+    }
+
+    private static DrawingImage CreateNewMirrorVertical()
+    {
+        var pink = Color.Parse("#ED93B1");
+        var pinkBrush = new SolidColorBrush(pink);
+        var strokeBrush = new SolidColorBrush(Color.Parse("#D4537E"));
+        var group = new DrawingGroup();
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M2,12 L22,12"),
+            Pen = new Pen(pinkBrush, 1) { DashStyle = new DashStyle(new double[] { 2, 2 }, 0) },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M7,4 L12,10 L17,4 Z"),
+            Brush = new SolidColorBrush(Color.FromArgb(140, pink.R, pink.G, pink.B)),
+            Pen = new Pen(strokeBrush, 0.8) { LineJoin = PenLineJoin.Round },
+        });
+        group.Children.Add(new GeometryDrawing
+        {
+            Geometry = StreamGeometry.Parse("M7,20 L12,14 L17,20 Z"),
+            Brush = new SolidColorBrush(Color.FromArgb(140, pink.R, pink.G, pink.B)),
+            Pen = new Pen(strokeBrush, 0.8) { LineJoin = PenLineJoin.Round },
         });
         return new DrawingImage(group);
     }
