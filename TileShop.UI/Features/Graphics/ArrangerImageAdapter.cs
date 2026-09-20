@@ -142,6 +142,14 @@ public sealed class ArrangerImageAdapter
         }
     }
 
+    public MagitekResult CanSetPixel(int x, int y, ColorRgba32 color)
+    {
+        if (IsIndexed)
+            return _indexedImage!.CanSetPixel(x, y, color);
+        else
+            return MagitekResult.SuccessResult;
+    }
+
     public bool FloodFill(int x, int y, byte fillIndex)
     {
         if (!IsIndexed)
@@ -175,6 +183,13 @@ public sealed class ArrangerImageAdapter
         if (!IsIndexed)
             return new MagitekResult.Failed("Cannot set palette on direct image");
         return _indexedImage!.TrySetPalette(pixelX, pixelY, palette);
+    }
+
+    public MagitekResult CanSetPalette(int pixelX, int pixelY, Palette palette)
+    {
+        if (!IsIndexed)
+            return new MagitekResult.Failed("Cannot set palette on direct image");
+        return _indexedImage!.CanSetPalette(pixelX, pixelY, palette);
     }
 
     public void RemapColors(IList<byte> remap)

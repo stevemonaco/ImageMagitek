@@ -165,6 +165,12 @@ public partial class GraphicsEditorViewModel
         return false;
     }
 
+    internal bool CanApplyPaletteAtPosition(int pixelX, int pixelY) =>
+        SelectedPalette is not null && _imageAdapter.CanSetPalette(pixelX, pixelY, SelectedPalette.Palette).HasSucceeded;
+
+    internal bool CanPickPaletteAtPosition(int pixelX, int pixelY) =>
+        IsIndexedColor && WorkingArranger.GetElementAtPixel(pixelX, pixelY)?.Codec is IIndexedCodec;
+
     public bool TryPickPalette(int pixelX, int pixelY)
     {
         if (!IsIndexedColor)

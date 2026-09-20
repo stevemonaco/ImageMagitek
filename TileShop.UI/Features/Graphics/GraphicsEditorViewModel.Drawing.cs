@@ -136,6 +136,30 @@ public partial class GraphicsEditorViewModel
                y >= clip.SnappedTop && y < clip.SnappedBottom;
     }
 
+    internal bool CanSetPixelAtPosition(int x, int y)
+    {
+        if (!IsPointInDrawClip(x, y))
+            return false;
+
+        if (IsDirectColor)
+            return HasColorDataAtPosition(x, y);
+
+        return ActivePalette is not null && _imageAdapter.CanSetPixel(x, y, GetActivePaletteColor(PrimaryColorIndex)).HasSucceeded;
+    }
+
+    internal bool CanFloodFillAtPosition(int x, int y) => IsPointInDrawClip(x, y) && HasColorDataAtPosition(x, y);
+
+    internal bool CanPickColorAtPosition(int x, int y) => HasColorDataAtPosition(x, y);
+
+    private bool HasColorDataAtPosition(int x, int y) =>
+        _imageAdapter.GetElementAtPixel(x, y) is { } element && (IsDirectColor || element.Codec is IIndexedCodec);
+
+    private ColorRgba32 GetActivePaletteColor(byte colorIndex)
+    {
+        var modelColor = ActivePalette!.Colors[colorIndex].Color;
+        return new ColorRgba32(modelColor.R, modelColor.G, modelColor.B, modelColor.A);
+    }
+
     internal void SetPixelAtPosition(int x, int y, ColorPriority priority)
     {
         if (!IsPointInDrawClip(x, y))
@@ -158,9 +182,7 @@ public partial class GraphicsEditorViewModel
         if (ActivePalette is null)
             return;
 
-        var modelColor = ActivePalette.Colors[colorIndex].Color;
-        var palColor = new ColorRgba32(modelColor.R, modelColor.G, modelColor.B, modelColor.A);
-        var result = _imageAdapter.TrySetPixel(x, y, palColor);
+        var result = _imageAdapter.TrySetPixel(x, y, GetActivePaletteColor(colorIndex));
 
         var message = result.Match(
             _ =>

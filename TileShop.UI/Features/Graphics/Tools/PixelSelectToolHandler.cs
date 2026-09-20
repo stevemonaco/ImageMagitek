@@ -1,3 +1,4 @@
+using System.Drawing;
 using TileShop.Shared.Input;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
@@ -7,6 +8,8 @@ namespace TileShop.UI.Features.Graphics.Tools;
 
 public class PixelSelectToolHandler : IToolHandler<GraphicsEditorViewModel>
 {
+    public ToolCursor Cursor => ToolCursor.Default;
+
     public ToolResult OnMouseDown(ToolContext ctx, GraphicsEditorViewModel state)
     {
         if (ctx.MouseState.LeftButtonPressed && state.Selection.HasSelection)
@@ -95,6 +98,8 @@ public class PixelSelectToolHandler : IToolHandler<GraphicsEditorViewModel>
     {
         return ToolResult.Unhandled;
     }
+
+    public Rectangle? GetTargetRect(ToolContext ctx, GraphicsEditorViewModel state) => null;
 
     public HistoryAction? Deactivate(GraphicsEditorViewModel state)
     {

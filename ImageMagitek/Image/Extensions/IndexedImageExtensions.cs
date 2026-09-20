@@ -107,6 +107,34 @@ public static class IndexedImageExtensions
     /// <returns></returns>
     public static MagitekResult TrySetPalette(this IndexedImage image, int x, int y, Palette pal)
     {
+        var result = image.CanSetPalette(x, y, pal);
+
+        if (result.Value is MagitekResult.Failed)
+            return result;
+
+        var element = image.Arranger.GetElementAtPixel(x + image.Left, y + image.Top).Value;
+        var codec = (IIndexedCodec)element.Codec;
+
+        if (!ReferenceEquals(pal, codec.Palette))
+        {
+            var location = image.Arranger.PointToElementLocation(new Point(x + image.Left, y + image.Top));
+
+            codec.Palette = pal;
+
+            image.Arranger.SetElement(element, location.X, location.Y);
+        }
+
+        return MagitekResult.SuccessResult;
+    }
+
+    /// <summary>
+    /// Determines if the palette can be set to the ArrangerElement containing the specified pixel coordinate
+    /// </summary>
+    /// <param name="x">x-coordinate in pixel coordinates</param>
+    /// <param name="y">y-coordinate in pixel coordinates</param>
+    /// <param name="pal">Palette to be checked</param>
+    public static MagitekResult CanSetPalette(this IndexedImage image, int x, int y, Palette pal)
+    {
         if (x + image.Left >= image.Arranger.ArrangerPixelSize.Width || y + image.Top >= image.Arranger.ArrangerPixelSize.Height)
             return new MagitekResult.Failed($"Cannot assign the palette because the location ({x}, {y}) is outside of the arranger " +
                 $"'{image.Arranger.Name}' bounds  ({image.Arranger.ArrangerPixelSize.Width}, {image.Arranger.ArrangerPixelSize.Height})");
@@ -128,14 +156,7 @@ public static class IndexedImageExtensions
                     maxIndex = Math.Max(maxIndex, image.GetPixel(pixelX, pixelY));
 
             if (maxIndex < pal.Entries)
-            {
-                var location = image.Arranger.PointToElementLocation(new Point(x + image.Left, y + image.Top));
-
-                codec.Palette = pal;
-
-                image.Arranger.SetElement(element, location.X, location.Y);
                 return MagitekResult.SuccessResult;
-            }
             else
                 return new MagitekResult.Failed($"Cannot assign the palette '{pal.Name}' because the element contains a palette index ({maxIndex}) outside of the palette");
         }

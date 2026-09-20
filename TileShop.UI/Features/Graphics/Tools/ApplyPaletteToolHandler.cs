@@ -1,3 +1,4 @@
+using System.Drawing;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
 using TileShop.UI.ViewModels;
@@ -7,6 +8,8 @@ namespace TileShop.UI.Features.Graphics.Tools;
 public class ApplyPaletteToolHandler : IToolHandler<GraphicsEditorViewModel>
 {
     private ApplyPaletteHistoryAction? _activeHistory;
+
+    public ToolCursor Cursor => ToolCursor.Crosshair;
 
     public ToolResult OnMouseDown(ToolContext ctx, GraphicsEditorViewModel state)
     {
@@ -38,6 +41,18 @@ public class ApplyPaletteToolHandler : IToolHandler<GraphicsEditorViewModel>
 
     public ToolResult OnKeyDown(ToolContext ctx, GraphicsEditorViewModel state) => ToolResult.Unhandled;
     public ToolResult OnKeyUp(ToolContext ctx, GraphicsEditorViewModel state) => ToolResult.Unhandled;
+
+    public Rectangle? GetTargetRect(ToolContext ctx, GraphicsEditorViewModel state)
+    {
+        if (!state.IsIndexedColor || state.SelectedPalette is null)
+            return null;
+
+        var selection = state.Selection.SelectionRect;
+        if (state.Selection.HasSelection && selection.ContainsPointSnapped(ctx.PixelX, ctx.PixelY))
+            return new Rectangle(selection.SnappedLeft, selection.SnappedTop, selection.SnappedWidth, selection.SnappedHeight);
+
+        return state.CanApplyPaletteAtPosition(ctx.PixelX, ctx.PixelY) ? state.GetElementRectAtPixel(ctx.PixelX, ctx.PixelY) : null;
+    }
 
     public HistoryAction? Deactivate(GraphicsEditorViewModel state)
     {
