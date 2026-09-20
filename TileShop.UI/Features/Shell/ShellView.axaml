@@ -16,6 +16,12 @@
     TransparencyLevelHint="AcrylicBlur"
     UseLayoutRounding="True">
 
+    <Window.Styles>
+        <Style Selector="WindowDrawnDecorations /template/ Panel#PART_TitleTextPanel > TextBlock">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+    </Window.Styles>
+
     <Panel Margin="{Binding #shellView.OffScreenMargin}">
         <Grid RowDefinitions="auto,*,auto">
             <StackPanel Grid.Row="0" Margin="8,4,0,4" Orientation="Horizontal" Spacing="4">
