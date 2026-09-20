@@ -136,6 +136,11 @@ public partial class GraphicsEditorViewModel
                y >= clip.SnappedTop && y < clip.SnappedBottom;
     }
 
+    private Rectangle? DrawClipBounds =>
+        IsDrawClipActive && DrawClipRect is { } clip
+            ? new Rectangle(clip.SnappedLeft, clip.SnappedTop, clip.SnappedWidth, clip.SnappedHeight)
+            : null;
+
     internal bool CanSetPixelAtPosition(int x, int y)
     {
         if (!IsPointInDrawClip(x, y))
@@ -217,9 +222,7 @@ public partial class GraphicsEditorViewModel
         if (!IsPointInDrawClip(x, y))
             return;
 
-        Rectangle? clipBounds = null;
-        if (IsDrawClipActive && DrawClipRect is { } clip)
-            clipBounds = new Rectangle(clip.SnappedLeft, clip.SnappedTop, clip.SnappedWidth, clip.SnappedHeight);
+        var clipBounds = DrawClipBounds;
 
         if (IsIndexedColor)
         {

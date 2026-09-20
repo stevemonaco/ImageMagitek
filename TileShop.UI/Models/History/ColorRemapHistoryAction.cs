@@ -1,20 +1,25 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
+using System.Drawing;
 using TileShop.Shared.Models;
 
 namespace TileShop.UI.Models;
 
-public partial class ColorRemapHistoryAction : HistoryAction
+public class ColorRemapHistoryAction : HistoryAction
 {
-    public override string Name => "ColorRemap";
+    public override string Name => "Color Remap";
 
-    [ObservableProperty] private ObservableCollection<RemappableColorModel> _initialColors;
-    [ObservableProperty] private ObservableCollection<RemappableColorModel> _finalColors;
+    /// <summary>
+    /// New palette index per original palette index
+    /// </summary>
+    public byte[] Remap { get; }
 
-    public ColorRemapHistoryAction(IList<RemappableColorModel> initialColors, IList<RemappableColorModel> finalColors)
+    /// <summary>
+    /// Pixel region the remap was limited to, or null for the entire image
+    /// </summary>
+    public Rectangle? Bounds { get; }
+
+    public ColorRemapHistoryAction(byte[] remap, Rectangle? bounds)
     {
-        _initialColors = new(initialColors);
-        _finalColors = new(finalColors);
+        Remap = remap;
+        Bounds = bounds;
     }
 }

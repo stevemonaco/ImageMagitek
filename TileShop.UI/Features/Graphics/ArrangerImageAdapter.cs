@@ -192,11 +192,11 @@ public sealed class ArrangerImageAdapter
         return _indexedImage!.CanSetPalette(pixelX, pixelY, palette);
     }
 
-    public void RemapColors(IList<byte> remap)
+    public void RemapColors(IList<byte> remap, Rectangle? bounds)
     {
         if (!IsIndexed)
             throw new InvalidOperationException("Cannot remap colors on direct image");
-        _indexedImage!.RemapColors(remap);
+        _indexedImage!.RemapColors(remap, bounds);
     }
 
     public ArrangerElement? GetElementAtPixel(int x, int y)
