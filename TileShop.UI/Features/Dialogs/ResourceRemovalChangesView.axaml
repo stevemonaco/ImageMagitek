@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="TileShop.UI.Views.ResourceRemovalChangesView"
+<UserControl x:Class="TileShop.UI.Views.ResourceRemovalChangesView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="https://github.com/stevemonaco/TileShop"
@@ -10,25 +10,25 @@
         <selectors:ResourceRemovalTemplateSelector>
             <DataTemplate x:Key="arranger" DataType="m:ResourceChangeViewModel">
                 <StackPanel Orientation="Horizontal">
-                    <PathIcon Classes="small vflip" Data="{x:Static cc:AppIcons.NodeArranger}" />
+                    <Image Classes="resource-icon-small" Source="{x:Static cc:AppIcons.NewNodeArranger}" />
                     <TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
                 </StackPanel>
             </DataTemplate>
             <DataTemplate x:Key="file" DataType="m:ResourceChangeViewModel">
                 <StackPanel Orientation="Horizontal">
-                    <PathIcon Classes="small" Data="{x:Static cc:AppIcons.NodeFile}" />
+                    <Image Classes="resource-icon-small" Source="{x:Static cc:AppIcons.NewNodeFile}" />
                     <TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
                 </StackPanel>
             </DataTemplate>
             <DataTemplate x:Key="palette" DataType="m:ResourceChangeViewModel">
                 <StackPanel Orientation="Horizontal">
-                    <PathIcon Classes="small" Data="{x:Static cc:AppIcons.NodePalette}" />
+                    <Image Classes="resource-icon-small" Source="{x:Static cc:AppIcons.NewNodePalette}" />
                     <TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
                 </StackPanel>
             </DataTemplate>
             <DataTemplate x:Key="folder" DataType="m:ResourceChangeViewModel">
                 <StackPanel Orientation="Horizontal">
-                    <PathIcon Classes="small vflip" Data="{x:Static cc:AppIcons.NodeFolder}" />
+                    <Image Classes="resource-icon-small" Source="{x:Static cc:AppIcons.NewNodeFolder}" />
                     <TextBlock Margin="6,0,0,0" Text="{Binding ResourcePath}" />
                 </StackPanel>
             </DataTemplate>

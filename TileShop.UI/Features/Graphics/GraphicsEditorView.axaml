@@ -50,14 +50,14 @@
                     <DataTriggerBehavior Binding="{Binding #control.((vm:GraphicsEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="True">
                         <ChangePropertyAction PropertyName="Icon">
                             <ChangePropertyAction.Value>
-                                <PathIcon Classes="menu" Data="{x:Static cc:AppIcons.CheckedBox}" />
+                                <cc:LineIcon Classes="inline" Data="{x:Static cc:AppIcons.CheckedBox}" />
                             </ChangePropertyAction.Value>
                         </ChangePropertyAction>
                     </DataTriggerBehavior>
                     <DataTriggerBehavior Binding="{Binding #control.((vm:GraphicsEditorViewModel)DataContext).AreSymmetryToolsEnabled}" Value="False">
                         <ChangePropertyAction PropertyName="Icon">
                             <ChangePropertyAction.Value>
-                                <PathIcon Classes="menu" Data="{x:Static cc:AppIcons.UncheckedBox}" />
+                                <cc:LineIcon Classes="inline" Data="{x:Static cc:AppIcons.UncheckedBox}" />
                             </ChangePropertyAction.Value>
                         </ChangePropertyAction>
                     </DataTriggerBehavior>

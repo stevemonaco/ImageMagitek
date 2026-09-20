@@ -17,7 +17,7 @@
     UseLayoutRounding="True">
 
     <Window.Styles>
-        <Style Selector="WindowDrawnDecorations /template/ Panel#PART_TitleTextPanel > TextBlock">
+        <Style Selector="WindowDrawnDecorations /template/ Panel#PART_TitleTextPanel &gt; TextBlock">
             <Setter Property="IsVisible" Value="False" />
         </Style>
     </Window.Styles>
