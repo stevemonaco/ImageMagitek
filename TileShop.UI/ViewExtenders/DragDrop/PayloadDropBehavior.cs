@@ -11,13 +11,14 @@ using DragDrop = Avalonia.Input.DragDrop;
 
 public class PayloadDropBehavior : Behavior<Control>
 {
-    public static string DataFormat { get; } = nameof(Context);
+    public static readonly DataFormat<string> PayloadFormat =
+        DataFormat.CreateStringApplicationFormat("TileShop.UI.DragDrop.Payload");
 
     public static readonly StyledProperty<object?> ContextProperty =
-        AvaloniaProperty.Register<ContextDropBehavior, object?>(nameof(Context));
+        AvaloniaProperty.Register<PayloadDropBehavior, object?>(nameof(Context));
 
     public static readonly StyledProperty<IDropHandler?> HandlerProperty =
-        AvaloniaProperty.Register<ContextDropBehavior, IDropHandler?>(nameof(Handler));
+        AvaloniaProperty.Register<PayloadDropBehavior, IDropHandler?>(nameof(Handler));
 
     public object? Context
     {
@@ -57,7 +58,7 @@ public class PayloadDropBehavior : Behavior<Control>
 
     private void DragEnter(object? sender, DragEventArgs e)
     {
-        var sourceContext = e.Data.Get(DataFormat);
+        var sourceContext = DragPayloadStore.Get(e.DataTransfer.TryGetValue(PayloadFormat));
         var targetContext = Context ?? AssociatedObject?.DataContext;
         Handler?.Enter(sender, e, sourceContext, targetContext);
     }
@@ -69,14 +70,14 @@ public class PayloadDropBehavior : Behavior<Control>
 
     private void DragOver(object? sender, DragEventArgs e)
     {
-        var sourceContext = e.Data.Get(DataFormat);
+        var sourceContext = DragPayloadStore.Get(e.DataTransfer.TryGetValue(PayloadFormat));
         var targetContext = Context ?? AssociatedObject?.DataContext;
         Handler?.Over(sender, e, sourceContext, targetContext);
     }
 
     private void Drop(object? sender, DragEventArgs e)
     {
-        var sourceContext = e.Data.Get(DataFormat);
+        var sourceContext = DragPayloadStore.Get(e.DataTransfer.TryGetValue(PayloadFormat));
         var targetContext = Context ?? AssociatedObject?.DataContext;
         Handler?.Drop(sender, e, sourceContext, targetContext);
     }

@@ -20,7 +20,7 @@
                             InnerLeftContent="{TemplateBinding InnerLeftContent}"
                             InnerRightContent="{TemplateBinding InnerRightContent}" IsReadOnly="{TemplateBinding IsReadOnly}"
                             Text="{TemplateBinding Text}" TextWrapping="NoWrap" Theme="{DynamicResource NonErrorTextBox}"
-                            Watermark="{TemplateBinding Watermark}" />
+                            PlaceholderText="{TemplateBinding PlaceholderText}" />
                     </ButtonSpinner>
                 </DataValidationErrors>
             </ControlTemplate>

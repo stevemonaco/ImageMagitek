@@ -13,4 +13,12 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
+
+	<PropertyGroup Label="Avalonia licensing">
+		<_AvaloniaLicenseKey>$(AvaloniaUILicenseKey)</_AvaloniaLicenseKey>
+		<_AvaloniaLicenseKey Condition="'$(_AvaloniaLicenseKey)' == ''">$(AVALONIA_LICENSE_KEY)</_AvaloniaLicenseKey>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(_AvaloniaLicenseKey)' != ''">
+		<AvaloniaUILicenseKey Include="$(_AvaloniaLicenseKey)" />
+	</ItemGroup>
 </Project>

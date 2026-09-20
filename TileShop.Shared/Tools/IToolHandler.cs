@@ -1,3 +1,4 @@
+using System.Drawing;
 using TileShop.Shared.Models;
 
 namespace TileShop.Shared.Tools;
@@ -13,11 +14,19 @@ public readonly record struct ToolResult(bool Handled, InvalidationLevel Invalid
 
 public interface IToolHandler<in TState>
 {
+    /// <summary>Cursor shown while the pointer is over the image with this tool active.</summary>
+    ToolCursor Cursor { get; }
+
     ToolResult OnMouseDown(ToolContext ctx, TState state);
     ToolResult OnMouseMove(ToolContext ctx, TState state);
     ToolResult OnMouseUp(ToolContext ctx, TState state);
     ToolResult OnKeyDown(ToolContext ctx, TState state);
     ToolResult OnKeyUp(ToolContext ctx, TState state);
+
+    /// <summary>
+    /// Returns the pixel region the tool would act on at the pointer position, or null if it would do nothing there.
+    /// </summary>
+    Rectangle? GetTargetRect(ToolContext ctx, TState state);
 
     /// <summary>
     /// Called when the tool is deactivated (switched away from or modifier released).

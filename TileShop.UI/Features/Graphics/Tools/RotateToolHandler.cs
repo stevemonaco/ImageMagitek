@@ -1,3 +1,4 @@
+using System.Drawing;
 using ImageMagitek;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
@@ -13,6 +14,8 @@ public class RotateToolHandler : IToolHandler<GraphicsEditorViewModel>
     {
         _operation = operation;
     }
+
+    public ToolCursor Cursor => ToolCursor.Crosshair;
 
     public ToolResult OnMouseDown(ToolContext ctx, GraphicsEditorViewModel state)
     {
@@ -42,5 +45,10 @@ public class RotateToolHandler : IToolHandler<GraphicsEditorViewModel>
     public ToolResult OnMouseUp(ToolContext ctx, GraphicsEditorViewModel state) => ToolResult.Unhandled;
     public ToolResult OnKeyDown(ToolContext ctx, GraphicsEditorViewModel state) => ToolResult.Unhandled;
     public ToolResult OnKeyUp(ToolContext ctx, GraphicsEditorViewModel state) => ToolResult.Unhandled;
+
+    public Rectangle? GetTargetRect(ToolContext ctx, GraphicsEditorViewModel state) =>
+        state.WorkingArranger.GetElementAtPixel(ctx.PixelX, ctx.PixelY) is { } element && element.Width == element.Height
+            ? state.GetElementRectAtPixel(ctx.PixelX, ctx.PixelY) : null;
+
     public HistoryAction? Deactivate(GraphicsEditorViewModel state) => null;
 }

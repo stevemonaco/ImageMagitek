@@ -1,106 +1,203 @@
-﻿<UserControl x:Class="TileShop.UI.Views.ColorRemapView"
+<UserControl x:Class="TileShop.UI.Views.ColorRemapView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:cc="https://github.com/stevemonaco/TileShop"
+    xmlns:con="using:TileShop.UI.Converters"
     xmlns:dd="using:TileShop.UI.DragDrop"
     xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop"
     xmlns:m="using:TileShop.UI.Models"
     xmlns:vm="using:TileShop.UI.ViewModels"
+    x:Name="remapView"
     x:DataType="vm:ColorRemapViewModel">
-    <UserControl.Styles>
-        <StyleInclude Source="avares://Avalonia.Xaml.Interactions.Draggable/Styles.axaml" />
-    </UserControl.Styles>
     <UserControl.Resources>
-        <dd:ListBoxRemappableColorDropHandler x:Key="ListBoxRemappableColorDropHandler" />
+        <dd:RemappableColorDropHandler x:Key="RemappableColorDropHandler" />
+
+        <!--  Chrome-free button so the swatch fills the cell and BorderBrush alone shows state  -->
+        <ControlTheme x:Key="CellButton" TargetType="Button">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}">
+                        <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Setter Property="CornerRadius" Value="2" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" />
+        </ControlTheme>
     </UserControl.Resources>
     <UserControl.Styles>
-        <Style Selector="ListBox.colorDrag &gt; :is(ListBoxItem)">
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="MinWidth" Value="0" />
-            <Setter Property="MinHeight" Value="0" />
+        <Style Selector="Button.cell">
+            <Setter Property="Theme" Value="{StaticResource CellButton}" />
+        </Style>
+        <Style Selector="Button.cell:pointerover Border.swatch">
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiColorText1}" />
+        </Style>
+        <Style Selector="Button.remapCell">
             <Setter Property="(Interaction.Behaviors)">
                 <BehaviorCollectionTemplate>
                     <BehaviorCollection>
                         <idd:TypedDragBehavior DataType="{x:Type m:RemappableColorModel}" />
+                        <idd:ContextDropBehavior Handler="{StaticResource RemappableColorDropHandler}" />
                     </BehaviorCollection>
                 </BehaviorCollectionTemplate>
             </Setter>
         </Style>
-
-        <Style Selector="Border.colorDrop">
-            <Setter Property="(DragDrop.AllowDrop)" Value="True" />
-            <Setter Property="(Interaction.Behaviors)">
-                <BehaviorCollectionTemplate>
-                    <BehaviorCollection>
-                        <idd:ContextDropBehavior Context="{Binding}" Handler="{StaticResource ListBoxRemappableColorDropHandler}" />
-                    </BehaviorCollection>
-                </BehaviorCollectionTemplate>
-            </Setter>
+        <Style Selector="Button.remapCell.remapped">
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiColorPrimary}" />
+        </Style>
+        <Style Selector="Button.remapCell.dropReady">
+            <Setter Property="BorderBrush" Value="{DynamicResource SemiColorText0}" />
         </Style>
 
-        <Style Selector="Border.dropReady">
-            <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColor}" />
+        <Style Selector="Border.swatch">
+            <Setter Property="BorderBrush" Value="#555" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="{StaticResource BasicCheckeredBrush}" />
+        </Style>
+
+        <Style Selector="TextBlock.indexHeader">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Opacity" Value="0.5" />
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="*,*">
-        <StackPanel Grid.Row="0" Margin="10">
-            <TextBlock HorizontalAlignment="Left" Classes="muted" FontFamily="{x:Static cc:AppFonts.IbmPlexSans}"
-                FontSize="20" Text="Current Colors" />
+    <StackPanel Margin="8" Spacing="8">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <StackPanel Spacing="2">
+                <TextBlock IsVisible="{Binding ScopeDescription, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding ScopeDescription}" />
+                <TextBlock Classes="muted" Text="Click a color to pick its replacement · Drag a color onto another · Right-click to reset" TextWrapping="Wrap" />
+                <TextBlock Classes="faint" FontSize="11" Text="Remapped colors show the current color on the left and the replacement on the right" TextWrapping="Wrap" />
+            </StackPanel>
+            <Button Grid.Column="1" VerticalAlignment="Top" Classes="Tertiary" Command="{Binding ResetAllCommand}" Content="Reset All" />
+        </Grid>
 
-            <ListBox HorizontalAlignment="Left" Classes="colorDrag" ItemsSource="{Binding InitialColors}">
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Width="65" HorizontalAlignment="Center" Orientation="Horizontal">
-                            <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" FontSize="24" Text="{Binding Index}" />
-                            <Border Margin="10,2,2,2" Background="{StaticResource BasicCheckeredBrush}" BorderBrush="Black"
-                                BorderThickness="2">
-                                <Rectangle Width="24" Height="24">
-                                    <Rectangle.Fill>
-                                        <SolidColorBrush Color="{Binding Color}" />
-                                    </Rectangle.Fill>
-                                </Rectangle>
-                            </Border>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </StackPanel>
-
-        <StackPanel Grid.Row="1" Margin="10">
-            <TextBlock HorizontalAlignment="Left" Classes="muted" FontFamily="{x:Static cc:AppFonts.IbmPlexSans}"
-                FontSize="20" Text="New Colors" />
-
-            <ItemsControl HorizontalAlignment="Left" ItemsSource="{Binding FinalColors}">
+        <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6" RowDefinitions="Auto,Auto" RowSpacing="2">
+            <ItemsControl Grid.Column="1" ItemsSource="{Binding ColumnHeaders}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" />
+                        <UniformGrid ColumnSpacing="2" Columns="{Binding Columns}" Rows="1" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
-
                 <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Width="65" Background="Transparent" BorderThickness="1" Classes="colorDrop">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Margin="8,0,0,0" VerticalAlignment="Center" FontSize="24" Text="{Binding Index}" />
-                                <Border Margin="10,2,2,2" Background="{StaticResource BasicCheckeredBrush}" BorderBrush="Black"
-                                    BorderThickness="2">
-                                    <Rectangle Width="24" Height="24">
-                                        <Rectangle.Fill>
-                                            <SolidColorBrush Color="{Binding Color}" />
-                                        </Rectangle.Fill>
-                                    </Rectangle>
-                                </Border>
-                            </StackPanel>
+                    <DataTemplate x:DataType="x:String">
+                        <TextBlock Width="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).CellSize}" Classes="indexHeader" Text="{Binding}" TextAlignment="Center" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <ItemsControl Grid.Row="1" IsVisible="{Binding HasMultipleRows}" ItemsSource="{Binding RowHeaders}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="1" RowSpacing="2" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Border Height="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).CellSize}">
+                            <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Classes="indexHeader" Text="{Binding}" />
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-        </StackPanel>
-    </Grid>
+
+            <ItemsControl x:Name="RemapGrid" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Colors}">
+                <FlyoutBase.AttachedFlyout>
+                    <Flyout Placement="Bottom">
+                        <!--  Shown at a cell, so the content's DataContext is that cell's color  -->
+                        <StackPanel Spacing="6" x:DataType="m:RemappableColorModel">
+                            <TextBlock Classes="muted" Text="{Binding Index, StringFormat='Remap color {0} to'}" />
+
+                            <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6" RowDefinitions="Auto,Auto" RowSpacing="2">
+                                <ItemsControl Grid.Column="1" ItemsSource="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).ColumnHeaders}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid ColumnSpacing="2" Columns="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).Columns}" Rows="1" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <TextBlock Width="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).CellSize}" Classes="indexHeader" Text="{Binding}" TextAlignment="Center" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <ItemsControl Grid.Row="1" IsVisible="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).HasMultipleRows}"
+                                    ItemsSource="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).RowHeaders}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="1" RowSpacing="2" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="x:String">
+                                            <Border Height="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).CellSize}">
+                                                <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Classes="indexHeader" Text="{Binding}" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <ItemsControl x:Name="PickerGrid" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).Colors}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid ColumnSpacing="2" Columns="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).Columns}" RowSpacing="2" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="m:RemappableColorModel">
+                                            <Button Width="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).CellSize}"
+                                                Height="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).CellSize}" Classes="cell"
+                                                Click="OnPickerSwatchClick" ToolTip.ShowDelay="300" ToolTip.Tip="{Binding Index}">
+                                                <Button.BorderBrush>
+                                                    <MultiBinding Converter="{x:Static con:AppConverters.SwatchSelectionBorder}">
+                                                        <Binding Path="Index" />
+                                                        <Binding Path="$parent[ItemsControl].((m:RemappableColorModel)DataContext).RemappedIndex" />
+                                                        <Binding Path="$parent[ItemsControl].((m:RemappableColorModel)DataContext).Index" />
+                                                    </MultiBinding>
+                                                </Button.BorderBrush>
+                                                <Border Classes="swatch">
+                                                    <Rectangle Fill="{Binding Color, Converter={x:Static con:AppConverters.ColorToBrush}}" />
+                                                </Border>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+
+                            <Button HorizontalAlignment="Right" Classes="Tertiary" Click="OnPickerResetClick" Content="Reset" IsEnabled="{Binding IsRemapped}" />
+                        </StackPanel>
+                    </Flyout>
+                </FlyoutBase.AttachedFlyout>
+
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid ColumnSpacing="2" Columns="{Binding Columns}" RowSpacing="2" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="m:RemappableColorModel">
+                        <Button Width="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).CellSize}"
+                            Height="{Binding #remapView.((vm:ColorRemapViewModel)DataContext).CellSize}" Classes="cell remapCell"
+                            Classes.remapped="{Binding IsRemapped}" Click="OnCellClick" ToolTip.ShowDelay="300">
+                            <ToolTip.Tip>
+                                <MultiBinding StringFormat="{}{0} → {1}">
+                                    <Binding Path="Index" />
+                                    <Binding Path="RemappedIndex" />
+                                </MultiBinding>
+                            </ToolTip.Tip>
+                            <Border Classes="swatch">
+                                <Grid ColumnDefinitions="*,*">
+                                    <Rectangle Grid.ColumnSpan="2" Fill="{Binding Color, Converter={x:Static con:AppConverters.ColorToBrush}}" />
+                                    <Rectangle Grid.Column="1" Fill="{Binding RemappedColor, Converter={x:Static con:AppConverters.ColorToBrush}}" IsVisible="{Binding IsRemapped}" />
+                                </Grid>
+                            </Border>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+    </StackPanel>
 </UserControl>

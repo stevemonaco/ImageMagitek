@@ -20,7 +20,7 @@ public class TextBoxFocusSelectionBehavior : Behavior<TextBox>
         AssociatedObject?.RemoveHandler(InputElement.PointerPressedEvent, AssociatedObject_PreviewPointerPressed);
     }
 
-    private void AssociatedObject_GotFocus(object? sender, GotFocusEventArgs e)
+    private void AssociatedObject_GotFocus(object? sender, FocusChangedEventArgs e)
     {
         AssociatedObject?.SelectAll();
     }

@@ -108,6 +108,20 @@ public class ArrangerRenderer
         IsAntialias = false,
     };
 
+    private static readonly SKPaint _hoverOuterPaint = new()
+    {
+        Color = new SKColor(0, 0, 0, 200),
+        Style = SKPaintStyle.Stroke,
+        IsAntialias = false,
+    };
+
+    private static readonly SKPaint _hoverInnerPaint = new()
+    {
+        Color = new SKColor(255, 255, 255, 230),
+        Style = SKPaintStyle.Stroke,
+        IsAntialias = false,
+    };
+
     public ArrangerRenderer(Arranger arranger)
     {
     }
@@ -195,6 +209,7 @@ public class ArrangerRenderer
         RenderSelection(state, canvas);
         RenderSelectionHandles(state, canvas);
         RenderPaste(state, canvas);
+        RenderHoverTarget(state, canvas);
 
         canvas.Restore();
     }
@@ -276,6 +291,24 @@ public class ArrangerRenderer
         canvas.DrawRect(pasteRect, strokePaint);
 
         canvas.Restore();
+    }
+
+    private static void RenderHoverTarget(GraphicsEditorViewModel state, SKCanvas canvas)
+    {
+        if (state.HoverTarget is not { } target)
+            return;
+
+        // Dark line outside, light line inside, each one screen pixel wide so it reads over any color at any zoom
+        var screenPixel = 1f / (float)Math.Max(state.Zoom, 0.01);
+        _hoverOuterPaint.StrokeWidth = screenPixel;
+        _hoverInnerPaint.StrokeWidth = screenPixel;
+
+        var rect = new SKRect(target.Left, target.Top, target.Right, target.Bottom);
+        rect.Inflate(screenPixel / 2f, screenPixel / 2f);
+        canvas.DrawRect(rect, _hoverOuterPaint);
+
+        rect.Inflate(-screenPixel, -screenPixel);
+        canvas.DrawRect(rect, _hoverInnerPaint);
     }
 
     private static void RenderGridlines(GraphicsEditorViewModel state, SKCanvas canvas)

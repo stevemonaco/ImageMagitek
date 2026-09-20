@@ -165,6 +165,12 @@ public partial class GraphicsEditorViewModel
         return false;
     }
 
+    internal bool CanApplyPaletteAtPosition(int pixelX, int pixelY) =>
+        SelectedPalette is not null && _imageAdapter.CanSetPalette(pixelX, pixelY, SelectedPalette.Palette).HasSucceeded;
+
+    internal bool CanPickPaletteAtPosition(int pixelX, int pixelY) =>
+        IsIndexedColor && WorkingArranger.GetElementAtPixel(pixelX, pixelY)?.Codec is IIndexedCodec;
+
     public bool TryPickPalette(int pixelX, int pixelY)
     {
         if (!IsIndexedColor)
@@ -555,18 +561,37 @@ public partial class GraphicsEditorViewModel
         var maxArrangerColors = WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Codec?.ColorDepth ?? 0).Max();
         var colors = Math.Min(256, 1 << maxArrangerColors);
 
-        var remapViewModel = new ColorRemapViewModel(palette, colors, _colorFactory);
+        var bounds = GetRemapBounds();
+        var remapViewModel = new ColorRemapViewModel(palette, colors, _colorFactory)
+        {
+            ScopeDescription = Selection.HasSelection ? "Applies to the current selection" :
+                bounds is not null ? "Applies within the draw clip" : "Applies to the entire image"
+        };
         var dialogResult = await _interactions.RequestAsync(remapViewModel);
 
-        if (dialogResult is not null)
+        if (dialogResult is { HasChanges: true })
         {
-            var remap = dialogResult.FinalColors.Select(x => (byte)x.Index).ToList();
-            _imageAdapter.RemapColors(remap);
+            var remap = dialogResult.CreateRemap();
+            _imageAdapter.RemapColors(remap, bounds);
             InvalidateEditor(InvalidationLevel.Display);
 
-            var remapAction = new ColorRemapHistoryAction(dialogResult.InitialColors, dialogResult.FinalColors);
-            UndoHistory.Add(remapAction);
+            UndoHistory.Add(new ColorRemapHistoryAction(remap, bounds));
             IsModified = true;
         }
+    }
+
+    /// <summary>
+    /// Region a color remap applies to: the selection limited by the draw clip, or null for the entire image
+    /// </summary>
+    private Rectangle? GetRemapBounds()
+    {
+        var clipBounds = DrawClipBounds;
+
+        if (!Selection.HasSelection)
+            return clipBounds;
+
+        var rect = Selection.SelectionRect;
+        var selectionBounds = new Rectangle(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+        return clipBounds is { } clip ? Rectangle.Intersect(selectionBounds, clip) : selectionBounds;
     }
 }

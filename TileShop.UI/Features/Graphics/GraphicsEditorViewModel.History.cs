@@ -40,7 +40,7 @@ public partial class GraphicsEditorViewModel
         }
         else if (action is ColorRemapHistoryAction remapAction && IsIndexedColor)
         {
-            _imageAdapter.RemapColors(remapAction.FinalColors.Select(x => (byte)x.Index).ToList());
+            _imageAdapter.RemapColors(remapAction.Remap, remapAction.Bounds);
         }
         else if (action is PasteArrangerHistoryAction pasteAction)
         {

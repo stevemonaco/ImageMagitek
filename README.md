@@ -41,6 +41,8 @@ Big thanks to the authors of these open source libraries for making this project
 
 [CommandLineParser](https://github.com/commandlineparser/commandline) for the CLI client parsing
 
+[Lucide](https://lucide.dev) for the toolbar icons (ISC License)
+
 ## Old WPF Client Dependencies
 [AvalonDock](https://github.com/Dirkster99/AvalonDock) for the docking window layout
 

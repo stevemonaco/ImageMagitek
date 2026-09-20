@@ -84,6 +84,7 @@ public partial class GraphicsEditorView : UserControl
         double? x = ViewModel.LastMousePosition?.X;
         double? y = ViewModel.LastMousePosition?.Y;
         e.Handled = ViewModel.KeyPress(state, x, y);
+        UpdateCursorAtLastPosition(e.KeyModifiers);
     }
 
     private void OnKeyUp(object? sender, KeyEventArgs e)
@@ -95,6 +96,7 @@ public partial class GraphicsEditorView : UserControl
         double? x = ViewModel.LastMousePosition?.X;
         double? y = ViewModel.LastMousePosition?.Y;
         ViewModel.KeyUp(state, x, y);
+        UpdateCursorAtLastPosition(e.KeyModifiers);
     }
 
     private bool IsPointOnDraggable(double localX, double localY)
@@ -204,11 +206,18 @@ public partial class GraphicsEditorView : UserControl
                 {
                     ViewModel.InvalidateEditor(InvalidationLevel.Overlay);
 
-                    var data = new DataObject();
-                    data.Set(PayloadDropBehavior.DataFormat, payload);
+                    var data = new DataTransfer();
+                    var payloadKey = DragPayloadStore.Add(payload);
+                    data.Add(DataTransferItem.Create(PayloadDropBehavior.PayloadFormat, payloadKey));
 
-                    var effect = DragDropEffects.Move;
-                    await DragDrop.DoDragDrop(triggerEvent, data, effect);
+                    try
+                    {
+                        await DragDrop.DoDragDropAsync(triggerEvent, data, DragDropEffects.Move);
+                    }
+                    finally
+                    {
+                        DragPayloadStore.Remove(payloadKey);
+                    }
 
                     _dragHandler.AfterDragDrop(EditorCanvas, triggerEvent, ViewModel);
                 }
@@ -219,23 +228,36 @@ public partial class GraphicsEditorView : UserControl
 
         var point = e.GetCurrentPoint(EditorCanvas);
         var localPoint = EditorCanvas.ScreenToLocalPoint(point.Position);
+        var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
 
-        bool isHandled = false;
+        // The view model clears its hover state when the point falls outside the image
+        e.Handled = ViewModel.MouseMove(localPoint.X, localPoint.Y, state);
+        UpdateCursor(localPoint, e.KeyModifiers);
+    }
 
-        if (ViewModel.ContainsPoint(localPoint.X, localPoint.Y))
-        {
-            var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            isHandled = ViewModel.MouseMove(localPoint.X, localPoint.Y, state);
+    private void UpdateCursorAtLastPosition(KeyModifiers modifiers)
+    {
+        if (ViewModel?.LastMousePosition is { } position)
+            UpdateCursor(new Point(position.X, position.Y), modifiers);
+    }
 
-            var handle = ViewModel.HitTestHandle(localPoint.X, localPoint.Y);
-            EditorCanvas.Cursor = GetHandleCursor(handle);
-        }
-        else
+    private void UpdateCursor(Point localPoint, KeyModifiers modifiers)
+    {
+        if (ViewModel is not { } vm || !vm.ContainsPoint(localPoint.X, localPoint.Y))
         {
             EditorCanvas.Cursor = Cursor.Default;
+            return;
         }
 
-        e.Handled = isHandled;
+        var toolCursor = vm.ResolveCursor(InputAdapter.CreateKeyModifiers(modifiers));
+        if (toolCursor != ToolCursor.Default)
+        {
+            var scaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
+            EditorCanvas.Cursor = ToolCursors.Get(toolCursor, scaling);
+            return;
+        }
+
+        EditorCanvas.Cursor = GetHandleCursor(vm.HitTestHandle(localPoint.X, localPoint.Y));
     }
 
     private static Cursor GetHandleCursor(SelectionHandle handle) => handle switch

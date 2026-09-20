@@ -161,6 +161,17 @@ public sealed class IndexedImage : ImageBase<byte>
     /// Remaps the colors of the image to new colors
     /// </summary>
     /// <param name="remap">List containing remapped indices</param>
-    public void RemapColors(IList<byte> remap) =>
-        Image = Image.Select(x => remap[x]).ToArray();
+    /// <param name="bounds">Optional rectangle in pixel coordinates limiting which pixels are remapped</param>
+    public void RemapColors(IList<byte> remap, Rectangle? bounds = null)
+    {
+        var imageRect = new Rectangle(0, 0, Width, Height);
+        var rect = bounds is { } b ? Rectangle.Intersect(b, imageRect) : imageRect;
+
+        for (int y = rect.Top; y < rect.Bottom; y++)
+        {
+            var row = GetPixelRowSpan(y).Slice(rect.Left, rect.Width);
+            for (int i = 0; i < row.Length; i++)
+                row[i] = remap[row[i]];
+        }
+    }
 }

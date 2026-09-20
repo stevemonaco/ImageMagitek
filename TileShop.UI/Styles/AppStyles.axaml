@@ -1,14 +1,84 @@
 <Styles xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:b="using:TileShop.UI.Behaviors"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
     xmlns:conv="using:TileShop.UI.Converters"
     xmlns:media="using:Avalonia.Media"
     xmlns:vm="using:TileShop.UI.ViewModels">
+
+    <Style Selector="RadioButton.toggle">
+        <Setter Property="Theme" Value="{StaticResource {x:Type ToggleButton}}" />
+    </Style>
+
+    <!--  Override ToggleButton checked state: border-only highlight instead of solid blue background  -->
+    <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonDefaultBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonSolidPrimaryBackground}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="ToggleButton:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonDefaultPointeroverBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonSolidPrimaryPointeroverBackground}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="ToggleButton:checked:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ButtonDefaultPressedBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonSolidPrimaryPressedBackground}" />
+        <Setter Property="BorderThickness" Value="2" />
+    </Style>
 
     <!--  Replaces the default RadioButton with ellipse / text with a ToggleButton style  -->
     <!--  This is necessary because a ToggleButton itself can be unchecked, so it can't be used directly as a RadioButton style  -->
     <Style Selector="RadioButton.tool">
         <Setter Property="Theme" Value="{StaticResource {x:Type ToggleButton}}" />
+    </Style>
+
+    <!--  Square icon-only tool buttons: 20px icon in a 32px hit target, flat until hovered  -->
+    <Style Selector=":is(Button).tool">
+        <Setter Property="Padding" Value="6" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector=":is(Button).tool:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!--  Selected tool: subtle filled background with an accent-colored icon, no border  -->
+    <Style Selector=":is(ToggleButton).tool:checked /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SemiColorFill2}" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector=":is(ToggleButton).tool:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SemiColorFill2}" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector=":is(ToggleButton).tool:checked:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SemiColorFill2}" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <Style Selector="cc|LineIcon.tool">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Foreground" Value="{DynamicResource SemiColorText2}" />
+    </Style>
+    <Style Selector=":is(Button):pointerover cc|LineIcon.tool">
+        <Setter Property="Foreground" Value="{DynamicResource SemiColorText0}" />
+    </Style>
+    <Style Selector=":is(ToggleButton):checked cc|LineIcon.tool">
+        <Setter Property="Foreground" Value="{DynamicResource SemiColorPrimary}" />
+    </Style>
+    <Style Selector=":is(ToggleButton):checked:pointerover cc|LineIcon.tool">
+        <Setter Property="Foreground" Value="{DynamicResource SemiColorPrimaryPointerover}" />
+    </Style>
+    <Style Selector=":is(Button):disabled cc|LineIcon.tool">
+        <Setter Property="Foreground" Value="{DynamicResource SemiColorDisabledText}" />
+    </Style>
+
+    <!--  Icons inside labeled buttons (e.g. the edit mode selector) follow the button's text color  -->
+    <Style Selector="cc|LineIcon.inline">
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
     </Style>
 
     <Style Selector="TextBox">
@@ -35,34 +105,6 @@
         <Setter Property="Width" Value="20" />
     </Style>
 
-    <Style Selector="PathIcon.medium">
-        <Setter Property="Height" Value="20" />
-        <Setter Property="Width" Value="20" />
-        <Setter Property="Foreground" Value="{DynamicResource iconBrush}" />
-    </Style>
-
-    <Style Selector="PathIcon.menu">
-        <Setter Property="Foreground" Value="{DynamicResource iconBrush}" />
-    </Style>
-
-    <Style Selector="PathIcon.small">
-        <Setter Property="Height" Value="16" />
-        <Setter Property="Width" Value="16" />
-        <Setter Property="Foreground" Value="{DynamicResource iconBrush}" />
-    </Style>
-
-    <Style Selector="PathIcon.vflip">
-        <Setter Property="RenderTransform" Value="scaley(-1)" />
-    </Style>
-
-    <Style Selector="PathIcon.hflip">
-        <Setter Property="RenderTransform" Value="scalex(-1)" />
-    </Style>
-
-    <Style Selector="PathIcon.turn">
-        <Setter Property="RenderTransform" Value="scale(-1)" />
-    </Style>
-
     <Style Selector="StackPanel.toolbar-group">
         <Setter Property="Spacing" Value="4" />
         <Setter Property="Height" Value="32" />
@@ -71,6 +113,11 @@
             <Setter Property="VerticalAlignment" Value="Stretch" />
             <Setter Property="MinWidth" Value="60" />
         </Style>
+    </Style>
+
+    <Style Selector="WrapPanel.toolbar-group">
+        <Setter Property="ItemSpacing" Value="4" />
+        <Setter Property="LineSpacing" Value="4" />
     </Style>
 
     <!--  Avalonia Restyles  -->

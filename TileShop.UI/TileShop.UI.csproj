@@ -7,6 +7,7 @@
     
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AvaloniaHotReloadEnableFileWatcher>true</AvaloniaHotReloadEnableFileWatcher>
   </PropertyGroup>
 
   <PropertyGroup Label="Trimming-related">
@@ -38,15 +39,14 @@
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.Controls.ItemsRepeater" />
     <PackageReference Include="Avalonia.Desktop" />
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="AvaloniaUI.DiagnosticsSupport" />
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="AvaloniaUI.DiagnosticsSupport.HotReload" />
     <PackageReference Include="CommunityToolkit.Diagnostics" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
-    <PackageReference Include="Avalonia.Xaml.Behaviors" />
-<!--    <PackageReference Include="Xaml.Behaviors.Avalonia" />-->
+    <PackageReference Include="Xaml.Behaviors.Avalonia" />
     <PackageReference Include="PanAndZoom" />
     <PackageReference Include="Dock.Avalonia" />
     <PackageReference Include="Dock.Model.Mvvm" />
-<!--	<PackageReference Include="HotAvalonia" />-->
     <PackageReference Include="Jot" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Semi.Avalonia" />

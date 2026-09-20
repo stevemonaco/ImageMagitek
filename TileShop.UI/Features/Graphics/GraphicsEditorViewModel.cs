@@ -305,7 +305,6 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         Initialize();
 
         _selection = new ArrangerSelection(WorkingArranger, SnapMode);
-        //Messenger.Register<ResourceRenamedMessage>(this, HandleResourceRenamed);
         Messenger.Register<SaveConflictsDetectedMessage>(this, HandleSaveConflictsDetected);
     }
 
@@ -477,7 +476,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     public override void DiscardChanges()
     {
-        WorkingArranger = _projectArranger.CloneArranger();
+        if (_projectArranger.Mode == ArrangerMode.Scattered)
+            WorkingArranger = _projectArranger.CloneArranger();
+
         _imageAdapter.Reinitialize(WorkingArranger);
         BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
         GridSettings.AdjustGridlines(WorkingArranger);
@@ -508,10 +509,16 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         Messenger.Send(new AddScatteredArrangerFromCopyMessage(copy, OriginatingProjectResource));
     }
 
-    private void HandleResourceRenamed(object recipient, ResourceRenamedMessage message)
+    public override void Handle(object recipient, ResourceRenamedMessage message)
     {
-        if (ReferenceEquals(Resource, message.Resource))
-            DisplayName = message.NewName;
+        base.Handle(recipient, message);
+
+        if (message.Resource is Palette palette)
+        {
+            var model = Palettes.FirstOrDefault(x => ReferenceEquals(x.Palette, palette));
+            if (model is not null)
+                model.Name = message.NewName;
+        }
     }
 
     private void HandleSaveConflictsDetected(object recipient, SaveConflictsDetectedMessage message)
