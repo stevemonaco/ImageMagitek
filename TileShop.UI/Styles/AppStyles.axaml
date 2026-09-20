@@ -115,6 +115,11 @@
         </Style>
     </Style>
 
+    <Style Selector="WrapPanel.toolbar-group">
+        <Setter Property="ItemSpacing" Value="4" />
+        <Setter Property="LineSpacing" Value="4" />
+    </Style>
+
     <!--  Avalonia Restyles  -->
     <!--    <Style Selector="SelectableTextBlock">
         <Setter Property="SelectionBrush" Value="{DynamicResource SystemAccentColor}" />
