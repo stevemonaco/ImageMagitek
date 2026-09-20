@@ -15,7 +15,6 @@
         <PackageReference Include="CommunityToolkit.Mvvm" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
         <PackageReference Include="Semi.Avalonia" />
-        <PackageReference Include="SkiaSharp" />
     </ItemGroup>
 
     <ItemGroup>
