@@ -363,29 +363,37 @@
                 </StackPanel>
 
                 <!--  Actions  -->
-                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Actions" />
+                <StackPanel Spacing="4">
+                    <StackPanel.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                            <Binding ElementName="ResizeArrangerButton" Path="IsVisible" />
+                            <Binding ElementName="RemapColorsButton" Path="IsVisible" />
+                        </MultiBinding>
+                    </StackPanel.IsVisible>
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Actions" />
 
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <Button Classes="tool" Command="{Binding ResizeArrangerCommand}" ToolTip.Tip="Resizes the Arranger">
-                        <Button.IsVisible>
-                            <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                <Binding Path="IsArrangerMode" />
-                                <Binding Path="IsTiledLayout" />
-                            </MultiBinding>
-                        </Button.IsVisible>
-                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ResizeArranger}" />
-                    </Button>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <Button Name="ResizeArrangerButton" Classes="tool" Command="{Binding ResizeArrangerCommand}" ToolTip.Tip="Resizes the Arranger">
+                            <Button.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="IsArrangerMode" />
+                                    <Binding Path="IsTiledLayout" />
+                                </MultiBinding>
+                            </Button.IsVisible>
+                            <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ResizeArranger}" />
+                        </Button>
 
-                    <Button Classes="tool" Command="{Binding RemapColorsCommand}" IsEnabled="{Binding CanRemapColors}"
-                        ToolTip.ShowOnDisabled="True" ToolTip.Tip="Remap Palette Colors">
-                        <Button.IsVisible>
-                            <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                <Binding Path="IsDrawMode" />
-                                <Binding Path="IsIndexedColor" />
-                            </MultiBinding>
-                        </Button.IsVisible>
-                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.RemapColors}" />
-                    </Button>
+                        <Button Name="RemapColorsButton" Classes="tool" Command="{Binding RemapColorsCommand}" IsEnabled="{Binding CanRemapColors}"
+                            ToolTip.ShowOnDisabled="True" ToolTip.Tip="Remap Palette Colors">
+                            <Button.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="IsDrawMode" />
+                                    <Binding Path="IsIndexedColor" />
+                                </MultiBinding>
+                            </Button.IsVisible>
+                            <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.RemapColors}" />
+                        </Button>
+                    </StackPanel>
                 </StackPanel>
             </StackPanel>
         </ScrollViewer>

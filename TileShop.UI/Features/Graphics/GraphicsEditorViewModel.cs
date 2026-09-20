@@ -477,7 +477,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     public override void DiscardChanges()
     {
-        WorkingArranger = _projectArranger.CloneArranger();
+        if (_projectArranger.Mode == ArrangerMode.Scattered)
+            WorkingArranger = _projectArranger.CloneArranger();
+
         _imageAdapter.Reinitialize(WorkingArranger);
         BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
         GridSettings.AdjustGridlines(WorkingArranger);
