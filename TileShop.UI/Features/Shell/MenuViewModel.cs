@@ -1,6 +1,5 @@
 ﻿using System.IO;
 using System.Linq;
-using Jot;
 using ImageMagitek;
 using TileShop.Shared.Messages;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -32,29 +31,34 @@ public partial class MenuViewModel : ObservableRecipient
         {
             if (SetProperty(ref _activeTheme, value))
             {
-                _themeService.SetActiveTheme(ActiveTheme);
+                _themeService.SetActiveTheme(value);
+                _preferencesStore.Preferences.Theme = value;
+                _preferencesStore.Save();
             }
         }
     }
 
+    private readonly UserPreferencesStore _preferencesStore;
     private readonly IThemeService _themeService;
     private readonly IInteractionService _interactions;
     private readonly IExploreService _exploreService;
 
-    public MenuViewModel(Tracker tracker, IThemeService themeService, ProjectTreeViewModel projectTreeVm, EditorsViewModel editors,
+    public MenuViewModel(UserPreferencesStore preferencesStore, IThemeService themeService, ProjectTreeViewModel projectTreeVm, EditorsViewModel editors,
         IInteractionService interactionService, IExploreService exploreService)
     {
+        _preferencesStore = preferencesStore;
         _themeService = themeService;
         _projectTree = projectTreeVm;
         _editors = editors;
         _interactions = interactionService;
         _exploreService = exploreService;
-        
-        tracker.Track(this);
+
         Messenger.Register<ProjectLoadedMessage>(this, (r, m) => Handle(m));
 
-        RecentProjectFiles = new(RecentProjectFiles.Where(File.Exists));
-        ActiveTheme = _themeService.ActiveTheme;
+        var preferences = preferencesStore.Preferences;
+        _recentProjectFiles = new(preferences.RecentProjectFiles.Where(File.Exists));
+        _activeTheme = preferences.Theme;
+        _themeService.SetActiveTheme(_activeTheme);
     }
 
     [RelayCommand]
@@ -139,5 +143,8 @@ public partial class MenuViewModel : ObservableRecipient
             if (RecentProjectFiles.Count > 8)
                 RecentProjectFiles = new(RecentProjectFiles.Take(8));
         }
+
+        _preferencesStore.Preferences.RecentProjectFiles = [.. RecentProjectFiles];
+        _preferencesStore.Save();
     }
 }

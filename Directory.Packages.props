@@ -20,7 +20,6 @@
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageVersion Include="Jot" Version="2.1.17" />
     <PackageVersion Include="CsvHelper" Version="32.0.1" />
     <PackageVersion Include="ColorMinePortable" Version="2.0.4" />
     <PackageVersion Include="CommunityToolkit.Diagnostics" Version="8.4.0" />

@@ -7,7 +7,6 @@ using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
 using TileShop.Shared.Messages;
-using Jot;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -18,6 +17,7 @@ using TileShop.Shared.Interactions;
 using ImageMagitek.Services.Stores;
 using ImageMagitek.Codec;
 using TileShop.UI.Features.Graphics;
+using TileShop.Shared.Services;
 
 namespace TileShop.UI.ViewModels;
 
@@ -26,7 +26,7 @@ public enum UserSaveAction { Save, Discard, Cancel, Unmodified }
 public partial class EditorsViewModel : ObservableRecipient
 {
     private readonly IInteractionService _interactions;
-    private readonly Tracker _tracker;
+    private readonly UserPreferencesStore _preferencesStore;
     private readonly ICodecService _codecService;
     private readonly IColorFactory _colorFactory;
     private readonly PaletteStore _paletteStore;
@@ -40,13 +40,13 @@ public partial class EditorsViewModel : ObservableRecipient
     [ObservableProperty] private ResourceEditorBaseViewModel? _activeEditor;
     [ObservableProperty] private ShellViewModel? _shell;
 
-    public EditorsViewModel(AppSettings settings, IInteractionService interactionService, Tracker tracker, ICodecService codecService,
+    public EditorsViewModel(AppSettings settings, IInteractionService interactionService, UserPreferencesStore preferencesStore, ICodecService codecService,
         IColorFactory colorFactory, PaletteStore paletteStore, IProjectService projectService, ElementStore elementStore,
         ILoggerFactory loggerFactory)
     {
         _settings = settings;
         _interactions = interactionService;
-        _tracker = tracker;
+        _preferencesStore = preferencesStore;
         _codecService = codecService;
         _colorFactory = colorFactory;
         _paletteStore = paletteStore;
@@ -119,11 +119,11 @@ public partial class EditorsViewModel : ObservableRecipient
                 break;
             case ScatteredArranger scatteredArranger:
                 // newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _colorFactory, _paletteStore, _projectService, _tracker, _settings);
-                newDocument = new GraphicsEditorViewModel(scatteredArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
+                newDocument = new GraphicsEditorViewModel(scatteredArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
                 break;
             case SequentialArranger sequentialArranger:
                 //newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore);
-                newDocument = new GraphicsEditorViewModel(sequentialArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
+                newDocument = new GraphicsEditorViewModel(sequentialArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
                 break;
             case FileDataSource fileSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
                 var extension = Path.GetExtension(fileSource.FileLocation).ToLower();
@@ -151,7 +151,7 @@ public partial class EditorsViewModel : ObservableRecipient
                 //     OriginatingProjectResource = fileSource
                 // };
                 
-                newDocument = new GraphicsEditorViewModel(newArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _tracker, _loggerFactory.CreateLogger<GraphicsEditorViewModel>())
+                newDocument = new GraphicsEditorViewModel(newArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>())
                 {
                     OriginatingProjectResource = fileSource
                 };

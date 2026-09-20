@@ -12,7 +12,6 @@ using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
-using Jot;
 using Monaco.PathTree;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Services;
@@ -30,20 +29,20 @@ public partial class ProjectTreeViewModel : ToolViewModel
     private readonly PaletteStore _paletteStore;
     private readonly IAsyncFileRequestService _fileSelect;
     private readonly IInteractionService _interactions;
-    private readonly Tracker _tracker;
+    private readonly UserPreferencesStore _preferencesStore;
     private readonly IExploreService _diskExploreService;
     private readonly EditorsViewModel _editors;
 
     public ProjectTreeViewModel(IProjectService solutionService, IColorFactory colorFactory, PaletteStore paletteStore,
         IAsyncFileRequestService fileSelect, IInteractionService interactionService,
-        Tracker tracker, IExploreService diskExploreService, EditorsViewModel editors)
+        UserPreferencesStore preferencesStore, IExploreService diskExploreService, EditorsViewModel editors)
     {
         _projectService = solutionService;
         _colorFactory = colorFactory;
         _paletteStore = paletteStore;
         _fileSelect = fileSelect;
         _interactions = interactionService;
-        _tracker = tracker;
+        _preferencesStore = preferencesStore;
         _diskExploreService = diskExploreService;
         _editors = editors;
 
@@ -127,14 +126,12 @@ public partial class ProjectTreeViewModel : ToolViewModel
     [RelayCommand]
     public async Task AddNewPalette(ResourceNodeViewModel parentNodeModel)
     {
-        var dialogModel = new AddPaletteViewModel(parentNodeModel.Children.Select(x => x.Name));
+        var dialogModel = new AddPaletteViewModel(parentNodeModel.Children.Select(x => x.Name), _preferencesStore.Preferences.AddPalette);
 
         var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
         var dataFiles = projectTree.EnumerateDepthFirst().Select(x => x.Item).OfType<FileDataSource>();
         dialogModel.DataSources = new(dataFiles);
         dialogModel.SelectedDataSource = dialogModel.DataSources.FirstOrDefault();
-
-        _tracker.Track(dialogModel);
 
         if (dialogModel.DataSources.Count == 0)
         {
@@ -159,7 +156,8 @@ public partial class ProjectTreeViewModel : ToolViewModel
                     parentNodeModel.Children.Add(palVm);
                     SelectedNode = palVm;
                     IsModified = true;
-                    _tracker.Persist(dialogModel);
+                    _preferencesStore.Preferences.AddPalette = dialogModel.ToPreferences();
+                    _preferencesStore.Save();
                     await _editors.ActivateEditor(pal);
                 },
                 async fail =>
@@ -172,9 +170,8 @@ public partial class ProjectTreeViewModel : ToolViewModel
     [RelayCommand]
     public async Task AddNewScatteredArranger(ResourceNodeViewModel parentNodeModel)
     {
-        var dialogModel = new AddScatteredArrangerViewModel(parentNodeModel.Children.Select(x => x.Name));
+        var dialogModel = new AddScatteredArrangerViewModel(parentNodeModel.Children.Select(x => x.Name), _preferencesStore.Preferences.AddArranger);
         var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
-        _tracker.Track(dialogModel);
 
         var dialogResult = await _interactions.RequestAsync(dialogModel);
 
@@ -202,7 +199,8 @@ public partial class ProjectTreeViewModel : ToolViewModel
                     parentNodeModel.Children.Add(arrangerVm);
                     SelectedNode = arrangerVm;
                     IsModified = true;
-                    _tracker.Persist(dialogModel);
+                    _preferencesStore.Preferences.AddArranger = dialogModel.ToPreferences();
+                    _preferencesStore.Save();
                     await _editors.ActivateEditor(arranger);
                 },
                 async fail =>

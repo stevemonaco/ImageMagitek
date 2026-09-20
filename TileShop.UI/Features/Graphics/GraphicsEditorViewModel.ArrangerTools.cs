@@ -67,6 +67,8 @@ public partial class GraphicsEditorViewModel
     public void ToggleSymmetryTools()
     {
         AreSymmetryToolsEnabled = !AreSymmetryToolsEnabled;
+        _preferencesStore.Preferences.EnableArrangerSymmetryTools = AreSymmetryToolsEnabled;
+        _preferencesStore.Save();
     }
 
     public void SetSelectToolMode() => SelectedArrangeTool = ArrangeTool.ElementSelect;
@@ -82,8 +84,16 @@ public partial class GraphicsEditorViewModel
     [RelayCommand]
     public async Task ModifyGridSettings()
     {
-        var model = new ModifyGridSettingsViewModel();
-        _tracker.Track(model);
+        var model = new ModifyGridSettingsViewModel
+        {
+            ShiftX = GridSettings.ShiftX,
+            ShiftY = GridSettings.ShiftY,
+            WidthSpacing = GridSettings.WidthSpacing,
+            HeightSpacing = GridSettings.HeightSpacing,
+            PrimaryColor = GridSettings.PrimaryColor,
+            SecondaryColor = GridSettings.SecondaryColor,
+            LineColor = GridSettings.LineColor
+        };
         var result = await _interactions.RequestAsync(model);
 
         if (result is not null)
@@ -100,7 +110,8 @@ public partial class GraphicsEditorViewModel
             GridSettings.CreateBackgroundBrush();
             InvalidateEditor(InvalidationLevel.Overlay);
 
-            _tracker.Persist(result);
+            _preferencesStore.Preferences.Grid = GridSettings.ToPreferences();
+            _preferencesStore.Save();
         }
     }
 

@@ -2,6 +2,7 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Diagnostics" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Monaco.PathTree" />
     <PackageReference Include="OneOf" />
   </ItemGroup>

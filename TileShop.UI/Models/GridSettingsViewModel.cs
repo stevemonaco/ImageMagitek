@@ -18,17 +18,10 @@ public partial class GridSettingsViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<Gridline> _gridlines;
     [ObservableProperty] private IBrush _backgroundBrush;
     [ObservableProperty] private IBrush _lineBrush;
-    [ObservableProperty] private Color _primaryColor = DefaultPrimaryColor;
-    [ObservableProperty] private Color _secondaryColor = DefaultSecondaryColor;
-    [ObservableProperty] private Color _lineColor = DefaultLineColor;
+    [ObservableProperty] private Color _primaryColor;
+    [ObservableProperty] private Color _secondaryColor;
+    [ObservableProperty] private Color _lineColor;
     [ObservableProperty] private bool _showGridlines;
-
-    public static Color DefaultPrimaryColor { get; } = Color.FromArgb(0, 0, 0, 0);
-    public static Color DefaultSecondaryColor { get; } = Color.FromArgb(25, 128, 128, 128);
-    public static Color DefaultLineColor { get; } = Color.FromArgb(196, 204, 132, 132);
-
-    private int _width;
-    private int _height;
 
     private GridSettingsViewModel()
     {
@@ -37,49 +30,15 @@ public partial class GridSettingsViewModel : ObservableObject
         _gridlines = new();
     }
 
-    public static GridSettingsViewModel CreateDefault<TPixel>(ImageBase<TPixel> image) where TPixel : unmanaged
-    {
-        GridSettingsViewModel settings;
-
-        if (image.Arranger.Layout == ElementLayout.Tiled)
-        {
-            settings = new GridSettingsViewModel()
-            {
-                WidthSpacing = image.Arranger.ElementPixelSize.Width,
-                HeightSpacing = image.Arranger.ElementPixelSize.Height,
-                ShiftX = image.Width % image.Arranger.ElementPixelSize.Width,
-                ShiftY = image.Height % image.Arranger.ElementPixelSize.Height,
-            };
-        }
-        else
-        {
-            settings = new GridSettingsViewModel()
-            {
-                WidthSpacing = 8,
-                HeightSpacing = 8,
-                ShiftX = image.Width % 8,
-                ShiftY = image.Height % 8,
-            };
-        }
-
-        settings._width = image.Width;
-        settings._height = image.Height;
-
-        settings.Gridlines = settings.CreateGridlines();
-        settings.LineBrush = settings.CreateLineBrush();
-        settings.BackgroundBrush = settings.CreateBackgroundBrush();
-
-        //settings.Gridlines = settings.CreateGridlines(settings.WidthSpacing - settings.ShiftX, settings.HeightSpacing - settings.ShiftY, image.Width, image.Height, settings.WidthSpacing, settings.HeightSpacing);
-
-        return settings;
-    }
-
-    public static GridSettingsViewModel CreateDefault(Arranger arranger)
+    public static GridSettingsViewModel CreateDefault(Arranger arranger, GridPreferences preferences)
     {
         var settings = new GridSettingsViewModel()
         {
             WidthSpacing = arranger.ElementPixelSize.Width,
-            HeightSpacing = arranger.ElementPixelSize.Height
+            HeightSpacing = arranger.ElementPixelSize.Height,
+            LineColor = ParseHex(preferences.LineColor, GridPreferences.DefaultLineColor),
+            PrimaryColor = ParseHex(preferences.PrimaryColor, GridPreferences.DefaultPrimaryColor),
+            SecondaryColor = ParseHex(preferences.SecondaryColor, GridPreferences.DefaultSecondaryColor)
         };
 
         //if (WorkingArranger.Layout == ElementLayout.Single)
@@ -97,6 +56,13 @@ public partial class GridSettingsViewModel : ObservableObject
 
         return settings;
     }
+
+    public GridPreferences ToPreferences() => new(ToHex(LineColor), ToHex(PrimaryColor), ToHex(SecondaryColor));
+
+    private static Color ParseHex(string hex, string fallbackHex) =>
+        Color.TryParse(hex, out var color) ? color : Color.Parse(fallbackHex);
+
+    private static string ToHex(Color color) => $"#{color.ToUInt32():X8}";
 
     /// <summary>
     /// Creates a checkered pattern brush
@@ -153,33 +119,6 @@ public partial class GridSettingsViewModel : ObservableObject
         for (int y = y1; y <= y2; y += ySpacing) // Horizontal gridlines
         {
             var gridline = new Gridline(0, y, x2, y);
-            gridlines.Add(gridline);
-        }
-
-        return gridlines;
-    }
-
-    private ObservableCollection<Gridline> CreateGridlines()
-    {
-        //int x1 = (ShiftX)
-        int x1 = WidthSpacing - ShiftX;
-        if (x1 == WidthSpacing)
-            x1 = 0;
-
-        int y1 = HeightSpacing - ShiftY;
-        if (y1 == HeightSpacing)
-            y1 = 0;
-
-        var gridlines = new ObservableCollection<Gridline>();
-        for (int x = x1; x <= _width; x += WidthSpacing) // Vertical gridlines
-        {
-            var gridline = new Gridline(x, 0, x, _height);
-            gridlines.Add(gridline);
-        }
-
-        for (int y = y1; y <= _height; y += HeightSpacing) // Horizontal gridlines
-        {
-            var gridline = new Gridline(0, y, _width, y);
             gridlines.Add(gridline);
         }
 

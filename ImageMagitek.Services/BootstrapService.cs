@@ -35,12 +35,11 @@ public class BootstrapService
 
     public virtual SettingsService CreateSettingsService() => new SettingsService();
 
-    public virtual async Task<AppSettings?> ReadConfiguration(SettingsService settingsService, string jsonFileName)
+    public virtual AppSettings ReadConfiguration(SettingsService settingsService, string jsonFileName)
     {
         try
         {
-            var settings = await settingsService.ReadSettings(jsonFileName);
-            return settings;
+            return settingsService.ReadSettings(jsonFileName);
         }
         catch (Exception ex)
         {

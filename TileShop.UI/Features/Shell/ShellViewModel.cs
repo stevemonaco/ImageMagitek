@@ -2,14 +2,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ImageMagitek.Services;
-using Jot;
 using TileShop.Shared.Interactions;
+using TileShop.Shared.Services;
 
 namespace TileShop.UI.ViewModels;
 
 public partial class ShellViewModel : ObservableObject
 {
-    private readonly Tracker _tracker;
+    private readonly UserPreferencesStore _preferencesStore;
     private readonly IProjectService _projectService;
     private string _projectFile = @"D:\ImageMagitekTest\FF2\FF2project.xml";
 
@@ -19,10 +19,10 @@ public partial class ShellViewModel : ObservableObject
     [ObservableProperty] private EditorsViewModel _editors;
     private readonly IInteractionService _interactionService;
 
-    public ShellViewModel(Tracker tracker, IProjectService projectService, ProjectTreeViewModel activeTree,
+    public ShellViewModel(UserPreferencesStore preferencesStore, IProjectService projectService, ProjectTreeViewModel activeTree,
         MenuViewModel activeMenu, StatusViewModel activeStatusBar, EditorsViewModel editors, IInteractionService interactionService)
     {
-        _tracker = tracker;
+        _preferencesStore = preferencesStore;
         _projectService = projectService;
         _activeTree = activeTree;
         _activeMenu = activeMenu;
@@ -47,7 +47,7 @@ public partial class ShellViewModel : ObservableObject
         if (canClose)
         {
             _projectService.CloseProjects();
-            _tracker.PersistAll();
+            _preferencesStore.Save();
         }
 
         return canClose;

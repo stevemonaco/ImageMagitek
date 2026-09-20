@@ -11,7 +11,6 @@ using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Services;
 using ImageMagitek.Services.Stores;
-using Jot;
 using Microsoft.Extensions.Logging;
 using TileShop.Shared.Input;
 using TileShop.Shared.Interactions;
@@ -22,6 +21,7 @@ using Avalonia.Media;
 using TileShop.UI.Features.Graphics;
 using TileShop.UI.Imaging;
 using TileShop.UI.Models;
+using TileShop.Shared.Services;
 
 namespace TileShop.UI.ViewModels;
 
@@ -34,7 +34,7 @@ public enum DrawClipEffect { Greyscale, Hidden }
 
 public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewModel, IStateDriver
 {
-    private readonly Tracker _tracker;
+    private readonly UserPreferencesStore _preferencesStore;
     private readonly IInteractionService _interactions;
     private readonly ICodecService _codecService;
     private readonly IColorFactory _colorFactory;
@@ -275,7 +275,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     public GraphicsEditorViewModel(Arranger arranger, IInteractionService interactionService,
         ICodecService codecService, IColorFactory colorFactory, PaletteStore paletteStore,
-        ElementStore elementStore, IProjectService projectService, Tracker tracker,
+        ElementStore elementStore, IProjectService projectService, UserPreferencesStore preferencesStore,
         ILogger<GraphicsEditorViewModel> logger)
         : base(arranger)
     {
@@ -291,8 +291,10 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         _paletteStore = paletteStore;
         _elementStore = elementStore;
         _projectService = projectService;
-        _tracker = tracker;
+        _preferencesStore = preferencesStore;
         _logger = logger;
+
+        _areSymmetryToolsEnabled = preferencesStore.Preferences.EnableArrangerSymmetryTools;
 
         CanView = arranger.Mode == ArrangerMode.Sequential;
         CanArrange = arranger.Mode == ArrangerMode.Scattered;
@@ -362,7 +364,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
             _imageAdapter = new ArrangerImageAdapter(WorkingArranger);
             BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
-            GridSettings = GridSettingsViewModel.CreateDefault(WorkingArranger);
+            GridSettings = GridSettingsViewModel.CreateDefault(WorkingArranger, _preferencesStore.Preferences.Grid);
         }
         catch (Exception e)
         {

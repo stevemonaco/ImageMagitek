@@ -13,15 +13,15 @@ public partial class AddScatteredArrangerViewModel : RequestViewModel<AddScatter
     [ObservableProperty] private string _arrangerName = "";
     [ObservableProperty] private SelectionOption<PixelColorType> _selectedColorType;
     [ObservableProperty] private SelectionOption<ElementLayout> _selectedLayout;
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TiledArrangerPixelWidth))] private int _tiledArrangerElementWidth = 16;
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TiledArrangerPixelHeight))] private int _tiledArrangerElementHeight = 8;
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TiledArrangerPixelWidth))] private int _tiledElementPixelWidth = 8;
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TiledArrangerPixelHeight))] private int _tiledElementPixelHeight = 8;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TiledArrangerPixelWidth))] private int _tiledArrangerElementWidth;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TiledArrangerPixelHeight))] private int _tiledArrangerElementHeight;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TiledArrangerPixelWidth))] private int _tiledElementPixelWidth;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(TiledArrangerPixelHeight))] private int _tiledElementPixelHeight;
     public int TiledArrangerPixelWidth => TiledArrangerElementWidth * TiledElementPixelWidth;
     public int TiledArrangerPixelHeight => TiledArrangerElementHeight * TiledElementPixelHeight;
 
-    [ObservableProperty] private int _singleArrangerPixelWidth = 256;
-    [ObservableProperty] private int _singleArrangerPixelHeight = 256;
+    [ObservableProperty] private int _singleArrangerPixelWidth;
+    [ObservableProperty] private int _singleArrangerPixelHeight;
     [ObservableProperty] private ObservableCollection<string> _existingResourceNames;
     [ObservableProperty] private ObservableCollection<string> _validationErrors = [];
     [ObservableProperty] private bool _canAdd;
@@ -38,17 +38,29 @@ public partial class AddScatteredArrangerViewModel : RequestViewModel<AddScatter
         new(ElementLayout.Single, "Single", "Restricts the arranger to a single element, suitable for pixel-based graphics")
     ];
 
-    public AddScatteredArrangerViewModel(IEnumerable<string> existingResourceNames)
+    public AddScatteredArrangerViewModel(IEnumerable<string> existingResourceNames, AddArrangerPreferences preferences)
     {
         _existingResourceNames = new(existingResourceNames);
         Title = "New Scattered Arranger";
         AcceptName = "Add";
-        
-        SelectedColorType = AvailableColorTypes.First();
-        SelectedLayout = AvailableElementLayouts.First();
+
+        _selectedColorType = AvailableColorTypes.FirstOrDefault(x => x.Value == preferences.ColorType) ?? AvailableColorTypes.First();
+        _selectedLayout = AvailableElementLayouts.FirstOrDefault(x => x.Value == preferences.Layout) ?? AvailableElementLayouts.First();
+        _tiledArrangerElementWidth = preferences.TiledArrangerElementWidth;
+        _tiledArrangerElementHeight = preferences.TiledArrangerElementHeight;
+        _tiledElementPixelWidth = preferences.TiledElementPixelWidth;
+        _tiledElementPixelHeight = preferences.TiledElementPixelHeight;
+        _singleArrangerPixelWidth = preferences.SingleArrangerPixelWidth;
+        _singleArrangerPixelHeight = preferences.SingleArrangerPixelHeight;
     }
 
     public override AddScatteredArrangerViewModel? ProduceResult() => this;
+
+    public AddArrangerPreferences ToPreferences() => new(
+        SelectedColorType.Value, SelectedLayout.Value,
+        TiledArrangerElementWidth, TiledArrangerElementHeight,
+        TiledElementPixelWidth, TiledElementPixelHeight,
+        SingleArrangerPixelWidth, SingleArrangerPixelHeight);
 
     [RelayCommand]
     public void ValidateModel()

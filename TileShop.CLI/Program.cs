@@ -48,7 +48,7 @@ class Program
             .WithParsed(async options =>
             {
                 var logFileName = GetFullLogFileName(options);
-                var isBootstrapped = await BootstrapTileShop(logFileName);
+                var isBootstrapped = BootstrapTileShop(logFileName);
                 if (!isBootstrapped)
                     code = ExitCode.EnvironmentError;
                 else
@@ -105,7 +105,7 @@ class Program
             .Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToArray();
     }
 
-    private static async Task<bool> BootstrapTileShop(string logFileName)
+    private static bool BootstrapTileShop(string logFileName)
     {
         try
         {
@@ -119,9 +119,7 @@ class Program
             var resourceSchemaFileName = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultResourceSchemaFileName);
 
             var settingsService = bootstrapper.CreateSettingsService();
-            var settings = await bootstrapper.ReadConfiguration(settingsService, settingsFileName);
-            if (settings is null)
-                throw new InvalidOperationException($"Failed to read configuration file '{settingsFileName}'");
+            var settings = bootstrapper.ReadConfiguration(settingsService, settingsFileName);
 
             var colorFactory = bootstrapper.CreateColorFactory();
             var paletteService = bootstrapper.CreatePaletteService(colorFactory);

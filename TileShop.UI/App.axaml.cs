@@ -21,11 +21,11 @@ public class App : Application
 #endif
     }
 
-    public override async void OnFrameworkInitializationCompleted()
+    public override void OnFrameworkInitializationCompleted()
     {
         var services = new ServiceCollection();
         var bootstrapper = new TileShopBootstrapper();
-        await bootstrapper.ConfigureIoc(services);
+        bootstrapper.ConfigureIoc(services);
         bootstrapper.ConfigureServices(services);
         bootstrapper.ConfigureViews(services);
         bootstrapper.ConfigureViewModels(services);

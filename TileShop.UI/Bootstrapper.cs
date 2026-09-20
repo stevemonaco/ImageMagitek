@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using ImageMagitek.Codec;
 using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services;
-using Jot;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using TileShop.UI.Models;
 using TileShop.UI.Services;
 using TileShop.UI.ViewModels;
 using TileShop.Shared.Interactions;
@@ -30,25 +27,21 @@ public interface IAppBootstrapper<TViewModel> where TViewModel : class
 
 public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 {
-    private readonly Tracker _tracker = new Tracker();
     private LoggerFactory? _loggerFactory;
 
-    public async Task ConfigureIoc(IServiceCollection services)
+    public void ConfigureIoc(IServiceCollection services)
     {
         _loggerFactory = CreateLoggerFactory(BootstrapService.DefaultLogFileName);
 
-        await ConfigureImageMagitek(services);
-        ConfigureJotTracker(_tracker, services);
+        ConfigureImageMagitek(services);
     }
 
-    private async Task ConfigureImageMagitek(IServiceCollection services)
+    private void ConfigureImageMagitek(IServiceCollection services)
     {
         var bootstrapper = new BootstrapService(_loggerFactory!.CreateLogger<BootstrapService>());
 
         var settingsService = bootstrapper.CreateSettingsService();
-        var settings = await bootstrapper.ReadConfiguration(settingsService, BootstrapService.DefaultConfigurationFileName);
-        if (settings is null)
-            throw new InvalidOperationException($"'{BootstrapService.DefaultConfigurationFileName}' could not be read during startup");
+        var settings = bootstrapper.ReadConfiguration(settingsService, BootstrapService.DefaultConfigurationFileName);
         services.AddSingleton(settingsService);
         services.AddSingleton(settings);
 
@@ -96,6 +89,10 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         services.AddSingleton<IAsyncFileRequestService, AsyncFileRequestService>();
         services.AddSingleton<IExploreService, ExploreService>();
         services.AddSingleton<IThemeService, ThemeService>();
+
+        var preferencesStore = new UserPreferencesStore(UserPreferencesStore.DefaultFileName, _loggerFactory!.CreateLogger<UserPreferencesStore>());
+        preferencesStore.Load();
+        services.AddSingleton(preferencesStore);
     }
 
     public void ConfigureViews(IServiceCollection services)
@@ -110,8 +107,6 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
         foreach (var viewType in viewTypes)
             services.AddTransient(viewType);
-
-        //builder.RegisterType<ShellView>().OnActivated(x => _tracker.Track(x.Instance));
     }
 
     public void ConfigureViewModels(IServiceCollection services)
@@ -158,55 +153,6 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         locator.RegisterViewFactory<ResourceRemovalChangesViewModel, ResourceRemovalChangesView>();
         locator.RegisterViewFactory<AlertViewModel, AlertView>();
         locator.RegisterViewFactory<PromptViewModel, PromptView>();
-    }
-
-    private void ConfigureJotTracker(Tracker tracker, IServiceCollection services)
-    {
-        //tracker.Configure<ShellView>()
-        //    .Id(w => w.Name)
-        //    .Properties(w => new { w.Top, w.Width, w.Height, w.Left, w.WindowState })
-        //    .PersistOn(nameof(Window.Closing))
-        //    .StopTrackingOn(nameof(Window.Closing));
-
-        //tracker.Configure<ShellViewModel>()
-        //    .Property(p => p.Theme, ApplicationTheme.Light);
-
-        //tracker.Configure<AddScatteredArrangerViewModel>()
-        //    .Property(p => p.ArrangerElementWidth, 8)
-        //    .Property(p => p.ArrangerElementHeight, 16)
-        //    .Property(p => p.ElementPixelWidth, 8)
-        //    .Property(p => p.ElementPixelHeight, 8)
-        //    .Property(p => p.ColorType, PixelColorType.Indexed)
-        //    .Property(p => p.Layout, ElementLayout.Tiled);
-
-        tracker.Configure<AddPaletteViewModel>()
-            .Property(p => p.PaletteName)
-            .Property(p => p.SelectedColorModel, "RGBA32")
-            .Property(p => p.ZeroIndexTransparent, true);
-
-        tracker.Configure<JumpToOffsetViewModel>()
-            .Property(p => p.NumericBase, NumericBase.Decimal)
-            .Property(p => p.OffsetText, string.Empty);
-
-        tracker.Configure<MenuViewModel>()
-            .Property(p => p.ActiveTheme, ThemeStyle.Dark)
-            .Property(p => p.RecentProjectFiles);
-
-        tracker.Configure<CustomElementLayoutViewModel>()
-            .Property(p => p.Width, 1)
-            .Property(p => p.Height, 1)
-            .Property(p => p.FlowDirection, ElementLayoutFlowDirection.RowLeftToRight);
-
-        tracker.Configure<ModifyGridSettingsViewModel>()
-            .Property(p => p.ShiftX, 0)
-            .Property(p => p.ShiftY, 0)
-            .Property(p => p.WidthSpacing, 8)
-            .Property(p => p.HeightSpacing, 8)
-            .Property(p => p.PrimaryColor, GridSettingsViewModel.DefaultPrimaryColor)
-            .Property(p => p.SecondaryColor, GridSettingsViewModel.DefaultSecondaryColor)
-            .Property(p => p.LineColor, GridSettingsViewModel.DefaultLineColor);
-
-        services.AddSingleton(tracker);
     }
 
     private LoggerFactory CreateLoggerFactory(string logName)

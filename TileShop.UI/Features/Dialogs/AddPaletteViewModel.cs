@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
 using ImageMagitek.Colors;
 using TileShop.Shared.Interactions;
+using TileShop.Shared.Models;
 
 namespace TileShop.UI.ViewModels;
 public partial class AddPaletteViewModel : RequestViewModel<AddPaletteViewModel>
@@ -24,25 +25,28 @@ public partial class AddPaletteViewModel : RequestViewModel<AddPaletteViewModel>
     [ObservableProperty] private FileDataSource? _selectedDataSource;
     [ObservableProperty] private ObservableCollection<string> _colorModels = new(Palette.GetColorModelNames());
     [ObservableProperty] private string _selectedColorModel;
-    [ObservableProperty] private bool _zeroIndexTransparent = true;
+    [ObservableProperty] private bool _zeroIndexTransparent;
     [ObservableProperty] private ObservableCollection<string> _existingResourceNames;
     [ObservableProperty] private ObservableCollection<string> _validationErrors = new();
     [ObservableProperty] private bool _canAdd;
 
-    public AddPaletteViewModel() : this(Enumerable.Empty<string>())
+    public AddPaletteViewModel() : this([], new())
     {
     }
 
-    public AddPaletteViewModel(IEnumerable<string> existingResourceNames)
+    public AddPaletteViewModel(IEnumerable<string> existingResourceNames, AddPalettePreferences preferences)
     {
         _existingResourceNames = new(existingResourceNames);
         Title = "Add a New Palette";
         AcceptName = "Add";
 
-        _selectedColorModel = ColorModels.First();
+        _selectedColorModel = ColorModels.Contains(preferences.ColorModel) ? preferences.ColorModel : ColorModels.First();
+        _zeroIndexTransparent = preferences.ZeroIndexTransparent;
     }
 
     public override AddPaletteViewModel? ProduceResult() => this;
+
+    public AddPalettePreferences ToPreferences() => new(SelectedColorModel, ZeroIndexTransparent);
 
     public void ValidateModel()
     {

@@ -1,17 +1,13 @@
 ﻿using System.Collections.Generic;
-using ImageMagitek.Colors;
 
 namespace ImageMagitek.Services;
 
 /// <summary>
-/// Contains settings that the user may want to modify, preserve, and/or share
+/// Application configuration shipped alongside the executable as appsettings.json.
+/// Read once at startup; users may edit the file to override the defaults.
 /// </summary>
 public sealed record AppSettings(
     IDictionary<string, string> ExtensionCodecAssociations,
     IList<string> GlobalPalettes,
-    string NesPalette,
-    bool EnableArrangerSymmetryTools,
-    ColorRgba32 GridLineColor,
-    ColorRgba32 PrimaryGridBackgroundColor,
-    ColorRgba32 SecondaryGridBackgroundColor
+    string NesPalette
 );
