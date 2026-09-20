@@ -16,9 +16,9 @@
                 </Button>
                 <TextBlock Width="150" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
                     Text="File Source" />
-                <TextBox Width="135" Text="{Binding FileAddress, Converter={x:Static con:AppConverters.LongToHexadecimal}}" Watermark="Offset"
+                <TextBox Width="135" Text="{Binding FileAddress, Converter={x:Static con:AppConverters.LongToHexadecimal}}" PlaceholderText="Offset"
                     IsReadOnly="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).IsReadOnly}" />
-                <TextBox Width="135" Margin="10,0,0,0" Text="{Binding Entries}" Watermark="Entries"
+                <TextBox Width="135" Margin="10,0,0,0" Text="{Binding Entries}" PlaceholderText="Entries"
                     IsReadOnly="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).IsReadOnly}" />
 
                 <ToggleSwitch Margin="10,0,0,0"
@@ -36,7 +36,7 @@
                 </Button>
                 <TextBlock Width="150" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
                     Text="Native Source" />
-                <TextBox Width="135" Text="{Binding NativeHexColor}" Watermark="Color"
+                <TextBox Width="135" Text="{Binding NativeHexColor}" PlaceholderText="Color"
                     IsReadOnly="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).IsReadOnly}" />
             </StackPanel>
         </DataTemplate>
@@ -49,7 +49,7 @@
                 </Button>
                 <TextBlock Width="150" Margin="10,0,0,0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold"
                     Text="Foreign Source" />
-                <TextBox Width="135" Watermark="Color"
+                <TextBox Width="135" PlaceholderText="Color"
                     IsReadOnly="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).IsReadOnly}">
                     <TextBox.Text>
                         <Binding Path="ForeignHexColor" />

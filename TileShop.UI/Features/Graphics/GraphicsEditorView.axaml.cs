@@ -204,11 +204,18 @@ public partial class GraphicsEditorView : UserControl
                 {
                     ViewModel.InvalidateEditor(InvalidationLevel.Overlay);
 
-                    var data = new DataObject();
-                    data.Set(PayloadDropBehavior.DataFormat, payload);
+                    var data = new DataTransfer();
+                    var payloadKey = DragPayloadStore.Add(payload);
+                    data.Add(DataTransferItem.Create(PayloadDropBehavior.PayloadFormat, payloadKey));
 
-                    var effect = DragDropEffects.Move;
-                    await DragDrop.DoDragDrop(triggerEvent, data, effect);
+                    try
+                    {
+                        await DragDrop.DoDragDropAsync(triggerEvent, data, DragDropEffects.Move);
+                    }
+                    finally
+                    {
+                        DragPayloadStore.Remove(payloadKey);
+                    }
 
                     _dragHandler.AfterDragDrop(EditorCanvas, triggerEvent, ViewModel);
                 }

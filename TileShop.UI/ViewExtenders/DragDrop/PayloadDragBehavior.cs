@@ -4,7 +4,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Xaml.Interactions.DragAndDrop;
 using Avalonia.Xaml.Interactivity;
 
 namespace TileShop.UI.DragDrop;
@@ -14,20 +13,20 @@ using DragDrop = Avalonia.Input.DragDrop;
 public class PayloadDragBehavior : Behavior<Control>
 {
     private Point _dragStartPoint;
-    private PointerEventArgs? _triggerEvent;
+    private PointerPressedEventArgs? _triggerEvent;
     private bool _lock;
 
     public static readonly StyledProperty<object?> ContextProperty =
-        AvaloniaProperty.Register<ContextDragBehavior, object?>(nameof(Context));
+        AvaloniaProperty.Register<PayloadDragBehavior, object?>(nameof(Context));
 
     public static readonly StyledProperty<IDragHandlerEx?> HandlerProperty =
-        AvaloniaProperty.Register<ContextDragBehavior, IDragHandlerEx?>(nameof(Handler));
+        AvaloniaProperty.Register<PayloadDragBehavior, IDragHandlerEx?>(nameof(Handler));
 
     public static readonly StyledProperty<double> HorizontalDragThresholdProperty =
-        AvaloniaProperty.Register<ContextDragBehavior, double>(nameof(HorizontalDragThreshold), 3);
+        AvaloniaProperty.Register<PayloadDragBehavior, double>(nameof(HorizontalDragThreshold), 3);
 
     public static readonly StyledProperty<double> VerticalDragThresholdProperty =
-        AvaloniaProperty.Register<ContextDragBehavior, double>(nameof(VerticalDragThreshold), 3);
+        AvaloniaProperty.Register<PayloadDragBehavior, double>(nameof(VerticalDragThreshold), 3);
 
     public object? Context
     {
@@ -67,10 +66,15 @@ public class PayloadDragBehavior : Behavior<Control>
         AssociatedObject?.RemoveHandler(InputElement.PointerMovedEvent, AssociatedObject_PointerMoved);
     }
 
-    private async Task DoDragDrop(PointerEventArgs triggerEvent, object? value)
+    private async Task DoDragDrop(PointerPressedEventArgs triggerEvent, object? value)
     {
-        var data = new DataObject();
-        data.Set(ContextDropBehavior.DataFormat, value!);
+        var data = new DataTransfer();
+        var payloadKey = value is null ? null : DragPayloadStore.Add(value);
+
+        if (payloadKey is not null)
+        {
+            data.Add(DataTransferItem.Create(PayloadDropBehavior.PayloadFormat, payloadKey));
+        }
 
         var effect = DragDropEffects.None;
 
@@ -91,7 +95,14 @@ public class PayloadDragBehavior : Behavior<Control>
             effect |= DragDropEffects.Move;
         }
 
-        await DragDrop.DoDragDrop(triggerEvent, data, effect);
+        try
+        {
+            await DragDrop.DoDragDropAsync(triggerEvent, data, effect);
+        }
+        finally
+        {
+            DragPayloadStore.Remove(payloadKey);
+        }
     }
 
     private void AssociatedObject_PointerPressed(object? sender, PointerPressedEventArgs e)
