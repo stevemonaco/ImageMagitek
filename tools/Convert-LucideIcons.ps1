@@ -61,6 +61,7 @@ $icons = @(
     @{ Name = 'Trash';           Lucide = 'trash-2' }
     @{ Name = 'CheckedBox';      Lucide = 'square-check' }
     @{ Name = 'UncheckedBox';    Lucide = 'square' }
+    @{ Name = 'ChevronDown';     Lucide = 'chevron-down' }
 )
 
 function Format-Number([double]$value)

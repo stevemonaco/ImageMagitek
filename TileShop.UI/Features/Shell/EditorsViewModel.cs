@@ -37,8 +37,13 @@ public partial class EditorsViewModel : ObservableRecipient
 
     public ObservableCollection<ResourceEditorBaseViewModel> Editors { get; } = new();
 
-    [ObservableProperty] private ResourceEditorBaseViewModel? _activeEditor;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ActiveGraphicsEditor))]
+    private ResourceEditorBaseViewModel? _activeEditor;
+
     [ObservableProperty] private ShellViewModel? _shell;
+
+    public GraphicsEditorViewModel? ActiveGraphicsEditor => ActiveEditor as GraphicsEditorViewModel;
 
     public EditorsViewModel(AppSettings settings, IInteractionService interactionService, UserPreferencesStore preferencesStore, ICodecService codecService,
         IColorFactory colorFactory, PaletteStore paletteStore, IProjectService projectService, ElementStore elementStore,

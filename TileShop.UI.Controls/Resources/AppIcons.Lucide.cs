@@ -34,4 +34,5 @@ public static partial class AppIcons
     public static StreamGeometry Trash { get; } = StreamGeometry.Parse("M 10 11 v 6 M 14 11 v 6 M 19 6 v 14 a 2 2 0 0 1 -2 2 H 7 a 2 2 0 0 1 -2 -2 V 6 M 3 6 h 18 M 8 6 V 4 a 2 2 0 0 1 2 -2 h 4 a 2 2 0 0 1 2 2 v 2"); // trash-2
     public static StreamGeometry CheckedBox { get; } = StreamGeometry.Parse("M 5 3 h 14 a 2 2 0 0 1 2 2 v 14 a 2 2 0 0 1 -2 2 h -14 a 2 2 0 0 1 -2 -2 v -14 a 2 2 0 0 1 2 -2 Z M 16 9 l -5.5 5.5 L 8 12"); // square-check
     public static StreamGeometry UncheckedBox { get; } = StreamGeometry.Parse("M 5 3 h 14 a 2 2 0 0 1 2 2 v 14 a 2 2 0 0 1 -2 2 h -14 a 2 2 0 0 1 -2 -2 v -14 a 2 2 0 0 1 2 -2 Z"); // square
+    public static StreamGeometry ChevronDown { get; } = StreamGeometry.Parse("M 6 9 l 6 6 l 6 -6"); // chevron-down
 }

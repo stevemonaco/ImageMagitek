@@ -353,9 +353,21 @@
                 <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Options" />
 
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                    <ToggleButton Classes="tool" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
-                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Gridlines}" />
-                    </ToggleButton>
+                    <StackPanel Name="GridlineSplitButton" Orientation="Horizontal">
+                        <StackPanel.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Command="{Binding ModifyGridSettingsCommand}" Header="Grid Settings..." InputGesture="Ctrl+G" />
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+
+                        <ToggleButton Classes="tool split-main" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility (G)">
+                            <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Gridlines}" />
+                        </ToggleButton>
+                        <Button Name="GridSettingsButton" Classes="tool split-secondary" Command="{Binding ModifyGridSettingsCommand}"
+                            ToolTip.Tip="Grid settings... (Ctrl+G)">
+                            <cc:LineIcon Classes="tool small" Data="{x:Static cc:AppIcons.ChevronDown}" />
+                        </Button>
+                    </StackPanel>
 
                     <ToggleButton Classes="tool" IsChecked="{Binding SnapMode, Converter={x:Static con:AppConverters.SnapModeBoolean}}"
                         IsVisible="{Binding CanChangeSnapMode}" ToolTip.Tip="Snap Selection to Elements (S)">

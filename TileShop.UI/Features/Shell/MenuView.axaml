@@ -42,6 +42,12 @@
             </MenuItem>
 
             <MenuItem Header="_View">
+                <MenuItem Header="Show _Gridlines" InputGesture="G"
+                    IsChecked="{Binding Editors.ActiveGraphicsEditor.GridSettings.ShowGridlines, Mode=TwoWay}"
+                    IsEnabled="{Binding Editors.ActiveGraphicsEditor, Converter={x:Static ObjectConverters.IsNotNull}}" ToggleType="CheckBox" />
+                <MenuItem Command="{Binding Editors.ActiveGraphicsEditor.ModifyGridSettingsCommand}" Header="Grid _Settings..." InputGesture="Ctrl+G"
+                    IsEnabled="{Binding Editors.ActiveGraphicsEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <Separator />
                 <MenuItem Header="Set _Theme">
                     <MenuItem Command="{Binding ChangeToLightThemeCommand}" Header="Light Theme" />
                     <MenuItem Command="{Binding ChangeToDarkThemeCommand}" Header="Dark Theme" />
