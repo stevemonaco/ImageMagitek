@@ -1,55 +1,81 @@
 <UserControl x:Class="TileShop.UI.Views.TableColorView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:con="using:TileShop.UI.Converters"
     xmlns:m="using:TileShop.UI.Models"
     xmlns:vm="using:TileShop.UI.ViewModels"
+    x:Name="tableView"
     x:DataType="vm:TableColorViewModel">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto" />
-            <ColumnDefinition Width="auto" MinWidth="300" />
-        </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0" Margin="0,0,16,0">
-            <Button Width="65" Height="65" Margin="0,0,0,10" HorizontalContentAlignment="Center"
-                VerticalContentAlignment="Center"
-                Command="{Binding SaveColorCommand}"
-                IsEnabled="{Binding CanSave}"
-                IsVisible="{Binding !IsReadOnly}">
-                <StackPanel>
-                    <TextBlock HorizontalAlignment="Center" Text="Assign" />
-                    <TextBlock HorizontalAlignment="Center" Text="Color" />
-                </StackPanel>
-            </Button>
+    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+        <!--  Palette color on top, working color below, so an edit reads as before/after  -->
+        <Border Width="72" VerticalAlignment="Top" Classes="swatch" ToolTip.Tip="Top: current palette color · Bottom: edited color">
+            <Grid RowDefinitions="*,*">
+                <Rectangle Height="32" Fill="{Binding OriginalColor, Converter={x:Static con:AppConverters.ColorToBrush}}" />
+                <Rectangle Grid.Row="1" Height="32" Fill="{Binding Color, Converter={x:Static con:AppConverters.ColorToBrush}}" />
+            </Grid>
+        </Border>
 
-            <Border Padding="0" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="Black"
-                BorderThickness="2">
-                <Rectangle Width="61" Height="61">
-                    <Rectangle.Fill>
-                        <SolidColorBrush Color="{Binding Color}" />
-                    </Rectangle.Fill>
-                </Rectangle>
-            </Border>
+        <StackPanel Grid.Column="1" IsEnabled="{Binding !IsReadOnly}" Spacing="10">
+            <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6" RowDefinitions="Auto,Auto" RowSpacing="2">
+                <ItemsControl Grid.Column="1" ItemsSource="{Binding ColumnHeaders}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid ColumnSpacing="2" Columns="{Binding Columns}" Rows="1" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <TextBlock Width="28" Classes="indexHeader" Text="{Binding}" TextAlignment="Center" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <ItemsControl Grid.Row="1" ItemsSource="{Binding RowHeaders}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="1" RowSpacing="2" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <Border Height="28">
+                                <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" Classes="indexHeader" Text="{Binding}" />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <ItemsControl x:Name="ColorTable" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding AvailableColors}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid ColumnSpacing="2" Columns="{Binding Columns}" RowSpacing="2" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="m:PaletteSwatchModel">
+                            <Button Width="28" Height="28" Classes="cell" Classes.selected="{Binding IsSelected}"
+                                Command="{Binding #tableView.((vm:TableColorViewModel)DataContext).SelectTableColorCommand}"
+                                CommandParameter="{Binding}" ToolTip.ShowDelay="300" ToolTip.Tip="{Binding Index, StringFormat='${0:X2}'}">
+                                <Border Classes="swatch">
+                                    <Rectangle Fill="{Binding Color, Converter={x:Static con:AppConverters.ColorToBrush}}" />
+                                </Border>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+
+            <!--  Top-aligned so the row stays level when an inline validation error grows a box  -->
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="8">
+                <TextBox VerticalAlignment="Top" Classes="hex" InnerLeftContent="Native" Text="{Binding NativeHex, UpdateSourceTrigger=LostFocus}"
+                    ToolTip.Tip="RGB hex; the nearest color in the table is chosen" />
+                <TextBox Grid.Column="1" VerticalAlignment="Top" Classes="hex" InnerLeftContent="{Binding ColorModelName}"
+                    Text="{Binding ForeignHex, UpdateSourceTrigger=LostFocus}" ToolTip.Tip="Index into the color table" />
+
+                <Button Grid.Column="3" VerticalAlignment="Top" Classes="Primary" Command="{Binding SaveColorCommand}" Content="Assign"
+                    IsEnabled="{Binding CanSave}" IsVisible="{Binding !IsReadOnly}"
+                    ToolTip.Tip="Write the edited color into the palette" />
+            </Grid>
         </StackPanel>
-
-        <!--  Color Table  -->
-        <ItemsRepeater Grid.Column="1" ItemsSource="{Binding AvailableColors}">
-            <ItemsRepeater.Layout>
-                <UniformGridLayout MaximumRowsOrColumns="16" MinColumnSpacing="0" MinItemWidth="38" Orientation="Horizontal" />
-            </ItemsRepeater.Layout>
-
-            <ItemsRepeater.ItemTemplate>
-                <DataTemplate x:DataType="m:ValidatedTableColorModel">
-                    <Border Name="ColorBorder" Margin="1" Padding="0" BorderBrush="Black" BorderThickness="2"
-                        Cursor="Hand" Tapped="OnColorTapped">
-                        <Rectangle Width="34" Height="32">
-                            <Rectangle.Fill>
-                                <SolidColorBrush Color="{Binding Color}" />
-                            </Rectangle.Fill>
-                        </Rectangle>
-                    </Border>
-                </DataTemplate>
-            </ItemsRepeater.ItemTemplate>
-        </ItemsRepeater>
-
     </Grid>
 </UserControl>

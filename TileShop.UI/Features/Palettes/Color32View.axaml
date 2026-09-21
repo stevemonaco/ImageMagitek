@@ -1,55 +1,69 @@
 <UserControl x:Class="TileShop.UI.Views.Color32View"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:con="using:TileShop.UI.Converters"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:DataType="vm:Color32ViewModel">
-    <Grid RowDefinitions="auto,auto,auto,auto">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto" />
-            <ColumnDefinition Width="auto" MinWidth="300" />
-            <ColumnDefinition Width="auto" MinWidth="25" />
-            <ColumnDefinition Width="auto" />
-        </Grid.ColumnDefinitions>
-        <StackPanel Grid.Row="0" Grid.RowSpan="4" Grid.Column="0">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.channel">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Opacity" Value="0.6" />
+        </Style>
+        <Style Selector="Slider.channel">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="MinWidth" Value="200" />
+            <Setter Property="Minimum" Value="0" />
+            <Setter Property="IsSnapToTickEnabled" Value="True" />
+            <Setter Property="TickFrequency" Value="1" />
+        </Style>
+        <Style Selector="NumericUpDown.channel">
+            <Setter Property="FormatString" Value="0" />
+            <Setter Property="Minimum" Value="0" />
+            <Setter Property="Width" Value="72" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    </UserControl.Styles>
 
-            <Button Height="50" Margin="0,10,10,10"
-                Command="{Binding SaveColorCommand}"
-                IsEnabled="{Binding CanSave}"
-                IsVisible="{Binding !IsReadOnly}">
-                <StackPanel>
-                    <TextBlock HorizontalAlignment="Center" Text="Assign" />
-                    <TextBlock HorizontalAlignment="Center" Text="Color" />
-                </StackPanel>
-            </Button>
+    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+        <!--  Palette color on top, working color below, so an edit reads as before/after  -->
+        <Border Width="72" VerticalAlignment="Top" Classes="swatch" ToolTip.Tip="Top: current palette color · Bottom: edited color">
+            <Grid RowDefinitions="*,*">
+                <Rectangle Height="32" Fill="{Binding OriginalColor, Converter={x:Static con:AppConverters.ColorToBrush}}" />
+                <Rectangle Grid.Row="1" Height="32" Fill="{Binding Color, Converter={x:Static con:AppConverters.ColorToBrush}}" />
+            </Grid>
+        </Border>
 
-            <Border Margin="0,0,10,0" HorizontalAlignment="Center" VerticalAlignment="Center" BorderBrush="Black"
-                BorderThickness="2">
+        <StackPanel Grid.Column="1" IsEnabled="{Binding !IsReadOnly}" Spacing="10">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="2">
+                <TextBlock Classes="channel" Text="R" />
+                <Slider Grid.Column="1" Classes="channel" Foreground="#E05A5A" Maximum="{Binding RedMax}" Value="{Binding Red}" />
+                <NumericUpDown Grid.Column="2" Classes="dense channel" Maximum="{Binding RedMax}" Value="{Binding Red}" />
 
-                <Rectangle Width="55" Height="55">
-                    <Rectangle.Fill>
-                        <SolidColorBrush Color="{Binding Color}" />
-                    </Rectangle.Fill>
-                </Rectangle>
-            </Border>
+                <TextBlock Grid.Row="1" Classes="channel" Text="G" />
+                <Slider Grid.Row="1" Grid.Column="1" Classes="channel" Foreground="#4CAF6A" Maximum="{Binding GreenMax}" Value="{Binding Green}" />
+                <NumericUpDown Grid.Row="1" Grid.Column="2" Classes="dense channel" Maximum="{Binding GreenMax}" Value="{Binding Green}" />
+
+                <TextBlock Grid.Row="2" Classes="channel" Text="B" />
+                <Slider Grid.Row="2" Grid.Column="1" Classes="channel" Foreground="#5A8AE0" Maximum="{Binding BlueMax}" Value="{Binding Blue}" />
+                <NumericUpDown Grid.Row="2" Grid.Column="2" Classes="dense channel" Maximum="{Binding BlueMax}" Value="{Binding Blue}" />
+
+                <TextBlock Grid.Row="3" Classes="channel" IsVisible="{Binding HasAlpha}" Text="A" />
+                <Slider Grid.Row="3" Grid.Column="1" Classes="channel" IsVisible="{Binding HasAlpha}" Maximum="{Binding AlphaMax}" Value="{Binding Alpha}" />
+                <NumericUpDown Grid.Row="3" Grid.Column="2" Classes="dense channel" IsVisible="{Binding HasAlpha}" Maximum="{Binding AlphaMax}" Value="{Binding Alpha}" />
+            </Grid>
+
+            <!--  Top-aligned so the row stays level when an inline validation error grows a box  -->
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="8">
+                <TextBox VerticalAlignment="Top" Classes="hex" InnerLeftContent="Native" Text="{Binding NativeHex, UpdateSourceTrigger=LostFocus}"
+                    ToolTip.Tip="RGB hex; the color is approximated to the nearest one the palette's color model can store" />
+                <TextBox Grid.Column="1" VerticalAlignment="Top" Classes="hex" InnerLeftContent="{Binding ColorModelName}"
+                    Text="{Binding ForeignHex, UpdateSourceTrigger=LostFocus}" ToolTip.Tip="Raw value as stored in the palette's color model" />
+
+                <Button Grid.Column="3" VerticalAlignment="Top" Classes="Primary" Command="{Binding SaveColorCommand}" Content="Assign"
+                    IsEnabled="{Binding CanSave}" IsVisible="{Binding !IsReadOnly}"
+                    ToolTip.Tip="Write the edited color into the palette" />
+            </Grid>
         </StackPanel>
-
-        <!--  RGBA Sliders  -->
-        <Slider Grid.Row="0" Grid.Column="1" Margin="10,0,10,5" Foreground="Red" Maximum="{Binding RedMax}"
-            Minimum="0" Value="{Binding Red, Mode=TwoWay}" IsEnabled="{Binding !IsReadOnly}" />
-
-        <Slider Grid.Row="1" Grid.Column="1" Margin="10,0,10,5" Foreground="Green" Maximum="{Binding GreenMax}"
-            Minimum="0" Value="{Binding Green, Mode=TwoWay}" IsEnabled="{Binding !IsReadOnly}" />
-
-        <Slider Grid.Row="2" Grid.Column="1" Margin="10,0,10,5" Foreground="Blue" Maximum="{Binding BlueMax}"
-            Minimum="0" Value="{Binding Blue, Mode=TwoWay}" IsEnabled="{Binding !IsReadOnly}" />
-
-        <Slider Grid.Row="3" Grid.Column="1" Margin="10,0,10,0" Foreground="{StaticResource BasicCheckeredBrush}"
-            Maximum="{Binding AlphaMax}" Minimum="0" Value="{Binding Alpha, Mode=TwoWay}" IsEnabled="{Binding !IsReadOnly}" />
-
-        <!--  RGBA Numeric Values  -->
-        <TextBlock Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Text="{Binding Red}" />
-        <TextBlock Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Text="{Binding Green}" />
-        <TextBlock Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Text="{Binding Blue}" />
-        <TextBlock Grid.Row="3" Grid.Column="2" VerticalAlignment="Center" Text="{Binding Alpha}" />
     </Grid>
 </UserControl>

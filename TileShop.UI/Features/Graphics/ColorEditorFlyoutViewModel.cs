@@ -30,14 +30,14 @@ public partial class ColorEditorFlyoutViewModel : ObservableObject
 
         if (foreignColor is IColor32 color32)
         {
-            var editor = new Color32ViewModel(color32, colorIndex, colorFactory);
+            var editor = new Color32ViewModel(color32, colorIndex, colorFactory, palette.ColorModel);
             editor.IsReadOnly = isReadOnly;
             editor.SaveColorCommand = ConfirmCommand;
             ColorEditor = editor;
         }
         else if (foreignColor is ITableColor tableColor)
         {
-            var editor = new TableColorViewModel(tableColor, colorIndex, colorFactory);
+            var editor = new TableColorViewModel(tableColor, colorIndex, colorFactory, palette.ColorModel);
             editor.IsReadOnly = isReadOnly;
             editor.SaveColorCommand = ConfirmCommand;
             ColorEditor = editor;

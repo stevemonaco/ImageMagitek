@@ -1,77 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
-using ImageMagitek.Colors;
-using Avalonia.Media;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using CommunityToolkit.Mvvm.Input;
+using ImageMagitek.Colors;
 using TileShop.UI.Models;
-using CommunityToolkit.Mvvm.ComponentModel;
-using TileShop.Shared.Messages;
-using CommunityToolkit.Mvvm.Messaging;
-using System.Diagnostics.CodeAnalysis;
 
 namespace TileShop.UI.ViewModels;
 
+/// <summary>
+/// Edits a color chosen from a fixed table of system colors, such as the NES palette
+/// </summary>
 public partial class TableColorViewModel : EditableColorBaseViewModel
 {
-    private ITableColor _foreignColor;
-    private readonly IColorFactory _colorFactory;
+    private const int _columns = 16;
 
-    public override bool CanSaveColor
+    public ObservableCollection<PaletteSwatchModel> AvailableColors { get; } = [];
+
+    public int Columns => _columns;
+    public IReadOnlyList<string> ColumnHeaders { get; }
+    public IReadOnlyList<string> RowHeaders { get; }
+
+    public override bool HasAlpha => false;
+
+    public TableColorViewModel(ITableColor foreignColor, int index, IColorFactory colorFactory, ColorModel colorModel)
+        : base(foreignColor, index, colorFactory, colorModel)
     {
-        get => WorkingColor.Color != _foreignColor.Color;
-    }
-
-    [ObservableProperty] private ObservableCollection<ValidatedTableColorModel> _availableColors = new();
-
-    [SetsRequiredMembers]
-    public TableColorViewModel(ITableColor foreignColor, int index, IColorFactory colorFactory)
-    {
-        _foreignColor = foreignColor;
-        Index = index;
-        _colorFactory = colorFactory;
-
-        WorkingColor = (ITableColor)_colorFactory.CloneColor(foreignColor);
-        var nativeColor = _colorFactory.ToNative(foreignColor);
-        Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-
-        AvailableColors = new(CreateTableColorModels());
-    }
-
-    public void SaveColor()
-    {
-        _foreignColor = (ITableColor)_colorFactory.CloneColor(WorkingColor);
-        NotifyCanSaveChanged();
-    }
-
-    private void NotifyCanSaveChanged()
-    {
-        OnPropertyChanged(nameof(CanSaveColor));
-        OnPropertyChanged(nameof(CanSave));
-    }
-
-    public void SetWorkingColor(ValidatedTableColorModel model)
-    {
-        WorkingColor = (ITableColor)_colorFactory.CloneColor(model.WorkingColor);
-        var nativeColor = _colorFactory.ToNative(WorkingColor);
-        Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-        NotifyCanSaveChanged();
-    }
-
-    public void MouseOver(ValidatedTableColorModel model)
-    {
-        string notifyMessage = $"Palette Index: {model.Index}";
-        var message = new NotifyStatusMessage(notifyMessage, NotifyStatusDuration.Indefinite);
-        Messenger.Send(message);
-    }
-
-    private IEnumerable<ValidatedTableColorModel> CreateTableColorModels()
-    {
-        if (_foreignColor is ColorNes)
+        for (int i = 0; i <= foreignColor.ColorMax; i++)
         {
-            for (int i = 0; i < 64; i++)
-                yield return new ValidatedTableColorModel(new ColorNes((uint)i), i, _colorFactory);
+            var color = ToMediaColor(_colorFactory.CreateColor(_colorModel, (uint)i));
+            AvailableColors.Add(new PaletteSwatchModel(i, color) { IsSelected = i == foreignColor.Color });
         }
-        else
-            throw new NotSupportedException($"Table-based color editing is not supported for color type '{_foreignColor.GetType()}'");
+
+        ColumnHeaders = Enumerable.Range(0, _columns).Select(x => x.ToString("X")).ToList();
+        RowHeaders = Enumerable.Range(0, (AvailableColors.Count + _columns - 1) / _columns).Select(x => (x * _columns).ToString("X2")).ToList();
+    }
+
+    [RelayCommand]
+    private void SelectTableColor(PaletteSwatchModel swatch)
+    {
+        ApplyWorkingColor(_colorFactory.CreateColor(_colorModel, (uint)swatch.Index));
+    }
+
+    protected override void ApplyWorkingColor(IColor color)
+    {
+        base.ApplyWorkingColor(color);
+
+        foreach (var swatch in AvailableColors)
+            swatch.IsSelected = swatch.Index == WorkingColor.Color;
     }
 }

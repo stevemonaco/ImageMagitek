@@ -10,31 +10,8 @@
     x:DataType="vm:ColorRemapViewModel">
     <UserControl.Resources>
         <dd:RemappableColorDropHandler x:Key="RemappableColorDropHandler" />
-
-        <!--  Chrome-free button so the swatch fills the cell and BorderBrush alone shows state  -->
-        <ControlTheme x:Key="CellButton" TargetType="Button">
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}">
-                        <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
-                    </Border>
-                </ControlTemplate>
-            </Setter>
-            <Setter Property="CornerRadius" Value="2" />
-            <Setter Property="BorderThickness" Value="2" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Cursor" Value="Hand" />
-        </ControlTheme>
     </UserControl.Resources>
     <UserControl.Styles>
-        <Style Selector="Button.cell">
-            <Setter Property="Theme" Value="{StaticResource CellButton}" />
-        </Style>
-        <Style Selector="Button.cell:pointerover Border.swatch">
-            <Setter Property="BorderBrush" Value="{DynamicResource SemiColorText1}" />
-        </Style>
         <Style Selector="Button.remapCell">
             <Setter Property="(Interaction.Behaviors)">
                 <BehaviorCollectionTemplate>
@@ -52,16 +29,6 @@
             <Setter Property="BorderBrush" Value="{DynamicResource SemiColorText0}" />
         </Style>
 
-        <Style Selector="Border.swatch">
-            <Setter Property="BorderBrush" Value="#555" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Background" Value="{StaticResource BasicCheckeredBrush}" />
-        </Style>
-
-        <Style Selector="TextBlock.indexHeader">
-            <Setter Property="FontSize" Value="10" />
-            <Setter Property="Opacity" Value="0.5" />
-        </Style>
     </UserControl.Styles>
 
     <StackPanel Margin="8" Spacing="8">

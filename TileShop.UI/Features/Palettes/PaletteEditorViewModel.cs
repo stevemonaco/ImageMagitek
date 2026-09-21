@@ -12,21 +12,30 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
 using TileShop.Shared.Models;
+using TileShop.UI.Models;
 
 namespace TileShop.UI.ViewModels;
 
 public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 {
+    private const int _maxColumns = 16;
+
     protected readonly Palette _palette;
     protected readonly IColorFactory _colorFactory;
     protected readonly IProjectService _projectService;
 
-    [ObservableProperty] private ObservableCollection<EditableColorBaseViewModel> _colors = new();
+    public ObservableCollection<PaletteSwatchModel> Colors { get; } = [];
     [ObservableProperty] private ObservableCollection<ColorSourceModel> _colorSourceModels = new();
     [ObservableProperty] private string _paletteSource;
     [ObservableProperty] private int _entries;
     [ObservableProperty] private ColorModel _colorModel;
     [ObservableProperty] private EditableColorBaseViewModel? _activeColor;
+
+    [ObservableProperty] private int _columns;
+    [ObservableProperty] private double _cellSize;
+    [ObservableProperty] private IReadOnlyList<string> _columnHeaders = [];
+    [ObservableProperty] private IReadOnlyList<string> _rowHeaders = [];
+    public bool HasMultipleRows => RowHeaders.Count > 1;
 
     public bool IsReadOnly => _palette.StorageSource == PaletteStorageSource.GlobalJson;
 
@@ -47,11 +56,8 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         get => _selectedColorIndex;
         set
         {
-            if (SetProperty(ref _selectedColorIndex, value) && value >= 0 && value < Colors.Count)
-            {
-                var color = _palette.GetForeignColor(value);
-                ActiveColor = CreateActiveColorEditor(color, value);
-            }
+            if (SetProperty(ref _selectedColorIndex, value))
+                RefreshSelection();
         }
     }
 
@@ -65,24 +71,15 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 
         _zeroIndexTransparent = _palette.ZeroIndexTransparent;
         ColorModel = _palette.ColorModel;
-        Colors = new(CreateColorModels());
         ColorSourceModels = new(CreateColorSourceModels(_palette));
-
-        if (_palette.DataSource is not null)
-            _paletteSource = _palette.DataSource.Name;
-        else if (_palette.StorageSource == PaletteStorageSource.GlobalJson)
-            _paletteSource = "[ReadOnly: JSON]";
-        else
-            _paletteSource = "[Unknown]";
-
+        _paletteSource = DescribeSource();
         Entries = CountSourceColors();
 
-        if (Entries > 0)
-        {
-            var color = _palette.GetForeignColor(0);
-            ActiveColor = CreateActiveColorEditor(color, 0);
-        }
+        RebuildSwatches();
     }
+
+    [RelayCommand]
+    private void SelectColor(PaletteSwatchModel swatch) => SelectedColorIndex = swatch.Index;
 
     /// <summary>
     /// Saves color sources to their project resource
@@ -97,19 +94,9 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         var paletteNode = projectTree.GetResourceNode(_palette);
         await _projectService.SaveResourceAsync(projectTree, paletteNode, false);
 
-        Colors = new(CreateColorModels());
-
         Entries = CountSourceColors();
-        SelectedColorIndex = 0;
-
-        if (_palette.DataSource is not null)
-            _paletteSource = _palette.DataSource.Name;
-        else if (_palette.StorageSource == PaletteStorageSource.GlobalJson)
-            _paletteSource = "[ReadOnly: JSON]";
-        else
-            _paletteSource = "[Unknown]";
-
-        _palette.Reload();
+        PaletteSource = DescribeSource();
+        RebuildSwatches();
 
         var changeMessage = new PaletteChangedMessage(_palette);
         Messenger.Send(changeMessage);
@@ -123,15 +110,10 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         if (ActiveColor is null)
             return;
 
-        // The order here is very important as replacing a Colors item invalidates SelectedItem to -1 and
-        // assigning a SelectedColorIndex reloads a color from the palette
         _palette.SetForeignColor(ActiveColor.Index, ActiveColor.WorkingColor);
+        ActiveColor.SaveColor();
+        Colors[ActiveColor.Index].Color = ActiveColor.Color;
 
-        var model = CreateColorModel(_palette.GetForeignColor(SelectedColorIndex), SelectedColorIndex);
-        var currentIndex = SelectedColorIndex;
-        Colors[SelectedColorIndex] = model;
-
-        SelectedColorIndex = currentIndex;
         await SaveChangesAsync();
     }
 
@@ -162,13 +144,6 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         IsModified = false;
     }
 
-    public void MouseOver(Color32ViewModel model)
-    {
-        string contents = $"Palette Index: {model.Index}";
-        var message = new NotifyStatusMessage(contents, NotifyStatusDuration.Indefinite);
-        Messenger.Send(message);
-    }
-
     public override void Undo()
     {
         throw new NotImplementedException();
@@ -184,30 +159,67 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         throw new NotImplementedException();
     }
 
-    private IEnumerable<EditableColorBaseViewModel> CreateColorModels()
+    private string DescribeSource()
     {
+        if (_palette.DataSource is not null)
+            return _palette.DataSource.Name;
+        else if (_palette.StorageSource == PaletteStorageSource.GlobalJson)
+            return "Built-in";
+        else
+            return "Unknown";
+    }
+
+    /// <summary>
+    /// Reloads the swatch grid from the palette, keeping the selection where it is still valid
+    /// </summary>
+    private void RebuildSwatches()
+    {
+        Colors.Clear();
+
         for (int i = 0; i < _palette.Entries; i++)
         {
-            yield return CreateColorModel(_palette.GetForeignColor(i), i);
+            var native = _palette.GetNativeColor(i);
+            Colors.Add(new PaletteSwatchModel(i, Avalonia.Media.Color.FromArgb(native.A, native.R, native.G, native.B)));
         }
+
+        Columns = Math.Clamp(Colors.Count, 1, _maxColumns);
+        CellSize = Colors.Count switch
+        {
+            <= 16 => 40,
+            <= 64 => 32,
+            _ => 24
+        };
+        ColumnHeaders = Enumerable.Range(0, Columns).Select(x => x.ToString()).ToList();
+        RowHeaders = Enumerable.Range(0, (Colors.Count + Columns - 1) / Columns).Select(x => (x * Columns).ToString()).ToList();
+        OnPropertyChanged(nameof(HasMultipleRows));
+
+        _selectedColorIndex = Math.Clamp(_selectedColorIndex, Colors.Count > 0 ? 0 : -1, Colors.Count - 1);
+        OnPropertyChanged(nameof(SelectedColorIndex));
+        RefreshSelection();
+    }
+
+    private void RefreshSelection()
+    {
+        foreach (var swatch in Colors)
+            swatch.IsSelected = swatch.Index == _selectedColorIndex;
+
+        ActiveColor = _selectedColorIndex >= 0 && _selectedColorIndex < Colors.Count
+            ? CreateActiveColorEditor(_palette.GetForeignColor(_selectedColorIndex), _selectedColorIndex)
+            : null;
     }
 
     private EditableColorBaseViewModel CreateActiveColorEditor(IColor foreignColor, int index)
     {
-        var editor = CreateColorModel(foreignColor, index);
+        EditableColorBaseViewModel editor = foreignColor switch
+        {
+            IColor32 color32 => new Color32ViewModel(color32, index, _colorFactory, _palette.ColorModel),
+            ITableColor tableColor => new TableColorViewModel(tableColor, index, _colorFactory, _palette.ColorModel),
+            _ => throw new NotSupportedException($"Color of type '{foreignColor.GetType()}' is not supported for editing")
+        };
+
         editor.SaveColorCommand = SaveActiveColorCommand;
         editor.IsReadOnly = IsReadOnly;
         return editor;
-    }
-
-    private EditableColorBaseViewModel CreateColorModel(IColor foreignColor, int index)
-    {
-        if (foreignColor is IColor32 color32)
-            return new Color32ViewModel(color32, index, _colorFactory);
-        else if (foreignColor is ITableColor tableColor)
-            return new TableColorViewModel(tableColor, index, _colorFactory);
-        else
-            throw new NotSupportedException($"Color of type '{foreignColor.GetType()}' is not supported for editing");
     }
 
     [RelayCommand]

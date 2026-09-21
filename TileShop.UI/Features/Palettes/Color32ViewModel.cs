@@ -1,107 +1,65 @@
-﻿using ImageMagitek.Colors;
-using Avalonia.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using ImageMagitek.Colors;
 
 namespace TileShop.UI.ViewModels;
 
 public partial class Color32ViewModel : EditableColorBaseViewModel
 {
-    private IColor32 _foreignColor;
-    private readonly IColorFactory _colorFactory;
-
-    public override bool CanSaveColor
-    {
-        get => WorkingColor.Color != _foreignColor.Color;
-    }
+    private IColor32 Working => (IColor32)WorkingColor;
 
     public int Red
     {
-        get => ((IColor32)WorkingColor).R;
-        set
-        {
-            ((IColor32)WorkingColor).R = (byte)value;
-            OnPropertyChanged(nameof(Red));
-            var nativeColor = _colorFactory.ToNative(WorkingColor);
-            Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-            NotifyCanSaveChanged();
-        }
-    }
-
-    public int Blue
-    {
-        get => ((IColor32)WorkingColor).B;
-        set
-        {
-            ((IColor32)WorkingColor).B = (byte)value;
-            OnPropertyChanged(nameof(Blue));
-            var nativeColor = _colorFactory.ToNative(WorkingColor);
-            Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-            NotifyCanSaveChanged();
-        }
+        get => Working.R;
+        set => SetComponent(nameof(Red), value, (c, v) => c.R = v);
     }
 
     public int Green
     {
-        get => ((IColor32)WorkingColor).G;
-        set
-        {
-            ((IColor32)WorkingColor).G = (byte)value;
-            OnPropertyChanged(nameof(Green));
-            var nativeColor = _colorFactory.ToNative(WorkingColor);
-            Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-            NotifyCanSaveChanged();
-        }
+        get => Working.G;
+        set => SetComponent(nameof(Green), value, (c, v) => c.G = v);
+    }
+
+    public int Blue
+    {
+        get => Working.B;
+        set => SetComponent(nameof(Blue), value, (c, v) => c.B = v);
     }
 
     public int Alpha
     {
-        get => ((IColor32)WorkingColor).A;
-        set
-        {
-            ((IColor32)WorkingColor).A = (byte)value;
-            OnPropertyChanged(nameof(Alpha));
-            var nativeColor = _colorFactory.ToNative(WorkingColor);
-            Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-            NotifyCanSaveChanged();
-        }
+        get => Working.A;
+        set => SetComponent(nameof(Alpha), value, (c, v) => c.A = v);
     }
 
-    [ObservableProperty] private int _redMax;
-    [ObservableProperty] private int _greenMax;
-    [ObservableProperty] private int _blueMax;
-    [ObservableProperty] private int _alphaMax;
+    public int RedMax { get; }
+    public int GreenMax { get; }
+    public int BlueMax { get; }
+    public int AlphaMax { get; }
 
-    [SetsRequiredMembers]
-    public Color32ViewModel(IColor32 foreignColor, int index, IColorFactory colorFactory)
+    public override bool HasAlpha => AlphaMax > 0;
+
+    public Color32ViewModel(IColor32 foreignColor, int index, IColorFactory colorFactory, ColorModel colorModel)
+        : base(foreignColor, index, colorFactory, colorModel)
     {
-        _foreignColor = foreignColor;
-        Index = index;
-        _colorFactory = colorFactory;
-
-        WorkingColor = (IColor32)_colorFactory.CloneColor(foreignColor);
-        var nativeColor = _colorFactory.ToNative(foreignColor);
-        Color = Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-
-        Red = foreignColor.R;
-        Green = foreignColor.G;
-        Blue = foreignColor.B;
-        Alpha = foreignColor.A;
         RedMax = foreignColor.RedMax;
         GreenMax = foreignColor.GreenMax;
         BlueMax = foreignColor.BlueMax;
         AlphaMax = foreignColor.AlphaMax;
     }
 
-    public void SaveColor()
+    protected override void ApplyWorkingColor(IColor color)
     {
-        _foreignColor = (IColor32)_colorFactory.CloneColor(WorkingColor);
-        NotifyCanSaveChanged();
+        base.ApplyWorkingColor(color);
+        OnPropertyChanged(nameof(Red));
+        OnPropertyChanged(nameof(Green));
+        OnPropertyChanged(nameof(Blue));
+        OnPropertyChanged(nameof(Alpha));
     }
 
-    private void NotifyCanSaveChanged()
+    private void SetComponent(string propertyName, int value, Action<IColor32, byte> assign)
     {
-        OnPropertyChanged(nameof(CanSaveColor));
-        OnPropertyChanged(nameof(CanSave));
+        assign(Working, (byte)value);
+        OnPropertyChanged(propertyName);
+        NotifyWorkingColorChanged();
     }
 }

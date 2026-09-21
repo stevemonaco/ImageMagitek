@@ -95,11 +95,46 @@
         <Setter Property="Height" Value="16" />
     </Style>
 
+    <!--  Swatch grid cells: a Button.cell is chrome-free so only its BorderBrush shows hover/selection  -->
+    <Style Selector="Button.cell">
+        <Setter Property="Theme" Value="{StaticResource CellButton}" />
+    </Style>
+    <Style Selector="Button.cell:pointerover Border.swatch">
+        <Setter Property="BorderBrush" Value="{DynamicResource SemiColorText1}" />
+    </Style>
+    <Style Selector="Button.cell.selected">
+        <Setter Property="BorderBrush" Value="{DynamicResource SemiColorPrimary}" />
+    </Style>
+
+    <Style Selector="Border.swatch">
+        <Setter Property="BorderBrush" Value="#555" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Background" Value="{DynamicResource BasicCheckeredBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.indexHeader">
+        <Setter Property="FontSize" Value="10" />
+        <Setter Property="Opacity" Value="0.5" />
+    </Style>
+
     <Style Selector="TextBox">
         <Setter Property="(Interaction.Behaviors)">
             <BehaviorCollectionTemplate>
                 <BehaviorCollection>
                     <b:TextBoxFocusSelectionBehavior />
+                </BehaviorCollection>
+            </BehaviorCollectionTemplate>
+        </Setter>
+    </Style>
+
+    <!--  Hex color entry bound with UpdateSourceTrigger=LostFocus; Enter also commits so the normalized value shows back promptly  -->
+    <Style Selector="TextBox.hex">
+        <Setter Property="Width" Value="168" />
+        <Setter Property="(Interaction.Behaviors)">
+            <BehaviorCollectionTemplate>
+                <BehaviorCollection>
+                    <b:TextBoxFocusSelectionBehavior />
+                    <b:TextBoxCommitOnEnterBehavior />
                 </BehaviorCollection>
             </BehaviorCollectionTemplate>
         </Setter>
