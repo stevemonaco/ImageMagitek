@@ -158,7 +158,7 @@ public partial class OverlayDialog : TemplatedControl
 
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (_dialogCard is null || _backdrop is null)
+        if (_dialogCard is null || _backdrop is null || Size == DialogSize.Large)
             return;
 
         if (!e.GetCurrentPoint(_backdrop).Properties.IsLeftButtonPressed)

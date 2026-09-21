@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.Input;
@@ -22,6 +22,7 @@ public class DialogHost : Panel
             Content = mediator,
             Title = mediator.Title,
             Options = mediator.Options,
+            Size = mediator.Size,
         };
         
         Children.Add(dialog);

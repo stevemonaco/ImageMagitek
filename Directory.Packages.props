@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
@@ -13,7 +13,6 @@
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" />
     <PackageVersion Include="AvaloniaUI.DiagnosticsSupport.HotReload" Version="1.0.0" />
     <PackageVersion Include="Xaml.Behaviors.Avalonia" Version="12.0.7" />
-    <PackageVersion Include="PanAndZoom" Version="12.1.1" />
     <PackageVersion Include="Dock.Avalonia" Version="12.1.0.6" />
     <PackageVersion Include="Dock.Model.Mvvm" Version="12.1.0.6" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />

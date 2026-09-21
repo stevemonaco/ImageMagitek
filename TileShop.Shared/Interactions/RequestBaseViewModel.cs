@@ -17,6 +17,8 @@ public abstract partial class RequestBaseViewModel<TResult> : ObservableValidato
 
     [ObservableProperty] private string _title = "";
 
+    public virtual DialogSize Size => DialogSize.Default;
+
     public event EventHandler<CancelEventArgs>? Closing;
     public event EventHandler? Closed;
 

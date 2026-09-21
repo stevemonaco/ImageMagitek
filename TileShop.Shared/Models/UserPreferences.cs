@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ImageMagitek;
+using ImageMagitek.Colors;
 using TileShop.Shared.Services;
 
 namespace TileShop.Shared.Models;
@@ -16,6 +17,7 @@ public sealed class UserPreferences
     public GridPreferences Grid { get; set; } = new();
     public AddPalettePreferences AddPalette { get; set; } = new();
     public AddArrangerPreferences AddArranger { get; set; } = new();
+    public ImportImagePreferences ImportImage { get; set; } = new();
 }
 
 /// <summary>
@@ -44,3 +46,31 @@ public sealed record AddArrangerPreferences(
     int TiledElementPixelHeight = 8,
     int SingleArrangerPixelWidth = 256,
     int SingleArrangerPixelHeight = 256);
+
+/// <summary>
+/// Last choices made in the import image dialog
+/// </summary>
+/// <param name="MapTransparentToIndexZero">Null follows the palette's ZeroIndexTransparent setting</param>
+public sealed record ImportImagePreferences(
+    ColorMatchStrategy MatchStrategy = ColorMatchStrategy.Exact,
+    bool? MapTransparentToIndexZero = null,
+    ImportPreviewMode PreviewMode = ImportPreviewMode.Imported,
+    double OnionSkinOpacity = 0.5);
+
+/// <summary>
+/// What the import image dialog's canvas shows
+/// </summary>
+public enum ImportPreviewMode
+{
+    /// <summary>The arranger as it is now</summary>
+    Current,
+
+    /// <summary>The arranger as it will be after import</summary>
+    Imported,
+
+    /// <summary>The import blended over the current arranger</summary>
+    OnionSkin,
+
+    /// <summary>Only the pixels that change, over a dimmed current arranger</summary>
+    Diff
+}

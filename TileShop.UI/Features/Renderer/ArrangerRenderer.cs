@@ -12,46 +12,7 @@ public class ArrangerRenderer
 
     private static readonly SKPaint _backdropPaint = new() { Color = new SKColor(0, 0, 0) };
 
-    private readonly record struct CheckerboardKey(int CellWidth, int CellHeight, int OriginX, int OriginY, SKColor Primary, SKColor Secondary);
-
-    private SKPaint? _checkerboardPaint;
-    private CheckerboardKey _checkerboardKey;
-
-    /// <summary>
-    /// Returns a paint tiling the checkerboard at the grid's spacing and origin, rebuilt only when those settings change
-    /// </summary>
-    private SKPaint GetCheckerboardPaint(GridSettingsViewModel grid)
-    {
-        var key = new CheckerboardKey(Math.Max(1, grid.WidthSpacing), Math.Max(1, grid.HeightSpacing),
-            grid.OriginX, grid.OriginY, ToSKColor(grid.PrimaryColor), ToSKColor(grid.SecondaryColor));
-
-        if (_checkerboardPaint is not null && key == _checkerboardKey)
-            return _checkerboardPaint;
-
-        _checkerboardPaint?.Dispose();
-        _checkerboardPaint = CreateCheckerboardPaint(key);
-        _checkerboardKey = key;
-        return _checkerboardPaint;
-    }
-
-    private static SKPaint CreateCheckerboardPaint(CheckerboardKey key)
-    {
-        var bitmap = new SKBitmap(key.CellWidth * 2, key.CellHeight * 2);
-        using (var canvas = new SKCanvas(bitmap))
-        using (var secondaryPaint = new SKPaint { Color = key.Secondary, BlendMode = SKBlendMode.Src })
-        {
-            canvas.Clear(key.Primary);
-            canvas.DrawRect(0, 0, key.CellWidth, key.CellHeight, secondaryPaint);
-            canvas.DrawRect(key.CellWidth, key.CellHeight, key.CellWidth, key.CellHeight, secondaryPaint);
-        }
-
-        var origin = SKMatrix.CreateTranslation(key.OriginX, key.OriginY);
-        var sampling = new SKSamplingOptions(SKFilterMode.Nearest, SKMipmapMode.None);
-        var shader = bitmap.ToShader(SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, sampling, origin);
-        return new SKPaint { Shader = shader };
-    }
-
-    private static SKColor ToSKColor(Avalonia.Media.Color color) => new(color.R, color.G, color.B, color.A);
+    private readonly CheckerboardPaint _checkerboard = new();
 
     private static readonly SKPaint _greyscalePaint = new()
     {
@@ -156,7 +117,7 @@ public class ArrangerRenderer
         bool hasClip = state.IsDrawClipActive && state.DrawClipRect is not null;
         bool hasSel = state.Selection.HasSelection;
         bool isHiddenClip = hasClip && state.DrawClipEffect == DrawClipEffect.Hidden;
-        var checkerboardPaint = GetCheckerboardPaint(state.GridSettings);
+        var checkerboardPaint = _checkerboard.Get(state.GridSettings);
 
         // Clip the checkerboard backdrop when using Hidden draw clip effect
         if (isHiddenClip)
@@ -338,7 +299,7 @@ public class ArrangerRenderer
         if (!gridSettings.ShowGridlines)
             return;
 
-        _gridlinePaint.Color = ToSKColor(gridSettings.LineColor);
+        _gridlinePaint.Color = gridSettings.LineColor.ToSKColor();
 
         foreach (var gridline in gridSettings.Gridlines)
         {

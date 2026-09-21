@@ -35,6 +35,8 @@ public sealed class Nes1BppCodec : IndexedCodec
 
         encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
 
+        _bitReader.SeekAbsolute(0);
+
         for (int y = 0; y < Height; y++)
         {
             for (int x = 0; x < Width; x++)

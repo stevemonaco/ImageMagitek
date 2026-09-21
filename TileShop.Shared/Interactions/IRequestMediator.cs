@@ -8,6 +8,7 @@ namespace TileShop.Shared.Interactions;
 public interface IRequestMediator<out TResult> : INotifyPropertyChanged
 {
     string Title { get; }
+    DialogSize Size { get; }
     TResult? RequestResult { get; }
 
     ObservableCollection<RequestOption> Options { get; }

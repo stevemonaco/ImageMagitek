@@ -1,54 +1,143 @@
-﻿<UserControl x:Class="TileShop.UI.Views.ImportImageView"
+<UserControl x:Class="TileShop.UI.Views.ImportImageView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:paz="using:Avalonia.Controls.PanAndZoom"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
+    xmlns:con="using:TileShop.UI.Converters"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:DataType="vm:ImportImageViewModel">
-    <Grid ColumnDefinitions="*,*" RowDefinitions="auto,*,auto,auto,auto">
-        <TextBlock Grid.Row="0" Grid.Column="0" HorizontalAlignment="Center" Text="Original" />
-        <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" Text="Preview" />
+    <UserControl.Styles>
+        <Style Selector="TextBlock.entryDetail">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Opacity" Value="0.6" />
+        </Style>
+        <Style Selector="TextBlock.entryDetail.unmatched">
+            <Setter Property="Foreground" Value="{DynamicResource SemiColorDanger}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+    </UserControl.Styles>
 
-        <!--  Original Image  -->
-        <ScrollViewer Grid.Row="1" Grid.Column="0" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <paz:ZoomBorder HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PowerFactor="2" Stretch="None">
-                <Grid>
-                    <Rectangle Width="{Binding OriginalSource.Width}" Height="{Binding OriginalSource.Height}"
-                        Fill="{DynamicResource CheckeredBrush}" Stretch="None" />
-                    <Image Source="{Binding OriginalSource.Bitmap}" Stretch="None" />
-                </Grid>
-            </paz:ZoomBorder>
-        </ScrollViewer>
+    <Grid Margin="8" ColumnDefinitions="*,300" ColumnSpacing="12" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="8">
 
-        <!--  Preview Image  -->
-        <ScrollViewer Grid.Row="1" Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <Grid Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+            <Button x:Name="BrowseButton" Command="{Binding BrowseForImportFileCommand}" ToolTip.Tip="Choose a different image">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <cc:LineIcon Classes="inline" Data="{x:Static cc:AppIcons.FolderOpen}" />
+                    <TextBlock Text="Browse…" />
+                </StackPanel>
+            </Button>
+            <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{Binding ImageFileName}" TextTrimming="CharacterEllipsis"
+                ToolTip.Tip="{Binding ImageFileName}" />
+            <TextBlock Grid.Column="2" VerticalAlignment="Center" Classes="muted" Text="{Binding ImageDescription}" />
+        </Grid>
 
-            <paz:ZoomBorder HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PowerFactor="2" Stretch="None">
-                <Grid>
-                    <Rectangle Width="{Binding PreviewSource.Width}" Height="{Binding PreviewSource.Height}"
-                        Fill="{DynamicResource BasicCheckeredBrush}" Stretch="None" />
-                    <Image Source="{Binding PreviewSource.Bitmap}" Stretch="None" />
-                </Grid>
-            </paz:ZoomBorder>
-        </ScrollViewer>
+        <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+            <StackPanel IsVisible="{Binding IsIndexed}" Orientation="Horizontal" Spacing="8">
+                <TextBlock VerticalAlignment="Center" Classes="muted" Text="Match" />
+                <StackPanel x:Name="MatchStrategyGroup" Orientation="Horizontal" Spacing="2">
+                    <RadioButton Classes="toggle" Content="Exact"
+                        IsChecked="{Binding MatchStrategy, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Exact}"
+                        ToolTip.Tip="Only identical colors match; anything else blocks the import" />
+                    <RadioButton Classes="toggle" Content="Nearest"
+                        IsChecked="{Binding MatchStrategy, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Nearest}"
+                        ToolTip.Tip="Perceptually closest palette color (CIE94 in Lab space)" />
+                    <RadioButton Classes="toggle" Content="Nearest RGB"
+                        IsChecked="{Binding MatchStrategy, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=NearestRgb}"
+                        ToolTip.Tip="Closest palette color by weighted RGB distance" />
+                </StackPanel>
+                <CheckBox x:Name="TransparentToZeroCheckBox" VerticalAlignment="Center" Content="Transparent → index 0"
+                    IsChecked="{Binding MapTransparentToIndexZero}"
+                    ToolTip.Tip="Fully transparent pixels become palette index 0 without color matching" />
+            </StackPanel>
 
-        <TextBlock Grid.Row="2" Grid.ColumnSpan="2" HorizontalAlignment="Center" Foreground="Red"
-            Text="{Binding ImportError}" />
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                <TextBlock VerticalAlignment="Center" Classes="muted" Text="View" />
+                <StackPanel x:Name="PreviewModeGroup" Orientation="Horizontal" Spacing="2">
+                    <RadioButton x:Name="ViewCurrentButton" Classes="tool"
+                        IsChecked="{Binding PreviewMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Current}"
+                        ToolTip.Tip="Current arranger (1)">
+                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ViewCurrent}" />
+                    </RadioButton>
+                    <RadioButton x:Name="ViewImportedButton" Classes="tool"
+                        IsChecked="{Binding PreviewMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Imported}"
+                        ToolTip.Tip="After import (2)">
+                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ViewImported}" />
+                    </RadioButton>
+                    <RadioButton x:Name="ViewOnionSkinButton" Classes="tool"
+                        IsChecked="{Binding PreviewMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=OnionSkin}"
+                        ToolTip.Tip="Onion skin: import blended over current (3)">
+                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ViewOnionSkin}" />
+                    </RadioButton>
+                    <RadioButton x:Name="ViewDiffButton" Classes="tool"
+                        IsChecked="{Binding PreviewMode, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Diff}"
+                        ToolTip.Tip="Diff: changed pixels in color, unmatched in red, over a dimmed current (4)">
+                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ViewDiff}" />
+                    </RadioButton>
+                </StackPanel>
+                <Slider x:Name="OnionSkinOpacitySlider" Width="110" VerticalAlignment="Center" IsVisible="{Binding IsOnionSkin}" Maximum="1"
+                    Minimum="0" ToolTip.Tip="Onion skin opacity" Value="{Binding OnionSkinOpacity}" />
 
-        <StackPanel Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Center" Orientation="Horizontal">
-            <TextBlock Text="Imported Source: " />
-            <TextBlock Text="{Binding ImageFileName}" />
-        </StackPanel>
+                <StackPanel Margin="8,0,0,0" Orientation="Horizontal" Spacing="2">
+                    <Button x:Name="ZoomOutButton" Classes="tool" Command="{Binding ZoomOutCommand}" ToolTip.Tip="Zoom out (-)">
+                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ZoomOut}" />
+                    </Button>
+                    <Button x:Name="ResetZoomButton" MinWidth="56" Classes="tool" Command="{Binding ResetZoomCommand}" ToolTip.Tip="Actual size (Ctrl+R)">
+                        <TextBlock HorizontalAlignment="Center" Text="{Binding ZoomDescription}" />
+                    </Button>
+                    <Button x:Name="ZoomInButton" Classes="tool" Command="{Binding ZoomInCommand}" ToolTip.Tip="Zoom in (+)">
+                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ZoomIn}" />
+                    </Button>
+                    <Button x:Name="FitToViewButton" Classes="tool" Command="{Binding FitToViewportCommand}" ToolTip.Tip="Fit to view (Ctrl+W)">
+                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.FitToView}" />
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
 
-        <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Margin="0,10,0,10" HorizontalAlignment="Center"
-            Orientation="Horizontal">
-            <CheckBox Content="Exact Color Matching" IsChecked="{Binding UseExactMatching}" IsVisible="{Binding IsIndexedImage}" />
-            <Button Width="120" Margin="10,0,0,0" Command="{Binding BrowseForImportFileCommand}"
-                Content="Browse Image..." IsDefault="True" />
+        <Border Grid.Row="2" Background="{DynamicResource SemiColorBackground0}" BorderBrush="{DynamicResource SemiColorBorder}"
+            BorderThickness="1" ClipToBounds="True">
+            <cc:InfiniteCanvas x:Name="PreviewCanvas" MaxZoom="32" MinZoom="0.25" Zoom="{Binding Zoom, Mode=TwoWay}" ZoomPower="2" />
+        </Border>
 
-            <Button Width="120" Margin="15,0,15,0" Command="{Binding TryAcceptCommand}" CommandParameter="{Binding}"
-                Content="Import" IsEnabled="{Binding CanImport}" ToolTip.Tip="Imports image and saves to file" />
-            <Button Width="120" Command="{Binding TryCancelCommand}" Content="Cancel" IsCancel="True" />
-        </StackPanel>
+        <Grid Grid.Row="2" Grid.Column="1" RowDefinitions="Auto,Auto,*" RowSpacing="6">
+            <TextBlock Classes="muted" Text="Report" />
+            <TextBlock Grid.Row="1" IsVisible="{Binding HasPreview}" Text="{Binding Summary}" TextWrapping="Wrap" />
+            <TextBlock Grid.Row="1" Classes="faint" IsVisible="{Binding !HasPreview}" Text="No image staged" />
 
+            <ListBox x:Name="EntryList" Grid.Row="2" DoubleTapped="OnEntryDoubleTapped" IsVisible="{Binding HasEntries}"
+                ItemsSource="{Binding Entries}" SelectedItem="{Binding SelectedEntry}"
+                ToolTip.Tip="Select a color to highlight its pixels · Double-click to jump to its first pixel">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ImportColorEntryViewModel">
+                        <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="6">
+                            <Border Width="18" Height="18" VerticalAlignment="Center" Classes="swatch">
+                                <Rectangle Fill="{Binding SourceColor, Converter={x:Static con:AppConverters.ColorToBrush}}" />
+                            </Border>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Center" Classes="muted" Text="→" />
+                            <Border Grid.Column="2" Width="18" Height="18" VerticalAlignment="Center" Classes="swatch">
+                                <Rectangle Fill="{Binding TargetColor, Converter={x:Static con:AppConverters.ColorToBrush}}" />
+                            </Border>
+                            <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding SourceHex}" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Classes="entryDetail" Classes.unmatched="{Binding IsUnmatched}" Text="{Binding TargetDescription}" />
+                                    <TextBlock Classes="entryDetail" Text="{Binding DistanceDescription}" />
+                                    <TextBlock Classes="entryDetail" Text="{Binding LocationDescription}" />
+                                </StackPanel>
+                            </StackPanel>
+                            <TextBlock Grid.Column="4" VerticalAlignment="Center" Classes="muted" Text="{Binding CountDescription}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <TextBlock Grid.Row="2" Classes="faint" IsVisible="{Binding !HasEntries}" Text="Every color matched a palette entry exactly"
+                TextWrapping="Wrap" />
+        </Grid>
+
+        <Grid Grid.Row="3" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <TextBlock Classes="muted" Text="{Binding HoverDescription}" />
+            <TextBlock Grid.Column="1" Foreground="{DynamicResource SemiColorDanger}"
+                IsVisible="{Binding BlockingReason, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" Text="{Binding BlockingReason}"
+                TextWrapping="Wrap" />
+        </Grid>
     </Grid>
 </UserControl>

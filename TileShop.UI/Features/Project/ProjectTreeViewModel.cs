@@ -251,7 +251,12 @@ public partial class ProjectTreeViewModel : ToolViewModel
     [RelayCommand]
     public async Task ImportArrangerFrom(ScatteredArranger arranger)
     {
-        var dialogModel = new ImportImageViewModel(arranger, _fileSelect);
+        var fileName = await _fileSelect.RequestImportArrangerFileName();
+
+        if (fileName is null)
+            return;
+
+        var dialogModel = new ImportImageViewModel(arranger, fileName.LocalPath, _fileSelect, _preferencesStore);
         var dialogResult = await _interactions.RequestAsync(dialogModel);
 
         if (dialogResult is not null)

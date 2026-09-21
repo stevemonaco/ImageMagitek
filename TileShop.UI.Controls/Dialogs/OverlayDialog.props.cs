@@ -43,6 +43,15 @@ public partial class OverlayDialog
         set => SetValue(ShowCancelButtonProperty, value);
     }
 
+    public static readonly StyledProperty<DialogSize> SizeProperty =
+        AvaloniaProperty.Register<OverlayDialog, DialogSize>(nameof(Size));
+
+    public DialogSize Size
+    {
+        get => GetValue(SizeProperty);
+        set => SetValue(SizeProperty, value);
+    }
+
     public static readonly StyledProperty<DialogMode> ModeProperty =
         AvaloniaProperty.Register<OverlayDialog, DialogMode>(nameof(Mode));
     

@@ -29,14 +29,11 @@ public class ImportAllHandler : ProjectCommandHandler<ImportAllOptions>
 
             var result = Importer.ImportImage(project, imageFileName, project.CreatePathKey(node));
 
-            if (result == ImportResult.MissingFile && options.SkipMissingFiles is false)
-            {
+            var isSkipped = (result == ImportResult.MissingFile && options.SkipMissingFiles) ||
+                (result == ImportResult.BadResourceKey && options.SkipBadResourceKeys);
+
+            if (result != ImportResult.Success && !isSkipped)
                 return ExitCode.ImportOperationFailed;
-            }
-            else if (result == ImportResult.BadResourceKey && options.SkipBadResourceKeys is false)
-            {
-                return ExitCode.ImportOperationFailed;
-            }
         }
 
         return ExitCode.Success;

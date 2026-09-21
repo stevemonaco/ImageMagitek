@@ -46,12 +46,6 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
     public override void ExportImage(string imagePath, IImageFileAdapter adapter) =>
         adapter.SaveImage(Image, Width, Height, imagePath);
 
-    public void ImportImage(string imagePath, IImageFileAdapter adapter)
-    {
-        var importImage = adapter.LoadImage(imagePath);
-        importImage.CopyTo(Image, 0);
-    }
-
     public override void Render()
     {
         if (Width <= 0 || Height <= 0)

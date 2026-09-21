@@ -1,7 +1,8 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="https://github.com/stevemonaco/TileShop"
-    xmlns:shared="using:TileShop.Shared.Interactions">
+    xmlns:shared="using:TileShop.Shared.Interactions"
+    xmlns:sys="using:System">
 
     <!--  Icon Geometries  -->
     <StreamGeometry x:Key="DialogCloseIconGlyph">M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z</StreamGeometry>
@@ -73,7 +74,7 @@
                             </Border>
 
                             <!--  Content area  -->
-                            <ScrollViewer Grid.Row="1" MinHeight="80" HorizontalScrollBarVisibility="Disabled"
+                            <ScrollViewer x:Name="PART_ContentScroller" Grid.Row="1" MinHeight="80" HorizontalScrollBarVisibility="Disabled"
                                 VerticalScrollBarVisibility="Auto">
                                 <ContentPresenter x:Name="PART_Content" Content="{TemplateBinding Content}" />
                             </ScrollViewer>
@@ -96,6 +97,17 @@
                 </Panel>
             </ControlTemplate>
         </Setter>
+
+        <!--  Size: Large fills the window; content gets a finite height so it can lay itself out instead of scrolling  -->
+        <Style Selector="^[Size=Large] /template/ Border#PART_DialogCard">
+            <Setter Property="MaxWidth" Value="{x:Static sys:Double.PositiveInfinity}" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="Margin" Value="24" />
+        </Style>
+        <Style Selector="^[Size=Large] /template/ ScrollViewer#PART_ContentScroller">
+            <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
+        </Style>
 
         <!--  Mode: Info  -->
         <Style Selector="^[Mode=Info] /template/ PathIcon#PART_ModeIcon">

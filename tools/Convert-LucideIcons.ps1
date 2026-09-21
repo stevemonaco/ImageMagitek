@@ -62,6 +62,18 @@ $icons = @(
     @{ Name = 'CheckedBox';      Lucide = 'square-check' }
     @{ Name = 'UncheckedBox';    Lucide = 'square' }
     @{ Name = 'ChevronDown';     Lucide = 'chevron-down' }
+    @{ Name = 'FolderOpen';      Lucide = 'folder-open' }
+
+    # Zoom
+    @{ Name = 'ZoomIn';          Lucide = 'zoom-in' }
+    @{ Name = 'ZoomOut';         Lucide = 'zoom-out' }
+    @{ Name = 'FitToView';       Lucide = 'maximize' }
+
+    # Import preview modes
+    @{ Name = 'ViewCurrent';     Lucide = 'image' }
+    @{ Name = 'ViewImported';    Lucide = 'image-down' }
+    @{ Name = 'ViewOnionSkin';   Lucide = 'layers-2' }
+    @{ Name = 'ViewDiff';        Lucide = 'diff' }
 )
 
 function Format-Number([double]$value)
