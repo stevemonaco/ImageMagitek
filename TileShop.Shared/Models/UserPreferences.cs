@@ -26,8 +26,8 @@ public sealed record GridPreferences(
     string SecondaryColor = GridPreferences.DefaultSecondaryColor)
 {
     public const string DefaultLineColor = "#C4CC8484";
-    public const string DefaultPrimaryColor = "#00000000";
-    public const string DefaultSecondaryColor = "#19808080";
+    public const string DefaultPrimaryColor = "#FFC0C0C0";
+    public const string DefaultSecondaryColor = "#FF808080";
 }
 
 public sealed record AddPalettePreferences(

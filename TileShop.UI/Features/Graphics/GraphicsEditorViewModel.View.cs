@@ -170,7 +170,7 @@ public partial class GraphicsEditorViewModel
         ElementHeightIncrement = codec.HeightResizeIncrement;
         CreateImages();
         InitializePalettes();
-        GridSettings.AdjustGridlines(WorkingArranger);
+        GridSettings.ResetSpacing(WorkingArranger);
 
         OnPropertyChanged(nameof(FileOffset));
         OnPropertyChanged(nameof(IsTiledLayout));
@@ -192,6 +192,11 @@ public partial class GraphicsEditorViewModel
 
         ((SequentialArranger)WorkingArranger).ChangeCodec(codec);
         CreateImages();
+
+        // A tiled codec's dimensions are the element size, so the grid follows it; for single layouts they are the image size
+        if (IsTiledLayout)
+            GridSettings.ResetSpacing(WorkingArranger);
+
         return true;
     }
 }

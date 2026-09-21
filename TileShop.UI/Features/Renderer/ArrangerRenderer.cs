@@ -1,6 +1,7 @@
 using System;
 using ImageMagitek;
 using SkiaSharp;
+using TileShop.UI.Models;
 using TileShop.UI.ViewModels;
 
 namespace TileShop.UI.Renderer;
@@ -10,29 +11,47 @@ public class ArrangerRenderer
     private const float _handleScreenSize = 8f;
 
     private static readonly SKPaint _backdropPaint = new() { Color = new SKColor(0, 0, 0) };
-    private static readonly SKPaint _checkerboardPaint = CreateCheckerboardPaint();
 
-    private static SKPaint CreateCheckerboardPaint()
+    private readonly record struct CheckerboardKey(int CellWidth, int CellHeight, int OriginX, int OriginY, SKColor Primary, SKColor Secondary);
+
+    private SKPaint? _checkerboardPaint;
+    private CheckerboardKey _checkerboardKey;
+
+    /// <summary>
+    /// Returns a paint tiling the checkerboard at the grid's spacing and origin, rebuilt only when those settings change
+    /// </summary>
+    private SKPaint GetCheckerboardPaint(GridSettingsViewModel grid)
     {
-        const int cellSize = 8;
-        const int size = cellSize * 2;
+        var key = new CheckerboardKey(Math.Max(1, grid.WidthSpacing), Math.Max(1, grid.HeightSpacing),
+            grid.OriginX, grid.OriginY, ToSKColor(grid.PrimaryColor), ToSKColor(grid.SecondaryColor));
 
-        var bitmap = new SKBitmap(size, size);
-        var white = new SKColor(0xC0, 0xC0, 0xC0);
-        var grey = new SKColor(0x80, 0x80, 0x80);
+        if (_checkerboardPaint is not null && key == _checkerboardKey)
+            return _checkerboardPaint;
 
-        for (int y = 0; y < size; y++)
+        _checkerboardPaint?.Dispose();
+        _checkerboardPaint = CreateCheckerboardPaint(key);
+        _checkerboardKey = key;
+        return _checkerboardPaint;
+    }
+
+    private static SKPaint CreateCheckerboardPaint(CheckerboardKey key)
+    {
+        var bitmap = new SKBitmap(key.CellWidth * 2, key.CellHeight * 2);
+        using (var canvas = new SKCanvas(bitmap))
+        using (var secondaryPaint = new SKPaint { Color = key.Secondary, BlendMode = SKBlendMode.Src })
         {
-            for (int x = 0; x < size; x++)
-            {
-                bool isGreyCell = ((x / cellSize) + (y / cellSize)) % 2 == 0;
-                bitmap.SetPixel(x, y, isGreyCell ? grey : white);
-            }
+            canvas.Clear(key.Primary);
+            canvas.DrawRect(0, 0, key.CellWidth, key.CellHeight, secondaryPaint);
+            canvas.DrawRect(key.CellWidth, key.CellHeight, key.CellWidth, key.CellHeight, secondaryPaint);
         }
 
-        var shader = SKShader.CreateBitmap(bitmap, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat);
+        var origin = SKMatrix.CreateTranslation(key.OriginX, key.OriginY);
+        var sampling = new SKSamplingOptions(SKFilterMode.Nearest, SKMipmapMode.None);
+        var shader = bitmap.ToShader(SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, sampling, origin);
         return new SKPaint { Shader = shader };
     }
+
+    private static SKColor ToSKColor(Avalonia.Media.Color color) => new(color.R, color.G, color.B, color.A);
 
     private static readonly SKPaint _greyscalePaint = new()
     {
@@ -87,10 +106,11 @@ public class ArrangerRenderer
         IsAntialias = false,
     };
 
+    // Zero width is a hairline: always one device pixel regardless of zoom
     private static readonly SKPaint _gridlinePaint = new()
     {
         Style = SKPaintStyle.Stroke,
-        StrokeWidth = 0.40f,
+        StrokeWidth = 0,
         IsAntialias = false,
     };
 
@@ -136,6 +156,7 @@ public class ArrangerRenderer
         bool hasClip = state.IsDrawClipActive && state.DrawClipRect is not null;
         bool hasSel = state.Selection.HasSelection;
         bool isHiddenClip = hasClip && state.DrawClipEffect == DrawClipEffect.Hidden;
+        var checkerboardPaint = GetCheckerboardPaint(state.GridSettings);
 
         // Clip the checkerboard backdrop when using Hidden draw clip effect
         if (isHiddenClip)
@@ -144,12 +165,12 @@ public class ArrangerRenderer
             var clipRect = new SKRect(clip.SnappedLeft, clip.SnappedTop, clip.SnappedRight, clip.SnappedBottom);
             canvas.Save();
             canvas.ClipRect(clipRect);
-            canvas.DrawRect(rect, _checkerboardPaint);
+            canvas.DrawRect(rect, checkerboardPaint);
             canvas.Restore();
         }
         else
         {
-            canvas.DrawRect(rect, _checkerboardPaint);
+            canvas.DrawRect(rect, checkerboardPaint);
         }
 
         using (var pixels = bitmap.Lock())
@@ -317,8 +338,7 @@ public class ArrangerRenderer
         if (!gridSettings.ShowGridlines)
             return;
 
-        var lineColor = gridSettings.LineColor;
-        _gridlinePaint.Color = new SKColor(lineColor.R, lineColor.G, lineColor.B, lineColor.A);
+        _gridlinePaint.Color = ToSKColor(gridSettings.LineColor);
 
         foreach (var gridline in gridSettings.Gridlines)
         {

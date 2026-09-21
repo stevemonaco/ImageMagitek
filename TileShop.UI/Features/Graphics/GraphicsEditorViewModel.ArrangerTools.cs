@@ -84,35 +84,23 @@ public partial class GraphicsEditorViewModel
     [RelayCommand]
     public async Task ModifyGridSettings()
     {
-        var model = new ModifyGridSettingsViewModel
+        var original = GridSettings.Capture();
+        var model = new ModifyGridSettingsViewModel(original, GridSettingsViewModel.DefaultSpacing(WorkingArranger))
         {
-            ShiftX = GridSettings.ShiftX,
-            ShiftY = GridSettings.ShiftY,
-            WidthSpacing = GridSettings.WidthSpacing,
-            HeightSpacing = GridSettings.HeightSpacing,
-            PrimaryColor = GridSettings.PrimaryColor,
-            SecondaryColor = GridSettings.SecondaryColor,
-            LineColor = GridSettings.LineColor
+            SettingsChanged = snapshot => GridSettings.Apply(snapshot, WorkingArranger)
         };
+
         var result = await _interactions.RequestAsync(model);
 
-        if (result is not null)
+        if (result is null)
         {
-            GridSettings.WidthSpacing = result.WidthSpacing;
-            GridSettings.HeightSpacing = result.HeightSpacing;
-            GridSettings.ShiftX = result.ShiftX;
-            GridSettings.ShiftY = result.ShiftY;
-            GridSettings.PrimaryColor = result.PrimaryColor;
-            GridSettings.SecondaryColor = result.SecondaryColor;
-            GridSettings.LineColor = result.LineColor;
-
-            GridSettings.AdjustGridlines(WorkingArranger);
-            GridSettings.CreateBackgroundBrush();
-            InvalidateEditor(InvalidationLevel.Overlay);
-
-            _preferencesStore.Preferences.Grid = GridSettings.ToPreferences();
-            _preferencesStore.Save();
+            GridSettings.Apply(original, WorkingArranger);
+            return;
         }
+
+        GridSettings.Apply(result, WorkingArranger);
+        _preferencesStore.Preferences.Grid = GridSettings.ToPreferences();
+        _preferencesStore.Save();
     }
 
     internal void TryApplyPalette(int pixelX, int pixelY, Palette palette)

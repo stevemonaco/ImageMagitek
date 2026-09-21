@@ -2,21 +2,58 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:TileShop.UI.ViewModels"
-    Width="400"
-    Height="350"
-    MinWidth="230"
+    MinWidth="360"
     x:DataType="vm:ModifyGridSettingsViewModel">
-    <Grid Margin="10" ColumnDefinitions="*,*" RowDefinitions="auto,auto,auto">
-        <TextBox Text="{Binding ShiftX}" />
-        <TextBox Grid.Column="1" Text="{Binding ShiftY}" />
+    <UserControl.Styles>
+        <Style Selector="TextBlock.rowLabel">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="NumericUpDown.setting">
+            <Setter Property="FormatString" Value="0" />
+            <Setter Property="MinWidth" Value="96" />
+        </Style>
+    </UserControl.Styles>
 
-        <TextBox Grid.Row="1" Text="{Binding WidthSpacing}" />
-        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding HeightSpacing}" />
+    <StackPanel Margin="0,12,0,4" Spacing="16">
+        <StackPanel Spacing="6">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="muted" VerticalAlignment="Center" Text="Gridlines" />
+                <Button Grid.Column="1" Classes="Tertiary" Command="{Binding ResetSpacingCommand}" Content="Reset"
+                    ToolTip.Tip="Match the element size and move the origin back to (0, 0)" />
+            </Grid>
 
-        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal">
-            <ColorPicker Color="{Binding PrimaryColor}" />
-            <ColorPicker Color="{Binding SecondaryColor}" />
-            <ColorPicker Color="{Binding LineColor}" />
+            <Grid ColumnDefinitions="Auto,*,*" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="6">
+                <TextBlock Classes="rowLabel" Text="Spacing (px)" />
+                <NumericUpDown Grid.Column="1" Classes="dense setting" InnerLeftContent="W" Minimum="1"
+                    ToolTip.Tip="Distance between vertical gridlines" Value="{Binding WidthSpacing}" />
+                <NumericUpDown Grid.Column="2" Classes="dense setting" InnerLeftContent="H" Minimum="1"
+                    ToolTip.Tip="Distance between horizontal gridlines" Value="{Binding HeightSpacing}" />
+
+                <TextBlock Grid.Row="1" Classes="rowLabel" Text="Origin (px)" />
+                <NumericUpDown Grid.Row="1" Grid.Column="1" Classes="dense setting" InnerLeftContent="X"
+                    ToolTip.Tip="Horizontal offset of the first vertical gridline" Value="{Binding OriginX}" />
+                <NumericUpDown Grid.Row="1" Grid.Column="2" Classes="dense setting" InnerLeftContent="Y"
+                    ToolTip.Tip="Vertical offset of the first horizontal gridline" Value="{Binding OriginY}" />
+            </Grid>
         </StackPanel>
-    </Grid>
+
+        <StackPanel Spacing="6">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="muted" VerticalAlignment="Center" Text="Colors" />
+                <Button Grid.Column="1" Classes="Tertiary" Command="{Binding ResetColorsCommand}" Content="Reset"
+                    ToolTip.Tip="Restore the default gridline and checkerboard colors" />
+            </Grid>
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                <TextBlock Classes="rowLabel" Text="Gridline" />
+                <ColorPicker Grid.Column="1" Color="{Binding LineColor}" />
+
+                <TextBlock Grid.Row="1" Classes="rowLabel" Text="Checkerboard Primary" />
+                <ColorPicker Grid.Row="1" Grid.Column="1" Color="{Binding PrimaryColor}" />
+
+                <TextBlock Grid.Row="2" Classes="rowLabel" Text="Checkerboard Secondary" />
+                <ColorPicker Grid.Row="2" Grid.Column="1" Color="{Binding SecondaryColor}" />
+            </Grid>
+        </StackPanel>
+    </StackPanel>
 </UserControl>

@@ -1,8 +1,5 @@
-﻿using System.Collections.ObjectModel;
-using Avalonia;
-using Avalonia.Controls;
+﻿using System.Collections.Generic;
 using Avalonia.Media;
-using Avalonia.Media.Immutable;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
 using TileShop.Shared.Models;
@@ -10,14 +7,14 @@ using TileShop.Shared.Models;
 namespace TileShop.UI.Models;
 public partial class GridSettingsViewModel : ObservableObject
 {
+    private const int _singleLayoutSpacing = 8;
+
     [ObservableProperty] private int _widthSpacing;
     [ObservableProperty] private int _heightSpacing;
-    [ObservableProperty] private int _shiftX;
-    [ObservableProperty] private int _shiftY;
+    [ObservableProperty] private int _originX;
+    [ObservableProperty] private int _originY;
 
-    [ObservableProperty] private ObservableCollection<Gridline> _gridlines;
-    [ObservableProperty] private IBrush _backgroundBrush;
-    [ObservableProperty] private IBrush _lineBrush;
+    [ObservableProperty] private IReadOnlyList<Gridline> _gridlines = [];
     [ObservableProperty] private Color _primaryColor;
     [ObservableProperty] private Color _secondaryColor;
     [ObservableProperty] private Color _lineColor;
@@ -25,104 +22,87 @@ public partial class GridSettingsViewModel : ObservableObject
 
     private GridSettingsViewModel()
     {
-        _lineBrush = CreateLineBrush();
-        _backgroundBrush = CreateBackgroundBrush();
-        _gridlines = new();
     }
 
     public static GridSettingsViewModel CreateDefault(Arranger arranger, GridPreferences preferences)
     {
         var settings = new GridSettingsViewModel()
         {
-            WidthSpacing = arranger.ElementPixelSize.Width,
-            HeightSpacing = arranger.ElementPixelSize.Height,
             LineColor = ParseHex(preferences.LineColor, GridPreferences.DefaultLineColor),
             PrimaryColor = ParseHex(preferences.PrimaryColor, GridPreferences.DefaultPrimaryColor),
             SecondaryColor = ParseHex(preferences.SecondaryColor, GridPreferences.DefaultSecondaryColor)
         };
 
-        //if (WorkingArranger.Layout == ElementLayout.Single)
-        //{
-        //    CreateGridlines(0, 0, WorkingArranger.ArrangerPixelSize.Width, WorkingArranger.ArrangerPixelSize.Height, 8, 8);
-        //}
-        //else if (WorkingArranger.Layout == ElementLayout.Tiled)
-        //{
-        //    base.CreateGridlines();
-        //}
-
-        settings.Gridlines = settings.CreateGridlines(0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height, settings.WidthSpacing, settings.HeightSpacing);
-        settings.LineBrush = settings.CreateLineBrush();
-        settings.BackgroundBrush = settings.CreateBackgroundBrush();
-
+        settings.ResetSpacing(arranger);
         return settings;
     }
 
+    /// <summary>
+    /// Spacing that lines up with the arranger's elements, or an 8x8 grid for single-image arrangers
+    /// </summary>
+    public static (int Width, int Height) DefaultSpacing(Arranger arranger) =>
+        arranger.Layout == ElementLayout.Single
+            ? (_singleLayoutSpacing, _singleLayoutSpacing)
+            : (arranger.ElementPixelSize.Width, arranger.ElementPixelSize.Height);
+
     public GridPreferences ToPreferences() => new(ToHex(LineColor), ToHex(PrimaryColor), ToHex(SecondaryColor));
+
+    public GridSettingsSnapshot Capture() =>
+        new(WidthSpacing, HeightSpacing, OriginX, OriginY, LineColor, PrimaryColor, SecondaryColor);
+
+    public void Apply(GridSettingsSnapshot snapshot, Arranger arranger)
+    {
+        WidthSpacing = snapshot.WidthSpacing;
+        HeightSpacing = snapshot.HeightSpacing;
+        OriginX = snapshot.OriginX;
+        OriginY = snapshot.OriginY;
+        LineColor = snapshot.LineColor;
+        PrimaryColor = snapshot.PrimaryColor;
+        SecondaryColor = snapshot.SecondaryColor;
+
+        AdjustGridlines(arranger);
+    }
+
+    /// <summary>
+    /// Restores the default spacing for the arranger and moves the origin back to (0, 0)
+    /// </summary>
+    public void ResetSpacing(Arranger arranger)
+    {
+        (WidthSpacing, HeightSpacing) = DefaultSpacing(arranger);
+        OriginX = 0;
+        OriginY = 0;
+
+        AdjustGridlines(arranger);
+    }
+
+    /// <summary>
+    /// Regenerates the gridlines to cover the arranger's current pixel size
+    /// </summary>
+    public void AdjustGridlines(Arranger arranger)
+    {
+        Gridlines = CreateGridlines(arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height);
+    }
+
+    private List<Gridline> CreateGridlines(int width, int height)
+    {
+        var gridlines = new List<Gridline>();
+
+        if (WidthSpacing < 1 || HeightSpacing < 1)
+            return gridlines;
+
+        for (int x = WrapOrigin(OriginX, WidthSpacing); x <= width; x += WidthSpacing)
+            gridlines.Add(new Gridline(x, 0, x, height));
+
+        for (int y = WrapOrigin(OriginY, HeightSpacing); y <= height; y += HeightSpacing)
+            gridlines.Add(new Gridline(0, y, width, y));
+
+        return gridlines;
+    }
+
+    private static int WrapOrigin(int origin, int spacing) => ((origin % spacing) + spacing) % spacing;
 
     private static Color ParseHex(string hex, string fallbackHex) =>
         Color.TryParse(hex, out var color) ? color : Color.Parse(fallbackHex);
 
     private static string ToHex(Color color) => $"#{color.ToUInt32():X8}";
-
-    /// <summary>
-    /// Creates a checkered pattern brush
-    /// </summary>
-    public IBrush CreateBackgroundBrush()
-    {
-        var drawingA = new GeometryDrawing()
-        {
-            Brush = new ImmutableSolidColorBrush(PrimaryColor),
-            Geometry = StreamGeometry.Parse("M0,0 L2,0 2,2, 0,2Z")
-        };
-
-        var drawingB = new GeometryDrawing()
-        {
-            Brush = new ImmutableSolidColorBrush(SecondaryColor),
-            Geometry = StreamGeometry.Parse("M0,1 L2,1 2,2, 1,2 1,0 0,0Z")
-        };
-
-        var drawingGroup = new DrawingGroup()
-        {
-            Children = { drawingA, drawingB }
-        };
-
-        var drawing = new DrawingImage(drawingGroup);
-
-        var image = new Image() { Width = WidthSpacing * 2, Height = HeightSpacing * 2, Source = drawing };
-
-        return new VisualBrush
-        {
-            DestinationRect = new RelativeRect(0, 0, WidthSpacing * 2, HeightSpacing * 2, RelativeUnit.Absolute),
-            TileMode = TileMode.Tile,
-            Stretch = Stretch.None,
-            Visual = image,
-            Transform = new TranslateTransform(WidthSpacing - ShiftX, HeightSpacing - ShiftY)
-        };
-    }
-
-    public IBrush CreateLineBrush() => new ImmutableSolidColorBrush(LineColor);
-
-    public void AdjustGridlines(Arranger arranger)
-    {
-        Gridlines = CreateGridlines(ShiftX, ShiftY, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height, WidthSpacing, HeightSpacing);
-    }
-
-    private ObservableCollection<Gridline> CreateGridlines(int x1, int y1, int x2, int y2, int xSpacing, int ySpacing)
-    {
-        var gridlines = new ObservableCollection<Gridline>();
-        for (int x = x1; x <= x2; x += xSpacing) // Vertical gridlines
-        {
-            var gridline = new Gridline(x, 0, x, y2);
-            gridlines.Add(gridline);
-        }
-
-        for (int y = y1; y <= y2; y += ySpacing) // Horizontal gridlines
-        {
-            var gridline = new Gridline(0, y, x2, y);
-            gridlines.Add(gridline);
-        }
-
-        return gridlines;
-    }
 }
-

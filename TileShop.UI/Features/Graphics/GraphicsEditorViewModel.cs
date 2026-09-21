@@ -189,6 +189,8 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     {
         if (e.PropertyName is nameof(GridSettingsViewModel.ShowGridlines) or
             nameof(GridSettingsViewModel.LineColor) or
+            nameof(GridSettingsViewModel.PrimaryColor) or
+            nameof(GridSettingsViewModel.SecondaryColor) or
             nameof(GridSettingsViewModel.Gridlines))
         {
             InvalidateEditor(InvalidationLevel.Overlay);
@@ -312,6 +314,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     private void Initialize()
     {
+        GridSettings = GridSettingsViewModel.CreateDefault(WorkingArranger, _preferencesStore.Preferences.Grid);
         CreateImages();
         InitializePalettes();
 
@@ -364,7 +367,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
             _imageAdapter = new ArrangerImageAdapter(WorkingArranger);
             BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
-            GridSettings = GridSettingsViewModel.CreateDefault(WorkingArranger, _preferencesStore.Preferences.Grid);
+            GridSettings.AdjustGridlines(WorkingArranger);
         }
         catch (Exception e)
         {
