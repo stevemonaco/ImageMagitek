@@ -1,29 +1,20 @@
 using System;
-using System.Collections.Generic;
-using Avalonia;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using TileShop.Shared.Models;
 using TileShop.UI.ViewModels;
 
 namespace TileShop.UI.Views;
 public partial class JumpToOffsetView : UserControl
 {
-    static HashSet<Key> _acceptedHexKeys = new()
-    {
-        Key.D0, Key.D1, Key.D2 ,Key.D3 ,Key.D4 ,Key.D5 ,Key.D6 ,Key.D7 ,Key.D8, Key.D9,
-        Key.A, Key.B, Key.C, Key.D, Key.E, Key.F
-    };
-
-    static HashSet<Key> _acceptedDecimalKeys = new()
-    {
-        Key.D0, Key.D1, Key.D2 ,Key.D3 ,Key.D4 ,Key.D5 ,Key.D6 ,Key.D7 ,Key.D8, Key.D9
-    };
-
     private JumpToOffsetViewModel? _viewModel;
 
     public JumpToOffsetView()
     {
         InitializeComponent();
+        _jumpBox.AddHandler(TextInputEvent, JumpBox_TextInput, RoutingStrategies.Tunnel);
     }
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -32,26 +23,20 @@ public partial class JumpToOffsetView : UserControl
         base.OnDataContextChanged(e);
     }
 
-    public void JumpBox_AttachedToVisualTree(object sender, VisualTreeAttachmentEventArgs e)
+    // Only typed characters are filtered; pasted text is left to validation so "0x" prefixes can be stripped
+    private void JumpBox_TextInput(object? sender, TextInputEventArgs e)
     {
-        _jumpBox.Focus();
-        _jumpBox.SelectAll();
-    }
-
-    public void JumpBox_KeyDown(object sender, KeyEventArgs e)
-    {
-        if (_viewModel is null)
+        if (_viewModel is null || string.IsNullOrEmpty(e.Text))
             return;
 
-        // Enter and Escape bubble up to the dialog's accept/cancel handling
-        if (e.Key is Key.Enter or Key.Escape)
-            return;
-
-        if (_viewModel.NumericBase == NumericBase.Hexadecimal && _acceptedHexKeys.Contains(e.Key))
-            return;
-        else if (_viewModel.NumericBase == NumericBase.Decimal && _acceptedDecimalKeys.Contains(e.Key))
-            return;
-
-        e.Handled = true;
+        if (_viewModel.NumericBase == NumericBase.Hexadecimal)
+        {
+            e.Handled = !e.Text.All(char.IsAsciiHexDigit);
+            e.Text = e.Text.ToUpperInvariant();
+        }
+        else
+        {
+            e.Handled = !e.Text.All(char.IsAsciiDigit);
+        }
     }
 }

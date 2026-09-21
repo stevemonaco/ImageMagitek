@@ -12,6 +12,7 @@ public sealed class UserPreferences
     public ThemeStyle Theme { get; set; } = ThemeStyle.Dark;
     public List<string> RecentProjectFiles { get; set; } = [];
     public bool EnableArrangerSymmetryTools { get; set; }
+    public NumericBase JumpToOffsetBase { get; set; } = NumericBase.Hexadecimal;
     public GridPreferences Grid { get; set; } = new();
     public AddPalettePreferences AddPalette { get; set; } = new();
     public AddArrangerPreferences AddArranger { get; set; } = new();

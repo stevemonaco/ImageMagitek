@@ -47,8 +47,8 @@
                 </StackPanel>
 
                 <Button Name="JumpToOffsetButton" HorizontalAlignment="Left" Command="{Binding JumpToOffsetCommand}"
-                    Focusable="False" FontWeight="Normal" IsVisible="{Binding IsSequentialArranger}"
-                    Theme="{StaticResource ClearButton}" ToolTip.Tip="Jump to offset... (J)">
+                    Focusable="False" IsVisible="{Binding IsSequentialArranger}" Theme="{StaticResource ClearButton}"
+                    ToolTip.Tip="Jump to offset... (J)">
                     <TextBlock Classes="muted" Text="{Binding FileOffset, StringFormat='Offset: 0x{0:X}'}" TextWrapping="Wrap" />
                 </Button>
 

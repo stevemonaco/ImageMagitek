@@ -2,7 +2,7 @@
 using System.Globalization;
 using Avalonia;
 using Avalonia.Data.Converters;
-using TileShop.UI.ViewModels;
+using TileShop.Shared.Models;
 
 namespace TileShop.UI.Converters;
 public class NumericBaseToBooleanConverter : IValueConverter

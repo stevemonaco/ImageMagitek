@@ -27,7 +27,7 @@
         </Setter>
         <Setter Property="Template">
             <ControlTemplate>
-                <Border Background="#202020" BorderBrush="#202020" BorderThickness="2" CornerRadius="4">
+                <Border x:Name="SwitchBorder" Background="#202020" BorderBrush="#202020" BorderThickness="2" CornerRadius="4">
                     <Grid x:Name="ContentGrid" ColumnDefinitions="*,*">
                         <Canvas x:Name="PART_SwitchKnob" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                             IsHitTestVisible="False">
@@ -37,19 +37,23 @@
                             </Panel>
                         </Canvas>
 
-                        <ContentPresenter x:Name="PART_OffContentPresenter" Grid.Column="0" MinHeight="{TemplateBinding MinHeight}"
-                            Padding="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        <ContentPresenter x:Name="PART_OffContentPresenter" Grid.Column="0" Padding="{TemplateBinding Padding}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{x:Null}"
                             Content="{TemplateBinding OffContent}" ContentTemplate="{TemplateBinding OffContentTemplate}" />
 
-                        <ContentPresenter x:Name="PART_OnContentPresenter" Grid.Column="1" MinHeight="{TemplateBinding MinHeight}"
-                            Padding="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        <ContentPresenter x:Name="PART_OnContentPresenter" Grid.Column="1" Padding="{TemplateBinding Padding}"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
                             HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Background="{x:Null}"
                             Content="{TemplateBinding OnContent}" ContentTemplate="{TemplateBinding OnContentTemplate}" />
                     </Grid>
                 </Border>
             </ControlTemplate>
         </Setter>
+
+        <Style Selector="^:focus-visible /template/ Border#SwitchBorder">
+            <Setter Property="BorderBrush" Value="{DynamicResource TextBoxFocusBorderBrush}" />
+        </Style>
 
         <Style Selector="^:checked /template/ ContentPresenter#PART_OnContentPresenter">
             <Setter Property="Foreground" Value="White" />

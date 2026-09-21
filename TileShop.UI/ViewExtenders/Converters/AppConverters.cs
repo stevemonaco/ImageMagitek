@@ -38,16 +38,8 @@ public static class AppConverters
     public static IValueConverter PluralCountToBoolean { get; } =
         new FuncValueConverter<int, bool>(x => x >= 2);
 
-    public static IValueConverter NumericBaseToString { get; } =
-        new FuncValueConverter<NumericBase, string>(x =>
-        {
-            return x switch
-            {
-                NumericBase.Decimal => "Dec",
-                NumericBase.Hexadecimal => "Hex",
-                _ => throw new InvalidOperationException($"{nameof(NumericBaseToString)} cannot convert from given type {x.GetType()} with value {x}"),
-            };
-        });
+    public static IValueConverter NumericBaseToPrefix { get; } =
+        new FuncValueConverter<NumericBase, string?>(x => x == NumericBase.Hexadecimal ? "0x" : null);
 
     public static IValueConverter EditModeToScrollBarVisibility { get; } =
         new FuncValueConverter<GraphicsEditMode, ScrollBarVisibility>(x =>

@@ -428,11 +428,15 @@ public partial class GraphicsEditorViewModel
     [RelayCommand(CanExecute = nameof(IsSequentialArranger))]
     public async Task JumpToOffset()
     {
-        var model = new JumpToOffsetViewModel();
+        var model = new JumpToOffsetViewModel(FileOffset, _preferencesStore.Preferences.JumpToOffsetBase);
         var result = await _interactions.RequestAsync(model);
 
-        if (result is long offset)
-            MoveToOffset(offset);
+        if (result is not long offset)
+            return;
+
+        MoveToOffset(offset);
+        _preferencesStore.Preferences.JumpToOffsetBase = model.NumericBase;
+        _preferencesStore.Save();
     }
 
     private void Move(ArrangerMoveType moveType)

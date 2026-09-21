@@ -4,17 +4,19 @@
     xmlns:con="using:TileShop.UI.Converters"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:DataType="vm:JumpToOffsetViewModel">
-    <UserControl.Resources>
-        <SolidColorBrush x:Key="SystemControlErrorTextForegroundBrush" Color="Red" />
-    </UserControl.Resources>
+    <UserControl.KeyBindings>
+        <KeyBinding Command="{Binding ToggleNumericBaseCommand}" Gesture="H" />
+    </UserControl.KeyBindings>
 
-    <Grid ColumnDefinitions="auto, 8, *">
-        <ToggleButton Content="{Binding NumericBase, Converter={x:Static con:AppConverters.NumericBaseToString}}"
-            Focusable="False" FontSize="20"
-            IsChecked="{Binding NumericBase, Converter={x:Static con:AppConverters.NumericBaseToBoolean}}" />
+    <!--  Both top-aligned so the switch stays level with the box when the inline validation error grows it  -->
+    <Grid Margin="0,12,0,4" VerticalAlignment="Center" ColumnDefinitions="Auto, *" ColumnSpacing="8">
+        <ToggleSwitch x:Name="_baseSwitch" Padding="12,0" VerticalAlignment="Top"
+            IsChecked="{Binding NumericBase, Converter={x:Static con:AppConverters.NumericBaseToBoolean}}"
+            OffContent="Dec" OnContent="Hex" Theme="{StaticResource SlidingToggleSwitchTheme}"
+            ToolTip.Tip="Switch between decimal and hexadecimal (H)" />
 
-        <TextBox x:Name="_jumpBox" Grid.Column="2" MinWidth="120" HorizontalContentAlignment="Right"
-            AttachedToVisualTree="JumpBox_AttachedToVisualTree" FontSize="20" IsTabStop="True"
-            KeyDown="JumpBox_KeyDown" TabIndex="0" Text="{Binding OffsetText}" />
+        <TextBox x:Name="_jumpBox" Grid.Column="1" MinWidth="160" VerticalAlignment="Top" HorizontalContentAlignment="Right"
+            InnerLeftContent="{Binding NumericBase, Converter={x:Static con:AppConverters.NumericBaseToPrefix}}"
+            Text="{Binding OffsetText}" />
     </Grid>
 </UserControl>
