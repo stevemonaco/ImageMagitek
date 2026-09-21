@@ -89,6 +89,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         services.AddSingleton<IAsyncFileRequestService, AsyncFileRequestService>();
         services.AddSingleton<IExploreService, ExploreService>();
         services.AddSingleton<IThemeService, ThemeService>();
+        services.AddSingleton<HotkeyService>();
 
         var preferencesStore = new UserPreferencesStore(UserPreferencesStore.DefaultFileName, _loggerFactory!.CreateLogger<UserPreferencesStore>());
         preferencesStore.Load();

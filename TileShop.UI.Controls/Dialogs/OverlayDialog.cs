@@ -4,10 +4,14 @@ using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Styling;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
+using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.Controls;
 
@@ -18,6 +22,8 @@ namespace TileShop.UI.Controls;
 [TemplatePart(Name = "PART_DialogCard", Type = typeof(Border))]
 [TemplatePart(Name = "PART_TitleBar", Type = typeof(Border), IsRequired = false)]
 [TemplatePart(Name = "PART_CloseButton", Type = typeof(Button), IsRequired = false)]
+[TemplatePart(Name = "PART_Content", Type = typeof(ContentPresenter), IsRequired = false)]
+[TemplatePart(Name = "PART_Options", Type = typeof(ItemsControl), IsRequired = false)]
 public partial class OverlayDialog : TemplatedControl
 {
     private TaskCompletionSource<bool>? _dialogCompletion;
@@ -25,6 +31,9 @@ public partial class OverlayDialog : TemplatedControl
     private Border? _dialogCard;
     private Border? _titleBar;
     private Button? _closeButton;
+    private ContentPresenter? _content;
+    private ItemsControl? _options;
+    private IInputElement? _previouslyFocused;
 
     private bool _isDragging;
     private Point _dragStartPoint;
@@ -48,6 +57,8 @@ public partial class OverlayDialog : TemplatedControl
         _dialogCard = e.NameScope.Find<Border>("PART_DialogCard");
         _titleBar = e.NameScope.Find<Border>("PART_TitleBar");
         _closeButton = e.NameScope.Get<Button>("PART_CloseButton");
+        _content = e.NameScope.Find<ContentPresenter>("PART_Content");
+        _options = e.NameScope.Find<ItemsControl>("PART_Options");
 
         _backdrop?.AddHandler(PointerPressedEvent, OnLightDismissPressed);
         _closeButton?.AddHandler(Button.ClickEvent, CloseButtonHandler);
@@ -56,7 +67,63 @@ public partial class OverlayDialog : TemplatedControl
         _titleBar?.AddHandler(PointerReleasedEvent, OnTitleBarPointerReleased);
         _titleBar?.AddHandler(PointerCaptureLostEvent, OnTitleBarPointerCaptureLost);
     }
-    
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _previouslyFocused = TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement();
+    }
+
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+        FocusInitialElement();
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+
+        // Deferred so the restore runs after the removal has fully completed and the dialog's focused child is gone
+        if (_previouslyFocused is Visual previous)
+        {
+            var target = _previouslyFocused;
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (previous.IsAttachedToVisualTree())
+                    target.Focus();
+            }, DispatcherPriority.Input);
+        }
+
+        _previouslyFocused = null;
+    }
+
+    /// <summary>
+    /// Moves keyboard focus into the dialog unless the content already claimed it, preferring the first text input
+    /// </summary>
+    private void FocusInitialElement()
+    {
+        var focused = TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement();
+        if (focused is Visual current && this.IsVisualAncestorOf(current))
+            return;
+
+        var contentTargets = _content?.GetVisualDescendants().OfType<Control>().Where(IsFocusTarget).ToList() ?? [];
+
+        Control target = contentTargets.OfType<TextBox>().FirstOrDefault()
+            ?? contentTargets.FirstOrDefault()
+            ?? (Control?)FindDefaultOptionButton()
+            ?? this;
+
+        target.Focus();
+    }
+
+    private Button? FindDefaultOptionButton() =>
+        _options?.GetVisualDescendants().OfType<Button>()
+            .FirstOrDefault(b => b.DataContext is RequestOption { IsDefault: true } && IsFocusTarget(b));
+
+    private static bool IsFocusTarget(Control control) =>
+        control.Focusable && control.IsTabStop && control.IsEffectivelyEnabled && control.IsEffectivelyVisible;
+
     internal Task<bool> ShowAsync()
     {
         _dialogCompletion = new TaskCompletionSource<bool>();

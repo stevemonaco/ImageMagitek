@@ -1,9 +1,11 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek.Project;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
+using TileShop.UI.Models;
 
 namespace TileShop.UI.ViewModels;
 
@@ -23,6 +25,11 @@ public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
     [ObservableProperty] private string _pendingOperationMessage = "";
     [ObservableProperty] private ObservableCollection<HistoryAction> _undoHistory = new();
     [ObservableProperty] private ObservableCollection<HistoryAction> _redoHistory = new();
+
+    /// <summary>
+    /// Hotkeys that apply window-wide while this editor is active
+    /// </summary>
+    public virtual IReadOnlyList<Hotkey> Hotkeys => [];
 
     public ResourceEditorBaseViewModel(IProjectResource resource)
     {

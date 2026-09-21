@@ -7,6 +7,7 @@ using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Dock.Model.Core.Events;
 using TileShop.Shared.Interactions;
+using TileShop.UI.Services;
 using TileShop.UI.ViewExtenders.Docking;
 using TileShop.UI.ViewModels;
 
@@ -68,5 +69,6 @@ public partial class ShellView : Window
     public void OnOpened(object sender, EventArgs e)
     {
         CreateDockingLayout();
+        Ioc.Default.GetRequiredService<HotkeyService>().Attach(this, () => RootDialogHost.HasOpenDialog);
     }
 }

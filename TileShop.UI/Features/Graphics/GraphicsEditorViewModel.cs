@@ -215,6 +215,24 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     [RelayCommand]
     private void AlignTopLeft() => OnAlignTopLeft?.Invoke();
 
+    // Keys that act on the focused widget (Delete, Escape, Return, navigation) stay as KeyBindings on the view
+    public override IReadOnlyList<Hotkey> Hotkeys => field ??=
+    [
+        new("G", ToggleGridlineVisibilityCommand),
+        new("S", ToggleSnapModeCommand),
+        new("Ctrl+S", SaveChangesCommand),
+        new("Ctrl+Z", UndoCommand),
+        new("Ctrl+Y", RedoCommand),
+        new("Ctrl+A", SelectAllCommand),
+        new("Ctrl+C", CopySelectionCommand),
+        new("Ctrl+V", PasteFromClipboardCommand),
+        new("Ctrl+G", ModifyGridSettingsCommand),
+        new("Ctrl+E", CenterContentCommand),
+        new("Ctrl+W", FitToViewportCommand),
+        new("Ctrl+R", ResetZoomCommand),
+        new("Ctrl+Q", AlignTopLeftCommand),
+    ];
+
     [ObservableProperty] private ObservableCollection<PaletteModel> _palettes = new();
     [ObservableProperty] private PaletteModel? _selectedPalette;
 

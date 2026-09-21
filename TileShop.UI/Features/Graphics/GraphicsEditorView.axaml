@@ -8,25 +8,11 @@
     x:Name="control"
     x:DataType="vm:GraphicsEditorViewModel"
     Focusable="True">
+    <!--  Window-wide hotkeys live in GraphicsEditorViewModel.Hotkeys; only keys that act on the focused editor stay here  -->
     <UserControl.KeyBindings>
-        <KeyBinding Command="{Binding ToggleGridlineVisibilityCommand}" Gesture="G" />
-        <KeyBinding Command="{Binding ToggleSnapModeCommand}" Gesture="S" />
-        <!-- <KeyBinding Command="{Binding EditSelectionCommand}" Gesture="E" /> -->
         <KeyBinding Command="{Binding DeleteElementSelectionCommand}" Gesture="Delete" />
         <KeyBinding Command="{Binding CancelOverlayCommand}" Gesture="Escape" />
         <KeyBinding Command="{Binding ConfirmPendingOperationCommand}" Gesture="Return" />
-        <KeyBinding Command="{Binding SaveChangesCommand}" Gesture="Ctrl+S" />
-        <KeyBinding Command="{Binding UndoCommand}" Gesture="Ctrl+Z" />
-        <KeyBinding Command="{Binding RedoCommand}" Gesture="Ctrl+Y" />
-        <KeyBinding Command="{Binding SelectAllCommand}" Gesture="Ctrl+A" />
-        <KeyBinding Command="{Binding CopySelectionCommand}" Gesture="Ctrl+C" />
-        <KeyBinding Command="{Binding PasteFromClipboardCommand}" Gesture="Ctrl+V" />
-        <KeyBinding Command="{Binding ModifyGridSettingsCommand}" Gesture="Ctrl+G" />
-        <!--  Viewport Management  -->
-        <KeyBinding Command="{Binding CenterContentCommand}" Gesture="Ctrl+E" />
-        <KeyBinding Command="{Binding FitToViewportCommand}" Gesture="Ctrl+W" />
-        <KeyBinding Command="{Binding ResetZoomCommand}" Gesture="Ctrl+R" />
-        <KeyBinding Command="{Binding AlignTopLeftCommand}" Gesture="Ctrl+Q" />
         <!--  Sequential Arranger Navigation  -->
         <KeyBinding Command="{Binding MoveByteDownCommand}" Gesture="Add" />
         <KeyBinding Command="{Binding MoveByteUpCommand}" Gesture="Subtract" />

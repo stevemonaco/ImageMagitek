@@ -11,8 +11,6 @@ namespace TileShop.UI.Controls;
 /// </summary>
 public class DialogHost : Panel
 {
-    private readonly Stack<OverlayDialog> _dialogStack = new();
-
     public async Task<TResult?> ShowMediatorAsync<TResult>(IRequestMediator<TResult> mediator)
     {
         var tcs = new TaskCompletionSource<TResult?>();
@@ -68,7 +66,6 @@ public class DialogHost : Panel
         };
 
         Children.Add(layer);
-        _dialogStack.Push(layer);
 
         try
         {
@@ -77,7 +74,6 @@ public class DialogHost : Panel
         }
         finally
         {
-            _dialogStack.Pop();
             Children.Remove(layer);
         }
     }
@@ -85,10 +81,10 @@ public class DialogHost : Panel
     /// <summary>
     /// Gets the number of currently open dialogs.
     /// </summary>
-    public int DialogCount => _dialogStack.Count;
+    public int DialogCount => Children.Count;
 
     /// <summary>
     /// Returns true if any dialog is currently open.
     /// </summary>
-    public bool HasOpenDialog => _dialogStack.Count > 0;
+    public bool HasOpenDialog => Children.Count > 0;
 }

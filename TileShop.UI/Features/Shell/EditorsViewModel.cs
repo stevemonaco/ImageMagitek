@@ -18,6 +18,7 @@ using ImageMagitek.Services.Stores;
 using ImageMagitek.Codec;
 using TileShop.UI.Features.Graphics;
 using TileShop.Shared.Services;
+using TileShop.UI.Services;
 
 namespace TileShop.UI.ViewModels;
 
@@ -34,6 +35,7 @@ public partial class EditorsViewModel : ObservableRecipient
     private readonly ElementStore _elementStore;
     private readonly AppSettings _settings;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly HotkeyService _hotkeys;
 
     public ObservableCollection<ResourceEditorBaseViewModel> Editors { get; } = new();
 
@@ -45,9 +47,17 @@ public partial class EditorsViewModel : ObservableRecipient
 
     public GraphicsEditorViewModel? ActiveGraphicsEditor => ActiveEditor as GraphicsEditorViewModel;
 
+    partial void OnActiveEditorChanged(ResourceEditorBaseViewModel? value)
+    {
+        if (value is null)
+            _hotkeys.ClearScope();
+        else
+            _hotkeys.SetScope(value.Hotkeys);
+    }
+
     public EditorsViewModel(AppSettings settings, IInteractionService interactionService, UserPreferencesStore preferencesStore, ICodecService codecService,
         IColorFactory colorFactory, PaletteStore paletteStore, IProjectService projectService, ElementStore elementStore,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory, HotkeyService hotkeys)
     {
         _settings = settings;
         _interactions = interactionService;
@@ -58,6 +68,7 @@ public partial class EditorsViewModel : ObservableRecipient
         _projectService = projectService;
         _elementStore = elementStore;
         _loggerFactory = loggerFactory;
+        _hotkeys = hotkeys;
 
         Messenger.Register<EditArrangerPixelsMessage>(this, (r, m) => Receive(m));
         Messenger.Register<ArrangerChangedMessage>(this, (r, m) => Receive(m));

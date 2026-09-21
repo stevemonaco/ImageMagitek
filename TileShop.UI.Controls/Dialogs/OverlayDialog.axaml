@@ -32,7 +32,7 @@
                         MaxHeight="{Binding #PART_RootPanel.Bounds.Height}" Padding="8" HorizontalAlignment="Center"
                         VerticalAlignment="Center" Background="{DynamicResource SemiColorBackground1}"
                         BorderBrush="{DynamicResource SemiColorBorder}" BorderThickness="1" BoxShadow="0 8 24 0 #40000000"
-                        CornerRadius="8" RenderTransformOrigin="0.5,0.5">
+                        CornerRadius="8" KeyboardNavigation.TabNavigation="Cycle" RenderTransformOrigin="0.5,0.5">
                         <Border.RenderTransform>
                             <ScaleTransform ScaleX="1" ScaleY="1" />
                         </Border.RenderTransform>
@@ -75,11 +75,11 @@
                             <!--  Content area  -->
                             <ScrollViewer Grid.Row="1" MinHeight="80" HorizontalScrollBarVisibility="Disabled"
                                 VerticalScrollBarVisibility="Auto">
-                                <ContentPresenter Content="{TemplateBinding Content}" />
+                                <ContentPresenter x:Name="PART_Content" Content="{TemplateBinding Content}" />
                             </ScrollViewer>
 
                             <!--  Button bar  -->
-                            <ItemsControl Grid.Row="2" Margin="0,8,0,0" ItemTemplate="{StaticResource RequestOptionTemplate}"
+                            <ItemsControl x:Name="PART_Options" Grid.Row="2" Margin="0,8,0,0" ItemTemplate="{StaticResource RequestOptionTemplate}"
                                 ItemsSource="{TemplateBinding Options}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>

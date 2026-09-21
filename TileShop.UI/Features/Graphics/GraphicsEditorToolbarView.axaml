@@ -364,7 +364,7 @@
                             <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Gridlines}" />
                         </ToggleButton>
                         <Button Name="GridSettingsButton" Classes="tool split-secondary" Command="{Binding ModifyGridSettingsCommand}"
-                            ToolTip.Tip="Grid settings... (Ctrl+G)">
+                            Focusable="False" ToolTip.Tip="Grid settings... (Ctrl+G)">
                             <cc:LineIcon Classes="tool small" Data="{x:Static cc:AppIcons.ChevronDown}" />
                         </Button>
                     </StackPanel>
