@@ -220,6 +220,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     [
         new("G", ToggleGridlineVisibilityCommand),
         new("S", ToggleSnapModeCommand),
+        new("J", JumpToOffsetCommand),
         new("Ctrl+S", SaveChangesCommand),
         new("Ctrl+Z", UndoCommand),
         new("Ctrl+Y", RedoCommand),

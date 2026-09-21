@@ -425,6 +425,16 @@ public partial class GraphicsEditorViewModel
     [RelayCommand] public void MoveHome() => Move(ArrangerMoveType.Home);
     [RelayCommand] public void MoveEnd() => Move(ArrangerMoveType.End);
 
+    [RelayCommand(CanExecute = nameof(IsSequentialArranger))]
+    public async Task JumpToOffset()
+    {
+        var model = new JumpToOffsetViewModel();
+        var result = await _interactions.RequestAsync(model);
+
+        if (result is long offset)
+            MoveToOffset(offset);
+    }
+
     private void Move(ArrangerMoveType moveType)
     {
         if (WorkingArranger is not SequentialArranger seqArr)

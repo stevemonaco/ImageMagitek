@@ -43,11 +43,9 @@ public partial class JumpToOffsetView : UserControl
         if (_viewModel is null)
             return;
 
-        if (e.Key == Key.Enter)
-        {
-            base.OnKeyDown(e);
+        // Enter and Escape bubble up to the dialog's accept/cancel handling
+        if (e.Key is Key.Enter or Key.Escape)
             return;
-        }
 
         if (_viewModel.NumericBase == NumericBase.Hexadecimal && _acceptedHexKeys.Contains(e.Key))
             return;

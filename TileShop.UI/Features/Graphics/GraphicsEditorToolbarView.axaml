@@ -46,8 +46,11 @@
                     </RadioButton>
                 </StackPanel>
 
-                <TextBlock Classes="muted" IsVisible="{Binding IsSequentialArranger}"
-                    Text="{Binding FileOffset, StringFormat='Offset: 0x{0:X}'}" TextWrapping="Wrap" />
+                <Button Name="JumpToOffsetButton" HorizontalAlignment="Left" Command="{Binding JumpToOffsetCommand}"
+                    Focusable="False" FontWeight="Normal" IsVisible="{Binding IsSequentialArranger}"
+                    Theme="{StaticResource ClearButton}" ToolTip.Tip="Jump to offset... (J)">
+                    <TextBlock Classes="muted" Text="{Binding FileOffset, StringFormat='Offset: 0x{0:X}'}" TextWrapping="Wrap" />
+                </Button>
 
                 <!--  Codec (Sequential Arranger in View mode only)  -->
                 <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
