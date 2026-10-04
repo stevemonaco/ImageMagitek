@@ -21,13 +21,13 @@ public partial class DirectCodecContractTests
 
     [Theory]
     [MemberData(nameof(ContractCases))]
-    public void CreatedCodec_HasRequestedSize(string codecName, int width, int height) =>
-        AssertRequestedSize(codecName, width, height);
+    public void CreatedCodec_HasRequestedSize(string codecName, int width, int height)
+    {
+        var codec = Create(codecName, width, height);
 
-    [Theory(Skip = SizeIgnoredBug)]
-    [MemberData(nameof(SizeIgnoredCases))]
-    public void CreatedCodec_HasRequestedSize_SizeIgnoredBug(string codecName, int width, int height) =>
-        AssertRequestedSize(codecName, width, height);
+        Assert.Equal((width, height), (codec.Width, codec.Height));
+        Assert.Equal((width, height), (codec.NativeBuffer.GetLength(1), codec.NativeBuffer.GetLength(0)));
+    }
 
     [Theory]
     [MemberData(nameof(ContractCases))]
@@ -137,12 +137,4 @@ public partial class DirectCodecContractTests
 
     private IDirectCodec Create(string codecName, int width, int height) =>
         CodecTestHelpers.CreateDirectCodec(_fixture.CodecFactory, codecName, width, height);
-
-    private void AssertRequestedSize(string codecName, int width, int height)
-    {
-        var codec = Create(codecName, width, height);
-
-        Assert.Equal((width, height), (codec.Width, codec.Height));
-        Assert.Equal((width, height), (codec.NativeBuffer.GetLength(1), codec.NativeBuffer.GetLength(0)));
-    }
 }

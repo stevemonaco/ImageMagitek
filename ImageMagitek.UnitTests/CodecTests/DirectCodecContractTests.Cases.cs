@@ -8,10 +8,6 @@ namespace ImageMagitek.UnitTests;
 
 public partial class DirectCodecContractTests
 {
-    public const string SizeIgnoredBug =
-        "Bmp24, N64 Rgba16 and N64 Rgba32 initialize Width/Height inline, so the (width, height) constructor never applies the requested size; see CodecRework findings";
-    private static readonly HashSet<string> _sizeIgnoredCodecs = ["Bmp24", "N64 Rgba16", "N64 Rgba32"];
-
     private static readonly Dictionary<string, Func<ColorRgba32, ColorRgba32>> _representable = new()
     {
         ["Bmp24"] = c => c with { A = 255 },
@@ -21,12 +17,8 @@ public partial class DirectCodecContractTests
         ["N64 Rgba16"] = c => new ColorRgba32((byte)(c.R & 0xF8), (byte)(c.G & 0xF8), (byte)(c.B & 0xF8), (byte)((c.A & 1) == 1 ? 255 : 0)),
     };
 
-    public static TheoryData<string, int, int> ContractCases => DirectCases((name, w, h) => !IsSizeIgnored(name, w, h));
-
-    public static TheoryData<string, int, int> SizeIgnoredCases => DirectCases(IsSizeIgnored);
-
-    private static TheoryData<string, int, int> DirectCases(Func<string, int, int, bool> include) =>
-        CodecTestHelpers.BuildCases(includeSquare: true, codecNames: CodecFixture.Shared.DirectCodecNames, include: include);
+    public static TheoryData<string, int, int> ContractCases =>
+        CodecTestHelpers.BuildCases(includeSquare: true, codecNames: CodecFixture.Shared.DirectCodecNames);
 
     /// <summary>
     /// Random colors reduced to the precision the codec stores, so they survive an encode and decode unchanged.
@@ -55,14 +47,5 @@ public partial class DirectCodecContractTests
         if (c.A < 192 && !isBlack)
             return rgb with { A = 128 };
         return rgb;
-    }
-
-    public static bool IsSizeIgnored(string codecName, int width, int height)
-    {
-        if (!_sizeIgnoredCodecs.Contains(codecName))
-            return false;
-
-        var codec = CodecFixture.Shared.CodecFactory.CreateCodec(codecName)!;
-        return (width, height) != (codec.DefaultWidth, codec.DefaultHeight);
     }
 }

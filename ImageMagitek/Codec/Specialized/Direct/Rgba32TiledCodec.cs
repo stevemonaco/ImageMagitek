@@ -6,8 +6,6 @@ namespace ImageMagitek.Codec;
 public sealed class Rgba32TiledCodec : DirectCodec
 {
     public override string Name => "Rgba32 Tiled";
-    public override int Width { get; } = 8;
-    public override int Height { get; } = 8;
     public override ImageLayout Layout => ImageLayout.Tiled;
     public override int ColorDepth => 32;
     public override int StorageSize => Width * Height * 32;
@@ -23,20 +21,10 @@ public sealed class Rgba32TiledCodec : DirectCodec
 
     public Rgba32TiledCodec()
     {
-        Width = DefaultWidth;
-        Height = DefaultHeight;
-
-        _foreignBuffer = new byte[(StorageSize + 7) / 8];
-        _nativeBuffer = new ColorRgba32[Height, Width];
     }
 
-    public Rgba32TiledCodec(int width, int height)
+    public Rgba32TiledCodec(int width, int height) : base(width, height)
     {
-        Width = width;
-        Height = height;
-
-        _foreignBuffer = new byte[(StorageSize + 7) / 8];
-        _nativeBuffer = new ColorRgba32[Height, Width];
     }
 
     public override ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)

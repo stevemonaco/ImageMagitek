@@ -9,8 +9,8 @@ public interface IDirectCodec : IGraphicsCodec<ColorRgba32> { }
 public abstract class DirectCodec : IDirectCodec
 {
     public abstract string Name { get; }
-    public abstract int Width { get; }
-    public abstract int Height { get; }
+    public int Width { get; }
+    public int Height { get; }
     public abstract ImageLayout Layout { get; }
     public PixelColorType ColorType => PixelColorType.Direct;
     public abstract int ColorDepth { get; }
@@ -36,19 +36,23 @@ public abstract class DirectCodec : IDirectCodec
 
     public DirectCodec()
     {
-        AllocateBuffers(DefaultWidth, DefaultHeight);
+        Width = DefaultWidth;
+        Height = DefaultHeight;
+        AllocateBuffers(Width, Height);
     }
 
     public DirectCodec(int width, int height)
     {
-        AllocateBuffers(width, height);
+        Width = width;
+        Height = height;
+        AllocateBuffers(Width, Height);
     }
 
     [MemberNotNull(nameof(_nativeBuffer), nameof(_foreignBuffer))]
     protected virtual void AllocateBuffers(int width, int height)
     {
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
-        _nativeBuffer = new ColorRgba32[Height, Width];
+        _nativeBuffer = new ColorRgba32[height, width];
     }
 
     /// <summary>

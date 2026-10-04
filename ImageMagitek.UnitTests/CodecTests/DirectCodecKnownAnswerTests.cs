@@ -11,9 +11,6 @@ namespace ImageMagitek.UnitTests;
 [Collection("Codec")]
 public class DirectCodecKnownAnswerTests
 {
-    private const string N64Rgba32ByteOrderBug =
-        "N64 Rgba32 reads and writes G,R,A,B (16-bit byte-swapped) instead of R,G,B,A; see CodecRework findings";
-
     private static readonly ColorRgba32 _opaqueBlack = new(0, 0, 0, 255);
     private static readonly ColorRgba32 _transparent = new(0, 0, 0, 0);
 
@@ -67,7 +64,7 @@ public class DirectCodecKnownAnswerTests
         AssertKnownAnswer("N64 Rgba16", 32, 32, N64Rgba16Tile, N64Rgba16Expected);
     }
 
-    [Fact(Skip = N64Rgba32ByteOrderBug)]
+    [Fact]
     public void N64Rgba32_RgbaPerPixel() =>
         AssertKnownAnswer("N64 Rgba32", 32, 32,
             Tile(32, 32, _transparent, (0, 0, new(0x12, 0x34, 0x56, 0x78)), (1, 0, new(0xAB, 0xCD, 0xEF, 0x01))),

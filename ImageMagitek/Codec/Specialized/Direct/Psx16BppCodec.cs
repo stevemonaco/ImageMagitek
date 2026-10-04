@@ -8,8 +8,6 @@ namespace ImageMagitek.Codec;
 public sealed class Psx16BppCodec : DirectCodec
 {
     public override string Name => "PSX 16bpp";
-    public override int Width { get; } = 8;
-    public override int Height { get; } = 8;
     public override ImageLayout Layout => ImageLayout.Single;
     public override int ColorDepth => 16;
     public override int StorageSize => Width * Height * 16;
@@ -27,20 +25,10 @@ public sealed class Psx16BppCodec : DirectCodec
 
     public Psx16BppCodec()
     {
-        Width = DefaultWidth;
-        Height = DefaultHeight;
-
-        _foreignBuffer = new byte[(StorageSize + 7) / 8];
-        _nativeBuffer = new ColorRgba32[Height, Width];
     }
 
-    public Psx16BppCodec(int width, int height)
+    public Psx16BppCodec(int width, int height) : base(width, height)
     {
-        Width = width;
-        Height = height;
-
-        _foreignBuffer = new byte[(StorageSize + 7) / 8];
-        _nativeBuffer = new ColorRgba32[Height, Width];
     }
 
     public override ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)

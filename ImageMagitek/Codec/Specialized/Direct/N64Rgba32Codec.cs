@@ -6,8 +6,6 @@ namespace ImageMagitek.Codec;
 public sealed class N64Rgba32Codec : DirectCodec
 {
     public override string Name => "N64 Rgba32";
-    public override int Width { get; } = 32;
-    public override int Height { get; } = 32;
     public override ImageLayout Layout => ImageLayout.Tiled;
     public override int ColorDepth => 32;
     public override int StorageSize => Width * Height * 32;
@@ -39,10 +37,10 @@ public sealed class N64Rgba32Codec : DirectCodec
         {
             for (int x = 0; x < el.Width; x++, src += 4)
             {
-                var g = encodedBuffer[src];
-                var r = encodedBuffer[src + 1];
-                var a = encodedBuffer[src + 2];
-                var b = encodedBuffer[src + 3];
+                var r = encodedBuffer[src];
+                var g = encodedBuffer[src + 1];
+                var b = encodedBuffer[src + 2];
+                var a = encodedBuffer[src + 3];
 
                 _nativeBuffer[y, x] = new ColorRgba32(r, g, b, a);
             }
@@ -62,10 +60,10 @@ public sealed class N64Rgba32Codec : DirectCodec
             for (int x = 0; x < el.Width; x++, dest += 4)
             {
                 var imageColor = imageBuffer[y, x];
-                _foreignBuffer[dest] = imageColor.G;
-                _foreignBuffer[dest + 1] = imageColor.R;
-                _foreignBuffer[dest + 2] = imageColor.A;
-                _foreignBuffer[dest + 3] = imageColor.B;
+                _foreignBuffer[dest] = imageColor.R;
+                _foreignBuffer[dest + 1] = imageColor.G;
+                _foreignBuffer[dest + 2] = imageColor.B;
+                _foreignBuffer[dest + 3] = imageColor.A;
             }
         }
 

@@ -6,8 +6,6 @@ namespace ImageMagitek.Codec;
 public sealed class Bmp24Codec : DirectCodec
 {
     public override string Name => "Bmp24";
-    public override int Width { get; } = 8;
-    public override int Height { get; } = 8;
     public override ImageLayout Layout => ImageLayout.Single;
     public override int ColorDepth => 24;
     public override int StorageSize => Width * Height * 24;

@@ -7,8 +7,6 @@ namespace ImageMagitek.Codec;
 public sealed class N64Rgba16Codec : DirectCodec
 {
     public override string Name => "N64 Rgba16";
-    public override int Width { get; } = 32;
-    public override int Height { get; } = 32;
     public override ImageLayout Layout => ImageLayout.Tiled;
     public override int ColorDepth => 16;
     public override int StorageSize => Width * Height * 16;
