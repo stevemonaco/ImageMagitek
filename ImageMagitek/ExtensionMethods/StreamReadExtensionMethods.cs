@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Buffers;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace ImageMagitek.ExtensionMethods;
@@ -20,7 +20,7 @@ public static class StreamReadExtensionMethods
     public static async ValueTask ReadUnshiftedAsync(this Stream stream, BitAddress address, int readBits, Memory<byte> buffer)
     {
         stream.Seek(address.ByteOffset, SeekOrigin.Begin);
-        await stream.ReadUnshiftedAsync(address, readBits, buffer);
+        await stream.ReadUnshiftedAsync(address.BitOffset, readBits, buffer);
     }
 
     private static async ValueTask ReadUnshiftedAsync(this Stream stream, int skipBits, int readBits, Memory<byte> buffer)
@@ -36,9 +36,9 @@ public static class StreamReadExtensionMethods
             throw new ArgumentException($"{nameof(ReadUnshiftedAsync)} parameter '{nameof(buffer)}' has insufficient length ({buffer.Length}) than required ({readBytes})");
 
         var readBuffer = buffer[..readBytes];
-        await stream.ReadAsync(readBuffer);
+        await stream.ReadExactlyAsync(readBuffer);
 
-        MaskUnshiftedEndBytes(buffer.Span, skipBits, readBits, readBytes);
+        MaskUnshiftedEndBytes(readBuffer.Span, skipBits, readBits, readBytes);
     }
 
     public static byte[] ReadUnshifted(this Stream stream, BitAddress address, int readBits)
@@ -94,61 +94,25 @@ public static class StreamReadExtensionMethods
     public static async ValueTask ReadShiftedAsync(this Stream stream, BitAddress address, int readBits, Memory<byte> buffer)
     {
         stream.Seek(address.ByteOffset, SeekOrigin.Begin);
-        await stream.ReadShiftedAsync(address.BitOffset, readBits, buffer);
-    }
-
-    private static async ValueTask ReadShiftedAsync(this Stream stream, int skipBits, int readBits, Memory<byte> buffer)
-    {
-        if (readBits < 0)
-            throw new ArgumentOutOfRangeException($"{nameof(ReadUnshifted)} parameter '{nameof(readBits)}' ({readBits}) must be positive");
-        if (skipBits is > 7 or < 0)
-            throw new ArgumentOutOfRangeException($"{nameof(ReadUnshifted)} parameter '{nameof(skipBits)}' ({skipBits}) is not within the valid range [0-7]");
+        int skipBits = address.BitOffset;
+        ValidateShiftedRead(skipBits, readBits, buffer.Length);
 
         if (skipBits == 0)
         {
-            await stream.ReadUnshiftedAsync(skipBits, readBits, buffer);
+            await stream.ReadUnshiftedAsync(0, readBits, buffer);
             return;
         }
 
         int totalReadBytes = (skipBits + readBits + 7) / 8;
-        int firstReadBytes = (readBits + 7) / 8;
-
-        if (buffer.Length < firstReadBytes)
-            throw new ArgumentException($"{nameof(ReadUnshifted)} parameter '{nameof(buffer)}' has insufficient length ({buffer.Length}) than required ({firstReadBytes})");
-
-        if (!MemoryMarshal.TryGetArray<byte>(buffer, out var array))
-            throw new InvalidOperationException($"{nameof(ReadShiftedAsync)} could not obtain an array from {nameof(MemoryMarshal.TryGetArray)}");
-
-        if (totalReadBytes == 1)
+        var raw = ArrayPool<byte>.Shared.Rent(totalReadBytes);
+        try
         {
-            var readBuffer = buffer[..totalReadBytes];
-            var lastByte = stream.ReadByte();
-            lastByte = (lastByte >> (8 - (skipBits + readBits)));
-            lastByte = (lastByte << (8 - readBits));
-            array[0] = (byte)lastByte;
+            await stream.ReadExactlyAsync(raw.AsMemory(0, totalReadBytes));
+            ShiftIntoBuffer(raw.AsSpan(0, totalReadBytes), skipBits, readBits, buffer.Span);
         }
-        else if (totalReadBytes == firstReadBytes)
+        finally
         {
-            var readBuffer = buffer[..totalReadBytes];
-            await stream.ReadAsync(readBuffer);
-            buffer.Span.ShiftLeft(skipBits);
-
-            var lastBits = (skipBits + readBits) - ((totalReadBytes - 1) * 8);
-            var mask = ((1 << lastBits) - 1) << (8 - lastBits);
-            buffer.Span[totalReadBytes - 1] &= (byte) mask;
-        }
-        else
-        {
-            var readBuffer = buffer[..firstReadBytes];
-            stream.Read(array);
-            buffer.Span.ShiftLeft(skipBits);
-
-            var lastByte = stream.ReadByte();
-            var lastBits = (skipBits + readBits) - (firstReadBytes * 8);
-            lastByte = lastByte >> (8 - lastBits);
-            lastByte = lastByte << (skipBits - lastBits);
-
-            buffer.Span[firstReadBytes - 1] |= (byte)lastByte;
+            ArrayPool<byte>.Shared.Return(raw);
         }
     }
 
@@ -162,58 +126,57 @@ public static class StreamReadExtensionMethods
     public static void ReadShifted(this Stream stream, BitAddress address, int readBits, Span<byte> buffer)
     {
         stream.Seek(address.ByteOffset, SeekOrigin.Begin);
-        stream.ReadShifted(address.BitOffset, readBits, buffer);
-    }
-
-    private static void ReadShifted(this Stream stream, int skipBits, int readBits, Span<byte> buffer)
-    {
-        if (readBits < 0)
-            throw new ArgumentOutOfRangeException($"{nameof(ReadUnshifted)} parameter '{nameof(readBits)}' ({readBits}) must be positive");
-        if (skipBits is > 7 or < 0)
-            throw new ArgumentOutOfRangeException($"{nameof(ReadUnshifted)} parameter '{nameof(skipBits)}' ({skipBits}) is not within the valid range [0-7]");
+        int skipBits = address.BitOffset;
+        ValidateShiftedRead(skipBits, readBits, buffer.Length);
 
         if (skipBits == 0)
         {
-            stream.ReadUnshifted(skipBits, readBits, buffer);
+            stream.ReadUnshifted(0, readBits, buffer);
             return;
         }
 
         int totalReadBytes = (skipBits + readBits + 7) / 8;
-        int firstReadBytes = (readBits + 7) / 8;
-
-        if (buffer.Length < firstReadBytes)
-            throw new ArgumentException($"{nameof(ReadUnshifted)} parameter '{nameof(buffer)}' has insufficient length ({buffer.Length}) than required ({firstReadBytes})");
-
-        if (totalReadBytes == 1)
+        var raw = ArrayPool<byte>.Shared.Rent(totalReadBytes);
+        try
         {
-            var readBuffer = buffer[..totalReadBytes];
-            var lastByte = stream.ReadByte();
-            lastByte = (lastByte >> (8 - (skipBits + readBits)));
-            lastByte = (lastByte << (8 - readBits));
-            buffer[0] = (byte)lastByte;
+            var rawSpan = raw.AsSpan(0, totalReadBytes);
+            stream.ReadExactly(rawSpan);
+            ShiftIntoBuffer(rawSpan, skipBits, readBits, buffer);
         }
-        else if (totalReadBytes == firstReadBytes)
+        finally
         {
-            var readBuffer = buffer[..totalReadBytes];
-            stream.Read(readBuffer);
-            buffer.ShiftLeft(skipBits);
-
-            var lastBits = (skipBits + readBits) - ((totalReadBytes - 1) * 8);
-            var mask = ((1 << lastBits) - 1) << (8 - lastBits);
-            buffer[totalReadBytes - 1] = (byte)(buffer[totalReadBytes - 1] & mask);
+            ArrayPool<byte>.Shared.Return(raw);
         }
-        else
+    }
+
+    private static void ValidateShiftedRead(int skipBits, int readBits, int bufferLength)
+    {
+        if (readBits < 0)
+            throw new ArgumentOutOfRangeException(nameof(readBits), $"{nameof(ReadShifted)} parameter '{nameof(readBits)}' ({readBits}) must be positive");
+        if (skipBits is > 7 or < 0)
+            throw new ArgumentOutOfRangeException(nameof(skipBits), $"{nameof(ReadShifted)} parameter '{nameof(skipBits)}' ({skipBits}) is not within the valid range [0-7]");
+
+        int readBytes = (readBits + 7) / 8;
+        if (bufferLength < readBytes)
+            throw new ArgumentException($"{nameof(ReadShifted)} parameter 'buffer' has insufficient length ({bufferLength}) than required ({readBytes})");
+    }
+
+    /// <summary>
+    /// Moves readBits bits that start skipBits into raw so they start at bit 0 of buffer, and clears the trailing bits.
+    /// </summary>
+    private static void ShiftIntoBuffer(ReadOnlySpan<byte> raw, int skipBits, int readBits, Span<byte> buffer)
+    {
+        int readBytes = (readBits + 7) / 8;
+        if (readBytes == 0)
+            return;
+
+        for (int i = 0; i < readBytes; i++)
         {
-            var readBuffer = buffer[..firstReadBytes];
-            stream.Read(readBuffer);
-            buffer.ShiftLeft(skipBits);
-
-            var lastByte = stream.ReadByte();
-            var lastBits = (skipBits + readBits) - (firstReadBytes * 8);
-            lastByte = lastByte >> (8 - lastBits);
-            lastByte = lastByte << (skipBits - lastBits);
-
-            buffer[firstReadBytes - 1] |= (byte)lastByte;
+            int next = i + 1 < raw.Length ? raw[i + 1] : 0;
+            buffer[i] = (byte)((raw[i] << skipBits) | (next >> (8 - skipBits)));
         }
+
+        int trailingBits = readBytes * 8 - readBits;
+        buffer[readBytes - 1] &= (byte)(0xFF << trailingBits);
     }
 }

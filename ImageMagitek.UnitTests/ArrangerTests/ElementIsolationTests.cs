@@ -11,8 +11,6 @@ public class ElementIsolationTests
 {
     private const int _alignedOffsetBits = 5 * 8;
     private const int _unalignedOffsetBits = 5 * 8 + 3;
-    private const string UnalignedAddressBug =
-        "DataSource.Read/Write with a non-byte-aligned BitAddress do not shift data (ReadUnshifted/WriteUnshifted); see CodecRework findings";
 
     private readonly CodecFixture _fixture;
 
@@ -46,7 +44,7 @@ public class ElementIsolationTests
     public void SaveElement_ByteAligned_ChangesOnlyElementBits(string codecName, int width, int height, bool randomSentinel) =>
         AssertIsolated(codecName, width, height, randomSentinel, _alignedOffsetBits);
 
-    [Theory(Skip = UnalignedAddressBug)]
+    [Theory]
     [MemberData(nameof(IsolationCases))]
     public void SaveElement_NotByteAligned_ChangesOnlyElementBits(string codecName, int width, int height, bool randomSentinel) =>
         AssertIsolated(codecName, width, height, randomSentinel, _unalignedOffsetBits);

@@ -70,17 +70,17 @@ public sealed class FlowGraphicsFormat : IGraphicsFormat
     public IList<ImageProperty> ImageProperties { get; set; } = new List<ImageProperty>();
 
     public FlowGraphicsFormat(string name, PixelColorType colorType, int colorDepth,
-        ImageLayout layout, int defaultHeight, int defaultWidth, int[] mergePlanePriority)
+        ImageLayout layout, int defaultWidth, int defaultHeight, int[] mergePlanePriority)
     {
         Name = name;
         ColorType = colorType;
         ColorDepth = colorDepth;
         Layout = layout;
-        DefaultHeight = defaultHeight;
         DefaultWidth = defaultWidth;
+        DefaultHeight = defaultHeight;
 
-        Height = defaultHeight;
         Width = defaultWidth;
+        Height = defaultHeight;
         MergePlanePriority = mergePlanePriority;
     }
 

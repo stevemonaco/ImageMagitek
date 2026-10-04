@@ -27,6 +27,8 @@ public partial class IndexedCodecContractTests : IndexedCodecContract
     {
         var files = Directory.GetFiles(TestPaths.CodecsPath, "*.xml");
 
+        var reader = new XmlGraphicsFormatReader(Path.Combine(AppContext.BaseDirectory, "_schemas", "CodecSchema.xsd"));
+
         Assert.Equal(files.Length, _fixture.XmlCodecNames.Count);
 
         foreach (var file in files)
@@ -37,8 +39,11 @@ public partial class IndexedCodecContractTests : IndexedCodecContract
             var expectedWidth = int.Parse(root.Element(isFlow ? "defaultwidth" : "width")!.Value);
             var expectedHeight = int.Parse(root.Element(isFlow ? "defaultheight" : "height")!.Value);
 
+            var format = reader.LoadFromFile(file).AsSuccess.Result;
             var codec = _fixture.CodecFactory.CreateCodec(name)!;
 
+            Assert.Equal((expectedWidth, expectedHeight), (format.DefaultWidth, format.DefaultHeight));
+            Assert.Equal((expectedWidth, expectedHeight), (format.Width, format.Height));
             Assert.Contains(name, _fixture.XmlCodecNames);
             Assert.Equal((expectedWidth, expectedHeight), (codec.DefaultWidth, codec.DefaultHeight));
             Assert.Equal((expectedWidth, expectedHeight), (codec.Width, codec.Height));

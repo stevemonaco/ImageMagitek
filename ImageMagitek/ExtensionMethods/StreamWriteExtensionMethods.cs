@@ -119,22 +119,36 @@ public static class StreamWriteExtensionMethods
 
     private static void WriteShifted(this Stream stream, int skipBits, int writeBits, ReadOnlySpan<byte> writeBuffer)
     {
-        int totalWriteBytes = (skipBits + writeBits + 7) / 8;
-        int firstWriteBytes = (writeBits + 7) / 8;
-
         if (skipBits == 0)
         {
             stream.WriteUnshifted(skipBits, writeBits, writeBuffer);
             return;
         }
-        else
+
+        var shifted = ShiftForWrite(skipBits, writeBits, writeBuffer);
+        stream.WriteUnshifted(skipBits, writeBits, shifted);
+    }
+
+    public static async ValueTask WriteShiftedAsync(this Stream stream, BitAddress address, int writeBits, ReadOnlyMemory<byte> writeBuffer)
+    {
+        stream.Seek(address.ByteOffset, SeekOrigin.Begin);
+
+        if (address.BitOffset == 0)
         {
-            var buffer = new byte[totalWriteBytes]; // Allocation because ShiftRight does in-place shifting
-            var bufferSpan = buffer.AsSpan();
-            writeBuffer.CopyTo(buffer);
-            bufferSpan.ShiftRight(skipBits);
-            stream.WriteUnshifted(skipBits, writeBits, bufferSpan);
+            await stream.WriteUnshiftedAsync(0, writeBits, writeBuffer);
+            return;
         }
+
+        var shifted = ShiftForWrite(address.BitOffset, writeBits, writeBuffer.Span);
+        await stream.WriteUnshiftedAsync(address.BitOffset, writeBits, shifted);
+    }
+
+    private static byte[] ShiftForWrite(int skipBits, int writeBits, ReadOnlySpan<byte> writeBuffer)
+    {
+        var buffer = new byte[(skipBits + writeBits + 7) / 8];
+        writeBuffer[..((writeBits + 7) / 8)].CopyTo(buffer);
+        buffer.AsSpan().ShiftRight(skipBits);
+        return buffer;
     }
 
     private static byte MergeByte(byte original, byte write, int skipBits, int writeBits)

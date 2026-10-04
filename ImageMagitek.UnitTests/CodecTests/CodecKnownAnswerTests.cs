@@ -12,8 +12,6 @@ namespace ImageMagitek.UnitTests;
 [Collection("Codec")]
 public class CodecKnownAnswerTests
 {
-    private const string BitReversedFinding = "XML mergepriority stores the first-read bit in color bit 0, reversing each pixel's bits; see CodecRework findings";
-
     private readonly CodecFixture _fixture;
 
     public CodecKnownAnswerTests(CodecFixture fixture)
@@ -54,7 +52,7 @@ public class CodecKnownAnswerTests
     public void GameGear4Bpp_FourPlanesPerRow() =>
         AssertKnownAnswer("Game Gear 4bpp", 8, 8, DepthTile(8, 8, 4), Pad(32, 0x55, 0x33, 0x0F, 0x00, 0xAA, 0xCC, 0xF0, 0xFF));
 
-    [Fact(Skip = BitReversedFinding)]
+    [Fact]
     public void Genesis4Bpp_HighNibbleIsLeftPixel() =>
         AssertKnownAnswer("Genesis 4bpp", 8, 8, DepthTile(8, 8, 4), Pad(32, 0x01, 0x23, 0x45, 0x67, 0xFE, 0xDC, 0xBA, 0x98));
 
@@ -78,15 +76,15 @@ public class CodecKnownAnswerTests
     public void Psx8BppFlow_OneBytePerPixel() =>
         AssertKnownAnswer("PSX 8bpp Flow", 8, 8, DepthTile(8, 8, 8), BytePerPixelExpected);
 
-    [Fact(Skip = BitReversedFinding)]
+    [Fact]
     public void SnesMode7_OneBytePerPixel() =>
         AssertKnownAnswer("SNES Mode7", 8, 8, DepthTile(8, 8, 8), BytePerPixelExpected);
 
-    [Fact(Skip = BitReversedFinding)]
+    [Fact]
     public void VirtualBoy2Bpp_LittleEndianRowWordLeftPixelInLowBits() =>
         AssertKnownAnswer("Virtual Boy 2bpp", 8, 8, DepthTile(8, 8, 2), Pad(16, 0xE4, 0xE4, 0x1B, 0x1B));
 
-    [Fact(Skip = BitReversedFinding)]
+    [Fact]
     public void NeoGeoPocket2Bpp_LittleEndianRowWordLeftPixelInHighBits() =>
         AssertKnownAnswer("NeoGeo Pocket 2bpp", 8, 8, DepthTile(8, 8, 2), Pad(16, 0x1B, 0x1B, 0xE4, 0xE4));
 

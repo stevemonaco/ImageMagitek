@@ -6,7 +6,7 @@
 	<defaultheight>8</defaultheight>
 	<defaultwidth>8</defaultwidth>
 	<fixedsize>true</fixedsize>
-	<mergepriority>0, 1</mergepriority>
+	<mergepriority>1, 0</mergepriority>
 
 	<images>
 		<image>

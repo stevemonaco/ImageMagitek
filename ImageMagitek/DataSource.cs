@@ -30,7 +30,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         _streamSemaphore.Wait();
         try
         {
-            return Stream.Value.ReadUnshifted(address, readBits);
+            return Stream.Value.ReadShifted(address, readBits);
         }
         finally
         {
@@ -43,7 +43,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         _streamSemaphore.Wait();
         try
         {
-            Stream.Value.ReadUnshifted(address, readBits, buffer);
+            Stream.Value.ReadShifted(address, readBits, buffer);
         }
         finally
         {
@@ -56,7 +56,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         await _streamSemaphore.WaitAsync();
         try
         {
-            return await Stream.Value.ReadUnshiftedAsync(address, readBits);
+            return await Stream.Value.ReadShiftedAsync(address, readBits);
         }
         finally
         {
@@ -69,7 +69,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         await _streamSemaphore.WaitAsync();
         try
         {
-            await Stream.Value.ReadUnshiftedAsync(address, readBits, buffer);
+            await Stream.Value.ReadShiftedAsync(address, readBits, buffer);
         }
         finally
         {
@@ -95,7 +95,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         _streamSemaphore.Wait();
         try
         {
-            Stream.Value.WriteUnshifted(address, buffer.Length * 8, buffer);
+            Stream.Value.WriteShifted(address, buffer.Length * 8, buffer);
         }
         finally
         {
@@ -108,7 +108,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         _streamSemaphore.Wait();
         try
         {
-            Stream.Value.WriteUnshifted(address, writeBits, buffer);
+            Stream.Value.WriteShifted(address, writeBits, buffer);
         }
         finally
         {
@@ -134,7 +134,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         await _streamSemaphore.WaitAsync();
         try
         {
-            await Stream.Value.WriteUnshiftedAsync(address, buffer.Length * 8, buffer);
+            await Stream.Value.WriteShiftedAsync(address, buffer.Length * 8, buffer);
         }
         finally
         {
@@ -147,7 +147,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         await _streamSemaphore.WaitAsync();
         try
         {
-            await Stream.Value.WriteUnshiftedAsync(address, writeBits, buffer);
+            await Stream.Value.WriteShiftedAsync(address, writeBits, buffer);
         }
         finally
         {

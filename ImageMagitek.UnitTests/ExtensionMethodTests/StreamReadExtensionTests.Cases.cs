@@ -40,7 +40,7 @@ public partial class StreamReadExtensionTests
         { _largeArray, new BitAddress(4, 7), 1, new byte[] { 0b10000000 } },
 
         { _largeArray, new BitAddress(2, 1), 14, new byte[] { 0b10101011, 0b10011000 } },
-        { _largeArray, new BitAddress(0, 1), 38, new byte[] { 0b01100111, 0b11111110, 0b10101011, 0b10011001, 0b00000010 } },
+        { _largeArray, new BitAddress(0, 1), 38, new byte[] { 0b01100111, 0b11111110, 0b10101011, 0b10011001, 0b00000000 } },
         { _largeArray, new BitAddress(0, 0), 40, _largeArray },
     };
 }
