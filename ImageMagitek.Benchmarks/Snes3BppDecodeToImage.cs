@@ -4,6 +4,7 @@ using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using BenchmarkDotNet.Attributes;
 using ImageMagitek.Colors.Serialization;
+using ImageMagitek.PluginSample;
 
 namespace ImageMagitek.Benchmarks;
 

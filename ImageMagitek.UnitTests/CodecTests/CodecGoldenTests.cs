@@ -44,4 +44,29 @@ public class CodecGoldenTests
             .UseDirectory("Snapshots")
             .UseFileName($"{codecName}_{width}x{height}");
     }
+
+    [Theory]
+    [MemberData(nameof(DirectCodecContractTests.ContractCases), MemberType = typeof(DirectCodecContractTests))]
+    public Task DirectCodec_MatchesSnapshot(string codecName, int width, int height)
+    {
+        var codec = CodecTestHelpers.CreateDirectCodec(_fixture.CodecFactory, codecName, width, height);
+        var el = CodecTestHelpers.CreateElement(codec);
+
+        var sb = new StringBuilder();
+        sb.Append($"codec: {codecName}\nsize: {width}x{height}\ncolorDepth: {codec.ColorDepth}\nstorageBits: {codec.StorageSize}\n");
+
+        var gradient = TestImageGenerator.GradientColors(width, height);
+        sb.Append("\nencode gradient:\n").Append(CodecTestHelpers.ToHex(CodecTestHelpers.Encode(codec, el, gradient)));
+
+        var random = DirectCodecContractTests.RepresentableColors(codecName, width, height, 101);
+        sb.Append("\nencode random representable colors (seed 101):\n").Append(CodecTestHelpers.ToHex(CodecTestHelpers.Encode(codec, el, random)));
+
+        var bytes = TestImageGenerator.RandomBytes((codec.StorageSize + 7) / 8, 202);
+        var decoded = CodecTestHelpers.Decode(codec, el, bytes);
+        sb.Append("\ndecode random bytes (seed 202) as RRGGBBAA:\n").Append(CodecTestHelpers.ToColorRows(decoded));
+
+        return Verifier.Verify(sb.ToString())
+            .UseDirectory("Snapshots")
+            .UseFileName($"{codecName}_{width}x{height}");
+    }
 }

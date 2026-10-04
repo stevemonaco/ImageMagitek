@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
+using ImageMagitek.Codec;
 using ImageMagitek.UnitTests.Fixtures;
 using Xunit;
 
@@ -10,7 +13,7 @@ namespace ImageMagitek.UnitTests;
 /// Contract every shipped XML flow and pattern codec must satisfy, independent of arrangers and data sources.
 /// </summary>
 [Collection("Codec")]
-public partial class IndexedCodecContractTests
+public partial class IndexedCodecContractTests : IndexedCodecContract
 {
     private readonly CodecFixture _fixture;
 
@@ -42,98 +45,22 @@ public partial class IndexedCodecContractTests
         }
     }
 
-    [Theory]
-    [MemberData(nameof(ContractCases))]
-    public void PixelsToBytesToPixels_RoundTrips(string codecName, int width, int height) =>
-        AssertPixelsRoundTrip(codecName, width, height);
-
-    [Theory]
-    [MemberData(nameof(ContractCases))]
-    public void BytesToPixelsToBytes_RoundTrips(string codecName, int width, int height) =>
-        AssertBytesRoundTrip(codecName, width, height);
-
-    [Theory]
-    [MemberData(nameof(ContractCases))]
-    public void Decode_IsIndependentOfPriorDecode(string codecName, int width, int height)
+    [Fact]
+    public void BuildOutputShipsEveryCodecXml()
     {
-        var codec = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height);
-        var freshCodec = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height);
-        var el = CodecTestHelpers.CreateElement(codec);
-        var length = (codec.StorageSize + 7) / 8;
-        var a = TestImageGenerator.RandomBytes(length, 11);
-        var b = TestImageGenerator.RandomBytes(length, 12);
+        var outputPath = Path.Combine(AppContext.BaseDirectory, "_codecs");
+        var expected = ReadXmlFiles(TestPaths.CodecsPath);
+        var actual = ReadXmlFiles(outputPath);
 
-        var expected = CodecTestHelpers.Decode(freshCodec, el, a);
-        var first = CodecTestHelpers.Decode(codec, el, a);
-        CodecTestHelpers.Decode(codec, el, b);
-        var second = CodecTestHelpers.Decode(codec, el, a);
+        Assert.Equal(expected.Keys.Order(), actual.Keys.Order());
 
-        IndexedImageAssert.AreEqual(expected, first);
-        IndexedImageAssert.AreEqual(expected, second);
+        foreach (var (name, contents) in expected)
+            Assert.True(contents == actual[name], $"Build output copy of '{name}' differs from the source file");
     }
 
-    [Theory]
-    [MemberData(nameof(ContractCases))]
-    public void Encode_IsIndependentOfPriorEncode(string codecName, int width, int height)
-    {
-        var codec = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height);
-        var freshCodec = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height);
-        var el = CodecTestHelpers.CreateElement(codec);
-        var a = TestImageGenerator.RandomIndices(width, height, codec.ColorDepth, 21);
-        var b = TestImageGenerator.RandomIndices(width, height, codec.ColorDepth, 22);
+    private static Dictionary<string, string> ReadXmlFiles(string path) =>
+        Directory.GetFiles(path, "*.xml").ToDictionary(x => Path.GetFileName(x)!, File.ReadAllText, StringComparer.OrdinalIgnoreCase);
 
-        var expected = CodecTestHelpers.Encode(freshCodec, el, a);
-        var first = CodecTestHelpers.Encode(codec, el, a);
-        CodecTestHelpers.Encode(codec, el, b);
-        var second = CodecTestHelpers.Encode(codec, el, a);
-
-        Assert.Equal(expected, first);
-        Assert.Equal(expected, second);
-    }
-
-    [Theory]
-    [MemberData(nameof(ContractCases))]
-    public void Decode_TooShortBuffer_ThrowsArgumentException(string codecName, int width, int height)
-    {
-        var codec = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height);
-        var el = CodecTestHelpers.CreateElement(codec);
-        var buffer = new byte[(codec.StorageSize + 7) / 8 - 1];
-
-        Assert.Throws<ArgumentException>(() => codec.DecodeElement(el, buffer));
-    }
-
-    [Theory]
-    [MemberData(nameof(ContractCases))]
-    public void Encode_WrongSizeImage_ThrowsArgumentException(string codecName, int width, int height)
-    {
-        var codec = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height);
-        var el = CodecTestHelpers.CreateElement(codec);
-
-        Assert.Throws<ArgumentException>(() => { codec.EncodeElement(el, new byte[height + 1, width]); });
-        Assert.Throws<ArgumentException>(() => { codec.EncodeElement(el, new byte[height, width + 1]); });
-    }
-
-    private void AssertPixelsRoundTrip(string codecName, int width, int height)
-    {
-        var codec = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height);
-        var el = CodecTestHelpers.CreateElement(codec);
-        var pixels = TestImageGenerator.RandomIndices(width, height, codec.ColorDepth, 1);
-
-        var encoded = CodecTestHelpers.Encode(codec, el, pixels);
-        var decoded = CodecTestHelpers.Decode(codec, el, encoded);
-
-        IndexedImageAssert.AreEqual(pixels, decoded);
-    }
-
-    private void AssertBytesRoundTrip(string codecName, int width, int height)
-    {
-        var codec = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height);
-        var el = CodecTestHelpers.CreateElement(codec);
-        var data = TestImageGenerator.RandomBytes((codec.StorageSize + 7) / 8, 2);
-
-        var decoded = CodecTestHelpers.Decode(codec, el, data);
-        var encoded = CodecTestHelpers.Encode(codec, el, decoded);
-
-        Assert.Equal(CodecTestHelpers.MaskToStorageSize(data, codec.StorageSize), CodecTestHelpers.MaskToStorageSize(encoded, codec.StorageSize));
-    }
+    protected override IIndexedCodec CreateCodec(string codecName, int width, int height) =>
+        CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height);
 }

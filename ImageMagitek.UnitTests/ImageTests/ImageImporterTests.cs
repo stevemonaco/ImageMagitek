@@ -4,6 +4,7 @@ using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Image.Import;
+using ImageMagitek.PluginSample;
 using ImageMagitek.UnitTests.TestFactories;
 using Xunit;
 

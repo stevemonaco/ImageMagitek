@@ -163,41 +163,65 @@ Work through these in order. Each item lists what it depends on.
 
 ### 4.1 Fix the codec packaging gap
 
-- [ ] Copy every XML in `ImageMagitek/_codecs` to output, and remove the stale `_codecs\SNES3bpp.xml` entry from `ImageMagitek.csproj` (see the Findings log). The simplest fix is a wildcard item instead of per-file entries.
-- [ ] Add a test that compares the codec XMLs in the build output with the source folder, so the gap can't come back.
+- [x] Copy every XML in `ImageMagitek/_codecs` to output, and remove the stale `_codecs\SNES3bpp.xml` entry from `ImageMagitek.csproj` (see the Findings log). The simplest fix is a wildcard item instead of per-file entries.
+- [x] Add a test that compares the codec XMLs in the build output with the source folder, so the gap can't come back.
 
 ### 4.2 Contract and golden tests for the direct-color codecs
 
 Phase 1 only covers indexed codecs. The 7 direct-color codecs (BMP 24, N64 RGBA16/32, PSX 16/24bpp, RGB24 Tiled, RGBA32 Tiled) need coverage before 4.4 changes them.
 
-- [ ] Extend the contract suite (round-trips both ways, buffer reuse, input validation) to `IDirectCodec`, using `ColorRgba32` pixel buffers.
-- [ ] Add Verify snapshots of encoded bytes and decoded pixels, and hand-verified known-answer pixels per format.
-- [ ] Add arranger round-trips and neighbor-isolation tests through `DirectImage`.
-- [ ] Record any bugs these tests expose in the Findings log, skipped with a reason, as in Phase 1. `FeatureGaps.md` already notes that N64 RGBA16 reports a 32-bit color depth and storage size.
+- [x] Extend the contract suite (round-trips both ways, buffer reuse, input validation) to `IDirectCodec`, using `ColorRgba32` pixel buffers.
+- [x] Add Verify snapshots of encoded bytes and decoded pixels, and hand-verified known-answer pixels per format.
+- [x] Add arranger round-trips and neighbor-isolation tests through `DirectImage`.
+- [x] Record any bugs these tests expose in the Findings log, skipped with a reason, as in Phase 1. `FeatureGaps.md` already notes that N64 RGBA16 reports a 32-bit color depth and storage size.
 
-### 4.3 Retire specialized codecs that duplicate XML codecs
+`DirectCodecContractTests`, `DirectCodecKnownAnswerTests` and `DirectArrangerRoundTripTests` cover all 7 codecs with generated `ColorRgba32` data. `CodecGoldenTests.DirectCodec_MatchesSnapshot` adds 19 new snapshots (`Bmp24_8x8`, `PSX 16bpp_64x64` and so on), and no existing snapshot changed. Pixel round-trips use colors reduced to what each format stores (alpha 255 for 24-bit formats, 5-bit channels for PSX 16bpp and N64 RGBA16). Each bug case runs in its own skipped theory, because xunit 2 can't skip individual cases, and each one was confirmed to fail without its skip.
 
-Depends on 4.1, because the XML replacements have to ship.
+### 4.3 Move duplicate C# codecs to samples
 
-- [ ] SNES 3bpp, PSX 4bpp and PSX 8bpp have XML equivalents that the 1.3 equivalence tests show produce identical bytes, and the XML versions are now faster. Remove the C# versions and point their registered names at the XML definitions.
-- [ ] Check that existing project files referring to those codecs by name still load, through a name alias or a migration.
-- [ ] Remove the unregistered C# NES 1bpp codec, which duplicates the XML codec's name (`FeatureGaps.md`).
-- [ ] Turn the equivalence tests for removed codecs into known-answer tests, or delete them.
+Depends on 4.1, because the XML equivalents have to ship.
 
-### 4.4 Apply the buffer contract to the remaining specialized codecs
+The C# SNES 3bpp, PSX 4bpp, PSX 8bpp and NES 1bpp codecs duplicate XML codecs. They stay in the repo, because they show that both approaches work and serve as learning samples. They move out of the shipped core library into `Samples/ImageMagitek.PluginSamples`, next to the existing sample `Snes4BppCodec`.
 
-Depends on 4.2 for the direct-color codecs.
+- [x] Move `Snes3BppCodec`, `Psx4BppCodec`, `Psx8BppCodec` and `Nes1BppCodec` to `Samples/ImageMagitek.PluginSamples`, and remove the first three from the built-in table in `CodecFactory`. `Nes1BppCodec` isn't registered there.
+- [x] Keep existing projects loading. Their names don't match the XML codecs ("SNES 3bpp" vs "SNES 3bpp Flow", "PSX 4bpp" vs "PSX 4bpp Flow"), so add a legacy-name alias in `CodecFactory` that maps the old names to the XML codecs. The 1.3 equivalence tests show the bytes are identical.
+- [x] As samples, they are loaded as plugins. Moving `Nes1BppCodec` this way also removes its name collision with the XML `NES 1bpp` codec from the core library. Loading them needs the plugin-loader constructor fix in `FeatureGaps.md`.
+- [x] Point `ImageMagitek.UnitTests` and `ImageMagitek.Benchmarks` at the samples project, so the 1.3 equivalence tests and the native-reference benchmark keep running. The samples then stay correct as the core library changes.
+- [x] Add a short header comment to each sample naming its XML twin. That way the two approaches can be read side by side.
 
-- [ ] Change `IndexedCodec.ReadElement` and `DirectCodec.ReadElement` to read into the reused `_foreignBuffer`, and remove the `BitStream` they create but never use.
-- [ ] Change each remaining specialized `EncodeElement` to write into a reused buffer instead of calling `BitStream.OpenWrite` for every element.
-- [ ] Rewrite per-bit hot loops (seek and read for every pixel) to use direct span access, as in Phases 2–3.
-- [ ] Extend `CodecElementBenchmarks` to cover a direct-color codec, and record before and after numbers here.
+The moved samples are named "SNES 3bpp Plugin", "PSX 4bpp Plugin", "PSX 8bpp Plugin" and "NES 1bpp Plugin", matching "SNES 4bpp Plugin". Registered names win over the legacy aliases, so a sample loaded under its old name would otherwise shadow the alias, and "NES 1bpp" would shadow the XML codec. Aliases resolve only in `CreateCodec` and never appear in `GetRegisteredCodecNames`. A re-saved project stores the XML codec's name. `CodecElementBenchmarks` registers the sample explicitly, because the alias would otherwise silently benchmark the Flow codec. `IPluginService.CodecPlugins` changed from a name-to-type dictionary to a list of types, and `CodecFactory.AddOrUpdateCodec` names each type by creating it with `DefaultPalette`.
+
+### 4.4 Apply the buffer contract to the specialized codecs and samples
+
+Depends on 4.2 for the direct-color codecs, and on 4.3 for the moved samples.
+
+- [x] Change `IndexedCodec.ReadElement` and `DirectCodec.ReadElement` to read into the reused `_foreignBuffer`, and remove the `BitStream` they create but never use.
+- [x] Change each specialized `EncodeElement`, including the samples, to write into a reused buffer instead of calling `BitStream.OpenWrite` for every element. The samples are learning material, so they should show the documented contract.
+- [x] Rewrite per-bit hot loops (seek and read for every pixel, as in `Snes3BppCodec`) to use direct span access, as in Phases 2–3.
+- [x] Extend `CodecElementBenchmarks` to cover a direct-color codec, and record before and after numbers here.
+
+Decoders read `encodedBuffer` directly, and encoders write into `_foreignBuffer`. Encoders that set bits with OR, and N64 RGBA16 (which writes only half of its storage), clear the buffer first. The `MarmaladeBoyCodec` and `LastArmageddonCodec` samples parse variable-length data and have no encoder, so their `BitStream` decode stays. All 4.2 tests and snapshots and all equivalence tests pass unchanged.
+
+Same environment as the Phase 1 baseline (BenchmarkDotNet 0.15.8 `ShortRun`, .NET 10.0.12 X64 RyuJIT, AMD Ryzen 9 9950X, Windows 11). The SNES 3bpp Flow, SNES4bpp Pattern and PSX 4bpp Flow rows didn't change in code, and their runs matched the Phase 3 column within noise.
+
+| Codec | Method | Before 4.4 | After 4.4 |
+|---|---|---|---|
+| SNES 3bpp Plugin 8x8 | Decode | 481 ns / 48 B | 105 ns / 0 B |
+| SNES 3bpp Plugin 8x8 | Encode | 522 ns / 96 B | 147 ns / 0 B |
+| SNES 3bpp Plugin 8x8 | ReadElement | 31 ns / 48 B | 29 ns / 0 B |
+| PSX 16bpp 64x64 | Decode | 28,358 ns / 0 B | 20,056 ns / 0 B |
+| PSX 16bpp 64x64 | Encode | 17,441 ns / 8,264 B | 8,231 ns / 0 B |
+| PSX 16bpp 64x64 | ReadElement | 182 ns / 8,216 B | 58 ns / 0 B |
+
+The PSX 16bpp decode had a standard deviation of about 3,000 ns in the after run, so treat its improvement as approximate.
 
 ### 4.5 Package the contract suite for plugin authors
 
-- [ ] Separate the 1.1 contract checks from `CodecFixture`. For example, make an abstract xunit base class that takes a codec factory and a list of sizes, either in the test project or in a small `ImageMagitek.Testing` package.
-- [ ] Add resize-increment and arranger neighbor-isolation checks, so plugins are held to the buffer lifetime contract too.
-- [ ] Run it against the sample plugins in `Samples/ImageMagitek.PluginSamples`. They need the plugin-loader constructor fix from `FeatureGaps.md` first.
+- [x] Separate the 1.1 contract checks from `CodecFixture`. For example, make an abstract xunit base class that takes a codec factory and a list of sizes, either in the test project or in a small `ImageMagitek.Testing` package.
+- [x] Add resize-increment and arranger neighbor-isolation checks, so plugins are held to the buffer lifetime contract too.
+- [x] Run it against the sample plugins in `Samples/ImageMagitek.PluginSamples`. They need the plugin-loader constructor fix from `FeatureGaps.md` first.
+
+`IndexedCodecContract` (in the test project) holds the theories. A derived class overrides `CreateCodec(name, width, height)` and declares a public static `ContractCases` property. The theories use a small `[ContractCases]` data attribute instead of `[MemberData]`, because xunit 2.9.3 resolves `MemberData` on the declaring type, which for inherited theories is the abstract base. `IndexedCodecContractTests` derives from it with every previous test name and case intact. It also gains `ResizeIncrements_AreHonored`, `EncodeAfterDecode_IsIndependent` and `SaveElement_ByteAligned_ChangesOnlyElementBits`, which shares its logic with `ElementIsolationTests`. `SamplePluginContractTests` registers every indexed codec in the samples assembly through `AddOrUpdateCodec`. For codecs with `CanEncode == false`, each encode check instead asserts that encoding throws `NotSupportedException`, and the decode checks run as usual.
 
 ### Deferred: bit access API
 
@@ -211,7 +235,7 @@ Record test-exposed bugs, equivalence disagreements and baseline benchmark numbe
 
 | Date | Area | Finding | Status |
 |---|---|---|---|
-| 2026-10-04 | `ImageMagitek.csproj` packaging | Only 16 of the 21 codec XMLs are copied to output. `CotMFont.xml`, `FF5Font Pattern.xml`, `GBA4bpp Pattern.xml`, `SNES4bpp Pattern.xml` and `SNES3bpp Flow.xml` are missing, and a stale `_codecs\SNES3bpp.xml` entry points at a file that no longer exists, so the app ships without any pattern codec or SNES 3bpp Flow. The tests load codecs from the source `_codecs` folder, so they don't catch this. | Open |
+| 2026-10-04 | `ImageMagitek.csproj` packaging | Only 16 of the 21 codec XMLs are copied to output. `CotMFont.xml`, `FF5Font Pattern.xml`, `GBA4bpp Pattern.xml`, `SNES4bpp Pattern.xml` and `SNES3bpp Flow.xml` are missing, and a stale `_codecs\SNES3bpp.xml` entry points at a file that no longer exists, so the app ships without any pattern codec or SNES 3bpp Flow. The tests load codecs from the source `_codecs` folder, so they don't catch this. `ImageMagitek.csproj` now copies `_codecs\*.xml` through one wildcard item, and `BuildOutputShipsEveryCodecXml` checks that the build output matches the source folder file for file. | Fixed (4.1) |
 | 2026-10-04 | `IndexedFlowGraphicsCodec.EncodeElement` | Row-interlaced encode uses `pos = y * el.Height` (line 180). Confirmed for SNES 2bpp/3bpp Flow/4bpp/8bpp and Game Gear 4bpp at 16x8 and 8x16. Fixed to `y * Width`, and decode and encode now both loop over the codec's `Width`/`Height` instead of a mix of `el.*` and `Format.*`. The skipped cases are folded into the normal contract, reversibility and golden theories, the 10 affected snapshots now pin encode output, and SNES 3bpp Flow at 16x8 and 8x16 matches the specialized `Snes3BppCodec` in both directions. | Fixed (Phase 2) |
 | 2026-10-04 | `XmlGraphicsFormatReader` / `FlowGraphicsFormat.Clone` | Both pass `defaultWidth, defaultHeight` into a constructor declared `(defaultHeight, defaultWidth)`. The registered format has width and height swapped, and `Clone` swaps them back, so codecs from `CodecFactory` are correct (verified by `AllShippedXmlCodecsLoad` on FF5 Font 8x12 and Tokimemo 16x14). Anything reading the registered format directly sees them swapped. | Open |
 | 2026-10-04 | `IndexedPatternGraphicsCodec` | `WidthResizeIncrement` is never assigned and is always 0. This is harmless today because pattern codecs report `CanResize == false`, but any caller that divides by it would fail. Now `1`, matching `HeightResizeIncrement`; `CanResize` and `GetPreferredWidth`/`Height` are unchanged. | Fixed (Phase 3) |
@@ -219,3 +243,9 @@ Record test-exposed bugs, equivalence disagreements and baseline benchmark numbe
 | 2026-10-04 | `DataSource` / `StreamRead/WriteExtensionMethods` | Elements at a non-byte-aligned `BitAddress` don't work. `ReadUnshifted`/`WriteUnshifted` don't shift data, and codecs' `ReadElement` buffers are `(StorageSize + 7) / 8` bytes, so the read throws `ArgumentException` (insufficient buffer length) for every codec whose `StorageSize` is a multiple of 8. NES 1bpp at 3x3 (9 bits) doesn't throw, but re-rendering returns the wrong indices. `ElementIsolationTests.SaveElement_NotByteAligned_ChangesOnlyElementBits` is skipped. Byte-aligned isolation passes for every codec, including the 9-bit case. | Open |
 | 2026-10-04 | Cross-codec equivalence | All six pairs in 1.3 agree in both directions at every tested size, including SNES 3bpp Flow non-square decode and NES 1bpp at 3x3. | No action |
 | 2026-10-04 | `MergePlanePriority` semantics (flow vs pattern) | The decode semantics agree. Both codecs put plane `p` into color bit `MergePlanePriority[p]`. The flow codec indexes its planes by the priority, and the pattern codec shifts by it, which comes to the same mapping. The old pattern encode applied `MergePlanePriority` and `RowPixelPattern` in the forward direction instead of inverting them, so it was only correct when both are their own inverse. Every shipped pattern XML qualifies, with identity or fully reversed priorities and a `0, 1` or `1, 0` row pattern, which is why the 1.3 equivalence tests passed. Phase 3 derives encode from the same per-bit table as decode, so encode is now the exact inverse for any permutation, and output for the shipped codecs is byte-identical (no snapshot changes). | Resolved (Phase 3) |
+| 2026-10-04 | `Bmp24Codec`, `N64Rgba16Codec`, `N64Rgba32Codec` | The requested size is ignored. `Width` and `Height` are get-only properties with inline initializers (`= 8` for Bmp24, `= 32` for N64), and the `(width, height)` constructors only call `base(width, height)`. `DirectCodec.AllocateBuffers` also sizes its buffers from `Width`/`Height` rather than its parameters. Creating these codecs at 16x8, 8x16 or 16x16 returns an 8x8 or 32x32 codec, and encoding an image of the requested size throws `ArgumentException`. `DirectCodecContractTests.CreatedCodec_HasRequestedSize_SizeIgnoredBug` is skipped for those 9 cases. | Open |
+| 2026-10-04 | `N64Rgba16Codec` | Reports `ColorDepth` 32 and `StorageSize` `32 * W * H`, but the format stores 16 bits per pixel (expected 16 and 16,384 bits at 32x32; actual 32 and 32,768). Decode reads only the first `2 * W * H` bytes. Encode writes those bytes and zero-fills the rest, so a bytes round-trip zeroes the second half of the element's storage, and so does saving through an arranger. The pixel layout itself, big-endian RGBA5551, matches the docs (`N64Rgba16_BigEndian5551_PixelLayout` passes). Now reports `ColorDepth` 16 and `StorageSize` `16 * W * H`, and encode no longer zero-fills. The known-answer, bytes round-trip and ROM-preservation tests are un-skipped, and the snapshot drops the zero half. | Fixed |
+| 2026-10-04 | `Psx16BppCodec` / `ColorConverterAbgr16` | STP is lost. The converter defaults to `AlphaBitTransparency.Opaque`, so decode maps STP=0 and STP=1 both to alpha 255, and encode sets STP=1 for any alpha above 128. Bytes `1F 00` (pure red, STP=0) re-encode as `1F 80`. The PSX docs expect STP=0 for opaque non-black pixels, and `0x0000` is the transparent color. The 5-5-5 RGB bits match the docs in both directions. `ColorConverterAbgr16` now maps all 65,536 values losslessly using PSX semantics: `0x0000` becomes transparent, STP on black stays opaque black, STP on any other color is semi-transparent (alpha 128), and no STP is opaque. The unused `AlphaBitTransparency` option is removed. `Abgr16` palettes share this converter, so they get the same behavior. Tests are un-skipped, a transparent and semi-transparent known-answer test is added, and the 4 PSX 16bpp snapshots now record STP=0 for opaque colors. | Fixed |
+| 2026-10-04 | `N64Rgba32Codec` | Reads and writes G,R,A,B per pixel. That is R,G,B,A with each 16-bit word byte-swapped, which matches the `.v64` ROM dump layout. N64 docs give R,G,B,A in a big-endian ROM. Pixel round-trips pass because the swap is symmetric. `N64Rgba32_RgbaPerPixel` is skipped (expected `12 34 56 78`, actual `34 12 78 56`), and the snapshot pins the current order. | Open |
+| 2026-10-04 | `Snes4BppCodec` sample | Encode increments `offsetPlane3` twice per pixel and never increments `offsetPlane4`, so plane 3 and 4 bits land in the wrong positions. This was found when 4.4 added `CodecEquivalenceTests.Snes4BppFlow_MatchesSample`, which the old encode fails. The 4.4 span rewrite matches the XML SNES 4bpp codec at 8x8, 16x8 and 8x16. | Fixed (4.4) |
+| 2026-10-04 | `MarmaladeBoyCodec`, `LastArmageddonCodec` samples | Decode writes only the pixels it draws and never clears `_nativeBuffer`, so pixels from a previous decode leak into the next one. `SamplePluginContractTests.Decode_IsIndependentOfPriorDecode` exposed it. Both decoders now clear the buffer first. | Fixed (4.5) |

@@ -1,10 +1,15 @@
 ﻿using System;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 
-namespace ImageMagitek.Codec;
+namespace ImageMagitek.PluginSample;
+
+/// <summary>
+/// C# implementation of the XML codec "PSX 8bpp Flow" (_codecs/PSX8bpp.xml).
+/// </summary>
 public sealed class Psx8BppCodec : IndexedCodec
 {
-    public override string Name => "PSX 8bpp";
+    public override string Name => "PSX 8bpp Plugin";
     public override ImageLayout Layout => ImageLayout.Single;
     public override int ColorDepth => 8;
     public override int StorageSize => Width * Height * 8;

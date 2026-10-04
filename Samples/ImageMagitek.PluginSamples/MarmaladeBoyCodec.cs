@@ -38,6 +38,8 @@ public class MarmaladeBoyCodec : IndexedCodec
         if (encodedBuffer.Length * 8 < StorageSize)
             throw new ArgumentException($"{nameof(DecodeElement)}: buffer size is too small", nameof(encodedBuffer));
 
+        // Only drawn pixels are written, so clear what a previous decode left behind
+        Array.Clear(_nativeBuffer);
         encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
 
         _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);

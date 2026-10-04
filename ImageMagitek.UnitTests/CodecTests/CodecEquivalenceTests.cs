@@ -1,4 +1,5 @@
 using ImageMagitek.Codec;
+using ImageMagitek.PluginSample;
 using ImageMagitek.UnitTests.Fixtures;
 using ImageMagitek.UnitTests.TestFactories;
 using Xunit;
@@ -47,6 +48,16 @@ public class CodecEquivalenceTests
     {
         var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "PSX 8bpp Flow", width, height);
         AssertEquivalent(flow, new Psx8BppCodec(flow.Palette, width, height));
+    }
+
+    [Theory]
+    [InlineData(8, 8)]
+    [InlineData(16, 8)]
+    [InlineData(8, 16)]
+    public void Snes4BppFlow_MatchesSample(int width, int height)
+    {
+        var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "SNES 4bpp", width, height);
+        AssertEquivalent(flow, new Snes4BppCodec(flow.Palette, width, height));
     }
 
     [Fact]

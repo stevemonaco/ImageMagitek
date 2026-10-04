@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -16,6 +16,14 @@ public sealed class CodecFactory : ICodecFactory
     private readonly Dictionary<string, IGraphicsFormat> _formats;
     private readonly Dictionary<string, Type> _codecs;
 
+    // Names of retired built-in codecs, kept so existing projects resolve to their byte-identical XML codecs
+    private static readonly Dictionary<string, string> _legacyCodecNames = new()
+    {
+        ["SNES 3bpp"] = "SNES 3bpp Flow",
+        ["PSX 4bpp"] = "PSX 4bpp Flow",
+        ["PSX 8bpp"] = "PSX 8bpp Flow",
+    };
+
     /// <summary>
     /// Creates a CodecFactory and registers default codecs and provided formats
     /// </summary>
@@ -29,7 +37,6 @@ public sealed class CodecFactory : ICodecFactory
         _codecs = new Dictionary<string, Type>
         {
             // Initialize with built-in codecs
-            { "SNES 3bpp", typeof(Snes3BppCodec) }, { "PSX 4bpp", typeof(Psx4BppCodec) }, { "PSX 8bpp", typeof(Psx8BppCodec) },
             { "Rgb24 Tiled", typeof(Rgb24TiledCodec) }, { "Rgba32 Tiled", typeof(Rgba32TiledCodec) }, { "Bmp24", typeof(Bmp24Codec)},
             { "N64 Rgba16", typeof(N64Rgba16Codec) }, { "N64 Rgba32", typeof(N64Rgba32Codec) },
             { "PSX 16bpp", typeof(Psx16BppCodec) }, { "PSX 24bpp", typeof(Psx24BppCodec) }
@@ -38,13 +45,11 @@ public sealed class CodecFactory : ICodecFactory
 
     public void AddOrUpdateCodec(Type codecType)
     {
-        if (typeof(IGraphicsCodec).IsAssignableFrom(codecType) && !codecType.IsAbstract)
-        {
-            if (Activator.CreateInstance(codecType) is IGraphicsCodec codec)
-                _codecs[codec.Name] = codecType;
-        }
-        else
+        if (!typeof(IGraphicsCodec).IsAssignableFrom(codecType) || codecType.IsAbstract)
             throw new ArgumentException($"{nameof(AddOrUpdateCodec)} parameter '{nameof(codecType)}' is not of type {typeof(IGraphicsCodec)} or is not instantiable");
+
+        var codec = CreateInstance(codecType, null);
+        _codecs[codec.Name] = codecType;
     }
 
     public void AddOrUpdateFormat(IGraphicsFormat format)
@@ -62,19 +67,11 @@ public sealed class CodecFactory : ICodecFactory
     /// <exception cref="KeyNotFoundException">The codec name was not registered</exception>
     public IGraphicsCodec? CreateCodec(string codecName, Size? elementSize = default)
     {
-        if (_codecs.ContainsKey(codecName)) // Prefer built-in codecs
-        {
-            var codecType = _codecs[codecName];
-            bool usePalette = codecType.IsAssignableTo(typeof(IIndexedCodec));
+        if (!_codecs.ContainsKey(codecName) && !_formats.ContainsKey(codecName) && _legacyCodecNames.TryGetValue(codecName, out var currentName))
+            codecName = currentName;
 
-            return (elementSize.HasValue, codecType.IsAssignableTo(typeof(IIndexedCodec))) switch
-            {
-                (true, true) => Activator.CreateInstance(codecType, DefaultPalette, elementSize!.Value.Width, elementSize!.Value.Height) as IGraphicsCodec,
-                (false, true) => Activator.CreateInstance(codecType, DefaultPalette) as IGraphicsCodec,
-                (true, false) => Activator.CreateInstance(codecType, elementSize!.Value.Width, elementSize!.Value.Height) as IGraphicsCodec,
-                (false, false) => Activator.CreateInstance(codecType) as IGraphicsCodec
-            };
-        }
+        if (_codecs.TryGetValue(codecName, out var codecType)) // Prefer built-in codecs
+            return CreateInstance(codecType, elementSize);
         else if (_formats.ContainsKey(codecName)) // Fallback to generalized codecs
         {
             var format = _formats[codecName].Clone();
@@ -121,6 +118,21 @@ public sealed class CodecFactory : ICodecFactory
             throw new ArgumentException($"Could not clone Codec '{codec.Name}'");
 
         return clonedCodec;
+    }
+
+    private IGraphicsCodec CreateInstance(Type codecType, Size? elementSize)
+    {
+        var isIndexed = codecType.IsAssignableTo(typeof(IIndexedCodec));
+        Type[] leadingTypes = isIndexed ? [typeof(Palette)] : [];
+        object[] leadingArgs = isIndexed ? [DefaultPalette] : [];
+
+        if (elementSize is Size size && codecType.GetConstructor([.. leadingTypes, typeof(int), typeof(int)]) is { } sizedConstructor)
+            return (IGraphicsCodec)sizedConstructor.Invoke([.. leadingArgs, size.Width, size.Height]);
+
+        if (codecType.GetConstructor(leadingTypes) is { } constructor)
+            return (IGraphicsCodec)constructor.Invoke(leadingArgs);
+
+        throw new ArgumentException($"Codec type '{codecType}' has no supported constructor");
     }
 
     public IEnumerable<string> GetRegisteredCodecNames()

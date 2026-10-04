@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
+    <ProjectReference Include="..\Samples\ImageMagitek.PluginSamples\ImageMagitek.PluginSamples.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -56,16 +56,12 @@ public abstract class DirectCodec : IDirectCodec
     /// </summary>
     public virtual ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
     {
-        var buffer = new byte[(StorageSize + 7) / 8];
-        var bitStream = BitStream.OpenRead(buffer, StorageSize);
-
         if (el.SourceAddress.Offset + StorageSize > el.Source.Length * 8)
             return null;
 
-        bitStream.SeekAbsolute(0);
-        el.Source.Read(el.SourceAddress, StorageSize, buffer);
+        el.Source.Read(el.SourceAddress, StorageSize, _foreignBuffer);
 
-        return buffer;
+        return _foreignBuffer;
     }
 
     /// <summary>

@@ -40,7 +40,16 @@ public class CodecFixture : IDisposable
         XmlCodecNames = CodecFactory.GetRegisteredCodecNames()
             .Where(x => CodecFactory.CreateCodec(x) is IndexedFlowGraphicsCodec or IndexedPatternGraphicsCodec)
             .ToList();
+
+        DirectCodecNames = CodecFactory.GetRegisteredCodecNames()
+            .Where(x => CodecFactory.CreateCodec(x) is IDirectCodec)
+            .ToList();
     }
+
+    /// <summary>
+    /// Names of every built-in direct-color codec, ordered by name.
+    /// </summary>
+    public IReadOnlyList<string> DirectCodecNames { get; }
 
     public void Dispose()
     {

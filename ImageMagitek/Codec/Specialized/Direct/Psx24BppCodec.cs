@@ -21,8 +21,6 @@ public sealed class Psx24BppCodec : DirectCodec
     public override int DefaultWidth => 64;
     public override int DefaultHeight => 64;
 
-    private readonly IBitStreamReader _bitReader;
-
     public Psx24BppCodec()
     {
         Width = DefaultWidth;
@@ -30,8 +28,6 @@ public sealed class Psx24BppCodec : DirectCodec
 
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new ColorRgba32[Height, Width];
-
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public Psx24BppCodec(int width, int height)
@@ -41,8 +37,6 @@ public sealed class Psx24BppCodec : DirectCodec
 
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new ColorRgba32[Height, Width];
-
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public override ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -50,16 +44,14 @@ public sealed class Psx24BppCodec : DirectCodec
         if (encodedBuffer.Length * 8 < StorageSize)
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
-        _bitReader.SeekAbsolute(0);
-
+        int src = 0;
         for (int y = 0; y < el.Height; y++)
         {
-            for (int x = 0; x < el.Width; x++)
+            for (int x = 0; x < el.Width; x++, src += 3)
             {
-                byte r = _bitReader.ReadByte();
-                byte g = _bitReader.ReadByte();
-                byte b = _bitReader.ReadByte();
+                var r = encodedBuffer[src];
+                var g = encodedBuffer[src + 1];
+                var b = encodedBuffer[src + 2];
 
                 _nativeBuffer[y, x] = new ColorRgba32(r, g, b, 0xFF);
             }
@@ -73,19 +65,18 @@ public sealed class Psx24BppCodec : DirectCodec
         if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
             throw new ArgumentException(nameof(imageBuffer));
 
-        var bs = BitStream.OpenWrite(StorageSize, 8);
-
+        int dest = 0;
         for (int y = 0; y < el.Height; y++)
         {
-            for (int x = 0; x < el.Width; x++)
+            for (int x = 0; x < el.Width; x++, dest += 3)
             {
                 var imageColor = imageBuffer[y, x];
-                bs.WriteByte(imageColor.R);
-                bs.WriteByte(imageColor.G);
-                bs.WriteByte(imageColor.B);
+                _foreignBuffer[dest] = imageColor.R;
+                _foreignBuffer[dest + 1] = imageColor.G;
+                _foreignBuffer[dest + 2] = imageColor.B;
             }
         }
 
-        return bs.Data;
+        return _foreignBuffer;
     }
 }

@@ -108,9 +108,9 @@ public class BootstrapService
         if (Directory.Exists(fullPluginPath))
         {
             pluginService.LoadCodecPlugins(fullPluginPath);
-            foreach (var codecPlugin in pluginService.CodecPlugins)
+            foreach (var codecType in pluginService.CodecPlugins)
             {
-                codecService.AddOrUpdateCodec(codecPlugin.Value);
+                codecService.AddOrUpdateCodec(codecType);
             }
         }
 

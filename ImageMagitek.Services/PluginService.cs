@@ -9,14 +9,17 @@ namespace ImageMagitek.Services;
 
 public interface IPluginService
 {
-    public IDictionary<string, Type> CodecPlugins { get; }
+    /// <summary>
+    /// Discovered codec types, which are named and instantiated by <see cref="ICodecFactory.AddOrUpdateCodec"/>.
+    /// </summary>
+    public IList<Type> CodecPlugins { get; }
 
     void LoadCodecPlugins(string pluginsPath);
 }
 
 public sealed class PluginService : IPluginService
 {
-    public IDictionary<string, Type> CodecPlugins { get; } = new Dictionary<string, Type>();
+    public IList<Type> CodecPlugins { get; } = new List<Type>();
 
     public void LoadCodecPlugins(string pluginsPath)
     {
@@ -36,11 +39,8 @@ public sealed class PluginService : IPluginService
                     .GetTypes()
                     .Where(t => typeof(IGraphicsCodec).IsAssignableFrom(t) && !t.IsAbstract);
 
-                var codecs = pluginTypes.Select(Activator.CreateInstance)
-                    .OfType<IGraphicsCodec>();
-
-                foreach (var codec in codecs)
-                    CodecPlugins.Add(codec.Name, codec.GetType());
+                foreach (var pluginType in pluginTypes)
+                    CodecPlugins.Add(pluginType);
             }
         }
     }

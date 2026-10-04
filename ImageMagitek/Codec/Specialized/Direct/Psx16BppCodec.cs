@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using ImageMagitek.Colors;
 using ImageMagitek.Colors.Converters;
 
@@ -22,7 +23,6 @@ public sealed class Psx16BppCodec : DirectCodec
     public override int DefaultWidth => 64;
     public override int DefaultHeight => 64;
 
-    private readonly IBitStreamReader _bitReader;
     private readonly ColorConverterAbgr16 _colorConverter = new ColorConverterAbgr16();
 
     public Psx16BppCodec()
@@ -32,8 +32,6 @@ public sealed class Psx16BppCodec : DirectCodec
 
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new ColorRgba32[Height, Width];
-
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public Psx16BppCodec(int width, int height)
@@ -43,8 +41,6 @@ public sealed class Psx16BppCodec : DirectCodec
 
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new ColorRgba32[Height, Width];
-
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public override ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -52,16 +48,12 @@ public sealed class Psx16BppCodec : DirectCodec
         if (encodedBuffer.Length * 8 < StorageSize)
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer.Slice(0, _foreignBuffer.Length).CopyTo(_foreignBuffer);
-        _bitReader.SeekAbsolute(0);
-
+        int src = 0;
         for (int y = 0; y < el.Height; y++)
         {
-            for (int x = 0; x < el.Width; x++)
+            for (int x = 0; x < el.Width; x++, src += 2)
             {
-                uint packedColor = _bitReader.ReadByte();
-                packedColor |= (uint)_bitReader.ReadByte() << 8;
-                var abgr16 = new ColorAbgr16(packedColor);
+                var abgr16 = new ColorAbgr16(BinaryPrimitives.ReadUInt16LittleEndian(encodedBuffer[src..]));
                 _nativeBuffer[y, x] = _colorConverter.ToNativeColor(abgr16);
             }
         }
@@ -74,23 +66,17 @@ public sealed class Psx16BppCodec : DirectCodec
         if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
             throw new ArgumentException(nameof(imageBuffer));
 
-        var bs = BitStream.OpenWrite(StorageSize, 8);
-
+        int dest = 0;
         for (int y = 0; y < el.Height; y++)
         {
-            for (int x = 0; x < el.Width; x++)
+            for (int x = 0; x < el.Width; x++, dest += 2)
             {
                 var imageColor = imageBuffer[y, x];
                 var fc = _colorConverter.ToForeignColor(imageColor);
-
-                byte high = (byte)((fc.Color & 0xFF00) >> 8);
-                byte low = (byte)(fc.Color & 0xFF);
-
-                bs.WriteByte(low);
-                bs.WriteByte(high);
+                BinaryPrimitives.WriteUInt16LittleEndian(_foreignBuffer.AsSpan(dest), (ushort)fc.Color);
             }
         }
 
-        return bs.Data;
+        return _foreignBuffer;
     }
 }

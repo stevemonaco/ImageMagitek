@@ -34,6 +34,29 @@ public static class TestImageGenerator
         return indices;
     }
 
+    public static ColorRgba32[,] RandomColors(int width, int height, uint seed)
+    {
+        var rng = new XorShift32(seed);
+        var colors = new ColorRgba32[height, width];
+
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+                colors[y, x] = new ColorRgba32((byte)rng.Next(), (byte)rng.Next(), (byte)rng.Next(), (byte)rng.Next());
+
+        return colors;
+    }
+
+    public static ColorRgba32[,] GradientColors(int width, int height)
+    {
+        var colors = new ColorRgba32[height, width];
+
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+                colors[y, x] = new ColorRgba32((byte)(x * 8), (byte)(y * 8), (byte)((x + y) * 4), (byte)(255 - x - y));
+
+        return colors;
+    }
+
     public static byte[] RandomBytes(int length, uint seed)
     {
         var rng = new XorShift32(seed);
@@ -58,7 +81,7 @@ public static class TestImageGenerator
         return ArrangerTestFactory.CreatePalette(colors);
     }
 
-    public static byte[] Flatten(byte[,] indices) => indices.Cast<byte>().ToArray();
+    public static T[] Flatten<T>(T[,] values) => values.Cast<T>().ToArray();
 
     private struct XorShift32(uint seed)
     {

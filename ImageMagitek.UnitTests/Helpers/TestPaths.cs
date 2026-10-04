@@ -7,7 +7,7 @@ namespace ImageMagitek.UnitTests;
 public static class TestPaths
 {
     /// <summary>
-    /// The shipped XML codec definitions in the source tree, which include codecs the ImageMagitek build does not copy to output.
+    /// The shipped XML codec definitions in the source tree.
     /// </summary>
     public static string CodecsPath => Path.GetFullPath(Path.Combine(ThisDir(), "..", "..", "ImageMagitek", "_codecs"));
 

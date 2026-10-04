@@ -1,28 +1,27 @@
-﻿namespace ImageMagitek.Colors.Converters;
+namespace ImageMagitek.Colors.Converters;
 
-public enum AlphaBitTransparency { Transparent, BlackTransparent, SemiTransparent, Opaque }
+/// <summary>
+/// Converts PlayStation ABGR1555 colors losslessly using the hardware STP semantics: 0x0000 is transparent,
+/// STP on black is opaque black, STP on any other color is semi-transparent, and no STP is opaque.
+/// </summary>
 public sealed class ColorConverterAbgr16 : IColorConverter<ColorAbgr16>
 {
     private const byte _alphaTransparent = 0;
     private const byte _alphaSemiTransparent = 128;
     private const byte _alphaOpaque = 255;
-    private readonly AlphaBitTransparency _transparency;
-
-    public ColorConverterAbgr16() : this(AlphaBitTransparency.Opaque) { }
-
-    public ColorConverterAbgr16(AlphaBitTransparency transparency)
-    {
-        _transparency = transparency;
-    }
 
     public ColorAbgr16 ToForeignColor(ColorRgba32 nc)
     {
+        if (nc.A < 64)
+            return new ColorAbgr16(0);
+
         byte r = (byte)(nc.R >> 3);
         byte g = (byte)(nc.G >> 3);
         byte b = (byte)(nc.B >> 3);
-        byte a = (byte)(nc.A <= _alphaSemiTransparent ? 0 : 1);
+        bool isBlack = (r | g | b) == 0;
+        byte stp = (byte)(isBlack || nc.A < 192 ? 1 : 0);
 
-        return new ColorAbgr16(r, g, b, a);
+        return new ColorAbgr16(r, g, b, stp);
     }
 
     public ColorRgba32 ToNativeColor(ColorAbgr16 fc)
@@ -30,26 +29,14 @@ public sealed class ColorConverterAbgr16 : IColorConverter<ColorAbgr16>
         byte r = (byte)(fc.R << 3);
         byte g = (byte)(fc.G << 3);
         byte b = (byte)(fc.B << 3);
-        byte a = _alphaOpaque;
+        bool isBlack = (fc.R | fc.G | fc.B) == 0;
 
-        if (fc.A != 1)
-            return new ColorRgba32(r, g, b, a);
-        
-        switch (_transparency)
+        byte a = (fc.A, isBlack) switch
         {
-            case AlphaBitTransparency.Transparent:
-                a = _alphaTransparent;
-                break;
-            case AlphaBitTransparency.BlackTransparent:
-                a = fc.Color == 0 ? _alphaTransparent : _alphaOpaque;
-                break;
-            case AlphaBitTransparency.SemiTransparent:
-                a = _alphaSemiTransparent;
-                break;
-            case AlphaBitTransparency.Opaque:
-                a = _alphaOpaque;
-                break;
-        }
+            (0, true) => _alphaTransparent,
+            (1, false) => _alphaSemiTransparent,
+            _ => _alphaOpaque
+        };
 
         return new ColorRgba32(r, g, b, a);
     }

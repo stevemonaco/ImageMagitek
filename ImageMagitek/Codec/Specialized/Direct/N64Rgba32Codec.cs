@@ -21,16 +21,12 @@ public sealed class N64Rgba32Codec : DirectCodec
     public override int DefaultWidth => 32;
     public override int DefaultHeight => 32;
 
-    private readonly IBitStreamReader _bitReader;
-
     public N64Rgba32Codec()
     {
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public N64Rgba32Codec(int width, int height) : base(width, height)
     {
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public override ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -38,17 +34,15 @@ public sealed class N64Rgba32Codec : DirectCodec
         if (encodedBuffer.Length * 8 < StorageSize)
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
-        _bitReader.SeekAbsolute(0);
-
+        int src = 0;
         for (int y = 0; y < el.Height; y++)
         {
-            for (int x = 0; x < el.Width; x++)
+            for (int x = 0; x < el.Width; x++, src += 4)
             {
-                var g = _bitReader.ReadByte();
-                var r = _bitReader.ReadByte();
-                var a = _bitReader.ReadByte();
-                var b = _bitReader.ReadByte();
+                var g = encodedBuffer[src];
+                var r = encodedBuffer[src + 1];
+                var a = encodedBuffer[src + 2];
+                var b = encodedBuffer[src + 3];
 
                 _nativeBuffer[y, x] = new ColorRgba32(r, g, b, a);
             }
@@ -62,20 +56,19 @@ public sealed class N64Rgba32Codec : DirectCodec
         if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
             throw new ArgumentException(nameof(imageBuffer));
 
-        var bs = BitStream.OpenWrite(StorageSize, 8);
-
+        int dest = 0;
         for (int y = 0; y < el.Height; y++)
         {
-            for (int x = 0; x < el.Width; x++)
+            for (int x = 0; x < el.Width; x++, dest += 4)
             {
                 var imageColor = imageBuffer[y, x];
-                bs.WriteByte(imageColor.G);
-                bs.WriteByte(imageColor.R);
-                bs.WriteByte(imageColor.A);
-                bs.WriteByte(imageColor.B);
+                _foreignBuffer[dest] = imageColor.G;
+                _foreignBuffer[dest + 1] = imageColor.R;
+                _foreignBuffer[dest + 2] = imageColor.A;
+                _foreignBuffer[dest + 3] = imageColor.B;
             }
         }
 
-        return bs.Data;
+        return _foreignBuffer;
     }
 }

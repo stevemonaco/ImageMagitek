@@ -1,4 +1,3 @@
-using System.Linq;
 using ImageMagitek.UnitTests.Fixtures;
 using Xunit;
 
@@ -52,25 +51,6 @@ public class ElementIsolationTests
     public void SaveElement_NotByteAligned_ChangesOnlyElementBits(string codecName, int width, int height, bool randomSentinel) =>
         AssertIsolated(codecName, width, height, randomSentinel, _unalignedOffsetBits);
 
-    private void AssertIsolated(string codecName, int width, int height, bool randomSentinel, int offsetBits)
-    {
-        var palette = TestImageGenerator.CreateDistinctPalette(8);
-        var codec = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height, palette);
-        var length = (offsetBits + codec.StorageSize + 7) / 8 + 8;
-        var before = randomSentinel ? TestImageGenerator.RandomBytes(length, 61) : Enumerable.Repeat((byte)0xFF, length).ToArray();
-
-        var source = new MemoryDataSource("test", length);
-        source.Write(BitAddress.Zero, before);
-
-        var arranger = new ScatteredArranger("test", PixelColorType.Indexed, ElementLayout.Tiled, 1, 1, width, height);
-        arranger.SetElement(new ArrangerElement(0, 0, source, new BitAddress(offsetBits), codec), 0, 0);
-
-        var indices = TestImageGenerator.Flatten(TestImageGenerator.RandomIndices(width, height, codec.ColorDepth, 62));
-        CodecTestHelpers.SaveIndices(arranger, indices);
-
-        var after = source.Read(BitAddress.Zero, length * 8);
-        BitAssert.EqualOutside(before, after, offsetBits, codec.StorageSize);
-        IndexedImageAssert.AreEqual(indices, new IndexedImage(arranger).Image, width);
-    }
-
+    private void AssertIsolated(string codecName, int width, int height, bool randomSentinel, int offsetBits) =>
+        CodecTestHelpers.AssertSaveIsolated(CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height), randomSentinel, offsetBits);
 }

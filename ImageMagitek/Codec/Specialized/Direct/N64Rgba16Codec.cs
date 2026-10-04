@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec;
@@ -9,8 +10,8 @@ public sealed class N64Rgba16Codec : DirectCodec
     public override int Width { get; } = 32;
     public override int Height { get; } = 32;
     public override ImageLayout Layout => ImageLayout.Tiled;
-    public override int ColorDepth => 32;
-    public override int StorageSize => Width * Height * 32;
+    public override int ColorDepth => 16;
+    public override int StorageSize => Width * Height * 16;
     public override int RowStride { get; } = 0;
     public override int ElementStride { get; } = 0;
 
@@ -21,16 +22,12 @@ public sealed class N64Rgba16Codec : DirectCodec
     public override int DefaultHeight => 32;
     public override bool CanEncode => true;
 
-    private readonly IBitStreamReader _bitReader;
-
     public N64Rgba16Codec()
     {
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public N64Rgba16Codec(int width, int height) : base(width, height)
     {
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public override ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -38,14 +35,12 @@ public sealed class N64Rgba16Codec : DirectCodec
         if (encodedBuffer.Length * 8 < StorageSize)
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
-        _bitReader.SeekAbsolute(0);
-
+        int src = 0;
         for (int y = 0; y < el.Height; y++)
         {
-            for (int x = 0; x < el.Width; x++)
+            for (int x = 0; x < el.Width; x++, src += 2)
             {
-                ushort pair = (ushort)(_bitReader.ReadByte() << 8 | _bitReader.ReadByte());
+                ushort pair = BinaryPrimitives.ReadUInt16BigEndian(encodedBuffer[src..]);
                 byte r = (byte)((pair >> 11) << 3);
                 byte g = (byte)(((pair >> 6) & 0x1F) << 3);
                 byte b = (byte)(((pair >> 1) & 0x1F) << 3);
@@ -63,11 +58,10 @@ public sealed class N64Rgba16Codec : DirectCodec
         if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
             throw new ArgumentException(nameof(imageBuffer));
 
-        var bs = BitStream.OpenWrite(StorageSize, 8);
-
+        int dest = 0;
         for (int y = 0; y < el.Height; y++)
         {
-            for (int x = 0; x < el.Width; x++)
+            for (int x = 0; x < el.Width; x++, dest += 2)
             {
                 var imageColor = imageBuffer[y, x];
 
@@ -77,14 +71,10 @@ public sealed class N64Rgba16Codec : DirectCodec
                 ushort a = imageColor.A == 255 ? (byte)1 : (byte)0;
 
                 ushort pair = (ushort)(r | g | b | a);
-                byte high = (byte)(pair >> 8);
-                byte low = (byte)(pair & 0xFF);
-
-                bs.WriteByte(high);
-                bs.WriteByte(low);
+                BinaryPrimitives.WriteUInt16BigEndian(_foreignBuffer.AsSpan(dest), pair);
             }
         }
 
-        return bs.Data;
+        return _foreignBuffer;
     }
 }

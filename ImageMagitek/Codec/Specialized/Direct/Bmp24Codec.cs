@@ -21,16 +21,12 @@ public sealed class Bmp24Codec : DirectCodec
     public override int DefaultWidth => 8;
     public override int DefaultHeight => 8;
 
-    private IBitStreamReader _bitReader;
-
     public Bmp24Codec()
     {
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public Bmp24Codec(int width, int height) : base(width, height)
     {
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
     }
 
     public override ColorRgba32[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
@@ -38,16 +34,14 @@ public sealed class Bmp24Codec : DirectCodec
         if (encodedBuffer.Length * 8 < StorageSize)
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
-        _bitReader.SeekAbsolute(0);
-
+        int src = 0;
         for (int y = el.Height - 1; y >= 0; y--)
         {
-            for (int x = 0; x < el.Width; x++)
+            for (int x = 0; x < el.Width; x++, src += 3)
             {
-                var b = _bitReader.ReadByte();
-                var g = _bitReader.ReadByte();
-                var r = _bitReader.ReadByte();
+                var b = encodedBuffer[src];
+                var g = encodedBuffer[src + 1];
+                var r = encodedBuffer[src + 2];
 
                 _nativeBuffer[y, x] = new ColorRgba32(r, g, b, 0xFF);
             }
@@ -61,19 +55,18 @@ public sealed class Bmp24Codec : DirectCodec
         if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
             throw new ArgumentException(nameof(imageBuffer));
 
-        var bs = BitStream.OpenWrite(StorageSize, 8);
-
+        int dest = 0;
         for (int y = el.Height - 1; y >= 0; y--)
         {
-            for (int x = 0; x < el.Width; x++)
+            for (int x = 0; x < el.Width; x++, dest += 3)
             {
                 var imageColor = imageBuffer[y, x];
-                bs.WriteByte(imageColor.B);
-                bs.WriteByte(imageColor.G);
-                bs.WriteByte(imageColor.R);
+                _foreignBuffer[dest] = imageColor.B;
+                _foreignBuffer[dest + 1] = imageColor.G;
+                _foreignBuffer[dest + 2] = imageColor.R;
             }
         }
 
-        return bs.Data;
+        return _foreignBuffer;
     }
 }
