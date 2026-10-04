@@ -3,18 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
-using ColorMine.ColorSpaces.Comparisons;
 using CommunityToolkit.Diagnostics;
 using ImageMagitek.Colors.Serialization;
 using ImageMagitek.ExtensionMethods;
 using ImageMagitek.Project;
 
 namespace ImageMagitek.Colors;
-
-/// <summary>
-/// Determines how strictly colors should be matched to the palette
-/// </summary>
-public enum ColorMatchStrategy { Exact, Nearest }
 
 //public enum ColorModel { RGBA32 = 0, RGB24, ARGB32, BGR15, ABGR16, RGB15, NES, BGR9, BGR6 }
 public enum ColorModel { Rgba32 = 0, Bgr15 = 3, Abgr16 = 4, Nes = 6, Bgr9 = 7, Bgr6 = 8, Rgb15 = 9 }
@@ -33,7 +27,6 @@ public enum PaletteStorageSource { ProjectXml, GlobalJson }
 /// </summary>
 public class Palette : IProjectResource
 {
-    private static readonly Cie94Comparison _comparator = new(Cie94Comparison.Application.GraphicArts);
     private readonly IColorFactory _colorFactory;
     private readonly IColorSourceSerializer _colorSerializer;
 
@@ -246,137 +239,34 @@ public class Palette : IProjectResource
         NativePalette.Contains(color);
 
 
+    /// <summary>
+    /// Finds the palette index matching the specified native color
+    /// </summary>
+    /// <returns>False when no entry is acceptable for the strategy</returns>
     public bool TryGetIndexByNativeColor(ColorRgba32 color, ColorMatchStrategy matchStrategy, out byte index)
     {
-        if (matchStrategy == ColorMatchStrategy.Exact)
+        var matcher = new PaletteColorMatcher(this, matchStrategy);
+
+        if (matcher.TryMatch(color, out var match))
         {
-            var searchIndex = Array.IndexOf(NativePalette, color);
-
-            if (searchIndex >= 0)
-            {
-                index = (byte)searchIndex;
-                return true;
-            }
-            else
-            {
-                index = default;
-                return false;
-            }
-        }
-        else if (matchStrategy == ColorMatchStrategy.Nearest)
-        {
-            // Try exact match first
-            var searchIndex = Array.IndexOf(NativePalette, color);
-
-            if (searchIndex >= 0)
-            {
-                index = (byte)searchIndex;
-                return true;
-            }
-
-            // Fallback to color comparison
-
-            var c1 = new ColorMine.ColorSpaces.Rgb { R = color.R, G = color.G, B = color.B };
-            var h1 = c1.To<ColorMine.ColorSpaces.Hsl>();
-
-            double minDistance = double.MaxValue;
-            byte minIndex = 0;
-
-            for (byte i = 0; i < Entries; i++)
-            {
-                var palColor = NativePalette[i];
-                var c2 = new ColorMine.ColorSpaces.Rgb { R = palColor.R, G = palColor.G, B = palColor.B };
-                var h2 = c2.To<ColorMine.ColorSpaces.Hsl>();
-
-                double distance = h1.Compare(h2, _comparator);
-
-                if (distance < minDistance)
-                {
-                    minDistance = distance;
-                    minIndex = i;
-                }
-            }
-
-            index = minIndex;
+            index = match.Index;
             return true;
         }
 
-        throw new NotImplementedException($"{nameof(TryGetIndexByNativeColor)} was called with unknown {nameof(ColorMatchStrategy)}");
-
-        // Color matching involves converting colors to hue-saturation-luminance and comparing
-
-        //var c1 = new ColorMine.ColorSpaces.Rgb { R = color.R(), G = color.G(), B = color.B() };
-        //var h1 = c1.To<ColorMine.ColorSpaces.Hsl>();
-
-        //double MinDistance = double.MaxValue;
-        //byte MinIndex = 0;
-        //Cie94Comparison comparator = new Cie94Comparison(Cie94Comparison.Application.GraphicArts);
-
-        //for(byte i = 0; i < Entries; i++)
-        //{
-        //    var c2 = new ColorMine.ColorSpaces.Rgb { R = NativePalette[i].R(), G = NativePalette[i].G(), B = NativePalette[i].B() };
-        //    var h2 = c2.To<ColorMine.ColorSpaces.Hsl>();
-
-        //    double Distance = c1.Compare(c2, comparator);
-
-        //    if(Distance < MinDistance)
-        //    {
-        //        MinDistance = Distance;
-        //        MinIndex = i;
-        //    }
-        //}
-
-        //return MinIndex;
+        index = default;
+        return false;
     }
 
     /// <summary>
-    /// Returns a palette index matching the specified Native ARGB32 color
+    /// Returns the palette index matching the specified native color
     /// </summary>
-    /// <param name="color">NativeColor to search for</param>
-    /// <param name="exactColorOnly">true to return only exactly matched colors; false to match the closest color</param>
-    /// <returns>A palette index matching the specified color</returns>
+    /// <exception cref="ArgumentException">No entry is acceptable for the strategy</exception>
     public byte GetIndexByNativeColor(ColorRgba32 color, ColorMatchStrategy matchStrategy)
     {
-        if (matchStrategy == ColorMatchStrategy.Exact)
-        {
-            for (byte i = 0; i < Entries; i++)
-            {
-                if (NativePalette[i].Color == color.Color)
-                    return i;
-            }
+        if (TryGetIndexByNativeColor(color, matchStrategy, out var index))
+            return index;
 
-            // Failed to find the exact color in the palette
-            throw new Exception($"{nameof(GetIndexByNativeColor)} could not match exact color");
-        }
-        else if (matchStrategy == ColorMatchStrategy.Nearest)
-        {
-
-        }
-        // Color matching involves converting colors to hue-saturation-luminance and comparing
-        throw new NotImplementedException();
-
-        //var c1 = new ColorMine.ColorSpaces.Rgb { R = color.R(), G = color.G(), B = color.B() };
-        //var h1 = c1.To<ColorMine.ColorSpaces.Hsl>();
-
-        //double MinDistance = double.MaxValue;
-        //byte MinIndex = 0;
-        //Cie94Comparison comparator = new Cie94Comparison(Cie94Comparison.Application.GraphicArts);
-
-        //for(byte i = 0; i < Entries; i++)
-        //{
-        //    var c2 = new ColorMine.ColorSpaces.Rgb { R = NativePalette[i].R(), G = NativePalette[i].G(), B = NativePalette[i].B() };
-        //    var h2 = c2.To<ColorMine.ColorSpaces.Hsl>();
-
-        //    double Distance = c1.Compare(c2, comparator);
-
-        //    if(Distance < MinDistance)
-        //    {
-        //        MinDistance = Distance;
-        //        MinIndex = i;
-        //    }
-        //}
-
-        //return MinIndex;
+        throw new ArgumentException($"{nameof(GetIndexByNativeColor)} could not match color (R: {color.R}, G: {color.G}, B: {color.B}, A: {color.A}) within palette '{Name}'");
     }
 
     /// <summary>

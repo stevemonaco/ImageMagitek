@@ -1,4 +1,5 @@
 ﻿using ImageMagitek.Colors;
+using ImageMagitek.Image.Import;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Xunit;
@@ -30,9 +31,9 @@ public partial class ScatteredArrangerReversibilityTests
 
         var exportedImageFileName = $"test.png";
 
-        var indexedImage = new IndexedImage(arranger);
-        indexedImage.ImportImage(imageFileName, new ImageSharpFileAdapter(), ColorMatchStrategy.Exact);
-        indexedImage.ExportImage(exportedImageFileName, new ImageSharpFileAdapter());
+        var preview = ImageImporter.Prepare(arranger, imageFileName, ImageImportOptions.Default, new ImageSharpFileAdapter()).AsSuccess.Result;
+        preview.Commit();
+        new IndexedImage(arranger).ExportImage(exportedImageFileName, new ImageSharpFileAdapter());
 
         using var expected = Image<Rgba32>.Load<Rgba32>(imageFileName);
         using var actual = Image<Rgba32>.Load<Rgba32>(exportedImageFileName);

@@ -251,7 +251,15 @@ public partial class ProjectTreeViewModel : ToolViewModel
     [RelayCommand]
     public async Task ImportArrangerFrom(ScatteredArranger arranger)
     {
-        var dialogModel = new ImportImageViewModel(arranger, _fileSelect);
+        if (!await ResolveUnsavedChangesBeforeImport(arranger))
+            return;
+
+        var fileName = await _fileSelect.RequestImportArrangerFileName();
+
+        if (fileName is null)
+            return;
+
+        var dialogModel = new ImportImageViewModel(arranger, fileName.LocalPath, _fileSelect, _preferencesStore);
         var dialogResult = await _interactions.RequestAsync(dialogModel);
 
         if (dialogResult is not null)
@@ -259,6 +267,35 @@ public partial class ProjectTreeViewModel : ToolViewModel
             var changeMessage = new ArrangerChangedMessage(arranger, ArrangerChange.Pixels);
             Messenger.Send(changeMessage);
         }
+    }
+
+    /// <summary>
+    /// Has the user save or discard an open editor's unsaved changes so the import previews and writes against the saved data
+    /// </summary>
+    /// <returns>False if the user cancelled or the save failed</returns>
+    private async Task<bool> ResolveUnsavedChangesBeforeImport(Arranger arranger)
+    {
+        var editor = _editors.Editors.FirstOrDefault(x => ReferenceEquals(x.Resource, arranger));
+
+        if (editor is not { IsModified: true })
+            return true;
+
+        var result = await _interactions.PromptAsync(PromptChoices.YesNoCancel, "Save Changes",
+            $"'{editor.DisplayName}' has unsaved changes. Save them before importing?");
+
+        if (result == PromptResult.Accept)
+        {
+            await editor.SaveChangesAsync();
+            return !editor.IsModified;
+        }
+
+        if (result == PromptResult.Reject)
+        {
+            editor.DiscardChanges();
+            return true;
+        }
+
+        return false;
     }
 
     [RelayCommand]

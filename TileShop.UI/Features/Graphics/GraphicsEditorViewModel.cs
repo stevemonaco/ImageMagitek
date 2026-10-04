@@ -438,6 +438,27 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     public void Render() => InvalidateEditor(InvalidationLevel.PixelData);
 
+    /// <summary>
+    /// Re-reads pixels written to the data sources outside this editor; history is cleared since it no longer applies to the new data
+    /// </summary>
+    public void ReloadFromSource()
+    {
+        InvalidateEditor(InvalidationLevel.Display);
+        ClearHistory();
+    }
+
+    /// <summary>
+    /// True when this editor reads any of the same data as <paramref name="arranger"/>
+    /// </summary>
+    public bool SharesDataWith(Arranger arranger)
+    {
+        if (ReferenceEquals(arranger, _projectArranger) || ReferenceEquals(arranger, WorkingArranger))
+            return true;
+
+        var sources = arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Source).ToHashSet();
+        return WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Any(x => sources.Contains(x.Source));
+    }
+
     private void ReloadImage() => _imageAdapter.Render();
 
     public bool ContainsPoint(double x, double y)

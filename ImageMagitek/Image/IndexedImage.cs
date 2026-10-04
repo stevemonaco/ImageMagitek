@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using ImageMagitek.Codec;
-using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 
 namespace ImageMagitek;
@@ -53,22 +52,6 @@ public sealed class IndexedImage : ImageBase<byte>
 
     public override void ExportImage(string imagePath, IImageFileAdapter adapter) =>
         adapter.SaveImage(Image, Arranger, imagePath);
-
-    public void ImportImage(string imagePath, IImageFileAdapter adapter, ColorMatchStrategy matchStrategy)
-    {
-        var importImage = adapter.LoadImage(imagePath, Arranger, matchStrategy);
-        importImage.CopyTo(Image, 0);
-    }
-
-    public MagitekResult TryImportImage(string imagePath, IImageFileAdapter adapter, ColorMatchStrategy matchStrategy)
-    {
-        var result = adapter.TryLoadImage(imagePath, Arranger, matchStrategy, out var importImage);
-
-        if (result.Value is MagitekResult.Success && importImage is not null)
-            importImage.CopyTo(Image, 0);
-
-        return result;
-    }
 
     public override void Render()
     {

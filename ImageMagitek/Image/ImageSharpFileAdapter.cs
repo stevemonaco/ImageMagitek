@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
 using System.IO;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
@@ -60,103 +60,28 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
         outputImage.SaveAsPng(outputStream);
     }
 
-    public byte[] LoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy)
+    public MagitekResult<DecodedImage> LoadImage(string imagePath)
     {
         Configuration.Default.PreferContiguousImageBuffers = true;
-        using var inputImage = SixLabors.ImageSharp.Image.Load<Rgba32>(imagePath);
-        var width = inputImage.Width;
-        var height = inputImage.Height;
 
-        var outputImage = new byte[width * height];
-        int destidx = 0;
-
-        for (int y = 0; y < height; y++)
+        try
         {
+            using var inputImage = SixLabors.ImageSharp.Image.Load<Rgba32>(imagePath);
+            var width = inputImage.Width;
+            var height = inputImage.Height;
+            var pixels = new ColorRgba32[width * height];
+
             inputImage.DangerousTryGetSinglePixelMemory(out var memory);
-            var span = memory.Slice(y * width, width).Span;
+            var span = memory.Span;
 
-            for (int x = 0; x < width; x++, destidx++)
-            {
-                if (arranger.GetElementAtPixel(x, y)?.Codec is IIndexedCodec codec)
-                {
-                    var pal = codec.Palette;
-                    var color = new ColorRgba32(span[x].PackedValue);
-                    var palIndex = pal.GetIndexByNativeColor(color, matchStrategy);
-                    outputImage[destidx] = palIndex;
-                }
-            }
+            for (int i = 0; i < pixels.Length; i++)
+                pixels[i] = new ColorRgba32(span[i].PackedValue);
+
+            return new MagitekResult<DecodedImage>.Success(new DecodedImage(pixels, width, height));
         }
-
-        return outputImage;
-    }
-
-    public MagitekResult TryLoadImage(string imagePath, Arranger arranger, ColorMatchStrategy matchStrategy, out byte[]? image)
-    {
-        Configuration.Default.PreferContiguousImageBuffers = true;
-        using var inputImage = SixLabors.ImageSharp.Image.Load<Rgba32>(imagePath);
-        var width = inputImage.Width;
-        var height = inputImage.Height;
-
-        if (width != arranger.ArrangerPixelSize.Width || height != arranger.ArrangerPixelSize.Height)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ImageFormatException)
         {
-            image = default;
-            return new MagitekResult.Failed($"Arranger dimensions ({arranger.ArrangerPixelSize.Width}, {arranger.ArrangerPixelSize.Height})" +
-                $" do not match image dimensions ({width}, {height})");
+            return new MagitekResult<DecodedImage>.Failed($"Could not load image '{imagePath}': {ex.Message}");
         }
-
-        image = new byte[width * height];
-        int destidx = 0;
-
-        for (int y = 0; y < height; y++)
-        {
-            inputImage.DangerousTryGetSinglePixelMemory(out var memory);
-            var span = memory.Slice(y * width, width).Span;
-
-            for (int x = 0; x < width; x++, destidx++)
-            {
-                if (arranger.GetElementAtPixel(x, y)?.Codec is IIndexedCodec codec)
-                {
-                    var pal = codec.Palette;
-                    var color = new ColorRgba32(span[x].PackedValue);
-
-                    if (pal.TryGetIndexByNativeColor(color, matchStrategy, out var palIndex))
-                    {
-                        image[destidx] = palIndex;
-                    }
-                    else
-                    {
-                        return new MagitekResult.Failed($"Could not match image color (R: {color.R}, G: {color.G}, B: {color.B}, A: {color.A}) within palette '{pal.Name}'");
-                    }
-                }
-            }
-        }
-
-        return MagitekResult.SuccessResult;
-    }
-
-    public ColorRgba32[] LoadImage(string imagePath)
-    {
-        Configuration.Default.PreferContiguousImageBuffers = true;
-        using var inputImage = SixLabors.ImageSharp.Image.Load<Rgba32>(imagePath);
-        var width = inputImage.Width;
-        var height = inputImage.Height;
-
-        var outputImage = new ColorRgba32[width * height];
-        int destidx = 0;
-
-        for (int y = 0; y < height; y++)
-        {
-            inputImage.DangerousTryGetSinglePixelMemory(out var memory);
-            var span = memory.Slice(y * width, width).Span;
-
-            for (int x = 0; x < width; x++)
-            {
-                var color = new ColorRgba32(span[x].PackedValue);
-                outputImage[destidx] = color;
-                destidx++;
-            }
-        }
-
-        return outputImage;
     }
 }

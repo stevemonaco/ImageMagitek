@@ -35,4 +35,12 @@ public static partial class AppIcons
     public static StreamGeometry CheckedBox { get; } = StreamGeometry.Parse("M 5 3 h 14 a 2 2 0 0 1 2 2 v 14 a 2 2 0 0 1 -2 2 h -14 a 2 2 0 0 1 -2 -2 v -14 a 2 2 0 0 1 2 -2 Z M 16 9 l -5.5 5.5 L 8 12"); // square-check
     public static StreamGeometry UncheckedBox { get; } = StreamGeometry.Parse("M 5 3 h 14 a 2 2 0 0 1 2 2 v 14 a 2 2 0 0 1 -2 2 h -14 a 2 2 0 0 1 -2 -2 v -14 a 2 2 0 0 1 2 -2 Z"); // square
     public static StreamGeometry ChevronDown { get; } = StreamGeometry.Parse("M 6 9 l 6 6 l 6 -6"); // chevron-down
+    public static StreamGeometry FolderOpen { get; } = StreamGeometry.Parse("M 6 14 l 1.5 -2.9 A 2 2 0 0 1 9.24 10 H 20 a 2 2 0 0 1 1.94 2.5 l -1.54 6 a 2 2 0 0 1 -1.95 1.5 H 4 a 2 2 0 0 1 -2 -2 V 5 a 2 2 0 0 1 2 -2 h 3.9 a 2 2 0 0 1 1.69 .9 l .81 1.2 a 2 2 0 0 0 1.67 .9 H 18 a 2 2 0 0 1 2 2 v 2"); // folder-open
+    public static StreamGeometry ZoomIn { get; } = StreamGeometry.Parse("M 3 11 a 8 8 0 1 0 16 0 a 8 8 0 1 0 -16 0 Z M 21 21 L 16.65 16.65 M 11 8 L 11 14 M 8 11 L 14 11"); // zoom-in
+    public static StreamGeometry ZoomOut { get; } = StreamGeometry.Parse("M 3 11 a 8 8 0 1 0 16 0 a 8 8 0 1 0 -16 0 Z M 21 21 L 16.65 16.65 M 8 11 L 14 11"); // zoom-out
+    public static StreamGeometry FitToView { get; } = StreamGeometry.Parse("M 8 3 H 5 a 2 2 0 0 0 -2 2 v 3 M 21 8 V 5 a 2 2 0 0 0 -2 -2 h -3 M 3 16 v 3 a 2 2 0 0 0 2 2 h 3 M 16 21 h 3 a 2 2 0 0 0 2 -2 v -3"); // maximize
+    public static StreamGeometry ViewCurrent { get; } = StreamGeometry.Parse("M 5 3 h 14 a 2 2 0 0 1 2 2 v 14 a 2 2 0 0 1 -2 2 h -14 a 2 2 0 0 1 -2 -2 v -14 a 2 2 0 0 1 2 -2 Z M 7 9 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0 Z M 21 15 l -3.086 -3.086 a 2 2 0 0 0 -2.828 0 L 6 21"); // image
+    public static StreamGeometry ViewImported { get; } = StreamGeometry.Parse("M 10.3 21 H 5 a 2 2 0 0 1 -2 -2 V 5 a 2 2 0 0 1 2 -2 h 14 a 2 2 0 0 1 2 2 v 10 l -3.1 -3.1 a 2 2 0 0 0 -2.814 .014 L 6 21 M 14 19 l 3 3 v -5.5 M 17 22 l 3 -3 M 7 9 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0 Z"); // image-down
+    public static StreamGeometry ViewOnionSkin { get; } = StreamGeometry.Parse("M 13 13.74 a 2 2 0 0 1 -2 0 L 2.5 8.87 a 1 1 0 0 1 0 -1.74 L 11 2.26 a 2 2 0 0 1 2 0 l 8.5 4.87 a 1 1 0 0 1 0 1.74 z M 20 14.285 l 1.5 .845 a 1 1 0 0 1 0 1.74 L 13 21.74 a 2 2 0 0 1 -2 0 l -8.5 -4.87 a 1 1 0 0 1 0 -1.74 l 1.5 -.845"); // layers-2
+    public static StreamGeometry ViewDiff { get; } = StreamGeometry.Parse("M 12 3 v 14 M 5 10 h 14 M 5 21 h 14"); // diff
 }
