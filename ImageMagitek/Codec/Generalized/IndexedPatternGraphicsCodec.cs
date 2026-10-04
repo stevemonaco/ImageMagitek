@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using ImageMagitek.Colors;
 
@@ -25,13 +24,14 @@ public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
     private byte[,] _nativeBuffer;
     public byte[,] NativeBuffer => _nativeBuffer;
 
-    private IBitStreamReader _bitReader;
-    private List<int[,]> _planeImages;
+    // Indexed by encoded bit: flat native pixel index and color-bit shift
+    private int[] _bitPixel;
+    private byte[] _bitShift;
 
     public int DefaultWidth => Format.DefaultWidth;
     public int DefaultHeight => Format.DefaultHeight;
     public bool CanResize => !Format.FixedSize;
-    public int WidthResizeIncrement { get; }
+    public int WidthResizeIncrement => 1;
     public int HeightResizeIncrement => 1;
 
     public bool CanEncode => true;
@@ -49,32 +49,13 @@ public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
         if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
-        _bitReader.SeekAbsolute(0);
+        var native = PackedBits.AsFlatSpan(_nativeBuffer);
+        native.Clear();
 
-        for (int i = 0; i < StorageSize; i++)
-        {
-            var bit = _bitReader.ReadBit();
-            var coordinate = Format.Pattern.GetDecodeIndex(i);
-            _planeImages[coordinate.P][coordinate.X, coordinate.Y] = bit;
-        }
+        for (int b = 0; b < _bitPixel.Length; b++)
+            native[_bitPixel[b]] |= (byte)(PackedBits.ReadBit(encodedBuffer, b) << _bitShift[b]);
 
-        for (int y = 0; y < Height; y++)
-        {
-            for (int x = 0; x < Width; x++)
-            {
-                byte color = 0;
-                int xpos = Format.RowPixelPattern[x];
-
-                for (int i = 0; i < Format.ColorDepth; i++)
-                {
-                    color |= (byte)(_planeImages[i][x, y] << Format.MergePlanePriority[i]);
-                }
-                NativeBuffer[y, xpos] = color;
-            }
-        }
-
-        return NativeBuffer;
+        return _nativeBuffer;
     }
 
     public ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer)
@@ -82,39 +63,34 @@ public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
         if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
             throw new ArgumentException(nameof(imageBuffer));
 
-        var bs = BitStream.OpenWrite(StorageSize, 8);
+        var image = PackedBits.AsFlatSpan(imageBuffer);
+        var output = _foreignBuffer.AsSpan();
+        output.Clear();
 
-        for (short y = 0; y < Height; y++)
+        for (int b = 0; b < _bitPixel.Length; b++)
         {
-            for (short x = 0; x < Width; x++)
-            {
-                int color = imageBuffer[y, x];
-                for (short i = 0; i < Format.ColorDepth; i++)
-                {
-                    var bit = (color >> i) & 1;
-                    short xpos = (short)Format.RowPixelPattern[x];
-                    short plane = (short)Format.MergePlanePriority[i];
-                    var index = Format.Pattern.GetEncodeIndex(new PlaneCoordinate(xpos, y, plane));
-                    bs.SeekAbsolute(index);
-                    bs.WriteBit(bit);
-                }
-            }
+            if (((image[_bitPixel[b]] >> _bitShift[b]) & 1) != 0)
+                PackedBits.SetBit(output, b);
         }
 
-        return bs.Data;
+        return _foreignBuffer;
     }
 
-    [MemberNotNull(nameof(_foreignBuffer), nameof(_nativeBuffer), nameof(_bitReader), nameof(_planeImages))]
+    [MemberNotNull(nameof(_foreignBuffer), nameof(_nativeBuffer), nameof(_bitPixel), nameof(_bitShift))]
     private void AllocateBuffers()
     {
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new byte[Height, Width];
 
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        _bitPixel = new int[StorageSize];
+        _bitShift = new byte[StorageSize];
 
-        _planeImages = new List<int[,]>();
-        for (int i = 0; i < Format.ColorDepth; i++)
-            _planeImages.Add(new int[Width, Height]);
+        for (int b = 0; b < StorageSize; b++)
+        {
+            var coordinate = Format.Pattern.GetDecodeIndex(b);
+            _bitPixel[b] = coordinate.Y * Width + Format.RowPixelPattern[coordinate.X];
+            _bitShift[b] = (byte)Format.MergePlanePriority[coordinate.P];
+        }
     }
 
     public int GetPreferredWidth(int width) => DefaultWidth;
@@ -122,14 +98,12 @@ public sealed class IndexedPatternGraphicsCodec : IIndexedCodec
 
     public ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
     {
-        var buffer = new byte[(StorageSize + 7) / 8];
-
         if (el.SourceAddress.Offset + StorageSize > el.Source.Length * 8)
             return null;
 
-        el.Source.Read(el.SourceAddress, StorageSize, buffer);
+        el.Source.Read(el.SourceAddress, StorageSize, _foreignBuffer);
 
-        return buffer;
+        return _foreignBuffer;
     }
 
     public void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)

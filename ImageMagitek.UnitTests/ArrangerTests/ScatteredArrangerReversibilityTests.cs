@@ -26,19 +26,9 @@ public partial class ScatteredArrangerReversibilityTests
     public void ImageToDataToImage_RoundTrips(string codecName, int width, int height) =>
         AssertImageRoundTrip(codecName, width, height);
 
-    [Theory(Skip = CodecTestHelpers.RowInterlaceEncodeBug)]
-    [MemberData(nameof(KnownBugReverseCases))]
-    public void ImageToDataToImage_RowInterlacedNonSquare_RoundTrips(string codecName, int width, int height) =>
-        AssertImageRoundTrip(codecName, width, height);
-
     [Theory]
     [MemberData(nameof(ReverseCases))]
     public void DataToImageToData_PreservesRom(string codecName, int width, int height) =>
-        AssertRomPreserved(codecName, width, height);
-
-    [Theory(Skip = CodecTestHelpers.RowInterlaceEncodeBug)]
-    [MemberData(nameof(KnownBugReverseCases))]
-    public void DataToImageToData_RowInterlacedNonSquare_PreservesRom(string codecName, int width, int height) =>
         AssertRomPreserved(codecName, width, height);
 
     private void AssertImageRoundTrip(string codecName, int width, int height)

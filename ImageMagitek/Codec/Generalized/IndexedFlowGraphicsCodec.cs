@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec;
 
-public class IndexedFlowGraphicsCodec : IIndexedCodec
+public sealed class IndexedFlowGraphicsCodec : IIndexedCodec
 {
     public string Name { get; set; }
     public FlowGraphicsFormat Format { get; private set; }
@@ -21,11 +20,11 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
     public int Height => Format.Height;
     public bool CanEncode => true;
 
-    public virtual ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
-    protected byte[] _foreignBuffer;
+    public ReadOnlySpan<byte> ForeignBuffer => _foreignBuffer;
+    private byte[] _foreignBuffer;
 
-    protected byte[,] _nativeBuffer;
-    public virtual byte[,] NativeBuffer => _nativeBuffer;
+    private byte[,] _nativeBuffer;
+    public byte[,] NativeBuffer => _nativeBuffer;
 
     public int DefaultWidth => Format.DefaultWidth;
     public int DefaultHeight => Format.DefaultHeight;
@@ -33,17 +32,8 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
     public int WidthResizeIncrement { get; }
     public int HeightResizeIncrement => 1;
 
-    /// <summary>
-    /// Preallocated buffer that separates and stores pixel color data
-    /// </summary>
-    private List<byte[]> _elementData;
-
-    /// <summary>
-    /// Preallocated buffer that stores merged pixel color data
-    /// </summary>
-    private byte[] _mergedData;
-
-    private IBitStreamReader _bitReader;
+    // [property][x] -> column from RowPixelPattern
+    private int[][] _columnOffsets;
 
     public IndexedFlowGraphicsCodec(FlowGraphicsFormat format, Palette palette)
     {
@@ -57,22 +47,21 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
         WidthResizeIncrement = format.ImageProperties.Max(x => x.RowPixelPattern.Count);
     }
 
-    [MemberNotNull(nameof(_foreignBuffer), nameof(_nativeBuffer), nameof(_elementData), nameof(_mergedData), nameof(_bitReader))]
+    [MemberNotNull(nameof(_foreignBuffer), nameof(_nativeBuffer), nameof(_columnOffsets))]
     private void AllocateBuffers()
     {
-        _elementData = new List<byte[]>();
-        for (int i = 0; i < Format.ColorDepth; i++)
-        {
-            byte[] data = new byte[Format.Width * Format.Height];
-            _elementData.Add(data);
-        }
-
-        _mergedData = new byte[Format.Width * Format.Height];
-
         _foreignBuffer = new byte[(StorageSize + 7) / 8];
         _nativeBuffer = new byte[Height, Width];
 
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
+        _columnOffsets = new int[Format.ImageProperties.Count][];
+        for (int p = 0; p < Format.ImageProperties.Count; p++)
+        {
+            var columns = new int[Width];
+            for (int x = 0; x < Width; x++)
+                columns[x] = Format.ImageProperties[p].RowPixelPattern[x];
+
+            _columnOffsets[p] = columns;
+        }
     }
 
     /// <inheritdoc/>
@@ -81,44 +70,41 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
         if (encodedBuffer.Length * 8 < StorageSize) // Decoding would require data past the end of the buffer
             throw new ArgumentException(nameof(encodedBuffer));
 
-        encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
-        _bitReader.SeekAbsolute(0);
+        var native = PackedBits.AsFlatSpan(_nativeBuffer);
+        native.Clear();
 
+        int bit = 0;
         int plane = 0;
-        int scanlinePosition;
 
-        // Deinterlace into separate bitplanes
-        foreach (ImageProperty ip in Format.ImageProperties)
+        for (int p = 0; p < Format.ImageProperties.Count; p++)
         {
+            var ip = Format.ImageProperties[p];
+            var columns = _columnOffsets[p];
+            var priorities = Format.MergePlanePriority.AsSpan(plane, ip.ColorDepth);
+
             if (ip.RowInterlace)
             {
-                for (int y = 0; y < el.Height; y++)
+                for (int y = 0; y < Height; y++)
                 {
-                    for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
+                    int row = y * Width;
+                    for (int k = 0; k < priorities.Length; k++)
                     {
-                        scanlinePosition = y * el.Width;
-                        for (int x = 0; x < el.Width; x++)
-                        {
-                            var mergePlane = Format.MergePlanePriority[curPlane];
-                            var pixelPosition = scanlinePosition + ip.RowPixelPattern[x];
-                            _elementData[mergePlane][pixelPosition] = (byte)_bitReader.ReadBit();
-                        }
+                        int shift = priorities[k];
+                        for (int x = 0; x < Width; x++)
+                            native[row + columns[x]] |= (byte)(PackedBits.ReadBit(encodedBuffer, bit++) << shift);
                     }
                 }
             }
-            else // Non-interlaced
+            else
             {
-                for (int y = 0; y < el.Height; y++)
+                for (int y = 0; y < Height; y++)
                 {
-                    for (int x = 0; x < el.Width; x++)
+                    int row = y * Width;
+                    for (int x = 0; x < Width; x++)
                     {
-                        scanlinePosition = y * el.Width;
-                        for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
-                        {
-                            var mergePlane = Format.MergePlanePriority[curPlane];
-                            int pixelPosition = scanlinePosition + ip.RowPixelPattern[x];
-                            _elementData[mergePlane][pixelPosition] = (byte)_bitReader.ReadBit();
-                        }
+                        int pos = row + columns[x];
+                        for (int k = 0; k < priorities.Length; k++)
+                            native[pos] |= (byte)(PackedBits.ReadBit(encodedBuffer, bit++) << priorities[k]);
                     }
                 }
             }
@@ -126,23 +112,7 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
             plane += ip.ColorDepth;
         }
 
-        // Merge into foreign pixel data 
-        byte foreignPixelData;
-
-        for (scanlinePosition = 0; scanlinePosition < _mergedData.Length; scanlinePosition++)
-        {
-            foreignPixelData = 0;
-            for (int i = 0; i < Format.ColorDepth; i++)
-                foreignPixelData |= (byte)(_elementData[i][scanlinePosition] << i); // Works for SNES image data and palettes, may need customization later
-            _mergedData[scanlinePosition] = foreignPixelData;
-        }
-
-        scanlinePosition = 0;
-        for (int y = 0; y < Height; y++)
-            for (int x = 0; x < Width; x++, scanlinePosition++)
-                _nativeBuffer[y, x] = _mergedData[scanlinePosition];
-
-        return NativeBuffer;
+        return _nativeBuffer;
     }
 
     /// <inheritdoc/>
@@ -151,53 +121,47 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
         if (imageBuffer.GetLength(0) != Height || imageBuffer.GetLength(1) != Width)
             throw new ArgumentException(nameof(imageBuffer));
 
-        int pos = 0;
-        for (int y = 0; y < Height; y++)
-            for (int x = 0; x < Width; x++, pos++)
-                _mergedData[pos] = imageBuffer[y, x];
+        var image = PackedBits.AsFlatSpan(imageBuffer);
+        var output = _foreignBuffer.AsSpan();
+        output.Clear();
 
-        // Loop over MergedData to split foreign colors into bit planes in ElementData
-        for (pos = 0; pos < _mergedData.Length; pos++)
-        {
-            for (int i = 0; i < Format.ColorDepth; i++)
-                _elementData[i][pos] = (byte)((_mergedData[pos] >> i) & 0x1);
-        }
-
-        // Loop over planes and write bits to data buffer with proper interlacing
-        var bs = BitStream.OpenWrite(StorageSize, 8);
+        int bit = 0;
         int plane = 0;
 
-        foreach (ImageProperty ip in Format.ImageProperties)
+        for (int p = 0; p < Format.ImageProperties.Count; p++)
         {
-            pos = 0;
+            var ip = Format.ImageProperties[p];
+            var columns = _columnOffsets[p];
+            var priorities = Format.MergePlanePriority.AsSpan(plane, ip.ColorDepth);
 
             if (ip.RowInterlace)
             {
-                for (int y = 0; y < Format.Height; y++)
+                for (int y = 0; y < Height; y++)
                 {
-                    for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
+                    int row = y * Width;
+                    for (int k = 0; k < priorities.Length; k++)
                     {
-                        pos = y * el.Height;
-                        for (int x = 0; x < Format.Width; x++)
+                        int shift = priorities[k];
+                        for (int x = 0; x < Width; x++, bit++)
                         {
-                            int priorityPos = pos + ip.RowPixelPattern[x];
-                            int mergedPlane = Format.MergePlanePriority[curPlane];
-                            bs.WriteBit(_elementData[mergedPlane][priorityPos]);
+                            if (((image[row + columns[x]] >> shift) & 1) != 0)
+                                PackedBits.SetBit(output, bit);
                         }
                     }
                 }
             }
             else
             {
-                for (int y = 0; y < Format.Height; y++, pos += Format.Width)
+                for (int y = 0; y < Height; y++)
                 {
-                    for (int x = 0; x < Format.Width; x++)
+                    int row = y * Width;
+                    for (int x = 0; x < Width; x++)
                     {
-                        for (int curPlane = plane; curPlane < plane + ip.ColorDepth; curPlane++)
+                        int pixel = image[row + columns[x]];
+                        for (int k = 0; k < priorities.Length; k++, bit++)
                         {
-                            int priorityPos = pos + ip.RowPixelPattern[x];
-                            int mergedPlane = Format.MergePlanePriority[curPlane];
-                            bs.WriteBit(_elementData[mergedPlane][priorityPos]);
+                            if (((pixel >> priorities[k]) & 1) != 0)
+                                PackedBits.SetBit(output, bit);
                         }
                     }
                 }
@@ -206,28 +170,26 @@ public class IndexedFlowGraphicsCodec : IIndexedCodec
             plane += ip.ColorDepth;
         }
 
-        return bs.Data;
+        return _foreignBuffer;
     }
 
     /// <summary>
     /// Reads a contiguous block of foreign pixel data
     /// </summary>
-    public virtual ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
+    public ReadOnlySpan<byte> ReadElement(in ArrangerElement el)
     {
-        var buffer = new byte[(StorageSize + 7) / 8];
-
         if (el.SourceAddress.Offset + StorageSize > el.Source.Length * 8)
             return null;
 
-        el.Source.Read(el.SourceAddress, StorageSize, buffer);
+        el.Source.Read(el.SourceAddress, StorageSize, _foreignBuffer);
 
-        return buffer;
+        return _foreignBuffer;
     }
 
     /// <summary>
     /// Writes a contiguous block of foreign pixel data
     /// </summary>
-    public virtual void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+    public void WriteElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
     {
         el.Source.Write(el.SourceAddress, StorageSize, encodedBuffer);
     }

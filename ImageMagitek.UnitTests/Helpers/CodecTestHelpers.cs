@@ -12,10 +12,6 @@ namespace ImageMagitek.UnitTests;
 
 public static class CodecTestHelpers
 {
-    public const string RowInterlaceEncodeBug =
-        "IndexedFlowGraphicsCodec.EncodeElement row-interlaced uses y * el.Height (line 180); see CodecRework Phase 2";
-
-
     public static IIndexedCodec CreateCodec(ICodecFactory factory, string codecName, int width, int height, Palette? palette = null)
     {
         var codec = (IIndexedCodec)factory.CreateCodec(codecName, new Size(width, height))!;
@@ -49,18 +45,9 @@ public static class CodecTestHelpers
     }
 
     /// <summary>
-    /// True when the codec is a flow codec with a row-interlaced image and a non-square size, which hits <see cref="RowInterlaceEncodeBug"/>.
-    /// </summary>
-    public static bool HitsRowInterlaceEncodeBug(ICodecFactory factory, string codecName, int width, int height) =>
-        width != height &&
-        factory.CreateCodec(codecName, new Size(width, height)) is IndexedFlowGraphicsCodec flow &&
-        flow.Format.ImageProperties.Any(x => x.RowInterlace);
-
-    /// <summary>
     /// Theory cases for every shipped XML codec at its default size, plus 16x8, 8x16 and 16x16 for resizable codecs and <paramref name="largeSizes"/> where named.
-    /// Filtered by whether they hit <see cref="RowInterlaceEncodeBug"/>; null keeps every case.
     /// </summary>
-    public static TheoryData<string, int, int> BuildCases(bool? knownBug, bool includeSquare, IDictionary<string, Size>? largeSizes = null)
+    public static TheoryData<string, int, int> BuildCases(bool includeSquare, IDictionary<string, Size>? largeSizes = null)
     {
         var fixture = CodecFixture.Shared;
         var data = new TheoryData<string, int, int>();
@@ -82,10 +69,7 @@ public static class CodecTestHelpers
                 sizes.Add(large);
 
             foreach (var size in sizes.Distinct())
-            {
-                if (knownBug is null || HitsRowInterlaceEncodeBug(fixture.CodecFactory, name, size.Width, size.Height) == knownBug)
-                    data.Add(name, size.Width, size.Height);
-            }
+                data.Add(name, size.Width, size.Height);
         }
 
         return data;

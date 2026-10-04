@@ -21,28 +21,20 @@ public class CodecGoldenTests
     }
 
     [Theory]
-    [MemberData(nameof(IndexedCodecContractTests.AllCases), MemberType = typeof(IndexedCodecContractTests))]
+    [MemberData(nameof(IndexedCodecContractTests.ContractCases), MemberType = typeof(IndexedCodecContractTests))]
     public Task Codec_MatchesSnapshot(string codecName, int width, int height)
     {
         var codec = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height);
         var el = CodecTestHelpers.CreateElement(codec);
-        var skipEncode = CodecTestHelpers.HitsRowInterlaceEncodeBug(_fixture.CodecFactory, codecName, width, height);
 
         var sb = new StringBuilder();
         sb.Append($"codec: {codecName}\nsize: {width}x{height}\ncolorDepth: {codec.ColorDepth}\nstorageBits: {codec.StorageSize}\n");
 
-        if (skipEncode)
-        {
-            sb.Append("\nencode: skipped, ").Append(CodecTestHelpers.RowInterlaceEncodeBug).Append('\n');
-        }
-        else
-        {
-            var gradient = TestImageGenerator.GradientIndices(width, height, codec.ColorDepth);
-            sb.Append("\nencode gradient:\n").Append(CodecTestHelpers.ToHex(CodecTestHelpers.Encode(codec, el, gradient)));
+        var gradient = TestImageGenerator.GradientIndices(width, height, codec.ColorDepth);
+        sb.Append("\nencode gradient:\n").Append(CodecTestHelpers.ToHex(CodecTestHelpers.Encode(codec, el, gradient)));
 
-            var random = TestImageGenerator.RandomIndices(width, height, codec.ColorDepth, 101);
-            sb.Append("\nencode random indices (seed 101):\n").Append(CodecTestHelpers.ToHex(CodecTestHelpers.Encode(codec, el, random)));
-        }
+        var random = TestImageGenerator.RandomIndices(width, height, codec.ColorDepth, 101);
+        sb.Append("\nencode random indices (seed 101):\n").Append(CodecTestHelpers.ToHex(CodecTestHelpers.Encode(codec, el, random)));
 
         var bytes = TestImageGenerator.RandomBytes((codec.StorageSize + 7) / 8, 202);
         var decoded = CodecTestHelpers.Decode(codec, el, bytes);

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>ImageMagitek.Benchmarks.CodecElementBenchmarks-20261004-124148</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.9457/25H2/2025Update/HudsonValley2)
+AMD Ryzen 9 9950X 4.30GHz, 1 CPU, 32 logical and 16 physical cores
+.NET SDK 10.0.401
+  [Host]   : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
+  ShortRun : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
+</code></pre>
+<pre><code>Job=ShortRun  IterationCount=3  LaunchCount=1  
+WarmupCount=3  
+</code></pre>
+
+<table>
+<thead><tr><th>Method</th><th>CodecName </th><th>Mean  </th><th>Error  </th><th>StdDev</th><th>Gen0</th><th>Allocated</th>
+</tr>
+</thead><tbody><tr><td>Decode</td><td>PSX 4bpp Flow</td><td>15,158.01 ns</td><td>26,154.540 ns</td><td>1,433.619 ns</td><td>-</td><td>-</td>
+</tr><tr><td>Encode</td><td>PSX 4bpp Flow</td><td>9,762.41 ns</td><td>1,184.248 ns</td><td>64.913 ns</td><td>-</td><td>-</td>
+</tr><tr><td>ReadElement</td><td>PSX 4bpp Flow</td><td>34.33 ns</td><td>7.094 ns</td><td>0.389 ns</td><td>-</td><td>-</td>
+</tr><tr><td>Decode</td><td>SNES 3bpp</td><td>465.68 ns</td><td>446.895 ns</td><td>24.496 ns</td><td>0.0029</td><td>48 B</td>
+</tr><tr><td>Encode</td><td>SNES 3bpp</td><td>656.53 ns</td><td>1,736.811 ns</td><td>95.200 ns</td><td>0.0057</td><td>96 B</td>
+</tr><tr><td>ReadElement</td><td>SNES 3bpp</td><td>31.14 ns</td><td>18.879 ns</td><td>1.035 ns</td><td>0.0029</td><td>48 B</td>
+</tr><tr><td>Decode</td><td>SNES 3bpp Flow</td><td>197.98 ns</td><td>1,026.775 ns</td><td>56.281 ns</td><td>-</td><td>-</td>
+</tr><tr><td>Encode</td><td>SNES 3bpp Flow</td><td>179.47 ns</td><td>107.866 ns</td><td>5.913 ns</td><td>-</td><td>-</td>
+</tr><tr><td>ReadElement</td><td>SNES 3bpp Flow</td><td>35.93 ns</td><td>10.378 ns</td><td>0.569 ns</td><td>-</td><td>-</td>
+</tr><tr><td>Decode</td><td>SNES4bpp Pattern</td><td>352.31 ns</td><td>49.049 ns</td><td>2.689 ns</td><td>-</td><td>-</td>
+</tr><tr><td>Encode</td><td>SNES4bpp Pattern</td><td>181.24 ns</td><td>398.042 ns</td><td>21.818 ns</td><td>-</td><td>-</td>
+</tr><tr><td>ReadElement</td><td>SNES4bpp Pattern</td><td>30.88 ns</td><td>6.638 ns</td><td>0.364 ns</td><td>-</td><td>-</td>
+</tr></tbody></table>
+</body>
+</html>

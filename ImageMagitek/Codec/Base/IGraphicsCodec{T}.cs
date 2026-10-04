@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ImageMagitek.Codec;
 
@@ -17,14 +17,14 @@ public interface IGraphicsCodec<T> : IGraphicsCodec where T : struct
     /// </summary>
     /// <param name="el">Element to encode</param>
     /// <param name="imageBuffer">Native pixel data with [y, x] ordering</param>
-    /// <returns></returns>
+    /// <returns>Encoded data, which may be a codec-owned buffer that is valid only until the next call on the same codec instance</returns>
     ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, T[,] imageBuffer);
 
     /// <summary>
     /// Reads an element's foreign pixel data
     /// </summary>
     /// <param name="el">Element to read</param>
-    /// <returns></returns>
+    /// <returns>Foreign pixel data, which may be a codec-owned buffer that is valid only until the next call on the same codec instance</returns>
     ReadOnlySpan<byte> ReadElement(in ArrangerElement el);
 
     /// <summary>

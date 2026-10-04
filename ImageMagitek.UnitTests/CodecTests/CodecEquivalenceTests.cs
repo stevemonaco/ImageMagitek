@@ -21,19 +21,12 @@ public class CodecEquivalenceTests
     [Theory]
     [InlineData(8, 8)]
     [InlineData(16, 16)]
+    [InlineData(16, 8)]
+    [InlineData(8, 16)]
     public void Snes3BppFlow_MatchesSpecialized(int width, int height)
     {
         var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "SNES 3bpp Flow", width, height);
         AssertEquivalent(flow, new Snes3BppCodec(flow.Palette, width, height));
-    }
-
-    [Theory]
-    [InlineData(16, 8)]
-    [InlineData(8, 16)]
-    public void Snes3BppFlow_NonSquare_DecodeMatchesSpecialized(int width, int height)
-    {
-        var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "SNES 3bpp Flow", width, height);
-        AssertDecodeEquivalent(flow, new Snes3BppCodec(flow.Palette, width, height));
     }
 
     [Theory]

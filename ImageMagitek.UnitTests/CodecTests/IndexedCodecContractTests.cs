@@ -47,23 +47,13 @@ public partial class IndexedCodecContractTests
     public void PixelsToBytesToPixels_RoundTrips(string codecName, int width, int height) =>
         AssertPixelsRoundTrip(codecName, width, height);
 
-    [Theory(Skip = CodecTestHelpers.RowInterlaceEncodeBug)]
-    [MemberData(nameof(KnownBugCases))]
-    public void PixelsToBytesToPixels_RowInterlacedNonSquare_RoundTrips(string codecName, int width, int height) =>
-        AssertPixelsRoundTrip(codecName, width, height);
-
     [Theory]
     [MemberData(nameof(ContractCases))]
     public void BytesToPixelsToBytes_RoundTrips(string codecName, int width, int height) =>
         AssertBytesRoundTrip(codecName, width, height);
 
-    [Theory(Skip = CodecTestHelpers.RowInterlaceEncodeBug)]
-    [MemberData(nameof(KnownBugCases))]
-    public void BytesToPixelsToBytes_RowInterlacedNonSquare_RoundTrips(string codecName, int width, int height) =>
-        AssertBytesRoundTrip(codecName, width, height);
-
     [Theory]
-    [MemberData(nameof(AllCases))]
+    [MemberData(nameof(ContractCases))]
     public void Decode_IsIndependentOfPriorDecode(string codecName, int width, int height)
     {
         var codec = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height);
@@ -102,7 +92,7 @@ public partial class IndexedCodecContractTests
     }
 
     [Theory]
-    [MemberData(nameof(AllCases))]
+    [MemberData(nameof(ContractCases))]
     public void Decode_TooShortBuffer_ThrowsArgumentException(string codecName, int width, int height)
     {
         var codec = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height);
@@ -113,7 +103,7 @@ public partial class IndexedCodecContractTests
     }
 
     [Theory]
-    [MemberData(nameof(AllCases))]
+    [MemberData(nameof(ContractCases))]
     public void Encode_WrongSizeImage_ThrowsArgumentException(string codecName, int width, int height)
     {
         var codec = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height);

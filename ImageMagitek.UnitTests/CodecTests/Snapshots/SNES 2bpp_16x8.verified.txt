@@ -3,7 +3,13 @@ size: 16x8
 colorDepth: 2
 storageBits: 256
 
-encode: skipped, IndexedFlowGraphicsCodec.EncodeElement row-interlaced uses y * el.Height (line 180); see CodecRework Phase 2
+encode gradient:
+55 55 33 33 AA AA 99 99 55 55 CC CC AA AA 66 66
+55 55 33 33 AA AA 99 99 55 55 CC CC AA AA 66 66
+
+encode random indices (seed 101):
+42 E1 72 99 DC A5 3B 1E D0 41 A5 65 4D F1 34 94
+15 90 25 31 26 D4 20 1A 1C 91 11 5D C6 48 4D 1D
 
 decode random bytes (seed 202):
 2303320022201113

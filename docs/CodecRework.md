@@ -44,7 +44,7 @@ A reusable, parameterized suite that runs against any `IIndexedCodec`. The cases
 A round-trip alone can't detect a symmetric bug, so these tests pin the actual encoded bytes.
 
 - [x] **Hand-verified known answers:** for each format family, at least one small tile whose bytes are written out by hand from platform documentation. Families: SNES/GB 2bpp row-interlaced, NES planar, SNES 3bpp/4bpp, Genesis 4bpp chunky, GBA 4bpp nibble-swapped chunky, GBA 8bpp, PSX 4bpp/8bpp, Mode 7, VB, and NGPC. The 1bpp font and pattern codecs (CotM Font, FF5 Font, FF5 Pattern, Tokimemo 1bpp) have no independent documentation, so their `*_FromXmlSemantics_*` tests derive the expected bytes from the shipped XML's own layout. These tests pin current behavior but would not catch an XML layout that is wrong for the real game.
-- [x] **Golden snapshots:** `CodecGoldenTests` encodes a gradient image and a seeded random image with each codec at each size from 1.1, and writes the bytes as hex into a [Verify](https://github.com/VerifyTests/Verify) snapshot at `ImageMagitek.UnitTests/CodecTests/Snapshots/<codec>_<w>x<h>.verified.txt`. On a mismatch Verify writes a `.received.txt` next to it. To accept an intentional change, review the diff and rename the `.received.txt` file to `.verified.txt` (or use a Verify diff tool). Review snapshot changes in the diff like any other code change. Row-interlaced non-square cases record decode only, so the snapshots don't pin the encode bug.
+- [x] **Golden snapshots:** `CodecGoldenTests` encodes a gradient image and a seeded random image with each codec at each size from 1.1, and writes the bytes as hex into a [Verify](https://github.com/VerifyTests/Verify) snapshot at `ImageMagitek.UnitTests/CodecTests/Snapshots/<codec>_<w>x<h>.verified.txt`. On a mismatch Verify writes a `.received.txt` next to it. To accept an intentional change, review the diff and rename the `.received.txt` file to `.verified.txt` (or use a Verify diff tool). Review snapshot changes in the diff like any other code change. The row-interlaced non-square snapshots recorded decode only until the Phase 2 encode fix; they now pin both directions.
 - [x] **Decode goldens:** each snapshot also holds the palette indices decoded from seeded random bytes, which checks the decode direction independently of the encode sections.
 
 ### 1.3 Cross-codec equivalence
@@ -69,12 +69,48 @@ These tests go through the real pipeline: arranger → `IndexedImage` / `ImageIm
 - [x] **Partial edits:** edit a sub-rectangle of an `IndexedImage` that isn't aligned to element boundaries, save it, and assert that untouched pixels and bytes are unchanged. `IndexedImage.SaveImage` merges the edit into a full arranger image for exactly this case.
 - [x] **Mirror and rotation:** elements with each `Mirror`/`Rotation` value round-trip, covering `InverseMirrorArray2D` and `InverseRotateArray2D`.
 - [x] **File-backed source:** at least one round-trip through `FileDataSource` with `Flush`, using a temp file, not just `MemoryDataSource`.
-- [ ] **Sample projects:** optionally, use `_xmlprojectsamples/*.zip` as end-to-end fixtures (already listed in `FeatureGaps.md`).
 
 ### 1.5 Benchmark baseline
 
-- [ ] Add encode benchmarks next to `Snes3BppDecodeToImage`, plus decode and encode benchmarks for a pattern codec and for a large single-layout flow codec (PSX 64x64).
-- [ ] Record baseline numbers (time and allocated bytes) in this document before starting Phase 2.
+- [x] Add encode benchmarks next to `Snes3BppDecodeToImage`, plus decode and encode benchmarks for a pattern codec and for a large single-layout flow codec (PSX 64x64).
+- [x] Record baseline numbers (time and allocated bytes) in this document before starting Phase 2.
+
+`CodecElementBenchmarks` measures a single element's `DecodeElement`, `EncodeElement` and `ReadElement` for the specialized SNES 3bpp codec (the native reference) and three generalized codecs. It loads the XML formats from the source `_codecs` folder, so it doesn't depend on the packaging gap below. Run it with `dotnet run -c Release --project ImageMagitek.Benchmarks -- --filter *CodecElementBenchmarks*`.
+
+Environment: BenchmarkDotNet 0.15.8 `ShortRun`, .NET 10.0.12 X64 RyuJIT, AMD Ryzen 9 9950X, Windows 11. ShortRun timings are noisy, so treat Mean as indicative; Allocated is deterministic.
+
+**Baseline results**
+
+| Codec | Size | Method | Mean | Allocated |
+|---|---|---|---:|---:|
+| SNES 3bpp (specialized) | 8x8 | Decode | 469 ns | 48 B |
+| SNES 3bpp (specialized) | 8x8 | Encode | 762 ns | 96 B |
+| SNES 3bpp (specialized) | 8x8 | ReadElement | 32 ns | 48 B |
+| SNES 3bpp Flow | 8x8 | Decode | 1,090 ns | 40 B |
+| SNES 3bpp Flow | 8x8 | Encode | 965 ns | 136 B |
+| SNES 3bpp Flow | 8x8 | ReadElement | 45 ns | 48 B |
+| SNES4bpp Pattern | 8x8 | Decode | 1,397 ns | 0 B |
+| SNES4bpp Pattern | 8x8 | Encode | 6,773 ns | 18,536 B |
+| SNES4bpp Pattern | 8x8 | ReadElement | 35 ns | 56 B |
+| PSX 4bpp Flow | 64x64 | Decode | 74,274 ns | 40 B |
+| PSX 4bpp Flow | 64x64 | Encode | 60,710 ns | 2,112 B |
+| PSX 4bpp Flow | 64x64 | ReadElement | 66 ns | 2,072 B |
+
+**Before / after**
+
+| Codec | Method | Baseline | After Phase 2 | After Phase 3 |
+|---|---|---|---|---|
+| SNES 3bpp Flow 8x8 | Decode | 1,090 ns / 40 B | 152 ns / 0 B | 194 ns / 0 B |
+| SNES 3bpp Flow 8x8 | Encode | 965 ns / 136 B | 117 ns / 0 B | 147 ns / 0 B |
+| SNES 3bpp Flow 8x8 | ReadElement | 45 ns / 48 B | 29 ns / 0 B | 36 ns / 0 B |
+| SNES4bpp Pattern 8x8 | Decode | 1,397 ns / 0 B | 1,232 ns / 0 B | 272 ns / 0 B |
+| SNES4bpp Pattern 8x8 | Encode | 6,773 ns / 18,536 B | 6,300 ns / 18,536 B | 186 ns / 0 B |
+| SNES4bpp Pattern 8x8 | ReadElement | 35 ns / 56 B | 30 ns / 56 B | 29 ns / 0 B |
+| PSX 4bpp Flow 64x64 | Decode | 74,274 ns / 40 B | 15,760 ns / 0 B | 14,021 ns / 0 B |
+| PSX 4bpp Flow 64x64 | Encode | 60,710 ns / 2,112 B | 9,470 ns / 0 B | 9,182 ns / 0 B |
+| PSX 4bpp Flow 64x64 | ReadElement | 66 ns / 2,072 B | 42 ns / 0 B | 34 ns / 0 B |
+
+Phase 3 didn't touch the flow codec, so its SNES 3bpp Flow and PSX numbers in that column are run-to-run noise. The specialized SNES 3bpp codec measured about 450-500 ns and 48-96 B per call in every run; it is the unchanged native reference. With both reworks done, the generalized SNES 3bpp Flow decodes and encodes about 3x faster than the specialized codec.
 
 ---
 
@@ -84,27 +120,27 @@ Entry criteria: Phase 1 is green, and the baseline benchmarks are recorded.
 
 ### Known bugs to fix first (each in its own commit, with golden updates if output changes)
 
-- [ ] `EncodeElement` row-interlaced path uses `pos = y * el.Height` (line 180) where decode uses `y * el.Width`. Non-square row-interlaced elements encode to the wrong positions. 1.1 should catch this; un-skip the test when fixed.
-- [ ] Decode loops over `el.Width`/`el.Height`, while encode loops over `Format.Width`/`Format.Height` and the buffers are sized from the codec. Standardize on the codec's `Width`/`Height`.
+- [x] `EncodeElement` row-interlaced path uses `pos = y * el.Height` (line 180) where decode uses `y * el.Width`. Non-square row-interlaced elements encode to the wrong positions. 1.1 should catch this; un-skip the test when fixed.
+- [x] Decode loops over `el.Width`/`el.Height`, while encode loops over `Format.Width`/`Format.Height` and the buffers are sized from the codec. Standardize on the codec's `Width`/`Height`.
 
 ### Decode
 
-- [ ] Read bits directly from `encodedBuffer` with a static helper. This removes the `_foreignBuffer` copy and the per-bit `IBitStreamReader.ReadBit()` interface call with its access and bounds checks. The existing `StorageSize` guard already covers the length.
-- [ ] OR each bit straight into the native buffer (`native[pos] |= bit << mergePlane`) after one clear. This removes `_elementData`, `_mergedData` and two full passes over the pixels.
-- [ ] Index `_nativeBuffer` as a flat span via `MemoryMarshal.CreateSpan(ref MemoryMarshal.GetArrayDataReference(...), Length)`. This keeps the current `y * Width + column` indexing exactly.
+- [x] Read bits directly from `encodedBuffer` with a static helper. This removes the `_foreignBuffer` copy and the per-bit `IBitStreamReader.ReadBit()` interface call with its access and bounds checks. The existing `StorageSize` guard already covers the length.
+- [x] OR each bit straight into the native buffer (`native[pos] |= bit << mergePlane`) after one clear. This removes `_elementData`, `_mergedData` and two full passes over the pixels.
+- [x] Index `_nativeBuffer` as a flat span via `MemoryMarshal.CreateSpan(ref MemoryMarshal.GetArrayDataReference(...), Length)`. This keeps the current `y * Width + column` indexing exactly.
 
 ### Encode
 
-- [ ] Compute each bit directly from `imageBuffer` as `(pixel >> mergePlane) & 1`, and pack the bits into a reused instance buffer. This removes the copy into `_mergedData`, the split into `_elementData`, and the per-call `BitStream` and `byte[]` allocations.
-- [ ] Returning a reused buffer is safe with today's callers (`IndexedImage.cs`, `ArrangerSaveConflictExtensions.cs`), which consume it immediately or call `.ToArray()`. Document this on `IIndexedCodec.EncodeElement`: the returned span is valid until the next call on the same codec instance.
+- [x] Compute each bit directly from `imageBuffer` as `(pixel >> mergePlane) & 1`, and pack the bits into a reused instance buffer. This removes the copy into `_mergedData`, the split into `_elementData`, and the per-call `BitStream` and `byte[]` allocations.
+- [x] Returning a reused buffer is safe with today's callers (`IndexedImage.cs`, `ArrangerSaveConflictExtensions.cs`), which consume it immediately or call `.ToArray()`. Document this on `IIndexedCodec.EncodeElement`: the returned span is valid until the next call on the same codec instance.
 
 ### Shared
 
-- [ ] Precompute `RowPixelPattern` into an `int[]` of column offsets per `ImageProperty` when buffers are allocated. `RepeatList`'s indexer costs a modulo, a division and a bounds check on every bit.
-- [ ] Take `MergePlanePriority` lookups out of the inner loops (`AsSpan(plane, ip.ColorDepth)` per image property).
-- [ ] Have `ReadElement` read into a reused instance buffer instead of allocating a new `byte[]` on every call. Callers decode the result immediately.
-- [ ] Seal the class, and change its `virtual` members and `protected` fields to non-virtual and private, since nothing inherits from it.
-- [ ] Note: `stackalloc` isn't needed. Once the intermediate stages are gone, no scratch buffers are left.
+- [x] Precompute `RowPixelPattern` into an `int[]` of column offsets per `ImageProperty` when buffers are allocated. `RepeatList`'s indexer costs a modulo, a division and a bounds check on every bit.
+- [x] Take `MergePlanePriority` lookups out of the inner loops (`AsSpan(plane, ip.ColorDepth)` per image property).
+- [x] Have `ReadElement` read into a reused instance buffer instead of allocating a new `byte[]` on every call. Callers decode the result immediately.
+- [x] Seal the class, and change its `virtual` members and `protected` fields to non-virtual and private, since nothing inherits from it.
+- [x] Note: `stackalloc` isn't needed. Once the intermediate stages are gone, no scratch buffers are left.
 
 Exit criteria: Phase 1 suites pass with no golden changes, apart from the bug fixes above. The benchmarks show the improvement, and allocations per decode and encode are zero.
 
@@ -114,10 +150,10 @@ Exit criteria: Phase 1 suites pass with no golden changes, apart from the bug fi
 
 Same approach as Phase 2, applied to the pattern codec's hot paths:
 
-- [ ] Encode calls `bs.SeekAbsolute(index)` followed by `WriteBit` for every bit, and builds a `PlaneCoordinate` and calls `GetEncodeIndex` each time. Precompute the bit-index ↔ (plane, x, y) mapping once per codec, and write bits directly into a reused buffer.
-- [ ] Decode reads through `IBitStreamReader` into a `List<int[,]>` of plane images, then merges. Read bits directly from the span and OR them into the native buffer, as in Phase 2.
-- [ ] Encode allocates a new `BitStream` and `byte[]` per call, and `ReadElement` allocates per call. Fix both the same way as in Phase 2.
-- [ ] Check the `MergePlanePriority` semantics against the flow codec. The pattern codec shifts by `MergePlanePriority[i]`, while the flow codec indexes planes by it. 1.3's equivalence tests should confirm whether both are correct for their XML definitions.
+- [x] Encode calls `bs.SeekAbsolute(index)` followed by `WriteBit` for every bit, and builds a `PlaneCoordinate` and calls `GetEncodeIndex` each time. Precompute the bit-index ↔ (plane, x, y) mapping once per codec, and write bits directly into a reused buffer.
+- [x] Decode reads through `IBitStreamReader` into a `List<int[,]>` of plane images, then merges. Read bits directly from the span and OR them into the native buffer, as in Phase 2.
+- [x] Encode allocates a new `BitStream` and `byte[]` per call, and `ReadElement` allocates per call. Fix both the same way as in Phase 2.
+- [x] Check the `MergePlanePriority` semantics against the flow codec. The pattern codec shifts by `MergePlanePriority[i]`, while the flow codec indexes planes by it. 1.3's equivalence tests should confirm whether both are correct for their XML definitions.
 
 ---
 
@@ -136,9 +172,10 @@ Record test-exposed bugs, equivalence disagreements and baseline benchmark numbe
 | Date | Area | Finding | Status |
 |---|---|---|---|
 | 2026-10-04 | `ImageMagitek.csproj` packaging | Only 16 of the 21 codec XMLs are copied to output. `CotMFont.xml`, `FF5Font Pattern.xml`, `GBA4bpp Pattern.xml`, `SNES4bpp Pattern.xml` and `SNES3bpp Flow.xml` are missing, and a stale `_codecs\SNES3bpp.xml` entry points at a file that no longer exists, so the app ships without any pattern codec or SNES 3bpp Flow. The tests load codecs from the source `_codecs` folder, so they don't catch this. | Open |
-| 2026-10-04 | `IndexedFlowGraphicsCodec.EncodeElement` | Row-interlaced encode uses `pos = y * el.Height` (line 180). Confirmed for SNES 2bpp/3bpp Flow/4bpp/8bpp and Game Gear 4bpp at 16x8 and 8x16; the round-trip tests for those cases are skipped with the bug named. | Open |
+| 2026-10-04 | `IndexedFlowGraphicsCodec.EncodeElement` | Row-interlaced encode uses `pos = y * el.Height` (line 180). Confirmed for SNES 2bpp/3bpp Flow/4bpp/8bpp and Game Gear 4bpp at 16x8 and 8x16. Fixed to `y * Width`, and decode and encode now both loop over the codec's `Width`/`Height` instead of a mix of `el.*` and `Format.*`. The skipped cases are folded into the normal contract, reversibility and golden theories, the 10 affected snapshots now pin encode output, and SNES 3bpp Flow at 16x8 and 8x16 matches the specialized `Snes3BppCodec` in both directions. | Fixed (Phase 2) |
 | 2026-10-04 | `XmlGraphicsFormatReader` / `FlowGraphicsFormat.Clone` | Both pass `defaultWidth, defaultHeight` into a constructor declared `(defaultHeight, defaultWidth)`. The registered format has width and height swapped, and `Clone` swaps them back, so codecs from `CodecFactory` are correct (verified by `AllShippedXmlCodecsLoad` on FF5 Font 8x12 and Tokimemo 16x14). Anything reading the registered format directly sees them swapped. | Open |
-| 2026-10-04 | `IndexedPatternGraphicsCodec` | `WidthResizeIncrement` is never assigned and is always 0. This is harmless today because pattern codecs report `CanResize == false`, but any caller that divides by it would fail. | Open |
+| 2026-10-04 | `IndexedPatternGraphicsCodec` | `WidthResizeIncrement` is never assigned and is always 0. This is harmless today because pattern codecs report `CanResize == false`, but any caller that divides by it would fail. Now `1`, matching `HeightResizeIncrement`; `CanResize` and `GetPreferredWidth`/`Height` are unchanged. | Fixed (Phase 3) |
 | 2026-10-04 | `Gen4bpp.xml`, `SNESMode7.xml`, `VB2bpp.xml`, `NGPC2bpp.xml` | `mergepriority` is ascending (`0, 1, ...`), so the first bit read (the MSB) lands in color bit 0 and every pixel's bits are reversed relative to the platform format. Round-trips pass because the reversal is symmetric. Example tile row `0..7`: Genesis encodes `08 4C 2A 6E` (expected `01 23 45 67`), Mode 7 encodes `00 80 40 C0 ...` (expected `00 01 02 03 ...`), VB encodes `D8 D8` (expected `E4 E4`), NGPC encodes `27 27` (expected `1B 1B`). The known-answer tests are skipped; the snapshots pin the current (reversed) output. | Open |
 | 2026-10-04 | `DataSource` / `StreamRead/WriteExtensionMethods` | Elements at a non-byte-aligned `BitAddress` don't work. `ReadUnshifted`/`WriteUnshifted` don't shift data, and codecs' `ReadElement` buffers are `(StorageSize + 7) / 8` bytes, so the read throws `ArgumentException` (insufficient buffer length) for every codec whose `StorageSize` is a multiple of 8. NES 1bpp at 3x3 (9 bits) doesn't throw, but re-rendering returns the wrong indices. `ElementIsolationTests.SaveElement_NotByteAligned_ChangesOnlyElementBits` is skipped. Byte-aligned isolation passes for every codec, including the 9-bit case. | Open |
 | 2026-10-04 | Cross-codec equivalence | All six pairs in 1.3 agree in both directions at every tested size, including SNES 3bpp Flow non-square decode and NES 1bpp at 3x3. | No action |
+| 2026-10-04 | `MergePlanePriority` semantics (flow vs pattern) | The decode semantics agree. Both codecs put plane `p` into color bit `MergePlanePriority[p]`. The flow codec indexes its planes by the priority, and the pattern codec shifts by it, which comes to the same mapping. The old pattern encode applied `MergePlanePriority` and `RowPixelPattern` in the forward direction instead of inverting them, so it was only correct when both are their own inverse. Every shipped pattern XML qualifies, with identity or fully reversed priorities and a `0, 1` or `1, 0` row pattern, which is why the 1.3 equivalence tests passed. Phase 3 derives encode from the same per-bit table as decode, so encode is now the exact inverse for any permutation, and output for the shipped codecs is byte-identical (no snapshot changes). | Resolved (Phase 3) |
