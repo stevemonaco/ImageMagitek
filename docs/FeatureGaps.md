@@ -6,6 +6,8 @@ Gaps measured against the baseline in [FeatureRoadmap.md](FeatureRoadmap.md). Ea
 - **P2**: high-value additions expected of a tile editor
 - **P3**: nice to have
 
+The items scheduled for 1.0 are in [PLAN.md](../PLAN.md).
+
 Defects found while surveying the code are listed first, because several of them undermine features that look complete.
 
 ---
@@ -18,7 +20,7 @@ Items marked *verified* were confirmed by reading the code. The rest were found 
 |---|---|---|---|
 | P1 | Undo/redo | Redo ignores Mirror, Rotate, ApplyPalette, DeleteElementSelection, and ResizeArranger; undo only re-clones the arranger when a paste is in the history *(verified)* | `GraphicsEditorViewModel.History.cs` |
 | P1 | Arranging | Delete divides width by element height and height by element width, which is wrong for non-square elements *(verified)* | `GraphicsEditorViewModel.ArrangerTools.cs:387-388` |
-| P1 | Plugins | ~~The plugin loader calls a parameterless constructor, but every sample plugin needs a `Palette`~~ **Fixed** ([CodecRework](CodecRework.md) 4.3): `PluginService` only discovers types, and `CodecFactory` picks the `(Palette, int, int)` or `(Palette)` constructor | `PluginService.cs`, `CodecFactory.cs` |
+| P1 | Plugins | ~~The plugin loader calls a parameterless constructor, but every sample plugin needs a `Palette`~~ **Fixed**: `PluginService` only discovers types, and `CodecFactory` picks the `(Palette, int, int)` or `(Palette)` constructor | `PluginService.cs`, `CodecFactory.cs` |
 | P1 | CLI | Directory-exists check is inverted, so nested export folders are never created *(verified)* | `TileShop.CLI/Porters/Exporter.cs:30` |
 | P1 | CLI | `WithParsed(async ...)` is async-void, so the exit code can be read before the handler finishes | `TileShop.CLI/Program.cs` |
 | P1 | CLI | Export handlers ignore failures and always return Success; `--log` file name is computed but unused | `TileShop.CLI/CommandHandlers` |
@@ -47,8 +49,9 @@ Items marked *verified* were confirmed by reading the code. The rest were found 
 | P2 | Missing common platforms | Game Boy / GBC 2bpp (explicit entry), Master System 4bpp, PC Engine / TG16, N64 CI4/CI8/IA/I, NDS, Saturn, Neo Geo AES/MVS sprites, Atari/Lynx, WonderSwan |
 | P2 | GBA/NDS direct bitmap codecs | BGR555 bitmap modes |
 | P2 | Bit-wise sequential offsets | Offsets are byte-aligned; there's a TODO in `SequentialArranger.cs:119` |
-| P2 | ~~Register or remove the C# NES 1bpp codec~~ | **Resolved** ([CodecRework](CodecRework.md) 4.3): moved to `Samples/ImageMagitek.PluginSamples` as "NES 1bpp Plugin", so it no longer collides with the XML codec |
+| P2 | ~~Register or remove the C# NES 1bpp codec~~ | **Resolved**: moved to `Samples/ImageMagitek.PluginSamples` as "NES 1bpp Plugin", so it no longer collides with the XML codec |
 | P2 | XML format extensions | Tile stride/padding, bit order and endianness, and per-tile header bytes (variable-width fonts currently need a plugin) |
+| P3 | Public span-based bit reader/writer | Production codecs no longer use `BitStream`; only the `LastArmageddonCodec` and `MarmaladeBoyCodec` samples, the FF5 samples and tests still do. A public `ref struct` over `Span<byte>` would replace the internal `PackedBits` helper, give plugin authors the fast path the generalized codecs use, and suit other bit-level work such as palette writing. `BitStream` can then become a thin wrapper or be retired |
 | P3 | Codec authoring UI | Live preview while editing a codec XML |
 | P3 | Codec auto-detection | Heuristic search across codecs for a given offset |
 

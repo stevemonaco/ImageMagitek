@@ -33,8 +33,6 @@ Inventory of the current feature set, organized by area. Use it as the baseline 
 
 ### 1.2 Specialized C# codecs (`ImageMagitek/Codec/Specialized/`)
 
-- [x] **Indexed:** SNES 3bpp, PSX 4bpp, PSX 8bpp
-- [ ] NES 1bpp (C#): exists, but isn't registered in `CodecFactory` (only used by tests)
 - [x] **Direct color:** BMP 24bpp, RGB24 Tiled, RGBA32 Tiled, N64 RGBA16, N64 RGBA32, PSX 16bpp (ABGR1555), PSX 24bpp
 
 ### 1.3 Codec definition framework
@@ -48,8 +46,8 @@ Inventory of the current feature set, organized by area. Use it as the baseline 
 ### 1.4 Plugin codecs
 
 - [x] Plugin loading via McMaster.NETCore.Plugins (`_plugins/<Name>/<Name>.dll`)
-- [x] Sample plugins: Last Armageddon Font (read-only), Marmalade Boy Font (read-only, variable-width), SNES 4bpp
-- [ ] *(partial)* The loader requires a parameterless constructor, which the sample plugins don't provide
+- [x] Sample plugins: Last Armageddon Font (read-only), Marmalade Boy Font (read-only, variable-width), SNES 4bpp, plus C# twins of the SNES 3bpp, PSX 4bpp, PSX 8bpp and NES 1bpp XML codecs
+- [x] Projects that name the old built-in C# codecs load the equivalent XML codec
 - [ ] Plugins in the CLI (loading is commented out)
 - [ ] Plugins menu in the UI (stubbed out)
 
