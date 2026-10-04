@@ -1,0 +1,24 @@
+﻿codec: Game Gear 4bpp
+size: 8x16
+colorDepth: 4
+storageBits: 512
+
+encode: skipped, IndexedFlowGraphicsCodec.EncodeElement row-interlaced uses y * el.Height (line 180); see CodecRework Phase 2
+
+decode random bytes (seed 202):
+CD85762A
+4A389FA1
+F5449399
+D1320837
+17C5A546
+6D77FCBE
+DA277803
+F6F761AB
+3C0E54F0
+EFAF1A84
+9B457DB6
+BD80F43D
+6ED9DA6D
+C58DCCF5
+C6D62D63
+6A9D0F47

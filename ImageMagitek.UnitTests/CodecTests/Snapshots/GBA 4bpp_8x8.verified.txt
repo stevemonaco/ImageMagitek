@@ -1,0 +1,22 @@
+﻿codec: GBA 4bpp
+size: 8x8
+colorDepth: 4
+storageBits: 256
+
+encode gradient:
+10 32 54 76 43 65 87 A9 76 98 BA DC A9 CB ED 0F
+DC FE 10 32 0F 21 43 65 32 54 76 98 65 87 A9 CB
+
+encode random indices (seed 101):
+7C 6E 84 87 1B E5 02 38 DD B2 9B 2E 89 61 BA 9A
+17 DE 2C E0 7C 46 20 BC D4 A6 75 54 1B B1 A8 94
+
+decode random bytes (seed 202):
+85F0CD1E
+D26648E5
+FC480FB8
+3E331848
+4D947782
+A7BBDFF4
+9997894C
+5BBF8F3A

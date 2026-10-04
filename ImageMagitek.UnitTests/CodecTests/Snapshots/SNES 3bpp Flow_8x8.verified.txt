@@ -1,0 +1,22 @@
+﻿codec: SNES 3bpp Flow
+size: 8x8
+colorDepth: 3
+storageBits: 192
+
+encode gradient:
+55 33 AA 99 55 CC AA 66 55 33 AA 99 55 CC AA 66
+0F 78 C3 1E F0 87 3C E1
+
+encode random indices (seed 101):
+42 72 E1 99 DC 3B A5 1E D0 A5 41 65 4D 34 F1 94
+FA 30 C2 10 B9 F2 EF 02
+
+decode random bytes (seed 202):
+45053622
+37215106
+06741765
+12426320
+35445351
+71556066
+55764437
+34004645

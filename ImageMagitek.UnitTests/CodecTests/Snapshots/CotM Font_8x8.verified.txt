@@ -1,0 +1,20 @@
+﻿codec: CotM Font
+size: 8x8
+colorDepth: 1
+storageBits: 64
+
+encode gradient:
+AA 55 AA 55 AA 55 AA 55
+
+encode random indices (seed 101):
+81 D2 EC 5A E0 82 8E F2
+
+decode random bytes (seed 202):
+10100100
+00001111
+11101100
+11010010
+00011110
+10011001
+01001000
+10101101

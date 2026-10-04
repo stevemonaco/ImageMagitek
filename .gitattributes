@@ -61,3 +61,8 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+###############################################################################
+# Verify snapshots
+###############################################################################
+*.verified.txt text eol=lf working-tree-encoding=UTF-8

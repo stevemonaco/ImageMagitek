@@ -1,0 +1,16 @@
+﻿codec: SNES 4bpp
+size: 16x8
+colorDepth: 4
+storageBits: 512
+
+encode: skipped, IndexedFlowGraphicsCodec.EncodeElement row-interlaced uses y * el.Height (line 180); see CodecRework Phase 2
+
+decode random bytes (seed 202):
+6B0BFAC06A2C11D3
+AC1C5309CFDE2FB0
+77AEDD59BC0069E6
+7D10C85FE891C259
+9BE7C3AE4DA8BC49
+AF3FBADE9299BAF3
+B8CB3C85A7955A45
+B27F2D8D7DB91C37

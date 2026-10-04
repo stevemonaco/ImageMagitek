@@ -1,0 +1,22 @@
+﻿codec: SNES4bpp Pattern
+size: 8x8
+colorDepth: 4
+storageBits: 256
+
+encode gradient:
+55 33 AA 99 55 CC AA 66 55 33 AA 99 55 CC AA 66
+0F 00 78 07 C3 3F 1E FE F0 F0 87 80 3C 03 E1 1F
+
+encode random indices (seed 101):
+42 72 E1 99 DC 3B A5 1E D0 A5 41 65 4D 34 F1 94
+FA A5 30 92 C2 DE 10 CF B9 39 F2 83 EF 50 02 9D
+
+decode random bytes (seed 202):
+4D05B62A
+37E59546
+86FCD3E9
+5E46EFAC
+798CD31D
+F9156822
+D9FE84BF
+F4C44289

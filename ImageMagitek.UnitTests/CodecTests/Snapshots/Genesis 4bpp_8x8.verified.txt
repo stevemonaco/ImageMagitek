@@ -1,0 +1,22 @@
+﻿codec: Genesis 4bpp
+size: 8x8
+colorDepth: 4
+storageBits: 256
+
+encode gradient:
+08 4C 2A 6E C2 A6 E1 95 6E 19 5D 3B 95 D3 B7 F0
+3B 7F 08 4C F0 84 C2 A6 4C 2A 6E 19 A6 E1 95 D3
+
+encode random indices (seed 101):
+3E 76 21 E1 D8 A7 40 1C BB 4D D9 74 91 86 5D 59
+E8 7B 34 07 3E 62 04 3D 2B 65 AE 2A D8 8D 15 29
+
+decode random bytes (seed 202):
+A10FB378
+4B6612A7
+3F12F01D
+7CCC1812
+B229EE41
+E5DDFB2F
+99E99132
+DAFDF15C

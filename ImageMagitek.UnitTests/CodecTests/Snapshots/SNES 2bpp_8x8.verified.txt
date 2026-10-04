@@ -1,0 +1,20 @@
+﻿codec: SNES 2bpp
+size: 8x8
+colorDepth: 2
+storageBits: 128
+
+encode gradient:
+55 33 AA 99 55 CC AA 66 55 33 AA 99 55 CC AA 66
+
+encode random indices (seed 101):
+42 72 E1 99 DC 3B A5 1E D0 A5 41 65 4D 34 F1 94
+
+decode random bytes (seed 202):
+01013222
+33211102
+02301321
+12022320
+31001311
+31112022
+11320033
+30000201

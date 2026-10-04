@@ -1,0 +1,24 @@
+﻿codec: SNES 3bpp Flow
+size: 8x16
+colorDepth: 3
+storageBits: 384
+
+encode: skipped, IndexedFlowGraphicsCodec.EncodeElement row-interlaced uses y * el.Height (line 180); see CodecRework Phase 2
+
+decode random bytes (seed 202):
+41017262
+73251142
+06345761
+16062360
+35045311
+75552422
+55360037
+74440641
+57056542
+05316155
+21777436
+57113763
+56237047
+72015240
+36336527
+75715026

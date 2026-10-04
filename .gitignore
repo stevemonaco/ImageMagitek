@@ -268,3 +268,6 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# Verify snapshot test output
+*.received.*

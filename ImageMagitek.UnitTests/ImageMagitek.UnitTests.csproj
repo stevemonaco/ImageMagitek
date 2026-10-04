@@ -12,6 +12,7 @@
     <PackageReference Include="OneOf" />
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="System.Drawing.Common" />
+    <PackageReference Include="Verify.Xunit" />
 
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">

@@ -1,0 +1,24 @@
+﻿codec: FF5 Font
+size: 8x12
+colorDepth: 1
+storageBits: 96
+
+encode gradient:
+55 AA 55 AA 55 AA 55 AA 55 AA 55 AA
+
+encode random indices (seed 101):
+42 E1 DC A5 D0 41 4D F1 15 90 26 D4
+
+decode random bytes (seed 202):
+01011000
+00001111
+11011100
+11100001
+00101101
+01100110
+10000100
+01011110
+11001111
+10000100
+11110000
+10001011

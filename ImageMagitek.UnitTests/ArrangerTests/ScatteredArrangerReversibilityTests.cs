@@ -1,17 +1,20 @@
-﻿using ImageMagitek.Colors;
+using System.IO;
+using System.Linq;
+using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 using ImageMagitek.Image.Import;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using Xunit;
 using ImageMagitek.UnitTests.Fixtures;
 using ImageMagitek.UnitTests.TestFactories;
+using SixLabors.ImageSharp.PixelFormats;
+using Xunit;
 
 namespace ImageMagitek.UnitTests;
 
 [Collection("Codec")]
 public partial class ScatteredArrangerReversibilityTests
 {
-    private CodecFixture _fixture;
+    private readonly CodecFixture _fixture;
+    private readonly ImageSharpFileAdapter _adapter = new();
 
     public ScatteredArrangerReversibilityTests(CodecFixture fixture)
     {
@@ -20,24 +23,92 @@ public partial class ScatteredArrangerReversibilityTests
 
     [Theory]
     [MemberData(nameof(ReverseCases))]
-    public void ScatteredArranger_Reversibility_CanReverse(string imageFileName, ColorModel colorModel, bool zeroIndexTransparent, string codecName, Size codecSize)
+    public void ImageToDataToImage_RoundTrips(string codecName, int width, int height) =>
+        AssertImageRoundTrip(codecName, width, height);
+
+    [Theory(Skip = CodecTestHelpers.RowInterlaceEncodeBug)]
+    [MemberData(nameof(KnownBugReverseCases))]
+    public void ImageToDataToImage_RowInterlacedNonSquare_RoundTrips(string codecName, int width, int height) =>
+        AssertImageRoundTrip(codecName, width, height);
+
+    [Theory]
+    [MemberData(nameof(ReverseCases))]
+    public void DataToImageToData_PreservesRom(string codecName, int width, int height) =>
+        AssertRomPreserved(codecName, width, height);
+
+    [Theory(Skip = CodecTestHelpers.RowInterlaceEncodeBug)]
+    [MemberData(nameof(KnownBugReverseCases))]
+    public void DataToImageToData_RowInterlacedNonSquare_PreservesRom(string codecName, int width, int height) =>
+        AssertRomPreserved(codecName, width, height);
+
+    private void AssertImageRoundTrip(string codecName, int width, int height)
     {
-        var codec = _fixture.CodecFactory.CreateCodec(codecName, new(codecSize.Width, codecSize.Height))!;
-        var arranger = ArrangerTestFactory.CreateIndexedArrangerFromImage(imageFileName,
-                    colorModel,
-                    zeroIndexTransparent,
-                    _fixture.CodecFactory,
-                    codec);
+        var (arranger, palette) = CreateArranger(codecName, width, height);
+        var size = arranger.ArrangerPixelSize;
+        var depth = ((IIndexedCodec)arranger.GetElement(0, 0)!.Value.Codec).ColorDepth;
+        var indices = TestImageGenerator.Flatten(TestImageGenerator.RandomIndices(size.Width, size.Height, depth, 7));
+        var source = new DecodedImage(indices.Select(x => palette[x]).ToArray(), size.Width, size.Height);
+        var inputPath = TestPaths.CreateTempPath(".png");
+        var outputPath = TestPaths.CreateTempPath(".png");
 
-        var exportedImageFileName = $"test.png";
+        try
+        {
+            _adapter.SaveImage(source.Pixels, size.Width, size.Height, inputPath);
 
-        var preview = ImageImporter.Prepare(arranger, imageFileName, ImageImportOptions.Default, new ImageSharpFileAdapter()).AsSuccess.Result;
-        preview.Commit();
-        new IndexedImage(arranger).ExportImage(exportedImageFileName, new ImageSharpFileAdapter());
+            var preview = ImageImporter.Prepare(arranger, inputPath, ImageImportOptions.Default, _adapter).AsSuccess.Result;
+            Assert.True(preview.CanCommit);
+            preview.Commit();
 
-        using var expected = Image<Rgba32>.Load<Rgba32>(imageFileName);
-        using var actual = Image<Rgba32>.Load<Rgba32>(exportedImageFileName);
+            var actual = new IndexedImage(arranger);
+            actual.ExportImage(outputPath, _adapter);
 
-        ImageRgba32Assert.AreEqual(expected, actual);
+            IndexedImageAssert.AreEqual(indices, actual.Image, size.Width);
+
+            using var expectedImage = SixLabors.ImageSharp.Image.Load<Rgba32>(inputPath);
+            using var actualImage = SixLabors.ImageSharp.Image.Load<Rgba32>(outputPath);
+            ImageRgba32Assert.AreEqual(expectedImage, actualImage);
+        }
+        finally
+        {
+            File.Delete(inputPath);
+            File.Delete(outputPath);
+        }
+    }
+
+    private void AssertRomPreserved(string codecName, int width, int height)
+    {
+        var (arranger, _) = CreateArranger(codecName, width, height);
+        var dataSource = arranger.GetElement(0, 0)!.Value.Source;
+        var rom = TestImageGenerator.RandomBytes((int)dataSource.Length, 8);
+        dataSource.Write(BitAddress.Zero, rom);
+        var path = TestPaths.CreateTempPath(".png");
+
+        try
+        {
+            new IndexedImage(arranger).ExportImage(path, _adapter);
+
+            var preview = ImageImporter.Prepare(arranger, path, ImageImportOptions.Default, _adapter).AsSuccess.Result;
+            Assert.True(preview.CanCommit);
+            Assert.Equal(0, preview.Report.ChangedPixelCount);
+            preview.Commit();
+
+            Assert.Equal(rom, dataSource.Read(BitAddress.Zero, rom.Length * 8));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    private (ScatteredArranger Arranger, Palette Palette) CreateArranger(string codecName, int width, int height)
+    {
+        var prototype = _fixture.CodecFactory.CreateCodec(codecName, new System.Drawing.Size(width, height))!;
+        var palette = TestImageGenerator.CreateDistinctPalette(prototype.ColorDepth);
+        var elements = prototype.Layout == ImageLayout.Single ? 1 : 2;
+
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, elements, elements,
+            (_, _) => CodecTestHelpers.CreateCodec(_fixture.CodecFactory, codecName, width, height, palette));
+
+        return (arranger, palette);
     }
 }

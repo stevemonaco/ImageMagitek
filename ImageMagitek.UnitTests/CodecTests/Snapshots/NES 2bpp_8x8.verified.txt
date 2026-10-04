@@ -1,0 +1,20 @@
+﻿codec: NES 2bpp
+size: 8x8
+colorDepth: 2
+storageBits: 128
+
+encode gradient:
+55 AA 55 AA 55 AA 55 AA 33 99 CC 66 33 99 CC 66
+
+encode random indices (seed 101):
+42 E1 DC A5 D0 41 4D F1 72 99 3B 1E A5 65 34 94
+
+decode random bytes (seed 202):
+23013222
+20001311
+33231100
+31102023
+22301123
+01320132
+30000102
+21011310

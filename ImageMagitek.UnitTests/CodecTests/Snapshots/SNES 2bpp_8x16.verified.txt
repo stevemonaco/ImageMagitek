@@ -1,0 +1,24 @@
+﻿codec: SNES 2bpp
+size: 8x16
+colorDepth: 2
+storageBits: 256
+
+encode: skipped, IndexedFlowGraphicsCodec.EncodeElement row-interlaced uses y * el.Height (line 180); see CodecRework Phase 2
+
+decode random bytes (seed 202):
+01013222
+33211102
+02301321
+12022320
+31001311
+31112022
+11320033
+30000201
+13012102
+01312111
+21333032
+13113323
+12233003
+32011200
+32332123
+31311022

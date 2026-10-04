@@ -1,0 +1,22 @@
+﻿codec: Game Gear 4bpp
+size: 8x8
+colorDepth: 4
+storageBits: 256
+
+encode gradient:
+55 33 0F 00 AA 99 78 07 55 CC C3 3F AA 66 1E FE
+55 33 F0 F0 AA 99 87 80 55 CC 3C 03 AA 66 E1 1F
+
+encode random indices (seed 101):
+42 72 FA A5 E1 99 30 92 DC 3B C2 DE A5 1E 10 CF
+D0 A5 B9 39 41 65 F2 83 4D 34 EF 50 F1 94 02 9D
+
+decode random bytes (seed 202):
+CD85762A
+4A389FA1
+F5449399
+D1320837
+17C5A546
+6D77FCBE
+DA277803
+F6F761AB

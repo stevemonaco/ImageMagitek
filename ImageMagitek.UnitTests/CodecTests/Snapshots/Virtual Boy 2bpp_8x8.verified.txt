@@ -1,0 +1,20 @@
+﻿codec: Virtual Boy 2bpp
+size: 8x8
+colorDepth: 2
+storageBits: 128
+
+encode gradient:
+D8 D8 63 63 8D 8D 36 36 D8 D8 63 63 8D 8D 36 36
+
+encode random indices (seed 101):
+5C 30 6B C1 DA 5B 62 9D 9B 44 1C C4 58 8E EB 84
+
+decode random bytes (seed 202):
+01223300
+03232013
+23101212
+02011322
+33030201
+00333101
+30133030
+20010201
