@@ -2,7 +2,7 @@
 
 Goal: make the generalized codecs (`IndexedFlowGraphicsCodec`, `IndexedPatternGraphicsCodec`) faster and leaner without changing a single encoded byte or decoded pixel. Codec round-trip regressions have been one of the hardest problems in this project, so no codec code changes until Phase 1 is in place and green.
 
-**Scope:** XML-defined flow and pattern codecs, plus the shared encode/decode pipeline (`IndexedImage`, `ImageImporter`, arrangers, data sources). Specialized C# codecs are used here only as reference implementations.
+**Scope:** XML-defined flow and pattern codecs, plus the shared encode/decode pipeline (`IndexedImage`, `ImageImporter`, arrangers, data sources). Specialized C# codecs are used only as reference implementations in Phases 1–3. Phase 4 extends the work to them.
 
 **Non-goals:** Plugin and other custom codecs. Their correctness belongs to their author. Phase 1's harness should still be reusable, so a plugin author can run the same contract tests against their codec.
 
@@ -157,11 +157,51 @@ Same approach as Phase 2, applied to the pattern codec's hot paths:
 
 ---
 
-## Phase 4: Follow-ups (optional)
+## Phase 4: Follow-ups
 
-- [ ] Write the encode/decode buffer ownership contract into the `IIndexedCodec`/`IGraphicsCodec` XML docs, and apply it to the specialized codecs.
-- [ ] Package the Phase 1.1 contract suite in a form plugin authors can run against their own codecs.
-- [ ] Revisit `BitStream`. With the generalized codecs no longer using it per bit, decide whether it stays a general utility or shrinks to what the remaining callers need.
+Work through these in order. Each item lists what it depends on.
+
+### 4.1 Fix the codec packaging gap
+
+- [ ] Copy every XML in `ImageMagitek/_codecs` to output, and remove the stale `_codecs\SNES3bpp.xml` entry from `ImageMagitek.csproj` (see the Findings log). The simplest fix is a wildcard item instead of per-file entries.
+- [ ] Add a test that compares the codec XMLs in the build output with the source folder, so the gap can't come back.
+
+### 4.2 Contract and golden tests for the direct-color codecs
+
+Phase 1 only covers indexed codecs. The 7 direct-color codecs (BMP 24, N64 RGBA16/32, PSX 16/24bpp, RGB24 Tiled, RGBA32 Tiled) need coverage before 4.4 changes them.
+
+- [ ] Extend the contract suite (round-trips both ways, buffer reuse, input validation) to `IDirectCodec`, using `ColorRgba32` pixel buffers.
+- [ ] Add Verify snapshots of encoded bytes and decoded pixels, and hand-verified known-answer pixels per format.
+- [ ] Add arranger round-trips and neighbor-isolation tests through `DirectImage`.
+- [ ] Record any bugs these tests expose in the Findings log, skipped with a reason, as in Phase 1. `FeatureGaps.md` already notes that N64 RGBA16 reports a 32-bit color depth and storage size.
+
+### 4.3 Retire specialized codecs that duplicate XML codecs
+
+Depends on 4.1, because the XML replacements have to ship.
+
+- [ ] SNES 3bpp, PSX 4bpp and PSX 8bpp have XML equivalents that the 1.3 equivalence tests show produce identical bytes, and the XML versions are now faster. Remove the C# versions and point their registered names at the XML definitions.
+- [ ] Check that existing project files referring to those codecs by name still load, through a name alias or a migration.
+- [ ] Remove the unregistered C# NES 1bpp codec, which duplicates the XML codec's name (`FeatureGaps.md`).
+- [ ] Turn the equivalence tests for removed codecs into known-answer tests, or delete them.
+
+### 4.4 Apply the buffer contract to the remaining specialized codecs
+
+Depends on 4.2 for the direct-color codecs.
+
+- [ ] Change `IndexedCodec.ReadElement` and `DirectCodec.ReadElement` to read into the reused `_foreignBuffer`, and remove the `BitStream` they create but never use.
+- [ ] Change each remaining specialized `EncodeElement` to write into a reused buffer instead of calling `BitStream.OpenWrite` for every element.
+- [ ] Rewrite per-bit hot loops (seek and read for every pixel) to use direct span access, as in Phases 2–3.
+- [ ] Extend `CodecElementBenchmarks` to cover a direct-color codec, and record before and after numbers here.
+
+### 4.5 Package the contract suite for plugin authors
+
+- [ ] Separate the 1.1 contract checks from `CodecFixture`. For example, make an abstract xunit base class that takes a codec factory and a list of sizes, either in the test project or in a small `ImageMagitek.Testing` package.
+- [ ] Add resize-increment and arranger neighbor-isolation checks, so plugins are held to the buffer lifetime contract too.
+- [ ] Run it against the sample plugins in `Samples/ImageMagitek.PluginSamples`. They need the plugin-loader constructor fix from `FeatureGaps.md` first.
+
+### Deferred: bit access API
+
+`BitStream` stays as it is for now. Once 4.4 is done, the specialized codecs no longer use it per bit, but it remains a general utility. A later change can add a public, span-based bit reader/writer (a `ref struct` over `Span<byte>`) and move callers to it. That would replace the internal `PackedBits` helper, give plugin authors the fast path, and also suit other bit-level work such as palette writing.
 
 ---
 

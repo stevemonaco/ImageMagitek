@@ -29,6 +29,7 @@ Items marked *verified* were confirmed by reading the code. The rest were found 
 | P2 | Drawing | Pencil stays "drawing" after a stroke that modifies no pixels | `GraphicsEditorViewModel.Drawing.cs:114-131` |
 | P2 | History | Color Remap bypasses `AddHistoryAction`, so the redo list isn't cleared | `ArrangerTools.cs:591` |
 | P2 | Palettes | `SetNativeColor` writes an RGBA32 value into the foreign palette whatever the color model | `Palette.cs` |
+| P2 | Codecs | Nothing checks `IGraphicsCodec.CanEncode`, so arrangers that use a read-only codec (for example the sample plugins) can be drawn on and imported into, and fail only on save *(verified)* | `IGraphicsCodec.cs:28`, `GraphicsEditorViewModel.cs:322`, `IndexedImage.SaveImage` |
 | P2 | Codecs | N64 RGBA16 reports a 32-bit color depth and storage size | `N64Rgba16Codec.cs` |
 | P2 | Codecs | Duplicate XML codec names silently overwrite each other (the `formats` dictionary is never populated) | `XmlCodecService.cs` |
 | P2 | Colors | BGR9 allows 4-bit nibbles but the converter scales to 3-bit | `ColorBgr9.cs` / `ColorConverterBgr9.cs` |
@@ -43,7 +44,7 @@ Items marked *verified* were confirmed by reading the code. The rest were found 
 | Pri | Gap | Notes |
 |---|---|---|
 | P1 | Direct-color XML codecs | The schema accepts `colortype="direct"` but `CodecFactory` throws `NotSupportedException` |
-| P1 | Compression support | No LZ77/LZSS, RLE, or Huffman decompress/recompress pipeline. Most commercial ROM graphics are compressed. This could be a pluggable `IDataTransform` on DataSource or arranger |
+| P1 | Compression support (read-only) | There is no support for reading LZ77/LZSS, RLE or Huffman data, and most commercial ROM graphics are compressed. The planned design is a read-only `CompressedDataSource` with pluggable `IDataCompressor`s. Recompression and write-back are out of scope, because they need block relocation, pointer updates and archive rebuilds. See [CompressionSupport.md](CompressionSupport.md) |
 | P2 | Missing common platforms | Game Boy / GBC 2bpp (explicit entry), Master System 4bpp, PC Engine / TG16, N64 CI4/CI8/IA/I, NDS, Saturn, Neo Geo AES/MVS sprites, Atari/Lynx, WonderSwan |
 | P2 | GBA/NDS direct bitmap codecs | BGR555 bitmap modes |
 | P2 | Bit-wise sequential offsets | Offsets are byte-aligned; there's a TODO in `SequentialArranger.cs:119` |

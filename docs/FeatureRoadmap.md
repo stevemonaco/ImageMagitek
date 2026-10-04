@@ -43,7 +43,7 @@ Inventory of the current feature set, organized by area. Use it as the baseline 
 - [x] XML **pattern codecs**: planar or chunky packing, up to 8 patterns, 64-symbol pattern alphabet, `RepeatList` with repeat increments
 - [x] XSD schema validation (`_schemas/CodecSchema.xsd`)
 - [ ] Direct-color XML codecs: the schema accepts them, but `CodecFactory` throws
-- [ ] Compressed graphics (LZ, RLE, etc.)
+- [ ] Compressed graphics (LZ, RLE, etc.), read-only. See [CompressionSupport.md](CompressionSupport.md)
 
 ### 1.4 Plugin codecs
 
