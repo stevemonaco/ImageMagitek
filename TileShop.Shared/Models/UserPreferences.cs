@@ -51,26 +51,9 @@ public sealed record AddArrangerPreferences(
 /// Last choices made in the import image dialog
 /// </summary>
 /// <param name="MapTransparentToIndexZero">Null follows the palette's ZeroIndexTransparent setting</param>
+/// <param name="OnionSkinOpacity">Blend from the current arranger (0) to the import (1)</param>
 public sealed record ImportImagePreferences(
     ColorMatchStrategy MatchStrategy = ColorMatchStrategy.Exact,
     bool? MapTransparentToIndexZero = null,
-    ImportPreviewMode PreviewMode = ImportPreviewMode.Imported,
-    double OnionSkinOpacity = 0.5);
-
-/// <summary>
-/// What the import image dialog's canvas shows
-/// </summary>
-public enum ImportPreviewMode
-{
-    /// <summary>The arranger as it is now</summary>
-    Current,
-
-    /// <summary>The arranger as it will be after import</summary>
-    Imported,
-
-    /// <summary>The import blended over the current arranger</summary>
-    OnionSkin,
-
-    /// <summary>Only the pixels that change, over a dimmed current arranger</summary>
-    Diff
-}
+    bool ShowDiff = false,
+    double OnionSkinOpacity = 1);

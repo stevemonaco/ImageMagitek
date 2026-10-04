@@ -3,7 +3,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using TileShop.Shared.Models;
 using TileShop.UI.Controls;
 using TileShop.UI.Renderer;
 using TileShop.UI.ViewModels;
@@ -29,6 +28,7 @@ public partial class ImportImageView : UserControl
         PreviewCanvas.SizeChanged += OnCanvasSizeChanged;
 
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+        AddHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel);
     }
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -185,10 +185,10 @@ public partial class ImportImageView : UserControl
             Key.OemMinus or Key.Subtract when !isControl => Invoke(vm.OnZoomOut),
             Key.W when isControl => Invoke(vm.OnFitToViewport),
             Key.R when isControl => Invoke(vm.OnResetZoom),
-            Key.D1 or Key.NumPad1 => SetMode(vm, ImportPreviewMode.Current),
-            Key.D2 or Key.NumPad2 => SetMode(vm, ImportPreviewMode.Imported),
-            Key.D3 or Key.NumPad3 => SetMode(vm, ImportPreviewMode.OnionSkin),
-            Key.D4 or Key.NumPad4 => SetMode(vm, ImportPreviewMode.Diff),
+            Key.D1 or Key.NumPad1 => Invoke(() => vm.ShowCurrentCommand.Execute(null)),
+            Key.D2 or Key.NumPad2 => Invoke(() => vm.ShowImportedCommand.Execute(null)),
+            Key.D3 or Key.NumPad3 => Invoke(() => vm.ToggleDiffCommand.Execute(null)),
+            Key.Space => Peek(vm, true),
             _ => false
         };
 
@@ -197,11 +197,17 @@ public partial class ImportImageView : UserControl
             action?.Invoke();
             return true;
         }
+    }
 
-        static bool SetMode(ImportImageViewModel vm, ImportPreviewMode mode)
-        {
-            vm.PreviewMode = mode;
-            return true;
-        }
+    private void OnKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Space && _viewModel is { } vm)
+            e.Handled = Peek(vm, false);
+    }
+
+    private static bool Peek(ImportImageViewModel vm, bool isPeeking)
+    {
+        vm.IsPeeking = isPeeking;
+        return true;
     }
 }

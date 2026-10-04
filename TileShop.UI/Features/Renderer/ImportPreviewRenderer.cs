@@ -3,19 +3,20 @@ using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Image.Import;
 using SkiaSharp;
-using TileShop.Shared.Models;
 using TileShop.UI.Features.Graphics;
 using TileShop.UI.ViewModels;
 
 namespace TileShop.UI.Renderer;
 
 /// <summary>
-/// Draws the import dialog's canvas: the current arranger, the staged result, or a blend or diff of the two
+/// Draws the import dialog's canvas: a blend from the current arranger to the staged result, or a diff of the two
 /// </summary>
 public sealed class ImportPreviewRenderer : IDisposable
 {
     private const uint _unmatchedColor = 0xDC_FF_40_40;   // BGRA in memory: semi-opaque red
     private const uint _highlightColor = 0xB0_00_FF_FF;   // BGRA in memory: semi-opaque cyan
+    private const uint _clearedColor = 0xDC_FF_40_FF;     // BGRA in memory: semi-opaque magenta
+    private static readonly SKPaint _diffBackgroundPaint = new() { Color = new SKColor(0x18, 0x18, 0x1C) };
 
     private static readonly SKPaint _dimmedGreyscalePaint = new()
     {
@@ -29,7 +30,8 @@ public sealed class ImportPreviewRenderer : IDisposable
     };
 
     private readonly CheckerboardPaint _checkerboard = new();
-    private readonly SKPaint _onionSkinPaint = new();
+    private readonly SKPaint _onionCurrentPaint = new();
+    private readonly SKPaint _onionResultPaint = new() { BlendMode = SKBlendMode.Plus };
 
     private ArrangerSkiaBitmap? _current;
     private ArrangerSkiaBitmap? _result;
@@ -75,32 +77,18 @@ public sealed class ImportPreviewRenderer : IDisposable
             return;
 
         var rect = new SKRect(0, 0, _current.Width, _current.Height);
-        canvas.DrawRect(rect, _checkerboard.Get(state.GridSettings));
 
-        switch (state.PreviewMode)
+        if (state.ShowDiff)
         {
-            case ImportPreviewMode.Current:
-                canvas.DrawBitmap(_current.Bitmap, rect);
-                break;
-
-            case ImportPreviewMode.Imported:
-                canvas.DrawBitmap((_result ?? _current).Bitmap, rect);
-                break;
-
-            case ImportPreviewMode.OnionSkin:
-                canvas.DrawBitmap(_current.Bitmap, rect);
-                if (_result is not null)
-                {
-                    _onionSkinPaint.Color = new SKColor(255, 255, 255, (byte)Math.Round(Math.Clamp(state.OnionSkinOpacity, 0, 1) * 255));
-                    canvas.DrawBitmap(_result.Bitmap, rect, _onionSkinPaint);
-                }
-                break;
-
-            case ImportPreviewMode.Diff:
-                canvas.DrawBitmap(_current.Bitmap, rect, _dimmedGreyscalePaint);
-                if (_diffLayer is not null)
-                    canvas.DrawBitmap(_diffLayer, rect);
-                break;
+            canvas.DrawRect(rect, _diffBackgroundPaint);
+            canvas.DrawBitmap(_current.Bitmap, rect, _dimmedGreyscalePaint);
+            if (_diffLayer is not null)
+                canvas.DrawBitmap(_diffLayer, rect);
+        }
+        else
+        {
+            canvas.DrawRect(rect, _checkerboard.Get(state.GridSettings));
+            DrawBlend(canvas, rect, state.EffectiveBlend);
         }
 
         UpdateHighlight(state.SelectedEntry?.Source);
@@ -109,8 +97,34 @@ public sealed class ImportPreviewRenderer : IDisposable
             canvas.DrawBitmap(_highlightLayer, rect);
     }
 
+    private void DrawBlend(SKCanvas canvas, SKRect rect, double blend)
+    {
+        var resultAlpha = (byte)Math.Round(Math.Clamp(blend, 0, 1) * 255);
+
+        if (_result is null || resultAlpha == 0)
+        {
+            canvas.DrawBitmap(_current!.Bitmap, rect);
+            return;
+        }
+
+        if (resultAlpha == 255)
+        {
+            canvas.DrawBitmap(_result.Bitmap, rect);
+            return;
+        }
+
+        // Summing the weighted images in an isolated layer crossfades alpha too, so pixels becoming transparent fade out
+        _onionCurrentPaint.Color = new SKColor(255, 255, 255, (byte)(255 - resultAlpha));
+        _onionResultPaint.Color = new SKColor(255, 255, 255, resultAlpha);
+
+        canvas.SaveLayer(rect, null);
+        canvas.DrawBitmap(_current!.Bitmap, rect, _onionCurrentPaint);
+        canvas.DrawBitmap(_result.Bitmap, rect, _onionResultPaint);
+        canvas.Restore();
+    }
+
     /// <summary>
-    /// Changed pixels in their imported colors and unmatched pixels in red, transparent elsewhere
+    /// Changed pixels in their imported colors, pixels becoming transparent in magenta, and unmatched pixels in red, transparent elsewhere
     /// </summary>
     private static SKBitmap BuildDiffLayer(ImportReport report, SKBitmap result)
     {
@@ -125,7 +139,7 @@ public sealed class ImportPreviewRenderer : IDisposable
             for (int i = 0; i < states.Length; i++)
             {
                 if (states[i].HasFlag(ImportPixelState.Changed))
-                    dest[i] = src[i];
+                    dest[i] = (src[i] >> 24) == 0 ? _clearedColor : src[i] | 0xFF_00_00_00;
                 else if (states[i].HasFlag(ImportPixelState.Unmatched))
                     dest[i] = _unmatchedColor;
                 else
@@ -176,6 +190,7 @@ public sealed class ImportPreviewRenderer : IDisposable
     {
         DisposeLayers();
         _checkerboard.Dispose();
-        _onionSkinPaint.Dispose();
+        _onionCurrentPaint.Dispose();
+        _onionResultPaint.Dispose();
     }
 }

@@ -300,19 +300,15 @@ public partial class EditorsViewModel : ObservableRecipient
 
     public void Receive(ArrangerChangedMessage message)
     {
-        if (message.Change is ArrangerChange.Pixels or ArrangerChange.Elements)
-        {
-            // var effectedEditors = Editors.OfType<ArrangerEditorViewModel>()
-            //     .Where(x => ReferenceEquals(x.Resource, message.Arranger));
-            //
-            // foreach (var editor in effectedEditors)
-            // {
-            //     if (editor is SequentialArrangerEditorViewModel or ScatteredArrangerEditorViewModel)
-            //     {
-            //         editor.Render();
-            //     }
-            // }
-        }
+        if (message.Change is not (ArrangerChange.Pixels or ArrangerChange.Elements))
+            return;
+
+        // Modified editors are skipped so a refresh never wipes unsaved work
+        var affectedEditors = Editors.OfType<GraphicsEditorViewModel>()
+            .Where(x => !x.IsModified && x.SharesDataWith(message.Arranger));
+
+        foreach (var editor in affectedEditors)
+            editor.ReloadFromSource();
     }
 
     public void Receive(PaletteChangedMessage message)

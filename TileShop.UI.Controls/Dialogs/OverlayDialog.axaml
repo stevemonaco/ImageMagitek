@@ -109,6 +109,19 @@
             <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
         </Style>
 
+        <!--  Size: Full fills the window edge to edge  -->
+        <Style Selector="^[Size=Full] /template/ Border#PART_DialogCard">
+            <Setter Property="MaxWidth" Value="{x:Static sys:Double.PositiveInfinity}" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="BoxShadow" Value="none" />
+        </Style>
+        <Style Selector="^[Size=Full] /template/ ScrollViewer#PART_ContentScroller">
+            <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
+        </Style>
+
         <!--  Mode: Info  -->
         <Style Selector="^[Mode=Info] /template/ PathIcon#PART_ModeIcon">
             <Setter Property="IsVisible" Value="True" />

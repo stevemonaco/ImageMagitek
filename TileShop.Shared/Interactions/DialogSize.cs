@@ -9,5 +9,8 @@ public enum DialogSize
     Default,
 
     /// <summary>Fills the window save for a margin, for content that needs the space such as image previews</summary>
-    Large
+    Large,
+
+    /// <summary>Fills the window edge to edge, for complex operations that need every pixel of space</summary>
+    Full
 }

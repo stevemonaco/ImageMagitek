@@ -26,7 +26,7 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
     private readonly IImageFileAdapter _fileAdapter = new ImageSharpFileAdapter();
     private DecodedImage? _source;
 
-    public override DialogSize Size => DialogSize.Large;
+    public override DialogSize Size => DialogSize.Full;
 
     public Arranger Arranger { get; }
     public bool IsIndexed => Arranger.ColorType == PixelColorType.Indexed;
@@ -44,13 +44,16 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
     [ObservableProperty] private ColorMatchStrategy _matchStrategy;
     [ObservableProperty] private bool _mapTransparentToIndexZero;
 
-    [ObservableProperty] private ImportPreviewMode _previewMode;
+    [ObservableProperty] private bool _showDiff;
     [ObservableProperty] private double _onionSkinOpacity;
+    [ObservableProperty] private bool _isPeeking;
     [ObservableProperty] private double _zoom = 1;
     [ObservableProperty] private ImportColorEntryViewModel? _selectedEntry;
     [ObservableProperty] private string? _hoverDescription;
 
-    public bool IsOnionSkin => PreviewMode == ImportPreviewMode.OnionSkin;
+    /// <summary>The blend actually drawn: peeking flips to whichever end the slider is farther from</summary>
+    public double EffectiveBlend => IsPeeking ? (OnionSkinOpacity >= 0.5 ? 0 : 1) : OnionSkinOpacity;
+
     public bool HasEntries => Entries.Count > 0;
     public bool HasPreview => Preview is not null;
     public string ZoomDescription => $"{Zoom * 100:0}%";
@@ -81,7 +84,7 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
         GridSettings = GridSettingsViewModel.CreateDefault(arranger, preferences.Grid);
         _matchStrategy = preferences.ImportImage.MatchStrategy;
         _mapTransparentToIndexZero = preferences.ImportImage.MapTransparentToIndexZero ?? HasTransparentZeroIndex();
-        _previewMode = preferences.ImportImage.PreviewMode;
+        _showDiff = preferences.ImportImage.ShowDiff;
         _onionSkinOpacity = preferences.ImportImage.OnionSkinOpacity;
 
         Title = $"Import Image Into '{arranger.Name}'";
@@ -106,6 +109,22 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
     [RelayCommand] private void ZoomOut() => OnZoomOut?.Invoke();
     [RelayCommand] private void FitToViewport() => OnFitToViewport?.Invoke();
     [RelayCommand] private void ResetZoom() => OnResetZoom?.Invoke();
+
+    [RelayCommand]
+    private void ShowCurrent()
+    {
+        ShowDiff = false;
+        OnionSkinOpacity = 0;
+    }
+
+    [RelayCommand]
+    private void ShowImported()
+    {
+        ShowDiff = false;
+        OnionSkinOpacity = 1;
+    }
+
+    [RelayCommand] private void ToggleDiff() => ShowDiff = !ShowDiff;
 
     [RelayCommand]
     private void LocateEntry(ImportColorEntryViewModel entry)
@@ -202,14 +221,20 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
 
     partial void OnMatchStrategyChanged(ColorMatchStrategy value) => Reimport();
     partial void OnMapTransparentToIndexZeroChanged(bool value) => Reimport();
-    partial void OnOnionSkinOpacityChanged(double value) => OnInvalidated?.Invoke();
+    partial void OnShowDiffChanged(bool value) => OnInvalidated?.Invoke();
     partial void OnSelectedEntryChanged(ImportColorEntryViewModel? value) => OnInvalidated?.Invoke();
     partial void OnZoomChanged(double value) => OnPropertyChanged(nameof(ZoomDescription));
     partial void OnImportErrorChanged(string? value) => OnPropertyChanged(nameof(BlockingReason));
 
-    partial void OnPreviewModeChanged(ImportPreviewMode value)
+    partial void OnOnionSkinOpacityChanged(double value)
     {
-        OnPropertyChanged(nameof(IsOnionSkin));
+        OnPropertyChanged(nameof(EffectiveBlend));
+        OnInvalidated?.Invoke();
+    }
+
+    partial void OnIsPeekingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(EffectiveBlend));
         OnInvalidated?.Invoke();
     }
 
@@ -232,7 +257,7 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
 
         preview.Commit();
 
-        _preferencesStore.Preferences.ImportImage = new ImportImagePreferences(MatchStrategy, MapTransparentToIndexZero, PreviewMode, OnionSkinOpacity);
+        _preferencesStore.Preferences.ImportImage = new ImportImagePreferences(MatchStrategy, MapTransparentToIndexZero, ShowDiff, OnionSkinOpacity);
         _preferencesStore.Save();
 
         return Task.FromResult(true);

@@ -158,7 +158,7 @@ public partial class OverlayDialog : TemplatedControl
 
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (_dialogCard is null || _backdrop is null || Size == DialogSize.Large)
+        if (_dialogCard is null || _backdrop is null || Size is DialogSize.Large or DialogSize.Full)
             return;
 
         if (!e.GetCurrentPoint(_backdrop).Properties.IsLeftButtonPressed)
@@ -259,14 +259,17 @@ public partial class OverlayDialog : TemplatedControl
         }
     }
 
+    private double ScaleOutValue => Size == DialogSize.Full ? 1.0 : 0.9;
+
     private async Task AnimateInAsync()
     {
         if (_backdrop is null || _dialogCard is null)
             return;
 
+        var startScale = ScaleOutValue;
         _backdrop.SetCurrentValue(OpacityProperty, 0);
         _dialogCard.SetCurrentValue(OpacityProperty, 0);
-        _dialogCard.RenderTransform = new Avalonia.Media.ScaleTransform(0.9, 0.9);
+        _dialogCard.RenderTransform = new Avalonia.Media.ScaleTransform(startScale, startScale);
 
         var overlayAnimation = new Animation
         {
@@ -291,8 +294,8 @@ public partial class OverlayDialog : TemplatedControl
                     Setters =
                     {
                         new Setter(OpacityProperty, 0.0d),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, 0.9d),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, 0.9d)
+                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, startScale),
+                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, startScale)
                     }
                 },
                 new KeyFrame
@@ -318,6 +321,8 @@ public partial class OverlayDialog : TemplatedControl
     {
         if (_backdrop is null || _dialogCard is null)
             return;
+
+        var startScale = ScaleOutValue;
 
         var overlayAnimation = new Animation
         {
@@ -352,8 +357,8 @@ public partial class OverlayDialog : TemplatedControl
                     Setters =
                     {
                         new Setter(OpacityProperty, 0.0),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, 0.9d),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, 0.9d)
+                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, startScale),
+                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, startScale)
                     }
                 }
             }
