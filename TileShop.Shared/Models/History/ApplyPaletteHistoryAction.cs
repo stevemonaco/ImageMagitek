@@ -6,7 +6,7 @@ using TileShop.Shared.Utility;
 
 namespace TileShop.Shared.Models;
 
-public partial class ApplyPaletteHistoryAction : HistoryAction
+public partial class ApplyPaletteHistoryAction : ArrangerHistoryAction
 {
     public override string Name => "Apply Palette";
 

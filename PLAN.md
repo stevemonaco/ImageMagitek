@@ -31,12 +31,12 @@ Exit criteria: no known path loses unsaved edits, writes through a codec that ca
 
 Exit criteria: every action that appears in history can be undone and redone, and tools act only in the modes they belong to.
 
-- [ ] **Undo/redo for arranger actions.** `ApplyHistoryAction` only replays Pencil, FloodFill, ColorRemap and Paste. Mirror, Rotate, ApplyPalette, DeleteElementSelection and ResizeArranger are recorded but never redone, and undo only re-clones the arranger when an ElementCopy paste is in history (`History.cs:21-49`, `:81-89`, `:111`). Pick one model for arranger-level actions: either each action stores enough to invert itself, or every arranger action snapshots the arranger. Snapshots are simpler and arrangers are small.
-- [ ] Color Remap calls `UndoHistory.Add` directly, so redo isn't cleared and CanUndo/CanRedo aren't notified (`ArrangerTools.cs:591`).
-- [ ] Delete swaps element width and height for non-square elements (`ArrangerTools.cs:387-388`).
-- [ ] Delete isn't mode-guarded. It fires in Draw and View and on sequential arrangers (`GraphicsEditorView.axaml:13`, `ArrangerTools.cs:371-380`).
-- [ ] Pencil stays in its drawing state after a stroke that changes no pixels (`Drawing.cs:117-128`).
-- [ ] Tests: a history test per action type (do → undo → redo → compare against the arranger and pixels after "do"). Most of this logic is ViewModel code, so extracting it from `GraphicsEditorViewModel` into a testable class may come first.
+- [x] **Undo/redo for arranger actions.** `ApplyHistoryAction` only replays Pencil, FloodFill, ColorRemap and Paste. Mirror, Rotate, ApplyPalette, DeleteElementSelection and ResizeArranger are recorded but never redone, and undo only re-clones the arranger when an ElementCopy paste is in history (`History.cs:21-49`, `:81-89`, `:111`). Pick one model for arranger-level actions: either each action stores enough to invert itself, or every arranger action snapshots the arranger. Snapshots are simpler and arrangers are small.
+- [x] Color Remap calls `UndoHistory.Add` directly, so redo isn't cleared and CanUndo/CanRedo aren't notified (`ArrangerTools.cs:591`).
+- [x] Delete swaps element width and height for non-square elements (`ArrangerTools.cs:387-388`).
+- [x] Delete isn't mode-guarded. It fires in Draw and View and on sequential arrangers (`GraphicsEditorView.axaml:13`, `ArrangerTools.cs:371-380`).
+- [x] Pencil stays in its drawing state after a stroke that changes no pixels (`Drawing.cs:117-128`).
+- [x] Tests: a history test per action type (do → undo → redo → compare against the arranger and pixels after "do"). Most of this logic is ViewModel code, so extracting it from `GraphicsEditorViewModel` into a testable class may come first.
 
 ## Milestone 3: Project format freeze
 

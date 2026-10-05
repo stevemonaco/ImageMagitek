@@ -324,6 +324,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         _editMode = CanView ? GraphicsEditMode.View : GraphicsEditMode.Arrange;
 
         Initialize();
+        _history = new GraphicsEditHistory(UndoHistory, RedoHistory, WorkingArranger, codecService.CodecFactory);
 
         _selection = new ArrangerSelection(WorkingArranger, SnapMode);
     }
@@ -466,8 +467,6 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         return WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Any(x => sources.Contains(x.Source));
     }
 
-    private void ReloadImage() => _imageAdapter.Render();
-
     public bool ContainsPoint(double x, double y)
     {
         return x >= 0 && y >= 0 && x < WorkingArranger.ArrangerPixelSize.Width && y < WorkingArranger.ArrangerPixelSize.Height;
@@ -551,15 +550,20 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     public override void DiscardChanges()
     {
-        if (_projectArranger.Mode == ArrangerMode.Scattered)
-            WorkingArranger = _projectArranger.CloneArranger();
-
-        _imageAdapter.Reinitialize(WorkingArranger);
-        BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
-        GridSettings.AdjustGridlines(WorkingArranger);
-        UpdateReadOnlyState();
+        var arranger = _projectArranger.Mode == ArrangerMode.Scattered ? _history.RestoreBase() : WorkingArranger;
+        _imageAdapter.Reinitialize(arranger);
+        OnWorkingArrangerReplaced();
         ClearHistory();
         IsModified = false;
+    }
+
+    private void OnWorkingArrangerReplaced()
+    {
+        WorkingArranger = _imageAdapter.Arranger;
+        BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
+        GridSettings.AdjustGridlines(WorkingArranger);
+        CancelOverlay();
+        UpdateReadOnlyState();
     }
     
     public bool CanAddSelectionAsScatteredArranger =>

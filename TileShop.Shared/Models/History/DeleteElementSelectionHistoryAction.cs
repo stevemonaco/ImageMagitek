@@ -1,6 +1,6 @@
 ﻿namespace TileShop.Shared.Models;
 
-public class DeleteElementSelectionHistoryAction : HistoryAction
+public class DeleteElementSelectionHistoryAction : ArrangerHistoryAction
 {
     public override string Name => "Delete Selection";
 

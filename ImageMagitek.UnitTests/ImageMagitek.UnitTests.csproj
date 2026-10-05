@@ -29,6 +29,7 @@
     <ProjectReference Include="..\ImageMagitek.Services\ImageMagitek.Services.csproj" />
     <ProjectReference Include="..\ImageMagitek\ImageMagitek.csproj" />
     <ProjectReference Include="..\Samples\ImageMagitek.PluginSamples\ImageMagitek.PluginSamples.csproj" />
+    <ProjectReference Include="..\TileShop.UI\TileShop.UI.csproj" />
   </ItemGroup>
 
 </Project>

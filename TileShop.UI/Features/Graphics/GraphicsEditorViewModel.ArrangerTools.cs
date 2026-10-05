@@ -8,11 +8,11 @@ using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
-using ImageMagitek.Image;
 using Monaco.PathTree;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
+using TileShop.UI.Features.Graphics;
 using TileShop.UI.Models;
 
 namespace TileShop.UI.ViewModels;
@@ -103,10 +103,10 @@ public partial class GraphicsEditorViewModel
         _preferencesStore.Save();
     }
 
-    internal void TryApplyPalette(int pixelX, int pixelY, Palette palette)
+    internal bool TryApplyPalette(int pixelX, int pixelY, Palette palette)
     {
         if (!IsIndexedColor)
-            return;
+            return false;
 
         bool needsRender = false;
         if (Selection.HasSelection && Selection.SelectionRect.ContainsPointSnapped(pixelX, pixelY))
@@ -137,6 +137,8 @@ public partial class GraphicsEditorViewModel
 
         if (needsRender)
             InvalidateEditor(InvalidationLevel.Display);
+
+        return needsRender;
     }
 
     private bool TryApplySinglePalette(int pixelX, int pixelY, Palette palette, bool notify)
@@ -217,19 +219,20 @@ public partial class GraphicsEditorViewModel
     [RelayCommand]
     public void ApplyPaste(ArrangerPaste paste)
     {
-        var result = ApplyPasteInternal(paste);
+        var elementCopy = IsArrangerMode && IsTiledLayout && WorkingArranger is ScatteredArranger ? paste.Copy as ElementCopy : null;
+        var result = elementCopy is not null ? ApplyElementPaste(paste, elementCopy) : ApplyPixelPaste(paste);
+
         var message = result.Match(
             success =>
             {
-                AddHistoryAction(new PasteArrangerHistoryAction(paste));
+                HistoryAction action = elementCopy is not null
+                    ? new ElementPasteHistoryAction()
+                    : new PasteArrangerHistoryAction(paste.Copy, paste.Rect.SnappedLeft, paste.Rect.SnappedTop, DrawClipBounds);
+                AddHistoryAction(action);
                 IsModified = true;
                 CancelOverlay();
 
-                var invalidationLevel = (IsArrangerMode && IsTiledLayout
-                    && paste.Copy is ElementCopy && WorkingArranger is ScatteredArranger)
-                    ? InvalidationLevel.PixelData
-                    : InvalidationLevel.Display;
-                InvalidateEditor(invalidationLevel);
+                InvalidateEditor(elementCopy is not null ? InvalidationLevel.PixelData : InvalidationLevel.Display);
 
                 return new NotifyStatusMessage("Paste successfully applied");
             },
@@ -237,19 +240,6 @@ public partial class GraphicsEditorViewModel
         );
 
         Messenger.Send(message);
-    }
-
-    private MagitekResult ApplyPasteInternal(ArrangerPaste paste)
-    {
-        if (IsArrangerMode && IsTiledLayout && paste.Copy is ElementCopy elementCopy
-            && WorkingArranger is ScatteredArranger)
-        {
-            return ApplyElementPaste(paste, elementCopy);
-        }
-        else
-        {
-            return ApplyPixelPaste(paste);
-        }
     }
 
     private MagitekResult ApplyElementPaste(ArrangerPaste paste, ElementCopy elementCopy)
@@ -283,118 +273,38 @@ public partial class GraphicsEditorViewModel
         if (!CanAcceptPixelPastes)
             return new MagitekResult.Failed("Arranger is read-only");
 
-        int clipLeft = 0;
-        int clipTop = 0;
-        int clipRight = _imageAdapter.Width;
-        int clipBottom = _imageAdapter.Height;
-
-        if (IsDrawClipActive && DrawClipRect is { } clip)
-        {
-            clipLeft = Math.Max(clipLeft, clip.SnappedLeft);
-            clipTop = Math.Max(clipTop, clip.SnappedTop);
-            clipRight = Math.Min(clipRight, clip.SnappedRight);
-            clipBottom = Math.Min(clipBottom, clip.SnappedBottom);
-        }
-
-        int destX = Math.Max(clipLeft, paste.Rect.SnappedLeft);
-        int destY = Math.Max(clipTop, paste.Rect.SnappedTop);
-        int sourceX = paste.Rect.SnappedLeft >= clipLeft ? 0 : clipLeft - paste.Rect.SnappedLeft;
-        int sourceY = paste.Rect.SnappedTop >= clipTop ? 0 : clipTop - paste.Rect.SnappedTop;
-
-        var destStart = new Point(destX, destY);
-        var sourceStart = new Point(sourceX, sourceY);
-
-        ArrangerCopy? copy = paste.Copy;
-
-        if (paste.Copy is ElementCopy elementCopy)
-            copy = elementCopy.ToPixelCopy();
-
-        if (IsIndexedColor)
-        {
-            var destImage = _imageAdapter.IndexedImage!;
-
-            if (copy is IndexedPixelCopy indexedCopy)
-            {
-                int copyWidth = Math.Min(indexedCopy.Width - sourceX, clipRight - destX);
-                int copyHeight = Math.Min(indexedCopy.Height - sourceY, clipBottom - destY);
-
-                if (copyWidth <= 0 || copyHeight <= 0)
-                    return MagitekResult.SuccessResult;
-
-                return ImageCopier.CopyPixels(indexedCopy.Image, destImage, sourceStart, destStart,
-                    copyWidth, copyHeight,
-                    PixelRemapOperation.RemapByExactIndex,
-                    PixelRemapOperation.RemapByExactPaletteColors);
-            }
-            else if (copy is DirectPixelCopy directCopy)
-            {
-                int copyWidth = Math.Min(directCopy.Width - sourceX, clipRight - destX);
-                int copyHeight = Math.Min(directCopy.Height - sourceY, clipBottom - destY);
-
-                if (copyWidth <= 0 || copyHeight <= 0)
-                    return MagitekResult.SuccessResult;
-
-                return ImageCopier.CopyPixels(directCopy.Image, destImage, sourceStart, destStart,
-                    copyWidth, copyHeight,
-                    PixelRemapOperation.RemapByExactPaletteColors);
-            }
-        }
-        else
-        {
-            var destImage = _imageAdapter.DirectImage!;
-
-            if (copy is DirectPixelCopy directCopy)
-            {
-                int copyWidth = Math.Min(directCopy.Width - sourceX, clipRight - destX);
-                int copyHeight = Math.Min(directCopy.Height - sourceY, clipBottom - destY);
-
-                if (copyWidth <= 0 || copyHeight <= 0)
-                    return MagitekResult.SuccessResult;
-
-                return ImageCopier.CopyPixels(directCopy.Image, destImage, sourceStart, destStart,
-                    copyWidth, copyHeight);
-            }
-            else if (copy is IndexedPixelCopy indexedCopy)
-            {
-                int copyWidth = Math.Min(indexedCopy.Width - sourceX, clipRight - destX);
-                int copyHeight = Math.Min(indexedCopy.Height - sourceY, clipBottom - destY);
-
-                if (copyWidth <= 0 || copyHeight <= 0)
-                    return MagitekResult.SuccessResult;
-
-                return ImageCopier.CopyPixels(indexedCopy.Image, destImage, sourceStart, destStart,
-                    copyWidth, copyHeight);
-            }
-        }
-
-        return new MagitekResult.Failed($"Unknown copy type: {paste.Copy.GetType()}");
+        return GraphicsEditHistory.ApplyPixelPaste(_imageAdapter, paste.Copy, paste.Rect.SnappedLeft, paste.Rect.SnappedTop, DrawClipBounds);
     }
 
     [RelayCommand]
     public void DeleteElementSelection()
     {
-        if (Selection.HasSelection)
-        {
-            DeleteElementSelectionInternal(Selection.SelectionRect);
-            AddHistoryAction(new DeleteElementSelectionHistoryAction(Selection.SelectionRect));
+        if (!IsArrangerMode || WorkingArranger is not ScatteredArranger || !Selection.HasSelection
+            || Selection.SelectionRect.SnapMode != SnapMode.Element)
+            return;
 
-            IsModified = true;
-            InvalidateEditor(InvalidationLevel.PixelData);
-        }
+        ResetElements(WorkingArranger, Selection.SelectionRect);
+        AddHistoryAction(new DeleteElementSelectionHistoryAction(Selection.SelectionRect));
+
+        IsModified = true;
+        InvalidateEditor(InvalidationLevel.PixelData);
     }
 
-    private void DeleteElementSelectionInternal(SnappedRectangle rect)
+    /// <summary>
+    /// Resets every element of <paramref name="arranger"/> covered by the element-snapped <paramref name="rect"/>
+    /// </summary>
+    public static void ResetElements(Arranger arranger, SnappedRectangle rect)
     {
-        int startX = rect.SnappedLeft / WorkingArranger.ElementPixelSize.Width;
-        int startY = rect.SnappedTop / WorkingArranger.ElementPixelSize.Height;
-        int width = rect.SnappedWidth / WorkingArranger.ElementPixelSize.Height;
-        int height = rect.SnappedHeight / WorkingArranger.ElementPixelSize.Width;
+        int startX = rect.SnappedLeft / arranger.ElementPixelSize.Width;
+        int startY = rect.SnappedTop / arranger.ElementPixelSize.Height;
+        int width = rect.SnappedWidth / arranger.ElementPixelSize.Width;
+        int height = rect.SnappedHeight / arranger.ElementPixelSize.Height;
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                WorkingArranger.ResetElement(x + startX, y + startY);
+                arranger.ResetElement(x + startX, y + startY);
             }
         }
     }
@@ -591,7 +501,7 @@ public partial class GraphicsEditorViewModel
             _imageAdapter.RemapColors(remap, bounds);
             InvalidateEditor(InvalidationLevel.Display);
 
-            UndoHistory.Add(new ColorRemapHistoryAction(remap, bounds));
+            AddHistoryAction(new ColorRemapHistoryAction(remap, bounds));
             IsModified = true;
         }
     }
