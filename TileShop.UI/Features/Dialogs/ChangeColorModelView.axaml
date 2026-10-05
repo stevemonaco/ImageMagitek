@@ -1,0 +1,46 @@
+<UserControl x:Class="TileShop.UI.Views.ChangeColorModelView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:con="using:TileShop.UI.Converters"
+    xmlns:models="using:TileShop.UI.Models"
+    xmlns:vm="using:TileShop.UI.ViewModels"
+    Width="460"
+    x:DataType="vm:ChangeColorModelViewModel">
+    <UserControl.DataTemplates>
+        <DataTemplate x:DataType="models:PaletteSwatchModel">
+            <Border Width="20" Height="20" Margin="0,0,2,2" Classes="swatch" ToolTip.Tip="{Binding Index}">
+                <Rectangle Fill="{Binding Color, Converter={x:Static con:AppConverters.ColorToBrush}}" />
+            </Border>
+        </DataTemplate>
+    </UserControl.DataTemplates>
+
+    <StackPanel Margin="0,8,0,4" Spacing="10">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+            <TextBlock VerticalAlignment="Center" Text="Color model" />
+            <ComboBox Grid.Column="1" MinWidth="150" ItemsSource="{Binding ColorModels}" SelectedItem="{Binding SelectedColorModel}" />
+        </Grid>
+
+        <TextBlock Classes="muted" Text="{Binding CurrentColorModel, StringFormat='Before ({0})'}" />
+        <ItemsControl ItemsSource="{Binding BeforeColors}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+
+        <TextBlock Classes="muted" Text="{Binding SelectedColorModel, StringFormat='After ({0})'}" />
+        <ItemsControl ItemsSource="{Binding AfterColors}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+        <TextBlock Foreground="{DynamicResource SemiColorDanger}" IsVisible="{Binding PreviewError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+            Text="{Binding PreviewError}" TextWrapping="Wrap" />
+
+        <TextBlock Classes="muted" FontSize="11" TextWrapping="Wrap"
+            Text="File ranges keep their start offset and color count, so colors are re-read at the new size. Pending color edits on file entries are dropped." />
+    </StackPanel>
+</UserControl>

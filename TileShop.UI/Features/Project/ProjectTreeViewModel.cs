@@ -133,6 +133,7 @@ public partial class ProjectTreeViewModel : ToolViewModel
         var dataFiles = projectTree.EnumerateDepthFirst().Select(x => x.Item).OfType<FileDataSource>();
         dialogModel.DataSources = new(dataFiles);
         dialogModel.SelectedDataSource = dialogModel.DataSources.FirstOrDefault();
+        dialogModel.TemplatePalettes = new([null, .. _paletteStore.GlobalPalettes.OrderBy(x => x.Name)]);
 
         if (dialogModel.DataSources.Count == 0)
         {
@@ -144,8 +145,13 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
         if (dialogResult is not null && dialogModel.SelectedDataSource is not null)
         {
-            var pal = new Palette(dialogModel.PaletteName, _colorFactory,
-                Palette.StringToColorModel(dialogModel.SelectedColorModel), Array.Empty<IColorSource>(),
+            var template = dialogModel.TemplatePalette;
+            var colorModel = template?.ColorModel ?? Palette.StringToColorModel(dialogModel.SelectedColorModel);
+            IColorSource[] sources = template is null
+                ? []
+                : Enumerable.Range(0, template.Entries).Select(i => new ProjectNativeColorSource(template.GetNativeColor(i))).ToArray();
+
+            var pal = new Palette(dialogModel.PaletteName, _colorFactory, colorModel, sources,
                 dialogModel.ZeroIndexTransparent, PaletteStorageSource.ProjectXml, dialogModel.SelectedDataSource);
 
             var result = _projectService.AddResource(parentNodeModel.Node, pal);

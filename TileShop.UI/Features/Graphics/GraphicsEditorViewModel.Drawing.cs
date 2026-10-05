@@ -36,22 +36,8 @@ public partial class GraphicsEditorViewModel
             OnColorEditorConfirm);
     }
 
-    private void OnColorEditorConfirm(Palette palette, int colorIndex, IColor newColor)
-    {
-        palette.SetForeignColor(colorIndex, newColor);
-        palette.SavePalette();
-
-        // Update the swatch grid
-        var nativeColor = _colorFactory.ToNative(newColor);
-        var mediaColor = global::Avalonia.Media.Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-
-        if (ActivePalette is not null && colorIndex < ActivePalette.Colors.Count)
-            ActivePalette.Colors[colorIndex] = new PaletteEntry((byte)colorIndex, mediaColor);
-
-        // Re-render and broadcast change
-        InvalidateEditor(InvalidationLevel.PixelData);
-        Messenger.Send(new PaletteChangedMessage(palette));
-    }
+    private void OnColorEditorConfirm(Palette palette, int colorIndex, IColor newColor) =>
+        Messenger.Send(new PaletteColorAssignedMessage(palette, colorIndex, _colorFactory.CloneColor(newColor)));
 
     [RelayCommand]
     public void ChangePixelTool(DrawTool tool)
@@ -143,7 +129,7 @@ public partial class GraphicsEditorViewModel
         if (IsDirectColor)
             return HasColorDataAtPosition(x, y);
 
-        return HasColorDataAtPosition(x, y) && ActivePalette is not null && _imageAdapter.CanSetPixel(x, y, GetActivePaletteColor(PrimaryColorIndex)).HasSucceeded;
+        return HasColorDataAtPosition(x, y) && HasActivePaletteColor(PrimaryColorIndex) && _imageAdapter.CanSetPixel(x, y, GetActivePaletteColor(PrimaryColorIndex)).HasSucceeded;
     }
 
     internal bool CanFloodFillAtPosition(int x, int y) => IsPointInDrawClip(x, y) && HasColorDataAtPosition(x, y);
@@ -152,6 +138,8 @@ public partial class GraphicsEditorViewModel
 
     private bool HasColorDataAtPosition(int x, int y) =>
         _imageAdapter.GetElementAtPixel(x, y) is { IsWithinSource: true } element && (IsDirectColor || element.Codec is IIndexedCodec);
+
+    private bool HasActivePaletteColor(byte colorIndex) => ActivePalette is not null && colorIndex < ActivePalette.Colors.Count;
 
     private ColorRgba32 GetActivePaletteColor(byte colorIndex)
     {
@@ -178,7 +166,7 @@ public partial class GraphicsEditorViewModel
 
     private void SetIndexedPixel(int x, int y, byte colorIndex)
     {
-        if (ActivePalette is null)
+        if (!HasActivePaletteColor(colorIndex))
             return;
 
         var result = _imageAdapter.TrySetPixel(x, y, GetActivePaletteColor(colorIndex));

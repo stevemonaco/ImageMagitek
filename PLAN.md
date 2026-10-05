@@ -66,21 +66,21 @@ Exit criteria: palette edits behave like graphics edits. They stay pending until
 
 ### Rework
 
-- [ ] **One edit model.** Keep pending edits in memory in the shared `Palette`, and broadcast `PaletteChangedMessage` so graphics editors preview them live. Write to the data source and project XML only on Save (Ctrl+S). Discard calls `Reload` and rebuilds the view. Route the graphics editor's color flyout through the same path, so a palette has one modified state wherever it's edited. Close, project-node removal and app exit all prompt for modified palettes (Milestone 1).
-- [ ] **Undo/redo** using Milestone 2's history model. A palette is at most 256 colors plus a short source list, so snapshotting both per action is cheap.
-- [ ] **Sources tracked and validated.** Source edits set `IsModified`. Invalid entries show a validation error and block Save instead of disappearing. Drop the separate "Save Sources" button, since Save covers both colors and sources.
-- [ ] **Multi-selection:** click, Shift+click for a range, and Ctrl+click to toggle. Operations on a selection:
+- [x] **One edit model.** Keep pending edits in memory in the shared `Palette`, and broadcast `PaletteChangedMessage` so graphics editors preview them live. Write to the data source and project XML only on Save (Ctrl+S). Discard calls `Reload` and rebuilds the view. Route the graphics editor's color flyout through the same path, so a palette has one modified state wherever it's edited. Close, project-node removal and app exit all prompt for modified palettes (Milestone 1).
+- [x] **Undo/redo** using Milestone 2's history model. A palette is at most 256 colors plus a short source list, so snapshotting both per action is cheap.
+- [x] **Sources tracked and validated.** Source edits set `IsModified`. Invalid entries show a validation error and block Save instead of disappearing. Drop the separate "Save Sources" button, since Save covers both colors and sources.
+- [x] **Multi-selection:** click, Shift+click for a range, and Ctrl+click to toggle. Operations on a selection:
   - Copy and paste colors, both within TileShop and to the OS clipboard as hex text.
   - Swap two colors.
   - Fill a gradient between the first and last selected colors.
 
   Moving or reordering colors changes how every arranger using those indices looks, so leave it out of 1.0.
-- [ ] **Layout:** put the swatch grid beside the color editor instead of above it, so editing doesn't scroll the grid away. Selecting a swatch highlights the source it comes from, and shows its file offset for file-backed colors. Sources move to a collapsible section, since they're set up once and rarely touched.
-- [ ] **Change color model:** reinterpret the existing sources under another model, with a before/after preview of the swatches.
-- [ ] **Read-only global palettes:** keep them read-only, and add "Duplicate to project" so they can be used as a starting point.
-- [ ] **Palette file import/export:** export to `.pal` (JASC) and `.gpl`, and import either into project-native colors. Leave RIFF, ACT and HEX for later.
-- [ ] **Hotkeys:** Ctrl+S, Ctrl+Z/Ctrl+Y, Ctrl+C/Ctrl+V and arrow-key navigation of the grid, scoped through the existing hotkey service.
-- [ ] **Tests:** move the editing state (working colors, sources, selection and history) out of the ViewModel into a plain class, and unit-test edit → undo → redo → save → reload against a `MemoryDataSource`.
+- [x] **Layout:** put the swatch grid beside the color editor instead of above it, so editing doesn't scroll the grid away. Selecting a swatch highlights the source it comes from, and shows its file offset for file-backed colors. Sources move to a collapsible section, since they're set up once and rarely touched.
+- [x] **Change color model:** reinterpret the existing sources under another model, with a before/after preview of the swatches.
+- [x] **Read-only global palettes:** keep them read-only, and add "Duplicate to project" so they can be used as a starting point.
+- [x] **Palette file import/export:** export to `.pal` (JASC) and `.gpl`, and import either into project-native colors. Leave RIFF, ACT and HEX for later.
+- [x] **Hotkeys:** Ctrl+S, Ctrl+Z/Ctrl+Y, Ctrl+C/Ctrl+V and arrow-key navigation of the grid, scoped through the existing hotkey service.
+- [x] **Tests:** move the editing state (working colors, sources, selection and history) out of the ViewModel into a plain class, and unit-test edit → undo → redo → save → reload against a `MemoryDataSource`.
 
 ## Milestone 5: CLI
 

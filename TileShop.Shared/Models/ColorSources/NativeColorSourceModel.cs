@@ -14,6 +14,7 @@ public partial class NativeColorSourceModel : ColorSourceModel
     public NativeColorSourceModel(string nativeHexColor)
     {
         _nativeHexColor = nativeHexColor;
+        ValidateAllProperties();
     }
 
     public static ValidationResult ValidateHexColor(string hexColor, ValidationContext context)

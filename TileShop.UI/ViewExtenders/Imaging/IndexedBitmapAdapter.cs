@@ -129,7 +129,7 @@ public class IndexedBitmapAdapter : BitmapAdapter
 
         var el = Image.GetElementAtPixel(x, y);
 
-        if (el is { IsWithinSource: true, Codec: IIndexedCodec codec })
+        if (el is { IsWithinSource: true, Codec: IIndexedCodec codec } && sourceRow[x] < codec.Palette.Entries)
         {
             var pal = codec.Palette;
             var index = sourceRow[x];

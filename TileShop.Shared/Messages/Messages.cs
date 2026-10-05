@@ -1,4 +1,4 @@
-﻿using ImageMagitek;
+using ImageMagitek;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 
@@ -15,6 +15,7 @@ public record ArrangerChangedMessage(Arranger Arranger, ArrangerChange Change);
 public record EditArrangerPixelsMessage(Arranger Arranger, Arranger ProjectArranger, int X, int Y, int Width, int Height);
 public record NotifyStatusMessage(string NotifyMessage, NotifyStatusDuration DisplayDuration = NotifyStatusDuration.Short);
 public record PaletteChangedMessage(Palette Palette);
+public record PaletteColorAssignedMessage(Palette Palette, int Index, IColor Color);
 public record ProjectLoadedMessage(string ProjectFileName);
 public record ProjectUnloadedMessage();
 public record ResourceChangedMessage(IProjectResource Resource, ResourceModifyEffect Effect);

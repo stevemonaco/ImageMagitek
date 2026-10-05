@@ -9,6 +9,14 @@
     x:Name="palView"
     x:DataType="vm:PaletteEditorViewModel">
     <UserControl.Styles>
+        <Style Selector="Border.sourceRow">
+            <Setter Property="Padding" Value="6,2" />
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="Border.sourceRow.highlighted">
+            <Setter Property="Background" Value="{DynamicResource SemiColorPrimaryLight}" />
+        </Style>
         <Style Selector="Grid.sourceRow > TextBlock.sourceKind">
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
@@ -23,52 +31,58 @@
 
     <UserControl.DataTemplates>
         <DataTemplate DataType="{x:Type m:FileColorSourceModel}">
-            <Grid Classes="sourceRow" ColumnDefinitions="64,*,Auto" ColumnSpacing="8">
-                <TextBlock Classes="sourceKind" Text="File" />
-                <StackPanel Grid.Column="1" Classes="fields">
-                    <TextBox InnerLeftContent="0x" Text="{Binding FileAddress, Converter={x:Static con:AppConverters.LongToHexadecimal}}"
-                        ToolTip.Tip="Byte offset of the first color in the file" />
-                    <NumericUpDown Width="120" Classes="dense" FormatString="0" InnerRightContent="colors" Minimum="0"
-                        ToolTip.Tip="Number of consecutive colors read from the offset" Value="{Binding Entries}" />
-                    <ToggleSwitch Padding="10,0" IsChecked="{Binding Endian, Converter={x:Static con:AppConverters.EndianToBoolean}}"
-                        OffContent="Little" OnContent="Big" Theme="{StaticResource SlidingToggleSwitchTheme}" ToolTip.Tip="Byte order of each color" />
-                </StackPanel>
-                <Button Grid.Column="2" Classes="tool" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}"
-                    CommandParameter="{Binding}" ToolTip.Tip="Remove this source">
-                    <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Trash}" />
-                </Button>
-            </Grid>
+            <Border Classes="sourceRow" Classes.highlighted="{Binding IsHighlighted}">
+                <Grid Classes="sourceRow" ColumnDefinitions="64,*,Auto" ColumnSpacing="8">
+                    <TextBlock Classes="sourceKind" Text="File" />
+                    <StackPanel Grid.Column="1" Classes="fields">
+                        <TextBox InnerLeftContent="0x" Text="{Binding FileAddress, Converter={x:Static con:AppConverters.LongToHexadecimal}, UpdateSourceTrigger=LostFocus}"
+                            ToolTip.Tip="Byte offset of the first color in the file" />
+                        <NumericUpDown Width="120" Classes="dense" FormatString="0" InnerRightContent="colors" Minimum="1"
+                            ToolTip.Tip="Number of consecutive colors read from the offset" Value="{Binding Entries}" />
+                        <ToggleSwitch Padding="10,0" IsChecked="{Binding Endian, Converter={x:Static con:AppConverters.EndianToBoolean}}"
+                            OffContent="Little" OnContent="Big" Theme="{StaticResource SlidingToggleSwitchTheme}" ToolTip.Tip="Byte order of each color" />
+                    </StackPanel>
+                    <Button Grid.Column="2" Classes="tool" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}"
+                        CommandParameter="{Binding}" ToolTip.Tip="Remove this source">
+                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Trash}" />
+                    </Button>
+                </Grid>
+            </Border>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type m:NativeColorSourceModel}">
-            <Grid Classes="sourceRow" ColumnDefinitions="64,*,Auto" ColumnSpacing="8">
-                <TextBlock Classes="sourceKind" Text="Native" />
-                <StackPanel Grid.Column="1" Classes="fields">
-                    <TextBox Text="{Binding NativeHexColor}" ToolTip.Tip="Fixed color as #RRGGBBAA" />
-                </StackPanel>
-                <Button Grid.Column="2" Classes="tool" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}"
-                    CommandParameter="{Binding}" ToolTip.Tip="Remove this source">
-                    <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Trash}" />
-                </Button>
-            </Grid>
+            <Border Classes="sourceRow" Classes.highlighted="{Binding IsHighlighted}">
+                <Grid Classes="sourceRow" ColumnDefinitions="64,*,Auto" ColumnSpacing="8">
+                    <TextBlock Classes="sourceKind" Text="Native" />
+                    <StackPanel Grid.Column="1" Classes="fields">
+                        <TextBox Text="{Binding NativeHexColor, UpdateSourceTrigger=LostFocus}" ToolTip.Tip="Fixed color as #RRGGBBAA" />
+                    </StackPanel>
+                    <Button Grid.Column="2" Classes="tool" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}"
+                        CommandParameter="{Binding}" ToolTip.Tip="Remove this source">
+                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Trash}" />
+                    </Button>
+                </Grid>
+            </Border>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type m:ForeignColorSourceModel}">
-            <Grid Classes="sourceRow" ColumnDefinitions="64,*,Auto" ColumnSpacing="8">
-                <TextBlock Classes="sourceKind" Text="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).ColorModel}" />
-                <StackPanel Grid.Column="1" Classes="fields">
-                    <TextBox Text="{Binding ForeignHexColor}" ToolTip.Tip="Fixed color as a raw value in the palette's color model" />
-                </StackPanel>
-                <Button Grid.Column="2" Classes="tool" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}"
-                    CommandParameter="{Binding}" ToolTip.Tip="Remove this source">
-                    <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Trash}" />
-                </Button>
-            </Grid>
+            <Border Classes="sourceRow" Classes.highlighted="{Binding IsHighlighted}">
+                <Grid Classes="sourceRow" ColumnDefinitions="64,*,Auto" ColumnSpacing="8">
+                    <TextBlock Classes="sourceKind" Text="{Binding ColorModel}" />
+                    <StackPanel Grid.Column="1" Classes="fields">
+                        <TextBox Text="{Binding ForeignHexColor, UpdateSourceTrigger=LostFocus}" ToolTip.Tip="Fixed color as a raw value in the palette's color model" />
+                    </StackPanel>
+                    <Button Grid.Column="2" Classes="tool" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}"
+                        CommandParameter="{Binding}" ToolTip.Tip="Remove this source">
+                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Trash}" />
+                    </Button>
+                </Grid>
+            </Border>
         </DataTemplate>
     </UserControl.DataTemplates>
 
-    <ScrollViewer>
-        <StackPanel MaxWidth="640" Margin="12" HorizontalAlignment="Left" Spacing="20">
+    <ScrollViewer HorizontalScrollBarVisibility="Auto">
+        <StackPanel Margin="12" HorizontalAlignment="Left" Spacing="16">
 
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                 <StackPanel Spacing="8">
@@ -89,10 +103,37 @@
                 </Border>
             </Grid>
 
-            <StackPanel Spacing="6">
-                <TextBlock Classes="muted" Text="Colors" />
+            <StackPanel Orientation="Horizontal" Spacing="2">
+                <Button x:Name="CopyColorsButton" Classes="tool" Command="{Binding CopyCommand}" ToolTip.Tip="Copy the selected colors (Ctrl+C)">
+                    <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.CopyColors}" />
+                </Button>
+                <Button x:Name="PasteColorsButton" Classes="tool" Command="{Binding PasteCommand}" ToolTip.Tip="Paste colors from the first selected color on (Ctrl+V)">
+                    <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.PasteColors}" />
+                </Button>
+                <Button x:Name="SwapColorsButton" Classes="tool" Command="{Binding SwapCommand}" ToolTip.ShowOnDisabled="True"
+                    ToolTip.Tip="Swap the two selected colors">
+                    <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.SwapColors}" />
+                </Button>
+                <Button x:Name="GradientColorsButton" Classes="tool" Command="{Binding GradientCommand}" ToolTip.ShowOnDisabled="True"
+                    ToolTip.Tip="Fill a gradient between the first and last of three or more selected colors">
+                    <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.GradientColors}" />
+                </Button>
+                <Separator Width="1" Height="20" Margin="6,0" />
+                <Button x:Name="ImportPaletteButton" Classes="tool" Command="{Binding ImportPaletteCommand}" IsEnabled="{Binding !IsReadOnly}"
+                    ToolTip.Tip="Import a .pal or .gpl file, replacing the sources with its colors">
+                    <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ImportPalette}" />
+                </Button>
+                <Button x:Name="ExportPaletteButton" Classes="tool" Command="{Binding ExportPaletteCommand}" ToolTip.Tip="Export the colors to a .pal or .gpl file">
+                    <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ExportPalette}" />
+                </Button>
+                <Button x:Name="ChangeColorModelButton" Classes="tool" Command="{Binding ChangeColorModelCommand}" IsEnabled="{Binding !IsReadOnly}"
+                    ToolTip.Tip="Reinterpret the sources under another color model">
+                    <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ChangeColorModel}" />
+                </Button>
+            </StackPanel>
 
-                <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="6" RowDefinitions="Auto,Auto" RowSpacing="2">
+            <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="24">
+                <Grid VerticalAlignment="Top" ColumnDefinitions="Auto,Auto" ColumnSpacing="6" RowDefinitions="Auto,Auto" RowSpacing="2">
                     <ItemsControl Grid.Column="1" ItemsSource="{Binding ColumnHeaders}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -142,17 +183,21 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </Grid>
-            </StackPanel>
 
-            <StackPanel IsVisible="{Binding ActiveColor, Converter={x:Static ObjectConverters.IsNotNull}}" Spacing="6">
-                <TextBlock Classes="muted" Text="{Binding ActiveColor.Index, StringFormat='Color {0}'}" />
-                <ContentControl Content="{Binding ActiveColor}" />
-            </StackPanel>
+                <StackPanel Grid.Column="1" MinWidth="360" VerticalAlignment="Top" IsVisible="{Binding ActiveColor, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    Spacing="6">
+                    <TextBlock Classes="muted" Text="{Binding SelectionSummary}" />
+                    <ContentControl Content="{Binding ActiveColor}" />
+                    <TextBlock Classes="muted" FontSize="11" Text="{Binding SelectedColorOffset}" />
+                </StackPanel>
+            </Grid>
 
-            <StackPanel IsVisible="{Binding !IsReadOnly}" Spacing="6">
-                <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock VerticalAlignment="Center" Classes="muted" Text="Sources" />
-                    <Button Grid.Column="1" Classes="Tertiary" ToolTip.Tip="Add a source of colors to the end of the palette">
+            <Expander MaxWidth="640" HorizontalAlignment="Stretch" IsExpanded="False" IsVisible="{Binding !IsReadOnly}">
+                <Expander.Header>
+                    <TextBlock VerticalAlignment="Center" Text="Sources" />
+                </Expander.Header>
+                <StackPanel Spacing="6">
+                    <Button HorizontalAlignment="Right" Classes="Tertiary" ToolTip.Tip="Add a source of colors to the end of the palette">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <cc:LineIcon Classes="inline" Data="{x:Static cc:AppIcons.Plus}" />
                             <TextBlock VerticalAlignment="Center" Text="Add" />
@@ -166,19 +211,16 @@
                             </MenuFlyout>
                         </Button.Flyout>
                     </Button>
-                </Grid>
 
-                <ItemsControl ItemsSource="{Binding ColorSourceModels}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Spacing="4" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-
-                <Button HorizontalAlignment="Right" Command="{Binding SaveSourcesCommand}" Content="Save Sources"
-                    ToolTip.Tip="Save the sources to the project and reload the palette's colors from them" />
-            </StackPanel>
+                    <ItemsControl ItemsSource="{Binding ColorSourceModels}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Spacing="4" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </StackPanel>
+            </Expander>
         </StackPanel>
     </ScrollViewer>
 </UserControl>
