@@ -25,6 +25,11 @@ public sealed class PaletteEditSession
     public bool IsModified => _undo.Count > 0;
     public bool CanRedo => _redo.Count > 0;
 
+    /// <summary>
+    /// State last written by <see cref="Commit"/>, or the palette's state when the session started
+    /// </summary>
+    public PaletteSnapshot SavedState => _saved;
+
     private PaletteSnapshot LatestState => _undo.Count > 0 ? ((PaletteHistoryAction)_undo[^1]).After : _saved;
 
     public PaletteEditSession(Palette palette, IColorFactory colorFactory, ObservableCollection<HistoryAction> undo,

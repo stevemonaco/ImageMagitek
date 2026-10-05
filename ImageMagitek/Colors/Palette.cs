@@ -29,6 +29,12 @@ public class Palette : IProjectResource
 {
     private readonly IColorFactory _colorFactory;
     private readonly IColorSourceSerializer _colorSerializer;
+    private bool _zeroIndexTransparent;
+
+    /// <summary>
+    /// Raised after the palette's colors, sources, color model or transparency change
+    /// </summary>
+    public event EventHandler? Changed;
 
     public string Name { get; set; }
     public bool CanContainChildResources => false;
@@ -57,7 +63,18 @@ public class Palette : IProjectResource
     /// <summary>
     /// Specifies if the palette's 0-index is automatically treated as transparent
     /// </summary>
-    public bool ZeroIndexTransparent { get; set; }
+    public bool ZeroIndexTransparent
+    {
+        get => _zeroIndexTransparent;
+        set
+        {
+            if (_zeroIndexTransparent == value)
+                return;
+
+            _zeroIndexTransparent = value;
+            OnChanged();
+        }
+    }
 
     /// <summary>
     /// Specifies the palette's storage source
@@ -125,6 +142,8 @@ public class Palette : IProjectResource
         }
         else
             throw new NotSupportedException($"{nameof(PaletteStorageSource)} of type '{StorageSource}' is not supported");
+
+        OnChanged();
     }
 
     private ColorRgba32[] LoadNativePalette()
@@ -285,6 +304,7 @@ public class Palette : IProjectResource
 
         ForeignPalette[index] = foreignColor;
         NativePalette[index] = _colorFactory.ToNative(foreignColor);
+        OnChanged();
     }
 
     /// <summary>
@@ -315,6 +335,7 @@ public class Palette : IProjectResource
 
         NativePalette[index] = nativeColor;
         ForeignPalette[index] = _colorFactory.ToForeign(nativeColor, ColorModel);
+        OnChanged();
     }
 
     /// <summary>
@@ -414,6 +435,8 @@ public class Palette : IProjectResource
     {
         return Enum.GetNames(typeof(ColorModel)).Cast<string>().ToList();
     }
+
+    private void OnChanged() => Changed?.Invoke(this, EventArgs.Empty);
 
     public bool UnlinkResource(IProjectResource resource) => false;
 

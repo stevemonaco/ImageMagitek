@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using System.Threading.Tasks;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
@@ -7,6 +7,19 @@ namespace ImageMagitek.Services;
 
 public interface IProjectService
 {
+    event EventHandler<ProjectTree>? ProjectOpened;
+    event EventHandler<ProjectTree>? ProjectClosed;
+
+    /// <summary>
+    /// Raised for a <see cref="ProjectTree.Changed"/> in any open project; the sender is the project's tree
+    /// </summary>
+    event EventHandler<ProjectTreeChange>? TreeChanged;
+
+    /// <summary>
+    /// Raised for a <see cref="ProjectTree.ResourceChanged"/> in any open project; the sender is the project's tree
+    /// </summary>
+    event EventHandler<IProjectResource>? ResourceChanged;
+
     MagitekResult<ProjectTree> CreateNewProject(string projectName);
     Task<MagitekResult<ProjectTree>> CreateNewProjectWithExistingFileAsync(string projectFileName, string fileName);
 
@@ -23,11 +36,12 @@ public interface IProjectService
     MagitekResult CanMoveNode(ResourceNode node, ResourceNode parentNode);
     Task<MagitekResult> MoveNodeAsync(ResourceNode node, ResourceNode parentNode);
 
-    MagitekResult ApplyResourceDeletionChanges(IList<ResourceChange> changes, Palette defaultPalette);
-    IEnumerable<ResourceChange> PreviewResourceDeletionChanges(ResourceNode deleteNode);
+    ResourceDeletionPlan PreviewResourceDeletion(ResourceNode deleteNode);
+    MagitekResult ApplyResourceDeletion(ResourceDeletionPlan plan, Palette defaultPalette);
     Task<MagitekResult> RenameResourceAsync(ResourceNode node, string newName);
 
     ProjectTree GetContainingProject(ResourceNode node);
     ProjectTree GetContainingProject(IProjectResource resource);
+    ProjectTree? FindContainingProject(IProjectResource resource);
     bool AreResourcesInSameProject(IProjectResource a, IProjectResource b);
 }

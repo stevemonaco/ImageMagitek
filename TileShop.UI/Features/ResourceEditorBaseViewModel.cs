@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek.Project;
-using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using TileShop.UI.Models;
 
@@ -35,7 +33,6 @@ public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
     {
         Resource = resource;
         OriginatingProjectResource = resource;
-        Messenger.Register<ResourceRenamedMessage>(this, Handle);
     }
 
     public virtual bool CanUndo { get => UndoHistory.Count > 0; }
@@ -51,11 +48,5 @@ public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
         RedoHistory.Clear();
         OnPropertyChanged(nameof(CanUndo));
         OnPropertyChanged(nameof(CanRedo));
-    }
-
-    public virtual void Handle(object recipient, ResourceRenamedMessage message)
-    {
-        if (ReferenceEquals(Resource, message.Resource))
-            DisplayName = message.NewName;
     }
 }

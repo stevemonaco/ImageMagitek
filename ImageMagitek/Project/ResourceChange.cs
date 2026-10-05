@@ -1,27 +1,15 @@
-﻿namespace ImageMagitek.Project;
+using System.Collections.Generic;
 
-public sealed class ResourceChange
+namespace ImageMagitek.Project;
+
+public sealed record ResourceChange(ResourceNode ResourceNode, string ResourcePath, bool Removed, bool LostPalette, bool LostElement)
 {
-    public IProjectResource Resource { get; }
-    public ResourceNode ResourceNode { get; }
-
-    public string ResourceName { get; set; }
-    public string ResourcePath { get; set; }
-
-    public bool Removed { get; set; }
-    public bool LostPalette { get; set; }
-    public bool LostElement { get; set; }
-    public bool IsChanged { get; set; }
-
-    public ResourceChange(ResourceNode resourceNode, string resourcePathKey, bool removed, bool lostPalette, bool lostElement)
-    {
-        ResourceNode = resourceNode;
-        Resource = resourceNode.Item;
-        ResourceName = Resource.Name;
-        ResourcePath = resourcePathKey;
-        Removed = removed;
-        LostPalette = lostPalette;
-        LostElement = lostElement;
-        IsChanged = LostPalette || LostElement;
-    }
+    public IProjectResource Resource => ResourceNode.Item;
+    public string ResourceName => Resource.Name;
+    public bool IsChanged => LostPalette || LostElement;
 }
+
+/// <summary>
+/// The resources in <paramref name="Tree"/> removed or changed by deleting a resource node
+/// </summary>
+public sealed record ResourceDeletionPlan(ProjectTree Tree, IReadOnlyList<ResourceChange> Changes);

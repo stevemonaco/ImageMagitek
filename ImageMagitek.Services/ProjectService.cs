@@ -22,11 +22,37 @@ public class ProjectService : IProjectService
     private readonly IProjectSerializerFactory _serializerFactory;
     private readonly IColorFactory _colorFactory;
 
+    public event EventHandler<ProjectTree>? ProjectOpened;
+    public event EventHandler<ProjectTree>? ProjectClosed;
+    public event EventHandler<ProjectTreeChange>? TreeChanged;
+    public event EventHandler<IProjectResource>? ResourceChanged;
+
     public ProjectService(IProjectSerializerFactory serializerFactory, IColorFactory colorFactory)
     {
         _serializerFactory = serializerFactory;
         _colorFactory = colorFactory;
     }
+
+    private void AddProject(ProjectTree tree)
+    {
+        if (!_projects.Add(tree))
+            return;
+
+        tree.Changed += OnTreeChanged;
+        tree.ResourceChanged += OnResourceChanged;
+    }
+
+    private void RemoveProject(ProjectTree tree)
+    {
+        if (!_projects.Remove(tree))
+            return;
+
+        tree.Changed -= OnTreeChanged;
+        tree.ResourceChanged -= OnResourceChanged;
+    }
+
+    private void OnTreeChanged(object? sender, ProjectTreeChange change) => TreeChanged?.Invoke(sender, change);
+    private void OnResourceChanged(object? sender, IProjectResource resource) => ResourceChanged?.Invoke(sender, resource);
 
     /// <summary>
     /// Creates a new project
@@ -51,8 +77,9 @@ public class ProjectService : IProjectService
         var contents = _serializerFactory.CreateWriter(tree).SerializeResource(root);
         File.WriteAllText(root.DiskLocation, contents);
 
-        _projects.Add(tree);
+        AddProject(tree);
         UpdateNodeModel(tree, root);
+        ProjectOpened?.Invoke(this, tree);
 
         return new MagitekResult<ProjectTree>.Success(tree);
     }
@@ -86,11 +113,12 @@ public class ProjectService : IProjectService
         var dataNode = new DataFileNode(dataFile.Name, dataFile);
         tree.AttachNodeToPath("", dataNode);
 
-        _projects.Add(tree);
+        AddProject(tree);
         var result = await SaveProjectAsync(tree);
 
         if (result.HasSucceeded)
         {
+            ProjectOpened?.Invoke(this, tree);
             return new MagitekResult<ProjectTree>.Success(tree);
         }
         else
@@ -130,7 +158,8 @@ public class ProjectService : IProjectService
             return result.Match(
                 success =>
                 {
-                    _projects.Add(success.Result);
+                    AddProject(success.Result);
+                    ProjectOpened?.Invoke(this, success.Result);
                     return result;
                 },
                 fail => result
@@ -213,7 +242,8 @@ public class ProjectService : IProjectService
             foreach (var resource in projectTree.EnumerateBreadthFirst().Select(x => x.Item).OfType<IDisposable>())
                 resource.Dispose();
 
-            _projects.Remove(projectTree);
+            RemoveProject(projectTree);
+            ProjectClosed?.Invoke(this, projectTree);
         }
     }
 
@@ -222,12 +252,17 @@ public class ProjectService : IProjectService
     /// </summary>
     public virtual void CloseProjects()
     {
-        var resources = _projects.SelectMany(tree => tree.EnumerateDepthFirst().Select(x => x.Item).OfType<IDisposable>());
+        var closedProjects = _projects.ToList();
+        var resources = closedProjects.SelectMany(tree => tree.EnumerateDepthFirst().Select(x => x.Item).OfType<IDisposable>());
 
         foreach (var resource in resources)
             resource.Dispose();
 
-        _projects.Clear();
+        foreach (var tree in closedProjects)
+            RemoveProject(tree);
+
+        foreach (var tree in closedProjects)
+            ProjectClosed?.Invoke(this, tree);
     }
 
     /// <summary>
@@ -369,6 +404,9 @@ public class ProjectService : IProjectService
         return _projects.FirstOrDefault(x => x.ContainsResource(resource)) ??
             throw new ArgumentException($"{nameof(GetContainingProject)} could not locate the resource '{resource.Name}'");
     }
+
+    public virtual ProjectTree? FindContainingProject(IProjectResource resource) =>
+        _projects.FirstOrDefault(x => x.ContainsResource(resource));
 
     public virtual bool AreResourcesInSameProject(IProjectResource a, IProjectResource b)
     {
@@ -593,8 +631,7 @@ public class ProjectService : IProjectService
         try
         {
             node.DiskLocation = newLocation;
-            node.Parent?.DetachChildNode(node.Name);
-            parentNode.AttachChildNode(node);
+            node.MoveTo(parentNode);
             if (isFolder)
                 RelocateFolders(tree, node);
 
@@ -613,8 +650,8 @@ public class ProjectService : IProjectService
                 File.Move(newLocation, oldLocation);
 
             node.DiskLocation = oldLocation;
-            node.Parent?.DetachChildNode(node.Name);
-            oldParent?.AttachChildNode(node);
+            if (oldParent is not null && !ReferenceEquals(node.Parent, oldParent))
+                node.MoveTo(oldParent);
             if (isFolder)
                 RelocateFolders(tree, node);
         }
@@ -625,12 +662,12 @@ public class ProjectService : IProjectService
     /// <summary>
     /// Applies deletion and modification changes to the containing tree and disk
     /// </summary>
-    /// <param name="changes">Changes to be applied</param>
+    /// <param name="plan">Plan created by <see cref="PreviewResourceDeletion"/></param>
     /// <param name="defaultPalette">Default palette to fallback to when a resource loses a palette</param>
-    /// <returns></returns>
-    public virtual MagitekResult ApplyResourceDeletionChanges(IList<ResourceChange> changes, Palette defaultPalette)
+    public virtual MagitekResult ApplyResourceDeletion(ResourceDeletionPlan plan, Palette defaultPalette)
     {
-        var tree = GetContainingProject(changes.First().ResourceNode);
+        var tree = plan.Tree;
+        var changes = plan.Changes;
         var removedItems = changes.Where(x => x.Removed).ToList();
 
         foreach (var change in changes.Where(x => x.IsChanged))
@@ -698,34 +735,30 @@ public class ProjectService : IProjectService
     /// Previews a list of changes/deletions that will happen if the specified node is deleted
     /// </summary>
     /// <param name="deleteNode">Node to preview deletion of</param>
-    /// <returns></returns>
-    public virtual IEnumerable<ResourceChange> PreviewResourceDeletionChanges(ResourceNode deleteNode)
+    public virtual ResourceDeletionPlan PreviewResourceDeletion(ResourceNode deleteNode)
     {
         Guard.IsNotNull(deleteNode);
 
-        var tree = _projects.FirstOrDefault(x => x.ContainsNode(deleteNode));
-        if (tree is null)
-            yield break;
-
-        var rootRemovalChange = new ResourceChange(deleteNode, tree.CreatePathKey(deleteNode), true, false, false);
+        var tree = GetContainingProject(deleteNode);
+        var changes = new List<ResourceChange>();
 
         var removedDict = deleteNode.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>()
             .Select(x => new ResourceChange(x, tree.CreatePathKey(x), true, false, false))
             .ToDictionary(key => key.Resource, val => val);
 
-        foreach (var node in removedDict.Values)
-            yield return node;
+        changes.AddRange(removedDict.Values);
 
         // Palettes with removed DataFiles must be checked early, so that Arrangers are effected in the main loop by removed Palettes
         var removedPaletteNodes = tree.EnumerateDepthFirst()
             .Where(x => x.Item is Palette pal && pal.DataSource is not null)
-            .Where(x => removedDict.ContainsKey(((Palette)x.Item).DataSource!));
+            .Where(x => removedDict.ContainsKey(((Palette)x.Item).DataSource!) && !removedDict.ContainsKey(x.Item))
+            .ToList();
 
         foreach (var paletteNode in removedPaletteNodes)
         {
             var paletteChange = new ResourceChange(paletteNode, tree.CreatePathKey(paletteNode), true, false, false);
             removedDict[paletteNode.Item] = paletteChange;
-            yield return paletteChange;
+            changes.Add(paletteChange);
         }
 
         foreach (var node in tree.EnumerateDepthFirst().Where(x => !removedDict.ContainsKey(x.Item)))
@@ -752,11 +785,10 @@ public class ProjectService : IProjectService
             }
 
             if (removed || lostPalette || lostElements)
-            {
-                var change = new ResourceChange(node, tree.CreatePathKey(node), removed, lostPalette, lostElements);
-                yield return change;
-            }
+                changes.Add(new ResourceChange(node, tree.CreatePathKey(node), removed, lostPalette, lostElements));
         }
+
+        return new ResourceDeletionPlan(tree, changes);
     }
 
     /// <summary>

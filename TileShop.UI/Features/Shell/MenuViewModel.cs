@@ -1,10 +1,9 @@
 ﻿using System.IO;
 using System.Linq;
 using ImageMagitek;
-using TileShop.Shared.Messages;
+using ImageMagitek.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Services;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
@@ -44,7 +43,7 @@ public partial class MenuViewModel : ObservableRecipient
     private readonly IExploreService _exploreService;
 
     public MenuViewModel(UserPreferencesStore preferencesStore, IThemeService themeService, ProjectTreeViewModel projectTreeVm, EditorsViewModel editors,
-        IInteractionService interactionService, IExploreService exploreService)
+        IInteractionService interactionService, IExploreService exploreService, IProjectService projectService)
     {
         _preferencesStore = preferencesStore;
         _themeService = themeService;
@@ -53,7 +52,11 @@ public partial class MenuViewModel : ObservableRecipient
         _interactions = interactionService;
         _exploreService = exploreService;
 
-        Messenger.Register<ProjectLoadedMessage>(this, (r, m) => Handle(m));
+        projectService.ProjectOpened += (_, tree) =>
+        {
+            if (tree.Root.DiskLocation is { } projectFileName)
+                AddRecentProjectFile(projectFileName);
+        };
 
         var preferences = preferencesStore.Preferences;
         _recentProjectFiles = new(preferences.RecentProjectFiles.Where(File.Exists));
@@ -128,18 +131,18 @@ public partial class MenuViewModel : ObservableRecipient
         _exploreService.ExploreWebLocation(uri);
     }
 
-    private async void Handle(ProjectLoadedMessage message)
+    private async void AddRecentProjectFile(string projectFileName)
     {
         await Task.Yield(); // Delay so that the menu closes, otherwise changing the collection keeps it open
 
-        if (RecentProjectFiles.Contains(message.ProjectFileName))
+        if (RecentProjectFiles.Contains(projectFileName))
         {
-            RecentProjectFiles.Remove(message.ProjectFileName);
-            RecentProjectFiles.Insert(0, message.ProjectFileName);
+            RecentProjectFiles.Remove(projectFileName);
+            RecentProjectFiles.Insert(0, projectFileName);
         }
         else
         {
-            RecentProjectFiles.Insert(0, message.ProjectFileName);
+            RecentProjectFiles.Insert(0, projectFileName);
             if (RecentProjectFiles.Count > 8)
                 RecentProjectFiles = new(RecentProjectFiles.Take(8));
         }

@@ -4,16 +4,16 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using TileShop.Shared.Messages;
 using ImageMagitek.Colors;
 using ImageMagitek.Colors.Serialization;
+using ImageMagitek.Project;
+using static ImageMagitek.Project.Serialization.SerializationMapperExtensions;
 using ImageMagitek.Services;
 using ImageMagitek.Utility.Parsing;
 using ImageMagitek;
 using System.Collections.ObjectModel;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
@@ -380,8 +380,27 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         OnPropertyChanged(nameof(CanUndo));
         OnPropertyChanged(nameof(CanRedo));
         UpdateModified();
+        UpdateCommittedModel();
+    }
 
-        Messenger.Send(new PaletteChangedMessage(_palette));
+    private void UpdateCommittedModel()
+    {
+        if (IsReadOnly)
+            return;
+
+        if (_projectService.FindContainingProject(_palette)?.TryFindResourceNode(_palette, out var node) != true
+            || node is not PaletteNode paletteNode)
+            return;
+
+        if (_session.IsModified)
+        {
+            var saved = _session.SavedState;
+            paletteNode.CommittedModel = map => _palette.MapToModel(map, _colorFactory, saved.ColorModel, saved.ZeroIndexTransparent, saved.Sources);
+        }
+        else
+        {
+            paletteNode.CommittedModel = null;
+        }
     }
 
     private void UpdateModified() => IsModified = _session.IsModified || _isProjectSavePending || HasInvalidSources();

@@ -126,9 +126,9 @@ public sealed class XmlProjectWriter : IProjectWriter
                 contents = Stringify(Serialize(model));
                 currentModel = model;
             }
-            else if (resourceNode is PaletteNode { Item: Palette pal })
+            else if (resourceNode is PaletteNode paletteNode)
             {
-                var model = pal.MapToModel(resourceMap, _colorFactory);
+                var model = MapPaletteModel(paletteNode, resourceMap);
                 contents = Stringify(Serialize(model));
                 currentModel = model;
             }
@@ -187,8 +187,7 @@ public sealed class XmlProjectWriter : IProjectWriter
             }
             else if (node is PaletteNode paletteNode)
             {
-                var pal = (Palette) paletteNode.Item;
-                currentModel = pal.MapToModel(resourceMap, _colorFactory);
+                currentModel = MapPaletteModel(paletteNode, resourceMap);
                 diskModel = paletteNode.Model;
             }
             else if (node is ArrangerNode arrangerNode)
@@ -259,6 +258,9 @@ public sealed class XmlProjectWriter : IProjectWriter
 
         return result;
     }
+
+    private PaletteModel MapPaletteModel(PaletteNode node, Dictionary<IProjectResource, string> resourceMap) =>
+        node.CommittedModel?.Invoke(resourceMap) ?? ((Palette)node.Item).MapToModel(resourceMap, _colorFactory);
 
     private XElement SerializeModel(ResourceModel model)
     {

@@ -2,8 +2,10 @@
 
 namespace TileShop.UI.ViewModels;
 
-class ResourceNodeComparer : IComparer<ResourceNodeViewModel>
+public sealed class ResourceNodeComparer : IComparer<ResourceNodeViewModel>
 {
+    public static ResourceNodeComparer Instance { get; } = new();
+
     public int Compare(ResourceNodeViewModel? x, ResourceNodeViewModel? y)
     {
         if (x is FolderNodeViewModel && y is FolderNodeViewModel)

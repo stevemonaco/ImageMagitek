@@ -454,21 +454,15 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     /// </summary>
     public void ReloadFromSource()
     {
-        InvalidateEditor(InvalidationLevel.Display);
+        InvalidateEditor(InvalidationLevel.PixelData);
         ClearHistory();
     }
 
     /// <summary>
-    /// True when this editor reads any of the same data as <paramref name="arranger"/>
+    /// True when this editor reads any data from <paramref name="source"/>
     /// </summary>
-    public bool SharesDataWith(Arranger arranger)
-    {
-        if (ReferenceEquals(arranger, _projectArranger) || ReferenceEquals(arranger, WorkingArranger))
-            return true;
-
-        var sources = arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Source).ToHashSet();
-        return WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Any(x => sources.Contains(x.Source));
-    }
+    public bool ReadsFrom(DataSource source) =>
+        WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Any(x => ReferenceEquals(x.Source, source));
 
     public bool ContainsPoint(double x, double y)
     {
@@ -524,9 +518,6 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
                     }
                 );
             }
-
-            var changeMessage = new ArrangerChangedMessage(_projectArranger, ArrangerChange.Pixels);
-            Messenger.Send(changeMessage);
         }
         catch (Exception ex)
         {
@@ -590,18 +581,6 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         copy.ProjectResource = OriginatingProjectResource;
 
         Messenger.Send(new AddScatteredArrangerFromCopyMessage(copy, OriginatingProjectResource));
-    }
-
-    public override void Handle(object recipient, ResourceRenamedMessage message)
-    {
-        base.Handle(recipient, message);
-
-        if (message.Resource is Palette palette)
-        {
-            var model = Palettes.FirstOrDefault(x => ReferenceEquals(x.Palette, palette));
-            if (model is not null)
-                model.Name = message.NewName;
-        }
     }
 
     [RelayCommand]

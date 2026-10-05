@@ -38,26 +38,33 @@ public static class SerializationMapperExtensions
         };
     }
 
-    public static PaletteModel MapToModel(this Palette pal, Dictionary<IProjectResource, string> resourceMap, IColorFactory colorFactory)
+    public static PaletteModel MapToModel(this Palette pal, Dictionary<IProjectResource, string> resourceMap, IColorFactory colorFactory) =>
+        pal.MapToModel(resourceMap, colorFactory, pal.ColorModel, pal.ZeroIndexTransparent, pal.ColorSources);
+
+    /// <summary>
+    /// Maps the palette's name and data file with the specified color state, such as a committed state that differs from the live palette
+    /// </summary>
+    public static PaletteModel MapToModel(this Palette pal, Dictionary<IProjectResource, string> resourceMap, IColorFactory colorFactory,
+        ColorModel colorModel, bool zeroIndexTransparent, IReadOnlyList<IColorSource> colorSources)
     {
-        var size = colorFactory.CreateColor(pal.ColorModel).Size;
+        var size = colorFactory.CreateColor(colorModel).Size;
 
         var model = new PaletteModel()
         {
             Name = pal.Name,
-            ColorModel = pal.ColorModel,
-            ZeroIndexTransparent = pal.ZeroIndexTransparent,
+            ColorModel = colorModel,
+            ZeroIndexTransparent = zeroIndexTransparent,
         };
 
         if (pal.DataSource is not null && resourceMap.TryGetValue(pal.DataSource, out var dataFileKey))
             model.DataFileKey = dataFileKey;
 
         int i = 0;
-        while (i < pal.ColorSources.Length)
+        while (i < colorSources.Count)
         {
-            if (pal.ColorSources[i] is FileColorSource fileSource)
+            if (colorSources[i] is FileColorSource fileSource)
             {
-                var sources = pal.ColorSources.Skip(i)
+                var sources = colorSources.Skip(i)
                     .TakeWhile((x, i) => x is FileColorSource fcs && fcs.Offset == (fileSource.Offset + i * size))
                     .ToList();
 
@@ -66,19 +73,19 @@ public static class SerializationMapperExtensions
 
                 i += sources.Count;
             }
-            else if (pal.ColorSources[i] is ProjectNativeColorSource nativeSource)
+            else if (colorSources[i] is ProjectNativeColorSource nativeSource)
             {
                 var nativeModel = new ProjectNativeColorSourceModel(nativeSource.Value);
                 model.ColorSources.Add(nativeModel);
                 i++;
             }
-            else if (pal.ColorSources[i] is ProjectForeignColorSource foreignSource)
+            else if (colorSources[i] is ProjectForeignColorSource foreignSource)
             {
                 var foreignModel = new ProjectForeignColorSourceModel(foreignSource.Value);
                 model.ColorSources.Add(foreignModel);
                 i++;
             }
-            else if (pal.ColorSources[i] is ScatteredColorSource scatteredSource)
+            else if (colorSources[i] is ScatteredColorSource scatteredSource)
             {
             }
         }

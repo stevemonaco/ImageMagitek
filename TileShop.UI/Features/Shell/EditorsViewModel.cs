@@ -20,6 +20,8 @@ using TileShop.UI.Features.Graphics;
 using TileShop.Shared.Services;
 using TileShop.Shared.Tools;
 using TileShop.UI.Services;
+using Monaco.PathTree;
+using Avalonia.Threading;
 
 namespace TileShop.UI.ViewModels;
 
@@ -39,6 +41,7 @@ public partial class EditorsViewModel : ObservableRecipient
     private readonly HotkeyService _hotkeys;
     private readonly IAsyncFileRequestService _fileRequests;
     private readonly ClipboardService _clipboard;
+    private readonly HashSet<IProjectResource> _pendingResourceChanges = new(ReferenceEqualityComparer.Instance);
 
     public ObservableCollection<ResourceEditorBaseViewModel> Editors { get; } = new();
 
@@ -76,10 +79,92 @@ public partial class EditorsViewModel : ObservableRecipient
         _clipboard = clipboard;
 
         Messenger.Register<EditArrangerPixelsMessage>(this, (r, m) => Receive(m));
-        Messenger.Register<ArrangerChangedMessage>(this, (r, m) => Receive(m));
-        Messenger.Register<PaletteChangedMessage>(this, (r, m) => Receive(m));
         Messenger.Register<PaletteColorAssignedMessage>(this, (r, m) => Receive(m));
+
+        _projectService.TreeChanged += OnTreeChanged;
+        _projectService.ResourceChanged += OnResourceChanged;
     }
+
+    private void OnTreeChanged(object? sender, ProjectTreeChange change)
+    {
+        if (change.Kind == ProjectTreeChangeKind.Renamed)
+        {
+            foreach (var editor in Editors.Where(x => ReferenceEquals(x.Resource, change.Node.Item)))
+                editor.DisplayName = change.Node.Name;
+
+            if (change.Node.Item is Palette palette)
+            {
+                var models = Editors.OfType<GraphicsEditorViewModel>()
+                    .SelectMany(x => x.Palettes)
+                    .Where(x => ReferenceEquals(x.Palette, palette));
+
+                foreach (var model in models)
+                    model.Name = change.Node.Name;
+            }
+        }
+        else if (change.Kind == ProjectTreeChangeKind.Removed)
+        {
+            var removedResources = change.Node.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>()
+                .Select(x => (object)x.Item)
+                .ToHashSet(ReferenceEqualityComparer.Instance);
+
+            RemoveEditors(Editors.Where(x => removedResources.Contains(x.Resource) || removedResources.Contains(x.OriginatingProjectResource)).ToList());
+        }
+    }
+
+    private void RemoveEditors(IReadOnlyCollection<ResourceEditorBaseViewModel> editors)
+    {
+        var activeRemoved = ActiveEditor is { } active && editors.Contains(active);
+        foreach (var editor in editors)
+            Editors.Remove(editor);
+
+        if (activeRemoved)
+            ActiveEditor = Editors.FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Prompts to save or discard the editors affected by <paramref name="plan"/>, then closes editors of resources it changes but keeps.
+    /// Editors of removed resources close when the removal is applied.
+    /// </summary>
+    /// <returns>False if the user cancelled</returns>
+    public async Task<bool> ConfirmRemovalAsync(ResourceDeletionPlan plan)
+    {
+        var changedResources = plan.Changes.Select(x => (object)x.Resource).ToHashSet(ReferenceEqualityComparer.Instance);
+        var affected = Editors
+            .Where(x => changedResources.Contains(x.Resource) || changedResources.Contains(x.OriginatingProjectResource))
+            .ToList();
+
+        foreach (var editor in affected)
+        {
+            if (await RequestSaveUserChanges(editor, false) == UserSaveAction.Cancel)
+                return false;
+        }
+
+        var removedResources = plan.Changes.Where(x => x.Removed).Select(x => (object)x.Resource).ToHashSet(ReferenceEqualityComparer.Instance);
+        var danglingEditors = Editors.OfType<GraphicsEditorViewModel>()
+            .Where(x => x.IsModified && x.WorkingArranger is ScatteredArranger && !affected.Contains(x)
+                && ReferencesAny(x.WorkingArranger, removedResources))
+            .ToList();
+
+        foreach (var editor in danglingEditors)
+        {
+            var discardResult = await _interactions.PromptAsync(PromptChoices.OkCancel, "Discard Changes",
+                $"'{editor.DisplayName}' has unsaved changes that use resources being deleted. These changes will be discarded.");
+
+            if (discardResult != PromptResult.Accept)
+                return false;
+        }
+
+        foreach (var editor in danglingEditors)
+            editor.DiscardChanges();
+
+        RemoveEditors(affected.Where(x => !removedResources.Contains(x.Resource) && !removedResources.Contains(x.OriginatingProjectResource)).ToList());
+        return true;
+    }
+
+    private static bool ReferencesAny(Arranger arranger, HashSet<object> resources) =>
+        arranger.EnumerateElements().OfType<ArrangerElement>()
+            .Any(el => resources.Contains(el.Source) || el.Codec is IIndexedCodec { Palette: { } palette } && resources.Contains(palette));
 
     public async Task<bool> CloseEditor(ResourceEditorBaseViewModel? editor)
     {
@@ -313,14 +398,40 @@ public partial class EditorsViewModel : ObservableRecipient
         // }
     }
 
-    public void Receive(ArrangerChangedMessage message)
+    private void OnResourceChanged(object? sender, IProjectResource resource)
     {
-        if (message.Change is not (ArrangerChange.Pixels or ArrangerChange.Elements))
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(() => OnResourceChanged(sender, resource));
             return;
+        }
 
+        // Coalesces bursts such as a gradient fill into one refresh per resource
+        if (_pendingResourceChanges.Count == 0)
+            Dispatcher.UIThread.Post(FlushResourceChanges);
+
+        _pendingResourceChanges.Add(resource);
+    }
+
+    private void FlushResourceChanges()
+    {
+        var resources = _pendingResourceChanges.ToList();
+        _pendingResourceChanges.Clear();
+
+        foreach (var resource in resources)
+        {
+            if (resource is Palette palette)
+                RefreshPalette(palette);
+            else if (resource is DataSource source)
+                ReloadDataSource(source);
+        }
+    }
+
+    private void ReloadDataSource(DataSource source)
+    {
         // Modified editors are skipped so a refresh never wipes unsaved work
         var affectedEditors = Editors.OfType<GraphicsEditorViewModel>()
-            .Where(x => !x.IsModified && x.SharesDataWith(message.Arranger));
+            .Where(x => !x.IsModified && x.ReadsFrom(source));
 
         foreach (var editor in affectedEditors)
             editor.ReloadFromSource();
@@ -329,15 +440,15 @@ public partial class EditorsViewModel : ObservableRecipient
     /// <summary>
     /// Re-maps the palette's colors without re-decoding pixels, so graphics editors keep their pending pixel edits
     /// </summary>
-    public void Receive(PaletteChangedMessage message)
+    private void RefreshPalette(Palette palette)
     {
         foreach (var editor in Editors.OfType<GraphicsEditorViewModel>())
         {
-            var models = editor.Palettes.Where(x => ReferenceEquals(x.Palette, message.Palette)).ToList();
+            var models = editor.Palettes.Where(x => ReferenceEquals(x.Palette, palette)).ToList();
             foreach (var model in models)
                 model.Refresh();
 
-            if (models.Count > 0 || editor.WorkingArranger.GetReferencedPalettes().Contains(message.Palette))
+            if (models.Count > 0 || editor.WorkingArranger.GetReferencedPalettes().Contains(palette))
                 editor.InvalidateEditor(InvalidationLevel.Display);
         }
     }
