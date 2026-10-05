@@ -54,7 +54,7 @@ public class BootstrapService
         foreach (var paletteName in settings.GlobalPalettes)
         {
             var paletteFileName = Path.Combine(palettesPath, $"{paletteName}.json");
-            var palette = paletteService.ReadJsonPalette(paletteFileName);
+            var palette = TryReadJsonPalette(paletteService, paletteFileName);
 
             if (palette is not null)
                 globalPalettes.Add(palette);
@@ -63,7 +63,7 @@ public class BootstrapService
         }
 
         var nesPaletteFileName = Path.Combine(palettesPath, $"{settings.NesPalette}.json");
-        var nesPalette = paletteService.ReadJsonPalette(nesPaletteFileName);
+        var nesPalette = TryReadJsonPalette(paletteService, nesPaletteFileName);
         var defaultPalette = globalPalettes.First();
 
         if (nesPalette is null)
@@ -73,6 +73,19 @@ public class BootstrapService
         }
 
         return new PaletteStore(defaultPalette, nesPalette, globalPalettes);
+    }
+
+    private Palette? TryReadJsonPalette(IPaletteService paletteService, string paletteFileName)
+    {
+        try
+        {
+            return paletteService.ReadJsonPalette(paletteFileName);
+        }
+        catch (InvalidDataException ex)
+        {
+            _logger.LogError(ex.Message);
+            return null;
+        }
     }
 
     public virtual IPaletteService CreatePaletteService(IColorFactory colorFactory)

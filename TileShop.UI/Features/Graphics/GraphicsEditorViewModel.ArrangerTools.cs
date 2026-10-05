@@ -280,6 +280,9 @@ public partial class GraphicsEditorViewModel
 
     private MagitekResult ApplyPixelPaste(ArrangerPaste paste)
     {
+        if (!CanAcceptPixelPastes)
+            return new MagitekResult.Failed("Arranger is read-only");
+
         int clipLeft = 0;
         int clipTop = 0;
         int clipRight = _imageAdapter.Width;
@@ -552,7 +555,7 @@ public partial class GraphicsEditorViewModel
     {
         get
         {
-            if (!IsIndexedColor)
+            if (!IsIndexedColor || WorkingArranger.IsReadOnly())
                 return false;
 
             var palettes = WorkingArranger.GetReferencedPalettes();

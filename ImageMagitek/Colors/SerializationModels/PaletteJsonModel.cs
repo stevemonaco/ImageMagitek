@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using ImageMagitek.Utility.Parsing;
 
 namespace ImageMagitek.Colors.Serialization;
@@ -16,8 +17,10 @@ public class PaletteJsonModel
         var colors = new List<IColorSource>();
         for (int i = 0; i < Colors.Count; i++)
         {
-            if (ColorParser.TryParse(Colors[i], ColorModel.Rgba32, out var color))
-                colors.Add(new ProjectNativeColorSource((ColorRgba32)color));
+            if (!ColorParser.TryParse(Colors[i], ColorModel.Rgba32, out var color))
+                throw new InvalidDataException($"Palette '{Name}' color {i} '{Colors[i]}' is not a valid #RRGGBB or #RRGGBBAA color");
+
+            colors.Add(new ProjectNativeColorSource((ColorRgba32)color));
         }
 
         pal.SetColorSources(colors);

@@ -20,9 +20,9 @@ public sealed class ColorConverterBgr9 : IColorConverter<ColorBgr9>
 
     public ColorRgba32 ToNativeColor(ColorBgr9 fc)
     {
-        byte r = _toNativeTable[fc.R & 0xFE];
-        byte g = _toNativeTable[fc.G & 0xFE];
-        byte b = _toNativeTable[fc.B & 0xFE];
+        byte r = _toNativeTable[fc.R];
+        byte g = _toNativeTable[fc.G];
+        byte b = _toNativeTable[fc.B];
         byte a = 0xFF;
 
         return new ColorRgba32(r, g, b, a);

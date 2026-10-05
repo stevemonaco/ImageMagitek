@@ -242,6 +242,9 @@ public partial class EditorsViewModel : ObservableRecipient
             if (result == PromptResult.Accept)
             {
                 await editor.SaveChangesAsync();
+                if (editor.IsModified)
+                    return UserSaveAction.Cancel;
+
                 if (saveTree)
                 {
                     var projectTree = _projectService.GetContainingProject(editor.Resource);

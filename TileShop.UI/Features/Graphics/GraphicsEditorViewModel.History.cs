@@ -86,6 +86,7 @@ public partial class GraphicsEditorViewModel
             WorkingArranger = _projectArranger.CloneArranger();
             _imageAdapter.Reinitialize(WorkingArranger);
             BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
+            UpdateReadOnlyState();
         }
 
         ReloadImage();

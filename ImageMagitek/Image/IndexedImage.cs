@@ -74,8 +74,6 @@ public sealed class IndexedImage : ImageBase<byte>
             if (el is ArrangerElement { Codec: IIndexedCodec codec } element)
             {
                 var encodedBuffer = codec.ReadElement(element);
-
-                // TODO: Detect reads past end of file more gracefully
                 if (encodedBuffer.Length == 0)
                     continue;
 
@@ -114,6 +112,9 @@ public sealed class IndexedImage : ImageBase<byte>
     /// </summary>
     public override void SaveImage()
     {
+        if (Arranger.IsReadOnly())
+            throw new InvalidOperationException($"Arranger '{Arranger.Name}' uses a codec that cannot encode and is read-only");
+
         // Additional copy is necessary for the case where the image pixels are not completely element-aligned
         // Edited image is merged into a full arranger image and then the entire arranger is encoded/saved
 
@@ -124,7 +125,7 @@ public sealed class IndexedImage : ImageBase<byte>
             for (int x = 0; x < Width; x++)
                 fullImage.Image[(y + Top) * fullImage.Width + x + Left] = Image[y * Width + x];
 
-        foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IIndexedCodec))
+        foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IIndexedCodec && x.IsWithinSource))
         {
             fullImage.Image.CopyToArray2D(el.X1, el.Y1, fullImage.Width, buffer, 0, 0, Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height);
             var codec = (IIndexedCodec)el.Codec;

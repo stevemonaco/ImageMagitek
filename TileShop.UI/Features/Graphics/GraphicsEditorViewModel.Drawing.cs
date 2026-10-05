@@ -149,7 +149,7 @@ public partial class GraphicsEditorViewModel
         if (IsDirectColor)
             return HasColorDataAtPosition(x, y);
 
-        return ActivePalette is not null && _imageAdapter.CanSetPixel(x, y, GetActivePaletteColor(PrimaryColorIndex)).HasSucceeded;
+        return HasColorDataAtPosition(x, y) && ActivePalette is not null && _imageAdapter.CanSetPixel(x, y, GetActivePaletteColor(PrimaryColorIndex)).HasSucceeded;
     }
 
     internal bool CanFloodFillAtPosition(int x, int y) => IsPointInDrawClip(x, y) && HasColorDataAtPosition(x, y);
@@ -157,7 +157,7 @@ public partial class GraphicsEditorViewModel
     internal bool CanPickColorAtPosition(int x, int y) => HasColorDataAtPosition(x, y);
 
     private bool HasColorDataAtPosition(int x, int y) =>
-        _imageAdapter.GetElementAtPixel(x, y) is { } element && (IsDirectColor || element.Codec is IIndexedCodec);
+        _imageAdapter.GetElementAtPixel(x, y) is { IsWithinSource: true } element && (IsDirectColor || element.Codec is IIndexedCodec);
 
     private ColorRgba32 GetActivePaletteColor(byte colorIndex)
     {

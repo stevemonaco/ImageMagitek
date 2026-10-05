@@ -324,9 +324,7 @@ public class Palette : IProjectResource
     /// <param name="index">Zero-based palette index</param>
     public void SetNativeColor(int index, byte r, byte g, byte b, byte a)
     {
-        var nc = _colorFactory.CreateColor(ColorModel.Rgba32, r, g, b, a);
-
-        SetForeignColor(index, nc);
+        SetNativeColor(index, new ColorRgba32(r, g, b, a));
     }
 
     /// <summary>

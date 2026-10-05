@@ -98,7 +98,7 @@ public sealed class ArrangerSkiaBitmap : IDisposable
 
         var el = _indexedImage!.GetElementAtPixel(x, y);
 
-        if (el?.Codec is IIndexedCodec codec)
+        if (el is { IsWithinSource: true, Codec: IIndexedCodec codec })
         {
             var pal = codec.Palette;
             var index = sourceRow[x];

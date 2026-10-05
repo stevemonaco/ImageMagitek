@@ -20,7 +20,7 @@ public enum ElementSaveStatus
     Modified,
 
     /// <summary>
-    /// Element's encoded data differs from the file and overlaps with another modified element's file region
+    /// Element overlaps another element's file region with different encoded data, and at least one of them is modified
     /// </summary>
     Conflicting
 }
@@ -84,7 +84,7 @@ public static class ScatteredArrangerSaveConflictExtensions
     public static ElementSaveConflicts AnalyzeSaveConflicts(this ScatteredArranger arranger, Dictionary<(int X, int Y), byte[]> encodedElements)
     {
         var results = new List<ElementSaveState>();
-        var modifiedRanges = new List<(DataSource Source, long StartBit, long EndBit, int ElemX, int ElemY)>();
+        var ranges = new List<(DataSource Source, long StartBit, long EndBit, int ElemX, int ElemY, byte[] Data, bool IsModified)>();
 
         // First pass: determine which elements are modified by comparing encoded data to file contents
         for (int y = 0; y < arranger.ArrangerElementSize.Height; y++)
@@ -101,29 +101,28 @@ public static class ScatteredArrangerSaveConflictExtensions
                 var fileData = ReadElementFromFile(element);
                 bool isModified = fileData is null || !encodedData.AsSpan().SequenceEqual(fileData);
 
-                if (isModified)
-                {
-                    long startBit = element.SourceAddress.Offset;
-                    long endBit = startBit + element.Codec.StorageSize;
-                    modifiedRanges.Add((element.Source, startBit, endBit, x, y));
-                }
+                long startBit = element.SourceAddress.Offset;
+                long endBit = startBit + element.Codec.StorageSize;
+                ranges.Add((element.Source, startBit, endBit, x, y, encodedData, isModified));
 
                 results.Add(new ElementSaveState(x, y, element, isModified ? ElementSaveStatus.Modified : ElementSaveStatus.Unchanged));
             }
         }
 
-        // Second pass: check for conflicts among modified elements
-        for (int i = 0; i < modifiedRanges.Count; i++)
+        // Second pass: every element is written on save, so an unchanged element overlapping a modified one can overwrite it
+        for (int i = 0; i < ranges.Count; i++)
         {
-            for (int j = i + 1; j < modifiedRanges.Count; j++)
+            for (int j = i + 1; j < ranges.Count; j++)
             {
-                var a = modifiedRanges[i];
-                var b = modifiedRanges[j];
+                var a = ranges[i];
+                var b = ranges[j];
 
-                if (!ReferenceEquals(a.Source, b.Source))
+                if (!(a.IsModified || b.IsModified) || !ReferenceEquals(a.Source, b.Source))
                     continue;
 
-                if (a.StartBit < b.EndBit && b.StartBit < a.EndBit)
+                bool writesSameBits = a.StartBit == b.StartBit && a.EndBit == b.EndBit && a.Data.AsSpan().SequenceEqual(b.Data);
+
+                if (!writesSameBits && a.StartBit < b.EndBit && b.StartBit < a.EndBit)
                 {
                     UpgradeStatus(results, a.ElemX, a.ElemY, ElementSaveStatus.Conflicting);
                     UpgradeStatus(results, b.ElemX, b.ElemY, ElementSaveStatus.Conflicting);

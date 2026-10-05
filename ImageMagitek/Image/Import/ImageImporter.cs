@@ -20,6 +20,9 @@ public static class ImageImporter
 
     public static MagitekResult<ImageImportPreview> Prepare(Arranger arranger, DecodedImage source, ImageImportOptions options)
     {
+        if (arranger.IsReadOnly())
+            return new MagitekResult<ImageImportPreview>.Failed($"Arranger '{arranger.Name}' is read-only because it uses a codec that cannot encode");
+
         var size = arranger.ArrangerPixelSize;
 
         if (source.Width != size.Width || source.Height != size.Height)

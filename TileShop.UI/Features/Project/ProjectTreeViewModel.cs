@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
@@ -251,6 +252,12 @@ public partial class ProjectTreeViewModel : ToolViewModel
     [RelayCommand]
     public async Task ImportArrangerFrom(ScatteredArranger arranger)
     {
+        if (arranger.IsReadOnly())
+        {
+            await _interactions.AlertAsync("Import", $"'{arranger.Name}' is read-only because it uses a codec that cannot encode");
+            return;
+        }
+
         if (!await ResolveUnsavedChangesBeforeImport(arranger))
             return;
 
@@ -312,12 +319,45 @@ public partial class ProjectTreeViewModel : ToolViewModel
 
         if (dialogResult is true)
         {
-            var modifiedEditors = _editors.Editors.Where(x => x.IsModified);
+            var affected = _editors.Editors
+                .Where(editor => changes.Any(c => ReferenceEquals(c.Resource, editor.Resource) || ReferenceEquals(c.Resource, editor.OriginatingProjectResource)))
+                .ToList();
 
-            _editors.Editors.Clear();
-            _editors.ActiveEditor = null;
+            foreach (var editor in affected)
+            {
+                if (await _editors.RequestSaveUserChanges(editor, false) == UserSaveAction.Cancel)
+                    return;
+            }
 
-            _projectService.ApplyResourceDeletionChanges(changes, _paletteStore.DefaultPalette);
+            var removedResources = changes.Where(x => x.Removed).Select(x => (object)x.Resource).ToHashSet(ReferenceEqualityComparer.Instance);
+            var danglingEditors = _editors.Editors.OfType<GraphicsEditorViewModel>()
+                .Where(x => x.IsModified && x.WorkingArranger is ScatteredArranger && !affected.Contains(x)
+                    && ReferencesAny(x.WorkingArranger, removedResources))
+                .ToList();
+
+            foreach (var editor in danglingEditors)
+            {
+                var discardResult = await _interactions.PromptAsync(PromptChoices.OkCancel, "Discard Changes",
+                    $"'{editor.DisplayName}' has unsaved changes that use resources being deleted. These changes will be discarded.");
+
+                if (discardResult != PromptResult.Accept)
+                    return;
+            }
+
+            foreach (var editor in danglingEditors)
+                editor.DiscardChanges();
+
+            var activeRemoved = _editors.ActiveEditor is { } active && affected.Contains(active);
+            foreach (var editor in affected)
+                _editors.Editors.Remove(editor);
+
+            if (activeRemoved)
+                _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
+
+            var deletionResult = _projectService.ApplyResourceDeletionChanges(changes, _paletteStore.DefaultPalette);
+            if (deletionResult.HasFailed)
+                await _interactions.AlertAsync("Delete", deletionResult.AsError.Reason);
+
             var projectRootVm = Projects.First(x => ReferenceEquals(tree.Root, x.Node));
             SynchronizeTree(projectRootVm);
 
@@ -332,6 +372,10 @@ public partial class ProjectTreeViewModel : ToolViewModel
             );
         }
     }
+
+    private static bool ReferencesAny(Arranger arranger, HashSet<object> resources) =>
+        arranger.EnumerateElements().OfType<ArrangerElement>()
+            .Any(el => resources.Contains(el.Source) || el.Codec is IIndexedCodec { Palette: { } palette } && resources.Contains(palette));
 
     private void SynchronizeTree(ResourceNodeViewModel projectVm)
     {

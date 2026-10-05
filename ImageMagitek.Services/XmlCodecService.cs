@@ -29,25 +29,21 @@ public sealed class XmlCodecService : ICodecService
 
     public MagitekResults LoadCodecs(string codecsPath)
     {
-        var formats = new Dictionary<string, IGraphicsFormat>();
+        var formats = new Dictionary<string, string>();
         var serializer = new XmlGraphicsFormatReader(_schemaFileName);
         var errors = new List<string>();
 
-        foreach (var formatFileName in Directory.GetFiles(codecsPath).Where(x => x.EndsWith(".xml")))
+        foreach (var formatFileName in Directory.GetFiles(codecsPath).Where(x => x.EndsWith(".xml")).Order(StringComparer.Ordinal))
         {
             var result = serializer.LoadFromFile(formatFileName);
 
             result.Switch(success =>
                 {
-                    if (formats.ContainsKey(success.Result.Name))
-                    {
-                        errors.Add($"Failed to load XML codec '{formatFileName}'");
-                        errors.AddRange(new[] { $"XML codec with name '{formatFileName}' already exists"});
-                    }
-                    else
-                    {
+                    var name = success.Result.Name;
+                    if (formats.TryAdd(name, formatFileName))
                         CodecFactory.AddOrUpdateFormat(success.Result);
-                    }
+                    else
+                        errors.Add($"XML codec '{name}' in '{formatFileName}' duplicates '{formats[name]}' and was skipped");
                 },
                 fail =>
                 {
