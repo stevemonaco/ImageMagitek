@@ -50,6 +50,13 @@ $icons = @(
     @{ Name = 'AddPalette';      Lucide = 'swatch-book' }
     @{ Name = 'EditColor';       Lucide = 'sliders-horizontal' }
     @{ Name = 'RemapColors';     Lucide = 'replace' }
+    @{ Name = 'CopyColors';      Lucide = 'copy' }
+    @{ Name = 'PasteColors';     Lucide = 'clipboard-paste' }
+    @{ Name = 'SwapColors';      Lucide = 'arrow-left-right' }
+    @{ Name = 'GradientColors';  Lucide = 'blend' }
+    @{ Name = 'ImportPalette';   Lucide = 'file-down' }
+    @{ Name = 'ExportPalette';   Lucide = 'file-up' }
+    @{ Name = 'ChangeColorModel'; Lucide = 'palette' }
 
     # Options / actions
     @{ Name = 'Gridlines';       Lucide = 'frame' }

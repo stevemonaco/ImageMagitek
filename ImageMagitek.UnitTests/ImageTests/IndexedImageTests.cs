@@ -135,6 +135,50 @@ public class IndexedImageTests
         }
     }
 
+    [Fact]
+    public void ArrangerPastEndOfSource_RendersEmptyAndSavesWithoutGrowing()
+    {
+        var elementBytes = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "SNES 4bpp", 8, 8).StorageSize / 8;
+        var length = elementBytes * 2 + elementBytes / 2;
+        var source = new MemoryDataSource("test", length);
+        var rom = TestImageGenerator.RandomBytes(length, 101);
+        source.Write(BitAddress.Zero, rom);
+        var arranger = CreateArranger("SNES 4bpp", 2, 2, source);
+
+        var image = new IndexedImage(arranger);
+        Assert.All(image.Image.AsSpan(16 * 8).ToArray(), x => Assert.Equal(0, x));
+
+        var indices = TestImageGenerator.Flatten(TestImageGenerator.RandomIndices(16, 16, 4, 102));
+        CodecTestHelpers.SaveIndices(arranger, indices);
+
+        Assert.Equal(length, source.Length);
+        Assert.Equal(rom.AsSpan(elementBytes * 2).ToArray(), CodecTestHelpers.ReadAll(source).AsSpan(elementBytes * 2).ToArray());
+        IndexedImageAssert.AreEqual(indices.AsSpan(0, 16 * 8).ToArray(), new IndexedImage(arranger).Image.AsSpan(0, 16 * 8).ToArray(), 16);
+    }
+
+    [Fact]
+    public void DirectArrangerPastEndOfSource_RendersEmptyAndSavesWithoutGrowing()
+    {
+        var codecName = "Rgb24 Tiled";
+        var prototype = _fixture.CodecFactory.CreateCodec(codecName)!;
+        var elementBytes = prototype.StorageSize / 8;
+        var length = elementBytes + elementBytes / 2;
+        var source = new MemoryDataSource("test", length);
+        var rom = TestImageGenerator.RandomBytes(length, 111);
+        source.Write(BitAddress.Zero, rom);
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Direct, 2, 1, (_, _) => _fixture.CodecFactory.CreateCodec(codecName)!, source);
+
+        var image = new DirectImage(arranger);
+        for (int y = 0; y < prototype.Height; y++)
+            for (int x = prototype.Width; x < prototype.Width * 2; x++)
+                Assert.Equal(0u, image.GetPixel(x, y).Color);
+
+        image.SaveImage();
+
+        Assert.Equal(length, source.Length);
+        Assert.Equal(rom, CodecTestHelpers.ReadAll(source));
+    }
+
     private ScatteredArranger CreateArranger(string codecName, int elementsX, int elementsY, DataSource? source = null)
     {
         var palette = TestImageGenerator.CreateDistinctPalette(4);

@@ -1,65 +1,30 @@
-using System.Collections.ObjectModel;
-using System.Linq;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using ImageMagitek;
-using ImageMagitek.Colors;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
-using TileShop.UI.Models;
+using TileShop.UI.Features.Graphics;
 
 namespace TileShop.UI.ViewModels;
 
 public partial class GraphicsEditorViewModel
 {
-    [ObservableProperty] private ObservableCollection<HistoryAction> _undoHistory = new();
-    [ObservableProperty] private ObservableCollection<HistoryAction> _redoHistory = new();
+    private GraphicsEditHistory _history = null!;
 
-    public bool CanUndo => UndoHistory.Count > 0;
-    public bool CanRedo => RedoHistory.Count > 0;
-    
-    public override void ApplyHistoryAction(HistoryAction action)
-    {
-        if (action is PencilHistoryAction<byte> indexedPencilAction && IsIndexedColor)
-        {
-            foreach (var point in indexedPencilAction.ModifiedPoints)
-                _imageAdapter.SetIndexedPixel(point.X, point.Y, indexedPencilAction.PencilColor);
-        }
-        else if (action is PencilHistoryAction<ColorRgba32> directPencilAction && IsDirectColor)
-        {
-            foreach (var point in directPencilAction.ModifiedPoints)
-                _imageAdapter.SetDirectPixel(point.X, point.Y, directPencilAction.PencilColor);
-        }
-        else if (action is FloodFillAction<byte> indexedFloodFillAction && IsIndexedColor)
-        {
-            _imageAdapter.FloodFill(indexedFloodFillAction.X, indexedFloodFillAction.Y, indexedFloodFillAction.FillColor);
-        }
-        else if (action is FloodFillAction<ColorRgba32> directFloodFillAction && IsDirectColor)
-        {
-            _imageAdapter.FloodFill(directFloodFillAction.X, directFloodFillAction.Y, directFloodFillAction.FillColor);
-        }
-        else if (action is ColorRemapHistoryAction remapAction && IsIndexedColor)
-        {
-            _imageAdapter.RemapColors(remapAction.Remap, remapAction.Bounds);
-        }
-        else if (action is PasteArrangerHistoryAction pasteAction)
-        {
-            ApplyPasteInternal(pasteAction.Paste);
-        }
-    }
+    public override void ApplyHistoryAction(HistoryAction action) => GraphicsEditHistory.Apply(action, _imageAdapter);
 
     public override void AddHistoryAction(HistoryAction action)
     {
-        UndoHistory.Add(action);
-        RedoHistory.Clear();
-        OnPropertyChanged(nameof(CanUndo));
-        OnPropertyChanged(nameof(CanRedo));
+        _history.Add(action, WorkingArranger);
+        NotifyHistoryChanged();
     }
 
     private void ClearHistory()
     {
-        UndoHistory.Clear();
-        RedoHistory.Clear();
+        _history.Reset(WorkingArranger);
+        NotifyHistoryChanged();
+    }
+
+    private void NotifyHistoryChanged()
+    {
         OnPropertyChanged(nameof(CanUndo));
         OnPropertyChanged(nameof(CanRedo));
     }
@@ -70,29 +35,11 @@ public partial class GraphicsEditorViewModel
         if (!CanUndo)
             return;
 
-        var lastAction = UndoHistory[^1];
-        UndoHistory.RemoveAt(UndoHistory.Count - 1);
-        RedoHistory.Add(lastAction);
-        OnPropertyChanged(nameof(CanUndo));
-        OnPropertyChanged(nameof(CanRedo));
+        if (_history.Undo(_imageAdapter))
+            OnWorkingArrangerReplaced();
 
-        IsModified = UndoHistory.Count > 0;
-
-        bool needsArrangerReset = lastAction is PasteArrangerHistoryAction { Paste.Copy: ElementCopy }
-            || UndoHistory.Any(a => a is PasteArrangerHistoryAction { Paste.Copy: ElementCopy });
-
-        if (needsArrangerReset)
-        {
-            WorkingArranger = _projectArranger.CloneArranger();
-            _imageAdapter.Reinitialize(WorkingArranger);
-            BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
-        }
-
-        ReloadImage();
-
-        foreach (var action in UndoHistory)
-            ApplyHistoryAction(action);
-
+        NotifyHistoryChanged();
+        IsModified = CanUndo;
         InvalidateEditor(InvalidationLevel.Display);
     }
 
@@ -102,14 +49,11 @@ public partial class GraphicsEditorViewModel
         if (!CanRedo)
             return;
 
-        var redoAction = RedoHistory[^1];
-        RedoHistory.RemoveAt(RedoHistory.Count - 1);
-        UndoHistory.Add(redoAction);
-        OnPropertyChanged(nameof(CanUndo));
-        OnPropertyChanged(nameof(CanRedo));
+        if (_history.Redo(_imageAdapter))
+            OnWorkingArrangerReplaced();
 
-        ApplyHistoryAction(redoAction);
+        NotifyHistoryChanged();
         IsModified = true;
-        InvalidateEditor(InvalidationLevel.PixelData);
+        InvalidateEditor(InvalidationLevel.Display);
     }
 }

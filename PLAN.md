@@ -6,7 +6,7 @@ This plan draws on [FeatureGaps.md](docs/FeatureGaps.md), which remains the long
 
 **Out of scope for 1.0:** direct-color XML codecs, [compression support](docs/CompressionSupport.md), new platforms and color models, new drawing or selection tools, layers, tilemaps, and scripting. They stay in FeatureGaps.md.
 
-**Order:** Milestones 1–3 come first, because they protect user data and fix the project format. Milestones 4–7 can run in parallel after that. Milestone 4 reuses the history model from Milestone 2.
+**Order:** Milestones 1–3 come first, because they protect user data and fix the project format. Milestones 4–7 can run in parallel after that. Milestone 4 reuses the history model from Milestone 2. Milestone 8 should land before Milestone 6's project-tree move and Milestone 3's missing-file relink, because both become simple tree changes once the tree view follows the domain.
 
 ---
 
@@ -31,12 +31,12 @@ Exit criteria: no known path loses unsaved edits, writes through a codec that ca
 
 Exit criteria: every action that appears in history can be undone and redone, and tools act only in the modes they belong to.
 
-- [ ] **Undo/redo for arranger actions.** `ApplyHistoryAction` only replays Pencil, FloodFill, ColorRemap and Paste. Mirror, Rotate, ApplyPalette, DeleteElementSelection and ResizeArranger are recorded but never redone, and undo only re-clones the arranger when an ElementCopy paste is in history (`History.cs:21-49`, `:81-89`, `:111`). Pick one model for arranger-level actions: either each action stores enough to invert itself, or every arranger action snapshots the arranger. Snapshots are simpler and arrangers are small.
-- [ ] Color Remap calls `UndoHistory.Add` directly, so redo isn't cleared and CanUndo/CanRedo aren't notified (`ArrangerTools.cs:591`).
-- [ ] Delete swaps element width and height for non-square elements (`ArrangerTools.cs:387-388`).
-- [ ] Delete isn't mode-guarded. It fires in Draw and View and on sequential arrangers (`GraphicsEditorView.axaml:13`, `ArrangerTools.cs:371-380`).
-- [ ] Pencil stays in its drawing state after a stroke that changes no pixels (`Drawing.cs:117-128`).
-- [ ] Tests: a history test per action type (do → undo → redo → compare against the arranger and pixels after "do"). Most of this logic is ViewModel code, so extracting it from `GraphicsEditorViewModel` into a testable class may come first.
+- [x] **Undo/redo for arranger actions.** `ApplyHistoryAction` only replays Pencil, FloodFill, ColorRemap and Paste. Mirror, Rotate, ApplyPalette, DeleteElementSelection and ResizeArranger are recorded but never redone, and undo only re-clones the arranger when an ElementCopy paste is in history (`History.cs:21-49`, `:81-89`, `:111`). Pick one model for arranger-level actions: either each action stores enough to invert itself, or every arranger action snapshots the arranger. Snapshots are simpler and arrangers are small.
+- [x] Color Remap calls `UndoHistory.Add` directly, so redo isn't cleared and CanUndo/CanRedo aren't notified (`ArrangerTools.cs:591`).
+- [x] Delete swaps element width and height for non-square elements (`ArrangerTools.cs:387-388`).
+- [x] Delete isn't mode-guarded. It fires in Draw and View and on sequential arrangers (`GraphicsEditorView.axaml:13`, `ArrangerTools.cs:371-380`).
+- [x] Pencil stays in its drawing state after a stroke that changes no pixels (`Drawing.cs:117-128`).
+- [x] Tests: a history test per action type (do → undo → redo → compare against the arranger and pixels after "do"). Most of this logic is ViewModel code, so extracting it from `GraphicsEditorViewModel` into a testable class may come first.
 
 ## Milestone 3: Project format freeze
 
@@ -46,6 +46,7 @@ Exit criteria: the 1.0 project format is versioned, round-trip tested, and loads
 - [ ] **Relink missing data files.** A missing data file fails the whole load (`ProjectTreeBuilder.cs:73-74`). Load the project with the data file marked missing, and offer to locate it. Arrangers that reference it open as unavailable rather than crashing.
 - [ ] **Project XML round-trip tests.** None exist. Cover every resource type, nested folders, palettes with mixed color sources, element mirror/rotation, legacy codec aliases, and a WAL-recovered save. Use `_xmlprojectsamples/*.zip` as fixtures.
 - [ ] **Scattered color source.** It's an empty class, the reader ignores it, and the writer throws (`ColorSourceSerializer.cs:45-48`, `:134-137`). Remove it from the 1.0 schema rather than freezing a stub into the format. It can come back as an additive change.
+- [ ] **Decide on stable resource keys.** References are path keys (`datafile="Roms/FF2"`, and per-element `datafile=`/`palette=`), so renaming or moving a resource or folder rewrites every file that references anything under it. A rename done by hand in Explorer leaves those references dangling. The option is a project-unique, human-readable `key` assigned from the name at creation and never changed, with references using the key. Renames and moves would then touch only the resource's own file, and hand renames would stop breaking references. The costs: keys drift from display names after renames, and copying a resource file duplicates its key, so the reader must report duplicates by name. GUIDs were rejected because they make hand-editing impractical. ID-plus-path-hint was rejected because stale hints mislead anyone reading the files by hand. Either decide now, since the migration hook can assign keys to 0.9 projects, or keep path keys and add a clear "unresolved reference" load error tied to the relink work.
 - [ ] Decide whether 1.0 saves sequential arrangers as project resources (`ProjectService.cs:260` maps only `ScatteredArranger`). It's additive to the schema, so it can wait until 1.1 without breaking the format. **Recommendation:** defer, unless users ask for it.
 
 ## Milestone 4: Palette editor rework
@@ -66,21 +67,21 @@ Exit criteria: palette edits behave like graphics edits. They stay pending until
 
 ### Rework
 
-- [ ] **One edit model.** Keep pending edits in memory in the shared `Palette`, and broadcast `PaletteChangedMessage` so graphics editors preview them live. Write to the data source and project XML only on Save (Ctrl+S). Discard calls `Reload` and rebuilds the view. Route the graphics editor's color flyout through the same path, so a palette has one modified state wherever it's edited. Close, project-node removal and app exit all prompt for modified palettes (Milestone 1).
-- [ ] **Undo/redo** using Milestone 2's history model. A palette is at most 256 colors plus a short source list, so snapshotting both per action is cheap.
-- [ ] **Sources tracked and validated.** Source edits set `IsModified`. Invalid entries show a validation error and block Save instead of disappearing. Drop the separate "Save Sources" button, since Save covers both colors and sources.
-- [ ] **Multi-selection:** click, Shift+click for a range, and Ctrl+click to toggle. Operations on a selection:
+- [x] **One edit model.** Keep pending edits in memory in the shared `Palette`, and broadcast `PaletteChangedMessage` so graphics editors preview them live. Write to the data source and project XML only on Save (Ctrl+S). Discard calls `Reload` and rebuilds the view. Route the graphics editor's color flyout through the same path, so a palette has one modified state wherever it's edited. Close, project-node removal and app exit all prompt for modified palettes (Milestone 1).
+- [x] **Undo/redo** using Milestone 2's history model. A palette is at most 256 colors plus a short source list, so snapshotting both per action is cheap.
+- [x] **Sources tracked and validated.** Source edits set `IsModified`. Invalid entries show a validation error and block Save instead of disappearing. Drop the separate "Save Sources" button, since Save covers both colors and sources.
+- [x] **Multi-selection:** click, Shift+click for a range, and Ctrl+click to toggle. Operations on a selection:
   - Copy and paste colors, both within TileShop and to the OS clipboard as hex text.
   - Swap two colors.
   - Fill a gradient between the first and last selected colors.
 
   Moving or reordering colors changes how every arranger using those indices looks, so leave it out of 1.0.
-- [ ] **Layout:** put the swatch grid beside the color editor instead of above it, so editing doesn't scroll the grid away. Selecting a swatch highlights the source it comes from, and shows its file offset for file-backed colors. Sources move to a collapsible section, since they're set up once and rarely touched.
-- [ ] **Change color model:** reinterpret the existing sources under another model, with a before/after preview of the swatches.
-- [ ] **Read-only global palettes:** keep them read-only, and add "Duplicate to project" so they can be used as a starting point.
-- [ ] **Palette file import/export:** export to `.pal` (JASC) and `.gpl`, and import either into project-native colors. Leave RIFF, ACT and HEX for later.
-- [ ] **Hotkeys:** Ctrl+S, Ctrl+Z/Ctrl+Y, Ctrl+C/Ctrl+V and arrow-key navigation of the grid, scoped through the existing hotkey service.
-- [ ] **Tests:** move the editing state (working colors, sources, selection and history) out of the ViewModel into a plain class, and unit-test edit → undo → redo → save → reload against a `MemoryDataSource`.
+- [x] **Layout:** put the swatch grid beside the color editor instead of above it, so editing doesn't scroll the grid away. Selecting a swatch highlights the source it comes from, and shows its file offset for file-backed colors. Sources move to a collapsible section, since they're set up once and rarely touched.
+- [x] **Change color model:** reinterpret the existing sources under another model, with a before/after preview of the swatches.
+- [x] **Read-only global palettes:** keep them read-only, and add "Duplicate to project" so they can be used as a starting point.
+- [x] **Palette file import/export:** export to `.pal` (JASC) and `.gpl`, and import either into project-native colors. Leave RIFF, ACT and HEX for later.
+- [x] **Hotkeys:** Ctrl+S, Ctrl+Z/Ctrl+Y, Ctrl+C/Ctrl+V and arrow-key navigation of the grid, scoped through the existing hotkey service.
+- [x] **Tests:** move the editing state (working colors, sources, selection and history) out of the ViewModel into a plain class, and unit-test edit → undo → redo → save → reload against a `MemoryDataSource`.
 
 ## Milestone 5: CLI
 
@@ -124,6 +125,40 @@ Exit criteria: a tagged commit produces tested, downloadable builds for every ta
   - PSX 16bpp preserves the STP bit: `0x0000` is transparent, STP on non-black is semi-transparent.
   - The C# SNES 3bpp, PSX 4bpp and PSX 8bpp codecs moved to the plugin samples. Projects that name them load the equivalent XML codec, and saving stores the XML codec's name.
   - The app now ships every codec XML (pattern codecs and SNES 3bpp Flow were missing from earlier builds).
+
+## Milestone 8: Project system and domain change notifications
+
+Exit criteria: ViewModels follow the domain. A domain operation never has to report back what it changed for a ViewModel to hand-apply it, and the project tree view stays correct whatever code path changes the tree.
+
+### Problems today
+
+- **The domain is silent.** `ResourceNode`, `ProjectTree`, `ProjectService`, `Palette` and `Arranger` raise no events. After each call, the caller has to know what changed and patch every affected ViewModel itself.
+- **The tree view is patched by hand in five places.** `AddNewFolder`, `AddNewDataFile`, `AddNewPalette`, `AddNewScatteredArranger` and `ReceiveAsync(AddScatteredArrangerFromCopyMessage)` each build the new node's VM, add it to `parentNodeModel.Children`, and set `IsModified` (`ProjectTreeViewModel.cs:80`, `:114`, `:162`, `:205`, `:513`). Rename sets `nodeModel.Name` and then sends `ResourceRenamedMessage` with the old and new names (`:475-481`).
+- **Deletion re-derives the tree with `SynchronizeTree`** (`ProjectTreeViewModel.cs:386-457`), a diff based on reference scans that is O(n²) per level. Its early-exit check is inverted. It skips a level whose membership changed while its child count stayed the same, and runs the full diff on levels that didn't change.
+- **The node VM factory exists three times.** It's in the `ProjectNodeViewModel` and `FolderNodeViewModel` constructors, which switch on `Item` type, and in `SynchronizeInsertions`, which switches on node type. `ResourceNodeComparer` and `SortPriority` are never used, so children appear in insertion order rather than sorted.
+- **There are two names to keep in sync.** `ResourceNode.Rename` also sets `Item.Name`, and the VM copies `Name` once at construction. `ResourceRenamedMessage` exists only to push the new name into editor tab titles (`ResourceEditorBaseViewModel.cs:38`).
+- **Removal is orchestrated by the tree VM.** `RequestRemoveNode` finds affected editors, prompts, discards dangling editors, removes tabs, applies the changes, resyncs the tree, then saves the whole project (`ProjectTreeViewModel.cs:315-380`). `ResourceChange` is a mutable class that goes from `PreviewResourceDeletionChanges` to `ApplyResourceDeletionChanges` and back.
+- **The tree's `IsModified` means nothing.** Tree operations already write to disk as they happen: `AddResource` writes the resource file and `CreateNewFolder` creates the directory. `IsModified = true` after each one only creates a pointless save prompt.
+- **Content changes are announced by whoever made them.** `PaletteChangedMessage`, `ArrangerChangedMessage(Pixels)` after save or import, and `ProjectLoadedMessage` are sent by the VM that called the domain (`PaletteEditorViewModel.cs:384`, `GraphicsEditorViewModel.cs:529`, `ProjectTreeViewModel.cs:281`, `:608`, `:649`, `:683`). Any new path that edits a palette or writes data has to remember to send them.
+- **Lookups scan everything.** `GetContainingProject(resource)` and `TryFindResourceNode` do a depth-first scan of every open project. Editors call them on every save.
+- **Pending edits leak into project saves.** Palette edits sit in the shared `Palette` (Milestone 4), and `XmlProjectWriter` serializes the live palette. A whole-project save, for example after a tree operation, writes another editor's unsaved palette state.
+
+### Rework
+
+- [ ] **Tree change events in the domain.** The `Monaco.PathTree` mutators are virtual (`AttachChildNode`, `DetachChildNode`, `RemoveChildNode`, `Rename`). Override them in `ResourceNode` and bubble a `ProjectTreeChange` (`Added`, `Removed`, `Moved`, `Renamed`, carrying the node, its parent and the old name or parent) up to a `ProjectTree.Changed` event. Events fire after the in-memory change, so `ProjectService` rollbacks (failed rename or move) emit the reverse event and the view follows automatically. `ResourceNode` also implements `INotifyPropertyChanged` for `Name`. **Recommendation:** raise events from the domain tree, not from `ProjectService`, so the CLI, tests and every service path are covered without each one remembering to publish.
+- [ ] **Project lifetime events.** `ProjectService` raises `ProjectOpened` and `ProjectClosed`. `ProjectTreeViewModel.Projects` and the recent-files list (`MenuViewModel`) follow them instead of `ProjectLoadedMessage` being sent from three places.
+- [ ] **The tree VM becomes a projection.** Add a single `ResourceNodeViewModel.Create(node, parent)` factory. `ProjectNodeViewModel` subscribes to its tree's `Changed` event and inserts, removes, moves or renames child VMs in sorted position (folders first, then by name, using the existing comparer). A move reuses the existing VM, so `IsExpanded` and selection survive. Delete `SynchronizeTree`, the per-command `Children.Add`, `NotifyChildrenChanged` and the duplicated constructor switches. Commands only call the service and select the result.
+- [ ] **Editors follow the tree.** `EditorsViewModel` subscribes to tree events. On `Renamed` it updates tab titles, replacing `ResourceRenamedMessage`. On `Removed` it closes the matching editors. The save and discard prompts still run before the removal is applied, but they move out of `ProjectTreeViewModel` into an `EditorsViewModel.ConfirmRemovalAsync(plan)`, so the tree VM no longer manages editor tabs.
+- [ ] **Content change events through one bridge.** `Palette` raises `Changed` from `SetForeignColor`, `SetColorSources`, `SetColorModel` and `Reload`. Arranger saves and image import raise a data-written notification for the affected `DataSource`. One UI-side `DomainEventBridge` subscribes to open projects and republishes these as the existing weak-reference Messenger messages, so editors keep their current receivers without holding strong event subscriptions. Retire the hand-sent `PaletteChangedMessage` and `ArrangerChangedMessage(Pixels)`. **Recommendation:** use the bridge rather than having each editor subscribe directly, because it keeps a single place to marshal to the UI thread and avoids leaking closed editors.
+- [ ] **Immutable deletion plan.** Replace the mutable `ResourceChange` list with a `ResourceDeletionPlan` record returned by `PreviewResourceDeletion` and consumed by `ApplyResourceDeletion`. Applying the plan removes nodes, and that raises the events the view needs.
+- [ ] **Drop the tree's `IsModified`.** Every tree operation is already write-through, so make that explicit. Remove `IsModified` and `SaveChangesAsync` from `ProjectTreeViewModel`, and the extra `SaveProjectAsync` call after removal.
+- [ ] **Pending state stays out of project saves.** `SaveProjectAsync` writes each resource's last committed model, not the live object, for any resource that has pending edits. Either editors register pending resources with the service, or the palette session keeps its committed snapshot as the model the writer uses. This closes the gap left open in Milestone 4.
+- [ ] **Resource index.** Keep a `resource → node` dictionary on `ProjectTree`, maintained by the same mutator overrides, so `GetContainingProject` and `TryFindResourceNode` are O(1).
+- [ ] **Tests:**
+  - Core: each mutator emits the expected event, and rollback paths in rename and move emit the reverse.
+  - UI: drive `ProjectService` operations (add, rename, move, delete with dependents) and assert that the VM tree matches the domain tree node for node, using a structural comparison helper.
+
+Phases that can each be committed on their own: **A** domain events, the resource index and core tests; **B** the tree VM projection, editors following the tree, and dropping `IsModified`; **C** the deletion plan and moving prompts to `EditorsViewModel`; **D** content events through the bridge, and pending state kept out of project saves.
 
 ---
 

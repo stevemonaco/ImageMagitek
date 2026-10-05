@@ -20,4 +20,18 @@ public partial class ForeignColorTests
             Assert.Equal(expected.A, actual.A);
         });
     }
+
+    [Fact]
+    public void Bgr9_RawGenesisWord_UnpacksThreeBitChannels()
+    {
+        var color = new ColorBgr9(0x0EEE);
+
+        Assert.Multiple(() =>
+        {
+            Assert.Equal(7, color.R);
+            Assert.Equal(7, color.G);
+            Assert.Equal(7, color.B);
+            Assert.Equal(0x0EEEu, color.Color);
+        });
+    }
 }

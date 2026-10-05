@@ -53,17 +53,15 @@ public class ColorSourceSerializer : IColorSourceSerializer
         return result;
     }
 
+    private IColor ReadFileColor(DataSource dataSource, BitAddress offset, ColorModel colorModel, int size, Endian endian) =>
+        _colorFactory.CreateColor(colorModel, ReadFileColorValue(dataSource, offset, size, endian));
+
     /// <summary>
-    /// 
+    /// Reads the raw, uninterpreted color value stored at <paramref name="offset"/>
     /// </summary>
-    /// <param name="dataSource">Source to read color from</param>
-    /// <param name="offset">Offset into the source to read from</param>
-    /// <param name="colorModel">Model to create the color with</param>
     /// <param name="size">Read size in bits</param>
-    /// <param name="endian">Endianness of the color</param>
-    /// <returns>The ColorModel-mapped color</returns>
     /// <exception cref="NotSupportedException">Size must be 32 bits or less</exception>
-    private IColor ReadFileColor(DataSource dataSource, BitAddress offset, ColorModel colorModel, int size, Endian endian)
+    public static uint ReadFileColorValue(DataSource dataSource, BitAddress offset, int size, Endian endian)
     {
         Span<byte> colorBuffer = stackalloc byte[4];
 
@@ -103,7 +101,7 @@ public class ColorSourceSerializer : IColorSourceSerializer
             throw new NotSupportedException($"{nameof(LoadColors)}: Palette formats with entry sizes larger than 4 bytes are not supported");
         }
 
-        return _colorFactory.CreateColor(colorModel, readColor);
+        return readColor;
     }
 
     /// <summary>

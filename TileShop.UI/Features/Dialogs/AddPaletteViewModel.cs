@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -26,6 +26,12 @@ public partial class AddPaletteViewModel : RequestViewModel<AddPaletteViewModel>
     [ObservableProperty] private ObservableCollection<string> _colorModels = new(Palette.GetColorModelNames());
     [ObservableProperty] private string _selectedColorModel;
     [ObservableProperty] private bool _zeroIndexTransparent;
+    [ObservableProperty] private ObservableCollection<Palette?> _templatePalettes = [];
+
+    /// <summary>
+    /// Global palette whose colors and color model the new palette starts from, or null for an empty palette
+    /// </summary>
+    [ObservableProperty] private Palette? _templatePalette;
     [ObservableProperty] private ObservableCollection<string> _existingResourceNames;
     [ObservableProperty] private ObservableCollection<string> _validationErrors = new();
     [ObservableProperty] private bool _canAdd;
@@ -42,6 +48,12 @@ public partial class AddPaletteViewModel : RequestViewModel<AddPaletteViewModel>
 
         _selectedColorModel = ColorModels.Contains(preferences.ColorModel) ? preferences.ColorModel : ColorModels.First();
         _zeroIndexTransparent = preferences.ZeroIndexTransparent;
+    }
+
+    partial void OnTemplatePaletteChanged(Palette? value)
+    {
+        if (value is not null)
+            SelectedColorModel = value.ColorModel.ToString();
     }
 
     public override AddPaletteViewModel? ProduceResult() => this;

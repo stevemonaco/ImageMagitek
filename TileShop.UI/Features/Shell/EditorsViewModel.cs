@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,6 +18,7 @@ using ImageMagitek.Services.Stores;
 using ImageMagitek.Codec;
 using TileShop.UI.Features.Graphics;
 using TileShop.Shared.Services;
+using TileShop.Shared.Tools;
 using TileShop.UI.Services;
 
 namespace TileShop.UI.ViewModels;
@@ -36,6 +37,8 @@ public partial class EditorsViewModel : ObservableRecipient
     private readonly AppSettings _settings;
     private readonly ILoggerFactory _loggerFactory;
     private readonly HotkeyService _hotkeys;
+    private readonly IAsyncFileRequestService _fileRequests;
+    private readonly ClipboardService _clipboard;
 
     public ObservableCollection<ResourceEditorBaseViewModel> Editors { get; } = new();
 
@@ -57,7 +60,7 @@ public partial class EditorsViewModel : ObservableRecipient
 
     public EditorsViewModel(AppSettings settings, IInteractionService interactionService, UserPreferencesStore preferencesStore, ICodecService codecService,
         IColorFactory colorFactory, PaletteStore paletteStore, IProjectService projectService, ElementStore elementStore,
-        ILoggerFactory loggerFactory, HotkeyService hotkeys)
+        ILoggerFactory loggerFactory, HotkeyService hotkeys, IAsyncFileRequestService fileRequests, ClipboardService clipboard)
     {
         _settings = settings;
         _interactions = interactionService;
@@ -69,10 +72,13 @@ public partial class EditorsViewModel : ObservableRecipient
         _elementStore = elementStore;
         _loggerFactory = loggerFactory;
         _hotkeys = hotkeys;
+        _fileRequests = fileRequests;
+        _clipboard = clipboard;
 
         Messenger.Register<EditArrangerPixelsMessage>(this, (r, m) => Receive(m));
         Messenger.Register<ArrangerChangedMessage>(this, (r, m) => Receive(m));
         Messenger.Register<PaletteChangedMessage>(this, (r, m) => Receive(m));
+        Messenger.Register<PaletteColorAssignedMessage>(this, (r, m) => Receive(m));
     }
 
     public async Task<bool> CloseEditor(ResourceEditorBaseViewModel? editor)
@@ -115,23 +121,27 @@ public partial class EditorsViewModel : ObservableRecipient
 
     public async Task ActivateEditor(IProjectResource resource)
     {
+        if (await OpenEditor(resource) is { } editor)
+            ActiveEditor = editor;
+    }
+
+    /// <summary>
+    /// Returns the open editor for <paramref name="resource"/>, or creates one and adds it to <see cref="Editors"/>
+    /// </summary>
+    /// <returns>Null when the resource has no editor</returns>
+    private async Task<ResourceEditorBaseViewModel?> OpenEditor(IProjectResource resource)
+    {
         var openedDocument = Editors.FirstOrDefault(x => ReferenceEquals(x.Resource, resource));
 
         if (openedDocument is not null)
-        {
-            ActiveEditor = openedDocument;
-            return;
-        }
+            return openedDocument;
 
         ResourceEditorBaseViewModel? newDocument;
 
         switch (resource)
         {
-            case Palette pal when pal.ColorModel != ColorModel.Nes:
-                newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService);
-                break;
-            case Palette pal when pal.ColorModel == ColorModel.Nes:
-                newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService);
+            case Palette pal:
+                newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService, _interactions, _fileRequests, _clipboard);
                 break;
             case ScatteredArranger scatteredArranger:
                 // newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _colorFactory, _paletteStore, _projectService, _tracker, _settings);
@@ -155,7 +165,7 @@ public partial class EditorsViewModel : ObservableRecipient
                 if (codec is null)
                 {
                     await _interactions.AlertAsync("Codec Error", $"Could not create Codec '{codecName}'");
-                    return;
+                    return null;
                 }
 
                 var newArranger = codec.Layout == ImageLayout.Tiled
@@ -183,10 +193,9 @@ public partial class EditorsViewModel : ObservableRecipient
         }
 
         if (newDocument is not null)
-        {
             Editors.Add(newDocument);
-            ActiveEditor = newDocument;
-        }
+
+        return newDocument;
     }
 
     /// <summary>
@@ -242,6 +251,9 @@ public partial class EditorsViewModel : ObservableRecipient
             if (result == PromptResult.Accept)
             {
                 await editor.SaveChangesAsync();
+                if (editor.IsModified)
+                    return UserSaveAction.Cancel;
+
                 if (saveTree)
                 {
                     var projectTree = _projectService.GetContainingProject(editor.Resource);
@@ -261,7 +273,10 @@ public partial class EditorsViewModel : ObservableRecipient
             }
             else if (result == PromptResult.Reject)
             {
-                editor.DiscardChanges();
+                if (editor is PaletteEditorViewModel paletteEditor)
+                    await paletteEditor.DiscardChangesAsync();
+                else
+                    editor.DiscardChanges();
                 return UserSaveAction.Discard;
             }
             else if (result == PromptResult.Cancel)
@@ -311,12 +326,36 @@ public partial class EditorsViewModel : ObservableRecipient
             editor.ReloadFromSource();
     }
 
+    /// <summary>
+    /// Re-maps the palette's colors without re-decoding pixels, so graphics editors keep their pending pixel edits
+    /// </summary>
     public void Receive(PaletteChangedMessage message)
     {
-        var effectedEditors = Editors.OfType<GraphicsEditorViewModel>()
-            .Where(x => x.WorkingArranger.GetReferencedPalettes().Contains(message.Palette));
+        foreach (var editor in Editors.OfType<GraphicsEditorViewModel>())
+        {
+            var models = editor.Palettes.Where(x => ReferenceEquals(x.Palette, message.Palette)).ToList();
+            foreach (var model in models)
+                model.Refresh();
 
-        foreach (var editor in effectedEditors)
-            editor.Render();
+            if (models.Count > 0 || editor.WorkingArranger.GetReferencedPalettes().Contains(message.Palette))
+                editor.InvalidateEditor(InvalidationLevel.Display);
+        }
+    }
+
+    /// <summary>
+    /// Routes a color edited elsewhere to the palette's editor, opening it in the background, so the palette has one modified state
+    /// </summary>
+    public async void Receive(PaletteColorAssignedMessage message)
+    {
+        try
+        {
+            if (await OpenEditor(message.Palette) is PaletteEditorViewModel editor)
+                editor.AssignColor(message.Index, message.Color);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not assign color to palette '{PaletteName}'", message.Palette.Name);
+            await _interactions.AlertAsync("Palette Error", ex.Message);
+        }
     }
 }

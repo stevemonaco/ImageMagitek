@@ -1,18 +1,27 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using TileShop.Shared.Messages;
 using ImageMagitek.Colors;
+using ImageMagitek.Colors.Serialization;
 using ImageMagitek.Services;
 using ImageMagitek.Utility.Parsing;
 using ImageMagitek;
 using System.Collections.ObjectModel;
+using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
+using TileShop.Shared.Interactions;
 using TileShop.Shared.Models;
+using TileShop.UI.Converters;
+using TileShop.UI.Features.Palettes;
 using TileShop.UI.Models;
+using TileShop.UI.Services;
 
 namespace TileShop.UI.ViewModels;
 
@@ -20,9 +29,21 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 {
     private const int _maxColumns = 16;
 
-    protected readonly Palette _palette;
-    protected readonly IColorFactory _colorFactory;
-    protected readonly IProjectService _projectService;
+    private readonly Palette _palette;
+    private readonly IColorFactory _colorFactory;
+    private readonly IProjectService _projectService;
+    private readonly IInteractionService _interactions;
+    private readonly IAsyncFileRequestService _fileRequests;
+    private readonly ClipboardService _clipboard;
+    private readonly PaletteSelection _selection = new();
+    private readonly PaletteEditSession _session;
+
+    private bool _isApplyingSourceEdit;
+    private bool _isProjectSavePending;
+    private bool _hasOutOfRangeSources;
+    private KeyModifiers _clickModifiers;
+    private IColor[]? _copiedColors;
+    private string? _copiedText;
 
     public ObservableCollection<PaletteSwatchModel> Colors { get; } = [];
     [ObservableProperty] private ObservableCollection<ColorSourceModel> _colorSourceModels = new();
@@ -30,6 +51,8 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     [ObservableProperty] private int _entries;
     [ObservableProperty] private ColorModel _colorModel;
     [ObservableProperty] private EditableColorBaseViewModel? _activeColor;
+    [ObservableProperty] private string _selectedColorOffset = "";
+    [ObservableProperty] private string _selectionSummary = "";
 
     [ObservableProperty] private int _columns;
     [ObservableProperty] private double _cellSize;
@@ -39,125 +62,331 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 
     public bool IsReadOnly => _palette.StorageSource == PaletteStorageSource.GlobalJson;
 
-    private bool _zeroIndexTransparent;
     public bool ZeroIndexTransparent
     {
-        get => _zeroIndexTransparent;
+        get => _palette.ZeroIndexTransparent;
         set
         {
-            if (SetProperty(ref _zeroIndexTransparent, value))
-                IsModified = true;
+            if (!IsReadOnly)
+                _session.SetZeroIndexTransparent(value);
         }
     }
 
-    private int _selectedColorIndex;
-    public int SelectedColorIndex
-    {
-        get => _selectedColorIndex;
-        set
-        {
-            if (SetProperty(ref _selectedColorIndex, value))
-                RefreshSelection();
-        }
-    }
+    public override IReadOnlyList<Hotkey> Hotkeys => field ??=
+    [
+        new("Ctrl+S", SaveChangesCommand),
+        new("Ctrl+Z", UndoCommand),
+        new("Ctrl+Y", RedoCommand),
+        new("Ctrl+C", CopyCommand),
+        new("Ctrl+V", PasteCommand),
+        new("Left", MoveSelectionCommand, "Left"),
+        new("Right", MoveSelectionCommand, "Right"),
+        new("Up", MoveSelectionCommand, "Up"),
+        new("Down", MoveSelectionCommand, "Down"),
+        new("Shift+Left", ExtendSelectionCommand, "Left"),
+        new("Shift+Right", ExtendSelectionCommand, "Right"),
+        new("Shift+Up", ExtendSelectionCommand, "Up"),
+        new("Shift+Down", ExtendSelectionCommand, "Down"),
+    ];
 
-    public PaletteEditorViewModel(Palette palette, IColorFactory colorFactory, IProjectService projectService) : base(palette)
+    public PaletteEditorViewModel(Palette palette, IColorFactory colorFactory, IProjectService projectService,
+        IInteractionService interactions, IAsyncFileRequestService fileRequests, ClipboardService clipboard) : base(palette)
     {
         _palette = palette;
         _colorFactory = colorFactory;
         _projectService = projectService;
+        _interactions = interactions;
+        _fileRequests = fileRequests;
+        _clipboard = clipboard;
+
+        _session = new PaletteEditSession(palette, colorFactory, UndoHistory, RedoHistory);
+        _session.Changed += OnSessionChanged;
 
         DisplayName = Resource?.Name ?? "Unnamed Palette";
 
-        _zeroIndexTransparent = _palette.ZeroIndexTransparent;
         ColorModel = _palette.ColorModel;
-        ColorSourceModels = new(CreateColorSourceModels(_palette));
         _paletteSource = DescribeSource();
+        RebuildSourceModels();
         Entries = CountSourceColors();
+
+        if (_palette.Entries > 0)
+            _selection.Click(0);
 
         RebuildSwatches();
     }
-
-    [RelayCommand]
-    private void SelectColor(PaletteSwatchModel swatch) => SelectedColorIndex = swatch.Index;
 
     /// <summary>
-    /// Saves color sources to their project resource
+    /// Assigns a color as a pending edit, such as one confirmed in a graphics editor's color flyout
     /// </summary>
-    [RelayCommand]
-    public async Task SaveSources()
+    public void AssignColor(int index, IColor color)
     {
-        _palette.ZeroIndexTransparent = ZeroIndexTransparent;
+        if (!IsReadOnly && index >= 0 && index < _palette.Entries)
+            _session.SetColor(index, color);
+    }
 
-        _palette.SetColorSources(CreateColorSources());
-        var projectTree = _projectService.GetContainingProject(_palette);
-        var paletteNode = projectTree.GetResourceNode(_palette);
-        await _projectService.SaveResourceAsync(projectTree, paletteNode, false);
+    /// <summary>
+    /// Records the modifier keys of the pointer release that is about to click a swatch
+    /// </summary>
+    public void SetClickModifiers(KeyModifiers modifiers) => _clickModifiers = modifiers;
 
-        Entries = CountSourceColors();
-        PaletteSource = DescribeSource();
-        RebuildSwatches();
+    [RelayCommand]
+    private void SelectColor(PaletteSwatchModel swatch)
+    {
+        var modifiers = _clickModifiers;
+        _clickModifiers = KeyModifiers.None;
 
-        var changeMessage = new PaletteChangedMessage(_palette);
-        Messenger.Send(changeMessage);
+        if (modifiers.HasFlag(KeyModifiers.Shift))
+            _selection.ShiftClick(swatch.Index);
+        else if (modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta))
+            _selection.CtrlClick(swatch.Index);
+        else
+            _selection.Click(swatch.Index);
 
-        IsModified = false;
+        RefreshSelection();
     }
 
     [RelayCommand]
-    public async Task SaveActiveColor()
+    private void MoveSelection(string direction) => MoveFocus(direction, false);
+
+    [RelayCommand]
+    private void ExtendSelection(string direction) => MoveFocus(direction, true);
+
+    private void MoveFocus(string direction, bool extend)
     {
-        if (ActiveColor is null)
+        var (dx, dy) = direction switch
+        {
+            "Left" => (-1, 0),
+            "Right" => (1, 0),
+            "Up" => (0, -1),
+            "Down" => (0, 1),
+            _ => (0, 0)
+        };
+
+        _selection.Move(dx, dy, Columns, Colors.Count, extend);
+        RefreshSelection();
+    }
+
+    [RelayCommand]
+    private void AssignActiveColor()
+    {
+        if (ActiveColor is null || IsReadOnly)
             return;
 
-        _palette.SetForeignColor(ActiveColor.Index, ActiveColor.WorkingColor);
-        ActiveColor.SaveColor();
-        Colors[ActiveColor.Index].Color = ActiveColor.Color;
+        _session.SetColor(ActiveColor.Index, ActiveColor.WorkingColor);
+    }
 
-        await SaveChangesAsync();
+    private bool HasSelection() => _selection.Count > 0;
+    private bool CanEditSelection() => !IsReadOnly && _selection.Count > 0;
+    private bool CanSwap() => !IsReadOnly && _selection.Count == 2;
+    private bool CanFillGradient() => !IsReadOnly && _selection.Count >= 3;
+
+    [RelayCommand(CanExecute = nameof(HasSelection))]
+    private async Task Copy()
+    {
+        var indices = _selection.ToSortedList();
+        _copiedColors = indices.Select(i => _colorFactory.CloneColor(_palette.GetForeignColor(i))).ToArray();
+        _copiedText = string.Join(Environment.NewLine, indices.Select(i => ColorRgba32ToMediaColorConverter.ToHex(_palette.GetNativeColor(i))));
+
+        await _clipboard.SetTextAsync(_copiedText);
     }
 
     /// <summary>
-    /// Saves palette properties and color source values to their underlying sources
+    /// Pastes from the first selected color on. Colors copied in TileShop paste exactly; other clipboard text is read as native hex lines.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanEditSelection))]
+    private async Task Paste()
+    {
+        var text = await _clipboard.GetTextAsync();
+        IReadOnlyList<IColor>? colors;
+
+        if (_copiedColors is not null && (text is null || NormalizeLines(text) == NormalizeLines(_copiedText)))
+            colors = _copiedColors;
+        else if (text is null || !TryParseColors(text, out colors))
+        {
+            ActivityMessage = "The clipboard does not contain colors as #RRGGBB or #RRGGBBAA lines";
+            return;
+        }
+
+        _session.SetColors(_selection.First, colors);
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSwap))]
+    private void Swap()
+    {
+        var indices = _selection.ToSortedList();
+        _session.SwapColors(indices[0], indices[1]);
+    }
+
+    [RelayCommand(CanExecute = nameof(CanFillGradient))]
+    private void Gradient() => _session.FillGradient(_selection.ToSortedList());
+
+    [RelayCommand]
+    private async Task ImportPalette()
+    {
+        var uri = await _fileRequests.RequestImportPaletteFileName();
+        if (uri is null)
+            return;
+
+        try
+        {
+            var text = await File.ReadAllTextAsync(uri.LocalPath);
+            var result = PaletteFileSerializer.Read(text);
+
+            if (result.HasFailed)
+            {
+                await _interactions.AlertAsync("Import Error", $"Could not read '{Path.GetFileName(uri.LocalPath)}'\n{result.AsError.Reason}");
+                return;
+            }
+
+            var sources = result.AsSuccess.Result.Select(x => (IColorSource)new ProjectNativeColorSource(x)).ToList();
+            _session.SetSources(sources, "Import palette");
+        }
+        catch (Exception ex)
+        {
+            await _interactions.AlertAsync("Import Error", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ExportPalette()
+    {
+        var uri = await _fileRequests.RequestExportPaletteFileName($"{_palette.Name}.pal");
+        if (uri is null)
+            return;
+
+        try
+        {
+            var path = uri.LocalPath;
+            var colors = Enumerable.Range(0, _palette.Entries).Select(_palette.GetNativeColor).ToList();
+            var text = string.Equals(Path.GetExtension(path), ".gpl", StringComparison.OrdinalIgnoreCase)
+                ? PaletteFileSerializer.WriteGpl(_palette.Name, colors)
+                : PaletteFileSerializer.WriteJasc(colors);
+
+            await File.WriteAllTextAsync(path, text);
+        }
+        catch (Exception ex)
+        {
+            await _interactions.AlertAsync("Export Error", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ChangeColorModel()
+    {
+        if (HasInvalidSources())
+        {
+            await _interactions.AlertAsync("Invalid Sources", "Fix the sources marked as invalid before changing the color model.");
+            return;
+        }
+
+        var dialog = new ChangeColorModelViewModel(_palette, _colorFactory);
+        var result = await _interactions.RequestAsync(dialog);
+
+        if (result is not null)
+            _session.ChangeColorModel(result.Model, result.Sources);
+    }
+
+    /// <summary>
+    /// Writes pending colors to the data source and the palette's sources to the project
     /// </summary>
     [RelayCommand]
     public override async Task SaveChangesAsync()
     {
-        _palette.ZeroIndexTransparent = ZeroIndexTransparent;
+        if (IsReadOnly)
+            return;
 
-        var projectTree = _projectService.GetContainingProject(_palette);
-        var paletteNode = projectTree.GetResourceNode(_palette);
-        await _projectService.SaveResourceAsync(projectTree, paletteNode, false);
-        _palette.SavePalette();
-        IsModified = false;
+        if (HasInvalidSources())
+        {
+            await _interactions.AlertAsync("Invalid Sources", $"'{DisplayName}' has sources marked as invalid. Fix them before saving.");
+            return;
+        }
 
-        var changeMessage = new PaletteChangedMessage(_palette);
-        Messenger.Send(changeMessage);
+        try
+        {
+            if (_session.IsModified && !_session.Commit())
+            {
+                await _interactions.AlertAsync("Save Error", $"'{DisplayName}' cannot be written to its data source");
+                return;
+            }
+
+            _isProjectSavePending = true;
+            var projectTree = _projectService.GetContainingProject(_palette);
+
+            if (projectTree.TryFindResourceNode(_palette, out var paletteNode))
+            {
+                var result = await _projectService.SaveResourceAsync(projectTree, paletteNode, false);
+
+                if (result.HasFailed)
+                    await _interactions.AlertAsync("Project Error", $"An error occurred while saving: {result.AsError.Reason}");
+                else
+                    _isProjectSavePending = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            await _interactions.AlertAsync("Save Error", $"Could not save the palette\n{ex.Message}");
+        }
+
+        UpdateModified();
     }
 
     public override void DiscardChanges()
     {
-        _palette.Reload();
-        ZeroIndexTransparent = _palette.ZeroIndexTransparent;
-        ColorSourceModels = new(CreateColorSourceModels(_palette));
-        Entries = CountSourceColors();
-        IsModified = false;
+        _isProjectSavePending = false;
+        _session.Discard();
     }
 
-    public override void Undo()
+    /// <summary>
+    /// Discards pending edits and rewrites the palette's project entry, since a whole-project save may have written them
+    /// </summary>
+    public async Task DiscardChangesAsync()
     {
-        throw new NotImplementedException();
+        DiscardChanges();
+
+        if (IsReadOnly)
+            return;
+
+        var projectTree = _projectService.GetContainingProject(_palette);
+        if (projectTree.TryFindResourceNode(_palette, out var paletteNode))
+        {
+            var result = await _projectService.SaveResourceAsync(projectTree, paletteNode, false);
+            if (result.HasFailed)
+                await _interactions.AlertAsync("Project Error", $"Could not restore the saved palette: {result.AsError.Reason}");
+        }
     }
 
-    public override void Redo()
-    {
-        throw new NotImplementedException();
-    }
+    [RelayCommand]
+    public override void Undo() => _session.Undo();
+
+    [RelayCommand]
+    public override void Redo() => _session.Redo();
 
     public override void ApplyHistoryAction(HistoryAction action)
     {
         throw new NotImplementedException();
     }
+
+    private void OnSessionChanged(object? sender, EventArgs e)
+    {
+        ColorModel = _palette.ColorModel;
+        OnPropertyChanged(nameof(ZeroIndexTransparent));
+
+        if (!_isApplyingSourceEdit)
+            RebuildSourceModels();
+
+        Entries = CountSourceColors();
+        RebuildSwatches();
+
+        OnPropertyChanged(nameof(CanUndo));
+        OnPropertyChanged(nameof(CanRedo));
+        UpdateModified();
+
+        Messenger.Send(new PaletteChangedMessage(_palette));
+    }
+
+    private void UpdateModified() => IsModified = _session.IsModified || _isProjectSavePending || HasInvalidSources();
+
+    private bool HasInvalidSources() => _hasOutOfRangeSources || ColorSourceModels.Any(x => x.HasErrors);
 
     private string DescribeSource()
     {
@@ -174,12 +403,16 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     /// </summary>
     private void RebuildSwatches()
     {
-        Colors.Clear();
-
-        for (int i = 0; i < _palette.Entries; i++)
+        if (Colors.Count == _palette.Entries)
         {
-            var native = _palette.GetNativeColor(i);
-            Colors.Add(new PaletteSwatchModel(i, Avalonia.Media.Color.FromArgb(native.A, native.R, native.G, native.B)));
+            for (int i = 0; i < Colors.Count; i++)
+                Colors[i].Color = ColorRgba32ToMediaColorConverter.ToMediaColor(_palette.GetNativeColor(i));
+        }
+        else
+        {
+            Colors.Clear();
+            for (int i = 0; i < _palette.Entries; i++)
+                Colors.Add(new PaletteSwatchModel(i, ColorRgba32ToMediaColorConverter.ToMediaColor(_palette.GetNativeColor(i))));
         }
 
         Columns = Math.Clamp(Colors.Count, 1, _maxColumns);
@@ -193,19 +426,61 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         RowHeaders = Enumerable.Range(0, (Colors.Count + Columns - 1) / Columns).Select(x => (x * Columns).ToString()).ToList();
         OnPropertyChanged(nameof(HasMultipleRows));
 
-        _selectedColorIndex = Math.Clamp(_selectedColorIndex, Colors.Count > 0 ? 0 : -1, Colors.Count - 1);
-        OnPropertyChanged(nameof(SelectedColorIndex));
+        _selection.Clamp(Colors.Count);
         RefreshSelection();
     }
 
     private void RefreshSelection()
     {
         foreach (var swatch in Colors)
-            swatch.IsSelected = swatch.Index == _selectedColorIndex;
+            swatch.IsSelected = _selection.Contains(swatch.Index);
 
-        ActiveColor = _selectedColorIndex >= 0 && _selectedColorIndex < Colors.Count
-            ? CreateActiveColorEditor(_palette.GetForeignColor(_selectedColorIndex), _selectedColorIndex)
-            : null;
+        var activeIndex = _selection.Contains(_selection.Focus) ? _selection.Focus : _selection.First;
+
+        if (activeIndex < 0 || activeIndex >= _palette.Entries)
+            ActiveColor = null;
+        else if (ActiveColor?.Index != activeIndex || !ActiveColor.IsEditing(_palette.GetForeignColor(activeIndex)))
+            ActiveColor = CreateActiveColorEditor(_palette.GetForeignColor(activeIndex), activeIndex);
+
+        SelectionSummary = _selection.Count switch
+        {
+            0 => "",
+            1 => $"Color {activeIndex}",
+            _ => $"Color {activeIndex} · {_selection.Count} selected"
+        };
+        SelectedColorOffset = DescribeColorSource(activeIndex);
+        UpdateSourceHighlights();
+
+        CopyCommand.NotifyCanExecuteChanged();
+        PasteCommand.NotifyCanExecuteChanged();
+        SwapCommand.NotifyCanExecuteChanged();
+        GradientCommand.NotifyCanExecuteChanged();
+    }
+
+    private string DescribeColorSource(int index)
+    {
+        if (index < 0 || index >= _palette.Entries)
+            return "";
+
+        return _palette.ColorSources[index] switch
+        {
+            FileColorSource { Offset: var offset } when offset.BitOffset == 0 => $"File offset 0x{offset.ByteOffset:X}",
+            FileColorSource { Offset: var offset } => $"File offset 0x{offset.ByteOffset:X} bit {offset.BitOffset}",
+            ProjectNativeColorSource => "Native color stored in the project",
+            ProjectForeignColorSource => $"{_palette.ColorModel} color stored in the project",
+            _ => ""
+        };
+    }
+
+    private void UpdateSourceHighlights()
+    {
+        int start = 0;
+        foreach (var model in ColorSourceModels)
+        {
+            int count = model is FileColorSourceModel file ? file.Entries : 1;
+            model.IsHighlighted = _selection.Indices.Any(i => i >= start && i < start + count);
+            start += count;
+        }
     }
 
     private EditableColorBaseViewModel CreateActiveColorEditor(IColor foreignColor, int index)
@@ -217,7 +492,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
             _ => throw new NotSupportedException($"Color of type '{foreignColor.GetType()}' is not supported for editing")
         };
 
-        editor.SaveColorCommand = SaveActiveColorCommand;
+        editor.SaveColorCommand = AssignActiveColorCommand;
         editor.IsReadOnly = IsReadOnly;
         return editor;
     }
@@ -225,8 +500,11 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     [RelayCommand]
     public void AddNewFileColorSource()
     {
-        ColorSourceModels.Add(new FileColorSourceModel(0, 0, Endian.Little));
-        Entries = CountSourceColors();
+        var size = _colorFactory.CreateColor(_palette.ColorModel).Size;
+        var lastFile = ColorSourceModels.OfType<FileColorSourceModel>().LastOrDefault();
+        var address = lastFile is null ? 0 : lastFile.FileAddress + (lastFile.Entries * size + 7) / 8;
+
+        ColorSourceModels.Add(new FileColorSourceModel(address, 1, lastFile?.Endian ?? Endian.Little));
     }
 
     [RelayCommand]
@@ -235,7 +513,6 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         var color = _colorFactory.CreateColor(ColorModel.Rgba32, 0, 0, 0, 255);
         var hexString = _colorFactory.ToHexString(color);
         ColorSourceModels.Add(new NativeColorSourceModel(hexString));
-        Entries = CountSourceColors();
     }
 
     [RelayCommand]
@@ -243,15 +520,74 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     {
         var color = _colorFactory.CreateColor(_palette.ColorModel, 0);
         var hexString = _colorFactory.ToHexString(color);
-        ColorSourceModels.Add(new ForeignColorSourceModel(hexString));
-        Entries = CountSourceColors();
+        ColorSourceModels.Add(new ForeignColorSourceModel(hexString, _palette.ColorModel));
     }
 
     [RelayCommand]
     public void RemoveColorSource(ColorSourceModel model)
     {
         ColorSourceModels.Remove(model);
+    }
+
+    private void RebuildSourceModels()
+    {
+        ColorSourceModels.CollectionChanged -= OnSourceModelsCollectionChanged;
+        foreach (var model in ColorSourceModels)
+            model.PropertyChanged -= OnSourceModelPropertyChanged;
+
+        ColorSourceModels = new(CreateColorSourceModels(_palette));
+        _hasOutOfRangeSources = false;
+
+        ColorSourceModels.CollectionChanged += OnSourceModelsCollectionChanged;
+        foreach (var model in ColorSourceModels)
+            model.PropertyChanged += OnSourceModelPropertyChanged;
+
+        UpdateSourceHighlights();
+    }
+
+    private void OnSourceModelsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        foreach (var model in e.OldItems?.OfType<ColorSourceModel>() ?? [])
+            model.PropertyChanged -= OnSourceModelPropertyChanged;
+        foreach (var model in e.NewItems?.OfType<ColorSourceModel>() ?? [])
+            model.PropertyChanged += OnSourceModelPropertyChanged;
+
+        OnSourceModelsEdited();
+    }
+
+    private void OnSourceModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ColorSourceModel.IsHighlighted) or nameof(ColorSourceModel.HasErrors))
+            return;
+
+        OnSourceModelsEdited();
+    }
+
+    /// <summary>
+    /// Applies valid source edits to the palette as an undoable step; invalid ones only mark the editor modified so Save is blocked
+    /// </summary>
+    private void OnSourceModelsEdited()
+    {
         Entries = CountSourceColors();
+
+        _hasOutOfRangeSources = false;
+        if (!HasInvalidSources() && TryCreateColorSources(out var sources))
+        {
+            _isApplyingSourceEdit = true;
+            try
+            {
+                _hasOutOfRangeSources = !_session.SetSources(sources);
+                if (_hasOutOfRangeSources)
+                    ActivityMessage = "A file source extends past the end of its data file";
+            }
+            finally
+            {
+                _isApplyingSourceEdit = false;
+            }
+        }
+
+        UpdateSourceHighlights();
+        UpdateModified();
     }
 
     private IEnumerable<ColorSourceModel> CreateColorSourceModels(Palette pal)
@@ -263,14 +599,9 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         {
             if (pal.ColorSources[i] is FileColorSource fileSource)
             {
-                var sources = pal.ColorSources.Skip(i)
-                    .TakeWhile((x, i) => x is FileColorSource source && source.Offset == (fileSource.Offset + i * size))
-                    .ToList();
-
-                var fileSourceModel = new FileColorSourceModel(fileSource.Offset.ByteOffset, sources.Count, fileSource.Endian);
-                yield return fileSourceModel;
-
-                i += sources.Count;
+                int count = Palette.GetFileRunLength(pal.ColorSources, i, size);
+                yield return new FileColorSourceModel(fileSource.Offset.ByteOffset, count, fileSource.Endian);
+                i += count;
             }
             else if (pal.ColorSources[i] is ProjectNativeColorSource nativeSource)
             {
@@ -282,12 +613,13 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
             else if (pal.ColorSources[i] is ProjectForeignColorSource foreignSource)
             {
                 var hexString = _colorFactory.ToHexString(foreignSource.Value);
-                var foreignSourceModel = new ForeignColorSourceModel(hexString);
+                var foreignSourceModel = new ForeignColorSourceModel(hexString, pal.ColorModel);
                 yield return foreignSourceModel;
                 i++;
             }
-            else if (pal.ColorSources[i] is ScatteredColorSource scatteredSource)
+            else
             {
+                throw new NotSupportedException($"Color source of type '{pal.ColorSources[i].GetType()}' is not supported");
             }
         }
     }
@@ -310,33 +642,55 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         return count;
     }
 
-    private IEnumerable<IColorSource> CreateColorSources()
+    private bool TryCreateColorSources(out List<IColorSource> sources)
     {
-        var size = _colorFactory.CreateColor(_palette.ColorModel).Size;
+        var colorModel = _palette.ColorModel;
+        var size = _colorFactory.CreateColor(colorModel).Size;
+        sources = [];
 
-        for (int i = 0; i < ColorSourceModels.Count; i++)
+        foreach (var sourceModel in ColorSourceModels)
         {
-            var sourceModel = ColorSourceModels[i];
             if (sourceModel is FileColorSourceModel fileModel)
             {
                 var offset = new BitAddress(fileModel.FileAddress, 0);
                 for (int j = 0; j < fileModel.Entries; j++)
-                    yield return new FileColorSource(offset + j * size, fileModel.Endian);
+                    sources.Add(new FileColorSource(offset + j * size, fileModel.Endian));
             }
-            else if (sourceModel is NativeColorSourceModel nativeModel)
+            else if (sourceModel is NativeColorSourceModel nativeModel &&
+                ColorParser.TryParse(nativeModel.NativeHexColor, ColorModel.Rgba32, out var nativeColor))
             {
-                if (ColorParser.TryParse(nativeModel.NativeHexColor, ColorModel.Rgba32, out var nativeColor))
-                    yield return new ProjectNativeColorSource((ColorRgba32)nativeColor);
+                sources.Add(new ProjectNativeColorSource((ColorRgba32)nativeColor));
             }
-            else if (sourceModel is ForeignColorSourceModel foreignModel)
+            else if (sourceModel is ForeignColorSourceModel foreignModel &&
+                ColorParser.TryParse(foreignModel.ForeignHexColor, colorModel, out var foreignColor))
             {
-                if (ColorParser.TryParse(foreignModel.ForeignHexColor, _palette.ColorModel, out var foreignColor))
-                    yield return new ProjectForeignColorSource(foreignColor);
+                sources.Add(new ProjectForeignColorSource(foreignColor));
             }
-            else if (sourceModel is ScatteredColorSourceModel)
+            else
             {
-                throw new NotSupportedException();
+                return false;
             }
         }
+
+        return true;
     }
+
+    private bool TryParseColors(string text, out IReadOnlyList<IColor> colors)
+    {
+        var result = new List<IColor>();
+        colors = result;
+
+        foreach (var token in text.Split(['\r', '\n', ' ', '\t', ','], StringSplitOptions.RemoveEmptyEntries))
+        {
+            var hex = token.StartsWith('#') ? token : "#" + token;
+            if (!ColorParser.TryParse(hex, ColorModel.Rgba32, out var native))
+                return false;
+
+            result.Add(_colorFactory.ToForeign((ColorRgba32)native, _palette.ColorModel));
+        }
+
+        return result.Count > 0;
+    }
+
+    private static string NormalizeLines(string? text) => text?.Replace("\r", "").Trim() ?? "";
 }

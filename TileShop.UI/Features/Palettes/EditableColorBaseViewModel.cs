@@ -31,8 +31,7 @@ public abstract partial class EditableColorBaseViewModel : ObservableRecipient
     private bool _isReadOnly;
 
     /// <summary>
-    /// Command to save/assign the edited color. Set by the host (PaletteEditor, flyout, etc.)
-    /// to decouple the color editor from its container.
+    /// Command that assigns the edited color to the palette as a pending edit. Set by the host (palette editor, flyout).
     /// </summary>
     public IRelayCommand? SaveColorCommand { get; set; }
 
@@ -87,6 +86,12 @@ public abstract partial class EditableColorBaseViewModel : ObservableRecipient
         _originalColor = ToMediaColor(foreignColor);
         _color = _originalColor;
     }
+
+    /// <summary>
+    /// True if <paramref name="storedColor"/> is the palette color this editor was opened on, so its working color is still relevant
+    /// </summary>
+    public bool IsEditing(IColor storedColor) =>
+        storedColor.GetType() == _foreignColor.GetType() && storedColor.Color == _foreignColor.Color;
 
     public void SaveColor()
     {

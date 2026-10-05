@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 
 namespace ImageMagitek;
 
@@ -269,6 +270,12 @@ public static class ArrangerExtensions
 
         return new MagitekResult.Failed($"No element present at position ({elementX}, {elementY}) to be mirrored");
     }
+
+    /// <summary>
+    /// True when any element uses a codec that cannot encode, so the arranger's pixels cannot be saved
+    /// </summary>
+    public static bool IsReadOnly(this Arranger arranger) =>
+        arranger.EnumerateElements().OfType<ArrangerElement>().Any(x => !x.Codec.CanEncode);
 
     /// <summary>
     /// Translates a point to an element location in the underlying arranger

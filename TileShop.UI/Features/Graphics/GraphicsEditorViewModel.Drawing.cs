@@ -36,22 +36,8 @@ public partial class GraphicsEditorViewModel
             OnColorEditorConfirm);
     }
 
-    private void OnColorEditorConfirm(Palette palette, int colorIndex, IColor newColor)
-    {
-        palette.SetForeignColor(colorIndex, newColor);
-        palette.SavePalette();
-
-        // Update the swatch grid
-        var nativeColor = _colorFactory.ToNative(newColor);
-        var mediaColor = global::Avalonia.Media.Color.FromArgb(nativeColor.A, nativeColor.R, nativeColor.G, nativeColor.B);
-
-        if (ActivePalette is not null && colorIndex < ActivePalette.Colors.Count)
-            ActivePalette.Colors[colorIndex] = new PaletteEntry((byte)colorIndex, mediaColor);
-
-        // Re-render and broadcast change
-        InvalidateEditor(InvalidationLevel.PixelData);
-        Messenger.Send(new PaletteChangedMessage(palette));
-    }
+    private void OnColorEditorConfirm(Palette palette, int colorIndex, IColor newColor) =>
+        Messenger.Send(new PaletteColorAssignedMessage(palette, colorIndex, _colorFactory.CloneColor(newColor)));
 
     [RelayCommand]
     public void ChangePixelTool(DrawTool tool)
@@ -114,18 +100,12 @@ public partial class GraphicsEditorViewModel
         if (!IsPencilDrawing)
             return;
 
-        if (IsIndexedColor && _activePencilHistory is PencilHistoryAction<byte> indexedHistory && indexedHistory.ModifiedPoints.Count > 0)
-        {
-            IsPencilDrawing = false;
-            AddHistoryAction(indexedHistory);
-            _activePencilHistory = null;
-        }
-        else if (IsDirectColor && _activePencilHistory is PencilHistoryAction<ColorRgba32> directHistory && directHistory.ModifiedPoints.Count > 0)
-        {
-            IsPencilDrawing = false;
-            AddHistoryAction(directHistory);
-            _activePencilHistory = null;
-        }
+        var history = _activePencilHistory;
+        IsPencilDrawing = false;
+        _activePencilHistory = null;
+
+        if (history is PencilHistoryAction<byte> { ModifiedPoints.Count: > 0 } or PencilHistoryAction<ColorRgba32> { ModifiedPoints.Count: > 0 })
+            AddHistoryAction(history);
     }
 
     internal bool IsPointInDrawClip(int x, int y)
@@ -149,7 +129,7 @@ public partial class GraphicsEditorViewModel
         if (IsDirectColor)
             return HasColorDataAtPosition(x, y);
 
-        return ActivePalette is not null && _imageAdapter.CanSetPixel(x, y, GetActivePaletteColor(PrimaryColorIndex)).HasSucceeded;
+        return HasColorDataAtPosition(x, y) && HasActivePaletteColor(PrimaryColorIndex) && _imageAdapter.CanSetPixel(x, y, GetActivePaletteColor(PrimaryColorIndex)).HasSucceeded;
     }
 
     internal bool CanFloodFillAtPosition(int x, int y) => IsPointInDrawClip(x, y) && HasColorDataAtPosition(x, y);
@@ -157,7 +137,9 @@ public partial class GraphicsEditorViewModel
     internal bool CanPickColorAtPosition(int x, int y) => HasColorDataAtPosition(x, y);
 
     private bool HasColorDataAtPosition(int x, int y) =>
-        _imageAdapter.GetElementAtPixel(x, y) is { } element && (IsDirectColor || element.Codec is IIndexedCodec);
+        _imageAdapter.GetElementAtPixel(x, y) is { IsWithinSource: true } element && (IsDirectColor || element.Codec is IIndexedCodec);
+
+    private bool HasActivePaletteColor(byte colorIndex) => ActivePalette is not null && colorIndex < ActivePalette.Colors.Count;
 
     private ColorRgba32 GetActivePaletteColor(byte colorIndex)
     {
@@ -184,7 +166,7 @@ public partial class GraphicsEditorViewModel
 
     private void SetIndexedPixel(int x, int y, byte colorIndex)
     {
-        if (ActivePalette is null)
+        if (!HasActivePaletteColor(colorIndex))
             return;
 
         var result = _imageAdapter.TrySetPixel(x, y, GetActivePaletteColor(colorIndex));
@@ -229,7 +211,7 @@ public partial class GraphicsEditorViewModel
             var colorIndex = priority == ColorPriority.Primary ? PrimaryColorIndex : SecondaryColorIndex;
             if (_imageAdapter.FloodFill(x, y, colorIndex, clipBounds))
             {
-                AddHistoryAction(new FloodFillAction<byte>(x, y, colorIndex));
+                AddHistoryAction(new FloodFillAction<byte>(x, y, colorIndex, clipBounds));
                 IsModified = true;
             }
         }
@@ -238,7 +220,7 @@ public partial class GraphicsEditorViewModel
             var color = priority == ColorPriority.Primary ? PrimaryColor : SecondaryColor;
             if (_imageAdapter.FloodFill(x, y, color, clipBounds))
             {
-                AddHistoryAction(new FloodFillAction<ColorRgba32>(x, y, color));
+                AddHistoryAction(new FloodFillAction<ColorRgba32>(x, y, color, clipBounds));
                 IsModified = true;
             }
         }

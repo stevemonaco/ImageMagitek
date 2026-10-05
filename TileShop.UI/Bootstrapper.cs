@@ -90,6 +90,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         services.AddSingleton<IExploreService, ExploreService>();
         services.AddSingleton<IThemeService, ThemeService>();
         services.AddSingleton<HotkeyService>();
+        services.AddSingleton<ClipboardService>();
 
         var preferencesStore = new UserPreferencesStore(UserPreferencesStore.DefaultFileName, _loggerFactory!.CreateLogger<UserPreferencesStore>());
         preferencesStore.Load();
@@ -143,6 +144,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         locator.RegisterViewFactory<AddPaletteViewModel, AddPaletteView>();
         locator.RegisterViewFactory<AddScatteredArrangerViewModel, AddScatteredArrangerView>();
         locator.RegisterViewFactory<AssociatePaletteViewModel, AssociatePaletteView>();
+        locator.RegisterViewFactory<ChangeColorModelViewModel, ChangeColorModelView>();
         locator.RegisterViewFactory<ColorRemapViewModel, ColorRemapView>();
         locator.RegisterViewFactory<CustomElementLayoutViewModel, CustomElementLayoutView>();
         locator.RegisterViewFactory<ImportImageViewModel, ImportImageView>();

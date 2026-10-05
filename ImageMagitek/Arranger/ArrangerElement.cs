@@ -56,6 +56,11 @@ public readonly struct ArrangerElement
     /// </summary>
     public int Y2 => Y1 + Height - 1;
 
+    /// <summary>
+    /// True when the Element's encoded data lies entirely within Source
+    /// </summary>
+    public bool IsWithinSource => SourceAddress.Offset + Codec.StorageSize <= Source.Length * 8;
+
     public MirrorOperation Mirror { get; }
 
     public RotationOperation Rotation { get; }

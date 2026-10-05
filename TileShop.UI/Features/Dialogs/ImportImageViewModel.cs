@@ -12,6 +12,7 @@ using ImageMagitek.Image.Import;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Models;
 using TileShop.Shared.Services;
+using TileShop.UI.Converters;
 using TileShop.UI.Models;
 
 namespace TileShop.UI.ViewModels;
@@ -207,17 +208,14 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
         var source = preview.Source.Pixels[i];
         var state = preview.Report.PixelStates[i];
 
-        var target = preview.ResultIndexed is { } indexed ? $"index {indexed.Image[i]}" : ToHex(preview.ResultDirect!.Image[i]);
+        var target = preview.ResultIndexed is { } indexed ? $"index {indexed.Image[i]}" : ColorRgba32ToMediaColorConverter.ToHex(preview.ResultDirect!.Image[i]);
         var stateText = state.HasFlag(ImportPixelState.Unmatched) ? " · unmatched"
             : state.HasFlag(ImportPixelState.Substituted) ? " · substituted"
             : state.HasFlag(ImportPixelState.Changed) ? " · changed"
             : "";
 
-        HoverDescription = $"({x}, {y})  {ToHex(source)} → {target}{stateText}";
+        HoverDescription = $"({x}, {y})  {ColorRgba32ToMediaColorConverter.ToHex(source)} → {target}{stateText}";
     }
-
-    private static string ToHex(ColorRgba32 color) =>
-        color.A == 255 ? $"#{color.R:X2}{color.G:X2}{color.B:X2}" : $"#{color.R:X2}{color.G:X2}{color.B:X2}{color.A:X2}";
 
     partial void OnMatchStrategyChanged(ColorMatchStrategy value) => Reimport();
     partial void OnMapTransparentToIndexZeroChanged(bool value) => Reimport();

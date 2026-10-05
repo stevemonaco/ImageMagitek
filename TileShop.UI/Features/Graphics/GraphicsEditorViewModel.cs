@@ -132,8 +132,11 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     partial void OnIsDrawClipActiveChanged(bool value)
     {
+        NotifyCanRemapColorsChanged();
         InvalidateEditor(InvalidationLevel.Overlay);
     }
+
+    partial void OnDrawClipRectChanged(SnappedRectangle? value) => NotifyCanRemapColorsChanged();
 
     [ObservableProperty] private DrawClipEffect _drawClipEffect = DrawClipEffect.Greyscale;
 
@@ -151,7 +154,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         GraphicsEditMode.Arrange => SelectedArrangeTool == ArrangeTool.ElementSelect,
         _ => false
     };
-    public bool CanAcceptPixelPastes { get; init; }
+    public bool CanAcceptPixelPastes => CanDraw;
     public bool CanAcceptElementPastes { get; init; }
 
     public bool IsElementPasteActive => Paste?.Copy is ElementCopy
@@ -319,16 +322,14 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
         CanView = arranger.Mode == ArrangerMode.Sequential;
         CanArrange = arranger.Mode == ArrangerMode.Scattered;
-        CanDraw = true;
         CanAcceptElementPastes = true;
-        CanAcceptPixelPastes = true;
 
         _editMode = CanView ? GraphicsEditMode.View : GraphicsEditMode.Arrange;
 
         Initialize();
+        _history = new GraphicsEditHistory(UndoHistory, RedoHistory, WorkingArranger, codecService.CodecFactory);
 
         _selection = new ArrangerSelection(WorkingArranger, SnapMode);
-        Messenger.Register<SaveConflictsDetectedMessage>(this, HandleSaveConflictsDetected);
     }
 
     private void Initialize()
@@ -387,6 +388,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
             _imageAdapter = new ArrangerImageAdapter(WorkingArranger);
             BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
             GridSettings.AdjustGridlines(WorkingArranger);
+            UpdateReadOnlyState();
         }
         catch (Exception e)
         {
@@ -428,7 +430,10 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
             return;
 
         if (level >= InvalidationLevel.PixelData)
+        {
             _imageAdapter.Render();
+            UpdateReadOnlyState();
+        }
 
         if (level >= InvalidationLevel.Display)
             BitmapAdapter.Invalidate();
@@ -437,6 +442,12 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     }
 
     public void Render() => InvalidateEditor(InvalidationLevel.PixelData);
+
+    private void UpdateReadOnlyState()
+    {
+        CanDraw = !WorkingArranger.IsReadOnly();
+        NotifyCanRemapColorsChanged();
+    }
 
     /// <summary>
     /// Re-reads pixels written to the data sources outside this editor; history is cleared since it no longer applies to the new data
@@ -459,8 +470,6 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         return WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Any(x => sources.Contains(x.Source));
     }
 
-    private void ReloadImage() => _imageAdapter.Render();
-
     public bool ContainsPoint(double x, double y)
     {
         return x >= 0 && y >= 0 && x < WorkingArranger.ArrangerPixelSize.Width && y < WorkingArranger.ArrangerPixelSize.Height;
@@ -473,7 +482,14 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     {
         try
         {
-            _imageAdapter.SaveImage();
+            // Read-only codecs cannot encode pixels, but element rearrangements can still be saved
+            if (!WorkingArranger.IsReadOnly())
+            {
+                if (WorkingArranger is ScatteredArranger scattered && !await ConfirmSaveConflictsAsync(scattered))
+                    return;
+
+                _imageAdapter.SaveImage();
+            }
 
             // Sync element changes from WorkingArranger back to the project arranger
             if (WorkingArranger is ScatteredArranger workingScattered && _projectArranger is ScatteredArranger projectScattered)
@@ -519,16 +535,38 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         }
     }
 
+    private async Task<bool> ConfirmSaveConflictsAsync(ScatteredArranger arranger)
+    {
+        var conflicts = _imageAdapter.IsIndexed
+            ? arranger.AnalyzeSaveConflicts(_imageAdapter.IndexedImage!)
+            : arranger.AnalyzeSaveConflicts(_imageAdapter.DirectImage!);
+
+        if (!conflicts.HasConflicts)
+            return true;
+
+        var count = conflicts.GetConflictingElements().Count();
+        var result = await _interactions.PromptAsync(PromptChoices.OkCancel, "Save Conflicts",
+            $"{count} elements share the same data in the file with different pixels. The last element written wins. Save anyway?");
+
+        return result == PromptResult.Accept;
+    }
+
     public override void DiscardChanges()
     {
-        if (_projectArranger.Mode == ArrangerMode.Scattered)
-            WorkingArranger = _projectArranger.CloneArranger();
-
-        _imageAdapter.Reinitialize(WorkingArranger);
-        BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
-        GridSettings.AdjustGridlines(WorkingArranger);
+        var arranger = _projectArranger.Mode == ArrangerMode.Scattered ? _history.RestoreBase() : WorkingArranger;
+        _imageAdapter.Reinitialize(arranger);
+        OnWorkingArrangerReplaced();
         ClearHistory();
         IsModified = false;
+    }
+
+    private void OnWorkingArrangerReplaced()
+    {
+        WorkingArranger = _imageAdapter.Arranger;
+        BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
+        GridSettings.AdjustGridlines(WorkingArranger);
+        CancelOverlay();
+        UpdateReadOnlyState();
     }
     
     public bool CanAddSelectionAsScatteredArranger =>
@@ -566,18 +604,13 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         }
     }
 
-    private void HandleSaveConflictsDetected(object recipient, SaveConflictsDetectedMessage message)
-    {
-        if (!ReferenceEquals(message.Arranger, _projectArranger) && !ReferenceEquals(message.Arranger, WorkingArranger))
-            return;
-
-        // TODO: Notify user of save conflicts and handle in-progress local editor changes
-    }
-
     [RelayCommand]
     private async Task ChangeEditModeAsync(GraphicsEditMode newMode)
     {
         if (newMode == EditMode)
+            return;
+
+        if (newMode == GraphicsEditMode.Draw && !CanDraw)
             return;
 
         if (IsModified)
@@ -594,6 +627,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
                 await SaveChangesInternalAsync();
             else if (result == PromptResult.Reject)
                 DiscardChanges();
+
+            if (IsModified)
+                return;
         }
 
         EditMode = newMode;

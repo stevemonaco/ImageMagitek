@@ -2,7 +2,7 @@
 
 namespace TileShop.Shared.Models;
 
-public class RotateElementHistoryAction : HistoryAction
+public class RotateElementHistoryAction : ArrangerHistoryAction
 {
     public override string Name => "Rotate Element";
 

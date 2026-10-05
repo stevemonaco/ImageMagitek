@@ -1,9 +1,10 @@
-﻿<UserControl x:Class="TileShop.UI.Views.AddPaletteView"
+<UserControl x:Class="TileShop.UI.Views.AddPaletteView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:im="using:ImageMagitek.Colors"
     xmlns:vm="using:TileShop.UI.ViewModels"
     Width="400"
-    Height="350"
+    Height="420"
     MinWidth="230"
     x:DataType="vm:AddPaletteViewModel">
     <Grid Margin="10">
@@ -22,8 +23,18 @@
             </ComboBox>
 
             <Label Content="Color Model" Target="colorModelBox" />
-            <ComboBox x:Name="colorModelBox" MinWidth="150" Margin="0,5,0,0" ItemsSource="{Binding ColorModels}"
+            <ComboBox x:Name="colorModelBox" MinWidth="150" IsEnabled="{Binding TemplatePalette, Converter={x:Static ObjectConverters.IsNull}}" Margin="0,5,0,0" ItemsSource="{Binding ColorModels}"
                 SelectedIndex="1" SelectedItem="{Binding SelectedColorModel}" ToolTip.Tip="Palette Color Model" />
+
+            <Label Content="Copy Colors From" Target="templateBox" />
+            <ComboBox x:Name="templateBox" MinWidth="200" Margin="0,5,0,0" HorizontalAlignment="Stretch" ItemsSource="{Binding TemplatePalettes}"
+                SelectedItem="{Binding TemplatePalette}" ToolTip.Tip="Start from a copy of a built-in palette's colors and color model">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="im:Palette">
+                        <TextBlock Text="{Binding Name, FallbackValue='None'}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
 
             <CheckBox Content="Zero Index Transparent" IsChecked="{Binding ZeroIndexTransparent}" ToolTip.Tip="Forces the palette's first color into being transparent" />
 

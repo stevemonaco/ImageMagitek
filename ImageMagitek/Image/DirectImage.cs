@@ -55,7 +55,6 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
         if (Width * Height != Image.Length)
             Image = new ColorRgba32[Width * Height];
 
-        // TODO: Handle undefined elements explicitly and clear image subsections
         Array.Clear(Image, 0, Image.Length);
 
         var locations = Arranger.EnumerateElementLocationsWithinPixelRange(Left, Top, Width, Height);
@@ -68,8 +67,6 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
             if (el is ArrangerElement element && element.Codec is IDirectCodec codec)
             {
                 var encodedBuffer = codec.ReadElement(element);
-
-                // TODO: Detect reads past end of file more gracefully
                 if (encodedBuffer.Length == 0)
                     continue;
 
@@ -100,17 +97,16 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
                     }
                 }
             }
-            else
-            {
-
-            }
         }
     }
 
     public override void SaveImage()
     {
+        if (Arranger.IsReadOnly())
+            throw new InvalidOperationException($"Arranger '{Arranger.Name}' uses a codec that cannot encode and is read-only");
+
         var buffer = new ColorRgba32[Arranger.ElementPixelSize.Height, Arranger.ElementPixelSize.Width];
-        foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IDirectCodec))
+        foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IDirectCodec && x.IsWithinSource))
         {
             Image.CopyToArray2D(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
             var codec = (IDirectCodec)el.Codec;

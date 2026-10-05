@@ -402,19 +402,18 @@ public class ProjectService : IProjectService
             Guard.IsNotNull(node.DiskLocation);
             Guard.IsNotNull(tree.Root.DiskLocation);
             string oldLocation = node.DiskLocation;
-            string newLocation = ResourceFileLocator.Locate(tree, node);
-            Guard.IsNotNull(newLocation);
             node.Rename(newName);
+            string newLocation = ResourceFileLocator.Locate(tree, node);
 
             try
             {
-                Directory.Move(node.DiskLocation, newLocation);
-                node.DiskLocation = newLocation;
+                Directory.Move(oldLocation, newLocation);
+                RelocateFolders(tree, node);
             }
             catch (Exception ex)
             {
                 node.Rename(oldName);
-                return new MagitekResult.Failed($"Could not rename '{node.Name}': {ex.Message}");
+                return new MagitekResult.Failed($"Could not rename '{oldName}': {ex.Message}");
             }
 
             var serializer = _serializerFactory.CreateWriter(tree);
@@ -425,28 +424,35 @@ public class ProjectService : IProjectService
                 {
                     node.Rename(oldName);
                     Directory.Move(newLocation, oldLocation);
+                    RelocateFolders(tree, node);
                     return failed;
                 });
         }
         else if (node.DiskLocation is not null) // On disk
         {
-            node.Rename(newName);
+            Guard.IsNotNull(tree.Root.DiskLocation);
             string oldLocation = node.DiskLocation;
+            node.Rename(newName);
 
+            MagitekResult writeResult;
             try
             {
-                Guard.IsNotNull(tree.Root.DiskLocation);
-                node.Rename(newName);
                 var serializer = _serializerFactory.CreateWriter(tree);
-                await serializer.WriteProjectAsync(tree.Root.DiskLocation);
+                writeResult = await serializer.WriteProjectAsync(tree.Root.DiskLocation);
             }
             catch (Exception ex)
             {
-                node.Rename(oldName);
-                return new MagitekResult.Failed($"Could not rename '{node.Name}': {ex.Message}");
+                writeResult = new MagitekResult.Failed($"Could not rename '{oldName}': {ex.Message}");
             }
 
-            File.Delete(oldLocation);
+            if (writeResult.HasFailed)
+            {
+                node.Rename(oldName);
+                return writeResult;
+            }
+
+            if (node.DiskLocation is string newLocation && !string.Equals(oldLocation, newLocation, StringComparison.Ordinal))
+                RemoveRenamedFile(oldLocation, newLocation);
         }
         else if (node.DiskLocation is null) // In-memory only
         {
@@ -454,6 +460,37 @@ public class ProjectService : IProjectService
         }
 
         return MagitekResult.SuccessResult;
+    }
+
+    private static void RemoveRenamedFile(string oldLocation, string newLocation)
+    {
+        if (!string.Equals(oldLocation, newLocation, StringComparison.OrdinalIgnoreCase))
+        {
+            File.Delete(oldLocation);
+            return;
+        }
+
+        var fileNames = Directory.EnumerateFiles(Path.GetDirectoryName(newLocation)!)
+            .Select(Path.GetFileName)
+            .ToHashSet(StringComparer.Ordinal);
+        bool hasOldFile = fileNames.Contains(Path.GetFileName(oldLocation));
+        bool hasNewFile = fileNames.Contains(Path.GetFileName(newLocation));
+
+        // On case-insensitive filesystems the write lands in the old file and keeps its casing
+        if (hasOldFile && hasNewFile)
+            File.Delete(oldLocation);
+        else if (hasOldFile)
+        {
+            var tempLocation = $"{newLocation}.{Guid.NewGuid():N}.tmp";
+            File.Move(oldLocation, tempLocation);
+            File.Move(tempLocation, newLocation);
+        }
+    }
+
+    private static void RelocateFolders(ProjectTree tree, ResourceNode folderNode)
+    {
+        foreach (var folder in folderNode.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>().OfType<ResourceFolderNode>())
+            folder.DiskLocation = ResourceFileLocator.Locate(tree, folder);
     }
 
     /// <summary>
@@ -538,63 +575,51 @@ public class ProjectService : IProjectService
         if (canMoveResult.HasFailed)
             return canMoveResult;
 
-        if (node is ResourceFolderNode folderNode) // Always on disk
+        var isFolder = node is ResourceFolderNode;
+
+        try
         {
-            try
-            {
+            if (isFolder)
                 Directory.Move(oldLocation, newLocation);
-                node.DiskLocation = newLocation;
-
-                node.Parent?.DetachChildNode(node.Name);
-                parentNode.AttachChildNode(node);
-            }
-            catch (Exception ex)
-            {
-                return new MagitekResult.Failed($"Failed to move node '{node.Name}': {ex.Message}");
-            }
-
-            var writeResult = await serializer.WriteProjectAsync(tree.Root.DiskLocation);
-            return writeResult.Match<MagitekResult>(
-                success => MagitekResult.SuccessResult,
-                failed =>
-                {
-                    Directory.Move(newLocation, oldLocation);
-                    node.DiskLocation = oldLocation;
-
-                    node.Parent?.DetachChildNode(node.Name);
-                    oldParent?.AttachChildNode(node);
-
-                    return failed;
-                });
-        }
-        else
-        {
-            try
-            {
+            else
                 File.Move(oldLocation, newLocation);
-                node.DiskLocation = newLocation;
-
-                node.Parent?.DetachChildNode(node.Name);
-                parentNode.AttachChildNode(node);
-                var result = await serializer.WriteProjectAsync(tree.Root.DiskLocation);
-
-                if (result.HasFailed)
-                {
-                    File.Move(newLocation, oldLocation);
-                    node.Parent?.DetachChildNode(node.Name);
-                    oldParent?.AttachChildNode(node);
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                File.Move(newLocation, oldLocation);
-                node.Parent?.DetachChildNode(node.Name);
-                oldParent?.AttachChildNode(node);
-                return new MagitekResult.Failed($"Failed to move node '{node.Name}': {ex.Message}");
-            }
         }
+        catch (Exception ex)
+        {
+            return new MagitekResult.Failed($"Failed to move node '{node.Name}': {ex.Message}");
+        }
+
+        MagitekResult writeResult;
+        try
+        {
+            node.DiskLocation = newLocation;
+            node.Parent?.DetachChildNode(node.Name);
+            parentNode.AttachChildNode(node);
+            if (isFolder)
+                RelocateFolders(tree, node);
+
+            writeResult = await serializer.WriteProjectAsync(tree.Root.DiskLocation);
+        }
+        catch (Exception ex)
+        {
+            writeResult = new MagitekResult.Failed($"Failed to move node '{node.Name}': {ex.Message}");
+        }
+
+        if (writeResult.HasFailed)
+        {
+            if (isFolder)
+                Directory.Move(newLocation, oldLocation);
+            else
+                File.Move(newLocation, oldLocation);
+
+            node.DiskLocation = oldLocation;
+            node.Parent?.DetachChildNode(node.Name);
+            oldParent?.AttachChildNode(node);
+            if (isFolder)
+                RelocateFolders(tree, node);
+        }
+
+        return writeResult;
     }
 
     /// <summary>
@@ -645,13 +670,26 @@ public class ProjectService : IProjectService
                 File.Delete(location);
         }
 
-        foreach (var item in removedItems.Where(x => x.Resource is ResourceFolder))
+        var keptFolders = new List<string>();
+
+        // Longest path first deletes children before their parents
+        foreach (var item in removedItems.Where(x => x.Resource is ResourceFolder).OrderByDescending(x => x.ResourceNode.DiskLocation?.Length ?? 0))
         {
             var resourceParent = item.ResourceNode.Parent;
             resourceParent?.RemoveChildNode(item.Resource.Name);
-            if (item.ResourceNode.DiskLocation is not null)
-                Directory.Delete(item.ResourceNode.DiskLocation);
+
+            // Non-empty folders hold files the user placed there, such as ROMs, so they are left on disk
+            if (item.ResourceNode.DiskLocation is string location && Directory.Exists(location))
+            {
+                if (Directory.EnumerateFileSystemEntries(location).Any())
+                    keptFolders.Add(location);
+                else
+                    Directory.Delete(location);
+            }
         }
+
+        if (keptFolders.Count > 0)
+            return new MagitekResult.Failed($"These folders contain other files and were left on disk. They will reappear when the project is reopened until removed:\n{string.Join("\n", keptFolders)}");
 
         return MagitekResult.SuccessResult;
     }

@@ -212,7 +212,7 @@ public static class IndexedImageExtensions
                 if (nodeColor == replaceIndex)
                 {
                     Palette? destPalette = default;
-                    if (image.GetElementAtPixel(nodePosition.x, nodePosition.y)?.Codec is IIndexedCodec destCodec)
+                    if (image.GetElementAtPixel(nodePosition.x, nodePosition.y) is { IsWithinSource: true, Codec: IIndexedCodec destCodec })
                         destPalette = destCodec.Palette;
 
                     if (ReferenceEquals(startingPalette, destPalette))

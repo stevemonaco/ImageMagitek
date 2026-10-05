@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 
 namespace ImageMagitek.ExtensionMethods;
@@ -47,7 +48,8 @@ public static class DirectImageExtensions
             if (nodePosition.x >= minX && nodePosition.x < maxX && nodePosition.y >= minY && nodePosition.y < maxY)
             {
                 var nodeColor = image.GetPixel(nodePosition.x, nodePosition.y);
-                if (nodeColor.Color == replaceColor.Color)
+                if (nodeColor.Color == replaceColor.Color
+                    && image.GetElementAtPixel(nodePosition.x, nodePosition.y) is { IsWithinSource: true, Codec: IDirectCodec })
                 {
                     isModified = true;
                     image.SetPixel(nodePosition.x, nodePosition.y, fillColor);
