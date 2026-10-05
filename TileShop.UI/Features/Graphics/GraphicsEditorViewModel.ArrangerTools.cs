@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
@@ -468,26 +469,36 @@ public partial class GraphicsEditorViewModel
             if (!IsIndexedColor || WorkingArranger.IsReadOnly())
                 return false;
 
-            var palettes = WorkingArranger.GetReferencedPalettes();
-            if (palettes?.Count <= 1)
-                return WorkingArranger.GetReferencedCodecs().All(x => x.ColorType == PixelColorType.Indexed);
+            var bounds = GetRemapBounds();
+            if (bounds is { IsEmpty: true })
+                return false;
 
-            return false;
+            var elements = GetRemapElements(bounds).ToList();
+            return elements.Count > 0
+                && elements.All(x => x.Codec.ColorType == PixelColorType.Indexed)
+                && GetPalettes(elements).Count() <= 1;
         }
+    }
+
+    private void NotifyCanRemapColorsChanged()
+    {
+        OnPropertyChanged(nameof(CanRemapColors));
+        RemapColorsCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanRemapColors))]
     public async Task RemapColors()
     {
-        if (!IsIndexedColor)
+        if (!CanRemapColors)
             return;
 
-        var palette = WorkingArranger.GetReferencedPalettes().FirstOrDefault() ?? _paletteStore.DefaultPalette;
+        var bounds = GetRemapBounds();
+        var elements = GetRemapElements(bounds).ToList();
+        var palette = GetPalettes(elements).FirstOrDefault() ?? _paletteStore.DefaultPalette;
 
-        var maxArrangerColors = WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Codec?.ColorDepth ?? 0).Max();
+        var maxArrangerColors = elements.Max(x => x.Codec.ColorDepth);
         var colors = Math.Min(256, 1 << maxArrangerColors);
 
-        var bounds = GetRemapBounds();
         var remapViewModel = new ColorRemapViewModel(palette, colors, _colorFactory)
         {
             ScopeDescription = Selection.HasSelection ? "Applies to the current selection" :
@@ -520,4 +531,17 @@ public partial class GraphicsEditorViewModel
         var selectionBounds = new Rectangle(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
         return clipBounds is { } clip ? Rectangle.Intersect(selectionBounds, clip) : selectionBounds;
     }
+
+    private IEnumerable<ArrangerElement> GetRemapElements(Rectangle? bounds)
+    {
+        if (bounds is not { } b)
+            return WorkingArranger.EnumerateElements().OfType<ArrangerElement>();
+
+        return WorkingArranger.EnumerateElementLocationsWithinPixelRange(b.X, b.Y, b.Width, b.Height)
+            .Select(loc => WorkingArranger.GetElement(loc.X, loc.Y))
+            .OfType<ArrangerElement>();
+    }
+
+    private static IEnumerable<Palette> GetPalettes(IEnumerable<ArrangerElement> elements) =>
+        elements.Select(x => x.Codec).OfType<IIndexedCodec>().Select(x => x.Palette).OfType<Palette>().Distinct();
 }

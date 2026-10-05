@@ -132,8 +132,11 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     partial void OnIsDrawClipActiveChanged(bool value)
     {
+        NotifyCanRemapColorsChanged();
         InvalidateEditor(InvalidationLevel.Overlay);
     }
+
+    partial void OnDrawClipRectChanged(SnappedRectangle? value) => NotifyCanRemapColorsChanged();
 
     [ObservableProperty] private DrawClipEffect _drawClipEffect = DrawClipEffect.Greyscale;
 
@@ -443,7 +446,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     private void UpdateReadOnlyState()
     {
         CanDraw = !WorkingArranger.IsReadOnly();
-        OnPropertyChanged(nameof(CanRemapColors));
+        NotifyCanRemapColorsChanged();
     }
 
     /// <summary>
