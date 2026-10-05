@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 using ImageMagitek;
 using ImageMagitek.Services;
@@ -12,6 +12,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using TileShop.UI.Features.Graphics;
+using TileShop.UI.Models;
 
 namespace TileShop.UI.ViewModels;
 
@@ -41,10 +42,15 @@ public partial class MenuViewModel : ObservableRecipient
     private readonly IThemeService _themeService;
     private readonly IInteractionService _interactions;
     private readonly IExploreService _exploreService;
+    private readonly IPluginService _pluginService;
+    private readonly AppSettings _settings;
 
     public MenuViewModel(UserPreferencesStore preferencesStore, IThemeService themeService, ProjectTreeViewModel projectTreeVm, EditorsViewModel editors,
-        IInteractionService interactionService, IExploreService exploreService, IProjectService projectService)
+        IInteractionService interactionService, IExploreService exploreService, IProjectService projectService, IPluginService pluginService,
+        AppSettings settings)
     {
+        _pluginService = pluginService;
+        _settings = settings;
         _preferencesStore = preferencesStore;
         _themeService = themeService;
         _projectTree = projectTreeVm;
@@ -119,9 +125,31 @@ public partial class MenuViewModel : ObservableRecipient
     {
         var version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
 
+        var plugins = _pluginService.CodecPlugins.Count > 0
+            ? "Plugin codecs:\n" + string.Join("\n", _pluginService.CodecPlugins.Select(x => x.Name))
+            : "No plugin codecs loaded";
+
         var heading = "TileShop";
-        var message = $"Version: {version}";
+        var message = $"Version: {version}\n\n{plugins}";
         await _interactions.AlertAsync(heading, message);
+    }
+
+    [RelayCommand]
+    public async Task OpenPreferences()
+    {
+        var preferences = _preferencesStore.Preferences;
+        var model = new PreferencesViewModel(preferences, preferences.NesPalette ?? _settings.NesPalette);
+
+        if (await _interactions.RequestAsync(model) is not { } result)
+            return;
+
+        ActiveTheme = result.Theme;
+        preferences.EnableArrangerSymmetryTools = result.EnableArrangerSymmetryTools;
+        preferences.JumpToOffsetBase = result.JumpToOffsetBase;
+        preferences.Grid = new(GridSettingsViewModel.ToHex(result.LineColor), GridSettingsViewModel.ToHex(result.PrimaryColor),
+            GridSettingsViewModel.ToHex(result.SecondaryColor));
+        preferences.NesPalette = result.NesPalette == _settings.NesPalette ? null : result.NesPalette;
+        _preferencesStore.Save();
     }
 
     [RelayCommand]

@@ -234,6 +234,9 @@ public sealed class ProjectServiceTests : IDisposable
         Assert.Equal(ProjectTreeChangeKind.Moved, change.Kind);
         Assert.Same(destination, change.Parent);
         Assert.Same(_tree.Root, change.OldParent);
+        Assert.Equal(PathOf("Dest", "data.xml"), node.DiskLocation);
+        Assert.True(File.Exists(PathOf("Dest", "data.xml")));
+        Assert.False(File.Exists(PathOf("data.xml")));
     }
 
     [Fact]

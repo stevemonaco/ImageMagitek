@@ -27,9 +27,11 @@ public partial class GraphicsEditorViewModel
     {
         OnPropertyChanged(nameof(CanUndo));
         OnPropertyChanged(nameof(CanRedo));
+        UndoCommand.NotifyCanExecuteChanged();
+        RedoCommand.NotifyCanExecuteChanged();
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanUndo))]
     public override void Undo()
     {
         if (!CanUndo)
@@ -43,7 +45,7 @@ public partial class GraphicsEditorViewModel
         InvalidateEditor(InvalidationLevel.Display);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRedo))]
     public override void Redo()
     {
         if (!CanRedo)

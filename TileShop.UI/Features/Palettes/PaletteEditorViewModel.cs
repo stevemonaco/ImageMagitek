@@ -79,6 +79,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         new("Ctrl+Y", RedoCommand),
         new("Ctrl+C", CopyCommand),
         new("Ctrl+V", PasteCommand),
+        new("Ctrl+A", SelectAllCommand),
         new("Left", MoveSelectionCommand, "Left"),
         new("Right", MoveSelectionCommand, "Right"),
         new("Up", MoveSelectionCommand, "Up"),
@@ -88,6 +89,8 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         new("Shift+Up", ExtendSelectionCommand, "Up"),
         new("Shift+Down", ExtendSelectionCommand, "Down"),
     ];
+
+    public override EditCommands EditCommands => field ??= new(UndoCommand, RedoCommand, EditCommands.Disabled, CopyCommand, PasteCommand, EditCommands.Disabled, SelectAllCommand);
 
     public PaletteEditorViewModel(Palette palette, IColorFactory colorFactory, IProjectService projectService,
         IInteractionService interactions, IAsyncFileRequestService fileRequests, ClipboardService clipboard) : base(palette)
@@ -163,6 +166,17 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         };
 
         _selection.Move(dx, dy, Columns, Colors.Count, extend);
+        RefreshSelection();
+    }
+
+    [RelayCommand]
+    private void SelectAll()
+    {
+        if (Colors.Count == 0)
+            return;
+
+        _selection.Click(0);
+        _selection.ShiftClick(Colors.Count - 1);
         RefreshSelection();
     }
 
@@ -355,10 +369,10 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanUndo))]
     public override void Undo() => _session.Undo();
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRedo))]
     public override void Redo() => _session.Redo();
 
     public override void ApplyHistoryAction(HistoryAction action)
@@ -379,6 +393,8 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 
         OnPropertyChanged(nameof(CanUndo));
         OnPropertyChanged(nameof(CanRedo));
+        UndoCommand.NotifyCanExecuteChanged();
+        RedoCommand.NotifyCanExecuteChanged();
         UpdateModified();
         UpdateCommittedModel();
     }

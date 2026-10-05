@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -21,7 +22,12 @@ public partial class ShellView : Window
     {
         InitializeComponent();
 #if DEBUG
-        debugLoadButton.IsVisible = true;
+        _titleBarPanel.Children.Add(new Button
+        {
+            Name = "debugLoadButton",
+            Content = "Load FF2",
+            [!Button.CommandProperty] = new Binding(nameof(ShellViewModel.DebugLoadCommand)),
+        });
 #endif
     }
 

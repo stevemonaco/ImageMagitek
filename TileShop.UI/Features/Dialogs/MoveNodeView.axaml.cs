@@ -1,9 +1,9 @@
 using Avalonia.Controls;
 
 namespace TileShop.UI.Views;
-public partial class CustomElementLayoutView : UserControl
+public partial class MoveNodeView : UserControl
 {
-    public CustomElementLayoutView()
+    public MoveNodeView()
     {
         InitializeComponent();
     }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
@@ -342,6 +342,40 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         }
     }
 
+    [RelayCommand]
+    public async Task MoveNode(ResourceNodeViewModel nodeModel)
+    {
+        var node = nodeModel.Node;
+        var tree = _projectService.GetContainingProject(node);
+
+        var destinations = tree.EnumerateDepthFirst()
+            .Where(x => x.Item is ResourceFolder)
+            .Prepend(tree.Root)
+            .Where(x => _projectService.CanMoveNode(node, x).HasSucceeded)
+            .Select(x => new MoveDestinationModel(x, ReferenceEquals(x, tree.Root) ? tree.Root.Name : tree.CreatePathKey(x)))
+            .ToList();
+
+        if (destinations.Count == 0)
+        {
+            await _interactions.AlertAsync("Move", $"There are no folders that '{node.Name}' can be moved to");
+            return;
+        }
+
+        if (await _interactions.RequestAsync(new MoveNodeViewModel(node.Name, destinations)) is not { } destination)
+            return;
+
+        var result = await _projectService.MoveNodeAsync(node, destination);
+        if (result.HasFailed)
+        {
+            await _interactions.AlertAsync("Move failed", result.AsError.Reason);
+            return;
+        }
+
+        if (FindViewModel(destination) is { } destinationModel)
+            destinationModel.IsExpanded = true;
+        SelectedNode = FindViewModel(node);
+    }
+
     public async void ReceiveAsync(AddScatteredArrangerFromCopyMessage message)
     {
         var dialogModel = new NameResourceViewModel();
@@ -376,48 +410,6 @@ public partial class ProjectTreeViewModel : ObservableRecipient
             );
         }
     }
-
-    //public void DragOver(IDropInfo dropInfo)
-    //{
-    //    if (dropInfo.Data is ResourceNodeViewModel sourceModel && dropInfo.TargetItem is ResourceNodeViewModel targetModel)
-    //    {
-    //        _projectService.CanMoveNode(sourceModel.Node, targetModel.Node).Switch(
-    //            success =>
-    //            {
-    //                dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
-    //                dropInfo.Effects = DragDropEffects.Move;
-    //            },
-    //            fail => { }
-    //        );
-    //    }
-    //}
-
-    //public void Drop(IDropInfo dropInfo)
-    //{
-    //    var targetModel = dropInfo.TargetItem as ResourceNodeViewModel;
-
-    //    if (dropInfo.Data is ResourceNodeViewModel sourceModel && (targetModel is ResourceNodeViewModel || targetModel is FolderNodeViewModel))
-    //    {
-    //        var result = _projectService.MoveNode(sourceModel.Node, targetModel.Node);
-
-    //        result.Switch(
-    //            success =>
-    //            {
-    //                sourceModel.ParentModel.Children.Remove(sourceModel);
-    //                sourceModel.ParentModel = targetModel;
-    //                targetModel.Children.Add(sourceModel);
-    //                SelectedNode = sourceModel;
-
-    //                //_projectService.SaveProject(projectTree)
-    //                //.Switch(
-    //                //    success => IsModified = false,
-    //                //    fail => _windowManager.ShowMessageBox($"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}")
-    //                //);
-    //            },
-    //            fail => _windowManager.ShowMessageBox($"{fail.Reason}", "Move Resource Error")
-    //            );
-    //    }
-    //}
 
     [RelayCommand]
     public async Task AddNewProject()

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="TileShop.UI.Views.MenuView"
+<UserControl x:Class="TileShop.UI.Views.MenuView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:v="using:TileShop.UI.Views"
@@ -39,6 +39,20 @@
 
                 <Separator />
                 <MenuItem Click="Exit_Click" Header="E_xit" />
+            </MenuItem>
+
+            <MenuItem Header="_Edit">
+                <MenuItem Command="{Binding Editors.ActiveEditCommands.Undo}" Header="_Undo" InputGesture="Ctrl+Z" />
+                <MenuItem Command="{Binding Editors.ActiveEditCommands.Redo}" Header="_Redo" InputGesture="Ctrl+Y" />
+                <Separator />
+                <MenuItem Command="{Binding Editors.ActiveEditCommands.Cut}" Header="Cu_t" />
+                <MenuItem Command="{Binding Editors.ActiveEditCommands.Copy}" Header="_Copy" InputGesture="Ctrl+C" />
+                <MenuItem Command="{Binding Editors.ActiveEditCommands.Paste}" Header="_Paste" InputGesture="Ctrl+V" />
+                <MenuItem Command="{Binding Editors.ActiveEditCommands.Delete}" Header="_Delete" InputGesture="Delete" />
+                <Separator />
+                <MenuItem Command="{Binding Editors.ActiveEditCommands.SelectAll}" Header="Select _All" InputGesture="Ctrl+A" />
+                <Separator />
+                <MenuItem Command="{Binding OpenPreferencesCommand}" Header="Pr_eferences..." />
             </MenuItem>
 
             <MenuItem Header="_View">

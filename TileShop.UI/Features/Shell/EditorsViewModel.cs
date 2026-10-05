@@ -19,6 +19,7 @@ using ImageMagitek.Codec;
 using TileShop.UI.Features.Graphics;
 using TileShop.Shared.Services;
 using TileShop.Shared.Tools;
+using TileShop.UI.Models;
 using TileShop.UI.Services;
 using Monaco.PathTree;
 using Avalonia.Threading;
@@ -47,11 +48,14 @@ public partial class EditorsViewModel : ObservableRecipient
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ActiveGraphicsEditor))]
+    [NotifyPropertyChangedFor(nameof(ActiveEditCommands))]
     private ResourceEditorBaseViewModel? _activeEditor;
 
     [ObservableProperty] private ShellViewModel? _shell;
 
     public GraphicsEditorViewModel? ActiveGraphicsEditor => ActiveEditor as GraphicsEditorViewModel;
+
+    public EditCommands ActiveEditCommands => ActiveEditor?.EditCommands ?? EditCommands.None;
 
     partial void OnActiveEditorChanged(ResourceEditorBaseViewModel? value)
     {
@@ -78,7 +82,6 @@ public partial class EditorsViewModel : ObservableRecipient
         _fileRequests = fileRequests;
         _clipboard = clipboard;
 
-        Messenger.Register<EditArrangerPixelsMessage>(this, (r, m) => Receive(m));
         Messenger.Register<PaletteColorAssignedMessage>(this, (r, m) => Receive(m));
 
         _projectService.TreeChanged += OnTreeChanged;
@@ -369,33 +372,6 @@ public partial class EditorsViewModel : ObservableRecipient
         }
 
         return UserSaveAction.Unmodified;
-    }
-
-    public void Receive(EditArrangerPixelsMessage message)
-    {
-        if (Shell is null)
-            throw new NullReferenceException(nameof(Shell));
-
-        // if (message.Arranger.ColorType == PixelColorType.Indexed)
-        // {
-        //     var editor = new IndexedPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-        //         message.Width, message.Height, _interactions, _colorFactory, _paletteStore, _tracker);
-        //
-        //     editor.DisplayName = message.Arranger.Name;
-        //
-        //     Shell.Editors.Editors.Add(editor);
-        //     ActiveEditor = editor;
-        // }
-        // else if (message.Arranger.ColorType == PixelColorType.Direct)
-        // {
-        //     var editor = new DirectPixelEditorViewModel(message.Arranger, message.ProjectArranger, message.X, message.Y,
-        //         message.Width, message.Height, _interactions, _colorFactory, _paletteStore, _tracker);
-        //
-        //     editor.DisplayName = message.Arranger.Name;
-        //
-        //     Shell.Editors.Editors.Add(editor);
-        //     ActiveEditor = editor;
-        // }
     }
 
     private void OnResourceChanged(object? sender, IProjectResource resource)

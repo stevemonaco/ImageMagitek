@@ -1,0 +1,62 @@
+<UserControl x:Class="TileShop.UI.Views.PreferencesView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:TileShop.UI.ViewModels"
+    MinWidth="360"
+    x:DataType="vm:PreferencesViewModel">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.rowLabel">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="MinWidth" Value="160" />
+        </Style>
+    </UserControl.Styles>
+
+    <StackPanel Margin="0,12,0,4" Spacing="16">
+        <StackPanel Spacing="6">
+            <TextBlock Classes="muted" Text="General" />
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                <TextBlock Classes="rowLabel" Text="Theme" />
+                <ComboBox Grid.Column="1" ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" />
+
+                <TextBlock Grid.Row="1" Classes="rowLabel" Text="Jump to Offset Base" />
+                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding NumericBases}" SelectedItem="{Binding JumpToOffsetBase}" />
+
+                <CheckBox Grid.Row="2" Grid.ColumnSpan="2" Content="Show arranger symmetry tools (mirror and rotate)"
+                    IsChecked="{Binding EnableArrangerSymmetryTools}" />
+            </Grid>
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Classes="muted" VerticalAlignment="Center" Text="Grid Colors" />
+                <Button Grid.Column="1" Classes="Tertiary" Command="{Binding ResetColorsCommand}" Content="Reset"
+                    ToolTip.Tip="Restore the default gridline and checkerboard colors" />
+            </Grid>
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                <TextBlock Classes="rowLabel" Text="Gridline" />
+                <ColorPicker Grid.Column="1" Color="{Binding LineColor}" />
+
+                <TextBlock Grid.Row="1" Classes="rowLabel" Text="Checkerboard Primary" />
+                <ColorPicker Grid.Row="1" Grid.Column="1" Color="{Binding PrimaryColor}" />
+
+                <TextBlock Grid.Row="2" Classes="rowLabel" Text="Checkerboard Secondary" />
+                <ColorPicker Grid.Row="2" Grid.Column="1" Color="{Binding SecondaryColor}" />
+            </Grid>
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+            <TextBlock Classes="muted" Text="NES" />
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <TextBlock Classes="rowLabel" Text="Master Palette" />
+                <ComboBox Grid.Column="1" ItemsSource="{Binding NesPaletteNames}" SelectedItem="{Binding NesPalette}" />
+            </Grid>
+            <TextBlock Classes="muted" Text="The NES palette applies after TileShop restarts. Grid colors and symmetry tools apply to newly opened editors."
+                TextWrapping="Wrap" MaxWidth="360" HorizontalAlignment="Left" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

@@ -29,6 +29,11 @@ public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
     /// </summary>
     public virtual IReadOnlyList<Hotkey> Hotkeys => [];
 
+    /// <summary>
+    /// Commands the Edit menu runs while this editor is active
+    /// </summary>
+    public virtual EditCommands EditCommands => EditCommands.None;
+
     public ResourceEditorBaseViewModel(IProjectResource resource)
     {
         Resource = resource;
