@@ -6,7 +6,7 @@ This plan draws on [FeatureGaps.md](docs/FeatureGaps.md), which remains the long
 
 **Out of scope for 1.0:** direct-color XML codecs, [compression support](docs/CompressionSupport.md), new platforms and color models, new drawing or selection tools, layers, tilemaps, and scripting. They stay in FeatureGaps.md.
 
-**Order:** Milestones 1–3 come first, because they protect user data and fix the project format. Milestones 4–7 can run in parallel after that. Milestone 4 reuses the history model from Milestone 2. Milestone 8 should land before Milestone 6's project-tree move and Milestone 3's missing-file relink, because both become simple tree changes once the tree view follows the domain.
+**Order:** Milestones 1–3 come first, because they protect user data and fix the project format. Milestones 4–7 can run in parallel after that. Milestone 4 reuses the history model from Milestone 2. Milestone 8 should land before Milestone 6's project-tree move and Milestone 9's missing-file relink, because both become simple tree changes once the tree view follows the domain.
 
 ---
 
@@ -43,7 +43,6 @@ Exit criteria: every action that appears in history can be undone and redone, an
 Exit criteria: the 1.0 project format is versioned, round-trip tested, and loads older projects or refuses them clearly.
 
 - [ ] **Version check and migration.** `XmlProjectWriter` writes `version="0.9"`, and `XmlProjectReader` parses it but never compares it. Bump to `1.0`, reject newer versions with a clear message, and add a migration hook for older ones (0.9 → 1.0 may be a no-op, but the hook needs to exist before 1.0 ships).
-- [ ] **Relink missing data files.** A missing data file fails the whole load (`ProjectTreeBuilder.cs:73-74`). Load the project with the data file marked missing, and offer to locate it. Arrangers that reference it open as unavailable rather than crashing.
 - [ ] **Project XML round-trip tests.** None exist. Cover every resource type, nested folders, palettes with mixed color sources, element mirror/rotation, legacy codec aliases, and a WAL-recovered save. Use `_xmlprojectsamples/*.zip` as fixtures.
 - [ ] **Scattered color source.** It's an empty class, the reader ignores it, and the writer throws (`ColorSourceSerializer.cs:45-48`, `:134-137`). Remove it from the 1.0 schema rather than freezing a stub into the format. It can come back as an additive change.
 - [ ] **Decide on stable resource keys.** References are path keys (`datafile="Roms/FF2"`, and per-element `datafile=`/`palette=`), so renaming or moving a resource or folder rewrites every file that references anything under it. A rename done by hand in Explorer leaves those references dangling. The option is a project-unique, human-readable `key` assigned from the name at creation and never changed, with references using the key. Renames and moves would then touch only the resource's own file, and hand renames would stop breaking references. The costs: keys drift from display names after renames, and copying a resource file duplicates its key, so the reader must report duplicates by name. GUIDs were rejected because they make hand-editing impractical. ID-plus-path-hint was rejected because stale hints mislead anyone reading the files by hand. Either decide now, since the migration hook can assign keys to 0.9 projects, or keep path keys and add a clear "unresolved reference" load error tied to the relink work.
@@ -166,8 +165,27 @@ Fixed along the way (both predate this milestone):
 
 Still to verify by hand in the app: rename, move and delete in the project tree with editors open; palette edits appearing live in graphics editors; and saving or importing pixels refreshing other unmodified editors that show the same data.
 
+## Milestone 9: Import/export and project workflow
+
+Exit criteria: graphics round-trip through external editors without losing palette indices, imports don't need an exact-size image, a project with a missing data file can be repaired from the UI, and sequential layouts survive a reload.
+
+### Project tree
+
+- [ ] **Drag and drop in the project tree.** "Move to Folder..." exists (Milestone 6), and drag and drop should call the same `MoveNodeAsync` path with the same `CanMoveNode` check driving the drop indicator. Fix the `oldLocation` guard in `MoveNodeAsync` first, so a node without a disk location fails cleanly instead of throwing. Drag gestures can't be driven through DevTools, so this needs a manual check.
+- [ ] **Relink missing data files.** A missing data file fails the whole load (`ProjectTreeBuilder.cs:73-74`). Load the project with the data file marked missing, and arrangers that reference it open as unavailable rather than crashing. Relink lets the user pick the file, then copies it into the project at the expected location and name, so the project's references stay unchanged.
+
+### Import and export
+
+- [ ] **Indexed PNG export.** Write a paletted PNG for single-palette indexed arrangers, so palette indices survive editing in an external tool. Import should read the PNG's indices directly when its palette matches, rather than matching colors.
+- [ ] **Partial and offset import.** The image size must currently match exactly. Allow importing a smaller or larger image at a pixel offset, cropping whatever falls outside the arranger, and importing into the current selection.
+
+### Sequential browsing
+
+- [ ] **Persist the element layout.** Only the `ElementLayout` Tiled/Single enum is saved (`Arranger.cs:25`). Save the full layout (2x2, 4x4, custom) with the arranger, and bring back the custom layout dialog that Milestone 6 deleted.
+- [ ] **More layout presets:** 1x2, 2x1, vertical-first ordering, and OAM sprite shapes.
+
 ---
 
 ## After 1.0
 
-Candidates for 1.1, roughly in order: sequential arrangers as project resources, persisted element layouts and the custom layout dialog, indexed PNG export, export from sequential views and selections, partial/offset import, CLI `--json` output and key globs, OS clipboard, and tool hotkeys. Then [compression support](docs/CompressionSupport.md) and direct-color XML codecs. The full list is in [FeatureGaps.md](docs/FeatureGaps.md).
+Candidates for 1.1, roughly in order: sequential arrangers as project resources, export from sequential views and selections, CLI `--json` output and key globs, OS clipboard, and tool hotkeys. Then [compression support](docs/CompressionSupport.md) and direct-color XML codecs. The full list is in [FeatureGaps.md](docs/FeatureGaps.md).
