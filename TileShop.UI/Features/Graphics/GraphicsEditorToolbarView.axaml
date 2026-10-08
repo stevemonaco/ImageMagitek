@@ -87,9 +87,10 @@
                     <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*,*" ColumnSpacing="8"
                         IsVisible="{Binding IsTiledLayout}">
                         <NumericUpDown Grid.Column="0" Classes="dense" FormatString="0" Increment="{Binding ArrangerWidthIncrement}"
-                            InnerLeftContent="W" Minimum="{Binding ArrangerWidthIncrement}" Value="{Binding TiledArrangerWidth}" />
+                            InnerLeftContent="W" Minimum="{Binding ArrangerWidthIncrement}" ToolTip.Tip="Width: [/] to expand, [.] to shrink"
+                            Value="{Binding TiledArrangerWidth}" />
                         <NumericUpDown Grid.Column="1" Classes="dense" FormatString="0" Increment="{Binding ArrangerHeightIncrement}"
-                            InnerLeftContent="H" Minimum="{Binding ArrangerHeightIncrement}"
+                            InnerLeftContent="H" Minimum="{Binding ArrangerHeightIncrement}" ToolTip.Tip="Height: [;] to expand, [L] to shrink"
                             Value="{Binding TiledArrangerHeight}" />
                     </Grid>
 
@@ -97,10 +98,10 @@
                     <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*,*" ColumnSpacing="8"
                         IsVisible="{Binding IsSingleLayout}">
                         <NumericUpDown Grid.Column="0" Classes="dense" FormatString="0" Increment="{Binding ElementWidthIncrement}"
-                            InnerLeftContent="W" Minimum="{Binding ElementWidthIncrement}"
+                            InnerLeftContent="W" Minimum="{Binding ElementWidthIncrement}" ToolTip.Tip="Width: [/] to expand, [.] to shrink"
                             Value="{Binding LinearArrangerWidth, UpdateSourceTrigger=LostFocus}" />
                         <NumericUpDown Grid.Column="1" Classes="dense" FormatString="0" Increment="{Binding ElementHeightIncrement}"
-                            InnerLeftContent="H" Minimum="{Binding ElementHeightIncrement}"
+                            InnerLeftContent="H" Minimum="{Binding ElementHeightIncrement}" ToolTip.Tip="Height: [;] to expand, [L] to shrink"
                             Value="{Binding LinearArrangerHeight, UpdateSourceTrigger=LostFocus}" />
                     </Grid>
                 </StackPanel>

@@ -1,10 +1,9 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 using ImageMagitek;
-using TileShop.Shared.Messages;
+using ImageMagitek.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.Messaging;
 using TileShop.Shared.Services;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
@@ -13,6 +12,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using TileShop.UI.Features.Graphics;
+using TileShop.UI.Models;
 
 namespace TileShop.UI.ViewModels;
 
@@ -42,10 +42,15 @@ public partial class MenuViewModel : ObservableRecipient
     private readonly IThemeService _themeService;
     private readonly IInteractionService _interactions;
     private readonly IExploreService _exploreService;
+    private readonly IPluginService _pluginService;
+    private readonly AppSettings _settings;
 
     public MenuViewModel(UserPreferencesStore preferencesStore, IThemeService themeService, ProjectTreeViewModel projectTreeVm, EditorsViewModel editors,
-        IInteractionService interactionService, IExploreService exploreService)
+        IInteractionService interactionService, IExploreService exploreService, IProjectService projectService, IPluginService pluginService,
+        AppSettings settings)
     {
+        _pluginService = pluginService;
+        _settings = settings;
         _preferencesStore = preferencesStore;
         _themeService = themeService;
         _projectTree = projectTreeVm;
@@ -53,7 +58,11 @@ public partial class MenuViewModel : ObservableRecipient
         _interactions = interactionService;
         _exploreService = exploreService;
 
-        Messenger.Register<ProjectLoadedMessage>(this, (r, m) => Handle(m));
+        projectService.ProjectOpened += (_, tree) =>
+        {
+            if (tree.Root.DiskLocation is { } projectFileName)
+                AddRecentProjectFile(projectFileName);
+        };
 
         var preferences = preferencesStore.Preferences;
         _recentProjectFiles = new(preferences.RecentProjectFiles.Where(File.Exists));
@@ -116,9 +125,31 @@ public partial class MenuViewModel : ObservableRecipient
     {
         var version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
 
+        var plugins = _pluginService.CodecPlugins.Count > 0
+            ? "Plugin codecs:\n" + string.Join("\n", _pluginService.CodecPlugins.Select(x => x.Name))
+            : "No plugin codecs loaded";
+
         var heading = "TileShop";
-        var message = $"Version: {version}";
+        var message = $"Version: {version}\n\n{plugins}";
         await _interactions.AlertAsync(heading, message);
+    }
+
+    [RelayCommand]
+    public async Task OpenPreferences()
+    {
+        var preferences = _preferencesStore.Preferences;
+        var model = new PreferencesViewModel(preferences, preferences.NesPalette ?? _settings.NesPalette);
+
+        if (await _interactions.RequestAsync(model) is not { } result)
+            return;
+
+        ActiveTheme = result.Theme;
+        preferences.EnableArrangerSymmetryTools = result.EnableArrangerSymmetryTools;
+        preferences.JumpToOffsetBase = result.JumpToOffsetBase;
+        preferences.Grid = new(GridSettingsViewModel.ToHex(result.LineColor), GridSettingsViewModel.ToHex(result.PrimaryColor),
+            GridSettingsViewModel.ToHex(result.SecondaryColor));
+        preferences.NesPalette = result.NesPalette == _settings.NesPalette ? null : result.NesPalette;
+        _preferencesStore.Save();
     }
 
     [RelayCommand]
@@ -128,18 +159,18 @@ public partial class MenuViewModel : ObservableRecipient
         _exploreService.ExploreWebLocation(uri);
     }
 
-    private async void Handle(ProjectLoadedMessage message)
+    private async void AddRecentProjectFile(string projectFileName)
     {
         await Task.Yield(); // Delay so that the menu closes, otherwise changing the collection keeps it open
 
-        if (RecentProjectFiles.Contains(message.ProjectFileName))
+        if (RecentProjectFiles.Contains(projectFileName))
         {
-            RecentProjectFiles.Remove(message.ProjectFileName);
-            RecentProjectFiles.Insert(0, message.ProjectFileName);
+            RecentProjectFiles.Remove(projectFileName);
+            RecentProjectFiles.Insert(0, projectFileName);
         }
         else
         {
-            RecentProjectFiles.Insert(0, message.ProjectFileName);
+            RecentProjectFiles.Insert(0, projectFileName);
             if (RecentProjectFiles.Count > 8)
                 RecentProjectFiles = new(RecentProjectFiles.Take(8));
         }

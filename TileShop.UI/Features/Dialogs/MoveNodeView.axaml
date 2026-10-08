@@ -1,0 +1,21 @@
+<UserControl x:Class="TileShop.UI.Views.MoveNodeView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:TileShop.UI.ViewModels"
+    MinWidth="300"
+    x:DataType="vm:MoveNodeViewModel">
+    <Border Padding="10">
+        <Grid RowDefinitions="auto,*">
+            <TextBlock Grid.Row="0" Margin="5,0,0,0" Text="Destination Folder" />
+
+            <ListBox Grid.Row="1" MaxHeight="400" ItemsSource="{Binding Destinations}"
+                SelectedItem="{Binding SelectedDestination}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MoveDestinationModel">
+                        <TextBlock Text="{Binding Path}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+    </Border>
+</UserControl>

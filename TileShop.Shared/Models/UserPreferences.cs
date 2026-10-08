@@ -18,6 +18,11 @@ public sealed class UserPreferences
     public AddPalettePreferences AddPalette { get; set; } = new();
     public AddArrangerPreferences AddArranger { get; set; } = new();
     public ImportImagePreferences ImportImage { get; set; } = new();
+
+    /// <summary>
+    /// Name of the NES master palette in _palettes, or null to use appsettings.json
+    /// </summary>
+    public string? NesPalette { get; set; }
 }
 
 /// <summary>

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
@@ -101,8 +101,8 @@ public partial class GridSettingsViewModel : ObservableObject
 
     private static int WrapOrigin(int origin, int spacing) => ((origin % spacing) + spacing) % spacing;
 
-    private static Color ParseHex(string hex, string fallbackHex) =>
+    internal static Color ParseHex(string hex, string fallbackHex) =>
         Color.TryParse(hex, out var color) ? color : Color.Parse(fallbackHex);
 
-    private static string ToHex(Color color) => $"#{color.ToUInt32():X8}";
+    internal static string ToHex(Color color) => $"#{color.ToUInt32():X8}";
 }

@@ -24,10 +24,9 @@
 
     <Panel Margin="{Binding #shellView.OffScreenMargin}">
         <Grid RowDefinitions="auto,*,auto">
-            <StackPanel Grid.Row="0" Margin="8,4,0,4" Orientation="Horizontal" Spacing="4">
+            <StackPanel x:Name="_titleBarPanel" Grid.Row="0" Margin="8,4,0,4" Orientation="Horizontal" Spacing="4">
                 <v:AppIconView IsHitTestVisible="False" />
                 <ContentControl Content="{Binding ActiveMenu}" />
-                <Button x:Name="debugLoadButton" Command="{Binding DebugLoadCommand}" Content="Load FF2" IsVisible="False" />
             </StackPanel>
 
             <idc:DockControl Name="_dock" Grid.Row="1">

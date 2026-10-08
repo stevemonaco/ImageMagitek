@@ -2,9 +2,7 @@ using System;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
-using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
 using TileShop.UI.Models;
@@ -41,14 +39,16 @@ public partial class GraphicsEditorViewModel
         Selection.StartSelection(left, top);
         Selection.UpdateSelectionEndpoint(right, bottom);
         CompleteSelection();
-        OnPropertyChanged(nameof(CanEditSelection));
         OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
         OnPropertyChanged(nameof(CanAddSelectionAsScatteredArranger));
-        NotifyCanRemapColorsChanged();
+        NotifySelectionStateChanged();
         InvalidateEditor(InvalidationLevel.Overlay);
     }
 
-    [RelayCommand]
+    private bool HasSelection => Selection.HasSelection;
+    private static bool HasClipboard => _clipboard is not null;
+
+    [RelayCommand(CanExecute = nameof(HasSelection))]
     public void CopySelection()
     {
         if (!Selection.HasSelection)
@@ -75,9 +75,18 @@ public partial class GraphicsEditorViewModel
         {
             _clipboard = arranger.CopyPixelsDirect(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
         }
+
+        PasteFromClipboardCommand.NotifyCanExecuteChanged();
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanDeleteElementSelection))]
+    public void CutSelection()
+    {
+        CopySelection();
+        DeleteElementSelection();
+    }
+
+    [RelayCommand(CanExecute = nameof(HasClipboard))]
     public async Task PasteFromClipboardAsync()
     {
         if (_clipboard is null)
@@ -117,10 +126,9 @@ public partial class GraphicsEditorViewModel
         ActivityMessage = string.Empty;
         PendingOperationMessage = string.Empty;
 
-        OnPropertyChanged(nameof(CanEditSelection));
         OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
         OnPropertyChanged(nameof(CanAddSelectionAsScatteredArranger));
-        NotifyCanRemapColorsChanged();
+        NotifySelectionStateChanged();
         InvalidateEditor(InvalidationLevel.Overlay);
     }
 
@@ -145,31 +153,6 @@ public partial class GraphicsEditorViewModel
         IsDrawClipActive = true;
         OnPropertyChanged(nameof(HasDrawClipRect));
 
-        CancelOverlay();
-    }
-
-    [RelayCommand]
-    public void EditSelection()
-    {
-        if (!CanEditSelection)
-            return;
-
-        EditArrangerPixelsMessage editMessage;
-        var rect = Selection.SelectionRect;
-
-        if (SnapMode == SnapMode.Element && WorkingArranger.Layout == ElementLayout.Tiled)
-        {
-            WorkingArranger.CopyElements();
-            var arranger = WorkingArranger.CloneArranger(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
-            editMessage = new EditArrangerPixelsMessage(arranger, (Arranger)Resource, 0, 0, rect.SnappedWidth, rect.SnappedHeight);
-        }
-        else
-        {
-            var arranger = WorkingArranger.CloneArranger();
-            editMessage = new EditArrangerPixelsMessage(arranger, (Arranger)Resource, rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
-        }
-
-        WeakReferenceMessenger.Default.Send(editMessage);
         CancelOverlay();
     }
 
@@ -225,10 +208,9 @@ public partial class GraphicsEditorViewModel
             }
 
             IsSelecting = false;
-            OnPropertyChanged(nameof(CanEditSelection));
             OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
             OnPropertyChanged(nameof(CanAddSelectionAsScatteredArranger));
-            NotifyCanRemapColorsChanged();
+            NotifySelectionStateChanged();
             InvalidateEditor(InvalidationLevel.Overlay);
         }
     }
@@ -366,10 +348,9 @@ public partial class GraphicsEditorViewModel
 
             IsResizing = false;
             ActiveResizeHandle = SelectionHandle.None;
-            OnPropertyChanged(nameof(CanEditSelection));
             OnPropertyChanged(nameof(CanSetDrawClipFromSelection));
             OnPropertyChanged(nameof(CanAddSelectionAsScatteredArranger));
-            NotifyCanRemapColorsChanged();
+            NotifySelectionStateChanged();
             InvalidateEditor(InvalidationLevel.Overlay);
         }
     }

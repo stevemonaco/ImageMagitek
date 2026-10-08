@@ -277,11 +277,13 @@ public partial class GraphicsEditorViewModel
         return GraphicsEditHistory.ApplyPixelPaste(_imageAdapter, paste.Copy, paste.Rect.SnappedLeft, paste.Rect.SnappedTop, DrawClipBounds);
     }
 
-    [RelayCommand]
+    public bool CanDeleteElementSelection => IsArrangerMode && WorkingArranger is ScatteredArranger
+        && Selection.HasSelection && Selection.SelectionRect.SnapMode == SnapMode.Element;
+
+    [RelayCommand(CanExecute = nameof(CanDeleteElementSelection))]
     public void DeleteElementSelection()
     {
-        if (!IsArrangerMode || WorkingArranger is not ScatteredArranger || !Selection.HasSelection
-            || Selection.SelectionRect.SnapMode != SnapMode.Element)
+        if (!CanDeleteElementSelection)
             return;
 
         ResetElements(WorkingArranger, Selection.SelectionRect);
@@ -387,7 +389,17 @@ public partial class GraphicsEditorViewModel
     #endregion
 
     #region Sequential Arranger Expand/Shrink Commands
-    [RelayCommand]
+    public bool CanResizeSequentialArranger => IsSequentialArranger && IsViewMode;
+
+    private void NotifyResizeCommandsChanged()
+    {
+        ExpandWidthCommand.NotifyCanExecuteChanged();
+        ExpandHeightCommand.NotifyCanExecuteChanged();
+        ShrinkWidthCommand.NotifyCanExecuteChanged();
+        ShrinkHeightCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanResizeSequentialArranger))]
     public void ExpandWidth()
     {
         if (WorkingArranger is not SequentialArranger)
@@ -399,7 +411,7 @@ public partial class GraphicsEditorViewModel
             LinearArrangerWidth += ElementWidthIncrement;
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanResizeSequentialArranger))]
     public void ExpandHeight()
     {
         if (WorkingArranger is not SequentialArranger)
@@ -411,7 +423,7 @@ public partial class GraphicsEditorViewModel
             LinearArrangerHeight += ElementHeightIncrement;
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanResizeSequentialArranger))]
     public void ShrinkWidth()
     {
         if (WorkingArranger is not SequentialArranger)
@@ -423,7 +435,7 @@ public partial class GraphicsEditorViewModel
             LinearArrangerWidth = Math.Clamp(LinearArrangerWidth - ElementWidthIncrement, ElementWidthIncrement, int.MaxValue);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanResizeSequentialArranger))]
     public void ShrinkHeight()
     {
         if (WorkingArranger is not SequentialArranger)
@@ -480,10 +492,13 @@ public partial class GraphicsEditorViewModel
         }
     }
 
-    private void NotifyCanRemapColorsChanged()
+    private void NotifySelectionStateChanged()
     {
         OnPropertyChanged(nameof(CanRemapColors));
         RemapColorsCommand.NotifyCanExecuteChanged();
+        CopySelectionCommand.NotifyCanExecuteChanged();
+        CutSelectionCommand.NotifyCanExecuteChanged();
+        DeleteElementSelectionCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanRemapColors))]

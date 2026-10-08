@@ -52,7 +52,9 @@ public partial class GraphicsEditorView : UserControl
 
     private void OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        _renderer?.Render(ViewModel, e.Surface.Canvas);
+        // A detached tab's view keeps the VM's OnImageModified callback, so a reload can repaint it after DataContext clears
+        if (ViewModel is not null)
+            _renderer?.Render(ViewModel, e.Surface.Canvas);
     }
 
     protected override void OnDataContextChanged(EventArgs e)

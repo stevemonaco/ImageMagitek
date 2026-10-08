@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Project.Serialization;
@@ -10,6 +11,7 @@ using Serilog;
 using TileShop.UI.Services;
 using TileShop.UI.ViewModels;
 using TileShop.Shared.Interactions;
+using TileShop.Shared.Models;
 using TileShop.Shared.Services;
 using TileShop.UI.Controls.Dialogs;
 using TileShop.UI.Features.Graphics;
@@ -33,10 +35,14 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
     {
         _loggerFactory = CreateLoggerFactory(BootstrapService.DefaultLogFileName);
 
-        ConfigureImageMagitek(services);
+        var preferencesStore = new UserPreferencesStore(UserPreferencesStore.DefaultFileName, _loggerFactory.CreateLogger<UserPreferencesStore>());
+        preferencesStore.Load();
+        services.AddSingleton(preferencesStore);
+
+        ConfigureImageMagitek(services, preferencesStore.Preferences);
     }
 
-    private void ConfigureImageMagitek(IServiceCollection services)
+    private void ConfigureImageMagitek(IServiceCollection services, UserPreferences preferences)
     {
         var bootstrapper = new BootstrapService(_loggerFactory!.CreateLogger<BootstrapService>());
 
@@ -49,7 +55,15 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         var paletteService = bootstrapper.CreatePaletteService(colorFactory);
         services.AddSingleton(paletteService);
 
-        var paletteStore = bootstrapper.CreatePaletteStore(paletteService, BootstrapService.DefaultPalettePath, settings);
+        var paletteSettings = preferences.NesPalette is { } nesPalette
+            && File.Exists(Path.Combine(BootstrapService.DefaultPalettePath, $"{nesPalette}.json"))
+            ? settings with { NesPalette = nesPalette }
+            : settings;
+
+        var paletteStore = bootstrapper.CreatePaletteStore(paletteService, BootstrapService.DefaultPalettePath, paletteSettings);
+        if (paletteSettings != settings && paletteStore.NesPalette is not { Entries: >= 64 })
+            paletteStore = bootstrapper.CreatePaletteStore(paletteService, BootstrapService.DefaultPalettePath, settings);
+
         if (paletteStore.NesPalette is not null)
             colorFactory.SetNesPalette(paletteStore.NesPalette);
         services.AddSingleton(paletteStore);
@@ -91,10 +105,6 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         services.AddSingleton<IThemeService, ThemeService>();
         services.AddSingleton<HotkeyService>();
         services.AddSingleton<ClipboardService>();
-
-        var preferencesStore = new UserPreferencesStore(UserPreferencesStore.DefaultFileName, _loggerFactory!.CreateLogger<UserPreferencesStore>());
-        preferencesStore.Load();
-        services.AddSingleton(preferencesStore);
     }
 
     public void ConfigureViews(IServiceCollection services)
@@ -146,11 +156,12 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         locator.RegisterViewFactory<AssociatePaletteViewModel, AssociatePaletteView>();
         locator.RegisterViewFactory<ChangeColorModelViewModel, ChangeColorModelView>();
         locator.RegisterViewFactory<ColorRemapViewModel, ColorRemapView>();
-        locator.RegisterViewFactory<CustomElementLayoutViewModel, CustomElementLayoutView>();
         locator.RegisterViewFactory<ImportImageViewModel, ImportImageView>();
         locator.RegisterViewFactory<JumpToOffsetViewModel, JumpToOffsetView>();
         locator.RegisterViewFactory<ModifyGridSettingsViewModel, ModifyGridSettingsView>();
+        locator.RegisterViewFactory<MoveNodeViewModel, MoveNodeView>();
         locator.RegisterViewFactory<NameResourceViewModel, NameResourceView>();
+        locator.RegisterViewFactory<PreferencesViewModel, PreferencesView>();
         locator.RegisterViewFactory<RenameNodeViewModel, RenameNodeView>();
         locator.RegisterViewFactory<ResizeTiledScatteredArrangerViewModel, ResizeTiledScatteredArrangerView>();
         locator.RegisterViewFactory<ResourceRemovalChangesViewModel, ResourceRemovalChangesView>();

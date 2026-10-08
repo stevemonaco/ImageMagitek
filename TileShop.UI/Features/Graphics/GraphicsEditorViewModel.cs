@@ -104,6 +104,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         OnPropertyChanged(nameof(HasDrawClipRect));
         OnPropertyChanged(nameof(CanEditSelectedColor));
         OnPropertyChanged(nameof(CanChangeSnapMode));
+        NotifyResizeCommandsChanged();
     }
 
     [ObservableProperty] private bool _canView;
@@ -118,10 +119,13 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     partial void OnSnapModeChanged(SnapMode value)
     {
         Selection.SelectionRect.SnapMode = value;
+        NotifySelectionStateChanged();
         InvalidateEditor(InvalidationLevel.Overlay);
     }
 
     [ObservableProperty] private ArrangerSelection _selection;
+    partial void OnSelectionChanged(ArrangerSelection value) => NotifySelectionStateChanged();
+
     [ObservableProperty] private bool _isSelecting;
     [ObservableProperty] private ArrangerPaste? _paste;
 
@@ -132,11 +136,11 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     partial void OnIsDrawClipActiveChanged(bool value)
     {
-        NotifyCanRemapColorsChanged();
+        NotifySelectionStateChanged();
         InvalidateEditor(InvalidationLevel.Overlay);
     }
 
-    partial void OnDrawClipRectChanged(SnappedRectangle? value) => NotifyCanRemapColorsChanged();
+    partial void OnDrawClipRectChanged(SnappedRectangle? value) => NotifySelectionStateChanged();
 
     [ObservableProperty] private DrawClipEffect _drawClipEffect = DrawClipEffect.Greyscale;
 
@@ -160,23 +164,6 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     public bool IsElementPasteActive => Paste?.Copy is ElementCopy
         && IsArrangerMode && IsTiledLayout && WorkingArranger is ScatteredArranger;
 
-    public bool CanEditSelection
-    {
-        get
-        {
-            if (Selection.HasSelection)
-            {
-                var rect = Selection.SelectionRect;
-                if (rect.SnappedWidth == 0 || rect.SnappedHeight == 0)
-                    return false;
-
-                return !WorkingArranger.EnumerateElementsWithinPixelRange(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight)
-                    .Any(x => x is null || x?.Source is null);
-            }
-
-            return false;
-        }
-    }
 
     [ObservableProperty] private GridSettingsViewModel _gridSettings;
 
@@ -235,7 +222,14 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         new("Ctrl+W", FitToViewportCommand),
         new("Ctrl+R", ResetZoomCommand),
         new("Ctrl+Q", AlignTopLeftCommand),
+        new("OemQuestion", ExpandWidthCommand),
+        new("OemPeriod", ShrinkWidthCommand),
+        new("OemSemicolon", ExpandHeightCommand),
+        new("L", ShrinkHeightCommand),
     ];
+
+    public override EditCommands EditCommands => field ??= new(UndoCommand, RedoCommand, CutSelectionCommand,
+        CopySelectionCommand, PasteFromClipboardCommand, DeleteElementSelectionCommand, SelectAllCommand);
 
     [ObservableProperty] private ObservableCollection<PaletteModel> _palettes = new();
     [ObservableProperty] private PaletteModel? _selectedPalette;
@@ -446,7 +440,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     private void UpdateReadOnlyState()
     {
         CanDraw = !WorkingArranger.IsReadOnly();
-        NotifyCanRemapColorsChanged();
+        NotifySelectionStateChanged();
     }
 
     /// <summary>
@@ -454,21 +448,15 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     /// </summary>
     public void ReloadFromSource()
     {
-        InvalidateEditor(InvalidationLevel.Display);
+        InvalidateEditor(InvalidationLevel.PixelData);
         ClearHistory();
     }
 
     /// <summary>
-    /// True when this editor reads any of the same data as <paramref name="arranger"/>
+    /// True when this editor reads any data from <paramref name="source"/>
     /// </summary>
-    public bool SharesDataWith(Arranger arranger)
-    {
-        if (ReferenceEquals(arranger, _projectArranger) || ReferenceEquals(arranger, WorkingArranger))
-            return true;
-
-        var sources = arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Source).ToHashSet();
-        return WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Any(x => sources.Contains(x.Source));
-    }
+    public bool ReadsFrom(DataSource source) =>
+        WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Any(x => ReferenceEquals(x.Source, source));
 
     public bool ContainsPoint(double x, double y)
     {
@@ -524,9 +512,6 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
                     }
                 );
             }
-
-            var changeMessage = new ArrangerChangedMessage(_projectArranger, ArrangerChange.Pixels);
-            Messenger.Send(changeMessage);
         }
         catch (Exception ex)
         {
@@ -590,18 +575,6 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         copy.ProjectResource = OriginatingProjectResource;
 
         Messenger.Send(new AddScatteredArrangerFromCopyMessage(copy, OriginatingProjectResource));
-    }
-
-    public override void Handle(object recipient, ResourceRenamedMessage message)
-    {
-        base.Handle(recipient, message);
-
-        if (message.Resource is Palette palette)
-        {
-            var model = Palettes.FirstOrDefault(x => ReferenceEquals(x.Palette, palette));
-            if (model is not null)
-                model.Name = message.NewName;
-        }
     }
 
     [RelayCommand]

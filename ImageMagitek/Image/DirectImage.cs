@@ -118,6 +118,9 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
             codec.WriteElement(el, encodeResult);
         }
         foreach (var source in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Source).Distinct())
+        {
             source.Flush();
+            source.NotifyDataWritten();
+        }
     }
 }

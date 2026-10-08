@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ImageMagitek.Services;
@@ -11,7 +11,9 @@ public partial class ShellViewModel : ObservableObject
 {
     private readonly UserPreferencesStore _preferencesStore;
     private readonly IProjectService _projectService;
-    private string _projectFile = @"D:\ImageMagitekTest\FF2\FF2project.xml";
+#if DEBUG
+    private const string _debugProjectFile = @"D:\ImageMagitekTest\FF2\FF2project.xml";
+#endif
 
     [ObservableProperty] private ProjectTreeViewModel _activeTree;
     [ObservableProperty] private MenuViewModel _activeMenu;
@@ -34,11 +36,13 @@ public partial class ShellViewModel : ObservableObject
         _activeMenu.Shell = this;
     }
 
+#if DEBUG
     [RelayCommand]
     public async Task DebugLoad()
     {
-        await ActiveTree.OpenProject(_projectFile);
+        await ActiveTree.OpenProject(_debugProjectFile);
     }
+#endif
 
     public async Task<bool> PrepareApplicationExit()
     {

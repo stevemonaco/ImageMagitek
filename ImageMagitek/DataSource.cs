@@ -20,10 +20,20 @@ public abstract class DataSource : IProjectResource, IDisposable
     private readonly SemaphoreSlim _streamSemaphore = new(1, 1);
     private bool _disposedValue;
 
+    /// <summary>
+    /// Raised after an image save writes graphics data to this source
+    /// </summary>
+    public event EventHandler? DataWritten;
+
     public DataSource(string name)
     {
         Name = name;
     }
+
+    /// <summary>
+    /// Raises <see cref="DataWritten"/>. Not raised from <see cref="Flush"/>, because palette saves also flush and must not reload graphics editors.
+    /// </summary>
+    public void NotifyDataWritten() => DataWritten?.Invoke(this, EventArgs.Empty);
 
     public virtual byte[] Read(BitAddress address, int readBits)
     {

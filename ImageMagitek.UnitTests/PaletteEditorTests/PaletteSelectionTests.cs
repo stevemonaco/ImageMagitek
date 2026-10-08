@@ -30,6 +30,19 @@ public class PaletteSelectionTests
     }
 
     [Fact]
+    public void ClickFirstThenShiftClickLast_SelectsAllAndReplacesScatteredSelection()
+    {
+        var selection = new PaletteSelection();
+        selection.Click(2);
+        selection.CtrlClick(5);
+
+        selection.Click(0);
+        selection.ShiftClick(7);
+
+        Assert.Equal(new[] { 0, 1, 2, 3, 4, 5, 6, 7 }, selection.Indices);
+    }
+
+    [Fact]
     public void CtrlClick_TogglesIndices()
     {
         var selection = new PaletteSelection();

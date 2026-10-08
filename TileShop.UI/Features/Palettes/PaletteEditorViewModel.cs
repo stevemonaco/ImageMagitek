@@ -4,16 +4,16 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using TileShop.Shared.Messages;
 using ImageMagitek.Colors;
 using ImageMagitek.Colors.Serialization;
+using ImageMagitek.Project;
+using static ImageMagitek.Project.Serialization.SerializationMapperExtensions;
 using ImageMagitek.Services;
 using ImageMagitek.Utility.Parsing;
 using ImageMagitek;
 using System.Collections.ObjectModel;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
@@ -79,6 +79,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         new("Ctrl+Y", RedoCommand),
         new("Ctrl+C", CopyCommand),
         new("Ctrl+V", PasteCommand),
+        new("Ctrl+A", SelectAllCommand),
         new("Left", MoveSelectionCommand, "Left"),
         new("Right", MoveSelectionCommand, "Right"),
         new("Up", MoveSelectionCommand, "Up"),
@@ -88,6 +89,8 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         new("Shift+Up", ExtendSelectionCommand, "Up"),
         new("Shift+Down", ExtendSelectionCommand, "Down"),
     ];
+
+    public override EditCommands EditCommands => field ??= new(UndoCommand, RedoCommand, EditCommands.Disabled, CopyCommand, PasteCommand, EditCommands.Disabled, SelectAllCommand);
 
     public PaletteEditorViewModel(Palette palette, IColorFactory colorFactory, IProjectService projectService,
         IInteractionService interactions, IAsyncFileRequestService fileRequests, ClipboardService clipboard) : base(palette)
@@ -163,6 +166,17 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         };
 
         _selection.Move(dx, dy, Columns, Colors.Count, extend);
+        RefreshSelection();
+    }
+
+    [RelayCommand]
+    private void SelectAll()
+    {
+        if (Colors.Count == 0)
+            return;
+
+        _selection.Click(0);
+        _selection.ShiftClick(Colors.Count - 1);
         RefreshSelection();
     }
 
@@ -355,10 +369,10 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanUndo))]
     public override void Undo() => _session.Undo();
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRedo))]
     public override void Redo() => _session.Redo();
 
     public override void ApplyHistoryAction(HistoryAction action)
@@ -379,9 +393,30 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 
         OnPropertyChanged(nameof(CanUndo));
         OnPropertyChanged(nameof(CanRedo));
+        UndoCommand.NotifyCanExecuteChanged();
+        RedoCommand.NotifyCanExecuteChanged();
         UpdateModified();
+        UpdateCommittedModel();
+    }
 
-        Messenger.Send(new PaletteChangedMessage(_palette));
+    private void UpdateCommittedModel()
+    {
+        if (IsReadOnly)
+            return;
+
+        if (_projectService.FindContainingProject(_palette)?.TryFindResourceNode(_palette, out var node) != true
+            || node is not PaletteNode paletteNode)
+            return;
+
+        if (_session.IsModified)
+        {
+            var saved = _session.SavedState;
+            paletteNode.CommittedModel = map => _palette.MapToModel(map, _colorFactory, saved.ColorModel, saved.ZeroIndexTransparent, saved.Sources);
+        }
+        else
+        {
+            paletteNode.CommittedModel = null;
+        }
     }
 
     private void UpdateModified() => IsModified = _session.IsModified || _isProjectSavePending || HasInvalidSources();

@@ -138,7 +138,10 @@ public sealed class IndexedImage : ImageBase<byte>
         }
 
         foreach (var df in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Source).Distinct())
+        {
             df.Flush();
+            df.NotifyDataWritten();
+        }
     }
 
     /// <summary>
