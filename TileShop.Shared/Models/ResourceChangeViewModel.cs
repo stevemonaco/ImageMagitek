@@ -15,6 +15,14 @@ public partial class ResourceChangeViewModel : ObservableObject
     [ObservableProperty] private bool _lostElement;
     [ObservableProperty] private bool _isChanged;
 
+    public string ChangeDescription => (LostElement, LostPalette) switch
+    {
+        (true, true) => "loses elements, uses default palette",
+        (true, false) => "loses elements",
+        (false, true) => "uses default palette",
+        _ => ""
+    };
+
     public ResourceChangeViewModel(ResourceNode resourceNode, string resourcePathKey, bool removed, bool lostPalette, bool lostElement)
     {
         ResourceNode = resourceNode;

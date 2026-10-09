@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
+using ImageMagitek.Codec;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
@@ -49,6 +51,30 @@ public partial class GraphicsEditorViewModel
 
     private bool HasSelection => Selection.HasSelection;
     private static bool HasClipboard => _clipboard is not null;
+
+    /// <summary>
+    /// Clears the shared clipboard when it holds copied elements that read from or use any of <paramref name="resources"/>.
+    /// </summary>
+    /// <returns>True if the clipboard was cleared</returns>
+    public static bool ClearClipboardIfReferencesAny(IReadOnlySet<object> resources)
+    {
+        if (_clipboard is not ElementCopy copy)
+            return false;
+
+        foreach (var el in copy.Elements)
+        {
+            if (el is { } element && (resources.Contains(element.Source)
+                || element.Codec is IIndexedCodec { Palette: { } palette } && resources.Contains(palette)))
+            {
+                _clipboard = null;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void NotifyClipboardChanged() => PasteFromClipboardCommand.NotifyCanExecuteChanged();
 
     [RelayCommand(CanExecute = nameof(HasSelection))]
     public void CopySelection()
@@ -104,24 +130,19 @@ public partial class GraphicsEditorViewModel
     [RelayCommand(CanExecute = nameof(HasClipboard))]
     public async Task PasteFromClipboardAsync()
     {
-        if (_clipboard is null)
+        if (_clipboard is not { } copy)
             return;
 
-        bool isElementPasteInArrangeMode = _clipboard is ElementCopy
-            && EditMode == GraphicsEditMode.Arrange
-            && IsTiledLayout
-            && WorkingArranger is ScatteredArranger;
-
-        if (!isElementPasteInArrangeMode && EditMode != GraphicsEditMode.Draw)
+        if (!IsElementPasteTarget(copy) && !IsDrawMode)
         {
             await ChangeEditModeAsync(GraphicsEditMode.Draw);
-            if (EditMode != GraphicsEditMode.Draw)
+            if (!IsDrawMode)
                 return;
         }
 
         CancelOverlay();
 
-        var paste = new ArrangerPaste(_clipboard, SnapMode);
+        var paste = new ArrangerPaste(copy, SnapMode);
 
         if (IsDrawMode && IsDrawClipActive && DrawClipRect is { } clip)
             paste.Rect.MoveTo(clip.SnappedLeft, clip.SnappedTop);
@@ -131,6 +152,38 @@ public partial class GraphicsEditorViewModel
         Paste = paste;
         PendingOperationMessage = "Press [Enter] to Apply Paste or [Esc] to Cancel";
         InvalidateEditor(InvalidationLevel.Overlay);
+    }
+
+    /// <summary>
+    /// Completes a drop of <paramref name="paste"/>, first switching modes as Ctrl+V does, then applying it or leaving it floating
+    /// </summary>
+    public async Task DropPasteAsync(ArrangerPaste paste, bool apply)
+    {
+        if (!IsElementPasteTarget(paste.Copy) && !IsDrawMode)
+        {
+            await ChangeEditModeAsync(GraphicsEditMode.Draw);
+            if (!IsDrawMode)
+            {
+                CancelOverlay();
+                return;
+            }
+
+            // The mode change cleared the overlay; the paste's rect still holds the drop position
+            paste.SnapMode = SnapMode.Pixel;
+            Paste = paste;
+            ClampPastePositionToDrawClip();
+            InvalidateEditor(InvalidationLevel.Overlay);
+        }
+
+        if (apply)
+        {
+            CompletePaste();
+        }
+        else
+        {
+            var pasteType = IsElementPasteActive ? "Element" : "Pixel";
+            PendingOperationMessage = $"Press [Enter] to Apply {pasteType} Paste or [Esc] to Cancel";
+        }
     }
 
     [RelayCommand]

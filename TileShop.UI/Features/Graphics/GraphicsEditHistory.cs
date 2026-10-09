@@ -101,12 +101,12 @@ public sealed class GraphicsEditHistory
         switch (action)
         {
             case PencilHistoryAction<byte> pencil when image.IsIndexed:
-                foreach (var point in pencil.ModifiedPoints)
-                    image.SetIndexedPixel(point.X, point.Y, pencil.PencilColor);
+                foreach (var (point, index) in pencil.ModifiedPoints)
+                    image.SetIndexedPixel(point.X, point.Y, index);
                 break;
             case PencilHistoryAction<ColorRgba32> pencil when image.IsDirect:
-                foreach (var point in pencil.ModifiedPoints)
-                    image.SetDirectPixel(point.X, point.Y, pencil.PencilColor);
+                foreach (var (point, color) in pencil.ModifiedPoints)
+                    image.SetDirectPixel(point.X, point.Y, color);
                 break;
             case FloodFillAction<byte> fill when image.IsIndexed:
                 image.FloodFill(fill.X, fill.Y, fill.FillColor, fill.ClipBounds);

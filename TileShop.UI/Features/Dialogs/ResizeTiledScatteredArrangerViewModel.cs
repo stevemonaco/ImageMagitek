@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.Shared.Interactions;
 
@@ -7,8 +7,14 @@ public partial class ResizeTiledScatteredArrangerViewModel : RequestViewModel<Re
 {
     private readonly IInteractionService _interactions;
 
-    [ObservableProperty] private int _width;
-    [ObservableProperty] private int _height;
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(TryAcceptCommand))]
+    private int _width;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(TryAcceptCommand))]
+    private int _height;
+
     [ObservableProperty] private int _originalWidth;
     [ObservableProperty] private int _originalHeight;
 
@@ -26,6 +32,8 @@ public partial class ResizeTiledScatteredArrangerViewModel : RequestViewModel<Re
         Title = "Resize Scattered Arranger";
         AcceptName = "Resize";
     }
+
+    protected override bool CanAccept() => Width >= 1 && Height >= 1;
 
     public override ResizeTiledScatteredArrangerViewModel? ProduceResult() => this;
 

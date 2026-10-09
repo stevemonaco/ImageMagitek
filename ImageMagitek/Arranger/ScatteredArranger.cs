@@ -76,6 +76,27 @@ public sealed class ScatteredArranger : Arranger
     }
 
     /// <summary>
+    /// Makes this arranger match <paramref name="source"/>: the same size and every cell, empty cells included
+    /// </summary>
+    /// <exception cref="ArgumentException">The element pixel size, color type or layout differ</exception>
+    public void ReplaceElements(ScatteredArranger source)
+    {
+        if (source.ElementPixelSize != ElementPixelSize || source.ColorType != ColorType || source.Layout != Layout)
+            throw new ArgumentException($"{nameof(ReplaceElements)}: arranger '{source.Name}' does not match the element size, color type and layout of '{Name}'", nameof(source));
+
+        var size = source.ArrangerElementSize;
+        Resize(size.Width, size.Height);
+
+        for (int y = 0; y < size.Height; y++)
+        {
+            for (int x = 0; x < size.Width; x++)
+            {
+                SetElement(source.GetElement(x, y), x, y);
+            }
+        }
+    }
+
+    /// <summary>
     /// Private method for cloning an Arranger
     /// </summary>
     /// <param name="posX">Left edge of Arranger in pixel coordinates</param>

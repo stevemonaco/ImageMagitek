@@ -18,6 +18,7 @@ types:
   - StreamWriteExtensionMethods
 tests:
   - DataSourceBitAddressTests
+  - FileDataSourceTests
   - StreamReadExtensionTests
   - StreamWriteExtensionTests
   - ProjectTreeEventTests
@@ -42,8 +43,8 @@ A data source is the byte store that graphics and palette colors are read from a
   - Tests: untested
 - **LIB-DATASOURCE-003** — When a bit address is constructed from a total bit count, it shall split the count into byte and bit offsets.
   - Tests: untested
-- **LIB-DATASOURCE-004** — Bit address addition, subtraction, equality and ordering shall operate on the total bit offset.
-  - Tests: untested
+- **LIB-DATASOURCE-004** — Bit address addition, subtraction, equality and ordering shall operate on the total bit offset, and a bit address compared with any other type, or null, shall be unequal.
+  - Tests: `DataSourceBitAddressTests.Equals_NonBitAddress_ReturnsFalse`
 
 ### Reading
 
@@ -88,8 +89,8 @@ A data source is the byte store that graphics and palette colors are read from a
 
 - **LIB-DATASOURCE-020** — A file source shall not open its file until the first operation that needs the stream, including reading `Length`.
   - Tests: `ProjectServiceTests.OpenProject_MissingDataFile_LoadsWithSourceMarkedMissing`
-- **LIB-DATASOURCE-021** — When a file source opens its file, it shall open it for reading and writing and allow other processes to read but not write it.
-  - Tests: untested
+- **LIB-DATASOURCE-021** — When a file source opens its file, it shall open it for reading and writing and allow other processes to read but not write it; if write access is denied (`UnauthorizedAccessException` or a write-protected volume), then it shall open the file for reading only.
+  - Tests: `FileDataSourceTests.ReadOnlyAttribute_OpensAndReads`
 - **LIB-DATASOURCE-022** — If the file cannot be opened, then every operation that needs the stream shall throw the open failure, and keep throwing it after the file reappears, until `Reopen` is called.
   - Tests: `ProjectServiceTests.Relink_CopiesFileToExpectedLocation_AndRaisesResourceChanged`
 - **LIB-DATASOURCE-023** — If the file location is null, empty or whitespace, then the first operation that needs the stream shall throw `ArgumentException`.
@@ -100,6 +101,12 @@ A data source is the byte store that graphics and palette colors are read from a
   - Tests: `ProjectServiceTests.Relink_CopiesFileToExpectedLocation_AndRaisesResourceChanged`
 - **LIB-DATASOURCE-026** — A file source shall be serialized with the project (`ShouldBeSerialized` true by default).
   - Tests: untested
+- **LIB-DATASOURCE-032** — A data source shall report `IsReadOnly`: false for memory sources, and for a file source true exactly when its file was opened for reading only; reading it opens the file if needed, and it is false while the file is missing or its open failed.
+  - Tests: `FileDataSourceTests.ReadOnlyAttribute_IsReadOnly`, `FileDataSourceTests.WritableFile_IsNotReadOnly`, `FileDataSourceTests.MissingFile_IsNotReadOnly`
+- **LIB-DATASOURCE-033** — If a read-only source is written by any write overload, then the write shall throw `InvalidOperationException` naming the source and change nothing; `Flush` shall do nothing.
+  - Tests: `FileDataSourceTests.ReadOnly_EveryWriteOverload_ThrowsAndLeavesBytes`
+- **LIB-DATASOURCE-034** — When `Reopen` is called, the file source shall decide its access again on the next open.
+  - Tests: `FileDataSourceTests.Reopen_AfterClearingAttribute_IsWritable`
 
 ### Memory sources
 
@@ -130,7 +137,6 @@ A data source is the byte store that graphics and palette colors are read from a
 - A read of zero bits at a byte-aligned address throws `IndexOutOfRangeException`; at a bit offset it returns an empty array.
 - A bit-unaligned write whose last partial byte lies past the end of the source merges into a byte read as `0xFF` (the stream's end-of-file `-1`), so the untouched bits of that new byte become 1.
 - Seeking past the end is allowed; the next read throws, the next write grows the source (or throws for a fixed-capacity memory source).
-- A file with the read-only attribute cannot be opened, because the source always asks for write access.
 - Constructing a bit address from a negative bit count yields a negative bit offset.
 
 ## Threading and lifetime
@@ -145,16 +151,17 @@ A data source is the byte store that graphics and palette colors are read from a
 - **A missing data file loads instead of failing.** A file source over a missing path is constructed normally and reports `IsMissing`; the first read throws. Reason: a renamed or moved ROM should not make the whole project unloadable; the user relinks it. Rejected: failing the project load.
 - **`Reopen` instead of a new source.** `Lazy` caches a failed open, so relink calls `Reopen` on the same instance. Reason: the source is referenced by palettes, arrangers and tree nodes, and replacing it would mean rewriting every reference. Rejected: constructing a replacement source.
 - **Memory sources are never serialized.** They hold scratch data only.
+- **Read-only files open read-only.** A file that cannot be opened for writing opens for reading, `IsReadOnly` becomes true, and every arranger with an element on it is read-only through the one gate (LIB-ARRANGERS, ARCHITECTURE §6). The state is decided at open and kept until `Reopen`. Reason: ROMs extracted from archives or kept read-only on purpose must be viewable, and the read-only attribute is often the user's own protection against writing them; the gate tells the user up front instead of on Save. Rejected: opening read-write lazily on first save and failing then (the user loses the edits just made), failing the open (the old behavior), and re-checking access on every query (a file-system call per element per gate check).
+- **Fall back on access denial only.** The read-only fallback runs on `UnauthorizedAccessException` (read-only attribute, ACL) or a write-protect `IOException` (`ERROR_WRITE_PROTECT`). A sharing violation still fails the open. Reason: a sharing violation is transient (an emulator holding the file), and falling back would leave the file read-only for the session without the user knowing why. Rejected: checking `File.GetAttributes` up front (misses ACLs and media, and races with the open).
+- **Writes to a read-only source throw `InvalidOperationException`; `Flush` does nothing.** A backstop for callers that bypass the arranger gate, with one exception type for every source type. Rejected: letting `FileStream` throw `NotSupportedException`.
 
 ## Non-goals
 
-- Read-only or compressed sources. There is no `DataSource.IsReadOnly`; read-only is decided per arranger from its codecs (LIB-CODECS). Compressed sources are in [the compression proposal](../../changes/compression-support.md).
+- Compressed sources ([proposal](../../changes/compression-support.md)).
 - Change counters or versioning of written data.
 
 ## Open items
 
-- The `NotifyDataWritten` doc comment says palette saves flush; `Palette.SavePalette` writes through the source but nothing flushes it (LIB-PALETTES).
-- `BitAddress.Equals(object)` casts its argument, so comparing to any other type throws `InvalidCastException` instead of returning false.
-- `DataSource.IsReadOnly` does not exist; only the arranger-level check (codec `CanEncode`) is built. The source half belongs to the compression change proposal (`docs/changes/compression-support.md`).
+- The write-protect fallback detects `ERROR_WRITE_PROTECT` by HResult, which is Windows-specific; a read-only mount on Linux or macOS may still fail the open.
 - A zero-bit read at a byte-aligned address throws instead of returning an empty array.
 - Past-end reads, fixed-capacity overflow, `Flush` not raising `DataWritten`, and the file share mode have no tests.

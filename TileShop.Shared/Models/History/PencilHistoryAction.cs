@@ -1,28 +1,19 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Drawing;
-using CommunityToolkit.Mvvm.ComponentModel;
 using TileShop.Shared.Utility;
 
 namespace TileShop.Shared.Models;
 
-public partial class PencilHistoryAction<TColor> : HistoryAction
+/// <summary>
+/// A Pencil stroke, recorded as the index or color written at each pixel
+/// </summary>
+public sealed class PencilHistoryAction<TColor> : HistoryAction
     where TColor : struct
 {
     public override string Name => "Pencil";
 
-    [ObservableProperty] private TColor _pencilColor;
-    [ObservableProperty] private HashSet<Point> _modifiedPoints = new HashSet<Point>(new PointComparer());
+    public Dictionary<Point, TColor> ModifiedPoints { get; } = new(new PointComparer());
 
-    public PencilHistoryAction(TColor pencilColor)
-    {
-        _pencilColor = pencilColor;
-    }
-
-    public bool Add(double x, double y) => ModifiedPoints.Add(new Point((int)x, (int)y));
-
-    public bool Add(int x, int y) => ModifiedPoints.Add(new Point(x, y));
-
-    public bool Contains(double x, double y) => ModifiedPoints.Contains(new Point((int)x, (int)y));
-
-    public bool Contains(int x, int y) => ModifiedPoints.Contains(new Point(x, y));
+    /// <returns>True when the point was not already part of the stroke</returns>
+    public bool Add(int x, int y, TColor written) => ModifiedPoints.TryAdd(new Point(x, y), written);
 }

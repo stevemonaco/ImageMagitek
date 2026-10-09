@@ -46,7 +46,7 @@ The startup entry point a host (TileShop.UI, TileShop.CLI) uses to build the lib
 - **LIB-SERVICES-006** — The shipped `appsettings.json` shall equal the built-in defaults.
   - Tests: `SettingsServiceTests.ShippedAppSettings_MatchesCodeDefaults`
 - **LIB-SERVICES-007** (inherited) — The defaults shall be global palettes `["DefaultRgba32"]`, NES palette `DefaultNes`, and extension → codec associations whose `default` entry is `NES 1bpp`, with entries for `.gb`, `.gba`, `.gbc`, `.gen`, `.gg`, `.md`, `.n64`, `.ncgr`, `.ncbr`, `.ngc`, `.nes`, `.sfc`, `.smc`, `.smd`, `.tim` and `.vb`.
-  - Tests: `SettingsServiceTests.ReadSettings_MissingFile_ReturnsDefaults`, `SettingsServiceTests.ShippedAppSettings_MatchesCodeDefaults`
+  - Tests: `SettingsServiceTests.ReadSettings_MissingFile_ReturnsDefaults`, `SettingsServiceTests.ShippedAppSettings_MatchesCodeDefaults`, `SettingsServiceTests.Defaults_AssociationsNameRegisteredCodecs`
 - **LIB-SERVICES-008** — When a settings file omits a key, that setting shall be null; the file is not merged with the defaults.
   - Tests: untested
 - **LIB-SERVICES-009** — Extension associations shall be stored as written; looking up an extension and falling back to `default` is the host's job.
@@ -82,6 +82,7 @@ The startup entry point a host (TileShop.UI, TileShop.CLI) uses to build the lib
 ## Decisions
 
 - **Settings are read once at startup.** `appsettings.json` ships beside the executable and users may edit it; changes take effect on restart. A missing file falls back to the built-in defaults, which a test keeps equal to the shipped file.
+- **Shipped association defaults name canonical codecs.** Every association in `appsettings.json` and the code defaults names a codec registered directly (`.tim` → `PSX 4bpp Flow`). Reason: the legacy codec-name table (LIB-CODECS) exists for old projects and old user settings files, and shipped defaults should not depend on it. Rejected: leaving `.tim` on the retired `PSX 4bpp` name.
 - **Hosts override settings by passing a modified copy.** Bootstrap uses whatever `AppSettings` it is given, so a host can apply a per-user `NesPalette` override without the library knowing about preferences.
 
 ## Non-goals
@@ -92,6 +93,5 @@ The startup entry point a host (TileShop.UI, TileShop.CLI) uses to build the lib
 ## Open items
 
 - LIB-SERVICES-008: a partial settings file is not merged with the defaults.
-- The `.tim` association names `PSX 4bpp`, a retired codec name that resolves only through LIB-CODECS's alias table.
 - LIB-SERVICES-013: the UI resolves these paths against the working directory while the CLI resolves them against the executable directory, so launching the UI from another directory finds no settings, palettes or codecs.
 - `IMagitekAction`, its action records and `IActionHistory` are unused (backlog: dead code).

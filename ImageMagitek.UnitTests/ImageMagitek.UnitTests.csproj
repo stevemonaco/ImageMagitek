@@ -32,4 +32,9 @@
     <ProjectReference Include="..\TileShop.UI\TileShop.UI.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\ImageMagitek\_xmlprojectsamples\*.zip" Link="_xmlprojectsamples\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\Projects\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

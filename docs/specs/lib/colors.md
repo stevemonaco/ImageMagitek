@@ -46,6 +46,8 @@ tests:
   - NativeColorTests
   - PaletteColorMatcherTests
   - PaletteTests
+  - NesColorConversionTests
+  - ColorParserTests
   - DirectCodecKnownAnswerTests
 depends:
   - LIB-PALETTES
@@ -104,8 +106,8 @@ Every color has a *native* form, RGBA32, used for display and image files, and a
   - Tests: untested
 - **LIB-COLORS-020** — When a Nes color is converted to native, it shall become the NES master palette's native color at that index.
   - Tests: untested
-- **LIB-COLORS-021** — When a native color is converted to Nes, the factory shall pick the Nearest (CIE94) entry of the NES master palette.
-  - Tests: untested
+- **LIB-COLORS-021** — When a native color is converted to Nes, the factory shall return the index of the Nearest (CIE94) entry among the first 64 entries of the NES master palette.
+  - Tests: `NesColorConversionTests.ToForeign_Native_ReturnsNearestMasterIndex`, `NesColorConversionTests.ToForeign_MasterLongerThan64_StaysBelow64`, `PaletteTests.SetNativeColor_NesPalette_StoresMatchingIndex`, `PaletteTests.GlobalJsonPalette_NesModel_Loads`
 - **LIB-COLORS-022** — If a Nes conversion or a Nes color from components is requested before the NES master palette is set, then the factory shall throw `ArgumentException`.
   - Tests: untested
 
@@ -128,8 +130,8 @@ Every color has a *native* form, RGBA32, used for display and image files, and a
   - Tests: `PaletteTests.DeserializePalette_InvalidColor_ThrowsNamingEntry`
 - **LIB-COLORS-029** — When hex is parsed in another model, the input shall be `#` plus the digit count that model formats with, read as the raw value.
   - Tests: untested
-- **LIB-COLORS-030** — If the hex string does not have the model's form, then parsing shall return false without a color.
-  - Tests: `PaletteTests.DeserializePalette_InvalidColor_ThrowsNamingEntry`
+- **LIB-COLORS-030** — If the hex string does not have the model's form, or its value is outside the model's range (a Nes value above `#3F`), then parsing shall return false without a color.
+  - Tests: `PaletteTests.DeserializePalette_InvalidColor_ThrowsNamingEntry`, `ColorParserTests.TryParse_Nes`
 - **LIB-COLORS-031** — The JSON color converter shall read and write native colors as `#RRGGBBAA` strings and throw `JsonException` on a null or unparsable string.
   - Tests: untested
 
@@ -163,7 +165,6 @@ Every color has a *native* form, RGBA32, used for display and image files, and a
 
 ## Edge cases
 
-- Parsing `#40`–`#FF` as Nes throws `ArgumentOutOfRangeException` from the color instead of returning false.
 - Creating an Rgba32 color from components above 255 wraps them to a byte.
 - Palettes with more than 256 entries: match indices are bytes, so entries past 255 wrap.
 - `ColorVector` gives each channel normalized to 0–1 by its model maximum; channel-only models report alpha 1 in the vector.
@@ -178,6 +179,7 @@ Every color has a *native* form, RGBA32, used for display and image files, and a
 - **Bgr9 uses 3-bit channels (Genesis).** The color unpacks bits 1–3, 5–7 and 9–11 and the converter maps 7 to 255. Reason: the color used 4-bit nibbles while the converter indexed an 8-entry table, so values of 8 or more threw during palette load and 7 mapped to 182.
 - **PSX STP semantics.** Abgr16 conversion keeps the STP bit: `0x0000` is transparent, STP on black is opaque black, STP on any other color is semi-transparent, and no STP is opaque. Reason: lossless round trips of PlayStation data.
 - **Exact matching reports a hint.** A rejected exact match still carries the nearest entry and distance so import reports can suggest a fix (LIB-IMAGE-IO).
+- **NES conversion matches within the first 64 master entries.** `ColorConverterNes` matches with a `PaletteColorMatcher` (Nearest, entry limit 64) built per call and returns `new ColorNes(index)`. Reason: `ColorNes` holds 0–63 (LIB-COLORS-008) while a master palette may carry more entries, and the matcher's cache is not thread-safe while the converter is shared through the color factory. Rejected: casting the master palette's foreign color (it is `ColorRgba32`), and an unlimited match (can return 64 or more and throw in `ColorNes`).
 - **Alpha is ignored by nearest matching.** Reason: image editors often drop or alter alpha; only the exact match compares it.
 
 ## Non-goals
@@ -187,6 +189,5 @@ Every color has a *native* form, RGBA32, used for display and image files, and a
 
 ## Open items
 
-- `ColorConverterNes.ToForeignColor` casts the master palette's foreign color to `ColorNes`, but the master palette is an Rgba32 GlobalJson palette whose foreign colors are `ColorRgba32`, so every native-to-Nes conversion throws `InvalidCastException`. This breaks `SetNativeColor` and component `SetForeignColor` on Nes palettes and loading a GlobalJson palette in the Nes model.
 - `Palette.GetColor` builds a `System.Drawing.Color` with `FromArgb` from the RGBA-packed value, which swaps R and B; it has no callers.
-- No tests for Rgb15, Bgr6, Nes and Rgba32 conversion, hex formatting and parsing outside Rgba32, factory errors, or distance ties.
+- No tests for Rgb15, Bgr6 and Rgba32 conversion, Nes-to-native conversion, hex formatting, hex parsing outside Rgba32 and Nes, factory errors, or distance ties.

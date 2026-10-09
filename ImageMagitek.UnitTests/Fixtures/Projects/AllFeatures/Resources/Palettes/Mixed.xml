@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<palette datafile="/main" color="Bgr15" zeroindextransparent="true">
+	<filesource fileoffset="0" entries="4" />
+	<filesource fileoffset="8" entries="4" endian="big" />
+	<filesource fileoffset="20" bitoffset="4" entries="2" />
+	<nativecolor value="#FF00FFFF" />
+	<foreigncolor value="#7C1F" />
+</palette>

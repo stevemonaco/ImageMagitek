@@ -99,8 +99,8 @@ public sealed class WriteAheadLogTransaction
         }
         catch (Exception ex)
         {
-            // Post-journal failure: rollback completed operations in reverse order
-            var rollbackErrors = RollbackCompletedOperations(journal);
+            var replaced = journal.Operations.Where(o => o.State == WalOperationState.Completed).ToHashSet();
+            var rollbackErrors = Rollback(journal, replaced);
             CleanupStagingFiles(journal);
             TryDeleteJournal();
 
@@ -170,6 +170,10 @@ public sealed class WriteAheadLogTransaction
                     File.Move(op.StagingPath, op.TargetPath, true);
                     op.State = WalOperationState.Completed;
                 }
+                else if (File.Exists(op.TargetPath)) // Staging files exist before the journal, so this one was moved before the crash
+                {
+                    op.State = WalOperationState.Completed;
+                }
                 else
                 {
                     rollForwardSucceeded = false;
@@ -191,8 +195,12 @@ public sealed class WriteAheadLogTransaction
             return MagitekResult.SuccessResult;
         }
 
-        // Roll-forward failed — rollback everything
-        var rollbackErrors = RollbackCompletedOperations(journal);
+        // A pending operation whose staging file remains is never restored: its backup may be a partial copy
+        var toRestore = journal.Operations
+            .Where(op => op.State == WalOperationState.Completed ||
+                (!File.Exists(op.StagingPath) && !File.Exists(op.TargetPath)))
+            .ToHashSet();
+        var rollbackErrors = Rollback(journal, toRestore);
         CleanupStagingFiles(journal);
         TryDeleteFile(journalPath);
 
@@ -208,11 +216,15 @@ public sealed class WriteAheadLogTransaction
         await File.WriteAllTextAsync(_journalPath, json).ConfigureAwait(false);
     }
 
-    private static List<string> RollbackCompletedOperations(WalJournal journal)
+    /// <summary>
+    /// Restores <paramref name="toRestore"/> in reverse order, then deletes every other backup except those whose restore failed
+    /// </summary>
+    private static List<string> Rollback(WalJournal journal, IReadOnlySet<WalOperation> toRestore)
     {
         var errors = new List<string>();
+        var failedRestores = new HashSet<WalOperation>();
 
-        foreach (var op in journal.Operations.Where(o => o.State == WalOperationState.Completed).Reverse())
+        foreach (var op in journal.Operations.Where(toRestore.Contains).Reverse())
         {
             try
             {
@@ -222,15 +234,19 @@ public sealed class WriteAheadLogTransaction
                 }
                 else if (op.BackupPath is null)
                 {
-                    // Original didn't exist before transaction — remove the written file
                     TryDeleteFile(op.TargetPath);
                 }
             }
             catch (Exception ex)
             {
+                failedRestores.Add(op);
                 errors.Add($"Failed to rollback '{op.TargetPath}': {ex.Message}");
             }
         }
+
+        // A failed restore's backup is the only copy of the original
+        foreach (var op in journal.Operations.Where(op => op.BackupPath is not null && !failedRestores.Contains(op)))
+            TryDeleteFile(op.BackupPath!);
 
         return errors;
     }
@@ -262,7 +278,11 @@ public sealed class WriteAheadLogTransaction
         try
         {
             if (File.Exists(path))
+            {
+                // File.Copy carries a read-only target's attribute over to its backup
+                File.SetAttributes(path, File.GetAttributes(path) & ~FileAttributes.ReadOnly);
                 File.Delete(path);
+            }
         }
         catch
         {

@@ -1,7 +1,9 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using ImageMagitek.Services;
+using ImageMagitek.UnitTests.Fixtures;
 using Xunit;
 
 namespace ImageMagitek.UnitTests;
@@ -73,5 +75,16 @@ public class SettingsServiceTests
         Assert.Equal(defaults.NesPalette, settings.NesPalette);
         Assert.Equal(defaults.GlobalPalettes, settings.GlobalPalettes);
         Assert.Equal(defaults.ExtensionCodecAssociations, settings.ExtensionCodecAssociations);
+    }
+
+    [Fact]
+    public void Defaults_AssociationsNameRegisteredCodecs()
+    {
+        var registered = CodecFixture.Shared.CodecFactory.GetRegisteredCodecNames().ToHashSet();
+        var shipped = _service.Deserialize(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultConfigurationFileName)));
+
+        var associations = SettingsService.CreateDefault().ExtensionCodecAssociations.Concat(shipped.ExtensionCodecAssociations);
+
+        Assert.All(associations, x => Assert.Contains(x.Value, registered));
     }
 }

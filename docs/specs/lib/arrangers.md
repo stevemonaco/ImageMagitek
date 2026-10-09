@@ -50,6 +50,7 @@ tests:
   - GraphicsEditHistoryTests
   - IndexedImageTests
   - ImageImporterTests
+  - ScatteredArrangerTests
 depends:
   - LIB-DATASOURCE
   - LIB-CODECS
@@ -82,8 +83,10 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
   - Tests: untested
 - **LIB-ARRANGERS-008** — An element shall report itself within its source only when its whole encoded storage lies before the end of the source.
   - Tests: `IndexedImageTests.ArrangerPastEndOfSource_RendersEmptyAndSavesWithoutGrowing`
-- **LIB-ARRANGERS-009** — The arranger shall be read-only when any element uses a codec that cannot encode.
-  - Tests: `ReadOnlyArrangerTests.IsReadOnly_DecodeOnlyCodec_IsTrue`, `ReadOnlyArrangerTests.IsReadOnly_EncodableCodec_IsFalse`
+- **LIB-ARRANGERS-009** — The arranger shall be read-only when any element uses a codec that cannot encode or reads a read-only data source.
+  - Tests: `ReadOnlyArrangerTests.IsReadOnly_DecodeOnlyCodec_IsTrue`, `ReadOnlyArrangerTests.IsReadOnly_EncodableCodec_IsFalse`, `ReadOnlyArrangerTests.IsReadOnly_ElementOnReadOnlySource_IsTrue`
+- **LIB-ARRANGERS-049** — When the read-only reason is requested, the arranger shall return null when writable, otherwise a reason naming the first offending element's codec or data file.
+  - Tests: `ReadOnlyArrangerTests.GetReadOnlyReason_NamesCodecOrDataFile`
 - **LIB-ARRANGERS-010** — When a pixel point outside the arranger is converted to an element location, the conversion shall throw an out-of-range error.
   - Tests: untested
 
@@ -144,6 +147,8 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
   - Tests: untested
 - **LIB-ARRANGERS-033** — When an element paste succeeds, it shall place each non-empty copied element at its offset in the destination; empty copied cells leave the destination cell unchanged.
   - Tests: `GraphicsEditHistoryTests.ElementPaste_UndoRedo`
+- **LIB-ARRANGERS-050** — When a scattered arranger's elements are replaced from another scattered arranger, it shall take that arranger's size and every cell, empty cells included; if the element pixel size, color type or layout differ, then the call shall fail with an argument error.
+  - Tests: `ScatteredArrangerTests.ReplaceElements_Larger_TakesSizeAndCells`, `ScatteredArrangerTests.ReplaceElements_Smaller_DropsOuterCells`, `ScatteredArrangerTests.ReplaceElements_EmptyCells_AreReset`, `ScatteredArrangerTests.ReplaceElements_DifferentElementSize_Throws`
 
 ### Save conflicts
 
@@ -204,12 +209,13 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 - A sequential arranger captures the file size at construction and does not follow later length changes.
 - A clone rectangle that starts inside an element rounds its element count from the width alone, so a misaligned rectangle can drop the last covered column or row.
 - Malformed layout JSON throws out of the layout service and bootstrap; two layout files with the same name throw at bootstrap.
+- Element copies taken from a sequential arranger share its active codec, so every copied element holds the same codec instance until a palette is assigned to it; `ChangePalette` still sets the palette on that codec in place.
 
 ## Threading and lifetime
 
 - Arrangers are not thread-safe; they are used on the caller's thread.
 - Element copies hold element values, so they keep their data sources and codecs alive and share codec instances with the source arranger.
-- Codec instances are mutable and shared: changing an indexed codec's palette changes every element holding that instance (LIB-IMAGES palette assignment).
+- Codec instances are shared between clones, copies and pastes and are never changed in place by the library (LIB-IMAGES-020).
 - The element store is created once at bootstrap and is not reloaded.
 
 ## Decisions
@@ -232,7 +238,6 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 - Rotating a horizontally or vertically mirrored element by a quarter turn composes rotation without regard to the mirror; because render applies rotation then mirror, the visible result turns the opposite way. Needs a check and a test.
 - `SequentialArranger` constructor and `ArrangerBuilder` set `ActivePalette` from the palette argument, but the elements' codec (from `CloneCodec`/`CreateCodec`) carries the codec factory's default palette until `ChangePalette` is called. `ChangeCodec` likewise does not apply `ActivePalette` to the new codec.
 - Cloning a sequential arranger gives each element a codec from `CloneCodec`, which does not copy the palette, so the clone shows the factory default palette.
-- A scattered clone shares codec instances with the original; palette assignment on the clone (LIB-IMAGES) changes the original's elements too.
 - `GetInitialSequentialFileAddress` indexes the grid as `[x, y]` instead of `[y, x]`; latent while every layout's first pattern cell is (0, 0).
 - Single-layout movement steps (LIB-ARRANGERS-047) and element step (LIB-ARRANGERS-048) look arbitrary and are untested.
 - Elements past the end of their source are reported Modified by the conflict analysis but are never written by save.

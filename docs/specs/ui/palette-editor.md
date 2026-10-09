@@ -216,10 +216,10 @@ The document editor for one palette: a swatch grid beside a color editor, a coll
 
 ### Read-only palettes
 
-- **UI-PALETTE-EDITOR-090** — While the palette is a built-in global palette, the editor shall show a "Read Only" badge, hide the Sources section and Assign, and disable the color controls, the transparency checkbox, Import, Change Color Model, Paste, Swap and Gradient.
-  - Tests: untested
-- **UI-PALETTE-EDITOR-091** — While the palette is a built-in global palette, Save and assigned colors (including from the flyout) shall change nothing; Copy and Export stay available.
-  - Tests: untested
+- **UI-PALETTE-EDITOR-090** — While the palette is read-only (LIB-PALETTES-049: a built-in global palette, or file colors on a read-only data file), the editor shall show a "Read Only" badge, hide the Sources section and Assign, and disable the color controls, the transparency checkbox, Import, Change Color Model, Paste, Swap and Gradient.
+  - Tests: manual — set the read-only attribute on a data file and open a palette with file colors on it; check the Read Only badge and that Sources is hidden.
+- **UI-PALETTE-EDITOR-091** — While the palette is read-only (LIB-PALETTES-049: a built-in global palette, or file colors on a read-only data file), Save and assigned colors (including from the flyout) shall change nothing; Copy and Export stay available.
+  - Tests: manual — on that palette, Save and the flyout leave the data file unchanged.
 
 ### Hotkeys and Edit menu
 
@@ -294,7 +294,8 @@ The document editor for one palette: a swatch grid beside a color editor, a coll
 
 ## Open items
 
-- No UI path opens a built-in global palette in the editor (editors open from project-tree palettes only), so the read-only mode (UI-PALETTE-EDITOR-090, -091) looks unreachable. A planned "Duplicate to project" command does not exist; the Add Palette template is the closest feature. Decide whether read-only mode is still needed.
+- No UI path opens a built-in global palette in the editor (editors open from project-tree palettes only); the read-only mode (UI-PALETTE-EDITOR-090, -091) is reached through palettes with file colors on a read-only data file. A planned "Duplicate to project" command for global palettes does not exist; the Add Palette template is the closest feature.
+- The editor decides read-only mode when it opens. A project-colors-only palette on a read-only data file stays editable; if the user adds file color sources in Sources and saves, `SavePalette` returns false and Save shows "Save Error" (the session's commit-failure path). Excluding file sources on a read-only data file from Sources is not planned.
 - `DiscardChangesAsync` rewrites the resource file because "a whole-project save may have written" pending edits, but the committed model (UI-PALETTE-EDITOR-028) already prevents that. The rewrite looks redundant.
 - Save writes the resource file even when nothing is pending (UI-PALETTE-EDITOR-024).
 - Status messages are never cleared by the palette editor.

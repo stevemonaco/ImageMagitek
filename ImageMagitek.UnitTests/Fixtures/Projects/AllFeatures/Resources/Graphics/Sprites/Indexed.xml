@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<arranger elementsx="4" elementsy="4" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 4bpp" defaultdatafile="/main" defaultpalette="/Palettes/Mixed">
+	<element fileoffset="0" posx="0" posy="0" mirror="none" rotation="none" />
+	<element fileoffset="20" posx="1" posy="0" mirror="horizontal" />
+	<element fileoffset="40" posx="2" posy="0" mirror="vertical" />
+	<element fileoffset="60" posx="3" posy="0" mirror="both" />
+	<element fileoffset="80" posx="0" posy="1" rotation="left" />
+	<element fileoffset="A0" posx="1" posy="1" rotation="right" />
+	<element fileoffset="C0" posx="2" posy="1" rotation="turn" />
+	<element fileoffset="E0" posx="3" posy="1" bitoffset="3" />
+	<element fileoffset="100" posx="0" posy="2" codec="SNES 3bpp" />
+	<element fileoffset="0" posx="1" posy="2" datafile="/Data/sub" />
+	<element fileoffset="120" posx="2" posy="2" palette="DefaultRgba32" />
+	<element fileoffset="140" posx="3" posy="2" palette="/Palettes/Nested/Alt" />
+	<element fileoffset="160" posx="0" posy="3" />
+</arranger>

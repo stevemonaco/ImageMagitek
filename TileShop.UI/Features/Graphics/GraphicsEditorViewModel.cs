@@ -83,7 +83,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
                 AddHistoryAction(historyAction);
         }
 
-        _modifierOverrideTool = null;
+        var gestureAction = _toolRouter.Reset(this);
+        if (gestureAction is not null)
+            AddHistoryAction(gestureAction);
 
         // Capture selection before CancelOverlay clears it
         SnappedRectangle? clipRect = null;
@@ -104,12 +106,13 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         OnPropertyChanged(nameof(HasDrawClipRect));
         OnPropertyChanged(nameof(CanEditSelectedColor));
         OnPropertyChanged(nameof(CanChangeSnapMode));
-        NotifyResizeCommandsChanged();
+        NotifySequentialCommandsChanged();
     }
 
     [ObservableProperty] private bool _canView;
     [ObservableProperty] private bool _canArrange;
     [ObservableProperty] private bool _canDraw;
+    [ObservableProperty] private string? _readOnlyReason;
 
     public bool IsViewMode => EditMode == GraphicsEditMode.View;
     public bool IsArrangerMode => EditMode == GraphicsEditMode.Arrange;
@@ -161,9 +164,10 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     public bool CanAcceptPixelPastes => CanDraw;
     public bool CanAcceptElementPastes { get; init; }
 
-    public bool IsElementPasteActive => Paste?.Copy is ElementCopy
-        && IsArrangerMode && IsTiledLayout && WorkingArranger is ScatteredArranger;
+    public bool IsElementPasteActive => IsElementPasteTarget(Paste?.Copy);
 
+    private bool IsElementPasteTarget(ArrangerCopy? copy) =>
+        copy is ElementCopy && IsArrangerMode && IsTiledLayout && WorkingArranger is ScatteredArranger;
 
     [ObservableProperty] private GridSettingsViewModel _gridSettings;
 
@@ -297,6 +301,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         ILogger<GraphicsEditorViewModel> logger)
         : base(arranger)
     {
+        _toolRouter = new(SelectedTool, TemporaryTool, [.. AlternativeToolKeys, .. TertiaryToolKeys]);
         WorkingArranger = arranger.Mode == ArrangerMode.Scattered ? arranger.CloneArranger() : arranger;
         _projectArranger = arranger;
         Resource = arranger;
@@ -396,12 +401,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     {
         if (IsIndexedColor)
         {
-            var maxColors = WorkingArranger.EnumerateElements()
-                .OfType<ArrangerElement>()
-                .Select(x => x.Codec?.ColorDepth ?? 0)
-                .DefaultIfEmpty(0)
-                .Max();
-            var colorLimit = Math.Min(256, 1 << maxColors);
+            var colorLimit = GetPaletteColorLimit();
 
             var arrangerPalettes = WorkingArranger.GetReferencedPalettes();
             arrangerPalettes.ExceptWith(_paletteStore.GlobalPalettes);
@@ -417,6 +417,26 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
                 ActivePalette = Palettes.First();
             }
         }
+    }
+
+    private int GetPaletteColorLimit()
+    {
+        var maxColors = WorkingArranger.EnumerateElements()
+            .OfType<ArrangerElement>()
+            .Select(x => x.Codec?.ColorDepth ?? 0)
+            .DefaultIfEmpty(0)
+            .Max();
+        return Math.Min(256, 1 << maxColors);
+    }
+
+    private PaletteModel FindOrAddPalette(Palette palette)
+    {
+        if (Palettes.FirstOrDefault(x => ReferenceEquals(x.Palette, palette)) is { } existing)
+            return existing;
+
+        var model = new PaletteModel(palette, GetPaletteColorLimit());
+        Palettes.Add(model);
+        return model;
     }
 
     public void InvalidateEditor(InvalidationLevel level)
@@ -440,7 +460,8 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     private void UpdateReadOnlyState()
     {
-        CanDraw = !WorkingArranger.IsReadOnly();
+        ReadOnlyReason = WorkingArranger.GetReadOnlyReason();
+        CanDraw = ReadOnlyReason is null;
         NotifySelectionStateChanged();
     }
 
@@ -471,7 +492,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     {
         try
         {
-            // Read-only codecs cannot encode pixels, but element rearrangements can still be saved
+            // Read-only arrangers cannot save pixels, but element rearrangements can still be saved
             if (!WorkingArranger.IsReadOnly())
             {
                 if (WorkingArranger is ScatteredArranger scattered && !await ConfirmSaveConflictsAsync(scattered))
@@ -482,16 +503,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
             // Sync element changes from WorkingArranger back to the project arranger
             if (WorkingArranger is ScatteredArranger workingScattered && _projectArranger is ScatteredArranger projectScattered)
-            {
-                for (int y = 0; y < workingScattered.ArrangerElementSize.Height; y++)
-                {
-                    for (int x = 0; x < workingScattered.ArrangerElementSize.Width; x++)
-                    {
-                        var element = workingScattered.GetElement(x, y);
-                        projectScattered.SetElement(element, x, y);
-                    }
-                }
-            }
+                projectScattered.ReplaceElements(workingScattered);
 
             var projectTree = _projectService.FindContainingProject(Resource);
 

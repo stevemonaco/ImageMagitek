@@ -167,13 +167,9 @@ public partial class GraphicsEditorView : UserControl
         var point = e.GetCurrentPoint(EditorCanvas);
         var localPoint = EditorCanvas.ScreenToLocalPoint(point.Position);
 
-        bool isHandled = false;
-
-        if (ViewModel.ContainsPoint(localPoint.X, localPoint.Y))
-        {
-            var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
-            isHandled = ViewModel.MouseUp(localPoint.X, localPoint.Y, state);
-        }
+        // Releases outside the image still reach the tool that took the press; the view model clamps the coordinates
+        var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
+        bool isHandled = ViewModel.MouseUp(localPoint.X, localPoint.Y, state);
 
         if (!isHandled && point.Properties.PointerUpdateKind == PointerUpdateKind.MiddleButtonReleased)
         {
@@ -222,6 +218,7 @@ public partial class GraphicsEditorView : UserControl
                     }
 
                     _dragHandler.AfterDragDrop(EditorCanvas, triggerEvent, ViewModel);
+                    ViewModel?.PointerCaptureLost();
                 }
 
                 return;
@@ -325,5 +322,6 @@ public partial class GraphicsEditorView : UserControl
         _isDragPending = false;
         _dragTriggerEvent = null;
         EditorCanvas.EndPan();
+        ViewModel?.PointerCaptureLost();
     }
 }

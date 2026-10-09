@@ -11,6 +11,9 @@
         <StackPanel>
             <Label Content="Palette Name" Target="paletteNameBox" />
             <TextBox x:Name="paletteNameBox" Text="{Binding PaletteName}" />
+            <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource SemiColorDanger}"
+                IsVisible="{Binding NameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                Text="{Binding NameError}" TextWrapping="Wrap" />
 
             <TextBlock Margin="0,5,0,0" Text="{Binding SelectedDataSource.FileLocation, StringFormat=Data Source: {0}}" TextWrapping="Wrap" />
             <ComboBox MinWidth="200" Margin="0,5,0,0" HorizontalAlignment="Stretch" ItemsSource="{Binding DataSources}"
@@ -37,14 +40,6 @@
             </ComboBox>
 
             <CheckBox Content="Zero Index Transparent" IsChecked="{Binding ZeroIndexTransparent}" ToolTip.Tip="Forces the palette's first color into being transparent" />
-
-            <ItemsControl Grid.Row="1" Margin="0,5,0,5" HorizontalAlignment="Center" ItemsSource="{Binding ValidationErrors}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock FontWeight="Bold" Foreground="Red" Text="{Binding}" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
         </StackPanel>
     </Grid>
 </UserControl>

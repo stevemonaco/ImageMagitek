@@ -50,41 +50,32 @@ public partial class GraphicsEditorViewModel
         [DrawTool.FloodFill] = new FloodFillToolHandler(),
     };
 
-    private IToolHandler<GraphicsEditorViewModel>? _modifierOverrideTool;
+    private readonly ToolInputRouter<GraphicsEditorViewModel> _toolRouter;
 
-    private IToolHandler<GraphicsEditorViewModel>? ResolveActiveTool()
+    private IToolHandler<GraphicsEditorViewModel>? SelectedTool() => EditMode switch
     {
-        if (_modifierOverrideTool is not null)
-            return _modifierOverrideTool;
+        GraphicsEditMode.View => _viewTools[SelectedViewTool],
+        GraphicsEditMode.Arrange => _arrangerTools[SelectedArrangeTool],
+        GraphicsEditMode.Draw => _pixelTools[SelectedDrawTool],
+        _ => null
+    };
 
-        return EditMode switch
-        {
-            GraphicsEditMode.View => _viewTools[SelectedViewTool],
-            GraphicsEditMode.Arrange => _arrangerTools[SelectedArrangeTool],
-            GraphicsEditMode.Draw => _pixelTools[SelectedDrawTool],
-            _ => null
-        };
-    }
-
-    private IToolHandler<GraphicsEditorViewModel>? ResolveToolWithModifiers(KeyModifiers modifiers)
+    private IToolHandler<GraphicsEditorViewModel>? TemporaryTool() => EditMode switch
     {
-        if (_modifierOverrideTool is not null)
-            return _modifierOverrideTool;
+        GraphicsEditMode.Draw => _pixelTools[DrawTool.ColorPicker],
+        GraphicsEditMode.Arrange => _arrangerTools[ArrangeTool.PickPalette],
+        _ => null
+    };
 
-        if (modifiers.HasFlag(KeyModifiers.Alt))
-        {
-            if (EditMode == GraphicsEditMode.Draw)
-                return _pixelTools[DrawTool.ColorPicker];
-            if (EditMode == GraphicsEditMode.Arrange)
-                return _arrangerTools[ArrangeTool.PickPalette];
-        }
-
-        return ResolveActiveTool();
+    private void NotifyDisplayedToolsChanged()
+    {
+        OnPropertyChanged(nameof(DisplayedDrawTool));
+        OnPropertyChanged(nameof(DisplayedArrangeTool));
     }
 
     public ToolCursor ResolveCursor(KeyModifiers modifiers)
     {
-        var cursor = ResolveToolWithModifiers(modifiers)?.Cursor ?? ToolCursor.Default;
+        var cursor = _toolRouter.Resolve(modifiers)?.Cursor ?? ToolCursor.Default;
         return cursor == ToolCursor.Crosshair && HoverTarget is null ? ToolCursor.NotAllowed : cursor;
     }
 
@@ -106,7 +97,7 @@ public partial class GraphicsEditorViewModel
         }
 
         var ctx = new ToolContext(pos.X, pos.Y, pos.X, pos.Y, new MouseState(false, false, false, modifiers));
-        SetHoverTarget(ResolveToolWithModifiers(modifiers)?.GetTargetRect(ctx, this));
+        SetHoverTarget(_toolRouter.Resolve(modifiers)?.GetTargetRect(ctx, this));
     }
 
     public bool MouseDown(double x, double y, MouseState mouseState)
@@ -122,9 +113,8 @@ public partial class GraphicsEditorViewModel
         }
 
         var ctx = new ToolContext(x, y, xc, yc, mouseState);
-        var tool = ResolveToolWithModifiers(mouseState.Modifiers);
+        var result = _toolRouter.Press(ctx, this);
 
-        var result = tool?.OnMouseDown(ctx, this) ?? default;
         if (result.Invalidation != InvalidationLevel.None)
             InvalidateEditor(result.Invalidation);
         return result.Handled;
@@ -137,9 +127,12 @@ public partial class GraphicsEditorViewModel
         int yc = Math.Clamp((int)y, 0, arranger.ArrangerPixelSize.Height - 1);
 
         var ctx = new ToolContext(x, y, xc, yc, mouseState);
-        var tool = ResolveActiveTool();
+        bool wasOverrideEngaged = _toolRouter.IsOverrideEngaged;
+        var result = _toolRouter.Release(ctx, this);
 
-        var result = tool?.OnMouseUp(ctx, this) ?? default;
+        if (_toolRouter.IsOverrideEngaged != wasOverrideEngaged)
+            NotifyDisplayedToolsChanged();
+
         if (result.Invalidation != InvalidationLevel.None)
             InvalidateEditor(result.Invalidation);
         return result.Handled;
@@ -156,12 +149,24 @@ public partial class GraphicsEditorViewModel
         ActivityMessage = string.Empty;
         SetHoverTarget(null);
 
-        var tool = ResolveActiveTool();
-        var historyAction = tool?.Deactivate(this);
+        var historyAction = _toolRouter.EndGesture(this);
         if (historyAction is not null)
             AddHistoryAction(historyAction);
 
         return true;
+    }
+
+    /// <summary>
+    /// Ends a gesture whose release never reached the canvas, such as one taken over by a drag and drop
+    /// </summary>
+    public void PointerCaptureLost()
+    {
+        if (!_toolRouter.IsGestureActive)
+            return;
+
+        var historyAction = _toolRouter.EndGesture(this);
+        if (historyAction is not null)
+            AddHistoryAction(historyAction);
     }
 
     public bool MouseMove(double x, double y, MouseState mouseState)
@@ -181,7 +186,8 @@ public partial class GraphicsEditorViewModel
         LastMousePosition = new Point(xc, yc);
 
         // Shift+move in arranger mode for single-element selection (only when not overridden by modifier tool)
-        if (EditMode == GraphicsEditMode.Arrange && _modifierOverrideTool is null && mouseState.Modifiers.HasFlag(KeyModifiers.Shift) && Paste is null)
+        if (EditMode == GraphicsEditMode.Arrange && !_toolRouter.IsOverrideEngaged && !_toolRouter.IsGestureActive
+            && mouseState.Modifiers.HasFlag(KeyModifiers.Shift) && Paste is null)
         {
             if (TryStartNewSingleSelection(x, y))
             {
@@ -192,10 +198,13 @@ public partial class GraphicsEditorViewModel
         }
 
         var ctx = new ToolContext(x, y, xc, yc, mouseState);
-        var tool = ResolveToolWithModifiers(mouseState.Modifiers);
+        bool wasOverrideEngaged = _toolRouter.IsOverrideEngaged;
+        var result = _toolRouter.Move(ctx, this);
 
-        var result = tool?.OnMouseMove(ctx, this) ?? default;
-        SetHoverTarget(tool?.GetTargetRect(ctx, this));
+        if (_toolRouter.IsOverrideEngaged != wasOverrideEngaged)
+            NotifyDisplayedToolsChanged();
+
+        SetHoverTarget(_toolRouter.Resolve(mouseState.Modifiers)?.GetTargetRect(ctx, this));
         if (result.Invalidation != InvalidationLevel.None)
             InvalidateEditor(result.Invalidation);
         return result.Handled;
@@ -223,48 +232,25 @@ public partial class GraphicsEditorViewModel
 
     public bool KeyPress(KeyState keyState, double? x, double? y)
     {
-        bool handled = TryEngageModifierOverride(keyState.Key) || DispatchKey(keyState, x, y, isKeyDown: true);
+        // Modifier overrides engage and release even when the mouse is not hovering over the image
+        bool handled = _toolRouter.KeyDown(keyState.Key);
+        if (handled)
+            NotifyDisplayedToolsChanged();
+        else
+            handled = DispatchKey(keyState, x, y, isKeyDown: true);
+
         RefreshHoverTarget(keyState.Modifiers);
         return handled;
     }
 
     public void KeyUp(KeyState keyState, double? x, double? y)
     {
-        if (!TryReleaseModifierOverride(keyState.Key))
+        if (_toolRouter.KeyUp(keyState.Key))
+            NotifyDisplayedToolsChanged();
+        else
             DispatchKey(keyState, x, y, isKeyDown: false);
 
         RefreshHoverTarget(keyState.Modifiers);
-    }
-
-    private bool IsModifierToolKey(Key key) => AlternativeToolKeys.Contains(key) || TertiaryToolKeys.Contains(key);
-
-    // Modifier overrides engage and release even when the mouse is not hovering over the image
-    private bool TryEngageModifierOverride(Key key)
-    {
-        if (_modifierOverrideTool is not null || !IsModifierToolKey(key))
-            return false;
-
-        if (EditMode == GraphicsEditMode.Draw)
-            _modifierOverrideTool = _pixelTools[DrawTool.ColorPicker];
-        else if (EditMode == GraphicsEditMode.Arrange)
-            _modifierOverrideTool = _arrangerTools[ArrangeTool.PickPalette];
-        else
-            return false;
-
-        OnPropertyChanged(nameof(DisplayedDrawTool));
-        OnPropertyChanged(nameof(DisplayedArrangeTool));
-        return true;
-    }
-
-    private bool TryReleaseModifierOverride(Key key)
-    {
-        if (_modifierOverrideTool is null || !IsModifierToolKey(key))
-            return false;
-
-        _modifierOverrideTool = null;
-        OnPropertyChanged(nameof(DisplayedDrawTool));
-        OnPropertyChanged(nameof(DisplayedArrangeTool));
-        return true;
     }
 
     private bool DispatchKey(KeyState keyState, double? x, double? y, bool isKeyDown)
@@ -276,7 +262,7 @@ public partial class GraphicsEditorViewModel
         int yc = Math.Clamp((int)y.Value, 0, WorkingArranger.ArrangerPixelSize.Height - 1);
 
         var ctx = new ToolContext(x.Value, y.Value, xc, yc, keyState);
-        var tool = ResolveActiveTool();
+        var tool = _toolRouter.KeyTarget;
 
         var result = (isKeyDown ? tool?.OnKeyDown(ctx, this) : tool?.OnKeyUp(ctx, this)) ?? default;
         if (result.Invalidation != InvalidationLevel.None)

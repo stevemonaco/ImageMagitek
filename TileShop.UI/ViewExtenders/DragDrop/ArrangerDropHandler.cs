@@ -86,15 +86,7 @@ public class ArrangerDropHandler : DropHandlerBase
             && Validate(control, e, sourceContext, targetContext, state))
         {
             paste.IsDragging = false;
-            if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-            {
-                targetVm.CompletePaste();
-            }
-            else
-            {
-                var pasteType = targetVm.IsElementPasteActive ? "Element" : "Pixel";
-                targetVm.PendingOperationMessage = $"Press [Enter] to Apply {pasteType} Paste or [Esc] to Cancel";
-            }
+            _ = targetVm.DropPasteAsync(paste, e.KeyModifiers.HasFlag(KeyModifiers.Shift));
 
             ActivateEditorDockTab(control);
             return true;

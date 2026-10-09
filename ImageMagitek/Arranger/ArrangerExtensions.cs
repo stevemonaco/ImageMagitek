@@ -272,10 +272,27 @@ public static class ArrangerExtensions
     }
 
     /// <summary>
-    /// True when any element uses a codec that cannot encode, so the arranger's pixels cannot be saved
+    /// True when any element uses a codec that cannot encode or reads a read-only data source, so the arranger's pixels cannot be saved
     /// </summary>
-    public static bool IsReadOnly(this Arranger arranger) =>
-        arranger.EnumerateElements().OfType<ArrangerElement>().Any(x => !x.Codec.CanEncode);
+    public static bool IsReadOnly(this Arranger arranger) => arranger.GetReadOnlyReason() is not null;
+
+    /// <summary>
+    /// Why the arranger is read-only, naming the first offending element's codec or data file, or null when it is writable
+    /// </summary>
+    /// <returns>A reason that completes "is read-only because it ..."</returns>
+    public static string? GetReadOnlyReason(this Arranger arranger)
+    {
+        foreach (var element in arranger.EnumerateElements().OfType<ArrangerElement>())
+        {
+            if (!element.Codec.CanEncode)
+                return $"uses codec '{element.Codec.Name}' that cannot encode";
+
+            if (element.Source.IsReadOnly)
+                return $"reads data file '{element.Source.Name}', which is read-only";
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// Translates a point to an element location in the underlying arranger

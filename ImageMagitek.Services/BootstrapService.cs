@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -132,7 +132,7 @@ public class BootstrapService
 
     public virtual IProjectService CreateProjectService(IProjectSerializerFactory serializerFactory, IColorFactory colorFactory)
     {
-        var projectService = new ProjectService(serializerFactory, colorFactory);
+        var projectService = new ProjectService(serializerFactory);
 
         return projectService;
     }

@@ -13,14 +13,14 @@ public class PencilToolHandler : IToolHandler<GraphicsEditorViewModel>
     {
         if (ctx.MouseState.LeftButtonPressed)
         {
-            state.StartPencilDraw(ctx.PixelX, ctx.PixelY, ColorPriority.Primary);
+            state.StartPencilDraw();
             state.SetPixelAtPosition(ctx.PixelX, ctx.PixelY, ColorPriority.Primary);
             return ToolResult.HandledNoInvalidation;
         }
 
         if (ctx.MouseState.RightButtonPressed)
         {
-            state.StartPencilDraw(ctx.PixelX, ctx.PixelY, ColorPriority.Secondary);
+            state.StartPencilDraw();
             state.SetPixelAtPosition(ctx.PixelX, ctx.PixelY, ColorPriority.Secondary);
             return ToolResult.HandledNoInvalidation;
         }

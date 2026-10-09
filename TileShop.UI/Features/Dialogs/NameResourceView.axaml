@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="TileShop.UI.Views.NameResourceView"
+<UserControl x:Class="TileShop.UI.Views.NameResourceView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:TileShop.UI.ViewModels"
@@ -6,6 +6,9 @@
     <Grid>
         <StackPanel>
             <TextBox MinWidth="220" FontSize="20" Text="{Binding ResourceName}" />
+            <TextBlock MaxWidth="320" Margin="0,4,0,0" HorizontalAlignment="Left" Foreground="{DynamicResource SemiColorDanger}"
+                IsVisible="{Binding ErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                Text="{Binding ErrorText}" TextWrapping="Wrap" />
         </StackPanel>
     </Grid>
 </UserControl>

@@ -112,6 +112,12 @@ public partial class EditorsViewModel : ObservableRecipient
                 .ToHashSet(ReferenceEqualityComparer.Instance);
 
             RemoveEditors(Editors.Where(x => removedResources.Contains(x.Resource) || removedResources.Contains(x.OriginatingProjectResource)).ToList());
+
+            if (GraphicsEditorViewModel.ClearClipboardIfReferencesAny(removedResources))
+            {
+                foreach (var editor in Editors.OfType<GraphicsEditorViewModel>())
+                    editor.NotifyClipboardChanged();
+            }
         }
     }
 

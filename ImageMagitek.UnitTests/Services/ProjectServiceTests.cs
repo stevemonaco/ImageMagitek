@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
@@ -14,13 +16,13 @@ using Xunit;
 
 namespace ImageMagitek.UnitTests.Services;
 
-public sealed class ProjectServiceTests : IDisposable
+public sealed class ProjectServiceTests : IAsyncLifetime
 {
     private readonly string _directory;
     private readonly Palette _palette = ArrangerTestFactory.CreatePalette(new ColorRgba32(0, 0, 0, 255));
     private readonly ColorFactory _colorFactory = new();
     private readonly ProjectService _service;
-    private readonly ProjectTree _tree;
+    private ProjectTree _tree = null!;
     private readonly List<ProjectTreeChange> _changes = [];
 
     public ProjectServiceTests()
@@ -29,15 +31,24 @@ public sealed class ProjectServiceTests : IDisposable
         Directory.CreateDirectory(_directory);
         File.WriteAllBytes(Path.Combine(_directory, "rom.bin"), new byte[64]);
 
+        _service = CreateService();
+    }
+
+    private ProjectService CreateService()
+    {
         var serializerFactory = new XmlProjectSerializerFactory(Path.Combine(AppContext.BaseDirectory, "_schemas", "ResourceSchema.xsd"),
             CodecFixture.Shared.CodecFactory, _colorFactory, [_palette]);
 
-        _service = new ProjectService(serializerFactory, _colorFactory);
-        _tree = _service.CreateNewProject(Path.Combine(_directory, "project.xml")).AsSuccess.Result;
+        return new ProjectService(serializerFactory);
+    }
+
+    public async Task InitializeAsync()
+    {
+        _tree = (await _service.CreateNewProjectAsync(Path.Combine(_directory, "project.xml"))).AsSuccess.Result;
         _tree.Changed += (_, change) => _changes.Add(change);
     }
 
-    public void Dispose()
+    public Task DisposeAsync()
     {
         _service.CloseProjects();
 
@@ -48,19 +59,21 @@ public sealed class ProjectServiceTests : IDisposable
         catch (IOException)
         {
         }
+
+        return Task.CompletedTask;
     }
 
-    private ResourceNode AddDataFile(ResourceNode parent, string name) =>
-        _service.AddResource(parent, new FileDataSource(name, Path.Combine(_directory, "rom.bin"))).AsSuccess.Result;
+    private async Task<ResourceNode> AddDataFileAsync(ResourceNode parent, string name, string fileName = "rom.bin") =>
+        (await _service.AddResourceAsync(parent, new FileDataSource(name, Path.Combine(_directory, fileName)))).AsSuccess.Result;
 
-    private ResourceNode AddFolder(ResourceNode parent, string name) =>
-        _service.CreateNewFolder(parent, name).AsSuccess.Result;
+    private async Task<ResourceNode> AddFolderAsync(ResourceNode parent, string name) =>
+        (await _service.CreateNewFolderAsync(parent, name)).AsSuccess.Result;
 
-    private ResourceNode AddPalette(ResourceNode parent, string name, DataSource dataSource, ColorRgba32 color)
+    private async Task<ResourceNode> AddPaletteAsync(ResourceNode parent, string name, DataSource dataSource, ColorRgba32 color)
     {
         var palette = new Palette(name, _colorFactory, ColorModel.Rgba32, [new ProjectNativeColorSource(color)], false,
             PaletteStorageSource.ProjectXml, dataSource);
-        return _service.AddResource(parent, palette).AsSuccess.Result;
+        return (await _service.AddResourceAsync(parent, palette)).AsSuccess.Result;
     }
 
     private string PathOf(params string[] parts) => Path.Combine([_directory, .. parts]);
@@ -83,8 +96,8 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task RenameFolder_MovesDirectoryAndChildResource()
     {
-        var folder = AddFolder(_tree.Root, "Folder");
-        AddDataFile(folder, "data");
+        var folder = await AddFolderAsync(_tree.Root, "Folder");
+        await AddDataFileAsync(folder, "data");
 
         var result = await _service.RenameResourceAsync(folder, "Renamed");
 
@@ -97,7 +110,7 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task RenameFile_LeavesOnlyNewResourceFile()
     {
-        var node = AddDataFile(_tree.Root, "data");
+        var node = await AddDataFileAsync(_tree.Root, "data");
 
         var result = await _service.RenameResourceAsync(node, "renamed");
 
@@ -109,7 +122,7 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task RenameFile_CaseOnly_KeepsResourceFile()
     {
-        var node = AddDataFile(_tree.Root, "data");
+        var node = await AddDataFileAsync(_tree.Root, "data");
 
         var result = await _service.RenameResourceAsync(node, "DATA");
 
@@ -122,8 +135,8 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task RenameFolder_UpdatesNestedFolderLocations()
     {
-        var outer = AddFolder(_tree.Root, "Outer");
-        var inner = AddFolder(outer, "Inner");
+        var outer = await AddFolderAsync(_tree.Root, "Outer");
+        var inner = await AddFolderAsync(outer, "Inner");
 
         var result = await _service.RenameResourceAsync(outer, "Renamed");
 
@@ -136,8 +149,8 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task MoveNode_DestinationFileExists_FailsAndLeavesBothFiles()
     {
-        var node = AddDataFile(_tree.Root, "data");
-        var destination = AddFolder(_tree.Root, "Dest");
+        var node = await AddDataFileAsync(_tree.Root, "data");
+        var destination = await AddFolderAsync(_tree.Root, "Dest");
         var original = File.ReadAllText(PathOf("data.xml"));
         File.WriteAllText(PathOf("Dest", "data.xml"), "stray");
 
@@ -152,12 +165,14 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public void CreateNewProject_RaisesProjectOpened()
+    public async Task CreateNewProject_RaisesProjectOpened()
     {
         ProjectTree? opened = null;
         _service.ProjectOpened += (_, tree) => opened = tree;
 
-        var tree = _service.CreateNewProject(PathOf("other.xml")).AsSuccess.Result;
+        Directory.CreateDirectory(PathOf("Other"));
+
+        var tree = (await _service.CreateNewProjectAsync(PathOf("Other", "other.xml"))).AsSuccess.Result;
 
         Assert.Same(tree, opened);
     }
@@ -174,10 +189,10 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public void PaletteChange_RaisesServiceResourceChangedFromTree()
+    public async Task PaletteChange_RaisesServiceResourceChangedFromTree()
     {
-        var data = AddDataFile(_tree.Root, "data");
-        var palette = (Palette)AddPalette(_tree.Root, "pal", (DataSource)data.Item, new ColorRgba32(1, 2, 3, 255)).Item;
+        var data = await AddDataFileAsync(_tree.Root, "data");
+        var palette = (Palette)(await AddPaletteAsync(_tree.Root, "pal", (DataSource)data.Item, new ColorRgba32(1, 2, 3, 255))).Item;
         object? sender = null;
         IProjectResource? changed = null;
         _service.ResourceChanged += (s, resource) => (sender, changed) = (s, resource);
@@ -189,9 +204,9 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public void ClosedProject_RaisesNoServiceEvents()
+    public async Task ClosedProject_RaisesNoServiceEvents()
     {
-        var data = (DataSource)AddDataFile(_tree.Root, "data").Item;
+        var data = (DataSource)(await AddDataFileAsync(_tree.Root, "data")).Item;
         var raised = false;
         _service.TreeChanged += (_, _) => raised = true;
         _service.ResourceChanged += (_, _) => raised = true;
@@ -206,7 +221,7 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task RenameFolder_DirectoryMoveFails_RaisesReverseRename()
     {
-        var folder = AddFolder(_tree.Root, "Folder");
+        var folder = await AddFolderAsync(_tree.Root, "Folder");
         Directory.CreateDirectory(PathOf("Renamed"));
         _changes.Clear();
 
@@ -223,8 +238,8 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task MoveNode_RaisesSingleMoved()
     {
-        var node = AddDataFile(_tree.Root, "data");
-        var destination = AddFolder(_tree.Root, "Dest");
+        var node = await AddDataFileAsync(_tree.Root, "data");
+        var destination = await AddFolderAsync(_tree.Root, "Dest");
         _changes.Clear();
 
         var result = await _service.MoveNodeAsync(node, destination);
@@ -242,9 +257,9 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task MoveNode_ProjectWriteFails_RaisesReverseMove()
     {
-        var data = AddDataFile(_tree.Root, "data");
-        AddPalette(_tree.Root, "pal", (DataSource)data.Item, new ColorRgba32(1, 2, 3, 255));
-        var destination = AddFolder(_tree.Root, "Dest");
+        var data = await AddDataFileAsync(_tree.Root, "data");
+        await AddPaletteAsync(_tree.Root, "pal", (DataSource)data.Item, new ColorRgba32(1, 2, 3, 255));
+        var destination = await AddFolderAsync(_tree.Root, "Dest");
         File.SetAttributes(PathOf("pal.xml"), FileAttributes.ReadOnly);
         _changes.Clear();
 
@@ -257,25 +272,24 @@ public sealed class ProjectServiceTests : IDisposable
                 x => Assert.Equal((ProjectTreeChangeKind.Moved, destination, _tree.Root), (x.Kind, x.Parent, x.OldParent)),
                 x => Assert.Equal((ProjectTreeChangeKind.Moved, _tree.Root, destination), (x.Kind, x.Parent, x.OldParent)));
             Assert.Same(_tree.Root, data.Parent);
+            Assert.Empty(Directory.EnumerateFiles(_directory, "*.bak", SearchOption.AllDirectories));
         }
         finally
         {
-            // The transaction's backup copies the read-only attribute too
-            foreach (var file in Directory.EnumerateFiles(_directory, "*", SearchOption.AllDirectories))
-                File.SetAttributes(file, FileAttributes.Normal);
+            File.SetAttributes(PathOf("pal.xml"), FileAttributes.Normal);
         }
     }
 
     [Fact]
-    public void DeleteFolder_WithDataFileAndItsPalette_RemovesEachNodeOnce()
+    public async Task DeleteFolder_WithDataFileAndItsPalette_RemovesEachNodeOnce()
     {
-        var folder = AddFolder(_tree.Root, "Folder");
-        var data = AddDataFile(folder, "data");
-        var palette = AddPalette(folder, "pal", (DataSource)data.Item, new ColorRgba32(1, 2, 3, 255));
+        var folder = await AddFolderAsync(_tree.Root, "Folder");
+        var data = await AddDataFileAsync(folder, "data");
+        var palette = await AddPaletteAsync(folder, "pal", (DataSource)data.Item, new ColorRgba32(1, 2, 3, 255));
         _changes.Clear();
 
         var plan = _service.PreviewResourceDeletion(folder).AsSuccess.Result;
-        var result = _service.ApplyResourceDeletion(plan, _palette);
+        var result = await _service.ApplyResourceDeletionAsync(plan, _palette);
 
         Assert.True(result.HasSucceeded);
         Assert.Equal(3, plan.Changes.Count);
@@ -288,9 +302,9 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task SaveProject_PaletteWithCommittedModel_WritesCommittedState()
     {
-        var data = AddDataFile(_tree.Root, "data");
+        var data = await AddDataFileAsync(_tree.Root, "data");
         var committed = new ColorRgba32(0x11, 0x22, 0x33, 255);
-        var node = (PaletteNode)AddPalette(_tree.Root, "pal", (DataSource)data.Item, committed);
+        var node = (PaletteNode)await AddPaletteAsync(_tree.Root, "pal", (DataSource)data.Item, committed);
         var palette = (Palette)node.Item;
         ((ProjectNativeColorSource)palette.ColorSources[0]).Value = new ColorRgba32(0xAA, 0xBB, 0xCC, 255);
         node.CommittedModel = map => palette.MapToModel(map, _colorFactory, palette.ColorModel, palette.ZeroIndexTransparent,
@@ -305,14 +319,14 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public void DeleteFolder_WithNestedFolder_RemovesBothDirectories()
+    public async Task DeleteFolder_WithNestedFolder_RemovesBothDirectories()
     {
-        var outer = AddFolder(_tree.Root, "Outer");
-        var inner = AddFolder(outer, "Inner");
-        AddDataFile(inner, "data");
+        var outer = await AddFolderAsync(_tree.Root, "Outer");
+        var inner = await AddFolderAsync(outer, "Inner");
+        await AddDataFileAsync(inner, "data");
 
         var plan = _service.PreviewResourceDeletion(outer).AsSuccess.Result;
-        var result = _service.ApplyResourceDeletion(plan, _palette);
+        var result = await _service.ApplyResourceDeletionAsync(plan, _palette);
 
         Assert.True(result.HasSucceeded);
         Assert.False(Directory.Exists(PathOf("Outer", "Inner")));
@@ -320,13 +334,13 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public void DeleteFolder_WithUnmanagedFile_KeepsDirectoryAndReportsIt()
+    public async Task DeleteFolder_WithUnmanagedFile_KeepsDirectoryAndReportsIt()
     {
-        var folder = AddFolder(_tree.Root, "Roms");
+        var folder = await AddFolderAsync(_tree.Root, "Roms");
         File.WriteAllBytes(PathOf("Roms", "rom.bin"), new byte[4]);
 
         var plan = _service.PreviewResourceDeletion(folder).AsSuccess.Result;
-        var result = _service.ApplyResourceDeletion(plan, _palette);
+        var result = await _service.ApplyResourceDeletionAsync(plan, _palette);
 
         Assert.True(result.HasFailed);
         Assert.Contains(PathOf("Roms"), result.AsError.Reason);
@@ -334,11 +348,11 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public void ProjectNodeViewModel_ExistingTree_MatchesSorted()
+    public async Task ProjectNodeViewModel_ExistingTree_MatchesSorted()
     {
-        AddDataFile(_tree.Root, "data");
-        var folder = AddFolder(_tree.Root, "Folder");
-        AddDataFile(folder, "nested");
+        await AddDataFileAsync(_tree.Root, "data");
+        var folder = await AddFolderAsync(_tree.Root, "Folder");
+        await AddDataFileAsync(folder, "nested");
 
         var vm = new ProjectNodeViewModel(_tree);
 
@@ -351,15 +365,15 @@ public sealed class ProjectServiceTests : IDisposable
     {
         var projectVm = new ProjectNodeViewModel(_tree);
 
-        var data = AddDataFile(_tree.Root, "b-data");
+        var data = await AddDataFileAsync(_tree.Root, "b-data");
         AssertMatchesTree(projectVm, _tree.Root);
 
-        var folder = AddFolder(_tree.Root, "Folder");
+        var folder = await AddFolderAsync(_tree.Root, "Folder");
         AssertMatchesTree(projectVm, _tree.Root);
         Assert.Same(folder, projectVm.Children[0].Node);
 
-        var palette = AddPalette(_tree.Root, "c-palette", (DataSource)data.Item, new ColorRgba32(1, 2, 3, 255));
-        AddDataFile(_tree.Root, "d-data");
+        var palette = await AddPaletteAsync(_tree.Root, "c-palette", (DataSource)data.Item, new ColorRgba32(1, 2, 3, 255));
+        await AddDataFileAsync(_tree.Root, "d-data");
         AssertMatchesTree(projectVm, _tree.Root);
 
         Assert.True((await _service.RenameResourceAsync(data, "z-data")).HasSucceeded);
@@ -375,7 +389,7 @@ public sealed class ProjectServiceTests : IDisposable
         Assert.Same(projectVm.Find(folder), dataVm.ParentModel);
 
         var plan = _service.PreviewResourceDeletion(data).AsSuccess.Result;
-        Assert.True(_service.ApplyResourceDeletion(plan, _palette).HasSucceeded);
+        Assert.True((await _service.ApplyResourceDeletionAsync(plan, _palette)).HasSucceeded);
         AssertMatchesTree(projectVm, _tree.Root);
         Assert.Null(projectVm.Find(data));
         Assert.Null(projectVm.Find(palette));
@@ -391,14 +405,30 @@ public sealed class ProjectServiceTests : IDisposable
         return result.AsSuccess.Result;
     }
 
+    [Fact]
+    public async Task RenameProjectRoot_WithRoot_WritesProjectFileBesideOld()
+    {
+        Directory.CreateDirectory(PathOf("Resources"));
+        File.WriteAllText(PathOf("project.xml"), "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<project version=\"0.9\" root=\"Resources\" />");
+        var tree = await ReopenAsync();
+
+        var result = await _service.RenameResourceAsync(tree.Root, "renamed");
+
+        Assert.True(result.HasSucceeded);
+        Assert.Equal(PathOf("renamed.xml"), tree.Root.DiskLocation);
+        Assert.True(File.Exists(PathOf("renamed.xml")));
+        Assert.False(File.Exists(PathOf("project.xml")));
+        Assert.Empty(Directory.GetFiles(PathOf("Resources"), "*.xml", SearchOption.AllDirectories));
+    }
+
     private static T ItemOf<T>(ProjectTree tree, string name) =>
         Assert.IsType<T>(tree.Root.ChildNodes.Single(x => x.Name == name).Item);
 
     [Fact]
     public async Task MoveNode_NodeWithoutDiskLocation_FailsWithoutThrowing()
     {
-        var node = AddDataFile(_tree.Root, "data");
-        var destination = AddFolder(_tree.Root, "Dest");
+        var node = await AddDataFileAsync(_tree.Root, "data");
+        var destination = await AddFolderAsync(_tree.Root, "Dest");
         node.DiskLocation = null;
 
         var result = await _service.MoveNodeAsync(node, destination);
@@ -410,8 +440,8 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task OpenProject_MissingDataFile_LoadsWithSourceMarkedMissing()
     {
-        var data = AddDataFile(_tree.Root, "data");
-        AddPalette(_tree.Root, "pal", (DataSource)data.Item, new ColorRgba32(1, 2, 3, 255));
+        var data = await AddDataFileAsync(_tree.Root, "data");
+        await AddPaletteAsync(_tree.Root, "pal", (DataSource)data.Item, new ColorRgba32(1, 2, 3, 255));
         File.Delete(PathOf("rom.bin"));
 
         var tree = await ReopenAsync();
@@ -424,7 +454,7 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task Relink_CopiesFileToExpectedLocation_AndRaisesResourceChanged()
     {
-        AddDataFile(_tree.Root, "data");
+        await AddDataFileAsync(_tree.Root, "data");
         var replacement = Path.Combine(_directory, "replacement.bin");
         File.Move(PathOf("rom.bin"), replacement);
 
@@ -448,7 +478,7 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task Relink_SourceNotMissing_Fails()
     {
-        var data = AddDataFile(_tree.Root, "data");
+        var data = await AddDataFileAsync(_tree.Root, "data");
 
         var result = await _service.RelinkDataFileAsync((FileDataSource)data.Item, PathOf("rom.bin"));
 
@@ -523,8 +553,8 @@ public sealed class ProjectServiceTests : IDisposable
         var root = tree.Root;
         var filesBefore = Directory.GetFileSystemEntries(_directory, "*", SearchOption.AllDirectories).Order().ToList();
 
-        var add = _service.AddResource(root, new MemoryDataSource("mem", 16));
-        var folder = _service.CreateNewFolder(root, "Folder");
+        var add = await _service.AddResourceAsync(root, new MemoryDataSource("mem", 16));
+        var folder = await _service.CreateNewFolderAsync(root, "Folder");
         var rename = await _service.RenameResourceAsync(root, "renamed.bin");
         var canMove = _service.CanMoveNode(root, root);
         var move = await _service.MoveNodeAsync(root, root);
@@ -564,5 +594,696 @@ public sealed class ProjectServiceTests : IDisposable
         Assert.Null(vm.Find(_tree.Root));
         Assert.Empty(vm.Children);
         Assert.Null(vm.ParentModel);
+    }
+
+    private List<string> ListEntries() =>
+        Directory.GetFileSystemEntries(_directory, "*", SearchOption.AllDirectories).Order().ToList();
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("a/b")]
+    [InlineData("con")]
+    [InlineData(" a")]
+    public async Task AddResource_InvalidName_FailsWithoutWriting(string name)
+    {
+        var entriesBefore = ListEntries();
+
+        var result = await _service.AddResourceAsync(_tree.Root, new FileDataSource(name, PathOf("rom.bin")));
+
+        Assert.True(result.HasFailed);
+        Assert.Equal(entriesBefore, ListEntries());
+        Assert.Empty(_tree.Root.ChildNodes);
+    }
+
+    [Fact]
+    public async Task AddResource_CaseVariantOfSibling_FailsAndKeepsSiblingFile()
+    {
+        await AddDataFileAsync(_tree.Root, "data");
+        var original = File.ReadAllBytes(PathOf("data.xml"));
+
+        var result = await _service.AddResourceAsync(_tree.Root, new ScatteredArranger("Data", PixelColorType.Indexed, ElementLayout.Tiled, 1, 1, 8, 8));
+
+        Assert.True(result.HasFailed);
+        Assert.Contains("'data'", result.AsError.Reason);
+        Assert.Equal(original, File.ReadAllBytes(PathOf("data.xml")));
+        Assert.Single(_tree.Root.ChildNodes);
+    }
+
+    [Fact]
+    public async Task AddResource_RootResourceNamedLikeProject_FailsAndKeepsProjectFile()
+    {
+        var original = File.ReadAllBytes(PathOf("project.xml"));
+
+        var result = await _service.AddResourceAsync(_tree.Root, new FileDataSource("Project", PathOf("rom.bin")));
+
+        Assert.True(result.HasFailed);
+        Assert.Equal(original, File.ReadAllBytes(PathOf("project.xml")));
+        Assert.Empty(_tree.Root.ChildNodes);
+    }
+
+    [Fact]
+    public async Task CreateNewFolder_ExistingName_Fails()
+    {
+        await AddFolderAsync(_tree.Root, "New Folder");
+
+        var result = await _service.CreateNewFolderAsync(_tree.Root, "new folder");
+
+        Assert.True(result.HasFailed);
+        Assert.Single(_tree.Root.ChildNodes);
+    }
+
+    [Theory]
+    [InlineData("Bad?")]
+    [InlineData("x.xml")]
+    public async Task CreateNewFolder_InvalidName_CreatesNoDirectory(string name)
+    {
+        var entriesBefore = ListEntries();
+
+        var result = await _service.CreateNewFolderAsync(_tree.Root, name);
+
+        Assert.True(result.HasFailed);
+        Assert.Equal(entriesBefore, ListEntries());
+    }
+
+    [Fact]
+    public async Task RenameResource_SameName_SucceedsWithoutRenamed()
+    {
+        var node = await AddDataFileAsync(_tree.Root, "data");
+        var entriesBefore = ListEntries();
+        var dataWrite = File.GetLastWriteTimeUtc(PathOf("data.xml"));
+        var projectWrite = File.GetLastWriteTimeUtc(PathOf("project.xml"));
+        _changes.Clear();
+
+        var result = await _service.RenameResourceAsync(node, "data");
+
+        Assert.True(result.HasSucceeded);
+        Assert.Empty(_changes);
+        Assert.Equal(entriesBefore, ListEntries());
+        Assert.Equal(dataWrite, File.GetLastWriteTimeUtc(PathOf("data.xml")));
+        Assert.Equal(projectWrite, File.GetLastWriteTimeUtc(PathOf("project.xml")));
+    }
+
+    [Fact]
+    public async Task RenameResource_CaseVariantOfSibling_Fails()
+    {
+        await AddDataFileAsync(_tree.Root, "data");
+        var other = await AddDataFileAsync(_tree.Root, "other");
+
+        var result = await _service.RenameResourceAsync(other, "DATA");
+
+        Assert.True(result.HasFailed);
+        Assert.Equal("other", other.Name);
+        Assert.True(File.Exists(PathOf("other.xml")));
+    }
+
+    [Fact]
+    public async Task RenameProject_ToRootResourceName_Fails()
+    {
+        await AddDataFileAsync(_tree.Root, "data");
+        await AddFolderAsync(_tree.Root, "Folder");
+
+        var result = await _service.RenameResourceAsync(_tree.Root, "Data");
+
+        Assert.True(result.HasFailed);
+        Assert.Equal("project", _tree.Name);
+        Assert.True(File.Exists(PathOf("project.xml")));
+        Assert.True(_service.CanRenameResource(_tree.Root, "folder").HasSucceeded);
+    }
+
+    [Fact]
+    public async Task MoveNode_TargetHasCaseVariant_Fails()
+    {
+        var node = await AddDataFileAsync(_tree.Root, "data");
+        var destination = await AddFolderAsync(_tree.Root, "Dest");
+        await AddDataFileAsync(destination, "Data");
+
+        var canMove = _service.CanMoveNode(node, destination);
+        var result = await _service.MoveNodeAsync(node, destination);
+
+        Assert.True(canMove.HasFailed);
+        Assert.True(result.HasFailed);
+        Assert.Same(_tree.Root, node.Parent);
+        Assert.True(File.Exists(PathOf("data.xml")));
+    }
+
+    [Fact]
+    public async Task CreateNewProjectWithExistingFile_FileInOpenProject_Fails()
+    {
+        await AddDataFileAsync(_tree.Root, "data");
+
+        var result = await _service.CreateNewProjectWithExistingFileAsync(PathOf("romProject.xml"), PathOf("ROM.bin"));
+
+        Assert.True(result.HasFailed);
+        Assert.Equal("'ROM.bin' is already in project 'project'", result.AsError.Reason);
+        Assert.False(File.Exists(PathOf("romProject.xml")));
+    }
+
+    [Theory]
+    [InlineData("con.xml")]
+    [InlineData("a .xml")]
+    public async Task CreateNewProject_InvalidName_FailsWithoutWriting(string fileName)
+    {
+        var entriesBefore = ListEntries();
+
+        var result = await _service.CreateNewProjectAsync(PathOf(fileName));
+
+        Assert.True(result.HasFailed);
+        Assert.Equal(entriesBefore, ListEntries());
+    }
+
+    [Fact]
+    public async Task CanRenameResource_MatchesRenameFailure()
+    {
+        await AddDataFileAsync(_tree.Root, "data");
+        var other = await AddDataFileAsync(_tree.Root, "other");
+
+        foreach (var name in new[] { "", "a/b", "Data", "project", "lpt1" })
+        {
+            var canRename = _service.CanRenameResource(other, name);
+            var rename = await _service.RenameResourceAsync(other, name);
+
+            Assert.True(canRename.HasFailed, name);
+            Assert.Equal(canRename.AsError.Reason, rename.AsError.Reason);
+        }
+
+        Assert.True(_service.CanRenameResource(other, "other").HasSucceeded);
+        Assert.True(_service.CanRenameResource(other, "Other").HasSucceeded);
+    }
+
+    [Fact]
+    public async Task OpenProject_NameBreakingRule_LoadsAndMoves()
+    {
+        await AddDataFileAsync(_tree.Root, "data");
+        var longName = new string('n', 120);
+        File.Move(PathOf("data.xml"), PathOf($"{longName}.xml"));
+        Directory.CreateDirectory(PathOf(" Lead"));
+
+        var tree = await ReopenAsync();
+
+        var node = tree.Root.ChildNodes.Single(x => x.Name == longName);
+        var folder = tree.Root.ChildNodes.Single(x => x.Name == " Lead");
+        Assert.True((await _service.RenameResourceAsync(node, longName)).HasSucceeded);
+        Assert.True((await _service.MoveNodeAsync(node, folder)).HasSucceeded);
+        Assert.Same(folder, node.Parent);
+        Assert.True(File.Exists(PathOf(" Lead", $"{longName}.xml")));
+    }
+
+    private static void AssertNoTransactionFiles(string directory)
+    {
+        Assert.Empty(Directory.EnumerateFiles(directory, "*.tmp", SearchOption.AllDirectories));
+        Assert.Empty(Directory.EnumerateFiles(directory, "*.bak", SearchOption.AllDirectories));
+        Assert.Empty(Directory.EnumerateFiles(directory, "_transaction.json", SearchOption.AllDirectories));
+    }
+
+    private static Palette PaletteOf(ResourceNode node) => (Palette)node.Item;
+    private static DataSource SourceOf(ResourceNode node) => (DataSource)node.Item;
+
+    private static IIndexedCodec IndexedCodecAt(Arranger arranger, int x) =>
+        (IIndexedCodec)arranger.GetElement(x, 0)!.Value.Codec;
+
+    private async Task<ArrangerNode> AddArrangerAsync(ResourceNode parent, string name, params (ResourceNode Source, ResourceNode Palette)[] elements)
+    {
+        var arranger = new ScatteredArranger(name, PixelColorType.Indexed, ElementLayout.Tiled, elements.Length, 1, 8, 8);
+
+        for (int x = 0; x < elements.Length; x++)
+        {
+            var codec = (IIndexedCodec)CodecFixture.Shared.CodecFactory.CreateCodec("GBA 4bpp")!;
+            codec.Palette = PaletteOf(elements[x].Palette);
+            arranger.SetElement(new ArrangerElement(x * 8, 0, SourceOf(elements[x].Source), BitAddress.Zero, codec), x, 0);
+        }
+
+        return (ArrangerNode)(await _service.AddResourceAsync(parent, arranger)).AsSuccess.Result;
+    }
+
+    private async Task<MagitekResult> DeleteAsync(ResourceNode node)
+    {
+        var plan = _service.PreviewResourceDeletion(node).AsSuccess.Result;
+        return await _service.ApplyResourceDeletionAsync(plan, _palette);
+    }
+
+    [Fact]
+    public async Task ConcurrentSaveAndSaveResource_BothSucceed_NoLeftoverFiles()
+    {
+        var data = await AddDataFileAsync(_tree.Root, "data");
+        var pal = await AddPaletteAsync(_tree.Root, "pal", SourceOf(data), new ColorRgba32(1, 1, 1, 255));
+        var other = await AddPaletteAsync(_tree.Root, "other", SourceOf(data), new ColorRgba32(1, 1, 1, 255));
+        var palColor = new ColorRgba32(0x12, 0x34, 0x56, 255);
+        var otherColor = new ColorRgba32(0x65, 0x43, 0x21, 255);
+        ((ProjectNativeColorSource)PaletteOf(pal).ColorSources[0]).Value = palColor;
+        ((ProjectNativeColorSource)PaletteOf(other).ColorSources[0]).Value = otherColor;
+
+        var save = _service.SaveProjectAsync(_tree);
+        var saveResource = _service.SaveResourceAsync(_tree, other, true);
+        var results = await Task.WhenAll(save, saveResource);
+
+        Assert.All(results, x => Assert.True(x.HasSucceeded));
+        Assert.Contains(_colorFactory.ToHexString(palColor), File.ReadAllText(PathOf("pal.xml")));
+        Assert.Contains(_colorFactory.ToHexString(otherColor), File.ReadAllText(PathOf("other.xml")));
+        AssertNoTransactionFiles(_directory);
+    }
+
+    [Fact]
+    public async Task CreateNewProject_ExistingFile_FailsAndKeepsFile()
+    {
+        Directory.CreateDirectory(PathOf("New"));
+        File.WriteAllText(PathOf("New", "existing.xml"), "keep");
+
+        var result = await _service.CreateNewProjectAsync(PathOf("New", "existing.xml"));
+
+        Assert.True(result.HasFailed);
+        Assert.Contains("already exists", result.AsError.Reason);
+        Assert.Equal("keep", File.ReadAllText(PathOf("New", "existing.xml")));
+    }
+
+    [Fact]
+    public async Task CreateNewProject_MissingDirectory_Fails()
+    {
+        var result = await _service.CreateNewProjectAsync(PathOf("Missing", "new.xml"));
+
+        Assert.True(result.HasFailed);
+        Assert.False(Directory.Exists(PathOf("Missing")));
+    }
+
+    [Fact]
+    public async Task CreateNewProject_DirectoryHoldsXml_Fails()
+    {
+        Directory.CreateDirectory(PathOf("Holder", "Nested"));
+        File.WriteAllText(PathOf("Holder", "Nested", "stray.xml"), "<stray />");
+
+        var result = await _service.CreateNewProjectAsync(PathOf("Holder", "new.xml"));
+
+        Assert.True(result.HasFailed);
+        Assert.False(File.Exists(PathOf("Holder", "new.xml")));
+    }
+
+    [Fact]
+    public async Task CreateNewProject_PathOfOpenProject_Fails()
+    {
+        File.Delete(PathOf("project.xml"));
+
+        var result = await _service.CreateNewProjectAsync(PathOf("PROJECT.xml"));
+
+        Assert.True(result.HasFailed);
+        Assert.Contains("already open", result.AsError.Reason);
+        Assert.Empty(Directory.EnumerateFiles(_directory, "*.xml"));
+    }
+
+    [Fact]
+    public async Task CreateNewProjectWithExistingFile_ProjectFileExists_Fails()
+    {
+        File.WriteAllText(PathOf("romProject.xml"), "keep");
+
+        var result = await _service.CreateNewProjectWithExistingFileAsync(PathOf("romProject.xml"), PathOf("rom.bin"));
+
+        Assert.True(result.HasFailed);
+        Assert.Equal("keep", File.ReadAllText(PathOf("romProject.xml")));
+    }
+
+    [Fact]
+    public async Task CreateNewProjectWithExistingFile_DataFileMissing_Fails()
+    {
+        var result = await _service.CreateNewProjectWithExistingFileAsync(PathOf("romProject.xml"), PathOf("missing.bin"));
+
+        Assert.True(result.HasFailed);
+        Assert.False(File.Exists(PathOf("romProject.xml")));
+    }
+
+    [Fact]
+    public async Task CreateNewProjectWithExistingFile_Succeeds_RaisesProjectOpenedAndLoads()
+    {
+        Directory.CreateDirectory(PathOf("Fresh"));
+        File.WriteAllBytes(PathOf("Fresh", "game.bin"), new byte[16]);
+        ProjectTree? opened = null;
+        _service.ProjectOpened += (_, tree) => opened = tree;
+
+        var result = await _service.CreateNewProjectWithExistingFileAsync(PathOf("Fresh", "gameProject.xml"), PathOf("Fresh", "game.bin"));
+
+        Assert.True(result.HasSucceeded);
+        Assert.Same(result.AsSuccess.Result, opened);
+        _service.CloseProject(opened!);
+
+        var reopened = await _service.OpenProjectFileAsync(PathOf("Fresh", "gameProject.xml"));
+        var source = ItemOf<FileDataSource>(reopened.AsSuccess.Result, "game");
+        Assert.Equal(PathOf("Fresh", "game.bin"), Path.GetFullPath(source.FileLocation));
+        AssertNoTransactionFiles(PathOf("Fresh"));
+    }
+
+    [Fact]
+    public async Task AddResource_WritesFileWithoutLeftovers()
+    {
+        var node = await AddDataFileAsync(_tree.Root, "data");
+
+        Assert.Equal(PathOf("data.xml"), node.DiskLocation);
+        Assert.NotNull(node.Model);
+        Assert.Contains("datafile", File.ReadAllText(PathOf("data.xml")));
+        AssertNoTransactionFiles(_directory);
+    }
+
+    [Fact]
+    public async Task DeleteDataFile_ArrangerOnTwoDataFiles_SurvivesWithOnlyOtherElements()
+    {
+        File.WriteAllBytes(PathOf("rom2.bin"), new byte[64]);
+        var dataA = await AddDataFileAsync(_tree.Root, "a");
+        var dataB = await AddDataFileAsync(_tree.Root, "b", "rom2.bin");
+        var pal = await AddPaletteAsync(_tree.Root, "pal", SourceOf(dataB), new ColorRgba32(1, 2, 3, 255));
+        var arrangerNode = await AddArrangerAsync(_tree.Root, "arr", (dataA, pal), (dataB, pal));
+        var arranger = (Arranger)arrangerNode.Item;
+
+        var plan = _service.PreviewResourceDeletion(dataA).AsSuccess.Result;
+        var change = plan.Changes.Single(x => ReferenceEquals(x.ResourceNode, arrangerNode));
+        var result = await _service.ApplyResourceDeletionAsync(plan, _palette);
+
+        Assert.Equal((false, true, false), (change.Removed, change.LostElement, change.LostPalette));
+        Assert.True(result.HasSucceeded);
+        Assert.True(_tree.ContainsResource(arranger));
+        Assert.Null(arranger.GetElement(0, 0));
+        Assert.Same(dataB.Item, arranger.GetElement(1, 0)?.Source);
+        Assert.Single(XDocument.Load(PathOf("arr.xml")).Root!.Elements("element"));
+    }
+
+    [Fact]
+    public async Task DeleteDataFile_ArrangerOnlyOnIt_IsRemoved()
+    {
+        File.WriteAllBytes(PathOf("rom2.bin"), new byte[64]);
+        var dataA = await AddDataFileAsync(_tree.Root, "a");
+        var dataB = await AddDataFileAsync(_tree.Root, "b", "rom2.bin");
+        var pal = await AddPaletteAsync(_tree.Root, "pal", SourceOf(dataB), new ColorRgba32(1, 2, 3, 255));
+        var arrangerNode = await AddArrangerAsync(_tree.Root, "arr", (dataA, pal), (dataA, pal));
+
+        var plan = _service.PreviewResourceDeletion(dataA).AsSuccess.Result;
+        var result = await _service.ApplyResourceDeletionAsync(plan, _palette);
+
+        Assert.True(plan.Changes.Single(x => ReferenceEquals(x.ResourceNode, arrangerNode)).Removed);
+        Assert.True(result.HasSucceeded);
+        Assert.False(_tree.ContainsResource(arrangerNode.Item));
+        Assert.False(File.Exists(PathOf("arr.xml")));
+        Assert.True(_tree.ContainsResource(pal.Item));
+    }
+
+    [Fact]
+    public async Task DeletePalette_OnlyElementsOnItGetFallback()
+    {
+        var data = await AddDataFileAsync(_tree.Root, "data");
+        var removedPal = await AddPaletteAsync(_tree.Root, "pal1", SourceOf(data), new ColorRgba32(1, 2, 3, 255));
+        var keptPal = await AddPaletteAsync(_tree.Root, "pal2", SourceOf(data), new ColorRgba32(4, 5, 6, 255));
+        var arrangerNode = await AddArrangerAsync(_tree.Root, "arr", (data, removedPal), (data, keptPal));
+        var arranger = (Arranger)arrangerNode.Item;
+
+        var plan = _service.PreviewResourceDeletion(removedPal).AsSuccess.Result;
+        var change = plan.Changes.Single(x => ReferenceEquals(x.ResourceNode, arrangerNode));
+        var result = await _service.ApplyResourceDeletionAsync(plan, _palette);
+
+        Assert.Equal((false, false, true), (change.Removed, change.LostElement, change.LostPalette));
+        Assert.True(result.HasSucceeded);
+        Assert.Same(_palette, IndexedCodecAt(arranger, 0).Palette);
+        Assert.Same(keptPal.Item, IndexedCodecAt(arranger, 1).Palette);
+    }
+
+    [Fact]
+    public async Task DeletePalette_ArrangerFileRewrittenWithFallbackKey()
+    {
+        var data = await AddDataFileAsync(_tree.Root, "data");
+        var removedPal = await AddPaletteAsync(_tree.Root, "pal1", SourceOf(data), new ColorRgba32(1, 2, 3, 255));
+        var keptPal = await AddPaletteAsync(_tree.Root, "pal2", SourceOf(data), new ColorRgba32(4, 5, 6, 255));
+        await AddArrangerAsync(_tree.Root, "arr", (data, removedPal), (data, keptPal));
+
+        Assert.True((await DeleteAsync(removedPal)).HasSucceeded);
+        var tree = await ReopenAsync();
+
+        var arranger = ItemOf<ScatteredArranger>(tree, "arr");
+        Assert.Equal(_palette.Name, IndexedCodecAt(arranger, 0).Palette.Name);
+        Assert.Same(ItemOf<Palette>(tree, "pal2"), IndexedCodecAt(arranger, 1).Palette);
+    }
+
+    [Fact]
+    public async Task DeleteDataFile_KeepsDataFileOnDisk()
+    {
+        var data = await AddDataFileAsync(_tree.Root, "data");
+
+        Assert.True((await DeleteAsync(data)).HasSucceeded);
+
+        Assert.False(File.Exists(PathOf("data.xml")));
+        Assert.Equal(64, new FileInfo(PathOf("rom.bin")).Length);
+    }
+
+    [Fact]
+    public async Task DeleteDataFile_ReleasesFileHandle()
+    {
+        var data = await AddDataFileAsync(_tree.Root, "data");
+        SourceOf(data).Read(BitAddress.Zero, 8);
+
+        Assert.True((await DeleteAsync(data)).HasSucceeded);
+
+        File.Delete(PathOf("rom.bin"));
+        Assert.False(File.Exists(PathOf("rom.bin")));
+    }
+
+    [Fact]
+    public async Task ApplyDeletion_TransactionFails_LeavesTreeResourcesAndDiskUnchanged()
+    {
+        File.WriteAllBytes(PathOf("rom2.bin"), new byte[64]);
+        var dataA = await AddDataFileAsync(_tree.Root, "a");
+        var dataB = await AddDataFileAsync(_tree.Root, "b", "rom2.bin");
+        var pal = await AddPaletteAsync(_tree.Root, "pal", SourceOf(dataB), new ColorRgba32(1, 2, 3, 255));
+        var arrangerNode = await AddArrangerAsync(_tree.Root, "arr", (dataA, pal), (dataB, pal));
+        var arranger = (Arranger)arrangerNode.Item;
+        var modelBefore = arrangerNode.Model;
+        var entriesBefore = ListEntries();
+        var arrangerXml = File.ReadAllText(PathOf("arr.xml"));
+        File.SetAttributes(PathOf("arr.xml"), FileAttributes.ReadOnly);
+        _changes.Clear();
+
+        try
+        {
+            var result = await DeleteAsync(dataA);
+
+            Assert.True(result.HasFailed);
+            Assert.Empty(_changes);
+            Assert.True(_tree.ContainsResource(dataA.Item));
+            Assert.Same(dataA.Item, arranger.GetElement(0, 0)?.Source);
+            Assert.Same(modelBefore, arrangerNode.Model);
+            Assert.Equal(arrangerXml, File.ReadAllText(PathOf("arr.xml")));
+            Assert.Equal(entriesBefore, ListEntries());
+        }
+        finally
+        {
+            File.SetAttributes(PathOf("arr.xml"), FileAttributes.Normal);
+        }
+    }
+
+    [Fact]
+    public async Task ApplyDeletion_ResourceFileLocked_RemovesNodeAndReportsFile()
+    {
+        var data = await AddDataFileAsync(_tree.Root, "data");
+
+        MagitekResult result;
+        using (new FileStream(PathOf("data.xml"), FileMode.Open, FileAccess.Read, FileShare.None))
+            result = await DeleteAsync(data);
+
+        Assert.True(result.HasFailed);
+        Assert.Contains(PathOf("data.xml"), result.AsError.Reason);
+        Assert.False(_tree.ContainsResource(data.Item));
+    }
+
+    private static Dictionary<string, byte[]> ReadFiles(string directory) =>
+        Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories).ToDictionary(x => x, File.ReadAllBytes);
+
+    private async Task<(ResourceNode Data, ResourceNode Folder, ResourceNode Palette)> CreateSaveAsProjectAsync()
+    {
+        var data = await AddDataFileAsync(_tree.Root, "data");
+        var folder = await AddFolderAsync(_tree.Root, "Folder");
+        var pal = await AddPaletteAsync(folder, "pal", SourceOf(data), new ColorRgba32(1, 2, 3, 255));
+        await AddArrangerAsync(folder, "arr", (data, pal));
+        return (data, folder, pal);
+    }
+
+    [Fact]
+    public async Task SaveProjectAs_NewDirectory_ProducesProjectThatLoads()
+    {
+        var (_, folder, _) = await CreateSaveAsProjectAsync();
+        // The journal would fail to write here if it were placed in the old directory
+        Directory.CreateDirectory(PathOf("_transaction.json"));
+        var oldFiles = ReadFiles(_directory);
+        var newDirectory = TestPaths.CreateTempPath("");
+        Directory.CreateDirectory(newDirectory);
+        var newProjectFile = Path.Combine(newDirectory, "copy.xml");
+        var otherService = CreateService();
+
+        try
+        {
+            var result = await _service.SaveProjectAsAsync(_tree, newProjectFile);
+
+            Assert.True(result.HasSucceeded, result.HasFailed ? result.AsError.Reason : null);
+            Assert.Equal("copy", _tree.Name);
+            Assert.Equal(newProjectFile, _tree.Root.DiskLocation);
+            Assert.Equal(newDirectory, ((ProjectNode)_tree.Root).BaseDirectory);
+            Assert.Equal(Path.Combine(newDirectory, "Folder"), folder.DiskLocation);
+            Assert.Equal(oldFiles.Keys.Order(), ReadFiles(_directory).Keys.Order());
+            Assert.All(oldFiles, x => Assert.Equal(x.Value, File.ReadAllBytes(x.Key)));
+            AssertNoTransactionFiles(newDirectory);
+
+            var copy = (await otherService.OpenProjectFileAsync(newProjectFile)).AsSuccess.Result;
+            var copyFolder = copy.Root.ChildNodes.Single(x => x.Name == "Folder");
+            var copyPalette = (Palette)copyFolder.ChildNodes.Single(x => x.Name == "pal").Item;
+            var copyArranger = (ScatteredArranger)copyFolder.ChildNodes.Single(x => x.Name == "arr").Item;
+            var copySource = ItemOf<FileDataSource>(copy, "data");
+
+            Assert.Equal(["data", "Folder"], copy.Root.ChildNodes.Select(x => x.Name).Order());
+            Assert.Equal(new ColorRgba32(1, 2, 3, 255), copyPalette.GetNativeColor(0));
+            Assert.Same(copySource, copyArranger.GetElement(0, 0)?.Source);
+            Assert.Same(copyPalette, IndexedCodecAt(copyArranger, 0).Palette);
+            Assert.Equal(PathOf("rom.bin"), Path.GetFullPath(copySource.FileLocation));
+        }
+        finally
+        {
+            otherService.CloseProjects();
+            Directory.Delete(newDirectory, true);
+        }
+    }
+
+    [Fact]
+    public async Task SaveProjectAs_ThenSave_WritesToNewLocation()
+    {
+        var (_, _, pal) = await CreateSaveAsProjectAsync();
+        var oldPaletteXml = File.ReadAllText(PathOf("Folder", "pal.xml"));
+        var newDirectory = TestPaths.CreateTempPath("");
+        Directory.CreateDirectory(newDirectory);
+
+        try
+        {
+            Assert.True((await _service.SaveProjectAsAsync(_tree, Path.Combine(newDirectory, "copy.xml"))).HasSucceeded);
+            var newColor = new ColorRgba32(0x77, 0x66, 0x55, 255);
+            ((ProjectNativeColorSource)PaletteOf(pal).ColorSources[0]).Value = newColor;
+
+            Assert.True((await _service.SaveProjectAsync(_tree)).HasSucceeded);
+            await AddDataFileAsync(_tree.Root, "late");
+
+            Assert.Contains(_colorFactory.ToHexString(newColor), File.ReadAllText(Path.Combine(newDirectory, "Folder", "pal.xml")));
+            Assert.Equal(oldPaletteXml, File.ReadAllText(PathOf("Folder", "pal.xml")));
+            Assert.True(File.Exists(Path.Combine(newDirectory, "late.xml")));
+            Assert.False(File.Exists(PathOf("late.xml")));
+        }
+        finally
+        {
+            _service.CloseProjects();
+            Directory.Delete(newDirectory, true);
+        }
+    }
+
+    [Fact]
+    public async Task SaveProjectAs_TargetDirectoryHoldsXml_FailsWithoutWriting()
+    {
+        await CreateSaveAsProjectAsync();
+        Directory.CreateDirectory(PathOf("Target", "Nested"));
+        File.WriteAllText(PathOf("Target", "Nested", "stray.xml"), "<stray />");
+        var entriesBefore = ListEntries();
+
+        var result = await _service.SaveProjectAsAsync(_tree, PathOf("Target", "copy.xml"));
+
+        Assert.True(result.HasFailed);
+        Assert.Equal(entriesBefore, ListEntries());
+        Assert.Equal("project", _tree.Name);
+        Assert.Equal(PathOf("project.xml"), _tree.Root.DiskLocation);
+    }
+
+    [Fact]
+    public async Task SaveProjectAs_WriteFails_RestoresLocationsAndName()
+    {
+        var (data, folder, _) = await CreateSaveAsProjectAsync();
+        var newDirectory = PathOf("Target");
+        // A directory where a resource file goes makes its replace fail inside the transaction
+        Directory.CreateDirectory(Path.Combine(newDirectory, "data.xml"));
+        var modelBefore = _tree.Root.Model;
+        _changes.Clear();
+
+        var result = await _service.SaveProjectAsAsync(_tree, Path.Combine(newDirectory, "copy.xml"));
+
+        Assert.True(result.HasFailed);
+        Assert.Equal("project", _tree.Name);
+        Assert.Equal(PathOf("project.xml"), _tree.Root.DiskLocation);
+        Assert.Equal(_directory, ((ProjectNode)_tree.Root).BaseDirectory);
+        Assert.Same(modelBefore, _tree.Root.Model);
+        Assert.Equal(PathOf("data.xml"), data.DiskLocation);
+        Assert.Equal(PathOf("Folder"), folder.DiskLocation);
+        Assert.Equal(["project", "copy"], _changes.Select(x => x.OldName));
+        Assert.Equal([Path.Combine(newDirectory, "data.xml")], Directory.EnumerateFileSystemEntries(newDirectory));
+        Assert.True((await _service.SaveProjectAsync(_tree)).HasSucceeded);
+    }
+
+    [Fact]
+    public async Task SaveResource_WritesOnlyThatResource()
+    {
+        var data = await AddDataFileAsync(_tree.Root, "data");
+        var pal = await AddPaletteAsync(_tree.Root, "pal", SourceOf(data), new ColorRgba32(1, 1, 1, 255));
+        var other = await AddPaletteAsync(_tree.Root, "other", SourceOf(data), new ColorRgba32(1, 1, 1, 255));
+        var otherXml = File.ReadAllText(PathOf("other.xml"));
+        var newColor = new ColorRgba32(0x12, 0x34, 0x56, 255);
+        ((ProjectNativeColorSource)PaletteOf(pal).ColorSources[0]).Value = newColor;
+        ((ProjectNativeColorSource)PaletteOf(other).ColorSources[0]).Value = newColor;
+
+        var result = await _service.SaveResourceAsync(_tree, pal, false);
+
+        Assert.True(result.HasSucceeded);
+        Assert.Contains(_colorFactory.ToHexString(newColor), File.ReadAllText(PathOf("pal.xml")));
+        Assert.Equal(otherXml, File.ReadAllText(PathOf("other.xml")));
+    }
+
+    [Fact]
+    public async Task SaveResource_NoDiskLocation_Fails()
+    {
+        var data = await AddDataFileAsync(_tree.Root, "data");
+        data.DiskLocation = null;
+
+        var result = await _service.SaveResourceAsync(_tree, data, true);
+
+        Assert.True(result.HasFailed);
+    }
+
+    [Fact]
+    public async Task SaveAndSaveAs_WriterThrows_FailWithoutThrowing()
+    {
+        File.WriteAllBytes(PathOf("rom2.bin"), new byte[64]);
+        var dataA = await AddDataFileAsync(_tree.Root, "a");
+        var dataB = await AddDataFileAsync(_tree.Root, "b", "rom2.bin");
+        var pal = await AddPaletteAsync(_tree.Root, "pal", SourceOf(dataB), new ColorRgba32(1, 2, 3, 255));
+        await AddArrangerAsync(_tree.Root, "arr", (dataA, pal));
+        // Detaching outside the service leaves the arranger on a source the writer cannot map
+        _tree.Root.RemoveChildNode("a");
+        Directory.CreateDirectory(PathOf("Target"));
+
+        var save = await _service.SaveProjectAsync(_tree);
+        var saveAs = await _service.SaveProjectAsAsync(_tree, PathOf("Target", "copy.xml"));
+
+        Assert.True(save.HasFailed);
+        Assert.True(saveAs.HasFailed);
+        Assert.Equal(PathOf("project.xml"), _tree.Root.DiskLocation);
+        Assert.Empty(Directory.EnumerateFileSystemEntries(PathOf("Target")));
+        SourceOf(dataA).Dispose();
+    }
+
+    [Fact]
+    public async Task RenameFile_ProjectWriteFails_RestoresNameAndKeepsOldFile()
+    {
+        var data = await AddDataFileAsync(_tree.Root, "data");
+        await AddPaletteAsync(_tree.Root, "pal", SourceOf(data), new ColorRgba32(1, 2, 3, 255));
+        var paletteXml = File.ReadAllText(PathOf("pal.xml"));
+        File.SetAttributes(PathOf("pal.xml"), FileAttributes.ReadOnly);
+
+        try
+        {
+            var result = await _service.RenameResourceAsync(data, "renamed");
+
+            Assert.True(result.HasFailed);
+            Assert.Equal("data", data.Name);
+            Assert.Equal(PathOf("data.xml"), data.DiskLocation);
+            Assert.True(File.Exists(PathOf("data.xml")));
+            Assert.False(File.Exists(PathOf("renamed.xml")));
+            Assert.Equal(paletteXml, File.ReadAllText(PathOf("pal.xml")));
+            AssertNoTransactionFiles(_directory);
+        }
+        finally
+        {
+            File.SetAttributes(PathOf("pal.xml"), FileAttributes.Normal);
+        }
     }
 }

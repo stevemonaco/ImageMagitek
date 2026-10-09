@@ -79,8 +79,11 @@ public static partial class ColorParser
             if (NesRegex().IsMatch(input))
             {
                 uint nesRaw = byte.Parse(input.AsSpan(1, 2), System.Globalization.NumberStyles.HexNumber);
-                color = new ColorNes(nesRaw);
-                return true;
+                if (nesRaw <= 0x3F)
+                {
+                    color = new ColorNes(nesRaw);
+                    return true;
+                }
             }
         }
         else if (colorModel == ColorModel.Bgr9)

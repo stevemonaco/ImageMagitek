@@ -54,7 +54,7 @@ The UI around PNG export and import for scattered arrangers: the export file pro
 
 - **UI-IMAGE-IO-004** — The app shall offer import as Import From... on a scattered arranger node and as "Import Image Into Selection..." in a scattered editor's canvas context menu, the latter enabled only with a selection on an arranger that is not read-only.
   - Tests: manual — right-click a node and the canvas.
-- **UI-IMAGE-IO-005** — If the arranger is read-only, then import shall alert "Import" with "'<name>' is read-only because it uses a codec that cannot encode" and stop.
+- **UI-IMAGE-IO-005** — If the arranger is read-only, then import shall alert "Import" with "'<name>' is read-only because it <reason>" (LIB-ARRANGERS-049) and stop.
   - Tests: `ReadOnlyArrangerTests.Prepare_ReadOnly_Fails`
 - **UI-IMAGE-IO-006** — If the arranger reads from a missing data file, then import shall alert with the missing file and stop.
   - Tests: untested

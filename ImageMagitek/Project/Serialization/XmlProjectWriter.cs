@@ -15,12 +15,14 @@ namespace ImageMagitek.Project.Serialization;
 
 public sealed class XmlProjectWriter : IProjectWriter
 {
-    public string Version => "0.9";
+    private const string ProjectVersion = "0.9";
+
     private readonly List<IProjectResource> _globalResources;
     private readonly Palette _globalDefaultPalette;
     private readonly ProjectTree _tree;
     private readonly IColorFactory _colorFactory;
-    private string _baseDirectory;
+    private readonly string _resourceBaseDirectory;
+    private string _journalDirectory;
 
     private readonly SemaphoreSlim _writeLock = new(1, 1);
 
@@ -33,7 +35,8 @@ public sealed class XmlProjectWriter : IProjectWriter
         _colorFactory = colorFactory;
         _globalResources = globalResources.ToList();
         _globalDefaultPalette = globalResources.OfType<Palette>().First();
-        _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(tree.Root.DiskLocation))!;
+        _journalDirectory = Path.GetDirectoryName(Path.GetFullPath(tree.Root.DiskLocation))!;
+        _resourceBaseDirectory = tree.Root is ProjectNode projectNode ? Path.GetFullPath(string.IsNullOrEmpty(projectNode.BaseDirectory) ? "." : projectNode.BaseDirectory) : _journalDirectory;
     }
 
     /// <summary>
@@ -50,7 +53,7 @@ public sealed class XmlProjectWriter : IProjectWriter
         await _writeLock.WaitAsync().ConfigureAwait(false);
         try
         {
-            _baseDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName))!;
+            _journalDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName))!;
 
             var serializeResult = await TrySerializeProjectTreeAsync(_tree).ConfigureAwait(false);
             return serializeResult.Match<MagitekResult>(
@@ -85,6 +88,9 @@ public sealed class XmlProjectWriter : IProjectWriter
         else if (resourceNode is PaletteNode { Item: Palette pal })
         {
             var model = pal.MapToModel(resourceMap, _colorFactory);
+            if (FindUnwritableReason(model) is string reason)
+                throw new InvalidOperationException(reason);
+
             return Stringify(Serialize(model));
         }
         else if (resourceNode is ArrangerNode { Item: ScatteredArranger arranger })
@@ -129,6 +135,9 @@ public sealed class XmlProjectWriter : IProjectWriter
             else if (resourceNode is PaletteNode paletteNode)
             {
                 var model = MapPaletteModel(paletteNode, resourceMap);
+                if (FindUnwritableReason(model) is string reason)
+                    return new MagitekResult.Failed(reason);
+
                 contents = Stringify(Serialize(model));
                 currentModel = model;
             }
@@ -163,6 +172,30 @@ public sealed class XmlProjectWriter : IProjectWriter
         }
     }
 
+    /// <inheritdoc/>
+    public async Task<MagitekResult> WriteModelsAsync(IReadOnlyList<(ResourceNode Node, ResourceModel Model)> writes)
+    {
+        foreach (var (node, _) in writes)
+        {
+            if (node.DiskLocation is null)
+                return new MagitekResult.Failed($"Resource '{node.Name}' cannot be saved because '{nameof(node.DiskLocation)}' is null");
+        }
+
+        await _writeLock.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            var actions = writes.Select(x => (x.Node.DiskLocation!, Stringify(SerializeModel(x.Model)), x.Node, x.Model));
+            var transactionResult = await RunTransactionsAsync(actions).ConfigureAwait(false);
+            return transactionResult.Match<MagitekResult>(
+                success => MagitekResult.SuccessResult,
+                failed => new MagitekResult.Failed(failed.Reasons.First()));
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
     private async Task<MagitekResults> TrySerializeProjectTreeAsync(ProjectTree tree)
     {
         var actions = new List<(string targetPath, string contents, ResourceNode node, ResourceModel model)>();
@@ -187,7 +220,11 @@ public sealed class XmlProjectWriter : IProjectWriter
             }
             else if (node is PaletteNode paletteNode)
             {
-                currentModel = MapPaletteModel(paletteNode, resourceMap);
+                var paletteModel = MapPaletteModel(paletteNode, resourceMap);
+                if (FindUnwritableReason(paletteModel) is string reason)
+                    return new MagitekResults.Failed([reason]);
+
+                currentModel = paletteModel;
                 diskModel = paletteNode.Model;
             }
             else if (node is ArrangerNode arrangerNode)
@@ -218,7 +255,7 @@ public sealed class XmlProjectWriter : IProjectWriter
         if (actionList.Count == 0)
             return MagitekResults.SuccessResults;
 
-        var transaction = new WriteAheadLogTransaction(_baseDirectory);
+        var transaction = new WriteAheadLogTransaction(_journalDirectory);
 
         foreach (var action in actionList)
         {
@@ -262,11 +299,29 @@ public sealed class XmlProjectWriter : IProjectWriter
     private PaletteModel MapPaletteModel(PaletteNode node, Dictionary<IProjectResource, string> resourceMap) =>
         node.CommittedModel?.Invoke(resourceMap) ?? ((Palette)node.Item).MapToModel(resourceMap, _colorFactory);
 
+    private string? FindUnwritableReason(PaletteModel model)
+    {
+        if (model.DataFileKey is null)
+            return $"Palette '{model.Name}' cannot be saved because it has no data file";
+
+        var foreignType = _colorFactory.CreateColor(model.ColorModel).GetType();
+        var index = 0;
+
+        foreach (var source in model.ColorSources)
+        {
+            if (source is ProjectForeignColorSourceModel foreign && foreign.Value.GetType() != foreignType)
+                return $"Palette '{model.Name}' cannot be saved because color {index} is not a {model.ColorModel} color";
+
+            index += source is FileColorSourceModel fileSource ? fileSource.Entries : 1;
+        }
+
+        return null;
+    }
+
     private XElement SerializeModel(ResourceModel model)
     {
         return model switch
         {
-            ResourceFolderModel folderModel => Serialize(folderModel),
             DataFileModel dataFileModel => Serialize(dataFileModel),
             PaletteModel paletteModel => Serialize(paletteModel),
             ScatteredArrangerModel arrangerModel => Serialize(arrangerModel),
@@ -275,26 +330,10 @@ public sealed class XmlProjectWriter : IProjectWriter
         };
     }
 
-    private void AddResourceToXmlTree(XElement projectNode, XElement resourceNode, string[] resourcePaths)
-    {
-        var nodeVisitor = projectNode;
-
-        foreach (var path in resourcePaths.Take(resourcePaths.Length - 1))
-        {
-            nodeVisitor = nodeVisitor.Elements()
-                .FirstOrDefault(x => x.Attribute("name")?.Value == path);
-
-            if (nodeVisitor is null)
-                throw new KeyNotFoundException($"{nameof(AddResourceToXmlTree)}: node with path '{path}' not found");
-        }
-
-        nodeVisitor.Add(resourceNode);
-    }
-
     private XElement Serialize(ImageProjectModel projectModel)
     {
         var element = new XElement("project");
-        element.Add(new XAttribute("version", Version));
+        element.Add(new XAttribute("version", ProjectVersion));
 
         if (!string.IsNullOrEmpty(projectModel.Root))
             element.Add(new XAttribute("root", projectModel.Root));
@@ -302,16 +341,11 @@ public sealed class XmlProjectWriter : IProjectWriter
         return element;
     }
 
-    private XElement Serialize(ResourceFolderModel folderModel)
-    {
-        return new XElement("folder", new XAttribute("name", folderModel.Name));
-    }
-
     private XElement Serialize(DataFileModel dataFileModel)
     {
         var element = new XElement("datafile");
 
-        var relativePath = Path.GetRelativePath(_baseDirectory, dataFileModel.Location);
+        var relativePath = Path.GetRelativePath(_resourceBaseDirectory, dataFileModel.Location);
         element.Add(new XAttribute("location", relativePath));
         return element;
     }
@@ -329,6 +363,10 @@ public sealed class XmlProjectWriter : IProjectWriter
             {
                 var fileElement = new XElement("filesource");
                 fileElement.Add(new XAttribute("fileoffset", $"{fileSource.FileAddress.ByteOffset:X}"));
+
+                if (fileSource.FileAddress.BitOffset != 0)
+                    fileElement.Add(new XAttribute("bitoffset", fileSource.FileAddress.BitOffset));
+
                 fileElement.Add(new XAttribute("entries", fileSource.Entries));
 
                 if (fileSource.Endian == Endian.Big)

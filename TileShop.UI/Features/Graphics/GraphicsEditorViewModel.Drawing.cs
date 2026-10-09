@@ -21,7 +21,7 @@ public partial class GraphicsEditorViewModel
 
     public bool CanEditSelectedColor =>
         IsDrawMode && IsIndexedColor && ActivePalette is not null &&
-        ActivePalette.Palette.StorageSource != PaletteStorageSource.GlobalJson;
+        !ActivePalette.Palette.IsReadOnly;
 
     [RelayCommand]
     private void OpenColorEditorFlyout()
@@ -80,18 +80,9 @@ public partial class GraphicsEditorViewModel
     //     EditMode = GraphicsEditMode.Draw;
     // }
 
-    public void StartPencilDraw(int x, int y, ColorPriority priority)
+    public void StartPencilDraw()
     {
-        if (IsIndexedColor)
-        {
-            var colorIndex = priority == ColorPriority.Primary ? PrimaryColorIndex : SecondaryColorIndex;
-            _activePencilHistory = new PencilHistoryAction<byte>(colorIndex);
-        }
-        else
-        {
-            var color = priority == ColorPriority.Primary ? PrimaryColor : SecondaryColor;
-            _activePencilHistory = new PencilHistoryAction<ColorRgba32>(color);
-        }
+        _activePencilHistory = IsIndexedColor ? new PencilHistoryAction<byte>() : new PencilHistoryAction<ColorRgba32>();
         IsPencilDrawing = true;
     }
 
@@ -129,7 +120,8 @@ public partial class GraphicsEditorViewModel
         if (IsDirectColor)
             return HasColorDataAtPosition(x, y);
 
-        return HasColorDataAtPosition(x, y) && HasActivePaletteColor(PrimaryColorIndex) && _imageAdapter.CanSetPixel(x, y, GetActivePaletteColor(PrimaryColorIndex)).HasSucceeded;
+        return HasColorDataAtPosition(x, y) && HasActivePaletteColor(PrimaryColorIndex)
+            && _imageAdapter.CanPaintIndex(x, y, ActivePalette!.Palette, PrimaryColorIndex).HasSucceeded;
     }
 
     internal bool CanFloodFillAtPosition(int x, int y) => IsPointInDrawClip(x, y) && HasColorDataAtPosition(x, y);
@@ -140,12 +132,6 @@ public partial class GraphicsEditorViewModel
         _imageAdapter.GetElementAtPixel(x, y) is { IsWithinSource: true } element && (IsDirectColor || element.Codec is IIndexedCodec);
 
     private bool HasActivePaletteColor(byte colorIndex) => ActivePalette is not null && colorIndex < ActivePalette.Colors.Count;
-
-    private ColorRgba32 GetActivePaletteColor(byte colorIndex)
-    {
-        var modelColor = ActivePalette!.Colors[colorIndex].Color;
-        return new ColorRgba32(modelColor.R, modelColor.G, modelColor.B, modelColor.A);
-    }
 
     internal void SetPixelAtPosition(int x, int y, ColorPriority priority)
     {
@@ -169,12 +155,12 @@ public partial class GraphicsEditorViewModel
         if (!HasActivePaletteColor(colorIndex))
             return;
 
-        var result = _imageAdapter.TrySetPixel(x, y, GetActivePaletteColor(colorIndex));
+        var result = _imageAdapter.TryPaintIndex(x, y, ActivePalette!.Palette, colorIndex);
 
         var message = result.Match(
-            _ =>
+            success =>
             {
-                if (_activePencilHistory is PencilHistoryAction<byte> pencilHistory && pencilHistory.ModifiedPoints.Add(new Point(x, y)))
+                if (_activePencilHistory is PencilHistoryAction<byte> pencilHistory && pencilHistory.Add(x, y, success.Result))
                 {
                     IsModified = true;
                     BitmapAdapter.Invalidate(x, y, 1, 1);
@@ -191,7 +177,7 @@ public partial class GraphicsEditorViewModel
     {
         _imageAdapter.SetDirectPixel(x, y, color);
 
-        if (_activePencilHistory is PencilHistoryAction<ColorRgba32> pencilHistory && pencilHistory.ModifiedPoints.Add(new Point(x, y)))
+        if (_activePencilHistory is PencilHistoryAction<ColorRgba32> pencilHistory && pencilHistory.Add(x, y, color))
         {
             IsModified = true;
             BitmapAdapter.Invalidate(x, y, 1, 1);
@@ -234,7 +220,7 @@ public partial class GraphicsEditorViewModel
 
             if (el is ArrangerElement { Codec: IIndexedCodec codec } element)
             {
-                ActivePalette = Palettes.FirstOrDefault(p => ReferenceEquals(p.Palette, codec.Palette));
+                ActivePalette = FindOrAddPalette(codec.Palette);
                 var colorIndex = _imageAdapter.GetIndexedPixel(x, y);
 
                 if (priority == ColorPriority.Primary)

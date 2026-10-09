@@ -112,8 +112,8 @@ public sealed class IndexedImage : ImageBase<byte>
     /// </summary>
     public override void SaveImage()
     {
-        if (Arranger.IsReadOnly())
-            throw new InvalidOperationException($"Arranger '{Arranger.Name}' uses a codec that cannot encode and is read-only");
+        if (Arranger.GetReadOnlyReason() is { } reason)
+            throw new InvalidOperationException($"Arranger '{Arranger.Name}' is read-only because it {reason}");
 
         // Additional copy is necessary for the case where the image pixels are not completely element-aligned
         // Edited image is merged into a full arranger image and then the entire arranger is encoded/saved

@@ -102,8 +102,8 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
 
     public override void SaveImage()
     {
-        if (Arranger.IsReadOnly())
-            throw new InvalidOperationException($"Arranger '{Arranger.Name}' uses a codec that cannot encode and is read-only");
+        if (Arranger.GetReadOnlyReason() is { } reason)
+            throw new InvalidOperationException($"Arranger '{Arranger.Name}' is read-only because it {reason}");
 
         var buffer = new ColorRgba32[Arranger.ElementPixelSize.Height, Arranger.ElementPixelSize.Width];
         foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IDirectCodec && x.IsWithinSource))

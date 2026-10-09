@@ -88,7 +88,14 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     [RelayCommand]
     public async Task AddNewFolder(ResourceNodeViewModel parentNodeModel)
     {
-        var result = _projectService.CreateNewFolder(parentNodeModel.Node, "New Folder");
+        var parent = parentNodeModel.Node;
+        var dialogModel = new NameResourceViewModel("New Folder", FindFreeFolderName(parent),
+            name => _projectService.CanAddResource(parent, name, true));
+
+        if (await _interactions.RequestAsync(dialogModel) is not { } folderName)
+            return;
+
+        var result = await _projectService.CreateNewFolderAsync(parent, folderName);
 
         await result.Match(
             success =>
@@ -102,6 +109,11 @@ public partial class ProjectTreeViewModel : ObservableRecipient
             });
     }
 
+    private static string FindFreeFolderName(ResourceNode parent) =>
+        Enumerable.Range(1, int.MaxValue - 1)
+            .Select(n => n == 1 ? "New Folder" : $"New Folder ({n})")
+            .First(name => !parent.ChildNodes.Any(x => ResourceName.AreSame(x.Name, name)));
+
     [RelayCommand]
     public async Task AddNewDataFile(ResourceNodeViewModel parentNodeModel)
     {
@@ -110,19 +122,22 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         if (dataFileName is not null)
         {
             var dfName = Path.GetFileName(dataFileName.LocalPath);
-            var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
+            var parent = parentNodeModel.Node;
 
-            if (parentNodeModel.Children.Any(x => x.Name == dfName))
+            if (_projectService.CanAddResource(parent, dfName, false).HasFailed)
             {
-                await _interactions.AlertAsync("Error", $"'{parentNodeModel.Name}' already contains a resource named '{dfName}'");
-                return;
+                var dialogModel = new NameResourceViewModel("Add Data File", dfName, name => _projectService.CanAddResource(parent, name, false));
+                if (await _interactions.RequestAsync(dialogModel) is not { } acceptedName)
+                    return;
+
+                dfName = acceptedName;
             }
 
             if (!await CloseStandaloneFileAsync(dataFileName.LocalPath))
                 return;
 
             var df = new FileDataSource(dfName, dataFileName.LocalPath);
-            var result = _projectService.AddResource(parentNodeModel.Node, df);
+            var result = await _projectService.AddResourceAsync(parentNodeModel.Node, df);
 
             await result.Match(
                 success =>
@@ -140,7 +155,8 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     [RelayCommand]
     public async Task AddNewPalette(ResourceNodeViewModel parentNodeModel)
     {
-        var dialogModel = new AddPaletteViewModel(parentNodeModel.Children.Select(x => x.Name), _preferencesStore.Preferences.AddPalette);
+        var dialogModel = new AddPaletteViewModel(name => _projectService.CanAddResource(parentNodeModel.Node, name, false),
+            _preferencesStore.Preferences.AddPalette);
 
         var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
         var dataFiles = projectTree.EnumerateDepthFirst().Select(x => x.Item).OfType<FileDataSource>();
@@ -167,7 +183,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
             var pal = new Palette(dialogModel.PaletteName, _colorFactory, colorModel, sources,
                 dialogModel.ZeroIndexTransparent, PaletteStorageSource.ProjectXml, dialogModel.SelectedDataSource);
 
-            var result = _projectService.AddResource(parentNodeModel.Node, pal);
+            var result = await _projectService.AddResourceAsync(parentNodeModel.Node, pal);
 
             await result.Match(
                 async success =>
@@ -187,8 +203,8 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     [RelayCommand]
     public async Task AddNewScatteredArranger(ResourceNodeViewModel parentNodeModel)
     {
-        var dialogModel = new AddScatteredArrangerViewModel(parentNodeModel.Children.Select(x => x.Name), _preferencesStore.Preferences.AddArranger);
-        var projectTree = _projectService.GetContainingProject(parentNodeModel.Node);
+        var dialogModel = new AddScatteredArrangerViewModel(name => _projectService.CanAddResource(parentNodeModel.Node, name, false),
+            _preferencesStore.Preferences.AddArranger);
 
         var dialogResult = await _interactions.RequestAsync(dialogModel);
 
@@ -207,7 +223,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
                 _ => throw new InvalidOperationException($"Invalid layout: {dialogModel.SelectedLayout}")
             };
 
-            var result = _projectService.AddResource(parentNodeModel.Node, arranger);
+            var result = await _projectService.AddResourceAsync(parentNodeModel.Node, arranger);
 
             await result.Match(
                 async success =>
@@ -271,9 +287,9 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     /// <param name="bounds">Arranger pixels the import may change, or null for the whole arranger</param>
     public async Task ImportArrangerInto(ScatteredArranger arranger, Rectangle? bounds)
     {
-        if (arranger.IsReadOnly())
+        if (arranger.GetReadOnlyReason() is { } reason)
         {
-            await _interactions.AlertAsync("Import", $"'{arranger.Name}' is read-only because it uses a codec that cannot encode");
+            await _interactions.AlertAsync("Import", $"'{arranger.Name}' is read-only because it {reason}");
             return;
         }
 
@@ -343,7 +359,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         if (!await _editors.ConfirmRemovalAsync(plan))
             return;
 
-        var deletionResult = _projectService.ApplyResourceDeletion(plan, _paletteStore.DefaultPalette);
+        var deletionResult = await _projectService.ApplyResourceDeletionAsync(plan, _paletteStore.DefaultPalette);
         if (deletionResult.HasFailed)
             await _interactions.AlertAsync("Delete", deletionResult.AsError.Reason);
     }
@@ -351,12 +367,12 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     [RelayCommand]
     public async Task RenameNode(ResourceNodeViewModel nodeModel)
     {
-        var dialogModel = new RenameNodeViewModel(nodeModel);
-        var dialogResult = await _interactions.RequestAsync(dialogModel);
+        var dialogModel = new NameResourceViewModel($"Rename {nodeModel.Name}", nodeModel.Name,
+            name => _projectService.CanRenameResource(nodeModel.Node, name));
 
-        if (dialogResult is not null)
+        if (await _interactions.RequestAsync(dialogModel) is { } newName)
         {
-            var result = await _projectService.RenameResourceAsync(nodeModel.Node, dialogModel.Name);
+            var result = await _projectService.RenameResourceAsync(nodeModel.Node, newName);
             if (result.HasFailed)
                 await _interactions.AlertAsync("Rename failed", result.AsError.Reason);
         }
@@ -429,9 +445,9 @@ public partial class ProjectTreeViewModel : ObservableRecipient
 
     public async void ReceiveAsync(AddScatteredArrangerFromCopyMessage message)
     {
-        var dialogModel = new NameResourceViewModel();
         var copy = message.Copy;
         var projectTree = _projectService.GetContainingProject(message.ProjectResource);
+        var dialogModel = new NameResourceViewModel("Name Resource", "", name => _projectService.CanAddResource(projectTree.Root, name, false));
 
         var dialogResult = await _interactions.RequestAsync(dialogModel);
 
@@ -446,7 +462,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
             await copyResult.Match(
                 async copySuccess =>
                 {
-                    var addResult = _projectService.AddResource(projectTree.Root, newArranger);
+                    var addResult = await _projectService.AddResourceAsync(projectTree.Root, newArranger);
 
                     await addResult.Match(
                         async addSuccess =>
@@ -471,7 +487,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         {
             if (projectFileName is not null)
             {
-                var result = _projectService.CreateNewProject(Path.GetFullPath(projectFileName.LocalPath));
+                var result = await _projectService.CreateNewProjectAsync(Path.GetFullPath(projectFileName.LocalPath));
                 if (result.HasFailed)
                     await _interactions.AlertAsync("Project Error", result.AsError.Reason);
             }
@@ -495,6 +511,14 @@ public partial class ProjectTreeViewModel : ObservableRecipient
             return;
         }
 
+        if (FindDataFileViewModel(Projects, dataFileName.LocalPath) is { } projectDataVm)
+        {
+            RevealNode(projectDataVm);
+            var holder = _projectService.GetContainingProject(projectDataVm.Node);
+            await _interactions.AlertAsync("Project Error", $"'{Path.GetFileName(dataFileName.LocalPath)}' is already in project '{holder.Name}'");
+            return;
+        }
+
         if (await CreateProjectFromDataFileAsync(dataFileName.LocalPath) is { } tree)
             SelectedNode = FindViewModel(tree.Root);
     }
@@ -513,12 +537,23 @@ public partial class ProjectTreeViewModel : ObservableRecipient
             _projectService.OpenDataFile(dataFileName);
     }
 
-    private StandaloneFileNodeViewModel? FindStandaloneFile(string fileName)
+    private StandaloneFileNodeViewModel? FindStandaloneFile(string fileName) =>
+        FindDataFileViewModel(Projects.OfType<StandaloneFileNodeViewModel>(), fileName) as StandaloneFileNodeViewModel;
+
+    private static ResourceNodeViewModel? FindDataFileViewModel(IEnumerable<ResourceNodeViewModel> roots, string fileName)
     {
         var path = Path.GetFullPath(fileName);
-        return Projects.OfType<StandaloneFileNodeViewModel>()
+        return roots.SelectMany(x => x.SelfAndDescendants())
             .FirstOrDefault(x => x.Node.Item is FileDataSource source &&
                 string.Equals(Path.GetFullPath(source.FileLocation), path, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void RevealNode(ResourceNodeViewModel nodeModel)
+    {
+        foreach (var ancestor in nodeModel.Ancestors())
+            ancestor.IsExpanded = true;
+
+        SelectedNode = nodeModel;
     }
 
     /// <summary>
@@ -563,16 +598,9 @@ public partial class ProjectTreeViewModel : ObservableRecipient
 
         var path = Path.GetFullPath(dataFileName.LocalPath);
 
-        var openVm = Projects.SelectMany(x => x.SelfAndDescendants())
-            .FirstOrDefault(x => x.Node.Item is FileDataSource source &&
-                string.Equals(Path.GetFullPath(source.FileLocation), path, StringComparison.OrdinalIgnoreCase));
-
-        if (openVm is not null)
+        if (FindDataFileViewModel(Projects, path) is { } openVm)
         {
-            foreach (var ancestor in openVm.Ancestors())
-                ancestor.IsExpanded = true;
-
-            SelectedNode = openVm;
+            RevealNode(openVm);
             return;
         }
 

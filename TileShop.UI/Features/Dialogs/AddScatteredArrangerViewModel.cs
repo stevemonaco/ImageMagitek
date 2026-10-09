@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using ImageMagitek;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Models;
@@ -10,7 +9,10 @@ using TileShop.Shared.Models;
 namespace TileShop.UI.ViewModels;
 public partial class AddScatteredArrangerViewModel : RequestViewModel<AddScatteredArrangerViewModel>
 {
+    private readonly Func<string, MagitekResult> _validateName;
+
     [ObservableProperty] private string _arrangerName = "";
+    [ObservableProperty] private string? _nameError;
     [ObservableProperty] private SelectionOption<PixelColorType> _selectedColorType;
     [ObservableProperty] private SelectionOption<ElementLayout> _selectedLayout;
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(TiledArrangerPixelWidth))] private int _tiledArrangerElementWidth;
@@ -22,9 +24,6 @@ public partial class AddScatteredArrangerViewModel : RequestViewModel<AddScatter
 
     [ObservableProperty] private int _singleArrangerPixelWidth;
     [ObservableProperty] private int _singleArrangerPixelHeight;
-    [ObservableProperty] private ObservableCollection<string> _existingResourceNames;
-    [ObservableProperty] private ObservableCollection<string> _validationErrors = [];
-    [ObservableProperty] private bool _canAdd;
 
     public List<SelectionOption<PixelColorType>> AvailableColorTypes { get; } = 
     [
@@ -38,9 +37,9 @@ public partial class AddScatteredArrangerViewModel : RequestViewModel<AddScatter
         new(ElementLayout.Single, "Single", "Restricts the arranger to a single element, suitable for pixel-based graphics")
     ];
 
-    public AddScatteredArrangerViewModel(IEnumerable<string> existingResourceNames, AddArrangerPreferences preferences)
+    public AddScatteredArrangerViewModel(Func<string, MagitekResult> validateName, AddArrangerPreferences preferences)
     {
-        _existingResourceNames = new(existingResourceNames);
+        _validateName = validateName;
         Title = "New Scattered Arranger";
         AcceptName = "Add";
 
@@ -52,7 +51,19 @@ public partial class AddScatteredArrangerViewModel : RequestViewModel<AddScatter
         _tiledElementPixelHeight = preferences.TiledElementPixelHeight;
         _singleArrangerPixelWidth = preferences.SingleArrangerPixelWidth;
         _singleArrangerPixelHeight = preferences.SingleArrangerPixelHeight;
+        UpdateNameError();
     }
+
+    partial void OnArrangerNameChanged(string value) => UpdateNameError();
+
+    private void UpdateNameError()
+    {
+        var result = _validateName(ArrangerName);
+        NameError = result.HasFailed ? result.AsError.Reason : null;
+        TryAcceptCommand.NotifyCanExecuteChanged();
+    }
+
+    protected override bool CanAccept() => NameError is null;
 
     public override AddScatteredArrangerViewModel? ProduceResult() => this;
 
@@ -61,18 +72,4 @@ public partial class AddScatteredArrangerViewModel : RequestViewModel<AddScatter
         TiledArrangerElementWidth, TiledArrangerElementHeight,
         TiledElementPixelWidth, TiledElementPixelHeight,
         SingleArrangerPixelWidth, SingleArrangerPixelHeight);
-
-    [RelayCommand]
-    public void ValidateModel()
-    {
-        ValidationErrors.Clear();
-
-        if (string.IsNullOrWhiteSpace(ArrangerName))
-            ValidationErrors.Add($"Name is invalid");
-
-        if (ExistingResourceNames.Contains(ArrangerName))
-            ValidationErrors.Add($"Name already exists");
-
-        CanAdd = ValidationErrors.Count == 0;
-    }
 }

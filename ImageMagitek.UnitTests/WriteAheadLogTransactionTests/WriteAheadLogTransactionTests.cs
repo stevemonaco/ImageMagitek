@@ -153,6 +153,35 @@ public class WriteAheadLogTransactionTests : IDisposable
         Assert.Equal("fresh data", await File.ReadAllTextAsync(newPath));
     }
 
+    [Fact]
+    public async Task ExecuteAsync_ReplaceFails_LeavesNoBackupFiles()
+    {
+        var newPath = CreateTestFilePath("new.txt");
+        var readOnlyPath = CreateTestFilePath("readonly.txt");
+        await File.WriteAllTextAsync(readOnlyPath, "original");
+        File.SetAttributes(readOnlyPath, FileAttributes.ReadOnly);
+
+        try
+        {
+            var tx = new WriteAheadLogTransaction(_testDir);
+            tx.AddWriteFile(newPath, "fresh");
+            tx.AddWriteFile(readOnlyPath, "replacement");
+
+            var result = await tx.ExecuteAsync();
+
+            Assert.True(result.HasFailed);
+            Assert.Equal("original", await File.ReadAllTextAsync(readOnlyPath));
+            Assert.False(File.Exists(newPath));
+            Assert.Empty(Directory.EnumerateFiles(_testDir, "*.bak"));
+            Assert.Empty(Directory.EnumerateFiles(_testDir, "*.tmp"));
+            Assert.False(File.Exists(Path.Combine(_testDir, "_transaction.json")));
+        }
+        finally
+        {
+            File.SetAttributes(readOnlyPath, FileAttributes.Normal);
+        }
+    }
+
     #endregion
 
     #region RecoverAsync
@@ -282,6 +311,55 @@ public class WriteAheadLogTransactionTests : IDisposable
         Assert.True(result.HasSucceeded);
         Assert.Equal("original value", await File.ReadAllTextAsync(completedPath));
         Assert.False(File.Exists(pendingPath));
+        Assert.False(File.Exists(completedPath + ".bak"));
+    }
+
+    [Fact]
+    public async Task RecoverAsync_PendingMovedButUnmarked_CountsAsCompleted()
+    {
+        var targetPath = CreateTestFilePath("target.txt");
+        await File.WriteAllTextAsync(targetPath, "new content");
+        await File.WriteAllTextAsync(targetPath + ".bak", "old content");
+
+        await WriteJournalAsync(new WalJournal
+        {
+            CreatedUtc = DateTime.UtcNow,
+            Operations = [PendingOperation(targetPath)]
+        });
+
+        var result = await WriteAheadLogTransaction.RecoverAsync(_testDir);
+
+        Assert.True(result.HasSucceeded);
+        Assert.Equal("new content", await File.ReadAllTextAsync(targetPath));
+        Assert.False(File.Exists(targetPath + ".bak"));
+        Assert.False(File.Exists(Path.Combine(_testDir, "_transaction.json")));
+    }
+
+    [Fact]
+    public async Task RecoverAsync_PendingStagingPresentAndMovedOp_RollsForwardBoth()
+    {
+        var movedPath = CreateTestFilePath("moved.txt");
+        var stagedPath = CreateTestFilePath("staged.txt");
+
+        await File.WriteAllTextAsync(movedPath, "moved new");
+        await File.WriteAllTextAsync(movedPath + ".bak", "moved old");
+        await File.WriteAllTextAsync(stagedPath, "staged old");
+        await File.WriteAllTextAsync(stagedPath + ".tmp", "staged new");
+
+        await WriteJournalAsync(new WalJournal
+        {
+            CreatedUtc = DateTime.UtcNow,
+            Operations = [PendingOperation(movedPath), PendingOperation(stagedPath)]
+        });
+
+        var result = await WriteAheadLogTransaction.RecoverAsync(_testDir);
+
+        Assert.True(result.HasSucceeded);
+        Assert.Equal("moved new", await File.ReadAllTextAsync(movedPath));
+        Assert.Equal("staged new", await File.ReadAllTextAsync(stagedPath));
+        Assert.Empty(Directory.EnumerateFiles(_testDir, "*.bak"));
+        Assert.Empty(Directory.EnumerateFiles(_testDir, "*.tmp"));
+        Assert.False(File.Exists(Path.Combine(_testDir, "_transaction.json")));
     }
 
     [Fact]
@@ -410,6 +488,16 @@ public class WriteAheadLogTransactionTests : IDisposable
     }
 
     #endregion
+
+    private static WalOperation PendingOperation(string targetPath) => new()
+    {
+        Id = Guid.NewGuid(),
+        Type = WalOperationType.WriteFile,
+        TargetPath = targetPath,
+        StagingPath = targetPath + ".tmp",
+        BackupPath = targetPath + ".bak",
+        State = WalOperationState.Pending
+    };
 
     private async Task WriteJournalAsync(WalJournal journal)
     {
