@@ -27,4 +27,30 @@ public sealed class TileLayout
     }
 
     public static TileLayout Default { get; } = new TileLayout("Default", 1, 1, 1, new Point[] { new Point(0, 0) });
+
+    /// <summary>
+    /// Creates a layout that visits every tile of a width x height block, row by row or column by column
+    /// </summary>
+    public static TileLayout Create(string name, int width, int height, bool columnMajor)
+    {
+        var pattern = columnMajor
+            ? Enumerable.Range(0, width).SelectMany(x => Enumerable.Range(0, height).Select(y => new Point(x, y)))
+            : Enumerable.Range(0, height).SelectMany(y => Enumerable.Range(0, width).Select(x => new Point(x, y)));
+
+        return new TileLayout(name, width, height, width * height, pattern);
+    }
+
+    /// <summary>
+    /// Compares name, size and pattern
+    /// </summary>
+    public static bool AreEquivalent(TileLayout? a, TileLayout? b)
+    {
+        if (ReferenceEquals(a, b))
+            return true;
+
+        if (a is null || b is null)
+            return false;
+
+        return a.Name == b.Name && a.Width == b.Width && a.Height == b.Height && a.Pattern.SequenceEqual(b.Pattern);
+    }
 }

@@ -1,3 +1,5 @@
+using System.Drawing;
+
 namespace ImageMagitek.Image.Import;
 
 /// <summary>
@@ -9,6 +11,12 @@ public sealed class ImageImportPreview
     public Arranger Arranger { get; }
     public DecodedImage Source { get; }
     public ImportReport Report { get; }
+
+    /// <summary>Arranger pixel where the source's top-left pixel lands</summary>
+    public Point Offset { get; init; }
+
+    /// <summary>Arranger pixels the import may change</summary>
+    public Rectangle Bounds { get; init; }
 
     public IndexedImage? CurrentIndexed { get; }
     public IndexedImage? ResultIndexed { get; }

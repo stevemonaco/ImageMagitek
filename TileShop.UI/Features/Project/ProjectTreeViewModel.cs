@@ -47,6 +47,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         _editors = editors;
 
         Messenger.Register<AddScatteredArrangerFromCopyMessage>(this, (r, m) => ReceiveAsync(m));
+        Messenger.Register<ImportImageIntoArrangerMessage>(this, async (r, m) => await ImportArrangerInto(m.Arranger, m.Bounds));
         _projectService.ProjectOpened += OnProjectOpened;
         _projectService.ProjectClosed += OnProjectClosed;
     }
@@ -236,6 +237,9 @@ public partial class ProjectTreeViewModel : ObservableRecipient
 
         if (exportFileName is not null)
         {
+            if (await _editors.AlertIfMissingDataSourceAsync(arranger, "Export"))
+                return;
+
             if (arranger.ColorType == PixelColorType.Indexed)
             {
                 var image = new IndexedImage(arranger);
@@ -259,13 +263,19 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     }
 
     [RelayCommand]
-    public async Task ImportArrangerFrom(ScatteredArranger arranger)
+    public Task ImportArrangerFrom(ScatteredArranger arranger) => ImportArrangerInto(arranger, null);
+
+    /// <param name="bounds">Arranger pixels the import may change, or null for the whole arranger</param>
+    public async Task ImportArrangerInto(ScatteredArranger arranger, Rectangle? bounds)
     {
         if (arranger.IsReadOnly())
         {
             await _interactions.AlertAsync("Import", $"'{arranger.Name}' is read-only because it uses a codec that cannot encode");
             return;
         }
+
+        if (await _editors.AlertIfMissingDataSourceAsync(arranger, "Import"))
+            return;
 
         if (!await ResolveUnsavedChangesBeforeImport(arranger))
             return;
@@ -275,7 +285,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         if (fileName is null)
             return;
 
-        var dialogModel = new ImportImageViewModel(arranger, fileName.LocalPath, _fileSelect, _preferencesStore);
+        var dialogModel = new ImportImageViewModel(arranger, fileName.LocalPath, _fileSelect, _preferencesStore, bounds);
         await _interactions.RequestAsync(dialogModel);
     }
 
@@ -364,6 +374,11 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         if (await _interactions.RequestAsync(new MoveNodeViewModel(node.Name, destinations)) is not { } destination)
             return;
 
+        await MoveNodeToAsync(node, destination);
+    }
+
+    public async Task MoveNodeToAsync(ResourceNode node, ResourceNode destination)
+    {
         var result = await _projectService.MoveNodeAsync(node, destination);
         if (result.HasFailed)
         {
@@ -374,6 +389,32 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         if (FindViewModel(destination) is { } destinationModel)
             destinationModel.IsExpanded = true;
         SelectedNode = FindViewModel(node);
+    }
+
+    public bool CanDropNode(ResourceNodeViewModel source, ResourceNodeViewModel target) =>
+        _projectService.CanMoveNode(source.Node, target.Node).HasSucceeded;
+
+    [RelayCommand]
+    public async Task RelinkDataFile(DataFileNodeViewModel nodeModel)
+    {
+        if (nodeModel.Node.Item is not FileDataSource { IsMissing: true } dataSource)
+        {
+            nodeModel.IsMissing = false;
+            return;
+        }
+
+        var fileName = await _fileSelect.RequestExistingDataFileName();
+        if (fileName is null)
+            return;
+
+        var result = await _projectService.RelinkDataFileAsync(dataSource, fileName.LocalPath);
+        if (result.HasFailed)
+        {
+            await _interactions.AlertAsync("Relink failed", result.AsError.Reason);
+            return;
+        }
+
+        nodeModel.IsMissing = false;
     }
 
     public async void ReceiveAsync(AddScatteredArrangerFromCopyMessage message)
@@ -482,7 +523,11 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         var openResult = await _projectService.OpenProjectFileAsync(projectFileName);
 
         return await openResult.Match(
-            success => Task.FromResult(true),
+            async success =>
+            {
+                await AlertMissingDataFiles(success.Result);
+                return true;
+            },
             async fail =>
             {
                 var message = $"Project '{projectFileName}' contained {fail.Reasons.Count} errors{Environment.NewLine}" +
@@ -490,6 +535,24 @@ public partial class ProjectTreeViewModel : ObservableRecipient
                 await _interactions.AlertAsync("Project Open Error", message);
                 return false;
             });
+    }
+
+    private async Task AlertMissingDataFiles(ProjectTree tree)
+    {
+        var missing = tree.EnumerateDepthFirst()
+            .Select(x => x.Item)
+            .OfType<FileDataSource>()
+            .Where(x => x.IsMissing)
+            .Select(x => $"{x.Name} ({x.FileLocation})")
+            .ToList();
+
+        if (missing.Count == 0)
+            return;
+
+        await _interactions.AlertAsync("Missing Data Files",
+            $"Project '{tree.Name}' references data files that could not be found:{Environment.NewLine}" +
+            string.Join(Environment.NewLine, missing) + Environment.NewLine + Environment.NewLine +
+            "Resources that read from them are unavailable until you right-click each file in the project tree and choose Relink...");
     }
 
     [RelayCommand]

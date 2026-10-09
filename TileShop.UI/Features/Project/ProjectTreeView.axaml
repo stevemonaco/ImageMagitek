@@ -3,9 +3,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:bh="using:TileShop.UI.Behaviors"
     xmlns:cc="https://github.com/stevemonaco/TileShop"
+    xmlns:dd="using:TileShop.UI.DragDrop"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:DataType="vm:ProjectTreeViewModel">
     <UserControl.Resources>
+        <dd:TreeViewItemResourceNodeDropHandler x:Key="ResourceNodeDropHandler" />
+
         <ContextMenu x:Key="ProjectContextMenu" x:DataType="vm:ProjectNodeViewModel">
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewFolderCommand}" CommandParameter="{Binding}" Header="Add New Folder..." />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File..." />
@@ -31,6 +34,8 @@
         </ContextMenu>
 
         <ContextMenu x:Key="DataFileContextMenu" x:DataType="vm:DataFileNodeViewModel">
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RelinkDataFileCommand}" CommandParameter="{Binding}" Header="Relink..."
+                IsVisible="{Binding IsMissing}" />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename..." />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).MoveNodeCommand}" CommandParameter="{Binding}" Header="Move to Folder..." />
@@ -77,10 +82,29 @@
             <Style Selector="TreeViewItem.palette">
                 <Setter Property="ContextMenu" Value="{StaticResource PaletteContextMenu}" />
             </Style>
+            <Style Selector="ContentControl.nodeHeader">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="CornerRadius" Value="3" />
+                <Setter Property="(Interaction.Behaviors)">
+                    <BehaviorCollectionTemplate>
+                        <BehaviorCollection>
+                            <dd:PayloadDragBehavior />
+                            <dd:PayloadDropBehavior Handler="{StaticResource ResourceNodeDropHandler}" />
+                        </BehaviorCollection>
+                    </BehaviorCollectionTemplate>
+                </Setter>
+            </Style>
+            <Style Selector="ContentControl.nodeHeader.dropReady">
+                <Setter Property="Background" Value="{DynamicResource SemiColorPrimaryLight}" />
+            </Style>
+            <Style Selector="TextBlock.missing">
+                <Setter Property="Foreground" Value="{DynamicResource SemiColorDanger}" />
+                <Setter Property="ToolTip.Tip" Value="File not found" />
+            </Style>
         </TreeView.Styles>
         <TreeView.ItemTemplate>
             <TreeDataTemplate x:DataType="vm:ResourceNodeViewModel" ItemsSource="{Binding Children}">
-                <ContentControl Content="{Binding}" />
+                <ContentControl Classes="nodeHeader" Content="{Binding}" />
             </TreeDataTemplate>
         </TreeView.ItemTemplate>
         <TreeView.DataTemplates>
@@ -110,7 +134,7 @@
             <TreeDataTemplate x:DataType="vm:DataFileNodeViewModel" DataType="vm:DataFileNodeViewModel" ItemsSource="{Binding Children}">
                 <StackPanel Orientation="Horizontal">
                     <Image Classes="resource-icon-medium" Source="{x:Static cc:AppIcons.NewNodeFile}" />
-                    <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
+                    <TextBlock Margin="4,0,0,0" Classes.missing="{Binding IsMissing}" Text="{Binding Name}" />
                 </StackPanel>
             </TreeDataTemplate>
 

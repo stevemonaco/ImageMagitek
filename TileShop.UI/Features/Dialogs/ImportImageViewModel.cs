@@ -45,6 +45,11 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
     [ObservableProperty] private ColorMatchStrategy _matchStrategy;
     [ObservableProperty] private bool _mapTransparentToIndexZero;
 
+    [ObservableProperty] private int _offsetX;
+    [ObservableProperty] private int _offsetY;
+
+    private readonly Rectangle? _bounds;
+
     [ObservableProperty] private bool _showDiff;
     [ObservableProperty] private double _onionSkinOpacity;
     [ObservableProperty] private bool _isPeeking;
@@ -72,7 +77,8 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
     public Action? OnResetZoom { get; set; }
     public Action<Point>? OnCenterOn { get; set; }
 
-    public ImportImageViewModel(Arranger arranger, string imageFileName, IAsyncFileRequestService fileSelect, UserPreferencesStore preferencesStore)
+    public ImportImageViewModel(Arranger arranger, string imageFileName, IAsyncFileRequestService fileSelect, UserPreferencesStore preferencesStore,
+        Rectangle? bounds = null)
     {
         if (arranger.ColorType is not (PixelColorType.Indexed or PixelColorType.Direct))
             throw new ArgumentException($"Invalid color type for '{arranger.Name}': {arranger.ColorType}");
@@ -88,7 +94,13 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
         _showDiff = preferences.ImportImage.ShowDiff;
         _onionSkinOpacity = preferences.ImportImage.OnionSkinOpacity;
 
-        Title = $"Import Image Into '{arranger.Name}'";
+        _bounds = bounds;
+        _offsetX = bounds?.X ?? 0;
+        _offsetY = bounds?.Y ?? 0;
+
+        Title = bounds is { } b
+            ? $"Import Image Into '{arranger.Name}' Selection ({b.Width}×{b.Height} at {b.X}, {b.Y})"
+            : $"Import Image Into '{arranger.Name}'";
         AcceptName = "Import";
 
         Load(imageFileName);
@@ -142,7 +154,6 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
             success =>
             {
                 _source = success.Result;
-                ImageDescription = $"{_source.Width}×{_source.Height}";
                 Reimport();
             },
             fail =>
@@ -161,7 +172,11 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
 
         var options = new ImageImportOptions(MatchStrategy, MapTransparentToIndexZero);
 
-        ImageImporter.Prepare(Arranger, _source, options).Switch(
+        var size = Arranger.ArrangerPixelSize;
+        var isPartial = OffsetX != 0 || OffsetY != 0 || _source.Width != size.Width || _source.Height != size.Height;
+        ImageDescription = isPartial ? $"{_source.Width}×{_source.Height} at ({OffsetX}, {OffsetY})" : $"{_source.Width}×{_source.Height}";
+
+        ImageImporter.Prepare(Arranger, _source, options, new Point(OffsetX, OffsetY), _bounds).Switch(
             success =>
             {
                 ImportError = null;
@@ -194,18 +209,27 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
     }
 
     /// <summary>
-    /// Describes the pixel under the pointer, or clears the description when it is off the image
+    /// Describes the arranger pixel under the pointer, or clears the description when it is off the arranger
     /// </summary>
     public void UpdateHover(int x, int y)
     {
-        if (Preview is not { } preview || x < 0 || y < 0 || x >= preview.Source.Width || y >= preview.Source.Height)
+        if (Preview is not { } preview || x < 0 || y < 0 || x >= preview.Report.Width || y >= preview.Report.Height)
         {
             HoverDescription = null;
             return;
         }
 
-        var i = y * preview.Source.Width + x;
-        var source = preview.Source.Pixels[i];
+        var i = y * preview.Report.Width + x;
+        var sx = x - preview.Offset.X;
+        var sy = y - preview.Offset.Y;
+
+        if (sx < 0 || sy < 0 || sx >= preview.Source.Width || sy >= preview.Source.Height)
+        {
+            HoverDescription = $"({x}, {y})  outside the image";
+            return;
+        }
+
+        var source = preview.Source.Pixels[sy * preview.Source.Width + sx];
         var state = preview.Report.PixelStates[i];
 
         var target = preview.ResultIndexed is { } indexed ? $"index {indexed.Image[i]}" : ColorRgba32ToMediaColorConverter.ToHex(preview.ResultDirect!.Image[i]);
@@ -219,6 +243,8 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
 
     partial void OnMatchStrategyChanged(ColorMatchStrategy value) => Reimport();
     partial void OnMapTransparentToIndexZeroChanged(bool value) => Reimport();
+    partial void OnOffsetXChanged(int value) => Reimport();
+    partial void OnOffsetYChanged(int value) => Reimport();
     partial void OnShowDiffChanged(bool value) => OnInvalidated?.Invoke();
     partial void OnSelectedEntryChanged(ImportColorEntryViewModel? value) => OnInvalidated?.Invoke();
     partial void OnZoomChanged(double value) => OnPropertyChanged(nameof(ZoomDescription));

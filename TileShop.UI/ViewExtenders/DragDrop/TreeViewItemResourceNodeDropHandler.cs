@@ -3,87 +3,67 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactions.DragAndDrop;
-using TileShop.UI.Models;
 using TileShop.UI.ViewModels;
 
-namespace TileShop.UI.ViewExtenders.DragDrop;
+namespace TileShop.UI.DragDrop;
+
+/// <summary>
+/// Drops a project tree node onto another node to move it there, using the same rules as "Move to Folder..."
+/// </summary>
 public sealed class TreeViewItemResourceNodeDropHandler : DropHandlerBase
 {
-    private bool Validate<T>(Control control, DragEventArgs e, object? sourceContext, object? targetContext, bool bExecute)
-        where T : ResourceNodeViewModel
+    private const string DropReadyClass = "dropReady";
+
+    private static ProjectTreeViewModel? FindTree(object? sender) =>
+        (sender as Control)?.FindAncestorOfType<TreeView>()?.DataContext as ProjectTreeViewModel;
+
+    public override bool Validate(object? sender, DragEventArgs e, object? sourceContext, object? targetContext, object? state) =>
+        sourceContext is ResourceNodeViewModel source
+        && targetContext is ResourceNodeViewModel target
+        && FindTree(sender)?.CanDropNode(source, target) is true;
+
+    public override bool Execute(object? sender, DragEventArgs e, object? sourceContext, object? targetContext, object? state)
     {
-        if (sourceContext is not T sourceItem
-            || targetContext is not ResourceNodeViewModel vm
-            || control.GetVisualAt(e.GetPosition(control)) is not Control targetControl
-            || targetControl.DataContext is not T targetItem)
+        if (sourceContext is not ResourceNodeViewModel source || targetContext is not ResourceNodeViewModel target
+            || FindTree(sender) is not { } tree || !tree.CanDropNode(source, target))
         {
             return false;
         }
 
-        //var items = vm.FinalColors;
-        //var sourceIndex = sourceItem.Index;
-        //var targetIndex = items.IndexOf(targetItem);
-
-        //if (sourceIndex < 0 || targetIndex < 0)
-        //{
-        //    return false;
-        //}
-
-        //if (bExecute)
-        //{
-        //    items[targetIndex] = new RemappableColorModel(sourceItem.Color, sourceItem.Index);
-        //}
-
+        _ = tree.MoveNodeToAsync(source.Node, target.Node);
         return true;
-    }
-
-    public override bool Validate(object? sender, DragEventArgs e, object? sourceContext, object? targetContext, object? state)
-    {
-        if (e.Source is Control && sender is Control control)
-        {
-            return Validate<ResourceNodeViewModel>(control, e, sourceContext, targetContext, false);
-        }
-        return false;
-    }
-
-    public override bool Execute(object? sender, DragEventArgs e, object? sourceContext, object? targetContext, object? state)
-    {
-        if (e.Source is Control && sender is Control control)
-        {
-            return Validate<ResourceNodeViewModel>(control, e, sourceContext, targetContext, true);
-        }
-        return false;
     }
 
     public override void Enter(object? sender, DragEventArgs e, object? sourceContext, object? targetContext)
     {
-        if (sender is not Control control)
-            return;
+        UpdateEffects(sender, e, sourceContext, targetContext);
 
-        if (Validate(sender, e, sourceContext, targetContext, null) == false)
-        {
-            e.DragEffects = DragDropEffects.None;
-        }
-        else
-        {
-            control.Classes.Add("dropReady");
-            e.DragEffects |= DragDropEffects.Copy | DragDropEffects.Move | DragDropEffects.Link;
-        }
-
-        e.Handled = true;
+        if (e.DragEffects != DragDropEffects.None && sender is Control control)
+            control.Classes.Add(DropReadyClass);
     }
 
-    public override void Over(object? sender, DragEventArgs e, object? sourceContext, object? targetContext)
+    public override void Over(object? sender, DragEventArgs e, object? sourceContext, object? targetContext) =>
+        UpdateEffects(sender, e, sourceContext, targetContext);
+
+    public override void Drop(object? sender, DragEventArgs e, object? sourceContext, object? targetContext)
     {
+        // No DragLeave is raised after a drop, so the highlight has to be cleared here
+        (sender as Control)?.Classes.Remove(DropReadyClass);
+
+        if (!Execute(sender, e, sourceContext, targetContext, null))
+            e.DragEffects = DragDropEffects.None;
+        e.Handled = true;
     }
 
     public override void Leave(object? sender, RoutedEventArgs e)
     {
-        if (sender is Border control && control.Classes.Contains("colorDrop") && !control.IsPointerOver)
-        {
-            control.Classes.Remove("dropReady");
-        }
-
+        (sender as Control)?.Classes.Remove(DropReadyClass);
         base.Leave(sender, e);
+    }
+
+    private void UpdateEffects(object? sender, DragEventArgs e, object? sourceContext, object? targetContext)
+    {
+        e.DragEffects = Validate(sender, e, sourceContext, targetContext, null) ? DragDropEffects.Move : DragDropEffects.None;
+        e.Handled = true;
     }
 }

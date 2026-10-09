@@ -163,14 +163,25 @@ public sealed class ImportPreviewRenderer : IDisposable
         if (key is not { } color || _preview is null)
             return;
 
-        var pixels = _preview.Source.Pixels;
-        _highlightLayer = new SKBitmap(_preview.Source.Width, _preview.Source.Height, SKColorType.Bgra8888, SKAlphaType.Unpremul);
+        var image = _preview.Source;
+        var report = _preview.Report;
+        var offset = _preview.Offset;
+        var bounds = _preview.Bounds;
+        _highlightLayer = new SKBitmap(report.Width, report.Height, SKColorType.Bgra8888, SKAlphaType.Unpremul);
+        _highlightLayer.Erase(SKColors.Transparent);
 
         unsafe
         {
             var dest = (uint*)_highlightLayer.GetPixels().ToPointer();
-            for (int i = 0; i < pixels.Length; i++)
-                dest[i] = pixels[i].Color == color ? _highlightColor : 0;
+            for (int sy = 0; sy < image.Height; sy++)
+            {
+                for (int sx = 0; sx < image.Width; sx++)
+                {
+                    int x = sx + offset.X, y = sy + offset.Y;
+                    if (bounds.Contains(x, y) && image.Pixels[sy * image.Width + sx].Color == color)
+                        dest[y * report.Width + x] = _highlightColor;
+                }
+            }
         }
     }
 

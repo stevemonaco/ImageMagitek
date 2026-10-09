@@ -2,7 +2,9 @@ using System;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
+using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
 using TileShop.UI.Models;
@@ -77,6 +79,19 @@ public partial class GraphicsEditorViewModel
         }
 
         PasteFromClipboardCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanImportIntoSelection => HasSelection && Resource is ScatteredArranger && !WorkingArranger.IsReadOnly();
+
+    [RelayCommand(CanExecute = nameof(CanImportIntoSelection))]
+    public void ImportIntoSelection()
+    {
+        if (!CanImportIntoSelection)
+            return;
+
+        var rect = Selection.SelectionRect;
+        var bounds = new System.Drawing.Rectangle(rect.SnappedLeft, rect.SnappedTop, rect.SnappedWidth, rect.SnappedHeight);
+        Messenger.Send(new ImportImageIntoArrangerMessage((ScatteredArranger)Resource, bounds));
     }
 
     [RelayCommand(CanExecute = nameof(CanDeleteElementSelection))]

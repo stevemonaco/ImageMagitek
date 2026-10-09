@@ -212,6 +212,13 @@ public partial class GraphicsEditorViewModel
 
         if (dialogResult is not null)
         {
+            if (dialogResult.SelectedPalette.Palette.DataSource is FileDataSource { IsMissing: true } missing)
+            {
+                await _interactions.AlertAsync("Associate Palette",
+                    $"'{dialogResult.SelectedPalette.Palette.Name}' is unavailable because data file '{missing.Name}' is missing. Right-click it in the project tree and choose Relink... to repair it.");
+                return;
+            }
+
             var palModel = new PaletteModel(dialogResult.SelectedPalette.Palette, dialogResult.SelectedPalette.Palette.Entries);
             Palettes.Add(palModel);
         }
@@ -455,6 +462,17 @@ public partial class GraphicsEditorViewModel
         if (arrangerWidth <= 0 || arrangerHeight <= 0)
             return;
 
+        if (IsTiledLayout)
+        {
+            var layout = seqArr.TileLayout;
+            arrangerWidth = Math.Max(layout.Width, arrangerWidth - arrangerWidth % layout.Width);
+            arrangerHeight = Math.Max(layout.Height, arrangerHeight - arrangerHeight % layout.Height);
+            _tiledArrangerWidth = arrangerWidth;
+            _tiledArrangerHeight = arrangerHeight;
+            OnPropertyChanged(nameof(TiledArrangerWidth));
+            OnPropertyChanged(nameof(TiledArrangerHeight));
+        }
+
         if (arrangerWidth == WorkingArranger.ArrangerElementSize.Width &&
             arrangerHeight == WorkingArranger.ArrangerElementSize.Height && IsTiledLayout)
             return;
@@ -499,6 +517,7 @@ public partial class GraphicsEditorViewModel
         CopySelectionCommand.NotifyCanExecuteChanged();
         CutSelectionCommand.NotifyCanExecuteChanged();
         DeleteElementSelectionCommand.NotifyCanExecuteChanged();
+        ImportIntoSelectionCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanRemapColors))]

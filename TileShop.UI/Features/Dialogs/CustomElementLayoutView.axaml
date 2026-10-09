@@ -1,0 +1,31 @@
+<UserControl x:Class="TileShop.UI.Views.CustomElementLayoutView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:con="using:TileShop.UI.Converters"
+    xmlns:vm="using:TileShop.UI.ViewModels"
+    x:DataType="vm:CustomElementLayoutViewModel">
+    <StackPanel Margin="10">
+        <TextBlock HorizontalAlignment="Center" Text="Flow Direction" />
+
+        <StackPanel Margin="0,4,0,0" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="10">
+            <RadioButton x:Name="HorizontalFlowButton" Content="Horizontal" GroupName="Flow"
+                IsChecked="{Binding FlowDirection, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RowLeftToRight}"
+                ToolTip.Tip="Elements flow row by row, left to right" />
+            <RadioButton x:Name="VerticalFlowButton" Content="Vertical" GroupName="Flow"
+                IsChecked="{Binding FlowDirection, Mode=TwoWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=ColumnTopToBottom}"
+                ToolTip.Tip="Elements flow column by column, top to bottom" />
+        </StackPanel>
+
+        <TextBlock Margin="0,16,0,0" HorizontalAlignment="Center" Text="Layout Size in Elements" />
+
+        <Grid Margin="0,4,0,0" HorizontalAlignment="Center" ColumnDefinitions="Auto,16,Auto">
+            <NumericUpDown x:Name="LayoutWidthBox" Grid.Column="0" MinWidth="80" Classes="dense" FormatString="0"
+                InnerLeftContent="W" Maximum="64" Minimum="1" ToolTip.Tip="Layout width in elements"
+                Value="{Binding Width}" />
+
+            <NumericUpDown x:Name="LayoutHeightBox" Grid.Column="2" MinWidth="80" Classes="dense" FormatString="0"
+                InnerLeftContent="H" Maximum="64" Minimum="1" ToolTip.Tip="Layout height in elements"
+                Value="{Binding Height}" />
+        </Grid>
+    </StackPanel>
+</UserControl>

@@ -380,4 +380,78 @@ public sealed class ProjectServiceTests : IDisposable
         Assert.Null(projectVm.Find(data));
         Assert.Null(projectVm.Find(palette));
     }
+
+    private async Task<ProjectTree> ReopenAsync()
+    {
+        var projectFile = _tree.Root.DiskLocation!;
+        _service.CloseProject(_tree);
+
+        var result = await _service.OpenProjectFileAsync(projectFile);
+        Assert.True(result.HasSucceeded, result.HasFailed ? string.Join("; ", result.AsError.Reasons) : null);
+        return result.AsSuccess.Result;
+    }
+
+    private static T ItemOf<T>(ProjectTree tree, string name) =>
+        Assert.IsType<T>(tree.Root.ChildNodes.Single(x => x.Name == name).Item);
+
+    [Fact]
+    public async Task MoveNode_NodeWithoutDiskLocation_FailsWithoutThrowing()
+    {
+        var node = AddDataFile(_tree.Root, "data");
+        var destination = AddFolder(_tree.Root, "Dest");
+        node.DiskLocation = null;
+
+        var result = await _service.MoveNodeAsync(node, destination);
+
+        Assert.True(result.HasFailed);
+        Assert.Same(_tree.Root, node.Parent);
+    }
+
+    [Fact]
+    public async Task OpenProject_MissingDataFile_LoadsWithSourceMarkedMissing()
+    {
+        var data = AddDataFile(_tree.Root, "data");
+        AddPalette(_tree.Root, "pal", (DataSource)data.Item, new ColorRgba32(1, 2, 3, 255));
+        File.Delete(PathOf("rom.bin"));
+
+        var tree = await ReopenAsync();
+
+        var source = ItemOf<FileDataSource>(tree, "data");
+        Assert.True(source.IsMissing);
+        ItemOf<Palette>(tree, "pal");
+    }
+
+    [Fact]
+    public async Task Relink_CopiesFileToExpectedLocation_AndRaisesResourceChanged()
+    {
+        AddDataFile(_tree.Root, "data");
+        var replacement = Path.Combine(_directory, "replacement.bin");
+        File.Move(PathOf("rom.bin"), replacement);
+
+        var tree = await ReopenAsync();
+        var source = ItemOf<FileDataSource>(tree, "data");
+        var changed = new List<IProjectResource>();
+        _service.ResourceChanged += (_, resource) => changed.Add(resource);
+        Assert.ThrowsAny<IOException>(() => source.Read(BitAddress.Zero, 8));
+
+        var result = await _service.RelinkDataFileAsync(source, replacement);
+
+        Assert.True(result.HasSucceeded);
+        Assert.False(source.IsMissing);
+        Assert.True(File.Exists(replacement));
+        Assert.Equal(64, new FileInfo(PathOf("rom.bin")).Length);
+        Assert.Contains(source, changed);
+        Assert.Single(source.Read(BitAddress.Zero, 8));
+        source.Dispose();
+    }
+
+    [Fact]
+    public async Task Relink_SourceNotMissing_Fails()
+    {
+        var data = AddDataFile(_tree.Root, "data");
+
+        var result = await _service.RelinkDataFileAsync((FileDataSource)data.Item, PathOf("rom.bin"));
+
+        Assert.True(result.HasFailed);
+    }
 }

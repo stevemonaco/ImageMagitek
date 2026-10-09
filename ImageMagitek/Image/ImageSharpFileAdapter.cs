@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using SixLabors.ImageSharp;
@@ -13,6 +14,13 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
     {
         var width = arranger.ArrangerPixelSize.Width;
         var height = arranger.ArrangerPixelSize.Height;
+
+        if (CombinedPalette.TryCreate(arranger) is { } combined && TryMapToCombined(image, arranger, combined) is { } combinedIndices)
+        {
+            IndexedPngFile.Write(imagePath, combinedIndices, width, height, combined.Colors);
+            return;
+        }
+
         Configuration.Default.PreferContiguousImageBuffers = true;
         using var outputImage = new Image<Rgba32>(width, height);
 
@@ -29,14 +37,43 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
                 {
                     var pal = codec.Palette;
                     var index = image[srcidx];
-                    var color = pal[index];
-                    span[x] = color.ToRgba32();
+                    if (index == 0 && pal.ZeroIndexTransparent)
+                        continue;
+
+                    span[x] = pal[index].ToRgba32();
                 }
             }
         }
 
         using var outputStream = new FileStream(imagePath, FileMode.Create, FileAccess.Write, FileShare.Read);
         outputImage.SaveAsPng(outputStream);
+    }
+
+    /// <summary>
+    /// Shifts each pixel's index into its palette's range of <paramref name="combined"/>, or returns null when an index
+    /// lies past the end of its palette and so has no slot of its own
+    /// </summary>
+    private static byte[]? TryMapToCombined(byte[] image, Arranger arranger, CombinedPalette combined)
+    {
+        var width = arranger.ArrangerPixelSize.Width;
+        var height = arranger.ArrangerPixelSize.Height;
+        var result = new byte[width * height];
+
+        for (int y = 0, i = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++, i++)
+            {
+                if (arranger.GetElementAtPixel(x, y)?.Codec is not IIndexedCodec { Palette: { } palette })
+                    continue;
+
+                if (!combined.TryGetSlot(palette, out var offset, out var count) || image[i] >= count)
+                    return null;
+
+                result[i] = (byte)(offset + image[i]);
+            }
+        }
+
+        return result;
     }
 
     public void SaveImage(ColorRgba32[] image, int width, int height, string imagePath)
@@ -77,7 +114,15 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
             for (int i = 0; i < pixels.Length; i++)
                 pixels[i] = new ColorRgba32(span[i].PackedValue);
 
-            return new MagitekResult<DecodedImage>.Success(new DecodedImage(pixels, width, height));
+            var decoded = new DecodedImage(pixels, width, height);
+
+            if (string.Equals(Path.GetExtension(imagePath), ".png", StringComparison.OrdinalIgnoreCase) &&
+                IndexedPngFile.TryRead(imagePath, out var indices, out var palette))
+            {
+                decoded = decoded with { Indices = indices, Palette = palette };
+            }
+
+            return new MagitekResult<DecodedImage>.Success(decoded);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ImageFormatException)
         {

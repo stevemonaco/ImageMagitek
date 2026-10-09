@@ -21,6 +21,9 @@
     <None Update="_codecs\*.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="_layouts\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="_palettes\DefaultNes.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -42,7 +45,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="_layouts\" />
     <Folder Include="_xmlProjectSamples\" />
   </ItemGroup>
 

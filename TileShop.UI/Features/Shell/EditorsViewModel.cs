@@ -224,6 +224,9 @@ public partial class EditorsViewModel : ObservableRecipient
         if (openedDocument is not null)
             return openedDocument;
 
+        if (await AlertIfMissingDataSourceAsync(resource, "Missing Data File"))
+            return null;
+
         ResourceEditorBaseViewModel? newDocument;
 
         switch (resource)
@@ -285,6 +288,38 @@ public partial class EditorsViewModel : ObservableRecipient
 
         return newDocument;
     }
+
+    /// <summary>
+    /// Alerts the user when <paramref name="resource"/> reads from a missing data file, directly or through its palettes
+    /// </summary>
+    /// <returns>True if a data file is missing</returns>
+    public async Task<bool> AlertIfMissingDataSourceAsync(IProjectResource resource, string title)
+    {
+        if (FindMissingDataSource(resource) is not { } missing)
+            return false;
+
+        await _interactions.AlertAsync(title, DescribeMissingDataSource(resource, missing));
+        return true;
+    }
+
+    private static FileDataSource? FindMissingDataSource(IProjectResource resource)
+    {
+        IEnumerable<DataSource?> sources = resource switch
+        {
+            FileDataSource fileSource => [fileSource],
+            Palette palette => [palette.DataSource],
+            Arranger arranger => arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => (DataSource?)x.Source)
+                .Concat(arranger.GetReferencedPalettes().Select(x => x.DataSource)),
+            _ => []
+        };
+
+        return sources.OfType<FileDataSource>().Distinct().FirstOrDefault(x => x.IsMissing);
+    }
+
+    private static string DescribeMissingDataSource(IProjectResource resource, FileDataSource missing) =>
+        ReferenceEquals(resource, missing)
+            ? $"Data file '{missing.Name}' is missing from '{missing.FileLocation}'. Right-click it in the project tree and choose Relink... to repair it."
+            : $"'{resource.Name}' is unavailable because data file '{missing.Name}' is missing. Right-click it in the project tree and choose Relink... to repair it.";
 
     /// <summary>
     /// Requests to save each opened, modified editor

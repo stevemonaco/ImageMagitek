@@ -1,0 +1,10 @@
+{
+	"name": "2x1",
+	"width": 2,
+	"height": 1,
+	"tilesPerPattern": 2,
+	"pattern" : [
+		{ "x": 0, "y": 0 },
+		{ "x": 1, "y": 0 }
+	]
+}
