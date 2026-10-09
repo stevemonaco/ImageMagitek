@@ -1,0 +1,99 @@
+# TileShop.CLI is dependable in build scripts
+
+## Why
+
+TileShop.CLI exists for toolchains, and toolchains branch on the exit code. Today the code is wrong in several cases and no handler or exit code is tested (CLI-COMMANDS Open items). Backlog items resolved:
+
+- **1.0** [CLI-COMMANDS] `WithParsed(async ...)` is async-void. Confirmed: `ProjectService.OpenProjectFileAsync` awaits `WriteAheadLogTransaction.RecoverAsync`, which returns synchronously without a journal but awaits `File.ReadAllTextAsync(...).ConfigureAwait(false)` with one, so `Main` reads `ExitCode.Unset` and the process exits −1 while the command is still running.
+- **1.0** [CLI-COMMANDS] `Exporter.ExportArranger` creates the PNG's directory only when it already exists (`Directory.Exists` instead of `!Directory.Exists`). Confirmed: a missing or nested directory throws and the run exits −2 with later keys unexported.
+- **1.0** [CLI-COMMANDS] `ExportHandler`/`ExportAllHandler` ignore `ExportArranger`'s result and always return 0, so −7 is never used. Confirmed. Correction: the "unknown color type" half cannot happen today, because `PixelColorType` has only `Indexed` and `Direct`; the fall-through is kept as a failure but has no task or test.
+- **1.0** [CLI-COMMANDS] `--log` has no effect. Confirmed: the static `LoggerFactory` is built from `DefaultLogFileName` (a relative name, so the current directory) at type initialization; `GetFullLogFileName` computes a path that `BootstrapTileShop` never reads. The Serilog file sink also rolls monthly, so even a wired-up `--log x.txt` would write `x202610.txt`.
+- **1.0** [CLI-COMMANDS] Read-only arrangers fail import and halt `importall`. Confirmed: `ImageImporter.Prepare` fails (LIB-IMAGE-IO-020), `Importer` returns `ImportFailed`, and the handlers stop with −6.
+- **1.0** [CLI-COMMANDS] Import options `--match`, `--max-distance`, `--transparent-index0`. Confirmed: `Importer` always passes `ImageImportOptions.Default`; the UI already offers the same choices (UI-IMAGE-IO-012).
+- **1.0** [CLI-COMMANDS] Load plugin codecs. Confirmed: `CreatePluginService` is commented out in `Program.BootstrapTileShop`; the bootstrapper member works (LIB-CODECS-057).
+- **1.0** [CLI-COMMANDS] No handler or exit code is tested.
+- (promoted) [CLI-COMMANDS] `--help` and `--version` exit −3 and log an error. A script that probes `--version` sees a failure: a control that does the wrong thing.
+- (promoted) [CLI-COMMANDS] A missing data file surfaces as an exception (−2) with a stack trace instead of naming the arranger and file. A moved ROM is the most common build failure; it must read as one, and the UI already refuses missing sources up front (UI-IMAGE-IO-002, -006).
+- (promoted) [CLI-COMMANDS] Verb help texts are wrong (`exportall` says "all project resources", `import`/`importall` say "skipping resources that cannot be located"). Help that misdescribes skipping misleads exactly the users who rely on exit codes.
+
+## What
+
+`Main` awaits the verb handler, so every run returns the code of what it did. The CLI's logic moves into a `CliApplication` class that tests drive in-process with an injected output writer and project service; `Program.Main` only builds the real environment and calls it.
+
+Export creates missing directories, continues past failed keys, and exits −7 if any key failed: a key not in the project, not a scattered arranger, an arranger on a missing data file (the message names the arranger and file), or a PNG that could not be written. A PNG skipped because it exists without `--overwrite` is not a failure.
+
+Import checks, per arranger, the key, then read-only, then missing data files, then the image file. `importall` skips read-only arrangers with a message and continues; `import` naming a read-only arranger fails (see Open questions). A missing data file fails with a message naming it (−6). `--match exact|nearest|nearestrgb`, `--max-distance <n>` and `--transparent-index0` map onto `ImageImportOptions` for indexed arrangers.
+
+`--help`, `help <verb>` and `--version` print their text and exit 0. `--log <file>` writes the warning log to exactly that file; without it the log goes to the application directory, rolling monthly. Plugin codecs load from `_plugins` beside the executable. Verb help texts describe what each verb does.
+
+Unchanged: the verbs, positional arguments and exit code values; −2 for unexpected exceptions; import stops at the first failure and exports never write data files; all output stays on stdout, message text only; `print` output.
+
+## Decisions
+
+- **`Main` awaits; no parser callbacks.** `Main` becomes `static async Task<int> Main`, parses, and switches on the parsed options object. Reason: async lambdas in `WithParsed` are async-void, so no wrapping can make the exit code reliable. Rejected: blocking with `.GetAwaiter().GetResult()` inside the callback, which works but hides the same trap for the next async step.
+- **An in-process `CliApplication`, tested by project reference.** `CliApplication.RunAsync(string[] args)` takes a `TextWriter` for output, a factory that builds the `IProjectService` (or fails, for −4), and the default log path. `ImageMagitek.UnitTests` references `TileShop.CLI` as it already references `TileShop.UI` (an exe); `RuntimeIdentifier` no longer implies self-contained on .NET 8+, so the reference should build. Reason: tests need to inject a project service whose open yields (the WAL case) or throws (−2), and run in parallel. Rejected: spawning the built exe (slow, build-order coupling, cannot inject); a separate `TileShop.CLI.Core` library, kept as the fallback if the reference fails to build.
+- **Output through an injected writer, not `Console` or the Serilog console sink.** Handlers, `Exporter` and `Importer` write to the writer; Serilog keeps only the file log. Reason: `Console.SetOut` is process-wide, so parallel tests would interleave. Observable output is unchanged.
+- **Export reports every failure, then exits −7.** `Exporter.ExportArranger` returns an `ExportResult` (`Success`, `SkippedExisting`, `KeyNotFound`, `NotScatteredArranger`, `MissingDataFile`, `WriteFailed`, `UnsupportedColorType`); the handler exports all keys and exits −7 if any result is a failure. `IOException` and `UnauthorizedAccessException` writing one PNG become `WriteFailed` for that key. Reason: export writes no data files, so finishing the rest is harmless and reports every broken key in one run. Rejected: stopping at the first failure like import (import stops because it writes ROM data); a `-r` flag for export (the caller named the keys, so a bad one is an error; `exportall` never has bad keys).
+- **An existing PNG without `--overwrite` is a skip, not a failure.** Reason: it is the documented protective default and the caller chose it. Rejected: failing −7, which would make re-running an export without `--overwrite` always fail.
+- **Missing data files are checked before reading.** The UI's `EditorsViewModel.FindMissingDataSource` (element sources plus referenced palettes' sources) moves to the library as an arranger extension both front ends call. Reason: one rule for "this resource reads a missing file", and the message names the file instead of a `FileNotFoundException` stack. Rejected: catching `IOException` around the read, which cannot reliably name the file and fires mid-image.
+- **A missing data file is never skipped.** `-f` skips missing image files only. Reason: a moved ROM is an environment fault the build must surface; skipping it would silently ship stale graphics.
+- **`importall` skips read-only arrangers by default.** It prints "Importing '<file>' to '<key>'...Skipped: arranger is read-only (<reason>)" and continues, and the run's code is unaffected. Reason: a decode-only codec makes the arranger unwritable by design, not by bad input; without the skip one such arranger makes `importall` unusable on that project. This is the one default skip, and it is the exception to "Skips are opt-in".
+- **Check order: key, read-only, missing data file, image file.** Reason: a read-only arranger with no PNG (nothing to import) is skipped rather than failed, and a bad key is reported as a bad key even when its image is also missing. Changes CLI-COMMANDS-052's "checked before the key".
+- **Import options mirror the UI.** `--match` takes `exact` (default), `nearest`, `nearestrgb`, case-insensitive (`CaseInsensitiveEnumValues`); `--transparent-index0` sets `MapTransparentToIndexZero` with `AlphaThreshold` 0 as the UI does; `--max-distance <n>` sets `MaxDistance`. `--max-distance` with `exact`, or a negative value, is an argument error (−3). The options do not affect direct-color arrangers. Reason: one behavior per option across UI and CLI; rejecting a meaningless combination catches a mistyped script instead of silently ignoring it. Rejected: exposing `AlphaThreshold` (the UI does not; add both together later).
+- **Help and version are successes.** `HelpRequestedError`, `HelpVerbRequestedError` and `VersionRequestedError` exit 0 after printing their text, with no status line and nothing logged. Other parse errors, including no verb, stay −3 with help. Reason: asking for help is not a failed operation.
+- **The logger is built after parsing.** An explicit `--log` path (relative to the current directory) gets a non-rolling file sink, so the file named is the file written; the default is `errorlogCLI.txt` in the application directory, rolling monthly. Parse errors, before a log path is known, use the default. Serilog's file sink drops writes it cannot make (`SelfLog`), so an unwritable application directory never fails a run. Reason: the documented default, and a build tree free of log files. Rejected: the current directory (litters the caller's tree, and was never the stated intent).
+- **Plugins load like the UI's.** `BootstrapTileShop` calls `CreatePluginService` with `_plugins` beside the executable after the codec service and before the serializer factory is built. How a bad plugin DLL is tolerated is decided in [startup-robustness.md](startup-robustness.md), not here.
+
+## Spec changes
+
+**CLI-COMMANDS** (`docs/specs/cli/cli.md`):
+
+- Front matter: add `TileShop.CLI/CliApplication.cs` to `sources`, `CliApplication` and `ExportResult` to `types`, `CliApplicationTests` to `tests`.
+- **CLI-COMMANDS-004** changed: When `--help`, `help <verb>` or `--version` is given, the CLI shall print the help or version text and exit with 0 without printing an exit-code description.
+- **CLI-COMMANDS-005** changed: The CLI shall exit with 0 on success, -2 on an exception, -3 on invalid arguments, -4 when the environment fails to load, -5 when the project cannot be opened, -6 on an import failure, and -7 on an export failure.
+- **CLI-COMMANDS-006** changed: Before exiting after running a verb or rejecting arguments, the CLI shall print a one-line description of its exit code.
+- **CLI-COMMANDS-007** unchanged here; its tolerance rules are startup-robustness.md's.
+- **CLI-COMMANDS-008** changed: When the environment loads, the CLI shall load plugin codecs from `_plugins` in the application directory, as LIB-CODECS-057 specifies.
+- ~~**CLI-COMMANDS-011**~~ — Removed: the CLI awaits the verb, so the exit code is the command's whatever the project open does.
+- Added: When the project open completes asynchronously, the CLI shall exit with the verb's code after the verb finishes.
+- **CLI-COMMANDS-012** changed: The CLI shall write its messages to standard output, message text only.
+- **CLI-COMMANDS-013** changed (drops `(inherited)`): When `--log` is not given, the CLI shall append Warning and higher messages, timestamped, to `errorlogCLI<yyyyMM>.txt` in the application directory, starting a new file each month.
+- **CLI-COMMANDS-014** changed: When `--log <file>` is given, the CLI shall append Warning and higher messages to exactly that file, resolved against the current directory.
+- Added: If the log file cannot be written, then the CLI shall run and exit as if logging succeeded.
+- **CLI-COMMANDS-032** changed: If a key is not in the project, then the CLI shall print "Exporting '<key>'...Resource key not found in project", continue with the next key, and count the key as failed.
+- **CLI-COMMANDS-033** changed: same, "...Resource key is not a Scattered Arranger", counted as failed.
+- **CLI-COMMANDS-036** changed: When the PNG's directory does not exist, the CLI shall create it, including folders for a nested arranger.
+- ~~**CLI-COMMANDS-037**~~ — Removed: `PixelColorType` has only indexed and direct; an unsupported type would count as failed under the new -038.
+- **CLI-COMMANDS-038** changed: When `export` or `exportall` has exported every key, it shall exit with -7 if any key failed and 0 otherwise; a PNG skipped under CLI-COMMANDS-034 is not a failure.
+- Added: If writing a PNG fails with an I/O or access error, then the CLI shall print the reason, count the key as failed and continue.
+- **CLI-COMMANDS-040** changed: If an arranger reads from a missing data file, then the export shall print "...Data file '<name>' is missing at '<path>'", write nothing for that arranger and count it as failed.
+- **CLI-COMMANDS-052** changed: If the image file does not exist, then the CLI shall print "File does not exist", checked after the key, read-only and data file checks.
+- **CLI-COMMANDS-054** changed: The CLI shall stage indexed imports with the strategy given by `--match exact|nearest|nearestrgb` (exact by default), the distance limit given by `--max-distance`, and transparent pixels mapped to index 0 when `--transparent-index0` is given (LIB-IMAGE-IO-028 to -032).
+- Added: If `--max-distance` is given with exact matching or is negative, then the CLI shall reject the arguments (-3).
+- **CLI-COMMANDS-056** changed: If the image cannot be loaded, then the CLI shall print the reason and treat the import as failed.
+- Added: When `importall` reaches a read-only arranger, the CLI shall print "Skipped: arranger is read-only" with the reason and continue.
+- Added: If `import` names a read-only arranger, then the CLI shall print the reason and treat the import as failed. (Pending the open question.)
+- **CLI-COMMANDS-060** changed: append "and skipping read-only arrangers".
+- **CLI-COMMANDS-061** changed: If an arranger reads from a missing data file, then the import shall print "...Data file '<name>' is missing at '<path>'", write nothing, and fail even with `-f`.
+- Every `Tests:` line becomes the `CliApplicationTests` method listed in Tasks.
+- Edge cases: strike the −1 line, the `importall` read-only halt, and the unverified plugin-codec line (pinned by a test). Threading: the handler is awaited by `Main`; the logger and project service are per run. Open items: strike every item this proposal resolves, keeping the README one. Decisions: add the decisions above; amend "Skips are opt-in" to name the read-only exception.
+
+**LIB-ARRANGERS** (`docs/specs/lib/arrangers.md`): added: The arranger shall report the first missing file data source among its elements' sources and its referenced palettes' sources.
+
+**UI-IMAGE-IO** and **UI-EDITORS**: no requirement changes; `EditorsViewModel` calls the moved helper.
+
+## Tasks
+
+1. **Extract `CliApplication` and await the handler.** Move parsing, bootstrap call, dispatch, the status line and logger creation out of `Program`; `Program.Main` becomes async and passes the real bootstrap (application directory, `_plugins`) and `Console.Out`. Handlers, `Exporter` and `Importer` take the writer. Add the `TileShop.CLI` project reference to `ImageMagitek.UnitTests` (fallback: a `TileShop.CLI.Core` library). Tests, `CliApplicationTests` (fixture project built in a temp directory through `ProjectService`, as `ProjectServiceTests` does): `OpenYields_ReturnsVerbCode` (a `ProjectService` subclass whose open does `await Task.Yield()` first; exits 0 and the PNG exists); `InvalidArguments_Exits3`; `Help_Exits0WithoutStatusLine`, `HelpVerb_Exits0`, `Version_Exits0`; `EnvironmentFails_Exits4`; `ProjectFileMissing_Exits5`; `ProjectNamesUnknownCodec_Exits5`; `OpenThrows_Exits2`; `Print_ListsEveryNode_Exits0`.
+2. **Logging.** Build the Serilog logger after parsing; explicit `--log` non-rolling, default rolling in the application directory. Tests: `Log_ExplicitPath_WritesFailureToThatFile`, `Log_Default_WritesUnderAppDirectory` (the injected default path).
+3. **Export.** Fix the directory check, add `ExportResult`, catch per-PNG I/O errors, exit −7 on any failure. Tests: `Export_NestedArranger_FreshDirectory_WritesPngExits0`, `Export_Existing_WithoutOverwrite_SkipsExits0`, `Export_Existing_WithOverwrite_Replaces`, `Export_UnknownKey_ExportsOthersExits7`, `Export_NotScatteredArranger_Exits7`, `ExportAll_WritesEveryScatteredArranger`.
+4. **Missing data files.** Move `FindMissingDataSource` to an `Arranger` extension in ImageMagitek, call it from `EditorsViewModel`, `Exporter` and `Importer`. Tests: `ArrangerExtensionsTests.FindMissingDataSource_ElementOrPaletteSource` (library); `Export_MissingDataFile_NamesFileExits7`, `ExportAll_MissingDataFile_ExportsOthersExits7`, `Import_MissingDataFile_NamesFileExits6`, `Import_MissingDataFile_WithF_StillExits6`.
+5. **Import order, read-only skip, options.** Reorder the checks; skip read-only in `importall`, fail it in `import`; add `--match`, `--max-distance`, `--transparent-index0` and their validation. Tests: `Import_EditedPng_WritesDataFileExits0` (export, change an index, import, compare bytes; project files unchanged); `Import_UnmatchedColor_Exits6_DataUnchanged`; `Import_MissingImage_Exits6`, `Import_MissingImage_WithF_Exits0`; `Import_BadKey_Exits6`, `Import_BadKey_WithR_Exits0`; `Import_StopsAtFirstFailure_EarlierArrangersWritten`; `ImportAll_ReadOnlyArranger_SkipsAndImportsRest` and `Import_ReadOnlyArranger_Exits6` (an arranger on a decode-only sample plugin codec registered as `CodecFactoryTests` does); `Import_MatchNearest_SubstitutesExits0`, `Import_MaxDistance_RejectsFarColorExits6`, `Import_TransparentIndex0_MapsToIndexZero`, `Import_MaxDistanceWithExact_Exits3`.
+6. **Plugins.** Enable `CreatePluginService` in the bootstrap. Test: `Export_ProjectUsingPluginCodec_Exits0` (sample plugin DLL copied into a temp `_plugins`, as `CodecFactoryTests.PluginService_DiscoversSampleCodecs` does). Manual: run `publish.ps1`, place the sample plugin under `_plugins` beside the trimmed single-file `TileShopCLI.exe`, and export an arranger that uses it; if trimming breaks it, log it in the backlog under CLI-PUBLISH.
+7. **Help texts.** `exportall`: "Exports every scattered arranger to PNG, mirroring the project tree"; `import`: "Imports PNGs into scattered arrangers by resource key"; `importall`: "Imports a PNG into every scattered arranger, skipping read-only arrangers"; `-f`/`-r` and the new options say what they skip or change. No test (text only).
+8. **Close.** Update CLI-COMMANDS and LIB-ARRANGERS as listed, with `Tests:` lines; delete this proposal and the resolved CLI-COMMANDS lines in `docs/BACKLOG.md` (the async-void, export directory, export result, `--log`, read-only import, import options, plugin codecs, `--help`/`--version`, missing data file, help text and handler-test items). Run `dotnet test ImageMagitek.UnitTests`.
+
+## Open questions
+
+- Should `import` (explicit keys) also skip a read-only arranger and exit 0, as the backlog item says, or fail with −6? Recommendation: fail. The caller named that key and supplied an image that will not be written; `importall` skips because it cannot know which arrangers the caller meant.
+- CLI-COMMANDS-001 (inherited) prints a hard-coded "v0.992" while `--version` prints the assembly version. [release-1-0.md](release-1-0.md) decides that both read the informational version through one helper; this change only sets the banner wording. Confirm the banner keeps "by Klarth".
