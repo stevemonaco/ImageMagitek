@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+The architecture, goals and project-wide decisions live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); what each feature does and why is in the specs ([docs/specs/](docs/specs/README.md)); work not done yet is in [docs/BACKLOG.md](docs/BACKLOG.md); new work starts as a change proposal in [docs/changes/](docs/changes/README.md).
+
+## Specs
+
+- Before changing a feature's behavior, read its spec in `docs/specs/` (find it in the folder's `index.md`, or by a type in its `types` list) and the specs in its `depends`.
+- Update the spec in the same change: add, reword or strike requirements (ids are never reused or renumbered) and keep their `Tests:` lines accurate. A change that diverges from its spec without updating it is incomplete.
+- Every design decision, with its reason and rejected alternatives, goes in the Decisions section of the spec it governs; project-wide ones go in `docs/ARCHITECTURE.md`. A requirement marked `(inherited)` records behavior nobody decided; confirm it with the user before relying on or changing it.
+- New features start as a change proposal in `docs/changes/` plus a draft spec (`status: draft`), requirements before code. When the change lands, delete the proposal and the backlog lines it resolved.
+- Bugs or gaps found along the way go in `docs/BACKLOG.md` (and the spec's Open items), not in code comments.
+
 ## Tech Stack
 
 - **Language**: C# with .NET 10 (SDK 10.0)
@@ -41,7 +51,7 @@ Feature-based folder organization under `Features/`:
 - `Project/` - Project tree management
 - `Project Nodes/` - TreeView node ViewModels
 
-DI setup in `Bootstrapper.cs`. Views auto-registered by naming convention (FooViewModel -> FooView via `ViewLocator`).
+DI setup in `Bootstrapper.cs`: `*View`/`*ViewModel` types are registered in DI by name, but `ViewLocator` maps each ViewModel to its view through explicit `RegisterViewFactory<VM, View>` calls in `ConfigureViewLocator`, so a new dialog or editor view needs a registration there.
 
 ## Code Style
 
