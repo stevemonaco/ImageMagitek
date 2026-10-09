@@ -47,6 +47,10 @@
                     </RadioButton>
                 </StackPanel>
 
+                <TextBlock x:Name="ReadOnlyText" Classes="muted" TextWrapping="Wrap"
+                    IsVisible="{Binding ReadOnlyReason, Converter={x:Static ObjectConverters.IsNotNull}}"
+                    Text="{Binding ReadOnlyReason, StringFormat='Read only: {0}'}" />
+
                 <Button Name="JumpToOffsetButton" HorizontalAlignment="Left" Command="{Binding JumpToOffsetCommand}"
                     Focusable="False" IsVisible="{Binding IsSequentialArranger}" Theme="{StaticResource ClearButton}"
                     ToolTip.Tip="Jump to offset... (J)">

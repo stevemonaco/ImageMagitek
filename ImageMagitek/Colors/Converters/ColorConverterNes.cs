@@ -13,9 +13,11 @@ public class ColorConverterNes : IColorConverter<ColorNes>
 
     public ColorNes ToForeignColor(ColorRgba32 nc)
     {
-        if (_nesPalette.TryGetIndexByNativeColor(nc, ColorMatchStrategy.Nearest, out var index))
+        // A matcher per call: its cache is not thread-safe and this converter is shared through ColorFactory
+        var matcher = new PaletteColorMatcher(_nesPalette, ColorMatchStrategy.Nearest, entryLimit: 64);
+        if (matcher.TryMatch(nc, out var match))
         {
-            return (ColorNes)_nesPalette.GetForeignColor(index);
+            return new ColorNes(match.Index);
         }
         throw new ArgumentException($"{nameof(ToForeignColor)} parameter (R: {nc.R}, G: {nc.G}, B: {nc.B}, A: {nc.A}) could not be matched in palette '{_nesPalette.Name}'");
     }

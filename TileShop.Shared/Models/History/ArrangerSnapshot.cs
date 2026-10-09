@@ -8,7 +8,7 @@ namespace TileShop.Shared.Models;
 /// Copy of an arranger's elements and each element's palette at a point in time
 /// </summary>
 /// <remarks>
-/// Palettes are stored separately because cloned arrangers share codec instances, and applying a palette changes the codec in place.
+/// Palettes are stored separately as a defense against codec instances that clones share.
 /// </remarks>
 public sealed class ArrangerSnapshot
 {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using CommunityToolkit.Diagnostics;
 using ImageMagitek.Codec;
@@ -75,11 +74,13 @@ internal sealed class ProjectTreeBuilder
 
     public MagitekResult AddPalette(PaletteModel paletteModel, string parentNodePath, string fileLocation)
     {
+        var pathKey = CreatePathKey(parentNodePath, paletteModel.Name);
+
         if (paletteModel.DataFileKey is not string dataFileKey)
-            return new MagitekResult.Failed($"Palette '{paletteModel.Name}' has a missing or null DataFile key");
+            return new MagitekResult.Failed($"Palette '{pathKey}' has no data file");
 
         if (Tree?.TryGetItem<DataSource>(dataFileKey, out var df) is not true)
-            return new MagitekResult.Failed($"Palette '{paletteModel.Name}' could not locate DataFile with key '{dataFileKey}'");
+            return new MagitekResult.Failed($"Palette '{pathKey}' references data file '{dataFileKey}', which is not in the project");
 
         var pal = paletteModel.MapToResource(_colorFactory, df);
 
@@ -92,27 +93,28 @@ internal sealed class ProjectTreeBuilder
         return AttachNode(palNode, parentNodePath);
     }
 
-    public MagitekResult AddScatteredArranger(ScatteredArrangerModel arrangerModel, string parentNodePath, string fileLocation)
+    /// <summary>
+    /// Builds and attaches an arranger, collecting one failure reason per distinct unresolved key or codec
+    /// </summary>
+    public MagitekResults AddScatteredArranger(ScatteredArrangerModel arrangerModel, string parentNodePath, string fileLocation)
     {
+        var pathKey = CreatePathKey(parentNodePath, arrangerModel.Name);
         var arranger = new ScatteredArranger(arrangerModel.Name, arrangerModel.ColorType, arrangerModel.Layout,
             arrangerModel.ArrangerElementSize.Width, arrangerModel.ArrangerElementSize.Height, arrangerModel.ElementPixelSize.Width, arrangerModel.ElementPixelSize.Height);
 
-        for (int x = 0; x < arrangerModel.ElementGrid.GetLength(0); x++)
-        {
-            for (int y = 0; y < arrangerModel.ElementGrid.GetLength(1); y++)
-            {
-                var result = CreateElement(arrangerModel, x, y);
+        var reasons = new Dictionary<string, string>();
 
-                if (result.HasSucceeded)
-                {
-                    arranger.SetElement(result.AsSuccess.Result, x, y);
-                }
-                else if (result.HasFailed)
-                {
-                    return new MagitekResult.Failed(result.AsError.Reason);
-                }
+        for (int y = 0; y < arrangerModel.ElementGrid.GetLength(1); y++)
+        {
+            for (int x = 0; x < arrangerModel.ElementGrid.GetLength(0); x++)
+            {
+                if (TryCreateElement(arrangerModel, pathKey, x, y, reasons, out var element))
+                    arranger.SetElement(element, x, y);
             }
         }
+
+        if (reasons.Count > 0)
+            return new MagitekResults.Failed(reasons.Values);
 
         var arrangerNode = new ArrangerNode(arranger.Name, arranger)
         {
@@ -120,7 +122,8 @@ internal sealed class ProjectTreeBuilder
             Model = arrangerModel
         };
 
-        return AttachNode(arrangerNode, parentNodePath);
+        var attachResult = AttachNode(arrangerNode, parentNodePath);
+        return attachResult.HasSucceeded ? MagitekResults.SuccessResults : new MagitekResults.Failed([attachResult.AsError.Reason]);
     }
 
     private MagitekResult AttachNode(ResourceNode node, string parentNodePath)
@@ -134,88 +137,90 @@ internal sealed class ProjectTreeBuilder
             return new MagitekResult.Failed($"Could not find node with path '{parentNodePath}' to attach node '{node.Name}'");
     }
 
-    /// <summary>
-    /// Resolves a palette resource using the supplied project tree and falls back to a default palette if available
-    /// </summary>
-    /// <param name="paletteKey"></param>
-    /// <returns></returns>
-    private Palette ResolvePalette(string? paletteKey)
+    private static string CreatePathKey(string parentNodePath, string name) =>
+        string.IsNullOrEmpty(parentNodePath) ? $"/{name}" : $"/{parentNodePath}/{name}";
+
+    private Palette? ResolvePalette(string? paletteKey)
     {
         Guard.IsNotNull(Tree);
 
-        if (string.IsNullOrEmpty(paletteKey)) // No key -> Use default palette
-        {
+        if (string.IsNullOrEmpty(paletteKey))
             return _globalDefaultPalette;
-        }
-        else if (Tree.TryGetItem<Palette>(paletteKey, out var pal)) // Has key -> Find Palette in tree by key
-        {
+
+        if (Tree.TryGetItem<Palette>(paletteKey, out var pal))
             return pal;
-        }
-        else // Key not found -> fallback to searching global palettes
+
+        return _globalResources.OfType<Palette>().FirstOrDefault(x => string.Equals(x.Name, paletteKey, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private IGraphicsCodec? CreateCodecOrNull(string codecName, Size elementSize)
+    {
+        try
         {
-            var name = paletteKey.Split(Tree.PathSeparators[0]).Last();
-            return _globalResources.OfType<Palette>().FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase)) ?? _globalDefaultPalette;
+            return _codecFactory.CreateCodec(codecName, elementSize);
+        }
+        catch (KeyNotFoundException)
+        {
+            return null;
         }
     }
 
-    private MagitekResult<ArrangerElement?> CreateElement(ScatteredArrangerModel arrangerModel, int x, int y)
+    private bool TryCreateElement(ScatteredArrangerModel arrangerModel, string arrangerKey, int x, int y,
+        Dictionary<string, string> reasons, out ArrangerElement? element)
     {
         Guard.IsNotNull(Tree);
+        element = null;
 
         var elementModel = arrangerModel.ElementGrid[x, y];
-        IGraphicsCodec? codec = default;
-        Palette? palette = default;
-        DataSource? df = default;
-        var address = BitAddress.Zero;
-
         if (elementModel is null)
+            return true;
+
+        var position = $"element ({x}, {y})";
+        var failed = false;
+
+        var codec = CreateCodecOrNull(elementModel.CodecName, arrangerModel.ElementPixelSize);
+        if (codec is null)
         {
-            return new MagitekResult<ArrangerElement?>.Success(null);
+            Fail($"codec:{elementModel.CodecName}", $"Arranger '{arrangerKey}' {position} uses unknown codec '{elementModel.CodecName}'");
         }
         else if (arrangerModel.ColorType == PixelColorType.Indexed)
         {
-            address = elementModel.FileAddress;
-            var paletteKey = elementModel.PaletteKey;
-            palette = ResolvePalette(paletteKey);
-
-            if (palette is null)
-            {
-                return new MagitekResult<ArrangerElement?>.Failed($"Could not resolve palette '{paletteKey}' referenced by arranger '{arrangerModel.Name}'");
-            }
-
-            codec = _codecFactory.CreateCodec(elementModel.CodecName, new Size(arrangerModel.ElementPixelSize.Width, arrangerModel.ElementPixelSize.Height));
-
             if (codec is not IIndexedCodec indexedCodec)
-                throw new InvalidOperationException($"{nameof(CreateElement)}: {arrangerModel.Name} is an indexed color type but contains non-indexed codec '{elementModel.CodecName}'");
-
-            indexedCodec.Palette = palette;
+            {
+                Fail($"codec:{elementModel.CodecName}", $"Arranger '{arrangerKey}' {position}: indexed arranger uses direct codec '{elementModel.CodecName}'");
+            }
+            else if (ResolvePalette(elementModel.PaletteKey) is Palette palette)
+            {
+                indexedCodec.Palette = palette;
+            }
+            else
+            {
+                Fail($"palette:{elementModel.PaletteKey}", $"Arranger '{arrangerKey}' {position} references palette '{elementModel.PaletteKey}', which is not in the project or the global palettes");
+            }
         }
-        else if (arrangerModel.ColorType == PixelColorType.Direct)
-        {
-            address = elementModel.FileAddress;
-            codec = _codecFactory.CreateCodec(elementModel.CodecName, new Size(arrangerModel.ElementPixelSize.Width, arrangerModel.ElementPixelSize.Height));
-        }
-        else
-        {
-            return new MagitekResult<ArrangerElement?>.Failed($"{nameof(CreateElement)}: Arranger '{arrangerModel.Name}' has invalid {nameof(PixelColorType)} '{arrangerModel.ColorType}'");
-        }
 
-        if (codec is null)
-            return new MagitekResult<ArrangerElement?>.Failed($"{nameof(CreateElement)}: Could not create codec '{elementModel.CodecName}'");
-
+        DataSource? df = null;
         if (string.IsNullOrWhiteSpace(elementModel.DataFileKey))
-            return new MagitekResult<ArrangerElement?>.Failed($"{nameof(CreateElement)}: {nameof(ArrangerElementModel.DataFileKey)} is empty or missing");
-
-        if (Tree.TryGetItem<DataSource>(elementModel.DataFileKey, out df))
         {
-            var pixelX = x * arrangerModel.ElementPixelSize.Width;
-            var pixelY = y * arrangerModel.ElementPixelSize.Height;
-            var el = new ArrangerElement(pixelX, pixelY, df, address, codec, elementModel.Mirror, elementModel.Rotation);
-            return new MagitekResult<ArrangerElement?>.Success(el);
+            Fail("datafile:", $"Arranger '{arrangerKey}' {position} has no data file");
         }
-        else
+        else if (!Tree.TryGetItem<DataSource>(elementModel.DataFileKey, out df))
         {
-            return new MagitekResult<ArrangerElement?>.Failed($"{nameof(CreateElement)}: '{nameof(elementModel.DataFileKey)}' could not be found in the {nameof(ProjectTree)}");
+            Fail($"datafile:{elementModel.DataFileKey}", $"Arranger '{arrangerKey}' {position} references data file '{elementModel.DataFileKey}', which is not in the project");
+        }
+
+        if (failed)
+            return false;
+
+        var pixelX = x * arrangerModel.ElementPixelSize.Width;
+        var pixelY = y * arrangerModel.ElementPixelSize.Height;
+        element = new ArrangerElement(pixelX, pixelY, df!, elementModel.FileAddress, codec!, elementModel.Mirror, elementModel.Rotation);
+        return true;
+
+        void Fail(string key, string reason)
+        {
+            failed = true;
+            reasons.TryAdd(key, reason);
         }
     }
 }

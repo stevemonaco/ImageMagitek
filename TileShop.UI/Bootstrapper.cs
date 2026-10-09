@@ -163,7 +163,6 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         locator.RegisterViewFactory<MoveNodeViewModel, MoveNodeView>();
         locator.RegisterViewFactory<NameResourceViewModel, NameResourceView>();
         locator.RegisterViewFactory<PreferencesViewModel, PreferencesView>();
-        locator.RegisterViewFactory<RenameNodeViewModel, RenameNodeView>();
         locator.RegisterViewFactory<ResizeTiledScatteredArrangerViewModel, ResizeTiledScatteredArrangerView>();
         locator.RegisterViewFactory<ResourceRemovalChangesViewModel, ResourceRemovalChangesView>();
         locator.RegisterViewFactory<AlertViewModel, AlertView>();

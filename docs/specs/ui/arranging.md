@@ -44,6 +44,8 @@ types:
   - AssociatePaletteModel
 tests:
   - GraphicsEditHistoryTests
+  - IndexedImageTests
+  - ResizeTiledScatteredArrangerViewModelTests
 depends:
   - LIB-ARRANGERS
   - LIB-IMAGES
@@ -71,7 +73,7 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
   - Tests: manual — drag with Pixel Select in each snap mode.
 - **UI-ARRANGING-003** — When the user Ctrl+clicks with a select tool, the editor shall select the single cell under the pointer without dragging.
   - Tests: manual — Ctrl+click an element with Element Select.
-- **UI-ARRANGING-004** — While in Arrange mode with no floating paste and no temporary tool, moving the pointer with Shift held shall select the single element under the pointer.
+- **UI-ARRANGING-004** — While in Arrange mode with no floating paste, no temporary tool and no gesture in progress, moving the pointer with Shift held shall select the single element under the pointer.
   - Tests: manual — hold Shift and hover elements in Arrange mode.
 - **UI-ARRANGING-005** — When the user drags one of the eight selection handles, the editor shall move that edge or corner; handles are drawn in Arrange and Draw modes.
   - Tests: manual — drag each handle.
@@ -98,6 +100,8 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
   - Tests: untested
 - **UI-ARRANGING-015** — When an element paste is applied, the editor shall copy the elements to the cells under the paste, cropping whatever falls outside the arranger, record history, mark the editor modified and show "Paste successfully applied".
   - Tests: `GraphicsEditHistoryTests.ElementPaste_UndoRedo`
+- **UI-ARRANGING-045** — When a resource is removed from the project tree while the clipboard holds copied elements that read a removed data file or use a removed palette, the clipboard shall be emptied.
+  - Tests: untested
 - **UI-ARRANGING-016** — If pasted elements came from a different project than the target editor's resource, then the paste shall fail with the status "Copying arranger elements across projects is not permitted" and change nothing.
   - Tests: untested
 - **UI-ARRANGING-017** — The canvas shall draw a floating element paste with a magenta overlay and a floating pixel paste with a blue overlay, both clipped to the arranger.
@@ -111,8 +115,10 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
   - Tests: manual — drag a selection from one editor tab into another.
 - **UI-ARRANGING-020** — If dragged pixels are dropped on an editor that cannot draw, then the drop shall be ignored.
   - Tests: manual — drag pixels onto a read-only arranger.
-- **UI-ARRANGING-021** — When the user drops with Shift held, the target shall apply the paste immediately; otherwise it shall keep it floating with "Press [Enter] to Apply Element|Pixel Paste or [Esc] to Cancel" and activate the target's tab.
-  - Tests: manual — drop with and without Shift.
+- **UI-ARRANGING-021** — When the user drops a paste that is not an element paste into Arrange mode on a tiled scattered arranger, the target shall first switch to Draw mode as Ctrl+V does (UI-DRAWING-017), discarding the drop if Draw mode cannot be entered; then with Shift held it shall apply the paste immediately, otherwise keep it floating with "Press [Enter] to Apply Element|Pixel Paste or [Esc] to Cancel", and activate the target's tab.
+  - Tests: manual — drag pixels from a sequential editor in View mode onto a scattered editor in Arrange mode and check it switches to Draw before floating; with the target modified, check the Save Changes prompt and that Cancel discards the drop; Shift-drop applies in Draw mode; drag elements onto a sequential editor and check it ends in Draw mode with a pixel paste; drag a selection within a sequential editor in View mode and check that Enter does not write pixels in View mode.
+- **UI-ARRANGING-046** — The editor shall apply an element paste only in Arrange mode on a tiled scattered arranger and a pixel paste only in Draw mode; any other apply shall fail with a status message and change nothing.
+  - Tests: manual — covered by the UI-ARRANGING-021 drop checks.
 - **UI-ARRANGING-022** — When a drag leaves an editor, that editor shall clear its selection and floating paste.
   - Tests: manual — drag out of an editor.
 - **UI-ARRANGING-023** — When the user drags a floating paste, the editor shall move it with the pointer.
@@ -131,8 +137,10 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
   - Tests: manual — click `ResizeArrangerButton`.
 - **UI-ARRANGING-027** — If the requested size is smaller in either dimension, then the dialog shall ask "Elements outside of the new arranger dimensions will be lost. Continue?" and resize only on Yes.
   - Tests: untested
-- **UI-ARRANGING-028** — When the resize is accepted, the editor shall resize the working arranger, rebuild the image, clear the selection, record history and mark the editor modified.
-  - Tests: `GraphicsEditHistoryTests.Resize_UndoRedo`
+- **UI-ARRANGING-028** — When a resize to a different size is accepted, the editor shall resize the working arranger, rebuild the image, clear the selection, record history and mark the editor modified; accepting the current size shall change nothing and record nothing.
+  - Tests: `GraphicsEditHistoryTests.Resize_UndoRedo`; manual — DevTools: accept the current size in the Resize dialog and check `IsModified` and `CanUndo` stay false.
+- **UI-ARRANGING-047** — Resize Arranger's dialog shall disable Resize while the width or height is below 1.
+  - Tests: `ResizeTiledScatteredArrangerViewModelTests.CanAccept_ZeroOrNegative_IsFalse`, `ResizeTiledScatteredArrangerViewModelTests.CanAccept_PositiveSize_IsTrue`
 
 ### New scattered arranger from selection
 
@@ -145,6 +153,8 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
 
 - **UI-ARRANGING-031** — While Apply Palette is active on an indexed arranger, left-clicking or dragging shall assign the selected palette to each element under the pointer, or to every element in the selection when the click is inside it, and mark the editor modified.
   - Tests: `GraphicsEditHistoryTests.ApplyPalette_UndoRedo`
+- **UI-ARRANGING-048** — If Apply Palette changes elements and the changes are then discarded, then the project arranger's element palettes shall be unchanged.
+  - Tests: `IndexedImageTests.TrySetPalette_ClonedArranger_LeavesOriginalPalettes`
 - **UI-ARRANGING-032** — If an element is empty, not indexed, already uses the palette, or holds a pixel index beyond the palette's size, then Apply Palette shall skip it and outline nothing there.
   - Tests: untested
 - **UI-ARRANGING-033** — When an Apply Palette press-and-drag changes at least one element, the editor shall record it as one history entry when the button is released or the tool is switched.
@@ -153,8 +163,8 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
   - Tests: untested
 - **UI-ARRANGING-035** — While Pick Palette hovers an element, the status bar shall show the palette's name, color count, color model and source (file path, Memory, Global or None).
   - Tests: untested
-- **UI-ARRANGING-036** — While in Arrange mode, holding Ctrl or Shift (with the editor focused) or Alt (on pointer events) shall temporarily switch to Pick Palette, and the toolbar shall show Pick Palette as active while Ctrl or Shift is held.
-  - Tests: manual — hold each modifier over the canvas.
+- **UI-ARRANGING-036** — While in Arrange mode, holding Ctrl or Shift (with the editor focused) or Alt (on pointer events) shall temporarily switch to Pick Palette, and the toolbar shall show Pick Palette as active while Ctrl or Shift is held; a modifier pressed while a pointer button is held takes effect only after all buttons are released.
+  - Tests: manual — hold each modifier over the canvas; press and release Ctrl during an Apply Palette drag, then undo and check the whole drag is one entry.
 - **UI-ARRANGING-037** — The editor's palette combo shall list the arranger's referenced project palettes by name, then the global palettes by name, each limited to the arranger's largest codec color count (at most 256).
   - Tests: untested
 - **UI-ARRANGING-038** — When the user clicks Associate Palette (Arrange mode, indexed), the editor shall list the containing project's palettes by path and the global palettes by name, and on Associate add the chosen palette to the palette combo without changing any element.
@@ -202,6 +212,9 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
 - **Delete resets by element width and height.** Delete divides the selection by element width for x and element height for y; the old code swapped them, breaking non-square elements.
 - **Symmetry tools are opt-in.** Mirror and rotate change only how an element is displayed, so they stay hidden until enabled from the context menu. Rejected: pixel-level flip and rotate (a P2 backlog item).
 - **No cross-project element paste.** Elements reference a project's data files and palettes, so pasting them into another project is refused.
+- **Removal empties a dangling element copy.** Removing a data file disposes its source (LIB-PROJECT-SERVICE-049), so copied elements on it could no longer be read and Paste would throw. Rejected: keeping the source open while the clipboard references it, which holds the file handle with no visible owner.
+- **Drops follow Ctrl+V.** Applying a paste checks the mode: element pastes only in Arrange mode on a tiled scattered arranger, pixel pastes only in Draw mode. A drop that is not an element paste in Arrange mode first runs the same mode switch as Ctrl+V and re-floats the paste at the drop position, because the mode change clears the overlay. Reason: a dropped pixel paste applied in View mode was lost on the next navigation, and in Arrange mode it skipped the save prompt. Rejected: refusing drops outside Draw mode, which would make dragging from a browsing editor into a scattered arranger in Arrange mode silently do nothing.
+- **Resize validation in the dialog, no-op in the editor.** The dialog uses numeric boxes with a minimum of 1 and refuses Resize below 1, following the custom layout dialog; the editor returns without recording when the size is unchanged. No upper limit is specified. Reason: a size below 1 threw out of an async command and could take down the app with every editor's unsaved work.
 - **Private clipboard.** The clipboard is app-internal. Rejected for 1.0: OS clipboard exchange (a P2 backlog item, planned after 1.0).
 
 ## Non-goals
@@ -212,9 +225,6 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
 ## Open items
 
 - Ctrl+click single-cell select and Shift+hover single-element select are shadowed while the editor has keyboard focus: pressing Ctrl or Shift engages the temporary Pick Palette tool (Color Picker in Draw mode), which then receives the click, and Shift+hover is skipped whenever a temporary tool is engaged.
-- A dropped pixel paste can be applied in View or Arrange mode (Enter or Shift-drop), writing pixels without the Draw-mode switch that Ctrl+V performs; an element drop onto a sequential arranger is applied as pixels.
-- Apply Palette assigns the palette on the codec instance the working arranger shares with the project arranger, so the change reaches the project arranger before save and survives Discard. Found by reading; not reproduced.
-- The resize dialog does not validate its text boxes (zero or negative sizes are passed to `Resize`), and accepting an unchanged size still records history and marks the editor modified.
 - Delete records history and marks the editor modified even when every covered element is already empty.
 - Associate Palette adds the palette again if it is already listed, sizes it by the palette's entry count rather than the codec's color depth, and throws if no palette is available.
 - Selection handles are hit-tested in View mode although they are not drawn there.

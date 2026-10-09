@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<arranger elementsx="2" elementsy="1" width="8" height="8" layout="tiled" color="direct" defaultcodec="Rgba32 Tiled" defaultdatafile="/main">
+	<element fileoffset="0" posx="0" posy="0" />
+	<element fileoffset="100" posx="1" posy="0" />
+</arranger>

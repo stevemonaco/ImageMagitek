@@ -14,12 +14,6 @@ public partial class ResourceRemovalChangesViewModel : RequestViewModel<bool>
     [ObservableProperty] private bool _hasRemovedResources;
     [ObservableProperty] private bool _hasChangedResources;
 
-    public ResourceRemovalChangesViewModel(ResourceChangeViewModel removedResource)
-    {
-        _removedResource = removedResource;
-        Title = "Resource Removal Changes";
-    }
-
     public ResourceRemovalChangesViewModel(ResourceChangeViewModel removedResource, IList<ResourceChangeViewModel> changes)
     {
         _removedResource = removedResource;
@@ -28,7 +22,7 @@ public partial class ResourceRemovalChangesViewModel : RequestViewModel<bool>
             RemovedResources.Add(removedItem);
 
         foreach (var affectedItem in changes.Where(x => (x.LostElement || x.LostPalette) && !x.Removed))
-            RemovedResources.Add(affectedItem);
+            ChangedResources.Add(affectedItem);
 
         HasRemovedResources = RemovedResources.Any();
         HasChangedResources = ChangedResources.Any();
@@ -37,14 +31,4 @@ public partial class ResourceRemovalChangesViewModel : RequestViewModel<bool>
     }
 
     public override bool ProduceResult() => true;
-    //
-    // protected override void Accept()
-    // {
-    //     Result = true;
-    // }
-    //
-    // protected override Task<bool> TryCancel()
-    // {
-    //     Result = false;
-    // }
 }

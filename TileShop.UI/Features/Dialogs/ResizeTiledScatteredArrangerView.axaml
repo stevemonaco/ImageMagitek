@@ -1,13 +1,14 @@
-﻿<UserControl x:Class="TileShop.UI.Views.ResizeTiledScatteredArrangerView"
+<UserControl x:Class="TileShop.UI.Views.ResizeTiledScatteredArrangerView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:DataType="vm:ResizeTiledScatteredArrangerViewModel">
     <Grid RowDefinitions="auto,*,auto">
-        <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center" Orientation="Horizontal">
-            <TextBox MinWidth="100" Text="{Binding Width}" ToolTip.Tip="Width of arranger in number of elements" />
-            <TextBox MinWidth="100" Margin="10,0,0,0" Text="{Binding Height}"
-                ToolTip.Tip="Height of arranger in number of elements" />
+        <StackPanel Margin="0,10,0,0" HorizontalAlignment="Center" Orientation="Horizontal" Spacing="16">
+            <NumericUpDown x:Name="ResizeWidthBox" MinWidth="100" Classes="dense" FormatString="0" InnerLeftContent="W"
+                Minimum="1" ToolTip.Tip="Width of arranger in number of elements" Value="{Binding Width}" />
+            <NumericUpDown x:Name="ResizeHeightBox" MinWidth="100" Classes="dense" FormatString="0" InnerLeftContent="H"
+                Minimum="1" ToolTip.Tip="Height of arranger in number of elements" Value="{Binding Height}" />
         </StackPanel>
     </Grid>
 </UserControl>

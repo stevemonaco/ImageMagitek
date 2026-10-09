@@ -53,6 +53,16 @@ public class DataSourceBitAddressTests
         Assert.Equal(0, buffer[2] & 0b00011111);
     }
 
+    [Fact]
+    public void Equals_NonBitAddress_ReturnsFalse()
+    {
+        var address = new BitAddress(0, 0);
+
+        Assert.False(address.Equals("0"));
+        Assert.False(address.Equals((object)0));
+        Assert.False(address.Equals(null));
+    }
+
     private static MemoryDataSource CreateSentinelSource(out byte[] before)
     {
         before = TestImageGenerator.RandomBytes(8, 91);

@@ -15,7 +15,7 @@ public partial class ColorEditorFlyoutViewModel : ObservableObject
 
     [ObservableProperty] private EditableColorBaseViewModel? _colorEditor;
 
-    public bool IsEditable => _palette.StorageSource != PaletteStorageSource.GlobalJson;
+    public bool IsEditable => !_palette.IsReadOnly;
 
     public ColorEditorFlyoutViewModel(Palette palette, int colorIndex, IColorFactory colorFactory,
         Action<Palette, int, IColor> onConfirm)

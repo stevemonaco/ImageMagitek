@@ -10,6 +10,7 @@ sources:
   - ImageMagitek/Project/ImageProject.cs
   - ImageMagitek/Project/ResourceFolder.cs
   - ImageMagitek/Project/ProjectResourceBaseComparer.cs
+  - ImageMagitek/Project/ResourceName.cs
 types:
   - ProjectTree
   - ProjectTreeChange
@@ -25,9 +26,11 @@ types:
   - ImageProject
   - ResourceFolder
   - ProjectResourceBaseComparer
+  - ResourceName
 tests:
   - ProjectTreeEventTests
   - ProjectServiceTests
+  - ResourceNameTests
 depends:
   - LIB-DATASOURCE
   - LIB-PALETTES
@@ -75,7 +78,7 @@ The in-memory tree of an open project, or of a single data file opened without a
   - Tests: untested
 - **LIB-PROJECT-TREE-014** (inherited) — If a child with the same name already exists under the parent, then attaching shall fail with an argument error.
   - Tests: untested
-- **LIB-PROJECT-TREE-015** (inherited) — Child-name lookups shall be case-sensitive (`data` and `DATA` are different children).
+- **LIB-PROJECT-TREE-015** — Child-name lookups shall be case-sensitive (`data` and `DATA` are different children).
   - Tests: untested
 - **LIB-PROJECT-TREE-016** (inherited) — If the child to remove does not exist, then removal shall fail with a key-not-found error.
   - Tests: untested
@@ -115,6 +118,13 @@ The in-memory tree of an open project, or of a single data file opened without a
 - **LIB-PROJECT-TREE-029** — Projects and folders shall report that they can contain child resources; their linked-resource list shall be empty and unlinking shall do nothing.
   - Tests: untested
 
+### Resource names
+
+- **LIB-PROJECT-TREE-030** — The name rule shall reject an empty name; a name with leading or trailing whitespace or a trailing `.`; a name containing `< > : " / \ | ? *` or a control character (U+0000–U+001F); a name whose part before the first `.` is a Windows reserved device name (`CON`, `PRN`, `AUX`, `NUL`, `COM0`–`COM9`, `LPT0`–`LPT9`, `COM¹²³`, `LPT¹²³`), ignoring case; a name over 100 characters (counted as Unicode scalar values) or 240 UTF-8 bytes; and, for a folder, a name ending in `.xml` ignoring case. Each rejection shall carry a message naming the problem, and the rules shall be checked in that order with the first failure reported.
+  - Tests: `ResourceNameTests.Validate_Rejects`, `ResourceNameTests.Validate_Accepts`
+- **LIB-PROJECT-TREE-031** — Two names shall count as the same sibling name when their NFC-normalized forms are equal ignoring case (ordinal); a name that cannot be normalized shall be compared as is.
+  - Tests: `ResourceNameTests.AreSame_CaseVariants_AreSame`, `ResourceNameTests.AreSame_ComposedAndDecomposed_AreSame`, `ResourceNameTests.AreSame_DifferentNames_AreNotSame`, `ResourceNameTests.AreSame_LoneSurrogate_DoesNotThrow`
+
 ## Invariants
 
 - Every node reachable from the root is in the index, and nothing else is.
@@ -126,7 +136,7 @@ The in-memory tree of an open project, or of a single data file opened without a
 
 - Children attached to a detached node raise their events to that detached node's own root, which nobody observes.
 - Nothing stops a caller from attaching children under a `DataFileNode` root; LIB-PROJECT-SERVICE refuses to, because a data source cannot contain children.
-- A child name containing `/` is accepted but its path key cannot be resolved back to the node.
+- The tree accepts any child name, including `/`; LIB-PROJECT-SERVICE refuses new names that break the rule, but a hand-made project may still hold them.
 - Changes are reported in the order they occur; a subscriber that mutates the tree inside a handler sees nested events.
 
 ## Threading and lifetime
@@ -146,15 +156,15 @@ The in-memory tree of an open project, or of a single data file opened without a
 - **Content changes come from the resources.** The tree forwards `Palette.Changed` and `DataSource.DataWritten` for what it indexes, so no caller has to announce them. `DataWritten` is not raised by `Flush` (see LIB-DATASOURCE).
 - **A tree may be rooted at a data file.** A standalone file is the same kind of tree with a `DataFileNode` root. Reason: lifetime events, the index, content events and containment lookups then cover standalone files with no second collection or event pair.
 - **Events bubble to whatever the root is.** The internal tree-change event lives on `ResourceNode`, not `ProjectNode`, so the tree subscribes to any root.
+- **The name rule lives here; the tree does not enforce it.** `ResourceName` defines what a new name may be, and LIB-PROJECT-SERVICE is the only enforcer (see its "One rule for names, enforced by the service"). Reason: the reader must keep loading names already on disk, and throwing from attach would turn user errors into exceptions. Rejected: validating in `ResourceNode`/`ProjectTree` attach.
+- **Tree lookups stay case-sensitive.** LIB-PROJECT-TREE-015 is kept: path keys in project files resolve exactly, and only the service's uniqueness check ignores case, so new names cannot collide anyway. Rejected: a case-insensitive child comparer, which would change how references in existing projects resolve for no gain.
 
 ## Non-goals
 
 - Ordering children. The tree keeps insertion order; the UI projection sorts (folders first, then by name).
 - Persistence and disk locations (LIB-PROJECT-FORMAT, LIB-PROJECT-SERVICE).
-- Validating resource names.
 
 ## Open items
 
 - `ProjectResourceBaseComparer` is internal and unused; the UI has its own comparer.
 - `IProjectResource.ShouldBeSerialized` is set by resources but read nowhere.
-- Case-sensitive child names (LIB-PROJECT-TREE-015) differ from case-insensitive file systems; see LIB-PROJECT-SERVICE open items.

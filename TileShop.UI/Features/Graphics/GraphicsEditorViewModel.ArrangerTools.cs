@@ -25,10 +25,10 @@ public partial class GraphicsEditorViewModel
     [ObservableProperty] private ArrangeTool _selectedArrangeTool = ArrangeTool.ElementSelect;
     [ObservableProperty] private ViewTool _selectedViewTool = ViewTool.ElementSelect;
 
-    public DrawTool DisplayedDrawTool => _modifierOverrideTool is not null && EditMode == GraphicsEditMode.Draw
+    public DrawTool DisplayedDrawTool => _toolRouter.IsOverrideEngaged && EditMode == GraphicsEditMode.Draw
         ? DrawTool.ColorPicker : SelectedDrawTool;
 
-    public ArrangeTool DisplayedArrangeTool => _modifierOverrideTool is not null && EditMode == GraphicsEditMode.Arrange
+    public ArrangeTool DisplayedArrangeTool => _toolRouter.IsOverrideEngaged && EditMode == GraphicsEditMode.Arrange
         ? ArrangeTool.PickPalette : SelectedArrangeTool;
     partial void OnSelectedViewToolChanged(ViewTool value)
     {
@@ -154,7 +154,7 @@ public partial class GraphicsEditorViewModel
             if (ReferenceEquals(palette, codec.Palette))
                 return false;
 
-            var result = _imageAdapter.TrySetPalette(pixelX, pixelY, palette);
+            var result = _imageAdapter.TrySetPalette(pixelX, pixelY, palette, _codecService.CodecFactory);
 
             return result.Match(
                 success =>
@@ -228,7 +228,14 @@ public partial class GraphicsEditorViewModel
     [RelayCommand]
     public void ApplyPaste(ArrangerPaste paste)
     {
-        var elementCopy = IsArrangerMode && IsTiledLayout && WorkingArranger is ScatteredArranger ? paste.Copy as ElementCopy : null;
+        var elementCopy = IsElementPasteTarget(paste.Copy) ? (ElementCopy)paste.Copy : null;
+
+        if (elementCopy is null && !IsDrawMode)
+        {
+            Messenger.Send(new NotifyStatusMessage("Pixel pastes can only be applied in Draw mode"));
+            return;
+        }
+
         var result = elementCopy is not null ? ApplyElementPaste(paste, elementCopy) : ApplyPixelPaste(paste);
 
         var message = result.Match(
@@ -329,6 +336,9 @@ public partial class GraphicsEditorViewModel
 
         if (dialogResult is not null)
         {
+            if (dialogResult.Width == WorkingArranger.ArrangerElementSize.Width && dialogResult.Height == WorkingArranger.ArrangerElementSize.Height)
+                return;
+
             WorkingArranger.Resize(dialogResult.Width, dialogResult.Height);
             CreateImages();
             AddHistoryAction(new ResizeArrangerHistoryAction(dialogResult.Width, dialogResult.Height));
@@ -338,18 +348,39 @@ public partial class GraphicsEditorViewModel
     }
 
     #region Sequential Arranger Move Commands
-    [RelayCommand] public void MoveByteDown() => Move(ArrangerMoveType.ByteDown);
-    [RelayCommand] public void MoveByteUp() => Move(ArrangerMoveType.ByteUp);
-    [RelayCommand] public void MoveRowDown() => Move(ArrangerMoveType.RowDown);
-    [RelayCommand] public void MoveRowUp() => Move(ArrangerMoveType.RowUp);
-    [RelayCommand] public void MoveColumnRight() => Move(ArrangerMoveType.ColRight);
-    [RelayCommand] public void MoveColumnLeft() => Move(ArrangerMoveType.ColLeft);
-    [RelayCommand] public void MovePageDown() => Move(ArrangerMoveType.PageDown);
-    [RelayCommand] public void MovePageUp() => Move(ArrangerMoveType.PageUp);
-    [RelayCommand] public void MoveHome() => Move(ArrangerMoveType.Home);
-    [RelayCommand] public void MoveEnd() => Move(ArrangerMoveType.End);
+    public bool IsSequentialViewMode => IsSequentialArranger && IsViewMode;
 
-    [RelayCommand(CanExecute = nameof(IsSequentialArranger))]
+    private void NotifySequentialCommandsChanged()
+    {
+        MoveByteDownCommand.NotifyCanExecuteChanged();
+        MoveByteUpCommand.NotifyCanExecuteChanged();
+        MoveRowDownCommand.NotifyCanExecuteChanged();
+        MoveRowUpCommand.NotifyCanExecuteChanged();
+        MoveColumnRightCommand.NotifyCanExecuteChanged();
+        MoveColumnLeftCommand.NotifyCanExecuteChanged();
+        MovePageDownCommand.NotifyCanExecuteChanged();
+        MovePageUpCommand.NotifyCanExecuteChanged();
+        MoveHomeCommand.NotifyCanExecuteChanged();
+        MoveEndCommand.NotifyCanExecuteChanged();
+        JumpToOffsetCommand.NotifyCanExecuteChanged();
+        ExpandWidthCommand.NotifyCanExecuteChanged();
+        ExpandHeightCommand.NotifyCanExecuteChanged();
+        ShrinkWidthCommand.NotifyCanExecuteChanged();
+        ShrinkHeightCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))] public void MoveByteDown() => Move(ArrangerMoveType.ByteDown);
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))] public void MoveByteUp() => Move(ArrangerMoveType.ByteUp);
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))] public void MoveRowDown() => Move(ArrangerMoveType.RowDown);
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))] public void MoveRowUp() => Move(ArrangerMoveType.RowUp);
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))] public void MoveColumnRight() => Move(ArrangerMoveType.ColRight);
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))] public void MoveColumnLeft() => Move(ArrangerMoveType.ColLeft);
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))] public void MovePageDown() => Move(ArrangerMoveType.PageDown);
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))] public void MovePageUp() => Move(ArrangerMoveType.PageUp);
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))] public void MoveHome() => Move(ArrangerMoveType.Home);
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))] public void MoveEnd() => Move(ArrangerMoveType.End);
+
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))]
     public async Task JumpToOffset()
     {
         var model = new JumpToOffsetViewModel(FileOffset, _preferencesStore.Preferences.JumpToOffsetBase);
@@ -397,17 +428,7 @@ public partial class GraphicsEditorViewModel
     #endregion
 
     #region Sequential Arranger Expand/Shrink Commands
-    public bool CanResizeSequentialArranger => IsSequentialArranger && IsViewMode;
-
-    private void NotifyResizeCommandsChanged()
-    {
-        ExpandWidthCommand.NotifyCanExecuteChanged();
-        ExpandHeightCommand.NotifyCanExecuteChanged();
-        ShrinkWidthCommand.NotifyCanExecuteChanged();
-        ShrinkHeightCommand.NotifyCanExecuteChanged();
-    }
-
-    [RelayCommand(CanExecute = nameof(CanResizeSequentialArranger))]
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))]
     public void ExpandWidth()
     {
         if (WorkingArranger is not SequentialArranger)
@@ -419,7 +440,7 @@ public partial class GraphicsEditorViewModel
             LinearArrangerWidth += ElementWidthIncrement;
     }
 
-    [RelayCommand(CanExecute = nameof(CanResizeSequentialArranger))]
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))]
     public void ExpandHeight()
     {
         if (WorkingArranger is not SequentialArranger)
@@ -431,7 +452,7 @@ public partial class GraphicsEditorViewModel
             LinearArrangerHeight += ElementHeightIncrement;
     }
 
-    [RelayCommand(CanExecute = nameof(CanResizeSequentialArranger))]
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))]
     public void ShrinkWidth()
     {
         if (WorkingArranger is not SequentialArranger)
@@ -443,7 +464,7 @@ public partial class GraphicsEditorViewModel
             LinearArrangerWidth = Math.Clamp(LinearArrangerWidth - ElementWidthIncrement, ElementWidthIncrement, int.MaxValue);
     }
 
-    [RelayCommand(CanExecute = nameof(CanResizeSequentialArranger))]
+    [RelayCommand(CanExecute = nameof(IsSequentialViewMode))]
     public void ShrinkHeight()
     {
         if (WorkingArranger is not SequentialArranger)

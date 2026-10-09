@@ -107,10 +107,12 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 
 - **LIB-PALETTES-023** — When a project palette with a data source is saved, the palette shall write each file source's foreign color to its address, set each project native source to the current native color and each project foreign source to the current foreign color, and return true.
   - Tests: `PaletteEditSessionTests.SetColor_UndoRedoCommit_WritesFileOnlyOnCommit`, `PaletteEditSessionTests.SetColor_ProjectForeign_CommitKeepsValue`
-- **LIB-PALETTES-024** — When a global palette is saved, the palette shall write nothing and return false.
-  - Tests: untested
-- **LIB-PALETTES-025** — Saving a palette shall neither flush the data source nor raise `DataWritten`; the project sources reach disk only when the caller saves the project.
-  - Tests: untested
+- **LIB-PALETTES-049** — A palette shall be read-only when it is a global palette, or when it has a file color source and its data source is read-only (LIB-DATASOURCE).
+  - Tests: `PaletteTests.IsReadOnly_FileColorsOnReadOnlySource_IsTrue`, `PaletteTests.IsReadOnly_ProjectColorsOnly_IsFalse`
+- **LIB-PALETTES-024** — When a read-only palette is saved, the palette shall write nothing and return false.
+  - Tests: `PaletteTests.SavePalette_ReadOnly_WritesNothingReturnsFalse`
+- **LIB-PALETTES-025** — When a palette save writes any file color, the palette shall flush its data source before returning; saving shall not raise `DataWritten`, and project sources reach disk only when the caller saves the project.
+  - Tests: `PaletteTests.SavePalette_FileColor_IsOnDiskWhenSaveReturns`, `PaletteTests.SavePalette_DoesNotRaiseDataWritten`
 
 ### Resource behavior
 
@@ -195,7 +197,8 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 - **`Changed` is the palette's only change signal.** Raised from every color, source, model and transparency change and from `Reload`. Reason: the domain announces its own changes, so no caller has to remember to notify editors. Rejected: UI messages sent by whoever edited the palette.
 - **`SetNativeColor` converts into the palette model.** Reason: it used to write an RGBA32 value into the foreign palette whatever the model.
 - **Bad JSON palette entries fail the load.** The error names the entry. Reason: dropping an unparsable entry shifted every later index. Rejected: skipping with a warning.
-- **Global palettes are read-only.** They have no data source and `SavePalette` returns false; the palette editor offers "Duplicate to project" instead.
+- **Global palettes are read-only, and so are palettes with file colors on a read-only data file.** Global palettes have no data source; a palette whose file colors live on a read-only data source cannot write them. `IsReadOnly` covers both, `SavePalette` returns false for it, and the palette editor's read-only mode keys off it; for global palettes the editor offers "Duplicate to project". A palette made only of project colors stays editable on a read-only data file. Reason: the editor's read-only mode already hides every edit path. Rejected: a second, ROM-specific read-only mode that keeps Sources visible (two modes to keep in step).
+- **A palette save flushes and stays silent.** The flush makes Save mean "on disk", so a crash after Save keeps the colors. No `DataWritten`, because that event reloads graphics editors and clears their history (LIB-DATASOURCE decision "`DataWritten` is not raised from `Flush`"). Rejected: `Flush(true)` to the physical disk, which image saves do not do either.
 - **JASC and GIMP only.** Palette files import into project native colors and export from native colors. Reason: the two common text formats cover the external editors users have. Rejected for now: RIFF `.pal`, `.act` and `.hex`.
 - **The NES master palette is configurable.** Its name comes from `appsettings.json`, with a user preference override applied at startup by TileShop.UI.
 
@@ -208,9 +211,7 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 
 - `ColorSourceSerializer.LoadColors` treats a project native source as its own foreign color, so a project palette in, for example, Bgr15 reports an Rgba32 foreign color and an unquantized native color for that entry, unlike a global palette.
 - `SetNativeColor` keeps the native color as given, so until `Reload` the palette shows a color its model cannot store (255 instead of 248 in Bgr15).
-- `SavePalette` never flushes, although the `DataSource.NotifyDataWritten` comment says palette saves flush (LIB-DATASOURCE). The write sits in the file stream's buffer until something else flushes or the source is disposed.
 - `BootstrapService.CreatePaletteStore` catches only `InvalidDataException`: a missing global or NES palette file (`FileNotFoundException`) or malformed JSON (`JsonException`) stops startup, and if no global palette loads, `First()` throws.
 - The scattered color source is still a stub. The project writer's palette mapping never advances past one, so saving such a palette would loop forever (LIB-PROJECT-FORMAT). The backlog plans removing it from the 1.0 schema.
-- The project writer collapses consecutive evenly spaced file sources into one range without comparing endianness, so a mixed-endian run is saved with the first source's endianness; `GetFileRunLength` does compare it.
 - `Palette.HasAlpha` is never set and has no callers; `Palette.GetColor` swaps R and B and has no callers.
 - No tests for 3-byte and big-endian file colors, `ZeroIndexTransparent` events, global `SavePalette`, JSON defaults and errors, or the palette store.

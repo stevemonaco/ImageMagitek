@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<palette datafile="/Data/sub" color="Rgba32" zeroindextransparent="false">
+	<nativecolor value="#000000FF" />
+	<nativecolor value="#FFFFFFFF" />
+	<filesource fileoffset="0" entries="2" />
+</palette>

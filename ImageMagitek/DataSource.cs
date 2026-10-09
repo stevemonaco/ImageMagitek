@@ -16,6 +16,11 @@ public abstract class DataSource : IProjectResource, IDisposable
     public bool ShouldBeSerialized { get; set; } = true;
     public virtual long Length => Stream.Value.Length;
 
+    /// <summary>
+    /// True when the source cannot be written; every write overload then throws and <see cref="Flush"/> does nothing
+    /// </summary>
+    public virtual bool IsReadOnly => false;
+
     protected abstract Lazy<Stream> Stream { get; }
     private readonly SemaphoreSlim _streamSemaphore = new(1, 1);
     private bool _disposedValue;
@@ -89,6 +94,7 @@ public abstract class DataSource : IProjectResource, IDisposable
 
     public virtual void Write(ReadOnlySpan<byte> buffer)
     {
+        ThrowIfReadOnly();
         _streamSemaphore.Wait();
         try
         {
@@ -102,6 +108,7 @@ public abstract class DataSource : IProjectResource, IDisposable
 
     public virtual void Write(BitAddress address, ReadOnlySpan<byte> buffer)
     {
+        ThrowIfReadOnly();
         _streamSemaphore.Wait();
         try
         {
@@ -115,6 +122,7 @@ public abstract class DataSource : IProjectResource, IDisposable
 
     public virtual void Write(BitAddress address, int writeBits, ReadOnlySpan<byte> buffer)
     {
+        ThrowIfReadOnly();
         _streamSemaphore.Wait();
         try
         {
@@ -128,6 +136,7 @@ public abstract class DataSource : IProjectResource, IDisposable
 
     public virtual async Task WriteAsync(ReadOnlyMemory<byte> buffer)
     {
+        ThrowIfReadOnly();
         await _streamSemaphore.WaitAsync();
         try
         {
@@ -141,6 +150,7 @@ public abstract class DataSource : IProjectResource, IDisposable
 
     public virtual async Task WriteAsync(BitAddress address, ReadOnlyMemory<byte> buffer)
     {
+        ThrowIfReadOnly();
         await _streamSemaphore.WaitAsync();
         try
         {
@@ -154,6 +164,7 @@ public abstract class DataSource : IProjectResource, IDisposable
 
     public virtual async Task WriteAsync(BitAddress address, int writeBits, ReadOnlyMemory<byte> buffer)
     {
+        ThrowIfReadOnly();
         await _streamSemaphore.WaitAsync();
         try
         {
@@ -180,6 +191,9 @@ public abstract class DataSource : IProjectResource, IDisposable
 
     public virtual void Flush()
     {
+        if (IsReadOnly)
+            return;
+
         _streamSemaphore.Wait();
         try
         {
@@ -193,6 +207,9 @@ public abstract class DataSource : IProjectResource, IDisposable
 
     public virtual async Task FlushAsync()
     {
+        if (IsReadOnly)
+            return;
+
         await _streamSemaphore.WaitAsync();
         try
         {
@@ -202,6 +219,12 @@ public abstract class DataSource : IProjectResource, IDisposable
         {
             _streamSemaphore.Release();
         }
+    }
+
+    private void ThrowIfReadOnly()
+    {
+        if (IsReadOnly)
+            throw new InvalidOperationException($"Data source '{Name}' is read-only");
     }
 
     public virtual IEnumerable<IProjectResource> LinkedResources =>

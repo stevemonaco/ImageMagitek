@@ -13,9 +13,7 @@ public class ProjectForeignColorSourceModel : IColorSourceModel
 
     public bool ResourceEquals(IColorSourceModel sourceModel)
     {
-        if (sourceModel is not ProjectNativeColorSourceModel model)
-            return false;
-
-        return Value.Color == model.Value.Color;
+        return sourceModel is ProjectForeignColorSourceModel model && model.Value.GetType() == Value.GetType() &&
+            model.Value.Color == Value.Color;
     }
 }

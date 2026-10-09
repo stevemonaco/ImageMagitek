@@ -9,8 +9,6 @@ sources:
   - TileShop.UI/Features/Project Nodes
   - TileShop.UI/Features/Dialogs/MoveNodeViewModel.cs
   - TileShop.UI/Features/Dialogs/MoveNodeView.axaml
-  - TileShop.UI/Features/Dialogs/RenameNodeViewModel.cs
-  - TileShop.UI/Features/Dialogs/RenameNodeView.axaml
   - TileShop.UI/Features/Dialogs/NameResourceViewModel.cs
   - TileShop.UI/Features/Dialogs/NameResourceView.axaml
   - TileShop.UI/Features/Dialogs/ResourceRemovalChangesViewModel.cs
@@ -44,7 +42,6 @@ types:
   - TreeViewItemResourceNodeDropHandler
   - MoveNodeViewModel
   - MoveDestinationModel
-  - RenameNodeViewModel
   - NameResourceViewModel
   - ResourceRemovalChangesViewModel
   - ResourceRemovalTemplateSelector
@@ -54,6 +51,10 @@ types:
   - AddScatteredArrangerFromCopyMessage
 tests:
   - ProjectServiceTests
+  - NameResourceViewModelTests
+  - AddPaletteViewModelTests
+  - AddScatteredArrangerViewModelTests
+  - ResourceRemovalChangesViewModelTests
 depends:
   - LIB-PROJECT-TREE
   - LIB-PROJECT-SERVICE
@@ -135,6 +136,8 @@ The tree pane shows every open project and standalone data file as a projection 
   - Tests: untested
 - **UI-PROJECT-TREE-041** — When a root closes, the first remaining editor shall become active.
   - Tests: untested
+- **UI-PROJECT-TREE-042** — If New Project from Existing File... picks a file held by an open project, then the tree shall expand to and select that data file node and alert "Project Error" with "'<file>' is already in project '<project>'", creating nothing.
+  - Tests: manual — File → New Project from Existing File... on a ROM already in the FF2 project.
 
 ### Context menus
 
@@ -152,8 +155,8 @@ The tree pane shows every open project and standalone data file as a projection 
   - Tests: manual — right-click a standalone root.
 - **UI-PROJECT-TREE-056** — Open in Folder shall reveal the node's disk location (UI-SHELL-110), and do nothing for a node without one.
   - Tests: manual — Open in Folder on an arranger.
-- **UI-PROJECT-TREE-057** — Save Project As... shall ask for a new XML file name and save the project there; on failure the tree shall alert "Project Save Error".
-  - Tests: manual — Save Project As... on the FF2 project.
+- **UI-PROJECT-TREE-057** — Save Project As... shall ask for a new XML file name, save a copy of the project there and switch the open project to it, renaming its root; on failure the tree shall alert "Project Save Error".
+  - Tests: manual — Save Project As... on the FF2 project to a new empty folder, then close and reopen it from there; the tree, palettes and graphics load and the old folder is unchanged.
 
 ### Standalone conversion
 
@@ -166,11 +169,11 @@ The tree pane shows every open project and standalone data file as a projection 
 
 ### Adding resources
 
-- **UI-PROJECT-TREE-070** — Add New Folder... shall create a folder named "New Folder" under the node without asking for a name, and select it; on failure the tree shall alert "Folder Creation Error".
-  - Tests: manual — Add New Folder... on the project root.
+- **UI-PROJECT-TREE-070** — Add New Folder... shall open the name dialog titled "New Folder" prefilled with the first of "New Folder", "New Folder (2)", "New Folder (3)"… no sibling has (ignoring case), create the folder on accept and select it; on failure the tree shall alert "Folder Creation Error".
+  - Tests: manual — Add New Folder... twice on the project root; the second dialog shows "New Folder (2)".
 - **UI-PROJECT-TREE-071** — Add Existing Data File... shall ask for any file and add it under the node with the file's name, and select it.
   - Tests: manual — Add Existing Data File... on a folder.
-- **UI-PROJECT-TREE-072** — If the node already has a child with the chosen file's name, then Add Existing Data File... shall alert "Error" and add nothing.
+- **UI-PROJECT-TREE-072** — If the chosen file's name is not a valid new name under the node (LIB-PROJECT-SERVICE-028), then Add Existing Data File... shall open the name dialog titled "Add Data File" prefilled with the file name and showing the error, and add the file under the accepted name; Cancel shall add nothing.
   - Tests: manual — add the same file twice to one folder.
 - **UI-PROJECT-TREE-073** — When the chosen file is open as a standalone root, Add Existing Data File... shall close that root first (with its prompts), and add nothing if the user cancels.
   - Tests: manual — Open File... a ROM, then add it to a project.
@@ -180,8 +183,8 @@ The tree pane shows every open project and standalone data file as a projection 
   - Tests: manual — open the dialog.
 - **UI-PROJECT-TREE-076** — While a template palette is chosen, the color model box shall be disabled and show the template's model.
   - Tests: manual — choose a template in the dialog.
-- **UI-PROJECT-TREE-077** — While the palette name is empty, whitespace or already used by a sibling, the Add New Palette dialog shall list the validation error.
-  - Tests: untested
+- **UI-PROJECT-TREE-077** — While the name fails `CanAddResource`, the Add New Palette and Add New Scattered Arranger dialogs shall show the failure under the name box and keep Add disabled.
+  - Tests: `AddPaletteViewModelTests.InvalidName_DisablesAddUntilValid`, `AddScatteredArrangerViewModelTests.InvalidName_DisablesAddUntilValid`
 - **UI-PROJECT-TREE-078** — When Add New Palette is accepted, the tree shall add a project-XML palette on the chosen source, starting from the template's colors or empty, select it, remember the color model and transparency choice, and open its editor.
   - Tests: manual — add a palette from a template.
 - **UI-PROJECT-TREE-079** — The Add New Scattered Arranger dialog shall ask for a name, Indexed or Direct color, Tiled or Single layout, and for Tiled the element pixel size and arranger size in elements (showing the total pixel size), for Single the pixel size.
@@ -191,16 +194,16 @@ The tree pane shows every open project and standalone data file as a projection 
 - **UI-PROJECT-TREE-081** (inherited) — The Add New Scattered Arranger dialog shall default to Indexed, Tiled, 8x8-pixel elements, 16 by 8 elements, and 256x256 for Single; Add New Palette to RGBA32 with Zero Index Transparent on.
   - Tests: untested
 - **UI-PROJECT-TREE-082** — If adding a palette or arranger fails, then the tree shall alert "Resource Error" with the reason.
-  - Tests: manual — add an arranger with a name a sibling already has.
-- **UI-PROJECT-TREE-083** — When a graphics editor asks for a new scattered arranger from a copied selection, the tree shall ask for a name, create an arranger the copy's size, copy the elements in, add it at the project root, select it and open its editor; any failure shall alert "Error".
+  - Tests: manual — make the parent directory read-only, then add an arranger.
+- **UI-PROJECT-TREE-083** — When a graphics editor asks for a new scattered arranger from a copied selection, the tree shall ask for a name in the name dialog, gated by `CanAddResource` at the project root, create an arranger the copy's size, copy the elements in, add it at the project root, select it and open its editor; any failure shall alert "Error".
   - Tests: manual — Arrange mode, select elements, "Add as New Scattered Arranger...".
 
 ### Rename
 
-- **UI-PROJECT-TREE-090** — Rename... (and Rename Project...) shall open a dialog titled "Rename <name>" with the current name filled in and ✓ and x buttons.
-  - Tests: manual — Rename... on an arranger.
-- **UI-PROJECT-TREE-091** — When the rename is accepted, the tree shall rename the resource through the service; on failure it shall alert "Rename failed" with the reason.
-  - Tests: manual — rename an arranger to a sibling's name.
+- **UI-PROJECT-TREE-090** — Rename... (and Rename Project...) shall open the name dialog titled "Rename <name>" with the current name filled in and ✓ and x buttons; while the name fails `CanRenameResource`, it shall show the failure and keep ✓ disabled.
+  - Tests: `NameResourceViewModelTests.InvalidName_DisablesAcceptAndShowsError`, `NameResourceViewModelTests.ValidName_EnablesAcceptAndClearsError`, `NameResourceViewModelTests.InvalidInitialName_ShowsErrorImmediately`; manual — Rename... on an arranger, type `a/b`.
+- **UI-PROJECT-TREE-091** — When the rename is accepted, the tree shall rename the resource through the service; an unchanged name shall close the dialog with no alert; on failure it shall alert "Rename failed" with the reason.
+  - Tests: manual — make the arranger's directory read-only (or hold a file in it open), then rename the arranger.
 
 ### Move
 
@@ -228,8 +231,8 @@ The tree pane shows every open project and standalone data file as a projection 
 
 ### Delete
 
-- **UI-PROJECT-TREE-120** — Remove shall preview the deletion and show a "Resource Removal Changes" dialog stating "'<name>' will be permanently removed and all references will be reset to default" and listing the affected resources by path with type icons, with a Remove button.
-  - Tests: manual — Remove on a data file that palettes and arrangers use.
+- **UI-PROJECT-TREE-120** — Remove shall preview the deletion and show a "Resource Removal Changes" dialog stating "'<name>' will be permanently removed", listing removed resources under "Removed Items" and kept resources that lose elements or a palette under "Changed Items" with what each loses, all by path with type icons, with a Remove button.
+  - Tests: `ResourceRemovalChangesViewModelTests.KeptResources_ListedOnlyUnderChanged`, manual — Remove on a data file that a palette and a two-source arranger use; the palette is under Removed Items and the arranger under Changed Items with "loses elements".
 - **UI-PROJECT-TREE-121** — If the deletion cannot be previewed, then Remove shall alert "Delete" with the reason.
   - Tests: untested
 - **UI-PROJECT-TREE-122** — When the removal dialog is accepted, the tree shall run the editors' removal prompts (UI-EDITORS-043, -044), then apply the deletion, resetting lost palettes to the default palette; Cancel at any step shall leave the project unchanged.
@@ -254,11 +257,7 @@ The tree pane shows every open project and standalone data file as a projection 
 
 ## Edge cases
 
-- Add New Folder... in a parent that already has "New Folder" fails with "Folder Creation Error"; no number is appended.
-- Accepting Rename... without changing the name fails with "Rename failed" (the service finds a sibling with that name, the node itself); a case-only change succeeds.
-- Add New Palette's and Add New Scattered Arranger's validation does not block the Add button: an empty or duplicate name is accepted and only the service's duplicate check (or none, for an empty name) applies. The arranger dialog never runs its validation at all.
 - Add Existing Data File... checks names only in the target parent; the same file may be added twice under different folders.
-- New Project from Existing File... on a file already in an open project is not detected; it creates a second project over the same file.
 - Relink... and the missing state are not refreshed if a file goes missing or reappears during the session; the state is read when the project opens.
 - Closing a root saves its project before asking about editors, so a Cancel still leaves a saved project.
 - The Ctrl and Alt modifiers request Copy and Link drag effects, but the drop handler always moves.
@@ -279,7 +278,9 @@ The tree pane shows every open project and standalone data file as a projection 
 - **Drag behaviors sit on the node header.** `PayloadDragBehavior`/`PayloadDropBehavior` attach to `ContentControl.nodeHeader` in the item template, not to `TreeViewItem`. Reason: headers are not nested and exclude the expander chevron, so ancestor items don't also handle the drag and the highlight covers only the header. Rejected: the library `ContextDragBehavior` on `TreeViewItem`.
 - **Missing data files load and are relinked in place.** A project with a missing file opens with the node marked missing and one alert; Relink copies the chosen file to the expected location and name so references stay unchanged.
 - **Standalone roots are a `DataFileNodeViewModel` subclass.** `StandaloneFileNodeViewModel` reuses the data-file template and icon, gets its own `standalone` class and context menu, and is activated like a data file, so no separate codec lookup was extracted. Roots stay in open order.
-- **One `FileDataSource` per file.** Opening, adding or converting a file that is open standalone first closes or selects the existing tree, because its stream would block a second source on the same file.
+- **One `FileDataSource` per file.** Opening, adding or converting a file that is open standalone first closes or selects the existing tree, because its stream would block a second source on the same file. New Project from Existing File... on a file an open project holds selects that node and refuses (the service refuses too), because two sources on one ROM make saves from one invisible to the other's editors.
+- **Dialogs ask the service.** The name dialogs validate through `CanAddResource`/`CanRenameResource`, not lists of sibling names, so the dialog and the operation can never disagree. Rejected: a client-side copy of the rule (the old partial check that let `Data` beside `data` through).
+- **Add New Folder... asks for a name.** Its label has an ellipsis and users rename new folders immediately; the dialog prefills the first free "New Folder (n)" so Enter keeps the one-step flow. Rejected: keeping name augmentation in the service, which silently changed the requested name.
 
 ## Non-goals
 
@@ -289,12 +290,8 @@ The tree pane shows every open project and standalone data file as a projection 
 
 ## Open items
 
-- `ResourceRemovalChangesViewModel` adds changed-but-kept resources (lost element or lost palette) to `RemovedResources`, so the "Changed Items" section never shows and kept resources are listed under "Removed Items".
-- Add dialogs compute `CanAdd` and validation errors but do not gate Accept on them; `AddScatteredArrangerViewModel.ValidateModel` is never invoked. No client-side or service-side check rejects empty names or names with invalid file-name characters for add or rename.
-- Rename with an unchanged name reports a failure instead of doing nothing.
-- "Add New Folder..." has an ellipsis but opens no dialog, and fails if "New Folder" exists (the service's doc comment says the name is augmented; it is not).
-- `NameResourceViewModel` (new arranger from selection) has no validation, and the arranger is always added at the project root, not near the source.
-- Dead code: `ProjectTreeView.ProjectNode_KeyDown` (not wired), `ResourceNodeViewModelExtensions.BottomUpTraversal` (unused), the single-argument `ResourceRemovalChangesViewModel` constructor and its commented-out members, `ResourceNodeViewModel.SortPriority` (no reader; ordering uses `ResourceNodeComparer`), and `IsSelected` on node VMs (not bound).
+- New arranger from selection is always added at the project root, not near the source.
+- Dead code: `ProjectTreeView.ProjectNode_KeyDown` (not wired), `ResourceNodeViewModelExtensions.BottomUpTraversal` (unused), `ResourceNodeViewModel.SortPriority` (no reader; ordering uses `ResourceNodeComparer`), and `IsSelected` on node VMs (not bound).
 - `ProjectTreeView` registers `ProjectTree_KeyDown` both in XAML and as a tunnel handler; the tunnel handler marks Enter handled, so the XAML one never sees it.
 - Only the VM projection is unit tested; Open File, recent-list, close and convert paths need the file picker or many services and are manual.
 - Manual checks still open: dropping onto a folder and onto an invalid target; rename a ROM, reopen, relink.

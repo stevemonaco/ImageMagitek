@@ -94,8 +94,8 @@ Exports an arranger's image to PNG and stages image files for import back into a
 
 - **LIB-IMAGE-IO-019** — When an import is prepared from a path, the importer shall load the file through the adapter and fail with the adapter's reason when loading fails.
   - Tests: untested
-- **LIB-IMAGE-IO-020** — If the arranger is read-only, then preparing an import shall fail.
-  - Tests: `ReadOnlyArrangerTests.Prepare_ReadOnly_Fails`
+- **LIB-IMAGE-IO-020** — If the arranger is read-only, then preparing an import shall fail with "Arranger '<name>' is read-only because it <reason>" (LIB-ARRANGERS-049).
+  - Tests: `ReadOnlyArrangerTests.Prepare_ReadOnly_Fails`, `ReadOnlyArrangerTests.Prepare_ReadOnlySource_Fails`
 - **LIB-IMAGE-IO-021** — The prepared import shall hold the current image and the resulting image of the whole arranger, the offset, the effective bounds and a report, and shall write nothing until committed.
   - Tests: `ImageImporterTests.Commit_WritesResultIntoArranger`
 - **LIB-IMAGE-IO-022** — The source's top-left pixel shall land at the given offset, which may be negative; source pixels outside the arranger are cropped and arranger pixels the source does not cover stay unchanged.

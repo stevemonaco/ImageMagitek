@@ -48,12 +48,14 @@ types:
   - IToolHandler
   - ToolContext
   - ToolResult
+  - ToolInputRouter
   - ToolCursor
   - InvalidationLevel
   - IStateDriver
   - InputAdapter
 tests:
   - SaveConflictTests
+  - ToolInputRouterTests
 depends:
   - LIB-ARRANGERS
   - LIB-IMAGES
@@ -80,8 +82,10 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 
 - **UI-GRAPHICS-EDITOR-001** — When an editor opens on a sequential arranger, it shall start in View mode and offer View and (if drawable) Draw; when it opens on a scattered arranger, it shall start in Arrange mode and offer Arrange and (if drawable) Draw.
   - Tests: manual — open a data file node and a scattered arranger node; check the toolbar mode buttons.
-- **UI-GRAPHICS-EDITOR-002** — While the arranger is read-only (LIB-ARRANGERS: any element's codec cannot encode), the editor shall hide the Draw mode button and refuse to switch to Draw.
-  - Tests: untested
+- **UI-GRAPHICS-EDITOR-002** — While the arranger is read-only (LIB-ARRANGERS-009), the editor shall hide the Draw mode button and refuse to switch to Draw.
+  - Tests: manual — set the read-only attribute on a data file, open an arranger on it in DevTools, and check that no Draw RadioButton is visible.
+- **UI-GRAPHICS-EDITOR-047** — While the arranger is read-only, the editor toolbar shall show "Read only: <reason>" (LIB-ARRANGERS-049).
+  - Tests: manual — DevTools: `ReadOnlyText` reads "Read only: reads data file '…', which is read-only" on an arranger over a read-only data file.
 - **UI-GRAPHICS-EDITOR-003** — When the user picks another mode while the editor has unsaved changes, the editor shall prompt "Save Changes" (Yes/No/Cancel); Yes saves, No discards, Cancel keeps the current mode, and the mode changes only when the editor is no longer modified afterwards.
   - Tests: manual — draw a pixel, click Arrange/View, try each answer.
 - **UI-GRAPHICS-EDITOR-004** — When the mode changes, the editor shall deactivate the outgoing tool (recording any history it returns), drop any temporary modifier tool, and clear the selection and floating paste.
@@ -118,14 +122,14 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 
 ### Sequential browsing
 
-- **UI-GRAPHICS-EDITOR-017** — While the editor shows a sequential arranger, + and − (numeric keypad) shall move by one byte, Up/Down by one element row, Left/Right by one element column, PageUp/PageDown by one page, and Home/End to the start or end of the file.
-  - Tests: untested
+- **UI-GRAPHICS-EDITOR-017** — While the editor shows a sequential arranger in View mode, + and − (numeric keypad) shall move by one byte, Up/Down by one element row, Left/Right by one element column, PageUp/PageDown by one page, and Home/End to the start or end of the file; in Draw mode the navigation keys do nothing.
+  - Tests: manual — DevTools: open the FF2 data file, switch to Draw, `input KeyDown` Down, PageDown and J; `FileOffset` is unchanged and no dialog opens. Switch to View and check the same keys move.
 - **UI-GRAPHICS-EDITOR-018** — While in View mode, the mouse wheel shall move one page down or up.
   - Tests: manual — wheel over a sequential editor.
 - **UI-GRAPHICS-EDITOR-019** — While in View mode, the editor shall show a file-offset scrollbar whose position is the current offset, whose large change is one page, and whose maximum is the file size less one page.
   - Tests: manual — drag the scrollbar in a sequential editor.
-- **UI-GRAPHICS-EDITOR-020** — While the arranger is sequential, the toolbar shall show the current offset as "Offset: 0x…"; clicking it or pressing J shall open Jump to Offset.
-  - Tests: untested
+- **UI-GRAPHICS-EDITOR-020** — While the arranger is sequential, the toolbar shall show the current offset as "Offset: 0x…"; clicking it or pressing J shall open Jump to Offset while in View mode.
+  - Tests: manual — covered by the UI-GRAPHICS-EDITOR-017 DevTools check.
 - **UI-GRAPHICS-EDITOR-021** — Jump to Offset shall accept a non-negative hexadecimal (optional 0x prefix) or decimal offset, show an inline error for invalid text, disable Jump while the text does not parse, toggle the base with H or the switch (converting the current value), and filter typed characters to digits of the base.
   - Tests: untested
 - **UI-GRAPHICS-EDITOR-022** — When the user accepts Jump to Offset, the editor shall move to that offset (clamped by LIB-ARRANGERS to the last full page) and save the chosen base to user preferences; the dialog opens in the last saved base.
@@ -156,8 +160,8 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 
 ### Save, discard and reload
 
-- **UI-GRAPHICS-EDITOR-032** — When the user presses Ctrl+S, the editor shall write its pixels to the data sources (LIB-IMAGES) unless the arranger is read-only, then copy the working arranger's elements into the project arranger and save that resource (LIB-PROJECT-SERVICE); success clears history and the modified state.
-  - Tests: untested
+- **UI-GRAPHICS-EDITOR-032** — When the user presses Ctrl+S, the editor shall write its pixels to the data sources (LIB-IMAGES) unless the arranger is read-only, then make the project arranger match the working arranger's size and every cell (LIB-ARRANGERS) and save that resource (LIB-PROJECT-SERVICE); success clears history and the modified state.
+  - Tests: manual — DevTools: on "Adult Rydia Map" in Arrange mode, `ResizeArrangerButton`, grow by one column, Ctrl+S, close the tab, reload the project, reopen and check `WorkingArranger.ArrangerElementSize` with no Save Error; repeat shrinking. Library: `ScatteredArrangerTests.ReplaceElements_Larger_TakesSizeAndCells`
 - **UI-GRAPHICS-EDITOR-033** — If saving a scattered arranger finds elements that share source data but hold different pixels, then the editor shall ask "Save Conflicts" (OK/Cancel) naming the count, and save only on OK.
   - Tests: manual — duplicate an element, edit one copy, Ctrl+S. Conflict analysis: `SaveConflictTests.AnalyzeSaveConflicts_UnchangedDuplicateOfModifiedTile_IsConflict`
 - **UI-GRAPHICS-EDITOR-034** — While the arranger is read-only, saving shall skip the pixel write and still save element rearrangements.
@@ -191,8 +195,9 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 
 ## Invariants
 
-- `WorkingArranger` is a clone of the project arranger for scattered arrangers and the arranger itself for sequential ones; the project arranger changes only on save (except Apply Palette, see Open items).
-- `CanDraw` equals "working arranger is not read-only" after every image rebuild.
+- `WorkingArranger` is a clone of the project arranger for scattered arrangers and the arranger itself for sequential ones; the project arranger changes only on save.
+- While in View mode the editor holds no pending edits.
+- `ReadOnlyReason` equals the working arranger's read-only reason and `CanDraw` equals "`ReadOnlyReason` is null" after every image rebuild.
 - `IsViewMode`, `IsArrangerMode` and `IsDrawMode` are mutually exclusive and follow `EditMode`.
 
 ## Edge cases
@@ -215,6 +220,7 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 - **Read-only codecs still save arrangement.** A read-only arranger hides Draw and skips the pixel write, but element moves, mirror, rotate and palette changes still save. Reason: the arrangement is project XML, not ROM data.
 - **Window-wide hotkeys vs. focused key bindings.** Keys that act on the focused canvas (Delete, Escape, Enter, navigation) stay as view key bindings; everything else is dispatched window-wide by the hotkey service while the editor is active. Reason: hotkeys must work without the canvas having focus, but plain navigation keys must not steal input from other panes.
 - **Project-only actions are disabled, not hidden, for standalone files.** "Add as New Scattered Arranger..." stays visible with a tooltip suggesting Create Project from File...; palette association lists only global palettes instead of being disabled. Reason: discoverability of the conversion path.
+- **Navigation is View-only.** The move commands, file offset changes and Jump to Offset run only for a sequential arranger in View mode, re-evaluated on every mode change like Expand/Shrink. Reason: leaving Draw mode already prompts Save/Discard, so View mode never holds pending edits and moving cannot lose them. Rejected: prompting on each navigation key (keys repeat while browsing), and allowing navigation in Draw mode while unmodified (the first Pencil stroke would then pin the offset with no visible reason).
 - **Sequential paths do not assume a project.** Save and palette association use the non-throwing `FindContainingProject` and skip the project save when it returns null. Reason: a sequential arranger is never in a tree.
 
 ## Non-goals
@@ -225,11 +231,9 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 
 ## Open items
 
-- In Draw mode on a sequential arranger, the navigation key bindings still move the arranger and re-decode from source, discarding visible pixel edits while the editor stays modified; undo then replays the edits at the new offset. The wheel and scrollbar are View-only.
 - Ctrl+W (fit) sets the zoom directly and can go outside 0.25x–32x.
 - Ctrl+wheel zoom keeps the pan offset rather than zooming around the pointer.
 - The Inspect Element status text prints a trailing "." after the hex byte offset when the bit offset is 0 ("FileOffset 0x1A.").
-- Saving after Resize Arranger copies working elements into the project arranger without resizing it: a larger working arranger throws during the copy ("Save Error") after pixels were already written, and a smaller one leaves the project arranger at its old size. Found by reading; not reproduced.
 - `GraphicsEditorViewModel` redeclares `ActivityMessage` and `PendingOperationMessage`, hiding the base class properties the status bar binds to by reflection.
 - The `OnImageModified` callback is never cleared when a view releases the VM; only the null-VM guard in `OnPaintSurface` prevents the crash.
 - `ArrangerRenderer`'s constructor takes an arranger it never uses.

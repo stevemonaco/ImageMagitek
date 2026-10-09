@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Diagnostics;
 using ImageMagitek.Codec;
@@ -20,17 +21,18 @@ public class ProjectService : IProjectService
 {
     private readonly ISet<ProjectTree> _projects = new HashSet<ProjectTree>();
     private readonly IProjectSerializerFactory _serializerFactory;
-    private readonly IColorFactory _colorFactory;
+
+    // One lock for all trees: every transaction in a directory shares its journal and staging paths
+    private readonly SemaphoreSlim _writeLock = new(1, 1);
 
     public event EventHandler<ProjectTree>? ProjectOpened;
     public event EventHandler<ProjectTree>? ProjectClosed;
     public event EventHandler<ProjectTreeChange>? TreeChanged;
     public event EventHandler<IProjectResource>? ResourceChanged;
 
-    public ProjectService(IProjectSerializerFactory serializerFactory, IColorFactory colorFactory)
+    public ProjectService(IProjectSerializerFactory serializerFactory)
     {
         _serializerFactory = serializerFactory;
-        _colorFactory = colorFactory;
     }
 
     private void AddProject(ProjectTree tree)
@@ -56,42 +58,94 @@ public class ProjectService : IProjectService
     private void OnTreeChanged(object? sender, ProjectTreeChange change) => TreeChanged?.Invoke(sender, change);
     private void OnResourceChanged(object? sender, IProjectResource resource) => ResourceChanged?.Invoke(sender, resource);
 
+    // No ConfigureAwait(false): tree events raised after the awaited write must stay on the caller's context
+    private async Task<T> WithWriteLockAsync<T>(Func<Task<T>> operation)
+    {
+        await _writeLock.WaitAsync();
+        try
+        {
+            return await operation();
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
+    private bool IsOpenAt(string fullPath) =>
+        _projects.Any(x => string.Equals(x.Root.DiskLocation, fullPath, StringComparison.OrdinalIgnoreCase));
+
+    private static string? FindXmlConflict(string directory) =>
+        Directory.EnumerateFiles(directory, "*.xml", new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true }).Any()
+            ? $"'{directory}' or one of its subdirectories already holds XML files, which would be loaded as part of the project"
+            : null;
+
     /// <summary>
-    /// Creates a new project
+    /// Creates a new empty project and writes its project file
     /// </summary>
     /// <param name="projectFileName">File name for the specified project</param>
-    /// <returns></returns>
-    public virtual MagitekResult<ProjectTree> CreateNewProject(string projectFileName)
+    public virtual Task<MagitekResult<ProjectTree>> CreateNewProjectAsync(string projectFileName) =>
+        WithWriteLockAsync(() => CreateNewProjectCoreAsync(projectFileName));
+
+    private async Task<MagitekResult<ProjectTree>> CreateNewProjectCoreAsync(string projectFileName)
     {
-        if (_projects.Any(x => string.Equals(x.Name, projectFileName, StringComparison.OrdinalIgnoreCase)))
-            return new MagitekResult<ProjectTree>.Failed($"{projectFileName} already exists in the solution");
+        var fullPath = Path.GetFullPath(projectFileName);
+        var directory = Path.GetDirectoryName(fullPath)!;
+        var projectName = Path.GetFileNameWithoutExtension(fullPath);
 
-        var projectName = Path.GetFileNameWithoutExtension(projectFileName);
+        var nameResult = ResourceName.Validate(projectName, false);
+        if (nameResult.HasFailed)
+            return new MagitekResult<ProjectTree>.Failed(nameResult.AsError.Reason);
+
+        if (File.Exists(fullPath))
+            return new MagitekResult<ProjectTree>.Failed($"Project file '{fullPath}' already exists");
+
+        if (IsOpenAt(fullPath))
+            return new MagitekResult<ProjectTree>.Failed($"File '{fullPath}' is already open");
+
+        if (!Directory.Exists(directory))
+            return new MagitekResult<ProjectTree>.Failed($"Directory '{directory}' does not exist");
+
+        if (FindXmlConflict(directory) is { } xmlConflict)
+            return new MagitekResult<ProjectTree>.Failed(xmlConflict);
+
         var project = new ImageProject(projectName);
-        var baseDirectory = Path.GetDirectoryName(projectFileName)!;
-
-        var root = new ProjectNode(baseDirectory, project.Name, project)
+        var root = new ProjectNode(directory, project.Name, project)
         {
-            DiskLocation = Path.GetFullPath(projectFileName)
+            DiskLocation = fullPath
         };
         var tree = new ProjectTree(root);
 
-        var contents = _serializerFactory.CreateWriter(tree).SerializeResource(root);
-        File.WriteAllText(root.DiskLocation, contents);
+        MagitekResult writeResult;
+        try
+        {
+            writeResult = await _serializerFactory.CreateWriter(tree).WriteResourceAsync(root, true);
+        }
+        catch (Exception ex)
+        {
+            writeResult = new MagitekResult.Failed($"Failed to create project: {ex.Message}");
+        }
+
+        if (writeResult.HasFailed)
+            return new MagitekResult<ProjectTree>.Failed(writeResult.AsError.Reason);
 
         AddProject(tree);
-        UpdateNodeModel(tree, root);
         ProjectOpened?.Invoke(this, tree);
 
         return new MagitekResult<ProjectTree>.Success(tree);
     }
 
-    public virtual async Task<MagitekResult<ProjectTree>> CreateNewProjectWithExistingFileAsync(string projectFileName, string dataFileName)
-    {
-        if (_projects.Any(x => string.Equals(x.Name, projectFileName, StringComparison.OrdinalIgnoreCase)))
-            return new MagitekResult<ProjectTree>.Failed($"{projectFileName} already exists in the solution");
+    public virtual Task<MagitekResult<ProjectTree>> CreateNewProjectWithExistingFileAsync(string projectFileName, string dataFileName) =>
+        WithWriteLockAsync(() => CreateNewProjectWithExistingFileCoreAsync(projectFileName, dataFileName));
 
-        if (File.Exists(projectFileName))
+    private async Task<MagitekResult<ProjectTree>> CreateNewProjectWithExistingFileCoreAsync(string projectFileName, string dataFileName)
+    {
+        var fullPath = Path.GetFullPath(projectFileName);
+
+        if (IsOpenAt(fullPath))
+            return new MagitekResult<ProjectTree>.Failed($"File '{fullPath}' is already open");
+
+        if (File.Exists(fullPath))
         {
             return new MagitekResult<ProjectTree>.Failed($"Project file '{projectFileName}' already exists");
         }
@@ -102,21 +156,41 @@ public class ProjectService : IProjectService
         }
 
         var projectName = Path.GetFileNameWithoutExtension(projectFileName);
+        var dataName = Path.GetFileNameWithoutExtension(dataFileName);
+        foreach (var name in new[] { projectName, dataName })
+        {
+            var nameResult = ResourceName.Validate(name, false);
+            if (nameResult.HasFailed)
+                return new MagitekResult<ProjectTree>.Failed(nameResult.AsError.Reason);
+        }
+
+        if (ResourceName.AreSame(projectName, dataName))
+            return new MagitekResult<ProjectTree>.Failed($"A resource at the project root cannot share the project's name '{projectName}'");
+
+        var dataPath = Path.GetFullPath(dataFileName);
+        var holdingTree = _projects
+            .Where(x => !x.IsStandaloneFile)
+            .FirstOrDefault(tree => tree.EnumerateDepthFirst().Select(x => x.Item).OfType<FileDataSource>()
+                .Any(x => string.Equals(Path.GetFullPath(x.FileLocation), dataPath, StringComparison.OrdinalIgnoreCase)));
+
+        if (holdingTree is not null)
+            return new MagitekResult<ProjectTree>.Failed($"'{Path.GetFileName(dataFileName)}' is already in project '{holdingTree.Name}'");
+
         var project = new ImageProject(projectName);
-        var baseDirectory = Path.GetDirectoryName(projectFileName)!;
+        var baseDirectory = Path.GetDirectoryName(fullPath)!;
 
         var root = new ProjectNode(baseDirectory, project.Name, project)
         {
-            DiskLocation = Path.GetFullPath(projectFileName)
+            DiskLocation = fullPath
         };
         var tree = new ProjectTree(root);
 
-        var dataFile = new FileDataSource(Path.GetFileNameWithoutExtension(dataFileName), dataFileName);
+        var dataFile = new FileDataSource(dataName, dataFileName);
         var dataNode = new DataFileNode(dataFile.Name, dataFile);
         tree.AttachNodeToPath("", dataNode);
 
         AddProject(tree);
-        var result = await SaveProjectAsync(tree);
+        var result = await SaveProjectCoreAsync(tree);
 
         if (result.HasSucceeded)
         {
@@ -210,6 +284,11 @@ public class ProjectService : IProjectService
         if (projectTree is null)
             throw new InvalidOperationException($"{nameof(SaveProjectAsync)} parameter '{nameof(projectTree)}' was null");
 
+        return await WithWriteLockAsync(() => SaveProjectCoreAsync(projectTree));
+    }
+
+    private async Task<MagitekResult> SaveProjectCoreAsync(ProjectTree projectTree)
+    {
         if (projectTree.IsStandaloneFile)
             return MagitekResult.SuccessResult;
 
@@ -230,11 +309,10 @@ public class ProjectService : IProjectService
     }
 
     /// <summary>
-    /// Saves the project to another location on disk, leaving the old location intact
+    /// Writes a copy of the project's XML at another location and switches the open project to it, leaving the old location intact
     /// </summary>
     /// <param name="projectTree">Project to be saved</param>
-    /// <param name="projectFileName">New location</param>
-    /// <returns></returns>
+    /// <param name="projectFileName">New project file; the project is renamed after it</param>
     public virtual async Task<MagitekResult> SaveProjectAsAsync(ProjectTree projectTree, string projectFileName)
     {
         if (projectTree is null)
@@ -243,24 +321,94 @@ public class ProjectService : IProjectService
         if (string.IsNullOrWhiteSpace(projectFileName))
             throw new ArgumentException($"{nameof(SaveProjectAsAsync)} cannot have a null or empty value for '{nameof(projectFileName)}'");
 
+        return await WithWriteLockAsync(() => SaveProjectAsCoreAsync(projectTree, projectFileName));
+    }
+
+    private async Task<MagitekResult> SaveProjectAsCoreAsync(ProjectTree projectTree, string projectFileName)
+    {
         if (projectTree.IsStandaloneFile)
             return new MagitekResult.Failed(StandaloneFileReason(projectTree));
 
+        var fullPath = Path.GetFullPath(projectFileName);
+        var newDirectory = Path.GetDirectoryName(fullPath)!;
+        var newName = Path.GetFileNameWithoutExtension(fullPath);
+
+        if (File.Exists(fullPath))
+            return new MagitekResult.Failed($"Project file '{fullPath}' already exists");
+
+        if (Directory.Exists(newDirectory) && FindXmlConflict(newDirectory) is { } xmlConflict)
+            return new MagitekResult.Failed(xmlConflict);
+
+        var canRename = CanRenameResource(projectTree.Root, newName);
+        if (canRename.HasFailed)
+            return canRename;
+
+        var root = (ProjectNode)projectTree.Root;
+        var project = (ImageProject)root.Item;
+        var oldBaseDirectory = root.BaseDirectory;
+        var oldName = root.Name;
+        var oldProjectRoot = project.Root;
+        var oldModel = root.Model;
+        var oldLocations = projectTree.EnumerateDepthFirst().Select(x => (Node: x, x.DiskLocation)).ToList();
+        var createdDirectories = new List<string>();
+
+        MagitekResult failure;
         try
         {
-            var serializer = _serializerFactory.CreateWriter(projectTree);
-            var result = await serializer.WriteProjectAsync(projectFileName);
-            if (result.Value is MagitekResult.Success)
+            root.BaseDirectory = newDirectory;
+            project.Root = "";
+            root.DiskLocation = fullPath;
+            // Forces the project file write even when the name and root are unchanged
+            root.Model = null;
+
+            if (!string.Equals(oldName, newName, StringComparison.Ordinal))
+                root.Rename(newName);
+
+            RelocateFolders(projectTree, root);
+            var folderDirectories = projectTree.EnumerateDepthFirst().OfType<ResourceFolderNode>().Select(x => x.DiskLocation!);
+            foreach (var directory in folderDirectories.Prepend(newDirectory))
             {
-                projectTree.Root.DiskLocation = Path.GetFullPath(projectFileName);
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                    createdDirectories.Add(directory);
+                }
             }
 
-            return result;
+            var writeResult = await _serializerFactory.CreateWriter(projectTree).WriteProjectAsync(fullPath);
+            if (writeResult.HasSucceeded)
+                return writeResult;
+
+            failure = writeResult;
         }
         catch (Exception ex)
         {
-            return new MagitekResult.Failed($"Failed to save project: {ex.Message}");
+            failure = new MagitekResult.Failed($"Failed to save project: {ex.Message}");
         }
+
+        if (!string.Equals(root.Name, oldName, StringComparison.Ordinal))
+            root.Rename(oldName);
+
+        root.BaseDirectory = oldBaseDirectory;
+        project.Root = oldProjectRoot;
+        root.Model = oldModel;
+        foreach (var (node, location) in oldLocations)
+            node.DiskLocation = location;
+
+        foreach (var directory in Enumerable.Reverse(createdDirectories))
+        {
+            try
+            {
+                if (!Directory.EnumerateFileSystemEntries(directory).Any())
+                    Directory.Delete(directory);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // Leaving an empty directory behind does not affect either project
+            }
+        }
+
+        return failure;
     }
 
     /// <summary>
@@ -306,21 +454,16 @@ public class ProjectService : IProjectService
     /// <param name="parentNode">ResourceNode that is contained by the project</param>
     /// <param name="resource">New resource to add</param>
     /// <returns>The added resource node result</returns>
-    public virtual MagitekResult<ResourceNode> AddResource(ResourceNode parentNode, IProjectResource resource)
+    public virtual Task<MagitekResult<ResourceNode>> AddResourceAsync(ResourceNode parentNode, IProjectResource resource) =>
+        WithWriteLockAsync(() => AddResourceCoreAsync(parentNode, resource));
+
+    private async Task<MagitekResult<ResourceNode>> AddResourceCoreAsync(ResourceNode parentNode, IProjectResource resource)
     {
-        var tree = _projects.FirstOrDefault(x => x.ContainsNode(parentNode));
+        var canAdd = CanAddResource(parentNode, resource.Name, resource is ResourceFolder);
+        if (canAdd.HasFailed)
+            return new MagitekResult<ResourceNode>.Failed(canAdd.AsError.Reason);
 
-        if (tree is null)
-            return new MagitekResult<ResourceNode>.Failed($"{parentNode.Item.Name} is not contained within any loaded project");
-
-        if (parentNode.ContainsChildNode(resource.Name))
-        {
-            return new MagitekResult<ResourceNode>.Failed($"'{parentNode.Name}' already contains a child named '{resource.Name}'");
-        }
-        else if (parentNode.Item.CanContainChildResources == false)
-        {
-            return new MagitekResult<ResourceNode>.Failed($"'{parentNode.Name}' cannot contain children");
-        }
+        var tree = _projects.First(x => x.ContainsNode(parentNode));
 
         try
         {
@@ -336,13 +479,12 @@ public class ProjectService : IProjectService
             if (childNode is null)
                 return new MagitekResult<ResourceNode>.Failed($"Cannot add a resource of type '{resource.GetType()}'");
 
-            var contents = _serializerFactory.CreateWriter(tree).SerializeResource(childNode);
-            var location = ResourceFileLocator.LocateByParent(tree, parentNode, childNode);
-            File.WriteAllText(location, contents);
+            childNode.DiskLocation = ResourceFileLocator.LocateByParent(tree, parentNode, childNode);
+            var writeResult = await _serializerFactory.CreateWriter(tree).WriteResourceAsync(childNode, true);
+            if (writeResult.HasFailed)
+                return new MagitekResult<ResourceNode>.Failed(writeResult.AsError.Reason);
 
             parentNode.AttachChildNode(childNode);
-            childNode.DiskLocation = location;
-            UpdateNodeModel(tree, childNode);
 
             return new MagitekResult<ResourceNode>.Success(childNode);
         }
@@ -356,23 +498,23 @@ public class ProjectService : IProjectService
     /// Creates a new folder node under the specified parent
     /// </summary>
     /// <param name="parentNode">Parent to the new folder</param>
-    /// <param name="name">New name of the folder which will be augmented if already existing</param>
+    /// <param name="name">Name of the folder, used as given</param>
     /// <returns>The newly created ResourceNode result</returns>
-    public virtual MagitekResult<ResourceNode> CreateNewFolder(ResourceNode parentNode, string name)
+    public virtual Task<MagitekResult<ResourceNode>> CreateNewFolderAsync(ResourceNode parentNode, string name) =>
+        WithWriteLockAsync(() => Task.FromResult(CreateNewFolderCore(parentNode, name)));
+
+    private MagitekResult<ResourceNode> CreateNewFolderCore(ResourceNode parentNode, string name)
     {
-        var tree = _projects.FirstOrDefault(x => x.ContainsNode(parentNode));
+        var canAdd = CanAddResource(parentNode, name, true);
+        if (canAdd.HasFailed)
+            return new MagitekResult<ResourceNode>.Failed(canAdd.AsError.Reason);
 
-        if (tree is null)
-            return new MagitekResult<ResourceNode>.Failed($"{parentNode.Item.Name} is not contained within any loaded project");
-
-        if (parentNode.ContainsChildNode(name) || !parentNode.Item.CanContainChildResources)
-            return new MagitekResult<ResourceNode>.Failed($"Could not create folder '{name}' under parent '{parentNode.Name}'");
+        var tree = _projects.First(x => x.ContainsNode(parentNode));
 
         try
         {
-            var childName = FindFirstNewChildResourceName(parentNode, name);
-            var folder = new ResourceFolder(childName);
-            var node = new ResourceFolderNode(childName, folder);
+            var folder = new ResourceFolder(name);
+            var node = new ResourceFolderNode(name, folder);
             var directoryName = ResourceFileLocator.LocateByParent(tree, parentNode, node);
             node.DiskLocation = directoryName;
 
@@ -385,16 +527,71 @@ public class ProjectService : IProjectService
         {
             return new MagitekResult<ResourceNode>.Failed($"Could not create folder '{name}' under parent '{parentNode.Name}'\n{ex.Message}");
         }
+    }
 
-        string FindFirstNewChildResourceName(ResourceNode node, string baseName)
+    /// <inheritdoc/>
+    public virtual MagitekResult CanAddResource(ResourceNode parentNode, string name, bool isFolder)
+    {
+        var tree = _projects.FirstOrDefault(x => x.ContainsNode(parentNode));
+
+        if (tree is null)
+            return new MagitekResult.Failed($"{parentNode.Item.Name} is not contained within any loaded project");
+
+        if (!parentNode.Item.CanContainChildResources)
+            return new MagitekResult.Failed($"'{parentNode.Name}' cannot contain children");
+
+        var nameResult = ResourceName.Validate(name, isFolder);
+        if (nameResult.HasFailed)
+            return nameResult;
+
+        return FindNameConflict(tree, parentNode, name, isFolder, null) is { } conflict
+            ? new MagitekResult.Failed(conflict)
+            : MagitekResult.SuccessResult;
+    }
+
+    /// <inheritdoc/>
+    public virtual MagitekResult CanRenameResource(ResourceNode node, string newName)
+    {
+        var tree = _projects.FirstOrDefault(x => x.ContainsNode(node));
+
+        if (tree is null)
+            return new MagitekResult.Failed($"Could not locate '{node.Name}' in any loaded project");
+
+        if (tree.IsStandaloneFile)
+            return new MagitekResult.Failed(StandaloneFileReason(tree));
+
+        if (string.Equals(node.Name, newName, StringComparison.Ordinal))
+            return MagitekResult.SuccessResult;
+
+        var isFolder = node is ResourceFolderNode;
+        var nameResult = ResourceName.Validate(newName, isFolder);
+        if (nameResult.HasFailed)
+            return nameResult;
+
+        if (node is ProjectNode)
         {
-            if (!node.ContainsChildNode(baseName))
-                return baseName;
-            else
-                return new string[] { baseName }
-                .Concat(Enumerable.Range(1, 999).Select(x => $"{baseName} ({x})"))
-                .First(x => !node.ContainsChildNode(x));
+            var clash = node.ChildNodes.FirstOrDefault(x => x is not ResourceFolderNode && ResourceName.AreSame(x.Name, newName));
+            return clash is null
+                ? MagitekResult.SuccessResult
+                : new MagitekResult.Failed($"The project cannot share a name with its root-level resource '{clash.Name}'");
         }
+
+        return FindNameConflict(tree, node.Parent!, newName, isFolder, node) is { } conflict
+            ? new MagitekResult.Failed(conflict)
+            : MagitekResult.SuccessResult;
+    }
+
+    private static string? FindNameConflict(ProjectTree tree, ResourceNode parent, string name, bool isFolder, ResourceNode? ignore)
+    {
+        var sibling = parent.ChildNodes.FirstOrDefault(x => !ReferenceEquals(x, ignore) && ResourceName.AreSame(x.Name, name));
+        if (sibling is not null)
+            return $"'{parent.Name}' already contains '{sibling.Name}'";
+
+        // The project file shares the base directory with root-level resource files
+        if (parent is ProjectNode && !isFolder && ResourceName.AreSame(name, tree.Name))
+            return $"A resource at the project root cannot share the project's name '{tree.Name}'";
+
+        return null;
     }
 
     /// <summary>
@@ -409,6 +606,11 @@ public class ProjectService : IProjectService
         if (projectTree is null)
             throw new InvalidOperationException($"{nameof(SaveResourceAsync)} parameter '{nameof(projectTree)}' was null");
 
+        return await WithWriteLockAsync(() => SaveResourceCoreAsync(projectTree, resourceNode, alwaysOverwrite));
+    }
+
+    private async Task<MagitekResult> SaveResourceCoreAsync(ProjectTree projectTree, ResourceNode resourceNode, bool alwaysOverwrite)
+    {
         if (projectTree.Root.DiskLocation is null)
             throw new InvalidOperationException($"{nameof(SaveResourceAsync)}: '{nameof(projectTree)}' has no disk location");
 
@@ -456,21 +658,19 @@ public class ProjectService : IProjectService
     /// </summary>
     /// <param name="node">Node to be renamed. Must be attached to a loaded project.</param>
     /// <param name="newName">New name</param>
-    public virtual async Task<MagitekResult> RenameResourceAsync(ResourceNode node, string newName)
+    public virtual Task<MagitekResult> RenameResourceAsync(ResourceNode node, string newName) =>
+        WithWriteLockAsync(() => RenameResourceCoreAsync(node, newName));
+
+    private async Task<MagitekResult> RenameResourceCoreAsync(ResourceNode node, string newName)
     {
-        var tree = _projects.FirstOrDefault(x => x.ContainsNode(node));
+        var canRename = CanRenameResource(node, newName);
+        if (canRename.HasFailed)
+            return canRename;
 
-        if (tree is null)
-            return new MagitekResult.Failed($"Could not locate '{node.Name}' in any loaded project");
+        if (string.Equals(node.Name, newName, StringComparison.Ordinal))
+            return MagitekResult.SuccessResult;
 
-        if (tree.IsStandaloneFile)
-            return new MagitekResult.Failed(StandaloneFileReason(tree));
-
-        if (node.Parent is not null && node.Parent.ContainsChildNode(newName))
-        {
-            return new MagitekResult.Failed($"Parent node '{node.Parent.Name}' already contains a node named '{newName}'");
-        }
-
+        var tree = _projects.First(x => x.ContainsNode(node));
         var oldName = node.Name;
 
         if (node is ResourceFolderNode) // Exclusively on disk as part of the filesystem
@@ -599,8 +799,8 @@ public class ProjectService : IProjectService
         if (tree.CreatePathKey(node.Parent) == parentKey)
             return new MagitekResult.Failed($"Cannot move {node.Name} onto itself");
 
-        if (parentNode.ContainsChildNode(node.Name))
-            return new MagitekResult.Failed($"{parentNode.Name} already contains {node.Name}");
+        if (FindNameConflict(tree, parentNode, node.Name, node is ResourceFolderNode, null) is { } conflict)
+            return new MagitekResult.Failed(conflict);
 
         if (!parentNode.Item.CanContainChildResources)
             return new MagitekResult.Failed($"{parentNode.Name} cannot contain child resources");
@@ -636,6 +836,11 @@ public class ProjectService : IProjectService
         Guard.IsNotNull(node);
         Guard.IsNotNull(parentNode);
 
+        return await WithWriteLockAsync(() => MoveNodeCoreAsync(node, parentNode));
+    }
+
+    private async Task<MagitekResult> MoveNodeCoreAsync(ResourceNode node, ResourceNode parentNode)
+    {
         var canMoveResult = CanMoveNode(node, parentNode);
         if (canMoveResult.HasFailed)
             return canMoveResult;
@@ -745,39 +950,53 @@ public class ProjectService : IProjectService
     /// </summary>
     /// <param name="plan">Plan created by <see cref="PreviewResourceDeletion"/></param>
     /// <param name="defaultPalette">Default palette to fallback to when a resource loses a palette</param>
-    public virtual MagitekResult ApplyResourceDeletion(ResourceDeletionPlan plan, Palette defaultPalette)
+    public virtual Task<MagitekResult> ApplyResourceDeletionAsync(ResourceDeletionPlan plan, Palette defaultPalette) =>
+        WithWriteLockAsync(() => ApplyResourceDeletionCoreAsync(plan, defaultPalette));
+
+    private async Task<MagitekResult> ApplyResourceDeletionCoreAsync(ResourceDeletionPlan plan, Palette defaultPalette)
     {
         var tree = plan.Tree;
-        var changes = plan.Changes;
-        var removedItems = changes.Where(x => x.Removed).ToList();
+        var removedItems = plan.Changes.Where(x => x.Removed).ToList();
+        var removedResources = removedItems.Select(x => x.Resource).ToHashSet();
+        var changedArrangers = plan.Changes
+            .Where(x => !x.Removed && x.Resource is ScatteredArranger)
+            .ToList();
 
-        foreach (var change in changes.Where(x => x.IsChanged))
+        try
         {
-            foreach (var removeItem in removedItems)
-            {
-                change.Resource.UnlinkResource(removeItem.Resource);
-            }
+            var resourceMap = CreateResourceMap(tree);
+            var removedKeys = removedResources.Where(resourceMap.ContainsKey).Select(x => resourceMap[x]).ToHashSet();
+            var fallbackPaletteKey = resourceMap.GetValueOrDefault(defaultPalette);
 
-            if (change.LostPalette && change.Resource is ScatteredArranger arranger)
+            var edits = changedArrangers
+                .Select(x => (x.ResourceNode, (ResourceModel)WithoutRemovedKeys(((ScatteredArranger)x.Resource).MapToModel(resourceMap), removedKeys, fallbackPaletteKey)))
+                .ToList();
+
+            var writeResult = await _serializerFactory.CreateWriter(tree).WriteModelsAsync(edits);
+            if (writeResult.HasFailed)
+                return writeResult;
+        }
+        catch (Exception ex)
+        {
+            return new MagitekResult.Failed($"Could not update the resources that use the removed resources: {ex.Message}");
+        }
+
+        foreach (var arranger in changedArrangers.Select(x => (ScatteredArranger)x.Resource))
+        {
+            foreach (var source in removedResources.OfType<DataSource>())
+                arranger.UnlinkResource(source);
+
+            foreach (var (x, y) in arranger.EnumerateElementsWithinElementRange())
             {
-                foreach (var (x, y) in arranger.EnumerateElementsWithinElementRange())
+                if (arranger.GetElement(x, y) is ArrangerElement { Codec: IIndexedCodec codec } el && removedResources.Contains(codec.Palette))
                 {
-                    var el = arranger.GetElement(x, y);
-                    if (el is ArrangerElement { Codec: IIndexedCodec codec })
-                    {
-                        codec.Palette = defaultPalette;
-                        arranger.SetElement(el, x, y);
-                    }
+                    codec.Palette = defaultPalette;
+                    arranger.SetElement(el, x, y);
                 }
             }
-
-            var contents = _serializerFactory.CreateWriter(tree).SerializeResource(change.ResourceNode);
-            var location = change.ResourceNode.DiskLocation;
-            Guard.IsNotNull(location);
-
-            File.WriteAllText(location, contents);
-            UpdateNodeModel(tree, change.ResourceNode);
         }
+
+        var undeletableFiles = new List<string>();
 
         foreach (var item in removedItems.Where(x => x.Resource is not ResourceFolder))
         {
@@ -785,7 +1004,20 @@ public class ProjectService : IProjectService
             resourceParent?.RemoveChildNode(item.Resource.Name);
 
             if (item.ResourceNode.DiskLocation is string location)
-                File.Delete(location);
+            {
+                try
+                {
+                    File.Delete(location);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    undeletableFiles.Add(location);
+                }
+            }
+
+            // Editors on the source close on Removed, so nothing reads it after this
+            if (item.Resource is DataSource source)
+                source.Dispose();
         }
 
         var keptFolders = new List<string>();
@@ -806,10 +1038,54 @@ public class ProjectService : IProjectService
             }
         }
 
-        if (keptFolders.Count > 0)
-            return new MagitekResult.Failed($"These folders contain other files and were left on disk. They will reappear when the project is reopened until removed:\n{string.Join("\n", keptFolders)}");
+        var reasons = new List<string>();
 
-        return MagitekResult.SuccessResult;
+        if (undeletableFiles.Count > 0)
+            reasons.Add($"These resource files could not be deleted. They will reappear when the project is reopened until removed:\n{string.Join("\n", undeletableFiles)}");
+
+        if (keptFolders.Count > 0)
+            reasons.Add($"These folders contain other files and were left on disk. They will reappear when the project is reopened until removed:\n{string.Join("\n", keptFolders)}");
+
+        return reasons.Count > 0
+            ? new MagitekResult.Failed(string.Join("\n\n", reasons))
+            : MagitekResult.SuccessResult;
+    }
+
+    private static ScatteredArrangerModel WithoutRemovedKeys(ScatteredArrangerModel model, HashSet<string> removedKeys, string? fallbackPaletteKey)
+    {
+        var grid = model.ElementGrid;
+
+        for (int y = 0; y < grid.GetLength(1); y++)
+        {
+            for (int x = 0; x < grid.GetLength(0); x++)
+            {
+                var el = grid[x, y];
+
+                if (el is null)
+                    continue;
+
+                if (removedKeys.Contains(el.DataFileKey))
+                {
+                    grid[x, y] = null!;
+                }
+                else if (el.PaletteKey is string paletteKey && removedKeys.Contains(paletteKey))
+                {
+                    grid[x, y] = new ArrangerElementModel
+                    {
+                        DataFileKey = el.DataFileKey,
+                        PaletteKey = fallbackPaletteKey ?? throw new InvalidOperationException("The fallback palette is not available to the project"),
+                        CodecName = el.CodecName,
+                        FileAddress = el.FileAddress,
+                        PositionX = el.PositionX,
+                        PositionY = el.PositionY,
+                        Mirror = el.Mirror,
+                        Rotation = el.Rotation
+                    };
+                }
+            }
+        }
+
+        return model;
     }
 
     /// <summary>
@@ -847,26 +1123,14 @@ public class ProjectService : IProjectService
 
         foreach (var node in tree.EnumerateDepthFirst().Where(x => !removedDict.ContainsKey(x.Item)))
         {
-            var removed = false;
-            var lostElements = false;
-            var lostPalette = false;
-            var resource = node.Item;
+            if (node.Item is not Arranger arranger)
+                continue;
 
-            foreach (var linkedResource in resource.LinkedResources)
-            {
-                if (removedDict.ContainsKey(linkedResource))
-                {
-                    if (linkedResource is Palette && resource is Arranger)
-                        lostPalette = true;
-
-                    if (linkedResource is DataSource && resource is Arranger arranger)
-                    {
-                        lostElements = true;
-                        if (arranger.EnumerateElements().OfType<ArrangerElement>().All(x => removedDict.ContainsKey(linkedResource) || x.Source is null))
-                            removed = true;
-                    }
-                }
-            }
+            var elements = arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Source is not null).ToList();
+            var lostElements = elements.Any(x => removedDict.ContainsKey(x.Source));
+            var removed = lostElements && elements.All(x => removedDict.ContainsKey(x.Source));
+            var lostPalette = !removed && elements.Any(x => !removedDict.ContainsKey(x.Source) &&
+                x.Codec is IIndexedCodec codec && removedDict.ContainsKey(codec.Palette));
 
             if (removed || lostPalette || lostElements)
                 changes.Add(new ResourceChange(node, tree.CreatePathKey(node), removed, lostPalette, lostElements));
@@ -884,44 +1148,16 @@ public class ProjectService : IProjectService
             .Where(x => x.Item.LinkedResources.Any(x => keyChangedResources.Contains(x)));
     }
 
-    /// <summary>
-    /// Updates the node model to reflect the current resource
-    /// </summary>
-    private void UpdateNodeModel(ProjectTree tree, ResourceNode node)
+    private Dictionary<IProjectResource, string> CreateResourceMap(ProjectTree tree)
     {
-        if (node is ProjectNode { Item: ImageProject project } projectNode)
-        {
-            projectNode.Model = project.MapToModel();
-        }
-        else if (node is DataFileNode dfNode)
-        {
-            if (dfNode.Item is FileDataSource fileSource)
-                dfNode.Model = fileSource.MapToModel();
-        }
-        else if (node is PaletteNode { Item: Palette pal } palNode)
-        {
-            var map = GetResourceMap(tree);
-            palNode.Model = pal.MapToModel(map, _colorFactory);
-        }
-        else if (node is ArrangerNode { Item: ScatteredArranger arranger } arrangerNode)
-        {
-            var map = GetResourceMap(tree);
-            arrangerNode.Model = arranger.MapToModel(map);
-        }
-        else
-            throw new NotSupportedException($"{nameof(UpdateNodeModel)} is not supported for node of type '{node.GetType()}' with model of type '{node.Item.GetType()}");
+        var resourceMap = new Dictionary<IProjectResource, string>();
 
-        Dictionary<IProjectResource, string> GetResourceMap(ProjectTree tree)
-        {
-            var resourceMap = new Dictionary<IProjectResource, string>();
+        foreach (var resource in _serializerFactory.GlobalResources)
+            resourceMap.Add(resource, resource.Name);
 
-            foreach (var resource in _serializerFactory.GlobalResources)
-                resourceMap.Add(resource, resource.Name);
+        foreach (var node in tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
+            resourceMap.Add(node.Item, tree.CreatePathKey(node));
 
-            foreach (var node in tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
-                resourceMap.Add(node.Item, tree.CreatePathKey(node));
-
-            return resourceMap;
-        }
+        return resourceMap;
     }
 }

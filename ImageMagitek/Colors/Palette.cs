@@ -82,6 +82,12 @@ public class Palette : IProjectResource
     public PaletteStorageSource StorageSource { get; }
 
     /// <summary>
+    /// True for global palettes and for palettes with file colors on a read-only data source
+    /// </summary>
+    public bool IsReadOnly => StorageSource == PaletteStorageSource.GlobalJson ||
+        (DataSource is { IsReadOnly: true } && ColorSources.Any(x => x is FileColorSource));
+
+    /// <summary>
     /// Specifies how the Palette colors will be serialized
     /// </summary>
     public IColorSource[] ColorSources { get; private set; }
@@ -351,12 +357,19 @@ public class Palette : IProjectResource
     /// <summary>
     /// Saves palette's foreign colors to its underlying source and location
     /// </summary>
-    /// <returns>True if the palette can be saved, false if the palette is not valid to be saved</returns>
+    /// <returns>True if the palette was saved, false if it is read-only or not valid to be saved</returns>
     public bool SavePalette()
     {
+        if (IsReadOnly)
+            return false;
+
         if (StorageSource == PaletteStorageSource.ProjectXml && DataSource is not null)
         {
             _colorSerializer.StoreColors(ColorSources, DataSource, NativePalette, ForeignPalette);
+
+            if (ColorSources.Any(x => x is FileColorSource))
+                DataSource.Flush();
+
             return true;
         }
 

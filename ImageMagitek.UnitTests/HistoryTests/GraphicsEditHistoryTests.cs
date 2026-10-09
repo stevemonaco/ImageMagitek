@@ -32,8 +32,9 @@ public class GraphicsEditHistoryTests
             .Select(i => new ColorRgba32((byte)(seed + i * 8), (byte)(seed + i * 4), (byte)(i * 2), 255))
             .ToArray());
 
-    private static ArrangerImageAdapter CreateIndexed(int elementWidth = 16, int elementHeight = 8, Func<int, byte>? data = null)
+    private static ArrangerImageAdapter CreateIndexed(int elementWidth = 16, int elementHeight = 8, Func<int, byte>? data = null, Palette? palette = null)
     {
+        palette ??= _palette;
         const int elemsX = 3;
         const int elemsY = 2;
         var bytes = Enumerable.Range(0, elemsX * elemsY * elementWidth * elementHeight / 2)
@@ -44,7 +45,7 @@ public class GraphicsEditHistoryTests
         source.Write(new BitAddress(0), bytes);
 
         var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, elemsX, elemsY,
-            (_, _) => new Psx4BppCodec(_palette, elementWidth, elementHeight), source);
+            (_, _) => new Psx4BppCodec(palette, elementWidth, elementHeight), source);
         return new ArrangerImageAdapter(arranger);
     }
 
@@ -69,11 +70,11 @@ public class GraphicsEditHistoryTests
     {
         AssertUndoRedo(CreateIndexed(), image =>
         {
-            var action = new PencilHistoryAction<byte>(5);
+            var action = new PencilHistoryAction<byte>();
             foreach (var (x, y) in new[] { (1, 1), (2, 1), (20, 10), (47, 15) })
             {
                 image.SetIndexedPixel(x, y, 5);
-                action.Add(x, y);
+                action.Add(x, y, 5);
             }
             return action;
         });
@@ -85,11 +86,11 @@ public class GraphicsEditHistoryTests
         var color = new ColorRgba32(1, 2, 3, 255);
         AssertUndoRedo(CreateDirect(), image =>
         {
-            var action = new PencilHistoryAction<ColorRgba32>(color);
+            var action = new PencilHistoryAction<ColorRgba32>();
             foreach (var (x, y) in new[] { (0, 0), (9, 3), (15, 15) })
             {
                 image.SetDirectPixel(x, y, color);
-                action.Add(x, y);
+                action.Add(x, y, color);
             }
             return action;
         });
@@ -159,7 +160,7 @@ public class GraphicsEditHistoryTests
     {
         AssertUndoRedo(CreateIndexed(), image =>
         {
-            Assert.True(image.TrySetPalette(16, 0, _otherPalette).HasSucceeded);
+            Assert.True(image.TrySetPalette(16, 0, _otherPalette, _codecFactory).HasSucceeded);
             var action = new ApplyPaletteHistoryAction(_otherPalette);
             action.Add(16, 0);
             return action;
@@ -195,7 +196,7 @@ public class GraphicsEditHistoryTests
         history.Add(new PasteArrangerHistoryAction(copy, 16, 8, null), image.Arranger);
         var pasted = EditorState.Capture(image);
 
-        Assert.True(image.TrySetPalette(16, 0, _otherPalette).HasSucceeded);
+        Assert.True(image.TrySetPalette(16, 0, _otherPalette, _codecFactory).HasSucceeded);
         var applyPalette = new ApplyPaletteHistoryAction(_otherPalette);
         applyPalette.Add(16, 0);
         history.Add(applyPalette, image.Arranger);
@@ -207,9 +208,9 @@ public class GraphicsEditHistoryTests
         history.Redo(image);
         applied.AssertMatches(image);
 
-        var pencil = new PencilHistoryAction<byte>(3);
+        var pencil = new PencilHistoryAction<byte>();
         image.SetIndexedPixel(0, 0, 3);
-        pencil.Add(0, 0);
+        pencil.Add(0, 0, 3);
         history.Add(pencil, image.Arranger);
 
         history.Undo(image);
@@ -223,15 +224,58 @@ public class GraphicsEditHistoryTests
         var history = new GraphicsEditHistory(new(), new(), image.Arranger, _codecFactory);
         var sharedCodec = (IIndexedCodec)image.Arranger.GetElement(1, 0)!.Value.Codec;
 
-        Assert.True(image.TrySetPalette(16, 0, _otherPalette).HasSucceeded);
+        Assert.True(image.TrySetPalette(16, 0, _otherPalette, _codecFactory).HasSucceeded);
         var action = new ApplyPaletteHistoryAction(_otherPalette);
         action.Add(16, 0);
         history.Add(action, image.Arranger);
 
+        Assert.Same(_palette, sharedCodec.Palette);
+        Assert.Same(_otherPalette, ((IIndexedCodec)image.Arranger.GetElement(1, 0)!.Value.Codec).Palette);
+
         history.Undo(image);
 
-        Assert.Same(_otherPalette, sharedCodec.Palette);
+        Assert.Same(_palette, sharedCodec.Palette);
         Assert.Same(_palette, ((IIndexedCodec)image.Arranger.GetElement(1, 0)!.Value.Codec).Palette);
+    }
+
+    [Fact]
+    public void Pencil_DuplicatePaletteColors_UndoRedo_KeepsChosenIndex()
+    {
+        var colors = Enumerable.Range(0, 16).Select(i => _palette[i]).ToArray();
+        colors[9] = colors[1];
+        var palette = ArrangerTestFactory.CreatePalette(colors);
+
+        AssertUndoRedo(CreateIndexed(data: _ => 0x22, palette: palette), image =>
+        {
+            var action = new PencilHistoryAction<byte>();
+            foreach (var (x, y) in new[] { (1, 1), (20, 10), (47, 15) })
+            {
+                var result = image.TryPaintIndex(x, y, palette, 9);
+                Assert.Equal(9, result.AsSuccess.Result);
+                action.Add(x, y, result.AsSuccess.Result);
+            }
+            return action;
+        });
+    }
+
+    [Fact]
+    public void Pencil_OtherPalette_UndoRedo_ReplaysWrittenIndex()
+    {
+        var colors = Enumerable.Range(0, 16).Select(i => _otherPalette[i]).ToArray();
+        colors[7] = _palette[3];
+        var sourcePalette = ArrangerTestFactory.CreatePalette(colors);
+
+        AssertUndoRedo(CreateIndexed(data: _ => 0x22), image =>
+        {
+            var action = new PencilHistoryAction<byte>();
+            foreach (var (x, y) in new[] { (1, 1), (20, 10), (47, 15) })
+            {
+                var result = image.TryPaintIndex(x, y, sourcePalette, 7);
+                Assert.Equal(3, result.AsSuccess.Result);
+                action.Add(x, y, result.AsSuccess.Result);
+            }
+            return action;
+        });
     }
 
     [Fact]
@@ -311,9 +355,9 @@ public class GraphicsEditHistoryTests
         history.Add(Mirror(image, 1, 0), image.Arranger);
         var mirrored = EditorState.Capture(image);
 
-        var pencil = new PencilHistoryAction<byte>(3);
+        var pencil = new PencilHistoryAction<byte>();
         image.SetIndexedPixel(0, 0, 3);
-        pencil.Add(0, 0);
+        pencil.Add(0, 0, 3);
         history.Add(pencil, image.Arranger);
 
         Assert.False(history.Undo(image));

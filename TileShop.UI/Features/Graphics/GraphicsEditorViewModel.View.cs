@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,6 +26,9 @@ public partial class GraphicsEditorViewModel
         get => _fileOffset;
         set
         {
+            if (!IsSequentialViewMode)
+                return;
+
             if (SetProperty(ref _fileOffset, value))
                 MoveToOffset(_fileOffset);
         }

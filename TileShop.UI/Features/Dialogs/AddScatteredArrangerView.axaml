@@ -30,6 +30,9 @@
                 <TextBlock Margin="0,16,0,0" HorizontalAlignment="Center" Text="Arranger Name" />
                 <TextBox x:Name="arrangerNameBox" Width="250" Margin="0,4,0,0" HorizontalAlignment="Center"
                     Text="{Binding ArrangerName}" />
+                <TextBlock MaxWidth="250" Margin="0,4,0,0" HorizontalAlignment="Center" Foreground="{DynamicResource SemiColorDanger}"
+                    IsVisible="{Binding NameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                    Text="{Binding NameError}" TextWrapping="Wrap" />
 
                 <TextBlock Margin="0,16,0,0" HorizontalAlignment="Center" Text="Pixel Color Type" />
 
@@ -88,15 +91,6 @@
                             ToolTip.Tip="Height of arranger in number of elements" Value="{Binding SingleArrangerPixelHeight}" />
                     </Grid>
                 </StackPanel>
-
-                <ItemsControl Margin="0,16,0,8" HorizontalAlignment="Center" IsVisible="{Binding !!ValidationErrors.Count}"
-                    ItemsSource="{Binding ValidationErrors}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock FontWeight="Bold" Foreground="Red" Text="{Binding}" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
             </StackPanel>
         </ScrollViewer>
     </Grid>

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -10,17 +10,10 @@ using TileShop.Shared.Models;
 namespace TileShop.UI.ViewModels;
 public partial class AddPaletteViewModel : RequestViewModel<AddPaletteViewModel>
 {
-    private string _paletteName = "";
-    public string PaletteName
-    {
-        get => _paletteName;
-        set
-        {
-            if (SetProperty(ref _paletteName, value))
-                ValidateModel();
-        }
-    }
+    private readonly Func<string, MagitekResult> _validateName;
 
+    [ObservableProperty] private string _paletteName = "";
+    [ObservableProperty] private string? _nameError;
     [ObservableProperty] private ObservableCollection<FileDataSource> _dataSources = new();
     [ObservableProperty] private FileDataSource? _selectedDataSource;
     [ObservableProperty] private ObservableCollection<string> _colorModels = new(Palette.GetColorModelNames());
@@ -32,22 +25,29 @@ public partial class AddPaletteViewModel : RequestViewModel<AddPaletteViewModel>
     /// Global palette whose colors and color model the new palette starts from, or null for an empty palette
     /// </summary>
     [ObservableProperty] private Palette? _templatePalette;
-    [ObservableProperty] private ObservableCollection<string> _existingResourceNames;
-    [ObservableProperty] private ObservableCollection<string> _validationErrors = new();
-    [ObservableProperty] private bool _canAdd;
 
-    public AddPaletteViewModel() : this([], new())
+    public AddPaletteViewModel() : this(_ => MagitekResult.SuccessResult, new())
     {
     }
 
-    public AddPaletteViewModel(IEnumerable<string> existingResourceNames, AddPalettePreferences preferences)
+    public AddPaletteViewModel(Func<string, MagitekResult> validateName, AddPalettePreferences preferences)
     {
-        _existingResourceNames = new(existingResourceNames);
+        _validateName = validateName;
         Title = "Add a New Palette";
         AcceptName = "Add";
 
         _selectedColorModel = ColorModels.Contains(preferences.ColorModel) ? preferences.ColorModel : ColorModels.First();
         _zeroIndexTransparent = preferences.ZeroIndexTransparent;
+        UpdateNameError();
+    }
+
+    partial void OnPaletteNameChanged(string value) => UpdateNameError();
+
+    private void UpdateNameError()
+    {
+        var result = _validateName(PaletteName);
+        NameError = result.HasFailed ? result.AsError.Reason : null;
+        TryAcceptCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnTemplatePaletteChanged(Palette? value)
@@ -56,20 +56,9 @@ public partial class AddPaletteViewModel : RequestViewModel<AddPaletteViewModel>
             SelectedColorModel = value.ColorModel.ToString();
     }
 
+    protected override bool CanAccept() => NameError is null;
+
     public override AddPaletteViewModel? ProduceResult() => this;
 
     public AddPalettePreferences ToPreferences() => new(SelectedColorModel, ZeroIndexTransparent);
-
-    public void ValidateModel()
-    {
-        ValidationErrors.Clear();
-
-        if (string.IsNullOrWhiteSpace(PaletteName))
-            ValidationErrors.Add($"Name is invalid");
-
-        if (ExistingResourceNames.Contains(PaletteName))
-            ValidationErrors.Add($"Name already exists");
-
-        CanAdd = ValidationErrors.Count == 0;
-    }
 }

@@ -55,14 +55,14 @@ A color source of any type other than file, project native or project foreign th
 
 - **References stay tree path keys (recommended, open question 1).** Analysis against the code:
   - **Where key strings exist.** In memory, elements and palettes hold object references, and key strings appear only at the file boundary.
-    - On write, the key map is built in `XmlProjectWriter.CreateResourceMap`, and a duplicate is built in `ProjectService.UpdateNodeModel.GetResourceMap`.
+    - On write, the key map is built in `XmlProjectWriter.CreateResourceMap`, and a duplicate is built in `ProjectService.CreateResourceMap`.
     - On read, three lookups in `ProjectTreeBuilder` (`AddPalette`, `ResolvePalette`, `CreateElement`) go through `ProjectTree.TryGetItem(pathKey)`.
   - **Renames and moves.** No code rewrites references on rename or move. `RenameResourceAsync` (folder and resource branches) and `MoveNodeAsync` change the tree, then call `WriteProjectAsync`. Its model diff (LIB-PROJECT-FORMAT-032) catches every referencing file, and the whole write is one write-ahead-log transaction. The directory or file move itself is outside the log, with a compensating move on failure.
   - **Disk cost.** In the FF2 sample, renaming the data file `FF2` rewrites 114 of 116 resource files. Renaming the folder `Character Battle Sprites/Palettes` rewrites the 16 arrangers that reference it. The cost is diff noise and git merge conflicts, not correctness.
   - **The real hazard is hand renames.** A rename, move or `git mv` done outside TileShop leaves dangling references. A data file key then fails the load without naming the key. A palette key silently falls back (LIB-PROJECT-FORMAT-023), and the next project write stores the fallback, which loses work. project-format-round-trip.md fixes this by failing the load and naming the key, which works with either key scheme.
   - **What stable keys would cost.**
     - A `key` attribute on every resource file, plus a key on `ResourceModel` and the node.
-    - Unique key assignment at both creation sites (`ProjectService.AddResource`, `CreateNewProjectWithExistingFileAsync`) and in the migration step.
+    - Unique key assignment at both creation sites (`ProjectService.AddResourceAsync`, `CreateNewProjectWithExistingFileAsync`) and in the migration step.
     - A key index in `ProjectTreeBuilder`.
     - Detection of duplicate keys, which a file copied in Explorer would produce; the load fails naming both files.
     - A rule that separates project keys from global palette names.
@@ -87,7 +87,7 @@ A color source of any type other than file, project native or project foreign th
 - **Ignore XML with a foreign root; fail on XML that is not well formed.** A file with a foreign root cannot be a TileShop resource, because a newer resource type comes with a newer version, which is rejected first. A file that does not parse may be a resource damaged by a merge conflict (`<<<<<<<` markers), and dropping it would silently lose it and, on the next write, every reference to it. Rejected:
   - failing on every non-resource file (today's behavior, which blocks git and IDE use);
   - ignoring every file that fails (it hides damaged resources).
-- **Refuse names starting with `.`.** Reason: such a resource or folder would vanish on the next open. This adds a rule to the `ResourceName` rule from [resource-name-validation.md](resource-name-validation.md), which currently lists `".hidden"` as accepted. Existing dot-named resources are skipped on load. If something references them, the load fails, naming the key.
+- **Refuse names starting with `.`.** Reason: such a resource or folder would vanish on the next open. This adds a rule to the `ResourceName` rule (LIB-PROJECT-TREE-030), which currently accepts `".hidden"`. Existing dot-named resources are skipped on load. If something references them, the load fails, naming the key.
 - **Unknown color source types throw.** Reason: `IColorSource` is public, and an unknown type is a programming error (ARCHITECTURE: exceptions for programming errors). A loop or a silently empty entry is not acceptable. Rejected: sealing `IColorSource` behind an abstract base (more churn for no user benefit).
 - **Stored mirror and rotation mean rotate, then mirror.** The rotate tool turns the element as shown on screen. For a horizontal or vertical mirror `M`, `M∘Q∘M = Q⁻¹`, so the requested quarter turn is reversed. Mirror `Both` equals a turn and commutes with rotation, so it is unchanged. Reason: the meaning stored in 0.9 is already consistent in render and encode, and only the edit was wrong. Rejected:
   - Changing render to mirror-then-rotate. That would change how every saved element that is both mirrored and rotated renders, and needs a migration, for no gain.
@@ -138,7 +138,7 @@ A color source of any type other than file, project native or project foreign th
 - Added:
   - When a project in an older format is opened, the service shall open it with its read format version, write nothing, and raise `ProjectOpened` as for any project.
   - When asked to upgrade a project, the service shall have the writer upgrade it (LIB-PROJECT-FORMAT) and return the result. Upgrading a project already at the current version shall succeed without writing.
-- With resource-name-validation's "Resource names" group (LIB-PROJECT-TREE), add a rule: a name starting with `.` is rejected, because the reader skips it (LIB-PROJECT-FORMAT-004, -005).
+- In the "Resource names" group (LIB-PROJECT-TREE-030), add a rule: a name starting with `.` is rejected, because the reader skips it (LIB-PROJECT-FORMAT-004, -005).
 
 **UI-PROJECT-TREE**
 
@@ -173,7 +173,7 @@ A color source of any type other than file, project native or project foreign th
 
 ## Tasks
 
-Lands after [project-format-round-trip.md](project-format-round-trip.md), whose `XmlProjectReaderTests` and `XmlProjectRoundTripTests` this change extends, and after [resource-name-validation.md](resource-name-validation.md), whose `ResourceName` rule gains the dot rule.
+Lands after [project-format-round-trip.md](project-format-round-trip.md), whose `XmlProjectReaderTests` and `XmlProjectRoundTripTests` this change extends. The `ResourceName` rule it extends with the dot rule has landed (LIB-PROJECT-TREE-030).
 
 1. **Version and migration hook.**
    - Code:
@@ -250,7 +250,7 @@ Lands after [project-format-round-trip.md](project-format-round-trip.md), whose 
    - Manual (canvas clicks are pointer input): in the Adult Rydia Map arranger, Mirror Horizontal then Rotate Left on one element; it turns counter-clockwise on screen.
 7. **References.** If open question 1 keeps path keys, there is no code task beyond project-format-round-trip.md. If stable keys are chosen, this task becomes:
    - the `key` attribute, model and node property;
-   - assignment in `AddResource`, `CreateNewProjectWithExistingFileAsync` and the 0.9 → 1.0 step;
+   - assignment in `AddResourceAsync`, `CreateNewProjectWithExistingFileAsync` and the 0.9 → 1.0 step;
    - the key index in `ProjectTreeBuilder`, and both resource maps writing keys;
    - duplicate-key failure, and global-palette disambiguation.
 

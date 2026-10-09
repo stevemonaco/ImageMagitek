@@ -150,6 +150,20 @@ public sealed class ArrangerImageAdapter
             return MagitekResult.SuccessResult;
     }
 
+    public MagitekResult<byte> TryPaintIndex(int x, int y, Palette sourcePalette, byte index)
+    {
+        if (!IsIndexed)
+            return new MagitekResult<byte>.Failed("Cannot paint an index on direct image");
+        return _indexedImage!.TryPaintIndex(x, y, sourcePalette, index);
+    }
+
+    public MagitekResult<byte> CanPaintIndex(int x, int y, Palette sourcePalette, byte index)
+    {
+        if (!IsIndexed)
+            return new MagitekResult<byte>.Failed("Cannot paint an index on direct image");
+        return _indexedImage!.CanPaintIndex(x, y, sourcePalette, index);
+    }
+
     public bool FloodFill(int x, int y, byte fillIndex)
     {
         if (!IsIndexed)
@@ -178,11 +192,11 @@ public sealed class ArrangerImageAdapter
         return _directImage!.FloodFill(x, y, fillColor, clipBounds);
     }
 
-    public MagitekResult TrySetPalette(int pixelX, int pixelY, Palette palette)
+    public MagitekResult TrySetPalette(int pixelX, int pixelY, Palette palette, ICodecFactory codecFactory)
     {
         if (!IsIndexed)
             return new MagitekResult.Failed("Cannot set palette on direct image");
-        return _indexedImage!.TrySetPalette(pixelX, pixelY, palette);
+        return _indexedImage!.TrySetPalette(pixelX, pixelY, palette, codecFactory);
     }
 
     public MagitekResult CanSetPalette(int pixelX, int pixelY, Palette palette)

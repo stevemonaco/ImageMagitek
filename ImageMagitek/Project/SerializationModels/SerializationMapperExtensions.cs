@@ -64,14 +64,9 @@ public static class SerializationMapperExtensions
         {
             if (colorSources[i] is FileColorSource fileSource)
             {
-                var sources = colorSources.Skip(i)
-                    .TakeWhile((x, i) => x is FileColorSource fcs && fcs.Offset == (fileSource.Offset + i * size))
-                    .ToList();
-
-                var sourceModel = new FileColorSourceModel(fileSource.Offset, sources.Count, fileSource.Endian);
-                model.ColorSources.Add(sourceModel);
-
-                i += sources.Count;
+                var count = Palette.GetFileRunLength(colorSources, i, size);
+                model.ColorSources.Add(new FileColorSourceModel(fileSource.Offset, count, fileSource.Endian));
+                i += count;
             }
             else if (colorSources[i] is ProjectNativeColorSource nativeSource)
             {

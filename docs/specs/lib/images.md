@@ -32,6 +32,7 @@ tests:
   - SequentialArrangerRoundTripTests
   - ReadOnlyArrangerTests
   - GraphicsEditHistoryTests
+  - ImageCopierTests
   - MirrorArray2DTests
   - RotateArray2DTests
   - TransposeArray2DTests
@@ -79,11 +80,13 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
   - Tests: untested
 - **LIB-IMAGES-012** — When an indexed pixel's color is read, the image shall return its element palette's color for the stored index, and fail when the cell has no indexed codec.
   - Tests: untested
+- **LIB-IMAGES-032** — When an indexed pixel is painted with an index of a source palette, the image shall store that index if the pixel's element uses that palette and the index fits the codec's color depth; otherwise it shall store the first index of the element's palette whose color equals the source palette's color at that index, and fail as LIB-IMAGES-010 does. It reports the index it stored.
+  - Tests: `IndexedImageTests.PaintIndex_DuplicateColor_WritesChosenIndex`, `IndexedImageTests.PaintIndex_OtherPalette_WritesExactColorIndex`
 
 ### Saving
 
 - **LIB-IMAGES-013** — If the arranger is read-only, then saving shall fail before writing anything.
-  - Tests: `ReadOnlyArrangerTests.SaveImage_ReadOnly_ThrowsAndLeavesSourceUnchanged`
+  - Tests: `ReadOnlyArrangerTests.SaveImage_ReadOnly_ThrowsAndLeavesSourceUnchanged`, `ReadOnlyArrangerTests.SaveImage_ReadOnlySource_ThrowsBeforeWriting`
 - **LIB-IMAGES-014** — When an indexed image covering part of the arranger is saved, the save shall merge it into the arranger's current pixels and re-encode the whole arranger, leaving pixels and bytes outside the rectangle unchanged.
   - Tests: `IndexedImageTests.PartialUnalignedEdit_LeavesOtherPixelsAndBytesUnchanged`
 - **LIB-IMAGES-015** — When saving, the image shall encode every element of its kind that lies within its source, undoing mirror and then rotation first, and write only that element's bits, at byte-aligned and unaligned addresses.
@@ -99,8 +102,8 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
 
 - **LIB-IMAGES-019** — The can-set-palette check shall succeed when the pixel's element already uses that palette or every index in the element is below the palette's entry count, and fail outside the arranger, on an empty cell, or on a non-indexed codec.
   - Tests: untested
-- **LIB-IMAGES-020** — When a palette is assigned at a pixel, the image shall set it on that element's codec instance, so every element sharing the instance changes too.
-  - Tests: `GraphicsEditHistoryTests.ApplyPalette_Undo_DoesNotModifySharedCodec`
+- **LIB-IMAGES-020** — When a palette is assigned at a pixel, the image shall give that element a clone of its codec carrying the palette, leaving every other element and arranger that shared the old codec unchanged.
+  - Tests: `IndexedImageTests.TrySetPalette_ClonedArranger_LeavesOriginalPalettes`, `IndexedImageTests.TrySetPalette_CodecSharedByTwoCells_ChangesOnlyTarget`, `IndexedImageTests.TrySetPalette_ElementsCopiedFromSequential_LeavesSequentialPalette`, `GraphicsEditHistoryTests.ApplyPalette_Undo_DoesNotModifySharedCodec`
 
 ### Flood fill
 
@@ -124,8 +127,8 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
   - Tests: `GraphicsEditHistoryTests.PixelPaste_UndoRedo`
 - **LIB-IMAGES-027** — If a pixel paste overruns the source or the destination, or either region touches an empty cell, then the paste shall fail without change.
   - Tests: untested
-- **LIB-IMAGES-028** — When pasting indexed into indexed, the copier shall try the requested remap operations in order and apply the first whose check passes: exact index copies indices, exact palette colors writes each source color's exact index in the destination palette.
-  - Tests: `GraphicsEditHistoryTests.PixelPaste_UndoRedo`
+- **LIB-IMAGES-028** — When pasting indexed into indexed, the copier shall try the requested remap operations in order and apply the first whose check passes: exact index passes only when every source index is below `1 << ` the destination element's codec color depth, and copies indices; exact palette colors writes each source color's exact index in the destination palette.
+  - Tests: `GraphicsEditHistoryTests.PixelPaste_UndoRedo`, `ImageCopierTests.CopyPixels_ExactIndex_IndexAboveDestDepth_Fails`, `ImageCopierTests.CopyPixels_ExactIndexThenColors_IndexAboveDestDepth_UsesColors`, `ImageCopierTests.CopyPixels_ExactIndex_DestHoldsHighIndex_Succeeds`
 - **LIB-IMAGES-029** — When pasting direct into indexed, both exact operations shall write the exact palette index of each source color and fail if any color is missing from the destination palette.
   - Tests: untested
 - **LIB-IMAGES-030** — When pasting indexed into direct, the copier shall write each source pixel's palette color; direct into direct copies colors.
@@ -158,7 +161,7 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
 ## Decisions
 
 - **Reads past end of file render empty.** An arranger near or over the end of a truncated file shows the missing elements as blank, and a save skips them so the file never grows. Rejected: throwing, or showing whatever bytes are available.
-- **Read-only arrangers refuse to save.** A codec that cannot encode makes the arranger read-only, checked once at the arranger and enforced in `SaveImage` (and import, LIB-IMAGE-IO), so failures happen before any byte is written rather than mid-save.
+- **Read-only arrangers refuse to save.** A codec that cannot encode or a read-only data source makes the arranger read-only, checked once at the arranger and enforced in `SaveImage` (and import, LIB-IMAGE-IO), so failures happen before any byte is written rather than mid-save.
 - **A partial edit re-encodes the whole arranger.** Image rectangles need not be element-aligned, so the edit is merged into a full render and every element is re-encoded, leaving pixels outside the rectangle as they were.
 - **Flood fill stays within one palette.** An indexed fill does not cross into elements with a different palette, because the same index would mean a different color there.
 
@@ -170,8 +173,5 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
 
 ## Open items
 
-- `ImageCopier.CanRemapByExactIndex` compares the destination's current pixel with `1 << sourceDepth` using `<`; it never checks that the source index fits the destination codec, so out-of-range indices can be pasted.
 - `ImageColorAdapter` (every member throws) and `PixelRemapOperation.RemapByAnyIndex` (branches commented out) are dead code (backlog).
-- `ImageCopierTests` has one empty method without `[Fact]`; pixel paste has no direct library test.
 - `ImageBase.Right` and `Bottom` are documented as inclusive but are exclusive (`Left + Width`).
-- Palette assignment mutates a codec instance that a scattered clone shares with its original (LIB-ARRANGERS); the UI history works around it by cloning codecs on restore.

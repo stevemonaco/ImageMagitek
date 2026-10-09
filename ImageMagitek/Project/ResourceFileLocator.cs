@@ -17,8 +17,8 @@ public static class ResourceFileLocator
         var baseDirectory = root.BaseDirectory;
         var pathKey = tree.CreatePathKey(node, Path.DirectorySeparatorChar.ToString()).TrimStart(Path.DirectorySeparatorChar);
 
-        if (node is ProjectNode) // Workaround for root node
-            return Path.Combine(baseDirectory, $"{node.Name}.xml");
+        if (node is ProjectNode) // The project file stays in its own directory, which differs from BaseDirectory under a root
+            return Path.Combine(Path.GetDirectoryName(Path.GetFullPath(root.DiskLocation!))!, $"{node.Name}.xml");
         else if (node is ResourceFolderNode) // Folders on disk do not have an extension
             return Path.Combine(baseDirectory, pathKey);
         else

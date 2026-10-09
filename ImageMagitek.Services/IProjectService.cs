@@ -5,6 +5,9 @@ using ImageMagitek.Project;
 
 namespace ImageMagitek.Services;
 
+/// <summary>
+/// Opens, saves and edits projects; disk-writing operations run one at a time
+/// </summary>
 public interface IProjectService
 {
     event EventHandler<ProjectTree>? ProjectOpened;
@@ -20,7 +23,7 @@ public interface IProjectService
     /// </summary>
     event EventHandler<IProjectResource>? ResourceChanged;
 
-    MagitekResult<ProjectTree> CreateNewProject(string projectName);
+    Task<MagitekResult<ProjectTree>> CreateNewProjectAsync(string projectFileName);
     Task<MagitekResult<ProjectTree>> CreateNewProjectWithExistingFileAsync(string projectFileName, string fileName);
 
     Task<MagitekResults<ProjectTree>> OpenProjectFileAsync(string projectFileName);
@@ -34,8 +37,18 @@ public interface IProjectService
     void CloseProject(ProjectTree projectTree);
     void CloseProjects();
 
-    MagitekResult<ResourceNode> AddResource(ResourceNode parentNode, IProjectResource resource);
-    MagitekResult<ResourceNode> CreateNewFolder(ResourceNode parentNode, string name);
+    Task<MagitekResult<ResourceNode>> AddResourceAsync(ResourceNode parentNode, IProjectResource resource);
+    Task<MagitekResult<ResourceNode>> CreateNewFolderAsync(ResourceNode parentNode, string name);
+
+    /// <summary>
+    /// Returns the failure that adding a resource or creating a folder with this name would return, without changing anything
+    /// </summary>
+    MagitekResult CanAddResource(ResourceNode parentNode, string name, bool isFolder);
+
+    /// <summary>
+    /// Returns the failure that renaming the node to this name would return, without changing anything
+    /// </summary>
+    MagitekResult CanRenameResource(ResourceNode node, string newName);
 
     Task<MagitekResult> SaveResourceAsync(ProjectTree projectTree, ResourceNode resourceNode, bool alwaysOverwrite);
     MagitekResult CanMoveNode(ResourceNode node, ResourceNode parentNode);
@@ -47,7 +60,7 @@ public interface IProjectService
     Task<MagitekResult> RelinkDataFileAsync(FileDataSource dataSource, string sourceFileName);
 
     MagitekResult<ResourceDeletionPlan> PreviewResourceDeletion(ResourceNode deleteNode);
-    MagitekResult ApplyResourceDeletion(ResourceDeletionPlan plan, Palette defaultPalette);
+    Task<MagitekResult> ApplyResourceDeletionAsync(ResourceDeletionPlan plan, Palette defaultPalette);
     Task<MagitekResult> RenameResourceAsync(ResourceNode node, string newName);
 
     ProjectTree GetContainingProject(ResourceNode node);

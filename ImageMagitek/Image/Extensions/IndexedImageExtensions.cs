@@ -81,6 +81,46 @@ public static class IndexedImageExtensions
     }
 
     /// <summary>
+    /// Tries to paint <paramref name="index"/> of <paramref name="sourcePalette"/> at the specified pixel coordinate
+    /// </summary>
+    /// <returns>The palette index written to the pixel</returns>
+    /// <remarks>See <see cref="CanPaintIndex"/> for which index is written.</remarks>
+    public static MagitekResult<byte> TryPaintIndex(this IndexedImage image, int x, int y, Palette sourcePalette, byte index)
+    {
+        var result = image.CanPaintIndex(x, y, sourcePalette, index);
+
+        if (result.HasSucceeded)
+            image.SetPixel(x, y, result.AsSuccess.Result);
+
+        return result;
+    }
+
+    /// <summary>
+    /// Determines the palette index that painting <paramref name="index"/> of <paramref name="sourcePalette"/> would write at the specified pixel coordinate
+    /// </summary>
+    /// <returns>
+    /// <paramref name="index"/> when the pixel's element uses <paramref name="sourcePalette"/> and the index fits its codec,
+    /// otherwise the first index of the element's palette with the same color
+    /// </returns>
+    public static MagitekResult<byte> CanPaintIndex(this IndexedImage image, int x, int y, Palette sourcePalette, byte index)
+    {
+        if (index >= sourcePalette.Entries)
+            return new MagitekResult<byte>.Failed($"Cannot set pixel at ({x}, {y}) because index {index} is outside of the palette '{sourcePalette.Name}'");
+
+        var color = sourcePalette[index];
+
+        if (image.CanSetPixel(x, y, color).Value is MagitekResult.Failed fail)
+            return new MagitekResult<byte>.Failed(fail.Reason);
+
+        var codec = (IIndexedCodec)image.Arranger.GetElementAtPixel(x + image.Left, y + image.Top)!.Value.Codec;
+
+        if (ReferenceEquals(codec.Palette, sourcePalette) && index < (1 << codec.ColorDepth))
+            return new MagitekResult<byte>.Success(index);
+
+        return new MagitekResult<byte>.Success(codec.Palette.GetIndexByNativeColor(color, ColorMatchStrategy.Exact));
+    }
+
+    /// <summary>
     /// Gets the pixel's native color at the specified pixel coordinate
     /// </summary>
     /// <param name="x">x-coordinate in pixel coordinates</param>
@@ -99,13 +139,13 @@ public static class IndexedImageExtensions
     }
 
     /// <summary>
-    /// Tries to set the palette to the ArrangerElement containing the specified pixel coordinate
+    /// Tries to set the palette of the ArrangerElement containing the specified pixel coordinate. The element is given a clone of its codec
+    /// carrying the palette, so arrangers and elements sharing the old codec are unchanged.
     /// </summary>
     /// <param name="x">x-coordinate in pixel coordinates</param>
     /// <param name="y">y-coordinate in pixel coordinates</param>
     /// <param name="pal">Palette to be set, if possible</param>
-    /// <returns></returns>
-    public static MagitekResult TrySetPalette(this IndexedImage image, int x, int y, Palette pal)
+    public static MagitekResult TrySetPalette(this IndexedImage image, int x, int y, Palette pal, ICodecFactory codecFactory)
     {
         var result = image.CanSetPalette(x, y, pal);
 
@@ -119,9 +159,9 @@ public static class IndexedImageExtensions
         {
             var location = image.Arranger.PointToElementLocation(new Point(x + image.Left, y + image.Top));
 
-            codec.Palette = pal;
-
-            image.Arranger.SetElement(element, location.X, location.Y);
+            var clone = (IIndexedCodec)codecFactory.CloneCodec(codec);
+            clone.Palette = pal;
+            image.Arranger.SetElement(element.WithCodec(clone), location.X, location.Y);
         }
 
         return MagitekResult.SuccessResult;

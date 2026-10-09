@@ -28,8 +28,8 @@ public static class ImageImporter
     public static MagitekResult<ImageImportPreview> Prepare(Arranger arranger, DecodedImage source, ImageImportOptions options,
         Point offset = default, Rectangle? bounds = null)
     {
-        if (arranger.IsReadOnly())
-            return new MagitekResult<ImageImportPreview>.Failed($"Arranger '{arranger.Name}' is read-only because it uses a codec that cannot encode");
+        if (arranger.GetReadOnlyReason() is { } reason)
+            return new MagitekResult<ImageImportPreview>.Failed($"Arranger '{arranger.Name}' is read-only because it {reason}");
 
         var size = arranger.ArrangerPixelSize;
         var region = Rectangle.Intersect(bounds ?? new Rectangle(Point.Empty, size), new Rectangle(Point.Empty, size));

@@ -17,8 +17,6 @@ namespace ImageMagitek.Project.Serialization;
 
 public sealed class XmlProjectReader : IProjectReader
 {
-    public string Version => "0.9";
-
     private readonly XmlSchemaSet _resourceSchema;
 
     private readonly ICodecFactory _codecFactory;
@@ -46,6 +44,10 @@ public sealed class XmlProjectReader : IProjectReader
 
         _errors = new();
 
+        var fullProjectFileName = Path.GetFullPath(projectFileName);
+        var projectDirectory = Path.GetDirectoryName(fullProjectFileName);
+        _baseDirectory = projectDirectory;
+
         if (!TryDeserializeXmlFile(projectFileName, _resourceSchema, out var rootModel))
         {
             return new MagitekResults<ProjectTree>.Failed(_errors);
@@ -59,19 +61,12 @@ public sealed class XmlProjectReader : IProjectReader
 
         var builder = new ProjectTreeBuilder(_codecFactory, _colorFactory, _globalDefaultPalette, _globalResources);
 
-        _baseDirectory = Path.GetDirectoryName(projectFileName);
         if (!string.IsNullOrWhiteSpace(projectModel.Root))
-        {
-            if (Path.IsPathFullyQualified(projectModel.Root))
-                _baseDirectory = projectModel.Root;
-            else
-                _baseDirectory = Path.Combine(_baseDirectory, projectModel.Root);
-        }
+            _baseDirectory = Path.GetFullPath(Path.Combine(projectDirectory, projectModel.Root));
 
-        builder.AddProject(projectModel, _baseDirectory, projectFileName);
+        builder.AddProject(projectModel, _baseDirectory, fullProjectFileName);
 
-        // Fail if an incomplete transaction journal exists — recovery must be performed first
-        var journalPath = Path.Combine(_baseDirectory, "_transaction.json");
+        var journalPath = Path.Combine(projectDirectory, "_transaction.json");
         if (File.Exists(journalPath))
         {
             _errors.Add($"Project directory contains an incomplete transaction journal '{journalPath}'. Recovery must be performed before the project can be loaded.");
@@ -94,7 +89,6 @@ public sealed class XmlProjectReader : IProjectReader
         }
 
         // Add resources
-        string fullProjectFileName = new FileInfo(projectFileName).FullName;
         var resourceFileNames = Directory.GetFiles(_baseDirectory, "*.xml", SearchOption.AllDirectories)
             .Except(new[] { fullProjectFileName })
             .ToList();
@@ -137,7 +131,7 @@ public sealed class XmlProjectReader : IProjectReader
             var result = builder.AddScatteredArranger((ScatteredArrangerModel)model, pathKey, fileLocation);
             if (result.HasFailed)
             {
-                _errors.Add($"{result.AsError.Reason}");
+                _errors.AddRange(result.AsError.Reasons);
             }
         }
 
@@ -191,7 +185,11 @@ public sealed class XmlProjectReader : IProjectReader
             }
             else if (rootElementName == "palette")
             {
-                TryDeserializePalette(doc.Root, resourceName, out var paletteModel);
+                if (!TryDeserializePalette(doc.Root, xmlFileName, resourceName, out var paletteModel))
+                {
+                    model = default;
+                    return false;
+                }
                 model = paletteModel;
             }
             else if (rootElementName == "arranger")
@@ -221,22 +219,11 @@ public sealed class XmlProjectReader : IProjectReader
         return false;
     }
 
-    private string LocateResourceOnDisk(string location)
-    {
-        return Path.Join(_baseDirectory, location);
-    }
-
     private string LocateParentPathKey(string fullFileName)
     {
         var path = Directory.GetParent(fullFileName);
         var relativePath = Path.GetRelativePath(_baseDirectory, path.FullName);
         return string.Join('/', relativePath.Split('\\'));
-    }
-
-    private string LocatePathKey(string fullFileName)
-    {
-        var relativePath = Path.GetRelativePath(_baseDirectory, fullFileName);
-        return string.Join('/', relativePath.Split('\\').Skip(1));
     }
 
     private static bool TryDeserializeProject(XElement element, string resourceName, out ImageProjectModel projectModel)
@@ -264,7 +251,7 @@ public sealed class XmlProjectReader : IProjectReader
         return true;
     }
 
-    private bool TryDeserializePalette(XElement element, string resourceName, out PaletteModel paletteModel)
+    private bool TryDeserializePalette(XElement element, string xmlFileName, string resourceName, out PaletteModel paletteModel)
     {
         var model = new PaletteModel()
         {
@@ -273,7 +260,9 @@ public sealed class XmlProjectReader : IProjectReader
         model.DataFileKey = element.Attribute("datafile").Value;
         model.ColorModel = Palette.StringToColorModel(element.Attribute("color").Value);
         model.ZeroIndexTransparent = bool.Parse(element.Attribute("zeroindextransparent").Value);
+        paletteModel = model;
 
+        var colorIndex = 0;
         foreach (var item in element.Elements())
         {
             if (item.Name.LocalName == "filesource")
@@ -283,9 +272,10 @@ public sealed class XmlProjectReader : IProjectReader
                 if (item.Attribute("bitoffset") is null)
                     source.FileAddress = new BitAddress(fileOffset, 0);
                 else
-                    source.FileAddress = new BitAddress(fileOffset, int.Parse(element.Attribute("bitoffset").Value));
+                    source.FileAddress = new BitAddress(fileOffset, int.Parse(item.Attribute("bitoffset").Value));
 
                 source.Entries = int.Parse(item.Attribute("entries").Value);
+                colorIndex += source.Entries;
 
                 if (item.Attribute("endian") is not null)
                 {
@@ -301,17 +291,21 @@ public sealed class XmlProjectReader : IProjectReader
             }
             else if (item.Name.LocalName == "nativecolor")
             {
-                if (ColorParser.TryParse(item.Attribute("value").Value, ColorModel.Rgba32, out var nativeColor))
-                {
-                    model.ColorSources.Add(new ProjectNativeColorSourceModel((ColorRgba32)nativeColor));
-                }
+                var value = item.Attribute("value").Value;
+                if (!ColorParser.TryParse(value, ColorModel.Rgba32, out var nativeColor))
+                    return FailColor(value, ColorModel.Rgba32);
+
+                model.ColorSources.Add(new ProjectNativeColorSourceModel((ColorRgba32)nativeColor));
+                colorIndex++;
             }
             else if (item.Name.LocalName == "foreigncolor")
             {
-                if (ColorParser.TryParse(item.Attribute("value").Value, model.ColorModel, out var foreignColor))
-                {
-                    model.ColorSources.Add(new ProjectForeignColorSourceModel(foreignColor));
-                }
+                var value = item.Attribute("value").Value;
+                if (!ColorParser.TryParse(value, model.ColorModel, out var foreignColor))
+                    return FailColor(value, model.ColorModel);
+
+                model.ColorSources.Add(new ProjectForeignColorSourceModel(foreignColor));
+                colorIndex++;
             }
             else if (item.Name.LocalName == "scatteredcolor")
             { }
@@ -321,8 +315,13 @@ public sealed class XmlProjectReader : IProjectReader
             { }
         }
 
-        paletteModel = model;
         return true;
+
+        bool FailColor(string value, ColorModel colorModel)
+        {
+            _errors.Add($"'{xmlFileName}' entry {colorIndex}: '{value}' is not a valid {colorModel} color");
+            return false;
+        }
     }
 
     private bool TryDeserializeScatteredArranger(XElement element, string resourceName, out ScatteredArrangerModel arrangerModel)
@@ -380,7 +379,7 @@ public sealed class XmlProjectReader : IProjectReader
             var el = new ArrangerElementModel()
             {
                 DataFileKey = xmlElement.datafile?.Value ?? defaultDataFileKey,
-                PaletteKey = xmlElement.palette?.Value ?? defaultPaletteKey,
+                PaletteKey = model.ColorType == PixelColorType.Direct ? null : xmlElement.palette?.Value ?? defaultPaletteKey,
                 CodecName = xmlElement.format?.Value ?? defaultCodecName,
                 PositionX = xmlElement.posx,
                 PositionY = xmlElement.posy,

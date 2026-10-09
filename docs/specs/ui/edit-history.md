@@ -72,7 +72,7 @@ Undo and redo for the graphics editor (UI-GRAPHICS-EDITOR). Arranger-level actio
   - Tests: `GraphicsEditHistoryTests.ElementPaste_UndoRedo`, `GraphicsEditHistoryTests.ApplyPalette_UndoRedo`, `GraphicsEditHistoryTests.Mirror_UndoRedo`, `GraphicsEditHistoryTests.Rotate_UndoRedo`, `GraphicsEditHistoryTests.DeleteNonSquareElements_UndoRedo`, `GraphicsEditHistoryTests.Resize_UndoRedo`
 - **UI-EDIT-HISTORY-007** — The editor shall not record sequential navigation, codec, layout or size changes in View mode, grid changes, palette association, mode changes or image import.
   - Tests: untested
-- **UI-EDIT-HISTORY-008** — When an in-progress Pencil stroke or Apply Palette drag is ended by a button release, a tool switch, a mode change or the pointer leaving the canvas, the editor shall record it once if it changed anything.
+- **UI-EDIT-HISTORY-008** — When an in-progress Pencil stroke or Apply Palette drag is ended by a button release, a tool switch, a mode change or the pointer leaving the canvas, whatever modifier keys were pressed during it, the editor shall record it once if it changed anything.
   - Tests: untested
 
 ### Undo and redo semantics
@@ -97,6 +97,11 @@ Undo and redo for the graphics editor (UI-GRAPHICS-EDITOR). Arranger-level actio
 - **UI-EDIT-HISTORY-016** (inherited) — The undo and redo lists shall have no size limit.
   - Tests: untested
 
+### Pencil values
+
+- **UI-EDIT-HISTORY-017** — A Pencil action shall record the index or color written at each pixel, and redo and replay shall write exactly those values.
+  - Tests: `GraphicsEditHistoryTests.Pencil_DuplicatePaletteColors_UndoRedo_KeepsChosenIndex`, `GraphicsEditHistoryTests.Pencil_OtherPalette_UndoRedo_ReplaysWrittenIndex`
+
 ## Invariants
 
 - The snapshot of the most recent arranger action in the undo list matches the working arranger's elements and palettes.
@@ -115,7 +120,7 @@ Undo and redo for the graphics editor (UI-GRAPHICS-EDITOR). Arranger-level actio
 
 - **Arranger actions snapshot the arranger.** Every arranger action stores a snapshot of the arranger taken after it ran; undo restores the previous snapshot. Reason: simpler than making each action invertible, and arrangers are small. Rejected: invertible actions. This replaced a model where Mirror, Rotate, Apply Palette, Delete and Resize were recorded but never redone, and undo re-cloned the arranger only when an element paste was in history.
 - **Pixel actions replay from source.** Undoing a pixel action re-decodes from the data source and replays the remaining actions instead of storing pixel snapshots. Reason: pixel edits are small to replay and the source holds the saved state. Consequence: undo depends on the source being unchanged since the last save (see Open items).
-- **Snapshots store palettes separately.** Cloned arrangers share codec instances and Apply Palette changes the codec in place, so a snapshot keeps each element's palette and restore clones the codec when it differs.
+- **Snapshots store palettes separately.** Cloned arrangers share codec instances, so a snapshot keeps each element's palette and restore clones the codec when it differs. Apply Palette no longer changes a codec in place (LIB-IMAGES-020); this remains a defense against shared codecs.
 - **Apply Palette does not reset pixel replay.** It changes only which palette decodes the pixels, so pixel actions before it are replayed after undoing past it.
 - **Every action goes through `AddHistoryAction`.** Color Remap once added to the undo list directly, skipping the redo clear and the CanUndo/CanRedo notifications.
 
@@ -126,8 +131,7 @@ Undo and redo for the graphics editor (UI-GRAPHICS-EDITOR). Arranger-level actio
 
 ## Open items
 
-- Pixel undo re-decodes from the data source: if the source changes while the editor is modified (the reload skips modified editors) or, in Draw mode on a sequential arranger, the view is moved with the navigation keys, replay lands on the new data.
+- Pixel undo re-decodes from the data source: if the source changes while the editor is modified (the reload skips modified editors), replay lands on the new data.
 - The fields kept by `MirrorElementHistoryAction`, `RotateElementHistoryAction`, `DeleteElementSelectionHistoryAction` and `ResizeArrangerHistoryAction` (positions, rect, size) are unused since the snapshot model; `ApplyHistoryAction` is never called from outside.
-- A stroke ended by a button release while a temporary Color Picker is engaged is never recorded (UI-DRAWING Open items).
 - Each arranger action clones the whole arranger with no bound on list length.
 - No test covers the ViewModel wiring: modified state after undo/redo, command notification, and the clear on save/discard/reload.

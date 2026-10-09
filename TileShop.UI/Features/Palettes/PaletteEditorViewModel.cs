@@ -60,7 +60,8 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     [ObservableProperty] private IReadOnlyList<string> _rowHeaders = [];
     public bool HasMultipleRows => RowHeaders.Count > 1;
 
-    public bool IsReadOnly => _palette.StorageSource == PaletteStorageSource.GlobalJson;
+    // Fixed at open so a palette that turns read-only through Sources edits reaches Save's commit-failure alert
+    public bool IsReadOnly { get; }
 
     public bool ZeroIndexTransparent
     {
@@ -96,6 +97,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         IInteractionService interactions, IAsyncFileRequestService fileRequests, ClipboardService clipboard) : base(palette)
     {
         _palette = palette;
+        IsReadOnly = palette.IsReadOnly;
         _colorFactory = colorFactory;
         _projectService = projectService;
         _interactions = interactions;

@@ -43,12 +43,14 @@ public static class ImageCopier
         {
             for (int x = 0; x < copyWidth; x++)
             {
-                var el = source.GetElementAtPixel(sourceStart.X + x, sourceStart.Y + y);
-                if (el is ArrangerElement element)
-                {
-                    if ((1 << element.Codec.ColorDepth) < dest.GetPixel(destStart.X + x, destStart.Y + y))
-                        return new MagitekResult.Failed($"Destination image contains a palette index too large to map to the source image pixels at destination position ({destStart.X + x}, {destStart.Y + y}) and source position ({sourceStart.X + x}, {sourceStart.Y + y})");
-                }
+                var destX = destStart.X + x;
+                var destY = destStart.Y + y;
+                if (dest.GetElementAtPixel(destX, destY) is not ArrangerElement destElement)
+                    return new MagitekResult.Failed($"Destination image has no element at position ({destX}, {destY})");
+
+                var index = source.GetPixel(sourceStart.X + x, sourceStart.Y + y);
+                if (index >= (1 << destElement.Codec.ColorDepth))
+                    return new MagitekResult.Failed($"Source palette index {index} at position ({sourceStart.X + x}, {sourceStart.Y + y}) does not fit the {destElement.Codec.ColorDepth}bpp codec of the destination at position ({destX}, {destY})");
             }
         }
 
