@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ImageMagitek.Project;
 using Xunit;
@@ -179,5 +180,37 @@ public sealed class ProjectTreeEventTests
         ((DataSource)data.Item).NotifyDataWritten();
 
         Assert.Empty(changed);
+    }
+
+    [Fact]
+    public void DataFileRoot_IsStandaloneAndIndexesSource()
+    {
+        var source = new MemoryDataSource("rom", 16);
+        var tree = new ProjectTree(new DataFileNode("rom", source));
+
+        Assert.True(tree.IsStandaloneFile);
+        Assert.Null(tree.Project);
+        Assert.True(tree.ContainsResource(source));
+        Assert.True(tree.TryFindResourceNode(source, out var node));
+        Assert.Same(tree.Root, node);
+    }
+
+    [Fact]
+    public void DataFileRoot_DataWritten_RaisesResourceChanged()
+    {
+        var source = new MemoryDataSource("rom", 16);
+        var tree = new ProjectTree(new DataFileNode("rom", source));
+        var changed = new List<IProjectResource>();
+        tree.ResourceChanged += (_, resource) => changed.Add(resource);
+
+        source.NotifyDataWritten();
+
+        Assert.Same(source, Assert.Single(changed));
+    }
+
+    [Fact]
+    public void ProjectTree_FolderRoot_Throws()
+    {
+        Assert.Throws<ArgumentException>(() => new ProjectTree(CreateFolder("Folder")));
     }
 }

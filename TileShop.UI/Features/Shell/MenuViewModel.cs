@@ -60,7 +60,7 @@ public partial class MenuViewModel : ObservableRecipient
 
         projectService.ProjectOpened += (_, tree) =>
         {
-            if (tree.Root.DiskLocation is { } projectFileName)
+            if (!tree.IsStandaloneFile && tree.Root.DiskLocation is { } projectFileName)
                 AddRecentProjectFile(projectFileName);
         };
 
@@ -75,6 +75,9 @@ public partial class MenuViewModel : ObservableRecipient
 
     [RelayCommand]
     public async Task NewProjectFromFile() => await ProjectTree.NewProjectFromFile();
+
+    [RelayCommand]
+    public async Task OpenDataFile() => await ProjectTree.OpenDataFile();
 
     [RelayCommand]
     public async Task OpenProject() => await ProjectTree.OpenProject();

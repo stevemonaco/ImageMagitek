@@ -25,7 +25,7 @@ public class ProjectNodeViewModel : ResourceNodeViewModel
         tree.Changed += OnTreeChanged;
     }
 
-    public ResourceNodeViewModel? Find(ResourceNode node) => _viewModels.GetValueOrDefault(node);
+    public override ResourceNodeViewModel? Find(ResourceNode node) => _viewModels.GetValueOrDefault(node);
 
     private void OnTreeChanged(object? sender, ProjectTreeChange change)
     {

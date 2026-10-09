@@ -183,9 +183,9 @@ public partial class EditorsViewModel : ObservableRecipient
             if (userAction == UserSaveAction.Save)
             {
                 // if (editor is not IndexedPixelEditorViewModel and not DirectPixelEditorViewModel)
-                if (editor is not GraphicsEditorViewModel { EditMode: GraphicsEditMode.Draw})
+                if (editor is not GraphicsEditorViewModel { EditMode: GraphicsEditMode.Draw}
+                    && _projectService.FindContainingProject(editor.Resource) is { } projectTree)
                 {
-                    var projectTree = _projectService.GetContainingProject(editor.Resource);
                     var saveResult = await _projectService.SaveProjectAsync(projectTree);
                     await saveResult.Match(
                         success =>
@@ -337,8 +337,8 @@ public partial class EditorsViewModel : ObservableRecipient
                 if (userAction == UserSaveAction.Cancel)
                     return false;
 
-                if (userAction == UserSaveAction.Save)
-                    savedProjects.Add(_projectService.GetContainingProject(editor.Resource));
+                if (userAction == UserSaveAction.Save && _projectService.FindContainingProject(editor.Resource) is { } projectTree)
+                    savedProjects.Add(projectTree);
             }
 
             foreach (var projectTree in savedProjects)
@@ -377,9 +377,8 @@ public partial class EditorsViewModel : ObservableRecipient
                 if (editor.IsModified)
                     return UserSaveAction.Cancel;
 
-                if (saveTree)
+                if (saveTree && _projectService.FindContainingProject(editor.Resource) is { } projectTree)
                 {
-                    var projectTree = _projectService.GetContainingProject(editor.Resource);
                     var saveTreeResult = await _projectService.SaveProjectAsync(projectTree);
                     await saveTreeResult.Match(
                          success =>

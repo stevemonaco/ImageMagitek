@@ -13,6 +13,8 @@ public abstract class ResourceNode : PathNodeBase<ResourceNode, IProjectResource
     public string? DiskLocation { get; set; }
     public ResourceModel? Model { get; set; }
 
+    internal event EventHandler<ProjectTreeChange>? TreeChanged;
+
     public ResourceNode(string nodeName, IProjectResource resource) :
         base(nodeName, resource)
     {
@@ -93,8 +95,8 @@ public abstract class ResourceNode : PathNodeBase<ResourceNode, IProjectResource
 
     private void Raise(ProjectTreeChange change)
     {
-        if (this.SelfAndAncestors<ResourceNode, IProjectResource>().Last() is ProjectNode root)
-            root.OnTreeChanged(change);
+        var root = this.SelfAndAncestors<ResourceNode, IProjectResource>().Last();
+        root.TreeChanged?.Invoke(root, change);
     }
 }
 

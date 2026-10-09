@@ -24,6 +24,11 @@ public interface IProjectService
     Task<MagitekResult<ProjectTree>> CreateNewProjectWithExistingFileAsync(string projectFileName, string fileName);
 
     Task<MagitekResults<ProjectTree>> OpenProjectFileAsync(string projectFileName);
+
+    /// <summary>
+    /// Opens a data file as a standalone tree without a project, or returns the tree that already has it open
+    /// </summary>
+    MagitekResult<ProjectTree> OpenDataFile(string fileName);
     Task<MagitekResult> SaveProjectAsync(ProjectTree projectTree);
     Task<MagitekResult> SaveProjectAsAsync(ProjectTree projectTree, string projectFileName);
     void CloseProject(ProjectTree projectTree);
@@ -41,7 +46,7 @@ public interface IProjectService
     /// </summary>
     Task<MagitekResult> RelinkDataFileAsync(FileDataSource dataSource, string sourceFileName);
 
-    ResourceDeletionPlan PreviewResourceDeletion(ResourceNode deleteNode);
+    MagitekResult<ResourceDeletionPlan> PreviewResourceDeletion(ResourceNode deleteNode);
     MagitekResult ApplyResourceDeletion(ResourceDeletionPlan plan, Palette defaultPalette);
     Task<MagitekResult> RenameResourceAsync(ResourceNode node, string newName);
 

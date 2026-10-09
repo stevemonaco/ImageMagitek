@@ -12,8 +12,13 @@ public sealed class ProjectTree : PathTreeBase<ResourceNode, IProjectResource>
 {
     private readonly Dictionary<IProjectResource, ResourceNode> _index = new(ReferenceEqualityComparer.Instance);
 
-    public ImageProject Project => (ImageProject) Root.Item;
+    public ImageProject? Project => Root.Item as ImageProject;
     public string Name => Root.Item.Name;
+
+    /// <summary>
+    /// True when the tree is a single data file opened without a project
+    /// </summary>
+    public bool IsStandaloneFile => Root is DataFileNode;
 
     /// <summary>
     /// Raised after a node in the tree is added, removed, moved or renamed
@@ -25,10 +30,10 @@ public sealed class ProjectTree : PathTreeBase<ResourceNode, IProjectResource>
     /// </summary>
     public event EventHandler<IProjectResource>? ResourceChanged;
 
-    public ProjectTree(ProjectNode root) :
+    public ProjectTree(ResourceNode root) :
         base(root)
     {
-        if (root.Item is not ImageProject)
+        if (root is not (ProjectNode { Item: ImageProject } or DataFileNode))
             throw new ArgumentException($"{nameof(ProjectTree)} ctor called with invalid root type '{root.GetType()}'");
 
         ExcludeRootFromPath = true;

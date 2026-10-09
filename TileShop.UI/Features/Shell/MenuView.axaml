@@ -22,6 +22,7 @@
                 <MenuItem Command="{Binding NewEmptyProjectCommand}" Header="_New Empty Project..." />
                 <MenuItem Command="{Binding NewProjectFromFileCommand}" Header="New Project from _Existing File..." />
                 <Separator />
+                <MenuItem Command="{Binding OpenDataFileCommand}" Header="Open _File..." />
                 <MenuItem Command="{Binding OpenProjectCommand}" Header="Open _Project..." />
                 <MenuItem Classes="recent" Header="Open Recent Project" IsVisible="{Binding RecentProjectFiles.Count}"
                     ItemsSource="{Binding RecentProjectFiles}" />

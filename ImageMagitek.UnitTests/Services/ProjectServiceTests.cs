@@ -274,7 +274,7 @@ public sealed class ProjectServiceTests : IDisposable
         var palette = AddPalette(folder, "pal", (DataSource)data.Item, new ColorRgba32(1, 2, 3, 255));
         _changes.Clear();
 
-        var plan = _service.PreviewResourceDeletion(folder);
+        var plan = _service.PreviewResourceDeletion(folder).AsSuccess.Result;
         var result = _service.ApplyResourceDeletion(plan, _palette);
 
         Assert.True(result.HasSucceeded);
@@ -311,7 +311,7 @@ public sealed class ProjectServiceTests : IDisposable
         var inner = AddFolder(outer, "Inner");
         AddDataFile(inner, "data");
 
-        var plan = _service.PreviewResourceDeletion(outer);
+        var plan = _service.PreviewResourceDeletion(outer).AsSuccess.Result;
         var result = _service.ApplyResourceDeletion(plan, _palette);
 
         Assert.True(result.HasSucceeded);
@@ -325,7 +325,7 @@ public sealed class ProjectServiceTests : IDisposable
         var folder = AddFolder(_tree.Root, "Roms");
         File.WriteAllBytes(PathOf("Roms", "rom.bin"), new byte[4]);
 
-        var plan = _service.PreviewResourceDeletion(folder);
+        var plan = _service.PreviewResourceDeletion(folder).AsSuccess.Result;
         var result = _service.ApplyResourceDeletion(plan, _palette);
 
         Assert.True(result.HasFailed);
@@ -374,7 +374,7 @@ public sealed class ProjectServiceTests : IDisposable
         Assert.True(dataVm.IsExpanded);
         Assert.Same(projectVm.Find(folder), dataVm.ParentModel);
 
-        var plan = _service.PreviewResourceDeletion(data);
+        var plan = _service.PreviewResourceDeletion(data).AsSuccess.Result;
         Assert.True(_service.ApplyResourceDeletion(plan, _palette).HasSucceeded);
         AssertMatchesTree(projectVm, _tree.Root);
         Assert.Null(projectVm.Find(data));
@@ -453,5 +453,116 @@ public sealed class ProjectServiceTests : IDisposable
         var result = await _service.RelinkDataFileAsync((FileDataSource)data.Item, PathOf("rom.bin"));
 
         Assert.True(result.HasFailed);
+    }
+
+    private ProjectTree OpenStandalone(string name = "standalone.bin")
+    {
+        var path = PathOf(name);
+        File.WriteAllBytes(path, new byte[32]);
+        return _service.OpenDataFile(path).AsSuccess.Result;
+    }
+
+    private static void AssertStandaloneFailure(string reason, ProjectTree tree) =>
+        Assert.Equal($"'{tree.Name}' is a standalone file, not a project", reason);
+
+    [Fact]
+    public void OpenDataFile_RaisesProjectOpened_AndTreeContainsSource()
+    {
+        var opened = new List<ProjectTree>();
+        _service.ProjectOpened += (_, tree) => opened.Add(tree);
+
+        var tree = OpenStandalone();
+
+        Assert.Same(tree, Assert.Single(opened));
+        Assert.True(tree.IsStandaloneFile);
+        Assert.Same(tree, _service.FindContainingProject(tree.Root.Item));
+    }
+
+    [Fact]
+    public void OpenDataFile_SamePathTwice_ReturnsExistingTree()
+    {
+        var tree = OpenStandalone();
+        var opened = new List<ProjectTree>();
+        _service.ProjectOpened += (_, t) => opened.Add(t);
+
+        var again = _service.OpenDataFile(PathOf("standalone.bin"));
+        var differentCase = _service.OpenDataFile(PathOf("STANDALONE.BIN"));
+
+        Assert.Same(tree, again.AsSuccess.Result);
+        Assert.Same(tree, differentCase.AsSuccess.Result);
+        Assert.Empty(opened);
+    }
+
+    [Fact]
+    public void OpenDataFile_MissingFile_Fails()
+    {
+        var result = _service.OpenDataFile(PathOf("missing.bin"));
+
+        Assert.True(result.HasFailed);
+    }
+
+    [Fact]
+    public void CloseProject_StandaloneFile_RaisesProjectClosedAndReleasesFile()
+    {
+        var tree = OpenStandalone();
+        var source = (DataSource)tree.Root.Item;
+        source.Read(BitAddress.Zero, 8);
+        var closed = new List<ProjectTree>();
+        _service.ProjectClosed += (_, t) => closed.Add(t);
+
+        _service.CloseProject(tree);
+
+        Assert.Same(tree, Assert.Single(closed));
+        using var stream = File.Open(PathOf("standalone.bin"), FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+    }
+
+    [Fact]
+    public async Task ProjectOnlyOperations_StandaloneFile_FailWithoutWriting()
+    {
+        var tree = OpenStandalone();
+        var root = tree.Root;
+        var filesBefore = Directory.GetFileSystemEntries(_directory, "*", SearchOption.AllDirectories).Order().ToList();
+
+        var add = _service.AddResource(root, new MemoryDataSource("mem", 16));
+        var folder = _service.CreateNewFolder(root, "Folder");
+        var rename = await _service.RenameResourceAsync(root, "renamed.bin");
+        var canMove = _service.CanMoveNode(root, root);
+        var move = await _service.MoveNodeAsync(root, root);
+        var preview = _service.PreviewResourceDeletion(root);
+        var saveAs = await _service.SaveProjectAsAsync(tree, PathOf("saved.xml"));
+
+        Assert.True(add.HasFailed);
+        Assert.True(folder.HasFailed);
+        Assert.True(canMove.HasFailed);
+        Assert.True(move.HasFailed);
+        AssertStandaloneFailure(rename.AsError.Reason, tree);
+        AssertStandaloneFailure(preview.AsError.Reason, tree);
+        AssertStandaloneFailure(saveAs.AsError.Reason, tree);
+        Assert.Equal("standalone.bin", root.Name);
+        Assert.Equal(filesBefore, Directory.GetFileSystemEntries(_directory, "*", SearchOption.AllDirectories).Order());
+    }
+
+    [Fact]
+    public async Task SaveProjectAsync_StandaloneFile_SucceedsWithoutWriting()
+    {
+        var tree = OpenStandalone();
+        var filesBefore = Directory.GetFileSystemEntries(_directory, "*", SearchOption.AllDirectories).Order().ToList();
+
+        var result = await _service.SaveProjectAsync(tree);
+
+        Assert.True(result.HasSucceeded);
+        Assert.Equal(filesBefore, Directory.GetFileSystemEntries(_directory, "*", SearchOption.AllDirectories).Order());
+    }
+
+    [Fact]
+    public void StandaloneFileNodeViewModel_FindsOnlyItsRoot()
+    {
+        var tree = OpenStandalone();
+        var vm = new StandaloneFileNodeViewModel(tree.Root);
+
+        Assert.Same(vm, vm.Find(tree.Root));
+        Assert.Null(vm.Find(_tree.Root));
+        Assert.Empty(vm.Children);
+        Assert.Null(vm.ParentModel);
     }
 }

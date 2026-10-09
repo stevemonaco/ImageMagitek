@@ -42,6 +42,13 @@
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
         </ContextMenu>
 
+        <ContextMenu x:Key="StandaloneFileContextMenu" x:DataType="vm:StandaloneFileNodeViewModel">
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).CreateProjectFromFileCommand}" CommandParameter="{Binding}" Header="Create Project from File..." />
+            <Separator />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).CloseProjectCommand}" CommandParameter="{Binding}" Header="Close" />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+        </ContextMenu>
+
         <ContextMenu x:Key="ArrangerContextMenu" x:DataType="vm:ArrangerNodeViewModel">
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExportArrangerNodeAsCommand}" CommandParameter="{Binding}" Header="Export As..." />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ImportArrangerNodeFromCommand}" CommandParameter="{Binding}" Header="Import From..." />
@@ -75,6 +82,9 @@
             </Style>
             <Style Selector="TreeViewItem.datafile">
                 <Setter Property="ContextMenu" Value="{StaticResource DataFileContextMenu}" />
+            </Style>
+            <Style Selector="TreeViewItem.standalone">
+                <Setter Property="ContextMenu" Value="{StaticResource StandaloneFileContextMenu}" />
             </Style>
             <Style Selector="TreeViewItem.arranger">
                 <Setter Property="ContextMenu" Value="{StaticResource ArrangerContextMenu}" />
