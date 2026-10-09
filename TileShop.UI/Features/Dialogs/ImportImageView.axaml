@@ -49,6 +49,14 @@
                     ToolTip.Tip="Fully transparent pixels become palette index 0 without color matching" />
             </StackPanel>
 
+            <StackPanel Grid.Column="1" HorizontalAlignment="Left" Orientation="Horizontal" Spacing="8">
+                <TextBlock VerticalAlignment="Center" Classes="muted" Text="Offset" />
+                <NumericUpDown x:Name="OffsetXBox" MinWidth="90" Classes="dense" FormatString="0" InnerLeftContent="X"
+                    ToolTip.Tip="Arranger pixel column where the image's left edge lands" Value="{Binding OffsetX}" />
+                <NumericUpDown x:Name="OffsetYBox" MinWidth="90" Classes="dense" FormatString="0" InnerLeftContent="Y"
+                    ToolTip.Tip="Arranger pixel row where the image's top edge lands" Value="{Binding OffsetY}" />
+            </StackPanel>
+
             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
                 <TextBlock VerticalAlignment="Center" Classes="muted" Text="View" />
                 <StackPanel x:Name="BlendGroup" IsEnabled="{Binding !ShowDiff}" Orientation="Horizontal" Spacing="4">

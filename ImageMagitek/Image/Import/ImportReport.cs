@@ -39,7 +39,8 @@ public sealed record UnmatchedColorEntry(ColorRgba32 Source, Palette Palette, in
 }
 
 /// <summary>
-/// Describes what an import will do to an arranger, per pixel and per source color
+/// Describes what an import will do to an arranger, per pixel and per source color.
+/// <see cref="Width"/>, <see cref="Height"/> and <see cref="PixelStates"/> are in arranger pixels.
 /// </summary>
 public sealed class ImportReport
 {
@@ -62,9 +63,13 @@ public sealed class ImportReport
 
     public bool CanCommit => UnmatchedPixelCount == 0;
 
+    /// <summary>The source's own palette indices were used instead of color matching</summary>
+    public bool UsedSourceIndices { get; }
+
     public ImportReport(int width, int height, ImportPixelState[] pixelStates,
-        IReadOnlyList<ColorMatchEntry> substitutions, IReadOnlyList<UnmatchedColorEntry> unmatched)
+        IReadOnlyList<ColorMatchEntry> substitutions, IReadOnlyList<UnmatchedColorEntry> unmatched, bool usedSourceIndices = false)
     {
+        UsedSourceIndices = usedSourceIndices;
         Width = width;
         Height = height;
         PixelStates = pixelStates;
@@ -94,6 +99,9 @@ public sealed class ImportReport
 
         if (Unmatched.Count > 0)
             parts.Add($"{Unmatched.Count} {Pluralize(Unmatched.Count, "color")} unmatched ({UnmatchedPixelCount:N0} pixels)");
+
+        if (UsedSourceIndices)
+            parts.Add("palette indices read from PNG");
 
         return string.Join(" · ", parts);
     }

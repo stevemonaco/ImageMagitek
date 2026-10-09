@@ -1,0 +1,12 @@
+{
+	"name": "4x1",
+	"width": 4,
+	"height": 1,
+	"tilesPerPattern": 4,
+	"pattern" : [
+		{ "x": 0, "y": 0 },
+		{ "x": 1, "y": 0 },
+		{ "x": 2, "y": 0 },
+		{ "x": 3, "y": 0 }
+	]
+}

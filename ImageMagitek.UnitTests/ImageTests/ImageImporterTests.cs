@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
@@ -38,15 +39,213 @@ public class ImageImporterTests
     private static ImageImportPreview Prepare(Arranger arranger, DecodedImage image, ImageImportOptions? options = null) =>
         ImageImporter.Prepare(arranger, image, options ?? ImageImportOptions.Default).AsSuccess.Result;
 
+    private static byte[] ResultRow(ImageImportPreview preview, int y) => preview.ResultIndexed!.GetPixelRowSpan(y).ToArray();
+
     [Fact]
-    public void Prepare_MismatchedDimensions_Fails()
+    public void Prepare_SmallerImage_LeavesUncoveredPixelsUnchanged()
     {
         var arranger = CreateIndexedArranger(ArrangerTestFactory.CreatePalette(_colors));
-        var image = CreateImage(8, 8, (_, _) => _black);
+        var image = CreateImage(8, 8, (_, _) => _red);
 
-        var result = ImageImporter.Prepare(arranger, image, ImageImportOptions.Default);
+        var preview = Prepare(arranger, image);
 
-        Assert.True(result.HasFailed);
+        Assert.Equal(16, preview.Report.Width);
+        Assert.Equal(8, preview.Report.Height);
+        Assert.Equal(64, preview.Report.ChangedPixelCount);
+        Assert.All(ResultRow(preview, 0)[..8], x => Assert.Equal(2, x));
+        Assert.All(ResultRow(preview, 0)[8..], x => Assert.Equal(0, x));
+        Assert.Equal(ImportPixelState.Unchanged, preview.Report.PixelStates[8]);
+    }
+
+    [Fact]
+    public void Prepare_LargerImage_IsCropped()
+    {
+        var arranger = CreateIndexedArranger(ArrangerTestFactory.CreatePalette(_colors));
+        var image = CreateImage(20, 12, (x, y) => x >= 16 || y >= 8 ? _green : _red);
+
+        var preview = Prepare(arranger, image);
+
+        Assert.True(preview.CanCommit);
+        Assert.Equal(128, preview.Report.ChangedPixelCount);
+        Assert.All(preview.ResultIndexed!.Image, x => Assert.Equal(2, x));
+    }
+
+    [Theory]
+    [InlineData(4, 2)]
+    [InlineData(-3, -1)]
+    public void Prepare_Offset_PlacesImageInArrangerCoordinates(int offsetX, int offsetY)
+    {
+        var arranger = CreateIndexedArranger(ArrangerTestFactory.CreatePalette(_colors));
+        var image = CreateImage(8, 4, (x, y) => x == 0 && y == 0 ? _blue : _red);
+
+        var preview = ImageImporter.Prepare(arranger, image, ImageImportOptions.Default, new Point(offsetX, offsetY)).AsSuccess.Result;
+        var result = preview.ResultIndexed!;
+
+        for (int y = 0; y < 8; y++)
+        {
+            for (int x = 0; x < 16; x++)
+            {
+                int sx = x - offsetX, sy = y - offsetY;
+                byte expected = sx is >= 0 and < 8 && sy is >= 0 and < 4 ? (sx == 0 && sy == 0 ? (byte)3 : (byte)2) : (byte)0;
+                Assert.Equal(expected, result.GetPixel(x, y));
+            }
+        }
+
+        Assert.Equal(new Point(offsetX, offsetY), preview.Offset);
+    }
+
+    [Fact]
+    public void Prepare_Bounds_ClipsChanges()
+    {
+        var arranger = CreateIndexedArranger(ArrangerTestFactory.CreatePalette(_colors));
+        var image = CreateImage(16, 8, (_, _) => _green);
+        var bounds = new Rectangle(8, 0, 8, 8);
+
+        var preview = ImageImporter.Prepare(arranger, CreateImage(8, 8, (_, _) => _red), ImageImportOptions.Default, new Point(8, 0), bounds).AsSuccess.Result;
+        var unmatched = ImageImporter.Prepare(arranger, image, ImageImportOptions.Default, Point.Empty, bounds).AsSuccess.Result;
+
+        Assert.Equal(64, preview.Report.ChangedPixelCount);
+        Assert.All(ResultRow(preview, 0)[..8], x => Assert.Equal(0, x));
+        Assert.All(ResultRow(preview, 0)[8..], x => Assert.Equal(2, x));
+        Assert.Equal(bounds, preview.Bounds);
+        Assert.Equal(64, unmatched.Report.UnmatchedPixelCount);
+        Assert.Equal(new Point(8, 0), unmatched.Report.Unmatched.Single().FirstLocation);
+    }
+
+    [Fact]
+    public void Prepare_SourceIndices_UsedWhenPaletteMatches_EvenWithDuplicateColors()
+    {
+        var arranger = CreateIndexedArranger(ArrangerTestFactory.CreatePalette(_black, _red, _black));
+        var indices = Enumerable.Range(0, 128).Select(i => (byte)(i % 2 == 0 ? 2 : 0)).ToArray();
+        var pngPalette = new[] { _black, _red, new ColorRgba32(0, 0, 0, 0) };
+        var image = new DecodedImage(indices.Select(i => pngPalette[i]).ToArray(), 16, 8, indices, pngPalette);
+
+        var preview = Prepare(arranger, image);
+
+        Assert.True(preview.Report.UsedSourceIndices);
+        Assert.Equal(indices, preview.ResultIndexed!.Image);
+        Assert.Equal(64, preview.Report.ChangedPixelCount);
+        Assert.EndsWith("palette indices read from PNG", preview.Report.ToSummary());
+    }
+
+    [Fact]
+    public void ExportThenImport_SinglePalette_RoundTripsIndicesThroughPng()
+    {
+        var arranger = CreateIndexedArranger(ArrangerTestFactory.CreatePalette(_black, _red, _black));
+        var current = new IndexedImage(arranger);
+        for (int i = 0; i < current.Image.Length; i++)
+            current.Image[i] = (byte)(i % 3);
+        current.SaveImage();
+
+        var adapter = new ImageSharpFileAdapter();
+        var path = TestPaths.CreateTempPath(".png");
+        try
+        {
+            adapter.SaveImage(new IndexedImage(arranger).Image, arranger, path);
+            var preview = ImageImporter.Prepare(arranger, path, ImageImportOptions.Default, adapter).AsSuccess.Result;
+
+            Assert.True(preview.Report.UsedSourceIndices);
+            Assert.Equal(0, preview.Report.ChangedPixelCount);
+            Assert.Equal(current.Image, preview.ResultIndexed!.Image);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void ExportThenImport_ZeroIndexTransparent_WritesTransparentIndexZero()
+    {
+        var palette = ArrangerTestFactory.CreatePalette(_black, _red, _black);
+        palette.ZeroIndexTransparent = true;
+        var arranger = CreateIndexedArranger(palette);
+        var current = new IndexedImage(arranger);
+        for (int i = 0; i < current.Image.Length; i++)
+            current.Image[i] = (byte)(i % 3);
+        current.SaveImage();
+
+        var adapter = new ImageSharpFileAdapter();
+        var path = TestPaths.CreateTempPath(".png");
+        try
+        {
+            adapter.SaveImage(new IndexedImage(arranger).Image, arranger, path);
+
+            Assert.True(IndexedPngFile.TryRead(path, out _, out var pngPalette));
+            Assert.Equal(0, pngPalette[0].A);
+            Assert.Equal(255, pngPalette[1].A);
+
+            var preview = ImageImporter.Prepare(arranger, path, ImageImportOptions.Default, adapter).AsSuccess.Result;
+            Assert.True(preview.Report.UsedSourceIndices);
+            Assert.Equal(current.Image, preview.ResultIndexed!.Image);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void ExportThenImport_MultiplePalettes_KeepsEveryPaletteEntryAndRoundTrips()
+    {
+        var first = ArrangerTestFactory.CreatePalette(_black, _red, _black);
+        var second = ArrangerTestFactory.CreatePalette(_black, _red, _blue);
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (x, _) => new Psx8BppCodec(x == 0 ? first : second, 8, 8));
+        var current = new IndexedImage(arranger);
+        for (int i = 0; i < current.Image.Length; i++)
+            current.Image[i] = (byte)(i % 3);
+        current.SaveImage();
+
+        var adapter = new ImageSharpFileAdapter();
+        var path = TestPaths.CreateTempPath(".png");
+        try
+        {
+            adapter.SaveImage(new IndexedImage(arranger).Image, arranger, path);
+
+            Assert.True(IndexedPngFile.TryRead(path, out var pngIndices, out var pngPalette));
+            Assert.Equal([_black, _red, _black, _black, _red, _blue], pngPalette);
+            Assert.Equal(current.Image[8] + 3, pngIndices[8]);
+
+            var preview = ImageImporter.Prepare(arranger, path, ImageImportOptions.Default, adapter).AsSuccess.Result;
+            Assert.True(preview.Report.UsedSourceIndices);
+            Assert.Equal(0, preview.Report.ChangedPixelCount);
+            Assert.Equal(current.Image, preview.ResultIndexed!.Image);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Prepare_MultiplePalettes_IndexFromAnotherPalettesRange_IsColorMatched()
+    {
+        var first = ArrangerTestFactory.CreatePalette(_black, _red);
+        var second = ArrangerTestFactory.CreatePalette(_red, _blue);
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (x, _) => new Psx8BppCodec(x == 0 ? first : second, 8, 8));
+        ColorRgba32[] pngPalette = [_black, _red, _red, _blue];
+        var indices = Enumerable.Repeat((byte)1, 128).ToArray();
+        var image = new DecodedImage(indices.Select(i => pngPalette[i]).ToArray(), 16, 8, indices, pngPalette);
+
+        var preview = Prepare(arranger, image);
+
+        Assert.True(preview.Report.UsedSourceIndices);
+        Assert.All(ResultRow(preview, 0)[..8], x => Assert.Equal(1, x));
+        Assert.All(ResultRow(preview, 0)[8..], x => Assert.Equal(0, x));
+    }
+
+    [Fact]
+    public void Prepare_SourceIndices_IgnoredWhenPaletteDiffers()
+    {
+        var arranger = CreateIndexedArranger(ArrangerTestFactory.CreatePalette(_colors));
+        var pngPalette = new[] { _red, _black };
+        var indices = Enumerable.Repeat((byte)0, 128).ToArray();
+        var image = new DecodedImage(indices.Select(i => pngPalette[i]).ToArray(), 16, 8, indices, pngPalette);
+
+        var preview = Prepare(arranger, image);
+
+        Assert.False(preview.Report.UsedSourceIndices);
+        Assert.All(preview.ResultIndexed!.Image, x => Assert.Equal(2, x));
     }
 
     [Fact]

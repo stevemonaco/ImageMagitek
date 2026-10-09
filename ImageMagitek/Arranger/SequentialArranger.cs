@@ -57,6 +57,8 @@ public sealed class SequentialArranger : Arranger
 
     private readonly ICodecFactory _codecFactory;
 
+    private TileLayout EffectiveTileLayout => Layout == ElementLayout.Single ? TileLayout.Default : TileLayout;
+
     /// <summary>
     /// Constructs a new SequentialArranger
     /// </summary>
@@ -97,18 +99,19 @@ public sealed class SequentialArranger : Arranger
     private void PerformLayout()
     {
         var address = Address;
+        var layout = EffectiveTileLayout;
 
-        var patternsX = ArrangerElementSize.Width / TileLayout.Width;
-        var patternsY = ArrangerElementSize.Height / TileLayout.Height;
+        var patternsX = ArrangerElementSize.Width / layout.Width;
+        var patternsY = ArrangerElementSize.Height / layout.Height;
 
         for (int y = 0; y < patternsY; y++)
         {
             for (int x = 0; x < patternsX; x++)
             {
-                foreach (var pos in TileLayout.Pattern)
+                foreach (var pos in layout.Pattern)
                 {
-                    var posX = x * TileLayout.Width + pos.X;
-                    var posY = y * TileLayout.Height + pos.Y;
+                    var posX = x * layout.Width + pos.X;
+                    var posY = y * layout.Height + pos.Y;
 
                     var el = new ArrangerElement(posX * ElementPixelSize.Width,
                         posY * ElementPixelSize.Height, ActiveDataSource, address, ActiveCodec);
@@ -358,7 +361,7 @@ public sealed class SequentialArranger : Arranger
         }
         else
         {
-            var layoutElement = TileLayout.Pattern.First();
+            var layoutElement = EffectiveTileLayout.Pattern.First();
             return ElementGrid[layoutElement.X, layoutElement.Y]?.SourceAddress ?? BitAddress.Zero;
         }
     }

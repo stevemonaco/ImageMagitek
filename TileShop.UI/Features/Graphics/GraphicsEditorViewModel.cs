@@ -358,8 +358,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
                 _linearArrangerHeight = seqArr.ArrangerPixelSize.Height;
             }
 
-            ArrangerWidthIncrement = 1;
-            ArrangerHeightIncrement = 1;
+            ArrangerWidthIncrement = seqArr.TileLayout.Width;
+            ArrangerHeightIncrement = seqArr.TileLayout.Height;
+            InitializeLayouts(seqArr.TileLayout);
             ElementWidthIncrement = seqArr.ActiveCodec.WidthResizeIncrement;
             ElementHeightIncrement = seqArr.ActiveCodec.HeightResizeIncrement;
             CanCodecResize = seqArr.ActiveCodec.CanResize;

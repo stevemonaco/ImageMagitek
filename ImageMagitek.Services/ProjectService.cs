@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -599,6 +599,9 @@ public class ProjectService : IProjectService
         Guard.IsNotNull(parentNode);
 
         var canMoveResult = CanMoveNode(node, parentNode);
+        if (canMoveResult.HasFailed)
+            return canMoveResult;
+
         var tree = GetContainingProject(node);
 
         var serializer = _serializerFactory.CreateWriter(tree);
@@ -609,9 +612,6 @@ public class ProjectService : IProjectService
         Guard.IsNotNull(oldLocation);
         Guard.IsNotNull(newLocation);
         Guard.IsNotNull(tree.Root.DiskLocation);
-
-        if (canMoveResult.HasFailed)
-            return canMoveResult;
 
         var isFolder = node is ResourceFolderNode;
 
@@ -657,6 +657,49 @@ public class ProjectService : IProjectService
         }
 
         return writeResult;
+    }
+
+    /// <summary>
+    /// Repairs a missing data file by copying <paramref name="sourceFileName"/> to the location the project expects,
+    /// so no project references change
+    /// </summary>
+    public virtual Task<MagitekResult> RelinkDataFileAsync(FileDataSource dataSource, string sourceFileName)
+    {
+        Guard.IsNotNull(dataSource);
+        Guard.IsNotNullOrWhiteSpace(sourceFileName);
+
+        if (!dataSource.IsMissing)
+            return Task.FromResult<MagitekResult>(new MagitekResult.Failed($"'{dataSource.Name}' is not missing"));
+
+        if (!File.Exists(sourceFileName))
+            return Task.FromResult<MagitekResult>(new MagitekResult.Failed($"'{sourceFileName}' does not exist"));
+
+        try
+        {
+            var directory = Path.GetDirectoryName(dataSource.FileLocation);
+            if (!string.IsNullOrEmpty(directory))
+                Directory.CreateDirectory(directory);
+
+            File.Copy(sourceFileName, dataSource.FileLocation);
+        }
+        catch (Exception ex)
+        {
+            return Task.FromResult<MagitekResult>(new MagitekResult.Failed($"Could not relink '{dataSource.Name}': {ex.Message}"));
+        }
+
+        dataSource.Reopen();
+
+        var palettes = FindContainingProject(dataSource)?.Root
+            .SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>()
+            .Select(x => x.Item)
+            .OfType<Palette>()
+            .Where(x => ReferenceEquals(x.DataSource, dataSource)) ?? [];
+
+        foreach (var palette in palettes)
+            palette.Reload();
+
+        dataSource.NotifyDataWritten();
+        return Task.FromResult<MagitekResult>(MagitekResult.SuccessResult);
     }
 
     /// <summary>

@@ -1,8 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Threading.Tasks;
 using CommunityToolkit.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using ImageMagitek;
+using Microsoft.Extensions.Logging;
 using TileShop.Shared.Models;
 
 namespace TileShop.UI.ViewModels;
@@ -119,9 +123,49 @@ public partial class GraphicsEditorViewModel
             ChangeCodec();
     }
     
+    [ObservableProperty] private List<TileLayout> _availableLayouts = [];
+    [ObservableProperty] private TileLayout? _selectedLayout;
+
+    private void InitializeLayouts(TileLayout current)
+    {
+        AvailableLayouts = SortLayouts(_elementStore.ElementLayouts.Values);
+        _selectedLayout = FindOrAddLayout(current);
+        OnPropertyChanged(nameof(SelectedLayout));
+    }
+
+    private TileLayout FindOrAddLayout(TileLayout layout)
+    {
+        if (AvailableLayouts.FirstOrDefault(x => TileLayout.AreEquivalent(x, layout)) is { } existing)
+            return existing;
+
+        AvailableLayouts = SortLayouts(AvailableLayouts.Append(layout));
+        return layout;
+    }
+
+    private static List<TileLayout> SortLayouts(IEnumerable<TileLayout> layouts) =>
+        layouts.OrderBy(x => x.TilesPerPattern).ThenBy(x => x.Name).ToList();
+
+    partial void OnSelectedLayoutChanged(TileLayout? value)
+    {
+        if (value is null || WorkingArranger is not SequentialArranger seqArr || ReferenceEquals(seqArr.TileLayout, value))
+            return;
+
+        ChangeElementLayout(value);
+    }
+
+    [RelayCommand]
+    public async Task CreateCustomLayout()
+    {
+        if (await _interactions.RequestAsync(new CustomElementLayoutViewModel()) is not { } layout)
+            return;
+
+        SelectedLayout = FindOrAddLayout(layout);
+    }
+
     private void ChangeElementLayout(TileLayout layout)
     {
-        ((SequentialArranger)WorkingArranger).ChangeElementLayout(layout);
+        var seqArr = (SequentialArranger)WorkingArranger;
+        seqArr.ChangeElementLayout(layout);
         ArrangerWidthIncrement = layout.Width;
         ArrangerHeightIncrement = layout.Height;
         _tiledArrangerWidth = WorkingArranger.ArrangerElementSize.Width;
@@ -131,6 +175,8 @@ public partial class GraphicsEditorViewModel
         OnPropertyChanged(nameof(TiledArrangerHeight));
 
         CreateImages();
+        ArrangerPageSize = (int)seqArr.ArrangerBitSize / 8;
+        MaxFileDecodingOffset = seqArr.FileSize - ArrangerPageSize;
     }
 
     private void ChangeCodec()

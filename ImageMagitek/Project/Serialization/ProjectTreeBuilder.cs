@@ -70,9 +70,6 @@ internal sealed class ProjectTreeBuilder
             Model = dfModel
         };
 
-        if (!File.Exists(fileSource.FileLocation))
-            return new MagitekResult.Failed($"DataFile '{fileSource.Name}' does not exist at location '{fileSource.FileLocation}'");
-
         return AttachNode(dfNode, parentNodePath);
     }
 

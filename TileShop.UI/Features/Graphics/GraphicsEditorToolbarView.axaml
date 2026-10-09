@@ -5,6 +5,7 @@
     xmlns:con="using:TileShop.UI.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:gfx="using:TileShop.UI.Features.Graphics"
+    xmlns:im="using:ImageMagitek"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:TileShop.UI.Models"
     xmlns:vm="using:TileShop.UI.ViewModels"
@@ -56,6 +57,25 @@
                 <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
                     <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Codec" />
                     <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding CodecNames}" SelectedItem="{Binding SelectedCodecName}" />
+                </StackPanel>
+
+                <!--  Element Layout (Sequential Arranger, Tiled codec)  -->
+                <StackPanel Spacing="4">
+                    <StackPanel.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="IsViewMode" />
+                            <Binding Path="IsTiledLayout" />
+                        </MultiBinding>
+                    </StackPanel.IsVisible>
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Element Layout" />
+                    <Grid HorizontalAlignment="Stretch" ColumnDefinitions="*,Auto" ColumnSpacing="4">
+                        <ComboBox x:Name="LayoutComboBox" Grid.Column="0" HorizontalAlignment="Stretch"
+                            DisplayMemberBinding="{Binding Name, x:DataType=im:TileLayout}" ItemsSource="{Binding AvailableLayouts}"
+                            SelectedItem="{Binding SelectedLayout}" ToolTip.Tip="Order in which elements are read from the file" />
+                        <Button x:Name="CustomLayoutButton" Grid.Column="1" Command="{Binding CreateCustomLayoutCommand}"
+                            Content="Custom..." Focusable="False" Theme="{StaticResource ClearButton}"
+                            ToolTip.Tip="Create a custom element layout" />
+                    </Grid>
                 </StackPanel>
 
                 <!--  Element Size (Sequential Arranger, Tiled codec with resizable dimensions)  -->

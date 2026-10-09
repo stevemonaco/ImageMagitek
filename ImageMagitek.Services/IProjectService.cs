@@ -36,6 +36,11 @@ public interface IProjectService
     MagitekResult CanMoveNode(ResourceNode node, ResourceNode parentNode);
     Task<MagitekResult> MoveNodeAsync(ResourceNode node, ResourceNode parentNode);
 
+    /// <summary>
+    /// Copies <paramref name="sourceFileName"/> to the expected location of a missing data file and refreshes its dependents
+    /// </summary>
+    Task<MagitekResult> RelinkDataFileAsync(FileDataSource dataSource, string sourceFileName);
+
     ResourceDeletionPlan PreviewResourceDeletion(ResourceNode deleteNode);
     MagitekResult ApplyResourceDeletion(ResourceDeletionPlan plan, Palette defaultPalette);
     Task<MagitekResult> RenameResourceAsync(ResourceNode node, string newName);
