@@ -201,10 +201,11 @@ public partial class GraphicsEditorViewModel
         if (!IsIndexedColor)
             return;
 
-        var projectTree = _projectService.GetContainingProject(Resource);
-        var palettes = projectTree.EnumerateDepthFirst()
+        var projectTree = _projectService.FindContainingProject(Resource);
+        var projectPalettes = projectTree?.EnumerateDepthFirst()
             .Where(x => x.Item is Palette)
-            .Select(x => new AssociatePaletteModel((Palette)x.Item, projectTree.CreatePathKey(x)))
+            .Select(x => new AssociatePaletteModel((Palette)x.Item, projectTree.CreatePathKey(x)));
+        var palettes = (projectPalettes ?? [])
             .Concat(_paletteStore.GlobalPalettes.Select(x => new AssociatePaletteModel(x, x.Name)));
 
         var model = new AssociatePaletteViewModel(palettes);

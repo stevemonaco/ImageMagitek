@@ -28,7 +28,9 @@
 
     <UserControl.ContextMenu>
         <ContextMenu>
-            <MenuItem Command="{Binding AddSelectionAsScatteredArrangerCommand}" Header="Add as New Scattered Arranger..." />
+            <MenuItem Command="{Binding AddSelectionAsScatteredArrangerCommand}" Header="Add as New Scattered Arranger..."
+                IsEnabled="{Binding CanAddSelectionAsScatteredArranger}" ToolTip.ShowOnDisabled="True"
+                ToolTip.Tip="{Binding AddSelectionAsScatteredArrangerHint}" />
             <MenuItem Command="{Binding ImportIntoSelectionCommand}" Header="Import Image Into Selection..." IsVisible="{Binding !IsSequentialArranger}" />
             <MenuItem Command="{Binding SelectAllCommand}" Header="Select All" />
             <MenuItem Command="{Binding ModifyGridSettingsCommand}" Header="Grid Settings..." />

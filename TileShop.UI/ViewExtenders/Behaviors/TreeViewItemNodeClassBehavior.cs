@@ -21,6 +21,7 @@ public class TreeViewItemNodeClassBehavior
         [typeof(ProjectNodeViewModel)] = "project",
         [typeof(FolderNodeViewModel)] = "folder",
         [typeof(DataFileNodeViewModel)] = "datafile",
+        [typeof(StandaloneFileNodeViewModel)] = "standalone",
         [typeof(ArrangerNodeViewModel)] = "arranger",
         [typeof(PaletteNodeViewModel)] = "palette",
     }.ToFrozenDictionary();

@@ -17,6 +17,8 @@ public abstract partial class ResourceNodeViewModel : ObservableObject
     [ObservableProperty] private bool _isSelected;
     [ObservableProperty] private string _name = "";
 
+    public virtual ResourceNodeViewModel? Find(ResourceNode node) => ReferenceEquals(Node, node) ? this : null;
+
     /// <summary>
     /// Creates the view model for <paramref name="node"/> and its descendants, with children in sorted order
     /// </summary>

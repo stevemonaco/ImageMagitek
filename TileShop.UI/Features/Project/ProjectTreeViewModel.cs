@@ -56,7 +56,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
 
     private void OnProjectOpened(object? sender, ProjectTree tree)
     {
-        Projects.Add(new ProjectNodeViewModel(tree));
+        Projects.Add(tree.IsStandaloneFile ? new StandaloneFileNodeViewModel(tree.Root) : new ProjectNodeViewModel(tree));
         OnPropertyChanged(nameof(HasProject));
     }
 
@@ -69,7 +69,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     private ResourceNodeViewModel? FindViewModel(ResourceNode node) =>
         Projects.Select(x => x.Find(node)).FirstOrDefault(x => x is not null);
 
-    [ObservableProperty] private ObservableCollection<ProjectNodeViewModel> _projects = new();
+    [ObservableProperty] private ObservableCollection<ResourceNodeViewModel> _projects = new();
     [ObservableProperty] private ResourceNodeViewModel? _selectedNode;
 
     [RelayCommand]
@@ -117,6 +117,9 @@ public partial class ProjectTreeViewModel : ObservableRecipient
                 await _interactions.AlertAsync("Error", $"'{parentNodeModel.Name}' already contains a resource named '{dfName}'");
                 return;
             }
+
+            if (!await CloseStandaloneFileAsync(dataFileName.LocalPath))
+                return;
 
             var df = new FileDataSource(dfName, dataFileName.LocalPath);
             var result = _projectService.AddResource(parentNodeModel.Node, df);
@@ -322,7 +325,14 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     public async Task RequestRemoveNode(ResourceNodeViewModel nodeModel)
     {
         var deleteNode = nodeModel.Node;
-        var plan = _projectService.PreviewResourceDeletion(deleteNode);
+        var previewResult = _projectService.PreviewResourceDeletion(deleteNode);
+        if (previewResult.HasFailed)
+        {
+            await _interactions.AlertAsync("Delete", previewResult.AsError.Reason);
+            return;
+        }
+
+        var plan = previewResult.AsSuccess.Result;
 
         var changeVm = new ResourceRemovalChangesViewModel(new ResourceChangeViewModel(deleteNode, plan.Tree.CreatePathKey(deleteNode),
             true, false, false), plan.Changes.Select(x => new ResourceChangeViewModel(x)).ToList());
@@ -479,30 +489,98 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         if (dataFileName is null)
             return;
 
-        var projectPath = Path.GetDirectoryName(dataFileName.LocalPath);
-        if (projectPath is null)
+        if (FindStandaloneFile(dataFileName.LocalPath) is { } standaloneVm)
         {
-            await _interactions.AlertAsync("Directory Error", $"Could not get the directory name for {dataFileName.LocalPath}");
+            await CreateProjectFromFile(standaloneVm);
             return;
         }
 
-        var projectFileName = Path.Combine(projectPath, Path.GetFileNameWithoutExtension(dataFileName.LocalPath) + "Project.xml");
+        if (await CreateProjectFromDataFileAsync(dataFileName.LocalPath) is { } tree)
+            SelectedNode = FindViewModel(tree.Root);
+    }
+
+    [RelayCommand]
+    public async Task CreateProjectFromFile(StandaloneFileNodeViewModel nodeModel)
+    {
+        var dataFileName = ((FileDataSource)nodeModel.Node.Item).FileLocation;
+
+        if (!await CloseProject(nodeModel))
+            return;
+
+        if (await CreateProjectFromDataFileAsync(dataFileName) is { } tree)
+            SelectedNode = FindViewModel(tree.Root.ChildNodes.First());
+        else
+            _projectService.OpenDataFile(dataFileName);
+    }
+
+    private StandaloneFileNodeViewModel? FindStandaloneFile(string fileName)
+    {
+        var path = Path.GetFullPath(fileName);
+        return Projects.OfType<StandaloneFileNodeViewModel>()
+            .FirstOrDefault(x => x.Node.Item is FileDataSource source &&
+                string.Equals(Path.GetFullPath(source.FileLocation), path, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Closes the standalone tree for the file, if open, because its stream would block a second source on the same file
+    /// </summary>
+    /// <returns>False if the user cancelled closing it</returns>
+    private async Task<bool> CloseStandaloneFileAsync(string fileName) =>
+        FindStandaloneFile(fileName) is not { } standaloneVm || await CloseProject(standaloneVm);
+
+    private async Task<ProjectTree?> CreateProjectFromDataFileAsync(string dataFileName)
+    {
+        var projectPath = Path.GetDirectoryName(dataFileName);
+        if (projectPath is null)
+        {
+            await _interactions.AlertAsync("Directory Error", $"Could not get the directory name for {dataFileName}");
+            return null;
+        }
+
+        var projectFileName = Path.Combine(projectPath, Path.GetFileNameWithoutExtension(dataFileName) + "Project.xml");
 
         try
         {
-            var result = await _projectService.CreateNewProjectWithExistingFileAsync(Path.GetFullPath(projectFileName), Path.GetFullPath(dataFileName.LocalPath));
-            await result.Match(
-                success =>
-                {
-                    SelectedNode = FindViewModel(success.Result.Root);
-                    return Task.CompletedTask;
-                },
-                async fail => await _interactions.AlertAsync("Project Error", $"{fail.Reason}"));
+            var result = await _projectService.CreateNewProjectWithExistingFileAsync(Path.GetFullPath(projectFileName), Path.GetFullPath(dataFileName));
+            if (result.HasSucceeded)
+                return result.AsSuccess.Result;
+
+            await _interactions.AlertAsync("Project Error", result.AsError.Reason);
         }
         catch (Exception ex)
         {
             await _interactions.AlertAsync("Failed", $"Unable to create new project at location '{projectFileName}'\n{ex.Message}\n{ex.StackTrace}");
         }
+
+        return null;
+    }
+
+    public async Task OpenDataFile()
+    {
+        var dataFileName = await _fileSelect.RequestExistingDataFileName();
+        if (dataFileName is null)
+            return;
+
+        var path = Path.GetFullPath(dataFileName.LocalPath);
+
+        var openVm = Projects.SelectMany(x => x.SelfAndDescendants())
+            .FirstOrDefault(x => x.Node.Item is FileDataSource source &&
+                string.Equals(Path.GetFullPath(source.FileLocation), path, StringComparison.OrdinalIgnoreCase));
+
+        if (openVm is not null)
+        {
+            foreach (var ancestor in openVm.Ancestors())
+                ancestor.IsExpanded = true;
+
+            SelectedNode = openVm;
+            return;
+        }
+
+        var result = _projectService.OpenDataFile(path);
+        if (result.HasSucceeded)
+            SelectedNode = FindViewModel(result.AsSuccess.Result.Root);
+        else
+            await _interactions.AlertAsync("Open File Error", result.AsError.Reason);
     }
 
     public async Task<bool> OpenProject()
@@ -525,6 +603,16 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         return await openResult.Match(
             async success =>
             {
+                var dataFiles = success.Result.EnumerateDepthFirst().Select(x => x.Item).OfType<FileDataSource>().ToList();
+                foreach (var dataFile in dataFiles)
+                {
+                    if (!await CloseStandaloneFileAsync(dataFile.FileLocation))
+                    {
+                        _projectService.CloseProject(success.Result);
+                        return false;
+                    }
+                }
+
                 await AlertMissingDataFiles(success.Result);
                 return true;
             },
@@ -578,7 +666,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     }
 
     [RelayCommand]
-    public async Task<bool> CloseProject(ProjectNodeViewModel projectVm)
+    public async Task<bool> CloseProject(ResourceNodeViewModel projectVm)
     {
         var projectTree = _projectService.GetContainingProject(projectVm.Node);
 
@@ -586,21 +674,9 @@ public partial class ProjectTreeViewModel : ObservableRecipient
 
         if (projectSaveResult.HasSucceeded)
         {
-            var activeContainedEditors = _editors.Editors.Where(x => projectTree.ContainsResource(x.Resource));
-            // var activeSequentialEditors = _editors.Editors
-            //     .OfType<SequentialArrangerEditorViewModel>()
-            //     .Where(x => projectTree.ContainsResource(((SequentialArranger)x.Resource).ActiveDataSource));
-            // var activeIndexedPixelEditors = _editors.Editors
-            //     .OfType<IndexedPixelEditorViewModel>()
-            //     .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
-            // var activeDirectPixelEditors = _editors.Editors
-            //     .OfType<DirectPixelEditorViewModel>()
-            //     .Where(x => projectTree.ContainsResource(x.OriginatingProjectResource));
-
-            var removedEditors = new HashSet<ResourceEditorBaseViewModel>(activeContainedEditors);
-            // removedEditors.UnionWith(activeSequentialEditors);
-            // removedEditors.UnionWith(activeIndexedPixelEditors);
-            // removedEditors.UnionWith(activeDirectPixelEditors);
+            var removedEditors = _editors.Editors
+                .Where(x => projectTree.ContainsResource(x.Resource) || projectTree.ContainsResource(x.OriginatingProjectResource))
+                .ToHashSet();
 
             foreach (var editor in removedEditors)
             {

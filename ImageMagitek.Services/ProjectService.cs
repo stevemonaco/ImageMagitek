@@ -51,6 +51,8 @@ public class ProjectService : IProjectService
         tree.ResourceChanged -= OnResourceChanged;
     }
 
+    private static string StandaloneFileReason(ProjectTree tree) => $"'{tree.Name}' is a standalone file, not a project";
+
     private void OnTreeChanged(object? sender, ProjectTreeChange change) => TreeChanged?.Invoke(sender, change);
     private void OnResourceChanged(object? sender, IProjectResource resource) => ResourceChanged?.Invoke(sender, resource);
 
@@ -123,6 +125,8 @@ public class ProjectService : IProjectService
         }
         else
         {
+            RemoveProject(tree);
+            dataFile.Dispose();
             return new MagitekResult<ProjectTree>.Failed(result.AsError.Reason);
         }
     }
@@ -171,6 +175,31 @@ public class ProjectService : IProjectService
         }
     }
 
+    /// <inheritdoc/>
+    public virtual MagitekResult<ProjectTree> OpenDataFile(string fileName)
+    {
+        var path = Path.GetFullPath(fileName);
+
+        var openTree = _projects.FirstOrDefault(x => x.IsStandaloneFile &&
+            string.Equals(x.Root.DiskLocation, path, StringComparison.OrdinalIgnoreCase));
+
+        if (openTree is not null)
+            return new MagitekResult<ProjectTree>.Success(openTree);
+
+        if (!File.Exists(path))
+            return new MagitekResult<ProjectTree>.Failed($"File '{path}' does not exist");
+
+        var name = Path.GetFileName(path);
+        var source = new FileDataSource(name, path);
+        var root = new DataFileNode(name, source) { DiskLocation = path };
+        var tree = new ProjectTree(root);
+
+        AddProject(tree);
+        ProjectOpened?.Invoke(this, tree);
+
+        return new MagitekResult<ProjectTree>.Success(tree);
+    }
+
     /// <summary>
     /// Saves the project
     /// </summary>
@@ -180,6 +209,9 @@ public class ProjectService : IProjectService
     {
         if (projectTree is null)
             throw new InvalidOperationException($"{nameof(SaveProjectAsync)} parameter '{nameof(projectTree)}' was null");
+
+        if (projectTree.IsStandaloneFile)
+            return MagitekResult.SuccessResult;
 
         var projectFileLocation = projectTree.Root.DiskLocation;
 
@@ -210,6 +242,9 @@ public class ProjectService : IProjectService
 
         if (string.IsNullOrWhiteSpace(projectFileName))
             throw new ArgumentException($"{nameof(SaveProjectAsAsync)} cannot have a null or empty value for '{nameof(projectFileName)}'");
+
+        if (projectTree.IsStandaloneFile)
+            return new MagitekResult.Failed(StandaloneFileReason(projectTree));
 
         try
         {
@@ -427,6 +462,9 @@ public class ProjectService : IProjectService
 
         if (tree is null)
             return new MagitekResult.Failed($"Could not locate '{node.Name}' in any loaded project");
+
+        if (tree.IsStandaloneFile)
+            return new MagitekResult.Failed(StandaloneFileReason(tree));
 
         if (node.Parent is not null && node.Parent.ContainsChildNode(newName))
         {
@@ -778,11 +816,14 @@ public class ProjectService : IProjectService
     /// Previews a list of changes/deletions that will happen if the specified node is deleted
     /// </summary>
     /// <param name="deleteNode">Node to preview deletion of</param>
-    public virtual ResourceDeletionPlan PreviewResourceDeletion(ResourceNode deleteNode)
+    public virtual MagitekResult<ResourceDeletionPlan> PreviewResourceDeletion(ResourceNode deleteNode)
     {
         Guard.IsNotNull(deleteNode);
 
         var tree = GetContainingProject(deleteNode);
+        if (tree.IsStandaloneFile)
+            return new MagitekResult<ResourceDeletionPlan>.Failed(StandaloneFileReason(tree));
+
         var changes = new List<ResourceChange>();
 
         var removedDict = deleteNode.SelfAndDescendantsDepthFirst<ResourceNode, IProjectResource>()
@@ -831,7 +872,7 @@ public class ProjectService : IProjectService
                 changes.Add(new ResourceChange(node, tree.CreatePathKey(node), removed, lostPalette, lostElements));
         }
 
-        return new ResourceDeletionPlan(tree, changes);
+        return new MagitekResult<ResourceDeletionPlan>.Success(new ResourceDeletionPlan(tree, changes));
     }
 
     /// <summary>

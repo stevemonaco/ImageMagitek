@@ -493,10 +493,14 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
                 }
             }
 
-            var projectTree = _projectService.GetContainingProject(Resource);
-            projectTree.TryFindResourceNode(Resource, out var resourceNode);
+            var projectTree = _projectService.FindContainingProject(Resource);
 
-            if (resourceNode is not null)
+            if (projectTree is null || !projectTree.TryFindResourceNode(Resource, out var resourceNode))
+            {
+                ClearHistory();
+                IsModified = false;
+            }
+            else
             {
                 var saveResourceResult = await _projectService.SaveResourceAsync(projectTree, resourceNode, true);
                 await saveResourceResult.Match(
@@ -555,14 +559,21 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         UpdateReadOnlyState();
     }
     
+    public bool IsStandaloneFile => _projectService.FindContainingProject(OriginatingProjectResource)?.IsStandaloneFile == true;
+
+    public string? AddSelectionAsScatteredArrangerHint => IsStandaloneFile
+        ? "Requires a project. Right-click the file in the project tree and choose Create Project from File..."
+        : null;
+
     public bool CanAddSelectionAsScatteredArranger =>
         Selection?.HasSelection == true
-        && OriginatingProjectResource is not null;
+        && OriginatingProjectResource is not null
+        && !IsStandaloneFile;
 
     [RelayCommand]
     public void AddSelectionAsScatteredArranger()
     {
-        if (Selection?.HasSelection != true || OriginatingProjectResource is null)
+        if (Selection?.HasSelection != true || OriginatingProjectResource is null || IsStandaloneFile)
             return;
 
         var rect = Selection.SelectionRect;
