@@ -1,7 +1,7 @@
 export const meta = {
   name: 'implement-plan',
   description: 'Plan a change, implement it, adversarially trim sprawl, then review and test',
-  whenToUse: 'Feature or refactor work in ImageMagitek/TileShop. Pass the task description as args (string or {task}).',
+  whenToUse: 'Feature or refactor work in ImageMagitek/TileShop. Pass the task description, a docs/changes/<name>.md proposal path, or a docs/BACKLOG.md item as args (string or {task}).',
   phases: [
     { title: 'Plan', detail: 'explore the code and produce a concrete implementation plan' },
     { title: 'Implement', detail: 'apply the plan and get a clean build' },
@@ -19,6 +19,8 @@ const MAX_SIMPLIFY_ROUNDS = 2
 const BUILD_RULES = `Build rules: before building TileShop.UI, run \`Stop-Process -Name TileShop.UI -Force -ErrorAction SilentlyContinue\` (a running app breaks the copy step). Build with \`dotnet build TileShop.UI\\TileShop.UI.csproj -c Debug -v q -nologo\`. If ImageMagitek core or ImageMagitek.Services changed, also run \`dotnet test ImageMagitek.UnitTests\`. Use PowerShell. Do not commit, stash, or reset git state.`
 
 const DIFF_CMD = 'Inspect the current change with `git status --porcelain` and `git diff` (also read any untracked files it lists).'
+
+const SPEC_RULES = 'Specs in docs/specs/ are the source of truth for behavior (format in docs/specs/README.md). Update every affected spec in the same change: add, reword or strike requirements (never reuse or renumber ids), keep their `Tests:` lines accurate, and record design decisions with reasons in the spec\'s Decisions section. When the task came from a docs/changes/ proposal, delete it once its tasks are done; delete the docs/BACKLOG.md lines the change resolves.'
 
 const PLAN_SCHEMA = {
   type: 'object',
@@ -126,7 +128,7 @@ const plan = await agent(
 
 Task: ${task}
 
-Explore the relevant code first. Prefer the smallest change that fits the existing architecture: extend existing types and reuse existing helpers, services, converters and styles rather than adding parallel ones. List every existing piece the change should reuse. Keep the plan to what the task needs; note but do not plan adjacent cleanups.`,
+If the task names a file (a docs/changes/ proposal), read it. Read the specs for the affected features (docs/specs/*/index.md lists them) and the specs in their \`depends\`, then explore the relevant code. Include the spec updates as plan steps. Prefer the smallest change that fits the existing architecture: extend existing types and reuse existing helpers, services, converters and styles rather than adding parallel ones. List every existing piece the change should reuse. Keep the plan to what the task needs; note but do not plan adjacent cleanups.`,
   { label: 'planner', schema: PLAN_SCHEMA },
 )
 log(`Plan: ${plan.steps.length} steps, touchesUI=${plan.touchesUI}`)
@@ -140,7 +142,7 @@ Task: ${task}
 Plan:
 ${fmtPlan(plan)}
 
-Follow the plan; if it is wrong somewhere, deviate minimally and say why in notes. Match the surrounding code's style and the comment rules in CLAUDE.md. Add or update unit tests per the test strategy when core logic changes. ${BUILD_RULES} Iterate until the build is clean.`,
+Follow the plan; if it is wrong somewhere, deviate minimally and say why in notes. Match the surrounding code's style and the comment rules in CLAUDE.md. Add or update unit tests per the test strategy when core logic changes. ${SPEC_RULES} ${BUILD_RULES} Iterate until the build is clean.`,
   { label: 'implementer', schema: IMPL_SCHEMA },
 )
 if (!impl.buildSucceeded) log(`Implementer could not get a clean build: ${impl.notes}`)
@@ -180,7 +182,7 @@ const [review, tests] = await parallel([
 
 Task it implements: ${task}
 
-Look for logic errors, broken edge cases (empty arrangers, palette index bounds, odd tile sizes, null data sources), MVVM binding mistakes, undo/redo or dirty-state gaps, resource/lifetime leaks, and missed callers of changed APIs. Report only issues with a concrete triggering scenario. Return an empty list if none.`,
+Look for logic errors, broken edge cases (empty arrangers, palette index bounds, odd tile sizes, null data sources), MVVM binding mistakes, undo/redo or dirty-state gaps, resource/lifetime leaks, missed callers of changed APIs, and behavior that now disagrees with its spec in docs/specs/ (or spec edits that cite tests which do not exist). Report only issues with a concrete triggering scenario. Return an empty list if none.`,
     { label: 'reviewer', schema: FINDINGS_SCHEMA, effort: 'high' },
   ),
   () => agent(
