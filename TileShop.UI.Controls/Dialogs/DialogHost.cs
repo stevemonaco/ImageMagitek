@@ -1,7 +1,5 @@
-﻿using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using CommunityToolkit.Mvvm.Input;
 using TileShop.Shared.Interactions;
 
 namespace TileShop.UI.Controls;
@@ -33,49 +31,25 @@ public class DialogHost : Panel
 
         async void DialogOnDismiss(object? sender, RoutedEventArgs e)
         {
-            var isCanceled = await mediator.TryCancel();
-
-            if (isCanceled)
-            {
-                dialog.Dismiss -= DialogOnDismiss;
-            }
+            await mediator.TryCancel();
         }
-        
-        void MediatorOnClosed(object? sender, EventArgs e)
+
+        // The overlay stays until its out-animation ends, so HasOpenDialog is false once the caller resumes
+        async void MediatorOnClosed(object? sender, EventArgs e)
         {
             mediator.Closed -= MediatorOnClosed;
-            Children.Remove(dialog);
-            tcs.SetResult(mediator.RequestResult);
-        }
-    }
-    
-    /// <summary>
-    /// Shows a dialog with custom content.
-    /// </summary>
-    public async Task<bool> ShowDialogAsync(
-        Control content,
-        string title,
-        ObservableCollection<RequestOption> options,
-        bool showCancelButton = true)
-    {
-        var layer = new OverlayDialog
-        {
-            Content = content,
-            Title = title,
-            Options = options,
-            ShowCancelButton = showCancelButton
-        };
+            dialog.Dismiss -= DialogOnDismiss;
+            dialog.IsHitTestVisible = false;
 
-        Children.Add(layer);
-
-        try
-        {
-            var result = await layer.ShowAsync();
-            return result;
-        }
-        finally
-        {
-            Children.Remove(layer);
+            try
+            {
+                await dialog.AnimateOutAsync();
+            }
+            finally
+            {
+                Children.Remove(dialog);
+                tcs.SetResult(mediator.RequestResult);
+            }
         }
     }
 

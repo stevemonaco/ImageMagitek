@@ -20,10 +20,15 @@ public partial class ShellViewModel : ObservableObject
     [ObservableProperty] private StatusViewModel _activeStatusBar;
     [ObservableProperty] private EditorsViewModel _editors;
     private readonly IInteractionService _interactionService;
+    private readonly BootstrapService _bootstrapService;
+
+    public ExitGate ExitGate { get; } = new();
 
     public ShellViewModel(UserPreferencesStore preferencesStore, IProjectService projectService, ProjectTreeViewModel activeTree,
-        MenuViewModel activeMenu, StatusViewModel activeStatusBar, EditorsViewModel editors, IInteractionService interactionService)
+        MenuViewModel activeMenu, StatusViewModel activeStatusBar, EditorsViewModel editors, IInteractionService interactionService,
+        BootstrapService bootstrapService)
     {
+        _bootstrapService = bootstrapService;
         _preferencesStore = preferencesStore;
         _projectService = projectService;
         _activeTree = activeTree;
@@ -43,6 +48,19 @@ public partial class ShellViewModel : ObservableObject
         await ActiveTree.OpenProject(_debugProjectFile);
     }
 #endif
+
+    /// <summary>
+    /// Alerts the user once to the resource files that startup skipped, if any
+    /// </summary>
+    public async Task ShowStartupIssuesAsync()
+    {
+        var issues = _bootstrapService.Issues;
+        if (issues.Count == 0)
+            return;
+
+        await _interactionService.AlertAsync("Some resources were not loaded",
+            StartupIssueFormatter.Format(issues, TileShopBootstrapper.LogDirectory));
+    }
 
     public async Task<bool> PrepareApplicationExit()
     {

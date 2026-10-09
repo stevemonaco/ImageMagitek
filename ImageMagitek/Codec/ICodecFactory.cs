@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -9,8 +9,8 @@ namespace ImageMagitek.Codec;
 /// </summary>
 public interface ICodecFactory
 {
-    void AddOrUpdateCodec(Type codecType);
-    void AddOrUpdateFormat(IGraphicsFormat format);
+    MagitekResult AddCodec(Type codecType);
+    MagitekResult AddFormat(IGraphicsFormat format);
     IGraphicsCodec? CreateCodec(string codecName, Size? elementSize = default);
     IGraphicsCodec CloneCodec(IGraphicsCodec codec);
     IEnumerable<string> GetRegisteredCodecNames();

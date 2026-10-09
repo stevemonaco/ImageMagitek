@@ -54,6 +54,34 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public void Deserialize_PartialFile_MissingKeysTakeDefaults()
+    {
+        var settings = _service.Deserialize("""{ "nesPalette": "MyNes" }""");
+        var defaults = SettingsService.CreateDefault();
+
+        Assert.Equal("MyNes", settings.NesPalette);
+        Assert.Equal(defaults.GlobalPalettes, settings.GlobalPalettes);
+        Assert.Equal(defaults.ExtensionCodecAssociations, settings.ExtensionCodecAssociations);
+    }
+
+    [Fact]
+    public void Deserialize_EmptyGlobalPalettes_TakesDefault()
+    {
+        var settings = _service.Deserialize("""{ "globalPalettes": [] }""");
+
+        Assert.Equal(SettingsService.CreateDefault().GlobalPalettes, settings.GlobalPalettes);
+    }
+
+    [Fact]
+    public void Deserialize_ExtensionAssociations_ReplaceDefaults()
+    {
+        var settings = _service.Deserialize("""{ "extensionCodecAssociations": { ".sfc": "SNES 4bpp" } }""");
+
+        var association = Assert.Single(settings.ExtensionCodecAssociations);
+        Assert.Equal(".sfc", association.Key);
+    }
+
+    [Fact]
     public void ReadSettings_MissingFile_ReturnsDefaults()
     {
         var missing = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -67,7 +95,7 @@ public class SettingsServiceTests
     [Fact]
     public void ShippedAppSettings_MatchesCodeDefaults()
     {
-        var shipped = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultConfigurationFileName));
+        var shipped = File.ReadAllText(BootstrapPaths.FromDirectory(AppContext.BaseDirectory).SettingsFileName);
 
         var settings = _service.Deserialize(shipped);
         var defaults = SettingsService.CreateDefault();
@@ -81,7 +109,7 @@ public class SettingsServiceTests
     public void Defaults_AssociationsNameRegisteredCodecs()
     {
         var registered = CodecFixture.Shared.CodecFactory.GetRegisteredCodecNames().ToHashSet();
-        var shipped = _service.Deserialize(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultConfigurationFileName)));
+        var shipped = _service.Deserialize(File.ReadAllText(BootstrapPaths.FromDirectory(AppContext.BaseDirectory).SettingsFileName));
 
         var associations = SettingsService.CreateDefault().ExtensionCodecAssociations.Concat(shipped.ExtensionCodecAssociations);
 

@@ -35,22 +35,32 @@ public partial class DockableEditorViewModel : Document
         Title = _editor.DisplayName;
     }
 
+    /// <summary>
+    /// True while Dock is closing this tab, so the factory leaves its removal to Dock
+    /// </summary>
+    internal bool IsClosing { get; private set; }
+
     public override bool OnClose()
     {
         using var cts = new CancellationTokenSource();
         bool result = default;
 
-        _editors.RequestSaveUserChanges(_editor, true).ContinueWith(x =>
-            {
-                result = x.IsCompletedSuccessfully && x.Result != UserSaveAction.Cancel;
-                cts.Cancel();
-            },
-            TaskScheduler.FromCurrentSynchronizationContext());
+        IsClosing = true;
+        try
+        {
+            _editors.CloseEditor(_editor).ContinueWith(x =>
+                {
+                    result = x.IsCompletedSuccessfully && x.Result;
+                    cts.Cancel();
+                },
+                TaskScheduler.FromCurrentSynchronizationContext());
 
-        Dispatcher.UIThread.MainLoop(cts.Token);
-
-        if (result)
-            _editors.Editors.Remove(_editor);
+            Dispatcher.UIThread.MainLoop(cts.Token);
+        }
+        finally
+        {
+            IsClosing = false;
+        }
 
         return result;
     }

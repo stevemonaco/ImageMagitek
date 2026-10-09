@@ -29,6 +29,42 @@ public class TileLayoutTests
     }
 
     [Fact]
+    public void ReadLayout_MalformedJson_Fails()
+    {
+        AssertReadFails("""{ "name": "Bad", "width": """);
+    }
+
+    [Fact]
+    public void ReadLayout_MissingPattern_Fails()
+    {
+        AssertReadFails("""{ "name": "Bad", "width": 1, "height": 1, "tilesPerPattern": 1 }""");
+    }
+
+    [Fact]
+    public void ReadLayout_CellOutsideLayout_Fails()
+    {
+        AssertReadFails("""{ "name": "Bad", "width": 1, "height": 1, "tilesPerPattern": 1, "pattern": [ { "x": 1, "y": 0 } ] }""");
+    }
+
+    private static void AssertReadFails(string json)
+    {
+        var fileName = TestPaths.CreateTempPath(".json");
+        File.WriteAllText(fileName, json);
+
+        try
+        {
+            var result = new ElementLayoutService().ReadLayout(fileName);
+
+            Assert.True(result.HasFailed);
+            Assert.Contains(fileName, result.AsError.Reason);
+        }
+        finally
+        {
+            File.Delete(fileName);
+        }
+    }
+
+    [Fact]
     public void ShippedLayouts_AllDeserialize()
     {
         var layoutPath = Path.Combine(AppContext.BaseDirectory, "_layouts");

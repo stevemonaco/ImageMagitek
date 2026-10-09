@@ -37,6 +37,7 @@ tests:
   - PaletteEditSessionTests
   - ProjectServiceTests
   - SettingsServiceTests
+  - BootstrapServiceTests
 depends:
   - LIB-DATASOURCE
   - LIB-COLORS
@@ -138,12 +139,16 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 
 ### Palette store
 
-- **LIB-PALETTES-034** — When the bootstrapper creates the palette store, it shall load `<palettes>/<name>.json` for each name in the settings' global palettes, in order, and log and skip any that throw `InvalidDataException`.
-  - Tests: untested
+- **LIB-PALETTES-034** — When the bootstrapper creates the palette store, it shall load `<palettes>/<name>.json` for each name in the settings' global palettes, in order, and log, record as a startup issue and skip any that is missing, malformed or empty.
+  - Tests: `BootstrapServiceTests.CreatePaletteStore_MissingGlobalPalette_SkipsAndRecordsIssue`, `BootstrapServiceTests.CreatePaletteStore_MalformedJson_SkipsAndRecordsIssue`
 - **LIB-PALETTES-035** — The store's default palette shall be the first global palette loaded; setting a default palette that is not in the global list shall append it.
-  - Tests: untested
-- **LIB-PALETTES-036** — When the bootstrapper creates the palette store, it shall load the NES master palette from `<palettes>/<NesPalette>.json`, and if that throws `InvalidDataException`, log it and create the store without one.
-  - Tests: untested
+  - Tests: `BootstrapServiceTests.CreatePaletteStore_MalformedJson_SkipsAndRecordsIssue`
+- **LIB-PALETTES-036** — When the bootstrapper creates the palette store with an NES palette override, it shall use the override if it loads with at least 64 entries; otherwise it shall record a startup issue and load the settings' NES palette.
+  - Tests: `BootstrapServiceTests.CreatePaletteStore_UnusableOverride_FallsBackAndRecordsIssue`
+- **LIB-PALETTES-050** — If no global palette loads, then creating the palette store shall fail as an essential resource (LIB-SERVICES).
+  - Tests: `BootstrapServiceTests.CreatePaletteStore_NoGlobalPalette_ThrowsBootstrapException`
+- **LIB-PALETTES-051** — If the settings' NES master palette is missing, malformed or has fewer than 64 entries, then creating the palette store shall fail as an essential resource (LIB-SERVICES).
+  - Tests: `BootstrapServiceTests.CreatePaletteStore_ShortNesPalette_ThrowsBootstrapException`
 - **LIB-PALETTES-037** — When the store has an NES master palette, the host shall set it on the color factory before any Nes color is converted (LIB-COLORS).
   - Tests: untested
 - **LIB-PALETTES-038** (inherited) — When settings are absent, the global palettes shall be `DefaultRgba32` and the NES master palette `DefaultNes`.
@@ -182,7 +187,6 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 - `SetForeignColor` accepts a color of any model; nothing checks it matches the palette's model.
 - Negative indexes throw `IndexOutOfRangeException` rather than `ArgumentOutOfRangeException`.
 - A global palette whose model is Nes cannot load while native-to-Nes conversion throws (LIB-COLORS).
-- An NES master palette with fewer than 64 entries makes Nes indices past its end throw on conversion; only the UI checks the count.
 - A palette file with more than 256 colors reads fully; the caller decides how many to use.
 
 ## Threading and lifetime
@@ -200,7 +204,8 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 - **Global palettes are read-only, and so are palettes with file colors on a read-only data file.** Global palettes have no data source; a palette whose file colors live on a read-only data source cannot write them. `IsReadOnly` covers both, `SavePalette` returns false for it, and the palette editor's read-only mode keys off it; for global palettes the editor offers "Duplicate to project". A palette made only of project colors stays editable on a read-only data file. Reason: the editor's read-only mode already hides every edit path. Rejected: a second, ROM-specific read-only mode that keeps Sources visible (two modes to keep in step).
 - **A palette save flushes and stays silent.** The flush makes Save mean "on disk", so a crash after Save keeps the colors. No `DataWritten`, because that event reloads graphics editors and clears their history (LIB-DATASOURCE decision "`DataWritten` is not raised from `Flush`"). Rejected: `Flush(true)` to the physical disk, which image saves do not do either.
 - **JASC and GIMP only.** Palette files import into project native colors and export from native colors. Reason: the two common text formats cover the external editors users have. Rejected for now: RIFF `.pal`, `.act` and `.hex`.
-- **The NES master palette is configurable.** Its name comes from `appsettings.json`, with a user preference override applied at startup by TileShop.UI.
+- **The NES master palette is configurable.** Its name comes from `appsettings.json`, with a user preference override that TileShop.UI passes to `CreatePaletteStore`, which validates it (at least 64 entries) and falls back to the settings' palette. Reason: the 64-entry rule lives in one place and the CLI gets it too. Rejected: keeping the UI's two-pass fallback (the CLI stays unchecked).
+- **The global and NES master palettes are essentials.** See LIB-SERVICES "Essentials are the two schemas, a global palette and a 64-entry NES master palette".
 
 ## Non-goals
 
@@ -211,7 +216,6 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 
 - `ColorSourceSerializer.LoadColors` treats a project native source as its own foreign color, so a project palette in, for example, Bgr15 reports an Rgba32 foreign color and an unquantized native color for that entry, unlike a global palette.
 - `SetNativeColor` keeps the native color as given, so until `Reload` the palette shows a color its model cannot store (255 instead of 248 in Bgr15).
-- `BootstrapService.CreatePaletteStore` catches only `InvalidDataException`: a missing global or NES palette file (`FileNotFoundException`) or malformed JSON (`JsonException`) stops startup, and if no global palette loads, `First()` throws.
 - The scattered color source is still a stub. The project writer's palette mapping never advances past one, so saving such a palette would loop forever (LIB-PROJECT-FORMAT). The backlog plans removing it from the 1.0 schema.
 - `Palette.HasAlpha` is never set and has no callers; `Palette.GetColor` swaps R and B and has no callers.
-- No tests for 3-byte and big-endian file colors, `ZeroIndexTransparent` events, global `SavePalette`, JSON defaults and errors, or the palette store.
+- No tests for 3-byte and big-endian file colors, `ZeroIndexTransparent` events, global `SavePalette`, JSON defaults and errors.

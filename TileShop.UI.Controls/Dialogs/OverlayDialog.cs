@@ -26,7 +26,6 @@ namespace TileShop.UI.Controls;
 [TemplatePart(Name = "PART_Options", Type = typeof(ItemsControl), IsRequired = false)]
 public partial class OverlayDialog : TemplatedControl
 {
-    private TaskCompletionSource<bool>? _dialogCompletion;
     private Border? _backdrop;
     private Border? _dialogCard;
     private Border? _titleBar;
@@ -37,6 +36,7 @@ public partial class OverlayDialog : TemplatedControl
 
     private bool _isDragging;
     private Point _dragStartPoint;
+    private bool _isClosing;
 
     public OverlayDialog()
     {
@@ -124,36 +124,19 @@ public partial class OverlayDialog : TemplatedControl
     private static bool IsFocusTarget(Control control) =>
         control.Focusable && control.IsTabStop && control.IsEffectivelyEnabled && control.IsEffectivelyVisible;
 
-    internal Task<bool> ShowAsync()
-    {
-        _dialogCompletion = new TaskCompletionSource<bool>();
-        _ = AnimateInAsync();
-        return _dialogCompletion.Task;
-    }
-
-    internal async Task CloseAsync(bool result)
-    {
-        await AnimateOutAsync();
-        _dialogCompletion?.TrySetResult(result);
-    }
-    
-    private async void OnLightDismissPressed(object? sender, PointerPressedEventArgs e)
+    private void OnLightDismissPressed(object? sender, PointerPressedEventArgs e)
     {
         if (!IsLightDismiss)
             return;
 
         e.Handled = true;
-        await CloseAsync(false);
         RaiseEvent(new RoutedEventArgs(DismissEvent));
     }
-    
-    private async void CloseButtonHandler(object? sender, RoutedEventArgs e)
+
+    private void CloseButtonHandler(object? sender, RoutedEventArgs e)
     {
         if (ReferenceEquals(sender, _closeButton))
-        {
-            await CloseAsync(false);
             RaiseEvent(new RoutedEventArgs(DismissEvent));
-        }
     }
 
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -223,34 +206,18 @@ public partial class OverlayDialog : TemplatedControl
         try
         {
             base.OnKeyDown(e);
-            
-            if (e.Key == Key.Escape && (ShowCancelButton || ShowCloseButton))
-            {
-                var cancelOption = Options.FirstOrDefault(o => o.IsCancel);
 
-                if (cancelOption is not null && cancelOption.OptionCommand.CanExecute(null))
-                {
-                    e.Handled = true;
-                    await cancelOption.OptionCommand.ExecuteAsync(null);
-                }
-                else
-                {
-                    e.Handled = true;
-                    _dialogCompletion?.TrySetCanceled();
-                }
-                
-                _ = CloseAsync(false);
-            }
-            else if (e.Key == Key.Enter)
-            {
-                var defaultOption = Options.FirstOrDefault(o => o.IsDefault);
-                if (defaultOption is not null && defaultOption.OptionCommand.CanExecute(null))
-                {
-                    e.Handled = true;
-                    await defaultOption.OptionCommand.ExecuteAsync(null);
-                    _ = CloseAsync(true);
-                }
-            }
+            if (_isClosing)
+                return;
+
+            var (kind, option) = DialogKeyAction.Resolve(e.Key, Options);
+            if (kind != DialogKeyActionKind.None || e.Key == Key.Escape)
+                e.Handled = true;
+
+            if (kind == DialogKeyActionKind.RunOption)
+                await option!.OptionCommand.ExecuteAsync(null);
+            else if (kind == DialogKeyActionKind.Dismiss)
+                RaiseEvent(new RoutedEventArgs(DismissEvent));
         }
         catch (Exception exception)
         {
@@ -261,64 +228,10 @@ public partial class OverlayDialog : TemplatedControl
 
     private double ScaleOutValue => Size == DialogSize.Full ? 1.0 : 0.9;
 
-    private async Task AnimateInAsync()
+    internal async Task AnimateOutAsync()
     {
-        if (_backdrop is null || _dialogCard is null)
-            return;
+        _isClosing = true;
 
-        var startScale = ScaleOutValue;
-        _backdrop.SetCurrentValue(OpacityProperty, 0);
-        _dialogCard.SetCurrentValue(OpacityProperty, 0);
-        _dialogCard.RenderTransform = new Avalonia.Media.ScaleTransform(startScale, startScale);
-
-        var overlayAnimation = new Animation
-        {
-            Duration = TimeSpan.FromMilliseconds(150),
-            Easing = new CubicEaseOut(),
-            Children =
-            {
-                new KeyFrame { Cue = new Cue(0), Setters = { new Setter(OpacityProperty, 0.0d) } },
-                new KeyFrame { Cue = new Cue(1), Setters = { new Setter(OpacityProperty, 1.0d) } }
-            }
-        };
-
-        var cardAnimation = new Animation
-        {
-            Duration = TimeSpan.FromMilliseconds(200),
-            Easing = new CubicEaseOut(),
-            Children =
-            {
-                new KeyFrame
-                {
-                    Cue = new Cue(0),
-                    Setters =
-                    {
-                        new Setter(OpacityProperty, 0.0d),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, startScale),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, startScale)
-                    }
-                },
-                new KeyFrame
-                {
-                    Cue = new Cue(1),
-                    Setters =
-                    {
-                        new Setter(OpacityProperty, 1.0d),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleXProperty, 1.0d),
-                        new Setter(Avalonia.Media.ScaleTransform.ScaleYProperty, 1.0d)
-                    }
-                }
-            }
-        };
-
-        await Task.WhenAll(
-            overlayAnimation.RunAsync(_backdrop),
-            cardAnimation.RunAsync(_dialogCard)
-        );
-    }
-
-    private async Task AnimateOutAsync()
-    {
         if (_backdrop is null || _dialogCard is null)
             return;
 

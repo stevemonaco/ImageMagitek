@@ -131,12 +131,13 @@ public class DockFactory : Factory
             SetActiveDockable(newDoc);
             SetFocusedDockable(_documentDock, newDoc);
         }
-        else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems![0] is ResourceEditorBaseViewModel oldItem && _documentDock is not null)
+        else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems![0] is ResourceEditorBaseViewModel oldItem && _rootDock is not null)
         {
-            var removeItem = _documentDock.VisibleDockables?.OfType<DockableEditorViewModel>().FirstOrDefault(x => x.Editor == oldItem);
-            
-            if (removeItem is not null)
-                _documentDock.VisibleDockables?.Remove(removeItem);
+            var removeItem = FindDockable(_rootDock, x => x is DockableEditorViewModel d && d.Editor == oldItem) as DockableEditorViewModel;
+
+            // Dock removes a dockable it is closing itself after OnClose returns
+            if (removeItem is not null && !removeItem.IsClosing)
+                RemoveDockable(removeItem, true);
         }
     }
 

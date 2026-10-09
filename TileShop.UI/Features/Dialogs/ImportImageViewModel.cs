@@ -9,6 +9,7 @@ using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Image.Import;
+using Serilog;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Models;
 using TileShop.Shared.Services;
@@ -24,6 +25,7 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
 {
     private readonly IAsyncFileRequestService _fileSelect;
     private readonly UserPreferencesStore _preferencesStore;
+    private readonly IInteractionService _interactions;
     private readonly IImageFileAdapter _fileAdapter = new ImageSharpFileAdapter();
     private DecodedImage? _source;
 
@@ -78,7 +80,7 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
     public Action<Point>? OnCenterOn { get; set; }
 
     public ImportImageViewModel(Arranger arranger, string imageFileName, IAsyncFileRequestService fileSelect, UserPreferencesStore preferencesStore,
-        Rectangle? bounds = null)
+        IInteractionService interactions, Rectangle? bounds = null)
     {
         if (arranger.ColorType is not (PixelColorType.Indexed or PixelColorType.Direct))
             throw new ArgumentException($"Invalid color type for '{arranger.Name}': {arranger.ColorType}");
@@ -86,6 +88,7 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
         Arranger = arranger;
         _fileSelect = fileSelect;
         _preferencesStore = preferencesStore;
+        _interactions = interactions;
 
         var preferences = preferencesStore.Preferences;
         GridSettings = GridSettingsViewModel.CreateDefault(arranger, preferences.Grid);
@@ -274,16 +277,25 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
 
     protected override bool CanAccept() => Preview?.CanCommit == true;
 
-    protected override Task<bool> OnAccepted()
+    protected override async Task<bool> OnAccepted()
     {
         if (Preview is not { CanCommit: true } preview)
-            return Task.FromResult(false);
+            return false;
 
-        preview.Commit();
+        try
+        {
+            preview.Commit();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not import '{FileName}' into '{ArrangerName}'", ImageFileName, Arranger.Name);
+            await _interactions.AlertAsync("Import Error", ex.Message);
+            return false;
+        }
 
         _preferencesStore.Preferences.ImportImage = new ImportImagePreferences(MatchStrategy, MapTransparentToIndexZero, ShowDiff, OnionSkinOpacity);
         _preferencesStore.Save();
 
-        return Task.FromResult(true);
+        return true;
     }
 }

@@ -51,8 +51,6 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     // public IProjectResource? OriginatingProjectResource { get; private set; }
 
     [ObservableProperty] private BitmapAdapter _bitmapAdapter = null!;
-    [ObservableProperty] private string _activityMessage = "";
-    [ObservableProperty] private string _pendingOperationMessage = "";
     [ObservableProperty] private ISolidColorBrush? _activityBrush;
 
     public bool IsSingleLayout => WorkingArranger.Layout == ElementLayout.Single;
@@ -533,7 +531,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         catch (Exception ex)
         {
             _logger.LogError(ex, "Could not save graphics contents for '{ArrangerName}'", WorkingArranger.Name);
-            await _interactions.AlertAsync("Save Error", $"Could not save the graphics contents\n{ex.Message}\n{ex.StackTrace}");
+            await _interactions.AlertAsync("Save Error", $"Could not save the graphics contents\n{ex.Message}");
         }
     }
 

@@ -43,6 +43,7 @@ types:
   - ElementStore
 tests:
   - TileLayoutTests
+  - BootstrapServiceTests
   - ArrangerBuilderTests
   - SaveConflictTests
   - SequentialArrangerRoundTripTests
@@ -171,10 +172,10 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
   - Tests: untested
 - **LIB-ARRANGERS-041** — The library shall ship layout presets as JSON files in `_layouts`, copied to the build output: Default, 1x2, 2x1, 1x4, 4x1, 2x2 H, 2x2 V, 4x2 H, 2x4 H, 4x4 H, 4x4 V, 8x4 H, 4x8 H, 8x8 H; each named as its file, visiting every cell once.
   - Tests: `TileLayoutTests.ShippedLayouts_AllDeserialize`
-- **LIB-ARRANGERS-042** — When a layout file is read, the layout service shall return the layout, or fail when the file does not exist or deserializes to nothing; property names match case-insensitively.
-  - Tests: `TileLayoutTests.ShippedLayouts_AllDeserialize`
-- **LIB-ARRANGERS-043** — At bootstrap, the element store shall hold every layout in the layouts folder by name, log a warning for each file that fails to read, and be empty when the folder is missing.
-  - Tests: untested
+- **LIB-ARRANGERS-042** — When a layout file is read, the layout service shall return the layout, or fail naming the file when it does not exist, is not valid JSON, deserializes to nothing, or describes an unusable layout (width or height below 1, a missing or empty pattern, a cell outside the layout, or a tile count different from the pattern's length); property names match case-insensitively.
+  - Tests: `TileLayoutTests.ShippedLayouts_AllDeserialize`, `TileLayoutTests.ReadLayout_MalformedJson_Fails`, `TileLayoutTests.ReadLayout_MissingPattern_Fails`, `TileLayoutTests.ReadLayout_CellOutsideLayout_Fails`
+- **LIB-ARRANGERS-043** — At bootstrap, the element store shall read the layouts folder's files in ordinal name order and hold each layout that reads by name; it shall log and record as a startup issue each file that fails to read and each later file whose name is already held, and be empty when the folder is missing.
+  - Tests: `BootstrapServiceTests.CreateElementStore_DuplicateName_KeepsFirstAndRecordsIssue`
 - **LIB-ARRANGERS-044** (inherited) — The element store's default layout shall be the built-in 1×1 default, not the one read from `Default.json`.
   - Tests: untested
 
@@ -208,7 +209,6 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 - A sequential grid that is not a multiple of the tile layout leaves the remainder cells empty, while the arranger's bit size still counts them.
 - A sequential arranger captures the file size at construction and does not follow later length changes.
 - A clone rectangle that starts inside an element rounds its element count from the width alone, so a misaligned rectangle can drop the last covered column or row.
-- Malformed layout JSON throws out of the layout service and bootstrap; two layout files with the same name throw at bootstrap.
 - Element copies taken from a sequential arranger share its active codec, so every copied element holds the same codec instance until a palette is assigned to it; `ChangePalette` still sets the palette on that codec in place.
 
 ## Threading and lifetime
@@ -224,6 +224,7 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 - **Every element is written on save.** A save encodes and writes every element, so an unchanged element that overlaps a modified one would overwrite it; the conflict analysis therefore flags overlaps where either side is modified unless both write the same bits to the same range.
 - **Element layouts are not persisted.** A data file is browsed with many layouts, so storing one on the data file does not fit, and sequential arrangers are not project resources. The layout choice lasts for an editor session. Rejected: saving the full layout with the arranger, deferred until sequential arrangers become project resources.
 - **Layout presets ship in the build output.** `_layouts/*.json` is copied to output so the element store is populated at runtime; before this the store was always empty. A test loads every preset from the test output.
+- **Layout files load in ordinal order, first name wins, and a layout must be usable.** `ReadLayout` fails, instead of throwing, on malformed JSON, a missing or empty pattern, a width or height below 1, a pattern cell outside the width × height, or a `tilesPerPattern` different from the pattern's length. Reason: the same rule as codecs (LIB-CODECS "Codec names are unique; the first registration wins"), and an out-of-range pattern would throw later in the graphics editor. Rejected: last wins (directory order is unspecified).
 - **Presets cover OAM shapes and column-major order.** Row- and column-major patterns come from one factory, and presets cover the GBA OAM shapes, 1x2, 2x1 and vertical-first variants.
 - **Sequential addressing is byte-based only for Single-layout elements.** Tiled sequential elements and absolute moves are bit-addressed; the Single-layout per-element step is a known TODO, so round-trip tests are restricted to tiled codecs.
 

@@ -66,3 +66,6 @@
 # Verify snapshots
 ###############################################################################
 *.verified.txt text eol=lf working-tree-encoding=UTF-8
+
+# Workflow scripts must stay LF; CR is rejected as a hidden control character
+.claude/workflows/*.js text eol=lf

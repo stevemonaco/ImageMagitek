@@ -47,7 +47,7 @@ public class CodecElementBenchmarks
         var palette = PaletteJsonSerializer.DeserializePalette(palContents, new ColorFactory())!;
 
         var factory = new CodecFactory(palette, formats);
-        factory.AddOrUpdateCodec(typeof(Snes3BppCodec));
+        factory.AddCodec(typeof(Snes3BppCodec));
 
         var size = CodecName is "PSX 4bpp Flow" or "PSX 16bpp" ? new Size(64, 64) : new Size(8, 8);
         var codec = factory.CreateCodec(CodecName, size)!;

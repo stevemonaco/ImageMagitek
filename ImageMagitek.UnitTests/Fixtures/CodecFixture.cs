@@ -33,9 +33,9 @@ public class CodecFixture : IDisposable
         CodecFactory = new CodecFactory(palette, []);
         CodecService = new XmlCodecService(Path.Combine(AppContext.BaseDirectory, "_schemas", "CodecSchema.xsd"), (CodecFactory)CodecFactory);
 
-        var loadResult = CodecService.LoadCodecs(TestPaths.CodecsPath);
-        if (loadResult.HasFailed)
-            throw new InvalidOperationException($"Failed to load codecs from '{TestPaths.CodecsPath}':\n{string.Join("\n", loadResult.AsError.Reasons)}");
+        var failures = CodecService.LoadCodecs(TestPaths.CodecsPath);
+        if (failures.Count > 0)
+            throw new InvalidOperationException($"Failed to load codecs from '{TestPaths.CodecsPath}':\n{string.Join("\n", failures.Select(x => $"{x.FileName}: {x.Message}"))}");
 
         XmlCodecNames = CodecFactory.GetRegisteredCodecNames()
             .Where(x => CodecFactory.CreateCodec(x) is IndexedFlowGraphicsCodec or IndexedPatternGraphicsCodec)

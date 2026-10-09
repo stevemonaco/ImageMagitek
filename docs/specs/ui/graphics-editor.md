@@ -166,7 +166,7 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
   - Tests: manual — duplicate an element, edit one copy, Ctrl+S. Conflict analysis: `SaveConflictTests.AnalyzeSaveConflicts_UnchangedDuplicateOfModifiedTile_IsConflict`
 - **UI-GRAPHICS-EDITOR-034** — While the arranger is read-only, saving shall skip the pixel write and still save element rearrangements.
   - Tests: untested
-- **UI-GRAPHICS-EDITOR-035** — If the resource save fails, then the editor shall show "Project Error" with the reason and stay modified; if saving throws, it shall show "Save Error" with the message.
+- **UI-GRAPHICS-EDITOR-035** — If the resource save fails, then the editor shall show "Project Error" with the reason and stay modified; if saving throws, it shall show "Save Error" with the exception message, without a stack trace, and log the exception.
   - Tests: untested
 - **UI-GRAPHICS-EDITOR-036** — When the editor's resource is not in an open project (a sequential editor, or a standalone file), saving shall write the pixels and clear the modified state without a project save.
   - Tests: manual — save a sequential editor from a standalone file and from a project data file, in Draw mode.
@@ -234,8 +234,6 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 - Ctrl+W (fit) sets the zoom directly and can go outside 0.25x–32x.
 - Ctrl+wheel zoom keeps the pan offset rather than zooming around the pointer.
 - The Inspect Element status text prints a trailing "." after the hex byte offset when the bit offset is 0 ("FileOffset 0x1A.").
-- `GraphicsEditorViewModel` redeclares `ActivityMessage` and `PendingOperationMessage`, hiding the base class properties the status bar binds to by reflection.
 - The `OnImageModified` callback is never cleared when a view releases the VM; only the null-VM guard in `OnPaintSurface` prevents the crash.
 - `ArrangerRenderer`'s constructor takes an arranger it never uses.
-- Save errors show the exception stack trace to the user.
 - No UI test covers any requirement here; candidates are mode switching with a fake `IInteractionService` and the gating properties.

@@ -31,12 +31,14 @@
 
                 <MenuItem Command="{Binding CloseAllProjectsCommand}" Header="_Close All Projects" IsEnabled="{Binding ProjectTree.HasProject}" />
 
-                <Separator IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <Separator />
 
                 <MenuItem Command="{Binding SaveEditorCommand}"
                     Header="{Binding Editors.ActiveEditor.DisplayName, StringFormat='Save \{0\}'}"
                     IsEnabled="{Binding Editors.ActiveEditor.IsModified}"
                     IsVisible="{Binding Editors.ActiveEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <MenuItem x:Name="SaveAllMenuItem" Command="{Binding SaveAllCommand}" Header="Save _All"
+                    IsEnabled="{Binding Editors.HasModifiedEditors}" />
 
                 <Separator />
                 <MenuItem Click="Exit_Click" Header="E_xit" />

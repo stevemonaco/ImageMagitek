@@ -1,12 +1,15 @@
 using System;
 using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Dock.Model.Core.Events;
+using Serilog;
 using TileShop.Shared.Interactions;
 using TileShop.UI.Services;
 using TileShop.UI.ViewExtenders.Docking;
@@ -76,5 +79,43 @@ public partial class ShellView : Window
     {
         CreateDockingLayout();
         Ioc.Default.GetRequiredService<HotkeyService>().Attach(this, () => RootDialogHost.HasOpenDialog);
+        Dispatcher.UIThread.Post(() => _ = _viewModel.ShowStartupIssuesAsync(), DispatcherPriority.Loaded);
+    }
+
+    protected override void OnClosing(Avalonia.Controls.WindowClosingEventArgs e)
+    {
+        e.Cancel = HandleCloseRequest();
+        base.OnClosing(e);
+    }
+
+    /// <summary>
+    /// Answers a window close or app shutdown request, starting the exit sequence when it is the first request
+    /// </summary>
+    /// <returns>True when the request must be cancelled</returns>
+    public bool HandleCloseRequest()
+    {
+        var action = _viewModel.ExitGate.Request();
+        if (action == ExitRequestAction.Start)
+            RunExitSequenceAsync();
+
+        return action != ExitRequestAction.Proceed;
+    }
+
+    private async void RunExitSequenceAsync()
+    {
+        var confirmed = false;
+        try
+        {
+            confirmed = await _viewModel.PrepareApplicationExit();
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "The exit sequence failed");
+        }
+
+        _viewModel.ExitGate.Complete(confirmed);
+
+        if (confirmed && Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            desktop.Shutdown();
     }
 }

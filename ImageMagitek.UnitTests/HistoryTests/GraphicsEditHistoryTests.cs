@@ -23,7 +23,7 @@ public class GraphicsEditHistoryTests
     private static CodecFactory CreateCodecFactory()
     {
         var factory = new CodecFactory(_palette, []);
-        factory.AddOrUpdateCodec(typeof(Psx4BppCodec));
+        factory.AddCodec(typeof(Psx4BppCodec));
         return factory;
     }
 

@@ -1,0 +1,16 @@
+<Window x:Class="TileShop.UI.Views.StartupErrorWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="TileShop"
+    Width="520"
+    Icon="/Assets/tsicon.ico"
+    SizeToContent="Height"
+    WindowStartupLocation="CenterScreen">
+    <StackPanel Margin="24" Spacing="12">
+        <TextBlock FontSize="18" FontWeight="SemiBold" Text="TileShop could not start" />
+        <SelectableTextBlock x:Name="MessageText" TextWrapping="Wrap" />
+        <TextBlock Text="Details are in the log in:" TextWrapping="Wrap" />
+        <SelectableTextBlock x:Name="LogDirectoryText" TextWrapping="Wrap" />
+        <Button x:Name="CloseButton" HorizontalAlignment="Right" Click="Close_Click" Content="Close" IsDefault="True" />
+    </StackPanel>
+</Window>

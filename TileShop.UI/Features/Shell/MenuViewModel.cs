@@ -44,11 +44,13 @@ public partial class MenuViewModel : ObservableRecipient
     private readonly IExploreService _exploreService;
     private readonly IPluginService _pluginService;
     private readonly AppSettings _settings;
+    private readonly BootstrapPaths _paths;
 
     public MenuViewModel(UserPreferencesStore preferencesStore, IThemeService themeService, ProjectTreeViewModel projectTreeVm, EditorsViewModel editors,
         IInteractionService interactionService, IExploreService exploreService, IProjectService projectService, IPluginService pluginService,
-        AppSettings settings)
+        AppSettings settings, BootstrapPaths paths)
     {
+        _paths = paths;
         _pluginService = pluginService;
         _settings = settings;
         _preferencesStore = preferencesStore;
@@ -102,6 +104,8 @@ public partial class MenuViewModel : ObservableRecipient
             await Editors.ActiveEditor.SaveChangesAsync();
     }
 
+    [RelayCommand]
+    public Task SaveAll() => Editors.SaveAllAsync();
 
     [RelayCommand]
     public void ChangeToLightTheme()
@@ -141,7 +145,7 @@ public partial class MenuViewModel : ObservableRecipient
     public async Task OpenPreferences()
     {
         var preferences = _preferencesStore.Preferences;
-        var model = new PreferencesViewModel(preferences, preferences.NesPalette ?? _settings.NesPalette);
+        var model = new PreferencesViewModel(preferences, preferences.NesPalette ?? _settings.NesPalette, _paths.PalettesPath);
 
         if (await _interactions.RequestAsync(model) is not { } result)
             return;

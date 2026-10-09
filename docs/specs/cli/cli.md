@@ -56,8 +56,8 @@ depends:
   - Tests: untested
 - **CLI-COMMANDS-006** — Before exiting, the CLI shall print a one-line description of its exit code ("Operation completed successfully", "Operation failed due to an import error", …).
   - Tests: untested
-- **CLI-COMMANDS-007** — If settings, codecs, palettes or schemas cannot be loaded from the application directory, then the CLI shall log the failure and exit with -4.
-  - Tests: untested
+- **CLI-COMMANDS-007** — If an essential resource cannot be loaded from the application directory (LIB-SERVICES), then the CLI shall log the failure and exit with -4; other startup issues shall be printed as warnings and shall not change the exit code.
+  - Tests: manual — run `TileShopCLI print` with a malformed codec file in the build output's `_codecs` (warning, exit 0), then with `_palettes/DefaultRgba32.json` renamed (exit -4)
 - **CLI-COMMANDS-008** — The CLI shall not load plugin codecs.
   - Tests: untested
 - **CLI-COMMANDS-009** — If the project cannot be opened or validated, then the CLI shall print "Project '<file>' contained N errors" followed by each numbered reason, and exit with -5.
@@ -159,6 +159,7 @@ depends:
 - **Exported paths mirror the project tree.** An arranger at `Sprites/Hero` exports to `<directory>/Sprites/Hero.png`. Reason: `importall` finds every edited image again with no manifest.
 - **Import writes data files only.** Reason: an import changes pixels, never project structure, so the project files stay as they were.
 - **Skips are opt-in.** Without `-f`/`-r`, a missing image or bad key fails the run. Reason: a build should fail loudly unless the caller says partial input is expected.
+- **The CLI's exit code ignores non-fatal startup issues.** Issues print as warnings (bootstrap logs them at Warning through the console sink) and go to the log; the exit code is unchanged, and an essential failure (`BootstrapException`) exits -4 as before. Reason: a toolchain should not break because of an unrelated bad codec file; if the project needs a skipped codec, opening it fails with -5. Rejected: a new "degraded" exit code (breaks toolchains that only check for zero).
 
 ## Non-goals
 

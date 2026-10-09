@@ -8,6 +8,7 @@ export const meta = {
     { title: 'Simplify', detail: 'adversarial critic attacks sprawl; implementer applies accepted cuts' },
     { title: 'Review', detail: 'correctness review + build/test run in parallel' },
     { title: 'Fix', detail: 'verify findings, fix confirmed ones, re-test' },
+    { title: 'Commit message', detail: 'draft a commit message for review (does not commit)' },
   ],
 }
 
@@ -220,6 +221,16 @@ ${BUILD_RULES} Finish with a clean build and passing tests.`,
   )
 }
 
+phase('Commit message')
+const commitMessage = await agent(
+  `Write a git commit message for the current uncommitted change. ${DIFF_CMD} Do not edit files and do not run any git command that changes state (no add, commit, stash or reset).
+
+Task it implements: ${task}
+
+Format: a short summary line (at most 72 characters), a blank line, then up to three sections in this order, each omitted when empty: "Added:" (new features), "Fixed:" (bug fixes), "Changed:" (behavior, API, or doc changes that are neither). Under each heading, list items as "- " bullets, exactly one line per item, describing user- or developer-visible effect, not implementation steps. Do not list tests or spec edits as separate items unless they are the point of the change. Return only the commit message text.`,
+  { label: 'commit-message' },
+)
+
 return {
   task,
   plan: fmtPlan(plan),
@@ -231,4 +242,5 @@ return {
   fix,
   finalBuildSucceeded: fix ? fix.buildSucceeded : (tests?.buildSucceeded ?? false),
   finalTestsPassed: fix ? fix.testsPassed : (tests?.testsPassed ?? false),
+  commitMessage,
 }

@@ -31,9 +31,14 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 {
     private LoggerFactory? _loggerFactory;
 
+    /// <summary>
+    /// Folder holding the monthly rolling error log, beside the user preferences
+    /// </summary>
+    public static string LogDirectory { get; } = Path.GetDirectoryName(UserPreferencesStore.DefaultFileName)!;
+
     public void ConfigureIoc(IServiceCollection services)
     {
-        _loggerFactory = CreateLoggerFactory(BootstrapService.DefaultLogFileName);
+        _loggerFactory = CreateLoggerFactory(Path.Combine(LogDirectory, "errorlog.txt"));
 
         var preferencesStore = new UserPreferencesStore(UserPreferencesStore.DefaultFileName, _loggerFactory.CreateLogger<UserPreferencesStore>());
         preferencesStore.Load();
@@ -45,9 +50,13 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
     private void ConfigureImageMagitek(IServiceCollection services, UserPreferences preferences)
     {
         var bootstrapper = new BootstrapService(_loggerFactory!.CreateLogger<BootstrapService>());
+        services.AddSingleton(bootstrapper);
+
+        var paths = BootstrapPaths.FromDirectory(AppContext.BaseDirectory);
+        services.AddSingleton(paths);
 
         var settingsService = bootstrapper.CreateSettingsService();
-        var settings = bootstrapper.ReadConfiguration(settingsService, BootstrapService.DefaultConfigurationFileName);
+        var settings = bootstrapper.ReadConfiguration(settingsService, paths.SettingsFileName);
         services.AddSingleton(settingsService);
         services.AddSingleton(settings);
 
@@ -55,35 +64,27 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         var paletteService = bootstrapper.CreatePaletteService(colorFactory);
         services.AddSingleton(paletteService);
 
-        var paletteSettings = preferences.NesPalette is { } nesPalette
-            && File.Exists(Path.Combine(BootstrapService.DefaultPalettePath, $"{nesPalette}.json"))
-            ? settings with { NesPalette = nesPalette }
-            : settings;
-
-        var paletteStore = bootstrapper.CreatePaletteStore(paletteService, BootstrapService.DefaultPalettePath, paletteSettings);
-        if (paletteSettings != settings && paletteStore.NesPalette is not { Entries: >= 64 })
-            paletteStore = bootstrapper.CreatePaletteStore(paletteService, BootstrapService.DefaultPalettePath, settings);
-
+        var paletteStore = bootstrapper.CreatePaletteStore(paletteService, paths.PalettesPath, settings, preferences.NesPalette);
         if (paletteStore.NesPalette is not null)
             colorFactory.SetNesPalette(paletteStore.NesPalette);
         services.AddSingleton(paletteStore);
         services.AddSingleton(colorFactory);
 
         var codecFactory = new CodecFactory(paletteStore.DefaultPalette, new());
-        var codecService = bootstrapper.CreateCodecService(BootstrapService.DefaultCodecPath, BootstrapService.DefaultCodecSchemaFileName, codecFactory);
+        var codecService = bootstrapper.CreateCodecService(paths.CodecsPath, paths.CodecSchemaFileName, codecFactory);
         services.AddSingleton(codecService);
 
-        var pluginService = bootstrapper.CreatePluginService(BootstrapService.DefaultPluginPath, codecService);
+        var pluginService = bootstrapper.CreatePluginService(paths.PluginsPath, codecService);
         services.AddSingleton(pluginService);
 
         var layoutService = bootstrapper.CreateElementLayoutService();
         services.AddSingleton(layoutService);
 
-        var elementStore = bootstrapper.CreateElementStore(layoutService, BootstrapService.DefaultLayoutsPath);
+        var elementStore = bootstrapper.CreateElementStore(layoutService, paths.LayoutsPath);
         services.AddSingleton(elementStore);
 
         var defaultResources = paletteStore.GlobalPalettes;
-        var serializerFactory = new XmlProjectSerializerFactory(BootstrapService.DefaultResourceSchemaFileName,
+        var serializerFactory = bootstrapper.CreateProjectSerializerFactory(paths.ResourceSchemaFileName,
             codecService.CodecFactory, colorFactory, defaultResources);
         var projectService = bootstrapper.CreateProjectService(serializerFactory, colorFactory);
         services.AddSingleton(projectService);
@@ -172,7 +173,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
     private LoggerFactory CreateLoggerFactory(string logName)
     {
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Error()
+            .MinimumLevel.Warning()
             .WriteTo.File(logName, rollingInterval: RollingInterval.Month,
                 outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}")
             .CreateLogger();

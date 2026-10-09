@@ -25,7 +25,7 @@ public class SamplePluginContractTests : IndexedCodecContract
             .Where(x => typeof(IIndexedCodec).IsAssignableFrom(x) && !x.IsAbstract);
 
         foreach (var sampleType in sampleTypes)
-            factory.AddOrUpdateCodec(sampleType);
+            factory.AddCodec(sampleType);
 
         return factory;
     }

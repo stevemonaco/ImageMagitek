@@ -14,6 +14,7 @@ using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
 using Monaco.PathTree;
+using Serilog;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Services;
 using TileShop.Shared.Interactions;
@@ -252,13 +253,19 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     [RelayCommand]
     public async Task ExportArrangerAs(ScatteredArranger arranger)
     {
+        if (await _editors.AlertIfMissingDataSourceAsync(arranger, "Export"))
+            return;
+
+        if (!await ResolveUnsavedChangesAsync(arranger, "exporting", discardOnNo: false))
+            return;
+
         var exportFileName = await _fileSelect.RequestExportArrangerFileName($"{arranger.Name}.png");
 
-        if (exportFileName is not null)
-        {
-            if (await _editors.AlertIfMissingDataSourceAsync(arranger, "Export"))
-                return;
+        if (exportFileName is null)
+            return;
 
+        try
+        {
             if (arranger.ColorType == PixelColorType.Indexed)
             {
                 var image = new IndexedImage(arranger);
@@ -269,6 +276,11 @@ public partial class ProjectTreeViewModel : ObservableRecipient
                 var image = new DirectImage(arranger);
                 image.ExportImage(exportFileName.LocalPath, new ImageSharpFileAdapter());
             }
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not export '{ArrangerName}' to '{FileName}'", arranger.Name, exportFileName.LocalPath);
+            await _interactions.AlertAsync("Export Error", ex.Message);
         }
     }
 
@@ -296,7 +308,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         if (await _editors.AlertIfMissingDataSourceAsync(arranger, "Import"))
             return;
 
-        if (!await ResolveUnsavedChangesBeforeImport(arranger))
+        if (!await ResolveUnsavedChangesAsync(arranger, "importing", discardOnNo: true))
             return;
 
         var fileName = await _fileSelect.RequestImportArrangerFileName();
@@ -304,15 +316,17 @@ public partial class ProjectTreeViewModel : ObservableRecipient
         if (fileName is null)
             return;
 
-        var dialogModel = new ImportImageViewModel(arranger, fileName.LocalPath, _fileSelect, _preferencesStore, bounds);
+        var dialogModel = new ImportImageViewModel(arranger, fileName.LocalPath, _fileSelect, _preferencesStore, _interactions, bounds);
         await _interactions.RequestAsync(dialogModel);
     }
 
     /// <summary>
-    /// Has the user save or discard an open editor's unsaved changes so the import previews and writes against the saved data
+    /// Has the user resolve an open editor's unsaved changes so the operation works against the saved data
     /// </summary>
+    /// <param name="verb">The operation, as in "Save them before {verb}?"</param>
+    /// <param name="discardOnNo">Whether No discards the editor's changes; otherwise No keeps them and proceeds</param>
     /// <returns>False if the user cancelled or the save failed</returns>
-    private async Task<bool> ResolveUnsavedChangesBeforeImport(Arranger arranger)
+    private async Task<bool> ResolveUnsavedChangesAsync(Arranger arranger, string verb, bool discardOnNo)
     {
         var editor = _editors.Editors.FirstOrDefault(x => ReferenceEquals(x.Resource, arranger));
 
@@ -320,7 +334,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
             return true;
 
         var result = await _interactions.PromptAsync(PromptChoices.YesNoCancel, "Save Changes",
-            $"'{editor.DisplayName}' has unsaved changes. Save them before importing?");
+            $"'{editor.DisplayName}' has unsaved changes. Save them before {verb}?");
 
         if (result == PromptResult.Accept)
         {
@@ -330,7 +344,8 @@ public partial class ProjectTreeViewModel : ObservableRecipient
 
         if (result == PromptResult.Reject)
         {
-            editor.DiscardChanges();
+            if (discardOnNo)
+                editor.DiscardChanges();
             return true;
         }
 
@@ -712,12 +727,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
                     return false;
             }
 
-            foreach (var editor in removedEditors)
-            {
-                _editors.Editors.Remove(editor);
-            }
-
-            _editors.ActiveEditor = _editors.Editors.FirstOrDefault();
+            _editors.RemoveEditors(removedEditors);
 
             var finalSaveResult = await _projectService.SaveProjectAsync(projectTree);
             if (finalSaveResult.HasFailed)

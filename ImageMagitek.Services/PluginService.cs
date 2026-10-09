@@ -1,4 +1,4 @@
-﻿using ImageMagitek.Codec;
+using ImageMagitek.Codec;
 using McMaster.NETCore.Plugins;
 using System;
 using System.Collections.Generic;
@@ -10,26 +10,33 @@ namespace ImageMagitek.Services;
 public interface IPluginService
 {
     /// <summary>
-    /// Discovered codec types, which are named and instantiated by <see cref="ICodecFactory.AddOrUpdateCodec"/>.
+    /// Discovered codec types, which are named and instantiated by <see cref="ICodecFactory.AddCodec"/>.
     /// </summary>
     public IList<Type> CodecPlugins { get; }
 
-    void LoadCodecPlugins(string pluginsPath);
+    /// <summary>
+    /// Loads <c>&lt;sub&gt;/&lt;sub&gt;.dll</c> from each subdirectory and collects its codec types
+    /// </summary>
+    /// <returns>A failure naming each plugin that could not be loaded; the other plugins' types are still collected</returns>
+    MagitekResults LoadCodecPlugins(string pluginsPath);
 }
 
 public sealed class PluginService : IPluginService
 {
     public IList<Type> CodecPlugins { get; } = new List<Type>();
 
-    public void LoadCodecPlugins(string pluginsPath)
+    public MagitekResults LoadCodecPlugins(string pluginsPath)
     {
-        var loaders = new List<PluginLoader>();
+        var errors = new List<string>();
 
         foreach (var dir in Directory.GetDirectories(pluginsPath))
         {
             var dirName = Path.GetFileName(dir);
             var pluginDll = Path.Combine(dir, dirName + ".dll");
-            if (File.Exists(pluginDll))
+            if (!File.Exists(pluginDll))
+                continue;
+
+            try
             {
                 var codecLoader = PluginLoader.CreateFromAssemblyFile(
                     pluginDll,
@@ -42,6 +49,15 @@ public sealed class PluginService : IPluginService
                 foreach (var pluginType in pluginTypes)
                     CodecPlugins.Add(pluginType);
             }
+            catch (Exception ex)
+            {
+                errors.Add($"Plugin '{pluginDll}' could not be loaded: {ex.Message}");
+            }
         }
+
+        if (errors.Count > 0)
+            return new MagitekResults.Failed(errors);
+
+        return MagitekResults.SuccessResults;
     }
 }

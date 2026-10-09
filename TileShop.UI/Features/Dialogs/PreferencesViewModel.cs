@@ -5,7 +5,6 @@ using System.Linq;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using ImageMagitek.Services;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Models;
 using TileShop.Shared.Services;
@@ -28,7 +27,8 @@ public sealed partial class PreferencesViewModel : RequestViewModel<PreferencesV
     public IReadOnlyList<string> NesPaletteNames { get; }
 
     /// <param name="nesPalette">Name of the NES master palette currently in effect</param>
-    public PreferencesViewModel(UserPreferences preferences, string nesPalette)
+    /// <param name="palettesPath">Folder whose JSON palettes are listed as NES palette choices</param>
+    public PreferencesViewModel(UserPreferences preferences, string nesPalette, string palettesPath)
     {
         Title = "Preferences";
 
@@ -40,7 +40,7 @@ public sealed partial class PreferencesViewModel : RequestViewModel<PreferencesV
         _secondaryColor = GridSettingsViewModel.ParseHex(preferences.Grid.SecondaryColor, GridPreferences.DefaultSecondaryColor);
         _nesPalette = nesPalette;
 
-        NesPaletteNames = Directory.EnumerateFiles(BootstrapService.DefaultPalettePath, "*.json")
+        NesPaletteNames = Directory.EnumerateFiles(palettesPath, "*.json")
             .Select(Path.GetFileNameWithoutExtension)
             .OfType<string>()
             .Order(StringComparer.OrdinalIgnoreCase)

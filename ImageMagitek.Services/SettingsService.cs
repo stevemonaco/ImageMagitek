@@ -22,12 +22,24 @@ public sealed class SettingsService
         return Deserialize(File.ReadAllText(fileLocation));
     }
 
+    /// <summary>
+    /// Deserializes settings JSON, taking the built-in default for each omitted member and for an empty global palette list
+    /// </summary>
+    /// <exception cref="JsonException">The content is not valid settings JSON</exception>
     public AppSettings Deserialize(string jsonContent)
     {
         Guard.IsNotNullOrEmpty(jsonContent);
 
-        return JsonSerializer.Deserialize(jsonContent, AppSettingsJsonContext.Default.AppSettings)
+        var settings = JsonSerializer.Deserialize(jsonContent, AppSettingsJsonContext.Default.AppSettings)
             ?? throw new JsonException("Settings JSON deserialized to null");
+
+        var defaults = CreateDefault();
+        return settings with
+        {
+            ExtensionCodecAssociations = settings.ExtensionCodecAssociations ?? defaults.ExtensionCodecAssociations,
+            GlobalPalettes = settings.GlobalPalettes is { Count: > 0 } ? settings.GlobalPalettes : defaults.GlobalPalettes,
+            NesPalette = settings.NesPalette ?? defaults.NesPalette
+        };
     }
 
     public static AppSettings CreateDefault()

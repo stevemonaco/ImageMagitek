@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services.Stores;
 using Microsoft.Extensions.Logging;
@@ -13,20 +13,20 @@ using Microsoft.Extensions.Logging;
 namespace ImageMagitek.Services;
 
 /// <summary>
-/// Bootstraps the full ImageMagitek environment 
+/// Bootstraps the full ImageMagitek environment. Bad resource files are logged, skipped and recorded in <see cref="Issues"/>;
+/// a missing essential resource throws <see cref="BootstrapException"/>.
 /// </summary>
 public class BootstrapService
 {
-    private readonly ILogger _logger;
+    private const int NesPaletteMinimumEntries = 64;
 
-    public static string DefaultLogFileName { get; } = "errorlog.txt";
-    public static string DefaultConfigurationFileName { get; } = "appsettings.json";
-    public static string DefaultPalettePath { get; } = "_palettes";
-    public static string DefaultCodecPath { get; } = "_codecs";
-    public static string DefaultPluginPath { get; } = "_plugins";
-    public static string DefaultLayoutsPath { get; } = "_layouts";
-    public static string DefaultResourceSchemaFileName { get; } = Path.Combine("_schemas", "ResourceSchema.xsd");
-    public static string DefaultCodecSchemaFileName { get; } = Path.Combine("_schemas", "CodecSchema.xsd");
+    private readonly ILogger _logger;
+    private readonly List<StartupIssue> _issues = [];
+
+    /// <summary>
+    /// Every resource file that was logged and skipped
+    /// </summary>
+    public IReadOnlyList<StartupIssue> Issues => _issues;
 
     public BootstrapService(ILogger logger)
     {
@@ -43,49 +43,77 @@ public class BootstrapService
         }
         catch (Exception ex)
         {
-            _logger.LogCritical(ex, $"Failed to read the configuration file '{jsonFileName}'");
-            throw;
+            RecordIssue(jsonFileName, $"The settings file could not be read, so the built-in defaults are used: {ex.Message}", ex);
+            return SettingsService.CreateDefault();
         }
     }
 
-    public virtual PaletteStore CreatePaletteStore(IPaletteService paletteService, string palettesPath, AppSettings settings)
+    /// <param name="nesPaletteOverride">A palette name tried before the settings' NES palette, falling back when it is unusable</param>
+    public virtual PaletteStore CreatePaletteStore(IPaletteService paletteService, string palettesPath, AppSettings settings, string? nesPaletteOverride = null)
     {
         var globalPalettes = new List<Palette>();
         foreach (var paletteName in settings.GlobalPalettes)
         {
             var paletteFileName = Path.Combine(palettesPath, $"{paletteName}.json");
-            var palette = TryReadJsonPalette(paletteService, paletteFileName);
+            var palette = TryReadPalette(paletteService, paletteFileName, out var error);
 
             if (palette is not null)
                 globalPalettes.Add(palette);
             else
-                _logger.LogError($"Could not load default palette named '{paletteName}' at expected location '{paletteFileName}'");
+                RecordIssue(paletteFileName, $"Global palette '{paletteName}' was not loaded: {error}");
         }
 
-        var nesPaletteFileName = Path.Combine(palettesPath, $"{settings.NesPalette}.json");
-        var nesPalette = TryReadJsonPalette(paletteService, nesPaletteFileName);
-        var defaultPalette = globalPalettes.First();
+        if (globalPalettes.Count == 0)
+            Fail($"No global palette could be loaded from '{palettesPath}'");
+
+        Palette? nesPalette = null;
+        if (nesPaletteOverride is not null)
+        {
+            var overrideFileName = Path.Combine(palettesPath, $"{nesPaletteOverride}.json");
+            nesPalette = TryReadNesPalette(paletteService, overrideFileName, out var error);
+
+            if (nesPalette is null)
+                RecordIssue(overrideFileName, $"NES palette '{nesPaletteOverride}' from preferences was not used, so '{settings.NesPalette}' is used instead: {error}");
+        }
 
         if (nesPalette is null)
         {
-            _logger.LogError($"Could not load NES palette named '{settings.NesPalette}' at expected location '{nesPaletteFileName}'");
-            return new PaletteStore(defaultPalette, globalPalettes);
+            var nesPaletteFileName = Path.Combine(palettesPath, $"{settings.NesPalette}.json");
+            nesPalette = TryReadNesPalette(paletteService, nesPaletteFileName, out var error);
+
+            if (nesPalette is null)
+                Fail($"NES palette '{settings.NesPalette}' could not be loaded: {error}");
         }
 
-        return new PaletteStore(defaultPalette, nesPalette, globalPalettes);
+        return new PaletteStore(globalPalettes[0], nesPalette, globalPalettes);
     }
 
-    private Palette? TryReadJsonPalette(IPaletteService paletteService, string paletteFileName)
+    private static Palette? TryReadPalette(IPaletteService paletteService, string paletteFileName, out string? error)
     {
         try
         {
-            return paletteService.ReadJsonPalette(paletteFileName);
+            var palette = paletteService.ReadJsonPalette(paletteFileName);
+            error = palette is null ? "the file holds no palette" : null;
+            return palette;
         }
-        catch (InvalidDataException ex)
+        catch (Exception ex)
         {
-            _logger.LogError(ex.Message);
+            error = ex.Message;
             return null;
         }
+    }
+
+    private static Palette? TryReadNesPalette(IPaletteService paletteService, string paletteFileName, out string? error)
+    {
+        var palette = TryReadPalette(paletteService, paletteFileName, out error);
+
+        if (palette is not null && palette.Entries < NesPaletteMinimumEntries)
+        {
+            error = $"it has {palette.Entries} colors, but an NES palette needs at least {NesPaletteMinimumEntries}";
+            return null;
+        }
+
+        return palette;
     }
 
     public virtual IPaletteService CreatePaletteService(IColorFactory colorFactory)
@@ -102,13 +130,19 @@ public class BootstrapService
 
     public virtual ICodecService CreateCodecService(string codecsPath, string schemaFileName, CodecFactory codecFactory)
     {
-        var codecService = new XmlCodecService(schemaFileName, codecFactory);
-        var result = codecService.LoadCodecs(codecsPath);
+        if (!File.Exists(schemaFileName))
+            Fail($"The codec schema '{schemaFileName}' does not exist");
 
-        if (result.Value is MagitekResults.Failed fail)
+        var codecService = new XmlCodecService(schemaFileName, codecFactory);
+
+        if (!Directory.Exists(codecsPath))
         {
-            _logger.LogError(string.Join(Environment.NewLine, fail.Reasons));
+            RecordIssue(codecsPath, $"The codec folder '{codecsPath}' does not exist, so only built-in codecs are available");
+            return codecService;
         }
+
+        foreach (var failure in codecService.LoadCodecs(codecsPath))
+            RecordIssue(failure.FileName, failure.Message);
 
         return codecService;
     }
@@ -118,16 +152,38 @@ public class BootstrapService
         var pluginService = new PluginService();
         var fullPluginPath = Path.GetFullPath(pluginPath);
 
-        if (Directory.Exists(fullPluginPath))
+        if (!Directory.Exists(fullPluginPath))
+            return pluginService;
+
+        if (pluginService.LoadCodecPlugins(fullPluginPath).Value is MagitekResults.Failed fail)
         {
-            pluginService.LoadCodecPlugins(fullPluginPath);
-            foreach (var codecType in pluginService.CodecPlugins)
+            foreach (var reason in fail.Reasons)
+                RecordIssue(fullPluginPath, reason);
+        }
+
+        foreach (var codecType in pluginService.CodecPlugins.ToList())
+        {
+            var result = codecService.AddCodec(codecType);
+            if (result.HasFailed)
             {
-                codecService.AddOrUpdateCodec(codecType);
+                RecordIssue(codecType.Assembly.Location, result.AsError.Reason);
+                pluginService.CodecPlugins.Remove(codecType);
             }
         }
 
         return pluginService;
+    }
+
+    /// <summary>
+    /// Creates the project serializer factory after checking that the resource schema exists
+    /// </summary>
+    public virtual IProjectSerializerFactory CreateProjectSerializerFactory(string resourceSchemaFileName, ICodecFactory codecFactory,
+        IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
+    {
+        if (!File.Exists(resourceSchemaFileName))
+            Fail($"The project resource schema '{resourceSchemaFileName}' does not exist");
+
+        return new XmlProjectSerializerFactory(resourceSchemaFileName, codecFactory, colorFactory, globalResources);
     }
 
     public virtual IProjectService CreateProjectService(IProjectSerializerFactory serializerFactory, IColorFactory colorFactory)
@@ -146,19 +202,41 @@ public class BootstrapService
     {
         var store = new ElementStore();
 
-        if (Directory.Exists(layoutPath))
+        if (!Directory.Exists(layoutPath))
         {
-            foreach (var fileName in Directory.GetFiles(layoutPath, "*.json"))
-            {
-                var result = layoutService.ReadLayout(fileName);
+            RecordIssue(layoutPath, $"The layout folder '{layoutPath}' does not exist, so only the default layout is available");
+            return store;
+        }
 
-                result.Switch(
-                    success => store.ElementLayouts.Add(success.Result.Name, success.Result),
-                    fail => _logger.LogWarning($"Could not read layout '{fileName}': {fail.Reason}")
-                );
-            }
+        foreach (var fileName in Directory.GetFiles(layoutPath, "*.json").Order(StringComparer.Ordinal))
+        {
+            var result = layoutService.ReadLayout(fileName);
+
+            result.Switch(
+                success =>
+                {
+                    var layout = success.Result;
+                    if (string.IsNullOrWhiteSpace(layout.Name))
+                        RecordIssue(fileName, "Layout has no name and was skipped");
+                    else if (!store.ElementLayouts.TryAdd(layout.Name, layout))
+                        RecordIssue(fileName, $"Layout '{layout.Name}' duplicates a layout loaded from an earlier file and was skipped");
+                },
+                fail => RecordIssue(fileName, fail.Reason));
         }
 
         return store;
+    }
+
+    private void RecordIssue(string path, string message, Exception? exception = null)
+    {
+        _logger.LogWarning(exception, "{Message}", message);
+        _issues.Add(new StartupIssue(path, message));
+    }
+
+    [DoesNotReturn]
+    private void Fail(string message)
+    {
+        _logger.LogCritical("{Message}", message);
+        throw new BootstrapException(message);
     }
 }

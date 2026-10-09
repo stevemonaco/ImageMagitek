@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using ImageMagitek.Colors;
 
 namespace ImageMagitek.Codec;
@@ -43,18 +44,58 @@ public sealed class CodecFactory : ICodecFactory
         };
     }
 
-    public void AddOrUpdateCodec(Type codecType)
+    /// <summary>
+    /// Registers a C# codec type under the name its instance reports
+    /// </summary>
+    /// <returns>A failure when the type cannot be instantiated or its name is already registered</returns>
+    public MagitekResult AddCodec(Type codecType)
     {
         if (!typeof(IGraphicsCodec).IsAssignableFrom(codecType) || codecType.IsAbstract)
-            throw new ArgumentException($"{nameof(AddOrUpdateCodec)} parameter '{nameof(codecType)}' is not of type {typeof(IGraphicsCodec)} or is not instantiable");
+            return new MagitekResult.Failed($"Codec type '{codecType}' is not of type {typeof(IGraphicsCodec)} or is not instantiable");
 
-        var codec = CreateInstance(codecType, null);
-        _codecs[codec.Name] = codecType;
+        string? name;
+        try
+        {
+            name = CreateInstance(codecType, null).Name;
+        }
+        catch (Exception ex)
+        {
+            var reason = ex is TargetInvocationException { InnerException: { } inner } ? inner.Message : ex.Message;
+            return new MagitekResult.Failed($"Codec type '{codecType}' could not be created: {reason}");
+        }
+
+        if (string.IsNullOrWhiteSpace(name))
+            return new MagitekResult.Failed($"Codec type '{codecType}' was not registered because it has no name");
+
+        if (FindRegistration(name) is { } existing)
+            return new MagitekResult.Failed($"Codec type '{codecType}' was not registered because its name '{name}' is already registered by {existing}");
+
+        _codecs.Add(name, codecType);
+        return MagitekResult.SuccessResult;
     }
 
-    public void AddOrUpdateFormat(IGraphicsFormat format)
+    /// <summary>
+    /// Registers a generalized graphics format under its name
+    /// </summary>
+    /// <returns>A failure when the name is already registered</returns>
+    public MagitekResult AddFormat(IGraphicsFormat format)
     {
-        _formats[format.Name] = format;
+        if (FindRegistration(format.Name) is { } existing)
+            return new MagitekResult.Failed($"Codec '{format.Name}' was not registered because the name is already registered by {existing}");
+
+        _formats.Add(format.Name, format);
+        return MagitekResult.SuccessResult;
+    }
+
+    private string? FindRegistration(string name)
+    {
+        if (_codecs.TryGetValue(name, out var codecType))
+            return $"codec type '{codecType}'";
+
+        if (_formats.ContainsKey(name))
+            return $"XML codec '{name}'";
+
+        return null;
     }
 
     /// <summary>
@@ -70,9 +111,9 @@ public sealed class CodecFactory : ICodecFactory
         if (!_codecs.ContainsKey(codecName) && !_formats.ContainsKey(codecName) && _legacyCodecNames.TryGetValue(codecName, out var currentName))
             codecName = currentName;
 
-        if (_codecs.TryGetValue(codecName, out var codecType)) // Prefer built-in codecs
+        if (_codecs.TryGetValue(codecName, out var codecType))
             return CreateInstance(codecType, elementSize);
-        else if (_formats.ContainsKey(codecName)) // Fallback to generalized codecs
+        else if (_formats.ContainsKey(codecName))
         {
             var format = _formats[codecName].Clone();
 

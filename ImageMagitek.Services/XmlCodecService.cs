@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,9 +11,14 @@ public interface ICodecService
     ICodecFactory CodecFactory { get; }
 
     IEnumerable<string> GetSupportedCodecNames();
-    MagitekResults LoadCodecs(string codecsPath);
-    void AddOrUpdateCodec(Type codecType);
+    IReadOnlyList<CodecFileFailure> LoadCodecs(string codecsPath);
+    MagitekResult AddCodec(Type codecType);
 }
+
+/// <summary>
+/// An XML codec file that failed to load or register, with its reasons separated by new lines
+/// </summary>
+public sealed record CodecFileFailure(string FileName, string Message);
 
 public sealed class XmlCodecService : ICodecService
 {
@@ -27,11 +32,16 @@ public sealed class XmlCodecService : ICodecService
         CodecFactory = codecFactory;
     }
 
-    public MagitekResults LoadCodecs(string codecsPath)
+
+    /// <summary>
+    /// Loads each XML codec file in ordinal name order and registers it with the codec factory
+    /// </summary>
+    /// <returns>One failure for each file that did not load or register</returns>
+    public IReadOnlyList<CodecFileFailure> LoadCodecs(string codecsPath)
     {
-        var formats = new Dictionary<string, string>();
+        var fileNamesByCodec = new Dictionary<string, string>();
         var serializer = new XmlGraphicsFormatReader(_schemaFileName);
-        var errors = new List<string>();
+        var failures = new List<CodecFileFailure>();
 
         foreach (var formatFileName in Directory.GetFiles(codecsPath).Where(x => x.EndsWith(".xml")).Order(StringComparer.Ordinal))
         {
@@ -40,25 +50,22 @@ public sealed class XmlCodecService : ICodecService
             result.Switch(success =>
                 {
                     var name = success.Result.Name;
-                    if (formats.TryAdd(name, formatFileName))
-                        CodecFactory.AddOrUpdateFormat(success.Result);
+                    var added = CodecFactory.AddFormat(success.Result);
+
+                    if (added.HasSucceeded)
+                        fileNamesByCodec[name] = formatFileName;
+                    else if (fileNamesByCodec.TryGetValue(name, out var firstFileName))
+                        failures.Add(new(formatFileName, $"XML codec '{name}' in '{formatFileName}' duplicates '{firstFileName}' and was skipped"));
                     else
-                        errors.Add($"XML codec '{name}' in '{formatFileName}' duplicates '{formats[name]}' and was skipped");
+                        failures.Add(new(formatFileName, added.AsError.Reason));
                 },
-                fail =>
-                {
-                    errors.Add($"Failed to load XML codec '{formatFileName}'");
-                    errors.AddRange(fail.Reasons);
-                });
+                fail => failures.Add(new(formatFileName, string.Join(Environment.NewLine, fail.Reasons))));
         }
 
-        if (errors.Any())
-            return new MagitekResults.Failed(errors);
-        else
-            return MagitekResults.SuccessResults;
+        return failures;
     }
 
-    public void AddOrUpdateCodec(Type codecType) => CodecFactory.AddOrUpdateCodec(codecType);
+    public MagitekResult AddCodec(Type codecType) => CodecFactory.AddCodec(codecType);
 
     public IEnumerable<string> GetSupportedCodecNames() => CodecFactory.GetRegisteredCodecNames();
 }

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using ImageMagitek;
@@ -86,13 +88,33 @@ public partial class EditorsViewModel : ObservableRecipient
 
         _projectService.TreeChanged += OnTreeChanged;
         _projectService.ResourceChanged += OnResourceChanged;
+        Editors.CollectionChanged += Editors_CollectionChanged;
+    }
+
+    public bool HasModifiedEditors => Editors.Any(x => x.IsModified);
+
+    private void Editors_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        foreach (var editor in e.OldItems?.OfType<ResourceEditorBaseViewModel>() ?? [])
+            editor.PropertyChanged -= Editor_PropertyChanged;
+
+        foreach (var editor in e.NewItems?.OfType<ResourceEditorBaseViewModel>() ?? [])
+            editor.PropertyChanged += Editor_PropertyChanged;
+
+        OnPropertyChanged(nameof(HasModifiedEditors));
+    }
+
+    private void Editor_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ResourceEditorBaseViewModel.IsModified))
+            OnPropertyChanged(nameof(HasModifiedEditors));
     }
 
     private void OnTreeChanged(object? sender, ProjectTreeChange change)
     {
         if (change.Kind == ProjectTreeChangeKind.Renamed)
         {
-            foreach (var editor in Editors.Where(x => ReferenceEquals(x.Resource, change.Node.Item)))
+            foreach (var editor in Editors.Where(x => ReferenceEquals(x.Resource, change.Node.Item) || ReferenceEquals(x.OriginatingProjectResource, change.Node.Item)))
                 editor.DisplayName = change.Node.Name;
 
             if (change.Node.Item is Palette palette)
@@ -121,7 +143,10 @@ public partial class EditorsViewModel : ObservableRecipient
         }
     }
 
-    private void RemoveEditors(IReadOnlyCollection<ResourceEditorBaseViewModel> editors)
+    /// <summary>
+    /// Closes <paramref name="editors"/> without prompting, changing the active editor only when it was among them.
+    /// </summary>
+    public void RemoveEditors(IReadOnlyCollection<ResourceEditorBaseViewModel> editors)
     {
         var activeRemoved = ActiveEditor is { } active && editors.Contains(active);
         foreach (var editor in editors)
@@ -180,36 +205,10 @@ public partial class EditorsViewModel : ObservableRecipient
         if (editor is null)
             return true;
 
-        if (editor.IsModified)
-        {
-            var userAction = await RequestSaveUserChanges(editor, true);
-            if (userAction == UserSaveAction.Cancel)
-                return false;
+        if (await RequestSaveUserChanges(editor, true) == UserSaveAction.Cancel)
+            return false;
 
-            if (userAction == UserSaveAction.Save)
-            {
-                // if (editor is not IndexedPixelEditorViewModel and not DirectPixelEditorViewModel)
-                if (editor is not GraphicsEditorViewModel { EditMode: GraphicsEditMode.Draw}
-                    && _projectService.FindContainingProject(editor.Resource) is { } projectTree)
-                {
-                    var saveResult = await _projectService.SaveProjectAsync(projectTree);
-                    await saveResult.Match(
-                        success =>
-                        {
-                            return Task.CompletedTask;
-                        },
-                        async fail =>
-                        {
-                            await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}: {fail.Reason}");
-                        }
-                    );
-                }
-            }
-        }
-
-        Editors.Remove(editor);
-        ActiveEditor = Editors.FirstOrDefault();
-
+        RemoveEditors([editor]);
         return true;
     }
 
@@ -241,11 +240,9 @@ public partial class EditorsViewModel : ObservableRecipient
                 newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService, _interactions, _fileRequests, _clipboard);
                 break;
             case ScatteredArranger scatteredArranger:
-                // newDocument = new ScatteredArrangerEditorViewModel(scatteredArranger, _interactions, _colorFactory, _paletteStore, _projectService, _tracker, _settings);
                 newDocument = new GraphicsEditorViewModel(scatteredArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
                 break;
             case SequentialArranger sequentialArranger:
-                //newDocument = new SequentialArrangerEditorViewModel(sequentialArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore);
                 newDocument = new GraphicsEditorViewModel(sequentialArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
                 break;
             case FileDataSource fileSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
@@ -269,11 +266,6 @@ public partial class EditorsViewModel : ObservableRecipient
                     ? new SequentialArranger(8, 16, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec)
                     : new SequentialArranger(1, 1, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec);
 
-                // newDocument = new SequentialArrangerEditorViewModel(newArranger, _interactions, _tracker, _codecService, _colorFactory, _paletteStore, _elementStore)
-                // {
-                //     OriginatingProjectResource = fileSource
-                // };
-                
                 newDocument = new GraphicsEditorViewModel(newArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>())
                 {
                     OriginatingProjectResource = fileSource
@@ -337,9 +329,9 @@ public partial class EditorsViewModel : ObservableRecipient
         {
             var savedProjects = new HashSet<ProjectTree>();
 
-            foreach (var editor in Editors.Where(x => x.IsModified))
+            foreach (var editor in Editors.Where(x => x.IsModified).ToList())
             {
-                var userAction = await RequestSaveUserChanges(editor, true);
+                var userAction = await RequestSaveUserChanges(editor, false);
                 if (userAction == UserSaveAction.Cancel)
                     return false;
 
@@ -347,14 +339,7 @@ public partial class EditorsViewModel : ObservableRecipient
                     savedProjects.Add(projectTree);
             }
 
-            foreach (var projectTree in savedProjects)
-            {
-                var result = await _projectService.SaveProjectAsync(projectTree);
-
-                if (result.HasFailed)
-                    await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}:\n{result.AsError.Reason}");
-            }
-
+            await SaveProjectsAsync(savedProjects);
             return true;
         }
         catch (Exception ex)
@@ -362,6 +347,44 @@ public partial class EditorsViewModel : ObservableRecipient
             await _interactions.AlertAsync("Error", ex.Message);
             Log.Error(ex, "Unhandled exception");
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Saves every modified editor without prompting, then each project containing a saved editor once
+    /// </summary>
+    public async Task SaveAllAsync()
+    {
+        try
+        {
+            var modifiedEditors = Editors.Where(x => x.IsModified).ToList();
+
+            foreach (var editor in modifiedEditors)
+                await editor.SaveChangesAsync();
+
+            var savedProjects = modifiedEditors
+                .Where(x => !x.IsModified)
+                .Select(x => _projectService.FindContainingProject(x.Resource))
+                .OfType<ProjectTree>()
+                .ToHashSet();
+
+            await SaveProjectsAsync(savedProjects);
+        }
+        catch (Exception ex)
+        {
+            await _interactions.AlertAsync("Error", ex.Message);
+            Log.Error(ex, "Unhandled exception");
+        }
+    }
+
+    private async Task SaveProjectsAsync(IEnumerable<ProjectTree> projectTrees)
+    {
+        foreach (var projectTree in projectTrees)
+        {
+            var result = await _projectService.SaveProjectAsync(projectTree);
+
+            if (result.HasFailed)
+                await _interactions.AlertAsync("Project Error", $"An error occurred while saving the project tree to {projectTree.Root.DiskLocation}:\n{result.AsError.Reason}");
         }
     }
 

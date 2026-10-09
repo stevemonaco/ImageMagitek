@@ -8,6 +8,7 @@ sources:
   - TileShop.UI/Features/Shell/DockableEditorView.axaml
   - TileShop.UI/Features/Shell/ToolViewModel.cs
   - TileShop.UI/Features/ResourceEditorBaseViewModel.cs
+  - TileShop.UI/ViewExtenders/Docking/DockFactory.cs
 types:
   - EditorsViewModel
   - DockableEditorViewModel
@@ -15,7 +16,8 @@ types:
   - ToolViewModel
   - UserSaveAction
   - PaletteColorAssignedMessage
-tests: []
+tests:
+  - EditorsViewModelTests
 depends:
   - LIB-PROJECT-SERVICE
   - LIB-PROJECT-TREE
@@ -72,8 +74,8 @@ depends:
 
 - **UI-EDITORS-030** — When a modified editor is closed, the editors shall prompt "Save changes" with Yes, No and Cancel, naming the editor.
   - Tests: manual — modify an arranger and close its tab.
-- **UI-EDITORS-031** — When the user chooses Yes, the editors shall save the editor, then save its containing project; if the editor is still modified after saving, then the close shall be cancelled.
-  - Tests: manual — modify an arranger, close, choose Yes, check the project XML timestamp.
+- **UI-EDITORS-031** — When the user chooses Yes, the editors shall save the editor, then save its containing project; if the editor is still modified after saving, then the close shall be cancelled. The containing project shall be saved once per close.
+  - Tests: `EditorsViewModelTests.CloseEditor_Yes_SavesProjectOnce`
 - **UI-EDITORS-032** — When the user chooses No, the editors shall discard the editor's changes and close it.
   - Tests: manual — modify, close, choose No, reopen and check the change is gone.
 - **UI-EDITORS-033** — When the user chooses Cancel, the editor shall stay open and unchanged.
@@ -84,17 +86,17 @@ depends:
   - Tests: untested
 - **UI-EDITORS-036** — When an editor reads from a sequential arranger or standalone file with no containing project, saving it shall skip the project save without failing.
   - Tests: manual — save a sequential editor in Draw and in Arrange mode, for a standalone file and a project DataFile node.
-- **UI-EDITORS-037** — When File → Close <name> closes the active editor, the first remaining editor shall become active.
-  - Tests: manual — open three tabs, close the middle one from the File menu.
-- **UI-EDITORS-038** — When the app asks to save all, the editors shall prompt for each modified editor in tab order, stop at the first Cancel, and save each containing project once more after the prompts.
-  - Tests: manual — modify two editors in one project and exit.
+- **UI-EDITORS-037** — When the active editor is closed by any path (tab close button, File → Close <name>, a removal or a project close), the first remaining editor shall become active, or none when no editor remains; closing an inactive editor shall not change the active editor.
+  - Tests: `EditorsViewModelTests.CloseEditor_Active_ActivatesFirstRemaining`, `EditorsViewModelTests.CloseEditor_Last_LeavesNoActiveEditor`, `EditorsViewModelTests.CloseEditor_Inactive_KeepsActiveEditor`; DevTools — open two arrangers, close each with its tab X, check File → Close <name> names the remaining editor and is hidden after the last close.
+- **UI-EDITORS-038** — When the app asks to save all, the editors shall prompt for each modified editor in tab order, stop at the first Cancel, and save each containing project of a saved editor once, after the prompts.
+  - Tests: `EditorsViewModelTests.RequestSaveAllUserChanges_TwoEditorsInOneProject_SavesProjectOnce`, `EditorsViewModelTests.RequestSaveAllUserChanges_Cancel_SavesNothing`
 - **UI-EDITORS-039** — If an unexpected error occurs while saving all, then the editors shall alert "Error" with the message, log it, and report the exit as cancelled.
   - Tests: untested
 
 ### Following the project tree
 
-- **UI-EDITORS-040** — When a resource is renamed, every editor whose resource is that resource shall show the new name in its tab.
-  - Tests: manual — rename an arranger with its tab open.
+- **UI-EDITORS-040** — When a resource is renamed, every editor whose resource or originating resource is that resource shall show the new name in its tab.
+  - Tests: `EditorsViewModelTests.Rename_DataFile_RetitlesEditorOpenedFromIt`; manual — rename an arranger with its tab open.
 - **UI-EDITORS-041** — When a palette is renamed, every graphics editor listing that palette shall show the new name in its palette list.
   - Tests: manual — rename a palette while an arranger using it is open.
 - **UI-EDITORS-042** — When a node is removed from a tree, the editors shall close, without prompting, every editor whose resource or originating resource is that node's resource or a descendant's, and make the first remaining editor active if the active one closed.
@@ -123,11 +125,13 @@ depends:
 
 - **UI-EDITORS-060** — When a project or standalone file is closed, every editor whose resource or originating resource is in that tree shall be prompted for and closed (UI-PROJECT-TREE), including sequential editors opened from its data files.
   - Tests: manual — open a sequential editor on a project data file, Close All Projects, check the tab closes.
+- **UI-EDITORS-061** — When an editor is removed from `Editors`, its document tab shall be removed wherever it is docked, including a floating window.
+  - Tests: manual — float a tab, File → Close <name>; float a tab, delete its resource in the tree.
 
 ## Invariants
 
 - At most one editor per resource exists in `Editors`, except data files, which may have any number of sequential editors (each with its own arranger as `Resource`).
-- `ActiveEditor` is either null or an editor previously added to `Editors`; see Open items for a tab-close path that leaves it stale.
+- `ActiveEditor` is either null or an editor previously added to `Editors`, and is null whenever `Editors` is empty.
 - Every editor in `Editors` has a document tab, and removing it from `Editors` removes the tab.
 
 ## Edge cases
@@ -136,14 +140,13 @@ depends:
 - A non-file data source (memory) is not handled by the missing-file gate and has no open case; it throws as unsupported.
 - A deletion prompt's "Yes" saves the editor even though the resource is about to be removed.
 - The save prompt always says the editor "will be closed", including during removal and exit.
-- When a modified editor is closed from File → Close <name> outside Draw mode with Yes, the project is saved twice (once by the prompt, once after).
 
 ## Threading and lifetime
 
 - `EditorsViewModel` is a DI singleton for the app's lifetime. It subscribes once to `ProjectService.TreeChanged` and `ResourceChanged` and never unsubscribes, so closed editors are not kept alive by those subscriptions.
 - `ResourceChanged` may arrive off the UI thread; it is re-posted to the UI dispatcher, then coalesced in a reference-keyed set flushed by one posted callback.
 - `PaletteColorAssignedMessage` is received through the default Messenger; the handler is `async void` and catches its own exceptions.
-- Closing a tab from its X runs the save prompt synchronously inside a nested dispatcher loop (`Dispatcher.UIThread.MainLoop`) because Dock's `OnClose` is synchronous.
+- Closing a tab from its X runs `CloseEditor` synchronously inside a nested dispatcher loop (`Dispatcher.UIThread.MainLoop`) because Dock's `OnClose` is synchronous. While it runs the dockable is marked as closing, so the dock factory leaves its removal to Dock.
 
 ## Decisions
 
@@ -154,6 +157,10 @@ depends:
 - **Missing sources are refused, not opened broken.** The gate keys on `FileDataSource.IsMissing` and covers the file itself, element sources and referenced palettes' sources, so standalone files reuse it.
 - **Project saves after editor saves are skipped when there is no project.** Call sites use the non-throwing `FindContainingProject`, because a sequential arranger is never in a tree.
 - **One modified state per palette.** A color edited elsewhere is routed into the palette's editor, opening it if needed.
+- **One removal path for editors.** `DockableEditorViewModel.OnClose` calls `EditorsViewModel.CloseEditor`, which removes through the same `RemoveEditors` rule as removals: only removing the active editor changes `ActiveEditor`, to the first remaining editor or null. Reason: one place owns `ActiveEditor`; the tab X used to remove the editor directly and leave it stale. Rejected: having `ShellView` set `ActiveEditor` from Dock's focus events after a close (Dock may raise none when the last tab closes); activating the neighbouring tab (needs Dock's tab order, which drag reordering changes).
+- **Project saves once.** The prompt path keeps its project save (UI-EDITORS-031); `CloseEditor` no longer saves a second time; save-all prompts without the per-editor project save and saves each collected project once afterwards, as Save All does. Reason: identical behavior on every close path and one write-ahead log transaction per project. Rejected: dropping the project save after an editor save entirely (other pending tree state may rely on it; not verified).
+- **Dockables are removed through the factory.** When an editor leaves `Editors`, the dock factory finds its dockable in the main layout or any floating window and removes it with `RemoveDockable`. Reason: a floated tab lives in another dock and used to stay open bound to a closed editor. Rejected: blocking floating (UI-SHELL-005 allows it).
+- **Retitle sequential editors on data file rename.** The editor's display name follows the data file's new name; the sequential arranger's own name is not persisted, so it is left alone.
 
 ## Non-goals
 
@@ -162,9 +169,5 @@ depends:
 
 ## Open items
 
-- Closing a tab with its X removes the editor but never updates `ActiveEditor`; when the last tab closes, the Edit menu, File → Close/Save <name> and hotkeys may stay bound to the closed editor. Needs a manual check.
 - `Receive(PaletteColorAssignedMessage)` is documented as opening the palette editor "in the background", but adding an editor makes its tab active and focused (UI-EDITORS-012), so focus likely jumps to the palette tab. Needs a manual check.
-- A sequential editor opened from a data file keeps its old tab title when the data file is renamed: rename matches only `Resource`, not `OriginatingProjectResource`.
-- Tab close (X) saves the project only through the prompt, while File → Close <name> outside Draw mode saves it a second time; the two paths differ for no stated reason.
-- `CloseEditor` contains a stale commented-out line (`// if (editor is not IndexedPixelEditorViewModel ...`) and `OpenEditor` keeps commented-out constructors of deleted editor types.
-- No `EditorsViewModel` behavior is unit tested; its constructor needs many services. Still to verify by hand: rename, move and delete with editors open; palette edits live in graphics editors; saves and imports refreshing other unmodified editors.
+- `EditorsViewModelTests` covers closing, saving and renaming; opening editors and content refreshes are untested. Still to verify by hand: rename, move and delete with editors open; palette edits live in graphics editors; saves and imports refreshing other unmodified editors.

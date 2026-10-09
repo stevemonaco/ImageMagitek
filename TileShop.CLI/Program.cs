@@ -111,30 +111,25 @@ class Program
         {
             var bootstrapper = new BootstrapService(LoggerFactory.CreateLogger<BootstrapService>());
 
-            var settingsFileName = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultConfigurationFileName);
-            var codecPath = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultCodecPath);
-            var codecSchemaFileName = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultCodecSchemaFileName);
-            var palettePath = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultPalettePath);
-            var pluginPath = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultPluginPath);
-            var resourceSchemaFileName = Path.Combine(AppContext.BaseDirectory, BootstrapService.DefaultResourceSchemaFileName);
+            var paths = BootstrapPaths.FromDirectory(AppContext.BaseDirectory);
 
             var settingsService = bootstrapper.CreateSettingsService();
-            var settings = bootstrapper.ReadConfiguration(settingsService, settingsFileName);
+            var settings = bootstrapper.ReadConfiguration(settingsService, paths.SettingsFileName);
 
             var colorFactory = bootstrapper.CreateColorFactory();
             var paletteService = bootstrapper.CreatePaletteService(colorFactory);
-            var paletteStore = bootstrapper.CreatePaletteStore(paletteService, palettePath, settings);
+            var paletteStore = bootstrapper.CreatePaletteStore(paletteService, paths.PalettesPath, settings);
 
             var codecFactory = new CodecFactory(paletteStore.DefaultPalette, new());
-            var codecService = bootstrapper.CreateCodecService(codecPath, codecSchemaFileName, codecFactory);
+            var codecService = bootstrapper.CreateCodecService(paths.CodecsPath, paths.CodecSchemaFileName, codecFactory);
 
             if (paletteStore.NesPalette is not null)
                 colorFactory.SetNesPalette(paletteStore.NesPalette);
 
-            //var pluginService = bootstrapper.CreatePluginService(pluginPath, codecService);
+            //var pluginService = bootstrapper.CreatePluginService(paths.PluginsPath, codecService);
 
             var defaultResources = paletteStore.GlobalPalettes;
-            var serializerFactory = new XmlProjectSerializerFactory(resourceSchemaFileName,
+            var serializerFactory = bootstrapper.CreateProjectSerializerFactory(paths.ResourceSchemaFileName,
                 codecService.CodecFactory, colorFactory, defaultResources);
             ProjectService = bootstrapper.CreateProjectService(serializerFactory, colorFactory);
 

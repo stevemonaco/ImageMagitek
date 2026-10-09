@@ -45,10 +45,13 @@ The UI around PNG export and import for scattered arrangers: the export file pro
 
 - **UI-IMAGE-IO-001** — When the user chooses Export As... on a scattered arranger node, the app shall ask for a file name defaulting to "<arranger>.png" and write the arranger there as a PNG (LIB-IMAGE-IO).
   - Tests: manual — export an arranger from the project tree and open the PNG.
-- **UI-IMAGE-IO-002** — If the arranger reads from a missing data file, then export shall alert with the missing file and write nothing.
-  - Tests: untested
-- **UI-IMAGE-IO-003** — Export shall write the arranger as last saved; pending changes in an open editor are not included and not prompted for.
-  - Tests: untested
+- **UI-IMAGE-IO-002** — If the arranger reads from a missing data file, then export shall alert with the missing file before asking for a file name, and write nothing.
+  - Tests: manual — rename the ROM, reopen the project, Export As... (needs a fake `IAsyncFileRequestService` on `ProjectTreeViewModel` to automate).
+- ~~**UI-IMAGE-IO-003**~~ — Removed: replaced by the export prompt (UI-IMAGE-IO-026).
+- **UI-IMAGE-IO-026** — If an open editor on the arranger has unsaved changes, then export shall ask "Save Changes" (Yes/No/Cancel) before asking for a file name; Yes saves and stops if the save failed, No exports the arranger as last saved and keeps the editor's changes, Cancel stops.
+  - Tests: manual — modify an arranger, Export As... on its node, choose each option.
+- **UI-IMAGE-IO-027** — If writing the exported image fails, then export shall alert "Export Error" with the reason and log the exception.
+  - Tests: manual — export over a read-only PNG.
 
 ### Import entry points
 
@@ -91,8 +94,10 @@ The UI around PNG export and import for scattered arrangers: the export file pro
   - Tests: manual — select and double-click report entries.
 - **UI-IMAGE-IO-021** — While any color is unmatched, the dialog shall disable Import and show "N color(s) could not be matched exactly — choose Nearest matching or fix the image".
   - Tests: untested
-- **UI-IMAGE-IO-022** — When the user clicks Import, the dialog shall write the staged result into the arranger's data sources and save the match strategy, transparency mapping, diff toggle and blend to user preferences; Cancel writes nothing.
+- **UI-IMAGE-IO-022** — When the user clicks Import, the dialog shall write the staged result into the arranger's data sources and save the match strategy, transparency mapping, diff toggle and blend to user preferences; Cancel writes nothing. Preferences are saved only when the write succeeds.
   - Tests: `ImageImporterTests.Commit_WritesResultIntoArranger`
+- **UI-IMAGE-IO-028** — If writing the import result fails, then the dialog shall alert "Import Error" with the reason, log the exception and stay open with its staged image and options.
+  - Tests: manual — mark the ROM read-only, import, check the alert stacks above the dialog and the dialog stays open after OK.
 - **UI-IMAGE-IO-023** — After an import writes data, open unmodified editors that read it shall reload (UI-EDITORS).
   - Tests: manual — import into an arranger shown in an open editor.
 
@@ -121,7 +126,9 @@ The UI around PNG export and import for scattered arrangers: the export file pro
 ## Decisions
 
 - **Partial and offset import.** Images no longer need to match the arranger size: the dialog takes an X/Y offset (which may be negative), uncovered pixels stay unchanged, and "Import Image Into Selection..." seeds the offset at the selection and clips to it. Rejected: requiring an exact size.
-- **Resolve unsaved changes before importing.** Import asks to save or discard an open editor's changes first, so the preview and the write are against the saved data.
+- **Resolve unsaved changes before importing or exporting.** Import asks to save or discard an open editor's changes first, so the preview and the write are against the saved data. Export asks the same question, but its No exports the saved state and keeps the edits, because export does not touch them. Reason: a user exporting to check their edits learns what the PNG holds. Rejected: silently exporting the saved state (the earlier surprise); exporting the editor's working pixels (needs an in-memory library export and would differ from the CLI); a status-bar note.
+- **Import failures keep the dialog open.** `ImportImageViewModel` takes `IInteractionService`; a failed commit is logged, alerted as "Import Error" above the dialog (UI-SHELL-090), and the accept returns false, so the staged preview and options survive for a retry. Reason: the file may become writable. Rejected: showing the failure as the dialog's blocking message (that area means "fix the image", and it would disable Import).
+- **Error alerts show the message; the log keeps the stack.** Applies to "Export Error" and "Import Error" as to "Save Error" (UI-GRAPHICS-EDITOR).
 - **Missing sources are refused.** Export and import, like opening an editor, refuse a resource that reads from a missing data file and point to Relink... instead of failing on the first read.
 - **Read-only arrangers refuse import up front.** The read-only check runs before the file picker rather than failing at commit.
 - **Commit is blocked while colors are unmatched.** An exact match that leaves colors unmatched cannot be imported; the user switches to Nearest matching or fixes the image. Rejected: silently keeping the current pixel.
@@ -133,9 +140,7 @@ The UI around PNG export and import for scattered arrangers: the export file pro
 
 ## Open items
 
-- Export asks for the file name before checking for a missing data file, and does not catch failures from writing the PNG.
-- Export ignores an open editor's unsaved changes without telling the user, unlike import.
-- `OnAccepted` does not catch failures from writing the import result.
 - `ImageImportOptions` supports both but the dialog exposes neither (both stay at their defaults).
 - `MenuViewModel.ExportArrangerToImage` and `ImportArrangerFromImage` are unreachable: their Arranger menu is commented out.
-- No UI test covers the dialog; `ImportImageViewModel` creates its own `ImageSharpFileAdapter`, which would need injecting to test it without files.
+- No UI test covers the dialog; `ImportImageViewModel` creates its own `ImageSharpFileAdapter`, which would need injecting to test it without files (its constructor also takes `IInteractionService`, which a fake can supply).
+- A commit that fails mid-way can leave some elements written; the library has no transactional data write.

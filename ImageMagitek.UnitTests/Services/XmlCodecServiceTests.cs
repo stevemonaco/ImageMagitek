@@ -27,13 +27,39 @@ public class XmlCodecServiceTests
             var factory = new CodecFactory(ArrangerTestFactory.CreatePalette(), []);
             var service = new XmlCodecService(Path.Combine(AppContext.BaseDirectory, "_schemas", "CodecSchema.xsd"), factory);
 
-            var result = service.LoadCodecs(directory);
+            var failures = service.LoadCodecs(directory);
 
-            Assert.True(result.HasFailed);
-            var reason = Assert.Single(result.AsError.Reasons);
-            Assert.Contains(first, reason);
-            Assert.Contains(second, reason);
+            var failure = Assert.Single(failures);
+            Assert.Equal(second, failure.FileName);
+            Assert.Contains(first, failure.Message);
             Assert.Equal(8, factory.CreateCodec("GBA 4bpp")!.Width);
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
+
+    [Fact]
+    public void LoadCodecs_MalformedXml_ReportsAndLoadsTheRest()
+    {
+        var directory = TestPaths.CreateTempPath("");
+        Directory.CreateDirectory(directory);
+
+        try
+        {
+            var malformed = Path.Combine(directory, "a.xml");
+            File.WriteAllText(malformed, "<flowcodec><name>Broken");
+            File.Copy(Path.Combine(TestPaths.CodecsPath, "GBA4bpp.xml"), Path.Combine(directory, "b.xml"));
+
+            var factory = new CodecFactory(ArrangerTestFactory.CreatePalette(), []);
+            var service = new XmlCodecService(Path.Combine(AppContext.BaseDirectory, "_schemas", "CodecSchema.xsd"), factory);
+
+            var failures = service.LoadCodecs(directory);
+
+            var failure = Assert.Single(failures);
+            Assert.Equal(malformed, failure.FileName);
+            Assert.Contains("GBA 4bpp", factory.GetRegisteredCodecNames());
         }
         finally
         {

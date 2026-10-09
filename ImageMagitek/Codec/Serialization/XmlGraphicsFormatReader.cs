@@ -69,8 +69,16 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
         if (!File.Exists(fileName))
             return new MagitekResults<IGraphicsFormat>.Failed($"Codec file {fileName} does not exist");
 
-        using var stream = File.OpenRead(fileName);
-        var doc = XDocument.Load(stream, LoadOptions.SetLineInfo);
+        XDocument doc;
+        try
+        {
+            using var stream = File.OpenRead(fileName);
+            doc = XDocument.Load(stream, LoadOptions.SetLineInfo);
+        }
+        catch (Exception ex) when (ex is XmlException or IOException or UnauthorizedAccessException)
+        {
+            return new MagitekResults<IGraphicsFormat>.Failed(ex.Message);
+        }
 
         var validationErrors = new List<string>();
 
