@@ -31,6 +31,7 @@ tests:
   - ScatteredArrangerReversibilityTests
   - SequentialArrangerRoundTripTests
   - ReadOnlyArrangerTests
+  - SaveImageTests
   - GraphicsEditHistoryTests
   - ImageCopierTests
   - MirrorArray2DTests
@@ -93,6 +94,8 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
   - Tests: `IndexedImageTests.MirrorAndRotation_RoundTrip`, `ElementIsolationTests.SaveElement_ByteAligned_ChangesOnlyElementBits`, `ElementIsolationTests.SaveElement_NotByteAligned_ChangesOnlyElementBits`, `DirectArrangerRoundTripTests.SaveElement_ByteAligned_ChangesOnlyElementBits`
 - **LIB-IMAGES-016** — When saving, the image shall skip elements past the end of their source, so a source never grows and its trailing bytes are unchanged.
   - Tests: `IndexedImageTests.ArrangerPastEndOfSource_RendersEmptyAndSavesWithoutGrowing`, `IndexedImageTests.DirectArrangerPastEndOfSource_RendersEmptyAndSavesWithoutGrowing`
+- **LIB-IMAGES-033** — When an image is saved, it shall encode every element before writing any; if an encode throws, then the save shall fail and leave every data source unchanged.
+  - Tests: `SaveImageTests.IndexedSaveImage_SecondEncodeThrows_LeavesSourceUnchanged`, `SaveImageTests.DirectSaveImage_SecondEncodeThrows_LeavesSourceUnchanged`
 - **LIB-IMAGES-017** — After writing, the save shall flush each distinct data source the arranger's elements reference and raise its data-written notification once.
   - Tests: untested
 - **LIB-IMAGES-018** — Decoding then saving an unmodified image shall leave the source bytes unchanged, and saving pixels then decoding shall return them, for every shipped codec.
@@ -161,6 +164,7 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
 ## Decisions
 
 - **Reads past end of file render empty.** An arranger near or over the end of a truncated file shows the missing elements as blank, and a save skips them so the file never grows. Rejected: throwing, or showing whatever bytes are available.
+- **Encode everything, then write.** A save encodes each element into its own copy of the bytes, then writes them all and flushes. Reason: an encoder that throws partway, most likely a plugin's, used to leave the file half-written. The extra memory is one element's encoded bytes per element. Rejected: writing as each element is encoded (the earlier behavior).
 - **Read-only arrangers refuse to save.** A codec that cannot encode or a read-only data source makes the arranger read-only, checked once at the arranger and enforced in `SaveImage` (and import, LIB-IMAGE-IO), so failures happen before any byte is written rather than mid-save.
 - **A partial edit re-encodes the whole arranger.** Image rectangles need not be element-aligned, so the edit is merged into a full render and every element is re-encoded, leaving pixels outside the rectangle as they were.
 - **Flood fill stays within one palette.** An indexed fill does not cross into elements with a different palette, because the same index would mean a different color there.

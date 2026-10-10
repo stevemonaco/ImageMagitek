@@ -22,6 +22,7 @@ ImageMagitek is a .NET library for viewing, editing and organizing retro game gr
 | Project | Purpose | Specs |
 |---|---|---|
 | `ImageMagitek` | Core library: data sources, codecs (`_codecs/` XML, `Codec/Specialized`), colors and palettes (`_palettes/`), arrangers and element layouts (`_layouts/`), images, PNG import/export, project tree and XML project format (`_schemas/`). No UI dependency. | [`lib/`](specs/lib/index.md) |
+| `ImageMagitek.Plugins.Contracts` | The plugin contract: codec plugin interfaces, `CodecInfo`, `PluginColor`. No dependencies; the only assembly plugins compile against [LIB-PLUGINS]. | [`lib/`](specs/lib/index.md) |
 | `ImageMagitek.Services` | Bootstrapping, settings, codec/palette/plugin services, `ProjectService` (the project operations both front ends use). | [`lib/`](specs/lib/index.md) |
 | `TileShop.Shared` | Interfaces, messages, input and tool types shared by the UI and CLI. | [`ui/`](specs/ui/index.md) |
 | `TileShop.UI` | Avalonia app (Semi theme, Dock, PanAndZoom), MVVM with CommunityToolkit.Mvvm, DI in `Bootstrapper.cs`. Feature folders under `Features/`. | [`ui/`](specs/ui/index.md) |
@@ -29,7 +30,7 @@ ImageMagitek is a .NET library for viewing, editing and organizing retro game gr
 | `TileShop.CLI` | `print`, `export`, `exportall`, `import`, `importall` over an existing project. | [`cli/`](specs/cli/index.md) |
 | `ImageMagitek.UnitTests` | xUnit tests for the library, services and UI ViewModel logic (references TileShop.UI). | — |
 | `ImageMagitek.Benchmarks` | BenchmarkDotNet codec benchmarks. | — |
-| `Samples/` | Plugin samples (`ImageMagitek.PluginSamples`, also used by the tests), and FF5 monster sprite samples: a CLI exporter/importer and an Avalonia viewer. | — |
+| `Samples/` | Plugin samples (`ImageMagitek.PluginSamples`, referencing only the contracts assembly, also used by the tests), and FF5 monster sprite samples: a CLI exporter/importer and an Avalonia viewer. | — |
 
 Build configuration is shared through `Directory.Build.props` and `Directory.Packages.props` (central package management: package versions go there, never in a csproj). `publish.ps1` produces self-contained single-file builds. CI (`.github/workflows/ci.yml`) builds and tests in Release on every push and pull request, and `.github/workflows/release.yml` packages releases through `publish.ps1` [CLI-PUBLISH].
 
@@ -68,7 +69,7 @@ TileShop.UI ─────┐            TileShop.CLI
 ## 5. Testing
 
 - `dotnet test ImageMagitek.UnitTests` runs in about a second; run it whenever a change touches the library or services.
-- Codec tests run every indexed codec through a shared contract (`IndexedCodecContract`): decode, encode round-trip, isolation from neighboring bytes (sentinel bytes), and rejection of encoding when `CanEncode` is false. Plugin authors can reuse it.
+- Codec tests run every indexed codec through a shared contract (`IndexedCodecContract`): decode, encode round-trip, isolation from neighboring bytes (sentinel bytes), and rejection of encoding when `CanEncode` is false. The plugin contract is tested over the sample plugins (`SamplePluginContractTests`) and the adapters (`CodecPluginAdapterTests`).
 - ViewModel logic worth testing is moved into plain classes (editing sessions, history) and tested without Avalonia.
 - UI changes are verified in the running Debug app through the Avalonia DevTools MCP (see `CLAUDE.md`). DevTools cannot drive pointer gestures, drag and drop, or popups; requirements that need them are marked `manual` in the specs and their pending checks are in the backlog.
 
@@ -85,4 +86,5 @@ TileShop.UI ─────┐            TileShop.CLI
 - **Gate, don't hide, project-only actions.** An action that needs a project is disabled with a tooltip in a standalone file; a resource that reads a missing data file is refused with a Relink hint.
 - **The CLI's exit code is a contract.** Zero for success, a distinct negative code per failure class; toolchains branch on it, and new verbs reuse the codes. Exported files mirror project paths, so a round trip needs no manifest.
 - **Build UI as automatable controls.** Clickable UI is a Button, RadioButton, ToggleButton, MenuItem or TreeViewItem (with a chrome-free ControlTheme where needed), so it stays keyboard-accessible and drivable through DevTools.
+- **Plugins compile against `ImageMagitek.Plugins.Contracts` only.** It is the one assembly with a compatibility promise across 1.x; the core library can change freely, and the host wraps plugins in adapters. See LIB-PLUGINS.
 - **Startup degrades; it stops only for essentials.** Each file in `_codecs`, `_plugins`, `_palettes` and `_layouts`, and the settings file, loads on its own: a bad one is logged, skipped and reported to the user once per launch (the UI's startup alert, the CLI's console), and the rest load. Startup fails, naming the file, only when an essential is missing or unusable: `CodecSchema.xsd`, `ResourceSchema.xsd`, a global palette, or an NES master palette of at least 64 colors. Shipped resources resolve against the application directory, never the working directory. See LIB-SERVICES.

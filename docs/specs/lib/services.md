@@ -34,7 +34,7 @@ depends:
 
 ## Purpose
 
-The startup entry point a host (TileShop.UI, TileShop.CLI) uses to build the library environment, and the application settings read from `appsettings.json`. Bootstrap's palette-store member is specified in LIB-PALETTES, its codec and plugin members in LIB-CODECS, and its element-store member in LIB-ARRANGERS; this spec covers settings, default locations and the remaining factory members. User preferences live in TileShop.Shared and belong to the UI specs.
+The startup entry point a host (TileShop.UI, TileShop.CLI) uses to build the library environment, and the application settings read from `appsettings.json`. Bootstrap's palette-store member is specified in LIB-PALETTES, its codec member in LIB-CODECS, its plugin member in LIB-PLUGINS, and its element-store member in LIB-ARRANGERS; this spec covers settings, default locations and the remaining factory members. User preferences live in TileShop.Shared and belong to the UI specs.
 
 ## Requirements
 

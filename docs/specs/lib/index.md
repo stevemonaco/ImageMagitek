@@ -7,7 +7,8 @@ One spec per feature; format and usage in [../README.md](../README.md). Find a t
 | Spec | Id | Owns |
 |---|---|---|
 | [Data sources](datasource.md) | LIB-DATASOURCE | `DataSource`, `FileDataSource`, `MemoryDataSource`, `BitAddress` |
-| [Graphics codecs](codecs.md) | LIB-CODECS | `IGraphicsCodec`, XML flow and pattern codecs, specialized direct codecs, `CodecFactory`, `XmlCodecService`, `PluginService` |
+| [Graphics codecs](codecs.md) | LIB-CODECS | `IGraphicsCodec`, XML flow and pattern codecs, specialized direct codecs, `CodecFactory`, `XmlCodecService` |
+| [Plugin contract and loading](plugins.md) | LIB-PLUGINS | `ImageMagitek.Plugins.Contracts` types, plugin codec adapters, `PluginService` |
 
 ## Color
 

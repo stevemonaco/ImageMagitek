@@ -31,6 +31,7 @@
    - Project format changes and 0.9 migration from [project-format-freeze](project-format-freeze.md).
    - CLI changes from CLI-COMMANDS (System.CommandLine, awaited exit codes, `--log`, import options, plugins, read-only skip), linking `docs/cli.md`.
    - Read-only data files now open read-only (LIB-DATASOURCE-021).
+   - Plugins built for earlier versions must be rebuilt against `ImageMagitek.Plugins.Contracts` (LIB-PLUGINS); TileShop reports them at startup.
 4. **Close.** Update CLI-COMMANDS as listed. Delete the backlog's README and release-notes lines under "Release engineering and documentation". Delete this proposal.
 
 ## Open questions

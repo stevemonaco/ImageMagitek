@@ -18,6 +18,6 @@ internal static class PackedBits
         data[bitIndex >> 3] |= (byte)(0x80 >> (bitIndex & 7));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Span<byte> AsFlatSpan(byte[,] array) =>
-        MemoryMarshal.CreateSpan(ref MemoryMarshal.GetArrayDataReference(array), array.Length);
+    public static Span<T> AsFlatSpan<T>(T[,] array) where T : unmanaged =>
+        MemoryMarshal.CreateSpan(ref Unsafe.As<byte, T>(ref MemoryMarshal.GetArrayDataReference((Array)array)), array.Length);
 }

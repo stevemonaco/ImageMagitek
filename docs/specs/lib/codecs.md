@@ -8,13 +8,11 @@ sources:
   - ImageMagitek/_schemas/CodecSchema.xsd
   - ImageMagitek/BitStream.cs
   - ImageMagitek.Services/XmlCodecService.cs
-  - ImageMagitek.Services/PluginService.cs
   - ImageMagitek.Services/BootstrapService.cs
 types:
   - IGraphicsCodec
   - IIndexedCodec
   - IDirectCodec
-  - IndexedCodec
   - DirectCodec
   - ImageLayout
   - IGraphicsFormat
@@ -41,13 +39,10 @@ types:
   - Psx24BppCodec
   - ICodecService
   - XmlCodecService
-  - IPluginService
-  - PluginService
   - BitStream
 tests:
   - IndexedCodecContract
   - IndexedCodecContractTests
-  - SamplePluginContractTests
   - DirectCodecContractTests
   - DirectCodecKnownAnswerTests
   - CodecKnownAnswerTests
@@ -71,7 +66,7 @@ depends:
 
 ## Purpose
 
-A codec decodes one element's stored bits into pixels and encodes them back: palette indices for indexed codecs, RGBA colors for direct codecs. Most indexed formats are XML definitions (flow or pattern codecs) loaded at startup; direct formats and anything XML cannot express are C# codecs, built in or loaded from plugins. Elements and arrangers (LIB-ARRANGERS) choose codecs by name through the codec factory; images (LIB-IMAGES) call the codec to read, decode, encode and write. This spec also covers the codec-loading members of `BootstrapService` (`CreateCodecService`, `CreatePluginService`).
+A codec decodes one element's stored bits into pixels and encodes them back: palette indices for indexed codecs, RGBA colors for direct codecs. Most indexed formats are XML definitions (flow or pattern codecs) loaded at startup; direct formats and anything XML cannot express are built-in C# codecs or plugins. Plugins are pure transforms that the factory wraps in adapters implementing the codec interfaces; the contract, the adapters and plugin loading are specified in LIB-PLUGINS. Elements and arrangers (LIB-ARRANGERS) choose codecs by name through the codec factory; images (LIB-IMAGES) call the codec to read, decode, encode and write. This spec also covers the codec-loading member of `BootstrapService` (`CreateCodecService`).
 
 ## Requirements
 
@@ -169,17 +164,15 @@ A codec decodes one element's stored bits into pixels and encodes them back: pal
   - Tests: untested
 - **LIB-CODECS-039** — If the name is an XML format with color type `direct`, then the factory shall throw `NotSupportedException`.
   - Tests: untested
-- **LIB-CODECS-040** — When an element size is given, the factory shall create flow codecs and C# codecs that have a sized constructor at that size; otherwise, and for pattern codecs, it shall create the codec at its default size.
+- **LIB-CODECS-040** — When an element size is given, the factory shall create flow codecs and built-in C# codecs that have a sized constructor at that size (plugin codecs follow LIB-PLUGINS-009); otherwise, and for pattern codecs, it shall create the codec at its default size.
   - Tests: `CodecFactoryTests.LegacyName_ResolvesToXmlCodec`, `DirectCodecContractTests.CreatedCodec_HasRequestedSize`
-- **LIB-CODECS-041** — The factory shall construct a C# codec with `(Palette, width, height)` or `(Palette)` for indexed types and `(width, height)` or `()` for direct types, passing its default palette to indexed codecs, and throw `ArgumentException` when no such constructor exists.
-  - Tests: `CodecFactoryTests.PluginService_DiscoversSampleCodecs`
+- **LIB-CODECS-041** — The factory shall construct a built-in C# codec with `(width, height)` or `()`, and throw `ArgumentException` when no such constructor exists.
+  - Tests: `DirectCodecContractTests.CreatedCodec_HasRequestedSize`
 - **LIB-CODECS-042** — Each created codec shall be a new instance with its own buffers and its own copy of the format, so resizing one codec does not affect the registered format or other codecs.
   - Tests: untested
-- **LIB-CODECS-043** — When a codec type is added, the factory shall instantiate it to read its name and register it under that name; if the name is already registered as a C# codec or an XML format, or instantiation throws, then it shall return a failure naming the type and leave the registry unchanged.
-  - Tests: `CodecFactoryTests.PluginService_DiscoversSampleCodecs`, `CodecFactoryTests.AddCodec_NameTakenByXmlFormat_FailsAndKeepsFormat`, `CodecFactoryTests.AddCodec_ThrowingConstructor_Fails`
-- **LIB-CODECS-044** — If an added type does not implement `IGraphicsCodec` or is abstract, then the factory shall return a failure.
-  - Tests: untested
-- **LIB-CODECS-045** — The factory's registered names shall list each XML format and C# codec once, in sorted order, excluding legacy names.
+- ~~**LIB-CODECS-043**~~ — Moved to LIB-PLUGINS: C# codec types are no longer added at runtime; plugin types register through `AddCodecPlugin` (LIB-PLUGINS-005–007).
+- ~~**LIB-CODECS-044**~~ — Moved to LIB-PLUGINS: type checks for added codecs are LIB-PLUGINS-005.
+- **LIB-CODECS-045** — The factory's registered names shall list each XML format, built-in C# codec and plugin codec once, in sorted order, excluding legacy names.
   - Tests: `CodecFactoryTests.LegacyName_ResolvesToXmlCodec`, `CodecFactoryTests.RegisteredNames_AreUnique`
 - **LIB-CODECS-060** — If an XML format is added under a name already registered as a C# codec or XML format, then the factory shall return a failure and keep the existing registration.
   - Tests: `CodecFactoryTests.AddFormat_NameTakenByBuiltInCodec_Fails`, `XmlCodecServiceTests.LoadCodecs_DuplicateName_KeepsFirstAndNamesBothFiles`
@@ -209,10 +202,8 @@ A codec decodes one element's stored bits into pixels and encodes them back: pal
 
 ### Plugins
 
-- **LIB-CODECS-056** — When plugins are loaded from a directory, the plugin service shall load `<sub>/<sub>.dll` from each immediate subdirectory that has one, in its own load context sharing `IGraphicsCodec`, and collect every non-abstract type implementing `IGraphicsCodec`; if loading the assembly or enumerating its types throws, then it shall report that plugin and skip it.
-  - Tests: `CodecFactoryTests.PluginService_DiscoversSampleCodecs`, `CodecFactoryTests.PluginService_BadDllBesideSamples_SkipsItAndLoadsSamples`
-- **LIB-CODECS-057** — When the bootstrapper creates the plugin service, it shall load plugins only if the plugin directory exists, register each discovered type with the codec factory, and log and record as a startup issue each plugin or type that fails to load or register; a type that fails to register is dropped from the discovered types.
-  - Tests: `BootstrapServiceTests.CreatePluginService_CollidingName_SkipsAndRecordsIssue`
+- ~~**LIB-CODECS-056**~~ — Moved to LIB-PLUGINS (LIB-PLUGINS-001).
+- ~~**LIB-CODECS-057**~~ — Moved to LIB-PLUGINS (LIB-PLUGINS-004).
 
 ### Bit streams
 
@@ -236,19 +227,17 @@ A codec decodes one element's stored bits into pixels and encodes them back: pal
 ## Threading and lifetime
 
 - Codec instances are not thread-safe: their buffers are reused across calls. Each element gets its own codec instance from the factory.
-- The factory, codec service and plugin service are built once at startup and live for the app. Plugin load contexts are never unloaded, so plugin DLLs stay locked until exit.
+- The factory and codec service are built once at startup and live for the app. The plugin service and plugin load contexts are in LIB-PLUGINS.
 
 ## Decisions
 
 - **XML codecs are the default.** See docs/ARCHITECTURE.md. The C# SNES 3bpp, PSX 4bpp and PSX 8bpp codecs moved to the plugin samples. Reason: they duplicated byte-identical XML codecs. Projects that name them load the XML codec through the legacy names, and saving stores the XML codec's name.
 - **Legacy names resolve last.** A legacy name is used only when nothing is registered under it, so a plugin that reuses one of those names wins. Rejected: rewriting names at project load.
-- **Codec names are unique; the first registration wins.** Registration order is built-in C# codecs, then XML codecs in ordinal file order, then plugins in directory order. A later registration under a taken name (any source) is refused and reported naming both sources; `AddCodec`/`AddFormat` (formerly `AddOrUpdateCodec`/`AddOrUpdateFormat`) return a `MagitekResult`. Reason: a project names codecs, so which bytes-to-pixels mapping it gets must not depend on installed plugins; shipped codecs are the trusted ones. This generalizes the earlier "Duplicate XML names keep the first file" decision, made because a later XML file silently overwrote an earlier one. Rejected: C# codecs win (the earlier, silent behavior); last registration wins; renaming the newcomer. Legacy names are not registered names, so a plugin may still claim one ("Legacy names resolve last").
-- **A plugin DLL that fails to load is skipped whole.** Any exception while loading the assembly or enumerating its types skips that plugin directory. Reason: types from a partially loaded assembly can fail later when a member touches a missing dependency. Rejected: registering the loadable types from `ReflectionTypeLoadException.Types`. A type whose construction throws, or that has no supported constructor, is skipped on its own.
-- **The plugin service only discovers types; the factory constructs them.** The factory picks a `(Palette, int, int)` or `(Palette)` constructor for indexed codecs. Reason: the loader used to call a parameterless constructor, and every sample plugin needs a palette. Rejected: requiring plugins to have a parameterless constructor.
+- **Codec names are unique; the first registration wins.** Registration order is built-in C# codecs, then XML codecs in ordinal file order, then plugins in directory order. A later registration under a taken name (any source) is refused and reported naming both sources; `AddCodecPlugin`/`AddFormat` (formerly `AddOrUpdateCodec`/`AddOrUpdateFormat`) return a result. Reason: a project names codecs, so which bytes-to-pixels mapping it gets must not depend on installed plugins; shipped codecs are the trusted ones. This generalizes the earlier "Duplicate XML names keep the first file" decision, made because a later XML file silently overwrote an earlier one. Rejected: C# codecs win (the earlier, silent behavior); last registration wins; renaming the newcomer. Legacy names are not registered names, so a plugin may still claim one ("Legacy names resolve last").
 - **Past-end elements are skipped, not thrown.** `ReadElement` returns empty for an element that does not fit in its source, images render it empty and never write it, so an arranger near EOF or over a truncated file shows blank cells and saving does not grow the file. Reason: reads past EOF used to throw or show garbage. Rejected: zero-padding the read, which would let a save grow the file.
 - **Read-only is decided by `CanEncode`.** A codec that cannot encode makes its arranger read-only, and every write path consults the arranger check (docs/ARCHITECTURE.md). Reason: decode-only plugin codecs (for example compressed fonts) could be drawn on and failed only on save.
 - **Direct-color XML codecs are not supported for 1.0.** The schema accepts `colortype` `direct`, but the factory throws `NotSupportedException`.
-- **Generalized codecs use `PackedBits`, not `BitStream`.** Flow and pattern codecs precompute per-bit tables and read and write bits directly. Reason: speed. `BitStream` remains for plugins and samples.
+- **Generalized codecs use `PackedBits`, not `BitStream`.** Flow and pattern codecs precompute per-bit tables and read and write bits directly. Reason: speed. `BitStream` remains for its tests and the FF5 samples; the sample plugins carry their own bit helper (LIB-PLUGINS).
 - **Codec rework behavior changes (1.0 release notes).** Genesis 4bpp, SNES Mode 7, Virtual Boy 2bpp and NGPC 2bpp had reversed bit order and now show correct colors, which differ from earlier versions. N64 RGBA32 reads big-endian `.z64` order; `.v64` dumps must be converted first. N64 RGBA16 reports 16 bpp and no longer zero-fills the second half of its storage on save. PSX 16bpp preserves the STP bit. The app ships every codec XML; pattern codecs and SNES 3bpp Flow were missing from earlier builds.
 
 ## Non-goals

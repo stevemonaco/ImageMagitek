@@ -1,6 +1,5 @@
-﻿using System;
-using ImageMagitek.Codec;
-using ImageMagitek.Colors;
+using System;
+using ImageMagitek.Plugins;
 
 namespace ImageMagitek.PluginSamples;
 
@@ -12,84 +11,52 @@ namespace ImageMagitek.PluginSamples;
 /// This codec decodes the entirety of the font into one element so an exported image can be rotated for proper viewing.
 /// This codec is view-only, adds two pixels of spacing, and does not support editing.
 /// </summary>
-public class MarmaladeBoyCodec : IndexedCodec
+public sealed class MarmaladeBoyCodec : IIndexedCodecPlugin
 {
-    public override string Name => "Marmalade Boy Font";
-    public override ImageLayout Layout => ImageLayout.Single;
-    public override int ColorDepth => 1;
-    public override int StorageSize => 126820;
-    public override bool CanEncode => false;
-
-    public override int DefaultWidth => 16;
-    public override int DefaultHeight => 10000;
-    public override int WidthResizeIncrement => 0;
-    public override int HeightResizeIncrement => 0;
-    public override bool CanResize => false;
-
-    private IBitStreamReader _bitReader;
-
-    public MarmaladeBoyCodec(Palette palette) : base(palette, 16, 10000)
+    public CodecInfo Info { get; } = new()
     {
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
-    }
+        Name = "Marmalade Boy Font",
+        Layout = CodecLayout.Single,
+        ColorDepth = 1,
+        DefaultWidth = 16,
+        DefaultHeight = 10000
+    };
 
-    public override byte[,] DecodeElement(in ArrangerElement el, ReadOnlySpan<byte> encodedBuffer)
+    public int GetStorageBits(int width, int height) => 126820;
+
+    public void Decode(ReadOnlySpan<byte> encoded, Span<byte> pixels, int width, int height)
     {
-        if (encodedBuffer.Length * 8 < StorageSize)
-            throw new ArgumentException($"{nameof(DecodeElement)}: buffer size is too small", nameof(encodedBuffer));
+        var bitCount = encoded.Length * 8;
+        var bit = 0;
+        var yPos = 0;
 
-        // Only drawn pixels are written, so clear what a previous decode left behind
-        Array.Clear(_nativeBuffer);
-        encodedBuffer[.._foreignBuffer.Length].CopyTo(_foreignBuffer);
-
-        _bitReader = BitStream.OpenRead(_foreignBuffer, StorageSize);
-
-        try
+        while (bit + 8 <= bitCount)
         {
-            int yPos = 0;
-            while (true)
+            int characterWidth = SampleBits.ReadByte(encoded, bit);
+            bit += 8;
+
+            if (characterWidth == 0)
+                return;
+
+            for (int y = 0; y < characterWidth; y++, yPos++)
             {
-                int characterWidth = _bitReader.ReadByte();
+                if (yPos >= height)
+                    return;
 
-                if (characterWidth == 0)
-                    break;
-
-                for (int y = 0; y < characterWidth; y++, yPos++)
+                // Each line is two bytes stored little endian, so the second byte holds the left half
+                for (int i = 0; i < 16; i++)
                 {
-                    _nativeBuffer[yPos, 8] = (byte)_bitReader.ReadBit();
-                    _nativeBuffer[yPos, 9] = (byte)_bitReader.ReadBit();
-                    _nativeBuffer[yPos, 10] = (byte)_bitReader.ReadBit();
-                    _nativeBuffer[yPos, 11] = (byte)_bitReader.ReadBit();
+                    if (bit >= bitCount)
+                        return;
 
-                    _nativeBuffer[yPos, 12] = (byte)_bitReader.ReadBit();
-                    _nativeBuffer[yPos, 13] = (byte)_bitReader.ReadBit();
-                    _nativeBuffer[yPos, 14] = (byte)_bitReader.ReadBit();
-                    _nativeBuffer[yPos, 15] = (byte)_bitReader.ReadBit();
-
-                    _nativeBuffer[yPos, 0] = (byte)_bitReader.ReadBit();
-                    _nativeBuffer[yPos, 1] = (byte)_bitReader.ReadBit();
-                    _nativeBuffer[yPos, 2] = (byte)_bitReader.ReadBit();
-                    _nativeBuffer[yPos, 3] = (byte)_bitReader.ReadBit();
-
-                    _nativeBuffer[yPos, 4] = (byte)_bitReader.ReadBit();
-                    _nativeBuffer[yPos, 5] = (byte)_bitReader.ReadBit();
-                    _nativeBuffer[yPos, 6] = (byte)_bitReader.ReadBit();
-                    _nativeBuffer[yPos, 7] = (byte)_bitReader.ReadBit();
+                    pixels[yPos * width + (i + 8) % 16] = (byte)SampleBits.ReadBit(encoded, bit++);
                 }
-
-                yPos += 2;
             }
-        }
-        catch (Exception)
-        {
 
+            yPos += 2;
         }
-
-        return _nativeBuffer;
     }
 
-    public override ReadOnlySpan<byte> EncodeElement(in ArrangerElement el, byte[,] imageBuffer)
-    {
-        throw new NotSupportedException($"'{Name}' is a read-only codec");
-    }
+    public void Encode(ReadOnlySpan<byte> pixels, Span<byte> encoded, int width, int height) =>
+        throw new NotSupportedException($"'{Info.Name}' is a read-only codec");
 }

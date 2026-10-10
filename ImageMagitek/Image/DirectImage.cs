@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using ImageMagitek.Codec;
@@ -106,6 +107,7 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
             throw new InvalidOperationException($"Arranger '{Arranger.Name}' is read-only because it {reason}");
 
         var buffer = new ColorRgba32[Arranger.ElementPixelSize.Height, Arranger.ElementPixelSize.Width];
+        var encodedElements = new List<(ArrangerElement Element, IDirectCodec Codec, byte[] Encoded)>();
         foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IDirectCodec && x.IsWithinSource))
         {
             Image.CopyToArray2D(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
@@ -114,9 +116,13 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
             buffer.InverseMirrorArray2D(el.Mirror);
             buffer.InverseRotateArray2D(el.Rotation);
 
-            var encodeResult = codec.EncodeElement(el, buffer);
-            codec.WriteElement(el, encodeResult);
+            // Copied because codecs reuse their encode buffer
+            encodedElements.Add((el, codec, codec.EncodeElement(el, buffer).ToArray()));
         }
+
+        foreach (var (el, codec, encoded) in encodedElements)
+            codec.WriteElement(el, encoded);
+
         foreach (var source in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Source).Distinct())
         {
             source.Flush();

@@ -1,5 +1,5 @@
 using ImageMagitek.Codec;
-using ImageMagitek.PluginSample;
+using ImageMagitek.PluginSamples;
 using ImageMagitek.UnitTests.Fixtures;
 using ImageMagitek.UnitTests.TestFactories;
 using Xunit;
@@ -27,7 +27,7 @@ public class CodecEquivalenceTests
     public void Snes3BppFlow_MatchesSpecialized(int width, int height)
     {
         var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "SNES 3bpp Flow", width, height);
-        AssertEquivalent(flow, new Snes3BppCodec(flow.Palette, width, height));
+        AssertEquivalent(flow, new IndexedCodecPluginAdapter(new Snes3BppCodec(), flow.Palette, width, height));
     }
 
     [Theory]
@@ -37,7 +37,7 @@ public class CodecEquivalenceTests
     public void Psx4BppFlow_MatchesSpecialized(int width, int height)
     {
         var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "PSX 4bpp Flow", width, height);
-        AssertEquivalent(flow, new Psx4BppCodec(flow.Palette, width, height));
+        AssertEquivalent(flow, new IndexedCodecPluginAdapter(new Psx4BppCodec(), flow.Palette, width, height));
     }
 
     [Theory]
@@ -47,7 +47,7 @@ public class CodecEquivalenceTests
     public void Psx8BppFlow_MatchesSpecialized(int width, int height)
     {
         var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "PSX 8bpp Flow", width, height);
-        AssertEquivalent(flow, new Psx8BppCodec(flow.Palette, width, height));
+        AssertEquivalent(flow, new IndexedCodecPluginAdapter(new Psx8BppCodec(), flow.Palette, width, height));
     }
 
     [Theory]
@@ -57,7 +57,7 @@ public class CodecEquivalenceTests
     public void Snes4BppFlow_MatchesSample(int width, int height)
     {
         var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "SNES 4bpp", width, height);
-        AssertEquivalent(flow, new Snes4BppCodec(flow.Palette, width, height));
+        AssertEquivalent(flow, new IndexedCodecPluginAdapter(new Snes4BppCodec(), flow.Palette, width, height));
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class CodecEquivalenceTests
     public void Nes1BppXml_MatchesSpecialized(int width, int height)
     {
         var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "NES 1bpp", width, height);
-        AssertEquivalent(flow, new Nes1BppCodec(flow.Palette, width, height));
+        AssertEquivalent(flow, new IndexedCodecPluginAdapter(new Nes1BppCodec(), flow.Palette, width, height));
     }
 
     [Fact]

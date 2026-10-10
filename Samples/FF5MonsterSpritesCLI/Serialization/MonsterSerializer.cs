@@ -1,9 +1,9 @@
-﻿using FF5MonsterSprites.Models;
+using FF5MonsterSprites.Models;
 using ImageMagitek;
 using ImageMagitek.Builders;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
-using ImageMagitek.PluginSample;
+using ImageMagitek.PluginSamples;
 
 namespace FF5MonsterSprites.Serialization;
 
@@ -97,7 +97,7 @@ public class MonsterSerializer
             {
                 if (bitStream.ReadBit() == 1)
                 {
-                    IGraphicsCodec codec = metadata.ColorDepth == TileColorDepth.Bpp4 ? new Snes4BppCodec(pal, 8, 8) : new Snes3BppCodec(pal, 8, 8);
+                    IGraphicsCodec codec = new IndexedCodecPluginAdapter(metadata.ColorDepth == TileColorDepth.Bpp4 ? new Snes4BppCodec() : new Snes3BppCodec(), pal, 8, 8);
                     var element = new ArrangerElement(x * 8, y * 8, fileSource, new BitAddress(tileOffset * 8), codec);
                     tileOffset += tileSize;
                     arranger.SetElement(element, x, y);

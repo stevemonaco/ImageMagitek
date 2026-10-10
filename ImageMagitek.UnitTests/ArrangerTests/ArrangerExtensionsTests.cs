@@ -1,7 +1,8 @@
 using System;
 using System.IO;
 using ImageMagitek.Colors;
-using ImageMagitek.PluginSample;
+using ImageMagitek.Codec;
+using ImageMagitek.PluginSamples;
 using ImageMagitek.UnitTests.TestFactories;
 using Xunit;
 
@@ -20,7 +21,7 @@ public sealed class ArrangerExtensionsTests : IDisposable
         var paletteSource = _files.Open("palette", new byte[128], isReadOnly: false);
         var palette = new Palette("pal", new ColorFactory(), ColorModel.Rgba32,
             [new ProjectNativeColorSource(new ColorRgba32(0, 0, 0, 255))], false, PaletteStorageSource.ProjectXml, paletteSource);
-        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (_, _) => new Psx8BppCodec(palette, 8, 8), elementSource);
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (_, _) => new IndexedCodecPluginAdapter(new Psx8BppCodec(), palette, 8, 8), elementSource);
 
         Assert.Null(arranger.FindMissingDataSource());
 

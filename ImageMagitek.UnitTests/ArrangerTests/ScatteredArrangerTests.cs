@@ -1,7 +1,8 @@
 using System;
 using System.Drawing;
 using ImageMagitek.Colors;
-using ImageMagitek.PluginSample;
+using ImageMagitek.Codec;
+using ImageMagitek.PluginSamples;
 using ImageMagitek.UnitTests.TestFactories;
 using Xunit;
 
@@ -13,7 +14,7 @@ public class ScatteredArrangerTests
 
     private static ScatteredArranger Create(int elemsX, int elemsY, int elementWidth = 8, int elementHeight = 8) =>
         ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, elemsX, elemsY,
-            (_, _) => new Psx4BppCodec(_palette, elementWidth, elementHeight));
+            (_, _) => new IndexedCodecPluginAdapter(new Psx4BppCodec(), _palette, elementWidth, elementHeight));
 
     [Fact]
     public void ReplaceElements_Larger_TakesSizeAndCells()

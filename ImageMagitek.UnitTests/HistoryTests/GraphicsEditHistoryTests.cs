@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
-using ImageMagitek.PluginSample;
+using ImageMagitek.PluginSamples;
 using ImageMagitek.UnitTests.TestFactories;
 using TileShop.Shared.Models;
 using TileShop.UI.Features.Graphics;
@@ -23,7 +23,7 @@ public class GraphicsEditHistoryTests
     private static CodecFactory CreateCodecFactory()
     {
         var factory = new CodecFactory(_palette, []);
-        factory.AddCodec(typeof(Psx4BppCodec));
+        factory.AddCodecPlugin(typeof(Psx4BppCodec));
         return factory;
     }
 
@@ -45,7 +45,7 @@ public class GraphicsEditHistoryTests
         source.Write(new BitAddress(0), bytes);
 
         var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, elemsX, elemsY,
-            (_, _) => new Psx4BppCodec(palette, elementWidth, elementHeight), source);
+            (_, _) => new IndexedCodecPluginAdapter(new Psx4BppCodec(), palette, elementWidth, elementHeight), source);
         return new ArrangerImageAdapter(arranger);
     }
 

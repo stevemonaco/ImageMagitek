@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <AssemblyTitle>TileShop</AssemblyTitle>
@@ -24,6 +24,7 @@
     <TrimmerRootAssembly Include="Semi.Avalonia" />
     <TrimmerRootAssembly Include="System.Text.Json" />
     <TrimmerRootAssembly Include="ImageMagitek" />
+    <TrimmerRootAssembly Include="ImageMagitek.Plugins.Contracts" />
     <TrimmerRootAssembly Include="ImageMagitek.Services" />
 	<TrimmerRootAssembly Include="TileShop.UI" />
     <TrimmerRootAssembly Include="TileShop.UI.Controls" />

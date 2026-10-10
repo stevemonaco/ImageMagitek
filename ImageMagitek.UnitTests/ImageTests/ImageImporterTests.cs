@@ -5,7 +5,7 @@ using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Image.Import;
-using ImageMagitek.PluginSample;
+using ImageMagitek.PluginSamples;
 using ImageMagitek.UnitTests.TestFactories;
 using Xunit;
 
@@ -24,7 +24,7 @@ public class ImageImporterTests
 
     /// <summary>Two 8x8 8bpp elements side by side (16x8 pixels) sharing one palette, all pixels initially index 0</summary>
     private static ScatteredArranger CreateIndexedArranger(Palette palette) =>
-        ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (_, _) => new Psx8BppCodec(palette, 8, 8));
+        ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (_, _) => new IndexedCodecPluginAdapter(new Psx8BppCodec(), palette, 8, 8));
 
     private static DecodedImage CreateImage(int width, int height, Func<int, int, ColorRgba32> pixel)
     {
@@ -190,7 +190,7 @@ public class ImageImporterTests
     {
         var first = ArrangerTestFactory.CreatePalette(_black, _red, _black);
         var second = ArrangerTestFactory.CreatePalette(_black, _red, _blue);
-        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (x, _) => new Psx8BppCodec(x == 0 ? first : second, 8, 8));
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (x, _) => new IndexedCodecPluginAdapter(new Psx8BppCodec(), x == 0 ? first : second, 8, 8));
         var current = new IndexedImage(arranger);
         for (int i = 0; i < current.Image.Length; i++)
             current.Image[i] = (byte)(i % 3);
@@ -222,7 +222,7 @@ public class ImageImporterTests
     {
         var first = ArrangerTestFactory.CreatePalette(_black, _red);
         var second = ArrangerTestFactory.CreatePalette(_red, _blue);
-        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (x, _) => new Psx8BppCodec(x == 0 ? first : second, 8, 8));
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (x, _) => new IndexedCodecPluginAdapter(new Psx8BppCodec(), x == 0 ? first : second, 8, 8));
         ColorRgba32[] pngPalette = [_black, _red, _red, _blue];
         var indices = Enumerable.Repeat((byte)1, 128).ToArray();
         var image = new DecodedImage(indices.Select(i => pngPalette[i]).ToArray(), 16, 8, indices, pngPalette);
@@ -367,7 +367,7 @@ public class ImageImporterTests
     public void Prepare_LimitsEntriesToCodecColorDepth()
     {
         var palette = ArrangerTestFactory.CreatePalette(_colors);
-        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 1, 1, (_, _) => new Nes1BppCodec(palette));
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 1, 1, (_, _) => new IndexedCodecPluginAdapter(new Nes1BppCodec(), palette));
         var image = CreateImage(8, 8, (_, _) => _blue);
 
         var exact = Prepare(arranger, image);
@@ -384,7 +384,7 @@ public class ImageImporterTests
     {
         var paletteA = ArrangerTestFactory.CreatePalette(_black, _red);
         var paletteB = ArrangerTestFactory.CreatePalette(_red, _black);
-        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (x, _) => new Psx8BppCodec(x == 0 ? paletteA : paletteB, 8, 8));
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (x, _) => new IndexedCodecPluginAdapter(new Psx8BppCodec(), x == 0 ? paletteA : paletteB, 8, 8));
         var image = CreateImage(16, 8, (_, _) => _red);
 
         var preview = Prepare(arranger, image);

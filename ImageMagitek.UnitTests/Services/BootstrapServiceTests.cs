@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
-using ImageMagitek.PluginSample;
+using ImageMagitek.Plugins;
+using ImageMagitek.PluginSamples;
 using ImageMagitek.Services;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -143,7 +146,7 @@ public sealed class BootstrapServiceTests : IDisposable
         File.Copy(samplesAssembly.Location, Path.Combine(pluginDirectory.FullName, pluginName + ".dll"));
 
         var factory = new CodecFactory(TestImageGenerator.CreateDistinctPalette(8), []);
-        Assert.True(factory.AddCodec(typeof(Snes3BppCodec)).HasSucceeded);
+        Assert.True(factory.AddCodecPlugin(typeof(Snes3BppCodec)).HasSucceeded);
         var codecService = new XmlCodecService(_shipped.CodecSchemaFileName, factory);
 
         var pluginService = _bootstrapper.CreatePluginService(_directory, codecService);
@@ -153,6 +156,24 @@ public sealed class BootstrapServiceTests : IDisposable
         Assert.DoesNotContain(pluginService.CodecPlugins, x => x.FullName == typeof(Snes3BppCodec).FullName);
         Assert.Contains(pluginService.CodecPlugins, x => x.FullName == typeof(Snes4BppCodec).FullName);
         Assert.Contains("SNES 4bpp Plugin", factory.GetRegisteredCodecNames());
+        Assert.Contains("SNES 4bpp Plugin", pluginService.CodecNames);
+        Assert.DoesNotContain("SNES 3bpp Plugin", pluginService.CodecNames);
+    }
+
+    [Fact]
+    public void CreatePluginService_PluginDecodeFails_LogsWarningNamingCodec()
+    {
+        var logger = new RecordingLogger();
+        var bootstrapper = new BootstrapService(logger);
+        var factory = new CodecFactory(TestImageGenerator.CreateDistinctPalette(8), []);
+        bootstrapper.CreatePluginService(_directory, new XmlCodecService(_shipped.CodecSchemaFileName, factory));
+
+        var codec = new IndexedCodecPluginAdapter(new ThrowingDecodePlugin(), factory.DefaultPalette);
+        codec.DecodeElement(CodecTestHelpers.CreateElement(codec), new byte[8]);
+
+        var entry = Assert.Single(logger.Entries, x => x.Message.Contains(ThrowingDecodePlugin.Name));
+        Assert.Equal(LogLevel.Warning, entry.Level);
+        Assert.IsType<FormatException>(entry.Exception);
     }
 
     [Fact]
@@ -189,4 +210,25 @@ public sealed class BootstrapServiceTests : IDisposable
         $$"""
         { "name": "{{name}}", "width": {{width}}, "height": 1, "tilesPerPattern": 1, "pattern": [ { "x": 0, "y": 0 } ] }
         """;
+
+    private sealed class ThrowingDecodePlugin : IIndexedCodecPlugin
+    {
+        public const string Name = "Bootstrap Throwing Decode";
+
+        public CodecInfo Info { get; } = new() { Name = Name, Layout = CodecLayout.Tiled, ColorDepth = 1, DefaultWidth = 8, DefaultHeight = 8 };
+        public int GetStorageBits(int width, int height) => width * height;
+        public void Decode(ReadOnlySpan<byte> encoded, Span<byte> pixels, int width, int height) => throw new FormatException("Decode failure");
+        public void Encode(ReadOnlySpan<byte> pixels, Span<byte> encoded, int width, int height) { }
+    }
+
+    private sealed class RecordingLogger : ILogger
+    {
+        public ConcurrentQueue<(LogLevel Level, string Message, Exception? Exception)> Entries { get; } = new();
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
+            Entries.Enqueue((logLevel, formatter(state, exception), exception));
+    }
 }

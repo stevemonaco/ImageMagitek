@@ -125,6 +125,7 @@ public sealed class IndexedImage : ImageBase<byte>
             for (int x = 0; x < Width; x++)
                 fullImage.Image[(y + Top) * fullImage.Width + x + Left] = Image[y * Width + x];
 
+        var encodedElements = new List<(ArrangerElement Element, IIndexedCodec Codec, byte[] Encoded)>();
         foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IIndexedCodec && x.IsWithinSource))
         {
             fullImage.Image.CopyToArray2D(el.X1, el.Y1, fullImage.Width, buffer, 0, 0, Arranger.ElementPixelSize.Width, Arranger.ElementPixelSize.Height);
@@ -133,9 +134,12 @@ public sealed class IndexedImage : ImageBase<byte>
             buffer.InverseMirrorArray2D(el.Mirror);
             buffer.InverseRotateArray2D(el.Rotation);
 
-            var encodedImage = codec.EncodeElement(el, buffer);
-            codec.WriteElement(el, encodedImage);
+            // Copied because codecs reuse their encode buffer
+            encodedElements.Add((el, codec, codec.EncodeElement(el, buffer).ToArray()));
         }
+
+        foreach (var (el, codec, encoded) in encodedElements)
+            codec.WriteElement(el, encoded);
 
         foreach (var df in Arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Source).Distinct())
         {

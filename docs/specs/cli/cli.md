@@ -64,8 +64,8 @@ depends:
   - Tests: `CliApplicationTests.OpenYields_ReturnsVerbCode`, `CliApplicationTests.InvalidArguments_Exits3`, `CliApplicationTests.Export_UnknownKey_ExportsOthersExits7`
 - **CLI-COMMANDS-007** — If an essential resource cannot be loaded from the application directory (LIB-SERVICES), then the CLI shall print and log the failure and exit with -4; other startup issues shall be printed as warnings and shall not change the exit code.
   - Tests: `CliApplicationTests.BootstrapIssue_PrintsWarningExits0`, `CliApplicationTests.EnvironmentFails_Exits4` (an injected failure); manual — run `TileShopCLI print` with `_palettes/DefaultRgba32.json` renamed in the build output (exit -4)
-- **CLI-COMMANDS-008** — When the environment loads, the CLI shall load plugin codecs from `_plugins` in the application directory, as LIB-CODECS-057 specifies.
-  - Tests: `CliApplicationTests.Export_ProjectUsingPluginCodec_Exits0`
+- **CLI-COMMANDS-008** — When the environment loads, the CLI shall load plugin codecs from `_plugins` in the application directory, as LIB-PLUGINS specifies.
+  - Tests: `CliApplicationTests.Export_ProjectUsingCodecPlugin_Exits0`
 - **CLI-COMMANDS-009** — If the project cannot be opened or validated, then the CLI shall print "Project '<file>' contained N errors" followed by each numbered reason, and exit with -5.
   - Tests: `CliApplicationTests.ProjectFileMissing_Exits5`, `CliApplicationTests.ProjectNamesUnknownCodec_Exits5`
 - **CLI-COMMANDS-010** — If a command throws, then the CLI shall print the exception message and stack trace and exit with -2.
@@ -195,7 +195,7 @@ depends:
 - **The banner shows the informational version.** It reads the same `AssemblyInformationalVersionAttribute` as `--version`, so both print `1.0.0+<hash>`. Reason: one version string per build in bug reports; how the hash is produced is decided in CLI-PUBLISH. Rejected: `Assembly.GetName().Version` (drops the suffix and the commit, and disagrees with `--version`).
 - **Help and version are successes.** They print with no status line and nothing logged. Reason: asking for help is not a failed operation.
 - **The logger is built after parsing.** An explicit `--log` path gets a non-rolling file sink, so the file named is the file written; the default is `errorlogCLI.txt` in the application directory, rolling monthly. Parse errors, before a log path is known, use the default. Serilog's file sink drops writes it cannot make (`SelfLog`). Reason: the documented default, and a build tree free of log files. Rejected: the current directory (litters the caller's tree, and was never the stated intent).
-- **Plugins load like the UI's.** `CliBootstrap` calls `CreatePluginService` after the codec service and before the serializer factory, in the UI's order. How a bad plugin DLL is tolerated is decided in ARCHITECTURE.md §6 and LIB-CODECS.
+- **Plugins load like the UI's.** `CliBootstrap` calls `CreatePluginService` after the codec service and before the serializer factory, in the UI's order. How a bad plugin DLL is tolerated is decided in ARCHITECTURE.md §6 and LIB-PLUGINS.
 
 ## Non-goals
 

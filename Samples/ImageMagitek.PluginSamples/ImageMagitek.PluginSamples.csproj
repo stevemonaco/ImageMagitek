@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\..\ImageMagitek\ImageMagitek.csproj" />
+    <ProjectReference Include="..\..\ImageMagitek.Plugins.Contracts\ImageMagitek.Plugins.Contracts.csproj" />
   </ItemGroup>
 </Project>

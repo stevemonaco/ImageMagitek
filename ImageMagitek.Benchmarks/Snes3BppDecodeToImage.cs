@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.IO;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using BenchmarkDotNet.Attributes;
 using ImageMagitek.Colors.Serialization;
-using ImageMagitek.PluginSample;
+using ImageMagitek.PluginSamples;
 
 namespace ImageMagitek.Benchmarks;
 
@@ -29,7 +29,7 @@ public class Snes3BppDecodeToImage
         var palContents = File.ReadAllText(_paletteFileName);
         _pal = PaletteJsonSerializer.DeserializePalette(palContents, new ColorFactory())!;
 
-        _codec = new Snes3BppCodec(_pal, 8, 8);
+        _codec = new IndexedCodecPluginAdapter(new Snes3BppCodec(), _pal, 8, 8);
         Setup(_nativeFileName, "native");
     }
 

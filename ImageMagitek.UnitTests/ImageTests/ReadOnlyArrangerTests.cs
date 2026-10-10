@@ -2,7 +2,6 @@ using System;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Image.Import;
-using ImageMagitek.PluginSample;
 using ImageMagitek.PluginSamples;
 using ImageMagitek.UnitTests.TestFactories;
 using Xunit;
@@ -18,7 +17,7 @@ public sealed class ReadOnlyArrangerTests : IDisposable
 
     private static ScatteredArranger CreateReadOnlyArranger()
     {
-        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (_, _) => new LastArmageddonCodec(_palette));
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (_, _) => new IndexedCodecPluginAdapter(new LastArmageddonCodec(), _palette));
         var source = arranger.GetElement(0, 0)!.Value.Source;
         source.Write(BitAddress.Zero, TestImageGenerator.RandomBytes((int)source.Length, 11));
         return arranger;
@@ -33,7 +32,7 @@ public sealed class ReadOnlyArrangerTests : IDisposable
     [Fact]
     public void IsReadOnly_EncodableCodec_IsFalse()
     {
-        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (_, _) => new Psx8BppCodec(_palette, 8, 8));
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (_, _) => new IndexedCodecPluginAdapter(new Psx8BppCodec(), _palette, 8, 8));
 
         Assert.False(arranger.IsReadOnly());
     }
@@ -76,7 +75,7 @@ public sealed class ReadOnlyArrangerTests : IDisposable
         var codecArranger = CreateReadOnlyArranger();
         var codecName = codecArranger.GetElement(0, 0)!.Value.Codec.Name;
         var sourceArranger = CreateReadOnlySourceArranger();
-        var writable = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (_, _) => new Psx8BppCodec(_palette, 8, 8));
+        var writable = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (_, _) => new IndexedCodecPluginAdapter(new Psx8BppCodec(), _palette, 8, 8));
 
         Assert.Equal($"uses codec '{codecName}' that cannot encode", codecArranger.GetReadOnlyReason());
         Assert.Equal("reads data file 'readonly.bin', which is read-only", sourceArranger.GetReadOnlyReason());
@@ -112,7 +111,7 @@ public sealed class ReadOnlyArrangerTests : IDisposable
     }
 
     private ScatteredArranger CreateReadOnlySourceArranger() =>
-        ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (_, _) => new Psx8BppCodec(_palette, 8, 8),
+        ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1, (_, _) => new IndexedCodecPluginAdapter(new Psx8BppCodec(), _palette, 8, 8),
             _files.Open("readonly.bin", TestImageGenerator.RandomBytes(2 * 64, 13)));
 
     public void Dispose() => _files.Dispose();

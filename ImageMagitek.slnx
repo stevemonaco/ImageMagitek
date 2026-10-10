@@ -8,6 +8,7 @@
     <File Path=".editorconfig" />
   </Folder>
   <Project Path="ImageMagitek.Benchmarks/ImageMagitek.Benchmarks.csproj" />
+  <Project Path="ImageMagitek.Plugins.Contracts/ImageMagitek.Plugins.Contracts.csproj" />
   <Project Path="ImageMagitek.Services/ImageMagitek.Services.csproj" />
   <Project Path="ImageMagitek.UnitTests/ImageMagitek.UnitTests.csproj" />
   <Project Path="ImageMagitek/ImageMagitek.csproj" />

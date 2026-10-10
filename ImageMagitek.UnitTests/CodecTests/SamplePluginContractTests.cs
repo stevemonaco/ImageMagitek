@@ -1,6 +1,7 @@
 using System.Linq;
 using ImageMagitek.Codec;
-using ImageMagitek.PluginSample;
+using ImageMagitek.Plugins;
+using ImageMagitek.PluginSamples;
 using Xunit;
 
 namespace ImageMagitek.UnitTests;
@@ -18,14 +19,23 @@ public class SamplePluginContractTests : IndexedCodecContract
     protected override IIndexedCodec CreateCodec(string codecName, int width, int height) =>
         CodecTestHelpers.CreateCodec(_factory, codecName, width, height);
 
+    [Fact]
+    public void AllSamples_AreRegistered()
+    {
+        var sampleCount = typeof(Snes4BppCodec).Assembly.GetTypes().Count(x => typeof(ICodecPlugin).IsAssignableFrom(x) && !x.IsAbstract);
+
+        Assert.Equal(7, sampleCount);
+        Assert.Equal(sampleCount, _factory.GetRegisteredCodecNames().Count(x => _factory.CreateCodec(x) is IndexedCodecPluginAdapter));
+    }
+
     private static CodecFactory CreateFactory()
     {
         var factory = new CodecFactory(TestImageGenerator.CreateDistinctPalette(8), []);
         var sampleTypes = typeof(Snes4BppCodec).Assembly.GetTypes()
-            .Where(x => typeof(IIndexedCodec).IsAssignableFrom(x) && !x.IsAbstract);
+            .Where(x => typeof(ICodecPlugin).IsAssignableFrom(x) && !x.IsAbstract);
 
         foreach (var sampleType in sampleTypes)
-            factory.AddCodec(sampleType);
+            Assert.True(factory.AddCodecPlugin(sampleType).HasSucceeded);
 
         return factory;
     }

@@ -12,7 +12,7 @@ public interface ICodecService
 
     IEnumerable<string> GetSupportedCodecNames();
     IReadOnlyList<CodecFileFailure> LoadCodecs(string codecsPath);
-    MagitekResult AddCodec(Type codecType);
+    MagitekResult<string> AddCodecPlugin(Type pluginType);
 }
 
 /// <summary>
@@ -65,7 +65,7 @@ public sealed class XmlCodecService : ICodecService
         return failures;
     }
 
-    public MagitekResult AddCodec(Type codecType) => CodecFactory.AddCodec(codecType);
+    public MagitekResult<string> AddCodecPlugin(Type pluginType) => CodecFactory.AddCodecPlugin(pluginType);
 
     public IEnumerable<string> GetSupportedCodecNames() => CodecFactory.GetRegisteredCodecNames();
 }

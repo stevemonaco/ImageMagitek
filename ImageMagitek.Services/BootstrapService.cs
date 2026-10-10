@@ -155,6 +155,8 @@ public class BootstrapService
         if (!Directory.Exists(fullPluginPath))
             return pluginService;
 
+        CodecPluginEvents.DecodeFailed += (name, ex) => _logger.LogWarning(ex, "Plugin codec '{Codec}' failed to decode", name);
+
         if (pluginService.LoadCodecPlugins(fullPluginPath).Value is MagitekResults.Failed fail)
         {
             foreach (var reason in fail.Reasons)
@@ -163,8 +165,12 @@ public class BootstrapService
 
         foreach (var codecType in pluginService.CodecPlugins.ToList())
         {
-            var result = codecService.AddCodec(codecType);
-            if (result.HasFailed)
+            var result = codecService.AddCodecPlugin(codecType);
+            if (result.HasSucceeded)
+            {
+                pluginService.CodecNames.Add(result.AsSuccess.Result);
+            }
+            else
             {
                 RecordIssue(codecType.Assembly.Location, result.AsError.Reason);
                 pluginService.CodecPlugins.Remove(codecType);

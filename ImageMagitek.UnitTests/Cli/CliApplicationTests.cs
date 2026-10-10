@@ -535,7 +535,7 @@ public sealed class CliApplicationTests : IDisposable
     #region Plugins and read-only arrangers
 
     [Fact]
-    public async Task Export_ProjectUsingPluginCodec_Exits0()
+    public async Task Export_ProjectUsingCodecPlugin_Exits0()
     {
         UsePluginEnvironment();
 

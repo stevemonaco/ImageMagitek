@@ -4,7 +4,7 @@ The single list of work not done in ImageMagitek and TileShop: known bugs, gaps,
 Small items are taken straight from here and fixed with their spec updated; larger ones become a change proposal in `docs/changes/` first (see [docs/changes/README.md](changes/README.md)).
 When an item is closed, its line is deleted.
 
-**1.0** marks items that block the 1.0 release ([ARCHITECTURE.md](ARCHITECTURE.md) §1): they lose work, corrupt data, freeze the project format, or leave a visible control that does nothing. Out of scope for 1.0: direct-color XML codecs, compression ([proposal](changes/compression-support.md)), new platforms and color models, new drawing or selection tools, layers, tilemaps and scripting. Candidates for 1.1, roughly in order: sequential arrangers as project resources, export from sequential views and selections, CLI `--json` output and key globs, OS clipboard, tool hotkeys; then compression and direct-color XML codecs.
+**1.0** marks items that block the 1.0 release ([ARCHITECTURE.md](ARCHITECTURE.md) §1): they lose work, corrupt data, freeze the project format, or leave a visible control that does nothing. Out of scope for 1.0: direct-color XML codecs, compression ([proposal](changes/compression-support.md)), container scanners ([proposal](changes/container-scanners.md)), new platforms and color models, new drawing or selection tools, layers, tilemaps and scripting. Candidates for 1.1, roughly in order: sequential arrangers as project resources, export from sequential views and selections, CLI `--json` output and key globs, OS clipboard, tool hotkeys; then compression and direct-color XML codecs.
 
 Every **1.0** item belongs to a change proposal, linked at the end of its line: [project-format-freeze](changes/project-format-freeze.md), [docs-1-0](changes/docs-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
 
@@ -80,11 +80,13 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-CODECS] Direct-color XML codecs: the schema accepts `colortype="direct"`, `CodecFactory` throws `NotSupportedException`.
 - [LIB-CODECS] Read-only compression support: [change proposal](changes/compression-support.md).
 - [LIB-PROJECT-FORMAT, UI-GRAPHICS-EDITOR] Sequential arrangers as project resources ("save view as arranger"; deferred to 1.1); done when one saves and reloads. Unblocks persisting the element layout (P2, deliberately not done in Milestone 9) and per-file view state for standalone files.
+- [UI-SHELL] Status bar notifications: an icon with an unread count that opens a list of silent notifications (startup issues, plugin decode failures, low-importance runtime events), replacing the startup alert: [change proposal](changes/status-notifications.md).
 - [LIB-PALETTES, UI-PALETTE-EDITOR] Remaining palette file formats: RIFF `.pal`, `.act`, `.hex`, and a JSON writer (JASC `.pal` and `.gpl` exist).
 
 ### P2
 
 - [LIB-CODECS] Platforms: Game Boy/GBC 2bpp (explicit entry), Master System 4bpp, PC Engine/TG16, N64 CI4/CI8/IA/I, NDS, Saturn, Neo Geo sprites, Atari/Lynx, WonderSwan; GBA/NDS BGR555 direct bitmap codecs.
+- [LIB-SCANNING] Container scanners: find self-describing graphics (PSX TIM first) in a data file and add them as arrangers and palettes, and browse archive entries through container-reader plugins: [change proposal](changes/container-scanners.md).
 - [LIB-CODECS] XML format extensions: tile stride/padding, bit order and endianness, per-tile header bytes (variable-width fonts currently need a plugin).
 - [LIB-ARRANGERS] Bit-wise sequential offsets: tiled elements and absolute moves are bit-addressed, but Single-layout stepping (TODO in `SequentialArranger`) and its row/column/page steps are not; done when Single-layout round-trip tests pass at a non-byte-aligned offset.
 - [LIB-COLORS] Color models: RGB24, ARGB32, RGB565, TG16 GRB333, N64 IA/I, grayscale.
@@ -115,7 +117,7 @@ Found by reading the code, not reproduced, unless a test is named.
 
 - **1.0** [LIB-PROJECT-SERVICE] `OpenProjectFileAsync` with a leftover journal; `CloseProjects`; project-root rename.
 - [LIB-DATASOURCE] Past-EOF read throws `EndOfStreamException`; overflowing a fixed-capacity `MemoryDataSource` throws `NotSupportedException`; `Flush` and `Write` never raise `DataWritten`; unbounded sources grow on write.
-- [LIB-CODECS] XML schema and semantic validation failures; unknown name throws `KeyNotFoundException`; direct-color XML throws; pattern codecs ignore the requested size; each codec gets its own format clone; `AddCodec` rejects abstract or non-codec types; `CloneCodec`.
+- [LIB-CODECS] XML schema and semantic validation failures; unknown name throws `KeyNotFoundException`; direct-color XML throws; pattern codecs ignore the requested size; each codec gets its own format clone; `CloneCodec`.
 - [LIB-COLORS] RGB15, BGR6, NES and RGBA32 conversion; BGR9 to-foreign rounding; hex format and parse for every model; factory `NotSupported`/`ArgumentException` paths; distance ties pick the lowest index; `GetIndexByNativeColor` throwing.
 - [LIB-PALETTES] 3-byte and big-endian file colors; `ZeroIndexTransparent` raises `Changed` only on a real change; global `SavePalette` returns false; JSON `zeroIndexTransparent` default (true) and `JsonException` cases; `PaletteStore` default and NES loading.
 - [LIB-ARRANGERS] `SequentialArranger.Move` per move type including clamping; `ChangeElementLayout` rounding and pattern order (2x2 H vs 2x2 V addresses); `ElementCopier` (`ElementCopierTests` is entirely commented out), including paste cropping and the cross-project refusal; `CloneArranger` (full, sub-rectangle, Single-layout restriction); `UnlinkResource`.
@@ -153,7 +155,9 @@ Found by reading the code, not reproduced, unless a test is named.
 - **1.0** [CLI-PUBLISH] Manual checks of CLI-PUBLISH-003/004/006/015/016 are pending: two consecutive `publish.ps1` runs, a run with a failing test (non-zero exit, no zip), a `-ReadyToRun` run, a pushed branch going green and red in CI, and a release-workflow dry run producing a draft with six zips.
 - **1.0** README: still says .NET 6 and lists Autofac and Jot; done when the stack and dependencies are current and CLI usage (verbs, options, exit codes) is documented in `docs/cli.md`. ([proposal](changes/docs-1-0.md))
 - **1.0** Release notes for 1.0 calling out the codec behavior changes existing projects will notice (recorded in LIB-CODECS Decisions, "Codec rework behavior changes"). ([proposal](changes/docs-1-0.md))
-- Codec XML authoring guide and plugin authoring guide; first decide whether the plugin types move to a stable contract assembly, then decide whether to ship `IndexedCodecContract` as a package for plugin authors or document copying it from the test project.
+- Codec XML authoring guide and plugin authoring guide (after 1.0, per [docs-1-0](changes/docs-1-0.md)); decide whether to ship the plugin contract tests as a package for plugin authors or document copying them from the test project.
+- [LIB-PLUGINS] A plugin with one resizable dimension (one increment 0) reports `CanResize` and a 0 step for the fixed axis, which the UI resize steps and `IndexedCodecContract.ResizeIncrements_AreHonored` do not expect; done when the UI handles a per-axis fixed size or registration refuses it.
+- [LIB-PLUGINS] After 1.0 ships, set `PackageValidationBaselineVersion` to 1.0.0 on `ImageMagitek.Plugins.Contracts` so CI rejects breaking contract changes in 1.x.
 - [ARCHITECTURE] The spec format (front matter, ids, cited tests and paths exist, type ownership) is not enforced; done when a test in `ImageMagitek.UnitTests` checks it, as Monaco.Presto's `SpecTests` does.
 
 ## Manual checks

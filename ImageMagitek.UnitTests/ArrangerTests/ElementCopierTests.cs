@@ -1,4 +1,4 @@
-﻿using ImageMagitek.Codec;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 
 namespace ImageMagitek.UnitTests;
@@ -20,7 +20,7 @@ public class ElementCopierTests
     //        {
     //            if (_sourceIndexed.GetElement(x, y) is ArrangerElement element)
     //            {
-    //                element = element.WithTarget(_df, new BitAddress(x * y), new Snes3BppCodec(emptyPal, 8, 8));
+    //                element = element.WithTarget(_df, new BitAddress(x * y), new IndexedCodecPluginAdapter(new Snes3BppCodec(), emptyPal, 8, 8));
     //                _sourceIndexed.SetElement(element, x, y);
     //            }
     //        }

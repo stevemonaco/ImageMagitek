@@ -9,7 +9,7 @@ namespace ImageMagitek.Codec;
 /// </summary>
 public interface ICodecFactory
 {
-    MagitekResult AddCodec(Type codecType);
+    MagitekResult<string> AddCodecPlugin(Type pluginType);
     MagitekResult AddFormat(IGraphicsFormat format);
     IGraphicsCodec? CreateCodec(string codecName, Size? elementSize = default);
     IGraphicsCodec CloneCodec(IGraphicsCodec codec);
