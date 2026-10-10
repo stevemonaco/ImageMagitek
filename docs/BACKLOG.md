@@ -6,7 +6,7 @@ When an item is closed, its line is deleted.
 
 **1.0** marks items that block the 1.0 release ([ARCHITECTURE.md](ARCHITECTURE.md) §1): they lose work, corrupt data, freeze the project format, or leave a visible control that does nothing. Out of scope for 1.0: direct-color XML codecs, compression ([proposal](changes/compression-support.md)), container scanners ([proposal](changes/container-scanners.md)), new platforms and color models, new drawing or selection tools, layers, tilemaps and scripting. Candidates for 1.1, roughly in order: sequential arrangers as project resources, export from sequential views and selections, CLI `--json` output and key globs, OS clipboard, tool hotkeys; then compression and direct-color XML codecs.
 
-Every **1.0** item belongs to a change proposal, linked at the end of its line: [project-format-freeze](changes/project-format-freeze.md), [docs-1-0](changes/docs-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
+Every **1.0** item belongs to a change proposal, linked at the end of its line: [scattered-color-sources](changes/scattered-color-sources.md), [project-format-freeze](changes/project-format-freeze.md), [sequential-palettes](changes/sequential-palettes.md), [welcome-screen](changes/welcome-screen.md), [docs-1-0](changes/docs-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
 
 Found by reading the code, not reproduced, unless a test is named.
 
@@ -14,12 +14,12 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ### Library
 
-- **1.0** [LIB-PALETTES, LIB-PROJECT-FORMAT] `SerializationMapperExtensions.MapToModel` never advances `i` for a `ScatteredColorSource` (or an unknown source type), so mapping such a palette loops forever; done when the scattered source is removed from the format (see Feature gaps) or the loop fails cleanly, with a test. ([proposal](changes/project-format-freeze.md))
+- **1.0** [LIB-PALETTES, LIB-PROJECT-FORMAT] `SerializationMapperExtensions.MapToModel` never advances `i` for a `ScatteredColorSource` (or an unknown source type), so mapping such a palette loops forever; done when scattered sources map to `scatteredcolor` runs and unknown types throw, with a test. ([proposal](changes/scattered-color-sources.md))
 - [LIB-PALETTES] In a ProjectXml palette a project-native source is returned as its own foreign color (`ColorRgba32`) whatever the model, and its native color is never quantized, unlike global palettes; done when both storage kinds behave the same, or a decision records the difference.
 - [LIB-PALETTES] `SetNativeColor` keeps the native color unquantized (BGR15 shows 255, not 248) until `Reload`; done when it stores the round-tripped color, or a decision records why not.
 - [LIB-PROJECT-SERVICE] `AreResourcesInSameProject` returns true when neither resource is in any open tree; done when it returns false.
 - **1.0** [LIB-ARRANGERS] Rotating a mirrored element turns it the opposite way on screen: render applies rotation then mirror, but `TryRotateElement` ignores the mirror; done when a test shows H-mirror then Rotate Left renders like rotating the mirrored pixels counter-clockwise. ([proposal](changes/project-format-freeze.md))
-- [LIB-ARRANGERS] The `SequentialArranger` constructor and `ArrangerBuilder` set `ActivePalette`, but element codecs keep the factory default palette, and `ChangeCodec` ignores `ActivePalette`; cloning a sequential arranger likewise loses the palette; done when a new, re-codec'd or cloned sequential arranger renders with its palette without a `ChangePalette` call.
+- **1.0** [LIB-ARRANGERS] The `SequentialArranger` constructor and `ArrangerBuilder` set `ActivePalette`, but element codecs keep the factory default palette, and `ChangeCodec` ignores `ActivePalette`; cloning a sequential arranger likewise loses the palette; done when a new, re-codec'd or cloned sequential arranger renders with its palette without a `ChangePalette` call. ([proposal](changes/sequential-palettes.md))
 - [LIB-ARRANGERS] `GetInitialSequentialFileAddress` indexes `ElementGrid[X, Y]` instead of `[Y, X]` (latent while every layout starts at (0,0)); done when a layout whose first cell is not (0,0) moves correctly.
 - [LIB-ARRANGERS] A clone rectangle that is not element-aligned drops the last covered column or row; done when the element span is computed from both edges.
 - [LIB-IMAGES] `DirectImage.SaveImage` and its save-conflict analysis assume the image starts at the arranger origin, so a sub-rectangle image saves the wrong pixels or throws; `CanSetPalette` also reads arranger coordinates from a sub-rectangle image; done when partial DirectImage saves and `CanSetPalette` with Left/Top ≠ 0 are correct and tested.
@@ -31,9 +31,9 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ### UI
 
-- **1.0** [UI-GRAPHICS-EDITOR] In a sequential editor's View mode the palette combo never recolors the view (the `ChangePalette` call in `GraphicsEditorViewModel.View.cs` is commented out); done when choosing a palette re-renders the view with it.
+- **1.0** [UI-GRAPHICS-EDITOR] In a sequential editor's View mode the palette combo never recolors the view (the `ChangePalette` call in `GraphicsEditorViewModel.View.cs` is commented out); done when choosing a palette re-renders the view with it. ([proposal](changes/sequential-palettes.md))
 - [UI-ARRANGING] Ctrl+click single-cell select and Shift+hover single-element select are shadowed by the temporary Pick Palette (Arrange) or Color Picker (Draw) modifier tools; done when each gesture does one documented thing.
-- **1.0** [UI-PALETTE-EDITOR] Opening a palette with a `ScatteredColorSource` throws `NotSupportedException`; done when it opens read-only or shows an alert. ([proposal](changes/project-format-freeze.md))
+- **1.0** [UI-PALETTE-EDITOR] Opening a palette with a `ScatteredColorSource` throws `NotSupportedException`; done when scattered runs show as source rows and edit through the Scattered Colors dialog. ([proposal](changes/scattered-color-sources.md))
 - [UI-GRAPHICS-EDITOR] Ctrl+W (fit) sets the zoom without clamping to 0.25–32x; done when it respects MinZoom/MaxZoom.
 - [UI-GRAPHICS-EDITOR] Inspect Element prints "FileOffset 0x1A." with a trailing dot when the bit offset is 0; done when the dot appears only with a bit offset.
 - [UI-GRAPHICS-EDITOR] A VM's `OnImageModified` callback is never cleared when a view releases it, so it can repaint a view that no longer shows it (only a null-VM paint guard covers it); done when the view clears its callbacks on DataContext change.
@@ -60,7 +60,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ## Undecided questions
 
-- **1.0** [LIB-PROJECT-FORMAT] Stable resource keys or path keys. Path keys mean a rename or move rewrites every referencing file, and a rename done by hand in Explorer leaves references dangling. The alternative is a project-unique, human-readable `key` assigned at creation and never changed (keys drift from display names; copied files duplicate keys). The analysis is in the spec's Decisions and Open items. Decide before the format freeze, since the migration hook can assign keys to 0.9 projects; done when one is chosen and recorded as a Decision. ([proposal](changes/project-format-freeze.md))
 - [LIB-PROJECT-SERVICE] Whether `ApplyResourceDeletionAsync` should report a kept non-empty folder as a failure although its nodes were removed; done when decided.
 - **1.0** [LIB-PROJECT-FORMAT] A malformed or foreign `*.xml` anywhere under the project directory fails the whole load, and other directories (such as `.git`) become folders; done when decided and specified. ([proposal](changes/project-format-freeze.md))
 - [UI-PROJECT-TREE] A data file's missing state is read only on project open, so it does not update if the file disappears or reappears mid-session; done when refreshed, or the decision to leave it is recorded.
@@ -70,8 +69,11 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ### For 1.0
 
-- **1.0** [LIB-PROJECT-FORMAT] Schema versioning and migration: `version="0.9"` is written and parsed but never compared; bump to 1.0, reject newer versions with a clear message, and add a migration hook for older ones; done when a higher-version project fails clearly and a 0.9 project loads through the hook. ([proposal](changes/project-format-freeze.md))
-- **1.0** [LIB-PROJECT-FORMAT] Remove the scattered color source from the 1.0 schema (an empty class: the reader ignores it, the writer throws or loops) rather than freezing a stub into the format; it can return as an additive change; done when `ScatteredColorSource` cannot reach the reader, writer or palette editor. ([proposal](changes/project-format-freeze.md))
+- **1.0** [LIB-PROJECT-FORMAT] Path keys are kept (decided; stable keys rejected for now); done when the analysis is recorded as a LIB-PROJECT-FORMAT Decision. ([proposal](changes/project-format-freeze.md))
+- **1.0** [LIB-PROJECT-FORMAT] Schema versioning: `version="0.9"` is written and parsed but never compared; bump to 1.0 and reject newer versions with a clear message, with no migration or upgrade path (no projects in the wild); done when a higher-version project fails clearly and a 0.9 project loads as 1.0. ([proposal](changes/project-format-freeze.md))
+- **1.0** [LIB-PALETTES, LIB-PROJECT-FORMAT, UI-PALETTE-EDITOR] Implement scattered color sources (an empty class today: the reader ignores it, the writer throws or loops): a palette entry assembled from bit fields at separate places in the palette's data file; done when such palettes load, save, round-trip and edit in the palette editor. ([proposal](changes/scattered-color-sources.md))
+- **1.0** [UI-GRAPHICS-EDITOR, LIB-PALETTES] Sequential editors switch between built-in palettes, and three new 256-color global palettes ship (high contrast in the first 16, one smooth synthwave); done when the combo recolors the view and the palettes pass their design tests. ([proposal](changes/sequential-palettes.md))
+- **1.0** [UI-WELCOME] A welcome screen in the empty document area, with demo art decoded from a shipped SNES 4bpp file; done when it shows on launch and after the last editor closes. ([proposal](changes/welcome-screen.md))
 - [UI-SHELL, LIB-PROJECT-SERVICE] Command-line and OS integration (optional for 1.0): `args` are passed to Avalonia but never read, and there is no window drop handler; done when a non-`.xml` path on the command line, or a file dropped on the window, opens as a standalone file (drop is a manual check).
 - [UI-SHELL] Status-bar Indefinite and Reset messages are handled but never sent; done when a sender exists or the values are removed.
 
@@ -81,6 +83,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-CODECS] Read-only compression support: [change proposal](changes/compression-support.md).
 - [LIB-PROJECT-FORMAT, UI-GRAPHICS-EDITOR] Sequential arrangers as project resources ("save view as arranger"; deferred to 1.1); done when one saves and reloads. Unblocks persisting the element layout (P2, deliberately not done in Milestone 9) and per-file view state for standalone files.
 - [UI-SHELL] Status bar notifications: an icon with an unread count that opens a list of silent notifications (startup issues, plugin decode failures, low-importance runtime events), replacing the startup alert: [change proposal](changes/status-notifications.md).
+- [LIB-PALETTES, LIB-PROJECT-FORMAT, UI-PALETTE-EDITOR] Palettes of only project colors, saved in the palette XML with no data file (intended, never built): the writer refuses them (LIB-PROJECT-FORMAT-036), `ProjectTreeBuilder.AddPalette` fails "has no data file", `Palette.LoadForeignPalette` guards on a data source, and the editor cannot change model or apply sources without one; done when such a palette is created, edited, saved and reloaded.
 - [LIB-PALETTES, UI-PALETTE-EDITOR] Remaining palette file formats: RIFF `.pal`, `.act`, `.hex`, and a JSON writer (JASC `.pal` and `.gpl` exist).
 
 ### P2
@@ -147,7 +150,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-PALETTES] `Palette.HasAlpha` is never set and unused; `Palette.GetColor` is unused and swaps R and B.
 - [LIB-CODECS] `PatternList._encodePattern` is a public mutable field.
 - [LIB-PROJECT-TREE] `ProjectResourceBaseComparer` (internal, unused) and `IProjectResource.ShouldBeSerialized` (never read).
-- **1.0** [LIB-PROJECT-FORMAT] The reader branches for `scatteredcolor`/`import`/`export` (the schema rejects them) and the commented-out `ScatteredColorSourceModel` mapping. ([proposal](changes/project-format-freeze.md))
+- **1.0** [LIB-PROJECT-FORMAT] The reader branches for `scatteredcolor`/`import`/`export` (the schema rejects them) and the commented-out `ScatteredColorSourceModel` mapping. ([proposal](changes/scattered-color-sources.md))
 
 ## Release engineering and documentation
 

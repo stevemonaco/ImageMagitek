@@ -8,6 +8,7 @@ One spec per feature; format and usage in [../README.md](../README.md). Find a t
 |---|---|---|
 | [Application shell](shell.md) | UI-SHELL | `ShellViewModel`, `MenuViewModel`, `StatusViewModel`, `PreferencesViewModel`, `HotkeyService`, `EditCommands`, `InteractionService`, `ViewLocator`, `TileShopBootstrapper`, `UserPreferences`, dialogs (`AlertViewModel`, `PromptViewModel`, `RequestViewModel`) |
 | [Editor hosting](editors.md) | UI-EDITORS | `EditorsViewModel`, `DockableEditorViewModel`, `ResourceEditorBaseViewModel`, `PaletteColorAssignedMessage` |
+| [Welcome screen](welcome.md) (draft) | UI-WELCOME | `WelcomeViewModel`, `DemoArt` (the demo file generator) |
 | [Project tree](project-tree.md) | UI-PROJECT-TREE | `ProjectTreeViewModel`, `ResourceNodeViewModel` and subclasses, `ResourceNodeComparer`, `PayloadDragBehavior`, `PayloadDropBehavior`, move/rename/add/remove dialogs |
 
 ## Graphics editor

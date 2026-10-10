@@ -28,7 +28,9 @@
 3. **Release notes** `docs/release-notes/1.0.md`, written last, after the other 1.0 proposals land:
    - Requirements: self-contained, no .NET install. Platforms: win-x64 supported; linux-x64 and osx-arm64 untested.
    - Codec behavior changes from LIB-CODECS "Codec rework behavior changes": Genesis 4bpp, SNES Mode 7, Virtual Boy 2bpp and NGPC 2bpp now show correct colors that differ from earlier versions; N64 RGBA32 reads `.z64` order; N64 RGBA16 reports 16 bpp; PSX 16bpp keeps STP; all codec XMLs now ship.
-   - Project format changes and 0.9 migration from [project-format-freeze](project-format-freeze.md).
+   - Project format changes from [project-format-freeze](project-format-freeze.md) (format 1.0; 0.9 projects open as 1.0; newer formats are refused) and scattered color sources from [scattered-color-sources](scattered-color-sources.md).
+   - The new default palette and alternates from [sequential-palettes](sequential-palettes.md): elements on the global default palette look different.
+   - The welcome screen from [welcome-screen](welcome-screen.md).
    - CLI changes from CLI-COMMANDS (System.CommandLine, awaited exit codes, `--log`, import options, plugins, read-only skip), linking `docs/cli.md`.
    - Read-only data files now open read-only (LIB-DATASOURCE-021).
    - Plugins built for earlier versions must be rebuilt against `ImageMagitek.Plugins.Contracts` (LIB-PLUGINS); TileShop reports them at startup.
