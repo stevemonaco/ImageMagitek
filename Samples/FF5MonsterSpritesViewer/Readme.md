@@ -2,8 +2,10 @@
 
 This tool reads the layout of FF5 Monster Sprites and displays them via ImageMagitek. The purpose is 
 primarily to demonstrate how to use ImageMagitek in apps that are simpler than TileShop and to expand 
-the abilities of ImageMagitek to new use cases. Requires "ff5.sfc" in application directory.
+the abilities of ImageMagitek to new use cases.
 The information necessary largely comes from Squall_FF8's [article on FF5 Monster Graphics](https://www.ff6hacking.com/ff5wiki/index.php?title=Monster_Graphics)
+
+The ROM is not included. Supply your own Final Fantasy V (Japan) ROM as `ff5.sfc` in the application directory (for a Debug build, `bin\Debug\net10.0`). Without it, the viewer asks for the ROM with a file picker.
 
 There were two things to note:
 1. The palette address calculation should multiply by 16, not 8.

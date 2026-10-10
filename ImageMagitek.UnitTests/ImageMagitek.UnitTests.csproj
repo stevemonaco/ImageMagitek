@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-	<TargetFramework>net10.0-windows</TargetFramework>
+	<TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   
   <ItemGroup>
@@ -11,7 +11,6 @@
     
     <PackageReference Include="OneOf" />
     <PackageReference Include="SixLabors.ImageSharp" />
-    <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="Verify.Xunit" />
 
     <PackageReference Include="xunit" />

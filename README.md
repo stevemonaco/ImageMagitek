@@ -6,9 +6,6 @@ TileShop is an upcoming crossplatform application that implements ImageMagitek a
 
 TileShopCLI is a portable, limited implementation of TileShop where users can export/import resources from existing TileShop projects. This is especially useful in toolchains.
 
-Old WPF Client
-![TileShop Workspace Dark Theme](https://raw.githubusercontent.com/stevemonaco/ImageMagitek/wpf/TileShop.WPF/Assets/DemoImages/TileShopLayoutDark10142020.png)
-
 # Tech Stack
 Language - C# / .NET 6
 
@@ -42,17 +39,6 @@ Big thanks to the authors of these open source libraries for making this project
 [System.CommandLine](https://github.com/dotnet/command-line-api) for the CLI client parsing
 
 [Lucide](https://lucide.dev) for the toolbar icons (ISC License)
-
-## Old WPF Client Dependencies
-[AvalonDock](https://github.com/Dirkster99/AvalonDock) for the docking window layout
-
-[ModernWPF](https://github.com/Kinnara/ModernWpf) for styling/theming
-
-[Stylet](https://github.com/canton7/Stylet) for MVVM architecture support
-
-[GongSolutions.WPF.DragDrop](https://github.com/punker76/gong-wpf-dragdrop) for easy drag+drop support
-
-[PixiEditor/ColorPicker](https://github.com/PixiEditor/ColorPicker) for the color picker for direct graphics
 
 The TileShop.WPF client's source is preserved on the wpf branch
 

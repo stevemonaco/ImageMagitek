@@ -29,7 +29,7 @@ ImageMagitek is a .NET library for viewing, editing and organizing retro game gr
 | `TileShop.CLI` | `print`, `export`, `exportall`, `import`, `importall` over an existing project. | [`cli/`](specs/cli/index.md) |
 | `ImageMagitek.UnitTests` | xUnit tests for the library, services and UI ViewModel logic (references TileShop.UI). | — |
 | `ImageMagitek.Benchmarks` | BenchmarkDotNet codec benchmarks. | — |
-| `Samples/` | Plugin samples (`ImageMagitek.PluginSamples`, also used by the tests), FF5 monster sprite CLI and WPF samples. | — |
+| `Samples/` | Plugin samples (`ImageMagitek.PluginSamples`, also used by the tests), and FF5 monster sprite samples: a CLI exporter/importer and an Avalonia viewer. | — |
 
 Build configuration is shared through `Directory.Build.props` and `Directory.Packages.props` (central package management: package versions go there, never in a csproj). `publish.ps1` produces self-contained single-file builds.
 

@@ -1,0 +1,31 @@
+<Window x:Class="FF5MonsterSprites.ShellView"
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:FF5MonsterSprites"
+        x:DataType="local:ShellViewModel"
+        Title="FF5 Monster Sprites" Width="800" Height="450">
+    <Window.DataTemplates>
+        <DataTemplate DataType="local:SpriteViewModel">
+            <local:SpriteView />
+        </DataTemplate>
+    </Window.DataTemplates>
+
+    <Grid ColumnDefinitions="*,4*">
+        <ListBox Grid.Column="0" ItemsSource="{Binding Sprites}" SelectedItem="{Binding SelectedSprite, Mode=TwoWay}">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="local:SpriteViewModel">
+                    <TextBlock Text="{Binding MonsterId, StringFormat='Monster {0}'}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <ContentControl Grid.Column="1" Margin="8" Content="{Binding SelectedSprite}" />
+
+        <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
+                   Margin="16"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   TextWrapping="Wrap"
+                   Text="{Binding ErrorMessage}"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    </Grid>
+</Window>

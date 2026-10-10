@@ -1,0 +1,29 @@
+<UserControl x:Class="FF5MonsterSprites.SpriteView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:FF5MonsterSprites"
+             x:DataType="local:SpriteViewModel">
+    <Grid ColumnDefinitions="Auto,Auto">
+        <StackPanel Grid.Column="0" Margin="0,0,16,0">
+            <TextBlock Text="{Binding Metadata.ColorDepth, StringFormat='Color Depth: {0}'}" />
+            <TextBlock Text="{Binding Metadata.TileSetSize, StringFormat='Tile Set Size: {0}'}" />
+            <TextBlock Text="{Binding Metadata.HasShadow, StringFormat='Has Shadow: {0}'}" />
+            <TextBlock Text="{Binding Metadata.Unused, StringFormat='Unused Flags: {0}'}" />
+
+            <TextBlock Text="{Binding Metadata.TileSetId, StringFormat='Tile Set ID: {0}'}" />
+            <TextBlock Text="{Binding Metadata.PaletteId, StringFormat='Palette ID: {0}'}" />
+            <TextBlock Text="{Binding Metadata.FormId, StringFormat='Form ID: {0}'}" />
+
+            <TextBlock Text="{Binding LoadError}" TextWrapping="Wrap" MaxWidth="240" />
+        </StackPanel>
+
+        <Border Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Left" BorderBrush="{DynamicResource SemiColorBorder}" BorderThickness="1">
+            <LayoutTransformControl>
+                <LayoutTransformControl.LayoutTransform>
+                    <ScaleTransform ScaleX="6" ScaleY="6" />
+                </LayoutTransformControl.LayoutTransform>
+                <Image Source="{Binding Bitmap}" Stretch="None" RenderOptions.BitmapInterpolationMode="None" />
+            </LayoutTransformControl>
+        </Border>
+    </Grid>
+</UserControl>

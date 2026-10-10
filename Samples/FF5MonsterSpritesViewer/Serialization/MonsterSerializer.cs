@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using FF5MonsterSprites.Models;
 using ImageMagitek;
 using ImageMagitek.Builders;
@@ -12,28 +7,27 @@ using ImageMagitek.PluginSample;
 
 namespace FF5MonsterSprites.Serialization;
 
-public record SpriteResourceContext(DataSource DataFile, Palette Palette, ScatteredArranger Arranger);
+public record SpriteResourceContext(DataSource DataFile, ScatteredArranger Arranger);
 
 public class MonsterSerializer
 {
-    public int MasterTableOffset { get; set; } = 0x14B180;
-    public int TileSetOffset { get; set; } = 0x150000;
-    public int PaletteOffset { get; set; } = 0x0ED000;
-    public int FormSmallOffset { get; set; } = 0x10D004;
-    public int FormLargeOffset { get; set; } = 0x10D334;
-    public int Entries { get; set; } = 384;
+    private const int MasterTableOffset = 0x14B180;
+    private const int TileSetOffset = 0x150000;
+    private const int PaletteOffset = 0x0ED000;
+    private const int FormSmallOffset = 0x10D004;
+    private const int FormLargeOffset = 0x10D334;
+    private const int Entries = 384;
 
-    private int _monsterLength = 5;
+    private const int MonsterLength = 5;
 
     public async Task<List<MonsterMetadata>> DeserializeMonsters(string fileName)
     {
         using var fileStream = File.OpenRead(fileName);
-        using var reader = new BinaryReader(fileStream);
 
         fileStream.Seek(MasterTableOffset, SeekOrigin.Begin);
 
-        var monsterData = new byte[_monsterLength * Entries];
-        var length = await fileStream.ReadAsync(monsterData, 0, monsterData.Length);
+        var monsterData = new byte[MonsterLength * Entries];
+        await fileStream.ReadExactlyAsync(monsterData);
         var bitStream = BitStream.OpenRead(monsterData, monsterData.Length * 8);
         var monsters = new List<MonsterMetadata>();
 
@@ -61,6 +55,19 @@ public class MonsterSerializer
     public async Task<SpriteResourceContext> DeserializeSprite(string fileName, MonsterMetadata metadata)
     {
         var dataFile = new FileDataSource("monsterFile", fileName);
+        try
+        {
+            return await BuildSprite(dataFile, metadata);
+        }
+        catch
+        {
+            dataFile.Dispose();
+            throw;
+        }
+    }
+
+    private async Task<SpriteResourceContext> BuildSprite(FileDataSource dataFile, MonsterMetadata metadata)
+    {
         var palEntries = metadata.ColorDepth == TileColorDepth.Bpp4 ? 16 : 8;
 
         var paletteSources = Enumerable.Range(0, palEntries)
@@ -69,15 +76,12 @@ public class MonsterSerializer
 
         var pal = new Palette("monsterPalette", new ColorFactory(), ColorModel.Bgr15, paletteSources, true, PaletteStorageSource.ProjectXml, dataFile);
 
-        Console.WriteLine(pal.GetNativeColor(0).ToString());
-
         int arrangerWidth = metadata.TileSetSize == TileSetSize.Small ? 8 : 16;
         int arrangerHeight = metadata.TileSetSize == TileSetSize.Small ? 8 : 16;
 
         var formData = new byte[arrangerWidth * arrangerHeight / 8];
         int formAddress = metadata.TileSetSize == TileSetSize.Small ? FormSmallOffset + 8 * metadata.FormId : FormLargeOffset + 32 * metadata.FormId;
 
-        //dataFile.Read(new BitAddress(formAddress, 0), formData.Length * 8, formData);
         await dataFile.ReadAsync(new BitAddress(formAddress, 0), formData.Length * 8, formData);
         
         if (metadata.TileSetSize == TileSetSize.Large) // Requires endian swapping the tile form
@@ -94,7 +98,6 @@ public class MonsterSerializer
             .AsScatteredArranger()
             .Build();
 
-        int elementsStored = 0;
         int tileOffset = TileSetOffset + 8 * metadata.TileSetId;
         int tileSize = metadata.ColorDepth == TileColorDepth.Bpp4 ? 32 : 24;
 
@@ -108,12 +111,11 @@ public class MonsterSerializer
                     var element = new ArrangerElement(x * 8, y * 8, dataFile, new BitAddress(tileOffset * 8), codec);
                     tileOffset += tileSize;
                     arranger.SetElement(element, x, y);
-                    elementsStored++;
                 }
             }
         }
 
-        return new SpriteResourceContext(dataFile, pal, arranger);
+        return new SpriteResourceContext(dataFile, arranger);
     }
 
     private void EndianSwapArray(byte[] array)

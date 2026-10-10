@@ -1,7 +1,7 @@
 <Solution>
   <Folder Name="/Samples/">
     <Project Path="Samples/FF5MonsterSpritesCLI/FF5MonsterSpritesCLI.csproj" />
-    <Project Path="Samples/FF5MonsterSpritesWPF/FF5MonsterSpritesWPF.csproj" />
+    <Project Path="Samples/FF5MonsterSpritesViewer/FF5MonsterSpritesViewer.csproj" />
     <Project Path="Samples/ImageMagitek.PluginSamples/ImageMagitek.PluginSamples.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
