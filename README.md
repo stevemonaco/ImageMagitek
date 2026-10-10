@@ -39,7 +39,7 @@ Big thanks to the authors of these open source libraries for making this project
 
 [Nuke](https://github.com/nuke-build/nuke) for the C#-based build system
 
-[CommandLineParser](https://github.com/commandlineparser/commandline) for the CLI client parsing
+[System.CommandLine](https://github.com/dotnet/command-line-api) for the CLI client parsing
 
 [Lucide](https://lucide.dev) for the toolbar icons (ISC License)
 

@@ -6,7 +6,7 @@ When an item is closed, its line is deleted.
 
 **1.0** marks items that block the 1.0 release ([ARCHITECTURE.md](ARCHITECTURE.md) §1): they lose work, corrupt data, freeze the project format, or leave a visible control that does nothing. Out of scope for 1.0: direct-color XML codecs, compression ([proposal](changes/compression-support.md)), new platforms and color models, new drawing or selection tools, layers, tilemaps and scripting. Candidates for 1.1, roughly in order: sequential arrangers as project resources, export from sequential views and selections, CLI `--json` output and key globs, OS clipboard, tool hotkeys; then compression and direct-color XML codecs.
 
-Every **1.0** item belongs to a change proposal, linked at the end of its line: [project-format-freeze](changes/project-format-freeze.md), [cli-1-0](changes/cli-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
+Every **1.0** item belongs to a change proposal, linked at the end of its line: [project-format-freeze](changes/project-format-freeze.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
 
 Found by reading the code, not reproduced, unless a test is named.
 
@@ -24,6 +24,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-ARRANGERS] A clone rectangle that is not element-aligned drops the last covered column or row; done when the element span is computed from both edges.
 - [LIB-IMAGES] `DirectImage.SaveImage` and its save-conflict analysis assume the image starts at the arranger origin, so a sub-rectangle image saves the wrong pixels or throws; `CanSetPalette` also reads arranger coordinates from a sub-rectangle image; done when partial DirectImage saves and `CanSetPalette` with Left/Top ≠ 0 are correct and tested.
 - [LIB-IMAGE-IO] Indexed export of a sub-rectangle image fails because the adapter sizes the PNG from the arranger; done when it exports the rectangle or rejects it clearly.
+- [LIB-IMAGE-IO] RGBA fallback export throws `IndexOutOfRangeException` when a pixel's index lies past its palette's last entry (a 4bpp element on a palette shorter than 16 entries, as in the AllFeatures fixture's `Sprites/Indexed`), so the CLI exits −2 for that export; done when such pixels export (transparent, or the codec's color range is padded) and a test pins it.
 - [LIB-CODECS] `PatternList` accepts `mapIndex == patternSize` (`>` should be `>=`), and the chunky symbol-count check allows one occurrence too many; done when tests reject both.
 - [LIB-DATASOURCE] A zero-bit read at a byte-aligned address throws `IndexOutOfRangeException`; done when it returns an empty array.
 - [LIB-DATASOURCE] A bit-unaligned write whose last partial byte is past EOF merges into `0xFF`, so untouched bits become 1; done when they are 0, or the write is refused.
@@ -39,17 +40,8 @@ Found by reading the code, not reproduced, unless a test is named.
 - [UI-GRAPHICS-EDITOR] A VM's `OnImageModified` callback is never cleared when a view releases it, so it can repaint a view that no longer shows it (only a null-VM paint guard covers it); done when the view clears its callbacks on DataContext change.
 - [UI-SHELL] Overlay dialogs do not animate in: `OverlayDialog.AnimateInAsync` was reachable only from the removed `ShowAsync`, so the mediator path never ran it and it was deleted; done when `DialogHost` animates a dialog in when it opens, or a decision records that it does not.
 
-### CLI
-
-- **1.0** [CLI-COMMANDS] `WithParsed(async ...)` is async-void: Main reads the exit code before the handler finishes whenever opening truly yields (a leftover WAL journal), so the run exits −1 mid-command; done when Main awaits the handler and a run with a journal returns the real code. ([proposal](changes/cli-1-0.md))
-- **1.0** [CLI-COMMANDS] `Exporter` tests `Directory.Exists(path)` before `CreateDirectory` (inverted), so a missing or nested export directory throws and the run exits −2 with keys unexported; done when export into a fresh tree writes nested PNGs and exits 0. ([proposal](changes/cli-1-0.md))
-- **1.0** [CLI-COMMANDS] `ExportHandler` and `ExportAllHandler` ignore `ExportArranger`'s result and always return 0, so −7 is never used, and unknown color types write nothing yet print "Completed successfully"; done when a failed or unsupported key yields −7 with a message naming it. ([proposal](changes/cli-1-0.md))
-- **1.0** [CLI-COMMANDS] `--log` has no effect (the static logger is built from `DefaultLogFileName`; the computed path is never read), and the default log goes to the current directory, not the app directory as documented; done when `--log x.txt` writes there and the default matches the doc. ([proposal](changes/cli-1-0.md))
-- **1.0** [CLI-COMMANDS] `--help` and `--version` exit −3 and log "Operation failed due to invalid command line options"; done when both exit 0 with no error line. ([proposal](changes/cli-1-0.md))
-
 ## Missing validation
 
-- **1.0** [CLI-COMMANDS] Read-only arrangers fail the import instead of being skipped and reported, and halt `importall` at the first one; done when `import`/`importall` skip them with a message and continue. ([proposal](changes/cli-1-0.md))
 - [LIB-PROJECT-SERVICE] `SaveResourceAsync` has no standalone guard; called with a standalone root it would write XML over the ROM (unreachable from today's UI); done when it fails for standalone trees.
 - [LIB-PROJECT-SERVICE] `OpenProjectFileAsync`'s already-open check compares raw path strings, so the same project opens twice via a relative path or other casing; done when it normalizes like `OpenDataFile`.
 - [LIB-PROJECT-SERVICE] `CanMoveNode` and `GetContainingProject` throw for nodes outside every open tree; done when `CanMoveNode` returns a failure.
@@ -66,7 +58,6 @@ Found by reading the code, not reproduced, unless a test is named.
 - [UI-ARRANGING] Associate Palette adds duplicates, sizes the palette by entry count instead of codec color depth, and `Palettes.First()` throws on an empty list; done when duplicates are skipped and an empty list is handled.
 - [UI-ARRANGING] Delete records history and marks the editor modified when every covered element is already empty; done when it is a no-op.
 - [UI-PALETTE-EDITOR] Change Color Model needs a data source even when every source is a project color; done when such a palette can change model.
-- **1.0** [CLI-COMMANDS] A missing data file surfaces as an exception (−2) rather than a message naming the arranger and file; done when export/import report it per arranger and fail with −6/−7. ([proposal](changes/cli-1-0.md))
 
 ## Undecided questions
 
@@ -82,8 +73,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 - **1.0** [LIB-PROJECT-FORMAT] Schema versioning and migration: `version="0.9"` is written and parsed but never compared; bump to 1.0, reject newer versions with a clear message, and add a migration hook for older ones; done when a higher-version project fails clearly and a 0.9 project loads through the hook. ([proposal](changes/project-format-freeze.md))
 - **1.0** [LIB-PROJECT-FORMAT] Remove the scattered color source from the 1.0 schema (an empty class: the reader ignores it, the writer throws or loops) rather than freezing a stub into the format; it can return as an additive change; done when `ScatteredColorSource` cannot reach the reader, writer or palette editor. ([proposal](changes/project-format-freeze.md))
-- **1.0** [CLI-COMMANDS] Import options `--match exact|nearest|nearestrgb`, `--max-distance` and `--transparent-index0`, mapped onto `ImageImportOptions` (today always `Default`); done when each changes the staged result. ([proposal](changes/cli-1-0.md))
-- **1.0** [CLI-COMMANDS] Load plugin codecs (`CreatePluginService` is commented out in `Program.cs`; the constructor blocker is fixed); done when a project using a sample plugin codec exports. ([proposal](changes/cli-1-0.md))
 - [UI-SHELL, LIB-PROJECT-SERVICE] Command-line and OS integration (optional for 1.0): `args` are passed to Avalonia but never read, and there is no window drop handler; done when a non-`.xml` path on the command line, or a file dropped on the window, opens as a standalone file (drop is a manual check).
 - [UI-SHELL] Status-bar Indefinite and Reset messages are handled but never sent; done when a sender exists or the values are removed.
 
@@ -125,7 +114,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ## Untested behavior worth a test
 
-- **1.0** [CLI-COMMANDS] No handler or exit code is tested: a fixture-project test covering 0/−3/−5/−6/−7, overwrite, `-f`/`-r` and nested export. ([proposal](changes/cli-1-0.md))
 - **1.0** [LIB-PROJECT-SERVICE] `OpenProjectFileAsync` with a leftover journal; `CloseProjects`; project-root rename.
 - [LIB-DATASOURCE] Past-EOF read throws `EndOfStreamException`; overflowing a fixed-capacity `MemoryDataSource` throws `NotSupportedException`; `Flush` and `Write` never raise `DataWritten`; unbounded sources grow on write.
 - [LIB-CODECS] XML schema and semantic validation failures; unknown name throws `KeyNotFoundException`; direct-color XML throws; pattern codecs ignore the requested size; each codec gets its own format clone; `AddCodec` rejects abstract or non-codec types; `CloneCodec`.
@@ -159,7 +147,6 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-CODECS] `PatternList._encodePattern` is a public mutable field.
 - [LIB-PROJECT-TREE] `ProjectResourceBaseComparer` (internal, unused) and `IProjectResource.ShouldBeSerialized` (never read).
 - **1.0** [LIB-PROJECT-FORMAT] The reader branches for `scatteredcolor`/`import`/`export` (the schema rejects them) and the commented-out `ScatteredColorSourceModel` mapping. ([proposal](changes/project-format-freeze.md))
-- **1.0** [CLI-COMMANDS] Verb help texts are wrong: `exportall` says "all project resources" (only scattered arrangers), `import`/`importall` say "skipping resources that cannot be located" (only with `-f`/`-r`). ([proposal](changes/cli-1-0.md))
 
 ## Release engineering and documentation
 
@@ -193,4 +180,5 @@ DevTools cannot drive pointer gestures, drag and drop, or popups, so these need 
 - [UI-EDITORS] Float a tab, then File → Close <name>, and separately delete its resource in the tree: the floating tab closes each time. After closing tabs with their X, the shown tab and the File menu's Close <name> agree.
 - [UI-IMAGE-IO] Export with a missing ROM (alert before the file picker), over a read-only PNG ("Export Error"), and with a modified editor (Yes saves then exports, No exports the saved state and keeps the edits, Cancel stops). Import into a read-only ROM: "Import Error" stacks above the dialog, and the dialog stays open and usable after OK.
 - [UI-SHELL] Save All becomes enabled after a pixel edit is applied (DevTools cannot apply a pending paste), and saves every modified editor without prompting.
-- [CLI-COMMANDS] `TileShopCLI print` with a malformed codec file in the build output's `_codecs` prints a warning and exits 0; with `_palettes/DefaultRgba32.json` renamed it exits -4.
+- [CLI-COMMANDS] `TileShopCLI print` with `_palettes/DefaultRgba32.json` renamed in the build output exits -4 (the malformed-codec warning is covered by `CliApplicationTests.BootstrapIssue_PrintsWarningExits0`).
+- [CLI-PUBLISH] In the trimmed single-file publish, `--help`, `export --help` and `--version` exit 0, and with the sample plugin under `_plugins` an arranger using "Last Armageddon Font" exports and `importall` skips it as read-only.

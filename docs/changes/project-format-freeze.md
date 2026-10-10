@@ -208,7 +208,7 @@ Lands after [project-format-round-trip.md](project-format-round-trip.md), whose 
        - `Upgrade_ThenReopen_NoMigration`
        - `Upgrade_TransactionFails_FilesAndVersionUnchanged` (a read-only target)
        - `Upgrade_AtCurrentVersion_WritesNothing`
-     - `CliApplicationTests` (from cli-1-0.md): `OlderFormat_ExportsWithoutWriting`, `NewerFormat_Exits5`.
+     - `CliApplicationTests` (CLI-COMMANDS): `OlderFormat_ExportsWithoutWriting`, `NewerFormat_Exits5`.
 3. **Upgrade prompt.**
    - Code: `ProjectTreeViewModel` asks after open and before the missing-data-files alert; Upgrade calls the service; Cancel and failure close the project.
    - Tests: `ProjectTreeViewModelTests` (or the nearest existing ViewModel test class), with a fake interaction service: `OpenOlderFormat_Cancel_ClosesProject`, `OpenOlderFormat_Upgrade_UpgradesThenShowsMissingFiles`, `UpgradeFails_AlertsAndCloses`.

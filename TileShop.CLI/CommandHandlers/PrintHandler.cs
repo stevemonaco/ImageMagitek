@@ -1,14 +1,14 @@
-﻿using System.Threading.Tasks;
+using System.IO;
+using System.Threading.Tasks;
 using ImageMagitek.Services;
 using Monaco.PathTree;
-using Serilog;
 
 namespace TileShop.CLI.Commands;
 
 public class PrintHandler : ProjectCommandHandler<PrintOptions>
 {
-    public PrintHandler(IProjectService projectService) :
-        base(projectService)
+    public PrintHandler(IProjectService projectService, TextWriter output) :
+        base(projectService, output)
     {
     }
 
@@ -22,7 +22,7 @@ public class PrintHandler : ProjectCommandHandler<PrintOptions>
         foreach (var res in projectTree.EnumerateDepthFirst())
         {
             string key = projectTree.CreatePathKey(res);
-            Log.Information($"{res.Name}: Type '{res.Item.GetType().Name}'; Resource Key '{key}'");
+            Output.WriteLine($"{res.Name}: Type '{res.Item.GetType().Name}'; Resource Key '{key}'");
         }
 
         return ExitCode.Success;

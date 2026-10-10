@@ -48,6 +48,7 @@ tests:
   - SaveConflictTests
   - SequentialArrangerRoundTripTests
   - ReadOnlyArrangerTests
+  - ArrangerExtensionsTests
   - GraphicsEditHistoryTests
   - IndexedImageTests
   - ImageImporterTests
@@ -88,6 +89,8 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
   - Tests: `ReadOnlyArrangerTests.IsReadOnly_DecodeOnlyCodec_IsTrue`, `ReadOnlyArrangerTests.IsReadOnly_EncodableCodec_IsFalse`, `ReadOnlyArrangerTests.IsReadOnly_ElementOnReadOnlySource_IsTrue`
 - **LIB-ARRANGERS-049** — When the read-only reason is requested, the arranger shall return null when writable, otherwise a reason naming the first offending element's codec or data file.
   - Tests: `ReadOnlyArrangerTests.GetReadOnlyReason_NamesCodecOrDataFile`
+- **LIB-ARRANGERS-051** — The arranger shall report the first missing file data source among its elements' sources and its referenced palettes' sources, or none when every file exists.
+  - Tests: `ArrangerExtensionsTests.FindMissingDataSource_ElementOrPaletteSource`
 - **LIB-ARRANGERS-010** — When a pixel point outside the arranger is converted to an element location, the conversion shall throw an out-of-range error.
   - Tests: untested
 

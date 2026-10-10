@@ -300,19 +300,13 @@ public partial class EditorsViewModel : ObservableRecipient
         return true;
     }
 
-    private static FileDataSource? FindMissingDataSource(IProjectResource resource)
+    private static FileDataSource? FindMissingDataSource(IProjectResource resource) => resource switch
     {
-        IEnumerable<DataSource?> sources = resource switch
-        {
-            FileDataSource fileSource => [fileSource],
-            Palette palette => [palette.DataSource],
-            Arranger arranger => arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => (DataSource?)x.Source)
-                .Concat(arranger.GetReferencedPalettes().Select(x => x.DataSource)),
-            _ => []
-        };
-
-        return sources.OfType<FileDataSource>().Distinct().FirstOrDefault(x => x.IsMissing);
-    }
+        FileDataSource fileSource => fileSource.IsMissing ? fileSource : null,
+        Palette { DataSource: FileDataSource paletteSource } => paletteSource.IsMissing ? paletteSource : null,
+        Arranger arranger => arranger.FindMissingDataSource(),
+        _ => null
+    };
 
     private static string DescribeMissingDataSource(IProjectResource resource, FileDataSource missing) =>
         ReferenceEquals(resource, missing)

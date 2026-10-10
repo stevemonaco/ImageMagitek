@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using ImageMagitek;
@@ -8,46 +8,64 @@ namespace TileShop.CLI.Porters;
 
 public static class Exporter
 {
-    public static bool ExportArranger(ProjectTree projectTree, string arrangerKey, string projectRoot, bool forceOverwrite)
+    /// <returns>False if the arranger could not be exported; an existing PNG skipped without <paramref name="forceOverwrite"/> counts as success</returns>
+    public static bool ExportArranger(ProjectTree projectTree, string arrangerKey, string projectRoot, bool forceOverwrite, TextWriter output)
     {
         if (!projectTree.TryGetNode(arrangerKey, out var node))
         {
-            Console.WriteLine($"Exporting '{arrangerKey}'...Resource key not found in project");
+            output.WriteLine($"Exporting '{arrangerKey}'...Resource key not found in project");
             return false;
         }
 
         if (node.Item is not ScatteredArranger arranger)
         {
-            Console.WriteLine($"Exporting '{arrangerKey}'...Resource key is not a Scattered Arranger");
+            output.WriteLine($"Exporting '{arrangerKey}'...Resource key is not a Scattered Arranger");
             return false;
         }
 
         var relativeFile = Path.Combine(projectTree.CreatePaths(node).ToArray());
         var exportFileName = Path.Combine(projectRoot, $"{relativeFile}.png");
 
-        Console.Write($"Exporting '{arrangerKey}' to '{exportFileName}'...");
+        output.Write($"Exporting '{arrangerKey}' to '{exportFileName}'...");
 
-        if (Path.GetDirectoryName(exportFileName) is string path && Directory.Exists(path))
-            Directory.CreateDirectory(path);
-
-        if (File.Exists(exportFileName) && forceOverwrite == false)
+        if (arranger.FindMissingDataSource() is { } missing)
         {
-            Console.WriteLine($"File already exists and was skipped to not overwrite it");
+            output.WriteLine($"Data file '{missing.Name}' is missing at '{missing.FileLocation}'");
             return false;
         }
 
-        if (arranger.ColorType == PixelColorType.Indexed)
+        if (File.Exists(exportFileName) && !forceOverwrite)
         {
-            var image = new IndexedImage(arranger);
-            image.ExportImage(exportFileName, new ImageSharpFileAdapter());
-        }
-        else if (arranger.ColorType == PixelColorType.Direct)
-        {
-            var image = new DirectImage(arranger);
-            image.ExportImage(exportFileName, new ImageSharpFileAdapter());
+            output.WriteLine("File already exists and was skipped to not overwrite it");
+            return true;
         }
 
-        Console.WriteLine("Completed successfully");
+        try
+        {
+            if (Path.GetDirectoryName(exportFileName) is { Length: > 0 } path)
+                Directory.CreateDirectory(path);
+
+            if (arranger.ColorType == PixelColorType.Indexed)
+            {
+                new IndexedImage(arranger).ExportImage(exportFileName, new ImageSharpFileAdapter());
+            }
+            else if (arranger.ColorType == PixelColorType.Direct)
+            {
+                new DirectImage(arranger).ExportImage(exportFileName, new ImageSharpFileAdapter());
+            }
+            else
+            {
+                output.WriteLine($"Color type '{arranger.ColorType}' is not supported");
+                return false;
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            output.WriteLine(ex.Message);
+            return false;
+        }
+
+        output.WriteLine("Completed successfully");
         return true;
     }
 }

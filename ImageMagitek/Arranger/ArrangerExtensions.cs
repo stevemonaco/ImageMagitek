@@ -295,6 +295,18 @@ public static class ArrangerExtensions
     }
 
     /// <summary>
+    /// The first missing file among the arranger's element sources and its referenced palettes' sources, or null when none is missing
+    /// </summary>
+    public static FileDataSource? FindMissingDataSource(this Arranger arranger)
+    {
+        return arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => (DataSource?)x.Source)
+            .Concat(arranger.GetReferencedPalettes().Select(x => x.DataSource))
+            .OfType<FileDataSource>()
+            .Distinct()
+            .FirstOrDefault(x => x.IsMissing);
+    }
+
+    /// <summary>
     /// Translates a point to an element location in the underlying arranger
     /// </summary>
     /// <param name="arranger"></param>

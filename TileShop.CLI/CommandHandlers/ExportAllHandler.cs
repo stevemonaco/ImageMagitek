@@ -1,4 +1,5 @@
-﻿using System.Linq;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Monaco.PathTree;
 using ImageMagitek;
@@ -9,8 +10,8 @@ namespace TileShop.CLI.Commands;
 
 public class ExportAllHandler : ProjectCommandHandler<ExportAllOptions>
 {
-    public ExportAllHandler(IProjectService projectService) :
-        base(projectService)
+    public ExportAllHandler(IProjectService projectService, TextWriter output) :
+        base(projectService, output)
     {
     }
 
@@ -21,11 +22,11 @@ public class ExportAllHandler : ProjectCommandHandler<ExportAllOptions>
         if (projectTree is null)
             return ExitCode.ProjectOpenError;
 
-        foreach (var node in projectTree.EnumerateDepthFirst().Where(x => x.Item is ScatteredArranger))
-        {
-            Exporter.ExportArranger(projectTree, projectTree.CreatePathKey(node), options.ExportDirectory, options.ForceOverwrite);
-        }
+        var results = projectTree.EnumerateDepthFirst()
+            .Where(x => x.Item is ScatteredArranger)
+            .Select(node => Exporter.ExportArranger(projectTree, projectTree.CreatePathKey(node), options.ExportDirectory, options.ForceOverwrite, Output))
+            .ToList();
 
-        return ExitCode.Success;
+        return results.Contains(false) ? ExitCode.ExportOperationFailed : ExitCode.Success;
     }
 }

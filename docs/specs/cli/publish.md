@@ -39,8 +39,8 @@ depends:
 
 - **CLI-PUBLISH-010** — The CLI shall build as an executable named `TileShopCLI`.
   - Tests: untested
-- **CLI-PUBLISH-011** — A CLI publish shall be trimmed, keeping System.Text.Json, CommandLine, ImageMagitek, ImageMagitek.Services and TileShopCLI whole.
-  - Tests: untested
+- **CLI-PUBLISH-011** — A CLI publish shall be trimmed, keeping System.Text.Json, ImageMagitek, ImageMagitek.Services and TileShopCLI whole.
+  - Tests: manual — publish single-file for `win-x64`, run `--help`, `export --help` and `--version` (exit 0), and export an arranger that uses a sample plugin codec placed under `_plugins`
 - **CLI-PUBLISH-012** (inherited) — Built without a runtime identifier, the CLI shall target `win-x64`.
   - Tests: untested
 - **CLI-PUBLISH-013** — The Visual Studio publish profiles ("TileShop.CLI portable", "TileShop.CLI win-x64-single") shall target `net7.0`, framework-dependent single-file `win-x64`, which the project no longer builds.
@@ -62,7 +62,7 @@ No runtime state; a build script.
 ## Decisions
 
 - **Self-contained single-file builds.** Reason: users of a toolchain tool should not need a .NET runtime installed.
-- **Trimmed CLI with whole roots for reflection users.** Verbs are discovered by reflection and settings use reflection-based JSON, so those assemblies are kept whole. Reason: a small download without breaking reflection.
+- **Trimmed CLI with whole roots for reflection users.** Settings, palettes and the transaction journal use reflection-based JSON, and codecs (built-in and plugin) are created by reflection, so System.Text.Json and the libraries are kept whole. Verbs are built in code by System.CommandLine (CLI-COMMANDS), so the parser is trimmed normally. Reason: a small download without breaking reflection.
 
 ## Non-goals
 

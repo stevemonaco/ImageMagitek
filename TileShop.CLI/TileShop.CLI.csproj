@@ -19,20 +19,18 @@
 
   <ItemGroup>
     <TrimmerRootAssembly Include="System.Text.Json" />
-    <TrimmerRootAssembly Include="CommandLine" />
     <TrimmerRootAssembly Include="ImageMagitek" />
     <TrimmerRootAssembly Include="ImageMagitek.Services" />
     <TrimmerRootAssembly Include="TileShopCLI" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" />
+    <PackageReference Include="System.CommandLine" />
     <PackageReference Include="CommunityToolkit.Diagnostics" />
     <PackageReference Include="Monaco.PathTree" />
     <PackageReference Include="OneOf" />
     <PackageReference Include="Serilog" />
     <PackageReference Include="Serilog.Extensions.Logging" />
-    <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>
 

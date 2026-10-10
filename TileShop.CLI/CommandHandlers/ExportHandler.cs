@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using ImageMagitek.Services;
 using TileShop.CLI.Porters;
 
@@ -6,8 +8,8 @@ namespace TileShop.CLI.Commands;
 
 public class ExportHandler : ProjectCommandHandler<ExportOptions>
 {
-    public ExportHandler(IProjectService projectService) :
-        base(projectService)
+    public ExportHandler(IProjectService projectService, TextWriter output) :
+        base(projectService, output)
     {
     }
 
@@ -18,11 +20,10 @@ public class ExportHandler : ProjectCommandHandler<ExportOptions>
         if (project is null)
             return ExitCode.ProjectOpenError;
 
-        foreach (var resourceKey in options.ResourceKeys)
-        {
-            Exporter.ExportArranger(project, resourceKey, options.ExportDirectory, options.ForceOverwrite);
-        }
+        var results = options.ResourceKeys
+            .Select(key => Exporter.ExportArranger(project, key, options.ExportDirectory, options.ForceOverwrite, Output))
+            .ToList();
 
-        return ExitCode.Success;
+        return results.Contains(false) ? ExitCode.ExportOperationFailed : ExitCode.Success;
     }
 }

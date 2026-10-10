@@ -171,6 +171,7 @@ Exports an arranger's image to PNG and stages image files for import back into a
 - An indexed image over a sub-rectangle exports with the arranger's size and fails because its pixel buffer is too small.
 - Import does not skip elements past the end of their source: their pixels are reported Changed but the commit never writes them.
 - In RGBA fallback, a pixel of a `ZeroIndexTransparent` palette exports as transparent black, which the Exact strategy cannot match back to the opaque entry unless transparent mapping is on.
+- In RGBA fallback, a pixel whose index lies past its palette's last entry (a 4bpp element on a shorter palette) throws `IndexOutOfRangeException` instead of exporting (backlog).
 - A source palette shorter than the combined palette still matches, as a prefix.
 - A loader exception other than I/O, access or format errors propagates to the caller.
 
@@ -204,3 +205,4 @@ Exports an arranger's image to PNG and stages image files for import back into a
 - Import reports past-end-of-source pixels as Changed though they are never written.
 - Indexed export of a sub-rectangle image fails instead of exporting the rectangle; exporting sequential views and selections is an open roadmap item.
 - RGBA fallback export and `CombinedPalette` slot limits have no direct tests (LIB-IMAGE-IO-006, -007, -008).
+- RGBA fallback export throws for an index past its palette's last entry; LIB-IMAGE-IO-008 does not say what such a pixel exports as.

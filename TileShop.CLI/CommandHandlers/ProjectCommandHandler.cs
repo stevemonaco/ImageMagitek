@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ImageMagitek.Project;
@@ -9,11 +10,13 @@ namespace TileShop.CLI.Commands;
 
 public abstract class ProjectCommandHandler<T>
 {
-    protected IProjectService ProjectService { get; set; }
+    protected IProjectService ProjectService { get; }
+    protected TextWriter Output { get; }
 
-    public ProjectCommandHandler(IProjectService projectService)
+    public ProjectCommandHandler(IProjectService projectService, TextWriter output)
     {
         ProjectService = projectService;
+        Output = output;
     }
 
     public virtual async Task<ExitCode> TryExecute(T options)
@@ -24,7 +27,7 @@ public abstract class ProjectCommandHandler<T>
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"{ex.Message}\n{ex.StackTrace}");
+            Output.WriteLine($"{ex.Message}\n{ex.StackTrace}");
             return ExitCode.Exception;
         }
     }
@@ -53,10 +56,9 @@ public abstract class ProjectCommandHandler<T>
 
     public virtual void PrintProjectErrors(string projectFileName, IList<string> errorMessages)
     {
-        var headerMessage = $"Project '{projectFileName}' contained {errorMessages.Count} errors";
-        Console.WriteLine(headerMessage);
+        Output.WriteLine($"Project '{projectFileName}' contained {errorMessages.Count} errors");
 
         foreach (var message in errorMessages)
-            Console.WriteLine(message);
+            Output.WriteLine(message);
     }
 }
