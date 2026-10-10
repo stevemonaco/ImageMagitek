@@ -1,6 +1,7 @@
 using System;
 using System.CommandLine;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using ImageMagitek.Colors;
 using ImageMagitek.Image.Import;
@@ -18,7 +19,6 @@ namespace TileShop.CLI;
 public sealed class CliApplication
 {
     private const string AppName = "TileShopCLI";
-    private const string AppVersion = "0.992";
     private const string LogTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}{NewLine}";
 
     private readonly TextWriter _output;
@@ -118,7 +118,8 @@ public sealed class CliApplication
 
     public async Task<int> RunAsync(string[] args)
     {
-        _output.WriteLine($"{AppName} v{AppVersion} by Klarth");
+        var version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        _output.WriteLine($"{AppName} v{version} by Klarth");
 
         var parseResult = _root.Parse(args, new ParserConfiguration { ResponseFileTokenReplacer = null });
 

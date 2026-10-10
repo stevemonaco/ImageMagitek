@@ -6,7 +6,7 @@ When an item is closed, its line is deleted.
 
 **1.0** marks items that block the 1.0 release ([ARCHITECTURE.md](ARCHITECTURE.md) §1): they lose work, corrupt data, freeze the project format, or leave a visible control that does nothing. Out of scope for 1.0: direct-color XML codecs, compression ([proposal](changes/compression-support.md)), new platforms and color models, new drawing or selection tools, layers, tilemaps and scripting. Candidates for 1.1, roughly in order: sequential arrangers as project resources, export from sequential views and selections, CLI `--json` output and key globs, OS clipboard, tool hotkeys; then compression and direct-color XML codecs.
 
-Every **1.0** item belongs to a change proposal, linked at the end of its line: [project-format-freeze](changes/project-format-freeze.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
+Every **1.0** item belongs to a change proposal, linked at the end of its line: [project-format-freeze](changes/project-format-freeze.md), [docs-1-0](changes/docs-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
 
 Found by reading the code, not reproduced, unless a test is named.
 
@@ -32,7 +32,6 @@ Found by reading the code, not reproduced, unless a test is named.
 ### UI
 
 - **1.0** [UI-GRAPHICS-EDITOR] In a sequential editor's View mode the palette combo never recolors the view (the `ChangePalette` call in `GraphicsEditorViewModel.View.cs` is commented out); done when choosing a palette re-renders the view with it.
-- **1.0** [UI-SHELL] Help → About reads `FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location)`; `Location` is empty in the single-file published build, so About throws there; done when About shows the version in the published build. ([proposal](changes/release-1-0.md))
 - [UI-ARRANGING] Ctrl+click single-cell select and Shift+hover single-element select are shadowed by the temporary Pick Palette (Arrange) or Color Picker (Draw) modifier tools; done when each gesture does one documented thing.
 - **1.0** [UI-PALETTE-EDITOR] Opening a palette with a `ScatteredColorSource` throws `NotSupportedException`; done when it opens read-only or shows an alert. ([proposal](changes/project-format-freeze.md))
 - [UI-GRAPHICS-EDITOR] Ctrl+W (fit) sets the zoom without clamping to 0.25–32x; done when it respects MinZoom/MaxZoom.
@@ -133,7 +132,7 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ## Dead code and cleanup
 
-- **1.0** Delete `ImageMagitek.Services/Actions` (`MagitekActions`, `IMagitekAction`, `IActionHistory`; no references), `ImageColorAdapter` (every member throws), `PixelRemapOperation.RemapByAnyIndex` with its empty branches and the commented `CanRemapByAnyIndex` (it silently does nothing), and the private, never-called `ProjectService.FindStaleKeyResources`. ([proposal](changes/release-1-0.md))
+- **1.0** Delete `ImageMagitek.Services/Actions` (`MagitekActions`, `IMagitekAction`, `IActionHistory`; no references), `ImageColorAdapter` (every member throws), `PixelRemapOperation.RemapByAnyIndex` with its empty branches and the commented `CanRemapByAnyIndex` (it silently does nothing), and the private, never-called `ProjectService.FindStaleKeyResources`. Needs no proposal; done when they are gone, the solution builds, the tests pass, and the specs drop them: LIB-SERVICES (`sources`, `types`, the Open items line), LIB-IMAGES (`ImageColorAdapter` from `sources`/`types`; LIB-IMAGES-031 becomes "If no requested remap operation succeeds, then the paste shall fail with "no suitable copy method"."; drop the stub parenthesis from the Non-goals line; strike the `ImageColorAdapter`/`RemapByAnyIndex` Open item) and LIB-PROJECT-SERVICE (strike the `FindStaleKeyResources` Open item).
 - [UI-SHELL, UI-ARRANGING] `Styles/Arranger.axaml`: `Rectangle.selection`, `Rectangle.paste`, `Rectangle.animatedBorder` and `.arrangerDrag` have no users (only `.arrangerDrop` is used), which makes `editSelectionFillBrush` and `pasteSelectionFillBrush` dead; `gridLineBrush` and `separatorBrush` are unreferenced.
 - [UI-SHELL, UI-IMAGE-IO] Remove `ShellView.LoadLayout`, `SyncDialogExtensions`, `IStateViewDriver` (no implementer), `MenuViewModel.ExportArrangerToImage`/`ImportArrangerFromImage` (their menu is commented out), the commented-out Arranger and Plugins menus, and the commented-out `OnUnhandledException`.
 - [UI-PROJECT-TREE] Remove `ProjectNode_KeyDown`, `BottomUpTraversal`, `SortPriority`, and the double KeyDown registration (XAML plus tunnel); Enter and double-click must still work.
@@ -150,12 +149,11 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ## Release engineering and documentation
 
-- **1.0** [ARCHITECTURE] CI: `.github/workflows/ci.yml` runs a Nuke `build.cmd` that no longer exists, only on manual dispatch, with no tests; done when push and PR run `dotnet build` and `dotnet test`, and a tag job runs `publish.ps1` and attaches the artifacts. ([proposal](changes/release-1-0.md))
-- **1.0** [CLI-PUBLISH] The `.pubxml` profiles target net7.0 and `FolderProfile.pubxml.user` is orphaned; done when they are updated or deleted in favor of `publish.ps1`. ([proposal](changes/release-1-0.md))
-- **1.0** [CLI-PUBLISH] `publish.ps1` does not stop on a failed build or test, `-ReadyToRun` is unused, the `$CliVersion` null fallback sits after its use, and a rerun fails at `Compress-Archive` without `-Force`. ([proposal](changes/release-1-0.md))
-- **1.0** README: still says .NET 6 and lists Autofac, Jot and Nuke; done when the stack and dependencies are current and CLI usage (verbs, options, exit codes) is documented. ([proposal](changes/release-1-0.md))
-- **1.0** Release notes for 1.0 calling out the codec behavior changes existing projects will notice (recorded in LIB-CODECS Decisions, "Codec rework behavior changes"). ([proposal](changes/release-1-0.md))
-- Codec XML authoring guide and plugin authoring guide; decide whether to ship `IndexedCodecContract` as a package for plugin authors or document copying it from the test project.
+- **1.0** [CLI-PUBLISH] Whether release zips use ReadyToRun: measure zip size and cold/warm startup (TileShop to the main window, `TileShopCLI --version`) on win-x64 with and without `-ReadyToRun`, record it in CLI-PUBLISH's ReadyToRun decision, and settle whether the release workflow passes it.
+- **1.0** [CLI-PUBLISH] Manual checks of CLI-PUBLISH-003/004/006/015/016 are pending: two consecutive `publish.ps1` runs, a run with a failing test (non-zero exit, no zip), a `-ReadyToRun` run, a pushed branch going green and red in CI, and a release-workflow dry run producing a draft with six zips.
+- **1.0** README: still says .NET 6 and lists Autofac and Jot; done when the stack and dependencies are current and CLI usage (verbs, options, exit codes) is documented in `docs/cli.md`. ([proposal](changes/docs-1-0.md))
+- **1.0** Release notes for 1.0 calling out the codec behavior changes existing projects will notice (recorded in LIB-CODECS Decisions, "Codec rework behavior changes"). ([proposal](changes/docs-1-0.md))
+- Codec XML authoring guide and plugin authoring guide; first decide whether the plugin types move to a stable contract assembly, then decide whether to ship `IndexedCodecContract` as a package for plugin authors or document copying it from the test project.
 - [ARCHITECTURE] The spec format (front matter, ids, cited tests and paths exist, type ownership) is not enforced; done when a test in `ImageMagitek.UnitTests` checks it, as Monaco.Presto's `SpecTests` does.
 
 ## Manual checks

@@ -1,0 +1,59 @@
+name: release
+
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: macos-latest
+            rid: osx-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Publish
+        shell: pwsh
+        run: ./publish.ps1 -Rid ${{ matrix.rid }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zips-${{ matrix.rid }}
+          path: publish/${{ matrix.rid }}/*.zip
+
+  release:
+    needs: publish
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Read version
+        run: echo "VERSION=$(dotnet msbuild TileShop.UI/TileShop.UI.csproj -getProperty:Version)" >> "$GITHUB_ENV"
+      - name: Check release does not exist
+        run: |
+          if gh release view "v$VERSION" > /dev/null 2>&1; then
+            echo "::error::Release v$VERSION already exists"
+            exit 1
+          fi
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: zips-*
+          path: zips
+          merge-multiple: true
+      - name: Create draft release
+        run: |
+          gh release create "v$VERSION" --draft --target "$GITHUB_SHA" --title "v$VERSION" \
+            --notes-file "docs/release-notes/$VERSION.md" zips/*.zip

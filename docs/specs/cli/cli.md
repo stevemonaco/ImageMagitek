@@ -50,7 +50,7 @@ depends:
 
 ### Invocation and exit codes
 
-- **CLI-COMMANDS-001** (inherited) — The CLI shall print "TileShopCLI v0.992 by Klarth" before anything else.
+- **CLI-COMMANDS-001** — The CLI shall print "TileShopCLI v<informational version> by Klarth" before anything else, the same version `--version` prints.
   - Tests: untested
 - **CLI-COMMANDS-002** — The CLI shall accept the verbs `print`, `export`, `exportall`, `import` and `importall`, and their PascalCase spellings `Print`, `Export`, `ExportAll`, `Import` and `ImportAll`.
   - Tests: `CliApplicationTests.PascalCaseVerb_Parses`, `CliApplicationTests.UnknownVerbCasing_Exits3`
@@ -165,7 +165,6 @@ depends:
 - The `--match` parser also accepts the enum's defined numeric values (`--match 1`); help lists only the names. An undefined number is an argument error (-3).
 - A project path starting with `@` is taken literally; response files are not expanded.
 - An indexed arranger whose pixel indices lie past its palette's last entry fails export with an exception (-2) rather than -7; LIB-IMAGE-IO's RGBA fallback does not handle it (backlog).
-- `--version` prints the assembly's informational version, which differs from the banner's hard-coded version (CLI-COMMANDS-001; owned by the release-1-0 proposal).
 
 ## Threading and lifetime
 
@@ -193,6 +192,7 @@ depends:
 - **`importall` skips decode-only arrangers by default; `import` fails on them.** Reason: a decode-only codec makes the arranger unwritable by design, not by bad input, and `importall` cannot know which arrangers the caller meant; `import` names the key and supplies an image that will not be written, so it is an error (-6). A read-only data file fails `importall` too: it is an environment fault (file attribute, permissions), and skipping it would exit 0 having written nothing.
 - **Check order: key, read-only, missing data file, image file.** Reason: a read-only arranger with no PNG is skipped rather than failed, and a bad key is reported as a bad key even when its image is also missing.
 - **Import options mirror the UI.** `--transparent-index0` sets `MapTransparentToIndexZero` with `AlphaThreshold` 0 as the UI does; the options do not affect direct-color arrangers. `--max-distance` with exact matching, or negative, is an argument error. Reason: one behavior per option across UI and CLI; rejecting a meaningless combination catches a mistyped script instead of silently ignoring it. Rejected: exposing `AlphaThreshold` (the UI does not; add both together later).
+- **The banner shows the informational version.** It reads the same `AssemblyInformationalVersionAttribute` as `--version`, so both print `1.0.0+<hash>`. Reason: one version string per build in bug reports; how the hash is produced is decided in CLI-PUBLISH. Rejected: `Assembly.GetName().Version` (drops the suffix and the commit, and disagrees with `--version`).
 - **Help and version are successes.** They print with no status line and nothing logged. Reason: asking for help is not a failed operation.
 - **The logger is built after parsing.** An explicit `--log` path gets a non-rolling file sink, so the file named is the file written; the default is `errorlogCLI.txt` in the application directory, rolling monthly. Parse errors, before a log path is known, use the default. Serilog's file sink drops writes it cannot make (`SelfLog`). Reason: the documented default, and a build tree free of log files. Rejected: the current directory (litters the caller's tree, and was never the stated intent).
 - **Plugins load like the UI's.** `CliBootstrap` calls `CreatePluginService` after the codec service and before the serializer factory, in the UI's order. How a bad plugin DLL is tolerated is decided in ARCHITECTURE.md §6 and LIB-CODECS.
@@ -205,4 +205,4 @@ depends:
 
 ## Open items
 
-- README has no CLI usage and lists .NET 6, Autofac, Jot and Nuke (backlog).
+- README has no CLI usage and lists .NET 6, Autofac and Jot (backlog).

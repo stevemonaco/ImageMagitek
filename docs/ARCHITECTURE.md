@@ -31,7 +31,7 @@ ImageMagitek is a .NET library for viewing, editing and organizing retro game gr
 | `ImageMagitek.Benchmarks` | BenchmarkDotNet codec benchmarks. | — |
 | `Samples/` | Plugin samples (`ImageMagitek.PluginSamples`, also used by the tests), and FF5 monster sprite samples: a CLI exporter/importer and an Avalonia viewer. | — |
 
-Build configuration is shared through `Directory.Build.props` and `Directory.Packages.props` (central package management: package versions go there, never in a csproj). `publish.ps1` produces self-contained single-file builds.
+Build configuration is shared through `Directory.Build.props` and `Directory.Packages.props` (central package management: package versions go there, never in a csproj). `publish.ps1` produces self-contained single-file builds. CI (`.github/workflows/ci.yml`) builds and tests in Release on every push and pull request, and `.github/workflows/release.yml` packages releases through `publish.ps1` [CLI-PUBLISH].
 
 ## 3. Domain
 
@@ -78,6 +78,7 @@ TileShop.UI ─────┐            TileShop.CLI
 - **Path keys, not ids, for references.** Resources reference each other by project path (`datafile="Roms/FF2"`). Readable and hand-editable; the cost is that renames and moves rewrite referencing files. See LIB-PROJECT-FORMAT.
 - **Read-only is one gate.** Anything that cannot be written back (a codec with `CanEncode` false, a read-only data source, later a compressed source) makes the arranger read-only, and every write path (draw, paste pixels, color remap, import, save, CLI import) consults the same check.
 - **Writes never grow a data source.** Elements past the end of their source render blank and are skipped on save.
+- **One version for UI and CLI, set in `Directory.Build.props`; a release is a draft created by the release workflow and published after the release QA pass.** See CLI-PUBLISH.
 - **Bits are addressed MSB-first everywhere.** `BitAddress` bit 0 is the most significant bit; data source reads and writes and the codecs' bit packing follow it.
 - **Native colors are RGBA32; foreign colors are the target system's raw values.** Images and files use native colors; palettes store foreign values in a color model. Conversion lives in one color factory, configured at startup with the NES master palette.
 - **Element mirror and rotation are display and encode attributes,** not pixel edits.

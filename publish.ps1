@@ -1,22 +1,22 @@
+#Requires -Version 7.3
+
 ### Required startup parameters
 
 Param(
     [Parameter(Mandatory=$true)]
-    [string]$Version,
-
-    [Parameter(Mandatory=$true)]
-    [string]$CliVersion,
-    
-    [Parameter(Mandatory=$true)]
     [ValidateSet("win-x64", "osx-arm64", "osx-x64", "linux-x64")]
     [string]$Rid,
-    
-    [string]$ReadyToRun = $false
+
+    [switch]$ReadyToRun
 )
+
+$ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $true
 
 ### Configuration
 
 $configuration = "Release";
+$readyToRunArg = "-p:PublishReadyToRun=$($ReadyToRun.IsPresent)"
 
 $solution = Join-Path "." "ImageMagitek.slnx"
 $tileshopProject = Join-Path "." "TileShop.UI" "TileShop.UI.csproj"
@@ -25,18 +25,18 @@ $testProjects = @(
     Join-Path "." "ImageMagitek.UnitTests" "ImageMagitek.UnitTests.csproj"
 )
 
+$version = dotnet msbuild $tileshopProject -getProperty:Version
+
 $publishPath = Join-Path "." "publish" $Rid;
 $tileshopPublishPath = Join-Path $publishPath "TileShop"
 $tileshopCliPublishPath = Join-Path $publishPath "TileShopCLI"
 
-$tileshopZipName = "TileShop-$Rid.v$Version.zip"
-$tileshopCliZipName = "TileShopCLI-$Rid.v$CliVersion.zip"
-
-if ($CliVersion -eq $null) {
-    $CliVersion = $Version
-}
+$tileshopZipName = "TileShop-$Rid-v$version.zip"
+$tileshopCliZipName = "TileShopCLI-$Rid-v$version.zip"
 
 ### Clean
+
+Remove-Item -Recurse -Force $publishPath -ErrorAction Ignore
 
 dotnet clean $solution -c $configuration
 
@@ -50,7 +50,7 @@ foreach ($testProject in $testProjects) {
 
 ### Build TileShop.UI
 
-dotnet build $tileshopProject -c $configuration --runtime $Rid --self-contained true
+dotnet build $tileshopProject -c $configuration --runtime $Rid --self-contained true $readyToRunArg
 dotnet publish $tileshopProject `
     -c $configuration `
     --runtime $Rid `
@@ -58,13 +58,12 @@ dotnet publish $tileshopProject `
     --no-build `
     --no-restore `
     -p:PublishSingleFile=true `
+    $readyToRunArg `
     -o $tileshopPublishPath
-    
-Compress-Archive -Path $tileshopPublishPath -DestinationPath (Join-Path $publishPath $tileshopZipName)
 
 ### Build TileShop.CLI
 
-dotnet build $tileshopCliProject -c $configuration --runtime $Rid --self-contained true
+dotnet build $tileshopCliProject -c $configuration --runtime $Rid --self-contained true $readyToRunArg
 dotnet publish $tileshopCliProject `
     -c $configuration `
     --runtime $Rid `
@@ -72,6 +71,19 @@ dotnet publish $tileshopCliProject `
     --no-build `
     --no-restore `
     -p:PublishSingleFile=true `
+    $readyToRunArg `
     -o $tileshopCliPublishPath
 
-Compress-Archive -Path $tileshopCliPublishPath -DestinationPath (Join-Path $publishPath $tileshopCliZipName)
+### Archive
+
+$tileshopZipPath = Join-Path $publishPath $tileshopZipName
+$tileshopCliZipPath = Join-Path $publishPath $tileshopCliZipName
+
+try {
+    Compress-Archive -Path $tileshopPublishPath -DestinationPath $tileshopZipPath
+    Compress-Archive -Path $tileshopCliPublishPath -DestinationPath $tileshopCliZipPath
+}
+catch {
+    Remove-Item -Force $tileshopZipPath, $tileshopCliZipPath -ErrorAction Ignore
+    throw
+}

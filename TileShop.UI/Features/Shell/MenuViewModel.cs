@@ -9,7 +9,6 @@ using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 using System;
-using System.Diagnostics;
 using System.Reflection;
 using TileShop.UI.Features.Graphics;
 using TileShop.UI.Models;
@@ -130,7 +129,7 @@ public partial class MenuViewModel : ObservableRecipient
     [RelayCommand]
     public async Task OpenAbout()
     {
-        var version = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
+        var version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
 
         var plugins = _pluginService.CodecPlugins.Count > 0
             ? "Plugin codecs:\n" + string.Join("\n", _pluginService.CodecPlugins.Select(x => x.Name))

@@ -152,7 +152,7 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
   - Tests: manual — switch theme and restart the app.
 - **UI-SHELL-042** — Help → Wiki shall open `https://github.com/stevemonaco/ImageMagitek/wiki` in the system browser on Windows, Linux and macOS.
   - Tests: manual — choose Help → Wiki.
-- **UI-SHELL-043** — Help → About TileShop shall show an alert headed "TileShop" with the product version and either "Plugin codecs:" followed by each loaded plugin codec's name, or "No plugin codecs loaded".
+- **UI-SHELL-043** — Help → About TileShop shall show an alert headed "TileShop" with the app's informational version, in Debug, Release and single-file published builds, and either "Plugin codecs:" followed by each loaded plugin codec's name, or "No plugin codecs loaded".
   - Tests: manual — choose Help → About TileShop with and without a plugin in `_plugins`.
 - **UI-SHELL-044** — The menu bar shall have no Plugins menu.
   - Tests: manual — inspect the menu bar.

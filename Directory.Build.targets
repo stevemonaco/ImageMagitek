@@ -1,0 +1,7 @@
+<Project>
+	<Target Name="ShortenSourceRevisionId" AfterTargets="InitializeSourceControlInformation" Condition="'$(SourceRevisionId)' != ''">
+		<PropertyGroup>
+			<SourceRevisionId>$(SourceRevisionId.Substring(0, 7))</SourceRevisionId>
+		</PropertyGroup>
+	</Target>
+</Project>

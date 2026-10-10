@@ -34,8 +34,6 @@ Big thanks to the authors of these open source libraries for making this project
 
 [Serilog](https://github.com/serilog/serilog) for logging
 
-[Nuke](https://github.com/nuke-build/nuke) for the C#-based build system
-
 [System.CommandLine](https://github.com/dotnet/command-line-api) for the CLI client parsing
 
 [Lucide](https://lucide.dev) for the toolbar icons (ISC License)
