@@ -9,6 +9,7 @@
 
 # Local settings
 settings.local.json
+CLAUDE.local.md
 
 # User-specific files
 *.suo

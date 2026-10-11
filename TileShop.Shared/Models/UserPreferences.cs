@@ -29,6 +29,11 @@ public sealed class UserPreferences
     /// Name of the global palette used as the default, or null to use the first in appsettings.json
     /// </summary>
     public string? DefaultPalette { get; set; }
+
+    /// <summary>
+    /// Position of the welcome screen's next demo file in the sorted list of files in _demo
+    /// </summary>
+    public int WelcomeRotation { get; set; }
 }
 
 /// <summary>

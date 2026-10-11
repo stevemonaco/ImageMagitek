@@ -5,6 +5,7 @@ project: TileShop.CLI, TileShop.UI
 sources:
   - publish.ps1
   - TileShop.CLI/TileShop.CLI.csproj
+  - TileShop.UI/TileShop.UI.csproj
   - Directory.Build.props
   - Directory.Build.targets
   - .github/workflows/ci.yml
@@ -37,6 +38,8 @@ depends:
   - Tests: manual — as CLI-PUBLISH-004.
 - **CLI-PUBLISH-006** — Where `-ReadyToRun` is passed, the script shall build and publish both executables with ReadyToRun compilation.
   - Tests: manual — run `pwsh ./publish.ps1 -Rid win-x64 -ReadyToRun`; it succeeds and both executables start.
+- **CLI-PUBLISH-017** — The TileShop zips shall contain every welcome screen demo file in `_demo/`.
+  - Tests: manual — run `pwsh ./publish.ps1 -Rid win-x64` and list the TileShop zip.
 
 ### CLI build
 

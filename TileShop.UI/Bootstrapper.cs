@@ -147,6 +147,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         services.AddSingleton<MenuViewModel>();
         services.AddSingleton<StatusViewModel>();
         services.AddSingleton<NotificationsViewModel>();
+        services.AddSingleton<WelcomeViewModel>();
 
         var vmTypes = GetType()
             .Assembly
@@ -170,6 +171,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         locator.RegisterViewFactory<MenuViewModel, MenuView>();
         locator.RegisterViewFactory<ShellViewModel, ShellView>();
         locator.RegisterViewFactory<StatusViewModel, StatusView>();
+        locator.RegisterViewFactory<WelcomeViewModel, WelcomeView>();
         locator.RegisterViewFactory<AddPaletteViewModel, AddPaletteView>();
         locator.RegisterViewFactory<AddScatteredArrangerViewModel, AddScatteredArrangerView>();
         locator.RegisterViewFactory<AssociatePaletteViewModel, AssociatePaletteView>();

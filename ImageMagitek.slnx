@@ -4,6 +4,9 @@
     <Project Path="Samples/FF5MonsterSpritesViewer/FF5MonsterSpritesViewer.csproj" />
     <Project Path="Samples/ImageMagitek.PluginSamples/ImageMagitek.PluginSamples.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/DemoArtGenerator/DemoArtGenerator.csproj" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
   </Folder>

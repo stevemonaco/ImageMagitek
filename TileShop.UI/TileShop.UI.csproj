@@ -35,6 +35,12 @@
     <AvaloniaResource Remove="Assets\DemoImages\**" />
     <AvaloniaResource Remove="Assets\tslogo.svg" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="_demo\*.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Avalonia" />

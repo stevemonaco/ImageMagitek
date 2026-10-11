@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data.Converters;
@@ -50,6 +51,9 @@ public static class AppConverters
 
     public static IValueConverter ColorToBrush { get; } =
         new FuncValueConverter<Color, IBrush>(x => new ImmutableSolidColorBrush(x));
+
+    public static IValueConverter PathToFileNameWithoutExtension { get; } =
+        new FuncValueConverter<string?, string?>(Path.GetFileNameWithoutExtension);
 
     public static ColorRgba32ToMediaColorConverter ColorRgba32ToMediaColor { get; } = new();
     public static EndianToBooleanConverter EndianToBoolean { get; } = new();

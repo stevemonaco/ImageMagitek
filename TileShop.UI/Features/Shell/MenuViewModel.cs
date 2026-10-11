@@ -114,17 +114,21 @@ public partial class MenuViewModel : ObservableRecipient
     public async Task ImportArrangerFromImage(GraphicsEditorViewModel vm) =>
         await ProjectTree.ImportArrangerFrom((ScatteredArranger) vm.Resource);
 
+    /// <summary>
+    /// The app's informational version, shown by About and the welcome screen.
+    /// </summary>
+    public static string? InformationalVersion { get; } =
+        Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+
     [RelayCommand]
     public async Task OpenAbout()
     {
-        var version = Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-
         var plugins = _pluginService.CodecNames.Count > 0
             ? "Plugin codecs:\n" + string.Join("\n", _pluginService.CodecNames)
             : "No plugin codecs loaded";
 
         var heading = "TileShop";
-        var message = $"Version: {version}\n\n{plugins}";
+        var message = $"Version: {InformationalVersion}\n\n{plugins}";
         await _interactions.AlertAsync(heading, message);
     }
 

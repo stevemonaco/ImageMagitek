@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
@@ -243,16 +242,5 @@ public sealed class BootstrapServiceTests : IDisposable
         public int GetStorageBits(int width, int height) => width * height;
         public void Decode(ReadOnlySpan<byte> encoded, Span<byte> pixels, int width, int height) => throw new FormatException("Decode failure");
         public void Encode(ReadOnlySpan<byte> pixels, Span<byte> encoded, int width, int height) { }
-    }
-
-    private sealed class RecordingLogger : ILogger
-    {
-        public ConcurrentQueue<(LogLevel Level, string Message, Exception? Exception)> Entries { get; } = new();
-
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
-        public bool IsEnabled(LogLevel logLevel) => true;
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
-            Entries.Enqueue((logLevel, formatter(state, exception), exception));
     }
 }

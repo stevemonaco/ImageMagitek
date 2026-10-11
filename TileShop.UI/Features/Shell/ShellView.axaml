@@ -4,7 +4,6 @@
     xmlns:cc="https://github.com/stevemonaco/TileShop"
     xmlns:con="using:TileShop.UI.Converters"
     xmlns:idc="using:Dock.Avalonia.Controls"
-    xmlns:v="using:TileShop.UI.Views"
     xmlns:vm="using:TileShop.UI.ViewModels"
     x:Name="shellView"
     Title="TileShop"
@@ -24,8 +23,9 @@
 
     <Panel Margin="{Binding #shellView.OffScreenMargin}">
         <Grid RowDefinitions="auto,*,auto">
-            <StackPanel x:Name="_titleBarPanel" Grid.Row="0" Margin="8,4,0,4" Orientation="Horizontal" Spacing="4">
-                <v:AppIconView IsHitTestVisible="False" />
+            <StackPanel Grid.Row="0" Margin="8,4,0,4" Orientation="Horizontal" Spacing="4">
+                <Image x:Name="AppIcon" Width="32" Height="32" VerticalAlignment="Center" IsHitTestVisible="False"
+                    RenderOptions.BitmapInterpolationMode="None" Source="/Assets/tslogo.png" />
                 <ContentControl Content="{Binding ActiveMenu}" />
             </StackPanel>
 

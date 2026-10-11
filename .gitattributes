@@ -69,3 +69,6 @@
 
 # Workflow scripts must stay LF; CR is rejected as a hidden control character
 .claude/workflows/*.js text eol=lf
+
+# Binary data files
+*.bin binary

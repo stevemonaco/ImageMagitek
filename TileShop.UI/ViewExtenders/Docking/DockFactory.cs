@@ -20,11 +20,13 @@ public class DockFactory : Factory
 
     private readonly ProjectTreeViewModel _projectTreeVm;
     private readonly EditorsViewModel _editorsVm;
+    private readonly WelcomeViewModel _welcomeVm;
 
-    public DockFactory(ProjectTreeViewModel projectTreeVm, EditorsViewModel editorsViewModel)
+    public DockFactory(ProjectTreeViewModel projectTreeVm, EditorsViewModel editorsViewModel, WelcomeViewModel welcomeVm)
     {
         _projectTreeVm = projectTreeVm;
         _editorsVm = editorsViewModel;
+        _welcomeVm = welcomeVm;
     }
 
     public override IRootDock CreateLayout()
@@ -46,7 +48,8 @@ public class DockFactory : Factory
             IsCollapsable = false,
             CanClose = false,
             VisibleDockables = CreateList(_editorsVm.Editors.Select(x => new DockableEditorViewModel(x, _editorsVm) as IDockable).ToArray()),
-            CanCreateDocument = false
+            CanCreateDocument = false,
+            EmptyContent = _welcomeVm
         };
 
         _mainLayout = new ProportionalDock

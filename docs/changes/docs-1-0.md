@@ -24,13 +24,13 @@
 ## Tasks
 
 1. **`docs/cli.md`.** Verbs, options, exit codes, export layout, plugin loading, `--log`, read-only skip, written from CLI-COMMANDS. Check every verb and option against `TileShopCLI --help` and `<verb> --help` from the published build.
-2. **README.** .NET 10, current dependencies (drop Autofac, Jot; add Microsoft.Extensions.DependencyInjection), a current screenshot, build and test commands, platforms (win-x64 supported; linux-x64 and osx-arm64 untested), a CLI paragraph linking `docs/cli.md`. Check the wiki links resolve.
+2. **README.** .NET 10, current dependencies (drop Autofac, Jot; add Microsoft.Extensions.DependencyInjection), a current screenshot showing the welcome screen, build and test commands, platforms (win-x64 supported; linux-x64 and osx-arm64 untested), a CLI paragraph linking `docs/cli.md`. Check the wiki links resolve.
 3. **Release notes** `docs/release-notes/1.0.md`, written last, after the other 1.0 proposals land:
    - Requirements: self-contained, no .NET install. Platforms: win-x64 supported; linux-x64 and osx-arm64 untested.
    - Codec behavior changes from LIB-CODECS "Codec rework behavior changes": Genesis 4bpp, SNES Mode 7, Virtual Boy 2bpp and NGPC 2bpp now show correct colors that differ from earlier versions; N64 RGBA32 reads `.z64` order; N64 RGBA16 reports 16 bpp; PSX 16bpp keeps STP; all codec XMLs now ship.
    - Project format changes from [project-format-freeze](project-format-freeze.md) (format 1.0; 0.9 projects open as 1.0; newer formats are refused) and scattered color sources (LIB-PALETTES, LIB-PROJECT-FORMAT: the `scatteredcolor` element, and `filesource` no longer accepting `bitoffset`).
    - The new default palette `Vivid` and its alternates (LIB-PALETTES-038): elements on the global default palette look different. `DefaultRgba32` is renamed `Classic`; projects naming it still load (LIB-PROJECT-FORMAT-059). The default palette is chosen in Preferences (UI-SHELL-120).
-   - The welcome screen from [welcome-screen](welcome-screen.md).
+   - The welcome screen ([UI-WELCOME](../specs/ui/welcome.md)).
    - CLI changes from CLI-COMMANDS (System.CommandLine, awaited exit codes, `--log`, import options, plugins, read-only skip), linking `docs/cli.md`.
    - Read-only data files now open read-only (LIB-DATASOURCE-021).
    - Plugins built for earlier versions must be rebuilt against `ImageMagitek.Plugins.Contracts` (LIB-PLUGINS); TileShop reports them at startup.

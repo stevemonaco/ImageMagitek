@@ -82,9 +82,13 @@ Driving the app through DevTools:
 - Popups (flyouts, tooltips, context menus) are separate windows and do not appear in `search`, `tree`, or `screenshot`. Verify their contents by inspecting bound state after the interaction, or ask the user.
 - Node IDs change after every relaunch and after tree changes; re-run `search` rather than reusing IDs.
 
-Recipe to reach the graphics editor with the bundled test project:
+Test projects are machine-specific and live in the gitignored `CLAUDE.local.md`. If it names none, or the named file does not exist, ask the user for a project path before driving the UI; offer to record the answer in `CLAUDE.local.md`.
 
-1. Click the `debugLoadButton` ("Load FF2").
+Open a test project from the welcome screen's Recent Projects list, since File → Open Project... shows an OS file picker that DevTools cannot drive. If it is missing from the list, stop the app and add the path to `RecentProjectFiles` in `%LOCALAPPDATA%\TileShop\preferences.json` (the app rewrites that file at exit, so edit it only while the app is stopped).
+
+Recipe to reach the graphics editor with a test project (the arranger names below are the FF2 project's):
+
+1. `search` with `searchTemplates: true` for the project's button (its file name without extension) under `RecentProjects` in `WelcomeView`, then `input Click` it.
 2. Expand a folder: `set-prop IsExpanded=True` on its TreeViewItem, then `search TreeViewItem` scoped to that node to get the children.
 3. Open an arranger: `input Click` on its TreeViewItem (this updates the TreeView selection; `set-prop IsSelected` does not), then `input KeyDown Enter`.
 4. The editor toolbar's mode RadioButtons are View / Arrange / Draw in tree order; tool buttons have x:Names such as `RemapColorsButton`, `ResizeArrangerButton`, `PaletteSwatchGrid`.

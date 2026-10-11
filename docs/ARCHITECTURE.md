@@ -30,6 +30,7 @@ ImageMagitek is a .NET library for viewing, editing and organizing retro game gr
 | `TileShop.CLI` | `print`, `export`, `exportall`, `import`, `importall` over an existing project. | [`cli/`](specs/cli/index.md) |
 | `ImageMagitek.UnitTests` | xUnit tests for the library, services and UI ViewModel logic (references TileShop.UI). | — |
 | `ImageMagitek.Benchmarks` | BenchmarkDotNet codec benchmarks. | — |
+| `tools/DemoArtGenerator` | Console generator for the welcome screen's demo files `TileShop.UI/_demo/*.bin` and the app icon (`Assets/tsicon.ico`, `tslogo.svg`, `tslogo.png`); rerun it to change the art. `--preview <png> [scene]` also writes a preview sheet. | — (UI-WELCOME owns the file) |
 | `Samples/` | Plugin samples (`ImageMagitek.PluginSamples`, referencing only the contracts assembly, also used by the tests), and FF5 monster sprite samples: a CLI exporter/importer and an Avalonia viewer. | — |
 
 Build configuration is shared through `Directory.Build.props` and `Directory.Packages.props` (central package management: package versions go there, never in a csproj). `publish.ps1` produces self-contained single-file builds. CI (`.github/workflows/ci.yml`) builds and tests in Release on every push and pull request, and `.github/workflows/release.yml` packages releases through `publish.ps1` [CLI-PUBLISH].

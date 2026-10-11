@@ -28,7 +28,7 @@ This proposal is the last step: it lands after every other **1.0** item, includi
    - `TileShopCLI --version` prints the same version; `--help`, `export --help` and `--version` exit 0.
    - `print`, `export`, `exportall`, `import`, `importall` each run against the FF2 test project and return the documented exit codes (the CLI is trimmed only in this build).
    - With the sample plugin under `_plugins`, an arranger using "Last Armageddon Font" exports, and `importall` skips it as read-only.
-   - The title bar has no "Load FF2" button (UI-SHELL-103).
+   - the seven `_demo/*.bin` files are in the TileShop zip and the welcome screen shows a banner (UI-WELCOME, CLI-PUBLISH-017).
    - linux-x64 and osx-arm64 zips are attached to the draft and named for the version.
 2. **1.0 QA pass** (manual, after every other **1.0** item is closed). Set `VersionPrefix` to `1.0.0` and remove `VersionSuffix`, run the release workflow, then run `docs/release-checklist.md` and every line of the backlog's "Manual checks" section on the draft's win-x64 zips. Record outcomes in the backlog as described in Decisions.
 3. **Publish.** Publish the draft once every check passes. Move `VersionPrefix` to the next version with `VersionSuffix` `preview`.

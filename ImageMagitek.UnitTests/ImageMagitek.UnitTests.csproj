@@ -30,6 +30,7 @@
     <ProjectReference Include="..\Samples\ImageMagitek.PluginSamples\ImageMagitek.PluginSamples.csproj" />
     <ProjectReference Include="..\TileShop.CLI\TileShop.CLI.csproj" />
     <ProjectReference Include="..\TileShop.UI\TileShop.UI.csproj" />
+    <ProjectReference Include="..\tools\DemoArtGenerator\DemoArtGenerator.csproj" />
   </ItemGroup>
 
   <ItemGroup>

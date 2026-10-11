@@ -6,7 +6,7 @@ When an item is closed, its line is deleted.
 
 **1.0** marks items that block the 1.0 release ([ARCHITECTURE.md](ARCHITECTURE.md) §1): they lose work, corrupt data, freeze the project format, or leave a visible control that does nothing. Out of scope for 1.0: direct-color XML codecs, compression ([proposal](changes/compression-support.md)), container scanners ([proposal](changes/container-scanners.md)), new platforms and color models, new drawing or selection tools, layers, tilemaps and scripting. Candidates for 1.1, roughly in order: sequential arrangers as project resources, export from sequential views and selections, CLI `--json` output and key globs, OS clipboard, tool hotkeys; then compression and direct-color XML codecs.
 
-Every **1.0** item belongs to a change proposal, linked at the end of its line: [project-format-freeze](changes/project-format-freeze.md), [welcome-screen](changes/welcome-screen.md), [docs-1-0](changes/docs-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
+Every **1.0** item belongs to a change proposal, linked at the end of its line: [project-format-freeze](changes/project-format-freeze.md), [docs-1-0](changes/docs-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
 
 Found by reading the code, not reproduced, unless a test is named.
 
@@ -67,7 +67,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 - **1.0** [LIB-PROJECT-FORMAT] Path keys are kept (decided; stable keys rejected for now); done when the analysis is recorded as a LIB-PROJECT-FORMAT Decision. ([proposal](changes/project-format-freeze.md))
 - **1.0** [LIB-PROJECT-FORMAT] Schema versioning: `version="0.9"` is written and parsed but never compared; bump to 1.0 and reject newer versions with a clear message, with no migration or upgrade path (no projects in the wild); done when a higher-version project fails clearly and a 0.9 project loads as 1.0. ([proposal](changes/project-format-freeze.md))
-- **1.0** [UI-WELCOME] A welcome screen in the empty document area, with demo art decoded from a shipped SNES 4bpp file; done when it shows on launch and after the last editor closes. ([proposal](changes/welcome-screen.md))
 - [UI-SHELL, LIB-PROJECT-SERVICE] Command-line and OS integration (optional for 1.0): `args` are passed to Avalonia but never read, and there is no window drop handler; done when a non-`.xml` path on the command line, or a file dropped on the window, opens as a standalone file (drop is a manual check).
 - [UI-SHELL] Status-bar Indefinite and Reset messages are handled but never sent; done when a sender exists or the values are removed.
 

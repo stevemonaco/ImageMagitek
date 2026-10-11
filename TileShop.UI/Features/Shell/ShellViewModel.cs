@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using ImageMagitek.Services;
 using TileShop.Shared.Services;
 
@@ -10,20 +9,18 @@ public partial class ShellViewModel : ObservableObject
 {
     private readonly UserPreferencesStore _preferencesStore;
     private readonly IProjectService _projectService;
-#if DEBUG
-    private const string _debugProjectFile = @"D:\ImageMagitekTest\FF2\FF2project.xml";
-#endif
 
     [ObservableProperty] private ProjectTreeViewModel _activeTree;
     [ObservableProperty] private MenuViewModel _activeMenu;
     [ObservableProperty] private StatusViewModel _activeStatusBar;
     [ObservableProperty] private EditorsViewModel _editors;
 
+    public WelcomeViewModel Welcome { get; }
     public ExitGate ExitGate { get; } = new();
 
     public ShellViewModel(UserPreferencesStore preferencesStore, IProjectService projectService, ProjectTreeViewModel activeTree,
-        MenuViewModel activeMenu, StatusViewModel activeStatusBar, EditorsViewModel editors, INotificationService notifications,
-        BootstrapService bootstrapService)
+        MenuViewModel activeMenu, StatusViewModel activeStatusBar, EditorsViewModel editors, WelcomeViewModel welcome,
+        INotificationService notifications, BootstrapService bootstrapService)
     {
         _preferencesStore = preferencesStore;
         _projectService = projectService;
@@ -31,20 +28,13 @@ public partial class ShellViewModel : ObservableObject
         _activeMenu = activeMenu;
         _activeStatusBar = activeStatusBar;
         _editors = editors;
+        Welcome = welcome;
 
         _editors.Shell = this;
         _activeMenu.Shell = this;
 
         StartupIssueNotifier.Post(notifications, bootstrapService.Issues);
     }
-
-#if DEBUG
-    [RelayCommand]
-    public async Task DebugLoad()
-    {
-        await ActiveTree.OpenProject(_debugProjectFile);
-    }
-#endif
 
     public async Task<bool> PrepareApplicationExit()
     {

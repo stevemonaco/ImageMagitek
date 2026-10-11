@@ -3,7 +3,6 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -24,14 +23,6 @@ public partial class ShellView : Window
     public ShellView()
     {
         InitializeComponent();
-#if DEBUG
-        _titleBarPanel.Children.Add(new Button
-        {
-            Name = "debugLoadButton",
-            Content = "Load FF2",
-            [!Button.CommandProperty] = new Binding(nameof(ShellViewModel.DebugLoadCommand)),
-        });
-#endif
     }
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -44,7 +35,7 @@ public partial class ShellView : Window
 
     private void CreateDockingLayout()
     {
-        _dockFactory = new DockFactory(_viewModel.ActiveTree, _viewModel.Editors);
+        _dockFactory = new DockFactory(_viewModel.ActiveTree, _viewModel.Editors, _viewModel.Welcome);
         var layout = _dockFactory.CreateLayout();
         _dockFactory.InitLayout(layout);
 

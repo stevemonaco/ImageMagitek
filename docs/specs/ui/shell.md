@@ -21,7 +21,8 @@ sources:
   - TileShop.UI/Features/Shell/StatusViewModel.cs
   - TileShop.UI/Features/Shell/StatusView.axaml
   - TileShop.UI/Features/Shell/NotificationsViewModel.cs
-  - TileShop.UI/Features/Shell/AppIconView.axaml
+  - TileShop.UI/Assets/tsicon.ico
+  - TileShop.UI/Assets/tslogo.png
   - TileShop.UI/Features/Shell/DockableToolViewModel.cs
   - TileShop.UI/Features/Shell/DockableToolView.axaml
   - TileShop.UI/Features/Dialogs/PreferencesViewModel.cs
@@ -84,6 +85,7 @@ depends:
   - LIB-CODECS
   - UI-EDITORS
   - UI-PROJECT-TREE
+  - UI-WELCOME
 ---
 
 # Application shell
@@ -110,6 +112,8 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
   - Tests: manual — switch tabs, then press an editor hotkey without clicking the canvas.
 - **UI-SHELL-115** — The main window's title, shown in the taskbar, shall be "TileShop".
   - Tests: DevTools — `props` `Title` on the `ShellView` window.
+- **UI-SHELL-139** — While the document area holds no editor, it shall show the welcome screen (UI-WELCOME).
+  - Tests: DevTools — launch and `search` `WelcomeView` with `searchTemplates`; it is visible.
 
 ### File menu
 
@@ -292,8 +296,8 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
   - Tests: untested
 - **UI-SHELL-102** (inherited) — When no preferences exist, the theme shall be Dark and the Jump to Offset base Hexadecimal.
   - Tests: untested
-- **UI-SHELL-103** — In Debug builds only, the title bar shall have a "Load FF2" button (`debugLoadButton`) that opens a fixed test project path, and the Avalonia DevTools shall be attachable.
-  - Tests: manual — run a Debug build and a Release build and compare title bars.
+- **UI-SHELL-103** — In Debug builds only, the Avalonia DevTools shall be attachable.
+  - Tests: manual — attach DevTools to a Debug build and a Release build; only the Debug build connects.
 - **UI-SHELL-104** (inherited) — The app shall log Warning and higher messages to a monthly rolling log file in `%LOCALAPPDATA%/TileShop/`.
   - Tests: manual — launch with a malformed codec file in `_codecs` and check the warning in the log there.
 - ~~**UI-SHELL-112**~~ — Replaced by notifications (UI-SHELL-136).
@@ -345,7 +349,7 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
 - **No Plugins menu for 1.0.** Loaded plugin codecs are listed in About instead, so users can confirm a plugin loaded. Rejected: a plugin manager UI (non-goal for 1.0).
 - **Preferences dialog covers only persisted settings.** Theme, grid colors, numeric base, symmetry tools, default palette and NES master palette. Reason: settings reachable only through files users have never seen are not really user-facing. The NES palette is a nullable `UserPreferences.NesPalette` override of appsettings.json applied at bootstrap, so it needs a restart; the list shows every JSON palette in `_palettes`, not only 64-entry ones. The default palette works the same way through `UserPreferences.DefaultPalette`, listing only the global palettes, because projects and codecs resolve the default among them. View → Set Theme was removed because Preferences already holds the theme; Show Gridlines and Grid Settings stay in View because they act on the open editor, while Preferences only sets defaults for new editors. Rejected: applying a new default without restart (codecs, project loading and saving read the default once at bootstrap; a reload mechanism is in the backlog).
 - **Status bar uses one reusable 2 s timer.** Short restarts it, Indefinite stops it, Reset clears the message. Reason: the earlier `async void` handler dropped Indefinite and Reset messages.
-- **Debug load button is Debug-only.** The button, `DebugLoad` and the hardcoded `D:\` path are compiled only in Debug builds; the button is created in code and keeps the `debugLoadButton` name so automation recipes still find it. Rejected: shipping a hidden button with a hardcoded path.
+- **No debug load button.** The Debug-only "Load FF2" title-bar button was removed; the welcome screen's Recent Projects list (UI-WELCOME-021) reopens a test project in one click, and DevTools can click it. Rejected: keeping a hardcoded `D:\` path in the source for a shortcut the recent list already gives.
 - **Standalone files are not remembered.** The recent list follows `ProjectOpened` and skips standalone trees; standalone files are not restored on next launch.
 - **Dialogs are in-window overlays.** All dialogs go through `IInteractionService` and the `RootDialogHost`, so view models never touch windows and hotkeys can be suspended while one is open.
 - **Cancel first, then ask.** The window's `Closing` handler and the lifetime's `ShutdownRequested` handler both set `Cancel = true` synchronously unless the exit was already confirmed, then start the exit sequence; on success the sequence marks the exit confirmed and calls `Shutdown`, which also closes floating editor windows. Reason: Avalonia reads `Cancel` when the handler returns, so no awaited answer can reach it (the earlier `async void` handler lost Cancel). Rejected: blocking on the prompt with a nested `Dispatcher.UIThread.MainLoop` inside `Closing` (nested loops during shutdown re-enter close and dialog handlers); `ShutdownMode.OnExplicitShutdown` alone (still needs the `Closing` cancel).
@@ -366,6 +370,7 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
 - **Thread-safe posting, UI-thread state.** `NotificationService` lives in TileShop.Shared without Avalonia types and takes an `Action<Action>` dispatcher. Reason: plugin decode failures can come from render work off the UI thread, and the injected dispatcher keeps the service unit-testable.
 - **The library raises events; the UI owns notifications.** `ImageMagitek` has no logger and no UI types, so plugin adapters raise `CodecPluginEvents.DecodeFailed` (LIB-PLUGINS) and the bootstrapper subscribes and posts through `TileShopBootstrapper.PostDecodeFailure`. Rejected: a notification abstraction in the core library (UI policy in the library).
 - **A fatal startup error shows its own window.** When bootstrap throws (any exception, not only `BootstrapException`), `App` sets the main window to a minimal `StartupErrorWindow` (message, log folder, Close) created directly, not through DI or `ViewLocator`, since neither exists yet; closing it exits. Reason: the overlay dialog host needs the shell, which cannot be built without the bootstrapped services. Rejected: a third-party message-box package; exiting with only a log line (the earlier behavior).
+- **The app icon is a 16x16 pixel shopfront, generated with the demo art.** A shop with a blue and white awning, an orange wall, a tiled window and a door. `tools/DemoArtGenerator` (`Logo`) holds the pixel map and writes `Assets/tsicon.ico` (PNG frames from 16 to 256 px, whole-factor upscales), `tslogo.svg` and the 32 px `tslogo.png` shown in the title bar with nearest-neighbor sampling. Reason: the earlier T and S built from 16-unit tiles blurred into a smudge at 16 px, and the shop reads as "Tile Shop" at taskbar size. One source keeps the window icon, title bar mark and SVG in step. Rejected: keeping the T/S tiles redrawn for small sizes, a TS monogram badge, a tile grid with a lifted tile, and shop and grid hybrids (chosen from a concept round); a hand-drawn Avalonia rectangle view (the earlier `AppIconView`, a second copy that drifted from the `.ico`).
 - **The UI log lives in `%LOCALAPPDATA%/TileShop/` and logs Warning and above.** Next to `preferences.json`. Reason: the application directory may be read-only under Program Files, and the working directory scattered log files wherever the app was launched; skipped files are warnings, so an Error minimum would hide the full reasons behind the startup notifications. The monthly rolling name carries a date suffix, so the error window names the folder. Rejected: the application directory; keeping Error.
 
 ## Non-goals
