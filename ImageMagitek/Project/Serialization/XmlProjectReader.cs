@@ -269,10 +269,7 @@ public sealed class XmlProjectReader : IProjectReader
             {
                 var source = new FileColorSourceModel();
                 var fileOffset = long.Parse(item.Attribute("fileoffset").Value, System.Globalization.NumberStyles.HexNumber);
-                if (item.Attribute("bitoffset") is null)
-                    source.FileAddress = new BitAddress(fileOffset, 0);
-                else
-                    source.FileAddress = new BitAddress(fileOffset, int.Parse(item.Attribute("bitoffset").Value));
+                source.FileAddress = fileOffset;
 
                 source.Entries = int.Parse(item.Attribute("entries").Value);
                 colorIndex += source.Entries;
@@ -308,14 +305,42 @@ public sealed class XmlProjectReader : IProjectReader
                 colorIndex++;
             }
             else if (item.Name.LocalName == "scatteredcolor")
-            { }
-            else if (item.Name.LocalName == "import")
-            { }
-            else if (item.Name.LocalName == "export")
-            { }
+            {
+                var entries = int.Parse(item.Attribute("entries").Value);
+                var runs = item.Elements().Select(ReadField).ToList();
+
+                try
+                {
+                    Palette.ValidateScatteredFields(ScatteredColorSource.ExpandRun(entries, runs), model.ColorModel, _colorFactory);
+                }
+                catch (ColorFieldException ex)
+                {
+                    _errors.Add($"'{xmlFileName}' entry {colorIndex + (ex.Entry ?? 0)} field {ex.Field}: {ex.Reason}");
+                    return false;
+                }
+
+                model.ColorSources.Add(new ScatteredColorSourceModel(entries, runs));
+                colorIndex += entries;
+            }
+        }
+
+        if (colorIndex > Palette.MaxEntries)
+        {
+            _errors.Add($"'{xmlFileName}' has {colorIndex} colors, more than the {Palette.MaxEntries} a palette can hold");
+            return false;
         }
 
         return true;
+
+        static ColorFieldRun ReadField(XElement field)
+        {
+            var offset = long.Parse(field.Attribute("fileoffset").Value, System.Globalization.NumberStyles.HexNumber);
+            var lowBit = int.Parse(field.Attribute("lowbit")?.Value ?? "0");
+            var bits = int.Parse(field.Attribute("bits").Value);
+            var shift = int.Parse(field.Attribute("shift")?.Value ?? "0");
+            var stride = int.Parse(field.Attribute("stride")?.Value ?? "8");
+            return new ColorFieldRun(new ColorField(offset, lowBit, bits, shift), stride);
+        }
 
         bool FailColor(string value, ColorModel colorModel)
         {

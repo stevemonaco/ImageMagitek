@@ -50,6 +50,7 @@ public sealed record PaletteSnapshot(IColor[] Colors, IColorSource[] Sources, bo
     public static IColorSource CloneSource(IColorSource source, IColorFactory colorFactory) => source switch
     {
         FileColorSource file => new FileColorSource(file.Offset, file.Endian),
+        ScatteredColorSource scattered => scattered,
         ProjectNativeColorSource native => new ProjectNativeColorSource(native.Value),
         ProjectForeignColorSource foreign => new ProjectForeignColorSource(colorFactory.CloneColor(foreign.Value)),
         _ => throw new NotSupportedException($"Color source of type '{source.GetType()}' cannot be cloned")

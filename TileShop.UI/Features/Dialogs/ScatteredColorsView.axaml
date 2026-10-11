@@ -1,0 +1,78 @@
+<UserControl x:Class="TileShop.UI.Views.ScatteredColorsView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
+    xmlns:con="using:TileShop.UI.Converters"
+    xmlns:models="using:TileShop.UI.Models"
+    xmlns:vm="using:TileShop.UI.ViewModels"
+    x:Name="scatteredView"
+    Width="560"
+    x:DataType="vm:ScatteredColorsViewModel">
+    <UserControl.DataTemplates>
+        <DataTemplate x:DataType="models:PaletteSwatchModel">
+            <Border Width="20" Height="20" Margin="0,0,2,2" Classes="swatch" ToolTip.Tip="{Binding Index}">
+                <Rectangle Fill="{Binding Color, Converter={x:Static con:AppConverters.ColorToBrush}}" />
+            </Border>
+        </DataTemplate>
+    </UserControl.DataTemplates>
+
+    <StackPanel Margin="0,8,0,4" Spacing="10">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+            <TextBlock VerticalAlignment="Center" Text="Colors" />
+            <NumericUpDown x:Name="EntriesBox" Grid.Column="1" Width="120" HorizontalAlignment="Left" Classes="dense" FormatString="0"
+                Maximum="256" Minimum="1" ToolTip.Tip="Number of consecutive entries in the run" Value="{Binding Entries}" />
+        </Grid>
+
+        <Grid ColumnDefinitions="110,70,70,70,80,Auto" ColumnSpacing="6">
+            <TextBlock Classes="muted" Text="Offset" ToolTip.Tip="Byte the field reads for the first entry" />
+            <TextBlock Grid.Column="1" Classes="muted" Text="Low bit" ToolTip.Tip="Lowest bit read (0 = least significant)" />
+            <TextBlock Grid.Column="2" Classes="muted" Text="Bits" ToolTip.Tip="Number of bits read" />
+            <TextBlock Grid.Column="3" Classes="muted" Text="Shift" ToolTip.Tip="Bit position in the color value" />
+            <TextBlock Grid.Column="4" Classes="muted" Text="Stride" ToolTip.Tip="Bits to advance for each entry" />
+        </Grid>
+
+        <ItemsControl x:Name="FieldList" ItemsSource="{Binding Fields}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:ColorFieldModel">
+                    <StackPanel Margin="0,0,0,4" Spacing="2">
+                        <Grid ColumnDefinitions="110,70,70,70,80,Auto" ColumnSpacing="6">
+                            <TextBox InnerLeftContent="0x" Text="{Binding OffsetText}" />
+                            <NumericUpDown Grid.Column="1" Classes="dense" FormatString="0" Maximum="7" Minimum="0" Value="{Binding LowBit}" />
+                            <NumericUpDown Grid.Column="2" Classes="dense" FormatString="0" Maximum="8" Minimum="1" Value="{Binding Bits}" />
+                            <NumericUpDown Grid.Column="3" Classes="dense" FormatString="0" Maximum="31" Minimum="0" Value="{Binding Shift}" />
+                            <NumericUpDown Grid.Column="4" Classes="dense" FormatString="0" Minimum="1" Value="{Binding Stride}" />
+                            <Button Grid.Column="5" Classes="tool" Command="{Binding #scatteredView.((vm:ScatteredColorsViewModel)DataContext).RemoveFieldCommand}"
+                                CommandParameter="{Binding}" ToolTip.Tip="Remove this field">
+                                <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Trash}" />
+                            </Button>
+                        </Grid>
+                        <TextBlock Foreground="{DynamicResource SemiColorDanger}" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                            Text="{Binding Error}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Button x:Name="AddFieldButton" HorizontalAlignment="Left" Classes="Tertiary" Command="{Binding AddFieldCommand}"
+            ToolTip.Tip="Add a field read from another byte">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <cc:LineIcon Classes="inline" Data="{x:Static cc:AppIcons.Plus}" />
+                <TextBlock VerticalAlignment="Center" Text="Add Field" />
+            </StackPanel>
+        </Button>
+
+        <TextBlock Classes="muted" Text="Preview" />
+        <ItemsControl ItemsSource="{Binding PreviewColors}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+        <TextBlock Foreground="{DynamicResource SemiColorDanger}" IsVisible="{Binding PreviewError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+            Text="{Binding PreviewError}" TextWrapping="Wrap" />
+
+        <TextBlock Classes="muted" FontSize="11" TextWrapping="Wrap"
+            Text="Each field takes bits from one byte and places them in the color value. Entry n reads each field n strides further on; bits no field covers are 0." />
+    </StackPanel>
+</UserControl>

@@ -13,7 +13,7 @@ public partial class FileColorSourceModel : ColorSourceModel
 
     [ObservableProperty]
     [NotifyDataErrorInfo]
-    [Range(1, int.MaxValue, ErrorMessage = "At least one color is required")]
+    [Range(1, 256, ErrorMessage = "Entries must be 1-256")]
     private int _entries;
 
     [ObservableProperty] private Endian _endian;

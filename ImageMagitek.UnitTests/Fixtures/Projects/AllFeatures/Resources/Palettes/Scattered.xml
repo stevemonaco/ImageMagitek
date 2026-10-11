@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<palette datafile="/main" color="Bgr15" zeroindextransparent="false">
+	<scatteredcolor entries="4">
+		<field fileoffset="300" lowbit="3" bits="5" />
+		<field fileoffset="310" bits="5" shift="5" />
+		<field fileoffset="320" bits="5" shift="10" />
+	</scatteredcolor>
+	<scatteredcolor entries="4">
+		<field fileoffset="330" bits="4" shift="1" stride="4" />
+		<field fileoffset="338" bits="4" shift="6" stride="4" />
+		<field fileoffset="340" bits="4" shift="11" stride="4" />
+	</scatteredcolor>
+</palette>

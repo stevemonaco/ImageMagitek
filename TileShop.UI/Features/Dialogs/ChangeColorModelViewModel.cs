@@ -60,7 +60,7 @@ public partial class ChangeColorModelViewModel : RequestViewModel<ColorModelChan
 
     /// <summary>
     /// Regenerates <paramref name="palette"/>'s sources under <paramref name="model"/>. Contiguous file ranges keep their start and
-    /// count with offsets spaced by the new color size, and foreign values keep their raw bits.
+    /// count with offsets spaced by the new color size, foreign values keep their raw bits, and scattered fields are unchanged.
     /// </summary>
     public static IReadOnlyList<IColorSource> ReinterpretSources(Palette palette, ColorModel model, IColorFactory colorFactory)
     {
@@ -78,10 +78,13 @@ public partial class ChangeColorModelViewModel : RequestViewModel<ColorModelChan
                     int count = Palette.GetFileRunLength(sources, i, oldSize);
 
                     for (int j = 0; j < count; j++)
-                        result.Add(new FileColorSource(first.Offset + j * newSize, first.Endian));
+                        result.Add(new FileColorSource(first.Offset + j * (newSize / 8), first.Endian));
 
                     i += count;
                     continue;
+                case ScatteredColorSource scattered:
+                    result.Add(scattered);
+                    break;
                 case ProjectNativeColorSource native:
                     result.Add(new ProjectNativeColorSource(native.Value));
                     break;
@@ -111,6 +114,7 @@ public partial class ChangeColorModelViewModel : RequestViewModel<ColorModelChan
             if (_palette.DataSource is null)
                 throw new InvalidOperationException("The palette has no data source");
 
+            Palette.ValidateScatteredFields(_palette.ColorSources, model, _colorFactory);
             if (FindOutOfRangeEntry(model, _palette.DataSource) is { } error)
             {
                 PreviewError = error;
@@ -154,7 +158,8 @@ public partial class ChangeColorModelViewModel : RequestViewModel<ColorModelChan
             {
                 uint? value = sources[i] switch
                 {
-                    FileColorSource first => ColorSourceSerializer.ReadFileColorValue(dataSource, first.Offset + j * table.Size, table.Size, first.Endian),
+                    FileColorSource first => ColorSourceSerializer.ReadFileColorValue(dataSource, first.Offset + j * (table.Size / 8), table.Size, first.Endian),
+                    ScatteredColorSource scattered => ColorSourceSerializer.ReadScatteredValue(dataSource, scattered),
                     ProjectForeignColorSource foreign => foreign.Value.Color,
                     _ => null
                 };

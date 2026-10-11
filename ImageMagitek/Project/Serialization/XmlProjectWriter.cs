@@ -312,8 +312,16 @@ public sealed class XmlProjectWriter : IProjectWriter
             if (source is ProjectForeignColorSourceModel foreign && foreign.Value.GetType() != foreignType)
                 return $"Palette '{model.Name}' cannot be saved because color {index} is not a {model.ColorModel} color";
 
-            index += source is FileColorSourceModel fileSource ? fileSource.Entries : 1;
+            index += source switch
+            {
+                FileColorSourceModel fileSource => fileSource.Entries,
+                ScatteredColorSourceModel scatteredSource => scatteredSource.Entries,
+                _ => 1
+            };
         }
+
+        if (index > Palette.MaxEntries)
+            return $"Palette '{model.Name}' cannot be saved because it has {index} colors, more than the {Palette.MaxEntries} a palette can hold";
 
         return null;
     }
@@ -362,10 +370,7 @@ public sealed class XmlProjectWriter : IProjectWriter
             if (source is FileColorSourceModel fileSource)
             {
                 var fileElement = new XElement("filesource");
-                fileElement.Add(new XAttribute("fileoffset", $"{fileSource.FileAddress.ByteOffset:X}"));
-
-                if (fileSource.FileAddress.BitOffset != 0)
-                    fileElement.Add(new XAttribute("bitoffset", fileSource.FileAddress.BitOffset));
+                fileElement.Add(new XAttribute("fileoffset", $"{fileSource.FileAddress:X}"));
 
                 fileElement.Add(new XAttribute("entries", fileSource.Entries));
 
@@ -387,6 +392,36 @@ public sealed class XmlProjectWriter : IProjectWriter
                 var hexColor = _colorFactory.ToHexString(foreignSource.Value);
                 foreignElement.Add(new XAttribute("value", hexColor));
                 element.Add(foreignElement);
+            }
+            else if (source is ScatteredColorSourceModel scatteredSource)
+            {
+                var scatteredElement = new XElement("scatteredcolor");
+                scatteredElement.Add(new XAttribute("entries", scatteredSource.Entries));
+
+                foreach (var (field, stride) in scatteredSource.Fields)
+                {
+                    var fieldElement = new XElement("field");
+                    fieldElement.Add(new XAttribute("fileoffset", $"{field.Offset:X}"));
+
+                    if (field.LowBit != 0)
+                        fieldElement.Add(new XAttribute("lowbit", field.LowBit));
+
+                    fieldElement.Add(new XAttribute("bits", field.Bits));
+
+                    if (field.Shift != 0)
+                        fieldElement.Add(new XAttribute("shift", field.Shift));
+
+                    if (stride != 8 && scatteredSource.Entries > 1)
+                        fieldElement.Add(new XAttribute("stride", stride));
+
+                    scatteredElement.Add(fieldElement);
+                }
+
+                element.Add(scatteredElement);
+            }
+            else
+            {
+                throw new NotSupportedException($"Color source model of type '{source.GetType()}' is not supported");
             }
         }
 

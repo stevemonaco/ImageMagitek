@@ -6,6 +6,8 @@ sources:
   - TileShop.UI/Features/Palettes
   - TileShop.UI/Features/Dialogs/ChangeColorModelViewModel.cs
   - TileShop.UI/Features/Dialogs/ChangeColorModelView.axaml
+  - TileShop.UI/Features/Dialogs/ScatteredColorsViewModel.cs
+  - TileShop.UI/Features/Dialogs/ScatteredColorsView.axaml
   - TileShop.UI/Models/PaletteSwatchModel.cs
   - TileShop.Shared/Models/History/PaletteHistoryAction.cs
   - TileShop.Shared/Models/ColorSources
@@ -25,9 +27,12 @@ types:
   - FileColorSourceModel (TileShop.Shared.Models)
   - NativeColorSourceModel
   - ForeignColorSourceModel
-  - ScatteredColorSourceModel
+  - ScatteredColorSourceModel (TileShop.Shared.Models)
+  - ScatteredColorsViewModel
+  - ColorFieldModel
 tests:
   - PaletteEditSessionTests
+  - ScatteredColorsViewModelTests
   - PaletteSelectionTests
   - PaletteFileSerializerTests
 depends:
@@ -59,7 +64,7 @@ The document editor for one palette: a swatch grid beside a color editor, a coll
   - Tests: untested
 - **UI-PALETTE-EDITOR-004** — The color editor shall sit beside the swatch grid and show the selection summary ("Color N", or "Color N · K selected" for several), the active color's editor, and where the active color comes from.
   - Tests: untested
-- **UI-PALETTE-EDITOR-005** — The active color's source line shall read "File offset 0x<hex>" (plus " bit <n>" when not byte-aligned), "Native color stored in the project", or "<model> color stored in the project".
+- **UI-PALETTE-EDITOR-005** — The active color's source line shall read "File offset 0x<hex>", "Scattered: <K> fields at 0x<hex>, …" (each field's byte offset), "Native color stored in the project", or "<model> color stored in the project".
   - Tests: untested
 - **UI-PALETTE-EDITOR-006** — While colors are selected, every source row that supplies at least one selected color shall be highlighted.
   - Tests: untested
@@ -163,19 +168,21 @@ The document editor for one palette: a swatch grid beside a color editor, a coll
 
 ### Sources
 
-- **UI-PALETTE-EDITOR-060** — The Sources section shall list one row per contiguous run of file entries (hex byte offset, color count of at least 1, little/big endian), and one row per native color (`#RRGGBBAA`) and per foreign color (raw value).
+- **UI-PALETTE-EDITOR-060** — The Sources section shall list one row per contiguous run of file entries (hex byte offset, color count of at least 1, little/big endian), one row per scattered run ("Scattered", "<N> colors · <K> fields" and an Edit... button), and one row per native color (`#RRGGBBAA`) and per foreign color (raw value).
   - Tests: untested
-- **UI-PALETTE-EDITOR-061** — The Add menu shall offer a file range (1 color, starting just after the last file range with its endian, or at 0 little-endian when there is none), a native color (opaque black) and a "<model> color" (raw 0), each added at the end; each row shall have a remove button.
+- **UI-PALETTE-EDITOR-061** — The Add menu shall offer a file range (1 color, starting just after the last file range with its endian, or at 0 little-endian when there is none), a native color (opaque black), a "<model> color" (raw 0) and "Scattered colors...", which opens the Scattered Colors dialog for a new run, each added at the end; each row shall have a remove button.
   - Tests: manual — open Sources → Add in the palette editor and add each kind.
 - **UI-PALETTE-EDITOR-062** — When a source edit leaves every row valid and every file entry inside the data file, the editor shall apply the new sources to the palette as one undoable step.
   - Tests: untested
-- **UI-PALETTE-EDITOR-063** — When sources are applied, pending colors on file entries whose offset and endian are unchanged shall carry over; other file entries shall show the data file's colors.
-  - Tests: `PaletteEditSessionTests.SetSources_OffsetEdit_KeepsPendingColorsOnUnchangedFileEntries`
+- **UI-PALETTE-EDITOR-063** — When sources are applied, pending colors on file entries whose offset and endian are unchanged, and on scattered entries whose fields are unchanged, shall carry over; other file and scattered entries shall show the data file's colors.
+  - Tests: `PaletteEditSessionTests.SetSources_OffsetEdit_KeepsPendingColorsOnUnchangedFileEntries`, `PaletteEditSessionTests.ApplySources_ScatteredUnchanged_CarriesPendingColors`, `PaletteEditSessionTests.ApplySources_ScatteredChanged_RereadsFile`
 - **UI-PALETTE-EDITOR-064** — When the applied sources equal the current ones, the editor shall add no history step.
   - Tests: `PaletteEditSessionTests.SetSources_Unchanged_AddsNoHistory`
 - **UI-PALETTE-EDITOR-065** — If a row is invalid (negative offset, count below 1, or hex that does not parse in its model), then the row shall show its error, the palette shall keep its previous sources, and the editor shall be marked modified.
   - Tests: untested
-- **UI-PALETTE-EDITOR-066** — If a file entry would extend past the end of the data file, or the palette has no data file, then the sources shall not be applied, the status bar shall show "A file source extends past the end of its data file", and the editor shall be marked modified.
+- **UI-PALETTE-EDITOR-066** — If a file entry would extend past the end of the data file, a scattered field would read past it, or the palette has no data file, then the sources shall not be applied, the status bar shall show "A source extends past the end of its data file", and the editor shall be marked modified.
+  - Tests: `PaletteEditSessionTests.ScatteredPastEnd_NotApplied`
+- **UI-PALETTE-EDITOR-108** — A file source row's entry count shall be 1–256; if the sources total more than 256 colors, then they shall not be applied, the status bar shall name the total, and the sources shall count as invalid (LIB-PROJECT-FORMAT-014).
   - Tests: untested
 - **UI-PALETTE-EDITOR-067** — While any source is invalid, Save shall alert "Invalid Sources" ("'<name>' has sources marked as invalid. Fix them before saving.") and write nothing.
   - Tests: untested
@@ -192,8 +199,8 @@ The document editor for one palette: a swatch grid beside a color editor, a coll
   - Tests: untested
 - **UI-PALETTE-EDITOR-076** — The Change Color Model dialog shall list every color model, start on the current one, and show the palette's swatches before and after reinterpretation under the chosen model.
   - Tests: untested
-- **UI-PALETTE-EDITOR-077** — The reinterpretation shall keep each contiguous file run's start offset and count with offsets respaced by the new color size, keep native colors, and keep foreign colors' raw bits.
-  - Tests: `PaletteEditSessionTests.ReinterpretSources_ToLargerColor_RespacesFileOffsets`
+- **UI-PALETTE-EDITOR-077** — The reinterpretation shall keep each contiguous file run's start offset and count with offsets respaced by the new color size, keep native colors, keep foreign colors' raw bits, and keep scattered fields unchanged; if a field's shift plus width exceeds the new model's size, the preview shall fail naming the entry and field (UI-PALETTE-EDITOR-079).
+  - Tests: `PaletteEditSessionTests.ReinterpretSources_ToLargerColor_RespacesFileOffsets`, `PaletteEditSessionTests.ScatteredFieldTooWide_FailsPreview`
 - **UI-PALETTE-EDITOR-078** — If the chosen model is table-based and an entry's stored value is past the table, then the dialog shall show "Entry i holds 0xVV, which is not a valid <model> color (0x00-0xMM)" and disable Change.
   - Tests: untested
 - **UI-PALETTE-EDITOR-079** — If the preview cannot be built (including a palette with no data file), then the dialog shall show "Cannot preview this color model: <reason>" and disable Change.
@@ -202,6 +209,19 @@ The document editor for one palette: a swatch grid beside a color editor, a coll
   - Tests: untested
 - **UI-PALETTE-EDITOR-081** — When Change is accepted, the palette shall take the new model and sources as one undoable step, re-reading file colors so pending file color edits are dropped, as the dialog warns.
   - Tests: `PaletteEditSessionTests.ChangeColorModel_ThenUndo_RestoresModelAndColors`
+
+### Scattered Colors dialog
+
+- **UI-PALETTE-EDITOR-103** — The Scattered Colors dialog shall show an entry count (1–256), a field grid (offset hex, low bit 0–7, bits 1–8, shift, stride in bits), Add Field and Remove buttons, and a swatch preview of the run's decoded colors that updates as fields change.
+  - Tests: `ScatteredColorsViewModelTests.Preview_UpdatesOnFieldChange`
+- **UI-PALETTE-EDITOR-104** — A new run shall start with 1 entry and one field per byte of the model's size, at consecutive offsets from 0 with shifts 0, 8, 16…, 8 bits each except the last, which takes the remainder, and stride 8: the layout of a little-endian file color.
+  - Tests: `ScatteredColorsViewModelTests.NewRun_DefaultsToLittleEndianLayout`
+- **UI-PALETTE-EDITOR-105** — If a field is invalid (does not parse, out of range, low bit plus width over 8, does not fit the model, overlaps another field, crosses a byte boundary for some entry, or reads past the end of the data file), then the dialog shall show the error on that field, clear the preview, and disable OK.
+  - Tests: `ScatteredColorsViewModelTests.InvalidField_DisablesOkAndClearsPreview`
+- **UI-PALETTE-EDITOR-106** — When OK is pressed, the editor shall replace the run (or add it) and apply the sources as one "Edit sources" step (UI-PALETTE-EDITOR-062).
+  - Tests: `ScatteredColorsViewModelTests.Ok_ReplacesRunAsOneStep`
+- **UI-PALETTE-EDITOR-107** — When the dialog is cancelled, the editor shall change nothing.
+  - Tests: untested
 
 ### Palette files
 
@@ -216,9 +236,9 @@ The document editor for one palette: a swatch grid beside a color editor, a coll
 
 ### Read-only palettes
 
-- **UI-PALETTE-EDITOR-090** — While the palette is read-only (LIB-PALETTES-049: a built-in global palette, or file colors on a read-only data file), the editor shall show a "Read Only" badge, hide the Sources section and Assign, and disable the color controls, the transparency checkbox, Import, Change Color Model, Paste, Swap and Gradient.
+- **UI-PALETTE-EDITOR-090** — While the palette is read-only (LIB-PALETTES-049: a built-in global palette, or file or scattered colors on a read-only data file), the editor shall show a "Read Only" badge, hide the Sources section and Assign, and disable the color controls, the transparency checkbox, Import, Change Color Model, Paste, Swap and Gradient.
   - Tests: manual — set the read-only attribute on a data file and open a palette with file colors on it; check the Read Only badge and that Sources is hidden.
-- **UI-PALETTE-EDITOR-091** — While the palette is read-only (LIB-PALETTES-049: a built-in global palette, or file colors on a read-only data file), Save and assigned colors (including from the flyout) shall change nothing; Copy and Export stay available.
+- **UI-PALETTE-EDITOR-091** — While the palette is read-only (LIB-PALETTES-049: a built-in global palette, or file or scattered colors on a read-only data file), Save and assigned colors (including from the flyout) shall change nothing; Copy and Export stay available.
   - Tests: manual — on that palette, Save and the flyout leave the data file unchanged.
 
 ### Hotkeys and Edit menu
@@ -256,7 +276,6 @@ The document editor for one palette: a swatch grid beside a color editor, a coll
 ## Edge cases
 
 - A palette with no colors opens with nothing selected and no color editor.
-- A palette with a scattered color source cannot be opened: building its source rows throws.
 - With no data file, the palette cannot take file sources (UI-PALETTE-EDITOR-066) or change color model (UI-PALETTE-EDITOR-079), even when all its sources are project colors.
 - Without a main window clipboard, Copy does nothing on the OS side and Paste falls back to the editor's last copy, if any.
 - After a Save whose project write failed, declining to save on close keeps the colors already written to the data file, since they became the saved state.
@@ -275,10 +294,11 @@ The document editor for one palette: a swatch grid beside a color editor, a coll
 - **One modified state per palette.** The graphics editor's color flyout routes its edits through the palette editor, opening it in the background. Reason: a palette edited in two places would otherwise have two pending states.
 - **Snapshot history.** Each step stores a full snapshot of colors, sources, model and transparency. Reason: a palette is at most 256 colors plus a short source list, so snapshots are cheap and every operation undoes the same way.
 - **Invalid sources block Save instead of disappearing.** Reason: the old editor silently skipped unparsable native and foreign entries, shifting every later index. One Save covers colors and sources; the separate "Save Sources" button was dropped.
-- **Pending file colors follow their offset.** A source edit keeps pending colors only on file entries whose offset and endian are unchanged. Reason: a moved entry reads different data, so its old pending color no longer belongs to it.
+- **Pending file colors follow their offset.** A source edit keeps pending colors only on file entries whose offset and endian are unchanged, and on scattered entries whose fields are unchanged. Reason: a moved entry reads different data, so its old pending color no longer belongs to it.
+- **A dialog edits scattered fields, not inline rows.** A scattered run has an entry count plus a table of fields, which does not fit the one-line rows file and project sources use. The dialog also gives the live preview needed to find the right offsets, and returns a whole new row that replaces the old one, so the existing source-edit path records it as one "Edit sources" step. Rejected: expanding rows inline (the Sources section becomes a nested grid).
 - **No reordering or moving colors.** Reason: it changes how every arranger using those indices looks; left out of 1.0.
 - **Layout: grid beside the editor, sources collapsed.** Reason: editing should not scroll the grid away, and sources are set up once and rarely touched. Selecting a swatch highlights its source and shows its file offset, so finding a color's location needs no counting.
-- **Change color model reinterprets, it does not convert.** File runs keep their start and count and are re-read at the new size; foreign values keep their bits. Reason: fixes a palette created with the wrong model without deleting and recreating it.
+- **Change color model reinterprets, it does not convert.** File runs keep their start and count and are re-read at the new size; foreign values keep their bits; scattered fields stay as they are. Reason: fixes a palette created with the wrong model without deleting and recreating it.
 - **Built-in palettes stay read-only; projects start from them as templates.** The Add Palette dialog (UI-PROJECT-TREE) copies a built-in palette's colors and model into a new project palette. A "Duplicate to project" command was planned; the template option is what exists.
 - **Palette files: JASC `.pal` and `.gpl` only, imported as project-native colors.** Reason: the common formats first; RIFF, ACT and HEX later. Imported colors have no location in the data file, so they become project colors.
 - **Copies inside the editor paste exactly.** The editor keeps its last copy as raw colors and uses it when the clipboard still holds that copy's text. Reason: raw values survive, where a round trip through RGBA hex could approximate them.
@@ -299,6 +319,5 @@ The document editor for one palette: a swatch grid beside a color editor, a coll
 - `DiscardChangesAsync` rewrites the resource file because "a whole-project save may have written" pending edits, but the committed model (UI-PALETTE-EDITOR-028) already prevents that. The rewrite looks redundant.
 - Save writes the resource file even when nothing is pending (UI-PALETTE-EDITOR-024).
 - Status messages are never cleared by the palette editor.
-- `PaletteEditorViewModel.ApplyHistoryAction` throws `NotImplementedException` and has no callers; `EditableColorBaseViewModel.SaveColor` has no callers; `ScatteredColorSourceModel` is unused.
-- Palettes with a scattered color source throw on open instead of reporting the problem.
+- `PaletteEditorViewModel.ApplyHistoryAction` throws `NotImplementedException` and has no callers; `EditableColorBaseViewModel.SaveColor` has no callers.
 - The ViewModel wiring (validation blocking Save, paste parsing, read-only gating, committed model) has no tests; only the session and selection classes do.

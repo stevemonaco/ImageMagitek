@@ -29,7 +29,7 @@ public class PaletteEditSessionTests
         _source.Write(new BitAddress(0), _fileBytes);
 
         var sources = Enumerable.Range(0, _fileColors)
-            .Select(i => (IColorSource)new FileColorSource(new BitAddress(i * 2, 0), Endian.Little))
+            .Select(i => (IColorSource)new FileColorSource(i * 2, Endian.Little))
             .Append(new ProjectNativeColorSource(new ColorRgba32(10, 20, 30, 255)))
             .Append(new ProjectForeignColorSource(new ColorBgr15(0x1234)))
             .ToList();
@@ -78,7 +78,7 @@ public class PaletteEditSessionTests
 
         _session.SetColor(0, new ColorBgr15(0x7FFF));
         _session.SetZeroIndexTransparent(true);
-        _session.SetSources([new FileColorSource(new BitAddress(8, 0), Endian.Little)]);
+        _session.SetSources([new FileColorSource(8, Endian.Little)]);
 
         _session.Discard();
 
@@ -95,7 +95,7 @@ public class PaletteEditSessionTests
         _session.SetColor(0, new ColorBgr15(0x0421));
 
         var sources = _palette.ColorSources.ToList();
-        sources[1] = new FileColorSource(new BitAddress(8, 0), Endian.Little);
+        sources[1] = new FileColorSource(8, Endian.Little);
         _session.SetSources(sources);
 
         Assert.Equal(0x0421u, ColorAt(0));
@@ -211,7 +211,7 @@ public class PaletteEditSessionTests
     {
         var sources = ChangeColorModelViewModel.ReinterpretSources(_palette, ColorModel.Rgba32, _colorFactory);
 
-        var offsets = sources.OfType<FileColorSource>().Select(x => x.Offset.ByteOffset).ToArray();
+        var offsets = sources.OfType<FileColorSource>().Select(x => x.Offset).ToArray();
         Assert.Equal(new long[] { 0, 4, 8, 12 }, offsets);
     }
 
@@ -248,6 +248,65 @@ public class PaletteEditSessionTests
         _session.SetSources(_palette.ColorSources.Select(x => PaletteSnapshot.CloneSource(x, _colorFactory)).ToList());
 
         Assert.Empty(_undo);
+    }
+
+    private static ScatteredColorSource ByteTables(long low, long high) =>
+        new([new ColorField(low, 0, 8, 0), new ColorField(high, 0, 7, 8)]);
+
+    private List<IColorSource> SourcesWithScattered(ScatteredColorSource scattered) =>
+        _palette.ColorSources.Take(_foreignIndex + 1).Select(x => PaletteSnapshot.CloneSource(x, _colorFactory)).Append(scattered).ToList();
+
+    [Fact]
+    public void ApplySources_ScatteredUnchanged_CarriesPendingColors()
+    {
+        _session.SetSources(SourcesWithScattered(ByteTables(10, 11)));
+        _session.SetColor(6, new ColorBgr15(0x1234));
+
+        var sources = SourcesWithScattered(ByteTables(10, 11));
+        sources[1] = new FileColorSource(8, Endian.Little);
+        _session.SetSources(sources);
+
+        Assert.Equal(0x1234u, ColorAt(6));
+        Assert.Equal(_fileBytes, ReadFile());
+    }
+
+    [Fact]
+    public void ApplySources_ScatteredChanged_RereadsFile()
+    {
+        _session.SetSources(SourcesWithScattered(ByteTables(10, 11)));
+        _session.SetColor(6, new ColorBgr15(0x1234));
+
+        _session.SetSources(SourcesWithScattered(ByteTables(8, 11)));
+
+        Assert.Equal(0x42FFu, ColorAt(6));
+        Assert.Equal(_fileBytes, ReadFile());
+    }
+
+    [Fact]
+    public void ScatteredPastEnd_NotApplied()
+    {
+        var original = AllColors();
+
+        var applied = _session.SetSources(SourcesWithScattered(ByteTables(10, _fileBytes.Length)));
+
+        Assert.False(applied);
+        Assert.Empty(_undo);
+        Assert.Equal(original, AllColors());
+    }
+
+    [Fact]
+    public void ScatteredFieldTooWide_FailsPreview()
+    {
+        var scattered = new ScatteredColorSource([new ColorField(0, 0, 8, 0), new ColorField(1, 0, 4, 8)]);
+        var palette = new Palette("scattered", _colorFactory, ColorModel.Bgr15, [scattered], false, PaletteStorageSource.ProjectXml, _source);
+        var dialog = new ChangeColorModelViewModel(palette, _colorFactory);
+
+        dialog.SelectedColorModel = nameof(ColorModel.Bgr6);
+
+        Assert.Contains("Cannot preview", dialog.PreviewError);
+        Assert.Contains("Entry 0 field 1", dialog.PreviewError);
+        Assert.Empty(dialog.AfterColors);
+        Assert.False(dialog.TryAcceptCommand.CanExecute(null));
     }
 
     private static byte Lerp(byte a, byte b, double t) => (byte)System.Math.Round(a + (b - a) * t);

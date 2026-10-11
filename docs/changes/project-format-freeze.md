@@ -6,7 +6,7 @@
 
 - **1.0** [LIB-PROJECT-FORMAT] Stable resource keys or path keys. **Decided: path keys.** The analysis is under Decisions.
 - **1.0** [LIB-PROJECT-FORMAT] Schema versioning. Confirmed: `XmlProjectWriter` writes `Version => "0.9"`, `XmlProjectReader` parses it into `ImageProjectModel.Version` and never compares it, and `ImageProjectModel.ResourceEquals` ignores `Version`. Only the project file carries a version; resource files have none. **Decided: no upgrade or migration path for 1.0**, because there are no projects in the wild to carry forward. 1.0 needs only a version that newer formats can be told apart by.
-- **1.0** [LIB-PROJECT-FORMAT] The scattered color source. **Decided: keep and implement it**, in [scattered-color-sources](scattered-color-sources.md), which lands before this change so the `scatteredcolor` element is part of the frozen format. That proposal also fixes the `MapToModel` loop and the palette editor throw.
+- **1.0** [LIB-PROJECT-FORMAT] The scattered color source. **Decided: keep and implement it.** Done: the `scatteredcolor` element is in the schema (LIB-PROJECT-FORMAT-057), so it is part of the frozen format; that change also fixed the `MapToModel` loop and the palette editor throw.
 - (promoted) [LIB-PROJECT-FORMAT] A malformed or foreign `*.xml` anywhere under the project directory fails the whole load, and every other directory becomes a folder. Confirmed: `Directory.GetDirectories(..., AllDirectories)` and `GetFiles("*.xml", AllDirectories)` scan everything, and every file is validated against the schema before its root element is checked. Concretely, `.git` and all its subdirectories become folders, and Rider's `.idea/*.xml` or Visual Studio's `.vs` files fail the load. 1.0: romhackers keep projects in git, and which files the reader scans is part of the format contract, so it must be fixed before the freeze.
 - (promoted) [LIB-ARRANGERS] Rotating a mirrored element turns it the opposite way on screen. Confirmed: render shows `M(R(decoded))` (LIB-IMAGES-006), and `TryRotateElement` composes the requested turn into `R` whatever the mirror is. Because `H∘L = R∘H`, Rotate Left on a horizontally mirrored element turns it clockwise. The fix belongs in the edit operation, not in the stored meaning. Stored `(mirror, rotation)` already has one consistent meaning (rotate, then mirror) in render (LIB-IMAGES-006) and encode (LIB-IMAGES-015). Fixing `TryRotateElement` changes how no saved project renders. It is in this change to pin that meaning before the freeze.
 - (promoted) [LIB-PROJECT-FORMAT] `version` is parsed with the current culture. Confirmed, and worse than the backlog says. `decimal.Parse("0.9")` throws `FormatException` under fr-FR, so every project fails to open on a French-locale machine. Under de-DE it returns `9`, which would read as a newer version once versions are compared. 1.0: every project fails to open for a large group of users.
@@ -116,7 +116,7 @@ Add, create folder and rename refuse a name that starts with `.`.
 
 ## Tasks
 
-Lands after [scattered-color-sources](scattered-color-sources.md), so the frozen schema includes `scatteredcolor`.
+Lands after scattered color sources (already in), so the frozen schema includes `scatteredcolor`.
 
 1. **Version.**
    - Code:

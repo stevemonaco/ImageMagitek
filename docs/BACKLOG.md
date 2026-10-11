@@ -6,7 +6,7 @@ When an item is closed, its line is deleted.
 
 **1.0** marks items that block the 1.0 release ([ARCHITECTURE.md](ARCHITECTURE.md) §1): they lose work, corrupt data, freeze the project format, or leave a visible control that does nothing. Out of scope for 1.0: direct-color XML codecs, compression ([proposal](changes/compression-support.md)), container scanners ([proposal](changes/container-scanners.md)), new platforms and color models, new drawing or selection tools, layers, tilemaps and scripting. Candidates for 1.1, roughly in order: sequential arrangers as project resources, export from sequential views and selections, CLI `--json` output and key globs, OS clipboard, tool hotkeys; then compression and direct-color XML codecs.
 
-Every **1.0** item belongs to a change proposal, linked at the end of its line: [scattered-color-sources](changes/scattered-color-sources.md), [project-format-freeze](changes/project-format-freeze.md), [sequential-palettes](changes/sequential-palettes.md), [welcome-screen](changes/welcome-screen.md), [docs-1-0](changes/docs-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
+Every **1.0** item belongs to a change proposal, linked at the end of its line: [project-format-freeze](changes/project-format-freeze.md), [sequential-palettes](changes/sequential-palettes.md), [welcome-screen](changes/welcome-screen.md), [docs-1-0](changes/docs-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
 
 Found by reading the code, not reproduced, unless a test is named.
 
@@ -14,7 +14,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ### Library
 
-- **1.0** [LIB-PALETTES, LIB-PROJECT-FORMAT] `SerializationMapperExtensions.MapToModel` never advances `i` for a `ScatteredColorSource` (or an unknown source type), so mapping such a palette loops forever; done when scattered sources map to `scatteredcolor` runs and unknown types throw, with a test. ([proposal](changes/scattered-color-sources.md))
 - [LIB-PALETTES] In a ProjectXml palette a project-native source is returned as its own foreign color (`ColorRgba32`) whatever the model, and its native color is never quantized, unlike global palettes; done when both storage kinds behave the same, or a decision records the difference.
 - [LIB-PALETTES] `SetNativeColor` keeps the native color unquantized (BGR15 shows 255, not 248) until `Reload`; done when it stores the round-tripped color, or a decision records why not.
 - [LIB-PROJECT-SERVICE] `AreResourcesInSameProject` returns true when neither resource is in any open tree; done when it returns false.
@@ -33,7 +32,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 - **1.0** [UI-GRAPHICS-EDITOR] In a sequential editor's View mode the palette combo never recolors the view (the `ChangePalette` call in `GraphicsEditorViewModel.View.cs` is commented out); done when choosing a palette re-renders the view with it. ([proposal](changes/sequential-palettes.md))
 - [UI-ARRANGING] Ctrl+click single-cell select and Shift+hover single-element select are shadowed by the temporary Pick Palette (Arrange) or Color Picker (Draw) modifier tools; done when each gesture does one documented thing.
-- **1.0** [UI-PALETTE-EDITOR] Opening a palette with a `ScatteredColorSource` throws `NotSupportedException`; done when scattered runs show as source rows and edit through the Scattered Colors dialog. ([proposal](changes/scattered-color-sources.md))
 - [UI-GRAPHICS-EDITOR] Ctrl+W (fit) sets the zoom without clamping to 0.25–32x; done when it respects MinZoom/MaxZoom.
 - [UI-GRAPHICS-EDITOR] Inspect Element prints "FileOffset 0x1A." with a trailing dot when the bit offset is 0; done when the dot appears only with a bit offset.
 - [UI-GRAPHICS-EDITOR] A VM's `OnImageModified` callback is never cleared when a view releases it, so it can repaint a view that no longer shows it (only a null-VM paint guard covers it); done when the view clears its callbacks on DataContext change.
@@ -71,7 +69,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 - **1.0** [LIB-PROJECT-FORMAT] Path keys are kept (decided; stable keys rejected for now); done when the analysis is recorded as a LIB-PROJECT-FORMAT Decision. ([proposal](changes/project-format-freeze.md))
 - **1.0** [LIB-PROJECT-FORMAT] Schema versioning: `version="0.9"` is written and parsed but never compared; bump to 1.0 and reject newer versions with a clear message, with no migration or upgrade path (no projects in the wild); done when a higher-version project fails clearly and a 0.9 project loads as 1.0. ([proposal](changes/project-format-freeze.md))
-- **1.0** [LIB-PALETTES, LIB-PROJECT-FORMAT, UI-PALETTE-EDITOR] Implement scattered color sources (an empty class today: the reader ignores it, the writer throws or loops): a palette entry assembled from bit fields at separate places in the palette's data file; done when such palettes load, save, round-trip and edit in the palette editor. ([proposal](changes/scattered-color-sources.md))
 - **1.0** [UI-GRAPHICS-EDITOR, LIB-PALETTES] Sequential editors switch between built-in palettes, and three new 256-color global palettes ship (high contrast in the first 16, one smooth synthwave); done when the combo recolors the view and the palettes pass their design tests. ([proposal](changes/sequential-palettes.md))
 - **1.0** [UI-WELCOME] A welcome screen in the empty document area, with demo art decoded from a shipped SNES 4bpp file; done when it shows on launch and after the last editor closes. ([proposal](changes/welcome-screen.md))
 - [UI-SHELL, LIB-PROJECT-SERVICE] Command-line and OS integration (optional for 1.0): `args` are passed to Avalonia but never read, and there is no window drop handler; done when a non-`.xml` path on the command line, or a file dropped on the window, opens as a standalone file (drop is a manual check).
@@ -144,13 +141,12 @@ Found by reading the code, not reproduced, unless a test is named.
 - **1.0** [UI-GRAPHICS-EDITOR] `ArrangerRenderer` takes an unused arranger; commented-out code in `Drawing.cs`, `View.cs` and `GraphicsEditorViewModel.cs`.
 - [UI-DRAWING] Unused `ActiveColor`, `ActiveColorIndex`, `SetPrimaryColorIndex`/`SetSecondaryColorIndex`, the `SetPrimaryColor`/`SetSecondaryColor` commands, `SetSelectToolMode`, `SetApplyPaletteMode`, `NotifyColorTypeChanged`; each indexed Pencil pixel sends an empty status message.
 - [UI-EDIT-HISTORY] Payload fields on the Mirror/Rotate/Delete/Resize history actions are unused since the snapshot model; `ApplyHistoryAction` is never called from outside.
-- [UI-PALETTE-EDITOR] `PaletteEditorViewModel.ApplyHistoryAction` (throws, no callers), `EditableColorBaseViewModel.SaveColor` (no callers), `ScatteredColorSourceModel` (unused); the project rewrite in `DiscardChangesAsync` is probably redundant given `CommittedModel`, and Save rewrites the resource XML when nothing is pending; the status ActivityMessage is never cleared.
+- [UI-PALETTE-EDITOR] `PaletteEditorViewModel.ApplyHistoryAction` (throws, no callers), `EditableColorBaseViewModel.SaveColor` (no callers); the project rewrite in `DiscardChangesAsync` is probably redundant given `CommittedModel`, and Save rewrites the resource XML when nothing is pending; the status ActivityMessage is never cleared.
 - [LIB-ARRANGERS] The commented `UnlinkPalette` in `Arranger.cs`, the duplicate codec-name check in `SequentialArranger.SetElement`, the dead `TileLayout is null` branch; `ArrangerBuilder`'s sequential path ignores `WithElementLayout` and `WithPixelColorType`.
 - [LIB-IMAGES] `CopyPixelsDirect` on an indexed arranger throws `NotImplementedException` where the indexed variant throws `ArgumentException`; `ImageBase.Right`/`Bottom` doc comments say inclusive, the values are exclusive.
 - [LIB-PALETTES] `Palette.HasAlpha` is never set and unused; `Palette.GetColor` is unused and swaps R and B.
 - [LIB-CODECS] `PatternList._encodePattern` is a public mutable field.
 - [LIB-PROJECT-TREE] `ProjectResourceBaseComparer` (internal, unused) and `IProjectResource.ShouldBeSerialized` (never read).
-- **1.0** [LIB-PROJECT-FORMAT] The reader branches for `scatteredcolor`/`import`/`export` (the schema rejects them) and the commented-out `ScatteredColorSourceModel` mapping. ([proposal](changes/scattered-color-sources.md))
 
 ## Release engineering and documentation
 
@@ -175,7 +171,7 @@ DevTools cannot drive pointer gestures, drag and drop, or popups, so these need 
 - [UI-ARRANGING] Drag a selection within an editor and between editors; drop with and without Shift; drop pixels onto a read-only arranger.
 - [UI-DRAWING] A color-flyout edit marks the palette editor tab modified and lands as a pending, undoable edit; Color Remap is enabled on "Adult Rydia Map" and disabled on "Portraits"; picking and dragging in the Color Remapper.
 - [UI-IMAGE-IO] Preview pan, zoom and peek; selecting and double-clicking report entries; import into an arranger open in an editor.
-- [UI-PALETTE-EDITOR] Shift+click and Ctrl+click on swatches; the Sources → Add flyout for all three kinds; import and export through the file pickers.
+- [UI-PALETTE-EDITOR] Shift+click and Ctrl+click on swatches; the Sources → Add flyout for all four kinds, including "Scattered colors..."; assign a color to a scattered entry, Save, and check in a hex editor that only the field bits changed; import and export through the file pickers.
 - [UI-DRAWING] Gesture capture: draw a Pencil stroke, press and release Ctrl mid-stroke, release, draw a second stroke, undo twice and check both strokes are undone; repeat with Shift, and with an Apply Palette drag in Arrange mode. Also check a Shift+drag selection, Shift-hover single select and selection handle drags still work, and that releasing outside the image ends a stroke.
 - [UI-DRAWING] Color Picker on an unlisted palette: copy elements from "Portraits" into "Adult Rydia Map" choosing one whose palette is not listed there, Ctrl+click a pasted pixel in Draw mode, and check the swatches show its palette and Pencil draws.
 - [UI-DRAWING] Pencil with duplicate palette colors: pick the higher duplicate index, draw, save, reopen, and check with Color Picker that the stored index is the chosen one.

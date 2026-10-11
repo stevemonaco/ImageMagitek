@@ -79,6 +79,23 @@
                 </Grid>
             </Border>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type m:ScatteredColorSourceModel}">
+            <Border Classes="sourceRow" Classes.highlighted="{Binding IsHighlighted}">
+                <Grid Classes="sourceRow" ColumnDefinitions="64,*,Auto" ColumnSpacing="8">
+                    <TextBlock Classes="sourceKind" Text="Scattered" />
+                    <StackPanel Grid.Column="1" Classes="fields">
+                        <TextBlock VerticalAlignment="Center" Text="{Binding Summary}" />
+                        <Button Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).EditScatteredColorSourceCommand}"
+                            CommandParameter="{Binding}" Content="Edit..." ToolTip.Tip="Edit the run's entry count and fields" />
+                    </StackPanel>
+                    <Button Grid.Column="2" Classes="tool" Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).RemoveColorSourceCommand}"
+                        CommandParameter="{Binding}" ToolTip.Tip="Remove this source">
+                        <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Trash}" />
+                    </Button>
+                </Grid>
+            </Border>
+        </DataTemplate>
     </UserControl.DataTemplates>
 
     <ScrollViewer HorizontalScrollBarVisibility="Auto">
@@ -208,6 +225,7 @@
                                 <MenuItem Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).AddNewNativeColorSourceCommand}" Header="Native color" />
                                 <MenuItem Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).AddNewForeignColorSourceCommand}"
                                     Header="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).ColorModel, StringFormat='{}{0} color'}" />
+                                <MenuItem Command="{Binding #palView.((vm:PaletteEditorViewModel)DataContext).AddScatteredColorSourceCommand}" Header="Scattered colors..." />
                             </MenuFlyout>
                         </Button.Flyout>
                     </Button>

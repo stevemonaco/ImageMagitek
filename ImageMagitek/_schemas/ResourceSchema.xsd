@@ -20,6 +20,7 @@
 		<xs:element name="filesource" type="filecolorsource" />
 		<xs:element name="nativecolor" type="nativecolorsource" />
 		<xs:element name="foreigncolor" type="foreigncolorsource" />
+		<xs:element name="scatteredcolor" type="scatteredcolorsource" />
 	  </xs:choice>
 	  
       <xs:attribute name="datafile" type="xs:string" use="required" />
@@ -114,19 +115,17 @@
   </xs:complexType>
   
   <xs:complexType name="filecolorsource">
-	<xs:attribute name="entries" type="xs:positiveInteger" use="required" />
+	<xs:attribute name="entries" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:positiveInteger">
+          <xs:maxInclusive value="256" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
     <xs:attribute name="fileoffset" use="required">
       <xs:simpleType>
         <xs:restriction base="xs:string">
           <xs:pattern value="[0-9A-Fa-f]+" />
-        </xs:restriction>
-      </xs:simpleType>
-    </xs:attribute>
-    <xs:attribute name="bitoffset" use="optional">
-      <xs:simpleType>
-        <xs:restriction base="xs:nonNegativeInteger">
-          <xs:minInclusive value="0" />
-          <xs:maxExclusive value="8" />
         </xs:restriction>
       </xs:simpleType>
     </xs:attribute>
@@ -160,4 +159,55 @@
     </xs:attribute>
   </xs:complexType>
 
-</xs:schema>
+  <xs:complexType name="scatteredcolorsource">
+    <xs:sequence>
+      <xs:element name="field" type="colorfield" minOccurs="1" maxOccurs="32" />
+    </xs:sequence>
+    <xs:attribute name="entries" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:positiveInteger">
+          <xs:maxInclusive value="256" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="colorfield">
+    <xs:attribute name="fileoffset" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[0-9A-Fa-f]+" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="lowbit" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:nonNegativeInteger">
+          <xs:maxInclusive value="7" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="bits" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:positiveInteger">
+          <xs:maxInclusive value="8" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="shift" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:nonNegativeInteger">
+          <xs:maxInclusive value="31" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="stride" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:positiveInteger">
+          <xs:maxInclusive value="2147483647" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+</xs:schema>

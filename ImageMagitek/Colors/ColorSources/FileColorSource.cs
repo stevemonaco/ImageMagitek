@@ -2,10 +2,13 @@
 
 public class FileColorSource : IColorSource
 {
-    public BitAddress Offset { get; set; }
+    /// <summary>
+    /// Byte offset of the color within the palette's data file
+    /// </summary>
+    public long Offset { get; set; }
     public Endian Endian { get; set; }
 
-    public FileColorSource(BitAddress offset, Endian endian)
+    public FileColorSource(long offset, Endian endian)
     {
         Offset = offset;
         Endian = endian;

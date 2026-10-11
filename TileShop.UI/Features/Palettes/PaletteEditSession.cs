@@ -99,10 +99,11 @@ public sealed class PaletteEditSession
     }
 
     /// <summary>
-    /// Replaces the sources. Pending colors carry over to file entries whose offset and endian are unchanged.
+    /// Replaces the sources. Pending colors carry over to file entries whose offset and endian are unchanged
+    /// and to scattered entries whose fields are unchanged.
     /// Sources equal to the current ones are ignored so re-committed text fields don't add history.
     /// </summary>
-    /// <returns>False if a file source extends past the end of the data source</returns>
+    /// <returns>False if a file or scattered source extends past the end of the data source</returns>
     public bool SetSources(IReadOnlyList<IColorSource> sources, string name = "Edit sources")
     {
         if (!FitsDataSource(sources))
@@ -111,11 +112,11 @@ public sealed class PaletteEditSession
         if (SourcesEqual(_palette.ColorSources, sources))
             return true;
 
-        var pending = new Dictionary<(BitAddress, Endian), IColor>();
+        var pending = new List<(IColorSource Source, IColor Color)>();
         for (int i = 0; i < _palette.Entries; i++)
         {
-            if (_palette.ColorSources[i] is FileColorSource file)
-                pending.TryAdd((file.Offset, file.Endian), _colorFactory.CloneColor(_palette.GetForeignColor(i)));
+            if (Palette.IsFileBacked(_palette.ColorSources[i]))
+                pending.Add((_palette.ColorSources[i], _colorFactory.CloneColor(_palette.GetForeignColor(i))));
         }
 
         Record(name, () =>
@@ -124,8 +125,12 @@ public sealed class PaletteEditSession
 
             for (int i = 0; i < sources.Count; i++)
             {
-                if (sources[i] is FileColorSource file && pending.TryGetValue((file.Offset, file.Endian), out var color))
-                    _palette.SetForeignColor(i, _colorFactory.CloneColor(color));
+                if (!Palette.IsFileBacked(sources[i]))
+                    continue;
+
+                var match = pending.FindIndex(x => SameSource(x.Source, sources[i]));
+                if (match >= 0)
+                    _palette.SetForeignColor(i, _colorFactory.CloneColor(pending[match].Color));
             }
         });
         return true;
@@ -251,37 +256,32 @@ public sealed class PaletteEditSession
 
     private bool FitsDataSource(IReadOnlyList<IColorSource> sources)
     {
-        if (!sources.OfType<FileColorSource>().Any())
+        if (!sources.Any(Palette.IsFileBacked))
             return true;
 
         if (_palette.DataSource is not { } dataSource)
             return false;
 
         var size = _colorFactory.CreateColor(_palette.ColorModel).Size;
-        return sources.OfType<FileColorSource>().All(x => x.Offset.Offset + size <= dataSource.Length * 8);
-    }
-
-    private static bool SourcesEqual(IReadOnlyList<IColorSource> a, IReadOnlyList<IColorSource> b)
-    {
-        if (a.Count != b.Count)
-            return false;
-
-        for (int i = 0; i < a.Count; i++)
+        return sources.All(x => x switch
         {
-            bool equal = (a[i], b[i]) switch
-            {
-                (FileColorSource x, FileColorSource y) => x.Offset == y.Offset && x.Endian == y.Endian,
-                (ProjectNativeColorSource x, ProjectNativeColorSource y) => x.Value.Color == y.Value.Color,
-                (ProjectForeignColorSource x, ProjectForeignColorSource y) => x.Value.GetType() == y.Value.GetType() && x.Value.Color == y.Value.Color,
-                _ => false
-            };
-
-            if (!equal)
-                return false;
-        }
-
-        return true;
+            FileColorSource file => file.Offset + size / 8 <= dataSource.Length,
+            ScatteredColorSource scattered => scattered.Fields.All(f => f.Offset < dataSource.Length),
+            _ => true
+        });
     }
+
+    private static bool SourcesEqual(IReadOnlyList<IColorSource> a, IReadOnlyList<IColorSource> b) =>
+        a.Count == b.Count && a.Zip(b).All(x => SameSource(x.First, x.Second));
+
+    private static bool SameSource(IColorSource a, IColorSource b) => (a, b) switch
+    {
+        (FileColorSource x, FileColorSource y) => x.Offset == y.Offset && x.Endian == y.Endian,
+        (ScatteredColorSource x, ScatteredColorSource y) => x.Fields.SequenceEqual(y.Fields),
+        (ProjectNativeColorSource x, ProjectNativeColorSource y) => x.Value.Color == y.Value.Color,
+        (ProjectForeignColorSource x, ProjectForeignColorSource y) => x.Value.GetType() == y.Value.GetType() && x.Value.Color == y.Value.Color,
+        _ => false
+    };
 
     private void OnChanged() => Changed?.Invoke(this, EventArgs.Empty);
 

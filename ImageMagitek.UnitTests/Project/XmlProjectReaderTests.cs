@@ -93,15 +93,82 @@ public sealed class XmlProjectReaderTests : IDisposable
         return codec.Palette;
     }
 
+    private static string ScatteredPalette(string color, params string[] runs) =>
+        $"<palette datafile=\"/rom\" color=\"{color}\" zeroindextransparent=\"false\">{string.Concat(runs)}</palette>";
+
+    private static string Run(int entries, params string[] fields) =>
+        $"<scatteredcolor entries=\"{entries}\">{string.Concat(fields)}</scatteredcolor>";
+
     [Fact]
-    public void FileSource_BitOffset_LoadsAtBitAddress()
+    public void FileSource_BitOffset_FailsValidation()
     {
         WriteXml("pal.xml", "<palette datafile=\"/rom\" color=\"Bgr15\" zeroindextransparent=\"false\"><filesource fileoffset=\"2\" bitoffset=\"4\" entries=\"2\" /></palette>");
+
+        var reason = ReadSingleFailure();
+
+        Assert.Contains("bitoffset", reason);
+    }
+
+    [Fact]
+    public void ScatteredColor_ReadsRun()
+    {
+        WriteXml("pal.xml", ScatteredPalette("Bgr15",
+            Run(3, "<field fileoffset=\"10\" lowbit=\"1\" bits=\"5\" stride=\"16\" />", "<field fileoffset=\"20\" bits=\"4\" shift=\"5\" stride=\"4\" />")));
 
         var tree = ReadSuccess();
 
         Assert.True(tree.TryGetItem<Palette>("/pal", out var palette));
-        Assert.Equal([new BitAddress(2, 4), new BitAddress(4, 4)], palette.ColorSources.Cast<FileColorSource>().Select(x => x.Offset));
+        var sources = palette.ColorSources.Cast<ScatteredColorSource>().ToList();
+        Assert.Equal(3, sources.Count);
+        Assert.Equal([new ColorField(0x10, 1, 5, 0), new ColorField(0x20, 0, 4, 5)], sources[0].Fields);
+        Assert.Equal([new ColorField(0x12, 1, 5, 0), new ColorField(0x20, 4, 4, 5)], sources[1].Fields);
+        Assert.Equal([new ColorField(0x14, 1, 5, 0), new ColorField(0x21, 0, 4, 5)], sources[2].Fields);
+    }
+
+    [Fact]
+    public void ScatteredColor_DefaultStrideShiftAndLowBit()
+    {
+        WriteXml("pal.xml", ScatteredPalette("Bgr15", Run(2, "<field fileoffset=\"8\" bits=\"8\" />")));
+
+        var tree = ReadSuccess();
+
+        Assert.True(tree.TryGetItem<Palette>("/pal", out var palette));
+        Assert.Equal([new ColorField(8, 0, 8, 0), new ColorField(9, 0, 8, 0)],
+            palette.ColorSources.Cast<ScatteredColorSource>().Select(x => Assert.Single(x.Fields)));
+    }
+
+    [Fact]
+    public void ScatteredColor_FieldOverflowsModel_FailsNamingEntry()
+    {
+        WriteXml("pal.xml", "<palette datafile=\"/rom\" color=\"Nes\" zeroindextransparent=\"false\"><filesource fileoffset=\"0\" entries=\"2\" />" +
+            Run(1, "<field fileoffset=\"8\" bits=\"4\" />", "<field fileoffset=\"9\" bits=\"4\" shift=\"6\" />") + "</palette>");
+
+        var reason = ReadSingleFailure();
+
+        Assert.Contains(PathOf("pal.xml"), reason);
+        Assert.Contains("entry 2 field 1", reason);
+    }
+
+    [Fact]
+    public void ScatteredColor_OverlappingFields_Fails()
+    {
+        WriteXml("pal.xml", ScatteredPalette("Bgr15", Run(1, "<field fileoffset=\"8\" bits=\"4\" />", "<field fileoffset=\"8\" lowbit=\"2\" bits=\"4\" shift=\"4\" />")));
+
+        var reason = ReadSingleFailure();
+
+        Assert.Contains("entry 0 field 1", reason);
+        Assert.Contains("overlaps", reason);
+    }
+
+    [Fact]
+    public void ScatteredColor_StrideCrossesByte_FailsNamingEntry()
+    {
+        WriteXml("pal.xml", ScatteredPalette("Bgr15", Run(3, "<field fileoffset=\"8\" bits=\"5\" stride=\"4\" />")));
+
+        var reason = ReadSingleFailure();
+
+        Assert.Contains("entry 1 field 0", reason);
+        Assert.Contains("byte", reason);
     }
 
     [Fact]

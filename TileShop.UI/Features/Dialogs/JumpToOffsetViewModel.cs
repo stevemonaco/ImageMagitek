@@ -57,7 +57,7 @@ public partial class JumpToOffsetViewModel : RequestViewModel<long?>
             : "Not a valid decimal offset");
     }
 
-    private static bool TryParseOffset(string? text, NumericBase numericBase, out long offset)
+    internal static bool TryParseOffset(string? text, NumericBase numericBase, out long offset)
     {
         var span = text.AsSpan().Trim();
 

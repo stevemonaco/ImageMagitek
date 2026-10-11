@@ -501,8 +501,8 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
 
         return _palette.ColorSources[index] switch
         {
-            FileColorSource { Offset: var offset } when offset.BitOffset == 0 => $"File offset 0x{offset.ByteOffset:X}",
-            FileColorSource { Offset: var offset } => $"File offset 0x{offset.ByteOffset:X} bit {offset.BitOffset}",
+            FileColorSource { Offset: var offset } => $"File offset 0x{offset:X}",
+            ScatteredColorSource scattered => $"Scattered: {scattered.Fields.Count} fields at {string.Join(", ", scattered.Fields.Select(f => $"0x{f.Offset:X}"))}",
             ProjectNativeColorSource => "Native color stored in the project",
             ProjectForeignColorSource => $"{_palette.ColorModel} color stored in the project",
             _ => ""
@@ -514,7 +514,7 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         int start = 0;
         foreach (var model in ColorSourceModels)
         {
-            int count = model is FileColorSourceModel file ? file.Entries : 1;
+            int count = CountColors(model);
             model.IsHighlighted = _selection.Indices.Any(i => i >= start && i < start + count);
             start += count;
         }
@@ -542,6 +542,22 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         var address = lastFile is null ? 0 : lastFile.FileAddress + (lastFile.Entries * size + 7) / 8;
 
         ColorSourceModels.Add(new FileColorSourceModel(address, 1, lastFile?.Endian ?? Endian.Little));
+    }
+
+    [RelayCommand]
+    private async Task AddScatteredColorSource()
+    {
+        var result = await _interactions.RequestAsync(new ScatteredColorsViewModel(_palette, _colorFactory, null));
+        if (result is not null)
+            ColorSourceModels.Add(result);
+    }
+
+    [RelayCommand]
+    private async Task EditScatteredColorSource(ScatteredColorSourceModel model)
+    {
+        var result = await _interactions.RequestAsync(new ScatteredColorsViewModel(_palette, _colorFactory, model));
+        if (result is not null)
+            ColorSourceModels[ColorSourceModels.IndexOf(model)] = result;
     }
 
     [RelayCommand]
@@ -607,15 +623,17 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     {
         Entries = CountSourceColors();
 
-        _hasOutOfRangeSources = false;
-        if (!HasInvalidSources() && TryCreateColorSources(out var sources))
+        _hasOutOfRangeSources = Entries > Palette.MaxEntries;
+        if (_hasOutOfRangeSources)
+            ActivityMessage = $"The sources hold {Entries} colors, more than the {Palette.MaxEntries} a palette can hold";
+        else if (!HasInvalidSources() && TryCreateColorSources(out var sources))
         {
             _isApplyingSourceEdit = true;
             try
             {
                 _hasOutOfRangeSources = !_session.SetSources(sources);
                 if (_hasOutOfRangeSources)
-                    ActivityMessage = "A file source extends past the end of its data file";
+                    ActivityMessage = "A source extends past the end of its data file";
             }
             finally
             {
@@ -637,7 +655,13 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
             if (pal.ColorSources[i] is FileColorSource fileSource)
             {
                 int count = Palette.GetFileRunLength(pal.ColorSources, i, size);
-                yield return new FileColorSourceModel(fileSource.Offset.ByteOffset, count, fileSource.Endian);
+                yield return new FileColorSourceModel(fileSource.Offset, count, fileSource.Endian);
+                i += count;
+            }
+            else if (pal.ColorSources[i] is ScatteredColorSource)
+            {
+                var (count, fields) = Palette.GetScatteredRun(pal.ColorSources, i);
+                yield return new ScatteredColorSourceModel(count, fields);
                 i += count;
             }
             else if (pal.ColorSources[i] is ProjectNativeColorSource nativeSource)
@@ -661,23 +685,14 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         }
     }
 
-    private int CountSourceColors()
+    private int CountSourceColors() => ColorSourceModels.Sum(CountColors);
+
+    private static int CountColors(ColorSourceModel model) => model switch
     {
-        int count = 0;
-
-        foreach (var source in ColorSourceModels)
-        {
-            count += source switch
-            {
-                FileColorSourceModel fileSource => fileSource.Entries,
-                NativeColorSourceModel => 1,
-                ForeignColorSourceModel => 1,
-                _ => 0
-            };
-        }
-
-        return count;
-    }
+        FileColorSourceModel fileSource => fileSource.Entries,
+        ScatteredColorSourceModel scatteredSource => scatteredSource.Entries,
+        _ => 1
+    };
 
     private bool TryCreateColorSources(out List<IColorSource> sources)
     {
@@ -689,9 +704,12 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
         {
             if (sourceModel is FileColorSourceModel fileModel)
             {
-                var offset = new BitAddress(fileModel.FileAddress, 0);
                 for (int j = 0; j < fileModel.Entries; j++)
-                    sources.Add(new FileColorSource(offset + j * size, fileModel.Endian));
+                    sources.Add(new FileColorSource(fileModel.FileAddress + j * (size / 8), fileModel.Endian));
+            }
+            else if (sourceModel is ScatteredColorSourceModel scatteredModel)
+            {
+                sources.AddRange(ScatteredColorSource.ExpandRun(scatteredModel.Entries, scatteredModel.Fields));
             }
             else if (sourceModel is NativeColorSourceModel nativeModel &&
                 ColorParser.TryParse(nativeModel.NativeHexColor, ColorModel.Rgba32, out var nativeColor))

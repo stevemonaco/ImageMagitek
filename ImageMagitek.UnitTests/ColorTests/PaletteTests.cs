@@ -67,7 +67,7 @@ public sealed class PaletteTests : IDisposable
     [Fact]
     public void IsReadOnly_FileColorsOnReadOnlySource_IsTrue()
     {
-        var palette = CreateFilePalette(OpenReadOnlySource(), [new FileColorSource(BitAddress.Zero, Endian.Little)]);
+        var palette = CreateFilePalette(OpenReadOnlySource(), [new FileColorSource(0, Endian.Little)]);
 
         Assert.True(palette.IsReadOnly);
     }
@@ -84,7 +84,7 @@ public sealed class PaletteTests : IDisposable
     public void SavePalette_ReadOnly_WritesNothingReturnsFalse()
     {
         var source = OpenReadOnlySource();
-        var palette = CreateFilePalette(source, [new FileColorSource(BitAddress.Zero, Endian.Little)]);
+        var palette = CreateFilePalette(source, [new FileColorSource(0, Endian.Little)]);
         palette.SetNativeColor(0, new ColorRgba32(248, 248, 248, 255));
 
         Assert.False(palette.SavePalette());
@@ -120,8 +120,92 @@ public sealed class PaletteTests : IDisposable
         Assert.False(raised);
     }
 
+    [Fact]
+    public void Construct_ScatteredFieldOverflowsModel_Throws()
+    {
+        var sources = new List<IColorSource> { new ProjectNativeColorSource(default), new ScatteredColorSource([new ColorField(0, 0, 4, 0), new ColorField(1, 0, 8, 4)]) };
+
+        var ex = Assert.Throws<ColorFieldException>(() => new Palette("p", new ColorFactory(), ColorModel.Bgr6, sources, false,
+            PaletteStorageSource.ProjectXml, OpenReadOnlySource()));
+
+        Assert.StartsWith("Entry 1 field 1:", ex.Message);
+    }
+
+    [Fact]
+    public void SetColorModel_ScatteredFieldOverflowsModel_Throws()
+    {
+        var sources = new List<IColorSource> { new ScatteredColorSource([new ColorField(0, 0, 8, 8)]) };
+        var palette = CreateFilePalette(OpenReadOnlySource(), sources);
+
+        var ex = Assert.Throws<ColorFieldException>(() => palette.SetColorModel(ColorModel.Bgr6, sources));
+
+        Assert.StartsWith("Entry 0 field 0:", ex.Message);
+        Assert.Equal(ColorModel.Bgr15, palette.ColorModel);
+    }
+
+    [Fact]
+    public void IsReadOnly_ScatteredOnReadOnlySource()
+    {
+        var palette = CreateFilePalette(OpenReadOnlySource(), [new ScatteredColorSource([new ColorField(0, 0, 8, 0)])]);
+
+        Assert.True(palette.IsReadOnly);
+    }
+
+    [Fact]
+    public void LoadColors_UnknownColorSource_Throws()
+    {
+        var serializer = new ColorSourceSerializer(new ColorFactory());
+
+        var ex = Assert.Throws<NotSupportedException>(() => serializer.LoadColors([new UnknownColorSource()], OpenReadOnlySource(), ColorModel.Bgr15, 1));
+
+        Assert.Contains(nameof(UnknownColorSource), ex.Message);
+    }
+
+    [Fact]
+    public void StoreColors_UnknownColorSource_Throws()
+    {
+        var serializer = new ColorSourceSerializer(new ColorFactory());
+
+        var ex = Assert.Throws<NotSupportedException>(() =>
+            serializer.StoreColors([new UnknownColorSource()], OpenReadOnlySource(), [default], [new ColorBgr15(0)]));
+
+        Assert.Contains(nameof(UnknownColorSource), ex.Message);
+    }
+
+    [Theory]
+    [InlineData("not scattered", 0)]
+    [InlineData("single", 1)]
+    [InlineData("constant stride", 3)]
+    [InlineData("stride changes", 2)]
+    [InlineData("shift differs", 1)]
+    [InlineData("field count differs", 1)]
+    [InlineData("negative stride", 1)]
+    [InlineData("per-field strides", 3)]
+    public void GetScatteredRun_Count(string name, int expected)
+    {
+        static IColorSource At(params (long Position, int Shift)[] fields) =>
+            new ScatteredColorSource(fields.Select(f => new ColorField(f.Position / 8, (int)(f.Position % 8), 4, f.Shift)));
+
+        IColorSource[] sources = name switch
+        {
+            "not scattered" => [new FileColorSource(0, Endian.Little), At((0, 0))],
+            "single" => [At((0, 0))],
+            "constant stride" => [At((0, 0)), At((4, 0)), At((8, 0))],
+            "stride changes" => [At((0, 0)), At((4, 0)), At((16, 0))],
+            "shift differs" => [At((0, 0)), At((4, 4))],
+            "field count differs" => [At((0, 0)), At((4, 0), (64, 4))],
+            "negative stride" => [At((8, 0)), At((4, 0))],
+            "per-field strides" => [At((0, 0), (64, 4)), At((4, 0), (72, 4)), At((8, 0), (80, 4))],
+            _ => throw new ArgumentOutOfRangeException(nameof(name))
+        };
+
+        Assert.Equal(expected, Palette.GetScatteredRun(sources, 0).Count);
+    }
+
+    private sealed class UnknownColorSource : IColorSource;
+
     private static IList<IColorSource> CreateFileSources(int count) =>
-        Enumerable.Range(0, count).Select(i => (IColorSource)new FileColorSource(new BitAddress(i * 2, 0), Endian.Little)).ToList();
+        Enumerable.Range(0, count).Select(i => (IColorSource)new FileColorSource(i * 2, Endian.Little)).ToList();
 
     private static Palette CreateFilePalette(DataSource source, IList<IColorSource> colorSources) =>
         new("file", new ColorFactory(), ColorModel.Bgr15, colorSources, false, PaletteStorageSource.ProjectXml, source);

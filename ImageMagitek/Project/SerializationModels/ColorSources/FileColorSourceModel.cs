@@ -2,7 +2,10 @@
 
 public class FileColorSourceModel : IColorSourceModel
 {
-    public BitAddress FileAddress { get; set; }
+    /// <summary>
+    /// Byte offset of the run's first color
+    /// </summary>
+    public long FileAddress { get; set; }
     public int Entries { get; set; }
     public Endian Endian { get; set; }
 
@@ -10,7 +13,7 @@ public class FileColorSourceModel : IColorSourceModel
     {
     }
 
-    public FileColorSourceModel(BitAddress fileAddress, int entries, Endian endian)
+    public FileColorSourceModel(long fileAddress, int entries, Endian endian)
     {
         FileAddress = fileAddress;
         Entries = entries;

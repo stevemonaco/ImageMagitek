@@ -80,8 +80,15 @@ public static class SerializationMapperExtensions
                 model.ColorSources.Add(foreignModel);
                 i++;
             }
-            else if (colorSources[i] is ScatteredColorSource scatteredSource)
+            else if (colorSources[i] is ScatteredColorSource)
             {
+                var (count, fields) = Palette.GetScatteredRun(colorSources, i);
+                model.ColorSources.Add(new ScatteredColorSourceModel(count, fields));
+                i += count;
+            }
+            else
+            {
+                throw new NotSupportedException($"Color source of type '{colorSources[i].GetType()}' is not supported");
             }
         }
 
@@ -98,7 +105,7 @@ public static class SerializationMapperExtensions
             if (source is FileColorSourceModel fileColorSource)
             {
                 var fileSources = Enumerable.Range(0, fileColorSource.Entries)
-                    .Select(x => fileColorSource.FileAddress + size * x)
+                    .Select(x => fileColorSource.FileAddress + size / 8 * x)
                     .Select(x => new FileColorSource(x, fileColorSource.Endian))
                     .ToList();
                 sources.AddRange(fileSources);
@@ -111,10 +118,10 @@ public static class SerializationMapperExtensions
             {
                 sources.Add(new ProjectForeignColorSource(foreignSource.Value));
             }
-            //else if (source is ScatteredColorSourceModel scatteredSource)
-            //{
-
-            //}
+            else if (source is ScatteredColorSourceModel scatteredSource)
+            {
+                sources.AddRange(ScatteredColorSource.ExpandRun(scatteredSource.Entries, scatteredSource.Fields));
+            }
         }
 
         return new Palette(model.Name, colorFactory, model.ColorModel, sources, model.ZeroIndexTransparent, model.StorageSource, dataSource);

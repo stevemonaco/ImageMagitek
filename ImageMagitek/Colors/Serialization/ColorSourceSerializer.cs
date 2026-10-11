@@ -44,7 +44,11 @@ public class ColorSourceSerializer : IColorSourceSerializer
             }
             else if (source is ScatteredColorSource scatteredSource)
             {
-
+                result[currentEntry] = _colorFactory.CreateColor(colorModel, ReadScatteredValue(dataSource, scatteredSource));
+            }
+            else
+            {
+                throw new NotSupportedException($"Color source of type '{source.GetType()}' is not supported");
             }
 
             currentEntry++;
@@ -53,21 +57,21 @@ public class ColorSourceSerializer : IColorSourceSerializer
         return result;
     }
 
-    private IColor ReadFileColor(DataSource dataSource, BitAddress offset, ColorModel colorModel, int size, Endian endian) =>
+    private IColor ReadFileColor(DataSource dataSource, long offset, ColorModel colorModel, int size, Endian endian) =>
         _colorFactory.CreateColor(colorModel, ReadFileColorValue(dataSource, offset, size, endian));
 
     /// <summary>
-    /// Reads the raw, uninterpreted color value stored at <paramref name="offset"/>
+    /// Reads the raw, uninterpreted color value stored at byte <paramref name="offset"/>
     /// </summary>
     /// <param name="size">Read size in bits</param>
     /// <exception cref="NotSupportedException">Size must be 32 bits or less</exception>
-    public static uint ReadFileColorValue(DataSource dataSource, BitAddress offset, int size, Endian endian)
+    public static uint ReadFileColorValue(DataSource dataSource, long offset, int size, Endian endian)
     {
         Span<byte> colorBuffer = stackalloc byte[4];
 
         int readSize = (size + 7) / 8;
 
-        dataSource.Read(offset, size, colorBuffer);
+        dataSource.Read(new BitAddress(offset, 0), size, colorBuffer);
 
         uint readColor;
         if (readSize == 1)
@@ -105,7 +109,45 @@ public class ColorSourceSerializer : IColorSourceSerializer
     }
 
     /// <summary>
-    /// Stores color sources with FileColorSources being written to file and native/foreign sources being updated, but the caller must serialize the 
+    /// Assembles the raw, uninterpreted color value from the bytes that <paramref name="source"/>'s fields read
+    /// </summary>
+    public static uint ReadScatteredValue(DataSource dataSource, ScatteredColorSource source)
+    {
+        Span<byte> buffer = stackalloc byte[1];
+        uint value = 0;
+
+        foreach (var field in source.Fields)
+        {
+            dataSource.Read(new BitAddress(field.Offset, 0), 8, buffer);
+            var mask = (1u << field.Bits) - 1;
+            value |= ((uint)(buffer[0] >> field.LowBit) & mask) << field.Shift;
+        }
+
+        return value;
+    }
+
+    /// <summary>
+    /// Splits <paramref name="value"/> into <paramref name="source"/>'s fields, changing only each field's bits within its byte
+    /// </summary>
+    private static void WriteScatteredValue(DataSource dataSource, ScatteredColorSource source, uint value)
+    {
+        Span<byte> buffer = stackalloc byte[1];
+
+        foreach (var field in source.Fields)
+        {
+            var address = new BitAddress(field.Offset, 0);
+            dataSource.Read(address, 8, buffer);
+
+            var mask = ((1u << field.Bits) - 1) << field.LowBit;
+            var bits = ((value >> field.Shift) << field.LowBit) & mask;
+            buffer[0] = (byte)((buffer[0] & ~mask) | bits);
+
+            dataSource.Write(address, buffer);
+        }
+    }
+
+    /// <summary>
+    /// Stores color sources with file and scattered sources being written to file and native/foreign sources being updated, but the caller must serialize the 
     /// project resource themself to update project sources on disk
     /// </summary>
     /// <param name="sources"></param>
@@ -129,14 +171,18 @@ public class ColorSourceSerializer : IColorSourceSerializer
             {
                 foreignSource.Value = foreignColors[i];
             }
-            else if (sources[i] is ScatteredColorSource)
+            else if (sources[i] is ScatteredColorSource scatteredSource)
             {
-                throw new NotSupportedException();
+                WriteScatteredValue(df, scatteredSource, foreignColors[i].Color);
+            }
+            else
+            {
+                throw new NotSupportedException($"Color source of type '{sources[i].GetType()}' is not supported");
             }
         }
     }
 
-    private void WriteFileColor(DataSource df, BitAddress offset, IColor foreignColor, Endian endian)
+    private void WriteFileColor(DataSource df, long offset, IColor foreignColor, Endian endian)
     {
         Span<byte> colorBuffer = stackalloc byte[4];
 
@@ -169,6 +215,6 @@ public class ColorSourceSerializer : IColorSourceSerializer
             BinaryPrimitives.WriteUInt32BigEndian(colorBuffer, foreignColor.Color);
         }
 
-        df.Write(offset, colorBuffer[..writeSize]);
+        df.Write(new BitAddress(offset, 0), colorBuffer[..writeSize]);
     }
 }

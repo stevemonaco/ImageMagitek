@@ -58,15 +58,20 @@ public sealed class XmlProjectWriterTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task FileSource_BitOffset_Written()
+    public async Task ScatteredColor_WritesMinimalAttributes()
     {
-        await AddPaletteAsync(new FileColorSource(new BitAddress(2, 4), Endian.Little), new FileColorSource(new BitAddress(4, 4), Endian.Little));
+        await AddPaletteAsync(
+            new ScatteredColorSource([new ColorField(0x10, 0, 5, 0), new ColorField(0x20, 4, 4, 5)]),
+            new ScatteredColorSource([new ColorField(0x11, 0, 5, 0), new ColorField(0x22, 0, 4, 5)]),
+            new ScatteredColorSource([new ColorField(0x30, 2, 8 - 2, 0)]));
 
-        var source = Assert.Single(XDocument.Load(PathOf("pal.xml")).Root!.Elements("filesource"));
+        var runs = XDocument.Load(PathOf("pal.xml")).Root!.Elements("scatteredcolor").ToList();
 
-        Assert.Equal("2", source.Attribute("fileoffset")?.Value);
-        Assert.Equal("4", source.Attribute("bitoffset")?.Value);
-        Assert.Equal("2", source.Attribute("entries")?.Value);
+        Assert.Equal(2, runs.Count);
+        Assert.Equal("2", runs[0].Attribute("entries")?.Value);
+        var fields = runs[0].Elements("field").Select(x => string.Join(" ", x.Attributes().Select(a => $"{a.Name}={a.Value}"))).ToList();
+        Assert.Equal(["fileoffset=10 bits=5", "fileoffset=20 lowbit=4 bits=4 shift=5 stride=12"], fields);
+        Assert.Equal("fileoffset=30 lowbit=2 bits=6", string.Join(" ", runs[1].Element("field")!.Attributes().Select(a => $"{a.Name}={a.Value}")));
     }
 
     [Fact]

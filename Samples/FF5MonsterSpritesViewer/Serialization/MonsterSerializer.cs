@@ -71,7 +71,7 @@ public class MonsterSerializer
         var palEntries = metadata.ColorDepth == TileColorDepth.Bpp4 ? 16 : 8;
 
         var paletteSources = Enumerable.Range(0, palEntries)
-            .Select(x => (IColorSource) new FileColorSource(new BitAddress(PaletteOffset + 16 * metadata.PaletteId + x * 2, 0), Endian.Little))
+            .Select(x => (IColorSource) new FileColorSource(PaletteOffset + 16 * metadata.PaletteId + x * 2, Endian.Little))
             .ToList();
 
         var pal = new Palette("monsterPalette", new ColorFactory(), ColorModel.Bgr15, paletteSources, true, PaletteStorageSource.ProjectXml, dataFile);

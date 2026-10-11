@@ -6,6 +6,11 @@
     xmlns:media="using:Avalonia.Media"
     xmlns:vm="using:TileShop.UI.ViewModels">
 
+    <!--  Pointer-placed popups never resize after their first layout (PopupRoot.ArrangeSetBounds), so a tooltip moved to a monitor with another scale loses its last line  -->
+    <Style Selector=":is(Control)">
+        <Setter Property="ToolTip.Placement" Value="Bottom" />
+    </Style>
+
     <Style Selector="RadioButton.toggle">
         <Setter Property="Theme" Value="{StaticResource {x:Type ToggleButton}}" />
     </Style>

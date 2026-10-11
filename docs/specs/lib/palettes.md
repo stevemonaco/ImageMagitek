@@ -22,6 +22,9 @@ types:
   - ProjectNativeColorSource
   - ProjectForeignColorSource
   - ScatteredColorSource
+  - ColorField
+  - ColorFieldRun
+  - ColorFieldException
   - Endian
   - IColorSourceSerializer
   - ColorSourceSerializer
@@ -33,6 +36,7 @@ types:
   - PaletteStore
 tests:
   - PaletteTests
+  - ScatteredColorSourceTests
   - PaletteFileSerializerTests
   - PaletteEditSessionTests
   - ProjectServiceTests
@@ -47,7 +51,7 @@ depends:
 
 ## Purpose
 
-A palette is an ordered list of colors in one color model (LIB-COLORS). Each entry comes from a color source: a value in a data file (LIB-DATASOURCE), or a native or foreign value stored in the project. Project palettes are saved in the project (LIB-PROJECT-FORMAT) and can be written back to their data file. Global palettes are read-only JSON files shipped with the app, one of which serves as the default palette for new codecs (LIB-CODECS) and one as the NES master palette. Arrangers assign palettes to elements (LIB-ARRANGERS); the palette editor in TileShop.UI edits them. This spec also covers `BootstrapService.CreatePaletteStore`.
+A palette is an ordered list of colors in one color model (LIB-COLORS). Each entry comes from a color source: a value in a data file (LIB-DATASOURCE), a value assembled from bit fields scattered through the data file, or a native or foreign value stored in the project. Project palettes are saved in the project (LIB-PROJECT-FORMAT) and can be written back to their data file. Global palettes are read-only JSON files shipped with the app, one of which serves as the default palette for new codecs (LIB-CODECS) and one as the NES master palette. Arrangers assign palettes to elements (LIB-ARRANGERS); the palette editor in TileShop.UI edits them. This spec also covers `BootstrapService.CreatePaletteStore`.
 
 ## Requirements
 
@@ -55,7 +59,7 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 
 - **LIB-PALETTES-001** — A palette shall have one entry per color source, in source order.
   - Tests: `PaletteEditSessionTests.Discard_RestoresColorsSourcesAndTransparency`
-- **LIB-PALETTES-002** — A file color source shall supply the value of the palette model's storage size read at its bit address in the palette's data source, interpreted in the palette's color model.
+- **LIB-PALETTES-002** — A file color source shall supply the value of the palette model's storage size read at its byte offset in the palette's data source, interpreted in the palette's color model.
   - Tests: `PaletteEditSessionTests.SetColor_UndoRedoCommit_WritesFileOnlyOnCommit`
 - **LIB-PALETTES-003** — A file color source shall read and write 2- and 4-byte values in its endianness, 1-byte values directly, and 3-byte values little-endian whatever its endianness.
   - Tests: untested
@@ -69,10 +73,14 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
   - Tests: `PaletteTests.SetNativeColor_Components_StoresForeignColorInPaletteModel`
 - **LIB-PALETTES-008** — A palette shall mix source kinds freely in one ordered list.
   - Tests: `PaletteEditSessionTests.SetColor_ProjectNative_UpdatesSourceValueInMemoryUntilDiscard`
-- **LIB-PALETTES-009** — A scattered color source shall supply no color: its entry is empty, and saving a palette that contains one throws `NotSupportedException`.
-  - Tests: untested
-- **LIB-PALETTES-010** — The file run length of a source list shall count consecutive file sources from a start index whose offsets are evenly spaced by the given color size and whose endianness matches the first, and be 0 when the start is not a file source.
-  - Tests: untested
+- **LIB-PALETTES-009** — A scattered color source shall supply the raw value assembled from its fields: each field reads the byte at its offset, takes its width in bits starting at its low bit (bit 0 being the least significant), shifts them left by its shift and ORs them in; bits no field covers are 0. The result is interpreted in the palette's color model.
+  - Tests: `ScatteredColorSourceTests.Load_PerChannelByteTables_Bgr15`, `ScatteredColorSourceTests.Load_LowBitInsideByte`, `ScatteredColorSourceTests.Load_NibblePackedStride4_LowNibbleFirst`, `ScatteredColorSourceTests.Load_LowAndHighByteTables`, `ScatteredColorSourceTests.Load_UncoveredBitsAreZero`, `ScatteredColorSourceTests.Load_NesTableModel`
+- **LIB-PALETTES-010** — The file run length of a source list shall count consecutive file sources from a start index whose byte offsets are evenly spaced by the given color size in bits divided by 8 and whose endianness matches the first, and be 0 when the start is not a file source.
+  - Tests: `SerializationMapperTests.MapToModel_MixedEndianRun_SplitsAtEndianChange`, `SerializationMapperTests.MapToModel_GapInRun_SplitsAtGap`
+- **LIB-PALETTES-052** — The scattered run length of a source list shall count consecutive scattered sources from a start index that have the first's field count and, per field, its width and shift, with each field's bit position advancing by one constant positive stride. It shall be 0 when the start is not a scattered source.
+  - Tests: `PaletteTests.GetScatteredRun_Count`
+- **LIB-PALETTES-053** — If a source list holds a color source of a type the serializer does not know, then loading or saving its colors shall throw `NotSupportedException` naming the type.
+  - Tests: `PaletteTests.LoadColors_UnknownColorSource_Throws`, `PaletteTests.StoreColors_UnknownColorSource_Throws`
 
 ### Loading and reloading
 
@@ -89,8 +97,10 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
   - Tests: `PaletteEditSessionTests.SetColor_UndoRedoCommit_WritesFileOnlyOnCommit`
 - **LIB-PALETTES-015** — When `SetForeignColor` is called with components, the palette shall create the foreign color from components in the palette model's channel ranges (LIB-COLORS).
   - Tests: untested
-- **LIB-PALETTES-016** — When `SetNativeColor` is called, the palette shall store the native color unchanged, set the foreign entry to its conversion into the palette model, and raise `Changed`.
+- **LIB-PALETTES-016** — When `SetNativeColor` is called, the palette shall store the native color unchanged, set the foreign entry to its conversion into the palette model, and raise `Changed`. Scattered entries are the exception (LIB-PALETTES-054).
   - Tests: `PaletteTests.SetNativeColor_Components_StoresForeignColorInPaletteModel`
+- **LIB-PALETTES-054** — When a foreign or native color is set on a scattered entry, the palette shall clear the raw bits no field covers before storing it, and store the native conversion of that masked foreign color.
+  - Tests: `ScatteredColorSourceTests.SetColor_ClearsUncoveredBits`
 - **LIB-PALETTES-017** — If `SetForeignColor` or `SetNativeColor` is given an index at or past the entry count, then it shall throw `ArgumentOutOfRangeException`.
   - Tests: untested
 - **LIB-PALETTES-018** — Color edits shall stay in memory and not touch the data source or the color sources until the palette is saved.
@@ -99,6 +109,10 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
   - Tests: `PaletteEditSessionTests.Discard_RestoresColorsSourcesAndTransparency`
 - **LIB-PALETTES-020** — When `SetColorModel` is called, the palette shall change its model, replace its sources with the ones given and reload; the caller supplies file sources respaced for the new color size.
   - Tests: `PaletteEditSessionTests.ChangeColorModel_ThenUndo_RestoresModelAndColors`
+- **LIB-PALETTES-055** — If a scattered source has no fields, a low bit outside 0–7, a width outside 1–8, a low bit plus width over 8, a shift outside 0–31, a negative offset, or two fields that overlap in value bits or in file bits, then constructing it shall throw `ColorFieldException` (an `ArgumentException`) naming the field.
+  - Tests: `ScatteredColorSourceTests.Construct_InvalidFields_Throws`
+- **LIB-PALETTES-056** — If a palette is constructed, or given sources or a color model, where a scattered field's shift plus width exceeds the color model's size, then it shall throw `ColorFieldException` naming the entry and the field, and keep its previous state.
+  - Tests: `PaletteTests.Construct_ScatteredFieldOverflowsModel_Throws`, `PaletteTests.SetColorModel_ScatteredFieldOverflowsModel_Throws`
 - **LIB-PALETTES-021** — When `ZeroIndexTransparent` changes value, the palette shall raise `Changed`; setting the current value raises nothing.
   - Tests: untested
 - **LIB-PALETTES-022** — `ZeroIndexTransparent` shall be a flag for consumers (renderers, PNG export) to treat index 0 as transparent; it does not change the stored colors.
@@ -106,13 +120,13 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 
 ### Saving
 
-- **LIB-PALETTES-023** — When a project palette with a data source is saved, the palette shall write each file source's foreign color to its address, set each project native source to the current native color and each project foreign source to the current foreign color, and return true.
-  - Tests: `PaletteEditSessionTests.SetColor_UndoRedoCommit_WritesFileOnlyOnCommit`, `PaletteEditSessionTests.SetColor_ProjectForeign_CommitKeepsValue`
-- **LIB-PALETTES-049** — A palette shall be read-only when it is a global palette, or when it has a file color source and its data source is read-only (LIB-DATASOURCE).
-  - Tests: `PaletteTests.IsReadOnly_FileColorsOnReadOnlySource_IsTrue`, `PaletteTests.IsReadOnly_ProjectColorsOnly_IsFalse`
+- **LIB-PALETTES-023** — When a project palette with a data source is saved, the palette shall write each file source's foreign color to its address, write each scattered source's foreign color, split into its fields, changing only each field's bits in its byte, set each project native source to the current native color and each project foreign source to the current foreign color, and return true.
+  - Tests: `PaletteEditSessionTests.SetColor_UndoRedoCommit_WritesFileOnlyOnCommit`, `PaletteEditSessionTests.SetColor_ProjectForeign_CommitKeepsValue`, `ScatteredColorSourceTests.Store_WritesOnlyFieldBits`, `ScatteredColorSourceTests.Store_RoundTripsEveryEntry`
+- **LIB-PALETTES-049** — A palette shall be read-only when it is a global palette, or when it has a file or scattered color source and its data source is read-only (LIB-DATASOURCE).
+  - Tests: `PaletteTests.IsReadOnly_FileColorsOnReadOnlySource_IsTrue`, `PaletteTests.IsReadOnly_ProjectColorsOnly_IsFalse`, `PaletteTests.IsReadOnly_ScatteredOnReadOnlySource`
 - **LIB-PALETTES-024** — When a read-only palette is saved, the palette shall write nothing and return false.
   - Tests: `PaletteTests.SavePalette_ReadOnly_WritesNothingReturnsFalse`
-- **LIB-PALETTES-025** — When a palette save writes any file color, the palette shall flush its data source before returning; saving shall not raise `DataWritten`, and project sources reach disk only when the caller saves the project.
+- **LIB-PALETTES-025** — When a palette save writes any file or scattered color, the palette shall flush its data source before returning; saving shall not raise `DataWritten`, and project sources reach disk only when the caller saves the project.
   - Tests: `PaletteTests.SavePalette_FileColor_IsOnDiskWhenSaveReturns`, `PaletteTests.SavePalette_DoesNotRaiseDataWritten`
 
 ### Resource behavior
@@ -180,7 +194,8 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 ## Invariants
 
 - `Entries` always equals the number of color sources.
-- After a load or a color edit, each entry's native color is the conversion of its foreign color, except entries set with `SetNativeColor` and project native sources, whose native color is kept exactly.
+- After a load or a color edit, each entry's native color is the conversion of its foreign color, except entries set with `SetNativeColor` and project native sources, whose native color is kept exactly. A scattered entry's native color is always the conversion of its masked foreign color, even after `SetNativeColor`.
+- A scattered entry's foreign value never has bits set outside its fields.
 
 ## Edge cases
 
@@ -204,6 +219,15 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 - **Global palettes are read-only, and so are palettes with file colors on a read-only data file.** Global palettes have no data source; a palette whose file colors live on a read-only data source cannot write them. `IsReadOnly` covers both, `SavePalette` returns false for it, and the palette editor's read-only mode keys off it; for global palettes the editor offers "Duplicate to project". A palette made only of project colors stays editable on a read-only data file. Reason: the editor's read-only mode already hides every edit path. Rejected: a second, ROM-specific read-only mode that keeps Sources visible (two modes to keep in step).
 - **A palette save flushes and stays silent.** The flush makes Save mean "on disk", so a crash after Save keeps the colors. No `DataWritten`, because that event reloads graphics editors and clears their history (LIB-DATASOURCE decision "`DataWritten` is not raised from `Flush`"). Rejected: `Flush(true)` to the physical disk, which image saves do not do either.
 - **JASC and GIMP only.** Palette files import into project native colors and export from native colors. Reason: the two common text formats cover the external editors users have. Rejected for now: RIFF `.pal`, `.act` and `.hex`.
+- **Scattered fields assemble a raw foreign value; the color model interprets it.** Reason: one mechanism covers per-channel tables, split bytes and table models, and conversion stays in the color factory (ARCHITECTURE §6). Rejected: named R/G/B channel fields (they need per-model channel definitions, and table models such as NES have no channels); per-channel scale factors (scaling is the color model's job; a game needing it gets a color model).
+- **A field reads bits from one byte; there is no endianness.** Reason: the user describes each byte a color reads from, the bits taken and where they go, which is how such formats are documented. A wider value is several byte fields, which also places each byte explicitly. Rejected: multi-byte fields with an endian attribute. Endianness combined with bit-granular widths and offsets has no single obvious meaning, and LIB-PALETTES-003 reads 3-byte values little-endian whatever the endianness, which would silently ignore `endian="big"`.
+- **Field bits are numbered from the least significant bit (`lowbit`).** Reason: games store channel values in the low bits of a byte, so a table of 0–31 values is `bits="5"` with no offset, and a stride-4 run starts at the low nibble. This deliberately differs from `BitAddress` and the arranger element's `bitoffset`, which count from the most significant bit; the attribute is named `lowbit` so the two are not confused. Rejected: MSB-first `bitoffset` (a 0–31 byte table needs `bitoffset="3"`, and entry 0 of a nibble run is the high nibble).
+- **File color sources are byte-addressed.** `FileColorSource.Offset` is a `long` byte offset. Reason: every color model is a whole number of bytes, nothing in the editor creates a bit offset, and the in-memory model then cannot hold a value the format cannot save (LIB-PROJECT-FORMAT drops `bitoffset` from `filesource`). Rejected: keeping `BitAddress` in memory with a byte-only format (the writer would need a refusal rule for a state nothing produces).
+- **All fields read from the palette's one data file.** Reason: the feature is non-contiguous storage, not multi-file palettes. A palette still has one data source, so relinking, read-only detection and the missing-file gate need no new rules. Rejected: a per-field or per-source data file.
+- **Uncovered bits are 0 and are cleared on assignment.** Some formats store fewer bits than the model holds, for example 4-bit channels placed in the top of a 5-bit Bgr15 channel. Reading them as 0 and clearing them when a color is assigned keeps the palette equal to what Save writes. Rejected: requiring fields to cover every bit of the model (rules out real formats); keeping uncovered bits in memory (shows colors that never reach the file).
+- **Scattered runs have a per-field stride in bits.** In memory each entry is its own `ScatteredColorSource` with absolute field positions, as file sources are; `Palette.GetScatteredRun` groups consecutive entries whose fields share widths and shifts and advance by one constant positive stride per field, and `ScatteredColorSource.ExpandRun` expands a run back into entries. Reason: per-channel tables (stride 8) and nibble-packed tables (stride 4) are both common, and runs keep 256-entry palettes readable, like file runs. The writer chooses runs and the reader expands them, so source editing, undo snapshots and the round-trip contract work unchanged. Rejected: one element per entry; a stride in bytes (cannot express packed nibbles); a nibble-order attribute or negative stride for high-nibble-first tables, which have no constant stride and are written as short runs instead (verbose but correct, and rare).
+- **The source validates its own fields; the palette checks them against its color model.** A source does not know its palette's model, and Change Color Model keeps the same fields under a new one. So the `ScatteredColorSource` constructor checks field shape and overlap, and the palette (on construction, `SetColorSources` and `SetColorModel`), the project reader and the editor dialogs check that each field fits the model. Errors are a `ColorFieldException` carrying the entry and field index, so the reader and dialogs report them without parsing messages.
+- **Within one entry, fields may not overlap in the value or in the file.** Two fields setting the same value bit, or writing the same file bit, make Save order-dependent. Fields of different entries are not cross-checked, matching file sources, which are not checked against each other either. Rejected: a palette-wide overlap check (adds a rule file sources do not have).
 - **The NES master palette is configurable.** Its name comes from `appsettings.json`, with a user preference override that TileShop.UI passes to `CreatePaletteStore`, which validates it (at least 64 entries) and falls back to the settings' palette. Reason: the 64-entry rule lives in one place and the CLI gets it too. Rejected: keeping the UI's two-pass fallback (the CLI stays unchecked).
 - **The global and NES master palettes are essentials.** See LIB-SERVICES "Essentials are the two schemas, a global palette and a 64-entry NES master palette".
 
@@ -216,6 +240,5 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 
 - `ColorSourceSerializer.LoadColors` treats a project native source as its own foreign color, so a project palette in, for example, Bgr15 reports an Rgba32 foreign color and an unquantized native color for that entry, unlike a global palette.
 - `SetNativeColor` keeps the native color as given, so until `Reload` the palette shows a color its model cannot store (255 instead of 248 in Bgr15).
-- The scattered color source is still a stub. The project writer's palette mapping never advances past one, so saving such a palette would loop forever (LIB-PROJECT-FORMAT). The backlog plans removing it from the 1.0 schema.
 - `Palette.HasAlpha` is never set and has no callers; `Palette.GetColor` swaps R and B and has no callers.
 - No tests for 3-byte and big-endian file colors, `ZeroIndexTransparent` events, global `SavePalette`, JSON defaults and errors.
