@@ -9,6 +9,7 @@ using ImageMagitek.Colors;
 using TileShop.Shared.Input;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
+using TileShop.UI.Features.Graphics;
 using TileShop.UI.Features.Graphics.Tools;
 
 namespace TileShop.UI.ViewModels;
@@ -316,15 +317,15 @@ public partial class GraphicsEditorViewModel
 
             ActivityBrush = new SolidColorBrush(Avalonia.Media.Color.FromRgb(nativeColor.R, nativeColor.G, nativeColor.B));
 
-            var foreignHex = $"0x{foreignColor.Color:X}";
-            ActivityMessage = $"Color ({xc}, {yc}): Index {colorIndex}, {Palette.ColorModelToString(palette.ColorModel)} {foreignHex}, Rgba32 ({nativeColor.R}, {nativeColor.G}, {nativeColor.B}, {nativeColor.A})";
+            ActivityMessage = ColorDescription.DescribeIndexed(xc, yc, colorIndex, palette.ColorModel, foreignColor, nativeColor,
+                _preferencesStore.Preferences.ForeignColorFormat);
         }
         else if (el is { Codec: IDirectCodec })
         {
             var color = _imageAdapter.GetDirectPixel(xc, yc);
 
             ActivityBrush = new SolidColorBrush(Avalonia.Media.Color.FromRgb(color.R, color.G, color.B));
-            ActivityMessage = $"Color ({xc}, {yc}): Rgba32 ({color.R}, {color.G}, {color.B}, {color.A})";
+            ActivityMessage = ColorDescription.DescribeDirect(xc, yc, color);
         }
         else if (el is not null)
         {

@@ -50,4 +50,9 @@ public static partial class AppIcons
     public static StreamGeometry ViewImported { get; } = StreamGeometry.Parse("M 10.3 21 H 5 a 2 2 0 0 1 -2 -2 V 5 a 2 2 0 0 1 2 -2 h 14 a 2 2 0 0 1 2 2 v 10 l -3.1 -3.1 a 2 2 0 0 0 -2.814 .014 L 6 21 M 14 19 l 3 3 v -5.5 M 17 22 l 3 -3 M 7 9 a 2 2 0 1 0 4 0 a 2 2 0 1 0 -4 0 Z"); // image-down
     public static StreamGeometry ViewOnionSkin { get; } = StreamGeometry.Parse("M 13 13.74 a 2 2 0 0 1 -2 0 L 2.5 8.87 a 1 1 0 0 1 0 -1.74 L 11 2.26 a 2 2 0 0 1 2 0 l 8.5 4.87 a 1 1 0 0 1 0 1.74 z M 20 14.285 l 1.5 .845 a 1 1 0 0 1 0 1.74 L 13 21.74 a 2 2 0 0 1 -2 0 l -8.5 -4.87 a 1 1 0 0 1 0 -1.74 l 1.5 -.845"); // layers-2
     public static StreamGeometry ViewDiff { get; } = StreamGeometry.Parse("M 12 3 v 14 M 5 10 h 14 M 5 21 h 14"); // diff
+    public static StreamGeometry NotificationsNone { get; } = StreamGeometry.Parse("M 10.268 21 a 2 2 0 0 0 3.464 0 M 3.262 15.326 A 1 1 0 0 0 4 17 h 16 a 1 1 0 0 0 .74 -1.673 C 19.41 13.956 18 12.499 18 8 A 6 6 0 0 0 6 8 c 0 4.499 -1.411 5.956 -2.738 7.326"); // bell
+    public static StreamGeometry NotificationsUnread { get; } = StreamGeometry.Parse("M 10.268 21 a 2 2 0 0 0 3.464 0 M 11.68 2.009 A 6 6 0 0 0 6 8 c 0 4.499 -1.411 5.956 -2.738 7.326 A 1 1 0 0 0 4 17 h 16 a 1 1 0 0 0 .74 -1.673 c -.824 -.85 -1.678 -1.731 -2.21 -3.348 M 15 5 a 3 3 0 1 0 6 0 a 3 3 0 1 0 -6 0 Z"); // bell-dot
+    public static StreamGeometry NotificationInfo { get; } = StreamGeometry.Parse("M 2 12 a 10 10 0 1 0 20 0 a 10 10 0 1 0 -20 0 Z M 12 16 v -4 M 12 8 h .01"); // info
+    public static StreamGeometry NotificationWarning { get; } = StreamGeometry.Parse("M 21.73 18 l -8 -14 a 2 2 0 0 0 -3.48 0 l -8 14 A 2 2 0 0 0 4 21 h 16 a 2 2 0 0 0 1.73 -3 M 12 9 v 4 M 12 17 h .01"); // triangle-alert
+    public static StreamGeometry NotificationError { get; } = StreamGeometry.Parse("M 2 12 a 10 10 0 1 0 20 0 a 10 10 0 1 0 -20 0 Z M 15 9 l -6 6 M 9 9 l 6 6"); // circle-x
 }

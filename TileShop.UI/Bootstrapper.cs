@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Avalonia.Threading;
 using ImageMagitek.Codec;
 using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services;
@@ -106,7 +107,23 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         services.AddSingleton<IThemeService, ThemeService>();
         services.AddSingleton<HotkeyService>();
         services.AddSingleton<ClipboardService>();
+
+        var notifications = new NotificationService(_loggerFactory!.CreateLogger<NotificationService>(), action =>
+        {
+            if (Dispatcher.UIThread.CheckAccess())
+                action();
+            else
+                Dispatcher.UIThread.Post(action);
+        });
+        services.AddSingleton<INotificationService>(notifications);
+        CodecPluginEvents.DecodeFailed += (codecName, ex) => PostDecodeFailure(notifications, codecName, ex);
     }
+
+    /// <summary>
+    /// Posts the warning shown when a plugin codec's decode first throws
+    /// </summary>
+    public static void PostDecodeFailure(INotificationService notifications, string codecName, Exception ex) =>
+        notifications.Post(NotificationSeverity.Warning, "Plugins", $"Plugin codec '{codecName}' failed to decode", ex.Message);
 
     public void ConfigureViews(IServiceCollection services)
     {
@@ -129,6 +146,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         services.AddSingleton<ProjectTreeViewModel>();
         services.AddSingleton<MenuViewModel>();
         services.AddSingleton<StatusViewModel>();
+        services.AddSingleton<NotificationsViewModel>();
 
         var vmTypes = GetType()
             .Assembly

@@ -94,6 +94,45 @@
         <Setter Property="Foreground" Value="{DynamicResource SemiColorDisabledText}" />
     </Style>
 
+    <!--  Notification severity: the status bar button (.notification) and each flyout entry (.severity)  -->
+    <Style Selector="cc|LineIcon.notification">
+        <Setter Property="Data" Value="{x:Static cc:AppIcons.NotificationsNone}" />
+    </Style>
+    <Style Selector="cc|LineIcon.notification.info">
+        <Setter Property="Data" Value="{x:Static cc:AppIcons.NotificationsUnread}" />
+    </Style>
+    <Style Selector="cc|LineIcon.severity.info">
+        <Setter Property="Data" Value="{x:Static cc:AppIcons.NotificationInfo}" />
+    </Style>
+    <Style Selector="cc|LineIcon.warning">
+        <Setter Property="Data" Value="{x:Static cc:AppIcons.NotificationWarning}" />
+        <Setter Property="Foreground" Value="{DynamicResource SemiColorWarning}" />
+    </Style>
+    <Style Selector="cc|LineIcon.error">
+        <Setter Property="Data" Value="{x:Static cc:AppIcons.NotificationError}" />
+        <Setter Property="Foreground" Value="{DynamicResource SemiColorDanger}" />
+    </Style>
+    <Style Selector="cc|LineIcon.info">
+        <Setter Property="Foreground" Value="{DynamicResource SemiColorPrimary}" />
+    </Style>
+
+    <!--  One-time highlight behind the notification button when a new error arrives; Opacity avoids animating a resource brush  -->
+    <Style Selector="Border.notificationFlash.flash">
+        <Style.Animations>
+            <Animation IterationCount="1" Duration="0:0:1" FillMode="None">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0" />
+                </KeyFrame>
+                <KeyFrame Cue="50%">
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
     <!--  Icons inside labeled buttons (e.g. the edit mode selector) follow the button's text color  -->
     <Style Selector="cc|LineIcon.inline">
         <Setter Property="Width" Value="16" />

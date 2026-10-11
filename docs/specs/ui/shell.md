@@ -17,9 +17,10 @@ sources:
   - TileShop.UI/Features/Shell/ExitGate.cs
   - TileShop.UI/Features/Shell/StartupErrorWindow.axaml
   - TileShop.UI/Features/Shell/StartupErrorWindow.axaml.cs
-  - TileShop.UI/Features/Shell/StartupIssueFormatter.cs
+  - TileShop.UI/Features/Shell/StartupIssueNotifier.cs
   - TileShop.UI/Features/Shell/StatusViewModel.cs
   - TileShop.UI/Features/Shell/StatusView.axaml
+  - TileShop.UI/Features/Shell/NotificationsViewModel.cs
   - TileShop.UI/Features/Shell/AppIconView.axaml
   - TileShop.UI/Features/Shell/DockableToolViewModel.cs
   - TileShop.UI/Features/Shell/DockableToolView.axaml
@@ -34,6 +35,7 @@ sources:
   - TileShop.Shared/Interactions
   - TileShop.Shared/Services
   - TileShop.Shared/Models/UserPreferences.cs
+  - TileShop.Shared/Models/Notification.cs
   - TileShop.Shared/Messages/Messages.cs
 types:
   - ShellViewModel
@@ -62,12 +64,20 @@ types:
   - NotifyStatusMessage
   - ExitGate
   - StartupErrorWindow
-  - StartupIssueFormatter
+  - StartupIssueNotifier
   - DialogKeyAction
+  - INotificationService
+  - NotificationService
+  - Notification
+  - NotificationSeverity
+  - NotificationsViewModel
 tests:
   - ExitGateTests
-  - StartupIssueFormatterTests
+  - StartupIssueNotifierTests
   - DialogKeyActionTests
+  - NotificationServiceTests
+  - NotificationsViewModelTests
+  - PluginDecodeNotificationTests
 depends:
   - LIB-PROJECT-SERVICE
   - LIB-PALETTES
@@ -158,7 +168,7 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
 
 ### Preferences dialog
 
-- **UI-SHELL-050** — The Preferences dialog shall show the current theme, Jump to Offset base, symmetry tools toggle, gridline and checkerboard primary/secondary colors, default palette and NES master palette.
+- **UI-SHELL-050** — The Preferences dialog shall show the current theme, Jump to Offset base, Foreign Color Display (Hex or Channels, default Hex; applies at once), symmetry tools toggle, gridline and checkerboard primary/secondary colors, default palette and NES master palette.
   - Tests: manual — open Preferences and compare with `preferences.json`.
 - **UI-SHELL-051** — The NES master palette list shall contain every `*.json` palette in the `_palettes` folder, sorted case-insensitively, with the palette currently in effect selected.
   - Tests: manual — open Preferences and check the Master Palette list.
@@ -174,9 +184,9 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
   - Tests: untested
 - **UI-SHELL-055** — The NES master palette and the default palette shall take effect only after restart, and grid colors and symmetry tools only in editors opened afterwards; the dialog shall say so.
   - Tests: manual — change the NES palette and check an open NES arranger is unchanged until restart.
-- **UI-SHELL-056** — At startup, the app shall pass the NES override to the palette store, which falls back to the appsettings.json NES palette when the override is unusable (LIB-PALETTES), and the fallback shall appear in the startup alert.
+- **UI-SHELL-056** — At startup, the app shall pass the NES override to the palette store, which falls back to the appsettings.json NES palette when the override is unusable (LIB-PALETTES), and the fallback shall appear in the startup notifications.
   - Tests: `BootstrapServiceTests.CreatePaletteStore_UnusableOverride_FallsBackAndRecordsIssue`
-- **UI-SHELL-121** — At startup, the app shall pass the default palette override to the palette store, which makes that global palette the default (LIB-PALETTES), and an override naming no loaded global palette shall appear in the startup alert.
+- **UI-SHELL-121** — At startup, the app shall pass the default palette override to the palette store, which makes that global palette the default (LIB-PALETTES), and an override naming no loaded global palette shall appear in the startup notifications.
   - Tests: `BootstrapServiceTests.CreatePaletteStore_DefaultOverride_MovesPaletteFirst`, `BootstrapServiceTests.CreatePaletteStore_UnknownDefaultOverride_KeepsSettingsOrderAndRecordsIssue`
 
 ### Exit
@@ -194,7 +204,7 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
 
 ### Status bar
 
-- **UI-SHELL-070** — The status bar shall show, left to right: the active editor's activity color swatch (only when it has one), its activity message, its pending-operation message, and the latest status message.
+- **UI-SHELL-070** — The status bar shall show, left to right: the active editor's activity color swatch (only when it has one), its activity message, its pending-operation message, the latest status message, and at the right end the notification area.
   - Tests: manual — hover a pixel in Draw mode and check the swatch and message; DevTools — in an arranger, Edit → Select All, Copy, Paste, then the status bar shows "Press [Enter] to Apply Paste".
 - **UI-SHELL-071** — When a Short status message arrives, the status bar shall show it and clear it 2 s later unless a newer message replaces it.
   - Tests: untested
@@ -204,6 +214,39 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
   - Tests: untested
 - **UI-SHELL-074** — When a Reset status message arrives, the status bar shall clear the status message.
   - Tests: untested
+
+### Notifications
+
+- **UI-SHELL-122** — The status bar's notification button shall show a neutral bell when nothing is unread, a bell with a dot when the most severe unread notification is Info, a warning triangle when it is Warning, and a crossed circle when it is Error, colored primary, warning and danger respectively.
+  - Tests: `NotificationsViewModelTests.IconSeverityAndCount_FollowPosts`; manual — light and dark themes.
+- **UI-SHELL-123** — The button shall show the number of unread notifications, hidden when it is zero.
+  - Tests: `NotificationsViewModelTests.IconSeverityAndCount_FollowPosts`; DevTools — `props IsVisible` on `NotificationCount`.
+- **UI-SHELL-138** — The notification button shall be hidden while there are no notifications, read or unread.
+  - Tests: DevTools — `props IsVisible` on `NotificationsButton` before and after a startup warning.
+- **UI-SHELL-124** — Clicking the button shall open a flyout listing the notifications newest first, each with a severity icon, title, source and the time of its latest post.
+  - Tests: `NotificationServiceTests.Post_SameSourceAndTitle_IncrementsCountKeepsFirstDetail`; manual — open the flyout.
+- **UI-SHELL-125** — Expanding an entry shall show its detail as selectable, wrapped text.
+  - Tests: manual — expand an entry and select its text.
+- **UI-SHELL-126** — An entry that collapsed repeats shall show ×N, N being its count; an entry posted once shall show no count.
+  - Tests: manual — trigger a collapsed repeat and open the flyout.
+- **UI-SHELL-127** — The flyout's Clear all button shall remove every notification; while the list is empty it is disabled and the flyout shows "No notifications".
+  - Tests: `NotificationServiceTests.ClearAll_Empties`; manual — press Clear all.
+- **UI-SHELL-128** — Each entry's dismiss button shall remove that entry only.
+  - Tests: `NotificationServiceTests.Dismiss_RemovesOne`; manual — dismiss one entry.
+- **UI-SHELL-129** — Opening the flyout shall mark every notification read, resetting the count and the icon, and keep the entries.
+  - Tests: `NotificationServiceTests.MarkAllRead_ZeroesCountKeepsEntries`, `NotificationsViewModelTests.Open_ZeroesCountAndClearsFlash`; DevTools — `input Click` on `NotificationsButton`, then `NotificationCount` is hidden.
+- **UI-SHELL-130** — A notification may be posted from any thread; the list, counts and icon shall change only on the UI thread.
+  - Tests: `NotificationServiceTests.Post_FromBackgroundThread_AppliesOnlyThroughDispatch`
+- **UI-SHELL-131** — The list shall keep at most the newest 200 entries, dropping the oldest.
+  - Tests: `NotificationServiceTests.Post_OverCap_DropsOldest`
+- **UI-SHELL-132** — A post with the same source and title as an existing entry shall increment its count, refresh its time, mark it unread and move it to the top, keeping the first detail.
+  - Tests: `NotificationServiceTests.Post_SameSourceAndTitle_IncrementsCountKeepsFirstDetail`
+- **UI-SHELL-133** — Every post shall be logged at its severity (Info as Information), including collapsed repeats.
+  - Tests: `NotificationServiceTests.Post_LogsAtSeverity`
+- **UI-SHELL-134** — When a new Error entry is added, the button shall play a one-time highlight of about 1 s; Info, Warning, collapsed repeats and startup issues shall not.
+  - Tests: `NotificationsViewModelTests.Post_NewError_SetsIsFlashing`, `NotificationsViewModelTests.Post_WarningInfoOrCollapsedError_DoesNotFlash`, `NotificationsViewModelTests.StartupIssues_DoNotFlash`; manual — the highlight in light and dark themes.
+- **UI-SHELL-135** — Only unread notifications shall count toward the number and the icon's severity.
+  - Tests: `NotificationServiceTests.UnreadCountAndHighestSeverity_FollowUnreadOnly`
 
 ### Hotkeys
 
@@ -253,8 +296,11 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
   - Tests: manual — run a Debug build and a Release build and compare title bars.
 - **UI-SHELL-104** (inherited) — The app shall log Warning and higher messages to a monthly rolling log file in `%LOCALAPPDATA%/TileShop/`.
   - Tests: manual — launch with a malformed codec file in `_codecs` and check the warning in the log there.
-- **UI-SHELL-112** — When startup records non-fatal issues, the shell shall show, once after the main window opens, an alert headed "Some resources were not loaded" listing each file and the first line of its reason (at most 20, then a count of the rest) and the log folder.
-  - Tests: `StartupIssueFormatterTests.Format_ListsFilesReasonsAndLogPath`, `StartupIssueFormatterTests.Format_MoreThan20_SummarizesRest`; DevTools — put a malformed XML file in the build output's `_codecs`, launch, `search OverlayDialog`.
+- ~~**UI-SHELL-112**~~ — Replaced by notifications (UI-SHELL-136).
+- **UI-SHELL-136** — When startup records non-fatal issues, the shell shall post, when it is created, one Warning notification per issue with source "Startup", titled with the file name and the first line of its reason, and with the full reason and path as its detail; no alert shall open.
+  - Tests: `StartupIssueNotifierTests.Post_EachIssue_OneWarningNamingFileAndFirstLine`; DevTools — put a malformed XML file in the build output's `_codecs`, launch, `search NotificationCount` shows 1 and `search OverlayDialog` (with templates) finds none.
+- **UI-SHELL-137** — When a plugin codec instance's decode first fails (LIB-PLUGINS-013), the shell shall post a Warning notification with source "Plugins" naming the codec, with the exception message as its detail, so failures of several instances of one codec collapse into one entry whose count is the number of failed instances, not of failed tiles.
+  - Tests: `PluginDecodeNotificationTests.DecodeFailed_TwoAdapters_PostsOneWarningWithCountTwo`; manual — put a throwing plugin in `_plugins` and open an arranger that uses it.
 - **UI-SHELL-113** — If bootstrapping throws, then the app shall show a startup error window with the message and the log folder instead of the main window, and exit when it is closed.
   - Tests: DevTools — rename `_palettes/DefaultNes.json` (the NES master palette, an essential) in the build output, launch, find `StartupErrorWindow`, click Close and check the process ends.
 - **UI-SHELL-105** — Each view model shall be shown with the view registered for its exact type, and an unregistered view model shall render as the text "<type> not registered".
@@ -277,7 +323,7 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
 
 - Opening a recent entry whose project is already open shows "Project Open Error" with "File '…' is already open" (LIB-PROJECT-SERVICE); the entry stays.
 - Opening a recent entry whose file was deleted after startup shows the open error; the entry is not removed.
-- An NES override that is ignored at startup (missing file or fewer than 64 colors) is reported in the startup alert, but the Preferences dialog still shows the ignored override as selected.
+- An NES override that is ignored at startup (missing file or fewer than 64 colors) is reported in the startup notifications, but the Preferences dialog still shows the ignored override as selected.
 - `desktop.Shutdown()` after a confirmed exit re-raises the window's close and may raise the shutdown request; the confirmed exit state lets both through without a second sequence.
 - While a dialog animates out (100 ms) the overlay is still in `RootDialogHost`, so `HasOpenDialog` stays true until the awaiting command resumes; the dialog ignores keys and pointer input meanwhile.
 - `ExploreWebLocation` throws for a non-HTTP(S) URI or an unsupported OS; only the fixed wiki URL reaches it.
@@ -288,6 +334,7 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
 - `HotkeyService` attaches a bubbling KeyDown handler to the main window on `Opened`.
 - `StatusViewModel` receives `NotifyStatusMessage` through the default Messenger; its `DispatcherTimer` runs on the UI thread.
 - `InteractionService` finds the `RootDialogHost` in any open window; dialogs are awaited on the UI thread.
+- `NotificationService` is a DI singleton created in `TileShopBootstrapper.ConfigureServices`. `Post` logs on the caller's thread and applies its change through the injected dispatcher (`Dispatcher.UIThread`, run inline when already on it), so collection and property changes are raised on the UI thread. The bootstrapper's `CodecPluginEvents.DecodeFailed` subscription lives for the app.
 - `MenuViewModel` subscribes to `ProjectService.ProjectOpened` for the recent list and never unsubscribes (both live for the app).
 
 ## Decisions
@@ -308,9 +355,18 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
 - **The host animates out, not the key handler.** `OverlayDialog` only raises requests (run an option, `Dismiss`); `DialogHost` animates the overlay out and removes it when the request reports `Closed`, then resumes the caller. Reason: closing is the request's decision, and the earlier bugs were all the view closing without it. Rejected: patching each branch of `OnKeyDown`. Dialogs do not animate in (the in-animation was reachable only from the removed `ShowAsync`; backlog).
 - **Save All has no hotkey.** Window-wide hotkeys belong to the active editor (docs/ARCHITECTURE.md), and Ctrl+Shift+S is not in any editor's set; a window-level hotkey category is out of scope.
 - **Save Project As stays on the project node.** With several projects open a File-menu item has no unambiguous target (UI-PROJECT-TREE). Recommended by the proposal; pending the user's confirmation.
-- **Startup issues are reported in one alert per launch.** After the main window opens, non-fatal issues are listed in one alert (file name and first reason line, at most 20, then the log folder), and it reappears every launch until the file is fixed or removed. Reason: an alert is seen and the user can act on it, while the log keeps the full reasons. Rejected: status-bar text (cleared after 2 s); log only; listing issues in About only; remembering seen issues in preferences (more state for a file that is still broken).
+- **A notification area, not more status messages or alerts.** Events the user did not directly trigger (startup issues, plugin decode failures) go to a count-and-list button at the right end of the status bar. Reason: a 2 s status message is missed and a modal interrupts; a count with a list on demand keeps the information without demanding attention. Status messages stay for immediate feedback on the user's own actions. Rejected: toasts (they interrupt and need positioning across docked or floating windows); a dock pane (layout space for something rarely read).
+- **Startup issues become notifications; the alert went away.** One Warning per skipped file, posted when the shell view model is built, replacing the earlier one-alert-per-launch report. That alert rejected the status bar because its text cleared after 2 s; notifications persist for the session, and the warning icon and count reappear every launch until the file is fixed, so the issue stays visible without blocking. Rejected: keeping the alert alongside (two reports of the same thing); showing the alert only for errors (startup issues are non-fatal by definition); log only; remembering seen issues in preferences (more state for a file that is still broken).
+- **Collapse repeats by source and title.** A repeat increments the count, refreshes the time and keeps the first detail. Reason: a failing plugin codec fails on every tile it decodes. Each plugin adapter raises its failure once (LIB-PLUGINS-013), so a plugin entry's count is the number of codec instances that failed.
+- **Session only, capped at 200.** Notifications live in memory, not preferences, and every post is also logged at its severity, so the log keeps every Warning and Error (the UI log's minimum level is Warning, UI-SHELL-104, so Info posts are not kept). Reason: startup issues repost anyway, and old runtime events go stale. `BootstrapService` already logs each startup issue and decode failure, so those are logged twice; accepted because both are rare. Rejected: persisting across launches.
+- **Three severities: Info, Warning, Error.** Only unread notifications count and color the icon. Reason: enough to rank the icon; more levels add nothing the user would act on differently.
+- **New Error entries flash the icon once.** The view model sets `IsFlashing` when a new Error entry is added (not a collapsed repeat), and a style animation fades a highlight behind the button in and out over about 1 s; opening the flyout clears the flag. Reason: a runtime error usually explains something the user is looking at, such as a blank arranger, so it is worth a glance but not a modal. It keys on new Error entries rather than tracking a startup phase because startup only posts Warnings. Opacity is animated on a pre-colored border because animation keyframes may not resolve a DynamicResource brush. Rejected: fully silent errors; flashing on warnings (a failing plugin would flash before collapsing).
+- **Lucide icons through the existing generator.** `bell`, `bell-dot`, `info`, `triangle-alert` and `circle-x` are entries in `tools/Convert-LucideIcons.ps1`. Reason: the toolbar icons come from Lucide the same way, so style and themes match. Rejected: an icon font or package (a second icon source).
+- **The button is a Button with a Flyout.** Reason: DevTools can click Buttons (CLAUDE.md); the flyout is a popup DevTools cannot see, so its contents are verified through bound view model state.
+- **Thread-safe posting, UI-thread state.** `NotificationService` lives in TileShop.Shared without Avalonia types and takes an `Action<Action>` dispatcher. Reason: plugin decode failures can come from render work off the UI thread, and the injected dispatcher keeps the service unit-testable.
+- **The library raises events; the UI owns notifications.** `ImageMagitek` has no logger and no UI types, so plugin adapters raise `CodecPluginEvents.DecodeFailed` (LIB-PLUGINS) and the bootstrapper subscribes and posts through `TileShopBootstrapper.PostDecodeFailure`. Rejected: a notification abstraction in the core library (UI policy in the library).
 - **A fatal startup error shows its own window.** When bootstrap throws (any exception, not only `BootstrapException`), `App` sets the main window to a minimal `StartupErrorWindow` (message, log folder, Close) created directly, not through DI or `ViewLocator`, since neither exists yet; closing it exits. Reason: the overlay dialog host needs the shell, which cannot be built without the bootstrapped services. Rejected: a third-party message-box package; exiting with only a log line (the earlier behavior).
-- **The UI log lives in `%LOCALAPPDATA%/TileShop/` and logs Warning and above.** Next to `preferences.json`. Reason: the application directory may be read-only under Program Files, and the working directory scattered log files wherever the app was launched; skipped files are warnings, so an Error minimum would hide what the startup alert points to. The monthly rolling name carries a date suffix, so the alert and the error window name the folder. Rejected: the application directory; keeping Error.
+- **The UI log lives in `%LOCALAPPDATA%/TileShop/` and logs Warning and above.** Next to `preferences.json`. Reason: the application directory may be read-only under Program Files, and the working directory scattered log files wherever the app was launched; skipped files are warnings, so an Error minimum would hide the full reasons behind the startup notifications. The monthly rolling name carries a date suffix, so the error window names the folder. Rejected: the application directory; keeping Error.
 
 ## Non-goals
 

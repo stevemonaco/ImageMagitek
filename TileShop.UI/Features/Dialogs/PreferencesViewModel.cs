@@ -17,6 +17,7 @@ public sealed partial class PreferencesViewModel : RequestViewModel<PreferencesV
     [ObservableProperty] private ThemeStyle _theme;
     [ObservableProperty] private bool _enableArrangerSymmetryTools;
     [ObservableProperty] private NumericBase _jumpToOffsetBase;
+    [ObservableProperty] private ForeignColorFormat _foreignColorFormat;
     [ObservableProperty] private Color _lineColor;
     [ObservableProperty] private Color _primaryColor;
     [ObservableProperty] private Color _secondaryColor;
@@ -25,6 +26,7 @@ public sealed partial class PreferencesViewModel : RequestViewModel<PreferencesV
 
     public IReadOnlyList<ThemeStyle> Themes { get; } = Enum.GetValues<ThemeStyle>();
     public IReadOnlyList<NumericBase> NumericBases { get; } = Enum.GetValues<NumericBase>();
+    public IReadOnlyList<ForeignColorFormat> ForeignColorFormats { get; } = Enum.GetValues<ForeignColorFormat>();
     public IReadOnlyList<string> NesPaletteNames { get; }
     public IReadOnlyList<string> GlobalPaletteNames { get; }
 
@@ -35,10 +37,12 @@ public sealed partial class PreferencesViewModel : RequestViewModel<PreferencesV
         IReadOnlyList<string> globalPaletteNames, string defaultPalette)
     {
         Title = "Preferences";
+        AcceptName = "Save";
 
         _theme = preferences.Theme;
         _enableArrangerSymmetryTools = preferences.EnableArrangerSymmetryTools;
         _jumpToOffsetBase = preferences.JumpToOffsetBase;
+        _foreignColorFormat = preferences.ForeignColorFormat;
         _lineColor = GridSettingsViewModel.ParseHex(preferences.Grid.LineColor, GridPreferences.DefaultLineColor);
         _primaryColor = GridSettingsViewModel.ParseHex(preferences.Grid.PrimaryColor, GridPreferences.DefaultPrimaryColor);
         _secondaryColor = GridSettingsViewModel.ParseHex(preferences.Grid.SecondaryColor, GridPreferences.DefaultSecondaryColor);

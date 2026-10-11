@@ -142,6 +142,7 @@ public partial class MenuViewModel : ObservableRecipient
         ActiveTheme = result.Theme;
         preferences.EnableArrangerSymmetryTools = result.EnableArrangerSymmetryTools;
         preferences.JumpToOffsetBase = result.JumpToOffsetBase;
+        preferences.ForeignColorFormat = result.ForeignColorFormat;
         preferences.Grid = new(GridSettingsViewModel.ToHex(result.LineColor), GridSettingsViewModel.ToHex(result.PrimaryColor),
             GridSettingsViewModel.ToHex(result.SecondaryColor));
         preferences.NesPalette = result.NesPalette == _settings.NesPalette ? null : result.NesPalette;

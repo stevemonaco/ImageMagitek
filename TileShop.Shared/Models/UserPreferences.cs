@@ -14,6 +14,7 @@ public sealed class UserPreferences
     public List<string> RecentProjectFiles { get; set; } = [];
     public bool EnableArrangerSymmetryTools { get; set; }
     public NumericBase JumpToOffsetBase { get; set; } = NumericBase.Hexadecimal;
+    public ForeignColorFormat ForeignColorFormat { get; set; } = ForeignColorFormat.Hex;
     public GridPreferences Grid { get; set; } = new();
     public AddPalettePreferences AddPalette { get; set; } = new();
     public AddArrangerPreferences AddArranger { get; set; } = new();

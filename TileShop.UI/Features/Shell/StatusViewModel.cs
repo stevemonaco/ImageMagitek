@@ -13,8 +13,11 @@ public partial class StatusViewModel : ObservableRecipient
     [ObservableProperty] private string? _statusMessage;
     [ObservableProperty] private EditorsViewModel _editors;
 
-    public StatusViewModel(EditorsViewModel editors)
+    public NotificationsViewModel Notifications { get; }
+
+    public StatusViewModel(EditorsViewModel editors, NotificationsViewModel notifications)
     {
+        Notifications = notifications;
         Messenger.Register<NotifyStatusMessage>(this, (r, m) => Receive(m));
         _editors = editors;
 

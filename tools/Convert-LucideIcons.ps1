@@ -81,6 +81,13 @@ $icons = @(
     @{ Name = 'ViewImported';    Lucide = 'image-down' }
     @{ Name = 'ViewOnionSkin';   Lucide = 'layers-2' }
     @{ Name = 'ViewDiff';        Lucide = 'diff' }
+
+    # Notifications
+    @{ Name = 'NotificationsNone';   Lucide = 'bell' }
+    @{ Name = 'NotificationsUnread'; Lucide = 'bell-dot' }
+    @{ Name = 'NotificationInfo';    Lucide = 'info' }
+    @{ Name = 'NotificationWarning'; Lucide = 'triangle-alert' }
+    @{ Name = 'NotificationError';   Lucide = 'circle-x' }
 )
 
 function Format-Number([double]$value)

@@ -1,19 +1,86 @@
-﻿<UserControl
+<UserControl
     x:Class="TileShop.UI.Views.StatusView"
     x:DataType="vm:StatusViewModel"
     xmlns="https://github.com/avaloniaui"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
+    xmlns:con="using:TileShop.UI.Converters"
+    xmlns:models="using:TileShop.Shared.Models"
     xmlns:vm="using:TileShop.UI.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid ColumnDefinitions="auto,4,auto,*,auto,*,auto" Margin="8,0,8,0">
+    <Grid ColumnDefinitions="auto,4,auto,*,auto,*,auto,8,auto" Margin="8,0,8,0">
         <Border Grid.Column="0"
                 Width="14" Height="14"
                 Background="{ReflectionBinding Editors.ActiveEditor.ActivityBrush}"
                 BorderBrush="Gray" BorderThickness="1"
                 CornerRadius="2"
-                IsVisible="{ReflectionBinding Editors.ActiveEditor.ActivityBrush, Converter={x:Static ObjectConverters.IsNotNull}}" />
-        <TextBlock Grid.Column="2" Text="{ReflectionBinding Editors.ActiveEditor.ActivityMessage}" />
-        <TextBlock Grid.Column="4" Text="{ReflectionBinding Editors.ActiveEditor.PendingOperationMessage}" />
-        <TextBlock Grid.Column="6" Text="{Binding StatusMessage}" />
+                IsVisible="{ReflectionBinding Editors.ActiveEditor.ActivityBrush, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}" />
+        <TextBlock Grid.Column="2" Text="{ReflectionBinding Editors.ActiveEditor.ActivityMessage}" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="4" Text="{ReflectionBinding Editors.ActiveEditor.PendingOperationMessage}" VerticalAlignment="Center" />
+        <TextBlock Grid.Column="6" Text="{Binding StatusMessage}" VerticalAlignment="Center" />
+
+        <Button Name="NotificationsButton" Grid.Column="8" Classes="tool" Padding="4,2" MinHeight="0"
+                Command="{Binding Notifications.OpenCommand}" ToolTip.Tip="Notifications"
+                IsVisible="{Binding !!Notifications.Notifications.Count}">
+            <Button.Flyout>
+                <Flyout Placement="TopEdgeAlignedRight">
+                    <Grid Width="420" RowDefinitions="auto,auto,auto">
+                        <Grid ColumnDefinitions="*,auto" Margin="0,0,0,6">
+                            <TextBlock Text="Notifications" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <Button Grid.Column="1" Content="Clear all" Command="{Binding Notifications.ClearAllCommand}"
+                                    IsEnabled="{Binding !!Notifications.Notifications.Count}" />
+                        </Grid>
+                        <TextBlock Grid.Row="1" Text="No notifications" Opacity="0.6" Margin="0,4"
+                                   IsVisible="{Binding !Notifications.Notifications.Count}" />
+                        <ScrollViewer Grid.Row="2" MaxHeight="400">
+                            <ItemsControl ItemsSource="{Binding Notifications.Notifications}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:Notification">
+                                        <Expander Margin="0,2" HorizontalAlignment="Stretch">
+                                            <Expander.Header>
+                                                <Grid ColumnDefinitions="auto,*,auto,auto" ColumnSpacing="6">
+                                                    <cc:LineIcon Classes="tool severity" Width="16" Height="16"
+                                                                 Classes.info="{Binding Severity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:NotificationSeverity.Info}}"
+                                                                 Classes.warning="{Binding Severity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:NotificationSeverity.Warning}}"
+                                                                 Classes.error="{Binding Severity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:NotificationSeverity.Error}}" />
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}" />
+                                                        <TextBlock Opacity="0.6" FontSize="11">
+                                                            <Run Text="{Binding Source}" />
+                                                            <Run Text="·" />
+                                                            <Run Text="{Binding LastTime, StringFormat={}{0:t}}" />
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="{Binding Count, StringFormat=×{0}}"
+                                                               IsVisible="{Binding Count, Converter={x:Static con:AppConverters.PluralCountToBoolean}}" />
+                                                    <Button Grid.Column="3" Classes="tool" Padding="4" ToolTip.Tip="Dismiss"
+                                                            Command="{Binding $parent[ItemsControl].((vm:StatusViewModel)DataContext).Notifications.DismissCommand}"
+                                                            CommandParameter="{Binding}">
+                                                        <cc:LineIcon Classes="tool" Width="14" Height="14" Data="{x:Static cc:AppIcons.Trash}" />
+                                                    </Button>
+                                                </Grid>
+                                            </Expander.Header>
+                                            <SelectableTextBlock Text="{Binding Detail}" TextWrapping="Wrap" />
+                                        </Expander>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Flyout>
+            </Button.Flyout>
+            <Panel>
+                <Border Classes="notificationFlash" Classes.flash="{Binding Notifications.IsFlashing}"
+                        Background="{DynamicResource SemiColorPrimaryLight}" CornerRadius="3" Margin="-4,-2" Opacity="0" />
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <cc:LineIcon Classes="tool notification" Width="16" Height="16"
+                                 Classes.info="{Binding Notifications.IconSeverity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:NotificationSeverity.Info}}"
+                                 Classes.warning="{Binding Notifications.IconSeverity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:NotificationSeverity.Warning}}"
+                                 Classes.error="{Binding Notifications.IconSeverity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static models:NotificationSeverity.Error}}" />
+                    <TextBlock Name="NotificationCount" Text="{Binding Notifications.UnreadCount}" VerticalAlignment="Center" Foreground="{DynamicResource SemiColorText1}"
+                               IsVisible="{Binding !!Notifications.UnreadCount}" />
+                </StackPanel>
+            </Panel>
+        </Button>
     </Grid>
 
 </UserControl>

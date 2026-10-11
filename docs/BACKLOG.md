@@ -76,7 +76,6 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-CODECS] Direct-color XML codecs: the schema accepts `colortype="direct"`, `CodecFactory` throws `NotSupportedException`.
 - [LIB-CODECS] Read-only compression support: [change proposal](changes/compression-support.md).
 - [LIB-PROJECT-FORMAT, UI-GRAPHICS-EDITOR] Sequential arrangers as project resources ("save view as arranger"; deferred to 1.1); done when one saves and reloads. Unblocks persisting the element layout (P2, deliberately not done in Milestone 9) and per-file view state for standalone files.
-- [UI-SHELL] Status bar notifications: an icon with an unread count that opens a list of silent notifications (startup issues, plugin decode failures, low-importance runtime events), replacing the startup alert: [change proposal](changes/status-notifications.md).
 - [LIB-PALETTES, LIB-PROJECT-FORMAT, UI-PALETTE-EDITOR] Palettes of only project colors, saved in the palette XML with no data file (intended, never built): the writer refuses them (LIB-PROJECT-FORMAT-036), `ProjectTreeBuilder.AddPalette` fails "has no data file", `Palette.LoadForeignPalette` guards on a data source, and the editor cannot change model or apply sources without one; done when such a palette is created, edited, saved and reloaded.
 - [LIB-PALETTES, UI-PALETTE-EDITOR] Remaining palette file formats: RIFF `.pal`, `.act`, `.hex`, and a JSON writer (JASC `.pal` and `.gpl` exist).
 

@@ -99,7 +99,7 @@ Plugins add codecs that XML cannot express. A plugin compiles against `ImageMagi
 ## Threading and lifetime
 
 - Each created codec has its own plugin instance; the host never calls one instance from two threads at once, so plugins may keep scratch buffers.
-- `DecodeFailed` is static and may be raised on any thread that renders. Each bootstrapper subscribes once when the plugin directory exists and never unsubscribes; both hosts create one bootstrapper.
+- `DecodeFailed` is static and may be raised on any thread that renders. Each bootstrapper subscribes once when the plugin directory exists and never unsubscribes; both hosts create one bootstrapper. TileShop.UI's `TileShopBootstrapper` also subscribes once, for the app's lifetime, to post a warning notification (UI-SHELL-137).
 - Plugin load contexts are never unloaded; plugin DLLs stay locked until exit.
 
 ## Decisions
@@ -117,7 +117,7 @@ Plugins add codecs that XML cannot express. A plugin compiles against `ImageMagi
 - **Contract version is major.minor, checked at load.** The referenced version is read from the assembly's references before its types are enumerated. Rejected: no check (fails later with `MissingMethodException`); exact match (breaks plugins on every additive change).
 - **Pre-1.0 plugins are detected, not supported.** Rejected: a compatibility shim for `IGraphicsCodec` plugins.
 - **`CanEncode` is a flag.** Rejected: a separate optional encoder interface.
-- **Decode failures raise an event; the bootstrapper logs it.** Once per adapter. `BootstrapService.CreatePluginService` subscribes with its own logger, so both hosts log without host code. Reason: the core has no logger. Rejected: a logger dependency in the core.
+- **Decode failures raise an event; the bootstrapper logs it.** Once per adapter. `BootstrapService.CreatePluginService` subscribes with its own logger, so both hosts log without host code; the UI host also subscribes and posts a warning notification (UI-SHELL), while the CLI only logs. Reason: the core has no logger and no UI types. Rejected: a logger dependency in the core; a notification abstraction in the core (UI policy in the library).
 - **No bit-reader helper at 1.0.** It would freeze an API the backlog plans to redesign; it can arrive as a minor version. The samples carry `SampleBits`.
 - **Testing kit and authoring guide after 1.0.** The contract tests run over the samples in the unit tests (`SamplePluginContractTests`, `CodecPluginAdapterTests`); shipping them for plugin authors stays in the backlog.
 - **Future plugin kinds join the same assembly.** Compressors and container scanners add their own interfaces to `ImageMagitek.Plugins.Contracts` as minor versions, with span or stream signatures and no core types.
@@ -130,6 +130,5 @@ Plugins add codecs that XML cannot express. A plugin compiles against `ImageMagi
 
 ## Open items
 
-- Showing decode failures to the user is [status-notifications](../../changes/status-notifications.md); until then the hosts only log them.
 - Package validation has no baseline until 1.0 ships (BACKLOG).
 - A plugin with one resizable dimension gives the UI a 0 resize step on the fixed axis (BACKLOG).

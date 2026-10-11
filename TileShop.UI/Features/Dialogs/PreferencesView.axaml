@@ -17,14 +17,18 @@
         <StackPanel Spacing="6">
             <TextBlock Classes="muted" Text="General" />
 
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="6">
                 <TextBlock Classes="rowLabel" Text="Theme" />
                 <ComboBox Grid.Column="1" ItemsSource="{Binding Themes}" SelectedItem="{Binding Theme}" />
 
                 <TextBlock Grid.Row="1" Classes="rowLabel" Text="Jump to Offset Base" />
                 <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding NumericBases}" SelectedItem="{Binding JumpToOffsetBase}" />
 
-                <CheckBox Grid.Row="2" Grid.ColumnSpan="2" Content="Show arranger symmetry tools (mirror and rotate)"
+                <TextBlock Grid.Row="2" Classes="rowLabel" Text="Foreign Color Display" />
+                <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding ForeignColorFormats}" SelectedItem="{Binding ForeignColorFormat}"
+                    ToolTip.Tip="How Color Picker shows a palette's platform color value in the status bar" />
+
+                <CheckBox Grid.Row="3" Grid.ColumnSpan="2" Content="Show arranger symmetry tools (mirror and rotate)"
                     IsChecked="{Binding EnableArrangerSymmetryTools}" />
             </Grid>
         </StackPanel>

@@ -79,7 +79,6 @@ public partial class ShellView : Window
     {
         CreateDockingLayout();
         Ioc.Default.GetRequiredService<HotkeyService>().Attach(this, () => RootDialogHost.HasOpenDialog);
-        Dispatcher.UIThread.Post(() => _ = _viewModel.ShowStartupIssuesAsync(), DispatcherPriority.Loaded);
     }
 
     protected override void OnClosing(Avalonia.Controls.WindowClosingEventArgs e)

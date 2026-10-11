@@ -199,6 +199,7 @@ depends:
 
 ## Non-goals
 
+- A notification area. Startup issues print to the console (CLI-COMMANDS-007), and plugin decode failures are only logged (LIB-PLUGINS-016); the UI's notifications (UI-SHELL) have no CLI counterpart.
 - Creating or editing projects (new, add-datafile, add-palette, add-arranger verbs).
 - Palette import/export verbs, dry-run reports, machine-readable (`--json`) output, key globs, batch manifests, scripting.
 - Sequential arrangers and raw data-file export.
