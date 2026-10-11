@@ -28,7 +28,7 @@ public class CodecFixture : IDisposable
     public CodecFixture()
     {
         var paletteService = new PaletteService(new ColorFactory());
-        var palette = paletteService.ReadJsonPalette(Path.Combine(AppContext.BaseDirectory, "_palettes", "DefaultRgba32.json"))!;
+        var palette = paletteService.ReadJsonPalette(Path.Combine(AppContext.BaseDirectory, "_palettes", "Classic.json"))!;
 
         CodecFactory = new CodecFactory(palette, []);
         CodecService = new XmlCodecService(Path.Combine(AppContext.BaseDirectory, "_schemas", "CodecSchema.xsd"), (CodecFactory)CodecFactory);

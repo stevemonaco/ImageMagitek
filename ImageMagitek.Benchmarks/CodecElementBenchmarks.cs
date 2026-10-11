@@ -43,7 +43,7 @@ public class CodecElementBenchmarks
             formats[format.Name] = format;
         }
 
-        var palContents = File.ReadAllText(Path.Combine(root, "_palettes", "DefaultRgba32.json"));
+        var palContents = File.ReadAllText(Path.Combine(root, "_palettes", "Classic.json"));
         var palette = PaletteJsonSerializer.DeserializePalette(palContents, new ColorFactory())!;
 
         var factory = new CodecFactory(palette, formats);

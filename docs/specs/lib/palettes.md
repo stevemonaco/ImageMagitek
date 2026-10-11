@@ -42,6 +42,8 @@ tests:
   - ProjectServiceTests
   - SettingsServiceTests
   - BootstrapServiceTests
+  - GlobalPaletteDesignTests
+  - OkLabTests
 depends:
   - LIB-DATASOURCE
   - LIB-COLORS
@@ -150,6 +152,14 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
   - Tests: untested
 - **LIB-PALETTES-033** — If the JSON palette file does not exist, then the palette service shall throw `FileNotFoundException`.
   - Tests: untested
+- **LIB-PALETTES-057** — Each shipped 256-color TileShop global palette (`Vivid`, `Synthwave`, `Dusk`) shall have 256 opaque entries.
+  - Tests: `GlobalPaletteDesignTests.Has256OpaqueEntries`
+- **LIB-PALETTES-058** — In each shipped TileShop global palette, entries 0–3 shall increase in OKLab lightness by at least 0.15 per step.
+  - Tests: `GlobalPaletteDesignTests.FirstFour_StepInLightness`
+- **LIB-PALETTES-059** — In each shipped TileShop global palette, every pair among entries 0–15 shall be at least 0.12 apart in OKLab distance.
+  - Tests: `GlobalPaletteDesignTests.FirstSixteen_PairwiseDistinct`
+- **LIB-PALETTES-060** — In each shipped TileShop global palette, each row of 16 entries from entry 16 shall strictly increase in OKLab lightness.
+  - Tests: `GlobalPaletteDesignTests.Rows_RampInLightness`
 
 ### Palette store
 
@@ -159,16 +169,18 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
   - Tests: `BootstrapServiceTests.CreatePaletteStore_MalformedJson_SkipsAndRecordsIssue`
 - **LIB-PALETTES-036** — When the bootstrapper creates the palette store with an NES palette override, it shall use the override if it loads with at least 64 entries; otherwise it shall record a startup issue and load the settings' NES palette.
   - Tests: `BootstrapServiceTests.CreatePaletteStore_UnusableOverride_FallsBackAndRecordsIssue`
+- **LIB-PALETTES-061** — When the bootstrapper creates the palette store with a default palette override, it shall move the loaded global palette of that name, ignoring case, to the front so it becomes the default; if none is loaded, it shall record a startup issue and keep the settings order.
+  - Tests: `BootstrapServiceTests.CreatePaletteStore_DefaultOverride_MovesPaletteFirst`, `BootstrapServiceTests.CreatePaletteStore_UnknownDefaultOverride_KeepsSettingsOrderAndRecordsIssue`
 - **LIB-PALETTES-050** — If no global palette loads, then creating the palette store shall fail as an essential resource (LIB-SERVICES).
   - Tests: `BootstrapServiceTests.CreatePaletteStore_NoGlobalPalette_ThrowsBootstrapException`
 - **LIB-PALETTES-051** — If the settings' NES master palette is missing, malformed or has fewer than 64 entries, then creating the palette store shall fail as an essential resource (LIB-SERVICES).
   - Tests: `BootstrapServiceTests.CreatePaletteStore_ShortNesPalette_ThrowsBootstrapException`
 - **LIB-PALETTES-037** — When the store has an NES master palette, the host shall set it on the color factory before any Nes color is converted (LIB-COLORS).
   - Tests: untested
-- **LIB-PALETTES-038** (inherited) — When settings are absent, the global palettes shall be `DefaultRgba32` and the NES master palette `DefaultNes`.
+- **LIB-PALETTES-038** — When settings are absent, the global palettes shall be `Vivid`, `Synthwave`, `Dusk` and `Classic`, in that order, and the NES master palette `DefaultNes`.
   - Tests: `SettingsServiceTests.ReadSettings_MissingFile_ReturnsDefaults`, `SettingsServiceTests.ShippedAppSettings_MatchesCodeDefaults`
-- **LIB-PALETTES-039** — The app shall ship `DefaultRgba32` (256 colors) and `DefaultNes` (64 colors), both with index 0 not transparent.
-  - Tests: untested
+- **LIB-PALETTES-039** — The app shall ship `Vivid`, `Synthwave`, `Dusk` and `Classic` (256 colors each) and `DefaultNes` (64 colors), all with index 0 not transparent.
+  - Tests: `GlobalPaletteDesignTests.ShippedPalette_HasEntriesAndOpaqueZeroIndex`
 
 ### Palette files
 
@@ -230,6 +242,10 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 - **Within one entry, fields may not overlap in the value or in the file.** Two fields setting the same value bit, or writing the same file bit, make Save order-dependent. Fields of different entries are not cross-checked, matching file sources, which are not checked against each other either. Rejected: a palette-wide overlap check (adds a rule file sources do not have).
 - **The NES master palette is configurable.** Its name comes from `appsettings.json`, with a user preference override that TileShop.UI passes to `CreatePaletteStore`, which validates it (at least 64 entries) and falls back to the settings' palette. Reason: the 64-entry rule lives in one place and the CLI gets it too. Rejected: keeping the UI's two-pass fallback (the CLI stays unchecked).
 - **The global and NES master palettes are essentials.** See LIB-SERVICES "Essentials are the two schemas, a global palette and a 64-entry NES master palette".
+- **New built-in palettes are hand-tuned JSON pinned by design tests, not generated at build.** Colors are tuned by eye in a sequential editor. `GlobalPaletteDesignTests` enforces what must hold (entry count, opaque, lightness steps in 0–3, distinctness in 0–15, monotonic row ramps), so a later tweak cannot regress them. Each palette follows one layout: index 0 is a tinted near-black, 0–3 step in lightness so 2bpp graphics read by lightness alone, 0–15 are clearly distinct for 4bpp, and 16–255 are 15 dark-to-light ramps of one hue family each for 8bpp. Rejected: a checked-in generator (every hand tweak would have to be expressed as generator code); no tests ("high contrast" would be an opinion, not a requirement).
+- **Distinctness in OKLab.** OKLab distance tracks perceived difference far better than RGB distance, at a few lines of code with no new package; the conversion lives in the test project because no production code needs it. Rejected: CIEDE2000 (more code for no practical gain here); RGB Euclidean (overrates blue differences).
+- **`Vivid` becomes the default; `Classic` stays.** The default palette is what every new codec and every unassigned element uses, and `Classic`'s first 16 colors repeat and blur (three pure blacks). Keeping the old palette, last in the list, keeps projects that reference it by name loading (LIB-PROJECT-FORMAT-023). Changing the default changes how existing projects show elements whose palette is the global default; that is recorded in the release notes. Rejected: replacing `Classic` (breaks projects that name it).
+- **Built-in palettes have plain names.** `Vivid`, `Synthwave`, `Dusk` and `Classic` (formerly `DefaultRgba32`, CrystalTile's default) carry no product prefix, since every global palette ships with TileShop. Projects naming `DefaultRgba32` still load (LIB-PROJECT-FORMAT-059). Rejected: a `TileShop` prefix (noise in every palette list).
 
 ## Non-goals
 

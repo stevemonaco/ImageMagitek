@@ -49,7 +49,9 @@ public class BootstrapService
     }
 
     /// <param name="nesPaletteOverride">A palette name tried before the settings' NES palette, falling back when it is unusable</param>
-    public virtual PaletteStore CreatePaletteStore(IPaletteService paletteService, string palettesPath, AppSettings settings, string? nesPaletteOverride = null)
+    /// <param name="defaultPaletteOverride">A global palette name made the default instead of the first, falling back when it was not loaded</param>
+    public virtual PaletteStore CreatePaletteStore(IPaletteService paletteService, string palettesPath, AppSettings settings,
+        string? nesPaletteOverride = null, string? defaultPaletteOverride = null)
     {
         var globalPalettes = new List<Palette>();
         foreach (var paletteName in settings.GlobalPalettes)
@@ -65,6 +67,22 @@ public class BootstrapService
 
         if (globalPalettes.Count == 0)
             Fail($"No global palette could be loaded from '{palettesPath}'");
+
+        if (defaultPaletteOverride is not null)
+        {
+            var preferred = globalPalettes.FirstOrDefault(x => string.Equals(x.Name, defaultPaletteOverride, StringComparison.OrdinalIgnoreCase));
+
+            if (preferred is not null)
+            {
+                globalPalettes.Remove(preferred);
+                globalPalettes.Insert(0, preferred);
+            }
+            else
+            {
+                RecordIssue(Path.Combine(palettesPath, $"{defaultPaletteOverride}.json"),
+                    $"Default palette '{defaultPaletteOverride}' from preferences is not a loaded global palette, so '{globalPalettes[0].Name}' is used instead");
+            }
+        }
 
         Palette? nesPalette = null;
         if (nesPaletteOverride is not null)

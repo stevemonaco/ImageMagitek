@@ -63,7 +63,7 @@ depends:
 - **CLI-COMMANDS-006** — Before exiting after running a verb or rejecting arguments, the CLI shall print a one-line description of its exit code ("Operation completed successfully", "Operation failed due to an import error", …).
   - Tests: `CliApplicationTests.OpenYields_ReturnsVerbCode`, `CliApplicationTests.InvalidArguments_Exits3`, `CliApplicationTests.Export_UnknownKey_ExportsOthersExits7`
 - **CLI-COMMANDS-007** — If an essential resource cannot be loaded from the application directory (LIB-SERVICES), then the CLI shall print and log the failure and exit with -4; other startup issues shall be printed as warnings and shall not change the exit code.
-  - Tests: `CliApplicationTests.BootstrapIssue_PrintsWarningExits0`, `CliApplicationTests.EnvironmentFails_Exits4` (an injected failure); manual — run `TileShopCLI print` with `_palettes/DefaultRgba32.json` renamed in the build output (exit -4)
+  - Tests: `CliApplicationTests.BootstrapIssue_PrintsWarningExits0`, `CliApplicationTests.EnvironmentFails_Exits4` (an injected failure); manual — run `TileShopCLI print` with `_palettes/DefaultNes.json` (the NES master palette, an essential) renamed in the build output (exit -4)
 - **CLI-COMMANDS-008** — When the environment loads, the CLI shall load plugin codecs from `_plugins` in the application directory, as LIB-PLUGINS specifies.
   - Tests: `CliApplicationTests.Export_ProjectUsingCodecPlugin_Exits0`
 - **CLI-COMMANDS-009** — If the project cannot be opened or validated, then the CLI shall print "Project '<file>' contained N errors" followed by each numbered reason, and exit with -5.

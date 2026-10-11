@@ -21,14 +21,18 @@ public sealed partial class PreferencesViewModel : RequestViewModel<PreferencesV
     [ObservableProperty] private Color _primaryColor;
     [ObservableProperty] private Color _secondaryColor;
     [ObservableProperty] private string? _nesPalette;
+    [ObservableProperty] private string? _defaultPalette;
 
     public IReadOnlyList<ThemeStyle> Themes { get; } = Enum.GetValues<ThemeStyle>();
     public IReadOnlyList<NumericBase> NumericBases { get; } = Enum.GetValues<NumericBase>();
     public IReadOnlyList<string> NesPaletteNames { get; }
+    public IReadOnlyList<string> GlobalPaletteNames { get; }
 
     /// <param name="nesPalette">Name of the NES master palette currently in effect</param>
     /// <param name="palettesPath">Folder whose JSON palettes are listed as NES palette choices</param>
-    public PreferencesViewModel(UserPreferences preferences, string nesPalette, string palettesPath)
+    /// <param name="defaultPalette">Name of the default global palette currently in effect</param>
+    public PreferencesViewModel(UserPreferences preferences, string nesPalette, string palettesPath,
+        IReadOnlyList<string> globalPaletteNames, string defaultPalette)
     {
         Title = "Preferences";
 
@@ -39,6 +43,8 @@ public sealed partial class PreferencesViewModel : RequestViewModel<PreferencesV
         _primaryColor = GridSettingsViewModel.ParseHex(preferences.Grid.PrimaryColor, GridPreferences.DefaultPrimaryColor);
         _secondaryColor = GridSettingsViewModel.ParseHex(preferences.Grid.SecondaryColor, GridPreferences.DefaultSecondaryColor);
         _nesPalette = nesPalette;
+        _defaultPalette = defaultPalette;
+        GlobalPaletteNames = globalPaletteNames;
 
         NesPaletteNames = Directory.EnumerateFiles(palettesPath, "*.json")
             .Select(Path.GetFileNameWithoutExtension)

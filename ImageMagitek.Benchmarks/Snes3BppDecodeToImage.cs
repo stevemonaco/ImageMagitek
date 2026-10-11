@@ -13,7 +13,7 @@ public class Snes3BppDecodeToImage
     private const string _nativeFileName = "Snes3bppDecodeToImageNative.bin";
     private const string _genericFileName = "Snes3bppDecodeToImageGeneric.bin";
     private const string _genericCodecFileName = @"Resources\SNES3bpp.xml";
-    private const string _paletteFileName = @"_palettes\DefaultRgba32.json";
+    private const string _paletteFileName = @"_palettes\Classic.json";
     private const string _outputDirectory = @"D:\ImageMagitekTest\Benchmark\";
     private const string _codecSchemaFileName = @"_schemas\CodecSchema.xsd";
 

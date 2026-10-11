@@ -54,7 +54,7 @@ public sealed class BootstrapServiceTests : IDisposable
     public void CreatePaletteStore_MissingGlobalPalette_SkipsAndRecordsIssue()
     {
         var palettesPath = CreateShippedPalettes();
-        var settings = SettingsService.CreateDefault() with { GlobalPalettes = ["DefaultRgba32", "Missing"] };
+        var settings = SettingsService.CreateDefault() with { GlobalPalettes = ["Classic", "Missing"] };
 
         var store = _bootstrapper.CreatePaletteStore(_paletteService, palettesPath, settings);
 
@@ -68,11 +68,11 @@ public sealed class BootstrapServiceTests : IDisposable
     {
         var palettesPath = CreateShippedPalettes();
         File.WriteAllText(Path.Combine(palettesPath, "Broken.json"), "{ \"colors\": [");
-        var settings = SettingsService.CreateDefault() with { GlobalPalettes = ["Broken", "DefaultRgba32"] };
+        var settings = SettingsService.CreateDefault() with { GlobalPalettes = ["Broken", "Classic"] };
 
         var store = _bootstrapper.CreatePaletteStore(_paletteService, palettesPath, settings);
 
-        Assert.Equal("DefaultRgba32", store.DefaultPalette.Name);
+        Assert.Equal("Classic", store.DefaultPalette.Name);
         var issue = Assert.Single(_bootstrapper.Issues);
         Assert.Equal(Path.Combine(palettesPath, "Broken.json"), issue.Path);
     }
@@ -111,6 +111,30 @@ public sealed class BootstrapServiceTests : IDisposable
         Assert.Equal("DefaultNes", store.NesPalette?.Name);
         var issue = Assert.Single(_bootstrapper.Issues);
         Assert.Equal(Path.Combine(palettesPath, "ShortNes.json"), issue.Path);
+    }
+
+    [Fact]
+    public void CreatePaletteStore_DefaultOverride_MovesPaletteFirst()
+    {
+        var palettesPath = CreateShippedPalettes();
+
+        var store = _bootstrapper.CreatePaletteStore(_paletteService, palettesPath, SettingsService.CreateDefault(), defaultPaletteOverride: "dusk");
+
+        Assert.Equal("Dusk", store.DefaultPalette.Name);
+        Assert.Equal(["Dusk", "Vivid", "Synthwave", "Classic"], store.GlobalPalettes.Select(x => x.Name));
+        Assert.Empty(_bootstrapper.Issues);
+    }
+
+    [Fact]
+    public void CreatePaletteStore_UnknownDefaultOverride_KeepsSettingsOrderAndRecordsIssue()
+    {
+        var palettesPath = CreateShippedPalettes();
+
+        var store = _bootstrapper.CreatePaletteStore(_paletteService, palettesPath, SettingsService.CreateDefault(), defaultPaletteOverride: "Missing");
+
+        Assert.Equal("Vivid", store.DefaultPalette.Name);
+        var issue = Assert.Single(_bootstrapper.Issues);
+        Assert.Equal(Path.Combine(palettesPath, "Missing.json"), issue.Path);
     }
 
     [Fact]

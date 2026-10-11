@@ -49,13 +49,17 @@
         </StackPanel>
 
         <StackPanel Spacing="6">
-            <TextBlock Classes="muted" Text="NES" />
+            <TextBlock Classes="muted" Text="Palettes" />
 
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                <TextBlock Classes="rowLabel" Text="Master Palette" />
-                <ComboBox Grid.Column="1" ItemsSource="{Binding NesPaletteNames}" SelectedItem="{Binding NesPalette}" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8" RowDefinitions="Auto,Auto" RowSpacing="6">
+                <TextBlock Classes="rowLabel" Text="Default Palette" />
+                <ComboBox x:Name="DefaultPaletteComboBox" Grid.Column="1" ItemsSource="{Binding GlobalPaletteNames}"
+                    SelectedItem="{Binding DefaultPalette}" />
+
+                <TextBlock Grid.Row="1" Classes="rowLabel" Text="NES Master Palette" />
+                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding NesPaletteNames}" SelectedItem="{Binding NesPalette}" />
             </Grid>
-            <TextBlock Classes="muted" Text="The NES palette applies after TileShop restarts. Grid colors and symmetry tools apply to newly opened editors."
+            <TextBlock Classes="muted" Text="Palette choices apply after TileShop restarts. Grid colors and symmetry tools apply to newly opened editors."
                 TextWrapping="Wrap" MaxWidth="360" HorizontalAlignment="Left" />
         </StackPanel>
     </StackPanel>

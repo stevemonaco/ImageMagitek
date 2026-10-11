@@ -47,6 +47,7 @@ tests:
   - ArrangerBuilderTests
   - SaveConflictTests
   - SequentialArrangerRoundTripTests
+  - SequentialArrangerTests
   - ReadOnlyArrangerTests
   - ArrangerExtensionsTests
   - GraphicsEditHistoryTests
@@ -114,8 +115,8 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 
 ### Sequential arranger
 
-- **LIB-ARRANGERS-017** — When a sequential arranger is created, it shall take its name from the data source, use a clone of the given codec for every element, take its color type and Tiled/Single layout from the codec, start at address 0 with the 1×1 default tile layout, and lay out the requested grid.
-  - Tests: `ArrangerBuilderTests.Build_SequentialArranger`
+- **LIB-ARRANGERS-017** — When a sequential arranger is created, it shall take its name from the data source, use a clone of the given codec for every element, take its color type and Tiled/Single layout from the codec, start at address 0 with the 1×1 default tile layout, and lay out the requested grid, and every indexed element shall use the given palette, or the factory default palette when none is given.
+  - Tests: `ArrangerBuilderTests.Build_SequentialArranger`, `SequentialArrangerTests.Construct_ElementsUseGivenPalette`, `SequentialArrangerTests.ArrangerBuilder_ElementsUsePalette`
 - **LIB-ARRANGERS-018** — The sequential arranger shall read contiguous data: each tile-layout block takes the next elements in pattern order, blocks fill the grid row by row, and each tiled element starts one codec storage size after the previous.
   - Tests: `SequentialArrangerRoundTripTests.RoundTrips_AtNonzeroOffset_AndAfterCodecResize`
 - **LIB-ARRANGERS-019** — When moved to an absolute bit address, the sequential arranger shall go there, clamping to the last address that keeps the whole arranger inside the file, or to 0 when the arranger needs more bits than the file has.
@@ -124,10 +125,12 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
   - Tests: untested
 - **LIB-ARRANGERS-021** — When a sequential arranger is resized, it shall re-lay the grid from its current address and re-clamp that address to the new size.
   - Tests: untested
-- **LIB-ARRANGERS-022** — When the codec is changed, the sequential arranger shall adopt the codec's element size, color type and layout, keep its address, optionally resize, and re-lay the grid.
-  - Tests: `SequentialArrangerRoundTripTests.RoundTrips_AtNonzeroOffset_AndAfterCodecResize`
-- **LIB-ARRANGERS-023** — When the palette is changed, every indexed element of the sequential arranger shall use the new palette.
-  - Tests: `SequentialArrangerRoundTripTests.RoundTrips_AtNonzeroOffset_AndAfterCodecResize`
+- **LIB-ARRANGERS-022** — When the codec is changed, the sequential arranger shall adopt the codec's element size, color type and layout, keep its address, optionally resize, and re-lay the grid, and, when the new codec is indexed, every element shall keep the arranger's active palette if it has enough entries for the codec's color depth, or else adopt the codec's own palette as the active palette.
+  - Tests: `SequentialArrangerRoundTripTests.RoundTrips_AtNonzeroOffset_AndAfterCodecResize`, `SequentialArrangerTests.ChangeCodec_KeepsActivePalette`, `GraphicsEditorPaletteTests.Sequential_ChangeCodec_FallsBackWhenPaletteTooSmall`
+- **LIB-ARRANGERS-023** — When the palette is changed, every indexed element of the sequential arranger shall use the new palette through a new codec instance, leaving element copies taken earlier on the old one; a palette with fewer entries than the codec's color depth needs shall be refused with an argument error.
+  - Tests: `SequentialArrangerTests.ChangePalette_AllElements`, `GraphicsEditorPaletteTests.Sequential_ChoosePalette_LeavesCopiedElementsUnchanged`, `GraphicsEditorPaletteTests.Sequential_List_ExcludesPalettesTooSmallForCodec`
+- **LIB-ARRANGERS-052** — When a sequential arranger is cloned, the clone's indexed elements shall use the original's active palette.
+  - Tests: `SequentialArrangerTests.Clone_KeepsActivePalette`
 - **LIB-ARRANGERS-024** — When the tile layout is changed, the sequential arranger shall round its grid down to a multiple of the layout size (at least one block) and re-lay from its current address.
   - Tests: untested
 - **LIB-ARRANGERS-025** — While the sequential arranger has the Single layout, it shall lay out with the default 1×1 tile layout whatever tile layout is set.
@@ -212,7 +215,7 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 - A sequential grid that is not a multiple of the tile layout leaves the remainder cells empty, while the arranger's bit size still counts them.
 - A sequential arranger captures the file size at construction and does not follow later length changes.
 - A clone rectangle that starts inside an element rounds its element count from the width alone, so a misaligned rectangle can drop the last covered column or row.
-- Element copies taken from a sequential arranger share its active codec, so every copied element holds the same codec instance until a palette is assigned to it; `ChangePalette` still sets the palette on that codec in place.
+- Element copies taken from a sequential arranger share its active codec, so every copied element holds the same codec instance until a palette is assigned to it.
 
 ## Threading and lifetime
 
@@ -240,8 +243,6 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 ## Open items
 
 - Rotating a horizontally or vertically mirrored element by a quarter turn composes rotation without regard to the mirror; because render applies rotation then mirror, the visible result turns the opposite way. Needs a check and a test.
-- `SequentialArranger` constructor and `ArrangerBuilder` set `ActivePalette` from the palette argument, but the elements' codec (from `CloneCodec`/`CreateCodec`) carries the codec factory's default palette until `ChangePalette` is called. `ChangeCodec` likewise does not apply `ActivePalette` to the new codec.
-- Cloning a sequential arranger gives each element a codec from `CloneCodec`, which does not copy the palette, so the clone shows the factory default palette.
 - `GetInitialSequentialFileAddress` indexes the grid as `[x, y]` instead of `[y, x]`; latent while every layout's first pattern cell is (0, 0).
 - Single-layout movement steps (LIB-ARRANGERS-047) and element step (LIB-ARRANGERS-048) look arbitrary and are untested.
 - Elements past the end of their source are reported Modified by the conflict analysis but are never written by save.

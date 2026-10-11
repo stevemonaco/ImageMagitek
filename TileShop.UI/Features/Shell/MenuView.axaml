@@ -64,11 +64,6 @@
                     IsEnabled="{Binding Editors.ActiveGraphicsEditor, Converter={x:Static ObjectConverters.IsNotNull}}" ToggleType="CheckBox" />
                 <MenuItem Command="{Binding Editors.ActiveGraphicsEditor.ModifyGridSettingsCommand}" Header="Grid _Settings..." InputGesture="Ctrl+G"
                     IsEnabled="{Binding Editors.ActiveGraphicsEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                <Separator />
-                <MenuItem Header="Set _Theme">
-                    <MenuItem Command="{Binding ChangeToLightThemeCommand}" Header="Light Theme" />
-                    <MenuItem Command="{Binding ChangeToDarkThemeCommand}" Header="Dark Theme" />
-                </MenuItem>
             </MenuItem>
 
             <!--<MenuItem Header="_Arranger" Visibility="{Binding Editors.ActiveEditor, Converter={StaticResource TypeToVisibilityConverter}, ConverterParameter={x:Type vm:ScatteredArrangerEditorViewModel}}">

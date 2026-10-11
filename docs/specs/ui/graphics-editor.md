@@ -11,6 +11,7 @@ sources:
   - TileShop.UI/Features/Graphics/GraphicsEditorToolbarView.axaml
   - TileShop.UI/Features/Graphics/GraphicsEditorToolbarView.axaml.cs
   - TileShop.UI/Features/Graphics/ArrangerImageAdapter.cs
+  - TileShop.UI/Features/Graphics/EditorPaletteList.cs
   - TileShop.UI/Features/Graphics/ArrangerSkiaBitmap.cs
   - TileShop.UI/Features/Graphics/Tools/InspectElementToolHandler.cs
   - TileShop.UI/Features/Renderer/ArrangerRenderer.cs
@@ -36,6 +37,7 @@ types:
   - GraphicsEditMode
   - ViewTool
   - ArrangerImageAdapter
+  - EditorPaletteList
   - ArrangerSkiaBitmap
   - ArrangerRenderer
   - CheckerboardPaint
@@ -56,6 +58,7 @@ types:
 tests:
   - SaveConflictTests
   - ToolInputRouterTests
+  - GraphicsEditorPaletteTests
 depends:
   - LIB-ARRANGERS
   - LIB-IMAGES
@@ -136,7 +139,7 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
   - Tests: untested
 - **UI-GRAPHICS-EDITOR-045** (inherited) — When no base has been saved, Jump to Offset shall open in hexadecimal.
   - Tests: untested
-- **UI-GRAPHICS-EDITOR-023** — While in View mode, the toolbar shall offer a Codec combo listing every supported codec; choosing one shall switch the arranger's codec at the current offset, reset the grid spacing, rebuild the palette list, and switch snapping to element (tiled codec) or pixel and hide gridlines (single-image codec).
+- **UI-GRAPHICS-EDITOR-023** — While in View mode, the toolbar shall offer a Codec combo listing every supported codec; choosing one shall switch the arranger's codec at the current offset, reset the grid spacing, keep the palette list and the chosen palette, and switch snapping to element (tiled codec) or pixel and hide gridlines (single-image codec).
   - Tests: untested
 - **UI-GRAPHICS-EDITOR-024** — While in View mode with a tiled codec, the toolbar shall show element pixel width/height boxes, enabled only when the codec can resize, stepping by the codec's resize increments and snapping each value to the codec's preferred size.
   - Tests: untested
@@ -144,10 +147,18 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
   - Tests: untested
 - **UI-GRAPHICS-EDITOR-026** — While in View mode on a sequential arranger, / and . shall expand and shrink the width, and ; and L shall expand and shrink the height, by one layout (tiled) or one codec increment (single-image), never shrinking below one increment; the size boxes' tooltips name these keys.
   - Tests: untested
-- **UI-GRAPHICS-EDITOR-027** — While in View mode with a tiled codec, the toolbar shall offer an Element Layout combo of the shipped layouts, sorted by tiles per pattern then name; choosing one shall reorder elements by that layout and set the size increments to its width and height.
+- **UI-GRAPHICS-EDITOR-027** — While in View mode with a tiled codec, the toolbar shall offer an Element Layout combo of the shipped layouts, sorted by tiles per pattern then name, below the arranger size; choosing one shall reorder elements by that layout and set the size increments to its width and height.
   - Tests: manual — pick 2x2 and 4x4 V on a sequential editor.
-- **UI-GRAPHICS-EDITOR-028** — When the user clicks Custom... beside Element Layout, the editor shall open the custom layout dialog (flow Horizontal/Vertical, width and height 1–64 elements, default 2x2 horizontal) and on Create add "Custom WxH H|V" to that editor's layout list, reusing an equivalent existing layout, and select it.
+- **UI-GRAPHICS-EDITOR-028** — When the user clicks the plus button beside Element Layout, the editor shall open the custom layout dialog (flow Horizontal/Vertical, width and height 1–64 elements, default 2x2 horizontal) and on Create add "Custom WxH H|V" to that editor's layout list, reusing an equivalent existing layout, and select it.
   - Tests: untested
+- **UI-GRAPHICS-EDITOR-048** — While the arranger is sequential and indexed, the palette combo shall list the global palettes in settings order, leaving out any palette with fewer entries than the codec's color depth needs. The Associate Palette button shall not show in a sequential editor.
+  - Tests: `GraphicsEditorPaletteTests.Sequential_List_GlobalsInSettingsOrder`, `GraphicsEditorPaletteTests.Sequential_List_ExcludesPalettesTooSmallForCodec`
+- **UI-GRAPHICS-EDITOR-049** — When a palette is chosen in a sequential editor, the editor shall recolor the whole view with it, in View or Draw mode, keeping the pixel indices and pending Draw edits, without recording history or marking the editor modified, and without recoloring elements already copied out of the editor.
+  - Tests: `GraphicsEditorPaletteTests.Sequential_ChoosePalette_RecolorsKeepingIndices`, `GraphicsEditorPaletteTests.Sequential_ChoosePalette_LeavesCopiedElementsUnchanged`; manual — DevTools: open the FF2 data file, set the palette combo's `SelectedIndex` in View and in Draw mode; the canvas recolors, the tab shows no `*` and Undo stays disabled.
+- **UI-GRAPHICS-EDITOR-050** — When the codec, element layout, size or offset changes, a sequential editor shall keep the chosen palette while the codec is indexed and the palette covers its color depth; otherwise it shall switch to the codec's default palette.
+  - Tests: `GraphicsEditorPaletteTests.Sequential_ChangeCodec_KeepsPalette`, `GraphicsEditorPaletteTests.Sequential_ChangeCodec_FallsBackWhenPaletteTooSmall`; manual — DevTools: choose a palette, then change the Codec combo; the palette combo and the canvas colors are unchanged.
+- **UI-GRAPHICS-EDITOR-051** — When a sequential editor opens, it shall start on the default palette.
+  - Tests: `GraphicsEditorPaletteTests.Sequential_Opens_OnDefaultPalette`
 
 ### Status and inspection
 
@@ -215,12 +226,16 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 ## Decisions
 
 - **Expand/Shrink are hotkeys, not buttons.** `ExpandWidth`/`ShrinkWidth`/`ExpandHeight`/`ShrinkHeight` were wired back to their pre-Avalonia keys (/ . ; L), enabled only for sequential arrangers in View mode, and the size boxes' tooltips name them. Reason: they complete the size boxes. Rejected: deleting them.
-- **Element layout lasts for the session.** The layout combo and Custom... dialog change only the open editor; nothing is persisted. Reason: a data file is browsed with many layouts, so one stored layout on the data file does not fit, and sequential arrangers are not project resources. Rejected: persisting on the data file node. Persistence returns with sequential arrangers as resources.
+- **Element layout lasts for the session.** The layout combo and custom layout dialog change only the open editor; nothing is persisted. Reason: a data file is browsed with many layouts, so one stored layout on the data file does not fit, and sequential arrangers are not project resources. Rejected: persisting on the data file node. Persistence returns with sequential arrangers as resources.
 - **Save conflicts prompt.** The former empty `SaveConflictsDetectedMessage` handler was replaced by an OK/Cancel prompt before writing. Reason: never overwrite silently. Rejected: per-element conflict resolution UI.
 - **Read-only codecs still save arrangement.** A read-only arranger hides Draw and skips the pixel write, but element moves, mirror, rotate and palette changes still save. Reason: the arrangement is project XML, not ROM data.
 - **Window-wide hotkeys vs. focused key bindings.** Keys that act on the focused canvas (Delete, Escape, Enter, navigation) stay as view key bindings; everything else is dispatched window-wide by the hotkey service while the editor is active. Reason: hotkeys must work without the canvas having focus, but plain navigation keys must not steal input from other panes.
 - **Project-only actions are disabled, not hidden, for standalone files.** "Add as New Scattered Arranger..." stays visible with a tooltip suggesting Create Project from File...; palette association lists only global palettes instead of being disabled. Reason: discoverability of the conversion path.
 - **Navigation is View-only.** The move commands, file offset changes and Jump to Offset run only for a sequential arranger in View mode, re-evaluated on every mode change like Expand/Shrink. Reason: leaving Draw mode already prompts Save/Discard, so View mode never holds pending edits and moving cannot lose them. Rejected: prompting on each navigation key (keys repeat while browsing), and allowing navigation in Draw mode while unmodified (the first Pencil stroke would then pin the offset with no visible reason).
+- **A palette switch in a sequential editor is a view setting, not an edit.** A sequential arranger has one palette for every element (LIB-ARRANGERS), and the data file holds indices, so recoloring changes nothing that Save writes. The editor redraws at `InvalidationLevel.Display`, which recolors from the stored indices without re-reading the file, so pending Draw edits survive. Reason: browsing means switching often, and history steps or a modified marker would make the editor prompt to save after every look. Rejected: recording it as history (prompts on close for an unchanged file); allowing it only in View mode (Draw mode would show colors the user can't change); redrawing at `PixelData` (re-reads the file and drops pending Draw edits).
+- **Global palettes in settings order.** In a sequential editor the globals follow `appsettings.json`, which is curated: the default first, then the alternates. Alphabetical sorting would put `Classic` first, and the default should be first in the list. The list and selection logic lives in `EditorPaletteList`, a plain class, because the ViewModel cannot be built in tests (ARCHITECTURE §5). Scattered editors keep their list (UI-ARRANGING). Rejected: alphabetical (the previous behavior).
+- **No Associate Palette in sequential editors.** A sequential arranger uses one palette for every element, chosen from the combo, so associating a project palette per element has no meaning there. Rejected: listing associated project palettes before the globals (a sequential editor is all or nothing, and the button was only reachable from Arrange mode anyway).
+- **A sequential palette switch gives the arranger a new codec instead of mutating the shared one.** Reason: elements copied out of a sequential editor (Add as New Scattered Arranger, Copy/Paste) keep the editor's codec instance, so changing its palette in place would recolor those arrangers. Rejected: cloning codecs in `ElementCopier`, which touches every copy path for a problem only this switch creates.
 - **Sequential paths do not assume a project.** Save and palette association use the non-throwing `FindContainingProject` and skip the project save when it returns null. Reason: a sequential arranger is never in a tree.
 
 ## Non-goals

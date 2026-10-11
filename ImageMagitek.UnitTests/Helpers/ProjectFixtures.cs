@@ -12,14 +12,14 @@ namespace ImageMagitek.UnitTests;
 
 /// <summary>
 /// Copies the sample and hand-written project fixtures to a directory and builds serializers that open them
-/// with DefaultRgba32 as the global palette.
+/// with Classic as the global palette.
 /// </summary>
 public static class ProjectFixtures
 {
     public const string AllFeatures = "AllFeatures";
 
     private static readonly Lazy<Palette> _defaultPalette = new(() =>
-        new PaletteService(new ColorFactory()).ReadJsonPalette(Path.Combine(AppContext.BaseDirectory, "_palettes", "DefaultRgba32.json"))!);
+        new PaletteService(new ColorFactory()).ReadJsonPalette(Path.Combine(AppContext.BaseDirectory, "_palettes", "Classic.json"))!);
 
     public static Palette DefaultPalette => _defaultPalette.Value;
 

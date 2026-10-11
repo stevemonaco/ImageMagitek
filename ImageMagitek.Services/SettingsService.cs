@@ -46,7 +46,7 @@ public sealed class SettingsService
     {
         return new AppSettings
         (
-            GlobalPalettes: ["DefaultRgba32"],
+            GlobalPalettes: ["Vivid", "Synthwave", "Dusk", "Classic"],
             NesPalette: "DefaultNes",
             ExtensionCodecAssociations: new Dictionary<string, string>()
             {

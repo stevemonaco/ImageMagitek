@@ -64,7 +64,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         var paletteService = bootstrapper.CreatePaletteService(colorFactory);
         services.AddSingleton(paletteService);
 
-        var paletteStore = bootstrapper.CreatePaletteStore(paletteService, paths.PalettesPath, settings, preferences.NesPalette);
+        var paletteStore = bootstrapper.CreatePaletteStore(paletteService, paths.PalettesPath, settings, preferences.NesPalette, preferences.DefaultPalette);
         if (paletteStore.NesPalette is not null)
             colorFactory.SetNesPalette(paletteStore.NesPalette);
         services.AddSingleton(paletteStore);

@@ -6,7 +6,7 @@ When an item is closed, its line is deleted.
 
 **1.0** marks items that block the 1.0 release ([ARCHITECTURE.md](ARCHITECTURE.md) §1): they lose work, corrupt data, freeze the project format, or leave a visible control that does nothing. Out of scope for 1.0: direct-color XML codecs, compression ([proposal](changes/compression-support.md)), container scanners ([proposal](changes/container-scanners.md)), new platforms and color models, new drawing or selection tools, layers, tilemaps and scripting. Candidates for 1.1, roughly in order: sequential arrangers as project resources, export from sequential views and selections, CLI `--json` output and key globs, OS clipboard, tool hotkeys; then compression and direct-color XML codecs.
 
-Every **1.0** item belongs to a change proposal, linked at the end of its line: [project-format-freeze](changes/project-format-freeze.md), [sequential-palettes](changes/sequential-palettes.md), [welcome-screen](changes/welcome-screen.md), [docs-1-0](changes/docs-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
+Every **1.0** item belongs to a change proposal, linked at the end of its line: [project-format-freeze](changes/project-format-freeze.md), [welcome-screen](changes/welcome-screen.md), [docs-1-0](changes/docs-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
 
 Found by reading the code, not reproduced, unless a test is named.
 
@@ -18,7 +18,6 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-PALETTES] `SetNativeColor` keeps the native color unquantized (BGR15 shows 255, not 248) until `Reload`; done when it stores the round-tripped color, or a decision records why not.
 - [LIB-PROJECT-SERVICE] `AreResourcesInSameProject` returns true when neither resource is in any open tree; done when it returns false.
 - **1.0** [LIB-ARRANGERS] Rotating a mirrored element turns it the opposite way on screen: render applies rotation then mirror, but `TryRotateElement` ignores the mirror; done when a test shows H-mirror then Rotate Left renders like rotating the mirrored pixels counter-clockwise. ([proposal](changes/project-format-freeze.md))
-- **1.0** [LIB-ARRANGERS] The `SequentialArranger` constructor and `ArrangerBuilder` set `ActivePalette`, but element codecs keep the factory default palette, and `ChangeCodec` ignores `ActivePalette`; cloning a sequential arranger likewise loses the palette; done when a new, re-codec'd or cloned sequential arranger renders with its palette without a `ChangePalette` call. ([proposal](changes/sequential-palettes.md))
 - [LIB-ARRANGERS] `GetInitialSequentialFileAddress` indexes `ElementGrid[X, Y]` instead of `[Y, X]` (latent while every layout starts at (0,0)); done when a layout whose first cell is not (0,0) moves correctly.
 - [LIB-ARRANGERS] A clone rectangle that is not element-aligned drops the last covered column or row; done when the element span is computed from both edges.
 - [LIB-IMAGES] `DirectImage.SaveImage` and its save-conflict analysis assume the image starts at the arranger origin, so a sub-rectangle image saves the wrong pixels or throws; `CanSetPalette` also reads arranger coordinates from a sub-rectangle image; done when partial DirectImage saves and `CanSetPalette` with Left/Top ≠ 0 are correct and tested.
@@ -30,7 +29,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ### UI
 
-- **1.0** [UI-GRAPHICS-EDITOR] In a sequential editor's View mode the palette combo never recolors the view (the `ChangePalette` call in `GraphicsEditorViewModel.View.cs` is commented out); done when choosing a palette re-renders the view with it. ([proposal](changes/sequential-palettes.md))
 - [UI-ARRANGING] Ctrl+click single-cell select and Shift+hover single-element select are shadowed by the temporary Pick Palette (Arrange) or Color Picker (Draw) modifier tools; done when each gesture does one documented thing.
 - [UI-GRAPHICS-EDITOR] Ctrl+W (fit) sets the zoom without clamping to 0.25–32x; done when it respects MinZoom/MaxZoom.
 - [UI-GRAPHICS-EDITOR] Inspect Element prints "FileOffset 0x1A." with a trailing dot when the bit offset is 0; done when the dot appears only with a bit offset.
@@ -69,7 +67,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 - **1.0** [LIB-PROJECT-FORMAT] Path keys are kept (decided; stable keys rejected for now); done when the analysis is recorded as a LIB-PROJECT-FORMAT Decision. ([proposal](changes/project-format-freeze.md))
 - **1.0** [LIB-PROJECT-FORMAT] Schema versioning: `version="0.9"` is written and parsed but never compared; bump to 1.0 and reject newer versions with a clear message, with no migration or upgrade path (no projects in the wild); done when a higher-version project fails clearly and a 0.9 project loads as 1.0. ([proposal](changes/project-format-freeze.md))
-- **1.0** [UI-GRAPHICS-EDITOR, LIB-PALETTES] Sequential editors switch between built-in palettes, and three new 256-color global palettes ship (high contrast in the first 16, one smooth synthwave); done when the combo recolors the view and the palettes pass their design tests. ([proposal](changes/sequential-palettes.md))
 - **1.0** [UI-WELCOME] A welcome screen in the empty document area, with demo art decoded from a shipped SNES 4bpp file; done when it shows on launch and after the last editor closes. ([proposal](changes/welcome-screen.md))
 - [UI-SHELL, LIB-PROJECT-SERVICE] Command-line and OS integration (optional for 1.0): `args` are passed to Avalonia but never read, and there is no window drop handler; done when a non-`.xml` path on the command line, or a file dropped on the window, opens as a standalone file (drop is a manual check).
 - [UI-SHELL] Status-bar Indefinite and Reset messages are handled but never sent; done when a sender exists or the values are removed.
@@ -90,6 +87,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-CODECS] XML format extensions: tile stride/padding, bit order and endianness, per-tile header bytes (variable-width fonts currently need a plugin).
 - [LIB-ARRANGERS] Bit-wise sequential offsets: tiled elements and absolute moves are bit-addressed, but Single-layout stepping (TODO in `SequentialArranger`) and its row/column/page steps are not; done when Single-layout round-trip tests pass at a non-byte-aligned offset.
 - [LIB-COLORS] Color models: RGB24, ARGB32, RGB565, TG16 GRB333, N64 IA/I, grayscale.
+- [UI-SHELL, LIB-SERVICES] Reload codecs and palettes without restarting: a new default palette, NES master palette, or codec XML edited while exploring needs a restart today (UI-SHELL-055); done when choosing a new default in Preferences takes effect for newly opened editors.
 - [LIB-PALETTES] Palette sub-banks (a 16-color sub-palette of a 256-color palette per element).
 - [UI-PALETTE-EDITOR] Reorder, duplicate and bulk hue/brightness adjustment (reorder deliberately left out of 1.0: it changes every arranger using those indices).
 - [UI-DRAWING] Line, rectangle, ellipse, eraser, brush size, replace color; single-key tool hotkeys and `[`/`]` to step palette indices.
@@ -181,5 +179,5 @@ DevTools cannot drive pointer gestures, drag and drop, or popups, so these need 
 - [UI-EDITORS] Float a tab, then File → Close <name>, and separately delete its resource in the tree: the floating tab closes each time. After closing tabs with their X, the shown tab and the File menu's Close <name> agree.
 - [UI-IMAGE-IO] Export with a missing ROM (alert before the file picker), over a read-only PNG ("Export Error"), and with a modified editor (Yes saves then exports, No exports the saved state and keeps the edits, Cancel stops). Import into a read-only ROM: "Import Error" stacks above the dialog, and the dialog stays open and usable after OK.
 - [UI-SHELL] Save All becomes enabled after a pixel edit is applied (DevTools cannot apply a pending paste), and saves every modified editor without prompting.
-- [CLI-COMMANDS] `TileShopCLI print` with `_palettes/DefaultRgba32.json` renamed in the build output exits -4 (the malformed-codec warning is covered by `CliApplicationTests.BootstrapIssue_PrintsWarningExits0`).
+- [CLI-COMMANDS] `TileShopCLI print` with `_palettes/Classic.json` renamed in the build output exits -4 (the malformed-codec warning is covered by `CliApplicationTests.BootstrapIssue_PrintsWarningExits0`).
 - [CLI-PUBLISH] In the trimmed single-file publish, `--help`, `export --help` and `--version` exit 0, and with the sample plugin under `_plugins` an arranger using "Last Armageddon Font" exports and `importall` skips it as read-only.

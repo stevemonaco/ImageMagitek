@@ -18,7 +18,7 @@ public class SettingsServiceTests
         var json = """
             {
               "extensionCodecAssociations": { "default": "NES 1bpp", ".sfc": "SNES 4bpp" },
-              "globalPalettes": [ "DefaultRgba32", "Custom" ],
+              "globalPalettes": [ "Classic", "Custom" ],
               "nesPalette": "MyNes"
             }
             """;
@@ -26,7 +26,7 @@ public class SettingsServiceTests
         var settings = _service.Deserialize(json);
 
         Assert.Equal("SNES 4bpp", settings.ExtensionCodecAssociations[".sfc"]);
-        Assert.Equal(["DefaultRgba32", "Custom"], settings.GlobalPalettes);
+        Assert.Equal(["Classic", "Custom"], settings.GlobalPalettes);
         Assert.Equal("MyNes", settings.NesPalette);
     }
 
@@ -37,7 +37,7 @@ public class SettingsServiceTests
             {
               // user note
               "extensionCodecAssociations": { "default": "NES 1bpp", },
-              "globalPalettes": [ "DefaultRgba32", ],
+              "globalPalettes": [ "Classic", ],
               "nesPalette": "DefaultNes",
             }
             """;
@@ -89,6 +89,7 @@ public class SettingsServiceTests
         var settings = _service.ReadSettings(missing);
 
         Assert.Equal("DefaultNes", settings.NesPalette);
+        Assert.Equal(["Vivid", "Synthwave", "Dusk", "Classic"], settings.GlobalPalettes);
         Assert.True(settings.ExtensionCodecAssociations.ContainsKey("default"));
     }
 

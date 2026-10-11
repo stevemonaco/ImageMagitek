@@ -1,7 +1,7 @@
 {
 	"author": "CrystalTile",
 	"transcriber": "Klarth",
-	"name": "DefaultRgba32",
+	"name": "Classic",
 	"zeroindextransparent": false,
 	"colors": [
 		"#000000FF", "#63CF63FF", "#3933FFFF", "#DCFFFFFF", "#330086FF", "#BF7300FF", "#00CFFFFF", "#EFEBB4FF",

@@ -10,7 +10,7 @@
 	<element fileoffset="E0" posx="3" posy="1" bitoffset="3" />
 	<element fileoffset="100" posx="0" posy="2" codec="SNES 3bpp" />
 	<element fileoffset="0" posx="1" posy="2" datafile="/Data/sub" />
-	<element fileoffset="120" posx="2" posy="2" palette="DefaultRgba32" />
+	<element fileoffset="120" posx="2" posy="2" palette="Classic" />
 	<element fileoffset="140" posx="3" posy="2" palette="/Palettes/Nested/Alt" />
 	<element fileoffset="160" posx="0" posy="3" />
 	<element fileoffset="180" posx="1" posy="3" palette="/Palettes/Scattered" />

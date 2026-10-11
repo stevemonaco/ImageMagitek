@@ -39,6 +39,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     private readonly ICodecService _codecService;
     private readonly IColorFactory _colorFactory;
     private readonly PaletteStore _paletteStore;
+    private readonly EditorPaletteList _paletteList;
     private readonly ElementStore _elementStore;
     private readonly IProjectService _projectService;
     private readonly ILogger<GraphicsEditorViewModel> _logger;
@@ -238,8 +239,13 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
     partial void OnSelectedPaletteChanged(PaletteModel? value)
     {
-        if (value is not null)
-            ActivePalette = value;
+        if (value is null)
+            return;
+
+        ActivePalette = value;
+
+        if (WorkingArranger is SequentialArranger seqArr && IsIndexedColor && !ReferenceEquals(seqArr.ActivePalette, value.Palette))
+            ChangePalette(value);
     }
 
     [ObservableProperty] private PaletteModel? _activePalette;
@@ -310,6 +316,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         _codecService = codecService;
         _colorFactory = colorFactory;
         _paletteStore = paletteStore;
+        _paletteList = new EditorPaletteList(paletteStore);
         _elementStore = elementStore;
         _projectService = projectService;
         _preferencesStore = preferencesStore;
@@ -400,19 +407,15 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         if (IsIndexedColor)
         {
             var colorLimit = GetPaletteColorLimit();
+            var palettes = _paletteList.Build(WorkingArranger);
 
-            var arrangerPalettes = WorkingArranger.GetReferencedPalettes();
-            arrangerPalettes.ExceptWith(_paletteStore.GlobalPalettes);
-
-            var palModels = arrangerPalettes.OrderBy(x => x.Name)
-                .Concat(_paletteStore.GlobalPalettes.OrderBy(x => x.Name))
-                .Select(x => new PaletteModel(x, colorLimit));
-
-            Palettes = new(palModels);
+            Palettes = new(palettes.Select(x => new PaletteModel(x, colorLimit)));
             if (Palettes.Count > 0)
             {
-                SelectedPalette = Palettes.First();
-                ActivePalette = Palettes.First();
+                var selected = _paletteList.Select(WorkingArranger, palettes);
+                var model = Palettes.First(x => ReferenceEquals(x.Palette, selected));
+                SelectedPalette = model;
+                ActivePalette = model;
             }
         }
     }

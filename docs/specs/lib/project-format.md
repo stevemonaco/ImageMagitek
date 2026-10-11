@@ -73,7 +73,7 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 - **LIB-PROJECT-FORMAT-004** — When reading, every subdirectory of the base directory shall become a folder, including empty directories and directories holding only non-resource files.
   - Tests: untested
 - **LIB-PROJECT-FORMAT-005** — When reading, every `*.xml` file under the base directory other than the project file shall be read as a resource; another project file found there shall be ignored.
-  - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredCodecArrangers`
+  - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
 
 ### Elements and attributes
 
@@ -94,7 +94,7 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 - **LIB-PROJECT-FORMAT-058** — If a `scatteredcolor` field does not fit the palette's color model, overlaps another field of the run, or for some entry would cross a byte boundary, then the load shall fail naming the file, the entry index and the field.
   - Tests: `XmlProjectReaderTests.ScatteredColor_FieldOverflowsModel_FailsNamingEntry`, `XmlProjectReaderTests.ScatteredColor_OverlappingFields_Fails`, `XmlProjectReaderTests.ScatteredColor_StrideCrossesByte_FailsNamingEntry`
 - **LIB-PROJECT-FORMAT-012** — Native colors shall be written as `nativecolor` and foreign colors as `foreigncolor`, each with a hex `value`.
-  - Tests: `ProjectServiceTests.SaveProject_PaletteWithCommittedModel_WritesCommittedState`, `SerializationModelTests.ForeignColorSourceModel_SameValue_Equal`, `SerializationModelTests.ForeignColorSourceModel_DifferentModel_NotEqual`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredCodecArrangers`
+  - Tests: `ProjectServiceTests.SaveProject_PaletteWithCommittedModel_WritesCommittedState`, `SerializationModelTests.ForeignColorSourceModel_SameValue_Equal`, `SerializationModelTests.ForeignColorSourceModel_DifferentModel_NotEqual`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
 - **LIB-PROJECT-FORMAT-013** — If a `nativecolor` or `foreigncolor` value does not parse in its color model, then the load shall fail naming the file, the entry index and the value.
   - Tests: `XmlProjectReaderTests.NativeColor_Unparseable_FailsNamingEntry`, `XmlProjectReaderTests.ForeignColor_WrongWidthForModel_FailsNamingEntry`
 - **LIB-PROJECT-FORMAT-014** — A palette shall hold at most 256 entries, counting a `filesource` or `scatteredcolor` run as its `entries`: the schema accepts at most 256 source elements, `entries` up to 256 and 32 `field` elements per run, the reader fails a palette whose entries total more than 256, and the writer refuses to save one. The schema shall accept the color models Bgr15, Abgr16, Rgba32, Nes, Bgr9 and Bgr6.
@@ -120,8 +120,10 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `XmlProjectReaderTests.UnresolvedDataFileKey_Palette_FailsNamingKeyAndPalette`, `XmlProjectReaderTests.UnresolvedDataFileKey_Element_FailsNamingKeyArrangerAndPosition`
 - **LIB-PROJECT-FORMAT-023** — If an element's palette key does not resolve in the tree, then the reader shall use the global palette whose name equals the key ignoring case, and otherwise fail the load naming the key, the arranger and the element position.
   - Tests: `XmlProjectReaderTests.PaletteKeyNamingGlobalPalette_ResolvesIgnoringCase`, `XmlProjectReaderTests.UnresolvedPaletteKey_FailsNamingKeyArrangerAndPosition`
+- **LIB-PROJECT-FORMAT-059** — When a palette key names a renamed global palette (`DefaultRgba32`, now `Classic`) and no global palette has that name, the reader shall use the palette under its new name, and the next save shall write the new name.
+  - Tests: `XmlProjectReaderTests.PaletteKeyNamingRenamedGlobalPalette_ResolvesToNewName`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
 - **LIB-PROJECT-FORMAT-024** — When an element names a retired codec, the reader shall load the codec it was renamed to (LIB-CODECS), and the next save shall write the current name.
-  - Tests: `CodecFactoryTests.LegacyName_ResolvesToXmlCodec`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredCodecArrangers`
+  - Tests: `CodecFactoryTests.LegacyName_ResolvesToXmlCodec`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
 - **LIB-PROJECT-FORMAT-025** — If an element names an unknown codec, or an indexed arranger names a direct codec, then the load shall fail naming the codec and the arranger.
   - Tests: `XmlProjectReaderTests.UnknownCodec_FailsNamingCodecAndArranger`, `XmlProjectReaderTests.IndexedArrangerWithDirectCodec_FailsNamingCodecAndArranger`
 
@@ -145,13 +147,13 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 ### Writing
 
 - **LIB-PROJECT-FORMAT-032** — A project write shall include each resource whose current model differs from its persisted model or whose expected location differs from its disk location, and nothing else.
-  - Tests: `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredCodecArrangers`
+  - Tests: `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
 - **LIB-PROJECT-FORMAT-033** — After a successful write, each written node's persisted model and disk location shall be updated; after a failed write, neither shall change.
   - Tests: `ProjectServiceTests.MoveNode_ProjectWriteFails_RaisesReverseMove`
 - **LIB-PROJECT-FORMAT-034** — While a palette node has a committed model, writers shall serialize it instead of the live palette.
   - Tests: `ProjectServiceTests.SaveProject_PaletteWithCommittedModel_WritesCommittedState`
 - **LIB-PROJECT-FORMAT-035** — Folders and in-memory resources shall never be written as files; sequential arrangers shall never be saved.
-  - Tests: `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredCodecArrangers`
+  - Tests: `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
 - **LIB-PROJECT-FORMAT-036** — The writer shall fail on a palette without a data file and on a foreign color whose model differs from the palette's, naming the palette and index. Mapping a color source of any other type than file, scattered, native or foreign shall throw `NotSupportedException` naming the type.
   - Tests: `XmlProjectWriterTests.ForeignColor_ModelMismatch_FailsSave`, `SerializationMapperTests.MapToModel_UnknownColorSource_ThrowsNamingType`
 - **LIB-PROJECT-FORMAT-056** — When given models for several nodes, the writer shall write each to its node's disk location in one transaction and set the nodes' persisted models only on success.
@@ -187,13 +189,13 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 ### Round trip
 
 - **LIB-PROJECT-FORMAT-050** — When the project has a `root`, the writer shall write the project file in its own directory and every resource under the base directory.
-  - Tests: `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredCodecArrangers`, `ProjectServiceTests.RenameProjectRoot_WithRoot_WritesProjectFileBesideOld`
+  - Tests: `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`, `ProjectServiceTests.RenameProjectRoot_WithRoot_WritesProjectFileBesideOld`
 - **LIB-PROJECT-FORMAT-051** — When a project is read, written and read again, every resource shall map to a model equal to the one mapped after the first read.
   - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`, `XmlProjectRoundTripTests.RootRelative_SaveAndReopen_Unchanged`, `XmlProjectRoundTripTests.RootAbsolute_SaveAndReopen_Unchanged`
 - **LIB-PROJECT-FORMAT-052** — When a written project is read and written again, the second write shall produce byte-identical files.
   - Tests: `XmlProjectRoundTripTests.WriteTwice_ByteIdentical`
 - **LIB-PROJECT-FORMAT-053** — When a project that was just read is saved without changes, the writer shall write no file other than arrangers that named a retired codec.
-  - Tests: `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredCodecArrangers`
+  - Tests: `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
 
 ### Defaults
 
@@ -240,6 +242,7 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 - **Scattered runs are written as runs, chosen by the writer.** The mapper merges consecutive scattered entries into one `scatteredcolor` with greedy run detection (LIB-PALETTES-052), as it does for `filesource`. High-nibble-first tables have no constant positive stride, so they are written as runs of one or two entries. Rejected: a nibble-order attribute or negative strides (another attribute for a rare layout).
 - **Unresolved palette keys fail the load.** Same rule as data file keys. Reason: a silent fallback followed by an automatic whole-project write (any rename, move, add or save) rewrites the arranger with the fallback key, and restoring the palette file afterwards does not bring the references back; failing loses nothing and the message says what to restore or edit. Each distinct unresolved key is reported once per resource with its first element position, since one palette is often referenced by hundreds of elements. Rejected: loading with the fallback and preserving the original key for the writer (needs per-element unresolved state in `ArrangerElement`); loading the arranger as broken like a missing data file (no repair UI exists for a dangling reference).
 - **Global palettes resolve by exact name.** The writer always stores a global palette's `Name`, so a palette key that is not a tree path key must equal a global name, ignoring case as before. Rejected: the former last-segment match, which only ever turned a dangling tree reference into a wrong palette.
+- **Renamed global palettes keep loading through a fixed map.** `ProjectTreeBuilder` maps `DefaultRgba32` to `Classic` only after the exact name fails, like retired codec names (LIB-PROJECT-FORMAT-024), and the writer's global `Name` rewrites it on the next save. Reason: `DefaultRgba32` was the default for years, so many projects name it. Rejected: keeping the old file name (the name described the format, not the palette); no mapping (those projects would fail to load).
 - **Unparseable colors fail the load.** Mirrors LIB-PALETTES-031 for JSON palettes. Reason: dropping an entry shifts every later index on screen and on the next save. Rejected: substituting a placeholder color, which saves a value the user never chose.
 - **The writer refuses output the reader would reject.** A foreign color whose model differs from the palette's fails the save, naming palette and index, so a project that saves always loads. `ChangeColorModelViewModel` already converts foreign sources; `SetForeignColor` accepting any model is a separate LIB-PALETTES item.
 - **One base directory, two roles.** `ProjectNode.BaseDirectory` (the project file's directory, or `root` resolved against it and normalized) holds resources and anchors data file paths for both reader and writer; the project file and the journal stay in the project file's directory. Rejected: anchoring data file paths to the project file's directory in the reader too, which changes the meaning of every existing `root` project.

@@ -148,8 +148,7 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
 
 - **UI-SHELL-040** — The View menu's Show Gridlines toggle and Grid Settings... item shall act on the active graphics editor, and shall be disabled while the active editor is not a graphics editor.
   - Tests: manual — switch between a palette tab and an arranger tab and check the View menu.
-- **UI-SHELL-041** — View → Set Theme shall offer Light Theme and Dark Theme; choosing one shall apply it immediately and save it to the preferences.
-  - Tests: manual — switch theme and restart the app.
+- ~~**UI-SHELL-041**~~ — Removed: the theme is chosen in the Preferences dialog (UI-SHELL-050), so View → Set Theme duplicated it.
 - **UI-SHELL-042** — Help → Wiki shall open `https://github.com/stevemonaco/ImageMagitek/wiki` in the system browser on Windows, Linux and macOS.
   - Tests: manual — choose Help → Wiki.
 - **UI-SHELL-043** — Help → About TileShop shall show an alert headed "TileShop" with the app's informational version, in Debug, Release and single-file published builds, and either "Plugin codecs:" followed by each loaded plugin codec's name, or "No plugin codecs loaded".
@@ -159,22 +158,26 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
 
 ### Preferences dialog
 
-- **UI-SHELL-050** — The Preferences dialog shall show the current theme, Jump to Offset base, symmetry tools toggle, gridline and checkerboard primary/secondary colors, and NES master palette.
+- **UI-SHELL-050** — The Preferences dialog shall show the current theme, Jump to Offset base, symmetry tools toggle, gridline and checkerboard primary/secondary colors, default palette and NES master palette.
   - Tests: manual — open Preferences and compare with `preferences.json`.
 - **UI-SHELL-051** — The NES master palette list shall contain every `*.json` palette in the `_palettes` folder, sorted case-insensitively, with the palette currently in effect selected.
   - Tests: manual — open Preferences and check the Master Palette list.
+- **UI-SHELL-120** — The default palette list shall contain the appsettings.json global palettes in settings order, with the default currently in effect selected.
+  - Tests: manual — open Preferences and check the Default Palette list.
 - **UI-SHELL-114** — The NES palette list in the Preferences dialog shall come from the application directory's `_palettes`.
   - Tests: manual — launch with another working directory and open Preferences.
 - **UI-SHELL-052** — The Reset button shall restore the three grid colors in the dialog to their defaults without closing it.
   - Tests: manual — change a grid color, press Reset.
 - **UI-SHELL-053** — When the dialog is accepted, the shell shall apply the theme immediately and save every setting to the preferences; when it is cancelled, nothing shall change.
   - Tests: manual — change settings, Cancel, reopen; then accept and reopen.
-- **UI-SHELL-054** — When the chosen NES palette equals the appsettings.json palette, the preferences shall store no NES override.
+- **UI-SHELL-054** — When the chosen NES palette equals the appsettings.json palette, the preferences shall store no NES override; when the chosen default palette is the first appsettings.json global palette, the preferences shall store no default override.
   - Tests: untested
-- **UI-SHELL-055** — The NES master palette shall take effect only after restart, and grid colors and symmetry tools only in editors opened afterwards; the dialog shall say so.
+- **UI-SHELL-055** — The NES master palette and the default palette shall take effect only after restart, and grid colors and symmetry tools only in editors opened afterwards; the dialog shall say so.
   - Tests: manual — change the NES palette and check an open NES arranger is unchanged until restart.
 - **UI-SHELL-056** — At startup, the app shall pass the NES override to the palette store, which falls back to the appsettings.json NES palette when the override is unusable (LIB-PALETTES), and the fallback shall appear in the startup alert.
   - Tests: `BootstrapServiceTests.CreatePaletteStore_UnusableOverride_FallsBackAndRecordsIssue`
+- **UI-SHELL-121** — At startup, the app shall pass the default palette override to the palette store, which makes that global palette the default (LIB-PALETTES), and an override naming no loaded global palette shall appear in the startup alert.
+  - Tests: `BootstrapServiceTests.CreatePaletteStore_DefaultOverride_MovesPaletteFirst`, `BootstrapServiceTests.CreatePaletteStore_UnknownDefaultOverride_KeepsSettingsOrderAndRecordsIssue`
 
 ### Exit
 
@@ -253,7 +256,7 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
 - **UI-SHELL-112** — When startup records non-fatal issues, the shell shall show, once after the main window opens, an alert headed "Some resources were not loaded" listing each file and the first line of its reason (at most 20, then a count of the rest) and the log folder.
   - Tests: `StartupIssueFormatterTests.Format_ListsFilesReasonsAndLogPath`, `StartupIssueFormatterTests.Format_MoreThan20_SummarizesRest`; DevTools — put a malformed XML file in the build output's `_codecs`, launch, `search OverlayDialog`.
 - **UI-SHELL-113** — If bootstrapping throws, then the app shall show a startup error window with the message and the log folder instead of the main window, and exit when it is closed.
-  - Tests: DevTools — rename `_palettes/DefaultRgba32.json` in the build output, launch, find `StartupErrorWindow`, click Close and check the process ends.
+  - Tests: DevTools — rename `_palettes/DefaultNes.json` (the NES master palette, an essential) in the build output, launch, find `StartupErrorWindow`, click Close and check the process ends.
 - **UI-SHELL-105** — Each view model shall be shown with the view registered for its exact type, and an unregistered view model shall render as the text "<type> not registered".
   - Tests: untested
 
@@ -293,7 +296,7 @@ The main window of TileShop.UI: docking layout, the File/Edit/View/Help menus, t
 - **Menu gestures are display only.** `InputGesture` on a MenuItem only labels it; the key is dispatched by `HotkeyService` from the active editor's hotkeys. Reason: hotkeys must be scoped to the active editor, which a window-level MenuItem gesture cannot express.
 - **Hotkeys dispatch window-wide but defer to text boxes.** Plain-key hotkeys are skipped while a TextBox has focus; chords still run. Reason: tool hotkeys must work without clicking the canvas, but typing a number into a toolbar box must not trigger tools.
 - **No Plugins menu for 1.0.** Loaded plugin codecs are listed in About instead, so users can confirm a plugin loaded. Rejected: a plugin manager UI (non-goal for 1.0).
-- **Preferences dialog covers only persisted settings.** Theme, grid colors, numeric base, symmetry tools and NES master palette. Reason: settings reachable only through files users have never seen are not really user-facing. The NES palette is a nullable `UserPreferences.NesPalette` override of appsettings.json applied at bootstrap, so it needs a restart; the list shows every JSON palette in `_palettes`, not only 64-entry ones.
+- **Preferences dialog covers only persisted settings.** Theme, grid colors, numeric base, symmetry tools, default palette and NES master palette. Reason: settings reachable only through files users have never seen are not really user-facing. The NES palette is a nullable `UserPreferences.NesPalette` override of appsettings.json applied at bootstrap, so it needs a restart; the list shows every JSON palette in `_palettes`, not only 64-entry ones. The default palette works the same way through `UserPreferences.DefaultPalette`, listing only the global palettes, because projects and codecs resolve the default among them. View → Set Theme was removed because Preferences already holds the theme; Show Gridlines and Grid Settings stay in View because they act on the open editor, while Preferences only sets defaults for new editors. Rejected: applying a new default without restart (codecs, project loading and saving read the default once at bootstrap; a reload mechanism is in the backlog).
 - **Status bar uses one reusable 2 s timer.** Short restarts it, Indefinite stops it, Reset clears the message. Reason: the earlier `async void` handler dropped Indefinite and Reset messages.
 - **Debug load button is Debug-only.** The button, `DebugLoad` and the hardcoded `D:\` path are compiled only in Debug builds; the button is created in code and keeps the `debugLoadButton` name so automation recipes still find it. Rejected: shipping a hidden button with a hardcoded path.
 - **Standalone files are not remembered.** The recent list follows `ProjectOpened` and skips standalone trees; standalone files are not restored on next launch.

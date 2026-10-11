@@ -114,10 +114,11 @@ public sealed class XmlProjectRoundTripTests : IDisposable
 
     private static readonly string[] RetiredCodecNames = ["SNES 3bpp", "PSX 4bpp", "PSX 8bpp"];
 
-    private static bool NamesRetiredCodec(string xmlFile) =>
+    private static bool NamesRetiredName(string xmlFile) =>
         XDocument.Parse(File.ReadAllText(xmlFile)).Descendants()
             .SelectMany(x => x.Attributes())
-            .Any(x => x.Name.LocalName is "codec" or "defaultcodec" && RetiredCodecNames.Contains(x.Value));
+            .Any(x => x.Name.LocalName is "codec" or "defaultcodec" && RetiredCodecNames.Contains(x.Value)
+                || x.Name.LocalName is "palette" or "defaultpalette" && string.Equals(x.Value, "DefaultRgba32", StringComparison.OrdinalIgnoreCase));
 
     private async Task<ProjectTree> ReadWriteReadAsync(string projectFile)
     {
@@ -153,12 +154,12 @@ public sealed class XmlProjectRoundTripTests : IDisposable
 
     [Theory]
     [MemberData(nameof(Fixtures))]
-    public async Task SaveUnchanged_WritesOnlyRetiredCodecArrangers(string fixture)
+    public async Task SaveUnchanged_WritesOnlyRetiredNameArrangers(string fixture)
     {
         var tree = await OpenAsync(ProjectFixtures.Create(fixture, _directory));
         var expected = ResourceNodes(tree).OfType<ArrangerNode>()
             .Select(x => x.DiskLocation!)
-            .Where(NamesRetiredCodec)
+            .Where(NamesRetiredName)
             .Order()
             .ToList();
         var before = SnapshotFiles();

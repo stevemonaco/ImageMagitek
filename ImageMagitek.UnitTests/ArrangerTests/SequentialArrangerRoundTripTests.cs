@@ -40,7 +40,6 @@ public class SequentialArrangerRoundTripTests
         source.Write(BitAddress.Zero, TestImageGenerator.RandomBytes((int)source.Length, 51));
 
         var arranger = new SequentialArranger(_elementsX, _elementsY, source, palette, _fixture.CodecFactory, codec);
-        arranger.ChangePalette(palette);
         arranger.Move(new BitAddress(_offsetBytes * 8));
 
         Assert.Equal(_offsetBytes * 8, arranger.Address.Offset);
@@ -49,7 +48,6 @@ public class SequentialArrangerRoundTripTests
         if (codec.CanResize)
         {
             arranger.ChangeCodec(_fixture.CodecFactory.CreateCodec(codecName, new Size(16, 16))!);
-            arranger.ChangePalette(palette);
 
             Assert.Equal(new Size(16, 16), arranger.ElementPixelSize);
             Assert.Equal(_offsetBytes * 8, arranger.Address.Offset);

@@ -23,6 +23,11 @@ public sealed class UserPreferences
     /// Name of the NES master palette in _palettes, or null to use appsettings.json
     /// </summary>
     public string? NesPalette { get; set; }
+
+    /// <summary>
+    /// Name of the global palette used as the default, or null to use the first in appsettings.json
+    /// </summary>
+    public string? DefaultPalette { get; set; }
 }
 
 /// <summary>

@@ -8,6 +8,8 @@ using CommunityToolkit.Mvvm.Input;
 using ImageMagitek;
 using Microsoft.Extensions.Logging;
 using TileShop.Shared.Models;
+using TileShop.Shared.Tools;
+using TileShop.UI.Models;
 
 namespace TileShop.UI.ViewModels;
 
@@ -226,11 +228,11 @@ public partial class GraphicsEditorViewModel
         OnPropertyChanged(nameof(IsSingleLayout));
     }
 
-    // private void ChangePalette(PaletteModel pal)
-    // {
-    //     ((SequentialArranger)WorkingArranger).ChangePalette(pal.Palette);
-    //     Render();
-    // }
+    private void ChangePalette(PaletteModel pal)
+    {
+        ((SequentialArranger)WorkingArranger).ChangePalette(pal.Palette);
+        InvalidateEditor(InvalidationLevel.Display);
+    }
 
     private bool ChangeCodecDimensions(int width, int height)
     {

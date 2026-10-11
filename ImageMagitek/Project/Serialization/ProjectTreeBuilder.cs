@@ -15,6 +15,11 @@ internal sealed class ProjectTreeBuilder
 {
     public ProjectTree? Tree { get; private set; }
 
+    private static readonly Dictionary<string, string> _renamedGlobalPalettes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["DefaultRgba32"] = "Classic"
+    };
+
     private readonly List<IProjectResource> _globalResources;
     private readonly Palette _globalDefaultPalette;
     private readonly ICodecFactory _codecFactory;
@@ -150,8 +155,12 @@ internal sealed class ProjectTreeBuilder
         if (Tree.TryGetItem<Palette>(paletteKey, out var pal))
             return pal;
 
-        return _globalResources.OfType<Palette>().FirstOrDefault(x => string.Equals(x.Name, paletteKey, StringComparison.OrdinalIgnoreCase));
+        return FindGlobalPalette(paletteKey)
+            ?? (_renamedGlobalPalettes.TryGetValue(paletteKey, out var newName) ? FindGlobalPalette(newName) : null);
     }
+
+    private Palette? FindGlobalPalette(string name) =>
+        _globalResources.OfType<Palette>().FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
 
     private IGraphicsCodec? CreateCodecOrNull(string codecName, Size elementSize)
     {

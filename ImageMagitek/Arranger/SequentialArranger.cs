@@ -78,6 +78,7 @@ public sealed class SequentialArranger : Arranger
         _codecFactory = codecFactory;
 
         ActiveCodec = _codecFactory.CloneCodec(codec);
+        ApplyActivePalette(ActiveCodec);
         ColorType = ActiveCodec.ColorType;
 
         Layout = ActiveCodec.Layout switch
@@ -273,6 +274,7 @@ public sealed class SequentialArranger : Arranger
         ElementPixelSize = new Size(codec.Width, codec.Height);
 
         ActiveCodec = codec;
+        ApplyActivePalette(ActiveCodec);
         ColorType = ActiveCodec.ColorType;
 
         if (codec.Layout == ImageLayout.Single)
@@ -291,19 +293,35 @@ public sealed class SequentialArranger : Arranger
     /// Changes the palette of all elements to the provided palette
     /// </summary>
     /// <param name="pal">New palette</param>
+    /// <remarks>Elements receive a new codec instance because element copies taken from this arranger share the current one.</remarks>
     public void ChangePalette(Palette pal)
     {
+        if (!CanUsePalette(pal))
+            throw new ArgumentException($"{nameof(ChangePalette)} parameter '{nameof(pal)}' has {pal.Entries} entries, too few for codec '{ActiveCodec.Name}'");
+
         ActivePalette = pal;
-        for (int posY = 0; posY < ArrangerElementSize.Height; posY++)
-        {
-            for (int posX = 0; posX < ArrangerElementSize.Width; posX++)
-            {
-                if (ElementGrid[posY, posX] is ArrangerElement { Codec: IIndexedCodec codec } el)
-                {
-                    codec.Palette = pal;
-                }
-            }
-        }
+        ActiveCodec = _codecFactory.CloneCodec(ActiveCodec);
+        ApplyActivePalette(ActiveCodec);
+        PerformLayout();
+    }
+
+    /// <summary>
+    /// Determines if the palette has enough entries for every color index of the active codec
+    /// </summary>
+    public bool CanUsePalette(Palette pal) => CoversColorDepth(pal, ActiveCodec);
+
+    private static bool CoversColorDepth(Palette pal, IGraphicsCodec codec) =>
+        codec is not IIndexedCodec || pal.Entries >= (1L << codec.ColorDepth);
+
+    private void ApplyActivePalette(IGraphicsCodec codec)
+    {
+        if (codec is not IIndexedCodec indexedCodec)
+            return;
+
+        if (ActivePalette is not null && CoversColorDepth(ActivePalette, codec))
+            indexedCodec.Palette = ActivePalette;
+        else
+            ActivePalette = indexedCodec.Palette;
     }
 
     /// <summary>
@@ -332,6 +350,7 @@ public sealed class SequentialArranger : Arranger
                 if (ElementGrid[y + elemY, x + elemX] is ArrangerElement el)
                 {
                     var codec = _codecFactory.CloneCodec(el.Codec);
+                    ApplyActivePalette(codec);
 
                     el = el.WithCodec(codec, elX, elY);
                     arranger.SetElement(el, x, y);

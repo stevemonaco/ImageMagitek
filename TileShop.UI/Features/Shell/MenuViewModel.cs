@@ -107,18 +107,6 @@ public partial class MenuViewModel : ObservableRecipient
     public Task SaveAll() => Editors.SaveAllAsync();
 
     [RelayCommand]
-    public void ChangeToLightTheme()
-    {
-        ActiveTheme = ThemeStyle.Light;
-    }
-
-    [RelayCommand]
-    public void ChangeToDarkTheme()
-    {
-        ActiveTheme = ThemeStyle.Dark;
-    }
-
-    [RelayCommand]
     public async Task ExportArrangerToImage(GraphicsEditorViewModel vm) =>
         await ProjectTree.ExportArrangerAs((ScatteredArranger) vm.Resource);
 
@@ -144,7 +132,9 @@ public partial class MenuViewModel : ObservableRecipient
     public async Task OpenPreferences()
     {
         var preferences = _preferencesStore.Preferences;
-        var model = new PreferencesViewModel(preferences, preferences.NesPalette ?? _settings.NesPalette, _paths.PalettesPath);
+        var settingsDefaultPalette = _settings.GlobalPalettes.FirstOrDefault();
+        var model = new PreferencesViewModel(preferences, preferences.NesPalette ?? _settings.NesPalette, _paths.PalettesPath,
+            [.. _settings.GlobalPalettes], preferences.DefaultPalette ?? settingsDefaultPalette ?? "");
 
         if (await _interactions.RequestAsync(model) is not { } result)
             return;
@@ -155,6 +145,7 @@ public partial class MenuViewModel : ObservableRecipient
         preferences.Grid = new(GridSettingsViewModel.ToHex(result.LineColor), GridSettingsViewModel.ToHex(result.PrimaryColor),
             GridSettingsViewModel.ToHex(result.SecondaryColor));
         preferences.NesPalette = result.NesPalette == _settings.NesPalette ? null : result.NesPalette;
+        preferences.DefaultPalette = result.DefaultPalette == settingsDefaultPalette ? null : result.DefaultPalette;
         _preferencesStore.Save();
     }
 

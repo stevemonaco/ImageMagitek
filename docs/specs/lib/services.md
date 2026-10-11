@@ -52,7 +52,7 @@ The startup entry point a host (TileShop.UI, TileShop.CLI) uses to build the lib
   - Tests: untested
 - **LIB-SERVICES-006** — The shipped `appsettings.json` shall equal the built-in defaults.
   - Tests: `SettingsServiceTests.ShippedAppSettings_MatchesCodeDefaults`
-- **LIB-SERVICES-007** (inherited) — The defaults shall be global palettes `["DefaultRgba32"]`, NES palette `DefaultNes`, and extension → codec associations whose `default` entry is `NES 1bpp`, with entries for `.gb`, `.gba`, `.gbc`, `.gen`, `.gg`, `.md`, `.n64`, `.ncgr`, `.ncbr`, `.ngc`, `.nes`, `.sfc`, `.smc`, `.smd`, `.tim` and `.vb`.
+- **LIB-SERVICES-007** — The defaults shall be global palettes `["Vivid", "Synthwave", "Dusk", "Classic"]`, NES palette `DefaultNes`, and extension → codec associations whose `default` entry is `NES 1bpp`, with entries for `.gb`, `.gba`, `.gbc`, `.gen`, `.gg`, `.md`, `.n64`, `.ncgr`, `.ncbr`, `.ngc`, `.nes`, `.sfc`, `.smc`, `.smd`, `.tim` and `.vb`.
   - Tests: `SettingsServiceTests.ReadSettings_MissingFile_ReturnsDefaults`, `SettingsServiceTests.ShippedAppSettings_MatchesCodeDefaults`, `SettingsServiceTests.Defaults_AssociationsNameRegisteredCodecs`
 - **LIB-SERVICES-008** — When a settings file omits a key, or gives an empty global palette list, bootstrap shall use the built-in default for that setting; a key that is present replaces the default as a whole.
   - Tests: `SettingsServiceTests.Deserialize_PartialFile_MissingKeysTakeDefaults`, `SettingsServiceTests.Deserialize_EmptyGlobalPalettes_TakesDefault`, `SettingsServiceTests.Deserialize_ExtensionAssociations_ReplaceDefaults`

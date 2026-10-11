@@ -282,12 +282,12 @@ public sealed class XmlProjectReaderTests : IDisposable
     [Fact]
     public void UnresolvedPaletteKey_FailsNamingKeyArrangerAndPosition()
     {
-        WriteXml("arr.xml", Arranger("", Element(0, 0), Element(0, 1, "palette=\"/Gone/DefaultRgba32\"")));
+        WriteXml("arr.xml", Arranger("", Element(0, 0), Element(0, 1, "palette=\"/Gone/Classic\"")));
 
         var reason = ReadSingleFailure();
 
         Assert.Contains("'/arr'", reason);
-        Assert.Contains("'/Gone/DefaultRgba32'", reason);
+        Assert.Contains("'/Gone/Classic'", reason);
         Assert.Contains("(0, 1)", reason);
     }
 
@@ -308,7 +308,17 @@ public sealed class XmlProjectReaderTests : IDisposable
     [Fact]
     public void PaletteKeyNamingGlobalPalette_ResolvesIgnoringCase()
     {
-        WriteXml("arr.xml", Arranger("defaultpalette=\"defaultrgba32\"", Element(0, 0)));
+        WriteXml("arr.xml", Arranger("defaultpalette=\"classic\"", Element(0, 0)));
+
+        var tree = ReadSuccess();
+
+        Assert.Same(ProjectFixtures.DefaultPalette, ElementPalette(tree, "/arr", 0, 0));
+    }
+
+    [Fact]
+    public void PaletteKeyNamingRenamedGlobalPalette_ResolvesToNewName()
+    {
+        WriteXml("arr.xml", Arranger("defaultpalette=\"DefaultRgba32\"", Element(0, 0)));
 
         var tree = ReadSuccess();
 
