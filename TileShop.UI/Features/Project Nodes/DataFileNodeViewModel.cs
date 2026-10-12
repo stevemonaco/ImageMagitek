@@ -7,8 +7,6 @@ namespace TileShop.UI.ViewModels;
 
 public partial class DataFileNodeViewModel : ResourceNodeViewModel
 {
-    public override int SortPriority => 2;
-
     [ObservableProperty] private bool _isMissing;
 
     [SetsRequiredMembers]

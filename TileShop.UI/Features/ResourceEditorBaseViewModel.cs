@@ -46,7 +46,6 @@ public abstract partial class ResourceEditorBaseViewModel : ToolViewModel
     public abstract void Undo();
     public abstract void Redo();
 
-    public abstract void ApplyHistoryAction(HistoryAction action);
     public virtual void AddHistoryAction(HistoryAction action)
     {
         UndoHistory.Add(action);

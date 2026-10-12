@@ -68,7 +68,7 @@
     </UserControl.Resources>
 
     <TreeView x:Name="_treeView" Padding="0" Background="Transparent" DoubleTapped="ProjectTree_DoubleTapped"
-        ItemsSource="{Binding Projects}" KeyDown="ProjectTree_KeyDown" SelectedItem="{Binding SelectedNode}">
+        ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedNode}">
         <TreeView.Styles>
             <Style x:DataType="vm:ResourceNodeViewModel" Selector="TreeViewItem">
                 <Setter Property="bh:TreeViewItemNodeClassBehavior.IsEnabled" Value="True" />

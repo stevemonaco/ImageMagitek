@@ -141,6 +141,5 @@ The UI around PNG export and import for scattered arrangers: the export file pro
 ## Open items
 
 - `ImageImportOptions` supports both but the dialog exposes neither (both stay at their defaults).
-- `MenuViewModel.ExportArrangerToImage` and `ImportArrangerFromImage` are unreachable: their Arranger menu is commented out.
 - No UI test covers the dialog; `ImportImageViewModel` creates its own `ImageSharpFileAdapter`, which would need injecting to test it without files (its constructor also takes `IInteractionService`, which a fake can supply).
 - A commit that fails mid-way can leave some elements written; the library has no transactional data write.

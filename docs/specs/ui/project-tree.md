@@ -280,6 +280,7 @@ The tree pane shows every open project and standalone data file as a projection 
 - **Standalone roots are a `DataFileNodeViewModel` subclass.** `StandaloneFileNodeViewModel` reuses the data-file template and icon, gets its own `standalone` class and context menu, and is activated like a data file, so no separate codec lookup was extracted. Roots stay in open order.
 - **One `FileDataSource` per file.** Opening, adding or converting a file that is open standalone first closes or selects the existing tree, because its stream would block a second source on the same file. New Project from Existing File... on a file an open project holds selects that node and refuses (the service refuses too), because two sources on one ROM make saves from one invisible to the other's editors.
 - **Dialogs ask the service.** The name dialogs validate through `CanAddResource`/`CanRenameResource`, not lists of sibling names, so the dialog and the operation can never disagree. Rejected: a client-side copy of the rule (the old partial check that let `Data` beside `data` through).
+- **Enter is handled by one tunnel KeyDown handler.** `ProjectTreeView` registers `ProjectTree_KeyDown` as a tunnel handler, so it sees Enter before `TreeView`/`TreeViewItem` key handling. Rejected: a bubbling `KeyDown` in XAML, which the tree items can consume first.
 - **Add New Folder... asks for a name.** Its label has an ellipsis and users rename new folders immediately; the dialog prefills the first free "New Folder (n)" so Enter keeps the one-step flow. Rejected: keeping name augmentation in the service, which silently changed the requested name.
 
 ## Non-goals
@@ -291,8 +292,7 @@ The tree pane shows every open project and standalone data file as a projection 
 ## Open items
 
 - New arranger from selection is always added at the project root, not near the source.
-- Dead code: `ProjectTreeView.ProjectNode_KeyDown` (not wired), `ResourceNodeViewModelExtensions.BottomUpTraversal` (unused), `ResourceNodeViewModel.SortPriority` (no reader; ordering uses `ResourceNodeComparer`), and `IsSelected` on node VMs (not bound).
-- `ProjectTreeView` registers `ProjectTree_KeyDown` both in XAML and as a tunnel handler; the tunnel handler marks Enter handled, so the XAML one never sees it.
+- Dead code: `IsSelected` on node VMs (not bound).
 - Only the VM projection is unit tested; Open File, recent-list, close and convert paths need the file picker or many services and are manual.
 - Manual checks still open: dropping onto a folder and onto an invalid target; rename a ROM, reopen, relink.
 - Manual checks still open: Open File on a ROM shows a root with no expander and a file icon, and double-click/Enter opens a new editor each time; reopening it, or opening a file already in an open project, selects the existing node; two editors on one standalone file refresh each other after a save; Close and Create Project from File... work, with the data file node selected; the recent list is unchanged after Open File; "Add as New Scattered Arranger..." is disabled with its hint in a standalone editor (UI-ARRANGING); "Open File..." sits above "Open Project..."; "Close All Projects" closes a project DataFile's sequential editor tab.

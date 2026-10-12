@@ -69,18 +69,6 @@ public partial class GraphicsEditorViewModel
             SnapMode = SnapMode.Element;
     }
 
-    // [RelayCommand]
-    // public void SwitchToArrangerMode()
-    // {
-    //     EditMode = GraphicsEditMode.Arrange;
-    // }
-    //
-    // [RelayCommand]
-    // public void SwitchToPixelMode()
-    // {
-    //     EditMode = GraphicsEditMode.Draw;
-    // }
-
     private bool _pencilFailureShown;
     private (Point Pixel, Palette Palette, byte Index, bool Succeeded)? _lastPencilCheck;
 
@@ -264,16 +252,4 @@ public partial class GraphicsEditorViewModel
 
         return false;
     }
-
-    [RelayCommand]
-    public void SetPrimaryColorIndex(byte colorIndex) => PrimaryColorIndex = colorIndex;
-
-    [RelayCommand]
-    public void SetSecondaryColorIndex(byte colorIndex) => SecondaryColorIndex = colorIndex;
-
-    [RelayCommand]
-    public void SetPrimaryColor(ColorRgba32 color) => PrimaryColor = color;
-
-    [RelayCommand]
-    public void SetSecondaryColor(ColorRgba32 color) => SecondaryColor = color;
 }

@@ -211,7 +211,6 @@ public sealed class EditorsViewModelTests : IAsyncLifetime
         public override void DiscardChanges() => IsModified = false;
         public override void Undo() { }
         public override void Redo() { }
-        public override void ApplyHistoryAction(HistoryAction action) { }
     }
 
     private sealed class ScriptedInteractionService : IInteractionService

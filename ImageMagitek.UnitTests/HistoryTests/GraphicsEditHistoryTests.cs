@@ -203,7 +203,7 @@ public class GraphicsEditHistoryTests
             Assert.Null(image.Arranger.GetElement(2, 0));
 
             image.Render();
-            return new DeleteElementSelectionHistoryAction(rect);
+            return new DeleteElementSelectionHistoryAction();
         });
     }
 
@@ -307,7 +307,7 @@ public class GraphicsEditHistoryTests
         {
             image.Arranger.Resize(2, 1);
             image.Reinitialize(image.Arranger);
-            return new ResizeArrangerHistoryAction(2, 1);
+            return new ResizeArrangerHistoryAction();
         });
     }
 
@@ -390,14 +390,14 @@ public class GraphicsEditHistoryTests
     {
         Assert.True(image.Arranger.TryMirrorElement(elementX, elementY, MirrorOperation.Horizontal).HasSucceeded);
         image.Render();
-        return new MirrorElementHistoryAction(elementX, elementY, MirrorOperation.Horizontal);
+        return new MirrorElementHistoryAction();
     }
 
     private static RotateElementHistoryAction Rotate(ArrangerImageAdapter image, int elementX, int elementY)
     {
         Assert.True(image.Arranger.TryRotateElement(elementX, elementY, RotationOperation.Left).HasSucceeded);
         image.Render();
-        return new RotateElementHistoryAction(elementX, elementY, RotationOperation.Left);
+        return new RotateElementHistoryAction();
     }
 
     private static void AssertUndoRedo(ArrangerImageAdapter image, Func<ArrangerImageAdapter, HistoryAction> perform)

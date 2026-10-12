@@ -9,8 +9,6 @@ public partial class GraphicsEditorViewModel
 {
     private GraphicsEditHistory _history = null!;
 
-    public override void ApplyHistoryAction(HistoryAction action) => GraphicsEditHistory.Apply(action, _imageAdapter);
-
     public override void AddHistoryAction(HistoryAction action)
     {
         _history.Add(action, WorkingArranger);

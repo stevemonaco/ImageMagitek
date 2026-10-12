@@ -93,13 +93,6 @@ public abstract partial class EditableColorBaseViewModel : ObservableRecipient
     public bool IsEditing(IColor storedColor) =>
         storedColor.GetType() == _foreignColor.GetType() && storedColor.Color == _foreignColor.Color;
 
-    public void SaveColor()
-    {
-        _foreignColor = _colorFactory.CloneColor(WorkingColor);
-        OriginalColor = Color;
-        NotifyWorkingColorChanged();
-    }
-
     /// <summary>
     /// Replaces the working color and refreshes every view of it
     /// </summary>

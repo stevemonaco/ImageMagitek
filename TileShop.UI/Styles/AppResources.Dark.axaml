@@ -1,13 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="using:System">
-    <SolidColorBrush x:Key="pasteSelectionFillBrush" Opacity="0.5" Color="Fuchsia" />
-    <SolidColorBrush x:Key="editSelectionFillBrush" Opacity="0.5" Color="LawnGreen" />
-
-    <SolidColorBrush x:Key="gridLineBrush" Opacity="0.8" Color="White" />
-
-    <SolidColorBrush x:Key="separatorBrush" Opacity="0.8" Color="White" />
-
     <!--  Semi.Avalonia Dark Overrides  -->
     <!--  TextBox: SemiColorFill0, 1, 2  -->
     <!-- <SolidColorBrush x:Key="TextBoxDefaultBackground" Opacity="0.12" Color="Purple" /> -->

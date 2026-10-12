@@ -72,9 +72,6 @@ public partial class GraphicsEditorViewModel
         _preferencesStore.Save();
     }
 
-    public void SetSelectToolMode() => SelectedArrangeTool = ArrangeTool.ElementSelect;
-    public void SetApplyPaletteMode() => SelectedArrangeTool = ArrangeTool.ApplyPalette;
-
     [RelayCommand]
     public void ToggleGridlineVisibility()
     {
@@ -302,7 +299,7 @@ public partial class GraphicsEditorViewModel
             return;
 
         ResetElements(WorkingArranger, Selection.SelectionRect);
-        AddHistoryAction(new DeleteElementSelectionHistoryAction(Selection.SelectionRect));
+        AddHistoryAction(new DeleteElementSelectionHistoryAction());
 
         IsModified = true;
         InvalidateEditor(InvalidationLevel.PixelData);
@@ -341,7 +338,7 @@ public partial class GraphicsEditorViewModel
 
             WorkingArranger.Resize(dialogResult.Width, dialogResult.Height);
             CreateImages();
-            AddHistoryAction(new ResizeArrangerHistoryAction(dialogResult.Width, dialogResult.Height));
+            AddHistoryAction(new ResizeArrangerHistoryAction());
 
             IsModified = true;
         }

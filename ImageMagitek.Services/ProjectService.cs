@@ -1139,15 +1139,6 @@ public class ProjectService : IProjectService
         return new MagitekResult<ResourceDeletionPlan>.Success(new ResourceDeletionPlan(tree, changes));
     }
 
-    /// <summary>
-    /// Finds all resources with stale key references to the provided resources
-    /// </summary>
-    private static IEnumerable<ResourceNode> FindStaleKeyResources(ProjectTree tree, HashSet<IProjectResource> keyChangedResources)
-    {
-        return tree.Root.SelfAndDescendantsBreadthFirst<ResourceNode, IProjectResource>()
-            .Where(x => x.Item.LinkedResources.Any(x => keyChangedResources.Contains(x)));
-    }
-
     private Dictionary<IProjectResource, string> CreateResourceMap(ProjectTree tree)
     {
         var resourceMap = new Dictionary<IProjectResource, string>();

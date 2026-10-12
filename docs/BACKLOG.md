@@ -57,6 +57,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-PROJECT-FORMAT, UI-GRAPHICS-EDITOR] Sequential arrangers as project resources ("save view as arranger"; deferred to 1.1); done when one saves and reloads. Unblocks persisting the element layout (P2, deliberately not done in Milestone 9) and per-file view state for standalone files.
 - [LIB-PALETTES, LIB-PROJECT-FORMAT, UI-PALETTE-EDITOR] Palettes of only project colors, saved in the palette XML with no data file (intended, never built): the writer refuses them (LIB-PROJECT-FORMAT-036), `ProjectTreeBuilder.AddPalette` fails "has no data file", `Palette.LoadForeignPalette` guards on a data source, and the editor cannot change model or apply sources without one; done when such a palette is created, edited, saved and reloaded.
 - [LIB-PALETTES, UI-PALETTE-EDITOR] Remaining palette file formats: RIFF `.pal`, `.act`, `.hex`, and a JSON writer (JASC `.pal` and `.gpl` exist).
+- [UI-SHELL] Global unhandled-exception handling: the WPF app logged an unhandled exception, showed an "Unhandled Exception" dialog and kept running; the Avalonia app has no `Dispatcher.UIThread.UnhandledException` or `TaskScheduler.UnobservedTaskException` handler, so an exception after startup exits the app; done when both are logged and shown through `IInteractionService` and the app keeps running.
 
 ### P2
 
@@ -71,6 +72,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [UI-DRAWING] Line, rectangle, ellipse, eraser, brush size, replace color; single-key tool hotkeys and `[`/`]` to step palette indices.
 - [UI-ARRANGING, LIB-IMAGES] Magic wand, lasso, pixel-level flip and rotate of a selection (element mirror/rotate are display attributes).
 - [UI-ARRANGING] OS clipboard for images (the clipboard is a private static), so pixels can be exchanged with external editors.
+- [LIB-IMAGES, UI-ARRANGING] Nearest-color pixel paste: pasting between arrangers whose palettes differ maps each pixel to the nearest destination palette color (the intent of the deleted `RemapByAnyIndex` stub), reusing `PaletteColorMatcher` with `ColorMatchStrategy.Nearest`; also needed to paste external image content from the OS clipboard; done when a paste that fails exact matching can apply with nearest colors.
 - [UI-GRAPHICS-EDITOR] Bookmarks and back/forward navigation in sequential browsing.
 - [UI-IMAGE-IO, LIB-IMAGE-IO] Export from sequential views and selections (the library exports any subsection); done when a View-mode editor can export a PNG.
 - [LIB-IMAGE-IO] Export formats: BMP, indexed GIF, palette sidecar file.
@@ -84,6 +86,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-CODECS] Public span-based bit reader/writer replacing the internal `PackedBits` (BitStream is now used only by samples and tests); codec authoring UI with live preview; codec auto-detection across codecs at an offset.
 - [LIB-PALETTES] Palette generation (quantize an image, dithering on import); color-cycling preview.
 - [UI-GRAPHICS-EDITOR] Hex view side panel, pattern search from an image or bytes, minimap, zoom percentage display and presets.
+- [UI-GRAPHICS-EDITOR] Marching-ants selection border: an animated dashed outline for selections drawn by `ArrangerRenderer` (the deleted `Rectangle.animatedBorder` style was the only trace).
 - [UI-DRAWING] Undo history panel, layers or reference overlay, text tool using a font arranger.
 - [UI-EDIT-HISTORY] Pixel history actions store the values they replaced, so undo restores them directly instead of re-decoding the arranger from the file and replaying every pixel action since the last arranger action; done when undo cost no longer grows with history length.
 - [LIB-PROJECT-SERVICE, UI-PROJECT-TREE] Project tree search/filter; project metadata (description, ROM checksum, notes); tilemap/nametable resources; IPS/BPS patch output instead of writing in place.
@@ -111,18 +114,9 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ## Dead code and cleanup
 
-- **1.0** Delete `ImageMagitek.Services/Actions` (`MagitekActions`, `IMagitekAction`, `IActionHistory`; no references), `ImageColorAdapter` (every member throws), `PixelRemapOperation.RemapByAnyIndex` with its empty branches and the commented `CanRemapByAnyIndex` (it silently does nothing), and the private, never-called `ProjectService.FindStaleKeyResources`. Needs no proposal; done when they are gone, the solution builds, the tests pass, and the specs drop them: LIB-SERVICES (`sources`, `types`, the Open items line), LIB-IMAGES (`ImageColorAdapter` from `sources`/`types`; LIB-IMAGES-031 becomes "If no requested remap operation succeeds, then the paste shall fail with "no suitable copy method"."; drop the stub parenthesis from the Non-goals line; strike the `ImageColorAdapter`/`RemapByAnyIndex` Open item) and LIB-PROJECT-SERVICE (strike the `FindStaleKeyResources` Open item).
-- [UI-SHELL, UI-ARRANGING] `Styles/Arranger.axaml`: `Rectangle.selection`, `Rectangle.paste`, `Rectangle.animatedBorder` and `.arrangerDrag` have no users (only `.arrangerDrop` is used), which makes `editSelectionFillBrush` and `pasteSelectionFillBrush` dead; `gridLineBrush` and `separatorBrush` are unreferenced.
-- [UI-SHELL, UI-IMAGE-IO] Remove `ShellView.LoadLayout`, `SyncDialogExtensions`, `IStateViewDriver` (no implementer), `MenuViewModel.ExportArrangerToImage`/`ImportArrangerFromImage` (their menu is commented out), the commented-out Arranger and Plugins menus, and the commented-out `OnUnhandledException`.
-- [UI-PROJECT-TREE] Remove `ProjectNode_KeyDown`, `BottomUpTraversal`, `SortPriority`, and the double KeyDown registration (XAML plus tunnel); Enter and double-click must still work.
-- **1.0** [UI-GRAPHICS-EDITOR] Commented-out code in `Drawing.cs`, `View.cs` and `GraphicsEditorViewModel.cs`.
-- [UI-DRAWING] Unused `ActiveColor`, `ActiveColorIndex`, `SetPrimaryColorIndex`/`SetSecondaryColorIndex`, the `SetPrimaryColor`/`SetSecondaryColor` commands, `SetSelectToolMode`, `SetApplyPaletteMode`, `NotifyColorTypeChanged`.
-- [UI-EDIT-HISTORY] Payload fields on the Mirror/Rotate/Delete/Resize history actions are unused since the snapshot model; `ApplyHistoryAction` is never called from outside.
-- [UI-PALETTE-EDITOR] `PaletteEditorViewModel.ApplyHistoryAction` (throws, no callers), `EditableColorBaseViewModel.SaveColor` (no callers); the project rewrite in `DiscardChangesAsync` is probably redundant given `CommittedModel`, and Save rewrites the resource XML when nothing is pending; the status ActivityMessage is never cleared.
-- [LIB-ARRANGERS] The commented `UnlinkPalette` in `Arranger.cs`, the duplicate codec-name check in `SequentialArranger.SetElement`, the dead `TileLayout is null` branch; `ArrangerBuilder`'s sequential path ignores `WithElementLayout` and `WithPixelColorType`.
+- [UI-PALETTE-EDITOR] The project rewrite in `DiscardChangesAsync` is probably redundant given `CommittedModel`, and Save rewrites the resource XML when nothing is pending; the status ActivityMessage is never cleared.
+- [LIB-ARRANGERS] `ArrangerBuilder`'s sequential path ignores `WithElementLayout` and `WithPixelColorType`.
 - [LIB-IMAGES] `CopyPixelsDirect` on an indexed arranger throws `NotImplementedException` where the indexed variant throws `ArgumentException`; `ImageBase.Right`/`Bottom` doc comments say inclusive, the values are exclusive.
-- [LIB-PALETTES] `Palette.HasAlpha` is never set and unused; `Palette.GetColor` is unused and swaps R and B.
-- [LIB-CODECS] `PatternList._encodePattern` is a public mutable field.
 - [LIB-PROJECT-TREE] `ProjectResourceBaseComparer` (internal, unused) and `IProjectResource.ShouldBeSerialized` (never read).
 
 ## Release engineering and documentation

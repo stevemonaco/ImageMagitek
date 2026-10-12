@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace TileShop.UI.ViewModels;
 
@@ -29,19 +28,5 @@ public static class ResourceNodeViewModelExtensions
             yield return nodeVisitor;
             nodeVisitor = nodeVisitor.ParentModel;
         }
-    }
-
-    /// <summary>
-    /// Traverses the tree and sorts the result so that the deepest nodes are at the front of the result and root at the back
-    /// </summary>
-    /// <param name="rootNode"></param>
-    /// <returns></returns>
-    public static IEnumerable<ResourceNodeViewModel> BottomUpTraversal(this ResourceNodeViewModel? rootNode)
-    {
-        if (rootNode is null)
-            return Enumerable.Empty<ResourceNodeViewModel>();
-
-        return rootNode.SelfAndDescendants()
-            .OrderByDescending(x => x.Ancestors().Count());
     }
 }

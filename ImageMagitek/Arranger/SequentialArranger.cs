@@ -214,9 +214,6 @@ public sealed class SequentialArranger : Arranger
             if (!ReferenceEquals(ActiveDataSource, el.Source))
                 throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its DataFile '{el.Source.Name}' does not match the SequentialArranger '{ActiveDataSource.Name}'");
 
-            if (el.Codec.Name != ActiveCodec.Name)
-                throw new ArgumentException($"{nameof(SetElement)} parameter '{nameof(element)}' cannot be assigned because its Codec '{el.Codec.Name}' does not match the SequentialArranger '{ActiveCodec.Name}'");
-
             if (el.Codec is IIndexedCodec codec)
             {
                 if (!ReferenceEquals(ActivePalette, codec.Palette))
@@ -374,15 +371,8 @@ public sealed class SequentialArranger : Arranger
             throw new InvalidOperationException($"{nameof(GetInitialSequentialFileAddress)} property '{nameof(Mode)}' " +
                 $"is in invalid {nameof(ArrangerMode)} ({Mode})");
 
-        if (TileLayout is null)
-        {
-            return ElementGrid[0, 0]?.SourceAddress ?? BitAddress.Zero;
-        }
-        else
-        {
-            var layoutElement = EffectiveTileLayout.Pattern.First();
-            return ElementGrid[layoutElement.Y, layoutElement.X]?.SourceAddress ?? BitAddress.Zero;
-        }
+        var layoutElement = EffectiveTileLayout.Pattern.First();
+        return ElementGrid[layoutElement.Y, layoutElement.X]?.SourceAddress ?? BitAddress.Zero;
     }
 
     /// <inheritdoc/>

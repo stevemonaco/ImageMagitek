@@ -220,7 +220,7 @@ public partial class GraphicsEditorViewModel
         ElementWidthIncrement = codec.WidthResizeIncrement;
         ElementHeightIncrement = codec.HeightResizeIncrement;
         CreateImages();
-        InitializePalettes();
+        NotifyColorTypeChanged();
         GridSettings.ResetSpacing(WorkingArranger);
 
         OnPropertyChanged(nameof(FileOffset));

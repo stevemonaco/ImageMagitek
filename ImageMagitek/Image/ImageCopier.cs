@@ -13,9 +13,7 @@ public enum PixelRemapOperation
     /// <summary>The source index is directly applied to the destination</summary>
     RemapByExactIndex,
     /// <summary>The source index is translated to a palette color and matched exactly against the destination's available palette colors</summary>
-    RemapByExactPaletteColors,
-    /// <summary>Not yet implemented</summary>
-    RemapByAnyIndex
+    RemapByExactPaletteColors
 }
 
 public static class ImageCopier
@@ -119,18 +117,6 @@ public static class ImageCopier
         return MagitekResult.SuccessResult;
     }
 
-    //private static MagitekResult CanRemapByAnyIndex(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
-    //{
-    //    for (int y = 0; y < copyHeight; y++)
-    //    {
-    //        for (int x = 0; x < copyWidth; x++)
-    //        {
-    //        }
-    //    }
-
-    //    return MagitekResult.SuccessResult;
-    //}
-
     private static void ApplyRemapByExactIndex(IndexedImage source, IndexedImage dest, Point sourceStart, Point destStart, int copyWidth, int copyHeight)
     {
         for (int y = 0; y < copyHeight; y++)
@@ -222,14 +208,6 @@ public static class ImageCopier
                     return MagitekResult.SuccessResult;
                 }
             }
-            else if (operation == PixelRemapOperation.RemapByAnyIndex)
-            {
-                //if (CanRemapByAnyIndex(source, dest, sourceStart, destStart, copyWidth, copyHeight).Value is MagitekResult.Success)
-                //{
-                //    ApplyRemapByAnyIndex(source, dest, sourceStart, destStart, copyWidth, copyHeight);
-                //    return MagitekResult.SuccessResult;
-                //}
-            }
         }
 
         return new MagitekResult.Failed($"Image cannot be copied as no suitable copy method was found");
@@ -290,10 +268,6 @@ public static class ImageCopier
                     ApplyRemapByExactPaletteColors(source, dest, sourceStart, destStart, copyWidth, copyHeight);
                     return MagitekResult.SuccessResult;
                 }
-            }
-            else if (operation == PixelRemapOperation.RemapByAnyIndex)
-            {
-
             }
         }
 

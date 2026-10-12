@@ -9,7 +9,6 @@ sources:
   - ImageMagitek.Services/SettingsService.cs
   - ImageMagitek.Services/Stores/AppSettings.cs
   - ImageMagitek.Services/appsettings.json
-  - ImageMagitek.Services/Actions
 types:
   - BootstrapService
   - BootstrapPaths
@@ -17,8 +16,6 @@ types:
   - BootstrapException
   - SettingsService
   - AppSettings
-  - IMagitekAction
-  - IActionHistory
 tests:
   - SettingsServiceTests
   - BootstrapServiceTests
@@ -112,4 +109,4 @@ The startup entry point a host (TileShop.UI, TileShop.CLI) uses to build the lib
 
 ## Open items
 
-- `IMagitekAction`, its action records and `IActionHistory` are unused (backlog: dead code).
+None.

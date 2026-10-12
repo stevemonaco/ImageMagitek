@@ -319,5 +319,4 @@ The document editor for one palette: a swatch grid beside a color editor, a coll
 - `DiscardChangesAsync` rewrites the resource file because "a whole-project save may have written" pending edits, but the committed model (UI-PALETTE-EDITOR-028) already prevents that. The rewrite looks redundant.
 - Save writes the resource file even when nothing is pending (UI-PALETTE-EDITOR-024).
 - Status messages are never cleared by the palette editor.
-- `PaletteEditorViewModel.ApplyHistoryAction` throws `NotImplementedException` and has no callers; `EditableColorBaseViewModel.SaveColor` has no callers.
 - The ViewModel wiring (validation blocking Save, paste parsing, read-only gating, committed model) has no tests; only the session and selection classes do.

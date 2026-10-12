@@ -189,5 +189,4 @@ Every color has a *native* form, RGBA32, used for display and image files, and a
 
 ## Open items
 
-- `Palette.GetColor` builds a `System.Drawing.Color` with `FromArgb` from the RGBA-packed value, which swaps R and B; it has no callers.
 - No tests for Rgb15, Bgr6 and Rgba32 conversion, Nes-to-native conversion, hex formatting, hex parsing outside Rgba32 and Nes, factory errors, or distance ties.

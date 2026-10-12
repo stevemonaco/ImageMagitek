@@ -28,7 +28,7 @@ public class MirrorToolHandler : IToolHandler<GraphicsEditorViewModel>
         var result = state.WorkingArranger.TryMirrorElement(elementX, elementY, _operation);
         if (result.HasSucceeded)
         {
-            state.AddHistoryAction(new MirrorElementHistoryAction(elementX, elementY, _operation));
+            state.AddHistoryAction(new MirrorElementHistoryAction());
             state.IsModified = true;
             return ToolResult.HandledPixelData;
         }

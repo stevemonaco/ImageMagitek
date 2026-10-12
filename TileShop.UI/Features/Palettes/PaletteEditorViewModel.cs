@@ -377,11 +377,6 @@ public partial class PaletteEditorViewModel : ResourceEditorBaseViewModel
     [RelayCommand(CanExecute = nameof(CanRedo))]
     public override void Redo() => _session.Redo();
 
-    public override void ApplyHistoryAction(HistoryAction action)
-    {
-        throw new NotImplementedException();
-    }
-
     private void OnSessionChanged(object? sender, EventArgs e)
     {
         ColorModel = _palette.ColorModel;

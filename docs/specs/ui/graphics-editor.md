@@ -142,7 +142,7 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
   - Tests: untested
 - **UI-GRAPHICS-EDITOR-045** (inherited) — When no base has been saved, Jump to Offset shall open in hexadecimal.
   - Tests: untested
-- **UI-GRAPHICS-EDITOR-023** — While in View mode, the toolbar shall offer a Codec combo listing every supported codec; choosing one shall switch the arranger's codec at the current offset, reset the grid spacing, keep the palette list and the chosen palette, and switch snapping to element (tiled codec) or pixel and hide gridlines (single-image codec).
+- **UI-GRAPHICS-EDITOR-023** — While in View mode, the toolbar shall offer a Codec combo listing every supported codec; choosing one shall switch the arranger's codec at the current offset, reset the grid spacing, keep the palette list and the chosen palette while both codecs are indexed (UI-GRAPHICS-EDITOR-053 covers indexed/direct switches), and switch snapping to element (tiled codec) or pixel and hide gridlines (single-image codec).
   - Tests: untested
 - **UI-GRAPHICS-EDITOR-024** — While in View mode with a tiled codec, the toolbar shall show element pixel width/height boxes, enabled only when the codec can resize, stepping by the codec's resize increments and snapping each value to the codec's preferred size.
   - Tests: untested
@@ -162,6 +162,8 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
   - Tests: `GraphicsEditorPaletteTests.Sequential_ChangeCodec_KeepsPalette`, `GraphicsEditorPaletteTests.Sequential_ChangeCodec_FallsBackWhenPaletteTooSmall`; manual — DevTools: choose a palette, then change the Codec combo; the palette combo and the canvas colors are unchanged.
 - **UI-GRAPHICS-EDITOR-051** — When a sequential editor opens, it shall start on the default palette.
   - Tests: `GraphicsEditorPaletteTests.Sequential_Opens_OnDefaultPalette`
+- **UI-GRAPHICS-EDITOR-053** — When the Codec combo switches between an indexed and a direct codec, the toolbar shall show the palette combo, indexed color swatches, palette swatch grid and Remap Colors only for indexed codecs and the primary/secondary color pickers only for direct codecs; switching back to an indexed codec shall restore the palette list and the chosen palette.
+  - Tests: manual — DevTools: on a sequential editor choose Bmp24 in the Codec combo; `IsIndexedColor` is false, `PaletteSwatchGrid` and the palette combo are hidden, and Draw mode shows the two color pickers with no Remap Colors; choose an indexed codec again and the previously chosen palette returns.
 
 ### Status and inspection
 
@@ -254,4 +256,5 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 ## Open items
 
 - Ctrl+wheel zoom keeps the pan offset rather than zooming around the pointer.
+- Selections have no animated (marching-ants) border (backlog).
 - No UI test covers any requirement here; candidates are mode switching with a fake `IInteractionService` and the gating properties.

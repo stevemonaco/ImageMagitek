@@ -324,35 +324,11 @@ public abstract class Arranger : IProjectResource
     {
         if (resource is Palette)
             return false;
-        //return UnlinkPalette(palette);
         else if (resource is DataSource df)
             return UnlinkDataFile(df);
         else
             return false;
     }
-
-    //private bool UnlinkPalette(Palette palette)
-    //{
-    //    var isModified = false;
-
-    //    for (int y = 0; y < ArrangerElementSize.Height; y++)
-    //    {
-    //        for (int x = 0; x < ArrangerElementSize.Width; x++)
-    //        {
-    //            if (GetElement(x, y) is ArrangerElement { Codec: IIndexedCodec codec } el)
-    //            {
-    //                if (ReferenceEquals(palette, codec.Palette))
-    //                {
-    //                    // TODO: Fix Palette Unlink to null?
-    //                    //SetElement(el.WithPalette(default), x, y);
-    //                    isModified = true;
-    //                }
-    //            }
-    //        }
-    //    }
-
-    //    return isModified;
-    //}
 
     private bool UnlinkDataFile(DataSource dataFile)
     {

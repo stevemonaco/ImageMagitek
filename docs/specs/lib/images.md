@@ -9,7 +9,6 @@ sources:
   - ImageMagitek/Image/Extensions/IndexedImageExtensions.cs
   - ImageMagitek/Image/Extensions/DirectImageExtensions.cs
   - ImageMagitek/Image/ImageCopier.cs
-  - ImageMagitek/Image/ImageColorAdapter.cs
   - ImageMagitek/Arranger/ArrangerCopy.cs
   - ImageMagitek/ExtensionMethods/RectangularArrayExtensions.cs
 types:
@@ -22,7 +21,6 @@ types:
   - PixelRemapOperation
   - IndexedPixelCopy
   - DirectPixelCopy
-  - ImageColorAdapter
   - RectangularArrayExtensions
 tests:
   - IndexedImageTests
@@ -137,7 +135,7 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
   - Tests: untested
 - **LIB-IMAGES-030** — When pasting indexed into direct, the copier shall write each source pixel's palette color; direct into direct copies colors.
   - Tests: untested
-- **LIB-IMAGES-031** — If no requested remap operation succeeds, then the paste shall fail with "no suitable copy method"; `RemapByAnyIndex` never succeeds.
+- **LIB-IMAGES-031** — If no requested remap operation succeeds, then the paste shall fail with "no suitable copy method".
   - Tests: untested
 
 ## Invariants
@@ -170,11 +168,11 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
 
 ## Non-goals
 
-- Converting between indexed and direct images (`ImageColorAdapter` is a stub whose members all throw).
+- Converting between indexed and direct images.
 - Write-ahead-log protection for pixel writes; saves write sources in place.
 - Undo history; see the UI history spec.
 
 ## Open items
 
-- `ImageColorAdapter` (every member throws) and `PixelRemapOperation.RemapByAnyIndex` (branches commented out) are dead code (backlog).
+- No nearest-color remap: a paste whose colors are not in the destination palette fails instead of mapping each pixel to the nearest palette color with `PaletteColorMatcher` (backlog: nearest-color pixel paste).
 - `ImageBase.Right` and `Bottom` are documented as inclusive but are exclusive (`Left + Width`).

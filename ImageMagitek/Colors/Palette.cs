@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.Linq;
 using CommunityToolkit.Diagnostics;
 using ImageMagitek.Colors.Serialization;
@@ -59,11 +58,6 @@ public class Palette : IProjectResource
     /// Number of color entries in the palette
     /// </summary>
     public int Entries => ColorSources?.Length ?? 0;
-
-    /// <summary>
-    /// Specifies if the Palette has an alpha channel
-    /// </summary>
-    public bool HasAlpha { get; }
 
     /// <summary>
     /// Specifies if the palette's 0-index is automatically treated as transparent
@@ -239,19 +233,6 @@ public class Palette : IProjectResource
             throw new ArgumentNullException($"{nameof(GetForeignColor)} property '{nameof(ForeignPalette)}' was null");
 
         return ForeignPalette[index];
-    }
-
-    /// <summary>
-    /// Returns the color at the specified index
-    /// </summary>
-    /// <param name="index">Zero-based palette index</param>
-    /// <returns>Color</returns>
-    public Color GetColor(int index)
-    {
-        if (NativePalette is null)
-            throw new ArgumentNullException($"{nameof(GetColor)} property '{nameof(NativePalette)}' was null");
-
-        return Color.FromArgb((int)NativePalette[index].Color);
     }
 
     public bool ContainsNativeColor(ColorRgba32 color) =>

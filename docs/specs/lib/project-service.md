@@ -266,5 +266,4 @@ Owns the set of open trees (projects and standalone data files) and every operat
 
 - Saving a single resource on a standalone root would write XML over the data file; no guard exists (unreachable from today's UI).
 - Save-as into a subdirectory of the old project's base directory leaves files the old project will load on reopen; foreign XML under a project directory is LIB-PROJECT-FORMAT's.
-- `FindStaleKeyResources` is private and never called.
 - Manual: rename, move and delete in the project tree with editors open; relink after renaming a ROM and reopening; Save Project As... to a new folder, then close and reopen from there.

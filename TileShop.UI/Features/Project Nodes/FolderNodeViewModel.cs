@@ -5,8 +5,6 @@ namespace TileShop.UI.ViewModels;
 
 public class FolderNodeViewModel : ResourceNodeViewModel
 {
-    public override int SortPriority => 1;
-
     [SetsRequiredMembers]
     public FolderNodeViewModel(ResourceNode node, ResourceNodeViewModel parent)
     {

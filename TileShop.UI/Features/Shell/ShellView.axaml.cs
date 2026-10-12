@@ -3,7 +3,6 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CommunityToolkit.Mvvm.DependencyInjection;
@@ -59,11 +58,6 @@ public partial class ShellView : Window
                 focusTarget?.Focus();
             }, DispatcherPriority.Loaded);
         }
-    }
-
-    public void LoadLayout(object sender, RoutedEventArgs e)
-    {
-        CreateDockingLayout();
     }
 
     public void OnOpened(object sender, EventArgs e)

@@ -255,5 +255,4 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 
 ## Open items
 
-- `Palette.HasAlpha` is never set and has no callers; `Palette.GetColor` swaps R and B and has no callers.
 - No tests for 3-byte and big-endian file colors, `ZeroIndexTransparent` events, global `SavePalette`, JSON defaults and errors.

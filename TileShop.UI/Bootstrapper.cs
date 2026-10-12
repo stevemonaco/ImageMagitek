@@ -205,17 +205,4 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
     }
 
     public bool LoadConfigurations() => true;
-
-    //protected override void OnUnhandledException(DispatcherUnhandledExceptionEventArgs e)
-    //{
-    //    base.OnUnhandledException(e);
-
-    //    Log.Error(e.Exception, "Unhandled exception");
-
-    //    if (!_isStarting)
-    //    {
-    //        _container?.Resolve<IWindowManager>()?.ShowMessageBox($"{e.Exception.Message}", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
-    //        e.Handled = true;
-    //    }
-    //}
 }

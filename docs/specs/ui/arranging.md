@@ -230,4 +230,5 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
 - Selection handles are hit-tested in View mode although they are not drawn there.
 - Hiding the symmetry tools leaves a selected symmetry tool active.
 - "Add as New Scattered Arranger..." always adds at the project root, not beside the source resource.
+- Pixel paste between arrangers with different palettes succeeds only by exact index or exact palette color; there is no nearest-color mapping (backlog: nearest-color pixel paste).
 - `ElementCopierTests` is entirely commented out; no test covers element paste cropping or the cross-project refusal.

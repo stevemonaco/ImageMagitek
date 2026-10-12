@@ -182,5 +182,4 @@ Pixel editing in the graphics editor's Draw mode (UI-GRAPHICS-EDITOR): pencil, f
 
 - Direct-color Pencil writes without checking that the pixel lies in an element with color data; only the hover outline checks it.
 - `RemapColors` has no mode guard of its own; only the button's visibility keeps it to Draw mode.
-- `ActiveColor`, `ActiveColorIndex`, `SetPrimaryColorIndex`/`SetSecondaryColorIndex` and `SetPrimaryColor`/`SetSecondaryColor` are unused duplicates of the swatch commands.
 - No test covers the Draw-mode wiring (clip enforcement in Pencil, Color Picker palette switching, Remap enablement); `CanRemapColors` is a good first unit test.

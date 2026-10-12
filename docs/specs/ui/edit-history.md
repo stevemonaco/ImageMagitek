@@ -132,6 +132,5 @@ Undo and redo for the graphics editor (UI-GRAPHICS-EDITOR). Arranger-level actio
 ## Open items
 
 - Pixel undo re-decodes from the data source: if the source changes while the editor is modified (the reload skips modified editors), replay lands on the new data.
-- The fields kept by `MirrorElementHistoryAction`, `RotateElementHistoryAction`, `DeleteElementSelectionHistoryAction` and `ResizeArrangerHistoryAction` (positions, rect, size) are unused since the snapshot model; `ApplyHistoryAction` is never called from outside.
 - Each arranger action clones the whole arranger with no bound on list length.
 - No test covers the ViewModel wiring: modified state after undo/redo, command notification, and the clear on save/discard/reload.

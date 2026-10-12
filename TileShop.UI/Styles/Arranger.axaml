@@ -1,57 +1,7 @@
 ﻿<Styles xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:dd="using:TileShop.UI.DragDrop"
-    xmlns:idd="using:Avalonia.Xaml.Interactions.DragAndDrop"
     xmlns:vm="using:TileShop.UI.ViewModels">
-    <Design.PreviewWith>
-        <Border Padding="20">
-            <Rectangle Width="400" Height="200" Classes="animatedBorder" />
-        </Border>
-    </Design.PreviewWith>
-
-    <Style Selector="Rectangle.animatedBorder[IsVisible=True]">
-        <Style.Animations>
-            <Animation IterationCount="INFINITE" Duration="0:0:0.5">
-                <KeyFrame Cue="0%">
-                    <Setter Property="StrokeDashOffset" Value="5" />
-                </KeyFrame>
-                <KeyFrame Cue="100%">
-                    <Setter Property="StrokeDashOffset" Value="0" />
-                </KeyFrame>
-            </Animation>
-        </Style.Animations>
-    </Style>
-
-    <Style Selector="Rectangle.selection">
-        <Setter Property="Stroke" Value="Black" />
-        <Setter Property="StrokeDashArray" Value="3,2" />
-        <Setter Property="StrokeThickness" Value="0.3" />
-        <Setter Property="Fill" Value="{DynamicResource editSelectionFillBrush}" />
-        <Setter Property="Cursor" Value="Hand" />
-    </Style>
-
-    <Style Selector="Rectangle.paste">
-        <Setter Property="Stroke" Value="Black" />
-        <Setter Property="StrokeDashArray" Value="3,2" />
-        <Setter Property="StrokeThickness" Value="0.3" />
-        <Setter Property="Fill" Value="{DynamicResource pasteSelectionFillBrush}" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="IsHitTestVisible" Value="False" />
-    </Style>
-
-    <Style Selector=":is(Control).arrangerDrag">
-        <Style.Resources>
-            <dd:ArrangerDragHandler x:Key="ArrangerDragHandler" />
-        </Style.Resources>
-        <Setter Property="(Interaction.Behaviors)">
-            <BehaviorCollectionTemplate>
-                <BehaviorCollection>
-                    <dd:PayloadDragBehavior x:DataType="vm:GraphicsEditorViewModel" Context="{Binding}" Handler="{StaticResource ArrangerDragHandler}" />
-                </BehaviorCollection>
-            </BehaviorCollectionTemplate>
-        </Setter>
-    </Style>
-
     <Style Selector=":is(Control).arrangerDrop">
         <Style.Resources>
             <dd:ArrangerDropHandler x:Key="ArrangerDropHandler" />

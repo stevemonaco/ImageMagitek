@@ -28,7 +28,7 @@ public class RotateToolHandler : IToolHandler<GraphicsEditorViewModel>
         var result = state.WorkingArranger.TryRotateElement(elementX, elementY, _operation);
         if (result.HasSucceeded)
         {
-            state.AddHistoryAction(new RotateElementHistoryAction(elementX, elementY, _operation));
+            state.AddHistoryAction(new RotateElementHistoryAction());
             state.IsModified = true;
             return ToolResult.HandledPixelData;
         }

@@ -27,7 +27,7 @@ public sealed class PatternList
     public int Planes { get; }
 
     private readonly PlaneCoordinate[] _decodePattern;
-    public Dictionary<PlaneCoordinate, int> _encodePattern;
+    private readonly Dictionary<PlaneCoordinate, int> _encodePattern;
 
     private PatternList(PlaneCoordinate[] decodePattern, Dictionary<PlaneCoordinate, int> encodePattern, int width, int height, int planes)
     {

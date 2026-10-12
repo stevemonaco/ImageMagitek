@@ -1,6 +1,5 @@
 using System.IO;
 using System.Linq;
-using ImageMagitek;
 using ImageMagitek.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Collections.ObjectModel;
@@ -10,7 +9,6 @@ using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 using System;
 using System.Reflection;
-using TileShop.UI.Features.Graphics;
 using TileShop.UI.Models;
 
 namespace TileShop.UI.ViewModels;
@@ -105,14 +103,6 @@ public partial class MenuViewModel : ObservableRecipient
 
     [RelayCommand]
     public Task SaveAll() => Editors.SaveAllAsync();
-
-    [RelayCommand]
-    public async Task ExportArrangerToImage(GraphicsEditorViewModel vm) =>
-        await ProjectTree.ExportArrangerAs((ScatteredArranger) vm.Resource);
-
-    [RelayCommand]
-    public async Task ImportArrangerFromImage(GraphicsEditorViewModel vm) =>
-        await ProjectTree.ImportArrangerFrom((ScatteredArranger) vm.Resource);
 
     /// <summary>
     /// The app's informational version, shown by About and the welcome screen.

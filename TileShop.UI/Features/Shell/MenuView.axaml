@@ -66,22 +66,6 @@
                     IsEnabled="{Binding Editors.ActiveGraphicsEditor, Converter={x:Static ObjectConverters.IsNotNull}}" />
             </MenuItem>
 
-            <!--<MenuItem Header="_Arranger" Visibility="{Binding Editors.ActiveEditor, Converter={StaticResource TypeToVisibilityConverter}, ConverterParameter={x:Type vm:ScatteredArrangerEditorViewModel}}">
-				<MenuItem
-                    Command="{Binding ExportArrangerToImage}"
-                    CommandParameter="{Binding Editors.ActiveEditor}"
-                    Header="Export..." />
-				<MenuItem
-                    Command="{Binding ImportArrangerFromImage}"
-                    CommandParameter="{Binding Editors.ActiveEditor}"
-                    Header="Import From Image..." />
-				<MenuItem Header="Grid Settings..." />
-			</MenuItem>-->
-
-            <!--
-        <MenuItem Header="_Plugins" />
-            -->
-
             <MenuItem Header="_Help">
                 <MenuItem Command="{Binding OpenWikiCommand}" Header="Wiki" />
                 <MenuItem Command="{Binding OpenAboutCommand}" Header="About TileShop" />

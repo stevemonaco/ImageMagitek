@@ -11,8 +11,6 @@ public class ProjectNodeViewModel : ResourceNodeViewModel
 {
     private readonly Dictionary<ResourceNode, ResourceNodeViewModel> _viewModels = new();
 
-    public override int SortPriority => 0;
-
     [SetsRequiredMembers]
     public ProjectNodeViewModel(ProjectTree tree)
     {

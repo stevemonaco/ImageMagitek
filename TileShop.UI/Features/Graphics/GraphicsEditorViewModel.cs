@@ -47,9 +47,6 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     private Arranger _projectArranger;
     private ArrangerImageAdapter _imageAdapter = null!;
 
-    // public IProjectResource Resource { get; private set; }
-    // public IProjectResource? OriginatingProjectResource { get; private set; }
-
     public ArrangerSkiaBitmap EditorBitmap { get; private set; } = null!;
     [ObservableProperty] private ISolidColorBrush? _activityBrush;
 
@@ -256,11 +253,9 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         OnPropertyChanged(nameof(CanEditSelectedColor));
     }
 
-    [ObservableProperty] private ColorRgba32 _activeColor = new(255, 255, 255, 255);
     [ObservableProperty] private ColorRgba32 _primaryColor = new(255, 255, 255, 255);
     [ObservableProperty] private ColorRgba32 _secondaryColor = new(0, 0, 0, 255);
 
-    [ObservableProperty] private byte _activeColorIndex;
     [ObservableProperty] private byte _primaryColorIndex;
     [ObservableProperty] private byte _secondaryColorIndex = 1;
 
@@ -639,10 +634,11 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         EditMode = newMode;
     }
 
-    public void NotifyColorTypeChanged()
+    private void NotifyColorTypeChanged()
     {
         OnPropertyChanged(nameof(IsIndexedColor));
         OnPropertyChanged(nameof(IsDirectColor));
+        OnPropertyChanged(nameof(CanEditSelectedColor));
         InitializePalettes();
     }
 }
