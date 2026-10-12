@@ -42,6 +42,7 @@ public partial class InfiniteCanvas : Control
     
     protected Stopwatch _renderStopwatch = new();
     protected SKPaint? _frameTextFill;
+    protected SKPaint? _frameTextBackground;
     protected SKFont? _frameTextFont;
     protected TopLevel? _topLevel;
 
@@ -102,10 +103,12 @@ public partial class InfiniteCanvas : Control
 
         _renderStopwatch.Stop();
         _frameTextFill?.Dispose();
+        _frameTextBackground?.Dispose();
         _frameTextFont?.Dispose();
         _bitmap?.Dispose();
 
         _frameTextFill = null;
+        _frameTextBackground = null;
         _frameTextFont = null;
         _bitmap = null;
     }
@@ -198,8 +201,13 @@ public partial class InfiniteCanvas : Control
     {
         _frameTextFill ??= new SKPaint()
         {
-            Color = SKColors.Green,
+            Color = SKColors.Lime,
             IsAntialias = true,
+        };
+
+        _frameTextBackground ??= new SKPaint()
+        {
+            Color = new SKColor(0, 0, 0, 200),
         };
 
         _frameTextFont ??= new SKFont()
@@ -207,8 +215,15 @@ public partial class InfiniteCanvas : Control
             Size = 14
         };
 
+        var text = $"Setup: {setupTime.TotalMilliseconds:F2}ms Render: {renderTime.TotalMilliseconds:F2}ms Total: {totalTime.TotalMilliseconds:F2}ms";
+        var textWidth = _frameTextFont.MeasureText(text);
+
         var canvas = surface.Canvas;
-        canvas.DrawText($"Setup: {setupTime.TotalMilliseconds}ms Render: {renderTime.TotalMilliseconds}ms Total: {totalTime.TotalMilliseconds}ms", 0, 0, _frameTextFont, _frameTextFill);
+        canvas.Save();
+        canvas.ResetMatrix();
+        canvas.DrawRect(0, 0, textWidth + 8, 22, _frameTextBackground);
+        canvas.DrawText(text, 4, 16, _frameTextFont, _frameTextFill);
+        canvas.Restore();
     }
 
     /// <inheritdoc/>

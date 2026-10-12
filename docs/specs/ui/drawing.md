@@ -11,6 +11,7 @@ sources:
   - TileShop.UI/Features/Graphics/GraphicsEditorToolbarView.axaml.cs
   - TileShop.UI/Features/Graphics/ColorEditorFlyoutViewModel.cs
   - TileShop.UI/Features/Graphics/Tools/PencilToolHandler.cs
+  - TileShop.Shared/Tools/PixelLine.cs
   - TileShop.UI/Features/Graphics/Tools/FloodFillToolHandler.cs
   - TileShop.UI/Features/Graphics/Tools/ColorPickerToolHandler.cs
   - TileShop.UI/Features/Graphics/GraphicsEditHistory.cs
@@ -26,6 +27,7 @@ types:
   - ColorPriority
   - DrawClipEffect
   - PencilToolHandler
+  - PixelLine
   - FloodFillToolHandler
   - ColorPickerToolHandler
   - ColorEditorFlyoutViewModel
@@ -37,6 +39,7 @@ types:
 tests:
   - GraphicsEditHistoryTests
   - IndexedImageTests
+  - PixelLineTests
   - ToolInputRouterTests
 depends:
   - LIB-IMAGES
@@ -61,8 +64,8 @@ Pixel editing in the graphics editor's Draw mode (UI-GRAPHICS-EDITOR): pencil, f
 
 - **UI-DRAWING-001** — While in Draw mode, the toolbar shall offer Pixel Select, Pencil, Color Picker and Flood Fill, with Pencil selected in a new editor; switching tools shall finish the outgoing tool first.
   - Tests: manual — switch tools mid-session in Draw mode.
-- **UI-DRAWING-002** — When the user presses the left or right button with Pencil, the editor shall start a stroke in the primary or secondary color and paint every pixel the pointer crosses while the button is held; releasing all buttons ends the stroke.
-  - Tests: manual — draw with both buttons.
+- **UI-DRAWING-002** — When the user presses the left or right button with Pencil, the editor shall start a stroke in the primary or secondary color and, while the button is held, paint every pixel on the 8-connected line between consecutive pointer positions, including positions the platform merged, so a stroke has no gaps at any pointer speed; releasing all buttons ends the stroke.
+  - Tests: `PixelLineTests.Points_SamePoint_YieldsOnePoint`, `PixelLineTests.Points_Horizontal_YieldsEveryColumn`, `PixelLineTests.Points_Vertical_YieldsEveryRow`, `PixelLineTests.Points_AnyOctant_IsContinuousInclusiveAndMinimal`, `GraphicsEditHistoryTests.Pencil_Segment_UndoRedo`; manual — draw with both buttons; a fast stroke on the CT BOSSX TIM arranger has no gaps, with and without a draw clip; a stroke that leaves and re-enters the image.
 - **UI-DRAWING-003** — While the arranger is indexed, Pencil shall write the chosen index of the active palette (LIB-IMAGES-032): the index itself into elements on the active palette, otherwise the first index of the element's palette with the same color; if the target element's palette lacks the color or maps it past the codec's range, then the pixel shall be left unchanged and the status bar shall show the reason.
   - Tests: `IndexedImageTests.PaintIndex_DuplicateColor_WritesChosenIndex`, `IndexedImageTests.PaintIndex_OtherPalette_WritesExactColorIndex`; manual — on an arranger whose palette repeats a color, pick the higher duplicate index, draw, save, reopen and check the stored index with Color Picker.
 - **UI-DRAWING-004** — While the arranger is direct-color, Pencil shall paint the primary or secondary RGBA color.
@@ -83,6 +86,8 @@ Pixel editing in the graphics editor's Draw mode (UI-GRAPHICS-EDITOR): pencil, f
   - Tests: manual — hover past the end of a file and over empty cells.
 - **UI-DRAWING-033** — While a pointer button is held, the editor shall send every pointer move and the release to the tool that received the press.
   - Tests: `ToolInputRouterTests.ModifierDuringPress_ReleaseGoesToPressTool`, `ToolInputRouterTests.ModifierHeldAtRelease_EngagesTemporaryToolAfter`, `ToolInputRouterTests.AltOnMoveDuringPress_StaysWithPressTool`, `ToolInputRouterTests.ModifierWithoutPress_EngagesImmediately`; manual — draw a Pencil stroke, press and release Ctrl mid-stroke, release, draw a second stroke, undo twice and check both strokes are undone; repeat with Shift.
+- **UI-DRAWING-034** — While Pencil paints, the status bar shall not change for pixels it paints; a pixel it cannot paint shall show the reason once per stroke.
+  - Tests: manual — draw over an element whose palette lacks the primary color and check the reason appears once and pixels painted elsewhere leave the status bar alone.
 
 ### Draw clip
 
@@ -146,6 +151,7 @@ Pixel editing in the graphics editor's Draw mode (UI-GRAPHICS-EDITOR): pencil, f
 ## Edge cases
 
 - Painting over the same pixel twice in one stroke counts it once.
+- A Pencil stroke that leaves and re-enters the image paints only the in-image pixels on the pointer's path; it does not join the exit and re-entry points.
 - A pixel paste whose overlap with the clip is empty succeeds and changes nothing, but is still recorded.
 
 ## Threading and lifetime
@@ -156,6 +162,8 @@ Pixel editing in the graphics editor's Draw mode (UI-GRAPHICS-EDITOR): pencil, f
 ## Decisions
 
 - **Read-only arrangers cannot enter Draw mode.** The read-only check (no codec that can encode) drives `CanDraw`, pixel paste, Color Remap and Import, instead of failing only on save. Reason: a control must never appear to work and then fail.
+- **Interpolate in the tool, not the view.** The view passes every pointer sample (the positions the platform merged plus the current one) to the view model, and `PencilToolHandler` keeps the last painted pixel and rasterizes each segment with a pure line function in `TileShop.Shared/Tools`, so the line is unit tested without the view model (ARCHITECTURE §5). A segment is painted with one bitmap invalidate of its bounding rectangle and one canvas repaint request. Moves outside the image keep feeding an active stroke. Rejected: synthesizing extra move events in the view, which would run hover, cursor and router work for every pixel.
+- **8-connected lines.** Bresenham produces one pixel per major-axis step, the standard pixel-art pencil, and avoids the L-shaped corners of 4-connected lines. Rejected: 4-connected lines (thicker diagonals), and anti-aliased lines (meaningless for indexed pixels).
 - **Pencil ends its stroke on release whatever it changed.** The stroke state is cleared on button release even when no pixel changed; it once stayed in its drawing state.
 - **Color Remap needs a single palette.** A remap table maps one palette's indices, so a region spanning several palettes disables the button instead of guessing. Rejected: one table per palette.
 - **The color flyout edits through the palette editor.** Flyout edits are routed to the palette's editor as a pending edit rather than written to the ROM, so a palette has one modified state wherever it is edited (decision in UI-PALETTE-EDITOR).
@@ -172,7 +180,6 @@ Pixel editing in the graphics editor's Draw mode (UI-GRAPHICS-EDITOR): pencil, f
 
 ## Open items
 
-- Each painted indexed pixel sends an empty status message, clearing any status text.
 - Direct-color Pencil writes without checking that the pixel lies in an element with color data; only the hover outline checks it.
 - `RemapColors` has no mode guard of its own; only the button's visibility keeps it to Draw mode.
 - `ActiveColor`, `ActiveColorIndex`, `SetPrimaryColorIndex`/`SetSecondaryColorIndex` and `SetPrimaryColor`/`SetSecondaryColor` are unused duplicates of the swatch commands.

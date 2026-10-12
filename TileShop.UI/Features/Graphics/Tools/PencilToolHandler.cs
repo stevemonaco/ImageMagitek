@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
 using TileShop.UI.ViewModels;
@@ -7,23 +10,17 @@ namespace TileShop.UI.Features.Graphics.Tools;
 
 public class PencilToolHandler : IToolHandler<GraphicsEditorViewModel>
 {
+    private Point _lastSample;
+
     public ToolCursor Cursor => ToolCursor.Crosshair;
 
     public ToolResult OnMouseDown(ToolContext ctx, GraphicsEditorViewModel state)
     {
         if (ctx.MouseState.LeftButtonPressed)
-        {
-            state.StartPencilDraw();
-            state.SetPixelAtPosition(ctx.PixelX, ctx.PixelY, ColorPriority.Primary);
-            return ToolResult.HandledNoInvalidation;
-        }
+            return StartStroke(ctx, state, ColorPriority.Primary);
 
         if (ctx.MouseState.RightButtonPressed)
-        {
-            state.StartPencilDraw();
-            state.SetPixelAtPosition(ctx.PixelX, ctx.PixelY, ColorPriority.Secondary);
-            return ToolResult.HandledNoInvalidation;
-        }
+            return StartStroke(ctx, state, ColorPriority.Secondary);
 
         return ToolResult.Unhandled;
     }
@@ -31,16 +28,10 @@ public class PencilToolHandler : IToolHandler<GraphicsEditorViewModel>
     public ToolResult OnMouseMove(ToolContext ctx, GraphicsEditorViewModel state)
     {
         if (state.IsPencilDrawing && ctx.MouseState.LeftButtonPressed)
-        {
-            state.SetPixelAtPosition(ctx.PixelX, ctx.PixelY, ColorPriority.Primary);
-            return ToolResult.HandledNoInvalidation;
-        }
+            return ContinueStroke(ctx, state, ColorPriority.Primary);
 
         if (state.IsPencilDrawing && ctx.MouseState.RightButtonPressed)
-        {
-            state.SetPixelAtPosition(ctx.PixelX, ctx.PixelY, ColorPriority.Secondary);
-            return ToolResult.HandledNoInvalidation;
-        }
+            return ContinueStroke(ctx, state, ColorPriority.Secondary);
 
         state.UpdateActivityMessage(ctx.PixelX, ctx.PixelY);
         return ToolResult.Unhandled;
@@ -69,5 +60,29 @@ public class PencilToolHandler : IToolHandler<GraphicsEditorViewModel>
             state.StopPencilDraw();
 
         return null;
+    }
+
+    private ToolResult StartStroke(ToolContext ctx, GraphicsEditorViewModel state, ColorPriority priority)
+    {
+        state.StartPencilDraw();
+        var pixel = new Point((int)Math.Floor(ctx.X), (int)Math.Floor(ctx.Y));
+        _lastSample = pixel;
+        state.PaintPencilPixels([pixel], priority);
+        return ToolResult.HandledNoInvalidation;
+    }
+
+    private ToolResult ContinueStroke(ToolContext ctx, GraphicsEditorViewModel state, ColorPriority priority)
+    {
+        var segment = new List<Point>();
+        var last = _lastSample;
+        foreach (var sample in ctx.Samples)
+        {
+            segment.AddRange(PixelLine.Points(last, sample).Skip(1));
+            last = sample;
+        }
+
+        _lastSample = last;
+        state.PaintPencilPixels(segment, priority);
+        return ToolResult.HandledNoInvalidation;
     }
 }

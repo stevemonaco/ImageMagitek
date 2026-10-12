@@ -7,6 +7,7 @@ using ImageMagitek.Colors;
 using ImageMagitek.PluginSamples;
 using ImageMagitek.UnitTests.TestFactories;
 using TileShop.Shared.Models;
+using TileShop.Shared.Tools;
 using TileShop.UI.Features.Graphics;
 using TileShop.UI.Models;
 using TileShop.UI.ViewModels;
@@ -75,6 +76,27 @@ public class GraphicsEditHistoryTests
             {
                 image.SetIndexedPixel(x, y, 5);
                 action.Add(x, y, 5);
+            }
+            return action;
+        });
+    }
+
+    [Fact]
+    public void Pencil_Segment_UndoRedo()
+    {
+        var segments = new[]
+        {
+            PixelLine.Points(new Point(1, 1), new Point(40, 13)),
+            PixelLine.Points(new Point(40, 1), new Point(1, 13)),
+        };
+
+        AssertUndoRedo(CreateIndexed(data: _ => 0x22), image =>
+        {
+            var action = new PencilHistoryAction<byte>();
+            foreach (var point in segments.SelectMany(segment => segment))
+            {
+                var result = image.TryPaintIndex(point.X, point.Y, _palette, 5);
+                action.Add(point.X, point.Y, result.AsSuccess.Result);
             }
             return action;
         });

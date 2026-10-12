@@ -19,7 +19,6 @@ using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
 using Avalonia.Media;
 using TileShop.UI.Features.Graphics;
-using TileShop.UI.Imaging;
 using TileShop.UI.Models;
 using TileShop.Shared.Services;
 
@@ -51,7 +50,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     // public IProjectResource Resource { get; private set; }
     // public IProjectResource? OriginatingProjectResource { get; private set; }
 
-    [ObservableProperty] private BitmapAdapter _bitmapAdapter = null!;
+    public ArrangerSkiaBitmap EditorBitmap { get; private set; } = null!;
     [ObservableProperty] private ISolidColorBrush? _activityBrush;
 
     public bool IsSingleLayout => WorkingArranger.Layout == ElementLayout.Single;
@@ -391,7 +390,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
             CancelOverlay();
 
             _imageAdapter = new ArrangerImageAdapter(WorkingArranger);
-            BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
+            ReplaceEditorBitmap();
             GridSettings.AdjustGridlines(WorkingArranger);
             UpdateReadOnlyState();
         }
@@ -452,7 +451,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         }
 
         if (level >= InvalidationLevel.Display)
-            BitmapAdapter.Invalidate();
+            EditorBitmap.Invalidate();
 
         OnImageModified?.Invoke();
     }
@@ -566,10 +565,17 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     private void OnWorkingArrangerReplaced()
     {
         WorkingArranger = _imageAdapter.Arranger;
-        BitmapAdapter = _imageAdapter.CreateBitmapAdapter();
+        ReplaceEditorBitmap();
         GridSettings.AdjustGridlines(WorkingArranger);
         CancelOverlay();
         UpdateReadOnlyState();
+    }
+
+    private void ReplaceEditorBitmap()
+    {
+        var previous = EditorBitmap;
+        EditorBitmap = _imageAdapter.CreateSkiaBitmap();
+        previous?.Dispose();
     }
     
     public bool IsStandaloneFile => _projectService.FindContainingProject(OriginatingProjectResource)?.IsStandaloneFile == true;

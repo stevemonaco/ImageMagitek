@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -62,7 +63,7 @@ public partial class GraphicsEditorView : UserControl
         if (DataContext is GraphicsEditorViewModel vm)
         {
             ViewModel = vm;
-            _renderer = new ArrangerRenderer(vm.WorkingArranger);
+            _renderer = new ArrangerRenderer();
             vm.OnImageModified = () => EditorCanvas.Invalidate();
             vm.OnCenterContent = () => EditorCanvas.CenterContent(vm.WorkingArranger.ArrangerPixelSize.Width, vm.WorkingArranger.ArrangerPixelSize.Height);
             vm.OnFitToViewport = () => EditorCanvas.FitToViewport(vm.WorkingArranger.ArrangerPixelSize.Width, vm.WorkingArranger.ArrangerPixelSize.Height);
@@ -228,9 +229,13 @@ public partial class GraphicsEditorView : UserControl
         var point = e.GetCurrentPoint(EditorCanvas);
         var localPoint = EditorCanvas.ScreenToLocalPoint(point.Position);
         var state = InputAdapter.CreateMouseState(point, e.KeyModifiers);
+        var samples = e.GetIntermediatePoints(EditorCanvas)
+            .Select(p => EditorCanvas.ScreenToLocalPoint(p.Position))
+            .Select(p => (p.X, p.Y))
+            .ToList();
 
         // The view model clears its hover state when the point falls outside the image
-        e.Handled = ViewModel.MouseMove(localPoint.X, localPoint.Y, state);
+        e.Handled = ViewModel.MouseMove(localPoint.X, localPoint.Y, state, samples);
         UpdateCursor(localPoint, e.KeyModifiers);
     }
 

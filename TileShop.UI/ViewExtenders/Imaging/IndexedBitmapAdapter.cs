@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -11,71 +10,19 @@ using ImageMagitek.Codec;
 
 namespace TileShop.UI.Imaging;
 
-public class IndexedBitmapAdapter : BitmapAdapter
+public class IndexedBitmapAdapter
 {
     public IndexedImage Image { get; }
+    public WriteableBitmap Bitmap { get; }
 
     public IndexedBitmapAdapter(IndexedImage image)
     {
         Image = image;
-        Width = Image.Width;
-        Height = Image.Height;
-
-        Bitmap = new WriteableBitmap(new PixelSize(Width, Height), new Avalonia.Vector(DpiX, DpiY), PixelFormat, AlphaFormat.Unpremul);
-        Invalidate();
+        Bitmap = new WriteableBitmap(new PixelSize(Image.Width, Image.Height), new Avalonia.Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Unpremul);
+        Render();
     }
 
-    /// <summary>
-    /// Invalidates and redraws the entirety of the Bitmap
-    /// </summary>
-    public override void Invalidate()
-    {
-        Render(0, 0, Width, Height);
-    }
-
-    /// <summary>
-    /// Invalidates and redraws a subregion of the Bitmap
-    /// </summary>
-    /// <param name="redrawRect"></param>
-    public override void Invalidate(Rectangle redrawRect)
-    {
-        var imageRect = new Rectangle(0, 0, Image.Width, Image.Height);
-        var bitmapRect = new Rectangle(0, 0, Bitmap.PixelSize.Width, Bitmap.PixelSize.Height);
-
-        if (imageRect.Contains(redrawRect) && bitmapRect.Contains(redrawRect))
-        {
-            Render(redrawRect.X, redrawRect.Y, redrawRect.Width, redrawRect.Height);
-        }
-        else
-        {
-            throw new ArgumentOutOfRangeException($"{nameof(Invalidate)}: Parameter '{nameof(redrawRect)}' {redrawRect} was not contained within '{nameof(Image)}' (0, 0, {Image.Width}, {Image.Height}) and '{nameof(Bitmap)}' (0, 0, {Bitmap.PixelSize.Width}, {Bitmap.PixelSize.Height})");
-        }
-    }
-
-    /// <summary>
-    /// Invalidates and redraws a region of the Bitmap
-    /// </summary>
-    /// <param name="x">Left coordinate in pixel coordinates</param>
-    /// <param name="y">Top coordinate in pixel coordinates</param>
-    /// <param name="width">Width of region</param>
-    /// <param name="height">Height of region</param>
-    public override void Invalidate(int x, int y, int width, int height)
-    {
-        var imageRect = new Rectangle(0, 0, Image.Width, Image.Height);
-        var bitmapRect = new Rectangle(0, 0, Bitmap.PixelSize.Width, Bitmap.PixelSize.Height);
-        var redrawRect = new Rectangle(x, y, width, height);
-
-        if (imageRect.Contains(redrawRect) && bitmapRect.Contains(redrawRect))
-        {
-            Render(x, y, width, height);
-        }
-        else
-        {
-            throw new ArgumentOutOfRangeException($"{nameof(Invalidate)}: Parameter '{nameof(redrawRect)}' {redrawRect} was not contained within '{nameof(Image)}' (0, 0, {Image.Width}, {Image.Height}) and '{nameof(Bitmap)}' (0, 0, {Bitmap.PixelSize.Width}, {Bitmap.PixelSize.Height})");
-        }
-    }
-
-    protected override void Render(int xStart, int yStart, int width, int height)
+    private void Render()
     {
         using var frameBuffer = Bitmap.Lock();
 
@@ -84,43 +31,18 @@ public class IndexedBitmapAdapter : BitmapAdapter
             var backBuffer = (uint*)frameBuffer.Address.ToPointer();
             var stride = frameBuffer.RowBytes / 4;
 
-            Parallel.For(yStart, yStart + height, (scanline) =>
+            Parallel.For(0, Image.Height, (scanline) =>
             {
-                var dest = backBuffer + scanline * stride + xStart;
+                var dest = backBuffer + scanline * stride;
                 var src = Image.GetPixelRowSpan(scanline);
 
-                for (int x = 0; x < width; x++)
+                for (int x = 0; x < Image.Width; x++)
                 {
-                    dest[x] = TranslateColor(x + xStart, scanline, src);
+                    dest[x] = TranslateColor(x, scanline, src);
                 }
             });
         }
     }
-
-    //protected void RenderSync(int xStart, int yStart, int width, int height)
-    //{
-    //    using var frameBuffer = Bitmap.Lock();
-
-    //    unsafe
-    //    {
-    //        var backBuffer = (uint*)frameBuffer.Address.ToPointer();
-    //        var stride = frameBuffer.RowBytes / 4;
-
-    //        var dest = backBuffer + yStart * stride + xStart;
-
-    //        for (int y = yStart; y < yStart + height; y++)
-    //        {
-    //            var rowSource = Image.GetPixelRowSpan(y);
-    //            for (int x = 0; x < width; x++)
-    //            {
-    //                var color = rowSource[x + xStart];
-    //                dest[x] = TranslateColor(x + xStart, y, rowSource);
-    //            }
-
-    //            dest += stride;
-    //        }
-    //    }
-    //}
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private uint TranslateColor(int x, int y, Span<byte> sourceRow)

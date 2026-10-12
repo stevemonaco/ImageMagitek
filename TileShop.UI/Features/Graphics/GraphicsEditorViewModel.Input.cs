@@ -170,19 +170,24 @@ public partial class GraphicsEditorViewModel
             AddHistoryAction(historyAction);
     }
 
-    public bool MouseMove(double x, double y, MouseState mouseState)
+    /// <param name="samples">Positions the platform merged into this move, ending at the current one, in image coordinates</param>
+    public bool MouseMove(double x, double y, MouseState mouseState, IReadOnlyList<(double X, double Y)> samples)
     {
         var arranger = WorkingArranger;
+        int xc = Math.Clamp((int)x, 0, arranger.ArrangerPixelSize.Width - 1);
+        int yc = Math.Clamp((int)y, 0, arranger.ArrangerPixelSize.Height - 1);
+        var pixelSamples = samples.Select(s => new Point((int)Math.Floor(s.X), (int)Math.Floor(s.Y))).ToList();
 
         if (x < 0 || y < 0 || x >= arranger.ArrangerPixelSize.Width || y >= arranger.ArrangerPixelSize.Height)
         {
+            // An active stroke keeps following the pointer so re-entering the image does not draw a chord across it
+            if (IsPencilDrawing)
+                _toolRouter.Move(new ToolContext(x, y, xc, yc, mouseState, pixelSamples), this);
+
             LastMousePosition = null;
             SetHoverTarget(null);
             return false;
         }
-
-        int xc = Math.Clamp((int)x, 0, arranger.ArrangerPixelSize.Width - 1);
-        int yc = Math.Clamp((int)y, 0, arranger.ArrangerPixelSize.Height - 1);
 
         LastMousePosition = new Point(xc, yc);
 
@@ -198,7 +203,7 @@ public partial class GraphicsEditorViewModel
             }
         }
 
-        var ctx = new ToolContext(x, y, xc, yc, mouseState);
+        var ctx = new ToolContext(x, y, xc, yc, mouseState, pixelSamples);
         bool wasOverrideEngaged = _toolRouter.IsOverrideEngaged;
         var result = _toolRouter.Move(ctx, this);
 

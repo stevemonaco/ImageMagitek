@@ -59,6 +59,7 @@ tests:
   - SaveConflictTests
   - ToolInputRouterTests
   - GraphicsEditorPaletteTests
+  - ArrangerSkiaBitmapTests
 depends:
   - LIB-ARRANGERS
   - LIB-IMAGES
@@ -122,6 +123,8 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
   - Tests: manual — hover tools over empty and filled elements.
 - **UI-GRAPHICS-EDITOR-016** — While the pointer is over the image, the editor shall outline the region the active tool would act on.
   - Tests: manual — hover Pencil, Apply Palette and Mirror over the canvas.
+- **UI-GRAPHICS-EDITOR-052** — The canvas shall repaint at most once per frame, and a Pencil stroke on a 768x512 indexed arranger at fit zoom shall repaint within 16 ms in a Release build.
+  - Tests: manual — with `ShowFrameTimings` on, draw on the CT BOSSX TIM arranger at fit zoom in a Release build and read the frame time.
 
 ### Sequential browsing
 
@@ -236,6 +239,10 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 - **Global palettes in settings order.** In a sequential editor the globals follow `appsettings.json`, which is curated: the default first, then the alternates. Alphabetical sorting would put `Classic` first, and the default should be first in the list. The list and selection logic lives in `EditorPaletteList`, a plain class, because the ViewModel cannot be built in tests (ARCHITECTURE §5). Scattered editors keep their list (UI-ARRANGING). Rejected: alphabetical (the previous behavior).
 - **No Associate Palette in sequential editors.** A sequential arranger uses one palette for every element, chosen from the combo, so associating a project palette per element has no meaning there. Rejected: listing associated project palettes before the globals (a sequential editor is all or nothing, and the button was only reachable from Arrange mode anyway).
 - **A sequential palette switch gives the arranger a new codec instead of mutating the shared one.** Reason: elements copied out of a sequential editor (Add as New Scattered Arranger, Copy/Paste) keep the editor's codec instance, so changing its palette in place would recolor those arrangers. Rejected: cloning codecs in `ElementCopier`, which touches every copy path for a problem only this switch creates.
+- **A measured target, checked by hand.** On the TIM test arranger at fit zoom in a Release build, a Pencil stroke repaints at display rate: frame time at most 16 ms with `ShowFrameTimings`, which draws in screen space at the canvas's top-left. Rejected: a BenchmarkDotNet gate on the render path (it needs a UI thread and compositor to be meaningful).
+- **The editor image is an `SKBitmap` drawn directly.** The editor keeps its image as an `ArrangerSkiaBitmap`, which the renderer wraps once per frame with `SKImage.FromPixels` over `PeekPixels`, with no lock and no pixel copy. Rejected: `DrawBitmap`, which copies a mutable bitmap's pixels into a new `SKImage` on every call. A Greyscale draw clip or selection draws the image once in greyscale outside the clip (or the selection when there is no clip) and once in color inside it. Partial updates translate only the changed rows, serially below 32 rows. Rejected: a `WriteableBitmap` locked and wrapped with `FromPixels` every frame, drawn up to three times in Greyscale mode. The paste overlay is an `ArrangerSkiaBitmap` too, drawn by the same lock-free wrap. Indexed pixels are translated in runs that end at the next element boundary (measured from the image's `Left`, since pixel copies start mid-element), with one element lookup, `IsWithinSource` check and palette fetch per run instead of per pixel.
+- **The canvas stays a software surface.** `InfiniteCanvas` still renders into a viewport-sized `WriteableBitmap` through a CPU `SKSurface`. Once Pencil interpolated its strokes, per-pixel overhead was gone and full redraws were cheap, and Pencil, flood fill and undo met the frame target on the 768x512 TIM. Rejected for now: a custom draw operation leasing Avalonia's Skia canvas through `ISkiaSharpApiLeaseFeature` (it changes the canvas shared with the import preview for no measured gain); rendering only dirty rectangles (zoom, pan and overlays invalidate almost everything). Revisit if a larger arranger or a higher-DPI viewport misses the target.
+- **Keep `IndexedBitmapAdapter` for the welcome banner.** An Avalonia `<Image>` needs an Avalonia bitmap, and the banner renders once, so converting it buys nothing. Rejected: an `SKBitmap`-to-Avalonia-bitmap converter for one caller.
 - **Sequential paths do not assume a project.** Save and palette association use the non-throwing `FindContainingProject` and skip the project save when it returns null. Reason: a sequential arranger is never in a tree.
 
 ## Non-goals
@@ -250,5 +257,4 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 - Ctrl+wheel zoom keeps the pan offset rather than zooming around the pointer.
 - The Inspect Element status text prints a trailing "." after the hex byte offset when the bit offset is 0 ("FileOffset 0x1A.").
 - The `OnImageModified` callback is never cleared when a view releases the VM; only the null-VM guard in `OnPaintSurface` prevents the crash.
-- `ArrangerRenderer`'s constructor takes an arranger it never uses.
 - No UI test covers any requirement here; candidates are mode switching with a fake `IInteractionService` and the gating properties.

@@ -78,5 +78,46 @@ public sealed class FileDataSourceTests : IDisposable
         Assert.Equal(0xAB, source.Read(BitAddress.Zero, 8)[0]);
     }
 
+    [Fact]
+    public async Task Length_AfterWritePastEnd_Grows()
+    {
+        var path = _files.Create(_sentinel, isReadOnly: false);
+        var source = _files.Open("test", path);
+        Assert.Equal(_sentinel.Length, source.Length);
+
+        source.Write(new BitAddress(_sentinel.Length - 2, 0), new byte[] { 1, 2, 3, 4 });
+        Assert.Equal(_sentinel.Length + 2, source.Length);
+
+        await source.WriteAsync(new BitAddress(_sentinel.Length + 4, 0), new byte[] { 5, 6 });
+        Assert.Equal(_sentinel.Length + 6, source.Length);
+
+        source.Flush();
+        Assert.Equal(new FileInfo(path).Length, source.Length);
+    }
+
+    [Fact]
+    public void Length_AfterReopen_FollowsReplacedFile()
+    {
+        var path = _files.Create(_sentinel, isReadOnly: false);
+        var source = _files.Open("test", path);
+        Assert.Equal(_sentinel.Length, source.Length);
+
+        source.Reopen();
+        File.WriteAllBytes(path, new byte[_sentinel.Length * 3]);
+
+        Assert.Equal(_sentinel.Length * 3, source.Length);
+    }
+
+    [Fact]
+    public void Length_AfterDispose_Throws()
+    {
+        var source = _files.Open("test", _files.Create(_sentinel, isReadOnly: false));
+        Assert.Equal(_sentinel.Length, source.Length);
+
+        source.Dispose();
+
+        Assert.Throws<ObjectDisposedException>(() => source.Length);
+    }
+
     public void Dispose() => _files.Dispose();
 }

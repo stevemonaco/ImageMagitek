@@ -14,7 +14,28 @@ public abstract class DataSource : IProjectResource, IDisposable
     public string Name { get; set; }
     public bool CanContainChildResources => false;
     public bool ShouldBeSerialized { get; set; } = true;
-    public virtual long Length => Stream.Value.Length;
+
+    public virtual long Length
+    {
+        get
+        {
+            if (_length >= 0)
+                return _length;
+
+            // Taken under the semaphore so a concurrent write cannot leave a stale length cached
+            _streamSemaphore.Wait();
+            try
+            {
+                if (_length < 0)
+                    _length = Stream.Value.Length;
+                return _length;
+            }
+            finally
+            {
+                _streamSemaphore.Release();
+            }
+        }
+    }
 
     /// <summary>
     /// True when the source cannot be written; every write overload then throws and <see cref="Flush"/> does nothing
@@ -24,6 +45,7 @@ public abstract class DataSource : IProjectResource, IDisposable
     protected abstract Lazy<Stream> Stream { get; }
     private readonly SemaphoreSlim _streamSemaphore = new(1, 1);
     private bool _disposedValue;
+    private long _length = -1;
 
     /// <summary>
     /// Raised after an image save writes graphics data to this source
@@ -99,6 +121,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         try
         {
             Stream.Value.Write(buffer);
+            _length = Stream.Value.Length;
         }
         finally
         {
@@ -113,6 +136,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         try
         {
             Stream.Value.WriteShifted(address, buffer.Length * 8, buffer);
+            _length = Stream.Value.Length;
         }
         finally
         {
@@ -127,6 +151,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         try
         {
             Stream.Value.WriteShifted(address, writeBits, buffer);
+            _length = Stream.Value.Length;
         }
         finally
         {
@@ -141,6 +166,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         try
         {
             await Stream.Value.WriteAsync(buffer);
+            _length = Stream.Value.Length;
         }
         finally
         {
@@ -155,6 +181,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         try
         {
             await Stream.Value.WriteShiftedAsync(address, buffer.Length * 8, buffer);
+            _length = Stream.Value.Length;
         }
         finally
         {
@@ -169,6 +196,7 @@ public abstract class DataSource : IProjectResource, IDisposable
         try
         {
             await Stream.Value.WriteShiftedAsync(address, writeBits, buffer);
+            _length = Stream.Value.Length;
         }
         finally
         {
@@ -221,6 +249,11 @@ public abstract class DataSource : IProjectResource, IDisposable
         }
     }
 
+    /// <summary>
+    /// Discards the cached length so the next <see cref="Length"/> reads it from the stream
+    /// </summary>
+    protected void ResetCachedLength() => _length = -1;
+
     private void ThrowIfReadOnly()
     {
         if (IsReadOnly)
@@ -244,6 +277,7 @@ public abstract class DataSource : IProjectResource, IDisposable
                 _streamSemaphore.Dispose();
             }
 
+            _length = -1;
             _disposedValue = true;
         }
     }

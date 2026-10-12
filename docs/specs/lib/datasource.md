@@ -61,7 +61,7 @@ A data source is the byte store that graphics and palette colors are read from a
 - **LIB-DATASOURCE-010** — The asynchronous read and write overloads shall produce the same bytes as their synchronous counterparts.
   - Tests: `DataSourceBitAddressTests.WriteAsync_ThenReadAsync_AtBitOffset_RoundTripsAndPreservesNeighbors`
 - **LIB-DATASOURCE-011** — `Length` shall report the current length of the source in bytes.
-  - Tests: `IndexedImageTests.ArrangerPastEndOfSource_RendersEmptyAndSavesWithoutGrowing`
+  - Tests: `IndexedImageTests.ArrangerPastEndOfSource_RendersEmptyAndSavesWithoutGrowing`, `FileDataSourceTests.Length_AfterWritePastEnd_Grows`
 
 ### Writing
 
@@ -107,6 +107,8 @@ A data source is the byte store that graphics and palette colors are read from a
   - Tests: `FileDataSourceTests.ReadOnly_EveryWriteOverload_ThrowsAndLeavesBytes`
 - **LIB-DATASOURCE-034** — When `Reopen` is called, the file source shall decide its access again on the next open.
   - Tests: `FileDataSourceTests.Reopen_AfterClearingAttribute_IsWritable`
+- **LIB-DATASOURCE-035** — A data source shall report its length without querying the stream after its first read of it, and the reported length shall follow its own writes (including writes that grow it) and a `Reopen`.
+  - Tests: `FileDataSourceTests.Length_AfterWritePastEnd_Grows`, `FileDataSourceTests.Length_AfterReopen_FollowsReplacedFile`
 
 ### Memory sources
 
@@ -142,6 +144,7 @@ A data source is the byte store that graphics and palette colors are read from a
 ## Threading and lifetime
 
 - Each source serializes its own operations with a semaphore: one read, write, seek or flush at a time, sync or async. A `Seek` followed by an address-less `Write` is two operations and can interleave with another caller.
+- The first `Length` read takes the semaphore, so a concurrent write cannot leave a stale length cached; each write refreshes the cached length inside its semaphore block. Later `Length` reads take no lock, so a reader racing a write sees the length before or after it.
 - `DataWritten` is raised on the calling thread. `ProjectTree` subscribes while the source is in its index and unsubscribes when it leaves (LIB-PROJECT-TREE).
 - The owner disposes the source (`ProjectService` on project close). Using a source after `Dispose` throws `ObjectDisposedException`.
 
@@ -153,6 +156,7 @@ A data source is the byte store that graphics and palette colors are read from a
 - **Memory sources are never serialized.** They hold scratch data only.
 - **Read-only files open read-only.** A file that cannot be opened for writing opens for reading, `IsReadOnly` becomes true, and every arranger with an element on it is read-only through the one gate (LIB-ARRANGERS, ARCHITECTURE §6). The state is decided at open and kept until `Reopen`. Reason: ROMs extracted from archives or kept read-only on purpose must be viewable, and the read-only attribute is often the user's own protection against writing them; the gate tells the user up front instead of on Save. Rejected: opening read-write lazily on first save and failing then (the user loses the edits just made), failing the open (the old behavior), and re-checking access on every query (a file-system call per element per gate check).
 - **Fall back on access denial only.** The read-only fallback runs on `UnauthorizedAccessException` (read-only attribute, ACL) or a write-protect `IOException` (`ERROR_WRITE_PROTECT`). A sharing violation still fails the open. Reason: a sharing violation is transient (an emulator holding the file), and falling back would leave the file read-only for the session without the user knowing why. Rejected: checking `File.GetAttributes` up front (misses ACLs and media, and races with the open).
+- **Cache the length in the data source, not at the call sites.** `ArrangerElement.IsWithinSource` reads `Length` per pixel, and a 768x512 frame measured 393,216 `FileStream.Length` calls costing 291 ms in Release. The file is opened with `FileShare.Read` and there is no resize API, so only this source's writes and a `Reopen` can change its length, and every `IsWithinSource` caller (render, flood fill, hover, Pencil) benefits at once. The cache lives in the `DataSource` base, not `FileDataSource`, because every write overload is in the base and runs under its semaphore, so memory sources are covered too. Rejected: hoisting `IsWithinSource` out of each loop (it misses callers and leaves the trap for new code), and caching `IsWithinSource` on `ArrangerElement` (elements are copied freely, and a length change would leave stale values).
 - **Writes to a read-only source throw `InvalidOperationException`; `Flush` does nothing.** A backstop for callers that bypass the arranger gate, with one exception type for every source type. Rejected: letting `FileStream` throw `NotSupportedException`.
 
 ## Non-goals

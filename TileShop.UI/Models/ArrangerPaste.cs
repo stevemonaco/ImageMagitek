@@ -3,7 +3,7 @@ using System.Drawing;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
 using TileShop.UI.DragDrop;
-using TileShop.UI.Imaging;
+using TileShop.UI.Features.Graphics;
 using TileShop.Shared.Models;
 
 namespace TileShop.UI.Models;
@@ -26,7 +26,7 @@ public partial class ArrangerPaste : ObservableObject, IDraggable
         }
     }
 
-    [ObservableProperty] private BitmapAdapter _overlayImage;
+    [ObservableProperty] private ArrangerSkiaBitmap _overlayImage;
     [ObservableProperty] private SnappedRectangle _rect;
     [ObservableProperty] private bool _isDragging;
 
@@ -35,31 +35,13 @@ public partial class ArrangerPaste : ObservableObject, IDraggable
         Copy = copy;
         SnapMode = snapMode;
 
-        if (copy is ElementCopy elementCopy)
+        var pixelCopy = copy is ElementCopy elementCopy ? elementCopy.ToPixelCopy() : copy;
+        _overlayImage = pixelCopy switch
         {
-            var pixelCopy = elementCopy.ToPixelCopy();
-
-            if (pixelCopy is IndexedPixelCopy ipc)
-            {
-                _overlayImage = new IndexedBitmapAdapter(ipc.Image);
-            }
-            else if (pixelCopy is DirectPixelCopy dpc)
-            {
-                _overlayImage = new DirectBitmapAdapter(dpc.Image);
-            }
-            else
-                throw new NotSupportedException($"{nameof(ArrangerPaste)}: Copy of type '{copy.GetType()}' is not supported");
-        }
-        else if (copy is IndexedPixelCopy ipc)
-        {
-            _overlayImage = new IndexedBitmapAdapter(ipc.Image);
-        }
-        else if (copy is DirectPixelCopy dpc)
-        {
-            _overlayImage = new DirectBitmapAdapter(dpc.Image);
-        }
-        else
-            throw new NotSupportedException($"{nameof(ArrangerPaste)}: Copy of type '{copy.GetType()}' is not supported");
+            IndexedPixelCopy ipc => new ArrangerSkiaBitmap(ipc.Image),
+            DirectPixelCopy dpc => new ArrangerSkiaBitmap(dpc.Image),
+            _ => throw new NotSupportedException($"{nameof(ArrangerPaste)}: Copy of type '{copy.GetType()}' is not supported")
+        };
 
         _rect = new SnappedRectangle(new Size(OverlayImage.Width, OverlayImage.Height), copy.ElementPixelSize, SnapMode, ElementSnapRounding.Floor);
         _rect.SetBounds(0, OverlayImage.Width, 0, OverlayImage.Height);

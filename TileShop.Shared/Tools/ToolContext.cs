@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Drawing;
 using TileShop.Shared.Input;
 
 namespace TileShop.Shared.Tools;
@@ -19,7 +21,12 @@ public readonly struct ToolContext
     public MouseState MouseState { get; }
     public KeyState KeyState { get; }
 
-    public ToolContext(double x, double y, int pixelX, int pixelY, MouseState mouseState)
+    private readonly IReadOnlyList<Point>? _samples;
+
+    /// <summary>Pixel positions the pointer passed through since the previous move, ending at the current one; floored, not clamped.</summary>
+    public IReadOnlyList<Point> Samples => _samples ?? [];
+
+    public ToolContext(double x, double y, int pixelX, int pixelY, MouseState mouseState, IReadOnlyList<Point>? samples = null)
     {
         X = x;
         Y = y;
@@ -27,6 +34,7 @@ public readonly struct ToolContext
         PixelY = pixelY;
         MouseState = mouseState;
         KeyState = default;
+        _samples = samples;
     }
 
     public ToolContext(double x, double y, int pixelX, int pixelY, KeyState keyState)

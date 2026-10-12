@@ -56,6 +56,7 @@ public sealed class FileDataSource : DataSource
             _stream.Value.Dispose();
 
         _stream = CreateStream();
+        ResetCachedLength();
     }
 
     private Lazy<Stream> CreateStream() => new(() =>

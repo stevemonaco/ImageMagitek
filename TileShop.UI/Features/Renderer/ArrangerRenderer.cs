@@ -1,5 +1,4 @@
 using System;
-using ImageMagitek;
 using SkiaSharp;
 using TileShop.UI.Models;
 using TileShop.UI.ViewModels;
@@ -103,88 +102,51 @@ public class ArrangerRenderer
         IsAntialias = false,
     };
 
-    public ArrangerRenderer(Arranger arranger)
-    {
-    }
-
     public void Render(GraphicsEditorViewModel state, SKCanvas canvas)
     {
         canvas.Save();
 
-        var bitmap = state.BitmapAdapter.Bitmap;
-        var rect = new SKRect(0, 0, bitmap.PixelSize.Width, bitmap.PixelSize.Height);
+        var bitmap = state.EditorBitmap.Bitmap;
+        var rect = new SKRect(0, 0, bitmap.Width, bitmap.Height);
+        // DrawBitmap copies a mutable bitmap's pixels into a new SKImage on every call; FromPixels wraps without copying
+        using var pixmap = bitmap.PeekPixels();
+        using var image = SKImage.FromPixels(pixmap);
 
-        bool hasClip = state.IsDrawClipActive && state.DrawClipRect is not null;
-        bool hasSel = state.Selection.HasSelection;
-        bool isHiddenClip = hasClip && state.DrawClipEffect == DrawClipEffect.Hidden;
+        SKRect? clipRect = state.IsDrawClipActive && state.DrawClipRect is { } clip
+            ? new SKRect(clip.SnappedLeft, clip.SnappedTop, clip.SnappedRight, clip.SnappedBottom)
+            : null;
+        SKRect? selectionRect = state.Selection.HasSelection && state.Selection.SelectionRect is { } sel
+            ? new SKRect(sel.SnappedLeft, sel.SnappedTop, sel.SnappedRight, sel.SnappedBottom)
+            : null;
         var checkerboardPaint = _checkerboard.Get(state.GridSettings);
 
-        // Clip the checkerboard backdrop when using Hidden draw clip effect
-        if (isHiddenClip)
+        if (clipRect is { } hiddenRect && state.DrawClipEffect == DrawClipEffect.Hidden)
         {
-            var clip = state.DrawClipRect!;
-            var clipRect = new SKRect(clip.SnappedLeft, clip.SnappedTop, clip.SnappedRight, clip.SnappedBottom);
             canvas.Save();
-            canvas.ClipRect(clipRect);
+            canvas.ClipRect(hiddenRect);
             canvas.DrawRect(rect, checkerboardPaint);
+            canvas.DrawImage(image, rect);
+            canvas.Restore();
+        }
+        else if ((clipRect ?? selectionRect) is { } colorRect)
+        {
+            // A selection inside a clip is already within the clip's color region, so one color pass covers both
+            canvas.DrawRect(rect, checkerboardPaint);
+
+            canvas.Save();
+            canvas.ClipRect(colorRect, SKClipOperation.Difference);
+            canvas.DrawImage(image, rect, _greyscalePaint);
+            canvas.Restore();
+
+            canvas.Save();
+            canvas.ClipRect(colorRect);
+            canvas.DrawImage(image, rect);
             canvas.Restore();
         }
         else
         {
             canvas.DrawRect(rect, checkerboardPaint);
-        }
-
-        using (var pixels = bitmap.Lock())
-        {
-            var imageInfo = new SKImageInfo(bitmap.PixelSize.Width, bitmap.PixelSize.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
-            using var image = SKImage.FromPixels(imageInfo, pixels.Address, pixels.RowBytes);
-
-            if (hasClip || hasSel)
-            {
-                if (isHiddenClip)
-                {
-                    // Draw only the clipped region, nothing outside
-                    var clip = state.DrawClipRect!;
-                    var clipRect = new SKRect(clip.SnappedLeft, clip.SnappedTop, clip.SnappedRight, clip.SnappedBottom);
-                    canvas.Save();
-                    canvas.ClipRect(clipRect);
-                    canvas.DrawImage(image, rect);
-                    canvas.Restore();
-                }
-                else
-                {
-                    canvas.DrawImage(image, rect, _greyscalePaint);
-
-                    if (hasClip)
-                    {
-                        var clip = state.DrawClipRect!;
-                        var clipRect = new SKRect(clip.SnappedLeft, clip.SnappedTop, clip.SnappedRight, clip.SnappedBottom);
-                        canvas.Save();
-                        canvas.ClipRect(clipRect);
-                        canvas.DrawImage(image, rect);
-                        canvas.Restore();
-                    }
-                }
-
-                if (hasSel)
-                {
-                    var sel = state.Selection.SelectionRect;
-                    var selectionClip = new SKRect(sel.SnappedLeft, sel.SnappedTop, sel.SnappedRight, sel.SnappedBottom);
-                    canvas.Save();
-                    if (hasClip)
-                    {
-                        var clip = state.DrawClipRect!;
-                        canvas.ClipRect(new SKRect(clip.SnappedLeft, clip.SnappedTop, clip.SnappedRight, clip.SnappedBottom));
-                    }
-                    canvas.ClipRect(selectionClip);
-                    canvas.DrawImage(image, rect);
-                    canvas.Restore();
-                }
-            }
-            else
-            {
-                canvas.DrawImage(image, rect);
-            }
+            canvas.DrawImage(image, rect);
         }
 
         RenderGridlines(state, canvas);
@@ -255,14 +217,13 @@ public class ArrangerRenderer
 
         if (paste.OverlayImage is { } overlayImage)
         {
-            var pasteBitmap = overlayImage.Bitmap;
-            using var pixels = pasteBitmap.Lock();
-            var imageInfo = new SKImageInfo(pasteBitmap.PixelSize.Width, pasteBitmap.PixelSize.Height, SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
-            using var image = SKImage.FromPixels(imageInfo, pixels.Address, pixels.RowBytes);
+            var bitmap = overlayImage.Bitmap;
+            using var pixmap = bitmap.PeekPixels();
+            using var image = SKImage.FromPixels(pixmap);
 
             var destRect = new SKRect(paste.Rect.SnappedLeft, paste.Rect.SnappedTop,
-                paste.Rect.SnappedLeft + pasteBitmap.PixelSize.Width,
-                paste.Rect.SnappedTop + pasteBitmap.PixelSize.Height);
+                paste.Rect.SnappedLeft + bitmap.Width,
+                paste.Rect.SnappedTop + bitmap.Height);
             canvas.DrawImage(image, destRect);
         }
 

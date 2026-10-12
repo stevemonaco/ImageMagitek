@@ -7,7 +7,6 @@ using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.ExtensionMethods;
 using TileShop.Shared.Tools;
-using TileShop.UI.Imaging;
 
 namespace TileShop.UI.Features.Graphics;
 
@@ -69,14 +68,6 @@ public sealed class ArrangerImageAdapter
     {
         Arranger = arranger;
         CreateImage(x, y, width, height);
-    }
-
-    public BitmapAdapter CreateBitmapAdapter()
-    {
-        if (IsIndexed)
-            return new IndexedBitmapAdapter(_indexedImage!);
-        else
-            return new DirectBitmapAdapter(_directImage!);
     }
 
     public ArrangerSkiaBitmap CreateSkiaBitmap()

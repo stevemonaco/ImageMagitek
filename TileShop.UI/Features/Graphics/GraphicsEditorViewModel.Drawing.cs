@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -80,9 +81,14 @@ public partial class GraphicsEditorViewModel
     //     EditMode = GraphicsEditMode.Draw;
     // }
 
+    private bool _pencilFailureShown;
+    private (Point Pixel, Palette Palette, byte Index, bool Succeeded)? _lastPencilCheck;
+
     public void StartPencilDraw()
     {
         _activePencilHistory = IsIndexedColor ? new PencilHistoryAction<byte>() : new PencilHistoryAction<ColorRgba32>();
+        _pencilFailureShown = false;
+        _lastPencilCheck = null;
         IsPencilDrawing = true;
     }
 
@@ -120,8 +126,15 @@ public partial class GraphicsEditorViewModel
         if (IsDirectColor)
             return HasColorDataAtPosition(x, y);
 
-        return HasColorDataAtPosition(x, y) && HasActivePaletteColor(PrimaryColorIndex)
-            && _imageAdapter.CanPaintIndex(x, y, ActivePalette!.Palette, PrimaryColorIndex).HasSucceeded;
+        if (!HasColorDataAtPosition(x, y) || !HasActivePaletteColor(PrimaryColorIndex))
+            return false;
+
+        var palette = ActivePalette!.Palette;
+        if (IsPencilDrawing && _lastPencilCheck is { } check && check.Pixel == new Point(x, y)
+            && ReferenceEquals(check.Palette, palette) && check.Index == PrimaryColorIndex)
+            return check.Succeeded;
+
+        return _imageAdapter.CanPaintIndex(x, y, palette, PrimaryColorIndex).HasSucceeded;
     }
 
     internal bool CanFloodFillAtPosition(int x, int y) => IsPointInDrawClip(x, y) && HasColorDataAtPosition(x, y);
@@ -133,56 +146,62 @@ public partial class GraphicsEditorViewModel
 
     private bool HasActivePaletteColor(byte colorIndex) => ActivePalette is not null && colorIndex < ActivePalette.Colors.Count;
 
-    internal void SetPixelAtPosition(int x, int y, ColorPriority priority)
+    /// <summary>
+    /// Paints one stroke segment, skipping pixels outside the image or the draw clip, then repaints the touched region once.
+    /// </summary>
+    internal void PaintPencilPixels(IReadOnlyList<Point> points, ColorPriority priority)
     {
-        if (!IsPointInDrawClip(x, y))
+        var width = WorkingArranger.ArrangerPixelSize.Width;
+        var height = WorkingArranger.ArrangerPixelSize.Height;
+        Rectangle? dirty = null;
+
+        foreach (var p in points)
+        {
+            if (p.X < 0 || p.Y < 0 || p.X >= width || p.Y >= height || !IsPointInDrawClip(p.X, p.Y))
+                continue;
+
+            var isNewPixel = IsIndexedColor
+                ? PaintIndexedPixel(p.X, p.Y, priority == ColorPriority.Primary ? PrimaryColorIndex : SecondaryColorIndex)
+                : PaintDirectPixel(p.X, p.Y, priority == ColorPriority.Primary ? PrimaryColor : SecondaryColor);
+
+            if (isNewPixel)
+                dirty = dirty is { } rect ? Rectangle.Union(rect, new Rectangle(p.X, p.Y, 1, 1)) : new Rectangle(p.X, p.Y, 1, 1);
+        }
+
+        if (dirty is not { } dirtyRect)
             return;
 
-        if (IsIndexedColor)
-        {
-            var colorIndex = priority == ColorPriority.Primary ? PrimaryColorIndex : SecondaryColorIndex;
-            SetIndexedPixel(x, y, colorIndex);
-        }
-        else
-        {
-            var color = priority == ColorPriority.Primary ? PrimaryColor : SecondaryColor;
-            SetDirectPixel(x, y, color);
-        }
+        IsModified = true;
+        EditorBitmap.Invalidate(dirtyRect.X, dirtyRect.Y, dirtyRect.Width, dirtyRect.Height);
+        OnImageModified?.Invoke();
     }
 
-    private void SetIndexedPixel(int x, int y, byte colorIndex)
+    private bool PaintIndexedPixel(int x, int y, byte colorIndex)
     {
         if (!HasActivePaletteColor(colorIndex))
-            return;
+            return false;
 
-        var result = _imageAdapter.TryPaintIndex(x, y, ActivePalette!.Palette, colorIndex);
+        var palette = ActivePalette!.Palette;
+        var result = _imageAdapter.TryPaintIndex(x, y, palette, colorIndex);
+        _lastPencilCheck = (new Point(x, y), palette, colorIndex, result.HasSucceeded);
 
-        var message = result.Match(
-            success =>
+        return result.Match(
+            success => _activePencilHistory is PencilHistoryAction<byte> pencilHistory && pencilHistory.Add(x, y, success.Result),
+            fail =>
             {
-                if (_activePencilHistory is PencilHistoryAction<byte> pencilHistory && pencilHistory.Add(x, y, success.Result))
+                if (!_pencilFailureShown)
                 {
-                    IsModified = true;
-                    BitmapAdapter.Invalidate(x, y, 1, 1);
-                    OnImageModified?.Invoke();
+                    _pencilFailureShown = true;
+                    Messenger.Send(new NotifyStatusMessage(fail.Reason));
                 }
-                return new NotifyStatusMessage("");
-            },
-            fail => new NotifyStatusMessage(fail.Reason)
-        );
-        Messenger.Send(message);
+                return false;
+            });
     }
 
-    private void SetDirectPixel(int x, int y, ColorRgba32 color)
+    private bool PaintDirectPixel(int x, int y, ColorRgba32 color)
     {
         _imageAdapter.SetDirectPixel(x, y, color);
-
-        if (_activePencilHistory is PencilHistoryAction<ColorRgba32> pencilHistory && pencilHistory.Add(x, y, color))
-        {
-            IsModified = true;
-            BitmapAdapter.Invalidate(x, y, 1, 1);
-            OnImageModified?.Invoke();
-        }
+        return _activePencilHistory is PencilHistoryAction<ColorRgba32> pencilHistory && pencilHistory.Add(x, y, color);
     }
 
     internal void FloodFillAtPosition(int x, int y, ColorPriority priority)

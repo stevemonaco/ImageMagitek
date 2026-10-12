@@ -4,13 +4,14 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ImageMagitek;
 using ImageMagitek.Codec;
-using ImageMagitek.Colors;
 using SkiaSharp;
 
 namespace TileShop.UI.Features.Graphics;
 
 public sealed class ArrangerSkiaBitmap : IDisposable
 {
+    private const int _parallelRowThreshold = 32;
+
     private readonly IndexedImage? _indexedImage;
     private readonly DirectImage? _directImage;
     private readonly bool _isIndexed;
@@ -53,74 +54,79 @@ public sealed class ArrangerSkiaBitmap : IDisposable
 
     private void Render(int xStart, int yStart, int width, int height)
     {
-        var pixels = Bitmap.GetPixels();
+        var backBuffer = Bitmap.GetPixels();
+        var stride = Bitmap.RowBytes / 4;
 
-        unsafe
+        if (height < _parallelRowThreshold)
         {
-            var backBuffer = (uint*)pixels.ToPointer();
-            var stride = Bitmap.RowBytes / 4;
-
-            if (_isIndexed)
-            {
-                Parallel.For(yStart, yStart + height, (scanline) =>
-                {
-                    var dest = backBuffer + scanline * stride + xStart;
-                    var src = _indexedImage!.GetPixelRowSpan(scanline);
-
-                    for (int x = 0; x < width; x++)
-                    {
-                        dest[x] = TranslateIndexedColor(x + xStart, scanline, src);
-                    }
-                });
-            }
-            else
-            {
-                Parallel.For(yStart, yStart + height, (scanline) =>
-                {
-                    var dest = backBuffer + scanline * stride + xStart;
-                    var src = _directImage!.GetPixelRowSpan(scanline);
-
-                    for (int x = 0; x < width; x++)
-                    {
-                        dest[x] = TranslateDirectColor(x + xStart, src);
-                    }
-                });
-            }
+            for (int scanline = yStart; scanline < yStart + height; scanline++)
+                RenderRow(backBuffer, stride, scanline, xStart, width);
+        }
+        else
+        {
+            Parallel.For(yStart, yStart + height, scanline => RenderRow(backBuffer, stride, scanline, xStart, width));
         }
 
         Bitmap.NotifyPixelsChanged();
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private uint TranslateIndexedColor(int x, int y, Span<byte> sourceRow)
+    private unsafe void RenderRow(IntPtr backBuffer, int stride, int scanline, int xStart, int width)
     {
-        uint outputColor = 0;
+        var dest = (uint*)backBuffer.ToPointer() + scanline * stride;
 
-        var el = _indexedImage!.GetElementAtPixel(x, y);
-
-        if (el is { IsWithinSource: true, Codec: IIndexedCodec codec })
+        if (_isIndexed)
         {
-            var pal = codec.Palette;
-            var index = sourceRow[x];
-
-            var inputColor = pal[index].Color;
-            outputColor = (inputColor & 0xFF00FF00) | BitOperations.RotateLeft(inputColor & 0xFF00FF, 16);
-
-            if (index == 0 && pal.ZeroIndexTransparent)
-                outputColor &= 0x00FFFFFF;
+            RenderIndexedRow(dest, scanline, xStart, width);
         }
+        else
+        {
+            var src = _directImage!.GetPixelRowSpan(scanline);
+            for (int x = xStart; x < xStart + width; x++)
+                dest[x] = ToBgra(src[x].Color);
+        }
+    }
 
-        return outputColor;
+    private unsafe void RenderIndexedRow(uint* dest, int scanline, int xStart, int width)
+    {
+        var image = _indexedImage!;
+        var src = image.GetPixelRowSpan(scanline);
+        var elementWidth = image.Arranger.ElementPixelSize.Width;
+        var end = xStart + width;
+        var x = xStart;
+
+        while (x < end)
+        {
+            var runEnd = Math.Min(end, x + elementWidth - (x + image.Left) % elementWidth);
+
+            if (image.GetElementAtPixel(x, scanline) is { IsWithinSource: true, Codec: IIndexedCodec codec })
+            {
+                var pal = codec.Palette;
+                var entries = pal.Entries;
+                var zeroTransparent = pal.ZeroIndexTransparent;
+
+                for (; x < runEnd; x++)
+                {
+                    var index = src[x];
+                    if (index >= entries)
+                    {
+                        dest[x] = 0;
+                        continue;
+                    }
+
+                    var color = ToBgra(pal[index].Color);
+                    dest[x] = index == 0 && zeroTransparent ? color & 0x00FFFFFF : color;
+                }
+            }
+            else
+            {
+                for (; x < runEnd; x++)
+                    dest[x] = 0;
+            }
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static uint TranslateDirectColor(int x, in Span<ColorRgba32> sourceRow)
-    {
-        var inputColor = sourceRow[x].Color;
-        uint outputColor = (inputColor & 0xFF00FF00) | BitOperations.RotateLeft(inputColor & 0xFF00FF, 16);
-
-        return outputColor;
-    }
+    private static uint ToBgra(uint rgba) => (rgba & 0xFF00FF00) | BitOperations.RotateLeft(rgba & 0xFF00FF, 16);
 
     public void Dispose()
     {
