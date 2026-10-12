@@ -28,6 +28,26 @@ public sealed class PaletteTests : IDisposable
     }
 
     [Fact]
+    public void ProjectPalette_NativeSource_KeepsNativeAndConvertsForeignToModel()
+    {
+        var palette = CreateFilePalette(OpenReadOnlySource(), [new ProjectNativeColorSource(new ColorRgba32(255, 0, 0, 255))]);
+
+        var foreign = Assert.IsType<ColorBgr15>(palette.GetForeignColor(0));
+        Assert.Equal(31, foreign.R);
+        Assert.Equal(new ColorRgba32(255, 0, 0, 255), palette.GetNativeColor(0));
+    }
+
+    [Fact]
+    public void SetNativeColor_FileSource_StoresRoundTrippedNative()
+    {
+        var palette = CreateFilePalette(OpenReadOnlySource(), CreateFileSources(4));
+
+        palette.SetNativeColor(0, new ColorRgba32(255, 0, 0, 255));
+
+        Assert.Equal(new ColorRgba32(248, 0, 0, 255), palette.GetNativeColor(0));
+    }
+
+    [Fact]
     public void DeserializePalette_InvalidColor_ThrowsNamingEntry()
     {
         var json = """{ "Name": "bad", "Colors": [ "#000000", "#GG0000" ] }""";

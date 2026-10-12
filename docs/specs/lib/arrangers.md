@@ -120,8 +120,8 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
   - Tests: `ArrangerBuilderTests.Build_SequentialArranger`, `SequentialArrangerTests.Construct_ElementsUseGivenPalette`, `SequentialArrangerTests.ArrangerBuilder_ElementsUsePalette`
 - **LIB-ARRANGERS-018** — The sequential arranger shall read contiguous data: each tile-layout block takes the next elements in pattern order, blocks fill the grid row by row, and each tiled element starts one codec storage size after the previous.
   - Tests: `SequentialArrangerRoundTripTests.RoundTrips_AtNonzeroOffset_AndAfterCodecResize`
-- **LIB-ARRANGERS-019** — When moved to an absolute bit address, the sequential arranger shall go there, clamping to the last address that keeps the whole arranger inside the file, or to 0 when the arranger needs more bits than the file has.
-  - Tests: `SequentialArrangerRoundTripTests.RoundTrips_AtNonzeroOffset_AndAfterCodecResize`
+- **LIB-ARRANGERS-019** — When moved to an absolute bit address, the sequential arranger shall place the first cell of its tile layout's pattern there, with the rest following, clamping to the last address that keeps the whole arranger inside the file, or to 0 when the arranger needs more bits than the file has.
+  - Tests: `SequentialArrangerRoundTripTests.RoundTrips_AtNonzeroOffset_AndAfterCodecResize`, `SequentialArrangerTests.Move_LayoutNotStartingAtOrigin_PlacesFirstPatternCellAtAddress`
 - **LIB-ARRANGERS-020** — When moved by a move type, the sequential arranger shall step by one byte, one row of layout blocks, one layout block, or half the arranger (page), or jump to the start or the end, clamped between 0 and the last whole-arranger address, and report the new address.
   - Tests: untested
 - **LIB-ARRANGERS-021** — When a sequential arranger is resized, it shall re-lay the grid from its current address and re-clamp that address to the new size.
@@ -141,8 +141,8 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 
 ### Cloning and copying
 
-- **LIB-ARRANGERS-027** — When an arranger is cloned, whole or by a pixel rectangle, the result shall be a scattered arranger with the same name, color type, layout and element size, holding the covered elements relocated to the clone's origin.
-  - Tests: untested
+- **LIB-ARRANGERS-027** — When an arranger is cloned, whole or by a pixel rectangle, the result shall be a scattered arranger with the same name, color type, layout and element size, holding every element the rectangle touches, relocated to the clone's origin.
+  - Tests: `ScatteredArrangerTests.CloneArranger_MisalignedRectangle_CoversEveryTouchedElement`, `SequentialArrangerTests.Clone_MisalignedRectangle_CoversEveryTouchedElement`
 - **LIB-ARRANGERS-028** — If a clone rectangle falls outside the arranger, or a Single-layout arranger is cloned by anything but its full size, then cloning shall fail.
   - Tests: untested
 - **LIB-ARRANGERS-029** — When a sequential arranger is cloned, each cloned element shall get its own new codec instance; a scattered clone's elements shall share codec instances with the original.
@@ -215,7 +215,6 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 - An absolute `Move` to a negative address is stored as negative; only `Move(ArrangerMoveType)` clamps at 0.
 - A sequential grid that is not a multiple of the tile layout leaves the remainder cells empty, while the arranger's bit size still counts them.
 - A sequential arranger captures the file size at construction and does not follow later length changes.
-- A clone rectangle that starts inside an element rounds its element count from the width alone, so a misaligned rectangle can drop the last covered column or row.
 - Element copies taken from a sequential arranger share its active codec, so every copied element holds the same codec instance until a palette is assigned to it.
 
 ## Threading and lifetime
@@ -244,7 +243,6 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 
 ## Open items
 
-- `GetInitialSequentialFileAddress` indexes the grid as `[x, y]` instead of `[y, x]`; latent while every layout's first pattern cell is (0, 0).
 - Single-layout movement steps (LIB-ARRANGERS-047) and element step (LIB-ARRANGERS-048) look arbitrary and are untested.
 - Elements past the end of their source are reported Modified by the conflict analysis but are never written by save.
 - `ElementCopierTests` contains only commented-out code; element paste validation has no direct test.

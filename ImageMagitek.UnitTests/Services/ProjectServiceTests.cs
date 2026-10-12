@@ -520,6 +520,20 @@ public sealed class ProjectServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public void AreResourcesInSameProject_ByContainingTree()
+    {
+        var tree = OpenStandalone();
+        var other = OpenStandalone("other.bin");
+        var orphanA = new FileDataSource("a", PathOf("standalone.bin"));
+        var orphanB = new FileDataSource("b", PathOf("other.bin"));
+
+        Assert.True(_service.AreResourcesInSameProject(tree.Root.Item, tree.Root.Item));
+        Assert.False(_service.AreResourcesInSameProject(tree.Root.Item, other.Root.Item));
+        Assert.False(_service.AreResourcesInSameProject(tree.Root.Item, orphanA));
+        Assert.False(_service.AreResourcesInSameProject(orphanA, orphanB));
+    }
+
+    [Fact]
     public void OpenDataFile_SamePathTwice_ReturnsExistingTree()
     {
         var tree = OpenStandalone();

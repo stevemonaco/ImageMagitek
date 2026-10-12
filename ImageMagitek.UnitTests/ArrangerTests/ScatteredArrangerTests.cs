@@ -65,6 +65,17 @@ public class ScatteredArrangerTests
         Assert.Equal(new Size(2, 2), dest.ArrangerElementSize);
     }
 
+    [Fact]
+    public void CloneArranger_MisalignedRectangle_CoversEveryTouchedElement()
+    {
+        var source = Create(3, 3);
+
+        var clone = source.CloneArranger(4, 4, 8, 8);
+
+        Assert.Equal(new Size(2, 2), clone.ArrangerElementSize);
+        Assert.Equal(source.GetElement(1, 1)!.Value.SourceAddress, clone.GetElement(1, 1)!.Value.SourceAddress);
+    }
+
     private static void AssertSameCells(ScatteredArranger expected, ScatteredArranger actual)
     {
         for (int y = 0; y < expected.ArrangerElementSize.Height; y++)

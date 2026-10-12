@@ -69,8 +69,8 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
   - Tests: untested
 - **LIB-PALETTES-005** — A project foreign color source shall supply its stored foreign value.
   - Tests: `PaletteEditSessionTests.SetColor_ProjectForeign_CommitKeepsValue`
-- **LIB-PALETTES-006** — In a project palette, a project native color source shall supply its stored native color as both the native and the foreign entry, without converting it to the palette model.
-  - Tests: untested
+- **LIB-PALETTES-006** — In a project palette, a project native color source shall supply its stored native color as the native entry and its conversion to the palette model as the foreign entry, as in a global palette (LIB-PALETTES-007).
+  - Tests: `PaletteTests.ProjectPalette_NativeSource_KeepsNativeAndConvertsForeignToModel`
 - **LIB-PALETTES-007** — In a global palette, a native source shall supply its native color and its conversion to the palette model as the foreign entry; a foreign source shall supply its value and its native conversion.
   - Tests: `PaletteTests.SetNativeColor_Components_StoresForeignColorInPaletteModel`
 - **LIB-PALETTES-008** — A palette shall mix source kinds freely in one ordered list.
@@ -99,8 +99,8 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
   - Tests: `PaletteEditSessionTests.SetColor_UndoRedoCommit_WritesFileOnlyOnCommit`
 - **LIB-PALETTES-015** — When `SetForeignColor` is called with components, the palette shall create the foreign color from components in the palette model's channel ranges (LIB-COLORS).
   - Tests: untested
-- **LIB-PALETTES-016** — When `SetNativeColor` is called, the palette shall store the native color unchanged, set the foreign entry to its conversion into the palette model, and raise `Changed`. Scattered entries are the exception (LIB-PALETTES-054).
-  - Tests: `PaletteTests.SetNativeColor_Components_StoresForeignColorInPaletteModel`
+- **LIB-PALETTES-016** — When `SetNativeColor` is called, the palette shall set the foreign entry to the color's conversion into the palette model and raise `Changed`; for a project native source it shall store the native color unchanged, and for any other source the native conversion of that foreign entry. Scattered entries also clear uncovered bits (LIB-PALETTES-054).
+  - Tests: `PaletteTests.SetNativeColor_Components_StoresForeignColorInPaletteModel`, `PaletteTests.SetNativeColor_FileSource_StoresRoundTrippedNative`
 - **LIB-PALETTES-054** — When a foreign or native color is set on a scattered entry, the palette shall clear the raw bits no field covers before storing it, and store the native conversion of that masked foreign color.
   - Tests: `ScatteredColorSourceTests.SetColor_ClearsUncoveredBits`
 - **LIB-PALETTES-017** — If `SetForeignColor` or `SetNativeColor` is given an index at or past the entry count, then it shall throw `ArgumentOutOfRangeException`.
@@ -206,7 +206,7 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 ## Invariants
 
 - `Entries` always equals the number of color sources.
-- After a load or a color edit, each entry's native color is the conversion of its foreign color, except entries set with `SetNativeColor` and project native sources, whose native color is kept exactly. A scattered entry's native color is always the conversion of its masked foreign color, even after `SetNativeColor`.
+- After a load or a color edit, each entry's native color is the conversion of its foreign color, except project native sources, whose native color is kept exactly. A scattered entry's native color is the conversion of its masked foreign color.
 - A scattered entry's foreign value never has bits set outside its fields.
 
 ## Edge cases
@@ -227,6 +227,7 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 - **Pending edits live in the shared palette until Save.** Color edits change only the in-memory palette, so every graphics editor previews them live; `SavePalette` writes the data file and updates project sources, and `Reload` discards. The project writer serializes the node's committed model while edits are pending (LIB-PROJECT-FORMAT). Reason: palette edits used to write to the ROM immediately and could not be undone. Rejected: writing through on every edit.
 - **`Changed` is the palette's only change signal.** Raised from every color, source, model and transparency change and from `Reload`. Reason: the domain announces its own changes, so no caller has to remember to notify editors. Rejected: UI messages sent by whoever edited the palette.
 - **`SetNativeColor` converts into the palette model.** Reason: it used to write an RGBA32 value into the foreign palette whatever the model.
+- **Only a project native source keeps an exact native color.** Its foreign entry is the conversion into the palette model, in project and global palettes alike; every other entry's native color is the conversion of its foreign color, including after `SetNativeColor`. Reason: a native source stores a native color, so that is what Save keeps, while a file, scattered or foreign entry can only save what the model holds, so showing more would preview a color that never reaches the file. Project native sources used to report their Rgba32 value as the foreign color whatever the model, so the color editors opened them in the wrong model. Rejected: quantizing native sources too (global palettes and JASC imports into a narrower model would lose precision on display).
 - **Bad JSON palette entries fail the load.** The error names the entry. Reason: dropping an unparsable entry shifted every later index. Rejected: skipping with a warning.
 - **Global palettes are read-only, and so are palettes with file colors on a read-only data file.** Global palettes have no data source; a palette whose file colors live on a read-only data source cannot write them. `IsReadOnly` covers both, `SavePalette` returns false for it, and the palette editor's read-only mode keys off it; for global palettes the editor offers "Duplicate to project". A palette made only of project colors stays editable on a read-only data file. Reason: the editor's read-only mode already hides every edit path. Rejected: a second, ROM-specific read-only mode that keeps Sources visible (two modes to keep in step).
 - **A palette save flushes and stays silent.** The flush makes Save mean "on disk", so a crash after Save keeps the colors. No `DataWritten`, because that event reloads graphics editors and clears their history (LIB-DATASOURCE decision "`DataWritten` is not raised from `Flush`"). Rejected: `Flush(true)` to the physical disk, which image saves do not do either.
@@ -254,7 +255,5 @@ A palette is an ordered list of colors in one color model (LIB-COLORS). Each ent
 
 ## Open items
 
-- `ColorSourceSerializer.LoadColors` treats a project native source as its own foreign color, so a project palette in, for example, Bgr15 reports an Rgba32 foreign color and an unquantized native color for that entry, unlike a global palette.
-- `SetNativeColor` keeps the native color as given, so until `Reload` the palette shows a color its model cannot store (255 instead of 248 in Bgr15).
 - `Palette.HasAlpha` is never set and has no callers; `Palette.GetColor` swaps R and B and has no callers.
 - No tests for 3-byte and big-endian file colors, `ZeroIndexTransparent` events, global `SavePalette`, JSON defaults and errors.

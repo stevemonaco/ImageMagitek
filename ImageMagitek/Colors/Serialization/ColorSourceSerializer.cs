@@ -36,7 +36,7 @@ public class ColorSourceSerializer : IColorSourceSerializer
             }
             else if (source is ProjectNativeColorSource nativeSource)
             {
-                result[currentEntry] = nativeSource.Value;
+                result[currentEntry] = _colorFactory.ToForeign(nativeSource.Value, colorModel);
             }
             else if (source is ProjectForeignColorSource foreignSource)
             {

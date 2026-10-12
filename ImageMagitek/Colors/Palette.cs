@@ -163,27 +163,14 @@ public class Palette : IProjectResource
     {
         var nativePalette = new ColorRgba32[Entries];
 
-        if (StorageSource == PaletteStorageSource.ProjectXml)
+        for (int i = 0; i < Entries; i++)
         {
-            for (int i = 0; i < Entries; i++)
-                nativePalette[i] = _colorFactory.ToNative(ForeignPalette[i]); // Will load ForeignPalette if not already loaded
-
-            return nativePalette;
-        }
-        else if (StorageSource == PaletteStorageSource.GlobalJson)
-        {
-            for (int i = 0; i < Entries; i++)
-            {
-                if (ColorSources[i] is ProjectNativeColorSource nativeColor)
-                    nativePalette[i] = nativeColor.Value;
-                else if (ColorSources[i] is ProjectForeignColorSource foreignColor)
-                    nativePalette[i] = _colorFactory.ToNative(foreignColor.Value);
-            }
-
-            return nativePalette;
+            nativePalette[i] = ColorSources[i] is ProjectNativeColorSource nativeColor
+                ? nativeColor.Value
+                : _colorFactory.ToNative(ForeignPalette[i]);
         }
 
-        throw new NotSupportedException();
+        return nativePalette;
     }
 
     /// <summary>
@@ -337,7 +324,7 @@ public class Palette : IProjectResource
 
     /// <summary>
     /// Replaces the color at the specified palette index with the specified native color
-    /// Additionally, updates the foreign color in the palette. A scattered entry stores the native form of its masked foreign color instead.
+    /// Additionally, updates the foreign color in the palette. Only a project native source keeps the color exactly; other entries store the native form of their foreign color.
     /// </summary>
     /// <param name="index">Zero-based palette index</param>
     /// <param name="nativeColor">Color to assign to the native palette</param>
@@ -349,7 +336,7 @@ public class Palette : IProjectResource
         if (index >= Entries)
             throw new ArgumentOutOfRangeException($"{nameof(GetNativeColor)} parameter '{nameof(index)}' was out of range");
 
-        if (ColorSources[index] is ScatteredColorSource)
+        if (ColorSources[index] is not ProjectNativeColorSource)
         {
             SetForeignColor(index, _colorFactory.ToForeign(nativeColor, ColorModel));
             return;

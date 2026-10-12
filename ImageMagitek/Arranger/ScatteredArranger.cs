@@ -108,8 +108,8 @@ public sealed class ScatteredArranger : Arranger
     {
         var elemX = posX / ElementPixelSize.Width;
         var elemY = posY / ElementPixelSize.Height;
-        var elemsWidth = (width + ElementPixelSize.Width - 1) / ElementPixelSize.Width;
-        var elemsHeight = (height + ElementPixelSize.Height - 1) / ElementPixelSize.Height;
+        var elemsWidth = (posX + width + ElementPixelSize.Width - 1) / ElementPixelSize.Width - elemX;
+        var elemsHeight = (posY + height + ElementPixelSize.Height - 1) / ElementPixelSize.Height - elemY;
 
         var arranger = new ScatteredArranger(Name, ColorType, Layout, elemsWidth, elemsHeight, ElementPixelSize.Width, ElementPixelSize.Height);
 

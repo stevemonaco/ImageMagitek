@@ -650,7 +650,7 @@ public class ProjectService : IProjectService
         var projectA = _projects.FirstOrDefault(x => x.ContainsResource(a));
         var projectB = _projects.FirstOrDefault(x => x.ContainsResource(b));
 
-        return ReferenceEquals(projectA, projectB);
+        return projectA is not null && ReferenceEquals(projectA, projectB);
     }
 
     /// <summary>

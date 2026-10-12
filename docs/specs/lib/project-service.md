@@ -192,8 +192,8 @@ Owns the set of open trees (projects and standalone data files) and every operat
 
 - **LIB-PROJECT-SERVICE-055** — The service shall find the open tree containing a node or resource; the `Get` lookups shall throw an argument error when none does, and `FindContainingProject` shall return null.
   - Tests: `ProjectServiceTests.OpenDataFile_RaisesProjectOpened_AndTreeContainsSource`
-- **LIB-PROJECT-SERVICE-056** — Two resources shall count as in the same project when the same open tree contains both, or when no open tree contains either.
-  - Tests: untested
+- **LIB-PROJECT-SERVICE-056** — Two resources shall count as in the same project only when the same open tree contains both.
+  - Tests: `ProjectServiceTests.AreResourcesInSameProject_ByContainingTree`
 
 ## Invariants
 
@@ -265,7 +265,6 @@ Owns the set of open trees (projects and standalone data files) and every operat
 ## Open items
 
 - Saving a single resource on a standalone root would write XML over the data file; no guard exists (unreachable from today's UI).
-- LIB-PROJECT-SERVICE-056: two resources outside every open tree count as the same project.
 - Save-as into a subdirectory of the old project's base directory leaves files the old project will load on reopen; foreign XML under a project directory is LIB-PROJECT-FORMAT's.
 - `FindStaleKeyResources` is private and never called.
 - Manual: rename, move and delete in the project tree with editors open; relink after renaming a ROM and reopening; Save Project As... to a new folder, then close and reopen from there.

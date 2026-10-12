@@ -14,11 +14,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ### Library
 
-- [LIB-PALETTES] In a ProjectXml palette a project-native source is returned as its own foreign color (`ColorRgba32`) whatever the model, and its native color is never quantized, unlike global palettes; done when both storage kinds behave the same, or a decision records the difference.
-- [LIB-PALETTES] `SetNativeColor` keeps the native color unquantized (BGR15 shows 255, not 248) until `Reload`; done when it stores the round-tripped color, or a decision records why not.
-- [LIB-PROJECT-SERVICE] `AreResourcesInSameProject` returns true when neither resource is in any open tree; done when it returns false.
-- [LIB-ARRANGERS] `GetInitialSequentialFileAddress` indexes `ElementGrid[X, Y]` instead of `[Y, X]` (latent while every layout starts at (0,0)); done when a layout whose first cell is not (0,0) moves correctly.
-- [LIB-ARRANGERS] A clone rectangle that is not element-aligned drops the last covered column or row; done when the element span is computed from both edges.
 - [LIB-IMAGES] `DirectImage.SaveImage` and its save-conflict analysis assume the image starts at the arranger origin, so a sub-rectangle image saves the wrong pixels or throws; `CanSetPalette` also reads arranger coordinates from a sub-rectangle image; done when partial DirectImage saves and `CanSetPalette` with Left/Top ≠ 0 are correct and tested.
 - [LIB-IMAGE-IO] Indexed export of a sub-rectangle image fails because the adapter sizes the PNG from the arranger; done when it exports the rectangle or rejects it clearly.
 - [LIB-IMAGE-IO] RGBA fallback export throws `IndexOutOfRangeException` when a pixel's index lies past its palette's last entry (a 4bpp element on a palette shorter than 16 entries, as in the AllFeatures fixture's `Sprites/Indexed`), so the CLI exits −2 for that export; done when such pixels export (transparent, or the codec's color range is padded) and a test pins it.

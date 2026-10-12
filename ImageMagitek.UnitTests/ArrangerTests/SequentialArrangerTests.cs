@@ -77,6 +77,17 @@ public class SequentialArrangerTests
     }
 
     [Fact]
+    public void Clone_MisalignedRectangle_CoversEveryTouchedElement()
+    {
+        var arranger = CreateArranger(TestImageGenerator.CreateDistinctPalette(4));
+
+        var clone = arranger.CloneArranger(4, 0, 8, 8);
+
+        Assert.Equal(new Size(2, 1), clone.ArrangerElementSize);
+        Assert.Equal(arranger.GetElement(1, 0)!.Value.SourceAddress, clone.GetElement(1, 0)!.Value.SourceAddress);
+    }
+
+    [Fact]
     public void ChangePalette_AllElements()
     {
         var arranger = CreateArranger(TestImageGenerator.CreateDistinctPalette(4));
@@ -86,6 +97,21 @@ public class SequentialArrangerTests
 
         Assert.Same(other, arranger.ActivePalette);
         AssertElementsUse(arranger, other);
+    }
+
+    [Fact]
+    public void Move_LayoutNotStartingAtOrigin_PlacesFirstPatternCellAtAddress()
+    {
+        var arranger = CreateArranger(TestImageGenerator.CreateDistinctPalette(4));
+        arranger.ChangeElementLayout(new TileLayout("Reversed", 2, 1, 2, [new Point(1, 0), new Point(0, 0)]));
+        var storageSize = arranger.ActiveCodec.StorageSize;
+
+        Assert.Equal(BitAddress.Zero, arranger.GetElement(1, 0)!.Value.SourceAddress);
+
+        arranger.Move(new BitAddress(storageSize));
+
+        Assert.Equal(new BitAddress(storageSize), arranger.GetElement(1, 0)!.Value.SourceAddress);
+        Assert.Equal(new BitAddress(storageSize * 2), arranger.GetElement(0, 0)!.Value.SourceAddress);
     }
 
     private SequentialArranger CreateArranger(Palette palette)
