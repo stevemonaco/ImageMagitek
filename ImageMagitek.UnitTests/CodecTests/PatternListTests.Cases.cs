@@ -128,7 +128,14 @@ public partial class PatternListTests
     public static TheoryData<string[], int, int, int, int> TryCreateRemapPatternOutOfRangeTestCases => new()
     {
         { new[] { "AAAAAAAACCCCCCCCCBBBBBBBB" }, 24, 8, 1, 23 },
-        { new[] { "AAAAAAAACCCCCCCCCBBBBBBBBD" }, 24, 8, 1, 23 }
+        { new[] { "AAAAAAAACCCCCCCCCBBBBBBBBD" }, 24, 8, 1, 23 },
+        { new[] { "AAAAAAAB" }, 8, 2, 1, 8 }
+    };
+
+    public static TheoryData<string[], int, int, int, int> TryCreateRemapPatternChunkyInvalidTestCases => new()
+    {
+        { new[] { "AAAAA" }, 5, 1, 2, 10 },
+        { new[] { "AAAAAAAB" }, 8, 2, 1, 8 }
     };
 
     public static TheoryData<string[], int, int, int, int> TryCreateRemapPatternInvalidSizeTestCases => new()

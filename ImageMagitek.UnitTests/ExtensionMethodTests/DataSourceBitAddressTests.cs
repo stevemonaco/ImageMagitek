@@ -27,6 +27,18 @@ public class DataSourceBitAddressTests
     [Theory]
     [InlineData(0)]
     [InlineData(3)]
+    public async Task Read_ZeroBits_ReturnsEmpty(int bitOffset)
+    {
+        var source = CreateSentinelSource(out _);
+        var address = new BitAddress(2, bitOffset);
+
+        Assert.Empty(source.Read(address, 0));
+        Assert.Empty(await source.ReadAsync(address, 0));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(3)]
     [InlineData(7)]
     public async Task WriteAsync_ThenReadAsync_AtBitOffset_RoundTripsAndPreservesNeighbors(int bitOffset)
     {

@@ -106,11 +106,13 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
         if (Arranger.GetReadOnlyReason() is { } reason)
             throw new InvalidOperationException($"Arranger '{Arranger.Name}' is read-only because it {reason}");
 
+        var fullImage = MergeIntoArrangerImage();
+        var fullWidth = Arranger.ArrangerPixelSize.Width;
         var buffer = new ColorRgba32[Arranger.ElementPixelSize.Height, Arranger.ElementPixelSize.Width];
         var encodedElements = new List<(ArrangerElement Element, IDirectCodec Codec, byte[] Encoded)>();
         foreach (var el in Arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Codec is IDirectCodec && x.IsWithinSource))
         {
-            Image.CopyToArray2D(buffer, el.X1, el.Y1, Width, el.Width, el.Height);
+            fullImage.CopyToArray2D(buffer, el.X1, el.Y1, fullWidth, el.Width, el.Height);
             var codec = (IDirectCodec)el.Codec;
 
             buffer.InverseMirrorArray2D(el.Mirror);
@@ -128,5 +130,22 @@ public sealed class DirectImage : ImageBase<ColorRgba32>
             source.Flush();
             source.NotifyDataWritten();
         }
+    }
+
+    /// <summary>
+    /// Returns the whole arranger's pixels, row-major at the arranger's pixel width, with this image's pixels in place of its rectangle
+    /// </summary>
+    internal ColorRgba32[] MergeIntoArrangerImage()
+    {
+        if (Left == 0 && Top == 0 && Width == Arranger.ArrangerPixelSize.Width && Height == Arranger.ArrangerPixelSize.Height)
+            return Image;
+
+        var fullImage = new DirectImage(Arranger).Image;
+        var fullWidth = Arranger.ArrangerPixelSize.Width;
+
+        for (int y = 0; y < Height; y++)
+            Image.AsSpan(y * Width, Width).CopyTo(fullImage.AsSpan((y + Top) * fullWidth + Left, Width));
+
+        return fullImage;
     }
 }

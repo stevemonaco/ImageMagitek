@@ -51,7 +51,7 @@ public sealed class IndexedImage : ImageBase<byte>
     }
 
     public override void ExportImage(string imagePath, IImageFileAdapter adapter) =>
-        adapter.SaveImage(Image, Arranger, imagePath);
+        adapter.SaveImage(Image, Arranger, new Rectangle(Left, Top, Width, Height), imagePath);
 
     public override void Render()
     {

@@ -48,8 +48,8 @@ A data source is the byte store that graphics and palette colors are read from a
 
 ### Reading
 
-- **LIB-DATASOURCE-005** — When N bits are read at a bit address, the source shall return ⌈N/8⌉ bytes holding those bits shifted to start at the most significant bit of the first byte, with the unused trailing bits of the last byte cleared.
-  - Tests: `DataSourceBitAddressTests.Write_ThenRead_AtBitOffset_RoundTripsAndPreservesNeighbors`, `StreamReadExtensionTests.ReadShifted_AsExpected`
+- **LIB-DATASOURCE-005** — When N bits are read at a bit address, the source shall return ⌈N/8⌉ bytes holding those bits shifted to start at the most significant bit of the first byte, with the unused trailing bits of the last byte cleared; a read of zero bits returns an empty array.
+  - Tests: `DataSourceBitAddressTests.Write_ThenRead_AtBitOffset_RoundTripsAndPreservesNeighbors`, `StreamReadExtensionTests.ReadShifted_AsExpected`, `DataSourceBitAddressTests.Read_ZeroBits_ReturnsEmpty`
 - **LIB-DATASOURCE-006** — When N bits are read into a caller buffer longer than ⌈N/8⌉ bytes, the source shall leave the bytes past ⌈N/8⌉ untouched.
   - Tests: `DataSourceBitAddressTests.Read_IntoOversizedBuffer_LeavesExtraBytesUntouched`
 - **LIB-DATASOURCE-007** — If the caller buffer is shorter than ⌈N/8⌉ bytes, then the read shall throw `ArgumentException`.
@@ -136,7 +136,6 @@ A data source is the byte store that graphics and palette colors are read from a
 
 ## Edge cases
 
-- A read of zero bits at a byte-aligned address throws `IndexOutOfRangeException`; at a bit offset it returns an empty array.
 - A bit-unaligned write whose last partial byte lies past the end of the source merges into a byte read as `0xFF` (the stream's end-of-file `-1`), so the untouched bits of that new byte become 1.
 - Seeking past the end is allowed; the next read throws, the next write grows the source (or throws for a fixed-capacity memory source).
 - Constructing a bit address from a negative bit count yields a negative bit offset.
@@ -167,5 +166,4 @@ A data source is the byte store that graphics and palette colors are read from a
 ## Open items
 
 - The write-protect fallback detects `ERROR_WRITE_PROTECT` by HResult, which is Windows-specific; a read-only mount on Linux or macOS may still fail the open.
-- A zero-bit read at a byte-aligned address throws instead of returning an empty array.
 - Past-end reads, fixed-capacity overflow, `Flush` not raising `DataWritten`, and the file share mode have no tests.

@@ -168,6 +168,8 @@ public static class ScatteredArrangerSaveConflictExtensions
 
     private static Dictionary<(int X, int Y), byte[]> EncodeAllElements(ScatteredArranger arranger, DirectImage image)
     {
+        var fullImage = image.MergeIntoArrangerImage();
+        var fullWidth = arranger.ArrangerPixelSize.Width;
         var buffer = new ColorRgba32[arranger.ElementPixelSize.Height, arranger.ElementPixelSize.Width];
         var result = new Dictionary<(int X, int Y), byte[]>();
 
@@ -178,8 +180,7 @@ public static class ScatteredArrangerSaveConflictExtensions
                 var el = arranger.GetElement(ex, ey);
                 if (el is ArrangerElement element && element.Codec is IDirectCodec codec)
                 {
-                    image.Image.CopyToArray2D(buffer, element.X1, element.Y1, image.Width,
-                        element.Width, element.Height);
+                    fullImage.CopyToArray2D(buffer, element.X1, element.Y1, fullWidth, element.Width, element.Height);
 
                     buffer.InverseMirrorArray2D(element.Mirror);
                     buffer.InverseRotateArray2D(element.Rotation);

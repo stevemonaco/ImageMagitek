@@ -235,6 +235,19 @@ public class IndexedImageTests
     }
 
     [Fact]
+    public void CanSetPalette_SubRectangle_ChecksWholeElement()
+    {
+        var arranger = CreateArranger("SNES 4bpp", 2, 1);
+        var full = new IndexedImage(arranger);
+        full.SetPixel(15, 7, 15);
+        full.SaveImage();
+        var image = new IndexedImage(arranger, 8, 0, 4, 8);
+
+        Assert.True(image.CanSetPalette(0, 0, TestImageGenerator.CreateDistinctPalette(4)).HasSucceeded);
+        Assert.False(image.CanSetPalette(0, 0, TestImageGenerator.CreateDistinctPalette(3)).HasSucceeded);
+    }
+
+    [Fact]
     public void PaintIndex_DuplicateColor_WritesChosenIndex()
     {
         var palette = CreateDuplicatePalette();

@@ -113,6 +113,15 @@ public partial class PatternListTests
     }
 
     [Theory]
+    [MemberData(nameof(TryCreateRemapPatternChunkyInvalidTestCases))]
+    public void TryCreateRemapPattern_ChunkyOverusedOrOutOfRange_Fails(string[] patterns, int width, int height, int planes, int size)
+    {
+        var result = PatternList.TryCreatePatternList(patterns, PixelPacking.Chunky, width, height, planes, size);
+
+        Assert.False(result.HasSucceeded);
+    }
+
+    [Theory]
     [MemberData(nameof(TryCreateRemapPatternInvalidSizeTestCases))]
     public void TryCreateRemapPattern_InvalidSize_Fails(string[] patterns, int width, int height, int planes, int size)
     {

@@ -120,8 +120,8 @@ A codec decodes one element's stored bits into pixels and encodes them back: pal
   - Tests: `PatternListTests.TryCreateRemapPattern_DecodePlanar_AsExpected`, `PatternListTests.TryCreateRemapPattern_DecodeChunky_AsExpected`, `PatternListTests.TryCreateRemapPattern_EncodePlanar_AsExpected`, `PatternListTests.TryCreateRemapPattern_EncodeChunky_AsExpected`
 - **LIB-CODECS-021** — A planar pattern codec shall take one pattern per plane; a chunky pattern codec shall take one pattern covering all planes of each pixel.
   - Tests: `PatternListTests.TryCreateRemapPattern_DecodePlanar_AsExpected`, `PatternListTests.TryCreateRemapPattern_DecodeChunky_AsExpected`
-- **LIB-CODECS-022** — If the declared pattern size does not match the patterns, the element size is not a multiple of it, patterns differ in length, a chunky codec has more than one pattern, a symbol is invalid or overused, or a symbol maps past the pattern size, then building the pattern list shall fail with a reason.
-  - Tests: `PatternListTests.TryCreateRemapPattern_TooManyLetters_Fails`, `PatternListTests.TryCreateRemapPattern_OutOfRange_Fails`, `PatternListTests.TryCreateRemapPattern_InvalidSize_Fails`, `PatternListTests.TryCreateRemapPattern_InvalidCharacter_Fails`
+- **LIB-CODECS-022** — If the declared pattern size does not match the patterns, the element size is not a multiple of it, patterns differ in length, a chunky codec has more than one pattern, a symbol is invalid, a symbol occurs more than 8 times across planar patterns or more than 8 ÷ color depth times (rounded down) in a chunky pattern, or a symbol maps to an index at or past the pattern size, then building the pattern list shall fail with a reason.
+  - Tests: `PatternListTests.TryCreateRemapPattern_TooManyLetters_Fails`, `PatternListTests.TryCreateRemapPattern_OutOfRange_Fails`, `PatternListTests.TryCreateRemapPattern_ChunkyOverusedOrOutOfRange_Fails`, `PatternListTests.TryCreateRemapPattern_InvalidSize_Fails`, `PatternListTests.TryCreateRemapPattern_InvalidCharacter_Fails`
 - **LIB-CODECS-023** — If a planar pattern codec's pattern count differs from its color depth, or a pattern is empty, then building the pattern list shall throw `ArgumentException`.
   - Tests: untested
 - **LIB-CODECS-024** — A pattern codec shall be fixed at its declared width and height, non-resizable, and encodable.
@@ -248,8 +248,6 @@ A codec decodes one element's stored bits into pixels and encodes them back: pal
 
 ## Open items
 
-- `PatternList` checks `mapIndex > patternSize` where the largest valid index is `patternSize - 1`, so an index equal to the pattern size is accepted.
-- The chunky pattern check `letterCount > maxInstancesPerCharacter` runs before the increment, so a symbol may occur one more time than the limit.
 - Planar pattern count mismatch and empty patterns throw `ArgumentException` while every other pattern error returns a failed result.
 - The XML reader rejects a default width or height of 1 while the schema accepts any positive integer.
 - No tests cover XML schema failures, semantic validation, unknown codec names, or the direct-XML `NotSupportedException`.

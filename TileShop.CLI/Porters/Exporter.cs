@@ -59,7 +59,7 @@ public static class Exporter
                 return false;
             }
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
         {
             output.WriteLine(ex.Message);
             return false;

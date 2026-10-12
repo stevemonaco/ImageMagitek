@@ -47,8 +47,8 @@ Exports an arranger's image to PNG and stages image files for import back into a
 
 ### Indexed export
 
-- **LIB-IMAGE-IO-001** — When an indexed image is exported, the adapter shall write a PNG the size of the whole arranger.
-  - Tests: `ImageImporterTests.ExportThenImport_SinglePalette_RoundTripsIndicesThroughPng`
+- **LIB-IMAGE-IO-001** — When an indexed image is exported, the adapter shall write a PNG the size of the image, which may be a subsection of the arranger, each pixel taking its palette from the element at its arranger position.
+  - Tests: `ImageImporterTests.ExportThenImport_SinglePalette_RoundTripsIndicesThroughPng`, `ImageImporterTests.Export_IndexedSubsection_WritesOnlyItsPixels`, `ImageImporterTests.Export_IndexedSubsectionOverRgbaFallback_WritesEachElementsColors`
 - **LIB-IMAGE-IO-002** — When every palette the arranger references fits in one combined palette of at most 256 entries and every pixel's index lies inside its palette's slot, export shall write an 8-bit paletted PNG holding each pixel's index shifted into its palette's slot.
   - Tests: `ImageImporterTests.ExportThenImport_MultiplePalettes_KeepsEveryPaletteEntryAndRoundTrips`
 - **LIB-IMAGE-IO-003** — The combined palette shall place each referenced palette back to back in the order the palettes first appear in row-major element order, each slot holding min(palette entries, 2^codec depth) colors, using the largest depth among the codecs that share the palette.
@@ -59,10 +59,12 @@ Exports an arranger's image to PNG and stages image files for import back into a
   - Tests: `IndexedPngFileTests.WriteThenRead_DuplicatePaletteColors_PreservesIndices`
 - **LIB-IMAGE-IO-006** — Pixels of empty cells shall export as combined index 0.
   - Tests: untested
-- **LIB-IMAGE-IO-007** — If the palettes exceed 256 combined entries, no element has a palette, or any pixel's index lies past its palette's slot, then export shall write a 32-bit RGBA PNG instead.
-  - Tests: untested
+- **LIB-IMAGE-IO-045** — If a pixel's index lies past the last entry of its element's palette, then indexed export shall fail before writing anything, with an `InvalidOperationException` naming the arranger, the element's grid position, the index and the palette's name and entry count.
+  - Tests: `ImageImporterTests.Export_IndexPastPalette_ThrowsNamingElementAndWritesNothing`, `ImageImporterTests.Export_IndexPastPaletteOverRgbaFallback_Throws`
+- **LIB-IMAGE-IO-007** — If the palettes exceed 256 combined entries, no element has a palette, or any pixel's index lies past its palette's slot (an index beyond the codec's color range, only reachable through an edited buffer), then export shall write a 32-bit RGBA PNG instead.
+  - Tests: `ImageImporterTests.Export_IndexedSubsectionOverRgbaFallback_WritesEachElementsColors`
 - **LIB-IMAGE-IO-008** — In RGBA export, each pixel shall take its palette's color; index 0 of a `ZeroIndexTransparent` palette and pixels of empty cells shall be transparent black.
-  - Tests: untested
+  - Tests: `ImageImporterTests.Export_IndexedSubsectionOverRgbaFallback_WritesEachElementsColors`
 - **LIB-IMAGE-IO-009** — When a direct image is exported, the adapter shall write a 32-bit RGBA PNG of the image's own size.
   - Tests: `ScatteredArrangerReversibilityTests.ImageToDataToImage_RoundTrips`
 - **LIB-IMAGE-IO-010** — Export shall replace any existing file at the path.
@@ -168,10 +170,8 @@ Exports an arranger's image to PNG and stages image files for import back into a
 
 ## Edge cases
 
-- An indexed image over a sub-rectangle exports with the arranger's size and fails because its pixel buffer is too small.
 - Import does not skip elements past the end of their source: their pixels are reported Changed but the commit never writes them.
 - In RGBA fallback, a pixel of a `ZeroIndexTransparent` palette exports as transparent black, which the Exact strategy cannot match back to the opaque entry unless transparent mapping is on.
-- In RGBA fallback, a pixel whose index lies past its palette's last entry (a 4bpp element on a shorter palette) throws `IndexOutOfRangeException` instead of exporting (backlog).
 - A source palette shorter than the combined palette still matches, as a prefix.
 - A loader exception other than I/O, access or format errors propagates to the caller.
 
@@ -184,6 +184,8 @@ Exports an arranger's image to PNG and stages image files for import back into a
 
 - **A built-in paletted PNG writer and reader.** ImageSharp cannot preserve indices when a palette has duplicate colors, nor expose indices on load, so the library writes and reads color-type-3 PNGs itself; tests cross-check against ImageSharp's encoder and decoder. Anything the reader does not handle falls back to ImageSharp RGBA.
 - **Multi-palette arrangers export paletted.** Each referenced palette gets its own slot in a combined palette, so every color of every palette survives. Rejected: paletted export only for single-palette arrangers (the original plan).
+- **A subsection exports with the whole arranger's combined palette.** The PNG palette is the same whichever subsection is exported, so its indices mean what they mean in a whole-arranger export and import back into the arranger the same way. Rejected: combining only the palettes the subsection touches (it could fit 256 entries where the whole arranger does not, but the slot layout would change with the subsection).
+- **An index past its palette fails the export.** Such an index is real data in the source whose color the palette does not define, usually a wrong or too-short palette, so export refuses with a message the user can act on (LIB-IMAGE-IO-045). The editor draws such pixels transparent, but that is a display fallback, not a reason to write them to a file. Rejected: exporting them transparent (loses the index silently; re-import turns it into index 0 or an unmatched color, changing data nobody edited); padding each palette's slot to the codec's full range with a placeholder color (keeps indices but changes the combined palette layout for export and import alike, reaches the 256-entry limit sooner, and still invents a color).
 - **PLTE holds the full codec color range.** Each slot holds the palette up to the codec's color count, not only the indices used, so external editors can paint with every color.
 - **Index 0 is transparent when the palette says so.** tRNS marks index 0 transparent for `ZeroIndexTransparent` palettes, matching the editor; element-less cells export as index 0, so they are transparent only in that case.
 - **Palette match ignores alpha.** External editors often drop tRNS, so the source palette is compared to the combined palette on RGB only.
@@ -196,13 +198,11 @@ Exports an arranger's image to PNG and stages image files for import back into a
 ## Non-goals
 
 - Export formats other than PNG (BMP, GIF, palette sidecars).
-- Exporting a sub-rectangle or a sequential view (the arranger-size export assumes a whole-arranger image).
 - Adding colors to a palette during import.
 
 ## Open items
 
 - `ImageImportPreview.Commit` does not check `CanCommit` (LIB-IMAGE-IO-043); the UI and CLI do.
 - Import reports past-end-of-source pixels as Changed though they are never written.
-- Indexed export of a sub-rectangle image fails instead of exporting the rectangle; exporting sequential views and selections is an open roadmap item.
-- RGBA fallback export and `CombinedPalette` slot limits have no direct tests (LIB-IMAGE-IO-006, -007, -008).
-- RGBA fallback export throws for an index past its palette's last entry; LIB-IMAGE-IO-008 does not say what such a pixel exports as.
+- Exporting sequential views and selections from the editor is an open roadmap item; the library exports any subsection.
+- Empty-cell export, the no-palette and past-slot RGBA fallbacks, and RGBA transparency have no direct tests (LIB-IMAGE-IO-006, -007, -008).

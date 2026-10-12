@@ -89,8 +89,8 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
 
 - **LIB-IMAGES-013** — If the arranger is read-only, then saving shall fail before writing anything.
   - Tests: `ReadOnlyArrangerTests.SaveImage_ReadOnly_ThrowsAndLeavesSourceUnchanged`, `ReadOnlyArrangerTests.SaveImage_ReadOnlySource_ThrowsBeforeWriting`
-- **LIB-IMAGES-014** — When an indexed image covering part of the arranger is saved, the save shall merge it into the arranger's current pixels and re-encode the whole arranger, leaving pixels and bytes outside the rectangle unchanged.
-  - Tests: `IndexedImageTests.PartialUnalignedEdit_LeavesOtherPixelsAndBytesUnchanged`
+- **LIB-IMAGES-014** — When an indexed or direct image covering part of the arranger is saved, the save shall merge it into the arranger's current pixels and re-encode the whole arranger, leaving pixels and bytes outside the rectangle unchanged.
+  - Tests: `IndexedImageTests.PartialUnalignedEdit_LeavesOtherPixelsAndBytesUnchanged`, `DirectArrangerRoundTripTests.SaveImage_SubRectangle_WritesItsPixelsAndKeepsTheRest`
 - **LIB-IMAGES-015** — When saving, the image shall encode every element of its kind that lies within its source, undoing mirror and then rotation first, and write only that element's bits, at byte-aligned and unaligned addresses.
   - Tests: `IndexedImageTests.MirrorAndRotation_RoundTrip`, `ElementIsolationTests.SaveElement_ByteAligned_ChangesOnlyElementBits`, `ElementIsolationTests.SaveElement_NotByteAligned_ChangesOnlyElementBits`, `DirectArrangerRoundTripTests.SaveElement_ByteAligned_ChangesOnlyElementBits`
 - **LIB-IMAGES-016** — When saving, the image shall skip elements past the end of their source, so a source never grows and its trailing bytes are unchanged.
@@ -104,8 +104,8 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
 
 ### Palette assignment
 
-- **LIB-IMAGES-019** — The can-set-palette check shall succeed when the pixel's element already uses that palette or every index in the element is below the palette's entry count, and fail outside the arranger, on an empty cell, or on a non-indexed codec.
-  - Tests: untested
+- **LIB-IMAGES-019** — The can-set-palette check shall succeed when the pixel's element already uses that palette or every index in the element is below the palette's entry count, and fail outside the arranger, on an empty cell, or on a non-indexed codec. Indexes of element pixels outside an image covering part of the arranger come from the arranger.
+  - Tests: `IndexedImageTests.CanSetPalette_SubRectangle_ChecksWholeElement`
 - **LIB-IMAGES-020** — When a palette is assigned at a pixel, the image shall give that element a clone of its codec carrying the palette, leaving every other element and arranger that shared the old codec unchanged.
   - Tests: `IndexedImageTests.TrySetPalette_ClonedArranger_LeavesOriginalPalettes`, `IndexedImageTests.TrySetPalette_CodecSharedByTwoCells_ChangesOnlyTarget`, `IndexedImageTests.TrySetPalette_ElementsCopiedFromSequential_LeavesSequentialPalette`, `GraphicsEditHistoryTests.ApplyPalette_Undo_DoesNotModifySharedCodec`
 
@@ -149,9 +149,7 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
 ## Edge cases
 
 - Creating an image with a rectangle outside the arranger throws an index error during the first render; there is no bounds check.
-- `DirectImage.SaveImage` and the direct save-conflict analysis read the image as if it started at the arranger origin, so a direct image over a sub-rectangle saves the wrong pixels or throws.
 - A save writes every element, including ones the edit did not touch; overlapping elements are resolved by write order (see LIB-ARRANGERS save conflicts).
-- The can-set-palette check reads the element's pixels at arranger coordinates through the image's own pixel accessor, which is wrong for an image over a sub-rectangle.
 - A flood fill whose clip bounds extend past the image throws when it reaches the image edge.
 - Remap throws when a pixel's index has no remap entry.
 - `CopyPixelsDirect` on an indexed arranger throws `NotImplementedException`, unlike the indexed variant's argument error.

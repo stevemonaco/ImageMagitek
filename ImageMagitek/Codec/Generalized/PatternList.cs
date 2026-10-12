@@ -136,7 +136,7 @@ public sealed class PatternList
                 var mapIndex = freqMap[letter] + baseIndex * 8;
                 freqMap[letter]++;
 
-                if (mapIndex > patternSize)
+                if (mapIndex >= patternSize)
                     return new MagitekResult<PatternList>.Failed($"Letter '{letter}' cannot be mapped to index '{mapIndex}' because the max index is '{patternSize - 1}'");
 
                 planeDecodePattern[pixel] = mapIndex;
@@ -220,14 +220,14 @@ public sealed class PatternList
 
             var letterCount = freqMap[letter];
 
-            if (letterCount > maxInstancesPerCharacter)
+            if (letterCount >= maxInstancesPerCharacter)
                 return new MagitekResult<PatternList>.Failed($"Letter '{letter}' occurs more than {maxInstancesPerCharacter} times across the pattern");
 
             for (int i = 0; i < planes; i++)
             {
                 var mapIndex = freqMap[letter] * planes + i + baseIndex * maxInstancesPerCharacter * planes;
 
-                if (mapIndex > patternSize)
+                if (mapIndex >= patternSize)
                     return new MagitekResult<PatternList>.Failed($"Letter '{letter}' cannot be mapped to index '{mapIndex}' because the max index is '{patternSize - 1}'");
 
                 decodePattern[pixel] = mapIndex;

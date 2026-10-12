@@ -166,8 +166,8 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
   - Tests: `SaveConflictTests.AnalyzeSaveConflicts_UnchangedDuplicateOfModifiedTile_IsConflict`, `SaveConflictTests.AnalyzeSaveConflicts_DuplicatesWithIdenticalEdits_IsNotConflict`
 - **LIB-ARRANGERS-036** — The analysis shall report whether any element conflicts and whether any is modified or conflicting, and list each group.
   - Tests: `SaveConflictTests.AnalyzeSaveConflicts_DuplicatesWithIdenticalEdits_IsNotConflict`
-- **LIB-ARRANGERS-037** — When analyzed from an edited indexed image, the analysis shall merge a partial image into the arranger's current pixels before encoding.
-  - Tests: untested
+- **LIB-ARRANGERS-037** — When analyzed from an edited indexed or direct image, the analysis shall merge a partial image into the arranger's current pixels before encoding.
+  - Tests: `DirectArrangerRoundTripTests.AnalyzeSaveConflicts_SubRectangle_ReportsOnlyEditedElement`
 
 ### Tile layouts and presets
 

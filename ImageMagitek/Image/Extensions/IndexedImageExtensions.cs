@@ -189,11 +189,21 @@ public static class IndexedImageExtensions
             if (ReferenceEquals(pal, codec.Palette))
                 return MagitekResult.SuccessResult;
 
+            var imageRect = new Rectangle(image.Left, image.Top, image.Width, image.Height);
+            var elementRect = new Rectangle(element.X1, element.Y1, element.Width, element.Height);
+            var elementImage = imageRect.Contains(elementRect) ? null : new IndexedImage(image.Arranger, element.X1, element.Y1, element.Width, element.Height);
             int maxIndex = 0;
 
             for (int pixelY = element.Y1; pixelY <= element.Y2; pixelY++)
+            {
                 for (int pixelX = element.X1; pixelX <= element.X2; pixelX++)
-                    maxIndex = Math.Max(maxIndex, image.GetPixel(pixelX, pixelY));
+                {
+                    var index = imageRect.Contains(pixelX, pixelY)
+                        ? image.GetPixel(pixelX - image.Left, pixelY - image.Top)
+                        : elementImage!.GetPixel(pixelX - element.X1, pixelY - element.Y1);
+                    maxIndex = Math.Max(maxIndex, index);
+                }
+            }
 
             if (maxIndex < pal.Entries)
                 return MagitekResult.SuccessResult;

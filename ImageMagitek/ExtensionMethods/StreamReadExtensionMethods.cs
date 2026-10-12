@@ -74,6 +74,9 @@ public static class StreamReadExtensionMethods
 
     private static void MaskUnshiftedEndBytes(Span<byte> buffer, int skipBits, int readBits, int readBytes)
     {
+        if (readBytes == 0)
+            return;
+
         // Mask bits skipped on the first byte
         int mask = (1 << (8 - skipBits)) - 1;
         buffer[0] = (byte)(buffer[0] & mask);

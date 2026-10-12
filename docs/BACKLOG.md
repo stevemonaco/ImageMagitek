@@ -14,11 +14,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ### Library
 
-- [LIB-IMAGES] `DirectImage.SaveImage` and its save-conflict analysis assume the image starts at the arranger origin, so a sub-rectangle image saves the wrong pixels or throws; `CanSetPalette` also reads arranger coordinates from a sub-rectangle image; done when partial DirectImage saves and `CanSetPalette` with Left/Top ≠ 0 are correct and tested.
-- [LIB-IMAGE-IO] Indexed export of a sub-rectangle image fails because the adapter sizes the PNG from the arranger; done when it exports the rectangle or rejects it clearly.
-- [LIB-IMAGE-IO] RGBA fallback export throws `IndexOutOfRangeException` when a pixel's index lies past its palette's last entry (a 4bpp element on a palette shorter than 16 entries, as in the AllFeatures fixture's `Sprites/Indexed`), so the CLI exits −2 for that export; done when such pixels export (transparent, or the codec's color range is padded) and a test pins it.
-- [LIB-CODECS] `PatternList` accepts `mapIndex == patternSize` (`>` should be `>=`), and the chunky symbol-count check allows one occurrence too many; done when tests reject both.
-- [LIB-DATASOURCE] A zero-bit read at a byte-aligned address throws `IndexOutOfRangeException`; done when it returns an empty array.
 - [LIB-DATASOURCE] A bit-unaligned write whose last partial byte is past EOF merges into `0xFF`, so untouched bits become 1; done when they are 0, or the write is refused.
 
 ### UI
@@ -83,7 +78,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [UI-ARRANGING, LIB-IMAGES] Magic wand, lasso, pixel-level flip and rotate of a selection (element mirror/rotate are display attributes).
 - [UI-ARRANGING] OS clipboard for images (the clipboard is a private static), so pixels can be exchanged with external editors.
 - [UI-GRAPHICS-EDITOR] Bookmarks and back/forward navigation in sequential browsing.
-- [UI-IMAGE-IO, LIB-IMAGE-IO] Export from sequential views and selections (blocked in the library by the sub-rectangle export bug); done when a View-mode editor can export a PNG.
+- [UI-IMAGE-IO, LIB-IMAGE-IO] Export from sequential views and selections (the library exports any subsection); done when a View-mode editor can export a PNG.
 - [LIB-IMAGE-IO] Export formats: BMP, indexed GIF, palette sidecar file.
 - [UI-IMAGE-IO] Expose AlphaThreshold and MaxDistance in the import dialog.
 - [LIB-IMAGES, LIB-PROJECT-FORMAT] WAL protection for binary pixel writes (`SaveImage` writes sources in place); done when an interrupted pixel save is recovered.

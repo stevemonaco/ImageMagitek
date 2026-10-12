@@ -141,12 +141,116 @@ public class ImageImporterTests
         var path = TestPaths.CreateTempPath(".png");
         try
         {
-            adapter.SaveImage(new IndexedImage(arranger).Image, arranger, path);
+            new IndexedImage(arranger).ExportImage(path, adapter);
             var preview = ImageImporter.Prepare(arranger, path, ImageImportOptions.Default, adapter).AsSuccess.Result;
 
             Assert.True(preview.Report.UsedSourceIndices);
             Assert.Equal(0, preview.Report.ChangedPixelCount);
             Assert.Equal(current.Image, preview.ResultIndexed!.Image);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Export_IndexedSubsection_WritesOnlyItsPixels()
+    {
+        var arranger = CreateIndexedArranger(ArrangerTestFactory.CreatePalette(_black, _red, _white));
+        var current = new IndexedImage(arranger);
+        for (int i = 0; i < current.Image.Length; i++)
+            current.Image[i] = (byte)(i % 3);
+        current.SaveImage();
+        var subsection = new IndexedImage(arranger, 4, 2, 8, 4);
+
+        var adapter = new ImageSharpFileAdapter();
+        var path = TestPaths.CreateTempPath(".png");
+        try
+        {
+            subsection.ExportImage(path, adapter);
+            var exported = adapter.LoadImage(path).AsSuccess.Result;
+
+            Assert.Equal((8, 4), (exported.Width, exported.Height));
+            Assert.Equal(subsection.Image, exported.Indices);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Export_IndexedSubsectionOverRgbaFallback_WritesEachElementsColors()
+    {
+        var left = TestImageGenerator.CreateDistinctPalette(8);
+        var right = TestImageGenerator.CreateDistinctPalette(8);
+        right.SetNativeColor(5, _green);
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1,
+            (x, _) => new IndexedCodecPluginAdapter(new Psx8BppCodec(), x == 0 ? left : right, 8, 8));
+        var current = new IndexedImage(arranger);
+        Array.Fill(current.Image, (byte)5);
+        current.SaveImage();
+
+        var adapter = new ImageSharpFileAdapter();
+        var path = TestPaths.CreateTempPath(".png");
+        try
+        {
+            new IndexedImage(arranger, 4, 0, 8, 8).ExportImage(path, adapter);
+            var exported = adapter.LoadImage(path).AsSuccess.Result;
+
+            Assert.Equal((8, 8), (exported.Width, exported.Height));
+            Assert.Null(exported.Indices);
+            Assert.Equal(left[5], exported.Pixels[3]);
+            Assert.Equal(_green, exported.Pixels[4]);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Export_IndexPastPalette_ThrowsNamingElementAndWritesNothing()
+    {
+        var arranger = CreateIndexedArranger(ArrangerTestFactory.CreatePalette(_black, _red, _white));
+        var current = new IndexedImage(arranger);
+        current.SetPixel(12, 3, 5);
+        current.SaveImage();
+
+        var path = TestPaths.CreateTempPath(".png");
+        try
+        {
+            var ex = Assert.Throws<InvalidOperationException>(() => new IndexedImage(arranger).ExportImage(path, new ImageSharpFileAdapter()));
+
+            Assert.Contains("element at (1, 0) uses color index 5", ex.Message);
+            Assert.Contains("has only 3 colors", ex.Message);
+            Assert.False(File.Exists(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Export_IndexPastPaletteOverRgbaFallback_Throws()
+    {
+        var full = TestImageGenerator.CreateDistinctPalette(8);
+        var shorter = ArrangerTestFactory.CreatePalette(Enumerable.Range(0, 255).Select(i => full[i]).ToArray());
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 2, 1,
+            (x, _) => new IndexedCodecPluginAdapter(new Psx8BppCodec(), x == 0 ? full : shorter, 8, 8));
+        var current = new IndexedImage(arranger);
+        current.SetPixel(12, 3, 255);
+        current.SaveImage();
+
+        var path = TestPaths.CreateTempPath(".png");
+        try
+        {
+            var ex = Assert.Throws<InvalidOperationException>(() => new IndexedImage(arranger).ExportImage(path, new ImageSharpFileAdapter()));
+
+            Assert.Contains("element at (1, 0) uses color index 255", ex.Message);
+            Assert.False(File.Exists(path));
         }
         finally
         {
@@ -169,7 +273,7 @@ public class ImageImporterTests
         var path = TestPaths.CreateTempPath(".png");
         try
         {
-            adapter.SaveImage(new IndexedImage(arranger).Image, arranger, path);
+            new IndexedImage(arranger).ExportImage(path, adapter);
 
             Assert.True(IndexedPngFile.TryRead(path, out _, out var pngPalette));
             Assert.Equal(0, pngPalette[0].A);
@@ -200,7 +304,7 @@ public class ImageImporterTests
         var path = TestPaths.CreateTempPath(".png");
         try
         {
-            adapter.SaveImage(new IndexedImage(arranger).Image, arranger, path);
+            new IndexedImage(arranger).ExportImage(path, adapter);
 
             Assert.True(IndexedPngFile.TryRead(path, out var pngIndices, out var pngPalette));
             Assert.Equal([_black, _red, _black, _black, _red, _blue], pngPalette);

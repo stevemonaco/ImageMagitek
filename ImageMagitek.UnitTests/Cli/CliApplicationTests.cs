@@ -397,6 +397,18 @@ public sealed class CliApplicationTests : IDisposable
     }
 
     [Fact]
+    public async Task Export_IndexPastPalette_ReportsElementExits7()
+    {
+        const string indexedKey = "Graphics/Sprites/Indexed";
+        File.Copy(Path.Combine(AppContext.BaseDirectory, "Fixtures", "Projects", ProjectFixtures.AllFeatures, "Resources", "Graphics", "Sprites", "Indexed.xml"),
+            Path.Combine(_directory, "Resources", "Graphics", "Sprites", "Indexed.xml"));
+
+        Assert.Equal(-7, await RunAsync("export", _projectFile, _imageDirectory, indexedKey));
+        Assert.Contains("Cannot export 'Indexed': the element at", Output);
+        Assert.False(File.Exists(ImagePath(indexedKey)));
+    }
+
+    [Fact]
     public async Task Import_MissingDataFile_NamesFileExits6()
     {
         Assert.Equal(0, await RunAsync("export", _projectFile, _imageDirectory, SimpleKey));

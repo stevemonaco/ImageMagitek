@@ -1,21 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using Point = System.Drawing.Point;
+using Rectangle = System.Drawing.Rectangle;
 
 namespace ImageMagitek;
 
 public sealed class ImageSharpFileAdapter : IImageFileAdapter
 {
-    public void SaveImage(byte[] image, Arranger arranger, string imagePath)
-    {
-        var width = arranger.ArrangerPixelSize.Width;
-        var height = arranger.ArrangerPixelSize.Height;
+    public void SaveImage(byte[] image, Arranger arranger, string imagePath) =>
+        SaveImage(image, arranger, new Rectangle(0, 0, arranger.ArrangerPixelSize.Width, arranger.ArrangerPixelSize.Height), imagePath);
 
-        if (CombinedPalette.TryCreate(arranger) is { } combined && TryMapToCombined(image, arranger, combined) is { } combinedIndices)
+    /// <exception cref="InvalidOperationException">A pixel's index lies past the last entry of its element's palette</exception>
+    public void SaveImage(byte[] image, Arranger arranger, Rectangle subsection, string imagePath)
+    {
+        var width = subsection.Width;
+        var height = subsection.Height;
+
+        if (CombinedPalette.TryCreate(arranger) is { } combined && TryMapToCombined(image, arranger, subsection, combined) is { } combinedIndices)
         {
             IndexedPngFile.Write(imagePath, combinedIndices, width, height, combined.Colors);
             return;
@@ -23,25 +30,25 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
 
         Configuration.Default.PreferContiguousImageBuffers = true;
         using var outputImage = new Image<Rgba32>(width, height);
+        outputImage.DangerousTryGetSinglePixelMemory(out var memory);
+        var pixels = memory.Span;
 
-        var srcidx = 0;
-
-        for (int y = 0; y < height; y++)
+        foreach (var (y, start, end, palette) in EnumeratePaletteRuns(arranger, subsection))
         {
-            outputImage.DangerousTryGetSinglePixelMemory(out var memory);
-            var span = memory.Slice(y * width, width).Span;
+            if (palette is null)
+                continue;
 
-            for (int x = 0; x < width; x++, srcidx++)
+            var row = y * width;
+            for (int x = start; x < end; x++)
             {
-                if (arranger.GetElementAtPixel(x, y)?.Codec is IIndexedCodec codec)
-                {
-                    var pal = codec.Palette;
-                    var index = image[srcidx];
-                    if (index == 0 && pal.ZeroIndexTransparent)
-                        continue;
+                var index = image[row + x];
+                if (index >= palette.Entries)
+                    throw IndexPastPalette(arranger, subsection, x, y, index, palette);
 
-                    span[x] = pal[index].ToRgba32();
-                }
+                if (index == 0 && palette.ZeroIndexTransparent)
+                    continue;
+
+                pixels[row + x] = palette[index].ToRgba32();
             }
         }
 
@@ -51,29 +58,62 @@ public sealed class ImageSharpFileAdapter : IImageFileAdapter
 
     /// <summary>
     /// Shifts each pixel's index into its palette's range of <paramref name="combined"/>, or returns null when an index
-    /// lies past the end of its palette and so has no slot of its own
+    /// lies past the end of its palette's slot
     /// </summary>
-    private static byte[]? TryMapToCombined(byte[] image, Arranger arranger, CombinedPalette combined)
+    private static byte[]? TryMapToCombined(byte[] image, Arranger arranger, Rectangle subsection, CombinedPalette combined)
     {
-        var width = arranger.ArrangerPixelSize.Width;
-        var height = arranger.ArrangerPixelSize.Height;
-        var result = new byte[width * height];
+        var result = new byte[subsection.Width * subsection.Height];
 
-        for (int y = 0, i = 0; y < height; y++)
+        foreach (var (y, start, end, palette) in EnumeratePaletteRuns(arranger, subsection))
         {
-            for (int x = 0; x < width; x++, i++)
-            {
-                if (arranger.GetElementAtPixel(x, y)?.Codec is not IIndexedCodec { Palette: { } palette })
-                    continue;
+            if (palette is null)
+                continue;
 
-                if (!combined.TryGetSlot(palette, out var offset, out var count) || image[i] >= count)
+            if (!combined.TryGetSlot(palette, out var offset, out var count))
+                return null;
+
+            var row = y * subsection.Width;
+            for (int x = start; x < end; x++)
+            {
+                var index = image[row + x];
+                if (index >= palette.Entries)
+                    throw IndexPastPalette(arranger, subsection, x, y, index, palette);
+
+                if (index >= count)
                     return null;
 
-                result[i] = (byte)(offset + image[i]);
+                result[row + x] = (byte)(offset + index);
             }
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Splits each row of <paramref name="subsection"/> into runs of pixels within one element, in subsection coordinates
+    /// </summary>
+    /// <returns>Runs with a null palette for empty cells and elements without an indexed palette</returns>
+    private static IEnumerable<(int Y, int Start, int End, Palette? Palette)> EnumeratePaletteRuns(Arranger arranger, Rectangle subsection)
+    {
+        var elementWidth = arranger.ElementPixelSize.Width;
+
+        for (int y = 0; y < subsection.Height; y++)
+        {
+            for (int x = 0; x < subsection.Width;)
+            {
+                var end = Math.Min(subsection.Width, x + elementWidth - (x + subsection.X) % elementWidth);
+                var palette = (arranger.GetElementAtPixel(x + subsection.X, y + subsection.Y)?.Codec as IIndexedCodec)?.Palette;
+                yield return (y, x, end, palette);
+                x = end;
+            }
+        }
+    }
+
+    private static InvalidOperationException IndexPastPalette(Arranger arranger, Rectangle subsection, int x, int y, byte index, Palette palette)
+    {
+        var location = arranger.PointToElementLocation(new Point(x + subsection.X, y + subsection.Y));
+        return new InvalidOperationException($"Cannot export '{arranger.Name}': the element at ({location.X}, {location.Y}) " +
+            $"uses color index {index}, but its palette '{palette.Name}' has only {palette.Entries} colors");
     }
 
     public void SaveImage(ColorRgba32[] image, int width, int height, string imagePath)

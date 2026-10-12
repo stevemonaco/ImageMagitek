@@ -102,6 +102,8 @@ depends:
   - Tests: `CliApplicationTests.Export_NotScatteredArranger_Exits7`
 - **CLI-COMMANDS-034** — If the PNG already exists and `--overwrite` is not given, then the CLI shall print "File already exists and was skipped to not overwrite it" and continue; with `--overwrite` it shall replace the file.
   - Tests: `CliApplicationTests.Export_Existing_WithoutOverwrite_SkipsExits0`, `CliApplicationTests.Export_Existing_WithOverwrite_Replaces`
+- **CLI-COMMANDS-066** — If writing an arranger's PNG fails with an I/O or access error, or the library refuses the image (LIB-IMAGE-IO-045), then the CLI shall print the reason, continue with the next key, and count the key as failed.
+  - Tests: `CliApplicationTests.Export_IndexPastPalette_ReportsElementExits7`
 - **CLI-COMMANDS-035** — The exported PNG shall be paletted when the arranger's palettes fit one PNG palette and RGBA otherwise, as LIB-IMAGE-IO specifies.
   - Tests: untested
 - **CLI-COMMANDS-036** — When the PNG's directory does not exist, the CLI shall create it, including folders for a nested arranger.
@@ -164,7 +166,6 @@ depends:
 - Project-open errors and per-key messages go to standard output only, never to the log file.
 - The `--match` parser also accepts the enum's defined numeric values (`--match 1`); help lists only the names. An undefined number is an argument error (-3).
 - A project path starting with `@` is taken literally; response files are not expanded.
-- An indexed arranger whose pixel indices lie past its palette's last entry fails export with an exception (-2) rather than -7; LIB-IMAGE-IO's RGBA fallback does not handle it (backlog).
 
 ## Threading and lifetime
 
@@ -185,7 +186,7 @@ depends:
 - **Response files are off.** `ResponseFileTokenReplacer` is null. Reason: a project or directory path starting with `@` must not be read as a response file; scripts pass a handful of arguments.
 - **An in-process `CliApplication`, tested by project reference.** `CliApplication` takes the output writer, a bootstrap function that builds the `IProjectService` (or throws, for -4), and the default log path. `ImageMagitek.UnitTests` references `TileShop.CLI` as it references `TileShop.UI`. Reason: tests inject a project service whose open yields (the journal case) or throws (-2), point plugins at a temp folder, and run in parallel. Rejected: spawning the built exe (slow, build-order coupling, cannot inject); a separate `TileShop.CLI.Core` library (not needed: the exe reference builds).
 - **Output through an injected writer, not `Console` or the Serilog console sink.** Handlers, `Exporter`, `Importer`, the bootstrap issues and the parser's help and errors all write to the writer; Serilog keeps only the file log. Reason: `Console.SetOut` is process-wide, so parallel tests would interleave.
-- **Export reports every failure, then exits -7.** `Exporter.ExportArranger` returns false for a failed key (an existing PNG skipped without `--overwrite` is not a failure); the handler exports all keys and exits -7 if any key failed. `IOException` and `UnauthorizedAccessException` writing one PNG fail that key. Reason: export writes no data files, so finishing the rest is harmless and reports every broken key in one run. Rejected: stopping at the first failure like import (import stops because it writes ROM data); a `-r` flag for export (the caller named the keys, so a bad one is an error).
+- **Export reports every failure, then exits -7.** `Exporter.ExportArranger` returns false for a failed key (an existing PNG skipped without `--overwrite` is not a failure); the handler exports all keys and exits -7 if any key failed. `IOException`, `UnauthorizedAccessException` and the library's `InvalidOperationException` refusals fail that key. Reason: export writes no data files, so finishing the rest is harmless and reports every broken key in one run. Rejected: stopping at the first failure like import (import stops because it writes ROM data); a `-r` flag for export (the caller named the keys, so a bad one is an error).
 - **An existing PNG without `--overwrite` is a skip, not a failure.** Reason: it is the documented protective default and the caller chose it. Rejected: failing -7, which would make re-running an export without `--overwrite` always fail.
 - **Missing data files are checked before reading.** Both verbs call `Arranger.FindMissingDataSource` (LIB-ARRANGERS), the same rule the UI uses. Reason: the message names the file instead of a `FileNotFoundException` stack. Rejected: catching `IOException` around the read, which cannot reliably name the file and fires mid-image.
 - **A missing data file is never skipped.** `-f` skips missing image files only. Reason: a moved ROM is an environment fault the build must surface; skipping it would silently ship stale graphics.

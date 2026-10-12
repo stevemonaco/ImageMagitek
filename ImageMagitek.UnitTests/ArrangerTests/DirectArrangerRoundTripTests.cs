@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using ImageMagitek.Codec;
+using ImageMagitek.Colors;
 using ImageMagitek.UnitTests.Fixtures;
 using ImageMagitek.UnitTests.TestFactories;
 using Xunit;
@@ -85,6 +86,50 @@ public class DirectArrangerRoundTripTests
         var after = source.Read(BitAddress.Zero, length * 8);
         BitAssert.EqualOutside(before, after, _offsetBits, codec.StorageSize);
         ColorImageAssert.AreEqual(colors, new DirectImage(arranger).Image, codec.Width);
+    }
+
+    [Fact]
+    public void SaveImage_SubRectangle_WritesItsPixelsAndKeepsTheRest()
+    {
+        var arranger = CreateRandomArranger();
+        var size = arranger.ArrangerPixelSize;
+        var elementSize = arranger.ElementPixelSize;
+        var left = elementSize.Width / 2;
+        var top = elementSize.Height / 2;
+        var expected = new DirectImage(arranger).Image;
+
+        var image = new DirectImage(arranger, left, top, elementSize.Width, elementSize.Height);
+        TestImageGenerator.Flatten(TestImageGenerator.RandomColors(image.Width, image.Height, 41)).CopyTo(image.Image, 0);
+        for (int y = 0; y < image.Height; y++)
+            Array.Copy(image.Image, y * image.Width, expected, (y + top) * size.Width + left, image.Width);
+
+        image.SaveImage();
+
+        ColorImageAssert.AreEqual(expected, new DirectImage(arranger).Image, size.Width);
+    }
+
+    [Fact]
+    public void AnalyzeSaveConflicts_SubRectangle_ReportsOnlyEditedElement()
+    {
+        var arranger = CreateRandomArranger();
+        var elementSize = arranger.ElementPixelSize;
+        var image = new DirectImage(arranger, elementSize.Width / 2, elementSize.Height / 2, elementSize.Width, elementSize.Height);
+
+        Assert.Empty(arranger.AnalyzeSaveConflicts(image).GetModifiedElements());
+
+        var pixel = image.GetPixel(image.Width - 1, image.Height - 1);
+        image.SetPixel(image.Width - 1, image.Height - 1, new ColorRgba32((byte)~pixel.R, pixel.G, pixel.B, pixel.A));
+        var modified = Assert.Single(arranger.AnalyzeSaveConflicts(image).GetModifiedElements());
+
+        Assert.Equal((1, 1), (modified.ElementX, modified.ElementY));
+    }
+
+    private ScatteredArranger CreateRandomArranger()
+    {
+        var arranger = CreateArranger("N64 Rgba32");
+        var source = arranger.GetElement(0, 0)!.Value.Source;
+        source.Write(BitAddress.Zero, TestImageGenerator.RandomBytes((int)source.Length, 40));
+        return arranger;
     }
 
     private ScatteredArranger CreateArranger(string codecName) =>
