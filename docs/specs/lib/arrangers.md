@@ -54,6 +54,7 @@ tests:
   - IndexedImageTests
   - ImageImporterTests
   - ScatteredArrangerTests
+  - ElementTransformTests
 depends:
   - LIB-DATASOURCE
   - LIB-CODECS
@@ -98,9 +99,9 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 ### Mirror and rotation
 
 - **LIB-ARRANGERS-011** — When an element is mirrored, its mirror state shall compose with the requested mirror (the same axis twice cancels; horizontal plus vertical is both), and the call shall fail without change when the cell is empty.
-  - Tests: `GraphicsEditHistoryTests.Mirror_UndoRedo`
-- **LIB-ARRANGERS-012** — When an element is rotated, its rotation shall compose with the requested quarter turns (left then right cancels; two lefts are a turn), and the call shall fail for an empty cell, for a non-square element, or for a location past the grid.
-  - Tests: `GraphicsEditHistoryTests.Rotate_UndoRedo`
+  - Tests: `GraphicsEditHistoryTests.Mirror_UndoRedo`, `ElementTransformTests.Mirror_FlipsDisplayedPixels`
+- **LIB-ARRANGERS-012** — When an element is rotated, the rotation shall turn it as displayed. The requested quarter turn composes with its rotation, reversed in direction while the element is mirrored on exactly one axis: left then right cancels, and two lefts are a turn. The call shall fail for an empty cell, a non-square element or a location past the grid.
+  - Tests: `ElementTransformTests.Rotate_TurnsDisplayedPixels`, `ElementTransformTests.HMirrorThenRotateLeft_TurnsCounterClockwise`, `GraphicsEditHistoryTests.Rotate_UndoRedo`
 - **LIB-ARRANGERS-013** — Mirroring or rotating with `None` shall succeed without change.
   - Tests: untested
 - **LIB-ARRANGERS-014** — Mirror and rotation shall change only how the element is displayed and encoded; the source bytes are unchanged until the image is saved.
@@ -227,6 +228,7 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 ## Decisions
 
 - **Mirror and rotation are display attributes.** They change how an element is decoded and encoded, not the stored pixels, so they are free to toggle and undo. Rejected: pixel-level flip and rotate, which remains a selection-tool gap.
+- **Stored mirror and rotation mean rotate, then mirror.** Render (LIB-IMAGES-006) decodes, rotates, then mirrors, and encode (LIB-IMAGES-015) inverts that order. The rotate tool turns the element as shown on screen: for a horizontal or vertical mirror `M`, `M∘Q∘M = Q⁻¹`, so `TryRotateElement` reverses the requested quarter turn before composing; mirror `Both` equals a turn and commutes with rotation, so it is unchanged. `TryMirrorElement` already composes in display space. Reason: the meaning stored in 0.9 is already consistent in render and encode, and only the edit was wrong, so no saved project renders differently. Rejected: changing render to mirror-then-rotate (changes how every saved element that is both mirrored and rotated renders, for no gain); normalizing to the 8 distinct transforms, such as `both` → `turn` (rewrites files with no visible change, and `mirror="both"` is what people write by hand).
 - **Every element is written on save.** A save encodes and writes every element, so an unchanged element that overlaps a modified one would overwrite it; the conflict analysis therefore flags overlaps where either side is modified unless both write the same bits to the same range.
 - **Element layouts are not persisted.** A data file is browsed with many layouts, so storing one on the data file does not fit, and sequential arrangers are not project resources. The layout choice lasts for an editor session. Rejected: saving the full layout with the arranger, deferred until sequential arrangers become project resources.
 - **Layout presets ship in the build output.** `_layouts/*.json` is copied to output so the element store is populated at runtime; before this the store was always empty. A test loads every preset from the test output.
@@ -242,7 +244,6 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
 
 ## Open items
 
-- Rotating a horizontally or vertically mirrored element by a quarter turn composes rotation without regard to the mirror; because render applies rotation then mirror, the visible result turns the opposite way. Needs a check and a test.
 - `GetInitialSequentialFileAddress` indexes the grid as `[x, y]` instead of `[y, x]`; latent while every layout's first pattern cell is (0, 0).
 - Single-layout movement steps (LIB-ARRANGERS-047) and element step (LIB-ARRANGERS-048) look arbitrary and are untested.
 - Elements past the end of their source are reported Modified by the conflict analysis but are never written by save.

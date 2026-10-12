@@ -10,6 +10,7 @@ public sealed class ResourceNameTests
     {
         { "", false, "empty" },
         { " a", false, "start with whitespace" },
+        { ".hidden", false, "start with '.'" },
         { "a ", false, "end with whitespace" },
         { "a.", false, "end with '.'" },
         { "a<b", false, "'<'" },
@@ -47,7 +48,6 @@ public sealed class ResourceNameTests
         { "New Folder (2)", true },
         { "Console", false },
         { "COM10", false },
-        { ".hidden", false },
         { "Ünïcödé", false },
         { new string('a', 100), false },
         { "x.xml", false },

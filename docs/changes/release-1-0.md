@@ -4,7 +4,7 @@
 
 1.0 is published only after the artifact users download has been checked by hand. DevTools cannot attach to a Release build, so a Release-only regression (trimming in the CLI, the Debug-only code paths, single-file `Assembly.Location`) is caught only by a manual pass on the published zips. The backlog's "Manual checks" section also holds checks DevTools cannot drive (gestures, drag and drop, popups), pending from earlier milestones.
 
-This proposal is the last step: it lands after every other **1.0** item, including [project-format-freeze](project-format-freeze.md) and [docs-1-0](docs-1-0.md).
+This proposal is the last step: it lands after every other **1.0** item, including the project format freeze (landed; [LIB-PROJECT-FORMAT](../specs/lib/project-format.md)) and [docs-1-0](docs-1-0.md).
 
 ## What
 

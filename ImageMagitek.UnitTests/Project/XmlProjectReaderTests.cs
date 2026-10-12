@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -333,6 +334,159 @@ public sealed class XmlProjectReaderTests : IDisposable
         var tree = ReadSuccess();
 
         Assert.Same(ProjectFixtures.DefaultPalette, ElementPalette(tree, "/arr", 0, 0));
+    }
+
+    [Fact]
+    public void DotDirectory_NotAFolderAndNotScanned()
+    {
+        Directory.CreateDirectory(PathOf(Path.Combine(".git", "objects", "ab")));
+        WriteXml(".idea/workspace.xml", "<project version=\"4\"><component name=\"ChangeListManager\" /></project>");
+        WriteXml(".vs/config.xml", "<arranger />");
+
+        var tree = ReadSuccess();
+
+        Assert.DoesNotContain(tree.EnumerateDepthFirst(), x => x.Name.StartsWith('.'));
+    }
+
+    [Fact]
+    public void DotPrefixedXmlFile_Ignored()
+    {
+        WriteXml(".hidden.xml", "<arranger />");
+
+        var tree = ReadSuccess();
+
+        Assert.False(tree.TryGetItem<ScatteredArranger>("/.hidden", out _));
+    }
+
+    [Fact]
+    public void ForeignRootXml_Ignored()
+    {
+        WriteXml("Docs/notes.xml", "<notes><note>not a resource</note></notes>");
+
+        var tree = ReadSuccess();
+
+        Assert.True(tree.TryGetNode("/Docs", out _));
+        Assert.False(tree.TryGetNode("/Docs/notes", out _));
+    }
+
+    [Fact]
+    public void MalformedXml_FailsNamingFileAndLine()
+    {
+        WriteXml("arr.xml", "<<<<<<< HEAD\n" + Arranger("", Element(0, 0)) + "\n=======\n" + Arranger("", Element(1, 0)) + "\n>>>>>>> branch");
+
+        var reason = ReadSingleFailure();
+
+        Assert.Contains(PathOf("arr.xml"), reason);
+        Assert.Contains("line 2", reason);
+    }
+
+    [Fact]
+    public void EmptyDirectory_BecomesFolder()
+    {
+        Directory.CreateDirectory(PathOf(Path.Combine("Outer", "Inner")));
+
+        var tree = ReadSuccess();
+
+        Assert.True(tree.TryGetNode("/Outer/Inner", out var inner));
+        Assert.IsType<ResourceFolderNode>(inner);
+    }
+
+    [Fact]
+    public void ReferenceIntoDotDirectory_FailsNamingKey()
+    {
+        WriteXml(".dot/rom.xml", "<datafile location=\".dot/rom.bin\" />");
+        File.WriteAllBytes(PathOf(Path.Combine(".dot", "rom.bin")), new byte[64]);
+        WriteXml("arr.xml", Arranger("", Element(0, 0, "datafile=\"/.dot/rom\"")));
+
+        var reason = ReadSingleFailure();
+
+        Assert.Contains("'/.dot/rom'", reason);
+    }
+
+    [Fact]
+    public void NewerMinor_FailsNamingVersions()
+    {
+        WriteXml("project.xml", "<project version=\"1.1\" />");
+
+        var reason = ReadSingleFailure();
+
+        Assert.Equal("'project.xml' uses project format 1.1; this version of TileShop reads format 1.0 and older.", reason);
+    }
+
+    [Fact]
+    public void NewerMajor_FailsBeforeReadingResources()
+    {
+        WriteXml("project.xml", "<project version=\"2.0\" />");
+        WriteXml("pal.xml", "<palette datafile=\"/rom\" color=\"Bogus\" zeroindextransparent=\"false\" />");
+
+        var reason = ReadSingleFailure();
+
+        Assert.Contains("project format 2.0", reason);
+    }
+
+    [Fact]
+    public void NewerWithUnknownAttributes_ReportsVersionNotSchema()
+    {
+        WriteXml("project.xml", "<project version=\"1.3\" keyindex=\"keys.xml\"><future /></project>");
+
+        var reason = ReadSingleFailure();
+
+        Assert.Contains("project format 1.3", reason);
+    }
+
+    [Theory]
+    [InlineData("<project />", "no project format version")]
+    [InlineData("<project version=\"abc\" />", "'abc'")]
+    [InlineData("<project version=\"1,0\" />", "'1,0'")]
+    [InlineData("<project version=\"1.0.0\" />", "'1.0.0'")]
+    public void MissingOrUnparseableVersion_FailsNamingFile(string projectXml, string expected)
+    {
+        WriteXml("project.xml", projectXml);
+
+        var reason = ReadSingleFailure();
+
+        Assert.Contains("'project.xml'", reason);
+        Assert.Contains(expected, reason);
+    }
+
+    [Fact]
+    public void OlderThan09_FailsNamingVersion()
+    {
+        WriteXml("project.xml", "<project version=\"0.8\" />");
+
+        var reason = ReadSingleFailure();
+
+        Assert.Contains("'project.xml'", reason);
+        Assert.Contains("0.8", reason);
+    }
+
+    [Theory]
+    [InlineData("fr-FR")]
+    [InlineData("de-DE")]
+    [InlineData("")]
+    public void Parse_IsCultureInvariant(string culture)
+    {
+        var original = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo(culture);
+
+            Assert.True(ProjectFormat.TryParse("0.9", out var version));
+            Assert.Equal(new Version(0, 9), version);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = original;
+        }
+    }
+
+    [Fact]
+    public void Ordering_1_10_IsNewerThan_1_9()
+    {
+        Assert.True(ProjectFormat.TryParse("1.10", out var newer));
+        Assert.True(ProjectFormat.TryParse("1.9", out var older));
+
+        Assert.True(newer > older);
     }
 
     [Fact]

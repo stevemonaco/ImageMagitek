@@ -421,6 +421,17 @@ public sealed class ProjectServiceTests : IAsyncLifetime
         Assert.Empty(Directory.GetFiles(PathOf("Resources"), "*.xml", SearchOption.AllDirectories));
     }
 
+    [Fact]
+    public async Task Version09_LoadsAsCurrent()
+    {
+        File.WriteAllText(PathOf("project.xml"), "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<project version=\"0.9\" />");
+        var tree = await ReopenAsync();
+
+        Assert.True((await _service.RenameResourceAsync(tree.Root, "renamed")).HasSucceeded);
+
+        Assert.Equal("1.0", XDocument.Load(PathOf("renamed.xml")).Root!.Attribute("version")!.Value);
+    }
+
     private static T ItemOf<T>(ProjectTree tree, string name) =>
         Assert.IsType<T>(tree.Root.ChildNodes.Single(x => x.Name == name).Item);
 
@@ -604,6 +615,7 @@ public sealed class ProjectServiceTests : IAsyncLifetime
     [InlineData("a/b")]
     [InlineData("con")]
     [InlineData(" a")]
+    [InlineData(".hidden")]
     public async Task AddResource_InvalidName_FailsWithoutWriting(string name)
     {
         var entriesBefore = ListEntries();
@@ -655,6 +667,7 @@ public sealed class ProjectServiceTests : IAsyncLifetime
     [Theory]
     [InlineData("Bad?")]
     [InlineData("x.xml")]
+    [InlineData(".git")]
     public async Task CreateNewFolder_InvalidName_CreatesNoDirectory(string name)
     {
         var entriesBefore = ListEntries();
@@ -694,6 +707,19 @@ public sealed class ProjectServiceTests : IAsyncLifetime
         Assert.True(result.HasFailed);
         Assert.Equal("other", other.Name);
         Assert.True(File.Exists(PathOf("other.xml")));
+    }
+
+    [Fact]
+    public async Task RenameResource_LeadingDot_Fails()
+    {
+        var node = await AddDataFileAsync(_tree.Root, "data");
+
+        var result = await _service.RenameResourceAsync(node, ".data");
+
+        Assert.True(result.HasFailed);
+        Assert.Contains("start with '.'", result.AsError.Reason);
+        Assert.Equal("data", node.Name);
+        Assert.True(File.Exists(PathOf("data.xml")));
     }
 
     [Fact]

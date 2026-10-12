@@ -31,6 +31,7 @@ types:
   - ScatteredColorSourceModel
   - ResourceFileLocator
   - Utf8StringWriter
+  - ProjectFormat
   - WriteAheadLogTransaction
   - WalJournal
   - WalOperation
@@ -45,6 +46,7 @@ tests:
   - XmlProjectRoundTripTests
   - SerializationMapperTests
   - SerializationModelTests
+  - CliApplicationTests
 depends:
   - LIB-PROJECT-TREE
   - LIB-DATASOURCE
@@ -70,17 +72,17 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `ProjectServiceTests.OpenProject_MissingDataFile_LoadsWithSourceMarkedMissing`
 - **LIB-PROJECT-FORMAT-003** — Files shall be written as UTF-8 XML with a declaration, indented with tabs.
   - Tests: `XmlProjectRoundTripTests.WriteTwice_ByteIdentical`
-- **LIB-PROJECT-FORMAT-004** — When reading, every subdirectory of the base directory shall become a folder, including empty directories and directories holding only non-resource files.
-  - Tests: untested
-- **LIB-PROJECT-FORMAT-005** — When reading, every `*.xml` file under the base directory other than the project file shall be read as a resource; another project file found there shall be ignored.
-  - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
+- **LIB-PROJECT-FORMAT-004** — When reading, every subdirectory of the base directory whose name does not start with `.`, and that is not inside such a directory, shall become a folder, including empty directories and directories holding only non-resource files.
+  - Tests: `XmlProjectReaderTests.DotDirectory_NotAFolderAndNotScanned`, `XmlProjectReaderTests.EmptyDirectory_BecomesFolder`
+- **LIB-PROJECT-FORMAT-005** — When reading, every `*.xml` file under the base directory shall be read except the project file, a file whose name starts with `.`, and a file inside a directory skipped by LIB-PROJECT-FORMAT-004. A file whose root element is `project`, or is not `datafile`, `palette` or `arranger`, shall be ignored.
+  - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`, `XmlProjectReaderTests.DotPrefixedXmlFile_Ignored`, `XmlProjectReaderTests.ForeignRootXml_Ignored`, `XmlProjectReaderTests.DotDirectory_NotAFolderAndNotScanned`
 
 ### Elements and attributes
 
-- **LIB-PROJECT-FORMAT-006** — The writer shall write `version="0.9"` on the project element and `root` only when the project has a non-empty root.
-  - Tests: `XmlProjectRoundTripTests.WriteTwice_ByteIdentical`, `XmlProjectRoundTripTests.RootRelative_SaveAndReopen_Unchanged`
-- **LIB-PROJECT-FORMAT-007** — The reader shall parse `version` and never compare it; any decimal the schema accepts loads.
-  - Tests: untested
+- **LIB-PROJECT-FORMAT-006** — The writer shall write the current format version, `version="1.0"`, on the project element, and write `root` only when the project has a non-empty root.
+  - Tests: `XmlProjectWriterTests.Writer_WritesCurrentVersion`, `XmlProjectRoundTripTests.WriteTwice_ByteIdentical`, `XmlProjectRoundTripTests.RootRelative_SaveAndReopen_Unchanged`
+- **LIB-PROJECT-FORMAT-007** — The reader shall read `version` before validating the project file and parse it as `major.minor` independently of the current culture. If it is missing, does not parse, or is older than 0.9, then the load shall fail naming the project file and the version.
+  - Tests: `XmlProjectReaderTests.MissingOrUnparseableVersion_FailsNamingFile`, `XmlProjectReaderTests.OlderThan09_FailsNamingVersion`, `XmlProjectReaderTests.Parse_IsCultureInvariant`, `XmlProjectReaderTests.Ordering_1_10_IsNewerThan_1_9`
 - **LIB-PROJECT-FORMAT-008** — When the project has a `root`, the reader shall use it, absolute or relative to the project file's directory, as the base directory for resources and data file paths.
   - Tests: `XmlProjectRoundTripTests.RootRelative_SaveAndReopen_Unchanged`, `XmlProjectRoundTripTests.RootAbsolute_SaveAndReopen_Unchanged`
 - **LIB-PROJECT-FORMAT-009** — A data file shall store its `location` relative to the project's base directory (LIB-PROJECT-FORMAT-008), and the reader shall resolve it against the base directory.
@@ -117,7 +119,7 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 - **LIB-PROJECT-FORMAT-021** — When reading, data files shall be built first, then palettes, then arrangers, so references resolve whatever the folder order.
   - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`
 - **LIB-PROJECT-FORMAT-022** — If a palette's or element's data file key does not resolve, then the load shall fail naming the key and the referencing resource, and for an element, its position.
-  - Tests: `XmlProjectReaderTests.UnresolvedDataFileKey_Palette_FailsNamingKeyAndPalette`, `XmlProjectReaderTests.UnresolvedDataFileKey_Element_FailsNamingKeyArrangerAndPosition`
+  - Tests: `XmlProjectReaderTests.UnresolvedDataFileKey_Palette_FailsNamingKeyAndPalette`, `XmlProjectReaderTests.UnresolvedDataFileKey_Element_FailsNamingKeyArrangerAndPosition`, `XmlProjectReaderTests.ReferenceIntoDotDirectory_FailsNamingKey`
 - **LIB-PROJECT-FORMAT-023** — If an element's palette key does not resolve in the tree, then the reader shall use the global palette whose name equals the key ignoring case, and otherwise fail the load naming the key, the arranger and the element position.
   - Tests: `XmlProjectReaderTests.PaletteKeyNamingGlobalPalette_ResolvesIgnoringCase`, `XmlProjectReaderTests.UnresolvedPaletteKey_FailsNamingKeyArrangerAndPosition`
 - **LIB-PROJECT-FORMAT-059** — When a palette key names a renamed global palette (`DefaultRgba32`, now `Classic`) and no global palette has that name, the reader shall use the palette under its new name, and the next save shall write the new name.
@@ -129,10 +131,12 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 
 ### Reading
 
-- **LIB-PROJECT-FORMAT-026** — The reader shall validate every file against `ResourceSchema.xsd` and stop at the first file that fails, reporting its line numbers.
+- **LIB-PROJECT-FORMAT-026** — The reader shall validate the project file and every file read under LIB-PROJECT-FORMAT-005 whose root element is `datafile`, `palette` or `arranger` against `ResourceSchema.xsd`, and stop at the first file that fails, reporting its line numbers.
   - Tests: `XmlProjectReaderTests.SchemaError_FailsWithFileAndLine`
-- **LIB-PROJECT-FORMAT-027** — If the project file's root element is not `project`, or a resource file's root is not `datafile`, `palette` or `arranger`, then the load shall fail.
+- **LIB-PROJECT-FORMAT-027** — If the project file's root element is not `project`, then the load shall fail.
   - Tests: `XmlProjectReaderTests.UnknownRootElement_Fails`
+- **LIB-PROJECT-FORMAT-060** — If a `*.xml` file read under LIB-PROJECT-FORMAT-005 is not well-formed XML, then the load shall fail naming the file and line.
+  - Tests: `XmlProjectReaderTests.MalformedXml_FailsNamingFileAndLine`
 - **LIB-PROJECT-FORMAT-028** — If any resource fails to build, then the load shall fail with all collected reasons, at most one per distinct unresolved key per resource, and return no tree.
   - Tests: `XmlProjectReaderTests.UnresolvedKeyUsedByManyElements_ReportedOnce`
 - **LIB-PROJECT-FORMAT-029** — If a transaction journal exists in the project file's directory, then the reader shall refuse to load until it is recovered.
@@ -141,8 +145,15 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `ProjectServiceTests.OpenProject_MissingDataFile_LoadsWithSourceMarkedMissing`
 - **LIB-PROJECT-FORMAT-031** — After reading, every node shall carry the model it was read from and the file or directory it came from.
   - Tests: untested
-- **LIB-PROJECT-FORMAT-054** — The reader shall load resource and folder names as they are on disk, including names the name rule (LIB-PROJECT-TREE-030) would refuse.
+- **LIB-PROJECT-FORMAT-054** — The reader shall load resource and folder names as they are on disk, including names the name rule (LIB-PROJECT-TREE-030) would refuse, except names starting with `.`, which LIB-PROJECT-FORMAT-004 and -005 skip.
   - Tests: `ProjectServiceTests.OpenProject_NameBreakingRule_LoadsAndMoves`
+
+### Version
+
+- **LIB-PROJECT-FORMAT-061** — If the project's format version is newer than the reader's, then the load shall fail before any resource is read, naming the project file, its version and the newest version the reader supports.
+  - Tests: `XmlProjectReaderTests.NewerMinor_FailsNamingVersions`, `XmlProjectReaderTests.NewerMajor_FailsBeforeReadingResources`, `XmlProjectReaderTests.NewerWithUnknownAttributes_ReportsVersionNotSchema`, `CliApplicationTests.NewerFormat_Exits5`
+- **LIB-PROJECT-FORMAT-062** — When the project's format version is 0.9, the reader shall load it as the current format.
+  - Tests: `ProjectServiceTests.Version09_LoadsAsCurrent`, `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`
 
 ### Writing
 
@@ -215,7 +226,8 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 - Duplicate element positions: the last one read wins.
 - An element position outside the arranger fails the load.
 - A folder and a resource file with the same name in one directory fail the load.
-- Any non-resource XML file under the project directory fails the load at schema validation.
+- XML with a foreign root is ignored; XML that is not well formed fails the load, since it may be a resource damaged by a merge conflict.
+- A resource or folder whose name starts with `.` (possible only from outside TileShop) is not loaded; references to it fail the load.
 - A relative project path resolves against the current directory.
 - A `root` that is a parent of the project file's directory makes the project file part of the scan; it is ignored like any other project file (LIB-PROJECT-FORMAT-005).
 - A crash during staging leaves orphan `.tmp` files that nothing removes; they are not `.xml`, so loads ignore them.
@@ -229,7 +241,14 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 ## Decisions
 
 - **One file per resource, folders as directories.** Projects stay hand-editable and diff-friendly, and a resource moves by moving its file.
-- **References are tree path keys.** `datafile="/Roms/FF2"` and per-element `datafile=`/`palette=`. Consequence: renaming or moving anything rewrites every file that references it, and a hand rename in Explorer leaves references dangling. Rejected: GUID keys, because they make hand-editing impractical; an ID plus a path hint, because stale hints mislead anyone reading the files. A stable human-readable key is still open (Open items).
+- **References are tree path keys.** `datafile="/Roms/FF2"` and per-element `datafile=`/`palette=`. In memory, elements and palettes hold object references; key strings exist only at the file boundary (`CreateResourceMap` on write, `ProjectTree.TryGetItem` in `ProjectTreeBuilder` on read). Renames and moves rewrite every referencing file in one transaction through the model diff (LIB-PROJECT-FORMAT-032), so the cost is diff noise and merge conflicts (renaming the FF2 sample's data file rewrites 114 of 116 files), not correctness. A rename done outside TileShop fails the load naming the key (LIB-PROJECT-FORMAT-022, -023). Stable keys can arrive later as a new format version that derives each key from its path key. Rejected: stable human-readable keys (a `key` attribute on every file, a key index, duplicate detection for copied files, a rule separating keys from global palette names, and keys that drift from names, which costs the hand-editability path keys were chosen for); GUID keys (cannot be edited by hand); an id plus a path hint (stale hints mislead); falling back to a unique name match when a path fails (ambiguous, and it hides moves).
+- **No migration hook or upgrade path in 1.0.** There are no projects in the wild to carry forward, and 0.9 files are valid 1.0 files (1.0 is 0.9 plus the additive `scatteredcolor`). A 0.9 project file is written as 1.0 the next time the project file is written for another reason, with no prompt; `ImageProjectModel` does not carry the version, so an unchanged save still writes nothing (LIB-PROJECT-FORMAT-053). Reason: a migration chain, an upgrade transaction and an upgrade prompt are code with no caller until a format change needs them, and since the reader already refuses newer versions, older builds fail cleanly when one arrives. Rejected: building the hook now (speculative); keeping a backup copy on upgrade (no upgrade exists).
+- **The version lives on the project file only.** A project has one format version, and every file under it is read as that version. Reason: per-file versions would allow mixed projects, and a future step that rewrites references needs to see every file. Rejected: a `version` attribute on each resource file.
+- **`major.minor` parsed as `System.Version`.** `ProjectFormat.TryParse` accepts only digits `.` digits, matching the schema pattern `[0-9]+\.[0-9]+`. Reason: `Version` does not depend on culture (`decimal.Parse("0.9")` throws under fr-FR and returns 9 under de-DE), and it orders `1.10` after `1.9`, where `decimal` reads `1.10` as `1.1`. Rejected: `decimal.Parse` with `InvariantCulture`, which fixes the culture bug but keeps the wrong ordering.
+- **Reject every newer version, major or minor.** Reason: a 1.0 reader cannot keep elements it does not know, and its next save would drop them, which loses work. Rejected: accepting newer minor versions as "additive".
+- **The version check runs before schema validation.** Reason: a newer project file may carry attributes this schema rejects; the user must see "newer format", not a schema error.
+- **Skip names starting with `.`.** Reason: this covers `.git`, `.vs`, `.idea`, `.vscode` and `.DS_Store`, and it is deterministic on every OS and in every clone, unlike the Hidden attribute, which git does not version. The scan is a pre-order recursion so a parent folder is added before its children. Rejected: the Hidden attribute; an ignore file such as `.tileshopignore` (more format surface; it can be added later without a break); skipping only `.git`.
+- **Ignore XML with a foreign root; fail on XML that is not well formed.** A file with a foreign root cannot be a TileShop resource, because a newer resource type comes with a newer version, which is rejected first. A file that does not parse may be a resource damaged by a merge conflict (`<<<<<<<` markers), and dropping it would silently lose it and, on the next write, every reference to it. The root is checked before schema validation, so a foreign file never reports a schema error. Rejected: failing on every non-resource file (blocks git and IDE use); ignoring every file that fails (hides damaged resources).
 - **Atomic multi-file saves.** All files of one save go through one write-ahead-log transaction, recovered on the next open, so a crash mid-save cannot leave a mix of old and new references.
 - **Recovery treats a moved-but-unmarked operation as completed.** Every staging file exists before the journal is written, so a pending operation whose staging file is gone and whose target exists was moved. Rolling forward keeps the user's save, which matches recovery's roll-forward-first rule. Rollback restores only replaced targets, plus any target that is missing while its backup exists. It never restores an operation whose staging file is still present, because that backup may be a partial copy from a crash during the backup copy. A backup whose restore failed is kept, because it is the only copy of the original.
 - **Missing data files still attach.** The builder attaches the data file node whatever the disk state, so the project can be repaired (LIB-PROJECT-SERVICE).
@@ -250,13 +269,11 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 
 ## Non-goals
 
-- Migrating older formats; no migration hook exists.
+- Migrating or upgrading older formats, and writing older formats; 0.9 reads as 1.0, and a migration hook arrives with the first format change that needs one.
 - Protecting binary data writes (pixel commits, palette writes into data files) with the write-ahead log; it covers XML only.
 - Persisting element layouts, per-file view state or sequential arrangers.
 
 ## Open items
 
-- Version: `0.9` is written and never checked (LIB-PROJECT-FORMAT-007). The backlog plans to bump to `1.0`, reject newer versions with a clear message, and add a migration hook. `version` is parsed with the current culture.
-- Stable keys: undecided. Option: a project-unique, human-readable `key` assigned from the name at creation and never changed, with references using it, so renames and moves touch only the resource's own file and hand renames stop breaking references. Costs: keys drift from display names, and a copied file duplicates its key, so the reader must report duplicates. Otherwise keep path keys and add a clear "unresolved reference" error tied to relink.
 - The arranger `color` attribute is required by the schema, so the reader's default of `indexed` is unreachable.
 - A direct arranger that names an indexed codec loads without a check.

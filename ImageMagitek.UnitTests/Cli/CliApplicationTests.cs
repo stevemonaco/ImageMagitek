@@ -244,6 +244,15 @@ public sealed class CliApplicationTests : IDisposable
     }
 
     [Fact]
+    public async Task NewerFormat_Exits5()
+    {
+        File.WriteAllText(_projectFile, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<project version=\"1.1\" root=\"Resources\" />");
+
+        Assert.Equal(-5, await RunAsync("print", _projectFile));
+        Assert.Contains("1.1", Output);
+    }
+
+    [Fact]
     public async Task OpenThrows_Exits2()
     {
         _bootstrap = _ => new ThrowingProjectService(ProjectFixtures.CreateSerializerFactory(_colorFactory));

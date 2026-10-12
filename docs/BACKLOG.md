@@ -6,7 +6,7 @@ When an item is closed, its line is deleted.
 
 **1.0** marks items that block the 1.0 release ([ARCHITECTURE.md](ARCHITECTURE.md) §1): they lose work, corrupt data, freeze the project format, or leave a visible control that does nothing. Out of scope for 1.0: direct-color XML codecs, compression ([proposal](changes/compression-support.md)), container scanners ([proposal](changes/container-scanners.md)), new platforms and color models, new drawing or selection tools, layers, tilemaps and scripting. Candidates for 1.1, roughly in order: sequential arrangers as project resources, export from sequential views and selections, CLI `--json` output and key globs, OS clipboard, tool hotkeys; then compression and direct-color XML codecs.
 
-Every **1.0** item belongs to a change proposal, linked at the end of its line: [project-format-freeze](changes/project-format-freeze.md), [docs-1-0](changes/docs-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
+Every **1.0** item belongs to a change proposal, linked at the end of its line: [docs-1-0](changes/docs-1-0.md) and [release-1-0](changes/release-1-0.md). A **1.0** line with no link has no proposal yet.
 
 Found by reading the code, not reproduced, unless a test is named.
 
@@ -17,7 +17,6 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-PALETTES] In a ProjectXml palette a project-native source is returned as its own foreign color (`ColorRgba32`) whatever the model, and its native color is never quantized, unlike global palettes; done when both storage kinds behave the same, or a decision records the difference.
 - [LIB-PALETTES] `SetNativeColor` keeps the native color unquantized (BGR15 shows 255, not 248) until `Reload`; done when it stores the round-tripped color, or a decision records why not.
 - [LIB-PROJECT-SERVICE] `AreResourcesInSameProject` returns true when neither resource is in any open tree; done when it returns false.
-- **1.0** [LIB-ARRANGERS] Rotating a mirrored element turns it the opposite way on screen: render applies rotation then mirror, but `TryRotateElement` ignores the mirror; done when a test shows H-mirror then Rotate Left renders like rotating the mirrored pixels counter-clockwise. ([proposal](changes/project-format-freeze.md))
 - [LIB-ARRANGERS] `GetInitialSequentialFileAddress` indexes `ElementGrid[X, Y]` instead of `[Y, X]` (latent while every layout starts at (0,0)); done when a layout whose first cell is not (0,0) moves correctly.
 - [LIB-ARRANGERS] A clone rectangle that is not element-aligned drops the last covered column or row; done when the element span is computed from both edges.
 - [LIB-IMAGES] `DirectImage.SaveImage` and its save-conflict analysis assume the image starts at the arranger origin, so a sub-rectangle image saves the wrong pixels or throws; `CanSetPalette` also reads arranger coordinates from a sub-rectangle image; done when partial DirectImage saves and `CanSetPalette` with Left/Top ≠ 0 are correct and tested.
@@ -41,7 +40,6 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-PROJECT-SERVICE] `OpenProjectFileAsync`'s already-open check compares raw path strings, so the same project opens twice via a relative path or other casing; done when it normalizes like `OpenDataFile`.
 - [LIB-PROJECT-SERVICE] `CanMoveNode` and `GetContainingProject` throw for nodes outside every open tree; done when `CanMoveNode` returns a failure.
 - [LIB-PROJECT-FORMAT] A direct arranger that names an indexed codec loads without a check; done when the load fails naming the codec and arranger, like the indexed case (LIB-PROJECT-FORMAT-025).
-- **1.0** [LIB-PROJECT-FORMAT] `version` is parsed with the current culture; done when it uses the invariant culture. ([proposal](changes/project-format-freeze.md))
 - [LIB-CODECS] A planar pattern count mismatch or empty pattern throws `ArgumentException` while other pattern errors return a failed result; done when all return failed results.
 - [LIB-CODECS] The XML reader rejects a width or height of 1 while the schema accepts any positive integer; done when they agree.
 - [LIB-PALETTES] `SetForeignColor` accepts a color of any model, and negative indexes throw `IndexOutOfRangeException`; done when both are validated.
@@ -57,7 +55,7 @@ Found by reading the code, not reproduced, unless a test is named.
 ## Undecided questions
 
 - [LIB-PROJECT-SERVICE] Whether `ApplyResourceDeletionAsync` should report a kept non-empty folder as a failure although its nodes were removed; done when decided.
-- **1.0** [LIB-PROJECT-FORMAT] A malformed or foreign `*.xml` anywhere under the project directory fails the whole load, and other directories (such as `.git`) become folders; done when decided and specified. ([proposal](changes/project-format-freeze.md))
+- [LIB-PROJECT-SERVICE] `FindXmlConflict` (create a project from a data file, rename a project root) refuses a directory holding any `*.xml` recursively, including files under `.git`, `.idea` or `.vs` and XML with a foreign root, which the reader now skips (LIB-PROJECT-FORMAT-004, -005); done when it follows the reader's scan rules, or a decision records why it stays stricter.
 - [UI-PROJECT-TREE] A data file's missing state is read only on project open, so it does not update if the file disappears or reappears mid-session; done when refreshed, or the decision to leave it is recorded.
 - [UI-PALETTE-EDITOR] "Duplicate to project" for global palettes (PLAN Milestone 4, marked done) does not exist; the closest is the Add Palette dialog's template option, and no UI path opens a global palette in the editor, so read-only mode looks unreachable; done when either a Duplicate command and a way to open global palettes exist, or UI-PALETTE-EDITOR-090/091 are struck.
 
@@ -65,8 +63,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ### For 1.0
 
-- **1.0** [LIB-PROJECT-FORMAT] Path keys are kept (decided; stable keys rejected for now); done when the analysis is recorded as a LIB-PROJECT-FORMAT Decision. ([proposal](changes/project-format-freeze.md))
-- **1.0** [LIB-PROJECT-FORMAT] Schema versioning: `version="0.9"` is written and parsed but never compared; bump to 1.0 and reject newer versions with a clear message, with no migration or upgrade path (no projects in the wild); done when a higher-version project fails clearly and a 0.9 project loads as 1.0. ([proposal](changes/project-format-freeze.md))
 - [UI-SHELL, LIB-PROJECT-SERVICE] Command-line and OS integration (optional for 1.0): `args` are passed to Avalonia but never read, and there is no window drop handler; done when a non-`.xml` path on the command line, or a file dropped on the window, opens as a standalone file (drop is a manual check).
 - [UI-SHELL] Status-bar Indefinite and Reset messages are handled but never sent; done when a sender exists or the values are removed.
 

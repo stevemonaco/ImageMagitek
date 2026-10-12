@@ -37,6 +37,7 @@ tests:
   - MirrorArray2DTests
   - RotateArray2DTests
   - TransposeArray2DTests
+  - ElementTransformTests
 depends:
   - LIB-ARRANGERS
   - LIB-CODECS
@@ -65,7 +66,7 @@ An image is an editable pixel buffer over an arranger, or a rectangle of one: pa
 - **LIB-IMAGES-005** — When an element's encoded data extends past the end of its source, rendering shall leave the whole element blank instead of failing or showing partial data.
   - Tests: `IndexedImageTests.ArrangerPastEndOfSource_RendersEmptyAndSavesWithoutGrowing`, `IndexedImageTests.DirectArrangerPastEndOfSource_RendersEmptyAndSavesWithoutGrowing`
 - **LIB-IMAGES-006** — Rendering shall apply an element's rotation and then its mirror to the decoded pixels; rotate left is counter-clockwise.
-  - Tests: `IndexedImageTests.MirrorAndRotation_RoundTrip`, `RotateArray2DTests.RotateArray2D_Left_AsExpected`, `MirrorArray2DTests.MirrorArray2D_HorizontalMirroring_AsExpected`
+  - Tests: `IndexedImageTests.MirrorAndRotation_RoundTrip`, `RotateArray2DTests.RotateArray2D_Left_AsExpected`, `MirrorArray2DTests.MirrorArray2D_HorizontalMirroring_AsExpected`, `ElementTransformTests.StoredMeaning_RotateThenMirror`
 - **LIB-IMAGES-007** — Empty cells and elements whose codec kind differs from the image kind shall render as blank.
   - Tests: untested
 

@@ -3,7 +3,13 @@
 
   <xs:element name="project">
     <xs:complexType>
-	  <xs:attribute name="version" type="xs:decimal" use="required" />
+	  <xs:attribute name="version" use="required">
+	    <xs:simpleType>
+	      <xs:restriction base="xs:string">
+	        <xs:pattern value="[0-9]+\.[0-9]+" />
+	      </xs:restriction>
+	    </xs:simpleType>
+	  </xs:attribute>
       <xs:attribute name="root" use="optional" />
 	</xs:complexType>
   </xs:element>

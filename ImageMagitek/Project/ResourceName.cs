@@ -34,6 +34,9 @@ public static class ResourceName
         if (char.IsWhiteSpace(name[0]))
             return new MagitekResult.Failed("Name cannot start with whitespace");
 
+        if (name[0] == '.')
+            return new MagitekResult.Failed("Name cannot start with '.'");
+
         if (char.IsWhiteSpace(name[^1]))
             return new MagitekResult.Failed("Name cannot end with whitespace");
 

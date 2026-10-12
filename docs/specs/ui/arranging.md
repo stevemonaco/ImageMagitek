@@ -176,8 +176,8 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
   - Tests: untested
 - **UI-ARRANGING-040** — When the user clicks an element with a mirror tool, the editor shall flip how that element is displayed, record history and mark the editor modified.
   - Tests: `GraphicsEditHistoryTests.Mirror_UndoRedo`
-- **UI-ARRANGING-041** — When the user clicks a square element with a rotate tool, the editor shall rotate how it is displayed, record history and mark the editor modified; a non-square element is left unchanged and not outlined.
-  - Tests: `GraphicsEditHistoryTests.Rotate_UndoRedo`
+- **UI-ARRANGING-041** — When the user clicks a square element with a rotate tool, the editor shall turn it as displayed in the tool's direction, whatever its mirror, record history and mark the editor modified. A non-square element is left unchanged and not outlined.
+  - Tests: `GraphicsEditHistoryTests.Rotate_UndoRedo`; manual — in Adult Rydia Map, Mirror Horizontal then Rotate Left turns the element counter-clockwise.
 
 ### Defaults
 

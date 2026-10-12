@@ -66,8 +66,8 @@ depends:
   - Tests: `CliApplicationTests.BootstrapIssue_PrintsWarningExits0`, `CliApplicationTests.EnvironmentFails_Exits4` (an injected failure); manual — run `TileShopCLI print` with `_palettes/DefaultNes.json` (the NES master palette, an essential) renamed in the build output (exit -4)
 - **CLI-COMMANDS-008** — When the environment loads, the CLI shall load plugin codecs from `_plugins` in the application directory, as LIB-PLUGINS specifies.
   - Tests: `CliApplicationTests.Export_ProjectUsingCodecPlugin_Exits0`
-- **CLI-COMMANDS-009** — If the project cannot be opened or validated, then the CLI shall print "Project '<file>' contained N errors" followed by each numbered reason, and exit with -5.
-  - Tests: `CliApplicationTests.ProjectFileMissing_Exits5`, `CliApplicationTests.ProjectNamesUnknownCodec_Exits5`
+- **CLI-COMMANDS-009** — If the project cannot be opened or validated, including a project in a newer format (LIB-PROJECT-FORMAT-061), then the CLI shall print "Project '<file>' contained N errors" followed by each numbered reason, and exit with -5.
+  - Tests: `CliApplicationTests.ProjectFileMissing_Exits5`, `CliApplicationTests.ProjectNamesUnknownCodec_Exits5`, `CliApplicationTests.NewerFormat_Exits5`
 - **CLI-COMMANDS-010** — If a command throws, then the CLI shall print the exception message and stack trace and exit with -2.
   - Tests: `CliApplicationTests.OpenThrows_Exits2`
 - ~~**CLI-COMMANDS-011**~~ — Removed: the CLI awaits the verb, so the exit code is the command's whether or not the project open completes synchronously (CLI-COMMANDS-015).

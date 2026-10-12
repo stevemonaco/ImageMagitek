@@ -208,6 +208,17 @@ public static class ArrangerExtensions
             if (el.Width != el.Height)
                 return new MagitekResult.Failed("Only square elements may be rotated");
 
+            // A single-axis mirror reverses the displayed turn direction (M∘Q∘M = Q⁻¹)
+            if (el.Mirror is MirrorOperation.Horizontal or MirrorOperation.Vertical)
+            {
+                rotate = rotate switch
+                {
+                    RotationOperation.Left => RotationOperation.Right,
+                    RotationOperation.Right => RotationOperation.Left,
+                    _ => rotate
+                };
+            }
+
             var newRotation = (el.Rotation, rotate) switch
             {
                 (RotationOperation.Left, RotationOperation.Left) => RotationOperation.Turn,

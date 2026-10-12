@@ -15,8 +15,6 @@ namespace ImageMagitek.Project.Serialization;
 
 public sealed class XmlProjectWriter : IProjectWriter
 {
-    private const string ProjectVersion = "0.9";
-
     private readonly List<IProjectResource> _globalResources;
     private readonly Palette _globalDefaultPalette;
     private readonly ProjectTree _tree;
@@ -341,7 +339,7 @@ public sealed class XmlProjectWriter : IProjectWriter
     private XElement Serialize(ImageProjectModel projectModel)
     {
         var element = new XElement("project");
-        element.Add(new XAttribute("version", ProjectVersion));
+        element.Add(new XAttribute("version", ProjectFormat.Current.ToString(2)));
 
         if (!string.IsNullOrEmpty(projectModel.Root))
             element.Add(new XAttribute("root", projectModel.Root));

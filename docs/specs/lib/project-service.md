@@ -103,7 +103,7 @@ Owns the set of open trees (projects and standalone data files) and every operat
 
 - **LIB-PROJECT-SERVICE-027** — When a data file, palette or scattered arranger is added under a node of an open project, the service shall write its resource file under the parent's directory in a write-ahead-log transaction, then attach the node and set its disk location and persisted model.
   - Tests: `ProjectServiceTests.AddResource_WritesFileWithoutLeftovers`
-- **LIB-PROJECT-SERVICE-028** — If the parent is not in an open tree or cannot contain children, or the resource's name breaks the name rule (LIB-PROJECT-TREE-030), matches a sibling's name (LIB-PROJECT-TREE-031), or (directly under the project root) matches the project's name, then adding shall fail with the rule's message without writing.
+- **LIB-PROJECT-SERVICE-028** — If the parent is not in an open tree or cannot contain children, or the resource's name breaks the name rule (LIB-PROJECT-TREE-030), matches a sibling's name (LIB-PROJECT-TREE-031), or (directly under the project root) matches the project's name, then adding shall fail with the rule's message without writing. A name starting with `.` breaks the rule, since the reader would skip it.
   - Tests: `ProjectServiceTests.AddResource_InvalidName_FailsWithoutWriting`, `ProjectServiceTests.AddResource_CaseVariantOfSibling_FailsAndKeepsSiblingFile`, `ProjectServiceTests.AddResource_RootResourceNamedLikeProject_FailsAndKeepsProjectFile`, `ProjectServiceTests.ProjectOnlyOperations_StandaloneFile_FailWithoutWriting`
 - **LIB-PROJECT-SERVICE-029** — If the resource is a folder, an in-memory data source, a sequential arranger or any other type the format cannot write, then adding shall fail.
   - Tests: untested
@@ -115,7 +115,7 @@ Owns the set of open trees (projects and standalone data files) and every operat
 ### Rename
 
 - **LIB-PROJECT-SERVICE-032** — If the node is not in an open tree, or the new name breaks the name rule, matches a sibling's name other than the node's own, or (for a non-folder directly under the root) matches the project's name, or (for the root) matches a root-level non-folder resource's name, then rename shall fail without changes.
-  - Tests: `ProjectServiceTests.RenameResource_CaseVariantOfSibling_Fails`, `ProjectServiceTests.RenameProject_ToRootResourceName_Fails`
+  - Tests: `ProjectServiceTests.RenameResource_CaseVariantOfSibling_Fails`, `ProjectServiceTests.RenameProject_ToRootResourceName_Fails`, `ProjectServiceTests.RenameResource_LeadingDot_Fails`
 - **LIB-PROJECT-SERVICE-033** — When a folder is renamed, the service shall move its directory, update the disk locations of it and every nested folder, and save the project so every resource under it and every reference to them is rewritten.
   - Tests: `ProjectServiceTests.RenameFolder_MovesDirectoryAndChildResource`, `ProjectServiceTests.RenameFolder_UpdatesNestedFolderLocations`
 - **LIB-PROJECT-SERVICE-034** — If moving the folder's directory fails, or the project save fails, then the service shall restore the name and directory and return a failure; the tree raises the reverse `Renamed`.

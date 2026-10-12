@@ -48,16 +48,19 @@ public sealed class XmlProjectReader : IProjectReader
         var projectDirectory = Path.GetDirectoryName(fullProjectFileName);
         _baseDirectory = projectDirectory;
 
-        if (!TryDeserializeXmlFile(projectFileName, _resourceSchema, out var rootModel))
-        {
+        if (!TryLoadXml(projectFileName, out var projectDoc))
             return new MagitekResults<ProjectTree>.Failed(_errors);
-        }
 
-        if (rootModel is not ImageProjectModel projectModel)
+        if (projectDoc.Root.Name.LocalName != "project")
         {
             _errors.Add($"'{projectFileName}' was expected to be a project file");
             return new MagitekResults<ProjectTree>.Failed(_errors);
         }
+
+        if (!TryReadVersion(projectDoc.Root, projectFileName) || !TryValidate(projectDoc, projectFileName))
+            return new MagitekResults<ProjectTree>.Failed(_errors);
+
+        var projectModel = DeserializeProject(projectDoc.Root, Path.GetFileNameWithoutExtension(projectFileName));
 
         var builder = new ProjectTreeBuilder(_codecFactory, _colorFactory, _globalDefaultPalette, _globalResources);
 
@@ -73,34 +76,21 @@ public sealed class XmlProjectReader : IProjectReader
             return new MagitekResults<ProjectTree>.Failed(_errors);
         }
 
-        // Add directories
-        var directoryNames = Directory.GetDirectories(_baseDirectory, "*", SearchOption.AllDirectories);
-        foreach (var directoryName in directoryNames)
-        {
-            var folderModel = new ResourceFolderModel()
-            {
-                Name = Path.GetFileName(directoryName)
-            };
-
-            var parentDirectory = Directory.GetParent(directoryName).FullName;
-            var relativePath = Path.GetRelativePath(_baseDirectory, parentDirectory);
-            var parentKey = relativePath == "." ? "" : relativePath;
-            builder.AddFolder(folderModel, parentKey, Path.GetFullPath(directoryName));
-        }
-
-        // Add resources
-        var resourceFileNames = Directory.GetFiles(_baseDirectory, "*.xml", SearchOption.AllDirectories)
-            .Except(new[] { fullProjectFileName })
-            .ToList();
+        var resourceFileNames = new List<string>();
+        ScanDirectory(_baseDirectory, builder, resourceFileNames);
 
         List<(ResourceModel model, string pathKey, string fileLocation)> resourceModels = new();
 
         foreach (var resourceFileName in resourceFileNames)
         {
-            if (!TryDeserializeXmlFile(resourceFileName, _resourceSchema, out var resourceModel))
-            {
+            if (!TryLoadXml(resourceFileName, out var doc))
                 return new MagitekResults<ProjectTree>.Failed(_errors);
-            }
+
+            if (doc.Root.Name.LocalName is not ("datafile" or "palette" or "arranger"))
+                continue;
+
+            if (!TryValidate(doc, resourceFileName) || !TryDeserializeResource(doc, resourceFileName, out var resourceModel))
+                return new MagitekResults<ProjectTree>.Failed(_errors);
 
             var pathKey = LocateParentPathKey(resourceFileName);
             if (string.IsNullOrWhiteSpace(pathKey) || pathKey == ".")
@@ -141,81 +131,118 @@ public sealed class XmlProjectReader : IProjectReader
         return new MagitekResults<ProjectTree>.Success(builder.Tree);
     }
 
-    private bool TryDeserializeXmlFile(string xmlFileName, XmlSchemaSet schema, [MaybeNullWhen(false)] out ResourceModel model)
+    private void ScanDirectory(string directory, ProjectTreeBuilder builder, List<string> xmlFileNames)
     {
+        foreach (var fileName in Directory.EnumerateFiles(directory, "*.xml"))
+        {
+            if (!Path.GetFileName(fileName).StartsWith('.'))
+                xmlFileNames.Add(fileName);
+        }
+
+        var relativePath = Path.GetRelativePath(_baseDirectory, directory);
+        var parentKey = relativePath == "." ? "" : relativePath;
+
+        foreach (var directoryName in Directory.EnumerateDirectories(directory))
+        {
+            var name = Path.GetFileName(directoryName);
+            if (name.StartsWith('.'))
+                continue;
+
+            builder.AddFolder(new ResourceFolderModel() { Name = name }, parentKey, Path.GetFullPath(directoryName));
+            ScanDirectory(directoryName, builder, xmlFileNames);
+        }
+    }
+
+    private bool TryLoadXml(string xmlFileName, [MaybeNullWhen(false)] out XDocument doc)
+    {
+        doc = default;
         if (!File.Exists(xmlFileName))
         {
             _errors.Add($"File '{xmlFileName}' does not exist");
-            model = default;
             return false;
         }
 
         try
         {
-            var xml = File.ReadAllText(xmlFileName);
-            var doc = XDocument.Parse(xml, LoadOptions.SetLineInfo);
-
-            if (schema is not null)
-            {
-                doc.Validate(schema, (o, e) =>
-                {
-                    var line = o as IXmlLineInfo;
-                    _errors.Add($"'{xmlFileName}' line {line?.LineNumber.ToString() ?? "Unknown"}: {e.Message}");
-                });
-
-                if (_errors.Any())
-                {
-                    model = default;
-                    return false;
-                }
-            }
-
-            var resourceName = Path.GetFileNameWithoutExtension(xmlFileName);
-            var rootElementName = doc.Root.Name.LocalName;
-
-            if (rootElementName == "project")
-            {
-                TryDeserializeProject(doc.Root, resourceName, out var projectModel);
-                model = projectModel;
-            }
-            else if (rootElementName == "datafile")
-            {
-                TryDeserializeDataFile(doc.Root, resourceName, out var dataFileModel);
-                model = dataFileModel;
-            }
-            else if (rootElementName == "palette")
-            {
-                if (!TryDeserializePalette(doc.Root, xmlFileName, resourceName, out var paletteModel))
-                {
-                    model = default;
-                    return false;
-                }
-                model = paletteModel;
-            }
-            else if (rootElementName == "arranger")
-            {
-                TryDeserializeScatteredArranger(doc.Root, resourceName, out var arrangerModel);
-                model = arrangerModel;
-            }
-            else
-            {
-                _errors.Add($"{xmlFileName} has invalid root element '{rootElementName}'");
-                model = null;
-                return false;
-            }
-
+            doc = XDocument.Parse(File.ReadAllText(xmlFileName), LoadOptions.SetLineInfo);
             return true;
         }
-        catch (XmlSchemaValidationException vex)
+        catch (XmlException ex)
         {
-            _errors.Add($"Validation error on line {vex.LineNumber}: '{vex.Message}'");
+            _errors.Add($"'{xmlFileName}' line {ex.LineNumber}: {ex.Message}");
         }
         catch (Exception ex)
         {
             _errors.Add($"An exception occurred while reading '{xmlFileName}': {ex.Message}");
         }
 
+        return false;
+    }
+
+    private bool TryValidate(XDocument doc, string xmlFileName)
+    {
+        if (_resourceSchema is null)
+            return true;
+
+        var errorCount = _errors.Count;
+        doc.Validate(_resourceSchema, (o, e) =>
+        {
+            var line = o as IXmlLineInfo;
+            _errors.Add($"'{xmlFileName}' line {line?.LineNumber.ToString() ?? "Unknown"}: {e.Message}");
+        });
+
+        return _errors.Count == errorCount;
+    }
+
+    private bool TryReadVersion(XElement projectElement, string projectFileName)
+    {
+        var fileName = Path.GetFileName(projectFileName);
+        var text = projectElement.Attribute("version")?.Value;
+
+        if (text is null)
+            _errors.Add($"'{fileName}' has no project format version");
+        else if (!ProjectFormat.TryParse(text, out var version))
+            _errors.Add($"'{fileName}' has project format version '{text}', which is not a major.minor version");
+        else if (version < ProjectFormat.Oldest)
+            _errors.Add($"'{fileName}' uses project format {text}; this version of TileShop reads format {ProjectFormat.Oldest} and newer.");
+        else if (version > ProjectFormat.Current)
+            _errors.Add($"'{fileName}' uses project format {text}; this version of TileShop reads format {ProjectFormat.Current} and older.");
+        else
+            return true;
+
+        return false;
+    }
+
+    private bool TryDeserializeResource(XDocument doc, string xmlFileName, [MaybeNullWhen(false)] out ResourceModel model)
+    {
+        var resourceName = Path.GetFileNameWithoutExtension(xmlFileName);
         model = default;
+
+        try
+        {
+            switch (doc.Root.Name.LocalName)
+            {
+                case "datafile":
+                    TryDeserializeDataFile(doc.Root, resourceName, out var dataFileModel);
+                    model = dataFileModel;
+                    return true;
+                case "palette":
+                    if (!TryDeserializePalette(doc.Root, xmlFileName, resourceName, out var paletteModel))
+                        return false;
+                    model = paletteModel;
+                    return true;
+                case "arranger":
+                    TryDeserializeScatteredArranger(doc.Root, resourceName, out var arrangerModel);
+                    model = arrangerModel;
+                    return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errors.Add($"An exception occurred while reading '{xmlFileName}': {ex.Message}");
+            return false;
+        }
+
         return false;
     }
 
@@ -226,18 +253,12 @@ public sealed class XmlProjectReader : IProjectReader
         return string.Join('/', relativePath.Split('\\'));
     }
 
-    private static bool TryDeserializeProject(XElement element, string resourceName, out ImageProjectModel projectModel)
-    {
-        var model = new ImageProjectModel
+    private static ImageProjectModel DeserializeProject(XElement element, string resourceName) =>
+        new()
         {
             Name = resourceName,
-            Version = decimal.Parse(element.Attribute("version").Value),
             Root = element.Attribute("root")?.Value ?? string.Empty
         };
-
-        projectModel = model;
-        return true;
-    }
 
     private bool TryDeserializeDataFile(XElement element, string resourceName, out DataFileModel dataFileModel)
     {
