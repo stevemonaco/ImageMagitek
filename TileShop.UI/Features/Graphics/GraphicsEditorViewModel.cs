@@ -304,7 +304,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         ILogger<GraphicsEditorViewModel> logger)
         : base(arranger)
     {
-        _toolRouter = new(SelectedTool, TemporaryTool, [.. AlternativeToolKeys, .. TertiaryToolKeys]);
+        _toolRouter = new(SelectedTool, TemporaryTool, ModifierKeyTool, [.. AlternativeToolKeys, .. TertiaryToolKeys]);
         WorkingArranger = arranger.Mode == ArrangerMode.Scattered ? arranger.CloneArranger() : arranger;
         _projectArranger = arranger;
         Resource = arranger;

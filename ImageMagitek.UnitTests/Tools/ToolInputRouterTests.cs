@@ -11,12 +11,31 @@ public class ToolInputRouterTests
 {
     private readonly RecordingTool _selected = new();
     private readonly RecordingTool _temporary = new();
+    private RecordingTool? _modifierKeyTool;
     private readonly ToolInputRouter<object> _router;
     private readonly object _state = new();
 
     public ToolInputRouterTests()
     {
-        _router = new ToolInputRouter<object>(() => _selected, () => _temporary, [Key.LeftControl, Key.RightControl, Key.LeftShift, Key.RightShift]);
+        _modifierKeyTool = _temporary;
+        _router = new ToolInputRouter<object>(() => _selected, () => _temporary, () => _modifierKeyTool,
+            [Key.LeftControl, Key.RightControl, Key.LeftShift, Key.RightShift]);
+    }
+
+    [Fact]
+    public void ModifierKeyWithoutModifierTool_LeavesSelectedToolAndAltStillEngages()
+    {
+        _modifierKeyTool = null;
+
+        Assert.False(_router.KeyDown(Key.LeftControl));
+        _router.Press(Pointer(left: true, KeyModifiers.Control), _state);
+        _router.Release(Pointer(left: false, KeyModifiers.Control), _state);
+
+        Assert.False(_router.IsOverrideEngaged);
+        Assert.Equal(["Down", "Up"], _selected.Calls);
+
+        _router.Press(Pointer(left: true, KeyModifiers.Alt), _state);
+        Assert.Equal(["Down"], _temporary.Calls);
     }
 
     [Fact]

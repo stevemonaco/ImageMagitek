@@ -163,8 +163,8 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
   - Tests: untested
 - **UI-ARRANGING-035** — While Pick Palette hovers an element, the status bar shall show the palette's name, color count, color model and source (file path, Memory, Global or None).
   - Tests: untested
-- **UI-ARRANGING-036** — While in Arrange mode, holding Ctrl or Shift (with the editor focused) or Alt (on pointer events) shall temporarily switch to Pick Palette, and the toolbar shall show Pick Palette as active while Ctrl or Shift is held; a modifier pressed while a pointer button is held takes effect only after all buttons are released.
-  - Tests: manual — hold each modifier over the canvas; press and release Ctrl during an Apply Palette drag, then undo and check the whole drag is one entry.
+- **UI-ARRANGING-036** — While in Arrange mode, holding Ctrl or Shift (with the editor focused) while a tool other than Element Select or Pixel Select is selected, or Alt (on pointer events) with any tool, shall temporarily switch to Pick Palette, and the toolbar shall show Pick Palette as active while Ctrl or Shift is held; a modifier pressed while a pointer button is held takes effect only after all buttons are released.
+  - Tests: `ToolInputRouterTests.ModifierKeyWithoutModifierTool_LeavesSelectedToolAndAltStillEngages`; manual — hold each modifier over the canvas with Apply Palette and with Element Select; press and release Ctrl during an Apply Palette drag, then undo and check the whole drag is one entry.
 - **UI-ARRANGING-037** — The editor's palette combo shall list the arranger's referenced project palettes by name, then the global palettes by name, each limited to the arranger's largest codec color count (at most 256).
   - Tests: untested
 - **UI-ARRANGING-038** — When the user clicks Associate Palette (Arrange mode, indexed), the editor shall list the containing project's palettes by path and the global palettes by name, and on Associate add the chosen palette to the palette combo without changing any element.
@@ -207,6 +207,7 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
 
 ## Decisions
 
+- **Select tools keep Ctrl and Shift.** With Element Select or Pixel Select selected, Ctrl and Shift do not engage the temporary Pick Palette or Color Picker, so Ctrl+click selects a single cell and Shift+hover a single element; with any other tool they engage the picker. Alt on pointer events engages the picker with every tool. Reason: both keys also engaged the picker, which then took the click, so the select gestures never ran while the editor had focus; selecting is where Ctrl and Shift modify the selection, painting is where the picker is wanted. Alt is not the main picker key because Avalonia opens the main menu when Alt is released after an Alt+click (a pointer press does not cancel its access-key handling). Rejected: Alt-only picker (changes the Ctrl/Shift picker habit, and runs into the menu); dropping the select gestures.
 - **Delete is mode-guarded.** Delete runs only in Arrange mode on a scattered arranger with an element-snapped selection; it once fired in Draw and View and on sequential arrangers. Reason: tools act only in the mode they belong to.
 - **Cut is a menu item only.** Cut is Copy plus element Delete, so it is enabled only where Delete is, and it has no Ctrl+X hotkey or displayed gesture. Reason: avoid a hotkey that silently does nothing outside Arrange mode. Rejected: pixel cut.
 - **Delete resets by element width and height.** Delete divides the selection by element width for x and element height for y; the old code swapped them, breaking non-square elements.
@@ -224,7 +225,6 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
 
 ## Open items
 
-- Ctrl+click single-cell select and Shift+hover single-element select are shadowed while the editor has keyboard focus: pressing Ctrl or Shift engages the temporary Pick Palette tool (Color Picker in Draw mode), which then receives the click, and Shift+hover is skipped whenever a temporary tool is engaged.
 - Delete records history and marks the editor modified even when every covered element is already empty.
 - Associate Palette adds the palette again if it is already listed, sizes it by the palette's entry count rather than the codec's color depth, and throws if no palette is available.
 - Selection handles are hit-tested in View mode although they are not drawn there.

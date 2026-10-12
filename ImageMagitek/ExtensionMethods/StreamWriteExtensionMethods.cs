@@ -18,8 +18,7 @@ public static class StreamWriteExtensionMethods
 
         if (totalBytes == 1)
         {
-            var firstByte = (byte)stream.ReadByte();
-            stream.Seek(-1, SeekOrigin.Current);
+            var firstByte = ReadByteForMerge(stream);
 
             var merged = MergeByte(firstByte, writeBuffer.Span[0], skipBits, writeBits);
             stream.WriteByte((byte)merged);
@@ -30,8 +29,7 @@ public static class StreamWriteExtensionMethods
 
         if (skipBits != 0)
         {
-            var firstByte = (byte)stream.ReadByte();
-            stream.Seek(-1, SeekOrigin.Current);
+            var firstByte = ReadByteForMerge(stream);
 
             var merged = MergeByte(firstByte, writeBuffer.Span[0], skipBits, 8 - skipBits);
             stream.WriteByte(merged);
@@ -45,8 +43,7 @@ public static class StreamWriteExtensionMethods
             var writeSlice = writeBuffer.Slice(writtenBytes, totalBytes - writtenBytes - 1);
             await stream.WriteAsync(writeSlice);
 
-            var lastByte = (byte)stream.ReadByte();
-            stream.Seek(-1, SeekOrigin.Current);
+            var lastByte = ReadByteForMerge(stream);
 
             var merged = MergeByte(lastByte, writeBuffer.Span[totalBytes - 1], 0, lastBits);
             stream.WriteByte((byte)merged);
@@ -71,8 +68,7 @@ public static class StreamWriteExtensionMethods
 
         if (totalBytes == 1)
         {
-            var firstByte = (byte)stream.ReadByte();
-            stream.Seek(-1, SeekOrigin.Current);
+            var firstByte = ReadByteForMerge(stream);
 
             var merged = MergeByte(firstByte, writeBuffer[0], skipBits, writeBits);
             stream.WriteByte((byte)merged);
@@ -83,8 +79,7 @@ public static class StreamWriteExtensionMethods
 
         if (skipBits != 0)
         {
-            var firstByte = (byte)stream.ReadByte();
-            stream.Seek(-1, SeekOrigin.Current);
+            var firstByte = ReadByteForMerge(stream);
 
             var merged = MergeByte(firstByte, writeBuffer[0], skipBits, 8 - skipBits);
             stream.WriteByte((byte)merged);
@@ -98,8 +93,7 @@ public static class StreamWriteExtensionMethods
             var span = writeBuffer.Slice(writtenBytes, totalBytes - writtenBytes - 1);
             stream.Write(span);
 
-            var lastByte = (byte)stream.ReadByte();
-            stream.Seek(-1, SeekOrigin.Current);
+            var lastByte = ReadByteForMerge(stream);
 
             var merged = MergeByte(lastByte, writeBuffer[totalBytes - 1], 0, lastBits);
             stream.WriteByte((byte)merged);
@@ -149,6 +143,16 @@ public static class StreamWriteExtensionMethods
         writeBuffer[..((writeBits + 7) / 8)].CopyTo(buffer);
         buffer.AsSpan().ShiftRight(skipBits);
         return buffer;
+    }
+
+    private static byte ReadByteForMerge(Stream stream)
+    {
+        var value = stream.ReadByte();
+        if (value < 0)
+            return 0;
+
+        stream.Seek(-1, SeekOrigin.Current);
+        return (byte)value;
     }
 
     private static byte MergeByte(byte original, byte write, int skipBits, int writeBits)

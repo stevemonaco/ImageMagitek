@@ -23,6 +23,7 @@ public partial class GraphicsEditorView : UserControl
     public GraphicsEditorViewModel? ViewModel { get; private set; }
 
     private ArrangerRenderer? _renderer;
+    private Action? _imageModifiedCallback;
 
     private readonly ArrangerDragHandler _dragHandler = new();
     private Point _dragStartPoint;
@@ -53,18 +54,21 @@ public partial class GraphicsEditorView : UserControl
 
     private void OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
-        // A detached tab's view keeps the VM's OnImageModified callback, so a reload can repaint it after DataContext clears
         if (ViewModel is not null)
             _renderer?.Render(ViewModel, e.Surface.Canvas);
     }
 
     protected override void OnDataContextChanged(EventArgs e)
     {
+        if (ViewModel is { } previous && !ReferenceEquals(previous, DataContext))
+            ReleaseCallbacks(previous);
+
         if (DataContext is GraphicsEditorViewModel vm)
         {
             ViewModel = vm;
             _renderer = new ArrangerRenderer();
-            vm.OnImageModified = () => EditorCanvas.Invalidate();
+            _imageModifiedCallback = () => EditorCanvas.Invalidate();
+            vm.OnImageModified = _imageModifiedCallback;
             vm.OnCenterContent = () => EditorCanvas.CenterContent(vm.WorkingArranger.ArrangerPixelSize.Width, vm.WorkingArranger.ArrangerPixelSize.Height);
             vm.OnFitToViewport = () => EditorCanvas.FitToViewport(vm.WorkingArranger.ArrangerPixelSize.Width, vm.WorkingArranger.ArrangerPixelSize.Height);
             vm.OnResetZoom = () => EditorCanvas.ResetZoom();
@@ -76,6 +80,20 @@ public partial class GraphicsEditorView : UserControl
         }
 
         base.OnDataContextChanged(e);
+    }
+
+    private void ReleaseCallbacks(GraphicsEditorViewModel vm)
+    {
+        // Another view (a floated or re-docked tab) may already have installed its own callbacks on this VM
+        if (!ReferenceEquals(vm.OnImageModified, _imageModifiedCallback))
+            return;
+
+        vm.OnImageModified = null;
+        vm.OnCenterContent = null;
+        vm.OnFitToViewport = null;
+        vm.OnResetZoom = null;
+        vm.OnAlignTopLeft = null;
+        _imageModifiedCallback = null;
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)

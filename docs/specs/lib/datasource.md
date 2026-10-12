@@ -71,8 +71,8 @@ A data source is the byte store that graphics and palette colors are read from a
   - Tests: untested
 - **LIB-DATASOURCE-014** — When a buffer is written without an address, the source shall write it at the current stream position left by the previous operation or `Seek`.
   - Tests: untested
-- **LIB-DATASOURCE-015** — When a write extends past the end of a file source or an unbounded memory source, the source shall grow to hold it.
-  - Tests: untested
+- **LIB-DATASOURCE-015** — When a write extends past the end of a file source or an unbounded memory source, the source shall grow to hold it, leaving every existing byte outside the written bits unchanged and the unwritten bits of new bytes 0.
+  - Tests: `DataSourceBitAddressTests.Write_PartialBytePastEnd_KeepsExistingBytesAndZeroFillsTheRest`
 - **LIB-DATASOURCE-016** — If a write extends past the capacity of a fixed-capacity memory source, then it shall throw `NotSupportedException`.
   - Tests: untested
 - **LIB-DATASOURCE-017** — `Flush` shall push buffered writes to the underlying storage and shall not raise `DataWritten`.
@@ -136,7 +136,6 @@ A data source is the byte store that graphics and palette colors are read from a
 
 ## Edge cases
 
-- A bit-unaligned write whose last partial byte lies past the end of the source merges into a byte read as `0xFF` (the stream's end-of-file `-1`), so the untouched bits of that new byte become 1.
 - Seeking past the end is allowed; the next read throws, the next write grows the source (or throws for a fixed-capacity memory source).
 - Constructing a bit address from a negative bit count yields a negative bit offset.
 

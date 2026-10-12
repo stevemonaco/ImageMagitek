@@ -25,6 +25,25 @@ public class DataSourceBitAddressTests
     }
 
     [Theory]
+    [InlineData(2, 0, 4, new byte[] { 0b1010_0000 }, new byte[] { 0xAA, 0xBB, 0b1010_0000 })]
+    [InlineData(2, 3, 2, new byte[] { 0b1100_0000 }, new byte[] { 0xAA, 0xBB, 0b0001_1000 })]
+    [InlineData(1, 4, 10, new byte[] { 0b1100_1101, 0b1100_0000 }, new byte[] { 0xAA, 0xBC, 0b1101_1100 })]
+    public async Task Write_PartialBytePastEnd_KeepsExistingBytesAndZeroFillsTheRest(int byteOffset, int bitOffset, int bits, byte[] payload, byte[] expected)
+    {
+        var sync = new MemoryDataSource("sync");
+        sync.Write(BitAddress.Zero, [0xAA, 0xBB]);
+        var async = new MemoryDataSource("async");
+        async.Write(BitAddress.Zero, [0xAA, 0xBB]);
+        var address = new BitAddress(byteOffset, bitOffset);
+
+        sync.Write(address, bits, payload);
+        await async.WriteAsync(address, bits, payload);
+
+        Assert.Equal(expected, sync.Read(BitAddress.Zero, (int)sync.Length * 8));
+        Assert.Equal(expected, async.Read(BitAddress.Zero, (int)async.Length * 8));
+    }
+
+    [Theory]
     [InlineData(0)]
     [InlineData(3)]
     public async Task Read_ZeroBits_ReturnsEmpty(int bitOffset)

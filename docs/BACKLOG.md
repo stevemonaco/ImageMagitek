@@ -14,15 +14,9 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ### Library
 
-- [LIB-DATASOURCE] A bit-unaligned write whose last partial byte is past EOF merges into `0xFF`, so untouched bits become 1; done when they are 0, or the write is refused.
 
 ### UI
 
-- [UI-ARRANGING] Ctrl+click single-cell select and Shift+hover single-element select are shadowed by the temporary Pick Palette (Arrange) or Color Picker (Draw) modifier tools; done when each gesture does one documented thing.
-- [UI-GRAPHICS-EDITOR] Ctrl+W (fit) sets the zoom without clamping to 0.25–32x; done when it respects MinZoom/MaxZoom.
-- [UI-GRAPHICS-EDITOR] Inspect Element prints "FileOffset 0x1A." with a trailing dot when the bit offset is 0; done when the dot appears only with a bit offset.
-- [UI-GRAPHICS-EDITOR] A VM's `OnImageModified` callback is never cleared when a view releases it, so it can repaint a view that no longer shows it (only a null-VM paint guard covers it); done when the view clears its callbacks on DataContext change.
-- [UI-SHELL] Overlay dialogs do not animate in: `OverlayDialog.AnimateInAsync` was reachable only from the removed `ShowAsync`, so the mediator path never ran it and it was deleted; done when `DialogHost` animates a dialog in when it opens, or a decision records that it does not.
 
 ## Missing validation
 
@@ -99,7 +93,7 @@ Found by reading the code, not reproduced, unless a test is named.
 ## Untested behavior worth a test
 
 - **1.0** [LIB-PROJECT-SERVICE] `OpenProjectFileAsync` with a leftover journal; `CloseProjects`; project-root rename.
-- [LIB-DATASOURCE] Past-EOF read throws `EndOfStreamException`; overflowing a fixed-capacity `MemoryDataSource` throws `NotSupportedException`; `Flush` and `Write` never raise `DataWritten`; unbounded sources grow on write.
+- [LIB-DATASOURCE] Past-EOF read throws `EndOfStreamException`; overflowing a fixed-capacity `MemoryDataSource` throws `NotSupportedException`; `Flush` and `Write` never raise `DataWritten`.
 - [LIB-CODECS] XML schema and semantic validation failures; unknown name throws `KeyNotFoundException`; direct-color XML throws; pattern codecs ignore the requested size; each codec gets its own format clone; `CloneCodec`.
 - [LIB-COLORS] RGB15, BGR6, NES and RGBA32 conversion; BGR9 to-foreign rounding; hex format and parse for every model; factory `NotSupported`/`ArgumentException` paths; distance ties pick the lowest index; `GetIndexByNativeColor` throwing.
 - [LIB-PALETTES] 3-byte and big-endian file colors; `ZeroIndexTransparent` raises `Changed` only on a real change; global `SavePalette` returns false; JSON `zeroIndexTransparent` default (true) and `JsonException` cases; `PaletteStore` default and NES loading.

@@ -103,7 +103,7 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
   - Tests: manual — Ctrl+wheel over the canvas at both limits.
 - **UI-GRAPHICS-EDITOR-007** — While the middle mouse button is held over the canvas, dragging shall pan it.
   - Tests: manual — middle-drag in the editor canvas.
-- **UI-GRAPHICS-EDITOR-008** — The editor shall center the image on Ctrl+E, fit it to the viewport on Ctrl+W, reset the zoom to 1x on Ctrl+R, and align the image to the top-left on Ctrl+Q.
+- **UI-GRAPHICS-EDITOR-008** — The editor shall center the image on Ctrl+E, fit it to the viewport on Ctrl+W (within the 0.25x–32x zoom limits), reset the zoom to 1x on Ctrl+R, and align the image to the top-left on Ctrl+Q.
   - Tests: untested
 - **UI-GRAPHICS-EDITOR-009** — The canvas shall draw a checkerboard behind the image, using the grid's spacing, origin and primary/secondary colors.
   - Tests: manual — open an arranger with transparent pixels.
@@ -167,7 +167,7 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 
 - **UI-GRAPHICS-EDITOR-029** — While the pointer moves over the image with a selection, View/Draw tools shall show the selection's size and position in the status bar (element units for element snapping, pixels otherwise); without a selection, "<arranger>: (x, y)".
   - Tests: untested
-- **UI-GRAPHICS-EDITOR-030** — While Inspect Element or Element Select (Arrange mode) hovers an element, the status bar shall show its position, codec, palette (indexed only), source file path or "Memory", and file offset; an empty cell shows "Element (x, y): Empty".
+- **UI-GRAPHICS-EDITOR-030** — While Inspect Element or Element Select (Arrange mode) hovers an element, the status bar shall show its position, codec, palette (indexed only), source file path or "Memory", and file offset as `0x` and the hex byte offset, followed by `.` and the bit offset only when it is not 0; an empty cell shows "Element (x, y): Empty".
   - Tests: manual — hover elements with the Inspect Element tool.
 - **UI-GRAPHICS-EDITOR-031** — While a floating paste exists, the status bar shall show "Press [Enter] to Apply Paste or [Esc] to Cancel".
   - Tests: untested
@@ -223,7 +223,7 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 ## Threading and lifetime
 
 - All editor work runs on the UI thread. Dialogs and prompts are awaited through `IInteractionService`.
-- The view assigns the VM's `OnImageModified`, `OnCenterContent`, `OnFitToViewport`, `OnResetZoom` and `OnAlignTopLeft` callbacks when it receives the VM and never clears them, so a VM keeps calling the last view that showed it.
+- The view assigns the VM's `OnImageModified`, `OnCenterContent`, `OnFitToViewport`, `OnResetZoom` and `OnAlignTopLeft` callbacks when it receives the VM, and clears them when its `DataContext` moves off that VM unless another view (a floated or re-docked tab) has since installed its own.
 - `EditorsViewModel` (UI-EDITORS) owns the editor's lifetime and calls `ReloadFromSource` and `InvalidateEditor` on domain change events.
 
 ## Decisions
@@ -253,8 +253,5 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 
 ## Open items
 
-- Ctrl+W (fit) sets the zoom directly and can go outside 0.25x–32x.
 - Ctrl+wheel zoom keeps the pan offset rather than zooming around the pointer.
-- The Inspect Element status text prints a trailing "." after the hex byte offset when the bit offset is 0 ("FileOffset 0x1A.").
-- The `OnImageModified` callback is never cleared when a view releases the VM; only the null-VM guard in `OnPaintSurface` prevents the crash.
 - No UI test covers any requirement here; candidates are mode switching with a fake `IInteractionService` and the gating properties.

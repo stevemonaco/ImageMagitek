@@ -8,24 +8,28 @@ namespace TileShop.Shared.Tools;
 
 /// <summary>
 /// Routes pointer input to tool handlers. The tool that receives a press receives every move and the release until no button is held,
-/// and a temporary tool engages while a modifier key is held outside of a gesture.
+/// and a temporary tool engages while a modifier key is held outside of a gesture or while Alt is held on pointer events.
 /// </summary>
 public sealed class ToolInputRouter<TState>
 {
     private readonly Func<IToolHandler<TState>?> _selectedTool;
     private readonly Func<IToolHandler<TState>?> _temporaryTool;
+    private readonly Func<IToolHandler<TState>?> _modifierKeyTool;
     private readonly IReadOnlyCollection<Key> _modifierKeys;
 
     private IToolHandler<TState>? _overrideTool;
     private IToolHandler<TState>? _gestureTool;
 
     /// <param name="selectedTool">The tool the user selected</param>
-    /// <param name="temporaryTool">The tool a modifier or Alt engages, or null when there is none</param>
-    /// <param name="modifierKeys">Keys that engage <paramref name="temporaryTool"/> while held</param>
-    public ToolInputRouter(Func<IToolHandler<TState>?> selectedTool, Func<IToolHandler<TState>?> temporaryTool, IReadOnlyCollection<Key> modifierKeys)
+    /// <param name="temporaryTool">The tool Alt engages on pointer events, or null when there is none</param>
+    /// <param name="modifierKeyTool">The tool holding one of <paramref name="modifierKeys"/> engages, or null when the selected tool keeps those keys for itself</param>
+    /// <param name="modifierKeys">Keys that engage <paramref name="modifierKeyTool"/> while held</param>
+    public ToolInputRouter(Func<IToolHandler<TState>?> selectedTool, Func<IToolHandler<TState>?> temporaryTool,
+        Func<IToolHandler<TState>?> modifierKeyTool, IReadOnlyCollection<Key> modifierKeys)
     {
         _selectedTool = selectedTool;
         _temporaryTool = temporaryTool;
+        _modifierKeyTool = modifierKeyTool;
         _modifierKeys = modifierKeys;
     }
 
@@ -79,7 +83,7 @@ public sealed class ToolInputRouter<TState>
             _gestureTool = null;
 
             if (_overrideTool is null && (ctx.MouseState.Modifiers & (KeyModifiers.Control | KeyModifiers.Shift)) != 0)
-                _overrideTool = _temporaryTool();
+                _overrideTool = _modifierKeyTool();
         }
 
         return result;
@@ -91,7 +95,7 @@ public sealed class ToolInputRouter<TState>
         if (_overrideTool is not null || _gestureTool is not null || !_modifierKeys.Contains(key))
             return false;
 
-        _overrideTool = _temporaryTool();
+        _overrideTool = _modifierKeyTool();
         return _overrideTool is not null;
     }
 

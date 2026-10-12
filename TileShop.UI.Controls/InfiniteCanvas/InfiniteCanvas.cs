@@ -428,14 +428,14 @@ public partial class InfiniteCanvas : Control
     }
 
     /// <summary>
-    /// Calculates zoom to fit content within viewport, then centers
+    /// Calculates zoom to fit content within viewport, limited to <see cref="MinZoom"/> and <see cref="MaxZoom"/>, then centers
     /// </summary>
     public void FitToViewport(double contentWidth, double contentHeight)
     {
         if (contentWidth <= 0 || contentHeight <= 0 || Bounds.Width <= 0 || Bounds.Height <= 0)
             return;
 
-        Zoom = Math.Min(Bounds.Width / contentWidth, Bounds.Height / contentHeight);
+        Zoom = Math.Clamp(Math.Min(Bounds.Width / contentWidth, Bounds.Height / contentHeight), MinZoom, MaxZoom);
         CenterContent(contentWidth, contentHeight);
     }
 

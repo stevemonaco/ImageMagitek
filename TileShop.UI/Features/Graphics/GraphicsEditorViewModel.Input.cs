@@ -68,6 +68,14 @@ public partial class GraphicsEditorViewModel
         _ => null
     };
 
+    // Select tools keep Ctrl+click and Shift+hover for their own single-cell and single-element selection
+    private IToolHandler<GraphicsEditorViewModel>? ModifierKeyTool() => EditMode switch
+    {
+        GraphicsEditMode.Arrange when SelectedArrangeTool is ArrangeTool.ElementSelect or ArrangeTool.PixelSelect => null,
+        GraphicsEditMode.Draw when SelectedDrawTool is DrawTool.PixelSelect => null,
+        _ => TemporaryTool()
+    };
+
     private void NotifyDisplayedToolsChanged()
     {
         OnPropertyChanged(nameof(DisplayedDrawTool));
@@ -392,7 +400,8 @@ public partial class GraphicsEditorViewModel
                 MemoryDataSource => "Memory",
                 _ => "None"
             };
-            var fileOffsetDescription = $"0x{element.SourceAddress.ByteOffset:X}.{(element.SourceAddress.BitOffset != 0 ? element.SourceAddress.BitOffset.ToString() : "")}";
+            var address = element.SourceAddress;
+            var fileOffsetDescription = address.BitOffset != 0 ? $"0x{address.ByteOffset:X}.{address.BitOffset}" : $"0x{address.ByteOffset:X}";
 
             ActivityMessage = IsIndexedColor
                 ? $"Element ({elX}, {elY}): Codec {element.Codec.Name}, Palette {paletteName}, Source {sourceName}, FileOffset {fileOffsetDescription}"
