@@ -76,7 +76,7 @@ TileShop.UI ─────┐            TileShop.CLI
 
 ## 6. Project-wide decisions
 
-- **XML codecs are the default way to add a platform.** A C# codec is justified only when the format is not expressible as flow or pattern planes. Built-in C# twins of XML codecs moved to the plugin samples, and projects naming them load the XML codec.
+- **XML codecs are the default way to add a platform.** A C# codec is justified only when the format is not expressible as flow or pattern planes. Built-in C# twins of XML codecs moved to the plugin samples, named `... Plugin`, and projects naming them load the XML codec. No plugin ships with the app.
 - **Path keys, not ids, for references.** Resources reference each other by project path (`datafile="Roms/FF2"`). Readable and hand-editable; the cost is that renames and moves rewrite referencing files. A rename outside TileShop leaves references that fail the load, naming the key. See LIB-PROJECT-FORMAT.
 - **One format version, newer refused.** The project file carries the format version. A reader refuses newer versions and reads 0.9 as 1.0. There is no migration until a format change needs one.
 - **Read-only is one gate.** Anything that cannot be written back (a codec with `CanEncode` false, a read-only data source, later a compressed source) makes the arranger read-only, and every write path (draw, paste pixels, color remap, import, save, CLI import) consults the same check.

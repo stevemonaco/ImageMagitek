@@ -14,7 +14,7 @@ Two plugin kinds, both added to `ImageMagitek.Plugins.Contracts` ([LIB-PLUGINS](
 
 **Container readers** parse an archive's table of contents into entries (name, offset, length, and optionally a compression name). In TileShop, a data file opened with a container reader shows its entries as browsable children. Opening an entry opens a sequential editor over that byte range, and adding one to a project stores the resolved range.
 
-The first built-in scanner is PSX TIM: 4bpp, 8bpp, 16bpp and 24bpp, with and without a CLUT. Its codecs and palette color model already ship (PSX 4bpp/8bpp Flow, PSX 16bpp/24bpp, BGR15).
+The first built-in scanner is PSX TIM: 4bpp, 8bpp, 16bpp and 24bpp, with and without a CLUT. Its codecs and palette color model already ship (PSX 4bpp/8bpp, PSX 16bpp/24bpp, BGR15).
 
 What does not change: codecs, arrangers and the project format's existing resources. A project built from scanner hits loads without the scanner plugin.
 

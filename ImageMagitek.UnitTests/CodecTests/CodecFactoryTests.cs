@@ -20,9 +20,9 @@ public class CodecFactoryTests
     }
 
     [Theory]
-    [InlineData("SNES 3bpp", "SNES 3bpp Flow")]
-    [InlineData("PSX 4bpp", "PSX 4bpp Flow")]
-    [InlineData("PSX 8bpp", "PSX 8bpp Flow")]
+    [InlineData("SNES 3bpp Flow", "SNES 3bpp")]
+    [InlineData("PSX 4bpp Flow", "PSX 4bpp")]
+    [InlineData("PSX 8bpp Flow", "PSX 8bpp")]
     public void LegacyName_ResolvesToXmlCodec(string legacyName, string currentName)
     {
         var codec = _fixture.CodecFactory.CreateCodec(legacyName, new Size(16, 8));

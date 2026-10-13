@@ -4,7 +4,7 @@ using ImageMagitek.Plugins;
 namespace ImageMagitek.PluginSamples;
 
 /// <summary>
-/// C# implementation of the XML codec "PSX 8bpp Flow" (_codecs/PSX8bpp.xml).
+/// C# implementation of the XML codec "PSX 8bpp" (_codecs/PSX8bpp.xml).
 /// </summary>
 public sealed class Psx8BppCodec : IIndexedCodecPlugin
 {

@@ -65,7 +65,7 @@ public sealed class SettingsService
                 { ".sfc", "SNES 2bpp" },
                 { ".smc", "SNES 2bpp" },
                 { ".smd", "Genesis 4bpp" },
-                { ".tim", "PSX 4bpp Flow" },
+                { ".tim", "PSX 4bpp" },
                 { ".vb", "Virtual Boy 2bpp" }
             }
         );

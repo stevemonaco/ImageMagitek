@@ -1,4 +1,4 @@
-﻿codec: SNES 3bpp Flow
+﻿codec: SNES 3bpp
 size: 16x8
 colorDepth: 3
 storageBits: 384

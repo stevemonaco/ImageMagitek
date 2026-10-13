@@ -19,12 +19,12 @@ public sealed class CodecFactory : ICodecFactory
     private readonly Dictionary<string, Type> _codecs;
     private readonly Dictionary<string, Type> _codecPlugins = [];
 
-    // Names of retired built-in codecs, kept so existing projects resolve to their byte-identical XML codecs
+    // Former codec names, kept so existing projects and settings resolve to the renamed XML codecs
     private static readonly Dictionary<string, string> _legacyCodecNames = new()
     {
-        ["SNES 3bpp"] = "SNES 3bpp Flow",
-        ["PSX 4bpp"] = "PSX 4bpp Flow",
-        ["PSX 8bpp"] = "PSX 8bpp Flow",
+        ["SNES 3bpp Flow"] = "SNES 3bpp",
+        ["PSX 4bpp Flow"] = "PSX 4bpp",
+        ["PSX 8bpp Flow"] = "PSX 8bpp",
     };
 
     /// <summary>

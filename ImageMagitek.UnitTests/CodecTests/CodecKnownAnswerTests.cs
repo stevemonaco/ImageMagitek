@@ -33,7 +33,7 @@ public class CodecKnownAnswerTests
 
     [Fact]
     public void Snes3BppFlow_InterlacedPlanesThenThirdPlane() =>
-        AssertKnownAnswer("SNES 3bpp Flow", 8, 8, DepthTile(8, 8, 3), [.. Pad(16, 0x55, 0x33, 0xAA, 0xCC), .. Pad(8, 0x0F, 0xF0)]);
+        AssertKnownAnswer("SNES 3bpp", 8, 8, DepthTile(8, 8, 3), [.. Pad(16, 0x55, 0x33, 0xAA, 0xCC), .. Pad(8, 0x0F, 0xF0)]);
 
     [Fact]
     public void Snes4Bpp_TwoInterlacedPlanePairs() =>
@@ -70,11 +70,11 @@ public class CodecKnownAnswerTests
 
     [Fact]
     public void Psx4BppFlow_LowNibbleIsLeftPixel() =>
-        AssertKnownAnswer("PSX 4bpp Flow", 8, 8, DepthTile(8, 8, 4), Gba4BppExpected);
+        AssertKnownAnswer("PSX 4bpp", 8, 8, DepthTile(8, 8, 4), Gba4BppExpected);
 
     [Fact]
     public void Psx8BppFlow_OneBytePerPixel() =>
-        AssertKnownAnswer("PSX 8bpp Flow", 8, 8, DepthTile(8, 8, 8), BytePerPixelExpected);
+        AssertKnownAnswer("PSX 8bpp", 8, 8, DepthTile(8, 8, 8), BytePerPixelExpected);
 
     [Fact]
     public void SnesMode7_OneBytePerPixel() =>

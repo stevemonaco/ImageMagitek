@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<flowcodec name="PSX 8bpp Flow" version="0.9">
+<flowcodec name="PSX 8bpp" version="0.9">
 	<colortype>indexed</colortype>
 	<colordepth>8</colordepth>
 	<layout>single</layout>

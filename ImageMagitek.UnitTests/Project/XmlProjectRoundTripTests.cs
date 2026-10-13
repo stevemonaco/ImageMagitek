@@ -112,7 +112,7 @@ public sealed class XmlProjectRoundTripTests : IDisposable
             .ToList();
     }
 
-    private static readonly string[] RetiredCodecNames = ["SNES 3bpp", "PSX 4bpp", "PSX 8bpp"];
+    private static readonly string[] RetiredCodecNames = ["SNES 3bpp Flow", "PSX 4bpp Flow", "PSX 8bpp Flow"];
 
     private static bool NamesRetiredName(string xmlFile) =>
         XDocument.Parse(File.ReadAllText(xmlFile)).Descendants()

@@ -18,9 +18,9 @@ namespace ImageMagitek.Benchmarks;
 [ShortRunJob]
 public class CodecElementBenchmarks
 {
-    private static readonly string[] _codecFiles = ["SNES3bpp Flow.xml", "SNES4bpp Pattern.xml", "PSX4bpp.xml"];
+    private static readonly string[] _codecFiles = ["SNES3bpp.xml", "SNES4bpp Pattern.xml", "PSX4bpp.xml"];
 
-    [Params("SNES 3bpp Plugin", "SNES 3bpp Flow", "SNES4bpp Pattern", "PSX 4bpp Flow", "PSX 16bpp")]
+    [Params("SNES 3bpp Plugin", "SNES 3bpp", "SNES4bpp Pattern", "PSX 4bpp", "PSX 16bpp")]
     public string CodecName { get; set; } = "";
 
     private IIndexedCodec? _indexedCodec;
@@ -49,7 +49,7 @@ public class CodecElementBenchmarks
         var factory = new CodecFactory(palette, formats);
         factory.AddCodecPlugin(typeof(Snes3BppCodec));
 
-        var size = CodecName is "PSX 4bpp Flow" or "PSX 16bpp" ? new Size(64, 64) : new Size(8, 8);
+        var size = CodecName is "PSX 4bpp" or "PSX 16bpp" ? new Size(64, 64) : new Size(8, 8);
         var codec = factory.CreateCodec(CodecName, size)!;
         _indexedCodec = codec as IIndexedCodec;
         _directCodec = codec as IDirectCodec;

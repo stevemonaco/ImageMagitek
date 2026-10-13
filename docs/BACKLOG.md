@@ -21,7 +21,7 @@ Found by reading the code, not reproduced, unless a test is named.
 ## Missing validation
 
 - [LIB-PROJECT-SERVICE] `SaveResourceAsync` has no standalone guard; called with a standalone root it would write XML over the ROM (unreachable from today's UI); done when it fails for standalone trees.
-- [LIB-PROJECT-SERVICE] `OpenProjectFileAsync`'s already-open check compares raw path strings, so the same project opens twice via a relative path or other casing; done when it normalizes like `OpenDataFile`.
+- **1.0** [LIB-PROJECT-SERVICE] `OpenProjectFileAsync`'s already-open check compares raw path strings, so the same project opens twice via a relative path or other casing and saves from one copy overwrite the other's; done when it normalizes like `OpenDataFile`.
 - [LIB-PROJECT-SERVICE] `CanMoveNode` and `GetContainingProject` throw for nodes outside every open tree; done when `CanMoveNode` returns a failure.
 - [LIB-PROJECT-FORMAT] A direct arranger that names an indexed codec loads without a check; done when the load fails naming the codec and arranger, like the indexed case (LIB-PROJECT-FORMAT-025).
 - [LIB-CODECS] A planar pattern count mismatch or empty pattern throws `ArgumentException` while other pattern errors return a failed result; done when all return failed results.
@@ -41,7 +41,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-PROJECT-SERVICE] Whether `ApplyResourceDeletionAsync` should report a kept non-empty folder as a failure although its nodes were removed; done when decided.
 - [LIB-PROJECT-SERVICE] `FindXmlConflict` (create a project from a data file, rename a project root) refuses a directory holding any `*.xml` recursively, including files under `.git`, `.idea` or `.vs` and XML with a foreign root, which the reader now skips (LIB-PROJECT-FORMAT-004, -005); done when it follows the reader's scan rules, or a decision records why it stays stricter.
 - [UI-PROJECT-TREE] A data file's missing state is read only on project open, so it does not update if the file disappears or reappears mid-session; done when refreshed, or the decision to leave it is recorded.
-- [UI-PALETTE-EDITOR] "Duplicate to project" for global palettes (PLAN Milestone 4, marked done) does not exist; the closest is the Add Palette dialog's template option, and no UI path opens a global palette in the editor, so read-only mode looks unreachable; done when either a Duplicate command and a way to open global palettes exist, or UI-PALETTE-EDITOR-090/091 are struck.
+- **1.0** [UI-PALETTE-EDITOR] "Duplicate to project" for global palettes (PLAN Milestone 4, marked done) does not exist; the closest is the Add Palette dialog's template option, and no UI path opens a global palette in the editor, so read-only mode looks unreachable; done when either a Duplicate command and a way to open global palettes exist, or UI-PALETTE-EDITOR-090/091 are struck.
 
 ## Feature gaps
 
@@ -49,6 +49,7 @@ Found by reading the code, not reproduced, unless a test is named.
 
 - [UI-SHELL, LIB-PROJECT-SERVICE] Command-line and OS integration (optional for 1.0): `args` are passed to Avalonia but never read, and there is no window drop handler; done when a non-`.xml` path on the command line, or a file dropped on the window, opens as a standalone file (drop is a manual check).
 - [UI-SHELL] Status-bar Indefinite and Reset messages are handled but never sent; done when a sender exists or the values are removed.
+- **1.0** [UI-SHELL] Global unhandled-exception handling: the WPF app logged an unhandled exception, showed an "Unhandled Exception" dialog and kept running; the Avalonia app has no `Dispatcher.UIThread.UnhandledException` or `TaskScheduler.UnobservedTaskException` handler, so an exception after startup exits the app and loses unsaved edits; done when both are logged and shown through `IInteractionService` and the app keeps running.
 
 ### P1
 
@@ -57,7 +58,6 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-PROJECT-FORMAT, UI-GRAPHICS-EDITOR] Sequential arrangers as project resources ("save view as arranger"; deferred to 1.1); done when one saves and reloads. Unblocks persisting the element layout (P2, deliberately not done in Milestone 9) and per-file view state for standalone files.
 - [LIB-PALETTES, LIB-PROJECT-FORMAT, UI-PALETTE-EDITOR] Palettes of only project colors, saved in the palette XML with no data file (intended, never built): the writer refuses them (LIB-PROJECT-FORMAT-036), `ProjectTreeBuilder.AddPalette` fails "has no data file", `Palette.LoadForeignPalette` guards on a data source, and the editor cannot change model or apply sources without one; done when such a palette is created, edited, saved and reloaded.
 - [LIB-PALETTES, UI-PALETTE-EDITOR] Remaining palette file formats: RIFF `.pal`, `.act`, `.hex`, and a JSON writer (JASC `.pal` and `.gpl` exist).
-- [UI-SHELL] Global unhandled-exception handling: the WPF app logged an unhandled exception, showed an "Unhandled Exception" dialog and kept running; the Avalonia app has no `Dispatcher.UIThread.UnhandledException` or `TaskScheduler.UnobservedTaskException` handler, so an exception after startup exits the app; done when both are logged and shown through `IInteractionService` and the app keeps running.
 
 ### P2
 
@@ -100,14 +100,15 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-CODECS] XML schema and semantic validation failures; unknown name throws `KeyNotFoundException`; direct-color XML throws; pattern codecs ignore the requested size; each codec gets its own format clone; `CloneCodec`.
 - [LIB-COLORS] RGB15, BGR6, NES and RGBA32 conversion; BGR9 to-foreign rounding; hex format and parse for every model; factory `NotSupported`/`ArgumentException` paths; distance ties pick the lowest index; `GetIndexByNativeColor` throwing.
 - [LIB-PALETTES] 3-byte and big-endian file colors; `ZeroIndexTransparent` raises `Changed` only on a real change; global `SavePalette` returns false; JSON `zeroIndexTransparent` default (true) and `JsonException` cases; `PaletteStore` default and NES loading.
-- [LIB-ARRANGERS] `SequentialArranger.Move` per move type including clamping; `ChangeElementLayout` rounding and pattern order (2x2 H vs 2x2 V addresses); `ElementCopier` (`ElementCopierTests` is entirely commented out), including paste cropping and the cross-project refusal; `CloneArranger` (full, sub-rectangle, Single-layout restriction); `UnlinkResource`.
-- [LIB-IMAGES] `ImageCopier` (`ImageCopierTests` has one empty method without `[Fact]`): each `CopyPixels` overload, the blank-element failure, operation order; `SaveImage` raising `NotifyDataWritten` once per distinct source; `CanSetPixel`/`SetPixel(color)`/`GetPixelColor`; FloodFill not crossing palettes.
+- [LIB-ARRANGERS] `SequentialArranger.Move` per move type including clamping; `ChangeElementLayout` rounding and pattern order (2x2 H vs 2x2 V addresses); `CloneArranger` (full, sub-rectangle, Single-layout restriction); `UnlinkResource`.
+- **1.0** [LIB-ARRANGERS] `ElementCopier` (`ElementCopierTests` is entirely commented out), including paste cropping and the cross-project refusal.
+- **1.0** [LIB-IMAGES] `ImageCopier` (`ImageCopierTests` has one empty method without `[Fact]`): each `CopyPixels` overload, the blank-element failure, operation order; `SaveImage` raising `NotifyDataWritten` once per distinct source; `CanSetPixel`/`SetPixel(color)`/`GetPixelColor`; FloodFill not crossing palettes.
 - [LIB-IMAGE-IO] RGBA fallback export (over 256 combined entries, index past its slot, empty-cell transparency), empty cells exporting as index 0, `LoadImage` and `Prepare(path)` failure results.
 - [UI-SHELL] `HotkeyService` scope, suspension, text-box plain-key deferral and first-match-wins; `StatusViewModel` Short/Indefinite/Reset; recent list rules (top insert, max 8, standalone skipped, missing filtered at start); `UserPreferencesStore` load fallback and atomic save. Several need logic extracted from the ViewModel first.
 - [UI-EDITORS] `OpenEditor` dispatch, the codec-by-extension fallback chain, the missing-source gate, `ResourceChanged` coalescing, `ConfirmRemovalAsync` prompt selection (needs a slimmer constructor or an extracted helper).
 - [UI-PROJECT-TREE] Root open/close/convert keep `Projects` in sync; Move picker filtering and `CanDropNode`.
-- [UI-GRAPHICS-EDITOR] Mode-switch save prompt (Yes/No/Cancel) and the read-only/standalone gating properties, with a fake `IInteractionService`.
-- [UI-EDIT-HISTORY] VM wiring: `IsModified` after undo/redo, CanUndo/CanRedo notifications, history cleared on save, discard and `ReloadFromSource`.
+- **1.0** [UI-GRAPHICS-EDITOR] Mode-switch save prompt (Yes/No/Cancel) and the read-only/standalone gating properties, with a fake `IInteractionService`.
+- **1.0** [UI-EDIT-HISTORY] VM wiring: `IsModified` after undo/redo, CanUndo/CanRedo notifications, history cleared on save, discard and `ReloadFromSource`.
 - [UI-DRAWING] `CanRemapColors` (single palette, read-only, empty region); clip enforcement in Pencil and flood fill at VM level.
 - [UI-IMAGE-IO] `ImportImageViewModel` enablement and blocking reason (needs `ImageSharpFileAdapter` injected first).
 - [UI-PALETTE-EDITOR] Invalid source rows block Save and mark the editor modified; an out-of-range file source is not applied; paste parsing (internal exact copy, OS hex tokens, error); read-only gating; `CommittedModel` set and cleared with history; a new edit clears redo and a throwing edit rolls back with no step; `ChangeColorModelViewModel` preview errors for table models.
@@ -126,7 +127,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - **1.0** README: still says .NET 6 and lists Autofac and Jot; done when the stack and dependencies are current and CLI usage (verbs, options, exit codes) is documented in `docs/cli.md`. ([proposal](changes/docs-1-0.md))
 - **1.0** Release notes for 1.0 calling out the codec behavior changes existing projects will notice (recorded in LIB-CODECS Decisions, "Codec rework behavior changes"). ([proposal](changes/docs-1-0.md))
 - Codec XML authoring guide and plugin authoring guide (after 1.0, per [docs-1-0](changes/docs-1-0.md)); decide whether to ship the plugin contract tests as a package for plugin authors or document copying them from the test project.
-- [LIB-PLUGINS] A plugin with one resizable dimension (one increment 0) reports `CanResize` and a 0 step for the fixed axis, which the UI resize steps and `IndexedCodecContract.ResizeIncrements_AreHonored` do not expect; done when the UI handles a per-axis fixed size or registration refuses it.
+- **1.0** [LIB-PLUGINS] A plugin with one resizable dimension (one increment 0) reports `CanResize` and a 0 step for the fixed axis, which the UI resize steps and `IndexedCodecContract.ResizeIncrements_AreHonored` do not expect; done when the UI handles a per-axis fixed size or registration refuses it. Settle before the contracts package baseline freezes at 1.0.0.
 - [LIB-PLUGINS] After 1.0 ships, set `PackageValidationBaselineVersion` to 1.0.0 on `ImageMagitek.Plugins.Contracts` so CI rejects breaking contract changes in 1.x.
 - [ARCHITECTURE] The spec format (front matter, ids, cited tests and paths exist, type ownership) is not enforced; done when a test in `ImageMagitek.UnitTests` checks it, as Monaco.Presto's `SpecTests` does.
 

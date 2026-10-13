@@ -8,7 +8,7 @@
 	<element fileoffset="A0" posx="1" posy="1" rotation="right" />
 	<element fileoffset="C0" posx="2" posy="1" rotation="turn" />
 	<element fileoffset="E0" posx="3" posy="1" bitoffset="3" />
-	<element fileoffset="100" posx="0" posy="2" codec="SNES 3bpp" />
+	<element fileoffset="100" posx="0" posy="2" codec="SNES 3bpp Flow" />
 	<element fileoffset="0" posx="1" posy="2" datafile="/Data/sub" />
 	<element fileoffset="120" posx="2" posy="2" palette="Classic" />
 	<element fileoffset="140" posx="3" posy="2" palette="/Palettes/Nested/Alt" />

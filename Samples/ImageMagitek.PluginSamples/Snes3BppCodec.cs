@@ -4,7 +4,7 @@ using ImageMagitek.Plugins;
 namespace ImageMagitek.PluginSamples;
 
 /// <summary>
-/// C# implementation of the XML codec "SNES 3bpp Flow" (_codecs/SNES3bpp Flow.xml).
+/// C# implementation of the XML codec "SNES 3bpp" (_codecs/SNES3bpp.xml).
 /// </summary>
 public sealed class Snes3BppCodec : IIndexedCodecPlugin
 {

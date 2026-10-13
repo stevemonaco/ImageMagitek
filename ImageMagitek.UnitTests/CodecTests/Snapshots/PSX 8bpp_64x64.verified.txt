@@ -1,4 +1,4 @@
-﻿codec: PSX 8bpp Flow
+﻿codec: PSX 8bpp
 size: 64x64
 colorDepth: 8
 storageBits: 32768

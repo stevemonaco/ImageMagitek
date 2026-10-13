@@ -24,7 +24,7 @@ public class SequentialArrangerRoundTripTests
 
     public static TheoryData<string> RepresentativeCodecs =>
     [
-        "NES 1bpp", "NES 2bpp", "SNES 2bpp", "SNES 3bpp Flow", "SNES 4bpp", "SNES 8bpp", "Game Gear 4bpp", "Genesis 4bpp",
+        "NES 1bpp", "NES 2bpp", "SNES 2bpp", "SNES 3bpp", "SNES 4bpp", "SNES 8bpp", "Game Gear 4bpp", "Genesis 4bpp",
         "GBA 4bpp", "GBA 8bpp", "SNES Mode7", "Virtual Boy 2bpp", "NeoGeo Pocket 2bpp", "CotM Font", "FF5 Font", "Tokimemo 1bpp",
         "SNES4bpp Pattern", "GBA4bpp Pattern", "FF5 Pattern",
     ];

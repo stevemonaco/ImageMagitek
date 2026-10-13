@@ -26,7 +26,7 @@ public class CodecEquivalenceTests
     [InlineData(8, 16)]
     public void Snes3BppFlow_MatchesSpecialized(int width, int height)
     {
-        var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "SNES 3bpp Flow", width, height);
+        var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "SNES 3bpp", width, height);
         AssertEquivalent(flow, new IndexedCodecPluginAdapter(new Snes3BppCodec(), flow.Palette, width, height));
     }
 
@@ -36,7 +36,7 @@ public class CodecEquivalenceTests
     [InlineData(16, 8)]
     public void Psx4BppFlow_MatchesSpecialized(int width, int height)
     {
-        var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "PSX 4bpp Flow", width, height);
+        var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "PSX 4bpp", width, height);
         AssertEquivalent(flow, new IndexedCodecPluginAdapter(new Psx4BppCodec(), flow.Palette, width, height));
     }
 
@@ -46,7 +46,7 @@ public class CodecEquivalenceTests
     [InlineData(16, 8)]
     public void Psx8BppFlow_MatchesSpecialized(int width, int height)
     {
-        var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "PSX 8bpp Flow", width, height);
+        var flow = CodecTestHelpers.CreateCodec(_fixture.CodecFactory, "PSX 8bpp", width, height);
         AssertEquivalent(flow, new IndexedCodecPluginAdapter(new Psx8BppCodec(), flow.Palette, width, height));
     }
 
