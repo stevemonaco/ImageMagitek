@@ -86,7 +86,7 @@ public sealed class XmlProjectReader : IProjectReader
             if (!TryLoadXml(resourceFileName, out var doc))
                 return new MagitekResults<ProjectTree>.Failed(_errors);
 
-            if (doc.Root.Name.LocalName is not ("datafile" or "palette" or "arranger"))
+            if (!IsResourceRoot(doc.Root.Name.LocalName))
                 continue;
 
             if (!TryValidate(doc, resourceFileName) || !TryDeserializeResource(doc, resourceFileName, out var resourceModel))
@@ -135,7 +135,7 @@ public sealed class XmlProjectReader : IProjectReader
     {
         foreach (var fileName in Directory.EnumerateFiles(directory, "*.xml"))
         {
-            if (!Path.GetFileName(fileName).StartsWith('.'))
+            if (!IsSkippedName(Path.GetFileName(fileName)))
                 xmlFileNames.Add(fileName);
         }
 
@@ -145,13 +145,48 @@ public sealed class XmlProjectReader : IProjectReader
         foreach (var directoryName in Directory.EnumerateDirectories(directory))
         {
             var name = Path.GetFileName(directoryName);
-            if (name.StartsWith('.'))
+            if (IsSkippedName(name))
                 continue;
 
             builder.AddFolder(new ResourceFolderModel() { Name = name }, parentKey, Path.GetFullPath(directoryName));
             ScanDirectory(directoryName, builder, xmlFileNames);
         }
     }
+
+    /// <summary>
+    /// Finds the first <c>*.xml</c> file under a directory that a project load there would read or fail on, or a project file.
+    /// </summary>
+    public static string FindLoadableXml(string directory)
+    {
+        foreach (var fileName in Directory.EnumerateFiles(directory, "*.xml"))
+        {
+            if (IsSkippedName(Path.GetFileName(fileName)))
+                continue;
+
+            try
+            {
+                var root = XDocument.Parse(File.ReadAllText(fileName)).Root.Name.LocalName;
+                if (IsResourceRoot(root) || root == "project")
+                    return fileName;
+            }
+            catch (Exception ex) when (ex is XmlException or IOException or UnauthorizedAccessException)
+            {
+                return fileName;
+            }
+        }
+
+        foreach (var directoryName in Directory.EnumerateDirectories(directory))
+        {
+            if (!IsSkippedName(Path.GetFileName(directoryName)) && FindLoadableXml(directoryName) is { } found)
+                return found;
+        }
+
+        return null;
+    }
+
+    private static bool IsSkippedName(string name) => name.StartsWith('.');
+
+    private static bool IsResourceRoot(string root) => root is "datafile" or "palette" or "arranger";
 
     private bool TryLoadXml(string xmlFileName, [MaybeNullWhen(false)] out XDocument doc)
     {

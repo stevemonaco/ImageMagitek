@@ -258,6 +258,17 @@ public sealed class XmlProjectReaderTests : IDisposable
     }
 
     [Fact]
+    public void DirectArrangerWithIndexedCodec_FailsNamingCodecAndArranger()
+    {
+        WriteXml("arr.xml", ArrangerWithCodec("SNES 4bpp", "", Element(0, 0)).Replace("color=\"indexed\"", "color=\"direct\""));
+
+        var reason = ReadSingleFailure();
+
+        Assert.Contains("/arr", reason);
+        Assert.Contains("indexed codec 'SNES 4bpp'", reason);
+    }
+
+    [Fact]
     public void UnresolvedDataFileKey_Palette_FailsNamingKeyAndPalette()
     {
         WriteXml("Palettes/pal.xml", "<palette datafile=\"/missing\" color=\"Bgr15\" zeroindextransparent=\"false\"><filesource fileoffset=\"0\" entries=\"2\" /></palette>");

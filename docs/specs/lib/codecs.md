@@ -137,8 +137,8 @@ A codec decodes one element's stored bits into pixels and encodes them back: pal
   - Tests: `IndexedCodecContractTests.AllShippedXmlCodecsLoad`
 - **LIB-CODECS-028** — If a codec's color depth is outside 1–32, its `mergepriority` count differs from its color depth, its image color depths do not sum to its color depth, or its pattern size is outside 1–512, then the XML reader shall fail with a reason carrying the line number where known.
   - Tests: untested
-- **LIB-CODECS-029** (inherited) — If a codec's default width or height (flow) or width or height (pattern) is 1 or less, then the XML reader shall fail.
-  - Tests: untested
+- **LIB-CODECS-029** — If a codec's default width or height (flow) or width or height (pattern) is below 1, then the XML reader shall fail; a size of 1 is accepted.
+  - Tests: `XmlCodecServiceTests.LoadFromFile_SizeOfOne_Loads`
 - **LIB-CODECS-030** — Every shipped XML codec shall load with the declared default size, and the build output shall carry an identical copy of every codec XML.
   - Tests: `IndexedCodecContractTests.AllShippedXmlCodecsLoad`, `IndexedCodecContractTests.BuildOutputShipsEveryCodecXml`
 
@@ -237,6 +237,7 @@ A codec decodes one element's stored bits into pixels and encodes them back: pal
 - **Codec names are unique; the first registration wins.** Registration order is built-in C# codecs, then XML codecs in ordinal file order, then plugins in directory order. A later registration under a taken name (any source) is refused and reported naming both sources; `AddCodecPlugin`/`AddFormat` (formerly `AddOrUpdateCodec`/`AddOrUpdateFormat`) return a result. Reason: a project names codecs, so which bytes-to-pixels mapping it gets must not depend on installed plugins; shipped codecs are the trusted ones. This generalizes the earlier "Duplicate XML names keep the first file" decision, made because a later XML file silently overwrote an earlier one. Rejected: C# codecs win (the earlier, silent behavior); last registration wins; renaming the newcomer. Legacy names are not registered names, so a plugin may still claim one ("Legacy names resolve last").
 - **Past-end elements are skipped, not thrown.** `ReadElement` returns empty for an element that does not fit in its source, images render it empty and never write it, so an arranger near EOF or over a truncated file shows blank cells and saving does not grow the file. Reason: reads past EOF used to throw or show garbage. Rejected: zero-padding the read, which would let a save grow the file.
 - **Read-only is decided by `CanEncode`.** A codec that cannot encode makes its arranger read-only, and every write path consults the arranger check (docs/ARCHITECTURE.md). Reason: decode-only plugin codecs (for example compressed fonts) could be drawn on and failed only on save.
+- **Codec sizes start at 1.** The XML reader accepts a width or height of 1, matching `CodecSchema.xsd` (`xs:positiveInteger`). Reason: the schema, plugin registration (LIB-PLUGINS-006) and scattered arrangers (LIB-ARRANGERS-015) all accept 1, and row-based formats such as 8x1 line sprites need it. Rejected: narrowing the schema to a minimum of 2, which would carry an inherited limit nobody chose into the 1.0 codec format.
 - **Direct-color XML codecs are not supported for 1.0.** The schema accepts `colortype` `direct`, but the factory throws `NotSupportedException`.
 - **Generalized codecs use `PackedBits`, not `BitStream`.** Flow and pattern codecs precompute per-bit tables and read and write bits directly. Reason: speed. `BitStream` remains for its tests and the FF5 samples; the sample plugins carry their own bit helper (LIB-PLUGINS).
 - **Codec rework behavior changes (1.0 release notes).** Genesis 4bpp, SNES Mode 7, Virtual Boy 2bpp and NGPC 2bpp had reversed bit order and now show correct colors, which differ from earlier versions. N64 RGBA32 reads big-endian `.z64` order; `.v64` dumps must be converted first. N64 RGBA16 reports 16 bpp and no longer zero-fills the second half of its storage on save. PSX 16bpp preserves the STP bit. The app ships every codec XML; pattern codecs and SNES 3bpp were missing from earlier builds. The `SNES 3bpp Flow`, `PSX 4bpp Flow` and `PSX 8bpp Flow` codecs are renamed `SNES 3bpp`, `PSX 4bpp` and `PSX 8bpp`; projects using the old names load and are rewritten on save.
@@ -250,5 +251,4 @@ A codec decodes one element's stored bits into pixels and encodes them back: pal
 ## Open items
 
 - Planar pattern count mismatch and empty patterns throw `ArgumentException` while every other pattern error returns a failed result.
-- The XML reader rejects a default width or height of 1 while the schema accepts any positive integer.
 - No tests cover XML schema failures, semantic validation, unknown codec names, or the direct-XML `NotSupportedException`.

@@ -41,6 +41,30 @@ public class XmlCodecServiceTests
     }
 
     [Fact]
+    public void LoadFromFile_SizeOfOne_Loads()
+    {
+        var directory = TestPaths.CreateTempPath("");
+        Directory.CreateDirectory(directory);
+
+        try
+        {
+            var fileName = Path.Combine(directory, "row.xml");
+            File.WriteAllText(fileName, File.ReadAllText(Path.Combine(TestPaths.CodecsPath, "GBA4bpp.xml"))
+                .Replace("<defaultheight>8</defaultheight>", "<defaultheight>1</defaultheight>"));
+            var reader = new XmlGraphicsFormatReader(Path.Combine(AppContext.BaseDirectory, "_schemas", "CodecSchema.xsd"));
+
+            var result = reader.LoadFromFile(fileName);
+
+            Assert.True(result.HasSucceeded);
+            Assert.Equal(1, result.AsSuccess.Result.DefaultHeight);
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
+
+    [Fact]
     public void LoadCodecs_MalformedXml_ReportsAndLoadsTheRest()
     {
         var directory = TestPaths.CreateTempPath("");

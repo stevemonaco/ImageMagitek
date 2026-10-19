@@ -208,18 +208,17 @@ public partial class GraphicsEditorViewModel
         var model = new AssociatePaletteViewModel(palettes);
         var dialogResult = await _interactions.RequestAsync(model);
 
-        if (dialogResult is not null)
-        {
-            if (dialogResult.SelectedPalette.Palette.DataSource is FileDataSource { IsMissing: true } missing)
-            {
-                await _interactions.AlertAsync("Associate Palette",
-                    $"'{dialogResult.SelectedPalette.Palette.Name}' is unavailable because data file '{missing.Name}' is missing. Right-click it in the project tree and choose Relink... to repair it.");
-                return;
-            }
+        if (dialogResult?.SelectedPalette is not { } selected)
+            return;
 
-            var palModel = new PaletteModel(dialogResult.SelectedPalette.Palette, dialogResult.SelectedPalette.Palette.Entries);
-            Palettes.Add(palModel);
+        if (selected.Palette.DataSource is FileDataSource { IsMissing: true } missing)
+        {
+            await _interactions.AlertAsync("Associate Palette",
+                $"'{selected.Palette.Name}' is unavailable because data file '{missing.Name}' is missing. Right-click it in the project tree and choose Relink... to repair it.");
+            return;
         }
+
+        FindOrAddPalette(selected.Palette);
     }
 
     [RelayCommand]

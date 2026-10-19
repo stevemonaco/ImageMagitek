@@ -20,25 +20,20 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ## Missing validation
 
-- [LIB-PROJECT-SERVICE] `SaveResourceAsync` has no standalone guard; called with a standalone root it would write XML over the ROM (unreachable from today's UI); done when it fails for standalone trees.
 - [LIB-PROJECT-SERVICE] `CanMoveNode` and `GetContainingProject` throw for nodes outside every open tree; done when `CanMoveNode` returns a failure.
-- [LIB-PROJECT-FORMAT] A direct arranger that names an indexed codec loads without a check; done when the load fails naming the codec and arranger, like the indexed case (LIB-PROJECT-FORMAT-025).
 - [LIB-CODECS] A planar pattern count mismatch or empty pattern throws `ArgumentException` while other pattern errors return a failed result; done when all return failed results.
-- [LIB-CODECS] The XML reader rejects a width or height of 1 while the schema accepts any positive integer; done when they agree.
 - [LIB-PALETTES] `SetForeignColor` accepts a color of any model, and negative indexes throw `IndexOutOfRangeException`; done when both are validated.
 - [LIB-COLORS] Match indices are bytes, so palettes over 256 entries wrap; done when entries are limited to 256 or indices widened.
 - [LIB-ARRANGERS] `SetElement` accepts x == Width or y == Height (throws `IndexOutOfRangeException`); `TryRotateElement` checks bounds with `>` and `TryMirrorElement` not at all; scattered `SetElement` does not check the element's pixel size; `SequentialArranger.Move(BitAddress)` accepts negative addresses and `Resize` sizes below 1; done when each is refused with an argument error or failed result.
 - [LIB-IMAGES] The IndexedImage and DirectImage sub-rectangle constructors do not bounds-check, and FloodFill clip bounds larger than the image throw; done when both produce argument errors or are clipped.
 - [LIB-IMAGE-IO] `ImageImportPreview.Commit` does not check `CanCommit` (the UI and CLI do); done when it refuses, or a decision confirms it.
 - [LIB-IMAGE-IO, LIB-ARRANGERS] Import reports pixels on elements past the end of their source as Changed, and save-conflict analysis reports such elements as Modified, though neither is ever written; done when they are excluded.
-- [UI-ARRANGING] Associate Palette adds duplicates, sizes the palette by entry count instead of codec color depth, and `Palettes.First()` throws on an empty list; done when duplicates are skipped and an empty list is handled.
 - [UI-ARRANGING] Delete records history and marks the editor modified when every covered element is already empty; done when it is a no-op.
 - [UI-PALETTE-EDITOR] Change Color Model needs a data source even when every source is a project color; done when such a palette can change model.
 
 ## Undecided questions
 
 - [LIB-PROJECT-SERVICE] Whether `ApplyResourceDeletionAsync` should report a kept non-empty folder as a failure although its nodes were removed; done when decided.
-- [LIB-PROJECT-SERVICE] `FindXmlConflict` (create a project from a data file, rename a project root) refuses a directory holding any `*.xml` recursively, including files under `.git`, `.idea` or `.vs` and XML with a foreign root, which the reader now skips (LIB-PROJECT-FORMAT-004, -005); done when it follows the reader's scan rules, or a decision records why it stays stricter.
 - [UI-PROJECT-TREE] A data file's missing state is read only on project open, so it does not update if the file disappears or reappears mid-session; done when refreshed, or the decision to leave it is recorded.
 - **1.0** [UI-PALETTE-EDITOR] "Duplicate to project" for global palettes (PLAN Milestone 4, marked done) does not exist; the closest is the Add Palette dialog's template option, and no UI path opens a global palette in the editor, so read-only mode looks unreachable; done when either a Duplicate command and a way to open global palettes exist, or UI-PALETTE-EDITOR-090/091 are struck.
 

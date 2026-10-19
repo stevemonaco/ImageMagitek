@@ -75,10 +75,19 @@ public class ProjectService : IProjectService
     private bool IsOpenAt(string fullPath) =>
         _projects.Any(x => string.Equals(x.Root.DiskLocation, fullPath, StringComparison.OrdinalIgnoreCase));
 
-    private static string? FindXmlConflict(string directory) =>
-        Directory.EnumerateFiles(directory, "*.xml", new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true }).Any()
-            ? $"'{directory}' or one of its subdirectories already holds XML files, which would be loaded as part of the project"
-            : null;
+    private static string? FindXmlConflict(string directory)
+    {
+        try
+        {
+            return XmlProjectReader.FindLoadableXml(directory) is { } file
+                ? $"'{directory}' already holds '{Path.GetRelativePath(directory, file)}', which would be loaded as part of the project"
+                : null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return $"'{directory}' could not be checked for XML files that would be loaded as part of the project: {ex.Message}";
+        }
+    }
 
     /// <summary>
     /// Creates a new empty project and writes its project file
@@ -613,6 +622,9 @@ public class ProjectService : IProjectService
 
     private async Task<MagitekResult> SaveResourceCoreAsync(ProjectTree projectTree, ResourceNode resourceNode, bool alwaysOverwrite)
     {
+        if (projectTree.IsStandaloneFile)
+            return new MagitekResult.Failed(StandaloneFileReason(projectTree));
+
         if (projectTree.Root.DiskLocation is null)
             throw new InvalidOperationException($"{nameof(SaveResourceAsync)}: '{nameof(projectTree)}' has no disk location");
 

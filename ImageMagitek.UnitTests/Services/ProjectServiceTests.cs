@@ -665,6 +665,7 @@ public sealed class ProjectServiceTests : IAsyncLifetime
         var move = await _service.MoveNodeAsync(root, root);
         var preview = _service.PreviewResourceDeletion(root);
         var saveAs = await _service.SaveProjectAsAsync(tree, PathOf("saved.xml"));
+        var saveResource = await _service.SaveResourceAsync(tree, root, true);
 
         Assert.True(add.HasFailed);
         Assert.True(folder.HasFailed);
@@ -673,6 +674,7 @@ public sealed class ProjectServiceTests : IAsyncLifetime
         AssertStandaloneFailure(rename.AsError.Reason, tree);
         AssertStandaloneFailure(preview.AsError.Reason, tree);
         AssertStandaloneFailure(saveAs.AsError.Reason, tree);
+        AssertStandaloneFailure(saveResource.AsError.Reason, tree);
         Assert.Equal("standalone.bin", root.Name);
         Assert.Equal(filesBefore, Directory.GetFileSystemEntries(_directory, "*", SearchOption.AllDirectories).Order());
     }
@@ -985,15 +987,48 @@ public sealed class ProjectServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task CreateNewProject_DirectoryHoldsXml_Fails()
+    public async Task CreateNewProject_DirectoryHoldsResourceXml_Fails()
     {
         Directory.CreateDirectory(PathOf("Holder", "Nested"));
-        File.WriteAllText(PathOf("Holder", "Nested", "stray.xml"), "<stray />");
+        File.WriteAllText(PathOf("Holder", "Nested", "stray.xml"), "<palette />");
 
         var result = await _service.CreateNewProjectAsync(PathOf("Holder", "new.xml"));
 
         Assert.True(result.HasFailed);
+        Assert.Contains("stray.xml", result.AsError.Reason);
         Assert.False(File.Exists(PathOf("Holder", "new.xml")));
+    }
+
+    [Theory]
+    [InlineData("<<<<<<< HEAD")]
+    [InlineData("<project version=\"1.0\" />")]
+    public async Task CreateNewProject_DirectoryHoldsMalformedXmlOrOtherProject_Fails(string content)
+    {
+        Directory.CreateDirectory(PathOf("Holder"));
+        File.WriteAllText(PathOf("Holder", "other.xml"), content);
+
+        var result = await _service.CreateNewProjectAsync(PathOf("Holder", "new.xml"));
+
+        Assert.True(result.HasFailed);
+        Assert.Contains("other.xml", result.AsError.Reason);
+        Assert.False(File.Exists(PathOf("Holder", "new.xml")));
+    }
+
+    [Fact]
+    public async Task CreateNewProject_DirectoryHoldsOnlyIgnoredXml_Succeeds()
+    {
+        Directory.CreateDirectory(PathOf("Holder", ".git"));
+        Directory.CreateDirectory(PathOf("Holder", ".idea"));
+        Directory.CreateDirectory(PathOf("Holder", "Nested"));
+        File.WriteAllText(PathOf("Holder", ".git", "config.xml"), "<palette />");
+        File.WriteAllText(PathOf("Holder", ".idea", "workspace.xml"), "<<<<<<< HEAD");
+        File.WriteAllText(PathOf("Holder", ".hidden.xml"), "<arranger />");
+        File.WriteAllText(PathOf("Holder", "Nested", "stray.xml"), "<stray />");
+
+        var result = await _service.CreateNewProjectAsync(PathOf("Holder", "new.xml"));
+
+        Assert.True(result.HasSucceeded);
+        Assert.True(File.Exists(PathOf("Holder", "new.xml")));
     }
 
     [Fact]
@@ -1291,11 +1326,11 @@ public sealed class ProjectServiceTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task SaveProjectAs_TargetDirectoryHoldsXml_FailsWithoutWriting()
+    public async Task SaveProjectAs_TargetDirectoryHoldsResourceXml_FailsWithoutWriting()
     {
         await CreateSaveAsProjectAsync();
         Directory.CreateDirectory(PathOf("Target", "Nested"));
-        File.WriteAllText(PathOf("Target", "Nested", "stray.xml"), "<stray />");
+        File.WriteAllText(PathOf("Target", "Nested", "stray.xml"), "<palette />");
         var entriesBefore = ListEntries();
 
         var result = await _service.SaveProjectAsAsync(_tree, PathOf("Target", "copy.xml"));

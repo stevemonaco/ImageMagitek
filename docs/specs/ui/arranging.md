@@ -43,6 +43,7 @@ types:
   - AssociatePaletteViewModel
   - AssociatePaletteModel
 tests:
+  - AssociatePaletteViewModelTests
   - GraphicsEditHistoryTests
   - IndexedImageTests
   - ResizeTiledScatteredArrangerViewModelTests
@@ -167,8 +168,10 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
   - Tests: `ToolInputRouterTests.ModifierKeyWithoutModifierTool_LeavesSelectedToolAndAltStillEngages`; manual — hold each modifier over the canvas with Apply Palette and with Element Select; press and release Ctrl during an Apply Palette drag, then undo and check the whole drag is one entry.
 - **UI-ARRANGING-037** — The editor's palette combo shall list the arranger's referenced project palettes by name, then the global palettes by name, each limited to the arranger's largest codec color count (at most 256).
   - Tests: untested
-- **UI-ARRANGING-038** — When the user clicks Associate Palette (Arrange mode, indexed), the editor shall list the containing project's palettes by path and the global palettes by name, and on Associate add the chosen palette to the palette combo without changing any element.
-  - Tests: untested
+- **UI-ARRANGING-038** — When the user clicks Associate Palette (Arrange mode, indexed), the editor shall list the containing project's palettes by path and the global palettes by name, and on Associate add the chosen palette to the palette combo, limited to the arranger's largest codec color count like UI-ARRANGING-037, unless it is already listed, without changing any element.
+  - Tests: untested; manual — in Adult Rydia Map, Associate the same palette twice; the combo lists it once with the codec's 8 colors.
+- **UI-ARRANGING-049** — While no palette is listed, the Associate Palette dialog shall disable Associate.
+  - Tests: `AssociatePaletteViewModelTests.Empty_DisablesAccept`
 
 ### Symmetry tools
 
@@ -216,6 +219,7 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
 - **Removal empties a dangling element copy.** Removing a data file disposes its source (LIB-PROJECT-SERVICE-049), so copied elements on it could no longer be read and Paste would throw. Rejected: keeping the source open while the clipboard references it, which holds the file handle with no visible owner.
 - **Drops follow Ctrl+V.** Applying a paste checks the mode: element pastes only in Arrange mode on a tiled scattered arranger, pixel pastes only in Draw mode. A drop that is not an element paste in Arrange mode first runs the same mode switch as Ctrl+V and re-floats the paste at the drop position, because the mode change clears the overlay. Reason: a dropped pixel paste applied in View mode was lost on the next navigation, and in Arrange mode it skipped the save prompt. Rejected: refusing drops outside Draw mode, which would make dragging from a browsing editor into a scattered arranger in Arrange mode silently do nothing.
 - **Resize validation in the dialog, no-op in the editor.** The dialog uses numeric boxes with a minimum of 1 and refuses Resize below 1, following the custom layout dialog; the editor returns without recording when the size is unchanged. No upper limit is specified. Reason: a size below 1 threw out of an async command and could take down the app with every editor's unsaved work.
+- **Associate goes through the combo's palette lookup.** Associate Palette adds through the same find-or-add as the rest of the editor, so the combo has one dedup (by reference) and sizing (codec color count) rule. Rejected: sizing by the palette's entry count, which showed colors the codec cannot reach.
 - **Private clipboard.** The clipboard is app-internal. Rejected for 1.0: OS clipboard exchange (a P2 backlog item, planned after 1.0).
 
 ## Non-goals
@@ -226,7 +230,6 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
 ## Open items
 
 - Delete records history and marks the editor modified even when every covered element is already empty.
-- Associate Palette adds the palette again if it is already listed, sizes it by the palette's entry count rather than the codec's color depth, and throws if no palette is available.
 - Selection handles are hit-tested in View mode although they are not drawn there.
 - Hiding the symmetry tools leaves a selected symmetry tool active.
 - "Add as New Scattered Arranger..." always adds at the project root, not beside the source resource.

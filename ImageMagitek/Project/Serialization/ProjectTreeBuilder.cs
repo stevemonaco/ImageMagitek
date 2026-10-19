@@ -207,6 +207,10 @@ internal sealed class ProjectTreeBuilder
                 Fail($"palette:{elementModel.PaletteKey}", $"Arranger '{arrangerKey}' {position} references palette '{elementModel.PaletteKey}', which is not in the project or the global palettes");
             }
         }
+        else if (codec is not IDirectCodec)
+        {
+            Fail($"codec:{elementModel.CodecName}", $"Arranger '{arrangerKey}' {position}: direct arranger uses indexed codec '{elementModel.CodecName}'");
+        }
 
         DataSource? df = null;
         if (string.IsNullOrWhiteSpace(elementModel.DataFileKey))

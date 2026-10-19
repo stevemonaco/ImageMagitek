@@ -128,13 +128,13 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
         if (!int.TryParse(codec.DefaultWidth?.Value, out var defaultWidth))
             AddParseError(errors, codec.DefaultWidth, Names.DefaultWidth, flowElementRoot);
 
-        if (defaultWidth <= 1)
+        if (defaultWidth < 1)
             AddValidationError(errors, codec.DefaultWidth, $"Specified {Names.DefaultWidth} is too small.");
 
         if (!int.TryParse(codec.DefaultHeight?.Value, out var defaultHeight))
             AddParseError(errors, codec.DefaultHeight, Names.DefaultHeight, flowElementRoot);
 
-        if (defaultHeight <= 1)
+        if (defaultHeight < 1)
             AddValidationError(errors, codec.DefaultHeight, $"Specified {Names.DefaultHeight} is too small.");
 
         PixelColorType colorType = default;
@@ -275,13 +275,13 @@ public sealed class XmlGraphicsFormatReader : IGraphicsFormatReader
         if (!int.TryParse(codec.Width?.Value, out var width))
             AddParseError(errors, codec.Width, Names.Width, patternElementRoot);
 
-        if (width <= 1)
+        if (width < 1)
             AddValidationError(errors, codec.Width, $"Specified '{Names.Width}' is too small.");
 
         if (!int.TryParse(codec.Height?.Value, out var height))
             AddParseError(errors, codec.Height, Names.Height, patternElementRoot);
 
-        if (height <= 1)
+        if (height < 1)
             AddValidationError(errors, codec.Height, $"Specified '{Names.Height}' is too small.");
 
         PixelColorType colorType = default;
