@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Avalonia.Threading;
 using ImageMagitek.Codec;
+using ImageMagitek.Compression;
 using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -75,7 +76,10 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         var codecService = bootstrapper.CreateCodecService(paths.CodecsPath, paths.CodecSchemaFileName, codecFactory);
         services.AddSingleton(codecService);
 
-        var pluginService = bootstrapper.CreatePluginService(paths.PluginsPath, codecService);
+        var compressorFactory = new CompressorFactory();
+        services.AddSingleton<ICompressorFactory>(compressorFactory);
+
+        var pluginService = bootstrapper.CreatePluginService(paths.PluginsPath, codecService, compressorFactory);
         services.AddSingleton(pluginService);
 
         var layoutService = bootstrapper.CreateElementLayoutService();
@@ -86,7 +90,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
 
         var defaultResources = paletteStore.GlobalPalettes;
         var serializerFactory = bootstrapper.CreateProjectSerializerFactory(paths.ResourceSchemaFileName,
-            codecService.CodecFactory, colorFactory, defaultResources);
+            codecService.CodecFactory, colorFactory, defaultResources, compressorFactory);
         var projectService = bootstrapper.CreateProjectService(serializerFactory, colorFactory);
         services.AddSingleton(projectService);
     }
@@ -173,6 +177,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         locator.RegisterViewFactory<StatusViewModel, StatusView>();
         locator.RegisterViewFactory<WelcomeViewModel, WelcomeView>();
         locator.RegisterViewFactory<AddPaletteViewModel, AddPaletteView>();
+        locator.RegisterViewFactory<AddCompressedDataViewModel, AddCompressedDataView>();
         locator.RegisterViewFactory<AddScatteredArrangerViewModel, AddScatteredArrangerView>();
         locator.RegisterViewFactory<AssociatePaletteViewModel, AssociatePaletteView>();
         locator.RegisterViewFactory<ChangeColorModelViewModel, ChangeColorModelView>();

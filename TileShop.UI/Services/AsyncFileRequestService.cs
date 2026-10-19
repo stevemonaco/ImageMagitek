@@ -111,6 +111,18 @@ internal class AsyncFileRequestService : IAsyncFileRequestService
         return await SaveFilePickerAsync(options);
     }
 
+    public async Task<Uri?> RequestExportDataFileName(string defaultName)
+    {
+        var options = new FilePickerSaveOptions()
+        {
+            SuggestedFileName = defaultName,
+            DefaultExtension = "bin",
+            Title = "Export Decompressed Data As"
+        };
+
+        return await SaveFilePickerAsync(options);
+    }
+
     public async Task<Uri?> RequestImportPaletteFileName()
     {
         var options = new FilePickerOpenOptions()

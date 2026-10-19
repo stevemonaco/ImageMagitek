@@ -1,5 +1,7 @@
 # Read-only compressed graphics
 
+**Status:** the read-only core is implemented as an experiment against the draft spec [LIB-COMPRESSION](../specs/lib/compression.md): the `ICompressionPlugin` contract (contracts 1.1), `CompressorFactory` with GBA LZ77 and RLE, `CompressedDataSource`, the `compresseddata` resource, plugin discovery, the Square LZSS sample plugin, and the UI (Add Compressed Data..., Export Decompressed Data..., opening in a sequential editor). Still open: the items under Tasks 4 and 5 not listed here, the decompressed-offset labels and a compressed-data icon (UI), and the format version question in LIB-PROJECT-FORMAT's open items. The plugin-facing signature is `Decompress(ReadOnlySpan<byte>)` rather than `Decompress(DataSource, BitAddress)`; see LIB-COMPRESSION Decisions.
+
 ## Why
 
 Most commercial ROM graphics are compressed (LZ77/LZSS, RLE, Huffman, game-specific schemes), and TileShop cannot read any of them (backlog: LIB-CODECS P1 "Compression support"). Users want to view, arrange and export those graphics. The sample plugins `MarmaladeBoyCodec` and `LastArmageddonCodec` show the workaround today: a codec that reads a fixed-size window and catches the exception when it runs past the end.
@@ -53,5 +55,6 @@ Users who need to edit compressed graphics export the decompressed bytes as a `.
 
 ## Open questions
 
-- Write-version counter on `DataSource` or a subscription to the parent's `DataWritten`? `DataWritten` is not raised from `Flush` (LIB-DATASOURCE), so a version bumped in `Write` is the more complete signal.
-- Should the project tree show compressed sources as children of their parent data file, or as siblings in the folder?
+- Settled: staleness uses a subscription to the parent's `DataWritten` (pixel saves and relinks raise it); a write version on `DataSource` is left for when writes outside image saves need it.
+- Settled: compressed sources are siblings of their parent data file in the folder.
+- Writing back: a later contract minor version adds an interface with `Compress`; a block becomes writable when its compressor implements it and the result fits in `CompressedLength` (LIB-COMPRESSION Decisions).

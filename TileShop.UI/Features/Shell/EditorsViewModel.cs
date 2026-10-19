@@ -245,8 +245,12 @@ public partial class EditorsViewModel : ObservableRecipient
             case SequentialArranger sequentialArranger:
                 newDocument = new GraphicsEditorViewModel(sequentialArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
                 break;
-            case FileDataSource fileSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
-                var extension = Path.GetExtension(fileSource.FileLocation).ToLower();
+            case CompressedDataSource { DecompressionError: { } error }:
+                await _interactions.AlertAsync("Compressed Data", error);
+                return null;
+            case DataSource dataSource: // Always open a new SequentialArranger so users are able to view multiple sections of the same file at once
+                var fileSource = dataSource as FileDataSource ?? (dataSource as CompressedDataSource)?.Parent as FileDataSource;
+                var extension = Path.GetExtension(fileSource?.FileLocation ?? "").ToLower();
                 string codecName;
                 if (_settings.ExtensionCodecAssociations.ContainsKey(extension))
                     codecName = _settings.ExtensionCodecAssociations[extension];
@@ -263,12 +267,12 @@ public partial class EditorsViewModel : ObservableRecipient
                 }
 
                 var newArranger = codec.Layout == ImageLayout.Tiled
-                    ? new SequentialArranger(8, 16, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec)
-                    : new SequentialArranger(1, 1, fileSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec);
+                    ? new SequentialArranger(8, 16, dataSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec)
+                    : new SequentialArranger(1, 1, dataSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec);
 
                 newDocument = new GraphicsEditorViewModel(newArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>())
                 {
-                    OriginatingProjectResource = fileSource
+                    OriginatingProjectResource = dataSource
                 };
                 break;
             case ResourceFolder resourceFolder:
@@ -303,6 +307,7 @@ public partial class EditorsViewModel : ObservableRecipient
     private static FileDataSource? FindMissingDataSource(IProjectResource resource) => resource switch
     {
         FileDataSource fileSource => fileSource.IsMissing ? fileSource : null,
+        CompressedDataSource { Parent: FileDataSource parentSource } => parentSource.IsMissing ? parentSource : null,
         Palette { DataSource: FileDataSource paletteSource } => paletteSource.IsMissing ? paletteSource : null,
         Arranger arranger => arranger.FindMissingDataSource(),
         _ => null

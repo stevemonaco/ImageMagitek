@@ -480,6 +480,7 @@ public class ProjectService : IProjectService
         {
             ResourceNode? childNode = resource switch
             {
+                CompressedDataSource compressed => new CompressedDataNode(compressed.Name, compressed),
                 DataSource df => new DataFileNode(df.Name, df),
                 ScatteredArranger arranger => new ArrangerNode(arranger.Name, arranger),
                 Palette pal => new PaletteNode(pal.Name, pal),
@@ -1121,6 +1122,21 @@ public class ProjectService : IProjectService
             .ToDictionary(key => key.Resource, val => val);
 
         changes.AddRange(removedDict.Values);
+
+        // Compressed data over a removed source is removed with it, before palettes and arrangers are checked against the removals
+        var compressedNodes = tree.EnumerateDepthFirst().Where(x => x.Item is CompressedDataSource).ToList();
+        bool foundCompressed;
+        do
+        {
+            foundCompressed = false;
+            foreach (var node in compressedNodes.Where(x => !removedDict.ContainsKey(x.Item) && removedDict.ContainsKey(((CompressedDataSource)x.Item).Parent)))
+            {
+                var compressedChange = new ResourceChange(node, tree.CreatePathKey(node), true, false, false);
+                removedDict[node.Item] = compressedChange;
+                changes.Add(compressedChange);
+                foundCompressed = true;
+            }
+        } while (foundCompressed);
 
         // Palettes with removed DataFiles must be checked early, so that Arrangers are effected in the main loop by removed Palettes
         var removedPaletteNodes = tree.EnumerateDepthFirst()

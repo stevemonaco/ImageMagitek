@@ -46,6 +46,8 @@ depends:
   - Tests: manual — double-click the same arranger node twice and count tabs.
 - **UI-EDITORS-004** — When a data file is activated, the editors shall open a new graphics editor on a new sequential arranger over that file every time, so several sections of one file can be open at once.
   - Tests: manual — double-click a data file node twice and check two tabs open.
+- **UI-EDITORS-062** — When compressed data is activated, the editors shall open it like a data file (UI-EDITORS-004), choosing the codec by its parent file's extension; if it could not be decompressed, they shall alert "Compressed Data" with the error and open nothing.
+  - Tests: manual — open FE8 compressed data, and a compressed data resource whose plugin is not installed.
 - **UI-EDITORS-005** — The sequential arranger for a data file shall use the codec associated with the file's lower-cased extension in `ExtensionCodecAssociations`, else the `default` association, else "NES 1bpp".
   - Tests: untested
 - **UI-EDITORS-006** (inherited) — A sequential arranger for a tiled codec shall start 8 elements wide and 16 high; for a single-layout codec, 1 by 1.

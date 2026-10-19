@@ -83,6 +83,11 @@ public sealed class XmlProjectWriter : IProjectWriter
             var model = df.MapToModel();
             return Stringify(Serialize(model));
         }
+        else if (resourceNode is CompressedDataNode { Item: CompressedDataSource compressed })
+        {
+            var model = compressed.MapToModel(resourceMap);
+            return Stringify(Serialize(model));
+        }
         else if (resourceNode is PaletteNode { Item: Palette pal })
         {
             var model = pal.MapToModel(resourceMap, _colorFactory);
@@ -127,6 +132,12 @@ public sealed class XmlProjectWriter : IProjectWriter
             else if (resourceNode is DataFileNode { Item: FileDataSource df })
             {
                 var model = df.MapToModel();
+                contents = Stringify(Serialize(model));
+                currentModel = model;
+            }
+            else if (resourceNode is CompressedDataNode { Item: CompressedDataSource compressed })
+            {
+                var model = compressed.MapToModel(resourceMap);
                 contents = Stringify(Serialize(model));
                 currentModel = model;
             }
@@ -216,6 +227,11 @@ public sealed class XmlProjectWriter : IProjectWriter
                 currentModel = df.MapToModel();
                 diskModel = dfNode.Model;
             }
+            else if (node is CompressedDataNode compressedNode)
+            {
+                currentModel = ((CompressedDataSource)compressedNode.Item).MapToModel(resourceMap);
+                diskModel = compressedNode.Model;
+            }
             else if (node is PaletteNode paletteNode)
             {
                 var paletteModel = MapPaletteModel(paletteNode, resourceMap);
@@ -274,6 +290,10 @@ public sealed class XmlProjectWriter : IProjectWriter
                 {
                     dfNode.Model = (DataFileModel)action.model;
                 }
+                else if (action.node is CompressedDataNode compressedNode)
+                {
+                    compressedNode.Model = (CompressedDataModel)action.model;
+                }
                 else if (action.node is PaletteNode paletteNode)
                 {
                     paletteNode.Model = (PaletteModel)action.model;
@@ -329,6 +349,7 @@ public sealed class XmlProjectWriter : IProjectWriter
         return model switch
         {
             DataFileModel dataFileModel => Serialize(dataFileModel),
+            CompressedDataModel compressedModel => Serialize(compressedModel),
             PaletteModel paletteModel => Serialize(paletteModel),
             ScatteredArrangerModel arrangerModel => Serialize(arrangerModel),
             ImageProjectModel projectModel => Serialize(projectModel),
@@ -353,6 +374,15 @@ public sealed class XmlProjectWriter : IProjectWriter
 
         var relativePath = Path.GetRelativePath(_resourceBaseDirectory, dataFileModel.Location);
         element.Add(new XAttribute("location", relativePath));
+        return element;
+    }
+
+    private static XElement Serialize(CompressedDataModel model)
+    {
+        var element = new XElement("compresseddata");
+        element.Add(new XAttribute("parent", model.ParentKey));
+        element.Add(new XAttribute("fileoffset", $"{model.FileOffset:X}"));
+        element.Add(new XAttribute("compression", model.Compression));
         return element;
     }
 

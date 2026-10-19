@@ -197,6 +197,10 @@ The tree pane shows every open project and standalone data file as a projection 
   - Tests: manual — make the parent directory read-only, then add an arranger.
 - **UI-PROJECT-TREE-083** — When a graphics editor asks for a new scattered arranger from a copied selection, the tree shall ask for a name in the name dialog, gated by `CanAddResource` at the project root, create an arranger the copy's size, copy the elements in, add it at the project root, select it and open its editor; any failure shall alert "Error".
   - Tests: manual — Arrange mode, select elements, "Add as New Scattered Arranger...".
+- **UI-PROJECT-TREE-133** — A data file's context menu shall offer Add Compressed Data..., which asks for a name, a hex offset and a registered compression format (LIB-COMPRESSION), previews the compressed and decompressed sizes or the decompression error as the inputs change, keeps Add disabled until the name passes `CanAddResource` and the block decompresses, then adds the compressed data beside the data file, selects it and opens its editor.
+  - Tests: manual — Add Compressed Data... on FE8 (J) with offset `A29A88` and GBA LZ77 shows "Decompresses 0x… bytes to 0x3000 bytes".
+- **UI-PROJECT-TREE-134** — Compressed data nodes shall show in italics with a faded file icon and a tooltip naming the format, offset, parent and read-only state, and offer Export Decompressed Data..., Remove, Rename... and Move to Folder.... Export writes the decompressed bytes to a chosen file, or alerts "Export Error" with the decompression error.
+  - Tests: manual — hover and export a compressed data node.
 
 ### Rename
 

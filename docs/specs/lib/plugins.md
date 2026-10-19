@@ -44,8 +44,8 @@ Plugins add codecs that XML cannot express. A plugin compiles against `ImageMagi
 
 ### Loading
 
-- **LIB-PLUGINS-001** — When plugins are loaded from a directory, the plugin service shall load `<sub>/<sub>.dll` from each immediate subdirectory that has one, in its own load context sharing only `ImageMagitek.Plugins.Contracts`, and collect every non-abstract type implementing `ICodecPlugin`. If loading the assembly or enumerating its types throws, then it shall report that plugin and skip it.
-  - Tests: `PluginServiceTests.LoadCodecPlugins_Samples_DiscoversEveryCodec`, `PluginServiceTests.LoadCodecPlugins_BadDllBesideSamples_SkipsItAndLoadsSamples`
+- **LIB-PLUGINS-001** — When plugins are loaded from a directory, the plugin service shall load `<sub>/<sub>.dll` from each immediate subdirectory that has one, in its own load context sharing only `ImageMagitek.Plugins.Contracts`, and collect every non-abstract type implementing `ICodecPlugin` into `CodecPlugins` and every one implementing `ICompressionPlugin` into `CompressionPlugins` (LIB-COMPRESSION). If loading the assembly or enumerating its types throws, then it shall report that plugin and skip it.
+  - Tests: `PluginServiceTests.LoadCodecPlugins_Samples_DiscoversEveryCodec`, `PluginServiceTests.LoadCodecPlugins_BadDllBesideSamples_SkipsItAndLoadsSamples`, `PluginServiceTests.LoadPlugins_Samples_DiscoversCompressionPlugins`
 - **LIB-PLUGINS-002** — When a plugin references a version of `ImageMagitek.Plugins.Contracts` with a different major version, or the same major and a higher minor than the host's, the plugin service shall skip it before enumerating its types and report it as built for an incompatible plugin contract or a newer TileShop, naming both versions.
   - Tests: `PluginServiceTests.CheckContractVersion_FollowsMajorMinorRule`
 - **LIB-PLUGINS-003** — When a plugin assembly references `ImageMagitek` and defines no `ICodecPlugin` type, including when its other types fail to load against the current core, the plugin service shall report it as built for the pre-1.0 plugin contract and needing a rebuild against `ImageMagitek.Plugins.Contracts`.
@@ -87,7 +87,7 @@ Plugins add codecs that XML cannot express. A plugin compiles against `ImageMagi
 
 - No type in `ImageMagitek.Plugins.Contracts` references another assembly besides the runtime.
 - A plugin never receives an arranger, element, data source or palette, and never writes to a data source.
-- The contracts `AssemblyVersion` is `<major>.<minor>.0.0`. A minor version only adds to the contract; anything else is a major version.
+- The contracts `AssemblyVersion` is `<major>.<minor>.0.0`, currently 1.1 (1.1 added `ICompressionPlugin`). A minor version only adds to the contract; anything else is a major version.
 
 ## Edge cases
 
@@ -127,7 +127,7 @@ Plugins add codecs that XML cannot express. A plugin compiles against `ImageMagi
 
 - Unloading or reloading plugins at runtime; a plugin manager UI (ARCHITECTURE.md §1).
 - Sandboxing: a plugin runs with the app's full trust.
-- Plugins for compression and container scanning, until their proposals land as minor versions of this contract.
+- Plugins for container scanning, until its proposal lands as a minor version of this contract. Compression plugins arrived in 1.1 (LIB-COMPRESSION).
 
 ## Open items
 

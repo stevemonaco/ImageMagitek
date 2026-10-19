@@ -47,7 +47,7 @@ Found by reading the code, not reproduced, unless a test is named.
 ### P1
 
 - [LIB-CODECS] Direct-color XML codecs: the schema accepts `colortype="direct"`, `CodecFactory` throws `NotSupportedException`.
-- [LIB-CODECS] Read-only compression support: [change proposal](changes/compression-support.md).
+- [LIB-COMPRESSION] Read-only compression support: core, UI and the Square LZSS sample are in (draft spec); remaining tasks are in the [change proposal](changes/compression-support.md).
 - [LIB-PROJECT-FORMAT, UI-GRAPHICS-EDITOR] Sequential arrangers as project resources ("save view as arranger"; deferred to 1.1); done when one saves and reloads. Unblocks persisting the element layout (P2, deliberately not done in Milestone 9) and per-file view state for standalone files.
 - [LIB-PALETTES, LIB-PROJECT-FORMAT, UI-PALETTE-EDITOR] Palettes of only project colors, saved in the palette XML with no data file (intended, never built): the writer refuses them (LIB-PROJECT-FORMAT-036), `ProjectTreeBuilder.AddPalette` fails "has no data file", `Palette.LoadForeignPalette` guards on a data source, and the editor cannot change model or apply sources without one; done when such a palette is created, edited, saved and reloaded.
 - [LIB-PALETTES, UI-PALETTE-EDITOR] Remaining palette file formats: RIFF `.pal`, `.act`, `.hex`, and a JSON writer (JASC `.pal` and `.gpl` exist).
@@ -58,6 +58,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-SCANNING] Container scanners: find self-describing graphics (PSX TIM first) in a data file and add them as arrangers and palettes, and browse archive entries through container-reader plugins: [change proposal](changes/container-scanners.md).
 - [LIB-TABLES] Table-driven resources: generate arrangers and palettes from a game's record tables through a declarative definition, regenerate them after the table changes, and relocate data by rewriting its pointer: [change proposal](changes/table-resources.md).
 - [LIB-TILEMAPS] Tilemap resources: a map read from data, decoded by a map format, edited in Arrange mode and written back in place: [change proposal](changes/tilemaps.md).
+- [LIB-SCENES] Layered scenes: stack arrangers back to front with transparency into one composite view, export it, and draw on an active layer: [change proposal](changes/layers.md).
 - [LIB-CODECS] XML format extensions: tile stride/padding, bit order and endianness, per-tile header bytes (variable-width fonts currently need a plugin).
 - [LIB-ARRANGERS] Bit-wise sequential offsets: tiled elements and absolute moves are bit-addressed, but Single-layout stepping (TODO in `SequentialArranger`) and its row/column/page steps are not; done when Single-layout round-trip tests pass at a non-byte-aligned offset.
 - [LIB-COLORS] Color models: RGB24, ARGB32, RGB565, TG16 GRB333, N64 IA/I, grayscale.
@@ -82,7 +83,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-PALETTES] Palette generation (quantize an image, dithering on import); color-cycling preview.
 - [UI-GRAPHICS-EDITOR] Hex view side panel, pattern search from an image or bytes, minimap, zoom percentage display and presets.
 - [UI-GRAPHICS-EDITOR] Marching-ants selection border: an animated dashed outline for selections drawn by `ArrangerRenderer` (the deleted `Rectangle.animatedBorder` style was the only trace).
-- [UI-DRAWING] Undo history panel, layers or reference overlay, text tool using a font arranger.
+- [UI-DRAWING] Undo history panel, reference overlay, text tool using a font arranger.
 - [UI-EDIT-HISTORY] Pixel history actions store the values they replaced, so undo restores them directly instead of re-decoding the arranger from the file and replaying every pixel action since the last arranger action; done when undo cost no longer grows with history length.
 - [LIB-PROJECT-SERVICE, UI-PROJECT-TREE] Project tree search/filter; project metadata (description, ROM checksum, notes); IPS/BPS patch output instead of writing in place.
 - [CLI-COMMANDS] Project authoring verbs (`new`, `add-datafile`, `add-palette`, `add-arranger`), a batch manifest, a scripting host, `dotnet tool` packaging.

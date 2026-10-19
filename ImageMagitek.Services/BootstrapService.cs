@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
+using ImageMagitek.Compression;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
@@ -165,7 +166,7 @@ public class BootstrapService
         return codecService;
     }
 
-    public virtual IPluginService CreatePluginService(string pluginPath, ICodecService codecService)
+    public virtual IPluginService CreatePluginService(string pluginPath, ICodecService codecService, ICompressorFactory? compressorFactory = null)
     {
         var pluginService = new PluginService();
         var fullPluginPath = Path.GetFullPath(pluginPath);
@@ -195,6 +196,23 @@ public class BootstrapService
             }
         }
 
+        foreach (var compressionType in pluginService.CompressionPlugins.ToList())
+        {
+            var result = compressorFactory?.AddCompressionPlugin(compressionType);
+            if (result is null)
+                continue;
+
+            if (result.HasSucceeded)
+            {
+                pluginService.CompressionNames.Add(result.AsSuccess.Result);
+            }
+            else
+            {
+                RecordIssue(compressionType.Assembly.Location, result.AsError.Reason);
+                pluginService.CompressionPlugins.Remove(compressionType);
+            }
+        }
+
         return pluginService;
     }
 
@@ -202,12 +220,12 @@ public class BootstrapService
     /// Creates the project serializer factory after checking that the resource schema exists
     /// </summary>
     public virtual IProjectSerializerFactory CreateProjectSerializerFactory(string resourceSchemaFileName, ICodecFactory codecFactory,
-        IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
+        IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources, ICompressorFactory? compressorFactory = null)
     {
         if (!File.Exists(resourceSchemaFileName))
             Fail($"The project resource schema '{resourceSchemaFileName}' does not exist");
 
-        return new XmlProjectSerializerFactory(resourceSchemaFileName, codecFactory, colorFactory, globalResources);
+        return new XmlProjectSerializerFactory(resourceSchemaFileName, codecFactory, colorFactory, globalResources, compressorFactory);
     }
 
     public virtual IProjectService CreateProjectService(IProjectSerializerFactory serializerFactory, IColorFactory colorFactory)

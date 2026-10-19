@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
+using ImageMagitek.Compression;
 using ImageMagitek.Plugins;
 using ImageMagitek.PluginSamples;
 using ImageMagitek.Services;
@@ -181,6 +182,23 @@ public sealed class BootstrapServiceTests : IDisposable
         Assert.Contains("SNES 4bpp Plugin", factory.GetRegisteredCodecNames());
         Assert.Contains("SNES 4bpp Plugin", pluginService.CodecNames);
         Assert.DoesNotContain("SNES 3bpp Plugin", pluginService.CodecNames);
+    }
+
+    [Fact]
+    public void CreatePluginService_RegistersCompressionPlugins()
+    {
+        var samplesAssembly = typeof(Snes3BppCodec).Assembly;
+        var pluginName = samplesAssembly.GetName().Name!;
+        var pluginDirectory = Directory.CreateDirectory(Path.Combine(_directory, pluginName));
+        File.Copy(samplesAssembly.Location, Path.Combine(pluginDirectory.FullName, pluginName + ".dll"));
+        var codecService = new XmlCodecService(_shipped.CodecSchemaFileName, new CodecFactory(TestImageGenerator.CreateDistinctPalette(8), []));
+        var compressorFactory = new CompressorFactory();
+
+        var pluginService = _bootstrapper.CreatePluginService(_directory, codecService, compressorFactory);
+
+        Assert.Empty(_bootstrapper.Issues);
+        Assert.Equal(["Square LZSS"], pluginService.CompressionNames);
+        Assert.NotNull(compressorFactory.CreateCompressor("Square LZSS"));
     }
 
     [Fact]

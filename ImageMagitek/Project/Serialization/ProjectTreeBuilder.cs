@@ -5,6 +5,7 @@ using System.Linq;
 using CommunityToolkit.Diagnostics;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using ImageMagitek.Compression;
 
 namespace ImageMagitek.Project.Serialization;
 
@@ -24,11 +25,14 @@ internal sealed class ProjectTreeBuilder
     private readonly Palette _globalDefaultPalette;
     private readonly ICodecFactory _codecFactory;
     private readonly IColorFactory _colorFactory;
+    private readonly ICompressorFactory _compressorFactory;
 
-    public ProjectTreeBuilder(ICodecFactory codecFactory, IColorFactory colorFactory, Palette defaultPalette, IEnumerable<IProjectResource> globalResources)
+    public ProjectTreeBuilder(ICodecFactory codecFactory, IColorFactory colorFactory, Palette defaultPalette, IEnumerable<IProjectResource> globalResources,
+        ICompressorFactory compressorFactory)
     {
         _codecFactory = codecFactory;
         _colorFactory = colorFactory;
+        _compressorFactory = compressorFactory;
         _globalDefaultPalette = defaultPalette;
         _globalResources = globalResources.ToList();
 
@@ -75,6 +79,27 @@ internal sealed class ProjectTreeBuilder
         };
 
         return AttachNode(dfNode, parentNodePath);
+    }
+
+    /// <summary>
+    /// Attaches compressed data over its parent data source, which must already be in the tree. A compressor that is not registered
+    /// is not a failure here; the source reports it through <see cref="CompressedDataSource.DecompressionError"/>.
+    /// </summary>
+    public MagitekResult AddCompressedData(CompressedDataModel model, string parentNodePath, string fileLocation)
+    {
+        var pathKey = CreatePathKey(parentNodePath, model.Name);
+
+        if (Tree?.TryGetItem<DataSource>(model.ParentKey, out var parent) is not true)
+            return new MagitekResult.Failed($"Compressed data '{pathKey}' references data file '{model.ParentKey}', which is not in the project");
+
+        var source = new CompressedDataSource(model.Name, parent, model.FileOffset, model.Compression, _compressorFactory);
+        var node = new CompressedDataNode(source.Name, source)
+        {
+            DiskLocation = fileLocation,
+            Model = model
+        };
+
+        return AttachNode(node, parentNodePath);
     }
 
     public MagitekResult AddPalette(PaletteModel paletteModel, string parentNodePath, string fileLocation)

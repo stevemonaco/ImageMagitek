@@ -13,6 +13,7 @@ types:
   - ResourceDeletionPlan
 tests:
   - ProjectServiceTests
+  - CompressedDataProjectTests
 depends:
   - LIB-PROJECT-TREE
   - LIB-PROJECT-FORMAT
@@ -146,8 +147,8 @@ Owns the set of open trees (projects and standalone data files) and every operat
 
 ### Delete
 
-- **LIB-PROJECT-SERVICE-045** — When a deletion is previewed, the plan shall mark as removed the node, all its descendants, and every palette elsewhere whose data source is among them.
-  - Tests: `ProjectServiceTests.DeleteFolder_WithDataFileAndItsPalette_RemovesEachNodeOnce`
+- **LIB-PROJECT-SERVICE-045** — When a deletion is previewed, the plan shall mark as removed the node, all its descendants, every compressed data source whose parent is among them (repeatedly, so nested compressed data goes too), and every palette elsewhere whose data source is among them.
+  - Tests: `ProjectServiceTests.DeleteFolder_WithDataFileAndItsPalette_RemovesEachNodeOnce`, `CompressedDataProjectTests.DeleteParent_RemovesCompressedDataAndItsArranger`
 - **LIB-PROJECT-SERVICE-046** — When a surviving element of a surviving arranger uses a removed palette, the plan shall mark the arranger as losing its palette.
   - Tests: `ProjectServiceTests.DeletePalette_OnlyElementsOnItGetFallback`
 - **LIB-PROJECT-SERVICE-047** — When every non-empty element of an arranger reads a removed data source, the plan shall mark it removed; when only some do, the plan shall mark it as losing elements.

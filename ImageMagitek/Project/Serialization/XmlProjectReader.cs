@@ -10,6 +10,7 @@ using System.Xml.Schema;
 using System.Collections.Generic;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using ImageMagitek.Compression;
 using ImageMagitek.Utility.Parsing;
 using System.Diagnostics.CodeAnalysis;
 
@@ -21,6 +22,7 @@ public sealed class XmlProjectReader : IProjectReader
 
     private readonly ICodecFactory _codecFactory;
     private readonly IColorFactory _colorFactory;
+    private readonly ICompressorFactory _compressorFactory;
     private readonly List<IProjectResource> _globalResources;
     private readonly Palette _globalDefaultPalette;
 
@@ -28,11 +30,12 @@ public sealed class XmlProjectReader : IProjectReader
     private string _baseDirectory;
 
     public XmlProjectReader(XmlSchemaSet resourceSchema,
-        ICodecFactory codecFactory, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
+        ICodecFactory codecFactory, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources, ICompressorFactory compressorFactory = null)
     {
         _resourceSchema = resourceSchema;
         _codecFactory = codecFactory;
         _colorFactory = colorFactory;
+        _compressorFactory = compressorFactory ?? new CompressorFactory();
         _globalResources = globalResources.ToList();
         _globalDefaultPalette = _globalResources.OfType<Palette>().First();
     }
@@ -62,7 +65,7 @@ public sealed class XmlProjectReader : IProjectReader
 
         var projectModel = DeserializeProject(projectDoc.Root, Path.GetFileNameWithoutExtension(projectFileName));
 
-        var builder = new ProjectTreeBuilder(_codecFactory, _colorFactory, _globalDefaultPalette, _globalResources);
+        var builder = new ProjectTreeBuilder(_codecFactory, _colorFactory, _globalDefaultPalette, _globalResources, _compressorFactory);
 
         if (!string.IsNullOrWhiteSpace(projectModel.Root))
             _baseDirectory = Path.GetFullPath(Path.Combine(projectDirectory, projectModel.Root));
@@ -107,6 +110,8 @@ public sealed class XmlProjectReader : IProjectReader
             }
         }
 
+        AddCompressedData(builder, resourceModels.Where(x => x.model is CompressedDataModel).ToList());
+
         foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is PaletteModel))
         {
             var result = builder.AddPalette((PaletteModel)model, pathKey, fileLocation);
@@ -129,6 +134,32 @@ public sealed class XmlProjectReader : IProjectReader
             return new MagitekResults<ProjectTree>.Failed(_errors);
 
         return new MagitekResults<ProjectTree>.Success(builder.Tree);
+    }
+
+    /// <summary>
+    /// Adds compressed data in passes, so a block whose parent is another compressed block is added after it
+    /// </summary>
+    private void AddCompressedData(ProjectTreeBuilder builder, List<(ResourceModel model, string pathKey, string fileLocation)> pending)
+    {
+        while (pending.Count > 0)
+        {
+            var failures = new List<((ResourceModel model, string pathKey, string fileLocation) item, string reason)>();
+
+            foreach (var item in pending)
+            {
+                var result = builder.AddCompressedData((CompressedDataModel)item.model, item.pathKey, item.fileLocation);
+                if (result.HasFailed)
+                    failures.Add((item, result.AsError.Reason));
+            }
+
+            if (failures.Count == pending.Count)
+            {
+                _errors.AddRange(failures.Select(x => x.reason));
+                return;
+            }
+
+            pending = failures.Select(x => x.item).ToList();
+        }
     }
 
     private void ScanDirectory(string directory, ProjectTreeBuilder builder, List<string> xmlFileNames)
@@ -186,7 +217,7 @@ public sealed class XmlProjectReader : IProjectReader
 
     private static bool IsSkippedName(string name) => name.StartsWith('.');
 
-    private static bool IsResourceRoot(string root) => root is "datafile" or "palette" or "arranger";
+    private static bool IsResourceRoot(string root) => root is "datafile" or "compresseddata" or "palette" or "arranger";
 
     private bool TryLoadXml(string xmlFileName, [MaybeNullWhen(false)] out XDocument doc)
     {
@@ -260,6 +291,15 @@ public sealed class XmlProjectReader : IProjectReader
                 case "datafile":
                     TryDeserializeDataFile(doc.Root, resourceName, out var dataFileModel);
                     model = dataFileModel;
+                    return true;
+                case "compresseddata":
+                    model = new CompressedDataModel
+                    {
+                        Name = resourceName,
+                        ParentKey = doc.Root.Attribute("parent").Value,
+                        FileOffset = long.Parse(doc.Root.Attribute("fileoffset").Value, System.Globalization.NumberStyles.HexNumber),
+                        Compression = doc.Root.Attribute("compression").Value
+                    };
                     return true;
                 case "palette":
                     if (!TryDeserializePalette(doc.Root, xmlFileName, resourceName, out var paletteModel))

@@ -1,0 +1,41 @@
+<UserControl x:Class="TileShop.UI.Views.AddCompressedDataView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:pl="using:ImageMagitek.Plugins"
+    xmlns:vm="using:TileShop.UI.ViewModels"
+    Width="420"
+    MinWidth="260"
+    x:DataType="vm:AddCompressedDataViewModel">
+    <StackPanel Margin="10">
+        <TextBlock Text="{Binding ParentName, StringFormat=Data File: {0}}" TextWrapping="Wrap" />
+
+        <Label Margin="0,8,0,0" Content="Name" Target="nameBox" />
+        <TextBox x:Name="nameBox" Text="{Binding ResourceName}" />
+        <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource SemiColorDanger}"
+            IsVisible="{Binding NameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+            Text="{Binding NameError}" TextWrapping="Wrap" />
+
+        <Label Margin="0,8,0,0" Content="Offset (hex)" Target="offsetBox" />
+        <TextBox x:Name="offsetBox" Text="{Binding OffsetText}" />
+
+        <Label Margin="0,8,0,0" Content="Compression" Target="compressionBox" />
+        <ComboBox x:Name="compressionBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Compressions}" SelectedItem="{Binding SelectedCompression}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="pl:CompressionInfo">
+                    <StackPanel>
+                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock FontSize="11" Opacity="0.7" Text="{Binding Description}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <TextBlock x:Name="previewText" Margin="0,10,0,0" Classes.invalid="{Binding !IsPreviewValid}" Text="{Binding Preview}" TextWrapping="Wrap">
+            <TextBlock.Styles>
+                <Style Selector="TextBlock.invalid">
+                    <Setter Property="Foreground" Value="{DynamicResource SemiColorDanger}" />
+                </Style>
+            </TextBlock.Styles>
+        </TextBlock>
+    </StackPanel>
+</UserControl>

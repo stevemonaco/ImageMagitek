@@ -20,6 +20,17 @@ public static class SerializationMapperExtensions
         };
     }
 
+    public static CompressedDataModel MapToModel(this CompressedDataSource source, Dictionary<IProjectResource, string> resourceMap)
+    {
+        return new CompressedDataModel()
+        {
+            Name = source.Name,
+            ParentKey = resourceMap[source.Parent],
+            FileOffset = source.ParentOffset,
+            Compression = source.CompressionName
+        };
+    }
+
     public static ImageProject MapToResource(this ImageProjectModel model)
     {
         return new ImageProject()

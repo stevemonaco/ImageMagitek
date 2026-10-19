@@ -20,6 +20,20 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:element name="compresseddata">
+    <xs:complexType>
+      <xs:attribute name="parent" type="xs:string" use="required" />
+      <xs:attribute name="fileoffset" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9A-Fa-f]+" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="compression" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+
   <xs:element name="palette">
     <xs:complexType>
 	  <xs:choice minOccurs="0" maxOccurs="256">

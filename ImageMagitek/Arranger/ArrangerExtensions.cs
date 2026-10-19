@@ -298,6 +298,9 @@ public static class ArrangerExtensions
             if (!element.Codec.CanEncode)
                 return $"uses codec '{element.Codec.Name}' that cannot encode";
 
+            if (element.Source is CompressedDataSource compressed)
+                return $"reads compressed data '{compressed.Name}', which is read-only";
+
             if (element.Source.IsReadOnly)
                 return $"reads data file '{element.Source.Name}', which is read-only";
         }
@@ -312,6 +315,7 @@ public static class ArrangerExtensions
     {
         return arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => (DataSource?)x.Source)
             .Concat(arranger.GetReferencedPalettes().Select(x => x.DataSource))
+            .Select(x => x is CompressedDataSource compressed ? compressed.Parent : x)
             .OfType<FileDataSource>()
             .Distinct()
             .FirstOrDefault(x => x.IsMissing);

@@ -36,10 +36,20 @@
         <ContextMenu x:Key="DataFileContextMenu" x:DataType="vm:DataFileNodeViewModel">
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RelinkDataFileCommand}" CommandParameter="{Binding}" Header="Relink..."
                 IsVisible="{Binding IsMissing}" />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddCompressedDataCommand}" CommandParameter="{Binding}" Header="Add Compressed Data..." />
+            <Separator />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename..." />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).MoveNodeCommand}" CommandParameter="{Binding}" Header="Move to Folder..." />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+        </ContextMenu>
+
+        <ContextMenu x:Key="CompressedDataContextMenu" x:DataType="vm:CompressedDataNodeViewModel">
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExportDecompressedDataCommand}" CommandParameter="{Binding}" Header="Export Decompressed Data..." />
+            <Separator />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).MoveNodeCommand}" CommandParameter="{Binding}" Header="Move to Folder..." />
         </ContextMenu>
 
         <ContextMenu x:Key="StandaloneFileContextMenu" x:DataType="vm:StandaloneFileNodeViewModel">
@@ -82,6 +92,9 @@
             </Style>
             <Style Selector="TreeViewItem.datafile">
                 <Setter Property="ContextMenu" Value="{StaticResource DataFileContextMenu}" />
+            </Style>
+            <Style Selector="TreeViewItem.compresseddata">
+                <Setter Property="ContextMenu" Value="{StaticResource CompressedDataContextMenu}" />
             </Style>
             <Style Selector="TreeViewItem.standalone">
                 <Setter Property="ContextMenu" Value="{StaticResource StandaloneFileContextMenu}" />
@@ -145,6 +158,13 @@
                 <StackPanel Orientation="Horizontal">
                     <Image Classes="resource-icon-medium" Source="{x:Static cc:AppIcons.NewNodeFile}" />
                     <TextBlock Margin="4,0,0,0" Classes.missing="{Binding IsMissing}" Text="{Binding Name}" />
+                </StackPanel>
+            </TreeDataTemplate>
+
+            <TreeDataTemplate x:DataType="vm:CompressedDataNodeViewModel" DataType="vm:CompressedDataNodeViewModel" ItemsSource="{Binding Children}">
+                <StackPanel Orientation="Horizontal" ToolTip.Tip="{Binding Description}">
+                    <Image Classes="resource-icon-medium" Opacity="0.6" Source="{x:Static cc:AppIcons.NewNodeFile}" />
+                    <TextBlock Margin="4,0,0,0" FontStyle="Italic" Text="{Binding Name}" />
                 </StackPanel>
             </TreeDataTemplate>
 

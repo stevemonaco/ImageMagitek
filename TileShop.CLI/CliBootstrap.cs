@@ -1,5 +1,6 @@
 using System.IO;
 using ImageMagitek.Codec;
+using ImageMagitek.Compression;
 using ImageMagitek.Services;
 using Microsoft.Extensions.Logging;
 
@@ -29,10 +30,11 @@ public static class CliBootstrap
 
             var codecFactory = new CodecFactory(paletteStore.DefaultPalette, new());
             var codecService = bootstrapper.CreateCodecService(paths.CodecsPath, paths.CodecSchemaFileName, codecFactory);
-            bootstrapper.CreatePluginService(paths.PluginsPath, codecService);
+            var compressorFactory = new CompressorFactory();
+            bootstrapper.CreatePluginService(paths.PluginsPath, codecService, compressorFactory);
 
             var serializerFactory = bootstrapper.CreateProjectSerializerFactory(paths.ResourceSchemaFileName,
-                codecService.CodecFactory, colorFactory, paletteStore.GlobalPalettes);
+                codecService.CodecFactory, colorFactory, paletteStore.GlobalPalettes, compressorFactory);
             return bootstrapper.CreateProjectService(serializerFactory, colorFactory);
         }
         finally

@@ -17,6 +17,7 @@ types:
   - IProjectSerializerFactory
   - ProjectTreeBuilder
   - SerializationMapperExtensions
+  - CompressedDataModel
   - ResourceModel
   - ImageProjectModel
   - ResourceFolderModel
@@ -47,6 +48,7 @@ tests:
   - SerializationMapperTests
   - SerializationModelTests
   - CliApplicationTests
+  - CompressedDataProjectTests
 depends:
   - LIB-PROJECT-TREE
   - LIB-DATASOURCE
@@ -74,7 +76,7 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `XmlProjectRoundTripTests.WriteTwice_ByteIdentical`
 - **LIB-PROJECT-FORMAT-004** — When reading, every subdirectory of the base directory whose name does not start with `.`, and that is not inside such a directory, shall become a folder, including empty directories and directories holding only non-resource files.
   - Tests: `XmlProjectReaderTests.DotDirectory_NotAFolderAndNotScanned`, `XmlProjectReaderTests.EmptyDirectory_BecomesFolder`
-- **LIB-PROJECT-FORMAT-005** — When reading, every `*.xml` file under the base directory shall be read except the project file, a file whose name starts with `.`, and a file inside a directory skipped by LIB-PROJECT-FORMAT-004. A file whose root element is `project`, or is not `datafile`, `palette` or `arranger`, shall be ignored.
+- **LIB-PROJECT-FORMAT-005** — When reading, every `*.xml` file under the base directory shall be read except the project file, a file whose name starts with `.`, and a file inside a directory skipped by LIB-PROJECT-FORMAT-004. A file whose root element is `project`, or is not `datafile`, `compresseddata`, `palette` or `arranger`, shall be ignored.
   - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`, `XmlProjectReaderTests.DotPrefixedXmlFile_Ignored`, `XmlProjectReaderTests.ForeignRootXml_Ignored`, `XmlProjectReaderTests.DotDirectory_NotAFolderAndNotScanned`
 
 ### Elements and attributes
@@ -109,6 +111,8 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`, `XmlProjectRoundTripTests.WriteTwice_ByteIdentical`
 - **LIB-PROJECT-FORMAT-018** — If an arranger has no `defaultpalette`, then its elements without a `palette` shall use the global default palette.
   - Tests: `XmlProjectReaderTests.MissingDefaultPalette_UsesGlobalDefault`
+- **LIB-PROJECT-FORMAT-063** — Compressed data (LIB-COMPRESSION) shall be stored as a `compresseddata` element with its parent data source's key in `parent`, a hex `fileoffset`, and the format name in `compression`. Elements and palettes reference it by key like a data file.
+  - Tests: `CompressedDataProjectTests.SaveAndReload_RestoresCompressedDataAndArrangerReferences`
 
 ### References
 
@@ -116,7 +120,7 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`, `XmlProjectReaderTests.PaletteKeyNamingGlobalPalette_ResolvesIgnoringCase`
 - **LIB-PROJECT-FORMAT-020** — When a resource is renamed or moved, every resource whose references change shall be rewritten on the next project save.
   - Tests: `ProjectServiceTests.MoveNode_ProjectWriteFails_RaisesReverseMove`
-- **LIB-PROJECT-FORMAT-021** — When reading, data files shall be built first, then palettes, then arrangers, so references resolve whatever the folder order.
+- **LIB-PROJECT-FORMAT-021** — When reading, data files shall be built first, then compressed data (in passes, so one over another compressed block follows it), then palettes, then arrangers, so references resolve whatever the folder order.
   - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`
 - **LIB-PROJECT-FORMAT-022** — If a palette's or element's data file key does not resolve, then the load shall fail naming the key and the referencing resource, and for an element, its position.
   - Tests: `XmlProjectReaderTests.UnresolvedDataFileKey_Palette_FailsNamingKeyAndPalette`, `XmlProjectReaderTests.UnresolvedDataFileKey_Element_FailsNamingKeyArrangerAndPosition`, `XmlProjectReaderTests.ReferenceIntoDotDirectory_FailsNamingKey`
@@ -126,12 +130,14 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `XmlProjectReaderTests.PaletteKeyNamingRenamedGlobalPalette_ResolvesToNewName`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
 - **LIB-PROJECT-FORMAT-024** — When an element names a retired codec, the reader shall load the codec it was renamed to (LIB-CODECS), and the next save shall write the current name.
   - Tests: `CodecFactoryTests.LegacyName_ResolvesToXmlCodec`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
+- **LIB-PROJECT-FORMAT-064** — If a `compresseddata` parent key does not resolve, then the load shall fail naming the key and the resource. A `compression` name that is not registered shall not fail the load; the source reports it (LIB-COMPRESSION-022).
+  - Tests: `CompressedDataProjectTests.Reload_ParentMissingFromProject_FailsNamingParent`, `CompressedDataProjectTests.Reload_UnknownCompressor_LoadsWithError`
 - **LIB-PROJECT-FORMAT-025** — If an element names an unknown codec, an indexed arranger names a direct codec, or a direct arranger names an indexed codec, then the load shall fail naming the codec and the arranger.
   - Tests: `XmlProjectReaderTests.UnknownCodec_FailsNamingCodecAndArranger`, `XmlProjectReaderTests.IndexedArrangerWithDirectCodec_FailsNamingCodecAndArranger`, `XmlProjectReaderTests.DirectArrangerWithIndexedCodec_FailsNamingCodecAndArranger`
 
 ### Reading
 
-- **LIB-PROJECT-FORMAT-026** — The reader shall validate the project file and every file read under LIB-PROJECT-FORMAT-005 whose root element is `datafile`, `palette` or `arranger` against `ResourceSchema.xsd`, and stop at the first file that fails, reporting its line numbers.
+- **LIB-PROJECT-FORMAT-026** — The reader shall validate the project file and every file read under LIB-PROJECT-FORMAT-005 whose root element is `datafile`, `compresseddata`, `palette` or `arranger` against `ResourceSchema.xsd`, and stop at the first file that fails, reporting its line numbers.
   - Tests: `XmlProjectReaderTests.SchemaError_FailsWithFileAndLine`
 - **LIB-PROJECT-FORMAT-027** — If the project file's root element is not `project`, then the load shall fail.
   - Tests: `XmlProjectReaderTests.UnknownRootElement_Fails`
@@ -276,3 +282,4 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 ## Open items
 
 - The arranger `color` attribute is required by the schema, so the reader's default of `indexed` is unreachable.
+- `compresseddata` (draft, LIB-COMPRESSION) does not raise the format version. A 1.0 reader skips its unknown root (LIB-PROJECT-FORMAT-005) and then fails the load on arrangers that reference it, so no work is lost, but the version rule should be settled before 1.1 (the tilemaps proposal's "lowest sufficient version").

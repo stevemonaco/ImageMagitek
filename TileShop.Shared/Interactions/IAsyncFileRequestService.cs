@@ -11,4 +11,5 @@ public interface IAsyncFileRequestService
     Task<Uri?> RequestImportArrangerFileName();
     Task<Uri?> RequestExportPaletteFileName(string defaultName);
     Task<Uri?> RequestImportPaletteFileName();
+    Task<Uri?> RequestExportDataFileName(string defaultName);
 }

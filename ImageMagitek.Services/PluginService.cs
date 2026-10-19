@@ -1,4 +1,5 @@
 using ImageMagitek.Codec;
+using ImageMagitek.Compression;
 using ImageMagitek.Plugins;
 using McMaster.NETCore.Plugins;
 using System;
@@ -22,7 +23,17 @@ public interface IPluginService
     public IList<string> CodecNames { get; }
 
     /// <summary>
-    /// Loads <c>&lt;sub&gt;/&lt;sub&gt;.dll</c> from each subdirectory and collects its codec types
+    /// Discovered compression plugin types, which are validated and named by <see cref="ICompressorFactory.AddCompressionPlugin"/>.
+    /// </summary>
+    public IList<Type> CompressionPlugins { get; }
+
+    /// <summary>
+    /// Names of the plugin compression formats that were registered with the compressor factory.
+    /// </summary>
+    public IList<string> CompressionNames { get; }
+
+    /// <summary>
+    /// Loads <c>&lt;sub&gt;/&lt;sub&gt;.dll</c> from each subdirectory and collects its codec and compression types
     /// </summary>
     /// <returns>A failure naming each plugin that could not be loaded; the other plugins' types are still collected</returns>
     MagitekResults LoadCodecPlugins(string pluginsPath);
@@ -35,6 +46,8 @@ public sealed class PluginService : IPluginService
 
     public IList<Type> CodecPlugins { get; } = new List<Type>();
     public IList<string> CodecNames { get; } = new List<string>();
+    public IList<Type> CompressionPlugins { get; } = new List<Type>();
+    public IList<string> CompressionNames { get; } = new List<string>();
 
     public MagitekResults LoadCodecPlugins(string pluginsPath)
     {
@@ -84,7 +97,12 @@ public sealed class PluginService : IPluginService
                 }
 
                 foreach (var pluginType in pluginTypes)
-                    CodecPlugins.Add(pluginType);
+                {
+                    if (typeof(ICompressionPlugin).IsAssignableFrom(pluginType))
+                        CompressionPlugins.Add(pluginType);
+                    else
+                        CodecPlugins.Add(pluginType);
+                }
             }
             catch (Exception ex)
             {
@@ -100,7 +118,7 @@ public sealed class PluginService : IPluginService
 
     private static List<Type> FindPluginTypes(IEnumerable<Type?> types) =>
         types.OfType<Type>()
-            .Where(t => typeof(ICodecPlugin).IsAssignableFrom(t) && !t.IsAbstract)
+            .Where(t => (typeof(ICodecPlugin).IsAssignableFrom(t) || typeof(ICompressionPlugin).IsAssignableFrom(t)) && !t.IsAbstract)
             .ToList();
 
     /// <summary>

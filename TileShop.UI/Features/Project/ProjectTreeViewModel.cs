@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using ImageMagitek.Compression;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
 using Monaco.PathTree;
@@ -33,11 +34,14 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     private readonly UserPreferencesStore _preferencesStore;
     private readonly IExploreService _diskExploreService;
     private readonly EditorsViewModel _editors;
+    private readonly ICompressorFactory _compressorFactory;
 
     public ProjectTreeViewModel(IProjectService solutionService, IColorFactory colorFactory, PaletteStore paletteStore,
         IAsyncFileRequestService fileSelect, IInteractionService interactionService,
-        UserPreferencesStore preferencesStore, IExploreService diskExploreService, EditorsViewModel editors)
+        UserPreferencesStore preferencesStore, IExploreService diskExploreService, EditorsViewModel editors,
+        ICompressorFactory compressorFactory)
     {
+        _compressorFactory = compressorFactory;
         _projectService = solutionService;
         _colorFactory = colorFactory;
         _paletteStore = paletteStore;
@@ -150,6 +154,56 @@ public partial class ProjectTreeViewModel : ObservableRecipient
                 {
                     await _interactions.AlertAsync("Resource Error", fail.Reason);
                 });
+        }
+    }
+
+    [RelayCommand]
+    public async Task AddCompressedData(DataFileNodeViewModel dataFileModel)
+    {
+        if (dataFileModel.Node.Parent is not { } folder || dataFileModel.Node.Item is not DataSource parent)
+            return;
+
+        var dialogModel = new AddCompressedDataViewModel(parent, _compressorFactory, name => _projectService.CanAddResource(folder, name, false));
+        if (await _interactions.RequestAsync(dialogModel) is null || dialogModel.SelectedCompression is null)
+            return;
+
+        var source = new CompressedDataSource(dialogModel.ResourceName, parent, dialogModel.Offset, dialogModel.SelectedCompression.Name, _compressorFactory);
+        var result = await _projectService.AddResourceAsync(folder, source);
+
+        await result.Match(
+            async success =>
+            {
+                SelectedNode = FindViewModel(success.Result);
+                await _editors.ActivateEditor(source);
+            },
+            async fail =>
+            {
+                source.Dispose();
+                await _interactions.AlertAsync("Resource Error", fail.Reason);
+            });
+    }
+
+    [RelayCommand]
+    public async Task ExportDecompressedData(CompressedDataNodeViewModel nodeModel)
+    {
+        var source = (CompressedDataSource)nodeModel.Node.Item;
+        if (source.DecompressionError is { } error)
+        {
+            await _interactions.AlertAsync("Export Error", error);
+            return;
+        }
+
+        if (await _fileSelect.RequestExportDataFileName($"{source.Name}.bin") is not { } fileName)
+            return;
+
+        try
+        {
+            var data = source.Read(new BitAddress(0, 0), (int)source.Length * 8);
+            await File.WriteAllBytesAsync(fileName.LocalPath, data);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            await _interactions.AlertAsync("Export Error", ex.Message);
         }
     }
 

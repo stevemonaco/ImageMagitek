@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using ImageMagitek.Codec;
+using ImageMagitek.Compression;
 using ImageMagitek.Plugins;
 using ImageMagitek.PluginSamples;
 using ImageMagitek.Services;
@@ -47,6 +48,21 @@ public sealed class PluginServiceTests : IDisposable
 
         Assert.Contains("SNES 3bpp Plugin", factory.GetRegisteredCodecNames());
         Assert.IsType<IndexedCodecPluginAdapter>(factory.CreateCodec("Last Armageddon Font"));
+    }
+
+    [Fact]
+    public void LoadPlugins_Samples_DiscoversCompressionPlugins()
+    {
+        CopyPlugin(typeof(Snes3BppCodec).Assembly.Location, "ImageMagitek.PluginSamples");
+        var pluginService = new PluginService();
+
+        var result = pluginService.LoadCodecPlugins(_pluginsPath);
+
+        Assert.True(result.HasSucceeded);
+        var type = Assert.Single(pluginService.CompressionPlugins);
+        Assert.Equal(typeof(SquareLzssCompression).FullName, type.FullName);
+        Assert.DoesNotContain(pluginService.CodecPlugins, x => x.FullName == typeof(SquareLzssCompression).FullName);
+        Assert.Equal("Square LZSS", new CompressorFactory().AddCompressionPlugin(type).AsSuccess.Result);
     }
 
     [Fact]
