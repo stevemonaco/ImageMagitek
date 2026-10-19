@@ -21,7 +21,6 @@ Found by reading the code, not reproduced, unless a test is named.
 ## Missing validation
 
 - [LIB-PROJECT-SERVICE] `SaveResourceAsync` has no standalone guard; called with a standalone root it would write XML over the ROM (unreachable from today's UI); done when it fails for standalone trees.
-- **1.0** [LIB-PROJECT-SERVICE] `OpenProjectFileAsync`'s already-open check compares raw path strings, so the same project opens twice via a relative path or other casing and saves from one copy overwrite the other's; done when it normalizes like `OpenDataFile`.
 - [LIB-PROJECT-SERVICE] `CanMoveNode` and `GetContainingProject` throw for nodes outside every open tree; done when `CanMoveNode` returns a failure.
 - [LIB-PROJECT-FORMAT] A direct arranger that names an indexed codec loads without a check; done when the load fails naming the codec and arranger, like the indexed case (LIB-PROJECT-FORMAT-025).
 - [LIB-CODECS] A planar pattern count mismatch or empty pattern throws `ArgumentException` while other pattern errors return a failed result; done when all return failed results.
@@ -49,7 +48,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 - [UI-SHELL, LIB-PROJECT-SERVICE] Command-line and OS integration (optional for 1.0): `args` are passed to Avalonia but never read, and there is no window drop handler; done when a non-`.xml` path on the command line, or a file dropped on the window, opens as a standalone file (drop is a manual check).
 - [UI-SHELL] Status-bar Indefinite and Reset messages are handled but never sent; done when a sender exists or the values are removed.
-- **1.0** [UI-SHELL] Global unhandled-exception handling: the WPF app logged an unhandled exception, showed an "Unhandled Exception" dialog and kept running; the Avalonia app has no `Dispatcher.UIThread.UnhandledException` or `TaskScheduler.UnobservedTaskException` handler, so an exception after startup exits the app and loses unsaved edits; done when both are logged and shown through `IInteractionService` and the app keeps running.
 
 ### P1
 
@@ -95,7 +93,6 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ## Untested behavior worth a test
 
-- **1.0** [LIB-PROJECT-SERVICE] `OpenProjectFileAsync` with a leftover journal; `CloseProjects`; project-root rename.
 - [LIB-DATASOURCE] Past-EOF read throws `EndOfStreamException`; overflowing a fixed-capacity `MemoryDataSource` throws `NotSupportedException`; `Flush` and `Write` never raise `DataWritten`.
 - [LIB-CODECS] XML schema and semantic validation failures; unknown name throws `KeyNotFoundException`; direct-color XML throws; pattern codecs ignore the requested size; each codec gets its own format clone; `CloneCodec`.
 - [LIB-COLORS] RGB15, BGR6, NES and RGBA32 conversion; BGR9 to-foreign rounding; hex format and parse for every model; factory `NotSupported`/`ArgumentException` paths; distance ties pick the lowest index; `GetIndexByNativeColor` throwing.
@@ -148,6 +145,7 @@ DevTools cannot drive pointer gestures, drag and drop, or popups, so these need 
 - [UI-DRAWING] Color Picker on an unlisted palette: copy elements from "Portraits" into "Adult Rydia Map" choosing one whose palette is not listed there, Ctrl+click a pasted pixel in Draw mode, and check the swatches show its palette and Pencil draws.
 - [UI-DRAWING] Pencil with duplicate palette colors: pick the higher duplicate index, draw, save, reopen, and check with Color Picker that the stored index is the chosen one.
 - [UI-ARRANGING] Drops follow Ctrl+V: drag pixels from a sequential editor in View mode onto a scattered editor in Arrange mode and check it switches to Draw before floating; with the target modified, check the Save Changes prompt and that Cancel discards the drop; Shift-drop applies in Draw mode; drag elements onto a sequential editor and check it ends in Draw mode with a pixel paste; drag a selection within a sequential editor in View mode and check that Enter does not write pixels in View mode.
+- [UI-SHELL] Unhandled exceptions (UI-SHELL-140): temporarily throw from a menu command in a Debug build, modify an editor, invoke the command, and check the "Unexpected Error" alert, the log entry, and that after OK the app keeps working and the edit is still unsaved and savable.
 - **1.0** [UI-SHELL] The debug load button exists only in Debug builds. ([proposal](changes/release-1-0.md))
 - [UI-SHELL] Exit: modify an editor, then close with the title-bar X, Alt+F4 and File → Exit; choose Cancel (app, edits and projects remain), then Yes (saves and exits). Float a tab and exit (the app shuts down with the floating window open).
 - [UI-EDITORS] Float a tab, then File → Close <name>, and separately delete its resource in the tree: the floating tab closes each time. After closing tabs with their X, the shown tab and the File menu's Close <name> agree.

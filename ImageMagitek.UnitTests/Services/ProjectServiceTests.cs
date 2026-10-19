@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using ImageMagitek.Codec;
@@ -11,6 +12,7 @@ using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services;
 using ImageMagitek.UnitTests.Fixtures;
 using ImageMagitek.UnitTests.TestFactories;
+using ImageMagitek.Utility;
 using TileShop.UI.ViewModels;
 using Xunit;
 
@@ -432,6 +434,22 @@ public sealed class ProjectServiceTests : IAsyncLifetime
         Assert.Equal("1.0", XDocument.Load(PathOf("renamed.xml")).Root!.Attribute("version")!.Value);
     }
 
+    [Theory]
+    [InlineData("Resources", "..", "project.xml")]
+    [InlineData("PROJECT.XML")]
+    public async Task OpenProject_AlreadyOpenUnderOtherSpelling_Fails(params string[] parts)
+    {
+        Directory.CreateDirectory(PathOf("Resources"));
+        var opened = new List<ProjectTree>();
+        _service.ProjectOpened += (_, t) => opened.Add(t);
+
+        var result = await _service.OpenProjectFileAsync(PathOf(parts));
+
+        Assert.True(result.HasFailed);
+        Assert.Contains("already open", result.AsError.Reasons.Single());
+        Assert.Empty(opened);
+    }
+
     private static T ItemOf<T>(ProjectTree tree, string name) =>
         Assert.IsType<T>(tree.Root.ChildNodes.Single(x => x.Name == name).Item);
 
@@ -569,6 +587,68 @@ public sealed class ProjectServiceTests : IAsyncLifetime
 
         Assert.Same(tree, Assert.Single(closed));
         using var stream = File.Open(PathOf("standalone.bin"), FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+    }
+
+    [Fact]
+    public void CloseProjects_ClosesEveryTreeOnce_AndReleasesFiles()
+    {
+        var standalone = OpenStandalone();
+        ((DataSource)standalone.Root.Item).Read(BitAddress.Zero, 8);
+        var closed = new List<ProjectTree>();
+        _service.ProjectClosed += (_, t) => closed.Add(t);
+
+        _service.CloseProjects();
+        _service.CloseProject(_tree);
+
+        Assert.Equal(2, closed.Count);
+        Assert.Contains(_tree, closed);
+        Assert.Contains(standalone, closed);
+        using var stream = File.Open(PathOf("standalone.bin"), FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+    }
+
+    [Fact]
+    public async Task OpenProject_LeftoverJournal_RollsForwardBeforeReading()
+    {
+        var projectFile = PathOf("project.xml");
+        _service.CloseProject(_tree);
+        File.WriteAllText(projectFile, "torn write");
+        File.WriteAllText(projectFile + ".tmp", "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<project version=\"1.0\" />");
+        WriteJournal(new WalOperation
+        {
+            Id = Guid.NewGuid(),
+            Type = WalOperationType.WriteFile,
+            TargetPath = projectFile,
+            StagingPath = projectFile + ".tmp",
+            BackupPath = projectFile + ".bak",
+            State = WalOperationState.Pending
+        });
+
+        var result = await _service.OpenProjectFileAsync(projectFile);
+
+        Assert.True(result.HasSucceeded, result.HasFailed ? string.Join("; ", result.AsError.Reasons) : null);
+        Assert.False(File.Exists(PathOf("_transaction.json")));
+    }
+
+    [Fact]
+    public async Task OpenProject_CorruptJournal_FailsAndTracksNothing()
+    {
+        var projectFile = _tree.Root.DiskLocation!;
+        _service.CloseProject(_tree);
+        File.WriteAllText(PathOf("_transaction.json"), "{ not json");
+        var opened = new List<ProjectTree>();
+        _service.ProjectOpened += (_, t) => opened.Add(t);
+
+        var result = await _service.OpenProjectFileAsync(projectFile);
+
+        Assert.True(result.HasFailed);
+        Assert.Contains("recovery failed", result.AsError.Reasons.Single());
+        Assert.Empty(opened);
+    }
+
+    private void WriteJournal(params WalOperation[] operations)
+    {
+        var journal = new WalJournal { CreatedUtc = DateTime.UtcNow, Operations = [.. operations] };
+        File.WriteAllText(PathOf("_transaction.json"), JsonSerializer.Serialize(journal));
     }
 
     [Fact]

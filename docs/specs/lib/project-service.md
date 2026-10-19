@@ -36,9 +36,9 @@ Owns the set of open trees (projects and standalone data files) and every operat
 - **LIB-PROJECT-SERVICE-002** — When an open tree is closed, the service shall dispose every disposable resource in it, stop tracking it, then raise `ProjectClosed`.
   - Tests: `ProjectServiceTests.CloseProject_RaisesProjectClosed`, `ProjectServiceTests.CloseProject_StandaloneFile_RaisesProjectClosedAndReleasesFile`
 - **LIB-PROJECT-SERVICE-003** — When asked to close a tree it does not track, the service shall do nothing and raise nothing.
-  - Tests: untested
+  - Tests: `ProjectServiceTests.CloseProjects_ClosesEveryTreeOnce_AndReleasesFiles`
 - **LIB-PROJECT-SERVICE-004** — When all trees are closed, the service shall dispose all their resources, untrack all of them, then raise `ProjectClosed` once per tree.
-  - Tests: untested
+  - Tests: `ProjectServiceTests.CloseProjects_ClosesEveryTreeOnce_AndReleasesFiles`
 - **LIB-PROJECT-SERVICE-005** — While a tree is open, the service shall re-raise its `Changed` as `TreeChanged` and its `ResourceChanged` as `ResourceChanged`, with the tree as sender.
   - Tests: `ProjectServiceTests.PaletteChange_RaisesServiceResourceChangedFromTree`
 - **LIB-PROJECT-SERVICE-006** — After a tree is closed, its changes shall raise no service events.
@@ -57,9 +57,9 @@ Owns the set of open trees (projects and standalone data files) and every operat
 - **LIB-PROJECT-SERVICE-010** — If saving a project created from an existing data file fails, then the service shall untrack it, dispose the data source and return the save's reason.
   - Tests: untested
 - **LIB-PROJECT-SERVICE-011** — When a project is opened, the service shall first run write-ahead-log recovery in the project file's directory and fail the open if recovery fails (LIB-PROJECT-FORMAT).
-  - Tests: untested
-- **LIB-PROJECT-SERVICE-012** — If the project file does not exist, or a tree with the same disk location string is already open, then opening shall fail.
-  - Tests: untested
+  - Tests: `ProjectServiceTests.OpenProject_LeftoverJournal_RollsForwardBeforeReading`, `ProjectServiceTests.OpenProject_CorruptJournal_FailsAndTracksNothing`
+- **LIB-PROJECT-SERVICE-012** — If the project file does not exist, or a tree whose disk location is the same full path ignoring case is already open, then opening shall fail without raising `ProjectOpened`.
+  - Tests: `ProjectServiceTests.OpenProject_AlreadyOpenUnderOtherSpelling_Fails`
 - **LIB-PROJECT-SERVICE-013** — If reading the project fails or throws, then opening shall fail with the reader's reasons or the exception's type and message, and nothing shall be tracked.
   - Tests: untested
 - **LIB-PROJECT-SERVICE-014** — When a project references a data file that is missing on disk, opening shall succeed with that data source reporting `IsMissing`, and palettes on it shall still load.

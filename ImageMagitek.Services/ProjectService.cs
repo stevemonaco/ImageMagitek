@@ -219,12 +219,14 @@ public class ProjectService : IProjectService
         if (!File.Exists(projectFileName))
             return new MagitekResults<ProjectTree>.Failed($"File '{projectFileName}' does not exist");
 
-        if (_projects.Any(x => x.Root.DiskLocation == projectFileName))
+        var fullPath = Path.GetFullPath(projectFileName);
+        if (_projects.Any(x => x.Root.DiskLocation is not null &&
+            string.Equals(Path.GetFullPath(x.Root.DiskLocation), fullPath, StringComparison.OrdinalIgnoreCase)))
             return new MagitekResults<ProjectTree>.Failed($"File '{projectFileName}' is already open");
 
         try
         {
-            var baseDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName))!;
+            var baseDirectory = Path.GetDirectoryName(fullPath)!;
             var recoveryResult = await WriteAheadLogTransaction.RecoverAsync(baseDirectory);
 
             if (recoveryResult.HasFailed)

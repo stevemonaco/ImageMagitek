@@ -1,10 +1,13 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using TileShop.Shared.Interactions;
 using TileShop.UI.ViewModels;
 using TileShop.UI.Views;
 
@@ -12,6 +15,8 @@ namespace TileShop.UI;
 public class App : Application
 {
     private ShellView? _shellView;
+    private IInteractionService? _interactions;
+    private bool _isShowingUnhandledError;
 
     public override void Initialize()
     {
@@ -49,6 +54,10 @@ public class App : Application
             return;
         }
 
+        _interactions = provider.GetRequiredService<IInteractionService>();
+        Dispatcher.UIThread.UnhandledException += Dispatcher_UnhandledException;
+        TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
         var viewLocator = provider.GetRequiredService<ViewLocator>();
         DataTemplates.Add(viewLocator);
 
@@ -67,5 +76,41 @@ public class App : Application
     private void Desktop_ShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
     {
         e.Cancel = _shellView?.HandleCloseRequest() ?? false;
+    }
+
+    private void Dispatcher_UnhandledException(object? sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        e.Handled = true;
+        ReportUnhandledException(e.Exception);
+    }
+
+    private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        e.SetObserved();
+        Dispatcher.UIThread.Post(() => ReportUnhandledException(e.Exception));
+    }
+
+    private async void ReportUnhandledException(Exception ex)
+    {
+        Log.Error(ex, "Unhandled exception");
+
+        // An exception that recurs every frame would otherwise stack alerts endlessly
+        if (_isShowingUnhandledError || _interactions is null)
+            return;
+
+        _isShowingUnhandledError = true;
+        try
+        {
+            await _interactions.AlertAsync("Unexpected Error",
+                $"TileShop hit an unexpected error and kept running. Save your work, and restart if anything looks wrong.\n\n{ex.Message}\n\nThe full error is in the log in {TileShopBootstrapper.LogDirectory}");
+        }
+        catch (Exception alertEx)
+        {
+            Log.Error(alertEx, "Could not show the unhandled exception alert");
+        }
+        finally
+        {
+            _isShowingUnhandledError = false;
+        }
     }
 }
