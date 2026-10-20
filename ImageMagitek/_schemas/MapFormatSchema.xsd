@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="TileShopMapFormatSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="mapformat">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="tileindex" type="field" />
+        <xs:element name="palette" type="field" minOccurs="0" />
+        <xs:element name="hflip" type="flag" minOccurs="0" />
+        <xs:element name="vflip" type="flag" minOccurs="0" />
+        <xs:element name="priority" type="flag" minOccurs="0" />
+      </xs:all>
+      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="entrybits" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:positiveInteger">
+            <xs:enumeration value="8" />
+            <xs:enumeration value="16" />
+            <xs:enumeration value="32" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="endian" use="optional" default="little">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="little" />
+            <xs:enumeration value="big" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="field">
+    <xs:attribute name="lowbit" type="xs:nonNegativeInteger" use="optional" default="0" />
+    <xs:attribute name="bits" type="xs:positiveInteger" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="flag">
+    <xs:attribute name="bit" type="xs:nonNegativeInteger" use="required" />
+  </xs:complexType>
+
+</xs:schema>

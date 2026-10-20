@@ -8,6 +8,7 @@ using System.Xml;
 using System.Xml.Linq;
 using CommunityToolkit.Diagnostics;
 using ImageMagitek.Colors;
+using ImageMagitek.Tilemaps;
 using ImageMagitek.Utility;
 using Monaco.PathTree;
 
@@ -75,7 +76,7 @@ public sealed class XmlProjectWriter : IProjectWriter
 
         if (resourceNode is ProjectNode { Item: ImageProject project })
         {
-            var model = project.MapToModel();
+            var model = project.MapToModel(ProjectFormat.Required(_tree));
             return Stringify(Serialize(model));
         }
         else if (resourceNode is DataFileNode { Item: FileDataSource df })
@@ -86,6 +87,11 @@ public sealed class XmlProjectWriter : IProjectWriter
         else if (resourceNode is CompressedDataNode { Item: CompressedDataSource compressed })
         {
             var model = compressed.MapToModel(resourceMap);
+            return Stringify(Serialize(model));
+        }
+        else if (resourceNode is TilemapNode { Item: TilemapArranger tilemap })
+        {
+            var model = tilemap.MapToModel(resourceMap);
             return Stringify(Serialize(model));
         }
         else if (resourceNode is PaletteNode { Item: Palette pal })
@@ -125,7 +131,7 @@ public sealed class XmlProjectWriter : IProjectWriter
 
             if (resourceNode is ProjectNode { Item: ImageProject project })
             {
-                var model = project.MapToModel();
+                var model = project.MapToModel(ProjectFormat.Required(_tree));
                 contents = Stringify(Serialize(model));
                 currentModel = model;
             }
@@ -138,6 +144,12 @@ public sealed class XmlProjectWriter : IProjectWriter
             else if (resourceNode is CompressedDataNode { Item: CompressedDataSource compressed })
             {
                 var model = compressed.MapToModel(resourceMap);
+                contents = Stringify(Serialize(model));
+                currentModel = model;
+            }
+            else if (resourceNode is TilemapNode { Item: TilemapArranger tilemap })
+            {
+                var model = tilemap.MapToModel(resourceMap);
                 contents = Stringify(Serialize(model));
                 currentModel = model;
             }
@@ -218,7 +230,7 @@ public sealed class XmlProjectWriter : IProjectWriter
             if (node is ProjectNode projectNode)
             {
                 var project = (ImageProject)projectNode.Item;
-                currentModel = project.MapToModel();
+                currentModel = project.MapToModel(ProjectFormat.Required(tree));
                 diskModel = projectNode.Model;
             }
             else if (node is DataFileNode dfNode)
@@ -231,6 +243,11 @@ public sealed class XmlProjectWriter : IProjectWriter
             {
                 currentModel = ((CompressedDataSource)compressedNode.Item).MapToModel(resourceMap);
                 diskModel = compressedNode.Model;
+            }
+            else if (node is TilemapNode tilemapNode)
+            {
+                currentModel = ((TilemapArranger)tilemapNode.Item).MapToModel(resourceMap);
+                diskModel = tilemapNode.Model;
             }
             else if (node is PaletteNode paletteNode)
             {
@@ -294,6 +311,10 @@ public sealed class XmlProjectWriter : IProjectWriter
                 {
                     compressedNode.Model = (CompressedDataModel)action.model;
                 }
+                else if (action.node is TilemapNode tilemapNode)
+                {
+                    tilemapNode.Model = (TilemapModel)action.model;
+                }
                 else if (action.node is PaletteNode paletteNode)
                 {
                     paletteNode.Model = (PaletteModel)action.model;
@@ -350,6 +371,7 @@ public sealed class XmlProjectWriter : IProjectWriter
         {
             DataFileModel dataFileModel => Serialize(dataFileModel),
             CompressedDataModel compressedModel => Serialize(compressedModel),
+            TilemapModel tilemapModel => Serialize(tilemapModel),
             PaletteModel paletteModel => Serialize(paletteModel),
             ScatteredArrangerModel arrangerModel => Serialize(arrangerModel),
             ImageProjectModel projectModel => Serialize(projectModel),
@@ -360,7 +382,7 @@ public sealed class XmlProjectWriter : IProjectWriter
     private XElement Serialize(ImageProjectModel projectModel)
     {
         var element = new XElement("project");
-        element.Add(new XAttribute("version", ProjectFormat.Current.ToString(2)));
+        element.Add(new XAttribute("version", projectModel.Version.ToString(2)));
 
         if (!string.IsNullOrEmpty(projectModel.Root))
             element.Add(new XAttribute("root", projectModel.Root));
@@ -383,6 +405,31 @@ public sealed class XmlProjectWriter : IProjectWriter
         element.Add(new XAttribute("parent", model.ParentKey));
         element.Add(new XAttribute("fileoffset", $"{model.FileOffset:X}"));
         element.Add(new XAttribute("compression", model.Compression));
+        return element;
+    }
+
+    private static XElement Serialize(TilemapModel model)
+    {
+        var element = new XElement("tilemap");
+        element.Add(new XAttribute("mapdatafile", model.MapDataKey));
+        element.Add(new XAttribute("mapoffset", $"{model.MapOffset:X}"));
+        element.Add(new XAttribute("width", model.Width));
+        element.Add(new XAttribute("height", model.Height));
+
+        if (model.Layout != MapScreenLayout.Linear)
+            element.Add(new XAttribute("layout", model.Layout.ToXmlName()));
+
+        element.Add(new XAttribute("format", model.FormatName));
+        element.Add(new XAttribute("tiledatafile", model.TileDataKey));
+        element.Add(new XAttribute("tileoffset", $"{model.TileOffset:X}"));
+        element.Add(new XAttribute("codec", model.CodecName));
+
+        if (model.FirstTile != 0)
+            element.Add(new XAttribute("firsttile", model.FirstTile));
+
+        foreach (var (index, paletteKey) in model.PaletteSlots.OrderBy(x => x.Key))
+            element.Add(new XElement("paletteslot", new XAttribute("index", index), new XAttribute("palette", paletteKey)));
+
         return element;
     }
 

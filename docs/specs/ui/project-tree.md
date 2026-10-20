@@ -17,6 +17,8 @@ sources:
   - TileShop.UI/Features/Dialogs/AddPaletteView.axaml
   - TileShop.UI/Features/Dialogs/AddScatteredArrangerViewModel.cs
   - TileShop.UI/Features/Dialogs/AddScatteredArrangerView.axaml
+  - TileShop.UI/Features/Dialogs/AddTilemapViewModel.cs
+  - TileShop.UI/Features/Dialogs/AddTilemapView.axaml
   - TileShop.UI/ViewExtenders/Behaviors/TreeViewItemNodeClassBehavior.cs
   - TileShop.UI/ViewExtenders/DragDrop/PayloadDragBehavior.cs
   - TileShop.UI/ViewExtenders/DragDrop/PayloadDropBehavior.cs
@@ -49,6 +51,11 @@ types:
   - AddPaletteViewModel
   - AddScatteredArrangerViewModel
   - AddScatteredArrangerFromCopyMessage
+  - TilemapNodeViewModel
+  - AddTilemapViewModel
+  - TilemapSourceOption
+  - TilemapPaletteOption
+  - TilemapPaletteSlotViewModel
 tests:
   - ProjectServiceTests
   - NameResourceViewModelTests
@@ -61,6 +68,7 @@ depends:
   - LIB-DATASOURCE
   - LIB-PALETTES
   - LIB-ARRANGERS
+  - LIB-TILEMAPS
   - UI-EDITORS
   - UI-SHELL
 ---
@@ -141,9 +149,9 @@ The tree pane shows every open project and standalone data file as a projection 
 
 ### Context menus
 
-- **UI-PROJECT-TREE-050** — A project root's context menu shall offer: Add New Folder..., Add Existing Data File..., Add New Scattered Arranger..., Add New Palette..., Save Project As..., Close Project, Rename Project..., Open in Folder.
+- **UI-PROJECT-TREE-050** — A project root's context menu shall offer: Add New Folder..., Add Existing Data File..., Add New Scattered Arranger..., Add New Palette..., Add New Tilemap..., Save Project As..., Close Project, Rename Project..., Open in Folder.
   - Tests: manual — right-click the FF2 project root.
-- **UI-PROJECT-TREE-051** — A folder's context menu shall offer: the four Add items, Remove, Rename..., Move to Folder..., Open in Folder.
+- **UI-PROJECT-TREE-051** — A folder's context menu shall offer: the five Add items, Remove, Rename..., Move to Folder..., Open in Folder.
   - Tests: manual — right-click a folder.
 - **UI-PROJECT-TREE-052** — A data file's context menu shall offer: Relink... (only while the file is missing), Remove, Rename..., Move to Folder..., Open in Folder.
   - Tests: manual — right-click a present and a missing data file.
@@ -201,6 +209,10 @@ The tree pane shows every open project and standalone data file as a projection 
   - Tests: manual — Add Compressed Data... on FE8 (J) with offset `A29A88` and GBA LZ77 shows "Decompresses 0x… bytes to 0x3000 bytes".
 - **UI-PROJECT-TREE-134** — Compressed data nodes shall show in italics with a faded file icon and a tooltip naming the format, offset, parent and read-only state, and offer Export Decompressed Data..., Remove, Rename... and Move to Folder.... Export writes the decompressed bytes to a chosen file, or alerts "Export Error" with the decompression error.
   - Tests: manual — hover and export a compressed data node.
+- **UI-PROJECT-TREE-135** — Add New Tilemap... (LIB-TILEMAPS) shall ask for a name, a map data source and a tile data source chosen from the project's data sources by path key (compressed data included), a hex map offset, a map format, a width and height in cells (reset to 32 by the entries left after the map offset ÷ 32 when the map source, offset or format changes), a layout, a hex tile offset, an indexed tiled codec, a first tile index, and one palette for each of the format's slots chosen from the project and global palettes or "(none)". It shall preview the entry count, the highest tile index and the out-of-range count, or the tilemap's `MapError` or creation error, keep Add disabled until the name passes `CanAddResource` and the tilemap builds without a `MapError`, then add it under the node, select it and open its editor. If the project has no data source, it shall alert "Project Error" instead.
+  - Tests: DevTools — Add New Tilemap... on the FireRed project root with `/Trainer Card/Compressed/Front Map`, GBA Text BG, 30×20 and `/Trainer Card/Compressed/Card Tiles` previews "600 entries, highest tile index 183".
+- **UI-PROJECT-TREE-136** — Tilemap nodes shall show in italics with a faded arranger icon and a tooltip naming the format, size, map source and offset, codec, tile source and offset, and read-only state, and offer Export As..., Bake to Scattered Arranger..., Remove, Rename..., Move to Folder..., Open in Folder. Export As... exports the tilemap like an arranger (UI-IMAGE-IO). Bake to Scattered Arranger... clones the tilemap (LIB-TILEMAPS-029) and adds it through the flow of UI-PROJECT-TREE-083.
+  - Tests: manual — hover a FireRed tilemap node; Export As... and Bake to Scattered Arranger... on `/Title Screen/Border Tilemap`, then compare the PNG and the new arranger with `/Title Screen/Title Border`.
 
 ### Rename
 

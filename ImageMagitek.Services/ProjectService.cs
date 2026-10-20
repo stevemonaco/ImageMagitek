@@ -481,6 +481,7 @@ public class ProjectService : IProjectService
             ResourceNode? childNode = resource switch
             {
                 CompressedDataSource compressed => new CompressedDataNode(compressed.Name, compressed),
+                TilemapArranger tilemap => new TilemapNode(tilemap.Name, tilemap),
                 DataSource df => new DataFileNode(df.Name, df),
                 ScatteredArranger arranger => new ArrangerNode(arranger.Name, arranger),
                 Palette pal => new PaletteNode(pal.Name, pal),
@@ -497,6 +498,10 @@ public class ProjectService : IProjectService
                 return new MagitekResult<ResourceNode>.Failed(writeResult.AsError.Reason);
 
             parentNode.AttachChildNode(childNode);
+
+            // Raises the project file's version with the first tilemap or compressed data; a failed write is retried by the next project save
+            if (tree.Root is ProjectNode)
+                await _serializerFactory.CreateWriter(tree).WriteResourceAsync(tree.Root, false);
 
             return new MagitekResult<ResourceNode>.Success(childNode);
         }
@@ -1031,8 +1036,8 @@ public class ProjectService : IProjectService
             }
 
             // Editors on the source close on Removed, so nothing reads it after this
-            if (item.Resource is DataSource source)
-                source.Dispose();
+            if (item.Resource is IDisposable disposable and (DataSource or TilemapArranger))
+                disposable.Dispose();
         }
 
         var keptFolders = new List<string>();
@@ -1151,9 +1156,19 @@ public class ProjectService : IProjectService
             changes.Add(paletteChange);
         }
 
+        foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Item is TilemapArranger && !removedDict.ContainsKey(x.Item)))
+        {
+            if (((TilemapArranger)node.Item).LinkedResources.Any(removedDict.ContainsKey))
+            {
+                var tilemapChange = new ResourceChange(node, tree.CreatePathKey(node), true, false, false);
+                removedDict[node.Item] = tilemapChange;
+                changes.Add(tilemapChange);
+            }
+        }
+
         foreach (var node in tree.EnumerateDepthFirst().Where(x => !removedDict.ContainsKey(x.Item)))
         {
-            if (node.Item is not Arranger arranger)
+            if (node.Item is not Arranger arranger || arranger is TilemapArranger)
                 continue;
 
             var elements = arranger.EnumerateElements().OfType<ArrangerElement>().Where(x => x.Source is not null).ToList();

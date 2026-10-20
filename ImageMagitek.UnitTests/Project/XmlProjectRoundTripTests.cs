@@ -73,7 +73,7 @@ public sealed class XmlProjectRoundTripTests : IDisposable
 
         return ResourceNodes(tree).ToDictionary(tree.CreatePathKey, node => node.Item switch
         {
-            ImageProject project => (ResourceModel)project.MapToModel(),
+            ImageProject project => (ResourceModel)project.MapToModel(ProjectFormat.Minimum),
             FileDataSource df => df.MapToModel(),
             Palette palette => palette.MapToModel(resourceMap, _colorFactory),
             ScatteredArranger arranger => arranger.MapToModel(resourceMap),

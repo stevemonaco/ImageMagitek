@@ -305,6 +305,9 @@ public static class ArrangerExtensions
                 return $"reads data file '{element.Source.Name}', which is read-only";
         }
 
+        if (arranger is TilemapArranger)
+            return "is a tilemap; drawing on and importing into tilemaps is not supported yet";
+
         return null;
     }
 
@@ -313,8 +316,11 @@ public static class ArrangerExtensions
     /// </summary>
     public static FileDataSource? FindMissingDataSource(this Arranger arranger)
     {
+        var tilemap = arranger as TilemapArranger;
         return arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => (DataSource?)x.Source)
             .Concat(arranger.GetReferencedPalettes().Select(x => x.DataSource))
+            .Append(tilemap?.MapSource)
+            .Append(tilemap?.TileSource)
             .Select(x => x is CompressedDataSource compressed ? compressed.Parent : x)
             .OfType<FileDataSource>()
             .Distinct()

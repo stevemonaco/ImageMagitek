@@ -31,6 +31,32 @@ public static class SerializationMapperExtensions
         };
     }
 
+    public static TilemapModel MapToModel(this TilemapArranger tilemap, Dictionary<IProjectResource, string> resourceMap)
+    {
+        var slots = new Dictionary<int, string>();
+        for (int i = 0; i < tilemap.PaletteSlots.Count; i++)
+        {
+            if (tilemap.PaletteSlots[i] is { } palette)
+                slots[i] = resourceMap[palette];
+        }
+
+        return new TilemapModel()
+        {
+            Name = tilemap.Name,
+            MapDataKey = resourceMap[tilemap.MapSource],
+            MapOffset = tilemap.MapOffset,
+            Width = tilemap.ArrangerElementSize.Width,
+            Height = tilemap.ArrangerElementSize.Height,
+            Layout = tilemap.ScreenLayout,
+            FormatName = tilemap.MapFormat.Name,
+            TileDataKey = resourceMap[tilemap.TileSource],
+            TileOffset = tilemap.TileOffset,
+            CodecName = tilemap.CodecName,
+            FirstTile = tilemap.FirstTileIndex,
+            PaletteSlots = slots
+        };
+    }
+
     public static ImageProject MapToResource(this ImageProjectModel model)
     {
         return new ImageProject()
@@ -40,12 +66,13 @@ public static class SerializationMapperExtensions
         };
     }
 
-    public static ImageProjectModel MapToModel(this ImageProject project)
+    public static ImageProjectModel MapToModel(this ImageProject project, Version version)
     {
         return new ImageProjectModel()
         {
             Name = project.Name,
-            Root = project.Root
+            Root = project.Root,
+            Version = version
         };
     }
 

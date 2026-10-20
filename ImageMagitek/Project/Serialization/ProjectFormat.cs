@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Monaco.PathTree;
 
 namespace ImageMagitek.Project.Serialization;
 
@@ -9,8 +10,19 @@ namespace ImageMagitek.Project.Serialization;
 /// </summary>
 public static class ProjectFormat
 {
-    public static Version Current { get; } = new(1, 0);
+    public static Version Current { get; } = new(1, 1);
     public static Version Oldest { get; } = new(0, 9);
+
+    /// <summary>
+    /// The version written for a project that uses no feature newer than 1.0
+    /// </summary>
+    public static Version Minimum { get; } = new(1, 0);
+
+    /// <summary>
+    /// The lowest version that can hold the project: 1.1 when it has a tilemap or compressed data, otherwise 1.0
+    /// </summary>
+    public static Version Required(ProjectTree tree) =>
+        tree.EnumerateDepthFirst().Any(x => x is TilemapNode or CompressedDataNode) ? Current : Minimum;
 
     /// <summary>
     /// Parses a <c>major.minor</c> version, independently of the current culture.

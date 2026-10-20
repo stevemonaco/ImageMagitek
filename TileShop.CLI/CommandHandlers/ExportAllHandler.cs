@@ -23,7 +23,7 @@ public class ExportAllHandler : ProjectCommandHandler<ExportAllOptions>
             return ExitCode.ProjectOpenError;
 
         var results = projectTree.EnumerateDepthFirst()
-            .Where(x => x.Item is ScatteredArranger)
+            .Where(x => x.Item is ScatteredArranger or TilemapArranger)
             .Select(node => Exporter.ExportArranger(projectTree, projectTree.CreatePathKey(node), options.ExportDirectory, options.ForceOverwrite, Output))
             .ToList();
 

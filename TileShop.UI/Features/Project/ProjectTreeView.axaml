@@ -14,6 +14,7 @@
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File..." />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger..." />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewTilemapCommand}" CommandParameter="{Binding}" Header="Add New Tilemap..." />
             <Separator />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).SaveProjectAsCommand}" CommandParameter="{Binding}" Header="Save Project As..." />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).CloseProjectCommand}" CommandParameter="{Binding}" Header="Close Project" />
@@ -26,6 +27,7 @@
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewDataFileCommand}" CommandParameter="{Binding}" Header="Add Existing Data File..." />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewScatteredArrangerCommand}" CommandParameter="{Binding}" Header="Add New Scattered Arranger..." />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewPaletteCommand}" CommandParameter="{Binding}" Header="Add New Palette..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddNewTilemapCommand}" CommandParameter="{Binding}" Header="Add New Tilemap..." />
             <Separator />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename..." />
@@ -69,6 +71,16 @@
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
         </ContextMenu>
 
+        <ContextMenu x:Key="TilemapContextMenu" x:DataType="vm:TilemapNodeViewModel">
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExportArrangerNodeAsCommand}" CommandParameter="{Binding}" Header="Export As..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).BakeTilemapCommand}" CommandParameter="{Binding}" Header="Bake to Scattered Arranger..." />
+            <Separator />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).MoveNodeCommand}" CommandParameter="{Binding}" Header="Move to Folder..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+        </ContextMenu>
+
         <ContextMenu x:Key="PaletteContextMenu" x:DataType="vm:PaletteNodeViewModel">
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename..." />
@@ -101,6 +113,9 @@
             </Style>
             <Style Selector="TreeViewItem.arranger">
                 <Setter Property="ContextMenu" Value="{StaticResource ArrangerContextMenu}" />
+            </Style>
+            <Style Selector="TreeViewItem.tilemap">
+                <Setter Property="ContextMenu" Value="{StaticResource TilemapContextMenu}" />
             </Style>
             <Style Selector="TreeViewItem.palette">
                 <Setter Property="ContextMenu" Value="{StaticResource PaletteContextMenu}" />
@@ -172,6 +187,13 @@
                 <StackPanel Orientation="Horizontal">
                     <Image Classes="resource-icon-medium" Source="{x:Static cc:AppIcons.NewNodeArranger}" />
                     <TextBlock Margin="4,0,0,0" Text="{Binding Name}" />
+                </StackPanel>
+            </TreeDataTemplate>
+
+            <TreeDataTemplate x:DataType="vm:TilemapNodeViewModel" DataType="vm:TilemapNodeViewModel" ItemsSource="{Binding Children}">
+                <StackPanel Orientation="Horizontal" ToolTip.Tip="{Binding Description}">
+                    <Image Classes="resource-icon-medium" Opacity="0.6" Source="{x:Static cc:AppIcons.NewNodeArranger}" />
+                    <TextBlock Margin="4,0,0,0" FontStyle="Italic" Text="{Binding Name}" />
                 </StackPanel>
             </TreeDataTemplate>
 

@@ -76,8 +76,8 @@ The startup entry point a host (TileShop.UI, TileShop.CLI) uses to build the lib
 
 ### Defaults
 
-- **LIB-SERVICES-013** — The default locations shall be `appsettings.json`, `_palettes`, `_codecs`, `_plugins`, `_layouts`, `_schemas/ResourceSchema.xsd` and `_schemas/CodecSchema.xsd`, resolved against a given directory; hosts shall pass the application directory, so the working directory never affects which resources load.
-  - Tests: `BootstrapPathsTests.FromDirectory_RootsEveryPath`; DevTools — launch `TileShop.UI.exe` with working directory `C:\` and check the codec list is populated
+- **LIB-SERVICES-013** — The default locations shall be `appsettings.json`, `_palettes`, `_codecs`, `_plugins`, `_layouts`, `_schemas/ResourceSchema.xsd`, `_schemas/CodecSchema.xsd`, `_mapformats` and `_schemas/MapFormatSchema.xsd`, resolved against a given directory; hosts shall pass the application directory, so the working directory never affects which resources load. A missing map format folder or schema, and each map format file that fails to load (LIB-TILEMAPS-004), shall be recorded as a startup issue and leave the other formats available; both hosts pass the map format factory to the project serializer factory.
+  - Tests: `BootstrapPathsTests.FromDirectory_RootsEveryPath`, `BootstrapServiceTests.CreateMapFormatFactory_Shipped_LoadsBuiltInFormats`, `BootstrapServiceTests.CreateMapFormatFactory_MissingFolder_RecordsIssue`, `BootstrapServiceTests.CreateMapFormatFactory_BadFile_SkipsAndRecordsIssue`; DevTools — launch `TileShop.UI.exe` with working directory `C:\` and check the codec list is populated
 
 ## Invariants
 

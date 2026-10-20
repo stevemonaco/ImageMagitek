@@ -1,4 +1,4 @@
-﻿#nullable disable
+#nullable disable
 
 using System;
 using System.IO;
@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Compression;
+using ImageMagitek.Tilemaps;
 using ImageMagitek.Utility.Parsing;
 using System.Diagnostics.CodeAnalysis;
 
@@ -23,6 +24,7 @@ public sealed class XmlProjectReader : IProjectReader
     private readonly ICodecFactory _codecFactory;
     private readonly IColorFactory _colorFactory;
     private readonly ICompressorFactory _compressorFactory;
+    private readonly IMapFormatFactory _mapFormatFactory;
     private readonly List<IProjectResource> _globalResources;
     private readonly Palette _globalDefaultPalette;
 
@@ -30,12 +32,14 @@ public sealed class XmlProjectReader : IProjectReader
     private string _baseDirectory;
 
     public XmlProjectReader(XmlSchemaSet resourceSchema,
-        ICodecFactory codecFactory, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources, ICompressorFactory compressorFactory = null)
+        ICodecFactory codecFactory, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources, ICompressorFactory compressorFactory = null,
+        IMapFormatFactory mapFormatFactory = null)
     {
         _resourceSchema = resourceSchema;
         _codecFactory = codecFactory;
         _colorFactory = colorFactory;
         _compressorFactory = compressorFactory ?? new CompressorFactory();
+        _mapFormatFactory = mapFormatFactory ?? new MapFormatFactory();
         _globalResources = globalResources.ToList();
         _globalDefaultPalette = _globalResources.OfType<Palette>().First();
     }
@@ -60,12 +64,12 @@ public sealed class XmlProjectReader : IProjectReader
             return new MagitekResults<ProjectTree>.Failed(_errors);
         }
 
-        if (!TryReadVersion(projectDoc.Root, projectFileName) || !TryValidate(projectDoc, projectFileName))
+        if (!TryReadVersion(projectDoc.Root, projectFileName, out var version) || !TryValidate(projectDoc, projectFileName))
             return new MagitekResults<ProjectTree>.Failed(_errors);
 
-        var projectModel = DeserializeProject(projectDoc.Root, Path.GetFileNameWithoutExtension(projectFileName));
+        var projectModel = DeserializeProject(projectDoc.Root, Path.GetFileNameWithoutExtension(projectFileName), version);
 
-        var builder = new ProjectTreeBuilder(_codecFactory, _colorFactory, _globalDefaultPalette, _globalResources, _compressorFactory);
+        var builder = new ProjectTreeBuilder(_codecFactory, _colorFactory, _globalDefaultPalette, _globalResources, _compressorFactory, _mapFormatFactory);
 
         if (!string.IsNullOrWhiteSpace(projectModel.Root))
             _baseDirectory = Path.GetFullPath(Path.Combine(projectDirectory, projectModel.Root));
@@ -118,6 +122,15 @@ public sealed class XmlProjectReader : IProjectReader
             if (result.HasFailed)
             {
                 _errors.Add($"{result.AsError.Reason}");
+            }
+        }
+
+        foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is TilemapModel))
+        {
+            var result = builder.AddTilemap((TilemapModel)model, pathKey, fileLocation);
+            if (result.HasFailed)
+            {
+                _errors.AddRange(result.AsError.Reasons);
             }
         }
 
@@ -217,7 +230,7 @@ public sealed class XmlProjectReader : IProjectReader
 
     private static bool IsSkippedName(string name) => name.StartsWith('.');
 
-    private static bool IsResourceRoot(string root) => root is "datafile" or "compresseddata" or "palette" or "arranger";
+    private static bool IsResourceRoot(string root) => root is "datafile" or "compresseddata" or "palette" or "tilemap" or "arranger";
 
     private bool TryLoadXml(string xmlFileName, [MaybeNullWhen(false)] out XDocument doc)
     {
@@ -260,14 +273,15 @@ public sealed class XmlProjectReader : IProjectReader
         return _errors.Count == errorCount;
     }
 
-    private bool TryReadVersion(XElement projectElement, string projectFileName)
+    private bool TryReadVersion(XElement projectElement, string projectFileName, out Version version)
     {
         var fileName = Path.GetFileName(projectFileName);
         var text = projectElement.Attribute("version")?.Value;
+        version = null;
 
         if (text is null)
             _errors.Add($"'{fileName}' has no project format version");
-        else if (!ProjectFormat.TryParse(text, out var version))
+        else if (!ProjectFormat.TryParse(text, out version))
             _errors.Add($"'{fileName}' has project format version '{text}', which is not a major.minor version");
         else if (version < ProjectFormat.Oldest)
             _errors.Add($"'{fileName}' uses project format {text}; this version of TileShop reads format {ProjectFormat.Oldest} and newer.");
@@ -301,6 +315,9 @@ public sealed class XmlProjectReader : IProjectReader
                         Compression = doc.Root.Attribute("compression").Value
                     };
                     return true;
+                case "tilemap":
+                    model = DeserializeTilemap(doc.Root, resourceName);
+                    return true;
                 case "palette":
                     if (!TryDeserializePalette(doc.Root, xmlFileName, resourceName, out var paletteModel))
                         return false;
@@ -328,11 +345,31 @@ public sealed class XmlProjectReader : IProjectReader
         return string.Join('/', relativePath.Split('\\'));
     }
 
-    private static ImageProjectModel DeserializeProject(XElement element, string resourceName) =>
+    private static ImageProjectModel DeserializeProject(XElement element, string resourceName, Version version) =>
         new()
         {
             Name = resourceName,
-            Root = element.Attribute("root")?.Value ?? string.Empty
+            Root = element.Attribute("root")?.Value ?? string.Empty,
+            // 0.9 holds the same content as 1.0, so recording it as 1.0 keeps an unchanged save from rewriting it
+            Version = version < ProjectFormat.Minimum ? ProjectFormat.Minimum : version
+        };
+
+    private static TilemapModel DeserializeTilemap(XElement element, string resourceName) =>
+        new()
+        {
+            Name = resourceName,
+            MapDataKey = element.Attribute("mapdatafile").Value,
+            MapOffset = long.Parse(element.Attribute("mapoffset").Value, System.Globalization.NumberStyles.HexNumber),
+            Width = int.Parse(element.Attribute("width").Value),
+            Height = int.Parse(element.Attribute("height").Value),
+            Layout = MapScreenLayoutExtensions.FromXmlName(element.Attribute("layout")?.Value),
+            FormatName = element.Attribute("format").Value,
+            TileDataKey = element.Attribute("tiledatafile").Value,
+            TileOffset = long.Parse(element.Attribute("tileoffset").Value, System.Globalization.NumberStyles.HexNumber),
+            CodecName = element.Attribute("codec").Value,
+            FirstTile = int.Parse(element.Attribute("firsttile")?.Value ?? "0"),
+            PaletteSlots = element.Elements("paletteslot")
+                .ToDictionary(x => int.Parse(x.Attribute("index").Value), x => x.Attribute("palette").Value)
         };
 
     private bool TryDeserializeDataFile(XElement element, string resourceName, out DataFileModel dataFileModel)

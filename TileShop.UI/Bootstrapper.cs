@@ -6,6 +6,7 @@ using ImageMagitek.Codec;
 using ImageMagitek.Compression;
 using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services;
+using ImageMagitek.Tilemaps;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -88,9 +89,12 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         var elementStore = bootstrapper.CreateElementStore(layoutService, paths.LayoutsPath);
         services.AddSingleton(elementStore);
 
+        var mapFormatFactory = bootstrapper.CreateMapFormatFactory(paths.MapFormatsPath, paths.MapFormatSchemaFileName);
+        services.AddSingleton<IMapFormatFactory>(mapFormatFactory);
+
         var defaultResources = paletteStore.GlobalPalettes;
         var serializerFactory = bootstrapper.CreateProjectSerializerFactory(paths.ResourceSchemaFileName,
-            codecService.CodecFactory, colorFactory, defaultResources, compressorFactory);
+            codecService.CodecFactory, colorFactory, defaultResources, compressorFactory, mapFormatFactory);
         var projectService = bootstrapper.CreateProjectService(serializerFactory, colorFactory);
         services.AddSingleton(projectService);
     }
@@ -178,6 +182,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
         locator.RegisterViewFactory<WelcomeViewModel, WelcomeView>();
         locator.RegisterViewFactory<AddPaletteViewModel, AddPaletteView>();
         locator.RegisterViewFactory<AddCompressedDataViewModel, AddCompressedDataView>();
+        locator.RegisterViewFactory<AddTilemapViewModel, AddTilemapView>();
         locator.RegisterViewFactory<AddScatteredArrangerViewModel, AddScatteredArrangerView>();
         locator.RegisterViewFactory<AssociatePaletteViewModel, AssociatePaletteView>();
         locator.RegisterViewFactory<ChangeColorModelViewModel, ChangeColorModelView>();

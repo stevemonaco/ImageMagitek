@@ -239,11 +239,11 @@ public partial class EditorsViewModel : ObservableRecipient
             case Palette pal:
                 newDocument = new PaletteEditorViewModel(pal, _colorFactory, _projectService, _interactions, _fileRequests, _clipboard);
                 break;
-            case ScatteredArranger scatteredArranger:
-                newDocument = new GraphicsEditorViewModel(scatteredArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
-                break;
-            case SequentialArranger sequentialArranger:
-                newDocument = new GraphicsEditorViewModel(sequentialArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
+            case TilemapArranger { MapError: { } mapError }:
+                await _interactions.AlertAsync("Tilemap", mapError);
+                return null;
+            case Arranger arranger:
+                newDocument = new GraphicsEditorViewModel(arranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
                 break;
             case CompressedDataSource { DecompressionError: { } error }:
                 await _interactions.AlertAsync("Compressed Data", error);
@@ -301,6 +301,22 @@ public partial class EditorsViewModel : ObservableRecipient
             return false;
 
         await _interactions.AlertAsync(title, DescribeMissingDataSource(resource, missing));
+        return true;
+    }
+
+    /// <summary>
+    /// Alerts the user when <paramref name="resource"/> reads from a missing data file or is a tilemap whose map could not be read
+    /// </summary>
+    /// <returns>True if the resource's pixels are unavailable</returns>
+    public async Task<bool> AlertIfUnavailableAsync(IProjectResource resource, string title)
+    {
+        if (await AlertIfMissingDataSourceAsync(resource, title))
+            return true;
+
+        if (resource is not TilemapArranger { MapError: { } mapError })
+            return false;
+
+        await _interactions.AlertAsync(title, mapError);
         return true;
     }
 

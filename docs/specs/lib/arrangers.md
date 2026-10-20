@@ -65,7 +65,7 @@ depends:
 
 ## Purpose
 
-An arranger is a 2D grid of elements, each naming a data source, a bit address, a codec (and through an indexed codec, a palette) and a display mirror/rotation. A sequential arranger lays contiguous data from one source across the grid for browsing; a scattered arranger places arbitrary elements and is the project resource. LIB-IMAGES decodes arrangers to pixels and writes them back; LIB-PROJECT-FORMAT persists scattered arrangers; missing-source and same-project checks are in LIB-PROJECT-SERVICE.
+An arranger is a 2D grid of elements, each naming a data source, a bit address, a codec (and through an indexed codec, a palette) and a display mirror/rotation. A sequential arranger lays contiguous data from one source across the grid for browsing; a scattered arranger places arbitrary elements and is the project resource. A tilemap arranger (`ArrangerMode.Tilemap`, `TilemapArranger`) works out its elements from map entries and is specified in LIB-TILEMAPS. LIB-IMAGES decodes arrangers to pixels and writes them back; LIB-PROJECT-FORMAT persists scattered arrangers; missing-source and same-project checks are in LIB-PROJECT-SERVICE.
 
 ## Requirements
 
@@ -87,12 +87,12 @@ An arranger is a 2D grid of elements, each naming a data source, a bit address, 
   - Tests: untested
 - **LIB-ARRANGERS-008** — An element shall report itself within its source only when its whole encoded storage lies before the end of the source.
   - Tests: `IndexedImageTests.ArrangerPastEndOfSource_RendersEmptyAndSavesWithoutGrowing`
-- **LIB-ARRANGERS-009** — The arranger shall be read-only when any element uses a codec that cannot encode or reads a read-only data source.
+- **LIB-ARRANGERS-009** — The arranger shall be read-only when any element uses a codec that cannot encode or reads a read-only data source, and a tilemap arranger always (LIB-TILEMAPS-031).
   - Tests: `ReadOnlyArrangerTests.IsReadOnly_DecodeOnlyCodec_IsTrue`, `ReadOnlyArrangerTests.IsReadOnly_EncodableCodec_IsFalse`, `ReadOnlyArrangerTests.IsReadOnly_ElementOnReadOnlySource_IsTrue`
-- **LIB-ARRANGERS-049** — When the read-only reason is requested, the arranger shall return null when writable, otherwise a reason naming the first offending element's codec or data file.
-  - Tests: `ReadOnlyArrangerTests.GetReadOnlyReason_NamesCodecOrDataFile`
-- **LIB-ARRANGERS-051** — The arranger shall report the first missing file data source among its elements' sources and its referenced palettes' sources, or none when every file exists.
-  - Tests: `ArrangerExtensionsTests.FindMissingDataSource_ElementOrPaletteSource`
+- **LIB-ARRANGERS-049** — When the read-only reason is requested, the arranger shall return null when writable, otherwise a reason naming the first offending element's codec or data file; for a tilemap whose elements give no reason, the tilemap reason of LIB-TILEMAPS-031.
+  - Tests: `ReadOnlyArrangerTests.GetReadOnlyReason_NamesCodecOrDataFile`, `TilemapArrangerTests.CompressedMap_ReadsDecompressedBytes_IsReadOnly_AndRebuildsAfterParentWrite`
+- **LIB-ARRANGERS-051** — The arranger shall report the first missing file data source among its elements' sources, its referenced palettes' sources and, for a tilemap, its map source, resolving a compressed source to its parent, or none when every file exists.
+  - Tests: `ArrangerExtensionsTests.FindMissingDataSource_ElementOrPaletteSource`, `TilemapArrangerTests.FindMissingDataSource_MissingMapFile_ReturnsIt`
 - **LIB-ARRANGERS-010** — When a pixel point outside the arranger is converted to an element location, the conversion shall throw an out-of-range error.
   - Tests: untested
 

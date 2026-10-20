@@ -14,6 +14,7 @@ using ImageMagitek.Colors;
 using ImageMagitek.Compression;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
+using ImageMagitek.Tilemaps;
 using Monaco.PathTree;
 using Serilog;
 using TileShop.Shared.Messages;
@@ -35,13 +36,17 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     private readonly IExploreService _diskExploreService;
     private readonly EditorsViewModel _editors;
     private readonly ICompressorFactory _compressorFactory;
+    private readonly IMapFormatFactory _mapFormatFactory;
+    private readonly ICodecService _codecService;
 
     public ProjectTreeViewModel(IProjectService solutionService, IColorFactory colorFactory, PaletteStore paletteStore,
         IAsyncFileRequestService fileSelect, IInteractionService interactionService,
         UserPreferencesStore preferencesStore, IExploreService diskExploreService, EditorsViewModel editors,
-        ICompressorFactory compressorFactory)
+        ICompressorFactory compressorFactory, IMapFormatFactory mapFormatFactory, ICodecService codecService)
     {
         _compressorFactory = compressorFactory;
+        _mapFormatFactory = mapFormatFactory;
+        _codecService = codecService;
         _projectService = solutionService;
         _colorFactory = colorFactory;
         _paletteStore = paletteStore;
@@ -296,18 +301,92 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     }
 
     [RelayCommand]
+    public async Task AddNewTilemap(ResourceNodeViewModel parentNodeModel)
+    {
+        var parent = parentNodeModel.Node;
+        var tree = _projectService.GetContainingProject(parent);
+
+        var sources = tree.EnumerateDepthFirst()
+            .Where(x => x.Item is DataSource)
+            .Select(x => new TilemapSourceOption(tree.CreatePathKey(x), (DataSource)x.Item))
+            .ToList();
+
+        if (sources.Count == 0)
+        {
+            await _interactions.AlertAsync("Project Error", "Project does not contain any data files to read a tilemap from");
+            return;
+        }
+
+        var palettes = tree.EnumerateDepthFirst()
+            .Where(x => x.Item is Palette)
+            .Select(x => new TilemapPaletteOption(tree.CreatePathKey(x), (Palette)x.Item))
+            .Concat(_paletteStore.GlobalPalettes.Select(x => new TilemapPaletteOption(x.Name, x)))
+            .ToList();
+
+        var codecNames = _codecService.GetSupportedCodecNames().Where(IsIndexedTileCodec).Order(StringComparer.OrdinalIgnoreCase).ToList();
+
+        var dialogModel = new AddTilemapViewModel(sources, _mapFormatFactory, codecNames, palettes, _codecService.CodecFactory,
+            name => _projectService.CanAddResource(parent, name, false));
+
+        if (await _interactions.RequestAsync(dialogModel) is null)
+            return;
+
+        var tilemap = dialogModel.CreateTilemap(dialogModel.ResourceName);
+        var result = await _projectService.AddResourceAsync(parent, tilemap);
+
+        await result.Match(
+            async success =>
+            {
+                SelectedNode = FindViewModel(success.Result);
+                await _editors.ActivateEditor(tilemap);
+            },
+            async fail =>
+            {
+                tilemap.Dispose();
+                await _interactions.AlertAsync("Resource Error", fail.Reason);
+            });
+    }
+
+    private bool IsIndexedTileCodec(string codecName)
+    {
+        try
+        {
+            return _codecService.CodecFactory.CreateCodec(codecName) is IIndexedCodec { Layout: ImageLayout.Tiled };
+        }
+        catch (Exception ex) when (ex is KeyNotFoundException or ArgumentException or NotSupportedException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Writes the tilemap's current cells as a new scattered arranger through the name, create and open flow of an element copy
+    /// </summary>
+    [RelayCommand]
+    public async Task BakeTilemap(TilemapNodeViewModel nodeModel)
+    {
+        var tilemap = (TilemapArranger)nodeModel.Node.Item;
+        if (await _editors.AlertIfUnavailableAsync(tilemap, "Bake Tilemap"))
+            return;
+
+        var copy = tilemap.CloneArranger().CopyElements();
+        copy.ProjectResource = tilemap;
+        ReceiveAsync(new AddScatteredArrangerFromCopyMessage(copy, tilemap));
+    }
+
+    [RelayCommand]
     public async Task ExportArrangerNodeAs(ResourceNodeViewModel nodeModel)
     {
-        if (nodeModel is ArrangerNodeViewModel arrNodeModel && arrNodeModel.Node.Item is ScatteredArranger arranger)
+        if (nodeModel.Node.Item is ScatteredArranger or TilemapArranger)
         {
-            await ExportArrangerAs(arranger);
+            await ExportArrangerAs((Arranger)nodeModel.Node.Item);
         }
     }
 
     [RelayCommand]
-    public async Task ExportArrangerAs(ScatteredArranger arranger)
+    public async Task ExportArrangerAs(Arranger arranger)
     {
-        if (await _editors.AlertIfMissingDataSourceAsync(arranger, "Export"))
+        if (await _editors.AlertIfUnavailableAsync(arranger, "Export"))
             return;
 
         if (!await ResolveUnsavedChangesAsync(arranger, "exporting", discardOnNo: false))

@@ -71,7 +71,7 @@ public static class AppConverters
         {
             Palette => AppIcons.NewNodePalette,
             SequentialArranger => AppIcons.NewNodeFile,
-            ScatteredArranger => AppIcons.NewNodeArranger,
+            ScatteredArranger or TilemapArranger => AppIcons.NewNodeArranger,
             DataSource => AppIcons.NewNodeFile,
             ImageProject => AppIcons.NewNodeProject,
             ResourceFolder => AppIcons.NewNodeFolder,

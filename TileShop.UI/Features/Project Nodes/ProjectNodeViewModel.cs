@@ -49,6 +49,8 @@ public class ProjectNodeViewModel : ResourceNodeViewModel
             case ProjectTreeChangeKind.Renamed when Find(change.Node) is { } renamedVm:
                 renamedVm.Name = change.Node.Name;
                 renamedVm.ParentModel?.ResortChild(renamedVm);
+                foreach (var vm in _viewModels.Values)
+                    vm.RefreshDescription();
                 break;
         }
     }

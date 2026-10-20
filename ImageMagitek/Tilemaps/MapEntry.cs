@@ -1,0 +1,25 @@
+namespace ImageMagitek.Tilemaps;
+
+/// <summary>
+/// The fields of one decoded tilemap entry
+/// </summary>
+public readonly record struct MapEntry(int TileIndex, int Palette, bool HorizontalFlip, bool VerticalFlip, bool Priority)
+{
+    public MirrorOperation Mirror => (HorizontalFlip, VerticalFlip) switch
+    {
+        (true, true) => MirrorOperation.Both,
+        (true, false) => MirrorOperation.Horizontal,
+        (false, true) => MirrorOperation.Vertical,
+        _ => MirrorOperation.None
+    };
+}
+
+/// <summary>
+/// A run of bits within a map entry, counted from the entry's least significant bit
+/// </summary>
+public readonly record struct MapField(int LowBit, int Bits)
+{
+    public int HighBit => LowBit + Bits - 1;
+
+    public int Extract(uint entry) => (int)((entry >> LowBit) & (uint)((1UL << Bits) - 1));
+}

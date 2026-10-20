@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mapformat name="GBA Affine" entrybits="8">
+  <tileindex lowbit="0" bits="8" />
+</mapformat>

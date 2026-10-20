@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mapformat name="Genesis Plane" entrybits="16" endian="big">
+  <tileindex lowbit="0" bits="11" />
+  <hflip bit="11" />
+  <vflip bit="12" />
+  <palette lowbit="13" bits="2" />
+  <priority bit="15" />
+</mapformat>

@@ -21,6 +21,7 @@ tests:
 depends:
   - LIB-PROJECT-SERVICE
   - LIB-PROJECT-TREE
+  - LIB-TILEMAPS
   - LIB-DATASOURCE
   - LIB-ARRANGERS
   - UI-SHELL
@@ -48,6 +49,8 @@ depends:
   - Tests: manual — double-click a data file node twice and check two tabs open.
 - **UI-EDITORS-062** — When compressed data is activated, the editors shall open it like a data file (UI-EDITORS-004), choosing the codec by its parent file's extension; if it could not be decompressed, they shall alert "Compressed Data" with the error and open nothing.
   - Tests: manual — open FE8 compressed data, and a compressed data resource whose plugin is not installed.
+- **UI-EDITORS-063** — When a tilemap (LIB-TILEMAPS) is activated, the editors shall open it in a graphics editor on the tilemap itself; if it has a `MapError`, they shall alert "Tilemap" with the error and open nothing. A missing map, tile or palette file is caught first by UI-EDITORS-010.
+  - Tests: manual — open `/Title Screen/Border Tilemap` in the FireRed project; change a tilemap's `mapoffset` to past the end of its map data in the XML and open it.
 - **UI-EDITORS-005** — The sequential arranger for a data file shall use the codec associated with the file's lower-cased extension in `ExtensionCodecAssociations`, else the `default` association, else "NES 1bpp".
   - Tests: untested
 - **UI-EDITORS-006** (inherited) — A sequential arranger for a tiled codec shall start 8 elements wide and 16 high; for a single-layout codec, 1 by 1.

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -6,6 +6,7 @@ using CommunityToolkit.Diagnostics;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Compression;
+using ImageMagitek.Tilemaps;
 
 namespace ImageMagitek.Project.Serialization;
 
@@ -26,10 +27,12 @@ internal sealed class ProjectTreeBuilder
     private readonly ICodecFactory _codecFactory;
     private readonly IColorFactory _colorFactory;
     private readonly ICompressorFactory _compressorFactory;
+    private readonly IMapFormatFactory _mapFormatFactory;
 
     public ProjectTreeBuilder(ICodecFactory codecFactory, IColorFactory colorFactory, Palette defaultPalette, IEnumerable<IProjectResource> globalResources,
-        ICompressorFactory compressorFactory)
+        ICompressorFactory compressorFactory, IMapFormatFactory mapFormatFactory)
     {
+        _mapFormatFactory = mapFormatFactory;
         _codecFactory = codecFactory;
         _colorFactory = colorFactory;
         _compressorFactory = compressorFactory;
@@ -124,6 +127,67 @@ internal sealed class ProjectTreeBuilder
     }
 
     /// <summary>
+    /// Builds and attaches a tilemap over data sources and palettes that must already be in the tree, collecting one failure reason per unresolved
+    /// key, format or codec
+    /// </summary>
+    public MagitekResults AddTilemap(TilemapModel model, string parentNodePath, string fileLocation)
+    {
+        Guard.IsNotNull(Tree);
+        var pathKey = CreatePathKey(parentNodePath, model.Name);
+        var reasons = new List<string>();
+
+        if (!Tree.TryGetItem<DataSource>(model.MapDataKey, out var mapSource))
+            reasons.Add($"Tilemap '{pathKey}' references map data file '{model.MapDataKey}', which is not in the project");
+
+        if (!Tree.TryGetItem<DataSource>(model.TileDataKey, out var tileSource))
+            reasons.Add($"Tilemap '{pathKey}' references tile data file '{model.TileDataKey}', which is not in the project");
+
+        var format = _mapFormatFactory.Find(model.FormatName);
+        if (format is null)
+            reasons.Add($"Tilemap '{pathKey}' uses unknown map format '{model.FormatName}'");
+
+        var codec = CreateCodecOrNull(model.CodecName, null);
+        if (codec is null)
+            reasons.Add($"Tilemap '{pathKey}' uses unknown codec '{model.CodecName}'");
+        else if (codec is not IIndexedCodec)
+            reasons.Add($"Tilemap '{pathKey}' uses direct codec '{model.CodecName}'; tile codecs must be indexed");
+
+        var slots = new Palette?[format?.PaletteSlotCount ?? 0];
+        foreach (var (index, paletteKey) in model.PaletteSlots)
+        {
+            if (format is not null && index >= slots.Length)
+                reasons.Add($"Tilemap '{pathKey}' assigns palette slot {index}, but map format '{format.Name}' has {slots.Length} slots");
+            else if (ResolvePalette(paletteKey) is not { } palette)
+                reasons.Add($"Tilemap '{pathKey}' references palette '{paletteKey}', which is not in the project or the global palettes");
+            else if (format is not null)
+                slots[index] = palette;
+        }
+
+        if (reasons.Count > 0)
+            return new MagitekResults.Failed(reasons);
+
+        TilemapArranger tilemap;
+        try
+        {
+            tilemap = new TilemapArranger(model.Name, mapSource!, model.MapOffset, format!, model.Layout, model.Width, model.Height,
+                tileSource!, model.TileOffset, model.CodecName, model.FirstTile, slots, _codecFactory);
+        }
+        catch (ArgumentException ex)
+        {
+            return new MagitekResults.Failed([$"Tilemap '{pathKey}': {ex.Message}"]);
+        }
+
+        var node = new TilemapNode(tilemap.Name, tilemap)
+        {
+            DiskLocation = fileLocation,
+            Model = model
+        };
+
+        var attachResult = AttachNode(node, parentNodePath);
+        return attachResult.HasSucceeded ? MagitekResults.SuccessResults : new MagitekResults.Failed([attachResult.AsError.Reason]);
+    }
+
+    /// <summary>
     /// Builds and attaches an arranger, collecting one failure reason per distinct unresolved key or codec
     /// </summary>
     public MagitekResults AddScatteredArranger(ScatteredArrangerModel arrangerModel, string parentNodePath, string fileLocation)
@@ -187,7 +251,7 @@ internal sealed class ProjectTreeBuilder
     private Palette? FindGlobalPalette(string name) =>
         _globalResources.OfType<Palette>().FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
 
-    private IGraphicsCodec? CreateCodecOrNull(string codecName, Size elementSize)
+    private IGraphicsCodec? CreateCodecOrNull(string codecName, Size? elementSize)
     {
         try
         {

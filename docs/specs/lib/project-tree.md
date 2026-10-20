@@ -21,6 +21,8 @@ types:
   - DataFileNode
   - PaletteNode
   - ArrangerNode
+  - CompressedDataNode
+  - TilemapNode
   - ResourceFolderNode
   - IProjectResource
   - ImageProject

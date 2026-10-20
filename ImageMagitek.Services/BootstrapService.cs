@@ -9,6 +9,7 @@ using ImageMagitek.Colors;
 using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services.Stores;
+using ImageMagitek.Tilemaps;
 using Microsoft.Extensions.Logging;
 
 namespace ImageMagitek.Services;
@@ -220,12 +221,38 @@ public class BootstrapService
     /// Creates the project serializer factory after checking that the resource schema exists
     /// </summary>
     public virtual IProjectSerializerFactory CreateProjectSerializerFactory(string resourceSchemaFileName, ICodecFactory codecFactory,
-        IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources, ICompressorFactory? compressorFactory = null)
+        IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources, ICompressorFactory? compressorFactory = null,
+        IMapFormatFactory? mapFormatFactory = null)
     {
         if (!File.Exists(resourceSchemaFileName))
             Fail($"The project resource schema '{resourceSchemaFileName}' does not exist");
 
-        return new XmlProjectSerializerFactory(resourceSchemaFileName, codecFactory, colorFactory, globalResources, compressorFactory);
+        return new XmlProjectSerializerFactory(resourceSchemaFileName, codecFactory, colorFactory, globalResources, compressorFactory, mapFormatFactory);
+    }
+
+    /// <summary>
+    /// Loads the XML map formats; a missing folder or schema, or a file that fails, is recorded as an issue and leaves the other formats available
+    /// </summary>
+    public virtual MapFormatFactory CreateMapFormatFactory(string mapFormatsPath, string schemaFileName)
+    {
+        var factory = new MapFormatFactory();
+
+        if (!Directory.Exists(mapFormatsPath))
+        {
+            RecordIssue(mapFormatsPath, $"The map format folder '{mapFormatsPath}' does not exist, so no tilemaps can be loaded");
+            return factory;
+        }
+
+        if (!File.Exists(schemaFileName))
+        {
+            RecordIssue(schemaFileName, $"The map format schema '{schemaFileName}' does not exist, so no tilemaps can be loaded");
+            return factory;
+        }
+
+        foreach (var failure in factory.LoadFormats(mapFormatsPath, schemaFileName))
+            RecordIssue(failure.FileName, failure.Message);
+
+        return factory;
     }
 
     public virtual IProjectService CreateProjectService(IProjectSerializerFactory serializerFactory, IColorFactory colorFactory)

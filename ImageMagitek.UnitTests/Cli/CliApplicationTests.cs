@@ -246,10 +246,10 @@ public sealed class CliApplicationTests : IDisposable
     [Fact]
     public async Task NewerFormat_Exits5()
     {
-        File.WriteAllText(_projectFile, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<project version=\"1.1\" root=\"Resources\" />");
+        File.WriteAllText(_projectFile, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<project version=\"1.2\" root=\"Resources\" />");
 
         Assert.Equal(-5, await RunAsync("print", _projectFile));
-        Assert.Contains("1.1", Output);
+        Assert.Contains("1.2", Output);
     }
 
     [Fact]
@@ -370,6 +370,60 @@ public sealed class CliApplicationTests : IDisposable
         Assert.True(File.Exists(ImagePath(SimpleKey)));
         Assert.True(File.Exists(ImagePath(DirectKey)));
         Assert.Equal(2, Directory.GetFiles(_imageDirectory, "*.png", SearchOption.AllDirectories).Length);
+    }
+
+    private const string TilemapKey = "Graphics/Screen";
+
+    private void UseTilemap()
+    {
+        WriteResource("Graphics/Screen.xml", """
+            <tilemap mapdatafile="/Data/simple" mapoffset="100" width="2" height="1" format="GBA Text BG" tiledatafile="/Data/simple" tileoffset="0" codec="SNES 2bpp">
+            	<paletteslot index="0" palette="/Palettes/Simple" />
+            </tilemap>
+            """);
+
+        var serializerFactory = new XmlProjectSerializerFactory(ProjectFixtures.ResourceSchemaPath, Fixtures.CodecFixture.Shared.CodecFactory,
+            _colorFactory, [ProjectFixtures.DefaultPalette], null, Tilemaps.MapFormatTests.LoadShippedFormats());
+        _bootstrap = _ => new ProjectService(serializerFactory);
+    }
+
+    [Fact]
+    public async Task Export_Tilemap_WritesPngExits0()
+    {
+        UseTilemap();
+
+        Assert.Equal(0, await RunAsync("export", _projectFile, _imageDirectory, TilemapKey));
+        Assert.True(File.Exists(ImagePath(TilemapKey)));
+    }
+
+    [Fact]
+    public async Task ExportAll_IncludesTilemaps()
+    {
+        UseTilemap();
+
+        Assert.Equal(0, await RunAsync("exportall", _projectFile, _imageDirectory));
+        Assert.True(File.Exists(ImagePath(TilemapKey)));
+        Assert.Equal(3, Directory.GetFiles(_imageDirectory, "*.png", SearchOption.AllDirectories).Length);
+    }
+
+    [Fact]
+    public async Task Import_Tilemap_ReportsNotScatteredArrangerExits6()
+    {
+        UseTilemap();
+        Assert.Equal(0, await RunAsync("export", _projectFile, _imageDirectory, TilemapKey));
+
+        Assert.Equal(-6, await RunAsync("import", _projectFile, _imageDirectory, TilemapKey));
+        Assert.Contains("Resource key does not exist or is not a ScatteredArranger", Output);
+    }
+
+    [Fact]
+    public async Task ImportAll_SkipsTilemaps()
+    {
+        UseTilemap();
+        Assert.Equal(0, await RunAsync("exportall", _projectFile, _imageDirectory));
+
+        Assert.Equal(0, await RunAsync("importall", _projectFile, _imageDirectory));
+        Assert.DoesNotContain($"to '/{TilemapKey}'", Output);
     }
 
     #endregion

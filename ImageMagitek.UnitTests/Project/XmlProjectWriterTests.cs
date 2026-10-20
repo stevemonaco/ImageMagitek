@@ -58,7 +58,7 @@ public sealed class XmlProjectWriterTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Writer_WritesCurrentVersion()
+    public void Writer_ProjectWithoutTilemapOrCompressedData_Writes10()
     {
         Assert.Equal("1.0", XDocument.Load(PathOf("project.xml")).Root!.Attribute("version")?.Value);
     }

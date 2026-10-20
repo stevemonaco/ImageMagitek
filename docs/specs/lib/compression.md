@@ -120,5 +120,4 @@ Lets arrangers read graphics that a game stores compressed. A compressed block b
 
 ## Open items
 
-- The project format version is not raised for `compresseddata`; a 1.0 reader skips the unknown root and then fails the load on arrangers that reference it. Revisit with the tilemaps proposal's "lowest sufficient version" rule.
 - Decompressed offsets in the sequential editor are shown like file offsets, with no parent location.

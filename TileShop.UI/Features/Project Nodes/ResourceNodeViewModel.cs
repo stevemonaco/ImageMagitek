@@ -19,6 +19,11 @@ public abstract partial class ResourceNodeViewModel : ObservableObject
     public virtual ResourceNodeViewModel? Find(ResourceNode node) => ReferenceEquals(Node, node) ? this : null;
 
     /// <summary>
+    /// Re-raises change notifications for text built from other resources' names
+    /// </summary>
+    internal virtual void RefreshDescription() { }
+
+    /// <summary>
     /// Creates the view model for <paramref name="node"/> and its descendants, with children in sorted order
     /// </summary>
     public static ResourceNodeViewModel Create(ResourceNode node, ResourceNodeViewModel parent)
@@ -29,6 +34,7 @@ public abstract partial class ResourceNodeViewModel : ObservableObject
             PaletteNode => new PaletteNodeViewModel(node, parent),
             DataFileNode => new DataFileNodeViewModel(node, parent),
             CompressedDataNode => new CompressedDataNodeViewModel(node, parent),
+            TilemapNode => new TilemapNodeViewModel(node, parent),
             ArrangerNode => new ArrangerNodeViewModel(node, parent),
             _ => throw new NotSupportedException($"{nameof(Create)}: a node '{node.Name}' of type '{node.GetType()}' is not supported")
         };

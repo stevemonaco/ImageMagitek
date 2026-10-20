@@ -34,6 +34,48 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:element name="tilemap">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="paletteslot" minOccurs="0" maxOccurs="16">
+          <xs:complexType>
+            <xs:attribute name="index" use="required">
+              <xs:simpleType>
+                <xs:restriction base="xs:nonNegativeInteger">
+                  <xs:maxInclusive value="15" />
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="palette" type="xs:string" use="required" />
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="mapdatafile" type="xs:string" use="required" />
+      <xs:attribute name="mapoffset" type="hexoffset" use="required" />
+      <xs:attribute name="width" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="height" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="layout" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="linear" />
+            <xs:enumeration value="snes32" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="format" type="xs:string" use="required" />
+      <xs:attribute name="tiledatafile" type="xs:string" use="required" />
+      <xs:attribute name="tileoffset" type="hexoffset" use="required" />
+      <xs:attribute name="codec" type="xs:string" use="required" />
+      <xs:attribute name="firsttile" type="xs:nonNegativeInteger" use="optional" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="hexoffset">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9A-Fa-f]+" />
+    </xs:restriction>
+  </xs:simpleType>
+
   <xs:element name="palette">
     <xs:complexType>
 	  <xs:choice minOccurs="0" maxOccurs="256">

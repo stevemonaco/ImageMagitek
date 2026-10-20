@@ -62,6 +62,7 @@ tests:
   - ArrangerSkiaBitmapTests
 depends:
   - LIB-ARRANGERS
+  - LIB-TILEMAPS
   - LIB-IMAGES
   - LIB-CODECS
   - LIB-DATASOURCE
@@ -84,8 +85,8 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 
 ### Modes
 
-- **UI-GRAPHICS-EDITOR-001** — When an editor opens on a sequential arranger, it shall start in View mode and offer View and (if drawable) Draw; when it opens on a scattered arranger, it shall start in Arrange mode and offer Arrange and (if drawable) Draw.
-  - Tests: manual — open a data file node and a scattered arranger node; check the toolbar mode buttons.
+- **UI-GRAPHICS-EDITOR-001** — When an editor opens on a sequential arranger, it shall start in View mode and offer View and (if drawable) Draw; when it opens on a scattered arranger, it shall start in Arrange mode and offer Arrange and (if drawable) Draw. When it opens on a tilemap (LIB-TILEMAPS), it shall start in View mode, offer View and (if drawable) Draw but not Arrange, and hide the sequential-only View panels (codec, element pixel size, arranger size, element layout) while keeping the View tools, so element and pixel selection, copy and Add as New Scattered Arranger work on it.
+  - Tests: manual — open a data file node and a scattered arranger node; check the toolbar mode buttons; DevTools — open `/Trainer Card/Front Tilemap` in the FireRed project and check only View is offered, the read-only reason is shown and the codec panel is hidden.
 - **UI-GRAPHICS-EDITOR-002** — While the arranger is read-only (LIB-ARRANGERS-009), the editor shall hide the Draw mode button and refuse to switch to Draw.
   - Tests: manual — set the read-only attribute on a data file, open an arranger on it in DevTools, and check that no Draw RadioButton is visible.
 - **UI-GRAPHICS-EDITOR-047** — While the arranger is read-only, the editor toolbar shall show "Read only: <reason>" (LIB-ARRANGERS-049).

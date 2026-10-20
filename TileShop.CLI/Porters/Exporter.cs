@@ -17,9 +17,9 @@ public static class Exporter
             return false;
         }
 
-        if (node.Item is not ScatteredArranger arranger)
+        if (node.Item is not Arranger arranger || arranger is SequentialArranger)
         {
-            output.WriteLine($"Exporting '{arrangerKey}'...Resource key is not a Scattered Arranger");
+            output.WriteLine($"Exporting '{arrangerKey}'...Resource key is not a Scattered Arranger or Tilemap");
             return false;
         }
 
@@ -31,6 +31,12 @@ public static class Exporter
         if (arranger.FindMissingDataSource() is { } missing)
         {
             output.WriteLine($"Data file '{missing.Name}' is missing at '{missing.FileLocation}'");
+            return false;
+        }
+
+        if (arranger is TilemapArranger { MapError: { } mapError })
+        {
+            output.WriteLine(mapError);
             return false;
         }
 

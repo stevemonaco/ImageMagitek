@@ -1,5 +1,7 @@
 # Tilemaps
 
+**Status:** read-only first phase implemented on `dev-experiment` (draft spec [LIB-TILEMAPS](../specs/lib/tilemaps.md)). Done: Task 1 (formats and decode; no encode), Task 2, Task 4 (the lowest-version rule also covers `compresseddata`), the export half of Task 5, and Task 6 without the rendered preview (the dialog shows a text summary) and with bake. Remaining: Task 3 (Arrange entry writes, Save, encode, empty entry), the import and shared-tile conflict half of Task 5 (Draw and Import are blocked by a temporary read-only reason), the rendered dialog preview, editing tilemap properties after creation, and Task 7 (ARCHITECTURE §1 and §3, spec status, backlog line).
+
 ## Why
 
 Most full-screen graphics are not stored as images. Title screens, menus, battle backgrounds, maps and large bosses are a tile set plus a tilemap: one entry per cell holding a tile index, a palette number and flip bits. TileShop has no tilemap support (a non-goal for 1.0; backlog P3 "tilemap/nametable resources"). The workaround is to bake the map into a scattered arranger: one element per cell, with the tile's address, palette and mirror. That is how FF4's title screen was added to the FF2 test project, by a script that read the map and wrote the arranger XML.

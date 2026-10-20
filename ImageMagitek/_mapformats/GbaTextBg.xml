@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mapformat name="GBA Text BG" entrybits="16" endian="little">
+  <tileindex lowbit="0" bits="10" />
+  <hflip bit="10" />
+  <vflip bit="11" />
+  <palette lowbit="12" bits="4" />
+</mapformat>

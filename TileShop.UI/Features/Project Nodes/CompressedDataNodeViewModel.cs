@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
 using ImageMagitek.Project;
 
@@ -7,7 +6,14 @@ namespace TileShop.UI.ViewModels;
 
 public partial class CompressedDataNodeViewModel : ResourceNodeViewModel
 {
-    [ObservableProperty] private string _description = "";
+    public string Description
+    {
+        get
+        {
+            var source = (CompressedDataSource)Node.Item;
+            return $"{source.CompressionName} at 0x{source.ParentOffset:X} of '{source.Parent.Name}' (read-only)";
+        }
+    }
 
     [SetsRequiredMembers]
     public CompressedDataNodeViewModel(ResourceNode node, ResourceNodeViewModel? parent)
@@ -15,8 +21,7 @@ public partial class CompressedDataNodeViewModel : ResourceNodeViewModel
         Node = node;
         Name = node.Name;
         ParentModel = parent;
-
-        var source = (CompressedDataSource)node.Item;
-        Description = $"{source.CompressionName} at 0x{source.ParentOffset:X} of '{source.Parent.Name}' (read-only)";
     }
+
+    internal override void RefreshDescription() => OnPropertyChanged(nameof(Description));
 }

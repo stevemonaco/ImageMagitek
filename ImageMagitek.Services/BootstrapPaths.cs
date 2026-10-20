@@ -12,7 +12,9 @@ public sealed record BootstrapPaths(
     string PluginsPath,
     string LayoutsPath,
     string ResourceSchemaFileName,
-    string CodecSchemaFileName)
+    string CodecSchemaFileName,
+    string MapFormatsPath,
+    string MapFormatSchemaFileName)
 {
     /// <summary>
     /// Resolves the default resource names against <paramref name="directory"/>, normally the application directory
@@ -24,5 +26,7 @@ public sealed record BootstrapPaths(
         Path.Combine(directory, "_plugins"),
         Path.Combine(directory, "_layouts"),
         Path.Combine(directory, "_schemas", "ResourceSchema.xsd"),
-        Path.Combine(directory, "_schemas", "CodecSchema.xsd"));
+        Path.Combine(directory, "_schemas", "CodecSchema.xsd"),
+        Path.Combine(directory, "_mapformats"),
+        Path.Combine(directory, "_schemas", "MapFormatSchema.xsd"));
 }

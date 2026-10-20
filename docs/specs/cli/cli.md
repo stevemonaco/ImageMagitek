@@ -34,6 +34,7 @@ depends:
   - LIB-PROJECT-SERVICE
   - LIB-PROJECT-TREE
   - LIB-IMAGE-IO
+  - LIB-TILEMAPS
   - LIB-IMAGES
   - LIB-CODECS
   - LIB-DATASOURCE
@@ -98,8 +99,8 @@ depends:
   - Tests: `CliApplicationTests.Export_NestedArranger_FreshDirectory_WritesPngExits0`
 - **CLI-COMMANDS-032** — If a key is not in the project, then the CLI shall print "Exporting '<key>'...Resource key not found in project", continue with the next key, and count the key as failed.
   - Tests: `CliApplicationTests.Export_UnknownKey_ExportsOthersExits7`
-- **CLI-COMMANDS-033** — If a key names something other than a scattered arranger, then the CLI shall print "...Resource key is not a Scattered Arranger", continue, and count the key as failed.
-  - Tests: `CliApplicationTests.Export_NotScatteredArranger_Exits7`
+- **CLI-COMMANDS-033** — If a key names something other than a scattered arranger or a tilemap (LIB-TILEMAPS), then the CLI shall print "...Resource key is not a Scattered Arranger or Tilemap", continue, and count the key as failed. A tilemap exports like an arranger.
+  - Tests: `CliApplicationTests.Export_NotScatteredArranger_Exits7`, `CliApplicationTests.Export_Tilemap_WritesPngExits0`
 - **CLI-COMMANDS-034** — If the PNG already exists and `--overwrite` is not given, then the CLI shall print "File already exists and was skipped to not overwrite it" and continue; with `--overwrite` it shall replace the file.
   - Tests: `CliApplicationTests.Export_Existing_WithoutOverwrite_SkipsExits0`, `CliApplicationTests.Export_Existing_WithOverwrite_Replaces`
 - **CLI-COMMANDS-066** — If writing an arranger's PNG fails with an I/O or access error, or the library refuses the image (LIB-IMAGE-IO-045), then the CLI shall print the reason, continue with the next key, and count the key as failed.
@@ -111,8 +112,8 @@ depends:
 - ~~**CLI-COMMANDS-037**~~ — Removed: `PixelColorType` has only indexed and direct; an unsupported type would count as failed under CLI-COMMANDS-038.
 - **CLI-COMMANDS-038** — When `export` or `exportall` has exported every key, it shall exit with -7 if any key failed and 0 otherwise; a PNG skipped under CLI-COMMANDS-034 is not a failure.
   - Tests: `CliApplicationTests.Export_UnknownKey_ExportsOthersExits7`, `CliApplicationTests.Export_Existing_WithoutOverwrite_SkipsExits0`
-- **CLI-COMMANDS-039** — When `exportall <project> <directory>` runs, the CLI shall export every scattered arranger in the project, depth-first, as `export` does.
-  - Tests: `CliApplicationTests.ExportAll_WritesEveryScatteredArranger`
+- **CLI-COMMANDS-039** — When `exportall <project> <directory>` runs, the CLI shall export every scattered arranger and tilemap in the project, depth-first, as `export` does.
+  - Tests: `CliApplicationTests.ExportAll_WritesEveryScatteredArranger`, `CliApplicationTests.ExportAll_IncludesTilemaps`
 - **CLI-COMMANDS-040** — If an arranger reads from a missing data file, then the export shall print "...Data file '<name>' is missing at '<path>'", write nothing for that arranger and count it as failed.
   - Tests: `CliApplicationTests.Export_MissingDataFile_NamesFileExits7`, `CliApplicationTests.ExportAll_MissingDataFile_ExportsOthersExits7`
 - **CLI-COMMANDS-041** — If writing a PNG fails with an I/O or access error, then the CLI shall print the reason, count the key as failed and continue.
@@ -126,8 +127,8 @@ depends:
   - Tests: `CliApplicationTests.Import_EditedPng_WritesDataFileExits0`
 - **CLI-COMMANDS-052** — If the image file does not exist, then the CLI shall print "File does not exist", checked after the key, read-only and data file checks.
   - Tests: `CliApplicationTests.Import_MissingImage_Exits6`, `CliApplicationTests.Import_ReadOnlyArranger_Exits6`
-- **CLI-COMMANDS-053** — If the key is not in the project or is not a scattered arranger, then the CLI shall print "Resource key does not exist or is not a ScatteredArranger".
-  - Tests: `CliApplicationTests.Import_BadKey_Exits6`
+- **CLI-COMMANDS-053** — If the key is not in the project or is not a scattered arranger (a tilemap included), then the CLI shall print "Resource key does not exist or is not a ScatteredArranger".
+  - Tests: `CliApplicationTests.Import_BadKey_Exits6`, `CliApplicationTests.Import_Tilemap_ReportsNotScatteredArrangerExits6`
 - **CLI-COMMANDS-054** — The CLI shall stage indexed imports with the strategy given by `--match exact|nearest|nearestrgb` (exact by default, any casing), the distance limit given by `--max-distance`, and transparent pixels mapped to index 0 when `--transparent-index0` is given (LIB-IMAGE-IO-028 to -032).
   - Tests: `CliApplicationTests.Import_MatchNearest_SubstitutesExits0`, `CliApplicationTests.Import_MaxDistance_RejectsFarColorExits6`, `CliApplicationTests.Import_TransparentIndex0_MapsToIndexZero`
 - **CLI-COMMANDS-055** — If any image color has no palette match, then the CLI shall print the import report's summary and write nothing for that arranger.
@@ -140,8 +141,8 @@ depends:
   - Tests: `CliApplicationTests.Import_MissingImage_WithF_Exits0`, `CliApplicationTests.Import_BadKey_WithR_Exits0`
 - **CLI-COMMANDS-059** — If an import does not succeed and is not skipped, then the CLI shall stop at once and exit with -6, leaving arrangers imported before it written.
   - Tests: `CliApplicationTests.Import_StopsAtFirstFailure_EarlierArrangersWritten`
-- **CLI-COMMANDS-060** — When `importall <project> <directory>` runs, the CLI shall import every scattered arranger, depth-first, from `<directory>/<the arranger's project path>.png`, with the same skipping and stopping rules as `import`, and skipping read-only arrangers.
-  - Tests: `CliApplicationTests.ImportAll_ReadOnlyArranger_SkipsAndImportsRest`
+- **CLI-COMMANDS-060** — When `importall <project> <directory>` runs, the CLI shall import every scattered arranger, depth-first, from `<directory>/<the arranger's project path>.png`, with the same skipping and stopping rules as `import`, and skipping read-only arrangers. Tilemaps are not imported.
+  - Tests: `CliApplicationTests.ImportAll_ReadOnlyArranger_SkipsAndImportsRest`, `CliApplicationTests.ImportAll_SkipsTilemaps`
 - **CLI-COMMANDS-061** — If an arranger reads from a missing data file, then the import shall print "...Data file '<name>' is missing at '<path>'", write nothing, and fail even with `-f`.
   - Tests: `CliApplicationTests.Import_MissingDataFile_NamesFileExits6`, `CliApplicationTests.Import_MissingDataFile_WithF_StillExits6`
 - **CLI-COMMANDS-062** — If `--max-distance` is given with exact matching or is negative, then the CLI shall reject the arguments (-3).

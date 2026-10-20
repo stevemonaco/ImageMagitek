@@ -96,6 +96,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
         IsDrawClipActive = clipRect is not null;
 
         OnPropertyChanged(nameof(IsViewMode));
+        OnPropertyChanged(nameof(IsSequentialViewMode));
         OnPropertyChanged(nameof(IsArrangerMode));
         OnPropertyChanged(nameof(IsDrawMode));
         OnPropertyChanged(nameof(HasDrawClipRect));
@@ -318,7 +319,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
 
         _areSymmetryToolsEnabled = preferencesStore.Preferences.EnableArrangerSymmetryTools;
 
-        CanView = arranger.Mode == ArrangerMode.Sequential;
+        CanView = arranger.Mode is ArrangerMode.Sequential or ArrangerMode.Tilemap;
         CanArrange = arranger.Mode == ArrangerMode.Scattered;
         CanAcceptElementPastes = true;
 
@@ -473,6 +474,7 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
     /// True when this editor reads any data from <paramref name="source"/>
     /// </summary>
     public bool ReadsFrom(DataSource source) =>
+        WorkingArranger is TilemapArranger tilemap && ReferenceEquals(tilemap.MapSource, source) ||
         WorkingArranger.EnumerateElements().OfType<ArrangerElement>().Any(x => ReferenceEquals(x.Source, source));
 
     public bool ContainsPoint(double x, double y)
@@ -591,7 +593,8 @@ public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewMode
             return;
 
         var rect = Selection.SelectionRect;
-        var arranger = WorkingArranger;
+        // A tilemap's slot codecs must stay unshared (LIB-TILEMAPS-023), so copy from a clone
+        var arranger = WorkingArranger is TilemapArranger tilemap ? tilemap.CloneArranger() : WorkingArranger;
         int x = rect.SnappedLeft / arranger.ElementPixelSize.Width;
         int y = rect.SnappedTop / arranger.ElementPixelSize.Height;
         int width = rect.SnappedWidth / arranger.ElementPixelSize.Width;

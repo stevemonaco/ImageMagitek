@@ -417,11 +417,11 @@ public sealed class XmlProjectReaderTests : IDisposable
     [Fact]
     public void NewerMinor_FailsNamingVersions()
     {
-        WriteXml("project.xml", "<project version=\"1.1\" />");
+        WriteXml("project.xml", "<project version=\"1.2\" />");
 
         var reason = ReadSingleFailure();
 
-        Assert.Equal("'project.xml' uses project format 1.1; this version of TileShop reads format 1.0 and older.", reason);
+        Assert.Equal("'project.xml' uses project format 1.2; this version of TileShop reads format 1.1 and older.", reason);
     }
 
     [Fact]

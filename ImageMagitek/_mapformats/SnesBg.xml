@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mapformat name="SNES BG" entrybits="16" endian="little">
+  <tileindex lowbit="0" bits="10" />
+  <palette lowbit="10" bits="3" />
+  <priority bit="13" />
+  <hflip bit="14" />
+  <vflip bit="15" />
+</mapformat>

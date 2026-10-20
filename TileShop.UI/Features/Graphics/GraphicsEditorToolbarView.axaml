@@ -58,7 +58,7 @@
                 </Button>
 
                 <!--  Codec (Sequential Arranger in View mode only)  -->
-                <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
+                <StackPanel IsVisible="{Binding IsSequentialViewMode}" Spacing="4">
                     <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Codec" />
                     <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding CodecNames}" SelectedItem="{Binding SelectedCodecName}" />
                 </StackPanel>
@@ -67,7 +67,7 @@
                 <StackPanel Spacing="4">
                     <StackPanel.IsVisible>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
-                            <Binding Path="IsViewMode" />
+                            <Binding Path="IsSequentialViewMode" />
                             <Binding Path="IsTiledLayout" />
                         </MultiBinding>
                     </StackPanel.IsVisible>
@@ -82,7 +82,7 @@
                 </StackPanel>
 
                 <!--  Arranger Size (Sequential Arranger in View mode only)  -->
-                <StackPanel IsVisible="{Binding IsViewMode}" Spacing="4">
+                <StackPanel IsVisible="{Binding IsSequentialViewMode}" Spacing="4">
                     <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" IsVisible="{Binding IsTiledLayout}"
                         Text="Arranger Element Size" />
                     <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" IsVisible="{Binding IsSingleLayout}"
@@ -115,7 +115,7 @@
                 <StackPanel Spacing="4">
                     <StackPanel.IsVisible>
                         <MultiBinding Converter="{x:Static BoolConverters.And}">
-                            <Binding Path="IsViewMode" />
+                            <Binding Path="IsSequentialViewMode" />
                             <Binding Path="IsTiledLayout" />
                         </MultiBinding>
                     </StackPanel.IsVisible>

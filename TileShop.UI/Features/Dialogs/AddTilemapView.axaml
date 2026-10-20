@@ -1,0 +1,93 @@
+<UserControl x:Class="TileShop.UI.Views.AddTilemapView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:tm="using:ImageMagitek.Tilemaps"
+    xmlns:vm="using:TileShop.UI.ViewModels"
+    Width="460"
+    MinWidth="300"
+    x:DataType="vm:AddTilemapViewModel">
+    <ScrollViewer MaxHeight="640">
+        <StackPanel Margin="10">
+            <Label Content="Name" Target="nameBox" />
+            <TextBox x:Name="nameBox" Text="{Binding ResourceName}" />
+            <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource SemiColorDanger}"
+                IsVisible="{Binding NameError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                Text="{Binding NameError}" TextWrapping="Wrap" />
+
+            <TextBlock Margin="0,12,0,0" FontWeight="SemiBold" Text="Map" />
+            <Label Margin="0,4,0,0" Content="Map data file" Target="mapSourceBox" />
+            <ComboBox x:Name="mapSourceBox" HorizontalAlignment="Stretch" DisplayMemberBinding="{Binding Key, x:DataType=vm:TilemapSourceOption}"
+                ItemsSource="{Binding DataSources}" SelectedItem="{Binding SelectedMapSource}" />
+
+            <Grid Margin="0,8,0,0" ColumnDefinitions="*,*" ColumnSpacing="8">
+                <StackPanel Grid.Column="0">
+                    <Label Content="Map offset (hex)" Target="mapOffsetBox" />
+                    <TextBox x:Name="mapOffsetBox" Text="{Binding MapOffsetText}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <Label Content="Map format" Target="formatBox" />
+                    <ComboBox x:Name="formatBox" HorizontalAlignment="Stretch" DisplayMemberBinding="{Binding Name, x:DataType=tm:MapFormat}"
+                        ItemsSource="{Binding MapFormats}" SelectedItem="{Binding SelectedFormat}" />
+                </StackPanel>
+            </Grid>
+
+            <Grid Margin="0,8,0,0" ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                <StackPanel Grid.Column="0">
+                    <Label Content="Width (cells)" Target="widthBox" />
+                    <NumericUpDown x:Name="widthBox" Classes="dense" FormatString="0" Minimum="1" Value="{Binding MapWidth}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <Label Content="Height (cells)" Target="heightBox" />
+                    <NumericUpDown x:Name="heightBox" Classes="dense" FormatString="0" Minimum="1" Value="{Binding MapHeight}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <Label Content="Layout" Target="layoutBox" />
+                    <ComboBox x:Name="layoutBox" HorizontalAlignment="Stretch" ItemsSource="{Binding Layouts}" SelectedItem="{Binding SelectedLayout}" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Margin="0,12,0,0" FontWeight="SemiBold" Text="Tiles" />
+            <Label Margin="0,4,0,0" Content="Tile data file" Target="tileSourceBox" />
+            <ComboBox x:Name="tileSourceBox" HorizontalAlignment="Stretch" DisplayMemberBinding="{Binding Key, x:DataType=vm:TilemapSourceOption}"
+                ItemsSource="{Binding DataSources}" SelectedItem="{Binding SelectedTileSource}" />
+
+            <Grid Margin="0,8,0,0" ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                <StackPanel Grid.Column="0">
+                    <Label Content="Tile offset (hex)" Target="tileOffsetBox" />
+                    <TextBox x:Name="tileOffsetBox" Text="{Binding TileOffsetText}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <Label Content="Codec" Target="codecBox" />
+                    <ComboBox x:Name="codecBox" HorizontalAlignment="Stretch" ItemsSource="{Binding CodecNames}" SelectedItem="{Binding SelectedCodecName}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <Label Content="First tile index" Target="firstTileBox" />
+                    <NumericUpDown x:Name="firstTileBox" Classes="dense" FormatString="0" Minimum="0" Value="{Binding FirstTile}" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Margin="0,12,0,0" FontWeight="SemiBold" Text="Palette slots" />
+            <ItemsControl x:Name="paletteSlotList" ItemsSource="{Binding PaletteSlots}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TilemapPaletteSlotViewModel">
+                        <Grid Margin="0,4,0,0" ColumnDefinitions="60,*">
+                            <TextBlock VerticalAlignment="Center" Text="{Binding Index, StringFormat=Slot {0}}" />
+                            <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" DisplayMemberBinding="{Binding Name, x:DataType=vm:TilemapPaletteOption}"
+                                ItemsSource="{Binding Options}" SelectedItem="{Binding SelectedOption}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Margin="0,4,0,0" Classes="muted" FontSize="11" Text="An entry naming an empty slot uses slot 0; an empty slot 0 uses the default palette."
+                TextWrapping="Wrap" />
+
+            <TextBlock x:Name="previewText" Margin="0,10,0,0" Classes.invalid="{Binding !IsPreviewValid}" Text="{Binding Preview}" TextWrapping="Wrap">
+                <TextBlock.Styles>
+                    <Style Selector="TextBlock.invalid">
+                        <Setter Property="Foreground" Value="{DynamicResource SemiColorDanger}" />
+                    </Style>
+                </TextBlock.Styles>
+            </TextBlock>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

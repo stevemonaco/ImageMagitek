@@ -16,7 +16,7 @@ public static class Importer
     {
         output.Write($"Importing '{imageFileName}' to '{arrangerKey}'...");
 
-        if (!projectTree.TryGetItem<ScatteredArranger>(arrangerKey, out var arranger) || arranger is null)
+        if (!projectTree.TryGetNode(arrangerKey, out var node) || node.Item is not ScatteredArranger arranger)
         {
             output.WriteLine($"Resource key does not exist or is not a {nameof(ScatteredArranger)}");
             return ImportResult.BadResourceKey;

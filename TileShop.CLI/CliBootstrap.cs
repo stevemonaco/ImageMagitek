@@ -32,9 +32,10 @@ public static class CliBootstrap
             var codecService = bootstrapper.CreateCodecService(paths.CodecsPath, paths.CodecSchemaFileName, codecFactory);
             var compressorFactory = new CompressorFactory();
             bootstrapper.CreatePluginService(paths.PluginsPath, codecService, compressorFactory);
+            var mapFormatFactory = bootstrapper.CreateMapFormatFactory(paths.MapFormatsPath, paths.MapFormatSchemaFileName);
 
             var serializerFactory = bootstrapper.CreateProjectSerializerFactory(paths.ResourceSchemaFileName,
-                codecService.CodecFactory, colorFactory, paletteStore.GlobalPalettes, compressorFactory);
+                codecService.CodecFactory, colorFactory, paletteStore.GlobalPalettes, compressorFactory, mapFormatFactory);
             return bootstrapper.CreateProjectService(serializerFactory, colorFactory);
         }
         finally

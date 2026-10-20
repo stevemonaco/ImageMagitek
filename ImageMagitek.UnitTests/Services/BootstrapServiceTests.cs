@@ -231,6 +231,42 @@ public sealed class BootstrapServiceTests : IDisposable
         Assert.Equal(Path.Combine(layoutsPath, "b.json"), issue.Path);
     }
 
+    [Fact]
+    public void CreateMapFormatFactory_Shipped_LoadsBuiltInFormats()
+    {
+        var factory = _bootstrapper.CreateMapFormatFactory(_shipped.MapFormatsPath, _shipped.MapFormatSchemaFileName);
+
+        Assert.NotNull(factory.Find("GBA Text BG"));
+        Assert.NotNull(factory.Find("SNES BG"));
+        Assert.Empty(_bootstrapper.Issues);
+    }
+
+    [Fact]
+    public void CreateMapFormatFactory_MissingFolder_RecordsIssue()
+    {
+        var formatsPath = Path.Combine(_directory, "_mapformats");
+
+        var factory = _bootstrapper.CreateMapFormatFactory(formatsPath, _shipped.MapFormatSchemaFileName);
+
+        Assert.Empty(factory.Formats);
+        var issue = Assert.Single(_bootstrapper.Issues);
+        Assert.Equal(formatsPath, issue.Path);
+    }
+
+    [Fact]
+    public void CreateMapFormatFactory_BadFile_SkipsAndRecordsIssue()
+    {
+        var formatsPath = Directory.CreateDirectory(Path.Combine(_directory, "_mapformats")).FullName;
+        File.WriteAllText(Path.Combine(formatsPath, "good.xml"), """<mapformat name="Good" entrybits="8"><tileindex bits="8" /></mapformat>""");
+        File.WriteAllText(Path.Combine(formatsPath, "bad.xml"), """<mapformat name="Bad" entrybits="8"><tileindex bits="9" /></mapformat>""");
+
+        var factory = _bootstrapper.CreateMapFormatFactory(formatsPath, _shipped.MapFormatSchemaFileName);
+
+        Assert.Equal(["Good"], factory.Formats.Select(x => x.Name));
+        var issue = Assert.Single(_bootstrapper.Issues);
+        Assert.Equal(Path.Combine(formatsPath, "bad.xml"), issue.Path);
+    }
+
     private string CreateShippedPalettes()
     {
         var palettesPath = Directory.CreateDirectory(Path.Combine(_directory, "_palettes")).FullName;

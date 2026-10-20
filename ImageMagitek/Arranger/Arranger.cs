@@ -13,8 +13,9 @@ namespace ImageMagitek;
 /// Mode for the Arranger
 /// <para>SequentialArrangers are used for simple sequential file access</para>
 /// <para>ScatteredArrangers are capable of accessing many files, file offsets, palettes, and codecs in a single arranger</para>
+/// <para>TilemapArrangers derive their elements from the entries of a tilemap</para>
 /// </summary>
-public enum ArrangerMode { Sequential, Scattered };
+public enum ArrangerMode { Sequential, Scattered, Tilemap };
 
 /// <summary>
 /// Layout of graphics for the arranger
