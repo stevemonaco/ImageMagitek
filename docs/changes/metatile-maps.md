@@ -1,6 +1,6 @@
 # Metatile maps
 
-**Status:** Tasks 1–3 done on `dev-experiment`. The compositor (`LayerCompositor`, `CompositorLayer` and `LayerImage` in `ImageMagitek/Scenes`, draft LIB-SCENES-001..016) is implemented, and tile index resolution is extracted into `TileSet` (LIB-TILEMAPS-080..083) with no tilemap behavior change. Task 4 (read-only metatile sets and maps, LIB-METATILE-MAPS-001..019), Task 5 (project format and service, LIB-PROJECT-FORMAT-068..070) and Task 7 View and export (UI-BLOCK-PLOTTING-001..003, -032, -040; UI-EDITORS-065; UI-PROJECT-TREE-137; CLI-COMMANDS-068, -069) are done on `dev-experiment`; FireRed's Pallet Town opens and exports from a hand-written copy of the FireRed project. Pending: writing blocks (LIB-METATILE-MAPS-030..037), Blocks mode, the block-bits overlay and hover (UI-BLOCK-PLOTTING-004, -005, -010..-031, -033), the add dialogs (Task 9), and the Task 6 fixture script.
+**Status:** Tasks 1–5, 7 and 8 done on `dev-experiment`. Task 8 (Blocks mode) added the block grid, writing blocks, block brushes, plotting and the block palette (LIB-METATILE-MAPS-030..037), and the block-bits overlay, hover status, Blocks mode, tools, history, Save and the `DataWritten` refresh (UI-BLOCK-PLOTTING-004, -005, -010..-033, UI-EDIT-HISTORY-018). Layers above the bottom layer now treat color 0 as transparent whatever the palette flag says (LIB-METATILE-MAPS-016, user decision). The FireRed test project's Overworld folder holds 364 generated metatile maps. Pending: the add dialogs (Task 9) and the Task 6 fixture script.
 
 ## Why
 

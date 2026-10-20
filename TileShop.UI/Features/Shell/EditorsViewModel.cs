@@ -19,6 +19,7 @@ using TileShop.Shared.Interactions;
 using ImageMagitek.Services.Stores;
 using ImageMagitek.Codec;
 using ImageMagitek.Metatiles;
+using ImageMagitek.Scenes;
 using ImageMagitek.Tilemaps;
 using TileShop.UI.Features.Graphics;
 using TileShop.Shared.Services;
@@ -253,7 +254,7 @@ public partial class EditorsViewModel : ObservableRecipient
                 await _interactions.AlertAsync("Map Error", mapError);
                 return null;
             case MetatileMap map:
-                newDocument = new MetatileMapEditorViewModel(map, _preferencesStore.Preferences.Grid, () => ExportMetatileMapAsync(map));
+                newDocument = new MetatileMapEditorViewModel(map, _preferencesStore.Preferences.Grid, _interactions, composite => ExportMetatileMapAsync(map, composite));
                 break;
             case MetatileSet:
                 newDocument = null;
@@ -343,7 +344,8 @@ public partial class EditorsViewModel : ObservableRecipient
     /// <summary>
     /// Writes the map's composite, with its current layer visibility, to a PNG the user picks
     /// </summary>
-    public async Task ExportMetatileMapAsync(MetatileMap map)
+    /// <param name="composite">Draws the image to write in place of the saved map, such as an editor's unsaved blocks</param>
+    public async Task ExportMetatileMapAsync(MetatileMap map, Func<LayerImage>? composite = null)
     {
         if (await AlertIfUnavailableAsync(map, "Export"))
             return;
@@ -355,7 +357,7 @@ public partial class EditorsViewModel : ObservableRecipient
 
         try
         {
-            map.Composite().ExportImage(exportFileName.LocalPath, new ImageSharpFileAdapter());
+            (composite?.Invoke() ?? map.Composite()).ExportImage(exportFileName.LocalPath, new ImageSharpFileAdapter());
         }
         catch (Exception ex)
         {
@@ -564,7 +566,7 @@ public partial class EditorsViewModel : ObservableRecipient
                 ReloadDataSource(source);
 
             foreach (var editor in Editors.OfType<MetatileMapEditorViewModel>().Where(x => x.ReadsFrom(resource)))
-                editor.Redraw();
+                editor.OnSourceChanged();
         }
     }
 

@@ -7,6 +7,7 @@ sources:
   - ImageMagitek/Metatiles
   - ImageMagitek/_mapformats/FrlgBlock.xml
   - ImageMagitek/Tilemaps/MapDataReader.cs
+  - ImageMagitek/Tilemaps/BrushStroke.cs
 types:
   - MetatileSet
   - MetatileOrder
@@ -65,8 +66,8 @@ Shows and edits maps that a game stores as a block map plus a table of metatiles
   - Tests: `MetatileMapTests.PaletteSlots_CombineAcrossSets`
 - **LIB-METATILE-MAPS-015** — For each metatile layer the map shall expose a derived arranger (`MetatileLayerArranger`) of `width × shape width` by `height × shape height` tile cells, whose cell (*bx* × w + *x*, *by* × h + *y*) is the tile at position (*x*, *y*) of that layer of block (*bx*, *by*)'s metatile, with the entry's mirror and palette, or empty. Its elements shall not be settable, as LIB-TILEMAPS-028.
   - Tests: `MetatileMapTests.LayerArrangers_MatchHandBuiltScatteredArrangers`, `MetatileMapTests.LayerArranger_SetElement_Throws`
-- **LIB-METATILE-MAPS-016** — The map's composite shall be its layer arrangers' layer images (LIB-SCENES-001) drawn bottom layer first at the origin over a backdrop of slot 0's color 0 made opaque, with hidden layers skipped (LIB-SCENES-010 to -014). Each layer's visibility shall be a property of the map, true by default and not stored in the project.
-  - Tests: `MetatileMapTests.Composite_TopLayerColorZeroShowsBottom`, `MetatileMapTests.Composite_HiddenLayerSkipped`, `MetatileMapTests.Composite_BackdropIsSlot0Color0`
+- **LIB-METATILE-MAPS-016** — The map's composite shall be its layer arrangers' layer images (LIB-SCENES-001) drawn bottom layer first at the origin over a backdrop of slot 0's color 0 made opaque, with hidden layers skipped (LIB-SCENES-010 to -014). Every layer above the bottom layer shall make palette index 0 fully transparent whatever the palette's `zeroindextransparent` flag says; the bottom layer follows the flag, so its color 0 shows the backdrop only when the flag is set. Each layer's visibility shall be a property of the map, true by default and not stored in the project. The composite of a block grid (`Composite(BlockGrid)`) shall draw the grid's numbers the same way through the current metatile tables and tiles.
+  - Tests: `MetatileMapTests.Composite_TopLayerColorZeroShowsBottom`, `MetatileMapTests.Composite_HiddenLayerSkipped`, `MetatileMapTests.Composite_BackdropIsSlot0Color0`, `MetatileMapTests.Composite_UpperLayerIndexZeroTransparent_RegardlessOfPaletteFlag`, `MetatileMapTests.Composite_BottomLayerFollowsZeroTransparentFlag`, `MetatileMapTests.Composite_BlockGrid_DrawsGridNumbers`
 - **LIB-METATILE-MAPS-017** — A block's **block bits value** shall be its value with the index field's bits removed and the higher bits shifted down to close the gap (FireRed: collision in bits 0–1 and elevation in bits 2–5 of the value).
   - Tests: `MetatileMapTests.BlockBitsValue_RemovesIndexField`
 - **LIB-METATILE-MAPS-018** — The layer arrangers and the composite shall be worked out again after the block map, a metatile table, an attribute table or a tile source raises `DataWritten`, as LIB-TILEMAPS-027.
@@ -78,18 +79,18 @@ Shows and edits maps that a game stores as a block map plus a table of metatiles
 
 - **LIB-METATILE-MAPS-030** — A block grid (`BlockGrid`) shall be a working copy of the map's block numbers, read from the block map, that the plotter edits; a block past the end of the data has no number and cannot be edited.
   - Tests: `BlockPlottingTests.BlockGrid_ReadsBlockNumbers`
-- **LIB-METATILE-MAPS-031** — Writing a block grid shall, for each block whose number differs from the block map, encode the new number into the block's index field keeping every block bit (LIB-TILEMAPS-006), write only those blocks in place, then flush and raise `DataWritten` once if any changed. If a number fits no set's range or the index field, writing shall fail naming the block and write nothing.
+- **LIB-METATILE-MAPS-031** — Writing a block grid shall, for each block whose number differs from the block map, insert the new number into the index field of the block's raw value, keeping every other bit (block bits and any other declared field) as read, write only those blocks in place, then flush and raise `DataWritten` once if any changed. If a changed number does not fit the index field or lies in no set's range and is not the empty block number, writing shall fail naming the block and the number, and write nothing.
   - Tests: `BlockPlottingTests.Write_ChangesOnlyTargetIndexBits_KeepsBlockBits`, `BlockPlottingTests.Write_NumberOutsideSets_FailsAndWritesNothing`, `BlockPlottingTests.Write_NoChange_WritesNothing`
-- **LIB-METATILE-MAPS-032** — If the block map source is compressed or read-only, then writing shall be refused with the reason of LIB-ARRANGERS-049, and the map's `BlockMapReadOnlyReason` shall give it.
-  - Tests: `BlockPlottingTests.CompressedBlockMap_IsReadOnly`
-- **LIB-METATILE-MAPS-033** — A block brush shall be a rectangle of metatile numbers, with empty cells transparent. Stamping it at a block shall set each non-empty brush cell's number on the grid, clipped to the map, and report whether any block changed.
+- **LIB-METATILE-MAPS-032** — If the block map source is compressed or read-only and a block changed, then writing shall be refused with the reason of LIB-ARRANGERS-049, and the map's `BlockMapReadOnlyReason` shall give it.
+  - Tests: `BlockPlottingTests.CompressedBlockMap_IsReadOnly`, `BlockPlottingTests.CompressedBlockMap_NoChange_Succeeds`
+- **LIB-METATILE-MAPS-033** — A block brush shall be a rectangle of metatile numbers, with empty cells transparent. Stamping it at a block shall set each non-empty brush cell's number on the grid, clipped to the map and skipping blocks with no number, and report whether any block changed. A brush holding a number in no set's range shall be refused with "Block n is in no metatile set of map 'X'" and change nothing.
   - Tests: `BlockPlottingTests.Stamp_ClipsAtEdge`, `BlockPlottingTests.Stamp_NoChange_ReportsFalse`
 - **LIB-METATILE-MAPS-034** — A pencil stroke shall stamp the brush at positions aligned to the stroke's first block in steps of the brush size, as LIB-TILEMAPS-068; filling a rectangle shall repeat the brush across it from its top-left block, clipped to the rectangle.
   - Tests: `BlockPlottingTests.Stroke_AlignsToFirstBlock`, `BlockPlottingTests.Fill_TilesBrush`
-- **LIB-METATILE-MAPS-035** — Picking a rectangle of blocks shall give a brush of their numbers, skipping blocks with no number; a rectangle with none gives no brush.
+- **LIB-METATILE-MAPS-035** — Picking a rectangle of blocks shall give a brush of their numbers, skipping blocks with no number or a number in no set's range; a rectangle with none left gives no brush.
   - Tests: `BlockPlottingTests.Pick_Rectangle`
 - **LIB-METATILE-MAPS-036** — Erasing blocks shall set them to the map's empty block number.
-  - Tests: `BlockPlottingTests.Erase_WritesEmptyBlock`
+  - Tests: `BlockPlottingTests.Erase_WritesEmptyBlock`, `BlockPlottingTests.Erase_EmptyBlockOutsideSets_Writes`
 - **LIB-METATILE-MAPS-037** — A generated block palette shall lay out each set's metatiles in list order, 8 per row, each set starting on a new row, every metatile drawn composited as on the map; picking a rectangle in it gives a brush of the numbers it holds.
   - Tests: `BlockPlottingTests.BlockPalette_LaysOutSetsOnNewRows`
 
@@ -113,8 +114,12 @@ Shows and edits maps that a game stores as a block map plus a table of metatiles
 - **A metatile map is a resource with layer arrangers, not an arranger.** `MetatileMap` exposes one `MetatileLayerArranger` per layer and composites them. Reason: an arranger has one element per cell, and a metatile map has one per layer per cell; making the map an arranger would show one layer to every arranger path (export, import, editors). Rejected: `MetatileMapArranger : Arranger` exposing the bottom layer.
 - **Edits work on block numbers, not elements.** Blocks mode edits a `BlockGrid` of numbers and writes changed numbers back. Reason: a block is a number, and the layer arrangers follow from it; editing element clones (the tilemap approach) would need every layer kept in step. Rejected: cloning the layer arrangers as working copies.
 - **The backdrop is slot 0's color 0.** Reason: GBA and SNES draw backdrop color 0 of BG palette 0 where every layer is transparent, so a map's bottom layer shows correctly where its tiles use color 0. Rejected: a transparent backdrop (shows holes the game never shows).
+- **Upper layers treat color 0 as transparent regardless of the palette flag (user decision).** Every layer above the bottom layer makes index 0 transparent (`LayerImage.FromArranger(..., forceZeroTransparent: true)`); the bottom layer follows the palette's `zeroindextransparent` flag over the backdrop. Reason: GBA and SNES hardware never draw color 0 of an upper background, and FireRed's generated secondary palettes are not flagged, so following the flag covered the bottom layer with solid color-0 tiles. Rejected: following each palette's flag (wrong for unflagged game palettes); forcing it on every layer including the bottom (would show the backdrop where a bottom tile's color 0 is a real color in a palette the user marked opaque).
+- **One render path for map, block grid and block palette.** `Composite()`, `Composite(BlockGrid)` and `BlockPalette.Render()` build per-layer tile grids from block numbers and composite them the same way. Reason: the block palette and an edited grid must look exactly like the map. Rejected: drawing the palette per metatile through its own code (a second place for the layer and transparency rules).
+- **`MetatileMapPlotter` mirrors `TilemapPlotter`.** The block plotter has its own Stamp, Fill, Erase and Pick over a `BlockGrid`; only the stroke snap and wrap arithmetic is shared (`BrushStroke`). Reason: tile cells carry slots, flips and tile-set checks that blocks do not, so a generic plotter would need a cell abstraction for two short classes. Rejected: a generic plotter over a cell interface.
+- **Writes insert only the index field.** `WriteBlocks` reads each changed block's raw value and inserts the number with `MapField.Insert` (`MapFormat.WriteRawValue`), rather than decoding and re-encoding the entry. Reason: a block format may declare other fields, and re-encoding would rewrite them from decoded values. Rejected: `MapFormat.Encode` of a decoded entry.
 - **Ranges may not overlap.** Two sets of one map may not share metatile numbers, tile indexes or palette slots. Reason: the game loads them into disjoint VRAM and palette ranges, and an overlap would make one number mean two things. Rejected: first-listed set wins.
-- **`emptyblock` on the map.** The number an erased block gets is a map attribute, 0 by default, as `emptytile` on tilemaps. Reason: the blank metatile is the game's choice.
+- **`emptyblock` on the map.** The number an erased block gets is a map attribute, 0 by default, as `emptytile` on tilemaps. Reason: the blank metatile is the game's choice. Writing accepts the empty block number even when no set holds it, since it then draws an empty block (LIB-METATILE-MAPS-012). Rejected: refusing an `emptyblock` outside every set at load (breaks maps whose blank block is past the listed sets).
 - See also LIB-TILEMAPS "TileSet is shared by tilemaps and metatile maps", the tilemaps proposal's "Tile set fields live on the tilemap" (kept for tilemaps), and the metatile-maps proposal's "Two resources" decision.
 
 ## Non-goals
@@ -126,6 +131,6 @@ Shows and edits maps that a game stores as a block map plus a table of metatiles
 
 ## Open items
 
-- Not implemented yet: the block grid, writing blocks, the block map read-only reason, block brushes, plotting and the block palette (LIB-METATILE-MAPS-030 to -037); the first version is read-only.
 - The block-bits overlay and the editor are specified in UI-BLOCK-PLOTTING.
 - Drawing a border metatile map around its map is a later view option.
+- An editor with unsaved block edits keeps its grid when another writer changes the same block map, and its Save writes every block that differs from the data at that moment, so it overwrites the other writer's changes to those blocks.

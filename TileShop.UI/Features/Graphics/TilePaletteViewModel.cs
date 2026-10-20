@@ -5,6 +5,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ImageMagitek;
 using ImageMagitek.Tilemaps;
+using TileShop.UI.Features.Graphics.Tools;
 using TileShop.UI.Models;
 using TileShop.UI.ViewModels;
 
@@ -18,7 +19,7 @@ public sealed record TileSlotOption(int Slot, string Name);
 /// <summary>
 /// The Tiles mode side panel: the tile palette a brush is drag-selected from, and the brush's palette slot and flips
 /// </summary>
-public sealed partial class TilePaletteViewModel : ObservableObject
+public sealed partial class TilePaletteViewModel : ObservableObject, ICellPalette
 {
     private readonly TilemapArranger _tilemap;
     private ArrangerImageAdapter _imageAdapter = null!;
@@ -28,6 +29,8 @@ public sealed partial class TilePaletteViewModel : ObservableObject
     public ArrangerSkiaBitmap Bitmap { get; private set; } = null!;
     public GridSettingsViewModel GridSettings { get; }
     public IReadOnlyList<TileSlotOption> SlotOptions { get; }
+    Size ICellPalette.CellPixelSize => Palette.Arranger.ElementPixelSize;
+    int ICellPalette.PixelWidth => Palette.Arranger.ArrangerPixelSize.Width;
 
     /// <summary>
     /// Called when the palette's image or selection needs repainting
@@ -171,7 +174,7 @@ public sealed partial class TilePaletteViewModel : ObservableObject
     {
         if (_dragAnchor is { } anchor)
         {
-            SelectCells(GraphicsEditorViewModel.CellRectangle(anchor, new Point(cellX, cellY)));
+            SelectCells(CellRect.Between(anchor, new Point(cellX, cellY)));
             return;
         }
 

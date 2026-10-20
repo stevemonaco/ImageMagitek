@@ -315,9 +315,9 @@ public sealed class MetatileMapTests : IDisposable
     /// <summary>
     /// A one-block map of a 2x1-tile, two-layer metatile: tile 1 (red) twice on the bottom layer, tiles 0 (color 0) and 2 (green) on top
     /// </summary>
-    private MetatileMap CompositeMap(int bottomTile = 1)
+    private MetatileMap CompositeMap(int bottomTile = 1, bool zeroTransparent = true)
     {
-        var palette = new Palette("zero transparent", new ColorFactory(), ColorModel.Rgba32, true, PaletteStorageSource.GlobalJson);
+        var palette = new Palette("palette", new ColorFactory(), ColorModel.Rgba32, zeroTransparent, PaletteStorageSource.GlobalJson);
         palette.SetColorSources(new[] { _color0, _red, _green }.Select(x => new ProjectNativeColorSource(x)));
 
         var tiles = Source("tiles", [.. new byte[32], .. Enumerable.Repeat((byte)0x11, 32), .. Enumerable.Repeat((byte)0x22, 32)]);
@@ -359,6 +359,51 @@ public sealed class MetatileMapTests : IDisposable
 
         Assert.Equal(_color0, map.Backdrop);
         Assert.All(composite.Pixels, x => Assert.Equal(_color0, x));
+    }
+
+    [Fact]
+    public void Composite_UpperLayerIndexZeroTransparent_RegardlessOfPaletteFlag()
+    {
+        var composite = CompositeMap(zeroTransparent: false).Composite();
+
+        Assert.Equal(_red, PixelAt(composite, 0, 0));
+        Assert.Equal(_green, PixelAt(composite, 8, 0));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Composite_BottomLayerFollowsZeroTransparentFlag(bool zeroTransparent)
+    {
+        var blue = new ColorRgba32(0, 0, 255, 255);
+        var backdrop = new Palette("backdrop", new ColorFactory(), ColorModel.Rgba32, true, PaletteStorageSource.GlobalJson);
+        backdrop.SetColorSources([new ProjectNativeColorSource(_color0)]);
+        var slot1 = new Palette("slot 1", new ColorFactory(), ColorModel.Rgba32, zeroTransparent, PaletteStorageSource.GlobalJson);
+        slot1.SetColorSources([new ProjectNativeColorSource(blue)]);
+
+        var table = Source("table", [.. Entry(0, palette: 1), .. Entry(0, palette: 1)]);
+        var set = Set("Set", table, 1, Source("tiles", new byte[32]), 0, [backdrop, slot1], layers: 2, width: 1, height: 1);
+        var composite = Map(Source("blocks", Blocks(0)), 1, 1, new MetatileMapSet(set, 0)).Composite();
+
+        Assert.Equal(zeroTransparent ? _color0 : blue, PixelAt(composite, 0, 0));
+    }
+
+    [Fact]
+    public void Composite_BlockGrid_DrawsGridNumbers()
+    {
+        var tiles = Tiles("tiles", 8);
+        var set = Set("Set", Source("table", [.. Entry(1), .. Entry(2)]), 2, tiles, 0, [_slot0], layers: 1, width: 1, height: 1);
+        var blocks = Source("blocks", Blocks(0));
+        var map = Map(blocks, 1, 1, new MetatileMapSet(set, 0));
+        var expected = Map(Source("expected blocks", Blocks(1)), 1, 1, new MetatileMapSet(set, 0)).Composite();
+        var grid = map.CreateBlockGrid();
+
+        Assert.True(grid.TrySet(0, 0, 1));
+        var composite = map.Composite(grid);
+
+        Assert.Equal(expected.Pixels, composite.Pixels);
+        Assert.NotEqual(expected.Pixels, map.Composite().Pixels);
+        Assert.Equal(Blocks(0), blocks.Read(new BitAddress(0, 0), 16));
     }
 
     [Fact]

@@ -1,7 +1,11 @@
 using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using TileShop.Shared.Tools;
 using TileShop.UI.Controls;
+using TileShop.UI.Input;
 using TileShop.UI.Renderer;
 using TileShop.UI.ViewModels;
 
@@ -12,7 +16,9 @@ public partial class MetatileMapEditorView : UserControl
     private readonly MetatileMapRenderer _renderer = new();
     private MetatileMapEditorViewModel? _viewModel;
     private Action? _imageModifiedCallback;
-    private bool _isFitPending = true;
+
+    // The first size change can come before the canvas reaches its final size, so the map refits until the user zooms or pans
+    private bool _isAutoFit = true;
 
     public MetatileMapEditorView()
     {
@@ -21,9 +27,14 @@ public partial class MetatileMapEditorView : UserControl
         EditorCanvas.PaintSurface += OnPaintSurface;
         EditorCanvas.PointerPressed += OnCanvasPointerPressed;
         EditorCanvas.PointerReleased += OnCanvasPointerReleased;
-        EditorCanvas.PointerCaptureLost += (_, _) => EditorCanvas.EndPan();
+        EditorCanvas.PointerMoved += OnCanvasPointerMoved;
+        EditorCanvas.PointerExited += OnCanvasPointerExited;
+        EditorCanvas.PointerCaptureLost += OnCanvasPointerCaptureLost;
         EditorCanvas.PointerWheelChanged += OnCanvasPointerWheelChanged;
         EditorCanvas.SizeChanged += OnCanvasSizeChanged;
+
+        AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+        AddHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel);
     }
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -43,7 +54,7 @@ public partial class MetatileMapEditorView : UserControl
             _imageModifiedCallback = EditorCanvas.Invalidate;
             vm.OnImageModified = _imageModifiedCallback;
             vm.OnFitToViewport = FitToViewport;
-            vm.OnResetZoom = EditorCanvas.ResetZoom;
+            vm.OnResetZoom = ResetZoom;
         }
 
         base.OnDataContextChanged(e);
@@ -52,7 +63,7 @@ public partial class MetatileMapEditorView : UserControl
     private void OnPaintSurface(object? sender, SKPaintSurfaceEventArgs e)
     {
         if (_viewModel is { } vm)
-            _renderer.Render(vm, e.Surface.Canvas);
+            _renderer.Render(vm, e.Surface.Canvas, EditorCanvas.Zoom);
     }
 
     private void FitToViewport()
@@ -61,33 +72,117 @@ public partial class MetatileMapEditorView : UserControl
             EditorCanvas.FitToViewport(vm.Map.PixelSize.Width, vm.Map.PixelSize.Height);
     }
 
+    private void ResetZoom()
+    {
+        _isAutoFit = false;
+        EditorCanvas.ResetZoom();
+    }
+
     private void OnCanvasSizeChanged(object? sender, SizeChangedEventArgs e)
     {
-        if (_isFitPending && e.NewSize.Width > 0 && e.NewSize.Height > 0)
-        {
-            _isFitPending = false;
+        if (_isAutoFit && e.NewSize.Width > 0 && e.NewSize.Height > 0)
             FitToViewport();
-        }
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (_viewModel is not { } vm)
+            return;
+
+        e.Handled = vm.KeyPress(InputAdapter.CreateKeyState(e.Key, e.KeyModifiers));
+        UpdateCursorAtLastPosition(e.KeyModifiers);
+    }
+
+    private void OnKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (_viewModel is not { } vm)
+            return;
+
+        vm.KeyUp(InputAdapter.CreateKeyState(e.Key, e.KeyModifiers));
+        UpdateCursorAtLastPosition(e.KeyModifiers);
     }
 
     private void OnCanvasPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        var point = e.GetCurrentPoint(EditorCanvas);
-        if (!point.Properties.IsMiddleButtonPressed)
+        if (_viewModel is not { } vm)
             return;
 
-        EditorCanvas.StartPan(point.Position);
-        e.Pointer.Capture(EditorCanvas);
-        e.Handled = true;
+        var point = e.GetCurrentPoint(EditorCanvas);
+        if (point.Properties.IsMiddleButtonPressed)
+        {
+            _isAutoFit = false;
+            EditorCanvas.StartPan(point.Position);
+            e.Pointer.Capture(EditorCanvas);
+            e.Handled = true;
+            return;
+        }
+
+        var local = EditorCanvas.ScreenToLocalPoint(point.Position);
+        if (vm.ContainsPoint(local.X, local.Y) && vm.MouseDown(local.X, local.Y, InputAdapter.CreateMouseState(point, e.KeyModifiers)))
+        {
+            e.Pointer.Capture(EditorCanvas);
+            e.Handled = true;
+        }
     }
 
     private void OnCanvasPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        if (e.InitialPressMouseButton != MouseButton.Middle)
+        if (e.InitialPressMouseButton == MouseButton.Middle)
+        {
+            EditorCanvas.EndPan();
+            e.Pointer.Capture(null);
+            return;
+        }
+
+        if (_viewModel is not { } vm)
             return;
 
-        EditorCanvas.EndPan();
+        var point = e.GetCurrentPoint(EditorCanvas);
+        var local = EditorCanvas.ScreenToLocalPoint(point.Position);
+        e.Handled = vm.MouseUp(local.X, local.Y, InputAdapter.CreateMouseState(point, e.KeyModifiers));
         e.Pointer.Capture(null);
+    }
+
+    private void OnCanvasPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_viewModel is not { } vm)
+            return;
+
+        var point = e.GetCurrentPoint(EditorCanvas);
+        var local = EditorCanvas.ScreenToLocalPoint(point.Position);
+        e.Handled = vm.MouseMove(local.X, local.Y, InputAdapter.CreateMouseState(point, e.KeyModifiers));
+        UpdateCursor(local, e.KeyModifiers);
+    }
+
+    private void OnCanvasPointerExited(object? sender, PointerEventArgs e)
+    {
+        EditorCanvas.Cursor = Cursor.Default;
+        _viewModel?.MouseLeave();
+    }
+
+    private void OnCanvasPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        EditorCanvas.EndPan();
+        _viewModel?.PointerCaptureLost();
+    }
+
+    private void UpdateCursorAtLastPosition(KeyModifiers modifiers)
+    {
+        if (_viewModel?.LastMousePosition is { } position)
+            UpdateCursor(new Point(position.X, position.Y), modifiers);
+    }
+
+    private void UpdateCursor(Point local, KeyModifiers modifiers)
+    {
+        if (_viewModel is not { } vm || !vm.ContainsPoint(local.X, local.Y))
+        {
+            EditorCanvas.Cursor = Cursor.Default;
+            return;
+        }
+
+        var toolCursor = vm.ResolveCursor(InputAdapter.CreateKeyModifiers(modifiers));
+        var scaling = TopLevel.GetTopLevel(this)?.RenderScaling ?? 1.0;
+        EditorCanvas.Cursor = toolCursor == ToolCursor.Default ? Cursor.Default : ToolCursors.Get(toolCursor, scaling);
     }
 
     private void OnCanvasPointerWheelChanged(object? sender, PointerWheelEventArgs e)
@@ -95,6 +190,7 @@ public partial class MetatileMapEditorView : UserControl
         if (e.Delta.Y == 0 || !e.KeyModifiers.HasFlag(KeyModifiers.Control))
             return;
 
+        _isAutoFit = false;
         if (e.Delta.Y > 0)
             EditorCanvas.ZoomIn();
         else

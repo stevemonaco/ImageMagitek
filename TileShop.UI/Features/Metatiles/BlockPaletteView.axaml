@@ -1,0 +1,25 @@
+<UserControl x:Class="TileShop.UI.Views.BlockPaletteView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
+    xmlns:vm="using:TileShop.UI.ViewModels"
+    x:DataType="vm:BlockPaletteViewModel">
+    <Grid Margin="8,0,8,4" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="6">
+        <TextBlock Classes="muted" Text="Block Palette" />
+
+        <StackPanel Grid.Row="1" Spacing="4">
+            <NumericUpDown x:Name="BrushBlockNumberBox" MinWidth="110" HorizontalAlignment="Left" Classes="dense" FormatString="0" InnerLeftContent="Block"
+                Maximum="{Binding MaxBlockNumber}" Minimum="{Binding MinBlockNumber}" ToolTip.Tip="Metatile number of a one-block brush"
+                Value="{Binding BrushBlockNumber}" />
+            <TextBlock x:Name="BrushDescriptionText" Text="{Binding BrushDescription}" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Border Grid.Row="2" Background="{DynamicResource SemiColorBackground0}" BorderBrush="{DynamicResource SemiColorBorder}"
+            BorderThickness="1" ClipToBounds="True">
+            <cc:InfiniteCanvas x:Name="BlockPaletteCanvas" MaxZoom="16" MinZoom="0.5" ZoomPower="2"
+                ToolTip.Tip="Drag to select a brush · Mouse wheel scrolls · Ctrl+wheel zooms · Middle-drag pans" />
+        </Border>
+
+        <TextBlock x:Name="BlockPaletteStatusText" Grid.Row="3" Classes="muted" MinHeight="16" Text="{Binding StatusText}" TextWrapping="Wrap" />
+    </Grid>
+</UserControl>

@@ -45,11 +45,11 @@ public partial class GraphicsEditorViewModel
 
     private readonly Dictionary<TileTool, IToolHandler<GraphicsEditorViewModel>> _tileTools = new()
     {
-        [TileTool.Pencil] = new TileStrokeToolHandler("Plot Tiles", (s, cell) => s.PlotStroke(cell),
+        [TileTool.Pencil] = new TileStrokeToolHandler<GraphicsEditorViewModel>("Plot Tiles", (s, cell) => s.PlotStroke(cell),
             (s, ctx) => s.BrushFootprint(s.CellAt(ctx.PixelX, ctx.PixelY))),
-        [TileTool.RectangleFill] = new CellRectangleToolHandler((s, cells) => s.FillTiles(cells), (s, cell) => s.BrushFootprint(cell)),
-        [TileTool.Picker] = new CellRectangleToolHandler((s, cells) => s.PickTiles(cells)),
-        [TileTool.Erase] = new TileStrokeToolHandler("Erase Tiles", (s, cell) => s.EraseStroke(cell),
+        [TileTool.RectangleFill] = new CellRectangleToolHandler<GraphicsEditorViewModel>((s, cells) => s.FillTiles(cells), (s, cell) => s.BrushFootprint(cell)),
+        [TileTool.Picker] = new CellRectangleToolHandler<GraphicsEditorViewModel>((s, cells) => s.PickTiles(cells)),
+        [TileTool.Erase] = new TileStrokeToolHandler<GraphicsEditorViewModel>("Erase Tiles", (s, cell) => s.EraseStroke(cell),
             (s, ctx) => s.WorkingArranger.GetElementAtPixel(ctx.PixelX, ctx.PixelY) is not null ? s.GetElementRectAtPixel(ctx.PixelX, ctx.PixelY) : null),
     };
 
@@ -204,8 +204,8 @@ public partial class GraphicsEditorViewModel
             // An active stroke keeps following the pointer so re-entering the image does not draw a chord across it
             if (IsPencilDrawing)
                 _toolRouter.Move(new ToolContext(x, y, xc, yc, mouseState, pixelSamples), this);
-            else if (IsTileStrokeActive)
-                BreakTileStroke();
+            else if (IsCellStrokeActive)
+                _tileStroke.Break();
 
             LastMousePosition = null;
             SetHoverTarget(null);
@@ -299,7 +299,7 @@ public partial class GraphicsEditorViewModel
         return result.Handled;
     }
 
-    internal void UpdateActivityMessage(int xc, int yc)
+    public void UpdateActivityMessage(int xc, int yc)
     {
         ActivityBrush = null;
         var arranger = WorkingArranger;

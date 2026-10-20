@@ -67,6 +67,21 @@ public sealed class LayerCompositorTests
     }
 
     [Fact]
+    public void LayerImage_ForceZeroTransparent_IgnoresPaletteFlag()
+    {
+        var opaque = CreatePalette(false, Red, Green);
+        using var source = new MemoryDataSource("tiles", 32);
+        SetSnes4bppIndex1(source, 0, 1);
+        var arranger = ArrangerTestFactory.CreateArranger(PixelColorType.Indexed, 1, 1, (_, _) => IndexedCodec("SNES 4bpp", opaque), source);
+
+        var image = LayerImage.FromArranger(arranger, forceZeroTransparent: true);
+
+        Assert.Equal(Red with { A = 0 }, image.Pixels[0]);
+        Assert.Equal(Green, image.Pixels[1]);
+        Assert.Equal(Red, LayerImage.FromArranger(arranger).Pixels[0]);
+    }
+
+    [Fact]
     public void LayerImage_DirectArranger_KeepsAlpha()
     {
         using var source = new MemoryDataSource("direct", 8 * 8 * 4);

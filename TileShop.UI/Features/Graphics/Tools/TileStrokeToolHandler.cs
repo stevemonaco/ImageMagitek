@@ -2,21 +2,19 @@ using System;
 using System.Drawing;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
-using TileShop.UI.ViewModels;
 
 namespace TileShop.UI.Features.Graphics.Tools;
 
 /// <summary>
-/// A Tiles mode tool that acts on each cell the pointer drags across, recording the drag as one history step
+/// A cell plotting tool that acts on each cell the pointer drags across, recording the drag as one history step
 /// </summary>
-public sealed class TileStrokeToolHandler : IToolHandler<GraphicsEditorViewModel>
+public sealed class TileStrokeToolHandler<TState> : IToolHandler<TState> where TState : ICellPlotState
 {
     private readonly string _strokeName;
-    private readonly Action<GraphicsEditorViewModel, Point> _plot;
-    private readonly Func<GraphicsEditorViewModel, ToolContext, Rectangle?> _getTargetRect;
+    private readonly Action<TState, Point> _plot;
+    private readonly Func<TState, ToolContext, Rectangle?> _getTargetRect;
 
-    public TileStrokeToolHandler(string strokeName, Action<GraphicsEditorViewModel, Point> plot,
-        Func<GraphicsEditorViewModel, ToolContext, Rectangle?> getTargetRect)
+    public TileStrokeToolHandler(string strokeName, Action<TState, Point> plot, Func<TState, ToolContext, Rectangle?> getTargetRect)
     {
         _strokeName = strokeName;
         _plot = plot;
@@ -25,21 +23,21 @@ public sealed class TileStrokeToolHandler : IToolHandler<GraphicsEditorViewModel
 
     public ToolCursor Cursor => ToolCursor.Crosshair;
 
-    public Rectangle? GetTargetRect(ToolContext ctx, GraphicsEditorViewModel state) => _getTargetRect(state, ctx);
+    public Rectangle? GetTargetRect(ToolContext ctx, TState state) => _getTargetRect(state, ctx);
 
-    public ToolResult OnMouseDown(ToolContext ctx, GraphicsEditorViewModel state)
+    public ToolResult OnMouseDown(ToolContext ctx, TState state)
     {
         if (!ctx.MouseState.LeftButtonPressed)
             return ToolResult.Unhandled;
 
-        state.BeginTileStroke(_strokeName);
+        state.BeginCellStroke(_strokeName);
         _plot(state, state.CellAt(ctx.PixelX, ctx.PixelY));
         return ToolResult.HandledOverlay;
     }
 
-    public ToolResult OnMouseMove(ToolContext ctx, GraphicsEditorViewModel state)
+    public ToolResult OnMouseMove(ToolContext ctx, TState state)
     {
-        if (state.IsTileStrokeActive && ctx.MouseState.LeftButtonPressed)
+        if (state.IsCellStrokeActive && ctx.MouseState.LeftButtonPressed)
         {
             _plot(state, state.CellAt(ctx.PixelX, ctx.PixelY));
             return ToolResult.HandledNoInvalidation;
@@ -49,21 +47,21 @@ public sealed class TileStrokeToolHandler : IToolHandler<GraphicsEditorViewModel
         return ToolResult.Unhandled;
     }
 
-    public ToolResult OnMouseUp(ToolContext ctx, GraphicsEditorViewModel state)
+    public ToolResult OnMouseUp(ToolContext ctx, TState state)
     {
-        if (!state.IsTileStrokeActive || ctx.MouseState.LeftButtonPressed)
+        if (!state.IsCellStrokeActive || ctx.MouseState.LeftButtonPressed)
             return ToolResult.Unhandled;
 
-        state.EndTileStroke();
+        state.EndCellStroke();
         return ToolResult.HandledOverlay;
     }
 
-    public ToolResult OnKeyDown(ToolContext ctx, GraphicsEditorViewModel state) => ToolResult.Unhandled;
-    public ToolResult OnKeyUp(ToolContext ctx, GraphicsEditorViewModel state) => ToolResult.Unhandled;
+    public ToolResult OnKeyDown(ToolContext ctx, TState state) => ToolResult.Unhandled;
+    public ToolResult OnKeyUp(ToolContext ctx, TState state) => ToolResult.Unhandled;
 
-    public HistoryAction? Deactivate(GraphicsEditorViewModel state)
+    public HistoryAction? Deactivate(TState state)
     {
-        state.EndTileStroke();
+        state.EndCellStroke();
         return null;
     }
 }

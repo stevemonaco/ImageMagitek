@@ -1,4 +1,3 @@
-using System;
 using System.Drawing;
 using ImageMagitek.Codec;
 
@@ -89,8 +88,7 @@ public sealed class TilemapPlotter
     /// Snaps <paramref name="cell"/> to the grid of brush-sized steps from <paramref name="origin"/>, so successive stamps tile instead of overlapping
     /// </summary>
     public static Point SnapToStroke(TileBrush brush, Point origin, Point cell) =>
-        new(origin.X + FloorDiv(cell.X - origin.X, brush.Width) * brush.Width,
-            origin.Y + FloorDiv(cell.Y - origin.Y, brush.Height) * brush.Height);
+        BrushStroke.SnapToStroke(new Size(brush.Width, brush.Height), origin, cell);
 
     /// <summary>
     /// Fills <paramref name="cells"/> with <paramref name="brush"/> repeated from the rectangle's top-left, clipped to the map
@@ -107,8 +105,8 @@ public sealed class TilemapPlotter
         {
             for (int x = clipped.Left; x < clipped.Right; x++)
             {
-                var brushX = Mod(x - cells.Left, brush.Width);
-                var brushY = Mod(y - cells.Top, brush.Height);
+                var brushX = BrushStroke.Mod(x - cells.Left, brush.Width);
+                var brushY = BrushStroke.Mod(y - cells.Top, brush.Height);
                 if (brush.GetEffectiveCell(brushX, brushY) is { } cell)
                     changed |= SetCell(x, y, cell, brush.Slot);
             }
@@ -204,8 +202,4 @@ public sealed class TilemapPlotter
         && ReferenceEquals(currentPalette, targetPalette) && _tilemap.FindCodecSlot(current.Codec, slot) == slot;
 
     private Rectangle ClipToMap(Rectangle cells) => Rectangle.Intersect(cells, new Rectangle(0, 0, MapWidth, MapHeight));
-
-    private static int FloorDiv(int value, int divisor) => (int)Math.Floor((double)value / divisor);
-
-    private static int Mod(int value, int divisor) => (value % divisor + divisor) % divisor;
 }

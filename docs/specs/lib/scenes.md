@@ -27,8 +27,8 @@ Draws several rendered layers back to front into one 32-bit image, the way conso
 
 ### Layer images
 
-- **LIB-SCENES-001** — Rendering an arranger to a layer image shall give an image of the arranger's pixel size in which each pixel of an indexed element is its element's palette color for the pixel's index, including that color's alpha, so a palette entry marked transparent (LIB-PALETTES `zeroindextransparent`) is fully transparent.
-  - Tests: `LayerCompositorTests.LayerImage_IndexedArranger_UsesElementPalettes_ZeroTransparent`
+- **LIB-SCENES-001** — Rendering an arranger to a layer image shall give an image of the arranger's pixel size in which each pixel of an indexed element is its element's palette color for the pixel's index, including that color's alpha, so a palette entry marked transparent (LIB-PALETTES `zeroindextransparent`) is fully transparent. When asked to (`forceZeroTransparent`), index 0 shall be fully transparent whatever the palette's flag says.
+  - Tests: `LayerCompositorTests.LayerImage_IndexedArranger_UsesElementPalettes_ZeroTransparent`, `LayerCompositorTests.LayerImage_ForceZeroTransparent_IgnoresPaletteFlag`
 - **LIB-SCENES-002** — A pixel of a direct-color element shall keep its decoded color and alpha, and a pixel in an empty cell (no element) shall be fully transparent.
   - Tests: `LayerCompositorTests.LayerImage_DirectArranger_KeepsAlpha`, `LayerCompositorTests.LayerImage_EmptyCell_IsTransparent`
 - **LIB-SCENES-004** — A pixel of an indexed element that does not lie wholly within its source, or whose index is at or past its palette's entry count, shall be fully transparent, as the graphics editor shows it.
@@ -70,6 +70,7 @@ Draws several rendered layers back to front into one 32-bit image, the way conso
 
 ## Decisions
 
+- **Forced color 0 transparency is an option of the layer image.** `forceZeroTransparent` serves metatile maps, whose upper layers treat color 0 as transparent regardless of the palette flag (LIB-METATILE-MAPS "Upper layers treat color 0 as transparent regardless of the palette flag"). Reason: the rule belongs to the caller that knows the layer order, and the compositor stays unaware of hardware rules.
 - **Composite rendered colors, not indexes.** Layers are rendered to 32-bit color first and stacked after palette lookup, as the hardware does. Reason: layers with different palettes and bit depths share no index space. Consequence: a composite PNG is direct color. Rejected: compositing indexes into a shared palette.
 - **The compositor is separate from the scene resource.** It takes layer images with a position and a visible flag, and knows nothing about project resources. Reason: metatile maps composite their own layers and must not need a scene, and compositing is testable without a project. Rejected: compositing inside the scene editor.
 - **Layer images are plain 32-bit buffers, not `DirectImage`.** `LayerImage` holds a width, a height and a row-major `ColorRgba32[]`, and the composite is a `LayerImage` too. Reason: `DirectImage` needs a direct-color arranger and its `SaveImage` writes back to that arranger, which a composite must not do; a buffer passes straight to `IImageFileAdapter.SaveImage(ColorRgba32[], width, height, path)` for PNG export; and a composite can be fed back in as a layer, which a metatile map inside a scene needs. This differs from the layers proposal's Task 1 wording ("composite rendering into a `DirectImage`"). Rejected: a `DirectImage` over a synthetic arranger (an arranger with no data behind it); returning `ColorRgba32[,]` (the export path and `DirectImage` use flat row-major arrays).

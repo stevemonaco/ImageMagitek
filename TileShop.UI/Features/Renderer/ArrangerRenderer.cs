@@ -153,7 +153,7 @@ public class ArrangerRenderer
         RenderSelection(state, canvas);
         RenderSelectionHandles(state, canvas);
         RenderPaste(state, canvas);
-        RenderHoverTarget(state, canvas);
+        RenderHoverTarget(state.HoverTarget, state.Zoom, canvas);
 
         canvas.Restore();
     }
@@ -236,13 +236,13 @@ public class ArrangerRenderer
         canvas.Restore();
     }
 
-    private static void RenderHoverTarget(GraphicsEditorViewModel state, SKCanvas canvas)
+    internal static void RenderHoverTarget(System.Drawing.Rectangle? hoverTarget, double zoom, SKCanvas canvas)
     {
-        if (state.HoverTarget is not { } target)
+        if (hoverTarget is not { } target)
             return;
 
         // Dark line outside, light line inside, each one screen pixel wide so it reads over any color at any zoom
-        var screenPixel = 1f / (float)Math.Max(state.Zoom, 0.01);
+        var screenPixel = 1f / (float)Math.Max(zoom, 0.01);
         _hoverOuterPaint.StrokeWidth = screenPixel;
         _hoverInnerPaint.StrokeWidth = screenPixel;
 

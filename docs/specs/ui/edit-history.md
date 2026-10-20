@@ -19,6 +19,8 @@ sources:
   - TileShop.Shared/Models/History/RotateElementHistoryAction.cs
   - TileShop.Shared/Models/History/DeleteElementSelectionHistoryAction.cs
   - TileShop.Shared/Models/History/ResizeArrangerHistoryAction.cs
+  - TileShop.Shared/Models/History/PlotBlocksHistoryAction.cs
+  - TileShop.UI/Features/Metatiles/MetatileMapEditorViewModel.Blocks.cs
 types:
   - GraphicsEditHistory
   - HistoryAction
@@ -34,8 +36,10 @@ types:
   - RotateElementHistoryAction
   - DeleteElementSelectionHistoryAction
   - ResizeArrangerHistoryAction
+  - PlotBlocksHistoryAction
 tests:
   - GraphicsEditHistoryTests
+  - MetatileMapEditorViewModelTests
 depends:
   - LIB-ARRANGERS
   - LIB-IMAGES
@@ -49,7 +53,7 @@ depends:
 
 ## Purpose
 
-Undo and redo for the graphics editor (UI-GRAPHICS-EDITOR). Arranger-level actions (UI-ARRANGING) restore snapshots of the arranger; pixel actions (UI-DRAWING) re-decode from the data source and replay. The palette editor's history (`PaletteHistoryAction`, `PaletteSnapshot`) is UI-PALETTE-EDITOR.
+Undo and redo for the graphics editor (UI-GRAPHICS-EDITOR). Arranger-level actions (UI-ARRANGING) restore snapshots of the arranger; pixel actions (UI-DRAWING) re-decode from the data source and replay. The palette editor's history (`PaletteHistoryAction`, `PaletteSnapshot`) is UI-PALETTE-EDITOR. The metatile map editor (UI-BLOCK-PLOTTING) keeps its own history of block grid copies (UI-EDIT-HISTORY-018), not `GraphicsEditHistory`.
 
 ## Requirements
 
@@ -101,6 +105,11 @@ Undo and redo for the graphics editor (UI-GRAPHICS-EDITOR). Arranger-level actio
 
 - **UI-EDIT-HISTORY-017** — A Pencil action shall record the index or color written at each pixel, and redo and replay shall write exactly those values.
   - Tests: `GraphicsEditHistoryTests.Pencil_DuplicatePaletteColors_UndoRedo_KeepsChosenIndex`, `GraphicsEditHistoryTests.Pencil_OtherPalette_UndoRedo_ReplaysWrittenIndex`
+
+### Metatile map editor
+
+- **UI-EDIT-HISTORY-018** — The metatile map editor shall record each Blocks mode stroke, fill and erase that changes a block as a `PlotBlocksHistoryAction` ("Plot Blocks", "Fill Blocks", "Erase Blocks") holding a copy of the block grid after it. Undo shall restore the copy of the action before it, or the grid as it was at open, save or discard; redo shall restore the action's own copy. The modified state follows UI-EDIT-HISTORY-004, and Save and Discard clear both lists.
+  - Tests: `MetatileMapEditorViewModelTests.PlotBlocks_UndoRedo`, `MetatileMapEditorViewModelTests.Save_WritesChangedBlocksOnly`
 
 ## Invariants
 

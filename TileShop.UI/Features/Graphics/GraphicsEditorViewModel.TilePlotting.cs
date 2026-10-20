@@ -11,17 +11,14 @@ using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
 using TileShop.UI.Features.Graphics;
+using TileShop.UI.Features.Graphics.Tools;
 
 namespace TileShop.UI.ViewModels;
 
 public partial class GraphicsEditorViewModel
 {
     private TilemapPlotter? _tilePlotter;
-    private string? _tileStrokeName;
-    private bool _tileStrokeChanged;
-    private bool _tileStrokeFailureShown;
-    private Point? _tileStrokeOrigin;
-    private Point? _lastStrokeCell;
+    private readonly CellStroke _tileStroke = new();
 
     [ObservableProperty] private TilePaletteViewModel? _tilePalette;
     [ObservableProperty] private TileTool _selectedTileTool = TileTool.Pencil;
@@ -29,7 +26,7 @@ public partial class GraphicsEditorViewModel
     public TileTool DisplayedTileTool => _toolRouter.IsOverrideEngaged && EditMode == GraphicsEditMode.Tiles
         ? TileTool.Picker : SelectedTileTool;
 
-    public bool IsTileStrokeActive => _tileStrokeName is not null;
+    public bool IsCellStrokeActive => _tileStroke.Name is not null;
 
     partial void OnSelectedTileToolChanged(TileTool oldValue, TileTool newValue)
     {
@@ -67,24 +64,14 @@ public partial class GraphicsEditorViewModel
             TilePalette.Refresh();
     }
 
-    internal Point CellAt(int pixelX, int pixelY) =>
+    public Point CellAt(int pixelX, int pixelY) =>
         new(pixelX / WorkingArranger.ElementPixelSize.Width, pixelY / WorkingArranger.ElementPixelSize.Height);
-
-    internal static Rectangle CellRectangle(Point a, Point b) =>
-        Rectangle.FromLTRB(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y), Math.Max(a.X, b.X) + 1, Math.Max(a.Y, b.Y) + 1);
 
     /// <summary>
     /// The pixel bounds of <paramref name="cells"/> within the map, or null when none of them is in it
     /// </summary>
-    internal Rectangle? CellsToPixels(Rectangle cells)
-    {
-        var size = WorkingArranger.ElementPixelSize;
-        var clipped = Rectangle.Intersect(cells, new Rectangle(Point.Empty, WorkingArranger.ArrangerElementSize));
-        if (clipped.Width <= 0 || clipped.Height <= 0)
-            return null;
-
-        return new Rectangle(clipped.X * size.Width, clipped.Y * size.Height, clipped.Width * size.Width, clipped.Height * size.Height);
-    }
+    public Rectangle? CellsToPixels(Rectangle cells) =>
+        CellRect.ToPixels(cells, WorkingArranger.ElementPixelSize, WorkingArranger.ArrangerElementSize);
 
     /// <summary>
     /// Where the brush would land for a pointer over <paramref name="cell"/>, snapped to the stroke's grid during a stroke
@@ -94,37 +81,26 @@ public partial class GraphicsEditorViewModel
         if (TilePalette?.Brush is not { } brush)
             return null;
 
-        if (_tileStrokeOrigin is { } origin)
+        if (_tileStroke.Origin is { } origin)
             cell = TilemapPlotter.SnapToStroke(brush, origin, cell);
 
         return CellsToPixels(new Rectangle(cell.X, cell.Y, brush.Width, brush.Height));
     }
 
-    internal void BeginTileStroke(string name)
+    public void BeginCellStroke(string name)
     {
-        EndTileStroke();
-        _tileStrokeName = name;
-        _tileStrokeFailureShown = false;
+        EndCellStroke();
+        _tileStroke.Begin(name);
     }
 
     /// <summary>
     /// Ends the stroke, recording one history step when it changed a cell
     /// </summary>
-    internal void EndTileStroke()
+    public void EndCellStroke()
     {
-        if (_tileStrokeName is { } name && _tileStrokeChanged)
+        if (_tileStroke.End() is { } name)
             AddHistoryAction(new PlotTilesHistoryAction(name));
-
-        _tileStrokeName = null;
-        _tileStrokeChanged = false;
-        _tileStrokeOrigin = null;
-        _lastStrokeCell = null;
     }
-
-    /// <summary>
-    /// Forgets the last stroke cell, so a pointer re-entering the map does not plot across the gap
-    /// </summary>
-    internal void BreakTileStroke() => _lastStrokeCell = null;
 
     /// <summary>
     /// Stamps the brush at every cell from the previous stroke cell to <paramref name="cell"/>
@@ -134,9 +110,9 @@ public partial class GraphicsEditorViewModel
         if (_tilePlotter is not { } plotter || !TryGetBrush(plotter, out var brush))
             return;
 
-        var origin = _tileStrokeOrigin ??= cell;
+        var origin = _tileStroke.Origin ??= cell;
         var changed = false;
-        foreach (var point in StrokeCells(cell))
+        foreach (var point in _tileStroke.Advance(cell))
         {
             var snapped = TilemapPlotter.SnapToStroke(brush, origin, point);
             changed |= plotter.Stamp(brush, snapped.X, snapped.Y);
@@ -151,7 +127,7 @@ public partial class GraphicsEditorViewModel
             return;
 
         var changed = false;
-        foreach (var point in StrokeCells(cell))
+        foreach (var point in _tileStroke.Advance(cell))
             changed |= plotter.Erase(new Rectangle(point.X, point.Y, 1, 1));
 
         CompleteTileEdit(changed);
@@ -162,9 +138,9 @@ public partial class GraphicsEditorViewModel
         if (_tilePlotter is not { } plotter || !TryGetBrush(plotter, out var brush))
             return;
 
-        BeginTileStroke("Fill Tiles");
+        BeginCellStroke("Fill Tiles");
         CompleteTileEdit(plotter.Fill(brush, cells));
-        EndTileStroke();
+        EndCellStroke();
     }
 
     /// <summary>
@@ -178,13 +154,6 @@ public partial class GraphicsEditorViewModel
             Messenger.Send(new NotifyStatusMessage("No tile of the tile set to pick there"));
     }
 
-    private IEnumerable<Point> StrokeCells(Point cell)
-    {
-        var cells = _lastStrokeCell is { } last ? PixelLine.Points(last, cell).Skip(1).ToList() : [cell];
-        _lastStrokeCell = cell;
-        return cells;
-    }
-
     private bool TryGetBrush(TilemapPlotter plotter, out TileBrush brush)
     {
         brush = TilePalette?.Brush!;
@@ -192,11 +161,8 @@ public partial class GraphicsEditorViewModel
         if (error is null)
             return true;
 
-        if (!_tileStrokeFailureShown)
-        {
-            _tileStrokeFailureShown = IsTileStrokeActive;
+        if (_tileStroke.ShouldReport())
             Messenger.Send(new NotifyStatusMessage(error));
-        }
 
         return false;
     }
@@ -206,7 +172,7 @@ public partial class GraphicsEditorViewModel
         if (!changed)
             return;
 
-        _tileStrokeChanged = true;
+        _tileStroke.Changed = true;
         IsModified = true;
         InvalidateEditor(InvalidationLevel.PixelData);
     }

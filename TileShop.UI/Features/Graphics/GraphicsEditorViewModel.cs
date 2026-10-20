@@ -17,6 +17,7 @@ using TileShop.Shared.Interactions;
 using TileShop.Shared.Messages;
 using TileShop.Shared.Models;
 using TileShop.Shared.Tools;
+using TileShop.UI.Features.Graphics.Tools;
 using Avalonia.Media;
 using TileShop.UI.Features.Graphics;
 using TileShop.UI.Models;
@@ -32,7 +33,7 @@ public enum DrawTool { PixelSelect, Pencil, ColorPicker, FloodFill }
 public enum ColorPriority { Primary, Secondary }
 public enum DrawClipEffect { Greyscale, Hidden }
 
-public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewModel, IStateDriver
+public sealed partial class GraphicsEditorViewModel : ResourceEditorBaseViewModel, IStateDriver, ICellPlotState
 {
     private readonly UserPreferencesStore _preferencesStore;
     private readonly IInteractionService _interactions;

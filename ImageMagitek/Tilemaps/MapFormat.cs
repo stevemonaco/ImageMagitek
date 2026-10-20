@@ -85,7 +85,7 @@ public sealed class MapFormat
         if (Priority is { } priority)
             value = priority.Insert(value, entry.Priority ? 1 : 0);
 
-        WriteValue(value, destination);
+        WriteRawValue(value, destination);
     }
 
     /// <summary>
@@ -103,7 +103,10 @@ public sealed class MapFormat
         return value;
     }
 
-    private void WriteValue(uint value, Span<byte> destination)
+    /// <summary>
+    /// Writes <paramref name="value"/> as the whole entry held in the first <see cref="EntryBytes"/> bytes of <paramref name="destination"/>
+    /// </summary>
+    public void WriteRawValue(uint value, Span<byte> destination)
     {
         for (int i = 0; i < EntryBytes; i++)
         {

@@ -2,14 +2,69 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="https://github.com/stevemonaco/TileShop"
+    xmlns:con="using:TileShop.UI.Converters"
+    xmlns:v="using:TileShop.UI.Views"
     xmlns:vm="using:TileShop.UI.ViewModels"
+    x:Name="control"
     x:DataType="vm:MetatileMapEditorViewModel"
     Focusable="True">
-    <Grid Margin="8,4,0,0" ColumnDefinitions="Auto, *" UseLayoutRounding="True">
+    <Grid Margin="8,4,0,0" ColumnDefinitions="Auto, *, Auto" UseLayoutRounding="True">
         <Border Width="200" MinWidth="160" Margin="0,0,8,0">
             <ScrollViewer AllowAutoHide="True" Classes="InsetContent">
                 <StackPanel Spacing="4">
-                    <TextBlock HorizontalAlignment="Left" Classes="muted" Text="Layers" />
+                    <WrapPanel Classes="toolbar-group">
+                        <RadioButton x:Name="MapViewModeButton" Classes="toggle" Command="{Binding ChangeEditModeCommand}"
+                            CommandParameter="{x:Static vm:MetatileEditMode.View}"
+                            IsChecked="{Binding EditMode, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=View}"
+                            ToolTip.Tip="View the map">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <cc:LineIcon Classes="inline" Data="{x:Static cc:AppIcons.ModeView}" />
+                                <TextBlock Text="View" />
+                            </StackPanel>
+                        </RadioButton>
+                        <RadioButton x:Name="BlocksModeButton" Classes="toggle" Command="{Binding ChangeEditModeCommand}"
+                            CommandParameter="{x:Static vm:MetatileEditMode.Blocks}"
+                            IsChecked="{Binding EditMode, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Blocks}"
+                            IsEnabled="{Binding CanPlotBlocks}" ToolTip.ShowOnDisabled="True">
+                            <ToolTip.Tip><Binding Path="BlocksDisabledReason" TargetNullValue="Plot blocks from the block palette into the map" /></ToolTip.Tip>
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <cc:LineIcon Classes="inline" Data="{x:Static cc:AppIcons.ModeTiles}" />
+                                <TextBlock Text="Blocks" />
+                            </StackPanel>
+                        </RadioButton>
+                    </WrapPanel>
+
+                    <StackPanel IsVisible="{Binding IsBlocksMode}" Spacing="4">
+                        <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Tools" />
+                        <WrapPanel Classes="toolbar-group">
+                            <RadioButton x:Name="BlockPencilButton" Classes="tool" Command="{Binding ChangeBlockToolCommand}"
+                                CommandParameter="{x:Static vm:TileTool.Pencil}"
+                                IsChecked="{Binding DisplayedBlockTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Pencil}"
+                                ToolTip.Tip="Plot the brush where you click and drag">
+                                <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Pencil}" />
+                            </RadioButton>
+                            <RadioButton x:Name="BlockRectangleFillButton" Classes="tool" Command="{Binding ChangeBlockToolCommand}"
+                                CommandParameter="{x:Static vm:TileTool.RectangleFill}"
+                                IsChecked="{Binding DisplayedBlockTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RectangleFill}"
+                                ToolTip.Tip="Drag a rectangle to fill it with the brush, repeating a multi-block brush">
+                                <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.TileRectangleFill}" />
+                            </RadioButton>
+                            <RadioButton x:Name="BlockPickerButton" Classes="tool" Command="{Binding ChangeBlockToolCommand}"
+                                CommandParameter="{x:Static vm:TileTool.Picker}"
+                                IsChecked="{Binding DisplayedBlockTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Picker}"
+                                ToolTip.Tip="Pick the blocks under a click or drag into the brush (hold Ctrl with any tool)">
+                                <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ColorPicker}" />
+                            </RadioButton>
+                            <RadioButton x:Name="BlockEraseButton" Classes="tool" Command="{Binding ChangeBlockToolCommand}"
+                                CommandParameter="{x:Static vm:TileTool.Erase}"
+                                IsChecked="{Binding DisplayedBlockTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Erase}"
+                                ToolTip.Tip="Erase blocks to the map's empty block">
+                                <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Eraser}" />
+                            </RadioButton>
+                        </WrapPanel>
+                    </StackPanel>
+
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Layers" />
                     <ItemsControl x:Name="LayerVisibilityList" ItemsSource="{Binding Layers}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:LayerVisibilityViewModel">
@@ -19,20 +74,24 @@
                     </ItemsControl>
 
                     <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Options" />
-                    <StackPanel Orientation="Horizontal" Spacing="4">
-                        <ToggleButton x:Name="ShowGridlinesToggle" Classes="tool" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility">
+                    <WrapPanel Orientation="Horizontal">
+                        <ToggleButton x:Name="ShowGridlinesToggle" Margin="0,0,4,4" Classes="tool" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility">
                             <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Gridlines}" />
                         </ToggleButton>
-                        <ToggleButton x:Name="TileGridToggle" Classes="tool" IsChecked="{Binding ShowTileGrid}" ToolTip.Tip="Grid cells are tiles instead of blocks">
+                        <ToggleButton x:Name="TileGridToggle" Margin="0,0,4,4" Classes="tool" IsChecked="{Binding ShowTileGrid}" ToolTip.Tip="Grid cells are tiles instead of blocks">
                             <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.TileRectangleFill}" />
                         </ToggleButton>
-                        <Button x:Name="FitToViewButton" Classes="tool" Command="{Binding FitToViewportCommand}" ToolTip.Tip="Fit the map to the view">
+                        <ToggleButton x:Name="BlockBitsOverlayToggle" Margin="0,0,4,4" Classes="tool" IsChecked="{Binding ShowBlockBits}"
+                            ToolTip.Tip="Show each block's bits outside the metatile number (collision and elevation on FireRed)">
+                            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold" Text="01" />
+                        </ToggleButton>
+                        <Button x:Name="FitToViewButton" Margin="0,0,4,4" Classes="tool" Command="{Binding FitToViewportCommand}" ToolTip.Tip="Fit the map to the view">
                             <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.FitToView}" />
                         </Button>
-                        <Button x:Name="ResetZoomButton" Classes="tool" Command="{Binding ResetZoomCommand}" ToolTip.Tip="Reset zoom to 100%">
+                        <Button x:Name="ResetZoomButton" Margin="0,0,4,4" Classes="tool" Command="{Binding ResetZoomCommand}" ToolTip.Tip="Reset zoom to 100%">
                             <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ZoomOut}" />
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
 
                     <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Actions" />
                     <Button x:Name="ExportAsButton" HorizontalAlignment="Left" Command="{Binding ExportAsCommand}" Content="Export As..."
@@ -43,5 +102,8 @@
 
         <cc:InfiniteCanvas x:Name="EditorCanvas" Grid.Column="1" MaxZoom="32" MinZoom="0.25" ZoomPower="1.25"
             ToolTip.Tip="Ctrl+wheel zooms · Middle-drag pans" />
+
+        <v:BlockPaletteView x:Name="BlockPaletteView" Grid.Column="2" Width="280" DataContext="{Binding BlockPalette}"
+            IsVisible="{Binding #control.((vm:MetatileMapEditorViewModel)DataContext).IsBlocksMode}" />
     </Grid>
 </UserControl>

@@ -27,6 +27,7 @@ public sealed class MetatileMap : IProjectResource, IDisposable
     private readonly DataSource[] _watchedSources;
     private ArrangerElement?[][,] _layerGrids;
     private uint?[,] _blockValues;
+    private int?[,] _blockNumbers;
     private volatile bool _isDirty = true;
     private string? _mapError;
 
@@ -131,6 +132,7 @@ public sealed class MetatileMap : IProjectResource, IDisposable
         _layerVisible = Enumerable.Repeat(true, LayerCount).ToArray();
         _layerGrids = new ArrangerElement?[LayerCount][,];
         _blockValues = new uint?[height, width];
+        _blockNumbers = new int?[height, width];
         Layers = Enumerable.Range(0, LayerCount).Select(i => new MetatileLayerArranger(this, i)).ToList();
 
         _watchedSources = Sets.SelectMany(x => new[] { x.Set.MetatileSource, x.Set.TileSet.Source, x.Set.AttributeSource })
@@ -233,31 +235,57 @@ public sealed class MetatileMap : IProjectResource, IDisposable
     private void Rebuild()
     {
         var entryBytes = BlockFormat.EntryBytes;
-        var blockCount = (long)Layout.EntryIndex(Width - 1, Height - 1, Width) + 1;
+        var blockCount = BlockCount;
         var (data, readBlocks, sourceError) = MapDataReader.Read(BlockSource, BlockOffset, blockCount, entryBytes);
 
         _mapError = sourceError ?? (readBlocks < blockCount
             ? $"The block map in '{BlockSource.Name}' holds {readBlocks} of the {blockCount} blocks a {Width}x{Height} map needs"
             : null);
 
-        var tables = Sets.Select(x => x.Set.ReadTable()).ToArray();
-        var tileRanges = Sets.Select(x => (First: x.Set.TileSet.FirstTileIndex, Count: x.Set.TileSet.TileCount)).ToArray();
-        var (w, h) = (Shape.Width, Shape.Height);
-        var grids = Enumerable.Range(0, LayerCount).Select(_ => new ArrangerElement?[Height * h, Width * w]).ToArray();
         var blockValues = new uint?[Height, Width];
+        var numbers = new int?[Height, Width];
 
         for (int by = 0; by < Height; by++)
         {
             for (int bx = 0; bx < Width; bx++)
             {
-                var offset = (long)Layout.EntryIndex(bx, by, Width) * entryBytes;
+                var offset = BlockDataOffset(bx, by);
                 if (offset + entryBytes > data.Length)
                     continue;
 
                 var value = BlockFormat.ReadRawValue(data.AsSpan((int)offset, entryBytes));
                 blockValues[by, bx] = value;
+                numbers[by, bx] = BlockFormat.TileIndex.Extract(value);
+            }
+        }
 
-                var number = BlockFormat.TileIndex.Extract(value);
+        _layerGrids = BuildLayerGrids(numbers);
+        _blockValues = blockValues;
+        _blockNumbers = numbers;
+    }
+
+    private long BlockCount => (long)Layout.EntryIndex(Width - 1, Height - 1, Width) + 1;
+
+    private long BlockDataOffset(int blockX, int blockY) => (long)Layout.EntryIndex(blockX, blockY, Width) * BlockFormat.EntryBytes;
+
+    /// <summary>
+    /// One tile grid per layer for block numbers [y, x] of any size; a null number or one outside every set gives an empty block
+    /// </summary>
+    private ArrangerElement?[][,] BuildLayerGrids(int?[,] numbers)
+    {
+        var (blocksHigh, blocksWide) = (numbers.GetLength(0), numbers.GetLength(1));
+        var tables = Sets.Select(x => x.Set.ReadTable()).ToArray();
+        var tileRanges = Sets.Select(x => (First: x.Set.TileSet.FirstTileIndex, Count: x.Set.TileSet.TileCount)).ToArray();
+        var (w, h) = (Shape.Width, Shape.Height);
+        var grids = Enumerable.Range(0, LayerCount).Select(_ => new ArrangerElement?[blocksHigh * h, blocksWide * w]).ToArray();
+
+        for (int by = 0; by < blocksHigh; by++)
+        {
+            for (int bx = 0; bx < blocksWide; bx++)
+            {
+                if (numbers[by, bx] is not { } number)
+                    continue;
+
                 var setIndex = FindSet(number);
                 if (setIndex < 0)
                     continue;
@@ -288,8 +316,7 @@ public sealed class MetatileMap : IProjectResource, IDisposable
             }
         }
 
-        _layerGrids = grids;
-        _blockValues = blockValues;
+        return grids;
     }
 
     private int FindSet(int number)
@@ -304,6 +331,11 @@ public sealed class MetatileMap : IProjectResource, IDisposable
     }
 
     /// <summary>
+    /// The set whose metatile range holds <paramref name="number"/>, or null when none does
+    /// </summary>
+    public MetatileMapSet? FindSetFor(int number) => FindSet(number) is var index and >= 0 ? Sets[index] : null;
+
+    /// <summary>
     /// The block's value with the index field's bits removed and the higher bits shifted down, or null when it lies past the block map data
     /// </summary>
     public int? BlockBitsValue(int blockX, int blockY)
@@ -315,10 +347,114 @@ public sealed class MetatileMap : IProjectResource, IDisposable
     /// <summary>
     /// The visible layers drawn bottom layer first over <see cref="Backdrop"/>, reading the current data
     /// </summary>
-    public LayerImage Composite() =>
-        LayerCompositor.Composite(PixelSize,
-            Layers.Select((layer, i) => new CompositorLayer(LayerImage.FromArranger(layer), Point.Empty, IsLayerVisible(i))).ToList(),
+    public LayerImage Composite() => CompositeLayers(Layers, PixelSize);
+
+    /// <summary>
+    /// The composite of <paramref name="grid"/>'s block numbers drawn through the current metatile tables and tiles
+    /// </summary>
+    public LayerImage Composite(BlockGrid grid) => RenderBlocks(grid.Numbers);
+
+    /// <summary>
+    /// Composites block numbers [y, x] of any size the way <see cref="Composite()"/> draws the map
+    /// </summary>
+    internal LayerImage RenderBlocks(int?[,] numbers)
+    {
+        var size = new Size(numbers.GetLength(1) * BlockPixelSize.Width, numbers.GetLength(0) * BlockPixelSize.Height);
+
+        var arrangers = BuildLayerGrids(numbers).Select((grid, i) =>
+        {
+            var arranger = new ScatteredArranger($"{Name} Layer {i + 1}", PixelColorType.Indexed, ElementLayout.Tiled,
+                grid.GetLength(1), grid.GetLength(0), TileSize.Width, TileSize.Height);
+
+            for (int y = 0; y < grid.GetLength(0); y++)
+            {
+                for (int x = 0; x < grid.GetLength(1); x++)
+                {
+                    if (grid[y, x] is { } element)
+                        arranger.SetElement(element, x, y);
+                }
+            }
+
+            return arranger;
+        }).ToList();
+
+        return CompositeLayers(arrangers, size);
+    }
+
+    // Layers above the bottom treat index 0 as transparent whatever the palette's flag says, as GBA and SNES backgrounds do
+    private LayerImage CompositeLayers(IReadOnlyList<Arranger> layers, Size size) =>
+        LayerCompositor.Composite(size,
+            layers.Select((layer, i) => new CompositorLayer(LayerImage.FromArranger(layer, forceZeroTransparent: i > 0), Point.Empty, IsLayerVisible(i))).ToList(),
             Backdrop);
+
+    /// <summary>
+    /// A working copy of the block numbers in the current data
+    /// </summary>
+    public BlockGrid CreateBlockGrid()
+    {
+        EnsureBuilt();
+        return new BlockGrid((int?[,])_blockNumbers.Clone());
+    }
+
+    /// <summary>
+    /// Why the block map cannot be written, completing "is read-only because it ...", or null when it can
+    /// </summary>
+    public string? BlockMapReadOnlyReason => ArrangerExtensions.DescribeReadOnlySource(BlockSource);
+
+    /// <summary>
+    /// Writes each number of <paramref name="grid"/> that differs from the block map into that block's index field, keeping its block bits,
+    /// then flushes and raises <see cref="DataSource.DataWritten"/> once if any block changed
+    /// </summary>
+    /// <returns>A failure, with nothing written, when a block changed and the block map is read-only, or a changed number fits no set
+    /// (other than the empty block) or the index field</returns>
+    public MagitekResult WriteBlocks(BlockGrid grid)
+    {
+        if (grid.Width != Width || grid.Height != Height)
+            return new MagitekResult.Failed($"Metatile map '{Name}' is {Width}x{Height} blocks, not {grid.Width}x{grid.Height}");
+
+        var entryBytes = BlockFormat.EntryBytes;
+        var data = MapDataReader.Read(BlockSource, BlockOffset, BlockCount, entryBytes).Data;
+        var writes = new List<(int Offset, int Number)>();
+
+        for (int y = 0; y < Height; y++)
+        {
+            for (int x = 0; x < Width; x++)
+            {
+                var offset = BlockDataOffset(x, y);
+                if (grid[x, y] is not { } number || offset + entryBytes > data.Length)
+                    continue;
+
+                if (BlockFormat.TileIndex.Extract(BlockFormat.ReadRawValue(data.AsSpan((int)offset, entryBytes))) == number)
+                    continue;
+
+                if (number < 0 || number > BlockFormat.MaxTileIndex)
+                    return new MagitekResult.Failed($"Block ({x}, {y}) of metatile map '{Name}' holds {number}, which does not fit the " +
+                        $"{BlockFormat.TileIndex.Bits}-bit index field of block format '{BlockFormat.Name}'");
+
+                if (number != EmptyBlock && FindSet(number) < 0)
+                    return new MagitekResult.Failed($"Block ({x}, {y}) of metatile map '{Name}' holds {number}, which is in no metatile set of the map");
+
+                writes.Add(((int)offset, number));
+            }
+        }
+
+        if (writes.Count == 0)
+            return MagitekResult.SuccessResult;
+
+        if (BlockMapReadOnlyReason is { } readOnlyReason)
+            return new MagitekResult.Failed($"The block map of metatile map '{Name}' is read-only because it {readOnlyReason}");
+
+        foreach (var (offset, number) in writes)
+        {
+            var buffer = data.AsSpan(offset, entryBytes);
+            BlockFormat.WriteRawValue(BlockFormat.TileIndex.Insert(BlockFormat.ReadRawValue(buffer), number), buffer);
+            BlockSource.Write(new BitAddress(BlockOffset + offset, 0), buffer);
+        }
+
+        BlockSource.Flush();
+        BlockSource.NotifyDataWritten();
+        return MagitekResult.SuccessResult;
+    }
 
     /// <summary>
     /// The first missing file the map reads, directly, through compressed data or through a set, or null when none is missing

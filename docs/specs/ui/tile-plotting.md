@@ -10,6 +10,9 @@ sources:
   - TileShop.UI/Features/Graphics/TilePaletteView.axaml.cs
   - TileShop.UI/Features/Graphics/Tools/CellRectangleToolHandler.cs
   - TileShop.UI/Features/Graphics/Tools/TileStrokeToolHandler.cs
+  - TileShop.UI/Features/Graphics/Tools/ICellPlotState.cs
+  - TileShop.UI/Features/Graphics/Tools/CellStroke.cs
+  - TileShop.UI/Features/Graphics/PaletteCanvasInput.cs
   - TileShop.UI/Features/Renderer/TilePaletteRenderer.cs
   - TileShop.Shared/Models/History/PlotTilesHistoryAction.cs
 types:
@@ -20,6 +23,11 @@ types:
   - TilePaletteRenderer
   - CellRectangleToolHandler
   - TileStrokeToolHandler
+  - ICellPlotState
+  - CellStroke
+  - PaletteCanvasInput
+  - ICellPalette
+  - CellRect
   - PlotTilesHistoryAction
   - EditTileSetMessage
 tests:
@@ -107,6 +115,7 @@ Tiles mode is the graphics editor's (UI-GRAPHICS-EDITOR) fourth mode on a tilema
 - **Strokes tile the brush.** Tile Pencil snaps each stamp to the stroke's brush-sized grid (LIB-TILEMAPS, "Strokes stamp on a brush-sized grid"). Rejected: overlapping stamps at every cell.
 - **One palette slot per brush** (LIB-TILEMAPS, "One palette slot per brush"), chosen in one combo that lists only assigned slots and slot 0.
 - **Ctrl picks, as in Draw.** Ctrl engages Tile Picker temporarily with any tile tool, through the same router override as Color Picker in Draw mode. Reason: one picker habit across modes. Rejected: right-click to pick (right-click opens the canvas context menu).
+- **Handlers are generic over `ICellPlotState`.** `TileStrokeToolHandler<TState>` and `CellRectangleToolHandler<TState>` take any editor that implements `ICellPlotState`; the graphics editor uses them for tiles and the metatile map editor for blocks (UI-BLOCK-PLOTTING). Reason: one gesture implementation for both. Rejected: copies per editor.
 - **Logic in the library, thin handlers.** Brush construction, stamping, fills, picks and tile palette layout are LIB-TILEMAPS code with unit tests; the tool handlers only map pointer events to cells. Reason: DevTools cannot drive canvas pointer gestures, so the behavior must be testable without them.
 - **Edit Tile Set opens a sequential editor.** It reuses the data file editor path at the tile offset with the tilemap's codec and slot 0's palette. Reason: drawing tiles in a plain tile sheet is the established way, and a new view would duplicate the graphics editor. Rejected: a dedicated tile set editor.
 

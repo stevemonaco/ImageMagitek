@@ -37,7 +37,8 @@ public sealed class LayerImage
     /// Renders the arranger's current data to 32-bit color: indexed pixels take their element's palette color and alpha,
     /// direct pixels keep their decoded color, and empty cells, elements outside their source and indexes past the palette are transparent.
     /// </summary>
-    public static LayerImage FromArranger(Arranger arranger)
+    /// <param name="forceZeroTransparent">Makes index 0 fully transparent whatever the palette's zero-index-transparent flag says</param>
+    public static LayerImage FromArranger(Arranger arranger, bool forceZeroTransparent = false)
     {
         var width = arranger.ArrangerPixelSize.Width;
         var height = arranger.ArrangerPixelSize.Height;
@@ -66,7 +67,7 @@ public sealed class LayerImage
                 {
                     var palette = codec.Palette;
                     var entries = palette.Entries;
-                    var zeroTransparent = palette.ZeroIndexTransparent;
+                    var zeroTransparent = palette.ZeroIndexTransparent || forceZeroTransparent;
 
                     for (; x < runEnd; x++)
                     {
