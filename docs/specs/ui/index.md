@@ -18,6 +18,7 @@ One spec per feature; format and usage in [../README.md](../README.md). Find a t
 | [Graphics editor](graphics-editor.md) | UI-GRAPHICS-EDITOR | `GraphicsEditorViewModel`, `GraphicsEditMode`, `ArrangerRenderer`, grid settings, Jump to Offset, custom element layout, `IToolHandler` |
 | [Arranging and selection](arranging.md) | UI-ARRANGING | `ArrangeTool`, element/pixel select, apply/pick palette, mirror/rotate tools, `ArrangerSelection`, `ArrangerPaste`, drag and drop handlers, resize and associate-palette dialogs |
 | [Tile plotting](tile-plotting.md) | UI-TILE-PLOTTING | `TileTool`, Tiles mode tools, `TilePaletteViewModel`, `TilePaletteView`, `TilePaletteRenderer`, `PlotTilesHistoryAction`, `EditTileSetMessage` |
+| [Metatile map editor and block plotting](block-plotting.md) (draft) | UI-BLOCK-PLOTTING | `MetatileMapEditorViewModel`, `MetatileMapEditorView`, `BlockPaletteViewModel`, `BlockPaletteView`, `BlockTool`, `PlotBlocksHistoryAction` |
 | [Drawing](drawing.md) | UI-DRAWING | `DrawTool`, pencil, flood fill, color picker, `DrawClipEffect`, `ColorEditorFlyoutViewModel`, `ColorRemapViewModel` |
 | [Graphics edit history](edit-history.md) | UI-EDIT-HISTORY | `GraphicsEditHistory`, `HistoryAction` and subclasses, `ArrangerSnapshot` |
 | [Image import and export](image-import-export.md) | UI-IMAGE-IO | `ImportImageViewModel`, `ImportPreviewRenderer`, `ImportImageIntoArrangerMessage` |

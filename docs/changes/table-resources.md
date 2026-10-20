@@ -60,7 +60,7 @@ What does not change: codecs, arrangers, palettes and the project format in phas
 ## Open questions
 
 - Does phase 2 justify a `table` resource type in 1.1, rendered live from the current bytes, instead of a manifest beside the definition? It would make repointing visible without regenerating, at the cost of a format change and a load-time dependency.
-- Should generation be able to produce tilemap resources ([tilemaps](tilemaps.md)) for `indexmap` layouts, so FF4's boss layouts stay editable as layouts and are not baked into element lists?
+- Should generation be able to produce tilemap resources ([tilemaps](tilemaps.md)) for `indexmap` layouts, so FF4's boss layouts stay editable as layouts and are not baked into element lists? The same question applies to [metatile maps](metatile-maps.md) and metatile sets, whose Decisions leave generating a game's whole map list (FireRed's 364 layouts) to table definitions.
 - Is relocation in scope at all, or is phase 3 a separate proposal once phases 1 and 2 have users? It is the part that changes a project-wide non-goal.
 - Should free ranges be declared in the definition (shared by everyone hacking that revision) or per project (each hack has its own free space)?
 - Text encodings for name tables: a simple per-definition character map, or a separate table file format shared with future text tooling?

@@ -23,7 +23,9 @@ One spec per feature; format and usage in [../README.md](../README.md). Find a t
 | Spec | Id | Owns |
 |---|---|---|
 | [Arrangers and elements](arrangers.md) | LIB-ARRANGERS | `Arranger`, `SequentialArranger`, `ScatteredArranger`, `ArrangerElement`, `TileLayout`, `ElementCopier`, save-conflict analysis, `ElementStore` |
-| [Tilemaps](tilemaps.md) (draft) | LIB-TILEMAPS | `MapFormat`, `MapFormatFactory`, `XmlMapFormatReader`, `MapScreenLayout`, built-in map formats, `TilemapArranger`, `SharedTileConflict`, `TileBrush`, `TilePalette`, `TilemapPlotter` |
+| [Tilemaps](tilemaps.md) (draft) | LIB-TILEMAPS | `MapFormat`, `MapFormatFactory`, `XmlMapFormatReader`, `MapScreenLayout`, built-in map formats, `TilemapArranger`, `TileSet`, `SharedTileConflict`, `TileBrush`, `TilePalette`, `TilemapPlotter` |
+| [Metatile maps](metatile-maps.md) (draft) | LIB-METATILE-MAPS | `MetatileSet`, `MetatileOrder`, `MetatileMap`, `MetatileLayerArranger`, `BlockGrid`, `BlockBrush`, `BlockPalette`, `MetatileMapPlotter`, the FRLG Block map format |
+| [Layer compositing and scenes](scenes.md) (draft) | LIB-SCENES | `LayerCompositor`, `CompositorLayer`, `LayerImage` |
 | [Indexed and direct images](images.md) | LIB-IMAGES | `IndexedImage`, `DirectImage`, `ImageCopier`, `PixelRemapOperation` |
 | [Image export and import](image-io.md) | LIB-IMAGE-IO | `ImageSharpFileAdapter`, `IndexedPngFile`, `CombinedPalette`, `ImageImporter`, `ImportReport` |
 

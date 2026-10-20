@@ -20,6 +20,7 @@ types:
   - MapFormatFileFailure
   - XmlMapFormatReader
   - TilemapArranger
+  - TileSet
   - SharedTileConflict
   - SharedTileExtensions
   - TileBrush
@@ -32,6 +33,7 @@ tests:
   - TilemapEditTests
   - TilemapProjectTests
   - TilePlottingTests
+  - TileSetTests
 depends:
   - LIB-ARRANGERS
   - LIB-CODECS
@@ -45,7 +47,7 @@ depends:
 
 ## Purpose
 
-Shows a screen that a game stores as a tile set plus a tilemap without baking it into a scattered arranger. A `TilemapArranger` is an `Arranger` (LIB-ARRANGERS) whose elements are worked out from the map's entries, so rendering, export, element copies and cloning work on it unchanged. Entries are decoded by declarative XML map formats. The map and the tiles may read a `CompressedDataSource` (LIB-COMPRESSION). LIB-PROJECT-FORMAT stores a tilemap as a `tilemap` resource. Tile plotting builds brushes from a tile palette or from the map and stamps them into the edited copy, for editors that plot whole tiles. When the map source is writable, an edited copy of the tilemap writes back only the entries that differ; when the tile source is writable, drawing and import write the tiles, so every cell that uses a tile changes with it.
+Shows a screen that a game stores as a tile set plus a tilemap without baking it into a scattered arranger. A `TilemapArranger` is an `Arranger` (LIB-ARRANGERS) whose elements are worked out from the map's entries, so rendering, export, element copies and cloning work on it unchanged. Entries are decoded by declarative XML map formats. A `TileSet` holds the tile source, offset, codec, first tile index and optional declared count, resolves tile indexes to addresses and elements and back, and is shared with metatile maps (LIB-METATILE-MAPS). The map and the tiles may read a `CompressedDataSource` (LIB-COMPRESSION). LIB-PROJECT-FORMAT stores a tilemap as a `tilemap` resource. Tile plotting builds brushes from a tile palette or from the map and stamps them into the edited copy, for editors that plot whole tiles. When the map source is writable, an edited copy of the tilemap writes back only the entries that differ; when the tile source is writable, drawing and import write the tiles, so every cell that uses a tile changes with it.
 
 ## Requirements
 
@@ -77,7 +79,7 @@ Shows a screen that a game stores as a tile set plus a tilemap without baking it
 
 - **LIB-TILEMAPS-020** — A tilemap shall be an indexed, tiled arranger of `width × height` cells with `ArrangerMode.Tilemap`, whose element pixel size is the tile codec's size. If the codec is unknown or not indexed, then creating the tilemap shall fail naming the codec.
   - Tests: `TilemapArrangerTests.DirectCodec_Throws`
-- **LIB-TILEMAPS-021** — A cell's element shall read the tile source at bit `tileOffset × 8 + (index − first) × codec.StorageSize`, where `index` is the entry's tile index and `first` the tilemap's first tile index.
+- **LIB-TILEMAPS-021** — A cell's element shall read, through the tilemap's tile set (LIB-TILEMAPS-082), the tile source at bit `tileOffset × 8 + (index − first) × codec.StorageSize`, where `index` is the entry's tile index and `first` the tilemap's first tile index.
   - Tests: `TilemapArrangerTests.Snes32Map_MatchesHandBuiltScatteredArranger`, `TilemapArrangerTests.LinearLayout_ReadsRowsInOrder`
 - **LIB-TILEMAPS-022** — If an entry's tile index is below `first`, or its tile does not lie wholly within the tile source, then the cell shall be empty, and `OutOfRangeCount` shall count it.
   - Tests: `TilemapArrangerTests.IndexOutsideTileSet_GivesEmptyCell`
@@ -104,7 +106,7 @@ Shows a screen that a game stores as a tile set plus a tilemap without baking it
 
 ### Writing entries
 
-- **LIB-TILEMAPS-040** — An element shall be a tile of the tile set when it reads the tile source, uses the tile codec, is not rotated, is mirrored only in directions the format has a flip field for, and reads a whole tile of the tile source at or after the tile offset, on a tile boundary; its tile index is then `(address − tileOffset × 8) ÷ codec.StorageSize + first`.
+- **LIB-TILEMAPS-040** — An element shall be a tile of the tilemap's tile set (LIB-TILEMAPS-083, against the tilemap's map format) when it reads the tile source, uses the tile codec, is not rotated, is mirrored only in directions the format has a flip field for, and reads a whole tile of the tile source at or after the tile offset, on a tile boundary; its tile index is then `(address − tileOffset × 8) ÷ codec.StorageSize + first`.
   - Tests: `TilemapEditTests.FindTileIndex_TileOfTileSet_ReturnsIndexFromFirstTile`
 - **LIB-TILEMAPS-041** — If an element is not a tile of the tile set, or its tile index is above the format's largest tile index, then the tilemap shall refuse it with a reason that completes "element at (x, y) …": "reads data file '<name>', not the tile set's data file '<name>'", "uses codec '<name>', not the tile set's codec '<name>'", "is rotated; tilemap entries cannot be rotated", "is mirrored horizontally; map format '<name>' has no horizontal flip field", "is mirrored vertically; map format '<name>' has no vertical flip field", "reads 0x<offset>, which is not on a tile boundary of the tile set", "reads 0x<offset>, which is outside the tile set" or "is tile <n>, which does not fit the <bits>-bit tile field of map format '<name>'".
   - Tests: `TilemapEditTests.FindTileIndex_OtherSource_Refuses`, `TilemapEditTests.FindTileIndex_OtherCodec_Refuses`, `TilemapEditTests.FindTileIndex_Rotated_Refuses`, `TilemapEditTests.FindTileIndex_MirroredWithoutFlipField_Refuses`, `TilemapEditTests.FindTileIndex_UnalignedAddress_Refuses`, `TilemapEditTests.FindTileIndex_OutsideTileSet_Refuses`, `TilemapEditTests.FindTileIndex_IndexWiderThanField_Refuses`
@@ -128,7 +130,7 @@ Shows a screen that a game stores as a tile set plus a tilemap without baking it
 
 ### Tile plotting
 
-- **LIB-TILEMAPS-060** — A tilemap's tile count shall be the number of tiles that lie wholly in the tile source from the tile offset, capped at `MaxTileIndex − first + 1` and at the declared tile count when the tilemap has one, and 0 when the tile offset is past the source or the source file is missing.
+- **LIB-TILEMAPS-060** — A tilemap's tile count shall be its tile set's count (LIB-TILEMAPS-081) capped at `MaxTileIndex − first + 1`.
   - Tests: `TilePlottingTests.TileCount_CappedByTileSetEnd`, `TilePlottingTests.TileCount_CappedByTileField`, `TilePlottingTests.TileCount_PastSource_IsZero`, `TilePlottingTests.TileCount_CappedByDeclaredCount_AndHigherTilesRenderEmpty`
 - **LIB-TILEMAPS-061** — A tile element made for a tile index and cell shall read the address of LIB-TILEMAPS-021 with the given codec and mirror and no rotation. A slot codec clone shall be a new codec instance showing that slot's effective palette (LIB-TILEMAPS-023).
   - Tests: `TilePlottingTests.Generate_LaysOutTilesFromFirstTile_InSlotPalette`, `TilePlottingTests.Stamp_ThenWriteEntries_ChangesOnlyTargetEntry`
@@ -161,6 +163,17 @@ Shows a screen that a game stores as a tile set plus a tilemap without baking it
 - **LIB-TILEMAPS-075** — A tilemap's most-used palette slot shall be the assigned slot (slot 0 or a slot with a palette) that the most read cells use, a cell naming an empty slot counting as slot 0, and the lowest such slot on a tie.
   - Tests: `TilePlottingTests.MostUsedPaletteSlot_PicksMajoritySlot`, `TilePlottingTests.MostUsedPaletteSlot_CountsEmptySlotsAsSlotZero`
 
+### Tile sets
+
+- **LIB-TILEMAPS-080** — A tile set shall hold a tile source, a tile offset, a codec name, the tile index of its first tile and an optional declared tile count. If the codec is unknown or not indexed, or the declared count is 0 or less, then creating it shall fail; a tilemap's message names the tilemap ("Tilemap '<name>' uses unknown codec '<codec>'", "… uses direct codec '<codec>'; tile codecs must be indexed", "… must declare a positive tile count, not <n>").
+  - Tests: `TileSetTests.Create_UnknownOrDirectCodecOrNonPositiveCount_Throws`, `TilemapArrangerTests.DirectCodec_Throws`, `TilePlottingTests.DeclaredTileCount_NotPositive_Throws`
+- **LIB-TILEMAPS-081** — A tile set's tile count shall be the number of tiles that lie wholly in the tile source from the tile offset, capped at the declared count when it has one, and 0 when the offset is past the source or the source file is missing; no map format caps it. The set shall hold the tile indexes `[first, first + count)`.
+  - Tests: `TileSetTests.TileCount_CappedBySourceAndDeclaredCount`, `TileSetTests.Contains_HoldsRangeFromFirstTile`
+- **LIB-TILEMAPS-082** — A tile set shall give tile `index` the address of LIB-TILEMAPS-021 and make tile elements as LIB-TILEMAPS-061 says.
+  - Tests: `TileSetTests.TileAddress_CountsFromFirstTile`
+- **LIB-TILEMAPS-083** — A tile set shall resolve an element to a tile index as LIB-TILEMAPS-040 says, refusing it with the reasons of LIB-TILEMAPS-041 checked in that order, against a map format the caller gives.
+  - Tests: `TileSetTests.FindTileIndex_TileOfSet_ReturnsIndexFromFirstTile`
+
 ## Invariants
 
 - The element grid always equals what the current map and tile bytes decode to; nothing else writes it.
@@ -182,6 +195,7 @@ Shows a screen that a game stores as a tile set plus a tilemap without baking it
 
 ## Decisions
 
+- **TileSet is shared by tilemaps and metatile maps.** Tile index, address and count rules live in one `TileSet` type; a tilemap has one, and a metatile map resolves a tile index across several by their ranges (LIB-METATILE-MAPS-013). The map format is a parameter of `FindTileIndex`, because flip and tile-field checks belong to the entry format. Reason: one place for the rules, so metatile maps cannot drift from tilemaps. Rejected: duplicating resolution in `MetatileSet`; putting the map format inside `TileSet` (a metatile map's sets may be indexed by different formats); capping `TileSet.TileCount` by a tile-field width (the tilemap applies its format's cap itself).
 - **Edit a bake, write entries on Save.** Arrange-mode edits run on the tilemap's clone, a scattered arranger (LIB-TILEMAPS-029), with the scattered editing, history and undo unchanged; Save writes the entries that differ from the map (LIB-TILEMAPS-045) and the editor re-clones. The tilemap keeps its invariant that its grid is what the map decodes to. Reason: one editing pipeline for both kinds of arranger. Rejected: a mutable `TilemapArranger` with pending entries (a second source of truth for a cell until Save); a tilemap-specific edit history.
 - **Target keeps priority and unknown bits.** A written entry takes its priority and every bit outside the format's fields from the entry it replaces, so moving a cell does not carry the source cell's priority. Reason: `ArrangerElement` has no priority field, and keeping bits the editor cannot show avoids clearing data it does not understand. Rejected: a priority field on `ArrangerElement` (touches every arranger for one format bit).
 - **Draw: changed cells win; import: all cells must agree.** When drawing, the cells the user drew on decide a shared tile and unchanged copies follow; when importing, a PNG gives every cell's pixels, so cells of one tile that differ are a conflict and the tile is left unchanged. Reason: an untouched copy of a tile is not a vote against a drawing, but two PNG cells that differ are, and picking one silently loses work. Rejected: last element written wins (the scattered save conflict rule); copy-on-write into new tiles (needs free tiles and map rewrites; a later re-tile feature).

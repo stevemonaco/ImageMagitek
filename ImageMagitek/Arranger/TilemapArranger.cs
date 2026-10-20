@@ -19,6 +19,7 @@ public sealed class TilemapArranger : Arranger, IDisposable
     private readonly object _gridLock = new();
     private readonly IGraphicsCodec[] _slotCodecs;
     private readonly ICodecFactory _codecFactory;
+    private readonly TileSet _tileSet;
     private readonly ConditionalWeakTable<IGraphicsCodec, StrongBox<int>> _codecSlots = new();
     private ArrangerElement?[,] _grid;
     private int[,] _gridSlots;
@@ -48,10 +49,11 @@ public sealed class TilemapArranger : Arranger, IDisposable
     public long MapOffset { get; }
     public MapFormat MapFormat { get; }
     public MapScreenLayout ScreenLayout { get; }
-    public DataSource TileSource { get; }
-    public long TileOffset { get; }
-    public string CodecName { get; }
-    public int FirstTileIndex { get; }
+
+    public DataSource TileSource => _tileSet.Source;
+    public long TileOffset => _tileSet.Offset;
+    public string CodecName => _tileSet.CodecName;
+    public int FirstTileIndex => _tileSet.FirstTileIndex;
 
     /// <summary>
     /// The tile index written into the entry of a deleted cell
@@ -61,7 +63,7 @@ public sealed class TilemapArranger : Arranger, IDisposable
     /// <summary>
     /// The number of tiles the tile set declares, or null when it runs to the end of the tile source
     /// </summary>
-    public int? DeclaredTileCount { get; }
+    public int? DeclaredTileCount => _tileSet.DeclaredCount;
 
     /// <summary>
     /// The palette for each value of the entry's palette field; an empty slot uses slot 0
@@ -77,18 +79,7 @@ public sealed class TilemapArranger : Arranger, IDisposable
     /// The number of tiles from <see cref="FirstTileIndex"/> that lie wholly in the tile source, fit the format's tile field
     /// and are within <see cref="DeclaredTileCount"/>
     /// </summary>
-    public int TileCount
-    {
-        get
-        {
-            var storageBits = (long)_slotCodecs[0].StorageSize;
-            var tileBits = TileSource is FileDataSource { IsMissing: true } ? 0 : TileSource.Length * 8;
-            var inSource = Math.Max(0, tileBits - TileOffset * 8) / storageBits;
-            var inField = (long)MapFormat.MaxTileIndex - FirstTileIndex + 1;
-            var declared = DeclaredTileCount ?? long.MaxValue;
-            return (int)Math.Max(0, Math.Min(Math.Min(inSource, inField), declared));
-        }
-    }
+    public int TileCount => (int)Math.Max(0, Math.Min(_tileSet.TileCount, (long)MapFormat.MaxTileIndex - FirstTileIndex + 1));
 
     /// <summary>
     /// The assigned palette slot that the most read cells use, counting a cell naming an empty slot as slot 0; the lowest such slot on a tie
@@ -162,8 +153,14 @@ public sealed class TilemapArranger : Arranger, IDisposable
         int width, int height, DataSource tileSource, long tileOffset, string codecName, int firstTileIndex,
         IReadOnlyList<Palette?> paletteSlots, ICodecFactory codecFactory, int emptyTileIndex = 0, int? declaredTileCount = null)
     {
-        if (declaredTileCount <= 0)
-            throw new ArgumentException($"Tilemap '{name}' must declare a positive tile count, not {declaredTileCount}");
+        try
+        {
+            _tileSet = new TileSet(tileSource, tileOffset, codecName, firstTileIndex, declaredTileCount, codecFactory);
+        }
+        catch (ArgumentException ex)
+        {
+            throw new ArgumentException($"Tilemap '{name}' {ex.Message}");
+        }
 
         if (width <= 0 || height <= 0)
             throw new ArgumentException($"Tilemap '{name}' must have a positive width and height, not {width}x{height}");
@@ -182,12 +179,7 @@ public sealed class TilemapArranger : Arranger, IDisposable
         MapOffset = mapOffset;
         MapFormat = mapFormat;
         ScreenLayout = screenLayout;
-        TileSource = tileSource;
-        TileOffset = tileOffset;
-        CodecName = codecName;
-        FirstTileIndex = firstTileIndex;
         EmptyTileIndex = emptyTileIndex;
-        DeclaredTileCount = declaredTileCount;
         _codecFactory = codecFactory;
 
         var slots = new Palette?[mapFormat.PaletteSlotCount];
@@ -199,12 +191,12 @@ public sealed class TilemapArranger : Arranger, IDisposable
         for (int i = 0; i < slots.Length; i++)
         {
             if (i == 0 || slots[i] is not null)
-                _slotCodecs[i] = CreateSlotCodec(slots[i]);
+                _slotCodecs[i] = _tileSet.CreateCodec(slots[i]);
             else
                 _slotCodecs[i] = _slotCodecs[0];
         }
 
-        ElementPixelSize = new Size(_slotCodecs[0].Width, _slotCodecs[0].Height);
+        ElementPixelSize = _tileSet.TileSize;
         ArrangerElementSize = new Size(width, height);
         _grid = new ArrangerElement?[height, width];
         _gridSlots = new int[height, width];
@@ -212,30 +204,6 @@ public sealed class TilemapArranger : Arranger, IDisposable
         MapSource.DataWritten += OnSourceWritten;
         if (!ReferenceEquals(TileSource, MapSource))
             TileSource.DataWritten += OnSourceWritten;
-    }
-
-    private IGraphicsCodec CreateSlotCodec(Palette? palette)
-    {
-        IGraphicsCodec? codec;
-        try
-        {
-            codec = _codecFactory.CreateCodec(CodecName);
-        }
-        catch (KeyNotFoundException)
-        {
-            codec = null;
-        }
-
-        if (codec is null)
-            throw new ArgumentException($"Tilemap '{Name}' uses unknown codec '{CodecName}'");
-
-        if (codec is not IIndexedCodec indexedCodec)
-            throw new ArgumentException($"Tilemap '{Name}' uses direct codec '{CodecName}'; tile codecs must be indexed");
-
-        if (palette is not null)
-            indexedCodec.Palette = palette;
-
-        return codec;
     }
 
     private void OnSourceWritten(object? sender, EventArgs e) => _isDirty = true;
@@ -313,8 +281,7 @@ public sealed class TilemapArranger : Arranger, IDisposable
                 var slot = entry.Palette < _slotCodecs.Length ? entry.Palette : 0;
                 gridSlots[y, x] = slot;
                 var codec = _slotCodecs[slot];
-                grid[y, x] = new ArrangerElement(x * ElementPixelSize.Width, y * ElementPixelSize.Height, TileSource,
-                    new BitAddress(TileAddress(entry.TileIndex)), codec, entry.Mirror, RotationOperation.None);
+                grid[y, x] = _tileSet.CreateTileElement(entry.TileIndex, codec, entry.Mirror, x, y);
             }
         }
 
@@ -373,8 +340,6 @@ public sealed class TilemapArranger : Arranger, IDisposable
         return arranger;
     }
 
-    private long TileAddress(int tileIndex) => TileOffset * 8 + ((long)tileIndex - FirstTileIndex) * _slotCodecs[0].StorageSize;
-
     /// <summary>
     /// A new codec instance showing the palette of <paramref name="slot"/>, shared by no other arranger
     /// </summary>
@@ -384,8 +349,7 @@ public sealed class TilemapArranger : Arranger, IDisposable
     /// The element for cell (<paramref name="cellX"/>, <paramref name="cellY"/>) reading tile <paramref name="tileIndex"/> of the tile set
     /// </summary>
     public ArrangerElement CreateTileElement(int tileIndex, IGraphicsCodec codec, MirrorOperation mirror, int cellX, int cellY) =>
-        new(cellX * ElementPixelSize.Width, cellY * ElementPixelSize.Height, TileSource, new BitAddress(TileAddress(tileIndex)), codec,
-            mirror, RotationOperation.None);
+        _tileSet.CreateTileElement(tileIndex, codec, mirror, cellX, cellY);
 
     private IGraphicsCodec CloneCodec(IGraphicsCodec codec, int slot)
     {
@@ -432,37 +396,7 @@ public sealed class TilemapArranger : Arranger, IDisposable
     /// The tile index an entry should hold to show the tile <paramref name="element"/> reads, or why it is not a tile of this tile set
     /// </summary>
     /// <returns>On failure, a reason that completes "element at (x, y) ..."</returns>
-    public MagitekResult<int> FindTileIndex(ArrangerElement element)
-    {
-        if (!ReferenceEquals(element.Source, TileSource))
-            return new MagitekResult<int>.Failed($"reads data file '{element.Source.Name}', not the tile set's data file '{TileSource.Name}'");
-
-        if (element.Codec.Name != CodecName)
-            return new MagitekResult<int>.Failed($"uses codec '{element.Codec.Name}', not the tile set's codec '{CodecName}'");
-
-        if (element.Rotation != RotationOperation.None)
-            return new MagitekResult<int>.Failed("is rotated; tilemap entries cannot be rotated");
-
-        if (element.Mirror.FlipsHorizontally() && MapFormat.HorizontalFlip is null)
-            return new MagitekResult<int>.Failed($"is mirrored horizontally; map format '{MapFormat.Name}' has no horizontal flip field");
-
-        if (element.Mirror.FlipsVertically() && MapFormat.VerticalFlip is null)
-            return new MagitekResult<int>.Failed($"is mirrored vertically; map format '{MapFormat.Name}' has no vertical flip field");
-
-        var storageBits = (long)_slotCodecs[0].StorageSize;
-        var bit = element.SourceAddress.Offset - TileOffset * 8;
-        if (bit >= 0 && bit % storageBits != 0)
-            return new MagitekResult<int>.Failed($"reads 0x{element.SourceAddress.ByteOffset:X}, which is not on a tile boundary of the tile set");
-
-        if (bit < 0 || element.SourceAddress.Offset + storageBits > TileSource.Length * 8)
-            return new MagitekResult<int>.Failed($"reads 0x{element.SourceAddress.ByteOffset:X}, which is outside the tile set");
-
-        var index = bit / storageBits + FirstTileIndex;
-        if (index > MapFormat.MaxTileIndex)
-            return new MagitekResult<int>.Failed($"is tile {index}, which does not fit the {MapFormat.TileIndex.Bits}-bit tile field of map format '{MapFormat.Name}'");
-
-        return new MagitekResult<int>.Success((int)index);
-    }
+    public MagitekResult<int> FindTileIndex(ArrangerElement element) => _tileSet.FindTileIndex(element, MapFormat);
 
     /// <summary>
     /// Checks that <paramref name="pasted"/> is a tile of this tile set and gives it a palette a slot holds:

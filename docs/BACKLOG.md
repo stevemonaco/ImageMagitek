@@ -59,6 +59,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-TABLES] Table-driven resources: generate arrangers and palettes from a game's record tables through a declarative definition, regenerate them after the table changes, and relocate data by rewriting its pointer: [change proposal](changes/table-resources.md).
 - [LIB-TILEMAPS] Tilemap resources: a map read from data, decoded by a map format, edited in Arrange mode, plotted in Tiles mode and written back in place: [change proposal](changes/tilemaps.md).
 - [LIB-SCENES] Layered scenes: stack arrangers back to front with transparency into one composite view, export it, and draw on an active layer: [change proposal](changes/layers.md).
+- [LIB-METATILE-MAPS] Metatile maps: block maps drawn through shared metatile sets with layered metatiles, viewed composited and edited by plotting blocks, as in FireRed's overworld: [change proposal](changes/metatile-maps.md).
 - [LIB-CODECS] XML format extensions: tile stride/padding, bit order and endianness, per-tile header bytes (variable-width fonts currently need a plugin).
 - [LIB-ARRANGERS] Bit-wise sequential offsets: tiled elements and absolute moves are bit-addressed, but Single-layout stepping (TODO in `SequentialArranger`) and its row/column/page steps are not; done when Single-layout round-trip tests pass at a non-byte-aligned offset.
 - [LIB-COLORS] Color models: RGB24, ARGB32, RGB565, TG16 GRB333, N64 IA/I, grayscale.
