@@ -22,6 +22,7 @@ depends:
   - LIB-PROJECT-SERVICE
   - LIB-PROJECT-TREE
   - LIB-TILEMAPS
+  - LIB-METATILE-MAPS
   - LIB-DATASOURCE
   - LIB-ARRANGERS
   - UI-SHELL
@@ -51,7 +52,9 @@ depends:
   - Tests: manual — open FE8 compressed data, and a compressed data resource whose plugin is not installed.
 - **UI-EDITORS-063** — When a tilemap (LIB-TILEMAPS) is activated, the editors shall open it in a graphics editor for the tilemap (UI-GRAPHICS-EDITOR-001); if it has a `MapError`, they shall alert "Tilemap" with the error and open nothing. A missing map, tile or palette file is caught first by UI-EDITORS-010.
   - Tests: manual — open `/Title Screen/Border Tilemap` in the FireRed project; change a tilemap's `mapoffset` to past the end of its map data in the XML and open it.
-- **UI-EDITORS-064** — When Edit Tile Set is chosen for a tilemap (UI-TILE-PLOTTING-016), the editors shall open and activate a new sequential editor over the tile source at the tile offset with the tilemap's codec and slot 0's palette (the default palette when slot 0 is empty), 16 tiles wide (as many as the tile set has when fewer) and as many whole rows as the tile set holds, from 1 to 32, so the editor starts exactly at the tile offset; if the tile source's file is missing, they shall alert "Edit Tile Set" as UI-EDITORS-010 does and open nothing. The editor's originating resource is the tile source.
+- **UI-EDITORS-065** — When a metatile map (LIB-METATILE-MAPS) is activated, the editors shall open it in a metatile map editor tab (`MetatileMapEditorView`, UI-BLOCK-PLOTTING-001); if it has a `MapError`, they shall alert "Map Error" with the error and open nothing. A missing block, metatile, tile, attribute or palette file is caught first by UI-EDITORS-010. Activating a metatile set shall open nothing.
+  - Tests: manual — DevTools: open `/Overworld/Pallet Town` in a copy of the FireRed project; activate a metatile set node and check no tab opens.
+- **UI-EDITORS-064** — When Edit Tile Set is chosen for a tilemap (UI-TILE-PLOTTING-016) or a metatile set (UI-BLOCK-PLOTTING-040), the editors shall open and activate a new sequential editor over the tile source at the tile offset with the tilemap's or set's codec and slot 0's palette (the default palette when slot 0 is empty), 16 tiles wide (as many as the tile set has when fewer) and as many whole rows as the tile set holds, from 1 to 32, so the editor starts exactly at the tile offset; if the tile source's file is missing, they shall alert "Edit Tile Set" as UI-EDITORS-010 does and open nothing. The editor's originating resource is the tile source.
   - Tests: manual — DevTools: `EditTileSetButton` on "Title Map" in a copy of the FF2 demo opens a tab at `Offset: 0x44000` with codec SNES 4bpp, 16x32 elements and palette TitlePal0.
 - **UI-EDITORS-005** — The sequential arranger for a data file shall use the codec associated with the file's lower-cased extension in `ExtensionCodecAssociations`, else the `default` association, else "NES 1bpp".
   - Tests: untested

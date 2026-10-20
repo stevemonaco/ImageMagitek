@@ -274,7 +274,7 @@ public sealed class TilemapArrangerTests : IDisposable
         Assert.True(tilemap.LinkedResources.ToHashSet().SetEquals([_map, _tiles, _slot0, _slot1]));
     }
 
-    private static void AssertSameElements(Arranger expected, Arranger actual)
+    internal static void AssertSameElements(Arranger expected, Arranger actual)
     {
         Assert.Equal(expected.ArrangerElementSize, actual.ArrangerElementSize);
 

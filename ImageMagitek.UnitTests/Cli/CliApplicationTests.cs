@@ -482,6 +482,75 @@ public sealed class CliApplicationTests : IDisposable
         Assert.Contains("to '/Graphics/PackedScreen'...Skipped: arranger is read-only (reads compressed data 'packed', which is read-only)", Output);
     }
 
+    private const string MetatileMapKey = "Graphics/Town";
+
+    private void UseMetatileMap(string mapOffset = "100")
+    {
+        UseTilemap();
+        WriteResource("Graphics/TownTiles.xml", """
+            <metatileset metatiledatafile="/Data/simple" metatileoffset="200" metatilecount="1" layers="2" format="GBA Text BG" tiledatafile="/Data/simple" tileoffset="0" codec="SNES 2bpp">
+            	<paletteslot index="0" palette="/Palettes/Simple" />
+            </metatileset>
+            """);
+        WriteResource("Graphics/Town.xml", $"""
+            <metatilemap mapdatafile="/Data/simple" mapoffset="{mapOffset}" width="2" height="1" format="FRLG Block">
+            	<set metatileset="/Graphics/TownTiles" base="0" />
+            </metatilemap>
+            """);
+    }
+
+    [Fact]
+    public async Task Export_MetatileMap_WritesCompositePngExits0()
+    {
+        UseMetatileMap();
+
+        Assert.Equal(0, await RunAsync("export", _projectFile, _imageDirectory, MetatileMapKey));
+
+        using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(ImagePath(MetatileMapKey));
+        Assert.Equal((32, 16), (image.Width, image.Height));
+        Assert.Equal(Black, image[0, 0]);
+    }
+
+    [Fact]
+    public async Task Export_MetatileMapWithMapError_Exits7()
+    {
+        UseMetatileMap($"{new FileInfo(SimpleDataFile).Length - 2:X}");
+
+        Assert.Equal(-7, await RunAsync("export", _projectFile, _imageDirectory, MetatileMapKey));
+        Assert.Contains("holds 1 of the 2 blocks", Output);
+        Assert.False(File.Exists(ImagePath(MetatileMapKey)));
+    }
+
+    [Fact]
+    public async Task ExportAll_IncludesMetatileMaps()
+    {
+        UseMetatileMap();
+
+        Assert.Equal(0, await RunAsync("exportall", _projectFile, _imageDirectory));
+        Assert.True(File.Exists(ImagePath(MetatileMapKey)));
+        Assert.Equal(4, Directory.GetFiles(_imageDirectory, "*.png", SearchOption.AllDirectories).Length);
+    }
+
+    [Fact]
+    public async Task Import_MetatileMap_SkippedExits0()
+    {
+        UseMetatileMap();
+        Assert.Equal(0, await RunAsync("export", _projectFile, _imageDirectory, MetatileMapKey));
+
+        Assert.Equal(0, await RunAsync("import", _projectFile, _imageDirectory, MetatileMapKey));
+        Assert.Contains("Skipped: metatile maps cannot be imported", Output);
+    }
+
+    [Fact]
+    public async Task ImportAll_SkipsMetatileMaps()
+    {
+        UseMetatileMap();
+        Assert.Equal(0, await RunAsync("exportall", _projectFile, _imageDirectory));
+
+        Assert.Equal(0, await RunAsync("importall", _projectFile, _imageDirectory));
+        Assert.Contains($"to '/{MetatileMapKey}'...Skipped: metatile maps cannot be imported", Output);
+    }
+
     #endregion
 
     #region Missing data files

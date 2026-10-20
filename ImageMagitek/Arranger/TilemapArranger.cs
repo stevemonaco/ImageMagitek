@@ -187,14 +187,7 @@ public sealed class TilemapArranger : Arranger, IDisposable
             slots[i] = paletteSlots[i];
         PaletteSlots = slots;
 
-        _slotCodecs = new IGraphicsCodec[slots.Length];
-        for (int i = 0; i < slots.Length; i++)
-        {
-            if (i == 0 || slots[i] is not null)
-                _slotCodecs[i] = _tileSet.CreateCodec(slots[i]);
-            else
-                _slotCodecs[i] = _slotCodecs[0];
-        }
+        _slotCodecs = _tileSet.CreateSlotCodecs(slots);
 
         ElementPixelSize = _tileSet.TileSize;
         ArrangerElementSize = new Size(width, height);
@@ -229,20 +222,13 @@ public sealed class TilemapArranger : Arranger, IDisposable
         var height = ArrangerElementSize.Height;
         var entryBytes = MapFormat.EntryBytes;
         var entryCount = (long)ScreenLayout.EntryIndex(width - 1, height - 1, width) + 1;
-        var neededBytes = entryCount * entryBytes;
+        var (data, readEntries, sourceError) = MapDataReader.Read(MapSource, MapOffset, entryCount, entryBytes);
 
-        if (MapSource is CompressedDataSource { DecompressionError: { } decompressionError })
-            return ([], decompressionError);
+        if (sourceError is not null)
+            return (data, sourceError);
 
-        if (MapSource is FileDataSource { IsMissing: true })
-            return ([], $"Data file '{MapSource.Name}' is missing");
-
-        var available = Math.Max(0, MapSource.Length - MapOffset);
-        var readBytes = (int)Math.Min(neededBytes, available);
-        var data = readBytes > 0 ? MapSource.Read(new BitAddress(MapOffset, 0), readBytes * 8) : [];
-
-        var error = readBytes < neededBytes
-            ? $"The map data in '{MapSource.Name}' holds {readBytes / entryBytes} of the {entryCount} entries a {width}x{height} map needs"
+        var error = readEntries < entryCount
+            ? $"The map data in '{MapSource.Name}' holds {readEntries} of the {entryCount} entries a {width}x{height} map needs"
             : null;
 
         return (data, error);

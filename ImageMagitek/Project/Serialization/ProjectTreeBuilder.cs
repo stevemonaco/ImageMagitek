@@ -6,6 +6,7 @@ using CommunityToolkit.Diagnostics;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Compression;
+using ImageMagitek.Metatiles;
 using ImageMagitek.Tilemaps;
 
 namespace ImageMagitek.Project.Serialization;
@@ -146,22 +147,7 @@ internal sealed class ProjectTreeBuilder
         if (format is null)
             reasons.Add($"Tilemap '{pathKey}' uses unknown map format '{model.FormatName}'");
 
-        var codec = CreateCodecOrNull(model.CodecName, null);
-        if (codec is null)
-            reasons.Add($"Tilemap '{pathKey}' uses unknown codec '{model.CodecName}'");
-        else if (codec is not IIndexedCodec)
-            reasons.Add($"Tilemap '{pathKey}' uses direct codec '{model.CodecName}'; tile codecs must be indexed");
-
-        var slots = new Palette?[format?.PaletteSlotCount ?? 0];
-        foreach (var (index, paletteKey) in model.PaletteSlots)
-        {
-            if (format is not null && index >= slots.Length)
-                reasons.Add($"Tilemap '{pathKey}' assigns palette slot {index}, but map format '{format.Name}' has {slots.Length} slots");
-            else if (ResolvePalette(paletteKey) is not { } palette)
-                reasons.Add($"Tilemap '{pathKey}' references palette '{paletteKey}', which is not in the project or the global palettes");
-            else if (format is not null)
-                slots[index] = palette;
-        }
+        var slots = ResolveTileInputs($"Tilemap '{pathKey}'", model.CodecName, format, model.PaletteSlots, reasons);
 
         ScatteredArranger? tilePalette = null;
         if (model.TilePaletteKey is { } tilePaletteKey)
@@ -189,6 +175,116 @@ internal sealed class ProjectTreeBuilder
         tilemap.TilePaletteArranger = tilePalette;
 
         var node = new TilemapNode(tilemap.Name, tilemap)
+        {
+            DiskLocation = fileLocation,
+            Model = model
+        };
+
+        var attachResult = AttachNode(node, parentNodePath);
+        return attachResult.HasSucceeded ? MagitekResults.SuccessResults : new MagitekResults.Failed([attachResult.AsError.Reason]);
+    }
+
+    /// <summary>
+    /// Builds and attaches a metatile set over data sources and palettes that must already be in the tree, collecting one failure reason per
+    /// unresolved key, format or codec
+    /// </summary>
+    public MagitekResults AddMetatileSet(MetatileSetModel model, string parentNodePath, string fileLocation)
+    {
+        Guard.IsNotNull(Tree);
+        var pathKey = CreatePathKey(parentNodePath, model.Name);
+        var reasons = new List<string>();
+
+        if (!Tree.TryGetItem<DataSource>(model.MetatileDataKey, out var metatileSource))
+            reasons.Add($"Metatile set '{pathKey}' references metatile data file '{model.MetatileDataKey}', which is not in the project");
+
+        if (!Tree.TryGetItem<DataSource>(model.TileDataKey, out var tileSource))
+            reasons.Add($"Metatile set '{pathKey}' references tile data file '{model.TileDataKey}', which is not in the project");
+
+        DataSource? attributeSource = null;
+        if (model.AttributeDataKey is { } attributeKey)
+        {
+            if (Tree.TryGetItem<DataSource>(attributeKey, out var found))
+                attributeSource = found;
+            else
+                reasons.Add($"Metatile set '{pathKey}' references attribute data file '{attributeKey}', which is not in the project");
+        }
+
+        if (model.AttributeDataKey is not null && model.AttributeSize is null)
+            reasons.Add($"Metatile set '{pathKey}' has an attribute data file but no attribute size");
+
+        var format = _mapFormatFactory.Find(model.FormatName);
+        if (format is null)
+            reasons.Add($"Metatile set '{pathKey}' uses unknown map format '{model.FormatName}'");
+
+        var slots = ResolveTileInputs($"Metatile set '{pathKey}'", model.CodecName, format, model.PaletteSlots, reasons);
+
+        if (reasons.Count > 0)
+            return new MagitekResults.Failed(reasons);
+
+        MetatileSet set;
+        try
+        {
+            set = new MetatileSet(model.Name, metatileSource!, model.MetatileOffset, model.MetatileCount,
+                new Size(model.MetatileWidth, model.MetatileHeight), model.Layers, format!, model.Order,
+                tileSource!, model.TileOffset, model.CodecName, model.FirstTile, model.TileCount, slots, _codecFactory,
+                attributeSource, model.AttributeOffset, model.AttributeSize ?? 0);
+        }
+        catch (ArgumentException ex)
+        {
+            return new MagitekResults.Failed([$"Metatile set '{pathKey}': {ex.Message}"]);
+        }
+
+        var node = new MetatileSetNode(set.Name, set)
+        {
+            DiskLocation = fileLocation,
+            Model = model
+        };
+
+        var attachResult = AttachNode(node, parentNodePath);
+        return attachResult.HasSucceeded ? MagitekResults.SuccessResults : new MagitekResults.Failed([attachResult.AsError.Reason]);
+    }
+
+    /// <summary>
+    /// Builds and attaches a metatile map over a data source and metatile sets that must already be in the tree, collecting one failure reason per
+    /// unresolved key or format
+    /// </summary>
+    public MagitekResults AddMetatileMap(MetatileMapModel model, string parentNodePath, string fileLocation)
+    {
+        Guard.IsNotNull(Tree);
+        var pathKey = CreatePathKey(parentNodePath, model.Name);
+        var reasons = new List<string>();
+
+        if (!Tree.TryGetItem<DataSource>(model.MapDataKey, out var mapSource))
+            reasons.Add($"Metatile map '{pathKey}' references map data file '{model.MapDataKey}', which is not in the project");
+
+        var format = _mapFormatFactory.Find(model.FormatName);
+        if (format is null)
+            reasons.Add($"Metatile map '{pathKey}' uses unknown block format '{model.FormatName}'");
+
+        var sets = new List<MetatileMapSet>();
+        foreach (var (setKey, setBase) in model.Sets)
+        {
+            if (Tree.TryGetNode(setKey, out var setNode) && setNode.Item is MetatileSet set)
+                sets.Add(new MetatileMapSet(set, setBase));
+            else
+                reasons.Add($"Metatile map '{pathKey}' references metatile set '{setKey}', which is not a metatile set in the project");
+        }
+
+        if (reasons.Count > 0)
+            return new MagitekResults.Failed(reasons);
+
+        MetatileMap map;
+        try
+        {
+            map = new MetatileMap(model.Name, mapSource!, model.MapOffset, format!, model.Layout, model.Width, model.Height, sets,
+                model.EmptyBlock);
+        }
+        catch (ArgumentException ex)
+        {
+            return new MagitekResults.Failed([$"Metatile map '{pathKey}': {ex.Message}"]);
+        }
+
+        var node = new MetatileMapNode(map.Name, map)
         {
             DiskLocation = fileLocation,
             Model = model
@@ -244,6 +340,28 @@ internal sealed class ProjectTreeBuilder
 
     private static string CreatePathKey(string parentNodePath, string name) =>
         string.IsNullOrEmpty(parentNodePath) ? $"/{name}" : $"/{parentNodePath}/{name}";
+
+    private Palette?[] ResolveTileInputs(string owner, string codecName, MapFormat? format, IReadOnlyDictionary<int, string> paletteSlots, List<string> reasons)
+    {
+        var codec = CreateCodecOrNull(codecName, null);
+        if (codec is null)
+            reasons.Add($"{owner} uses unknown codec '{codecName}'");
+        else if (codec is not IIndexedCodec)
+            reasons.Add($"{owner} uses direct codec '{codecName}'; tile codecs must be indexed");
+
+        var slots = new Palette?[format?.PaletteSlotCount ?? 0];
+        foreach (var (index, paletteKey) in paletteSlots)
+        {
+            if (format is not null && index >= slots.Length)
+                reasons.Add($"{owner} assigns palette slot {index}, but map format '{format.Name}' has {slots.Length} slots");
+            else if (ResolvePalette(paletteKey) is not { } palette)
+                reasons.Add($"{owner} references palette '{paletteKey}', which is not in the project or the global palettes");
+            else if (format is not null)
+                slots[index] = palette;
+        }
+
+        return slots;
+    }
 
     private Palette? ResolvePalette(string? paletteKey)
     {

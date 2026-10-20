@@ -15,6 +15,7 @@ tests:
   - ProjectServiceTests
   - CompressedDataProjectTests
   - TilemapProjectTests
+  - MetatileProjectTests
 depends:
   - LIB-PROJECT-TREE
   - LIB-PROJECT-FORMAT
@@ -103,7 +104,7 @@ Owns the set of open trees (projects and standalone data files) and every operat
 
 ### Add
 
-- **LIB-PROJECT-SERVICE-027** — When a data file, compressed data block, palette, tilemap or scattered arranger is added under a node of an open project, the service shall write its resource file under the parent's directory in a write-ahead-log transaction, then attach the node and set its disk location and persisted model. It shall then write the project file if its required format version changed (LIB-PROJECT-FORMAT-006); a failure of that write does not fail the add and is retried by the next project save.
+- **LIB-PROJECT-SERVICE-027** — When a data file, compressed data block, palette, tilemap, metatile set, metatile map or scattered arranger is added under a node of an open project, the service shall write its resource file under the parent's directory in a write-ahead-log transaction, then attach the node and set its disk location and persisted model. It shall then write the project file if its required format version changed (LIB-PROJECT-FORMAT-006); a failure of that write does not fail the add and is retried by the next project save.
   - Tests: `ProjectServiceTests.AddResource_WritesFileWithoutLeftovers`, `TilemapProjectTests.AddingTilemap_RaisesVersion_DeletingLastReturnsTo10OnSave`
 - **LIB-PROJECT-SERVICE-028** — If the parent is not in an open tree or cannot contain children, or the resource's name breaks the name rule (LIB-PROJECT-TREE-030), matches a sibling's name (LIB-PROJECT-TREE-031), or (directly under the project root) matches the project's name, then adding shall fail with the rule's message without writing. A name starting with `.` breaks the rule, since the reader would skip it.
   - Tests: `ProjectServiceTests.AddResource_InvalidName_FailsWithoutWriting`, `ProjectServiceTests.AddResource_CaseVariantOfSibling_FailsAndKeepsSiblingFile`, `ProjectServiceTests.AddResource_RootResourceNamedLikeProject_FailsAndKeepsProjectFile`, `ProjectServiceTests.ProjectOnlyOperations_StandaloneFile_FailWithoutWriting`
@@ -148,8 +149,8 @@ Owns the set of open trees (projects and standalone data files) and every operat
 
 ### Delete
 
-- **LIB-PROJECT-SERVICE-045** — When a deletion is previewed, the plan shall mark as removed the node, all its descendants, every compressed data source whose parent is among them (repeatedly, so nested compressed data goes too), every palette elsewhere whose data source is among them, and then every tilemap whose map source, tile source or slot palette is among them. Tilemaps are not checked by LIB-PROJECT-SERVICE-046 and -047, and a tilemap's tile palette arranger is not a cascading link (LIB-PROJECT-SERVICE-066).
-  - Tests: `ProjectServiceTests.DeleteFolder_WithDataFileAndItsPalette_RemovesEachNodeOnce`, `CompressedDataProjectTests.DeleteParent_RemovesCompressedDataAndItsArranger`, `TilemapProjectTests.DeletingReferencedResource_RemovesTilemap`
+- **LIB-PROJECT-SERVICE-045** — When a deletion is previewed, the plan shall mark as removed the node, all its descendants, every compressed data source whose parent is among them (repeatedly, so nested compressed data goes too), every palette elsewhere whose data source is among them, then every tilemap whose map source, tile source or slot palette is among them, then every metatile set whose metatile, tile or attribute source or slot palette is among them, and then every metatile map whose block source or listed metatile set is among them (LIB-METATILE-MAPS-019). Tilemaps, metatile sets and metatile maps are not checked by LIB-PROJECT-SERVICE-046 and -047, and a tilemap's tile palette arranger is not a cascading link (LIB-PROJECT-SERVICE-066).
+  - Tests: `ProjectServiceTests.DeleteFolder_WithDataFileAndItsPalette_RemovesEachNodeOnce`, `CompressedDataProjectTests.DeleteParent_RemovesCompressedDataAndItsArranger`, `TilemapProjectTests.DeletingReferencedResource_RemovesTilemap`, `MetatileProjectTests.DeletingSet_RemovesMapsThatListIt`, `MetatileProjectTests.DeletingDataSource_RemovesSetsAndMaps`
 - **LIB-PROJECT-SERVICE-046** — When a surviving element of a surviving arranger uses a removed palette, the plan shall mark the arranger as losing its palette.
   - Tests: `ProjectServiceTests.DeletePalette_OnlyElementsOnItGetFallback`
 - **LIB-PROJECT-SERVICE-047** — When every non-empty element of an arranger reads a removed data source, the plan shall mark it removed; when only some do, the plan shall mark it as losing elements.
@@ -160,7 +161,7 @@ Owns the set of open trees (projects and standalone data files) and every operat
   - Tests: `TilemapProjectTests.DeletingTilePaletteArranger_KeepsTilemap_AndClearsTilePalette`
 - **LIB-PROJECT-SERVICE-064** — If the transaction for a plan's changed resources fails, then applying the plan shall fail with the tree, every resource and the disk unchanged.
   - Tests: `ProjectServiceTests.ApplyDeletion_TransactionFails_LeavesTreeResourcesAndDiskUnchanged`
-- **LIB-PROJECT-SERVICE-049** — After the changed resources are committed, every removed non-folder node shall be removed from the tree and its resource file deleted, and the data source of every removed data file node and every removed tilemap shall be disposed. Then removed folders shall be removed deepest first and their directories deleted when empty.
+- **LIB-PROJECT-SERVICE-049** — After the changed resources are committed, every removed non-folder node shall be removed from the tree and its resource file deleted, and the data source of every removed data file node, every removed tilemap and every removed metatile map shall be disposed. Then removed folders shall be removed deepest first and their directories deleted when empty.
   - Tests: `ProjectServiceTests.DeleteFolder_WithDataFileAndItsPalette_RemovesEachNodeOnce`, `ProjectServiceTests.DeleteFolder_WithNestedFolder_RemovesBothDirectories`, `ProjectServiceTests.DeleteDataFile_ReleasesFileHandle`
 - **LIB-PROJECT-SERVICE-065** — If a removed resource's file cannot be deleted, then its node shall still be removed and the result shall fail listing the file.
   - Tests: `ProjectServiceTests.ApplyDeletion_ResourceFileLocked_RemovesNodeAndReportsFile`

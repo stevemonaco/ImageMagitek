@@ -171,6 +171,7 @@ public class TileShopBootstrapper : IAppBootstrapper<ShellViewModel>
     {
         locator.RegisterViewFactory<GraphicsEditorViewModel, GraphicsEditorView>();
         locator.RegisterViewFactory<PaletteEditorViewModel, PaletteEditorView>();
+        locator.RegisterViewFactory<MetatileMapEditorViewModel, MetatileMapEditorView>();
         locator.RegisterViewFactory<Color32ViewModel, Color32View>();
         locator.RegisterViewFactory<TableColorViewModel, TableColorView>();
         locator.RegisterViewFactory<ProjectTreeViewModel, ProjectTreeView>();

@@ -17,6 +17,7 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ### UI
 
+- [UI-PROJECT-TREE-135] The Add New Tilemap dialog lists the "FRLG Block" block format (LIB-METATILE-MAPS-011) among tilemap map formats, since both come from one map format factory; a tilemap built with it has no palette or flip fields.
 
 ## Missing validation
 

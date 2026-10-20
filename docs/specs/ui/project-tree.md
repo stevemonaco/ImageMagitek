@@ -35,6 +35,8 @@ types:
   - StandaloneFileNodeViewModel
   - ArrangerNodeViewModel
   - PaletteNodeViewModel
+  - MetatileSetNodeViewModel
+  - MetatileMapNodeViewModel
   - ResourceNodeComparer
   - ResourceNodeViewModelExtensions
   - TreeViewItemNodeClassBehavior
@@ -213,6 +215,8 @@ The tree pane shows every open project and standalone data file as a projection 
   - Tests: DevTools — Add New Tilemap... on the FireRed project root with `/Trainer Card/Compressed/Front Map`, GBA Text BG, 30×20 and `/Trainer Card/Compressed/Card Tiles` previews "600 entries, highest tile index 183".
 - **UI-PROJECT-TREE-136** — Tilemap nodes shall show in italics with a faded arranger icon and a tooltip naming the format, size, map source and offset, codec, tile source and offset, ending in "(map read-only)", "(tiles read-only)" or "(map and tiles read-only)" when the map entries (LIB-TILEMAPS-031) or the tiles cannot be written, and offer Export As..., Import From..., Bake to Scattered Arranger..., Edit Tile Set (UI-TILE-PLOTTING-016), Remove, Rename..., Move to Folder..., Open in Folder. Export As... and Import From... export and import the tilemap like an arranger (UI-IMAGE-IO). Bake to Scattered Arranger... clones the tilemap (LIB-TILEMAPS-029) and adds it through the flow of UI-PROJECT-TREE-083.
   - Tests: manual — hover a FireRed tilemap node; Export As... and Bake to Scattered Arranger... on `/Title Screen/Border Tilemap`, then compare the PNG and the new arranger with `/Title Screen/Title Border`.
+- **UI-PROJECT-TREE-137** — Metatile set and metatile map nodes (LIB-METATILE-MAPS) shall show in italics with a faded arranger icon and a tooltip: for a set, "<count> <w>x<h> metatiles, <layers> layers, <codec> tiles from <first tile> at 0x<offset> of '<tile source>'"; for a map, "<block format> <W>x<H> block map at 0x<offset> of '<source>', sets: <set names>". A set shall offer Edit Tile Set (UI-BLOCK-PLOTTING-040), Remove, Rename..., Move to Folder..., Open in Folder; a map shall offer Export As... (UI-BLOCK-PLOTTING-032), Remove, Rename..., Move to Folder..., Open in Folder.
+  - Tests: manual — DevTools: the FireRed copy's `/Overworld/Pallet Town` node has class `metatilemap`; hover it and a metatile set node.
 
 ### Rename
 

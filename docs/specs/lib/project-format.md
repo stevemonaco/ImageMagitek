@@ -19,6 +19,8 @@ types:
   - SerializationMapperExtensions
   - CompressedDataModel
   - TilemapModel
+  - MetatileSetModel
+  - MetatileMapModel
   - ResourceModel
   - ImageProjectModel
   - ResourceFolderModel
@@ -51,6 +53,7 @@ tests:
   - CliApplicationTests
   - CompressedDataProjectTests
   - TilemapProjectTests
+  - MetatileProjectTests
 depends:
   - LIB-PROJECT-TREE
   - LIB-DATASOURCE
@@ -60,6 +63,7 @@ depends:
   - LIB-ARRANGERS
   - LIB-COMPRESSION
   - LIB-TILEMAPS
+  - LIB-METATILE-MAPS
 ---
 
 # XML project format and transactional writes
@@ -72,7 +76,7 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 
 ### Layout on disk
 
-- **LIB-PROJECT-FORMAT-001** — The project file shall be `<project name>.xml` holding only a `project` element; each data file, compressed data block, palette, tilemap and scattered arranger shall be its own `<resource name>.xml`, and each folder a directory, mirroring the tree under the project's base directory.
+- **LIB-PROJECT-FORMAT-001** — The project file shall be `<project name>.xml` holding only a `project` element; each data file, compressed data block, palette, tilemap, metatile set, metatile map and scattered arranger shall be its own `<resource name>.xml`, and each folder a directory, mirroring the tree under the project's base directory.
   - Tests: `ProjectServiceTests.RenameFolder_MovesDirectoryAndChildResource`, `ProjectServiceTests.MoveNode_RaisesSingleMoved`
 - **LIB-PROJECT-FORMAT-002** — A resource's name shall come from its file name without `.xml`, and a folder's name from its directory name; no name is stored inside the XML.
   - Tests: `ProjectServiceTests.OpenProject_MissingDataFile_LoadsWithSourceMarkedMissing`
@@ -80,13 +84,13 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `XmlProjectRoundTripTests.WriteTwice_ByteIdentical`
 - **LIB-PROJECT-FORMAT-004** — When reading, every subdirectory of the base directory whose name does not start with `.`, and that is not inside such a directory, shall become a folder, including empty directories and directories holding only non-resource files.
   - Tests: `XmlProjectReaderTests.DotDirectory_NotAFolderAndNotScanned`, `XmlProjectReaderTests.EmptyDirectory_BecomesFolder`
-- **LIB-PROJECT-FORMAT-005** — When reading, every `*.xml` file under the base directory shall be read except the project file, a file whose name starts with `.`, and a file inside a directory skipped by LIB-PROJECT-FORMAT-004. A file whose root element is `project`, or is not `datafile`, `compresseddata`, `palette`, `tilemap` or `arranger`, shall be ignored.
+- **LIB-PROJECT-FORMAT-005** — When reading, every `*.xml` file under the base directory shall be read except the project file, a file whose name starts with `.`, and a file inside a directory skipped by LIB-PROJECT-FORMAT-004. A file whose root element is `project`, or is not `datafile`, `compresseddata`, `palette`, `tilemap`, `metatileset`, `metatilemap` or `arranger`, shall be ignored.
   - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`, `XmlProjectReaderTests.DotPrefixedXmlFile_Ignored`, `XmlProjectReaderTests.ForeignRootXml_Ignored`, `XmlProjectReaderTests.DotDirectory_NotAFolderAndNotScanned`
 
 ### Elements and attributes
 
-- **LIB-PROJECT-FORMAT-006** — The writer shall write the lowest format version that can hold the project on the project element: `version="1.1"` when the tree holds a tilemap or compressed data, otherwise `version="1.0"`. It shall write `root` only when the project has a non-empty root.
-  - Tests: `XmlProjectWriterTests.Writer_ProjectWithoutTilemapOrCompressedData_Writes10`, `TilemapProjectTests.SaveAndReload_RoundTripsByteIdentically_AndWritesVersion11`, `TilemapProjectTests.ProjectWithoutTilemapOrCompressedData_WritesVersion10`, `XmlProjectRoundTripTests.WriteTwice_ByteIdentical`, `XmlProjectRoundTripTests.RootRelative_SaveAndReopen_Unchanged`
+- **LIB-PROJECT-FORMAT-006** — The writer shall write the lowest format version that can hold the project on the project element: `version="1.1"` when the tree holds a tilemap, compressed data, a metatile set or a metatile map, otherwise `version="1.0"`. It shall write `root` only when the project has a non-empty root.
+  - Tests: `XmlProjectWriterTests.Writer_ProjectWithoutTilemapOrCompressedData_Writes10`, `TilemapProjectTests.SaveAndReload_RoundTripsByteIdentically_AndWritesVersion11`, `MetatileProjectTests.SaveAndReload_TwoSetMap_RoundTripsByteIdentically_AndWritesVersion11`, `TilemapProjectTests.ProjectWithoutTilemapOrCompressedData_WritesVersion10`, `XmlProjectRoundTripTests.WriteTwice_ByteIdentical`, `XmlProjectRoundTripTests.RootRelative_SaveAndReopen_Unchanged`
 - **LIB-PROJECT-FORMAT-007** — The reader shall read `version` before validating the project file and parse it as `major.minor` independently of the current culture. If it is missing, does not parse, or is older than 0.9, then the load shall fail naming the project file and the version.
   - Tests: `XmlProjectReaderTests.MissingOrUnparseableVersion_FailsNamingFile`, `XmlProjectReaderTests.OlderThan09_FailsNamingVersion`, `XmlProjectReaderTests.Parse_IsCultureInvariant`, `XmlProjectReaderTests.Ordering_1_10_IsNewerThan_1_9`
 - **LIB-PROJECT-FORMAT-008** — When the project has a `root`, the reader shall use it, absolute or relative to the project file's directory, as the base directory for resources and data file paths.
@@ -119,6 +123,10 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `CompressedDataProjectTests.SaveAndReload_RestoresCompressedDataAndArrangerReferences`
 - **LIB-PROJECT-FORMAT-065** — A tilemap (LIB-TILEMAPS) shall be stored as a `tilemap` element with the map data source's key in `mapdatafile`, a hex `mapoffset`, `width` and `height` in cells, `layout` only when not `linear`, the map format name in `format`, the tile data source's key in `tiledatafile`, a hex `tileoffset`, the tile `codec`, `firsttile` only when not 0, `emptytile` (the empty tile index, LIB-TILEMAPS-032) only when not 0, `tilecount` (the declared tile count, LIB-TILEMAPS-074) only when declared, `tilepalette` (the key of the scattered arranger used as the tile palette, LIB-TILEMAPS-072) only when set, and one `paletteslot` child with `index` and `palette` key per assigned slot, in index order, at most 16.
   - Tests: `TilemapProjectTests.SaveAndReload_RoundTripsByteIdentically_AndWritesVersion11`, `TilemapProjectTests.EmptyTile_RoundTrips`, `TilemapProjectTests.TilePalette_RoundTripsByteIdentically_AndStaysVersion11`
+- **LIB-PROJECT-FORMAT-068** — A metatile set (LIB-METATILE-MAPS) shall be stored as a `metatileset` element with the metatile data source's key in `metatiledatafile`, a hex `metatileoffset`, `metatilecount`, `metatilewidth` and `metatileheight` (1 to 8) only when not 2, `layers` (1 to 4) only when not 1, the entry map format name in `format`, `order` only when not `interleaved`, the tile data source's key in `tiledatafile`, a hex `tileoffset`, the tile `codec`, `firsttile` only when not 0, `tilecount` only when declared, and, when the set has an attribute table, its data source's key in `attributedatafile`, a hex `attributeoffset` and `attributesize` (1 to 8); then one `paletteslot` child per assigned slot, in index order, as on a tilemap.
+  - Tests: `MetatileProjectTests.SaveAndReload_TwoSetMap_RoundTripsByteIdentically_AndWritesVersion11`
+- **LIB-PROJECT-FORMAT-069** — A metatile map shall be stored as a `metatilemap` element with the block map data source's key in `mapdatafile`, a hex `mapoffset`, `width` and `height` in blocks, `layout` only when not `linear`, the block format name in `format`, `emptyblock` only when not 0, and one or more `set` children in list order, each with the metatile set's key in `metatileset` and its first metatile number in `base`.
+  - Tests: `MetatileProjectTests.SaveAndReload_TwoSetMap_RoundTripsByteIdentically_AndWritesVersion11`, `MetatileProjectTests.RenamingSet_RewritesMapSetKey`
 
 ### References
 
@@ -126,8 +134,8 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`, `XmlProjectReaderTests.PaletteKeyNamingGlobalPalette_ResolvesIgnoringCase`
 - **LIB-PROJECT-FORMAT-020** — When a resource is renamed or moved, every resource whose references change shall be rewritten on the next project save.
   - Tests: `ProjectServiceTests.MoveNode_ProjectWriteFails_RaisesReverseMove`, `TilemapProjectTests.RenamingTilePaletteArranger_RewritesKey`
-- **LIB-PROJECT-FORMAT-021** — When reading, data files shall be built first, then compressed data (in passes, so one over another compressed block follows it), then palettes, then scattered arrangers, then tilemaps, so references resolve whatever the folder order.
-  - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`
+- **LIB-PROJECT-FORMAT-021** — When reading, data files shall be built first, then compressed data (in passes, so one over another compressed block follows it), then palettes, then scattered arrangers, then metatile sets, then tilemaps, then metatile maps, so references resolve whatever the folder order.
+  - Tests: `XmlProjectRoundTripTests.ReadWriteRead_ResourcesEqual`, `MetatileProjectTests.SaveAndReload_TwoSetMap_RoundTripsByteIdentically_AndWritesVersion11`
 - **LIB-PROJECT-FORMAT-022** — If a palette's or element's data file key does not resolve, then the load shall fail naming the key and the referencing resource, and for an element, its position.
   - Tests: `XmlProjectReaderTests.UnresolvedDataFileKey_Palette_FailsNamingKeyAndPalette`, `XmlProjectReaderTests.UnresolvedDataFileKey_Element_FailsNamingKeyArrangerAndPosition`, `XmlProjectReaderTests.ReferenceIntoDotDirectory_FailsNamingKey`
 - **LIB-PROJECT-FORMAT-023** — If an element's palette key does not resolve in the tree, then the reader shall use the global palette whose name equals the key ignoring case, and otherwise fail the load naming the key, the arranger and the element position.
@@ -142,10 +150,12 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `XmlProjectReaderTests.UnknownCodec_FailsNamingCodecAndArranger`, `XmlProjectReaderTests.IndexedArrangerWithDirectCodec_FailsNamingCodecAndArranger`, `XmlProjectReaderTests.DirectArrangerWithIndexedCodec_FailsNamingCodecAndArranger`
 - **LIB-PROJECT-FORMAT-066** — If a tilemap's map or tile data key does not resolve to a data source, its map format or codec is not registered, its codec is direct, a slot's palette key resolves neither in the tree nor to a global palette (LIB-PROJECT-FORMAT-023), or its `tilepalette` key does not resolve to a scattered arranger, then the load shall fail naming the tilemap and the key or name. The map formats come from the serializer factory's map format factory.
   - Tests: `TilemapProjectTests.Load_UnresolvedReference_FailsNamingIt`, `TilemapProjectTests.Load_DirectCodec_FailsNamingIt`, `TilemapProjectTests.Load_UnresolvedOrNonScatteredTilePalette_FailsNamingIt`
+- **LIB-PROJECT-FORMAT-070** — If a metatile set's metatile, tile or attribute data key does not resolve to a data source, its map format or codec is not registered, its codec is direct, a slot index does not fit the format or a slot's palette key does not resolve (LIB-PROJECT-FORMAT-023); or if a metatile map's data key or block format does not resolve, or a `set` key does not name a metatile set in the project; or if the set or map refuses its values (LIB-METATILE-MAPS-001, -010), then the load shall fail naming the resource and the key, name or conflict.
+  - Tests: `MetatileProjectTests.Load_UnresolvedReference_FailsNamingIt`, `MetatileProjectTests.Load_MissingSet_FailsNamingIt`
 
 ### Reading
 
-- **LIB-PROJECT-FORMAT-026** — The reader shall validate the project file and every file read under LIB-PROJECT-FORMAT-005 whose root element is `datafile`, `compresseddata`, `palette`, `tilemap` or `arranger` against `ResourceSchema.xsd`, and stop at the first file that fails, reporting its line numbers.
+- **LIB-PROJECT-FORMAT-026** — The reader shall validate the project file and every file read under LIB-PROJECT-FORMAT-005 whose root element is `datafile`, `compresseddata`, `palette`, `tilemap`, `metatileset`, `metatilemap` or `arranger` against `ResourceSchema.xsd`, and stop at the first file that fails, reporting its line numbers.
   - Tests: `XmlProjectReaderTests.SchemaError_FailsWithFileAndLine`
 - **LIB-PROJECT-FORMAT-027** — If the project file's root element is not `project`, then the load shall fail.
   - Tests: `XmlProjectReaderTests.UnknownRootElement_Fails`
@@ -256,6 +266,8 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 
 ## Decisions
 
+- **Metatile sets after scattered arrangers, metatile maps last.** A set references only data sources and palettes, and a map references sets, so sets load before maps; nothing references a map, so maps load last. Sets load before tilemaps only to keep metatile resources together; neither references the other. Both resources need 1.1, since a 1.0 reader would skip them and fail on nothing else, but would silently drop them on save. Rejected: one combined pass that retries maps whose sets are not built yet (the fixed order is simpler and always enough).
+- **A map lists its sets as `set` children with a `base`.** Reason: the order matters (a set's tile and palette resolution is per map) and a map has one to a few sets, so child elements read better than a key list attribute; the `paletteslot` complex type is shared with `tilemap`. Rejected: `primaryset`/`secondaryset` attributes (FireRed-specific).
 - **Tilemaps load after scattered arrangers.** A tilemap may name a scattered arranger as its tile palette (`tilepalette`), and arrangers never reference tilemaps, so tilemaps are built last. `tilepalette` is additive to 1.1, which every tilemap already requires, so the version rule is unchanged. Rejected: resolving `tilepalette` in a second pass after all resources (more code for no ordering gain).
 - **One file per resource, folders as directories.** Projects stay hand-editable and diff-friendly, and a resource moves by moving its file.
 - **References are tree path keys.** `datafile="/Roms/FF2"` and per-element `datafile=`/`palette=`. In memory, elements and palettes hold object references; key strings exist only at the file boundary (`CreateResourceMap` on write, `ProjectTree.TryGetItem` in `ProjectTreeBuilder` on read). Renames and moves rewrite every referencing file in one transaction through the model diff (LIB-PROJECT-FORMAT-032), so the cost is diff noise and merge conflicts (renaming the FF2 sample's data file rewrites 114 of 116 files), not correctness. A rename done outside TileShop fails the load naming the key (LIB-PROJECT-FORMAT-022, -023). Stable keys can arrive later as a new format version that derives each key from its path key. Rejected: stable human-readable keys (a `key` attribute on every file, a key index, duplicate detection for copied files, a rule separating keys from global palette names, and keys that drift from names, which costs the hand-editability path keys were chosen for); GUID keys (cannot be edited by hand); an id plus a path hint (stale hints mislead); falling back to a unique name match when a path fails (ambiguous, and it hides moves).
@@ -263,7 +275,7 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 - **The version lives on the project file only.** A project has one format version, and every file under it is read as that version. Reason: per-file versions would allow mixed projects, and a future step that rewrites references needs to see every file. Rejected: a `version` attribute on each resource file.
 - **`major.minor` parsed as `System.Version`.** `ProjectFormat.TryParse` accepts only digits `.` digits, matching the schema pattern `[0-9]+\.[0-9]+`. Reason: `Version` does not depend on culture (`decimal.Parse("0.9")` throws under fr-FR and returns 9 under de-DE), and it orders `1.10` after `1.9`, where `decimal` reads `1.10` as `1.1`. Rejected: `decimal.Parse` with `InvariantCulture`, which fixes the culture bug but keeps the wrong ordering.
 - **Reject every newer version, major or minor.** Reason: a 1.0 reader cannot keep elements it does not know, and its next save would drop them, which loses work. Rejected: accepting newer minor versions as "additive".
-- **Write the lowest version that can hold the project.** A project with a tilemap or compressed data is written as 1.1, any other as 1.0, so projects that use neither still open in 1.0 builds. `ImageProjectModel` carries the version (read from the file, 0.9 recorded as 1.0), so adding the first tilemap or compressed block rewrites the project file (LIB-PROJECT-SERVICE-027) and removing the last one returns it to 1.0 on the next save. Reason: older readers refuse every newer version, so stamping 1.1 on every save would lock 1.0 users out of projects that do not need it; and a 1.0 reader skips the unknown `compresseddata` and `tilemap` roots and then fails on references to them, which 1.1 turns into a clear "newer format" message. Rejected: always writing the current version; leaving compressed data at 1.0.
+- **Write the lowest version that can hold the project.** A project with a tilemap, compressed data, a metatile set or a metatile map is written as 1.1, any other as 1.0, so projects that use neither still open in 1.0 builds. `ImageProjectModel` carries the version (read from the file, 0.9 recorded as 1.0), so adding the first tilemap or compressed block rewrites the project file (LIB-PROJECT-SERVICE-027) and removing the last one returns it to 1.0 on the next save. Reason: older readers refuse every newer version, so stamping 1.1 on every save would lock 1.0 users out of projects that do not need it; and a 1.0 reader skips the unknown `compresseddata` and `tilemap` roots and then fails on references to them, which 1.1 turns into a clear "newer format" message. Rejected: always writing the current version; leaving compressed data at 1.0.
 - **The version check runs before schema validation.** Reason: a newer project file may carry attributes this schema rejects; the user must see "newer format", not a schema error.
 - **Skip names starting with `.`.** Reason: this covers `.git`, `.vs`, `.idea`, `.vscode` and `.DS_Store`, and it is deterministic on every OS and in every clone, unlike the Hidden attribute, which git does not version. The scan is a pre-order recursion so a parent folder is added before its children. LIB-PROJECT-SERVICE's XML conflict check uses the same scan rules (`XmlProjectReader.FindLoadableXml`). Rejected: the Hidden attribute; an ignore file such as `.tileshopignore` (more format surface; it can be added later without a break); skipping only `.git`.
 - **Ignore XML with a foreign root; fail on XML that is not well formed.** A file with a foreign root cannot be a TileShop resource, because a newer resource type comes with a newer version, which is rejected first. A file that does not parse may be a resource damaged by a merge conflict (`<<<<<<<` markers), and dropping it would silently lose it and, on the next write, every reference to it. The root is checked before schema validation, so a foreign file never reports a schema error. Rejected: failing on every non-resource file (blocks git and IDE use); ignoring every file that fails (hides damaged resources).

@@ -8,6 +8,7 @@ using System.Xml;
 using System.Xml.Linq;
 using CommunityToolkit.Diagnostics;
 using ImageMagitek.Colors;
+using ImageMagitek.Metatiles;
 using ImageMagitek.Tilemaps;
 using ImageMagitek.Utility;
 using Monaco.PathTree;
@@ -94,6 +95,16 @@ public sealed class XmlProjectWriter : IProjectWriter
             var model = tilemap.MapToModel(resourceMap);
             return Stringify(Serialize(model));
         }
+        else if (resourceNode is MetatileSetNode { Item: MetatileSet metatileSet })
+        {
+            var model = metatileSet.MapToModel(resourceMap);
+            return Stringify(Serialize(model));
+        }
+        else if (resourceNode is MetatileMapNode { Item: MetatileMap metatileMap })
+        {
+            var model = metatileMap.MapToModel(resourceMap);
+            return Stringify(Serialize(model));
+        }
         else if (resourceNode is PaletteNode { Item: Palette pal })
         {
             var model = pal.MapToModel(resourceMap, _colorFactory);
@@ -150,6 +161,18 @@ public sealed class XmlProjectWriter : IProjectWriter
             else if (resourceNode is TilemapNode { Item: TilemapArranger tilemap })
             {
                 var model = tilemap.MapToModel(resourceMap);
+                contents = Stringify(Serialize(model));
+                currentModel = model;
+            }
+            else if (resourceNode is MetatileSetNode { Item: MetatileSet metatileSet })
+            {
+                var model = metatileSet.MapToModel(resourceMap);
+                contents = Stringify(Serialize(model));
+                currentModel = model;
+            }
+            else if (resourceNode is MetatileMapNode { Item: MetatileMap metatileMap })
+            {
+                var model = metatileMap.MapToModel(resourceMap);
                 contents = Stringify(Serialize(model));
                 currentModel = model;
             }
@@ -249,6 +272,16 @@ public sealed class XmlProjectWriter : IProjectWriter
                 currentModel = ((TilemapArranger)tilemapNode.Item).MapToModel(resourceMap);
                 diskModel = tilemapNode.Model;
             }
+            else if (node is MetatileSetNode metatileSetNode)
+            {
+                currentModel = ((MetatileSet)metatileSetNode.Item).MapToModel(resourceMap);
+                diskModel = metatileSetNode.Model;
+            }
+            else if (node is MetatileMapNode metatileMapNode)
+            {
+                currentModel = ((MetatileMap)metatileMapNode.Item).MapToModel(resourceMap);
+                diskModel = metatileMapNode.Model;
+            }
             else if (node is PaletteNode paletteNode)
             {
                 var paletteModel = MapPaletteModel(paletteNode, resourceMap);
@@ -315,6 +348,14 @@ public sealed class XmlProjectWriter : IProjectWriter
                 {
                     tilemapNode.Model = (TilemapModel)action.model;
                 }
+                else if (action.node is MetatileSetNode metatileSetNode)
+                {
+                    metatileSetNode.Model = (MetatileSetModel)action.model;
+                }
+                else if (action.node is MetatileMapNode metatileMapNode)
+                {
+                    metatileMapNode.Model = (MetatileMapModel)action.model;
+                }
                 else if (action.node is PaletteNode paletteNode)
                 {
                     paletteNode.Model = (PaletteModel)action.model;
@@ -372,6 +413,8 @@ public sealed class XmlProjectWriter : IProjectWriter
             DataFileModel dataFileModel => Serialize(dataFileModel),
             CompressedDataModel compressedModel => Serialize(compressedModel),
             TilemapModel tilemapModel => Serialize(tilemapModel),
+            MetatileSetModel metatileSetModel => Serialize(metatileSetModel),
+            MetatileMapModel metatileMapModel => Serialize(metatileMapModel),
             PaletteModel paletteModel => Serialize(paletteModel),
             ScatteredArrangerModel arrangerModel => Serialize(arrangerModel),
             ImageProjectModel projectModel => Serialize(projectModel),
@@ -438,6 +481,74 @@ public sealed class XmlProjectWriter : IProjectWriter
 
         foreach (var (index, paletteKey) in model.PaletteSlots.OrderBy(x => x.Key))
             element.Add(new XElement("paletteslot", new XAttribute("index", index), new XAttribute("palette", paletteKey)));
+
+        return element;
+    }
+
+    private static XElement Serialize(MetatileSetModel model)
+    {
+        var element = new XElement("metatileset");
+        element.Add(new XAttribute("metatiledatafile", model.MetatileDataKey));
+        element.Add(new XAttribute("metatileoffset", $"{model.MetatileOffset:X}"));
+        element.Add(new XAttribute("metatilecount", model.MetatileCount));
+
+        if (model.MetatileWidth != 2)
+            element.Add(new XAttribute("metatilewidth", model.MetatileWidth));
+
+        if (model.MetatileHeight != 2)
+            element.Add(new XAttribute("metatileheight", model.MetatileHeight));
+
+        if (model.Layers != 1)
+            element.Add(new XAttribute("layers", model.Layers));
+
+        element.Add(new XAttribute("format", model.FormatName));
+
+        if (model.Order != MetatileOrder.Interleaved)
+            element.Add(new XAttribute("order", model.Order.ToXmlName()));
+
+        element.Add(new XAttribute("tiledatafile", model.TileDataKey));
+        element.Add(new XAttribute("tileoffset", $"{model.TileOffset:X}"));
+        element.Add(new XAttribute("codec", model.CodecName));
+
+        if (model.FirstTile != 0)
+            element.Add(new XAttribute("firsttile", model.FirstTile));
+
+        if (model.TileCount is { } tileCount)
+            element.Add(new XAttribute("tilecount", tileCount));
+
+        if (model.AttributeDataKey is { } attributeKey)
+        {
+            element.Add(new XAttribute("attributedatafile", attributeKey));
+            element.Add(new XAttribute("attributeoffset", $"{model.AttributeOffset:X}"));
+
+            if (model.AttributeSize is { } attributeSize)
+                element.Add(new XAttribute("attributesize", attributeSize));
+        }
+
+        foreach (var (index, paletteKey) in model.PaletteSlots.OrderBy(x => x.Key))
+            element.Add(new XElement("paletteslot", new XAttribute("index", index), new XAttribute("palette", paletteKey)));
+
+        return element;
+    }
+
+    private static XElement Serialize(MetatileMapModel model)
+    {
+        var element = new XElement("metatilemap");
+        element.Add(new XAttribute("mapdatafile", model.MapDataKey));
+        element.Add(new XAttribute("mapoffset", $"{model.MapOffset:X}"));
+        element.Add(new XAttribute("width", model.Width));
+        element.Add(new XAttribute("height", model.Height));
+
+        if (model.Layout != MapScreenLayout.Linear)
+            element.Add(new XAttribute("layout", model.Layout.ToXmlName()));
+
+        element.Add(new XAttribute("format", model.FormatName));
+
+        if (model.EmptyBlock != 0)
+            element.Add(new XAttribute("emptyblock", model.EmptyBlock));
+
+        foreach (var (setKey, setBase) in model.Sets)
+            element.Add(new XElement("set", new XAttribute("metatileset", setKey), new XAttribute("base", setBase)));
 
         return element;
     }

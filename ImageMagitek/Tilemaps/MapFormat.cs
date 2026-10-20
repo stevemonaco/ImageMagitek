@@ -51,7 +51,7 @@ public sealed class MapFormat
     /// </summary>
     public MapEntry Decode(ReadOnlySpan<byte> entry)
     {
-        var value = ReadValue(entry);
+        var value = ReadRawValue(entry);
 
         return new MapEntry(
             TileIndex.Extract(value),
@@ -73,7 +73,7 @@ public sealed class MapFormat
         if (entry.Palette < 0 || entry.Palette >= PaletteSlotCount)
             throw new ArgumentOutOfRangeException(nameof(entry), $"Palette {entry.Palette} does not fit the palette field of map format '{Name}'");
 
-        var value = ReadValue(destination);
+        var value = ReadRawValue(destination);
         value = TileIndex.Insert(value, entry.TileIndex);
 
         if (Palette is { } palette)
@@ -88,7 +88,10 @@ public sealed class MapFormat
         WriteValue(value, destination);
     }
 
-    private uint ReadValue(ReadOnlySpan<byte> entry)
+    /// <summary>
+    /// The whole value of the entry held in the first <see cref="EntryBytes"/> bytes of <paramref name="entry"/>
+    /// </summary>
+    public uint ReadRawValue(ReadOnlySpan<byte> entry)
     {
         uint value = 0;
         for (int i = 0; i < EntryBytes; i++)

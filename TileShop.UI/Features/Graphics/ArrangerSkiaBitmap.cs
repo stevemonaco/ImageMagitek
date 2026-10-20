@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ImageMagitek;
 using ImageMagitek.Codec;
+using ImageMagitek.Scenes;
 using SkiaSharp;
 
 namespace TileShop.UI.Features.Graphics;
@@ -14,6 +15,7 @@ public sealed class ArrangerSkiaBitmap : IDisposable
 
     private readonly IndexedImage? _indexedImage;
     private readonly DirectImage? _directImage;
+    private readonly LayerImage? _layerImage;
     private readonly bool _isIndexed;
 
     public SKBitmap Bitmap { get; private set; }
@@ -35,6 +37,19 @@ public sealed class ArrangerSkiaBitmap : IDisposable
     {
         _directImage = image;
         _isIndexed = false;
+        Width = image.Width;
+        Height = image.Height;
+
+        Bitmap = new SKBitmap(Width, Height, SKColorType.Bgra8888, SKAlphaType.Unpremul);
+        Invalidate();
+    }
+
+    /// <summary>
+    /// A bitmap of a composited image, which never changes; make a new bitmap to show a new composite
+    /// </summary>
+    public ArrangerSkiaBitmap(LayerImage image)
+    {
+        _layerImage = image;
         Width = image.Width;
         Height = image.Height;
 
@@ -74,7 +89,13 @@ public sealed class ArrangerSkiaBitmap : IDisposable
     {
         var dest = (uint*)backBuffer.ToPointer() + scanline * stride;
 
-        if (_isIndexed)
+        if (_layerImage is { } layerImage)
+        {
+            var src = layerImage.Pixels.AsSpan(scanline * Width, Width);
+            for (int x = xStart; x < xStart + width; x++)
+                dest[x] = ToBgra(src[x].Color);
+        }
+        else if (_isIndexed)
         {
             RenderIndexedRow(dest, scanline, xStart, width);
         }

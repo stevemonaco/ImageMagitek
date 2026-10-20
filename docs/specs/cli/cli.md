@@ -35,6 +35,7 @@ depends:
   - LIB-PROJECT-TREE
   - LIB-IMAGE-IO
   - LIB-TILEMAPS
+  - LIB-METATILE-MAPS
   - LIB-IMAGES
   - LIB-CODECS
   - LIB-DATASOURCE
@@ -99,8 +100,10 @@ depends:
   - Tests: `CliApplicationTests.Export_NestedArranger_FreshDirectory_WritesPngExits0`
 - **CLI-COMMANDS-032** — If a key is not in the project, then the CLI shall print "Exporting '<key>'...Resource key not found in project", continue with the next key, and count the key as failed.
   - Tests: `CliApplicationTests.Export_UnknownKey_ExportsOthersExits7`
-- **CLI-COMMANDS-033** — If a key names something other than a scattered arranger or a tilemap (LIB-TILEMAPS), then the CLI shall print "...Resource key is not a Scattered Arranger or Tilemap", continue, and count the key as failed. A tilemap exports like an arranger.
+- **CLI-COMMANDS-033** — If a key names something other than a scattered arranger, a tilemap (LIB-TILEMAPS) or a metatile map (LIB-METATILE-MAPS), then the CLI shall print "...Resource key is not a Scattered Arranger, Tilemap or Metatile Map", continue, and count the key as failed. A tilemap exports like an arranger.
   - Tests: `CliApplicationTests.Export_NotScatteredArranger_Exits7`, `CliApplicationTests.Export_Tilemap_WritesPngExits0`
+- **CLI-COMMANDS-068** — When `export` reaches a metatile map, the CLI shall write its composite with every layer visible as a direct-color PNG (LIB-IMAGE-IO-047), with the same path, overwrite and directory rules as an arranger. If the map reads a missing data file (CLI-COMMANDS-040) or its block map could not be fully read (LIB-METATILE-MAPS-012), then it shall print the reason, write nothing and count the key as failed.
+  - Tests: `CliApplicationTests.Export_MetatileMap_WritesCompositePngExits0`, `CliApplicationTests.Export_MetatileMapWithMapError_Exits7`
 - **CLI-COMMANDS-034** — If the PNG already exists and `--overwrite` is not given, then the CLI shall print "File already exists and was skipped to not overwrite it" and continue; with `--overwrite` it shall replace the file.
   - Tests: `CliApplicationTests.Export_Existing_WithoutOverwrite_SkipsExits0`, `CliApplicationTests.Export_Existing_WithOverwrite_Replaces`
 - **CLI-COMMANDS-066** — If writing an arranger's PNG fails with an I/O or access error, or the library refuses the image (LIB-IMAGE-IO-045), then the CLI shall print the reason, continue with the next key, and count the key as failed.
@@ -112,8 +115,8 @@ depends:
 - ~~**CLI-COMMANDS-037**~~ — Removed: `PixelColorType` has only indexed and direct; an unsupported type would count as failed under CLI-COMMANDS-038.
 - **CLI-COMMANDS-038** — When `export` or `exportall` has exported every key, it shall exit with -7 if any key failed and 0 otherwise; a PNG skipped under CLI-COMMANDS-034 is not a failure.
   - Tests: `CliApplicationTests.Export_UnknownKey_ExportsOthersExits7`, `CliApplicationTests.Export_Existing_WithoutOverwrite_SkipsExits0`
-- **CLI-COMMANDS-039** — When `exportall <project> <directory>` runs, the CLI shall export every scattered arranger and tilemap in the project, depth-first, as `export` does.
-  - Tests: `CliApplicationTests.ExportAll_WritesEveryScatteredArranger`, `CliApplicationTests.ExportAll_IncludesTilemaps`
+- **CLI-COMMANDS-039** — When `exportall <project> <directory>` runs, the CLI shall export every scattered arranger, tilemap and metatile map in the project, depth-first, as `export` does.
+  - Tests: `CliApplicationTests.ExportAll_WritesEveryScatteredArranger`, `CliApplicationTests.ExportAll_IncludesTilemaps`, `CliApplicationTests.ExportAll_IncludesMetatileMaps`
 - **CLI-COMMANDS-040** — If an arranger reads from a missing data file, then the export shall print "...Data file '<name>' is missing at '<path>'", write nothing for that arranger and count it as failed.
   - Tests: `CliApplicationTests.Export_MissingDataFile_NamesFileExits7`, `CliApplicationTests.ExportAll_MissingDataFile_ExportsOthersExits7`
 - **CLI-COMMANDS-041** — If writing a PNG fails with an I/O or access error, then the CLI shall print the reason, count the key as failed and continue.
@@ -149,6 +152,8 @@ depends:
   - Tests: `CliApplicationTests.Import_MissingDataFile_NamesFileExits6`, `CliApplicationTests.Import_MissingDataFile_WithF_StillExits6`
 - **CLI-COMMANDS-067** — If a tilemap's map could not be fully read (LIB-TILEMAPS), then the import shall print the map error after "Importing ...", write nothing, and fail, checked after the data file check and before the image file check.
   - Tests: `CliApplicationTests.Import_TilemapWithMapError_PrintsErrorExits6`
+- **CLI-COMMANDS-069** — When `import` or `importall` reaches a metatile map, the CLI shall print "Skipped: metatile maps cannot be imported" after "Importing ...", write nothing, and count it as skipped, so it does not change the exit code. `importall` visits every metatile map so each one is reported.
+  - Tests: `CliApplicationTests.Import_MetatileMap_SkippedExits0`, `CliApplicationTests.ImportAll_SkipsMetatileMaps`
 - **CLI-COMMANDS-062** — If `--max-distance` is given with exact matching or is negative, then the CLI shall reject the arguments (-3).
   - Tests: `CliApplicationTests.Import_MaxDistanceWithExact_Exits3`
 - **CLI-COMMANDS-063** — When `importall` reaches an arranger or tilemap that is read-only only because a codec cannot encode or it reads compressed data (for a tilemap, also through its tile source), the CLI shall print "Skipped: arranger is read-only (<reason>)" and continue, without affecting the exit code.
@@ -160,7 +165,7 @@ depends:
 
 ## Invariants
 
-- Only scattered arrangers and tilemaps are exported or imported.
+- Only scattered arrangers and tilemaps are exported or imported; metatile maps are exported as composites and skipped on import.
 - Export never writes a data file; import never writes a project file.
 - Each run opens one project and runs one verb.
 

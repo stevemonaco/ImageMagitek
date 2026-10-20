@@ -1,5 +1,6 @@
 ﻿using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using ImageMagitek.Metatiles;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,6 +58,54 @@ public static class SerializationMapperExtensions
             TileCount = tilemap.DeclaredTileCount,
             TilePaletteKey = tilemap.TilePaletteArranger is { } tilePalette ? resourceMap[tilePalette] : null,
             PaletteSlots = slots
+        };
+    }
+
+    public static MetatileSetModel MapToModel(this MetatileSet set, Dictionary<IProjectResource, string> resourceMap)
+    {
+        var slots = new Dictionary<int, string>();
+        for (int i = 0; i < set.PaletteSlots.Count; i++)
+        {
+            if (set.PaletteSlots[i] is { } palette)
+                slots[i] = resourceMap[palette];
+        }
+
+        return new MetatileSetModel()
+        {
+            Name = set.Name,
+            MetatileDataKey = resourceMap[set.MetatileSource],
+            MetatileOffset = set.MetatileOffset,
+            MetatileCount = set.Count,
+            MetatileWidth = set.Shape.Width,
+            MetatileHeight = set.Shape.Height,
+            Layers = set.Layers,
+            FormatName = set.EntryFormat.Name,
+            Order = set.Order,
+            TileDataKey = resourceMap[set.TileSet.Source],
+            TileOffset = set.TileSet.Offset,
+            CodecName = set.TileSet.CodecName,
+            FirstTile = set.TileSet.FirstTileIndex,
+            TileCount = set.TileSet.DeclaredCount,
+            PaletteSlots = slots,
+            AttributeDataKey = set.AttributeSource is { } attributes ? resourceMap[attributes] : null,
+            AttributeOffset = set.AttributeOffset,
+            AttributeSize = set.AttributeSource is null ? null : set.AttributeSize
+        };
+    }
+
+    public static MetatileMapModel MapToModel(this MetatileMap map, Dictionary<IProjectResource, string> resourceMap)
+    {
+        return new MetatileMapModel()
+        {
+            Name = map.Name,
+            MapDataKey = resourceMap[map.BlockSource],
+            MapOffset = map.BlockOffset,
+            Width = map.Width,
+            Height = map.Height,
+            Layout = map.Layout,
+            FormatName = map.BlockFormat.Name,
+            EmptyBlock = map.EmptyBlock,
+            Sets = map.Sets.Select(x => (resourceMap[x.Set], x.Base)).ToList()
         };
     }
 

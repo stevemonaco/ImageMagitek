@@ -7,6 +7,7 @@ using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using ImageMagitek;
 using ImageMagitek.Colors;
+using ImageMagitek.Metatiles;
 using ImageMagitek.Project;
 using TileShop.Shared.Models;
 using TileShop.UI.Controls;
@@ -71,7 +72,7 @@ public static class AppConverters
         {
             Palette => AppIcons.NewNodePalette,
             SequentialArranger => AppIcons.NewNodeFile,
-            ScatteredArranger or TilemapArranger => AppIcons.NewNodeArranger,
+            ScatteredArranger or TilemapArranger or MetatileMap => AppIcons.NewNodeArranger,
             DataSource => AppIcons.NewNodeFile,
             ImageProject => AppIcons.NewNodeProject,
             ResourceFolder => AppIcons.NewNodeFolder,

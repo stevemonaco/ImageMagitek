@@ -26,7 +26,7 @@ public class ImportHandler : ProjectCommandHandler<ImportOptions>
 
             var result = Importer.ImportImage(project, imageFileName, resourceKey, options.ImageOptions, false, Output);
 
-            var isSkipped = (result == ImportResult.MissingFile && options.SkipMissingFiles) ||
+            var isSkipped = result == ImportResult.Skipped || (result == ImportResult.MissingFile && options.SkipMissingFiles) ||
                 (result == ImportResult.BadResourceKey && options.SkipBadResourceKeys);
 
             if (result != ImportResult.Success && !isSkipped)

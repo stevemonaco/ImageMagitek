@@ -35,6 +35,8 @@ public abstract partial class ResourceNodeViewModel : ObservableObject
             DataFileNode => new DataFileNodeViewModel(node, parent),
             CompressedDataNode => new CompressedDataNodeViewModel(node, parent),
             TilemapNode => new TilemapNodeViewModel(node, parent),
+            MetatileSetNode => new MetatileSetNodeViewModel(node, parent),
+            MetatileMapNode => new MetatileMapNodeViewModel(node, parent),
             ArrangerNode => new ArrangerNodeViewModel(node, parent),
             _ => throw new NotSupportedException($"{nameof(Create)}: a node '{node.Name}' of type '{node.GetType()}' is not supported")
         };

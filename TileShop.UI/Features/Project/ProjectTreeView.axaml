@@ -83,6 +83,24 @@
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
         </ContextMenu>
 
+        <ContextMenu x:Key="MetatileSetContextMenu" x:DataType="vm:MetatileSetNodeViewModel">
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).EditMetatileTileSetCommand}" CommandParameter="{Binding}" Header="Edit Tile Set" />
+            <Separator />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).MoveNodeCommand}" CommandParameter="{Binding}" Header="Move to Folder..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+        </ContextMenu>
+
+        <ContextMenu x:Key="MetatileMapContextMenu" x:DataType="vm:MetatileMapNodeViewModel">
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExportArrangerNodeAsCommand}" CommandParameter="{Binding}" Header="Export As..." />
+            <Separator />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).MoveNodeCommand}" CommandParameter="{Binding}" Header="Move to Folder..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExploreResourceCommand}" CommandParameter="{Binding}" Header="Open in Folder" />
+        </ContextMenu>
+
         <ContextMenu x:Key="PaletteContextMenu" x:DataType="vm:PaletteNodeViewModel">
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename..." />
@@ -118,6 +136,12 @@
             </Style>
             <Style Selector="TreeViewItem.tilemap">
                 <Setter Property="ContextMenu" Value="{StaticResource TilemapContextMenu}" />
+            </Style>
+            <Style Selector="TreeViewItem.metatileset">
+                <Setter Property="ContextMenu" Value="{StaticResource MetatileSetContextMenu}" />
+            </Style>
+            <Style Selector="TreeViewItem.metatilemap">
+                <Setter Property="ContextMenu" Value="{StaticResource MetatileMapContextMenu}" />
             </Style>
             <Style Selector="TreeViewItem.palette">
                 <Setter Property="ContextMenu" Value="{StaticResource PaletteContextMenu}" />
@@ -193,6 +217,20 @@
             </TreeDataTemplate>
 
             <TreeDataTemplate x:DataType="vm:TilemapNodeViewModel" DataType="vm:TilemapNodeViewModel" ItemsSource="{Binding Children}">
+                <StackPanel Orientation="Horizontal" ToolTip.Tip="{Binding Description}">
+                    <Image Classes="resource-icon-medium" Opacity="0.6" Source="{x:Static cc:AppIcons.NewNodeArranger}" />
+                    <TextBlock Margin="4,0,0,0" FontStyle="Italic" Text="{Binding Name}" />
+                </StackPanel>
+            </TreeDataTemplate>
+
+            <TreeDataTemplate x:DataType="vm:MetatileSetNodeViewModel" DataType="vm:MetatileSetNodeViewModel" ItemsSource="{Binding Children}">
+                <StackPanel Orientation="Horizontal" ToolTip.Tip="{Binding Description}">
+                    <Image Classes="resource-icon-medium" Opacity="0.6" Source="{x:Static cc:AppIcons.NewNodeArranger}" />
+                    <TextBlock Margin="4,0,0,0" FontStyle="Italic" Text="{Binding Name}" />
+                </StackPanel>
+            </TreeDataTemplate>
+
+            <TreeDataTemplate x:DataType="vm:MetatileMapNodeViewModel" DataType="vm:MetatileMapNodeViewModel" ItemsSource="{Binding Children}">
                 <StackPanel Orientation="Horizontal" ToolTip.Tip="{Binding Description}">
                     <Image Classes="resource-icon-medium" Opacity="0.6" Source="{x:Static cc:AppIcons.NewNodeArranger}" />
                     <TextBlock Margin="4,0,0,0" FontStyle="Italic" Text="{Binding Name}" />

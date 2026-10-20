@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mapformat name="FRLG Block" entrybits="16" endian="little">
+  <tileindex lowbit="0" bits="10" />
+</mapformat>

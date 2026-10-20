@@ -66,6 +66,18 @@ public sealed class TileSet
     public BitAddress TileAddress(int tileIndex) => new(Offset * 8 + ((long)tileIndex - FirstTileIndex) * _tileBits);
 
     /// <summary>
+    /// One codec per palette slot; an unassigned slot shares slot 0's codec
+    /// </summary>
+    public IGraphicsCodec[] CreateSlotCodecs(IReadOnlyList<Palette?> slots)
+    {
+        var codecs = new IGraphicsCodec[slots.Count];
+        for (int i = 0; i < codecs.Length; i++)
+            codecs[i] = i == 0 || slots[i] is not null ? CreateCodec(slots[i]) : codecs[0];
+
+        return codecs;
+    }
+
+    /// <summary>
     /// A new instance of the tile codec, showing <paramref name="palette"/> or the codec's default palette when null
     /// </summary>
     /// <exception cref="ArgumentException">The codec is unknown or not indexed; the message completes the owner's name</exception>

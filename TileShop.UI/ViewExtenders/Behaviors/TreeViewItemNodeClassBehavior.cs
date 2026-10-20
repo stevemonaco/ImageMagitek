@@ -9,7 +9,7 @@ namespace TileShop.UI.Behaviors;
 
 /// <summary>
 /// Attached behavior that applies a style class to a TreeViewItem based on its DataContext type.
-/// When enabled, monitors DataContext changes and sets a class like "project", "folder", "datafile", "compresseddata", "arranger", "tilemap", or "palette".
+/// When enabled, monitors DataContext changes and sets a class like "project", "folder", "datafile", "compresseddata", "arranger", "tilemap", "metatileset", "metatilemap", or "palette".
 /// </summary>
 public class TreeViewItemNodeClassBehavior
 {
@@ -25,6 +25,8 @@ public class TreeViewItemNodeClassBehavior
         [typeof(StandaloneFileNodeViewModel)] = "standalone",
         [typeof(ArrangerNodeViewModel)] = "arranger",
         [typeof(TilemapNodeViewModel)] = "tilemap",
+        [typeof(MetatileSetNodeViewModel)] = "metatileset",
+        [typeof(MetatileMapNodeViewModel)] = "metatilemap",
         [typeof(PaletteNodeViewModel)] = "palette",
     }.ToFrozenDictionary();
 

@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 using ImageMagitek.Services.Stores;
 using ImageMagitek.Codec;
+using ImageMagitek.Metatiles;
 using ImageMagitek.Tilemaps;
 using TileShop.UI.Features.Graphics;
 using TileShop.Shared.Services;
@@ -152,7 +153,11 @@ public partial class EditorsViewModel : ObservableRecipient
     {
         var activeRemoved = ActiveEditor is { } active && editors.Contains(active);
         foreach (var editor in editors)
+        {
             Editors.Remove(editor);
+            if (editor is MetatileMapEditorViewModel mapEditor)
+                mapEditor.ShowAllLayers();
+        }
 
         if (activeRemoved)
             ActiveEditor = Editors.FirstOrDefault();
@@ -244,6 +249,15 @@ public partial class EditorsViewModel : ObservableRecipient
             case TilemapArranger { MapError: { } mapError }:
                 await _interactions.AlertAsync("Tilemap", mapError);
                 return null;
+            case MetatileMap { MapError: { } mapError }:
+                await _interactions.AlertAsync("Map Error", mapError);
+                return null;
+            case MetatileMap map:
+                newDocument = new MetatileMapEditorViewModel(map, _preferencesStore.Preferences.Grid, () => ExportMetatileMapAsync(map));
+                break;
+            case MetatileSet:
+                newDocument = null;
+                break;
             case Arranger arranger:
                 newDocument = new GraphicsEditorViewModel(arranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>());
                 break;
@@ -300,23 +314,54 @@ public partial class EditorsViewModel : ObservableRecipient
     /// <summary>
     /// Opens a new sequential editor on the tilemap's tile set: its tile source at the tile offset, with its codec and slot 0's palette, 16 tiles wide
     /// </summary>
-    public async Task OpenTileSetAsync(TilemapArranger tilemap)
+    public Task OpenTileSetAsync(TilemapArranger tilemap) =>
+        OpenTileSetAsync(tilemap.TileSource, tilemap.TileOffset, tilemap.CodecName, tilemap.TileCount, tilemap.PaletteSlots[0]);
+
+    /// <summary>
+    /// Opens a new sequential editor on a tile set: <paramref name="tileCount"/> tiles of <paramref name="source"/> from <paramref name="offset"/>,
+    /// with <paramref name="codecName"/> and <paramref name="slot0"/> (the default palette when null), 16 tiles wide
+    /// </summary>
+    public async Task OpenTileSetAsync(DataSource source, long offset, string codecName, int tileCount, Palette? slot0)
     {
-        if (await AlertIfMissingDataSourceAsync(tilemap.TileSource, "Edit Tile Set"))
+        if (await AlertIfMissingDataSourceAsync(source, "Edit Tile Set"))
             return;
 
         // Only whole rows of tiles the source holds, or SequentialArranger.Move pulls the start back before the tile offset
-        var columns = Math.Clamp(tilemap.TileCount, 1, TilePalette.DefaultColumns);
-        var rows = Math.Clamp(tilemap.TileCount / columns, 1, 32);
-        var palette = tilemap.PaletteSlots[0] ?? _paletteStore.DefaultPalette;
-        var codec = _codecService.CodecFactory.CreateCodec(tilemap.CodecName)!;
-        var arranger = new SequentialArranger(columns, rows, tilemap.TileSource, palette, _codecService.CodecFactory, codec);
-        arranger.Move(new BitAddress(tilemap.TileOffset, 0));
+        var columns = Math.Clamp(tileCount, 1, TilePalette.DefaultColumns);
+        var rows = Math.Clamp(tileCount / columns, 1, 32);
+        var palette = slot0 ?? _paletteStore.DefaultPalette;
+        var codec = _codecService.CodecFactory.CreateCodec(codecName)!;
+        var arranger = new SequentialArranger(columns, rows, source, palette, _codecService.CodecFactory, codec);
+        arranger.Move(new BitAddress(offset, 0));
 
-        var editor = CreateSequentialEditor(arranger, tilemap.TileSource);
+        var editor = CreateSequentialEditor(arranger, source);
         editor.SelectPalette(palette);
         Editors.Add(editor);
         ActiveEditor = editor;
+    }
+
+    /// <summary>
+    /// Writes the map's composite, with its current layer visibility, to a PNG the user picks
+    /// </summary>
+    public async Task ExportMetatileMapAsync(MetatileMap map)
+    {
+        if (await AlertIfUnavailableAsync(map, "Export"))
+            return;
+
+        var exportFileName = await _fileRequests.RequestExportArrangerFileName($"{map.Name}.png");
+
+        if (exportFileName is null)
+            return;
+
+        try
+        {
+            map.Composite().ExportImage(exportFileName.LocalPath, new ImageSharpFileAdapter());
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Could not export '{MapName}' to '{FileName}'", map.Name, exportFileName.LocalPath);
+            await _interactions.AlertAsync("Export Error", ex.Message);
+        }
     }
 
     public void Receive(EditTileSetMessage message) => _ = OpenTileSetAsync(message.Tilemap);
@@ -343,7 +388,14 @@ public partial class EditorsViewModel : ObservableRecipient
         if (await AlertIfMissingDataSourceAsync(resource, title))
             return true;
 
-        if (resource is not TilemapArranger { MapError: { } mapError })
+        var mapError = resource switch
+        {
+            TilemapArranger tilemap => tilemap.MapError,
+            MetatileMap map => map.MapError,
+            _ => null
+        };
+
+        if (mapError is null)
             return false;
 
         await _interactions.AlertAsync(title, mapError);
@@ -356,6 +408,8 @@ public partial class EditorsViewModel : ObservableRecipient
         CompressedDataSource { Parent: FileDataSource parentSource } => parentSource.IsMissing ? parentSource : null,
         Palette { DataSource: FileDataSource paletteSource } => paletteSource.IsMissing ? paletteSource : null,
         Arranger arranger => arranger.FindMissingDataSource(),
+        MetatileMap map => map.FindMissingDataSource(),
+        MetatileSet set => set.FindMissingDataSource(),
         _ => null
     };
 
@@ -508,6 +562,9 @@ public partial class EditorsViewModel : ObservableRecipient
                 RefreshPalette(palette);
             else if (resource is DataSource source)
                 ReloadDataSource(source);
+
+            foreach (var editor in Editors.OfType<MetatileMapEditorViewModel>().Where(x => x.ReadsFrom(resource)))
+                editor.Redraw();
         }
     }
 

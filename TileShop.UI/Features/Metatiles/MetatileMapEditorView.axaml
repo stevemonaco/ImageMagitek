@@ -1,0 +1,47 @@
+<UserControl x:Class="TileShop.UI.Views.MetatileMapEditorView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
+    xmlns:vm="using:TileShop.UI.ViewModels"
+    x:DataType="vm:MetatileMapEditorViewModel"
+    Focusable="True">
+    <Grid Margin="8,4,0,0" ColumnDefinitions="Auto, *" UseLayoutRounding="True">
+        <Border Width="200" MinWidth="160" Margin="0,0,8,0">
+            <ScrollViewer AllowAutoHide="True" Classes="InsetContent">
+                <StackPanel Spacing="4">
+                    <TextBlock HorizontalAlignment="Left" Classes="muted" Text="Layers" />
+                    <ItemsControl x:Name="LayerVisibilityList" ItemsSource="{Binding Layers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:LayerVisibilityViewModel">
+                                <CheckBox Content="{Binding Name}" IsChecked="{Binding IsVisible}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Options" />
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <ToggleButton x:Name="ShowGridlinesToggle" Classes="tool" IsChecked="{Binding GridSettings.ShowGridlines}" ToolTip.Tip="Toggle gridline visibility">
+                            <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Gridlines}" />
+                        </ToggleButton>
+                        <ToggleButton x:Name="TileGridToggle" Classes="tool" IsChecked="{Binding ShowTileGrid}" ToolTip.Tip="Grid cells are tiles instead of blocks">
+                            <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.TileRectangleFill}" />
+                        </ToggleButton>
+                        <Button x:Name="FitToViewButton" Classes="tool" Command="{Binding FitToViewportCommand}" ToolTip.Tip="Fit the map to the view">
+                            <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.FitToView}" />
+                        </Button>
+                        <Button x:Name="ResetZoomButton" Classes="tool" Command="{Binding ResetZoomCommand}" ToolTip.Tip="Reset zoom to 100%">
+                            <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ZoomOut}" />
+                        </Button>
+                    </StackPanel>
+
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Actions" />
+                    <Button x:Name="ExportAsButton" HorizontalAlignment="Left" Command="{Binding ExportAsCommand}" Content="Export As..."
+                        ToolTip.Tip="Export the composite with the visible layers to a PNG" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <cc:InfiniteCanvas x:Name="EditorCanvas" Grid.Column="1" MaxZoom="32" MinZoom="0.25" ZoomPower="1.25"
+            ToolTip.Tip="Ctrl+wheel zooms · Middle-drag pans" />
+    </Grid>
+</UserControl>

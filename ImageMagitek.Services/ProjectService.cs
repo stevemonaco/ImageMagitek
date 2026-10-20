@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Diagnostics;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
+using ImageMagitek.Metatiles;
 using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
 using ImageMagitek.Utility;
@@ -482,6 +483,8 @@ public class ProjectService : IProjectService
             {
                 CompressedDataSource compressed => new CompressedDataNode(compressed.Name, compressed),
                 TilemapArranger tilemap => new TilemapNode(tilemap.Name, tilemap),
+                MetatileSet metatileSet => new MetatileSetNode(metatileSet.Name, metatileSet),
+                MetatileMap metatileMap => new MetatileMapNode(metatileMap.Name, metatileMap),
                 DataSource df => new DataFileNode(df.Name, df),
                 ScatteredArranger arranger => new ArrangerNode(arranger.Name, arranger),
                 Palette pal => new PaletteNode(pal.Name, pal),
@@ -1048,7 +1051,7 @@ public class ProjectService : IProjectService
             }
 
             // Editors on the source close on Removed, so nothing reads it after this
-            if (item.Resource is IDisposable disposable and (DataSource or TilemapArranger))
+            if (item.Resource is IDisposable disposable and (DataSource or TilemapArranger or MetatileMap))
                 disposable.Dispose();
         }
 
@@ -1168,13 +1171,14 @@ public class ProjectService : IProjectService
             changes.Add(paletteChange);
         }
 
-        foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Item is TilemapArranger && !removedDict.ContainsKey(x.Item)))
+        // Sets before maps, so a map whose set is removed by a cascade is removed too
+        foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Item is TilemapArranger or MetatileSet or MetatileMap).OrderBy(x => x.Item is MetatileMap).ToList())
         {
-            if (((TilemapArranger)node.Item).LinkedResources.Any(removedDict.ContainsKey))
+            if (!removedDict.ContainsKey(node.Item) && node.Item.LinkedResources.Any(removedDict.ContainsKey))
             {
-                var tilemapChange = new ResourceChange(node, tree.CreatePathKey(node), true, false, false);
-                removedDict[node.Item] = tilemapChange;
-                changes.Add(tilemapChange);
+                var linkedChange = new ResourceChange(node, tree.CreatePathKey(node), true, false, false);
+                removedDict[node.Item] = linkedChange;
+                changes.Add(linkedChange);
             }
         }
 

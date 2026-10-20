@@ -31,12 +31,15 @@ tests:
   - ScatteredArrangerReversibilityTests
   - ReadOnlyArrangerTests
   - TilemapEditTests
+  - MetatileMapTests
 depends:
   - LIB-IMAGES
   - LIB-ARRANGERS
   - LIB-PALETTES
   - LIB-COLORS
   - LIB-TILEMAPS
+  - LIB-SCENES
+  - LIB-METATILE-MAPS
 ---
 
 # Image export and import
@@ -71,6 +74,11 @@ Exports an arranger's image to PNG and stages image files for import back into a
   - Tests: `ScatteredArrangerReversibilityTests.ImageToDataToImage_RoundTrips`
 - **LIB-IMAGE-IO-010** — Export shall replace any existing file at the path.
   - Tests: untested
+
+### Composite export
+
+- **LIB-IMAGE-IO-047** — A metatile map (LIB-METATILE-MAPS) shall export its composite (LIB-METATILE-MAPS-016), with its current layer visibility, as a direct-color PNG through `LayerImage.ExportImage` and `IImageFileAdapter.SaveImage(ColorRgba32[], width, height, path)`. A metatile map cannot be imported.
+  - Tests: `MetatileMapTests.ExportComposite_WritesCompositePng`
 
 ### Paletted PNG writer and reader
 

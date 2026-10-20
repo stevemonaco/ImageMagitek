@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Compression;
+using ImageMagitek.Metatiles;
 using ImageMagitek.Tilemaps;
 using ImageMagitek.Utility.Parsing;
 using System.Diagnostics.CodeAnalysis;
@@ -134,6 +135,13 @@ public sealed class XmlProjectReader : IProjectReader
             }
         }
 
+        foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is MetatileSetModel))
+        {
+            var result = builder.AddMetatileSet((MetatileSetModel)model, pathKey, fileLocation);
+            if (result.HasFailed)
+                _errors.AddRange(result.AsError.Reasons);
+        }
+
         // After scattered arrangers, since a tilemap may name one as its tile palette
         foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is TilemapModel))
         {
@@ -142,6 +150,14 @@ public sealed class XmlProjectReader : IProjectReader
             {
                 _errors.AddRange(result.AsError.Reasons);
             }
+        }
+
+        // Last, since a metatile map references metatile sets
+        foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is MetatileMapModel))
+        {
+            var result = builder.AddMetatileMap((MetatileMapModel)model, pathKey, fileLocation);
+            if (result.HasFailed)
+                _errors.AddRange(result.AsError.Reasons);
         }
 
         if (_errors.Count > 0)
@@ -231,7 +247,7 @@ public sealed class XmlProjectReader : IProjectReader
 
     private static bool IsSkippedName(string name) => name.StartsWith('.');
 
-    private static bool IsResourceRoot(string root) => root is "datafile" or "compresseddata" or "palette" or "tilemap" or "arranger";
+    private static bool IsResourceRoot(string root) => root is "datafile" or "compresseddata" or "palette" or "tilemap" or "arranger" or "metatileset" or "metatilemap";
 
     private bool TryLoadXml(string xmlFileName, [MaybeNullWhen(false)] out XDocument doc)
     {
@@ -319,6 +335,12 @@ public sealed class XmlProjectReader : IProjectReader
                 case "tilemap":
                     model = DeserializeTilemap(doc.Root, resourceName);
                     return true;
+                case "metatileset":
+                    model = DeserializeMetatileSet(doc.Root, resourceName);
+                    return true;
+                case "metatilemap":
+                    model = DeserializeMetatileMap(doc.Root, resourceName);
+                    return true;
                 case "palette":
                     if (!TryDeserializePalette(doc.Root, xmlFileName, resourceName, out var paletteModel))
                         return false;
@@ -375,6 +397,48 @@ public sealed class XmlProjectReader : IProjectReader
             PaletteSlots = element.Elements("paletteslot")
                 .ToDictionary(x => int.Parse(x.Attribute("index").Value), x => x.Attribute("palette").Value)
         };
+
+    private static MetatileSetModel DeserializeMetatileSet(XElement element, string resourceName) =>
+        new()
+        {
+            Name = resourceName,
+            MetatileDataKey = element.Attribute("metatiledatafile").Value,
+            MetatileOffset = ParseHex(element.Attribute("metatileoffset").Value),
+            MetatileCount = int.Parse(element.Attribute("metatilecount").Value),
+            MetatileWidth = int.Parse(element.Attribute("metatilewidth")?.Value ?? "2"),
+            MetatileHeight = int.Parse(element.Attribute("metatileheight")?.Value ?? "2"),
+            Layers = int.Parse(element.Attribute("layers")?.Value ?? "1"),
+            FormatName = element.Attribute("format").Value,
+            Order = MetatileOrderExtensions.FromXmlName(element.Attribute("order")?.Value),
+            TileDataKey = element.Attribute("tiledatafile").Value,
+            TileOffset = ParseHex(element.Attribute("tileoffset").Value),
+            CodecName = element.Attribute("codec").Value,
+            FirstTile = int.Parse(element.Attribute("firsttile")?.Value ?? "0"),
+            TileCount = element.Attribute("tilecount") is { } tileCount ? int.Parse(tileCount.Value) : null,
+            PaletteSlots = element.Elements("paletteslot")
+                .ToDictionary(x => int.Parse(x.Attribute("index").Value), x => x.Attribute("palette").Value),
+            AttributeDataKey = element.Attribute("attributedatafile")?.Value,
+            AttributeOffset = element.Attribute("attributeoffset") is { } attributeOffset ? ParseHex(attributeOffset.Value) : 0,
+            AttributeSize = element.Attribute("attributesize") is { } attributeSize ? int.Parse(attributeSize.Value) : null
+        };
+
+    private static MetatileMapModel DeserializeMetatileMap(XElement element, string resourceName) =>
+        new()
+        {
+            Name = resourceName,
+            MapDataKey = element.Attribute("mapdatafile").Value,
+            MapOffset = ParseHex(element.Attribute("mapoffset").Value),
+            Width = int.Parse(element.Attribute("width").Value),
+            Height = int.Parse(element.Attribute("height").Value),
+            Layout = MapScreenLayoutExtensions.FromXmlName(element.Attribute("layout")?.Value),
+            FormatName = element.Attribute("format").Value,
+            EmptyBlock = int.Parse(element.Attribute("emptyblock")?.Value ?? "0"),
+            Sets = element.Elements("set")
+                .Select(x => (x.Attribute("metatileset").Value, int.Parse(x.Attribute("base").Value)))
+                .ToList()
+        };
+
+    private static long ParseHex(string value) => long.Parse(value, System.Globalization.NumberStyles.HexNumber);
 
     private bool TryDeserializeDataFile(XElement element, string resourceName, out DataFileModel dataFileModel)
     {

@@ -37,18 +37,7 @@
   <xs:element name="tilemap">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="paletteslot" minOccurs="0" maxOccurs="16">
-          <xs:complexType>
-            <xs:attribute name="index" use="required">
-              <xs:simpleType>
-                <xs:restriction base="xs:nonNegativeInteger">
-                  <xs:maxInclusive value="15" />
-                </xs:restriction>
-              </xs:simpleType>
-            </xs:attribute>
-            <xs:attribute name="palette" type="xs:string" use="required" />
-          </xs:complexType>
-        </xs:element>
+        <xs:element name="paletteslot" type="paletteslot" minOccurs="0" maxOccurs="16" />
       </xs:sequence>
       <xs:attribute name="mapdatafile" type="xs:string" use="required" />
       <xs:attribute name="mapoffset" type="hexoffset" use="required" />
@@ -70,6 +59,87 @@
       <xs:attribute name="emptytile" type="xs:nonNegativeInteger" use="optional" />
       <xs:attribute name="tilecount" type="xs:positiveInteger" use="optional" />
       <xs:attribute name="tilepalette" type="xs:string" use="optional" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="paletteslot">
+    <xs:attribute name="index" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:nonNegativeInteger">
+          <xs:maxInclusive value="15" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="palette" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <xs:element name="metatileset">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="paletteslot" type="paletteslot" minOccurs="0" maxOccurs="16" />
+      </xs:sequence>
+      <xs:attribute name="metatiledatafile" type="xs:string" use="required" />
+      <xs:attribute name="metatileoffset" type="hexoffset" use="required" />
+      <xs:attribute name="metatilecount" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="metatilewidth" type="metatilesize" use="optional" />
+      <xs:attribute name="metatileheight" type="metatilesize" use="optional" />
+      <xs:attribute name="layers" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:positiveInteger">
+            <xs:maxInclusive value="4" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="format" type="xs:string" use="required" />
+      <xs:attribute name="order" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="interleaved" />
+            <xs:enumeration value="planar" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="tiledatafile" type="xs:string" use="required" />
+      <xs:attribute name="tileoffset" type="hexoffset" use="required" />
+      <xs:attribute name="codec" type="xs:string" use="required" />
+      <xs:attribute name="firsttile" type="xs:nonNegativeInteger" use="optional" />
+      <xs:attribute name="tilecount" type="xs:positiveInteger" use="optional" />
+      <xs:attribute name="attributedatafile" type="xs:string" use="optional" />
+      <xs:attribute name="attributeoffset" type="hexoffset" use="optional" />
+      <xs:attribute name="attributesize" type="metatilesize" use="optional" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="metatilesize">
+    <xs:restriction base="xs:positiveInteger">
+      <xs:maxInclusive value="8" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="metatilemap">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="set" minOccurs="1" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:attribute name="metatileset" type="xs:string" use="required" />
+            <xs:attribute name="base" type="xs:nonNegativeInteger" use="required" />
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="mapdatafile" type="xs:string" use="required" />
+      <xs:attribute name="mapoffset" type="hexoffset" use="required" />
+      <xs:attribute name="width" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="height" type="xs:positiveInteger" use="required" />
+      <xs:attribute name="layout" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="linear" />
+            <xs:enumeration value="snes32" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="format" type="xs:string" use="required" />
+      <xs:attribute name="emptyblock" type="xs:nonNegativeInteger" use="optional" />
     </xs:complexType>
   </xs:element>
 

@@ -2,11 +2,12 @@ using System.IO;
 using System.Linq;
 using ImageMagitek;
 using ImageMagitek.Image.Import;
+using ImageMagitek.Metatiles;
 using ImageMagitek.Project;
 
 namespace TileShop.CLI.Porters;
 
-public enum ImportResult { Success, MissingFile, BadResourceKey, ReadOnly, UnmatchedColors, ImportFailed }
+public enum ImportResult { Success, MissingFile, BadResourceKey, ReadOnly, UnmatchedColors, ImportFailed, Skipped }
 
 public static class Importer
 {
@@ -17,7 +18,14 @@ public static class Importer
     {
         output.Write($"Importing '{imageFileName}' to '{arrangerKey}'...");
 
-        if (!projectTree.TryGetNode(arrangerKey, out var node) || node.Item is not Arranger { Mode: ArrangerMode.Scattered or ArrangerMode.Tilemap } arranger)
+        projectTree.TryGetNode(arrangerKey, out var node);
+        if (node?.Item is MetatileMap)
+        {
+            output.WriteLine("Skipped: metatile maps cannot be imported");
+            return ImportResult.Skipped;
+        }
+
+        if (node?.Item is not Arranger { Mode: ArrangerMode.Scattered or ArrangerMode.Tilemap } arranger)
         {
             output.WriteLine("Resource key does not exist or is not a Scattered Arranger or Tilemap");
             return ImportResult.BadResourceKey;

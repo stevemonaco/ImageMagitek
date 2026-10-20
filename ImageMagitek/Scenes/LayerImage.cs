@@ -29,6 +29,11 @@ public sealed class LayerImage
     }
 
     /// <summary>
+    /// Writes the image to a direct-color file through <paramref name="adapter"/>
+    /// </summary>
+    public void ExportImage(string imagePath, IImageFileAdapter adapter) => adapter.SaveImage(Pixels, Width, Height, imagePath);
+
+    /// <summary>
     /// Renders the arranger's current data to 32-bit color: indexed pixels take their element's palette color and alpha,
     /// direct pixels keep their decoded color, and empty cells, elements outside their source and indexes past the palette are transparent.
     /// </summary>

@@ -39,7 +39,7 @@ public sealed class MapFormatTests : IDisposable
     {
         var factory = LoadShippedFormats();
 
-        Assert.Equal(["Game Boy BG", "GBA Affine", "GBA Text BG", "Genesis Plane", "Plain 8-bit Index", "SNES BG", "SNES Mode 7"],
+        Assert.Equal(["FRLG Block", "Game Boy BG", "GBA Affine", "GBA Text BG", "Genesis Plane", "Plain 8-bit Index", "SNES BG", "SNES Mode 7"],
             factory.Formats.Select(x => x.Name));
     }
 

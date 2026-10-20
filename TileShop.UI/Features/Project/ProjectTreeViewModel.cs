@@ -12,6 +12,7 @@ using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Compression;
+using ImageMagitek.Metatiles;
 using ImageMagitek.Project;
 using ImageMagitek.Services;
 using ImageMagitek.Tilemaps;
@@ -383,9 +384,21 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     public Task EditTileSet(TilemapNodeViewModel nodeModel) => _editors.OpenTileSetAsync((TilemapArranger)nodeModel.Node.Item);
 
     [RelayCommand]
+    public Task EditMetatileTileSet(MetatileSetNodeViewModel nodeModel)
+    {
+        var set = (MetatileSet)nodeModel.Node.Item;
+        var tiles = set.TileSet;
+        return _editors.OpenTileSetAsync(tiles.Source, tiles.Offset, tiles.CodecName, tiles.TileCount, set.PaletteSlots[0]);
+    }
+
+    [RelayCommand]
     public async Task ExportArrangerNodeAs(ResourceNodeViewModel nodeModel)
     {
-        if (nodeModel.Node.Item is ScatteredArranger or TilemapArranger)
+        if (nodeModel.Node.Item is MetatileMap map)
+        {
+            await _editors.ExportMetatileMapAsync(map);
+        }
+        else if (nodeModel.Node.Item is ScatteredArranger or TilemapArranger)
         {
             await ExportArrangerAs((Arranger)nodeModel.Node.Item);
         }

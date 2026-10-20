@@ -6,6 +6,7 @@ project: ImageMagitek
 sources:
   - ImageMagitek/Metatiles
   - ImageMagitek/_mapformats/FrlgBlock.xml
+  - ImageMagitek/Tilemaps/MapDataReader.cs
 types:
   - MetatileSet
   - MetatileOrder
@@ -52,7 +53,7 @@ Shows and edits maps that a game stores as a block map plus a table of metatiles
 
 ### Metatile maps
 
-- **LIB-METATILE-MAPS-010** — A metatile map shall have a block map (a data source, an offset, a width and height in blocks, a screen layout from LIB-TILEMAPS, and a block format), an ordered list of one or more metatile sets each with the metatile number its first metatile has (its base), and an empty block number (0 by default). If two sets' metatile ranges `[base, base + count)` overlap, two sets' tile ranges overlap, two sets assign a palette to the same slot, the sets differ in layer count or metatile shape, or the empty block number does not fit the block format's index field, then creation shall throw naming the map and the conflict.
+- **LIB-METATILE-MAPS-010** — A metatile map shall have a block map (a data source, an offset, a width and height in blocks, a screen layout from LIB-TILEMAPS, and a block format), an ordered list of one or more metatile sets each with the metatile number its first metatile has (its base), and an empty block number (0 by default). If two sets' metatile ranges `[base, base + count)` overlap, two sets' tile ranges overlap, two sets assign a palette to the same slot, the sets differ in layer count, metatile shape or tile size, a base is negative, or the empty block number does not fit the block format's index field, then creation shall throw naming the map and the conflict.
   - Tests: `MetatileMapTests.Create_OverlappingMetatileRanges_Throws`, `MetatileMapTests.Create_OverlappingTileRanges_Throws`, `MetatileMapTests.Create_SharedPaletteSlot_Throws`, `MetatileMapTests.Create_MismatchedShape_Throws`
 - **LIB-METATILE-MAPS-011** — A block format shall be a map format whose tile-index field holds the metatile number; its other fields, if any, are ignored, and every bit outside the index field is a **block bit**. The shipped "FRLG Block" format shall be 16-bit little-endian with the index in bits 0–9.
   - Tests: `MapFormatTests.ShippedFormats_AllLoad`, `MetatileMapTests.FrlgBlock_DecodesMetatileNumber`
@@ -125,5 +126,6 @@ Shows and edits maps that a game stores as a block map plus a table of metatiles
 
 ## Open items
 
+- Not implemented yet: the block grid, writing blocks, the block map read-only reason, block brushes, plotting and the block palette (LIB-METATILE-MAPS-030 to -037); the first version is read-only.
 - The block-bits overlay and the editor are specified in UI-BLOCK-PLOTTING.
 - Drawing a border metatile map around its map is a later view option.

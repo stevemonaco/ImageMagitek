@@ -2,13 +2,14 @@ using System;
 using System.IO;
 using System.Linq;
 using ImageMagitek;
+using ImageMagitek.Metatiles;
 using ImageMagitek.Project;
 
 namespace TileShop.CLI.Porters;
 
 public static class Exporter
 {
-    /// <returns>False if the arranger could not be exported; an existing PNG skipped without <paramref name="forceOverwrite"/> counts as success</returns>
+    /// <returns>False if the resource could not be exported; an existing PNG skipped without <paramref name="forceOverwrite"/> counts as success</returns>
     public static bool ExportArranger(ProjectTree projectTree, string arrangerKey, string projectRoot, bool forceOverwrite, TextWriter output)
     {
         if (!projectTree.TryGetNode(arrangerKey, out var node))
@@ -17,9 +18,9 @@ public static class Exporter
             return false;
         }
 
-        if (node.Item is not Arranger arranger || arranger is SequentialArranger)
+        if (node.Item is not (MetatileMap or Arranger and not SequentialArranger))
         {
-            output.WriteLine($"Exporting '{arrangerKey}'...Resource key is not a Scattered Arranger or Tilemap");
+            output.WriteLine($"Exporting '{arrangerKey}'...Resource key is not a Scattered Arranger, Tilemap or Metatile Map");
             return false;
         }
 
@@ -28,13 +29,20 @@ public static class Exporter
 
         output.Write($"Exporting '{arrangerKey}' to '{exportFileName}'...");
 
-        if (arranger.FindMissingDataSource() is { } missing)
+        var missing = node.Item is MetatileMap missingMap ? missingMap.FindMissingDataSource() : ((Arranger)node.Item).FindMissingDataSource();
+        if (missing is not null)
         {
             output.WriteLine($"Data file '{missing.Name}' is missing at '{missing.FileLocation}'");
             return false;
         }
 
-        if (arranger is TilemapArranger { MapError: { } mapError })
+        var mapError = node.Item switch
+        {
+            MetatileMap m => m.MapError,
+            TilemapArranger t => t.MapError,
+            _ => null
+        };
+        if (mapError is not null)
         {
             output.WriteLine(mapError);
             return false;
@@ -51,17 +59,21 @@ public static class Exporter
             if (Path.GetDirectoryName(exportFileName) is { Length: > 0 } path)
                 Directory.CreateDirectory(path);
 
-            if (arranger.ColorType == PixelColorType.Indexed)
+            if (node.Item is MetatileMap map)
             {
-                new IndexedImage(arranger).ExportImage(exportFileName, new ImageSharpFileAdapter());
+                map.Composite().ExportImage(exportFileName, new ImageSharpFileAdapter());
             }
-            else if (arranger.ColorType == PixelColorType.Direct)
+            else if (node.Item is Arranger { ColorType: PixelColorType.Indexed } indexed)
             {
-                new DirectImage(arranger).ExportImage(exportFileName, new ImageSharpFileAdapter());
+                new IndexedImage(indexed).ExportImage(exportFileName, new ImageSharpFileAdapter());
+            }
+            else if (node.Item is Arranger { ColorType: PixelColorType.Direct } direct)
+            {
+                new DirectImage(direct).ExportImage(exportFileName, new ImageSharpFileAdapter());
             }
             else
             {
-                output.WriteLine($"Color type '{arranger.ColorType}' is not supported");
+                output.WriteLine($"Color type '{((Arranger)node.Item).ColorType}' is not supported");
                 return false;
             }
         }

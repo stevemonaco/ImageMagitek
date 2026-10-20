@@ -23,6 +23,8 @@ types:
   - ArrangerNode
   - CompressedDataNode
   - TilemapNode
+  - MetatileSetNode
+  - MetatileMapNode
   - ResourceFolderNode
   - IProjectResource
   - ImageProject

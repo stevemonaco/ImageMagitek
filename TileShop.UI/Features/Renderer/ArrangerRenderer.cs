@@ -149,7 +149,7 @@ public class ArrangerRenderer
             canvas.DrawImage(image, rect);
         }
 
-        RenderGridlines(state, canvas);
+        RenderGridlines(state.GridSettings, canvas);
         RenderSelection(state, canvas);
         RenderSelectionHandles(state, canvas);
         RenderPaste(state, canvas);
@@ -254,9 +254,8 @@ public class ArrangerRenderer
         canvas.DrawRect(rect, _hoverInnerPaint);
     }
 
-    private static void RenderGridlines(GraphicsEditorViewModel state, SKCanvas canvas)
+    internal static void RenderGridlines(GridSettingsViewModel gridSettings, SKCanvas canvas)
     {
-        var gridSettings = state.GridSettings;
         if (!gridSettings.ShowGridlines)
             return;
 

@@ -5,10 +5,13 @@ status: draft
 project: TileShop.UI, TileShop.Shared
 sources:
   - TileShop.UI/Features/Metatiles
+  - TileShop.UI/Features/Renderer/MetatileMapRenderer.cs
   - TileShop.Shared/Models/History/PlotBlocksHistoryAction.cs
 types:
   - MetatileMapEditorViewModel
   - MetatileMapEditorView
+  - LayerVisibilityViewModel
+  - MetatileMapRenderer
   - BlockPaletteViewModel
   - BlockPaletteView
   - BlockTool
@@ -34,11 +37,11 @@ The editor for a metatile map (LIB-METATILE-MAPS). It shows the map composited f
 
 ### Opening and viewing
 
-- **UI-BLOCK-PLOTTING-001** — When the user opens a metatile map node (Enter or double-click, as UI-EDITORS), the shell shall open a metatile map editor tab named after the map; opening it again shall activate the existing tab. If the map has a `MapError`, the editor shall alert "Map Error" with it, as UI-EDITORS-063 does for tilemaps.
+- **UI-BLOCK-PLOTTING-001** — When the user opens a metatile map node (Enter or double-click, as UI-EDITORS), the shell shall open a metatile map editor tab named after the map; opening it again shall activate the existing tab. If the map has a `MapError`, the shell shall alert "Map Error" with it and open nothing, as UI-EDITORS-063 does for tilemaps (UI-EDITORS-065).
   - Tests: manual — DevTools: open Pallet Town in a copy of the FireRed project; a tab with `MetatileMapEditorView` appears.
-- **UI-BLOCK-PLOTTING-002** — The canvas shall show the map's composite (LIB-METATILE-MAPS-016) with the zoom, pan and grid behavior of the graphics editor (UI-GRAPHICS-EDITOR); the grid's cells shall be blocks, with an option to show tile cells.
+- **UI-BLOCK-PLOTTING-002** — The canvas shall show the map's composite (LIB-METATILE-MAPS-016) with the zoom, pan and grid behavior of the graphics editor (UI-GRAPHICS-EDITOR); the grid's cells shall be blocks, with an option to show tile cells. The toolbar shall offer `ShowGridlinesToggle`, `TileGridToggle`, `FitToViewButton` and `ResetZoomButton`; Ctrl+wheel zooms and middle-drag pans, and the map is fitted to the view when the editor first shows.
   - Tests: manual — DevTools: screenshot Pallet Town; it matches the game's town.
-- **UI-BLOCK-PLOTTING-003** — The layer list (`LayerVisibilityList`) shall show one check box per metatile layer ("Bottom", "Top" for two layers, "Layer n" otherwise), all checked when the editor opens; unchecking one shall hide that layer in the composite and the block palette.
+- **UI-BLOCK-PLOTTING-003** — The layer list (`LayerVisibilityList`) shall show one check box per metatile layer ("Bottom", "Top" for two layers, "Layer 1" to "Layer n" otherwise), all checked when the editor opens; unchecking one shall hide that layer in the composite and the block palette. Closing the editor shall make every layer visible again.
   - Tests: `MetatileMapEditorViewModelTests.HidingLayer_RedrawsWithoutIt`; manual — DevTools: uncheck "Top" on Pallet Town and screenshot.
 - **UI-BLOCK-PLOTTING-004** — The block bits overlay toggle (`BlockBitsOverlayToggle`, off by default) shall draw each block's block bits value (LIB-METATILE-MAPS-017) as a number on the block, in a text style readable over any tiles; it is read-only and changes nothing.
   - Tests: manual — DevTools: toggle it on Pallet Town and screenshot; trees show 1 and paths 0 for FireRed's collision.
@@ -67,14 +70,14 @@ The editor for a metatile map (LIB-METATILE-MAPS). It shows the map composited f
   - Tests: `MetatileMapEditorViewModelTests.PlotBlocks_UndoRedo`
 - **UI-BLOCK-PLOTTING-031** — Save (Ctrl+S) shall write the block grid (LIB-METATILE-MAPS-031), clear the modified state and redraw; a write failure shall alert "Save Error" with the reason and keep the edits. Closing a modified editor shall prompt to save, as other editors do (UI-EDITORS).
   - Tests: `MetatileMapEditorViewModelTests.Save_WritesChangedBlocksOnly`; manual — on a copy of the FireRed project, place a tree in Pallet Town, save, and compare the block map bytes at 0x2DD100.
-- **UI-BLOCK-PLOTTING-032** — Export As... on a metatile map node and in the editor shall write the composite with the current layer visibility to a PNG (direct color).
+- **UI-BLOCK-PLOTTING-032** — Export As... on a metatile map node and in the editor (`ExportAsButton`) shall write the composite with the current layer visibility to a PNG (direct color).
   - Tests: manual — export Pallet Town and compare with the in-editor screenshot.
 - **UI-BLOCK-PLOTTING-033** — When a source the map reads raises `DataWritten` while the editor is not modified, the editor shall redraw; while it is modified, it keeps its block grid and redraws the metatiles and tiles only.
   - Tests: untested
 
 ### Metatile sets
 
-- **UI-BLOCK-PLOTTING-040** — A metatile set node shall offer Edit Tile Set, opening its tile set as UI-TILE-PLOTTING-016 does for a tilemap.
+- **UI-BLOCK-PLOTTING-040** — A metatile set node shall offer Edit Tile Set, opening its tile set as UI-TILE-PLOTTING-016 does for a tilemap (UI-EDITORS-064: the set's tile source, offset, codec, tile count and slot 0).
   - Tests: manual — use the context menu on FireRed's primary set (by hand).
 
 ## Invariants
@@ -95,6 +98,8 @@ The editor for a metatile map (LIB-METATILE-MAPS). It shows the map composited f
 
 - **A separate editor, not a graphics editor mode.** Reason: the graphics editor is built around one arranger and its working clone, and a metatile map is neither (LIB-METATILE-MAPS "A metatile map is a resource with layer arrangers, not an arranger"). The block tools reuse the Tiles mode handler classes and the shared canvas and renderer controls. Rejected: a fifth graphics editor mode that special-cases every arranger path.
 - **View and Blocks only.** Reason: the user scoped the first version to plotting blocks, without region copy and paste; pixel work goes through Edit Tile Set. Rejected: Arrange and Draw in the first version.
+- **The composite is re-rendered whole, not patched.** The editor keeps one bitmap of `MetatileMap.Composite()` and replaces it on every layer toggle or data change. Reason: a FireRed town composites in milliseconds, and View mode has no per-pixel edits to track. Rejected: rendering each layer to its own canvas bitmap (more state for no visible gain in View mode).
+- **Layer visibility lives on the map, reset on open and close.** The tree's Export As... uses the visibility the open editor last set, and the editor makes every layer visible when it opens and when it closes (LIB-METATILE-MAPS-016). Reason: one map object, one visibility, so the export matches what the user sees, and with no editor open nothing on screen hides a layer. Rejected: per-editor visibility passed to export (two sources of truth).
 - **Read-only block-bits overlay.** Reason: the user chose a read-only overlay for the first version; raw values need no per-game definition.
 
 ## Non-goals
@@ -103,4 +108,5 @@ The editor for a metatile map (LIB-METATILE-MAPS). It shows the map composited f
 
 ## Open items
 
+- Not implemented yet: the block-bits overlay and status-bar hover (UI-BLOCK-PLOTTING-004, -005), Blocks mode, the block palette, tools, history and Save (-010 to -031), and redrawing on `DataWritten` (-033; the editor redraws when a palette or data source it reads reports a change through the project service). The first version is View only.
 - Drawing a border map around the map (LIB-METATILE-MAPS Open items).
