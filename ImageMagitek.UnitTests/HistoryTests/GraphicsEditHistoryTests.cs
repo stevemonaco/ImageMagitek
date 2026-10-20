@@ -172,6 +172,18 @@ public class GraphicsEditHistoryTests
     }
 
     [Fact]
+    public void PlotTiles_UndoRedo()
+    {
+        AssertUndoRedo(CreateIndexed(), image =>
+        {
+            image.Arranger.SetElement(image.Arranger.GetElement(0, 0), 2, 1);
+            image.Arranger.ResetElement(1, 0);
+            image.Render();
+            return new PlotTilesHistoryAction("Plot Tiles");
+        });
+    }
+
+    [Fact]
     public void Rotate_UndoRedo()
     {
         AssertUndoRedo(CreateIndexed(8, 8), image => Rotate(image, 2, 1));

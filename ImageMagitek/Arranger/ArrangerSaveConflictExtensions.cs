@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
@@ -216,4 +217,81 @@ public static class ScatteredArrangerSaveConflictExtensions
             }
         }
     }
+}
+
+/// <summary>
+/// A tile read by several cells whose pixels differ between them, so it was left unchanged
+/// </summary>
+/// <param name="Cells">Element grid locations of every cell that reads the tile, in row-major order</param>
+public sealed record SharedTileConflict(BitAddress Address, IReadOnlyList<Point> Cells);
+
+public static class SharedTileExtensions
+{
+    /// <summary>
+    /// Makes the cells of <paramref name="result"/> that read the same tile agree, comparing their pixels with mirror and rotation undone.
+    /// Both images must cover the whole arranger.
+    /// </summary>
+    /// <param name="current">The pixels the data currently holds</param>
+    /// <param name="result">The edited pixels; agreed tiles are copied into every cell that reads them, and conflicting cells are reset to <paramref name="current"/></param>
+    /// <param name="changedCellsWin">When true, only cells that differ from <paramref name="current"/> must agree, and their tile replaces the others.
+    /// When false, every cell of the tile must agree.</param>
+    /// <returns>The tiles left unchanged because their cells disagree</returns>
+    public static IReadOnlyList<SharedTileConflict> ResolveSharedTiles(this Arranger arranger, IndexedImage current, IndexedImage result, bool changedCellsWin)
+    {
+        var groups = arranger.EnumerateElementsWithinElementRange()
+            .Select(p => (Cell: new Point(p.x, p.y), Element: arranger.GetElement(p.x, p.y)))
+            .Where(c => c.Element is not null)
+            .Select(c => (c.Cell, Element: c.Element!.Value))
+            .GroupBy(c => (c.Element.Source, c.Element.SourceAddress))
+            .Where(g => g.Count() > 1);
+
+        var conflicts = new List<SharedTileConflict>();
+        foreach (var cells in groups)
+        {
+            var tiles = cells.Select(c => (c.Element, Current: ReadTile(current, c.Element), Result: ReadTile(result, c.Element))).ToList();
+            var candidates = changedCellsWin ? tiles.Where(t => !AreEqual(t.Current, t.Result)).ToList() : tiles;
+            if (candidates.Count == 0)
+                continue;
+
+            var agreed = candidates[0].Result;
+            if (candidates.All(t => AreEqual(t.Result, agreed)))
+            {
+                foreach (var tile in tiles)
+                    WriteTile(result, tile.Element, agreed);
+            }
+            else
+            {
+                foreach (var tile in tiles)
+                    WriteTile(result, tile.Element, tile.Current);
+
+                conflicts.Add(new SharedTileConflict(cells.Key.SourceAddress, cells.Select(c => c.Cell).ToList()));
+            }
+        }
+
+        return conflicts;
+    }
+
+    private static byte[,] ReadTile(IndexedImage image, ArrangerElement element)
+    {
+        var tile = new byte[element.Height, element.Width];
+        image.Image.CopyToArray2D(element.X1, element.Y1, image.Width, tile, 0, 0, element.Width, element.Height);
+        tile.InverseMirrorArray2D(element.Mirror);
+        tile.InverseRotateArray2D(element.Rotation);
+        return tile;
+    }
+
+    private static void WriteTile(IndexedImage image, ArrangerElement element, byte[,] tile)
+    {
+        var cell = (byte[,])tile.Clone();
+        cell.RotateArray2D(element.Rotation);
+        cell.MirrorArray2D(element.Mirror);
+
+        for (int y = 0; y < element.Height; y++)
+        {
+            for (int x = 0; x < element.Width; x++)
+                image.Image[(element.Y1 + y) * image.Width + element.X1 + x] = cell[y, x];
+        }
+    }
+
+    private static bool AreEqual(byte[,] a, byte[,] b) => a.Cast().SequenceEqual(b.Cast());
 }

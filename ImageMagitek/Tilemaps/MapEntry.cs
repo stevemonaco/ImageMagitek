@@ -21,5 +21,12 @@ public readonly record struct MapField(int LowBit, int Bits)
 {
     public int HighBit => LowBit + Bits - 1;
 
-    public int Extract(uint entry) => (int)((entry >> LowBit) & (uint)((1UL << Bits) - 1));
+    private uint Mask => (uint)((1UL << Bits) - 1);
+
+    public int Extract(uint entry) => (int)((entry >> LowBit) & Mask);
+
+    /// <summary>
+    /// Returns <paramref name="entry"/> with this field's bits replaced by <paramref name="value"/>
+    /// </summary>
+    public uint Insert(uint entry, int value) => (entry & ~(Mask << LowBit)) | (((uint)value & Mask) << LowBit);
 }

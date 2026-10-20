@@ -25,6 +25,7 @@ $icons = @(
     # Edit modes
     @{ Name = 'ModeView';        Lucide = 'eye' }
     @{ Name = 'ModeArrange';     Lucide = 'layout-grid' }
+    @{ Name = 'ModeTiles';       Lucide = 'stamp' }
     @{ Name = 'ModeDraw';        Lucide = 'pencil' }
 
     # Selection
@@ -45,6 +46,11 @@ $icons = @(
     @{ Name = 'ColorPicker';     Lucide = 'pipette' }
     @{ Name = 'FloodFill';       Lucide = 'paint-bucket' }
     @{ Name = 'DrawClip';        Lucide = 'crop' }
+
+    # Tile tools
+    @{ Name = 'TileRectangleFill'; Lucide = 'grid-2x2' }
+    @{ Name = 'Eraser';          Lucide = 'eraser' }
+    @{ Name = 'EditTileSet';     Lucide = 'square-pen' }
 
     # Palette
     @{ Name = 'AddPalette';      Lucide = 'swatch-book' }

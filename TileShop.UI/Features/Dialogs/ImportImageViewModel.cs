@@ -238,6 +238,7 @@ public partial class ImportImageViewModel : RequestViewModel<ImportImageViewMode
         var target = preview.ResultIndexed is { } indexed ? $"index {indexed.Image[i]}" : ColorRgba32ToMediaColorConverter.ToHex(preview.ResultDirect!.Image[i]);
         var stateText = state.HasFlag(ImportPixelState.Unmatched) ? " · unmatched"
             : state.HasFlag(ImportPixelState.Substituted) ? " · substituted"
+            : state.HasFlag(ImportPixelState.SharedTileConflict) ? " · shared tile conflict"
             : state.HasFlag(ImportPixelState.Changed) ? " · changed"
             : "";
 

@@ -17,7 +17,10 @@ public enum ImportPixelState : byte
     Substituted = 2,
 
     /// <summary>The source color could not be matched, so the current pixel is kept</summary>
-    Unmatched = 4
+    Unmatched = 4,
+
+    /// <summary>The pixel's cell shares its tile with cells whose imported pixels differ, so the current pixel is kept</summary>
+    SharedTileConflict = 8
 }
 
 /// <summary>
@@ -66,10 +69,15 @@ public sealed class ImportReport
     /// <summary>The source's own palette indices were used instead of color matching</summary>
     public bool UsedSourceIndices { get; }
 
+    /// <summary>Tiles used by several cells whose imported pixels differ; they are not imported</summary>
+    public IReadOnlyList<SharedTileConflict> SharedTileConflicts { get; }
+
     public ImportReport(int width, int height, ImportPixelState[] pixelStates,
-        IReadOnlyList<ColorMatchEntry> substitutions, IReadOnlyList<UnmatchedColorEntry> unmatched, bool usedSourceIndices = false)
+        IReadOnlyList<ColorMatchEntry> substitutions, IReadOnlyList<UnmatchedColorEntry> unmatched, bool usedSourceIndices = false,
+        IReadOnlyList<SharedTileConflict>? sharedTileConflicts = null)
     {
         UsedSourceIndices = usedSourceIndices;
+        SharedTileConflicts = sharedTileConflicts ?? [];
         Width = width;
         Height = height;
         PixelStates = pixelStates;
@@ -102,6 +110,11 @@ public sealed class ImportReport
 
         if (UsedSourceIndices)
             parts.Add("palette indices read from PNG");
+
+        if (SharedTileConflicts.Count > 0)
+            parts.Add(SharedTileConflicts.Count == 1
+                ? "1 shared tile differs between cells and was not imported"
+                : $"{SharedTileConflicts.Count} shared tiles differ between cells and were not imported");
 
         return string.Join(" · ", parts);
     }

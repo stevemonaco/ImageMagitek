@@ -21,7 +21,7 @@ public partial class ResourceRemovalChangesViewModel : RequestViewModel<bool>
         foreach (var removedItem in changes.Where(x => x.Removed))
             RemovedResources.Add(removedItem);
 
-        foreach (var affectedItem in changes.Where(x => (x.LostElement || x.LostPalette) && !x.Removed))
+        foreach (var affectedItem in changes.Where(x => x.IsChanged && !x.Removed))
             ChangedResources.Add(affectedItem);
 
         HasRemovedResources = RemovedResources.Any();

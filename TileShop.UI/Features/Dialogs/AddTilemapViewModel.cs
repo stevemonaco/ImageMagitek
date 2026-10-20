@@ -22,6 +22,11 @@ public sealed record TilemapSourceOption(string Key, DataSource Source);
 /// </summary>
 public sealed record TilemapPaletteOption(string Name, Palette? Palette);
 
+/// <summary>
+/// A scattered arranger offered as the tile palette, or the generated tile palette when <see cref="Arranger"/> is null
+/// </summary>
+public sealed record TilemapArrangerOption(string Name, ScatteredArranger? Arranger);
+
 public partial class TilemapPaletteSlotViewModel : ObservableObject
 {
     public int Index { get; }
@@ -63,18 +68,24 @@ public partial class AddTilemapViewModel : RequestViewModel<AddTilemapViewModel>
     [ObservableProperty] private string _tileOffsetText = "0";
     [ObservableProperty] private string? _selectedCodecName;
     [ObservableProperty] private int _firstTile;
+    [ObservableProperty] private int _emptyTile;
+    [ObservableProperty] private int? _tileCount;
     [ObservableProperty] private ObservableCollection<TilemapPaletteSlotViewModel> _paletteSlots = [];
+    [ObservableProperty] private TilemapArrangerOption _selectedTilePalette;
     [ObservableProperty] private string _preview = "";
     [ObservableProperty] private bool _isPreviewValid;
 
+    public IReadOnlyList<TilemapArrangerOption> TilePaletteOptions { get; }
 
     public AddTilemapViewModel(IReadOnlyList<TilemapSourceOption> dataSources, IMapFormatFactory mapFormatFactory,
         IReadOnlyList<string> indexedCodecNames, IReadOnlyList<TilemapPaletteOption> palettes, ICodecFactory codecFactory,
-        Func<string, MagitekResult> validateName)
+        Func<string, MagitekResult> validateName, IReadOnlyList<TilemapArrangerOption> tilePalettes)
     {
         _validateName = validateName;
         _codecFactory = codecFactory;
         _paletteOptions = [new TilemapPaletteOption("(none)", null), .. palettes];
+        TilePaletteOptions = [new TilemapArrangerOption("(generated from tile set)", null), .. tilePalettes];
+        _selectedTilePalette = TilePaletteOptions[0];
         Title = "Add New Tilemap";
         AcceptName = "Add";
 
@@ -111,6 +122,9 @@ public partial class AddTilemapViewModel : RequestViewModel<AddTilemapViewModel>
     partial void OnTileOffsetTextChanged(string value) => UpdatePreview();
     partial void OnSelectedCodecNameChanged(string? value) => UpdatePreview();
     partial void OnFirstTileChanged(int value) => UpdatePreview();
+    partial void OnEmptyTileChanged(int value) => UpdatePreview();
+    partial void OnTileCountChanged(int? value) => UpdatePreview();
+    partial void OnSelectedTilePaletteChanged(TilemapArrangerOption value) => UpdatePreview();
 
     private void RebuildPaletteSlots()
     {
@@ -196,6 +210,12 @@ public partial class AddTilemapViewModel : RequestViewModel<AddTilemapViewModel>
         if (MapWidth <= 0 || MapHeight <= 0 || FirstTile < 0)
             return "Enter a positive width and height and a first tile index of 0 or more";
 
+        if (EmptyTile < 0 || EmptyTile > SelectedFormat.MaxTileIndex)
+            return $"Enter an empty tile index from 0 to {SelectedFormat.MaxTileIndex}, which the format's tile field can hold";
+
+        if (TileCount <= 0)
+            return "Enter a positive tile count, or leave it empty to use every tile";
+
         _mapOffset = mapOffset;
         _tileOffset = tileOffset;
         return null;
@@ -212,9 +232,13 @@ public partial class AddTilemapViewModel : RequestViewModel<AddTilemapViewModel>
 
             IsPreviewValid = true;
             var description = $"{MapWidth * MapHeight} entries, highest tile index {tilemap.HighestTileIndex}";
-            return tilemap.OutOfRangeCount > 0
-                ? $"{description}; {tilemap.OutOfRangeCount} entries are outside the tile set and show as empty cells"
-                : description;
+            if (tilemap.OutOfRangeCount > 0)
+                description = $"{description}; {tilemap.OutOfRangeCount} entries are outside the tile set and show as empty cells";
+
+            if (tilemap.TilePaletteArranger is { } curated && TilePalette.FromArranger(tilemap, curated, 0) is { RefusedCount: > 0 } tilePalette)
+                description = $"{description}; tile palette: {tilePalette.RefusedCount} of {tilePalette.Width * tilePalette.Height} cells are not tiles of the tile set";
+
+            return description;
         }
         catch (ArgumentException ex)
         {
@@ -226,7 +250,10 @@ public partial class AddTilemapViewModel : RequestViewModel<AddTilemapViewModel>
     public TilemapArranger CreateTilemap(string name) =>
         new(name, SelectedMapSource!.Source, _mapOffset, SelectedFormat!, SelectedLayout, MapWidth, MapHeight,
             SelectedTileSource!.Source, _tileOffset, SelectedCodecName!, FirstTile,
-            PaletteSlots.Select(x => x.SelectedOption.Palette).ToList(), _codecFactory);
+            PaletteSlots.Select(x => x.SelectedOption.Palette).ToList(), _codecFactory, EmptyTile, TileCount)
+        {
+            TilePaletteArranger = SelectedTilePalette.Arranger
+        };
 
     protected override bool CanAccept() => NameError is null && IsPreviewValid;
 

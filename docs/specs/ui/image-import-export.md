@@ -28,6 +28,7 @@ depends:
   - LIB-IMAGES
   - LIB-ARRANGERS
   - LIB-DATASOURCE
+  - LIB-TILEMAPS
   - UI-EDITORS
   - UI-PROJECT-TREE
   - UI-GRAPHICS-EDITOR
@@ -55,7 +56,7 @@ The UI around PNG export and import for scattered arrangers: the export file pro
 
 ### Import entry points
 
-- **UI-IMAGE-IO-004** — The app shall offer import as Import From... on a scattered arranger node and as "Import Image Into Selection..." in a scattered editor's canvas context menu, the latter enabled only with a selection on an arranger that is not read-only.
+- **UI-IMAGE-IO-004** — The app shall offer import as Import From... on a scattered arranger node and a tilemap node (LIB-IMAGE-IO-046) and as "Import Image Into Selection..." in a scattered editor's canvas context menu, the latter enabled only with a selection on an arranger that is not read-only.
   - Tests: manual — right-click a node and the canvas.
 - **UI-IMAGE-IO-005** — If the arranger is read-only, then import shall alert "Import" with "'<name>' is read-only because it <reason>" (LIB-ARRANGERS-049) and stop.
   - Tests: `ReadOnlyArrangerTests.Prepare_ReadOnly_Fails`
@@ -86,7 +87,7 @@ The UI around PNG export and import for scattered arrangers: the export file pro
   - Tests: manual — import an image with an unmatched color and toggle diff.
 - **UI-IMAGE-IO-017** — The preview shall zoom around the pointer with the wheel, zoom with + and −, fit with Ctrl+W (a little smaller than the viewport, whole-number zoom when magnified), reset to actual size centered with Ctrl+R, pan with left or middle drag, and show the zoom as a percentage.
   - Tests: manual — the preview canvas needs pointer gestures.
-- **UI-IMAGE-IO-018** — While the pointer is over the preview, the dialog shall describe the pixel as "(x, y)  #source → index n|#result" with "· unmatched", "· substituted" or "· changed", or "(x, y)  outside the image".
+- **UI-IMAGE-IO-018** — While the pointer is over the preview, the dialog shall describe the pixel as "(x, y)  #source → index n|#result" with "· unmatched", "· substituted", "· shared tile conflict" or "· changed", or "(x, y)  outside the image".
   - Tests: untested
 - **UI-IMAGE-IO-019** — The report shall show the summary (LIB-IMAGE-IO) and list unmatched colors first, then substitutions, each with source and target swatches, target index, distance, first location and count; with no entries it shall say "Every color matched a palette entry exactly".
   - Tests: `ImageImporterTests.Prepare_Exact_UnmatchedColor_KeepsCurrentPixelAndReports`

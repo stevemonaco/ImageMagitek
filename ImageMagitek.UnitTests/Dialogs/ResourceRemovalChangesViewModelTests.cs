@@ -26,4 +26,17 @@ public sealed class ResourceRemovalChangesViewModelTests
         Assert.Equal("loses elements", lostElement.ChangeDescription);
         Assert.Equal("uses default palette", lostPalette.ChangeDescription);
     }
+
+    [Fact]
+    public void TilemapLosingTilePalette_ListedUnderChanged()
+    {
+        var removed = Change("removed", true, false, false);
+        var node = new ResourceFolderNode("tilemap", new ResourceFolder("tilemap"));
+        var tilemap = new ResourceChangeViewModel(new ResourceChange(node, "tilemap", false, false, false, LostTilePalette: true));
+
+        var vm = new ResourceRemovalChangesViewModel(removed, [removed, tilemap]);
+
+        Assert.Equal([tilemap], vm.ChangedResources);
+        Assert.Equal("uses the generated tile palette", tilemap.ChangeDescription);
+    }
 }

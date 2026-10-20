@@ -17,6 +17,13 @@ public class TilemapModel : ResourceModel
     public required long TileOffset { get; init; }
     public required string CodecName { get; init; }
     public int FirstTile { get; init; }
+    public int EmptyTile { get; init; }
+    public int? TileCount { get; init; }
+
+    /// <summary>
+    /// Key of the scattered arranger used as the tile palette, or null to generate one from the tile set
+    /// </summary>
+    public string? TilePaletteKey { get; set; }
 
     /// <summary>
     /// Palette keys by slot index; slots without a palette are absent
@@ -31,7 +38,8 @@ public class TilemapModel : ResourceModel
         return model.Name == Name && model.MapDataKey == MapDataKey && model.MapOffset == MapOffset &&
             model.Width == Width && model.Height == Height && model.Layout == Layout && model.FormatName == FormatName &&
             model.TileDataKey == TileDataKey && model.TileOffset == TileOffset && model.CodecName == CodecName &&
-            model.FirstTile == FirstTile && model.PaletteSlots.Count == PaletteSlots.Count &&
+            model.FirstTile == FirstTile && model.EmptyTile == EmptyTile && model.TileCount == TileCount && model.TilePaletteKey == TilePaletteKey &&
+            model.PaletteSlots.Count == PaletteSlots.Count &&
             PaletteSlots.All(x => model.PaletteSlots.TryGetValue(x.Key, out var key) && key == x.Value);
     }
 }

@@ -67,6 +67,9 @@
       <xs:attribute name="tileoffset" type="hexoffset" use="required" />
       <xs:attribute name="codec" type="xs:string" use="required" />
       <xs:attribute name="firsttile" type="xs:nonNegativeInteger" use="optional" />
+      <xs:attribute name="emptytile" type="xs:nonNegativeInteger" use="optional" />
+      <xs:attribute name="tilecount" type="xs:positiveInteger" use="optional" />
+      <xs:attribute name="tilepalette" type="xs:string" use="optional" />
     </xs:complexType>
   </xs:element>
 

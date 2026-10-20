@@ -42,9 +42,53 @@ public sealed class MapFormat
     }
 
     /// <summary>
+    /// The largest tile index the format's tile index field can hold
+    /// </summary>
+    public int MaxTileIndex => (int)((1L << TileIndex.Bits) - 1);
+
+    /// <summary>
     /// Decodes the entry held in the first <see cref="EntryBytes"/> bytes of <paramref name="entry"/>
     /// </summary>
     public MapEntry Decode(ReadOnlySpan<byte> entry)
+    {
+        var value = ReadValue(entry);
+
+        return new MapEntry(
+            TileIndex.Extract(value),
+            Palette?.Extract(value) ?? 0,
+            HorizontalFlip?.Extract(value) == 1,
+            VerticalFlip?.Extract(value) == 1,
+            Priority?.Extract(value) == 1);
+    }
+
+    /// <summary>
+    /// Writes the fields of <paramref name="entry"/> into the entry held in <paramref name="destination"/>, keeping every bit outside the format's fields
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">The tile index or palette does not fit its field</exception>
+    public void Encode(MapEntry entry, Span<byte> destination)
+    {
+        if (entry.TileIndex < 0 || entry.TileIndex > MaxTileIndex)
+            throw new ArgumentOutOfRangeException(nameof(entry), $"Tile index {entry.TileIndex} does not fit the {TileIndex.Bits}-bit tile field of map format '{Name}'");
+
+        if (entry.Palette < 0 || entry.Palette >= PaletteSlotCount)
+            throw new ArgumentOutOfRangeException(nameof(entry), $"Palette {entry.Palette} does not fit the palette field of map format '{Name}'");
+
+        var value = ReadValue(destination);
+        value = TileIndex.Insert(value, entry.TileIndex);
+
+        if (Palette is { } palette)
+            value = palette.Insert(value, entry.Palette);
+        if (HorizontalFlip is { } hflip)
+            value = hflip.Insert(value, entry.HorizontalFlip ? 1 : 0);
+        if (VerticalFlip is { } vflip)
+            value = vflip.Insert(value, entry.VerticalFlip ? 1 : 0);
+        if (Priority is { } priority)
+            value = priority.Insert(value, entry.Priority ? 1 : 0);
+
+        WriteValue(value, destination);
+    }
+
+    private uint ReadValue(ReadOnlySpan<byte> entry)
     {
         uint value = 0;
         for (int i = 0; i < EntryBytes; i++)
@@ -53,12 +97,19 @@ public sealed class MapFormat
             value |= (uint)b << (8 * i);
         }
 
-        return new MapEntry(
-            TileIndex.Extract(value),
-            Palette?.Extract(value) ?? 0,
-            HorizontalFlip?.Extract(value) == 1,
-            VerticalFlip?.Extract(value) == 1,
-            Priority?.Extract(value) == 1);
+        return value;
+    }
+
+    private void WriteValue(uint value, Span<byte> destination)
+    {
+        for (int i = 0; i < EntryBytes; i++)
+        {
+            var b = (byte)(value >> (8 * i));
+            if (Endian == Endian.Little)
+                destination[i] = b;
+            else
+                destination[EntryBytes - 1 - i] = b;
+        }
     }
 
     private string? FindLayoutError()

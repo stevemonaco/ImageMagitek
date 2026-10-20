@@ -6,6 +6,18 @@ namespace ImageMagitek;
 public enum MirrorOperation { None, Horizontal, Vertical, Both }
 public enum RotationOperation { None, Left, Right, Turn }
 
+public static class MirrorOperationExtensions
+{
+    /// <summary>
+    /// The mirror of applying <paramref name="other"/> after <paramref name="mirror"/>: each direction flips when either one flips it, but not both
+    /// </summary>
+    public static MirrorOperation Combine(this MirrorOperation mirror, MirrorOperation other) => (MirrorOperation)((int)mirror ^ (int)other);
+
+    public static bool FlipsHorizontally(this MirrorOperation mirror) => mirror is MirrorOperation.Horizontal or MirrorOperation.Both;
+
+    public static bool FlipsVertically(this MirrorOperation mirror) => mirror is MirrorOperation.Vertical or MirrorOperation.Both;
+}
+
 /// <summary>
 /// Contains all necessary data to encode/decode a single element in the arranger
 /// </summary>

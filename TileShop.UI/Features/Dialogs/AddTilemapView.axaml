@@ -51,7 +51,7 @@
             <ComboBox x:Name="tileSourceBox" HorizontalAlignment="Stretch" DisplayMemberBinding="{Binding Key, x:DataType=vm:TilemapSourceOption}"
                 ItemsSource="{Binding DataSources}" SelectedItem="{Binding SelectedTileSource}" />
 
-            <Grid Margin="0,8,0,0" ColumnDefinitions="*,*,*" ColumnSpacing="8">
+            <Grid Margin="0,8,0,0" ColumnDefinitions="*,*,*,*,*" ColumnSpacing="8">
                 <StackPanel Grid.Column="0">
                     <Label Content="Tile offset (hex)" Target="tileOffsetBox" />
                     <TextBox x:Name="tileOffsetBox" Text="{Binding TileOffsetText}" />
@@ -63,6 +63,16 @@
                 <StackPanel Grid.Column="2">
                     <Label Content="First tile index" Target="firstTileBox" />
                     <NumericUpDown x:Name="firstTileBox" Classes="dense" FormatString="0" Minimum="0" Value="{Binding FirstTile}" />
+                </StackPanel>
+                <StackPanel Grid.Column="3">
+                    <Label Content="Empty tile index" Target="emptyTileBox" />
+                    <NumericUpDown x:Name="emptyTileBox" Classes="dense" FormatString="0" Minimum="0" Value="{Binding EmptyTile}"
+                        ToolTip.Tip="The tile index written into the entry of a deleted cell" />
+                </StackPanel>
+                <StackPanel Grid.Column="4">
+                    <Label Content="Tile count" Target="tileCountBox" />
+                    <NumericUpDown x:Name="tileCountBox" Classes="dense" FormatString="0" Minimum="1" Value="{Binding TileCount}" Watermark="All"
+                        ToolTip.Tip="How many tiles the tile set holds; leave empty to use every tile up to the end of the data" />
                 </StackPanel>
             </Grid>
 
@@ -80,6 +90,11 @@
             </ItemsControl>
             <TextBlock Margin="0,4,0,0" Classes="muted" FontSize="11" Text="An entry naming an empty slot uses slot 0; an empty slot 0 uses the default palette."
                 TextWrapping="Wrap" />
+
+            <Label Margin="0,12,0,0" Content="Tile palette" FontWeight="SemiBold" Target="TilePaletteComboBox" />
+            <ComboBox x:Name="TilePaletteComboBox" HorizontalAlignment="Stretch" DisplayMemberBinding="{Binding Name, x:DataType=vm:TilemapArrangerOption}"
+                ItemsSource="{Binding TilePaletteOptions}" SelectedItem="{Binding SelectedTilePalette}"
+                ToolTip.Tip="The tiles Tiles mode plots from: every tile of the tile set, or a scattered arranger laid out by hand" />
 
             <TextBlock x:Name="previewText" Margin="0,10,0,0" Classes.invalid="{Binding !IsPreviewValid}" Text="{Binding Preview}" TextWrapping="Wrap">
                 <TextBlock.Styles>

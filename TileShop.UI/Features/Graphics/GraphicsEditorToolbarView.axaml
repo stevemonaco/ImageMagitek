@@ -17,8 +17,8 @@
         <ScrollViewer AllowAutoHide="True" Classes="InsetContent">
             <StackPanel Spacing="4">
                 <!--  Edit Mode Selector  -->
-                <StackPanel Name="EditModeGroup" Classes="toolbar-group">
-                    <RadioButton Classes="toggle" Click="OnEditModeClick"
+                <WrapPanel Name="EditModeGroup" Classes="toolbar-group">
+                    <RadioButton x:Name="ViewModeButton" Classes="toggle" Click="OnEditModeClick"
                         IsChecked="{Binding EditMode, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=View}"
                         IsVisible="{Binding CanView}" Tag="{x:Static vm:GraphicsEditMode.View}"
                         ToolTip.Tip="View-only mode for adjusting codec properties">
@@ -27,7 +27,7 @@
                             <TextBlock Text="View" />
                         </StackPanel>
                     </RadioButton>
-                    <RadioButton Classes="toggle" Click="OnEditModeClick"
+                    <RadioButton x:Name="ArrangeModeButton" Classes="toggle" Click="OnEditModeClick"
                         IsChecked="{Binding EditMode, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Arrange}"
                         IsVisible="{Binding CanArrange}" Tag="{x:Static vm:GraphicsEditMode.Arrange}"
                         ToolTip.Tip="Arrange elements within the arranger">
@@ -36,7 +36,16 @@
                             <TextBlock Text="Arrange" />
                         </StackPanel>
                     </RadioButton>
-                    <RadioButton Classes="toggle" Click="OnEditModeClick"
+                    <RadioButton x:Name="TilesModeButton" Classes="toggle" Click="OnEditModeClick"
+                        IsChecked="{Binding EditMode, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Tiles}"
+                        IsVisible="{Binding CanPlotTiles}" Tag="{x:Static vm:GraphicsEditMode.Tiles}"
+                        ToolTip.Tip="Plot tiles from the tile palette into the map">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <cc:LineIcon Classes="inline" Data="{x:Static cc:AppIcons.ModeTiles}" />
+                            <TextBlock Text="Tiles" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton x:Name="DrawModeButton" Classes="toggle" Click="OnEditModeClick"
                         IsChecked="{Binding EditMode, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Draw}"
                         IsVisible="{Binding CanDraw}" Tag="{x:Static vm:GraphicsEditMode.Draw}"
                         ToolTip.Tip="Draw and edit pixels">
@@ -45,7 +54,7 @@
                             <TextBlock Text="Draw" />
                         </StackPanel>
                     </RadioButton>
-                </StackPanel>
+                </WrapPanel>
 
                 <TextBlock x:Name="ReadOnlyText" Classes="muted" TextWrapping="Wrap"
                     IsVisible="{Binding ReadOnlyReason, Converter={x:Static ObjectConverters.IsNotNull}}"
@@ -55,6 +64,14 @@
                     Focusable="False" IsVisible="{Binding IsSequentialArranger}" Theme="{StaticResource ClearButton}"
                     ToolTip.Tip="Jump to offset... (J)">
                     <TextBlock Classes="muted" Text="{Binding FileOffset, StringFormat='Offset: 0x{0:X}'}" TextWrapping="Wrap" />
+                </Button>
+
+                <Button x:Name="EditTileSetButton" HorizontalAlignment="Left" Command="{Binding EditTileSetCommand}" Focusable="False"
+                    IsVisible="{Binding IsTilemap}" ToolTip.Tip="Open the tilemap's tile set in a new editor to draw its tiles">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <cc:LineIcon Classes="inline" Data="{x:Static cc:AppIcons.EditTileSet}" />
+                        <TextBlock VerticalAlignment="Center" FontSize="11" Text="Edit Tile Set" />
+                    </StackPanel>
                 </Button>
 
                 <!--  Codec (Sequential Arranger in View mode only)  -->
@@ -190,28 +207,85 @@
                         <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
                             CommandParameter="{x:Static vm:ArrangeTool.RotateLeft}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateLeft}"
-                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Rotate Element's Display Left">
+                            IsEnabled="{Binding RotateDisabledReason, Converter={x:Static ObjectConverters.IsNull}}"
+                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.ShowOnDisabled="True">
+                            <ToolTip.Tip><Binding Path="RotateDisabledReason" TargetNullValue="Rotate Element's Display Left" /></ToolTip.Tip>
                             <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.RotateLeft}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
                             CommandParameter="{x:Static vm:ArrangeTool.RotateRight}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RotateRight}"
-                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Rotate Element's Display Right">
+                            IsEnabled="{Binding RotateDisabledReason, Converter={x:Static ObjectConverters.IsNull}}"
+                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.ShowOnDisabled="True">
+                            <ToolTip.Tip><Binding Path="RotateDisabledReason" TargetNullValue="Rotate Element's Display Right" /></ToolTip.Tip>
                             <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.RotateRight}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
                             CommandParameter="{x:Static vm:ArrangeTool.MirrorHorizontal}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorHorizontal}"
-                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Mirror Element's Display Horizontally">
+                            IsEnabled="{Binding MirrorHorizontalDisabledReason, Converter={x:Static ObjectConverters.IsNull}}"
+                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.ShowOnDisabled="True">
+                            <ToolTip.Tip><Binding Path="MirrorHorizontalDisabledReason" TargetNullValue="Mirror Element's Display Horizontally" /></ToolTip.Tip>
                             <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.MirrorHorizontal}" />
                         </RadioButton>
                         <RadioButton Classes="tool" Command="{Binding ChangeArrangerToolCommand}"
                             CommandParameter="{x:Static vm:ArrangeTool.MirrorVertical}"
                             IsChecked="{Binding DisplayedArrangeTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=MirrorVertical}"
-                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.Tip="Mirror Element's Display Vertically">
+                            IsEnabled="{Binding MirrorVerticalDisabledReason, Converter={x:Static ObjectConverters.IsNull}}"
+                            IsVisible="{Binding AreSymmetryToolsEnabled}" ToolTip.ShowOnDisabled="True">
+                            <ToolTip.Tip><Binding Path="MirrorVerticalDisabledReason" TargetNullValue="Mirror Element's Display Vertically" /></ToolTip.Tip>
                             <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.MirrorVertical}" />
                         </RadioButton>
                     </WrapPanel>
+                </StackPanel>
+
+                <!--  Tile Tools  -->
+                <StackPanel IsVisible="{Binding IsTilesMode}" Spacing="4">
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Tools" />
+
+                    <WrapPanel Classes="toolbar-group">
+                        <RadioButton x:Name="TilePencilButton" Classes="tool" Command="{Binding ChangeTileToolCommand}"
+                            CommandParameter="{x:Static vm:TileTool.Pencil}"
+                            IsChecked="{Binding DisplayedTileTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Pencil}"
+                            ToolTip.Tip="Plot the brush where you click and drag">
+                            <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Pencil}" />
+                        </RadioButton>
+                        <RadioButton x:Name="TileRectangleFillButton" Classes="tool" Command="{Binding ChangeTileToolCommand}"
+                            CommandParameter="{x:Static vm:TileTool.RectangleFill}"
+                            IsChecked="{Binding DisplayedTileTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=RectangleFill}"
+                            ToolTip.Tip="Drag a rectangle to fill it with the brush, repeating a multi-tile brush">
+                            <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.TileRectangleFill}" />
+                        </RadioButton>
+                        <RadioButton x:Name="TilePickerButton" Classes="tool" Command="{Binding ChangeTileToolCommand}"
+                            CommandParameter="{x:Static vm:TileTool.Picker}"
+                            IsChecked="{Binding DisplayedTileTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Picker}"
+                            ToolTip.Tip="Pick the tiles under a click or drag into the brush (hold Ctrl with any tool)">
+                            <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ColorPicker}" />
+                        </RadioButton>
+                        <RadioButton x:Name="TileEraseButton" Classes="tool" Command="{Binding ChangeTileToolCommand}"
+                            CommandParameter="{x:Static vm:TileTool.Erase}"
+                            IsChecked="{Binding DisplayedTileTool, Mode=OneWay, Converter={x:Static con:AppConverters.EnumToBoolean}, ConverterParameter=Erase}"
+                            ToolTip.Tip="Erase cells to the tilemap's empty entry">
+                            <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.Eraser}" />
+                        </RadioButton>
+                    </WrapPanel>
+
+                    <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Brush" />
+                    <ComboBox x:Name="BrushPaletteSlotComboBox" HorizontalAlignment="Stretch"
+                        DisplayMemberBinding="{Binding Name, x:DataType=gfx:TileSlotOption}" ItemsSource="{Binding TilePalette.SlotOptions}"
+                        SelectedItem="{Binding TilePalette.SelectedSlot}" ToolTip.Tip="Palette slot the brush writes" />
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <ToggleButton x:Name="BrushHFlipToggle" Classes="tool" IsChecked="{Binding TilePalette.HorizontalFlip}"
+                            IsEnabled="{Binding MirrorHorizontalDisabledReason, Converter={x:Static ObjectConverters.IsNull}}" ToolTip.ShowOnDisabled="True">
+                            <ToolTip.Tip><Binding Path="MirrorHorizontalDisabledReason" TargetNullValue="Flip the brush horizontally" /></ToolTip.Tip>
+                            <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.MirrorHorizontal}" />
+                        </ToggleButton>
+                        <ToggleButton x:Name="BrushVFlipToggle" Classes="tool" IsChecked="{Binding TilePalette.VerticalFlip}"
+                            IsEnabled="{Binding MirrorVerticalDisabledReason, Converter={x:Static ObjectConverters.IsNull}}" ToolTip.ShowOnDisabled="True">
+                            <ToolTip.Tip><Binding Path="MirrorVerticalDisabledReason" TargetNullValue="Flip the brush vertically" /></ToolTip.Tip>
+                            <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.MirrorVertical}" />
+                        </ToggleButton>
+                    </StackPanel>
                 </StackPanel>
 
                 <!--  Pixel Tools  -->
@@ -254,7 +328,13 @@
                 </StackPanel>
 
                 <!--  Palette  -->
-                <StackPanel IsVisible="{Binding IsIndexedColor}" Spacing="4">
+                <StackPanel Spacing="4">
+                    <StackPanel.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="IsIndexedColor" />
+                            <Binding Path="!IsTilesMode" />
+                        </MultiBinding>
+                    </StackPanel.IsVisible>
                     <TextBlock Margin="0,8,0,0" HorizontalAlignment="Left" Classes="muted" Text="Palette" />
 
                     <DockPanel>
@@ -420,6 +500,7 @@
                                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                                     <Binding Path="IsArrangerMode" />
                                     <Binding Path="IsTiledLayout" />
+                                    <Binding Path="!IsTilemap" />
                                 </MultiBinding>
                             </Button.IsVisible>
                             <cc:LineIcon Classes="tool" Data="{x:Static cc:AppIcons.ResizeArranger}" />

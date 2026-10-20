@@ -1,0 +1,25 @@
+<UserControl x:Class="TileShop.UI.Features.Graphics.TilePaletteView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="https://github.com/stevemonaco/TileShop"
+    xmlns:gfx="using:TileShop.UI.Features.Graphics"
+    x:DataType="gfx:TilePaletteViewModel">
+    <Grid Margin="8,0,8,4" RowDefinitions="Auto,Auto,*,Auto" RowSpacing="6">
+        <TextBlock Classes="muted" Text="Tile Palette" />
+
+        <StackPanel Grid.Row="1" Spacing="4">
+            <NumericUpDown x:Name="BrushTileIndexBox" MinWidth="110" HorizontalAlignment="Left" Classes="dense" FormatString="0" InnerLeftContent="Tile"
+                Maximum="{Binding MaxTileIndex}" Minimum="{Binding MinTileIndex}" ToolTip.Tip="Tile index of a one-tile brush"
+                Value="{Binding BrushTileIndex}" />
+            <TextBlock x:Name="BrushDescriptionText" Text="{Binding BrushDescription}" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Border Grid.Row="2" Background="{DynamicResource SemiColorBackground0}" BorderBrush="{DynamicResource SemiColorBorder}"
+            BorderThickness="1" ClipToBounds="True">
+            <cc:InfiniteCanvas x:Name="TilePaletteCanvas" MaxZoom="16" MinZoom="0.5" ZoomPower="2"
+                ToolTip.Tip="Drag to select a brush · Mouse wheel scrolls · Ctrl+wheel zooms · Middle-drag pans" />
+        </Border>
+
+        <TextBlock x:Name="TilePaletteStatusText" Grid.Row="3" Classes="muted" MinHeight="16" Text="{Binding StatusText}" TextWrapping="Wrap" />
+    </Grid>
+</UserControl>

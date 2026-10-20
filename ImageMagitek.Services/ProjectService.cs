@@ -981,6 +981,9 @@ public class ProjectService : IProjectService
         var changedArrangers = plan.Changes
             .Where(x => !x.Removed && x.Resource is ScatteredArranger)
             .ToList();
+        var changedTilemaps = plan.Changes
+            .Where(x => x is { Removed: false, LostTilePalette: true, Resource: TilemapArranger })
+            .ToList();
 
         try
         {
@@ -990,6 +993,12 @@ public class ProjectService : IProjectService
 
             var edits = changedArrangers
                 .Select(x => (x.ResourceNode, (ResourceModel)WithoutRemovedKeys(((ScatteredArranger)x.Resource).MapToModel(resourceMap), removedKeys, fallbackPaletteKey)))
+                .Concat(changedTilemaps.Select(x =>
+                {
+                    var model = ((TilemapArranger)x.Resource).MapToModel(resourceMap);
+                    model.TilePaletteKey = null;
+                    return (x.ResourceNode, (ResourceModel)model);
+                }))
                 .ToList();
 
             var writeResult = await _serializerFactory.CreateWriter(tree).WriteModelsAsync(edits);
@@ -1015,6 +1024,9 @@ public class ProjectService : IProjectService
                 }
             }
         }
+
+        foreach (var tilemap in changedTilemaps.Select(x => (TilemapArranger)x.Resource))
+            tilemap.TilePaletteArranger = null;
 
         var undeletableFiles = new List<string>();
 
@@ -1179,6 +1191,14 @@ public class ProjectService : IProjectService
 
             if (removed || lostPalette || lostElements)
                 changes.Add(new ResourceChange(node, tree.CreatePathKey(node), removed, lostPalette, lostElements));
+        }
+
+        // The tile palette is not a linked resource, so losing it changes the tilemap instead of removing it
+        var removedResources = changes.Where(x => x.Removed).Select(x => x.Resource).ToHashSet();
+        foreach (var node in tree.EnumerateDepthFirst().Where(x => x.Item is TilemapArranger && !removedResources.Contains(x.Item)))
+        {
+            if (((TilemapArranger)node.Item).TilePaletteArranger is { } tilePalette && removedResources.Contains(tilePalette))
+                changes.Add(new ResourceChange(node, tree.CreatePathKey(node), false, false, false, LostTilePalette: true));
         }
 
         return new MagitekResult<ResourceDeletionPlan>.Success(new ResourceDeletionPlan(tree, changes));

@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using TileShop.Shared.Interactions;
 using ImageMagitek.Services.Stores;
 using ImageMagitek.Codec;
+using ImageMagitek.Tilemaps;
 using TileShop.UI.Features.Graphics;
 using TileShop.Shared.Services;
 using TileShop.Shared.Tools;
@@ -85,6 +86,7 @@ public partial class EditorsViewModel : ObservableRecipient
         _clipboard = clipboard;
 
         Messenger.Register<PaletteColorAssignedMessage>(this, (r, m) => Receive(m));
+        Messenger.Register<EditTileSetMessage>(this, (r, m) => Receive(m));
 
         _projectService.TreeChanged += OnTreeChanged;
         _projectService.ResourceChanged += OnResourceChanged;
@@ -270,10 +272,7 @@ public partial class EditorsViewModel : ObservableRecipient
                     ? new SequentialArranger(8, 16, dataSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec)
                     : new SequentialArranger(1, 1, dataSource, _paletteStore.DefaultPalette, _codecService.CodecFactory, codec);
 
-                newDocument = new GraphicsEditorViewModel(newArranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore, _loggerFactory.CreateLogger<GraphicsEditorViewModel>())
-                {
-                    OriginatingProjectResource = dataSource
-                };
+                newDocument = CreateSequentialEditor(newArranger, dataSource);
                 break;
             case ResourceFolder resourceFolder:
                 newDocument = null;
@@ -290,6 +289,37 @@ public partial class EditorsViewModel : ObservableRecipient
 
         return newDocument;
     }
+
+    private GraphicsEditorViewModel CreateSequentialEditor(SequentialArranger arranger, DataSource source) =>
+        new(arranger, _interactions, _codecService, _colorFactory, _paletteStore, _elementStore, _projectService, _preferencesStore,
+            _loggerFactory.CreateLogger<GraphicsEditorViewModel>())
+        {
+            OriginatingProjectResource = source
+        };
+
+    /// <summary>
+    /// Opens a new sequential editor on the tilemap's tile set: its tile source at the tile offset, with its codec and slot 0's palette, 16 tiles wide
+    /// </summary>
+    public async Task OpenTileSetAsync(TilemapArranger tilemap)
+    {
+        if (await AlertIfMissingDataSourceAsync(tilemap.TileSource, "Edit Tile Set"))
+            return;
+
+        // Only whole rows of tiles the source holds, or SequentialArranger.Move pulls the start back before the tile offset
+        var columns = Math.Clamp(tilemap.TileCount, 1, TilePalette.DefaultColumns);
+        var rows = Math.Clamp(tilemap.TileCount / columns, 1, 32);
+        var palette = tilemap.PaletteSlots[0] ?? _paletteStore.DefaultPalette;
+        var codec = _codecService.CodecFactory.CreateCodec(tilemap.CodecName)!;
+        var arranger = new SequentialArranger(columns, rows, tilemap.TileSource, palette, _codecService.CodecFactory, codec);
+        arranger.Move(new BitAddress(tilemap.TileOffset, 0));
+
+        var editor = CreateSequentialEditor(arranger, tilemap.TileSource);
+        editor.SelectPalette(palette);
+        Editors.Add(editor);
+        ActiveEditor = editor;
+    }
+
+    public void Receive(EditTileSetMessage message) => _ = OpenTileSetAsync(message.Tilemap);
 
     /// <summary>
     /// Alerts the user when <paramref name="resource"/> reads from a missing data file, directly or through its palettes
@@ -504,6 +534,8 @@ public partial class EditorsViewModel : ObservableRecipient
 
             if (models.Count > 0 || editor.WorkingArranger.GetReferencedPalettes().Contains(palette))
                 editor.InvalidateEditor(InvalidationLevel.Display);
+
+            editor.TilePalette?.Refresh();
         }
     }
 

@@ -52,6 +52,7 @@ depends:
   - LIB-IMAGES
   - LIB-PALETTES
   - LIB-PROJECT-SERVICE
+  - LIB-TILEMAPS
   - UI-GRAPHICS-EDITOR
   - UI-EDIT-HISTORY
   - UI-DRAWING
@@ -95,7 +96,7 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
 
 - **UI-ARRANGING-012** — When the user presses Ctrl+C with a selection, the editor shall copy elements under element snapping, or indexed or direct pixels under pixel snapping, into a clipboard shared by every editor in the app; Copy is disabled without a selection.
   - Tests: untested
-- **UI-ARRANGING-013** — When the user presses Ctrl+V holding copied elements in Arrange mode on a tiled scattered arranger, the editor shall show the copy as a floating element paste at (0, 0); any other paste goes through Draw mode (UI-DRAWING). Paste is disabled while the clipboard is empty.
+- **UI-ARRANGING-013** — When the user presses Ctrl+V holding copied elements in Arrange mode on a tiled scattered arranger or a tilemap with a writable map, the editor shall show the copy as a floating element paste at (0, 0); any other paste, including one in Tiles mode, goes through Draw mode (UI-DRAWING). Paste is disabled while the clipboard is empty.
   - Tests: untested
 - **UI-ARRANGING-014** — While a floating paste exists, Enter or a left click outside it shall apply it, and Escape shall cancel it.
   - Tests: untested
@@ -116,9 +117,9 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
   - Tests: manual — drag a selection from one editor tab into another.
 - **UI-ARRANGING-020** — If dragged pixels are dropped on an editor that cannot draw, then the drop shall be ignored.
   - Tests: manual — drag pixels onto a read-only arranger.
-- **UI-ARRANGING-021** — When the user drops a paste that is not an element paste into Arrange mode on a tiled scattered arranger, the target shall first switch to Draw mode as Ctrl+V does (UI-DRAWING-017), discarding the drop if Draw mode cannot be entered; then with Shift held it shall apply the paste immediately, otherwise keep it floating with "Press [Enter] to Apply Element|Pixel Paste or [Esc] to Cancel", and activate the target's tab.
+- **UI-ARRANGING-021** — When the user drops a paste that is not an element paste into Arrange mode on a tiled scattered arranger or a tilemap with a writable map (or any paste into Tiles mode), the target shall first switch to Draw mode as Ctrl+V does (UI-DRAWING-017), discarding the drop if Draw mode cannot be entered; then with Shift held it shall apply the paste immediately, otherwise keep it floating with "Press [Enter] to Apply Element|Pixel Paste or [Esc] to Cancel", and activate the target's tab.
   - Tests: manual — drag pixels from a sequential editor in View mode onto a scattered editor in Arrange mode and check it switches to Draw before floating; with the target modified, check the Save Changes prompt and that Cancel discards the drop; Shift-drop applies in Draw mode; drag elements onto a sequential editor and check it ends in Draw mode with a pixel paste; drag a selection within a sequential editor in View mode and check that Enter does not write pixels in View mode.
-- **UI-ARRANGING-046** — The editor shall apply an element paste only in Arrange mode on a tiled scattered arranger and a pixel paste only in Draw mode; any other apply shall fail with a status message and change nothing.
+- **UI-ARRANGING-046** — The editor shall apply an element paste only in Arrange mode on a tiled scattered arranger or a tilemap with a writable map, and a pixel paste only in Draw mode; any other apply shall fail with a status message and change nothing.
   - Tests: manual — covered by the UI-ARRANGING-021 drop checks.
 - **UI-ARRANGING-022** — When a drag leaves an editor, that editor shall clear its selection and floating paste.
   - Tests: manual — drag out of an editor.
@@ -127,7 +128,7 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
 
 ### Delete and Cut
 
-- **UI-ARRANGING-024** — When the user presses Delete or chooses Edit → Delete in Arrange mode on a scattered arranger with an element-snapped selection, the editor shall reset every covered element to empty, record history and mark the editor modified; Delete is disabled in any other state.
+- **UI-ARRANGING-024** — When the user presses Delete or chooses Edit → Delete in Arrange mode on a scattered arranger or a tilemap with a writable map with an element-snapped selection, the editor shall reset every covered element to empty, record history and mark the editor modified; Delete is disabled in any other state.
   - Tests: `GraphicsEditHistoryTests.DeleteNonSquareElements_UndoRedo`
 - **UI-ARRANGING-025** — When the user chooses Edit → Cut, the editor shall copy the selection and then delete it, enabled exactly when Delete is; Cut has no hotkey.
   - Tests: untested
@@ -182,6 +183,21 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
 - **UI-ARRANGING-041** — When the user clicks a square element with a rotate tool, the editor shall turn it as displayed in the tool's direction, whatever its mirror, record history and mark the editor modified. A non-square element is left unchanged and not outlined.
   - Tests: `GraphicsEditHistoryTests.Rotate_UndoRedo`; manual — in Adult Rydia Map, Mirror Horizontal then Rotate Left turns the element counter-clockwise.
 
+### Tilemaps
+
+- **UI-ARRANGING-050** — While an editor is open on a tilemap (LIB-TILEMAPS) whose map is writable, Arrange mode shall be offered, and moving, copying, pasting, deleting, cutting, applying a palette and mirroring shall edit the editor's working copy as on a scattered arranger; Save writes the changed entries (UI-GRAPHICS-EDITOR).
+  - Tests: manual — open the FF4 title screen tilemap on a copy of the FF2 project; check Arrange is offered; move a cell, save, and check only the target entry's bytes changed.
+- **UI-ARRANGING-051** — When an element paste is applied to a tilemap, every pasted element shall be a tile of the tile set (LIB-TILEMAPS-041); otherwise the paste shall fail with the status "Cannot paste into tilemap '<name>': element at (x, y) <reason>", naming the first refused element by its position in the copy, and change nothing.
+  - Tests: manual — copy elements from an arranger over another data file or codec and paste them into the tilemap; check the status and that nothing changed.
+- **UI-ARRANGING-052** — When a pasted tile's palette is in no palette slot of the tilemap, the pasted cell shall take the palette of the slot the destination cell uses, or slot 0's when the destination is empty (LIB-TILEMAPS-043).
+  - Tests: `TilemapEditTests.ToCellElement_PaletteInNoSlot_UsesDestinationSlot`
+- **UI-ARRANGING-053** — When cells of a tilemap are deleted or cut, they shall show empty until Save, which writes the tilemap's empty entry for them (LIB-TILEMAPS-044) and re-shows the cells as the map then decodes.
+  - Tests: `TilemapEditTests.WriteEntries_DeletedCell_WritesConfiguredEmptyEntry`; manual — delete a cell and save.
+- **UI-ARRANGING-054** — If Apply Palette is used on a tilemap with a palette that no slot of the tilemap shows, then the editor shall change nothing, outline nothing and show the status "Palette '<name>' is not in a palette slot of tilemap '<name>'".
+  - Tests: manual — associate a palette that is not in a slot and click a cell with Apply Palette.
+- **UI-ARRANGING-055** — While an editor is open on a tilemap, Rotate Left and Rotate Right shall be disabled with the tooltip "Tilemap entries cannot be rotated", Mirror Horizontal and Mirror Vertical shall be disabled with the tooltip "Map format '<name>' has no horizontal flip field" (or vertical) when the map format has no such field, and Resize Arranger shall be hidden.
+  - Tests: manual — DevTools: open a tilemap with symmetry tools shown, switch to Arrange mode, and check the rotate buttons' `IsEnabled` and tooltip and that `ResizeArrangerButton` is not visible.
+
 ### Defaults
 
 - **UI-ARRANGING-042** (inherited) — Selection handles shall be 8 screen pixels square at any zoom.
@@ -217,6 +233,7 @@ Element-level work in the graphics editor (UI-GRAPHICS-EDITOR): selecting, copyi
 - **Symmetry tools are opt-in.** Mirror and rotate change only how an element is displayed, so they stay hidden until enabled from the context menu. Rejected: pixel-level flip and rotate (a P2 backlog item).
 - **No cross-project element paste.** Elements reference a project's data files and palettes, so pasting them into another project is refused.
 - **Removal empties a dangling element copy.** Removing a data file disposes its source (LIB-PROJECT-SERVICE-049), so copied elements on it could no longer be read and Paste would throw. Rejected: keeping the source open while the clipboard references it, which holds the file handle with no visible owner.
+- **Tilemaps arrange a bake.** On a tilemap the editor arranges the tilemap's clone, a scattered arranger, so every Arrange gesture, its history and undo are the scattered ones; only paste validation, Apply Palette's slot check and Save differ (LIB-TILEMAPS, "Edit a bake, write entries on Save"). Rotation has no entry bit, so it is disabled rather than refused per click, and a tilemap's size comes from its resource, so Resize is hidden. Plotting tiles from a tile palette is a separate Tiles mode (UI-TILE-PLOTTING, "A fourth mode, Tiles"), which reverses the earlier "Rejected: a separate Tilemap mode": plotting is a tilemap editor's primary gesture and its tools clash with Arrange's selection and drag.
 - **Drops follow Ctrl+V.** Applying a paste checks the mode: element pastes only in Arrange mode on a tiled scattered arranger, pixel pastes only in Draw mode. A drop that is not an element paste in Arrange mode first runs the same mode switch as Ctrl+V and re-floats the paste at the drop position, because the mode change clears the overlay. Reason: a dropped pixel paste applied in View mode was lost on the next navigation, and in Arrange mode it skipped the save prompt. Rejected: refusing drops outside Draw mode, which would make dragging from a browsing editor into a scattered arranger in Arrange mode silently do nothing.
 - **Resize validation in the dialog, no-op in the editor.** The dialog uses numeric boxes with a minimum of 1 and refuses Resize below 1, following the custom layout dialog; the editor returns without recording when the size is unchanged. No upper limit is specified. Reason: a size below 1 threw out of an async command and could take down the app with every editor's unsaved work.
 - **Associate goes through the combo's palette lookup.** Associate Palette adds through the same find-or-add as the rest of the editor, so the combo has one dedup (by reference) and sizing (codec color count) rule. Rejected: sizing by the palette's entry count, which showed colors the codec cannot reach.

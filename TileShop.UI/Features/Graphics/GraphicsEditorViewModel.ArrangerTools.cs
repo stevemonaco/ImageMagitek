@@ -106,6 +106,12 @@ public partial class GraphicsEditorViewModel
         if (!IsIndexedColor)
             return false;
 
+        if (!IsPaletteInTilemapSlot(palette))
+        {
+            Messenger.Send(new NotifyStatusMessage($"Palette '{palette.Name}' is not in a palette slot of tilemap '{_projectArranger.Name}'"));
+            return false;
+        }
+
         bool needsRender = false;
         if (Selection.HasSelection && Selection.SelectionRect.ContainsPointSnapped(pixelX, pixelY))
         {
@@ -165,7 +171,11 @@ public partial class GraphicsEditorViewModel
     }
 
     internal bool CanApplyPaletteAtPosition(int pixelX, int pixelY) =>
-        SelectedPalette is not null && _imageAdapter.CanSetPalette(pixelX, pixelY, SelectedPalette.Palette).HasSucceeded;
+        SelectedPalette is not null && IsPaletteInTilemapSlot(SelectedPalette.Palette)
+        && _imageAdapter.CanSetPalette(pixelX, pixelY, SelectedPalette.Palette).HasSucceeded;
+
+    private bool IsPaletteInTilemapSlot(Palette palette) =>
+        _projectArranger is not TilemapArranger tilemap || tilemap.FindPaletteSlot(palette, 0) is not null;
 
     internal bool CanPickPaletteAtPosition(int pixelX, int pixelY) =>
         IsIndexedColor && WorkingArranger.GetElementAtPixel(pixelX, pixelY)?.Codec is IIndexedCodec;
@@ -277,7 +287,41 @@ public partial class GraphicsEditorViewModel
         int copyWidth = Math.Min(elementCopy.Width - sourceX, WorkingArranger.ArrangerElementSize.Width - destX);
         int copyHeight = Math.Min(elementCopy.Height - sourceY, WorkingArranger.ArrangerElementSize.Height - destY);
 
+        if (_projectArranger is TilemapArranger tilemap)
+            return PasteIntoTilemap(tilemap, elementCopy, arranger, sourceStart, destStart, copyWidth, copyHeight);
+
         return ElementCopier.CopyElements(elementCopy, arranger, sourceStart, destStart, copyWidth, copyHeight);
+    }
+
+    private static MagitekResult PasteIntoTilemap(TilemapArranger tilemap, ElementCopy elementCopy, ScatteredArranger working,
+        Point sourceStart, Point destStart, int copyWidth, int copyHeight)
+    {
+        var canCopy = ElementCopier.CanCopyElements(elementCopy, working, sourceStart, destStart, copyWidth, copyHeight);
+        if (canCopy.HasFailed)
+            return canCopy;
+
+        var cells = new List<(int X, int Y, ArrangerElement Element)>();
+        for (int y = 0; y < copyHeight; y++)
+        {
+            for (int x = 0; x < copyWidth; x++)
+            {
+                if (elementCopy.Elements[x + sourceStart.X, y + sourceStart.Y] is not ArrangerElement pasted)
+                    continue;
+
+                var destX = x + destStart.X;
+                var destY = y + destStart.Y;
+                var cellResult = tilemap.ToCellElement(pasted, working.GetElement(destX, destY));
+                if (cellResult.HasFailed)
+                    return new MagitekResult.Failed($"Cannot paste into tilemap '{tilemap.Name}': element at ({x + sourceStart.X}, {y + sourceStart.Y}) {cellResult.AsError.Reason}");
+
+                cells.Add((destX, destY, cellResult.AsSuccess.Result));
+            }
+        }
+
+        foreach (var (x, y, element) in cells)
+            working.SetElement(element, x, y);
+
+        return MagitekResult.SuccessResult;
     }
 
     private MagitekResult ApplyPixelPaste(ArrangerPaste paste)

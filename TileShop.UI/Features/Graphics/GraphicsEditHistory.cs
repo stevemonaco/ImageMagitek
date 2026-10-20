@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.Linq;
 using ImageMagitek;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
@@ -38,6 +39,11 @@ public sealed class GraphicsEditHistory
         _redo.Clear();
         _base = CaptureBase(working);
     }
+
+    /// <summary>
+    /// True when an action on the undo stack changed pixels rather than only elements
+    /// </summary>
+    public bool HasPixelEdits => _undo.Any(x => x is not ArrangerHistoryAction);
 
     public Arranger RestoreBase() => _base!.Restore(_codecFactory);
 

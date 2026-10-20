@@ -125,18 +125,19 @@ public sealed class XmlProjectReader : IProjectReader
             }
         }
 
-        foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is TilemapModel))
+        foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is ScatteredArrangerModel))
         {
-            var result = builder.AddTilemap((TilemapModel)model, pathKey, fileLocation);
+            var result = builder.AddScatteredArranger((ScatteredArrangerModel)model, pathKey, fileLocation);
             if (result.HasFailed)
             {
                 _errors.AddRange(result.AsError.Reasons);
             }
         }
 
-        foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is ScatteredArrangerModel))
+        // After scattered arrangers, since a tilemap may name one as its tile palette
+        foreach (var (model, pathKey, fileLocation) in resourceModels.Where(x => x.model is TilemapModel))
         {
-            var result = builder.AddScatteredArranger((ScatteredArrangerModel)model, pathKey, fileLocation);
+            var result = builder.AddTilemap((TilemapModel)model, pathKey, fileLocation);
             if (result.HasFailed)
             {
                 _errors.AddRange(result.AsError.Reasons);
@@ -368,6 +369,9 @@ public sealed class XmlProjectReader : IProjectReader
             TileOffset = long.Parse(element.Attribute("tileoffset").Value, System.Globalization.NumberStyles.HexNumber),
             CodecName = element.Attribute("codec").Value,
             FirstTile = int.Parse(element.Attribute("firsttile")?.Value ?? "0"),
+            EmptyTile = int.Parse(element.Attribute("emptytile")?.Value ?? "0"),
+            TileCount = element.Attribute("tilecount") is { } tileCount ? int.Parse(tileCount.Value) : null,
+            TilePaletteKey = element.Attribute("tilepalette")?.Value,
             PaletteSlots = element.Elements("paletteslot")
                 .ToDictionary(x => int.Parse(x.Attribute("index").Value), x => x.Attribute("palette").Value)
         };

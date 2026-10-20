@@ -163,6 +163,15 @@ internal sealed class ProjectTreeBuilder
                 slots[index] = palette;
         }
 
+        ScatteredArranger? tilePalette = null;
+        if (model.TilePaletteKey is { } tilePaletteKey)
+        {
+            if (Tree.TryGetNode(tilePaletteKey, out var tilePaletteNode) && tilePaletteNode.Item is ScatteredArranger arranger)
+                tilePalette = arranger;
+            else
+                reasons.Add($"Tilemap '{pathKey}' references tile palette arranger '{tilePaletteKey}', which is not a scattered arranger in the project");
+        }
+
         if (reasons.Count > 0)
             return new MagitekResults.Failed(reasons);
 
@@ -170,12 +179,14 @@ internal sealed class ProjectTreeBuilder
         try
         {
             tilemap = new TilemapArranger(model.Name, mapSource!, model.MapOffset, format!, model.Layout, model.Width, model.Height,
-                tileSource!, model.TileOffset, model.CodecName, model.FirstTile, slots, _codecFactory);
+                tileSource!, model.TileOffset, model.CodecName, model.FirstTile, slots, _codecFactory, model.EmptyTile, model.TileCount);
         }
         catch (ArgumentException ex)
         {
             return new MagitekResults.Failed([$"Tilemap '{pathKey}': {ex.Message}"]);
         }
+
+        tilemap.TilePaletteArranger = tilePalette;
 
         var node = new TilemapNode(tilemap.Name, tilemap)
         {

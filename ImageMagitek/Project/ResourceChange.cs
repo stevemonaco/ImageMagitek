@@ -2,11 +2,13 @@ using System.Collections.Generic;
 
 namespace ImageMagitek.Project;
 
-public sealed record ResourceChange(ResourceNode ResourceNode, string ResourcePath, bool Removed, bool LostPalette, bool LostElement)
+/// <param name="LostTilePalette">A tilemap whose tile palette arranger is removed; it falls back to the generated tile palette</param>
+public sealed record ResourceChange(ResourceNode ResourceNode, string ResourcePath, bool Removed, bool LostPalette, bool LostElement,
+    bool LostTilePalette = false)
 {
     public IProjectResource Resource => ResourceNode.Item;
     public string ResourceName => Resource.Name;
-    public bool IsChanged => LostPalette || LostElement;
+    public bool IsChanged => LostPalette || LostElement || LostTilePalette;
 }
 
 /// <summary>

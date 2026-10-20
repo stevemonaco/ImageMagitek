@@ -427,6 +427,15 @@ public sealed class XmlProjectWriter : IProjectWriter
         if (model.FirstTile != 0)
             element.Add(new XAttribute("firsttile", model.FirstTile));
 
+        if (model.EmptyTile != 0)
+            element.Add(new XAttribute("emptytile", model.EmptyTile));
+
+        if (model.TileCount is { } tileCount)
+            element.Add(new XAttribute("tilecount", tileCount));
+
+        if (model.TilePaletteKey is not null)
+            element.Add(new XAttribute("tilepalette", model.TilePaletteKey));
+
         foreach (var (index, paletteKey) in model.PaletteSlots.OrderBy(x => x.Key))
             element.Add(new XElement("paletteslot", new XAttribute("index", index), new XAttribute("palette", paletteKey)));
 

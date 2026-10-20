@@ -30,11 +30,13 @@ tests:
   - ImageImporterTests
   - ScatteredArrangerReversibilityTests
   - ReadOnlyArrangerTests
+  - TilemapEditTests
 depends:
   - LIB-IMAGES
   - LIB-ARRANGERS
   - LIB-PALETTES
   - LIB-COLORS
+  - LIB-TILEMAPS
 ---
 
 # Image export and import
@@ -147,8 +149,10 @@ Exports an arranger's image to PNG and stages image files for import back into a
   - Tests: `ImageImporterTests.Prepare_Exact_UnmatchedColor_KeepsCurrentPixelAndReports`
 - **LIB-IMAGE-IO-040** — The report shall say whether any pixel took its index from the source PNG.
   - Tests: `ImageImporterTests.Prepare_SourceIndices_UsedWhenPaletteMatches_EvenWithDuplicateColors`
-- **LIB-IMAGE-IO-041** — The summary shall read "N of M pixels change", followed when present by "K color(s) substituted (P pixels)", "K color(s) unmatched (P pixels)" and "palette indices read from PNG", joined by " · ".
-  - Tests: `ImageImporterTests.Prepare_Nearest_SubstitutesNearestEntryAndReports`, `ImageImporterTests.Prepare_SourceIndices_UsedWhenPaletteMatches_EvenWithDuplicateColors`
+- **LIB-IMAGE-IO-041** — The summary shall read "N of M pixels change", followed when present by "K color(s) substituted (P pixels)", "K color(s) unmatched (P pixels)", "palette indices read from PNG" and "1 shared tile differs between cells and was not imported" or "K shared tiles differ between cells and were not imported", joined by " · ".
+  - Tests: `ImageImporterTests.Prepare_Nearest_SubstitutesNearestEntryAndReports`, `ImageImporterTests.Prepare_SourceIndices_UsedWhenPaletteMatches_EvenWithDuplicateColors`, `TilemapEditTests.ImportIntoTilemap_SharedTileDiffers_ReportsConflictAndKeepsTile`
+- **LIB-IMAGE-IO-046** — When an indexed import into a tilemap (LIB-TILEMAPS) is staged, every cell of a tile must receive the same pixels with mirror undone (LIB-TILEMAPS-050, all cells must agree). If they differ, then the tile shall keep its current pixels in every cell, each of those cells' pixels shall be marked as a shared tile conflict and not changed, and the report shall list the tile among its shared tile conflicts. Other tiles import as usual, and committability is unaffected.
+  - Tests: `TilemapEditTests.ImportIntoTilemap_ConsistentTiles_WritesThem`, `TilemapEditTests.ImportIntoTilemap_SharedTileDiffers_ReportsConflictAndKeepsTile`
 
 ### Commit
 

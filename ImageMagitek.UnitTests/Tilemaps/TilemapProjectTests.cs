@@ -124,6 +124,37 @@ public sealed class TilemapProjectTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task EmptyTile_RoundTrips()
+    {
+        var (map, tiles, pal) = await AddSourcesAsync();
+        var tilemap = new TilemapArranger("Screen", map, 0x10, _mapFormats.Find("GBA Text BG")!, MapScreenLayout.Linear, 2, 2, tiles, 0,
+            "GBA 4bpp", 0, [null, pal], CodecFixture.Shared.CodecFactory, emptyTileIndex: 0x3FF);
+        Assert.True((await _service.AddResourceAsync(_tree.Root, tilemap)).HasSucceeded);
+
+        Assert.Contains("emptytile=\"1023\"", File.ReadAllText(TilemapFile));
+
+        var reopened = await ReopenAsync();
+        Assert.True(reopened.TryGetItem<TilemapArranger>("/Screen", out var loaded));
+        Assert.Equal(0x3FF, loaded.EmptyTileIndex);
+    }
+
+    [Fact]
+    public async Task TileCount_RoundTrips()
+    {
+        var (map, tiles, pal) = await AddSourcesAsync();
+        var tilemap = new TilemapArranger("Screen", map, 0x10, _mapFormats.Find("GBA Text BG")!, MapScreenLayout.Linear, 2, 2, tiles, 0,
+            "GBA 4bpp", 0, [null, pal], CodecFixture.Shared.CodecFactory, declaredTileCount: 3);
+        Assert.True((await _service.AddResourceAsync(_tree.Root, tilemap)).HasSucceeded);
+
+        Assert.Contains("tilecount=\"3\"", File.ReadAllText(TilemapFile));
+
+        var reopened = await ReopenAsync();
+        Assert.True(reopened.TryGetItem<TilemapArranger>("/Screen", out var loaded));
+        Assert.Equal(3, loaded.DeclaredTileCount);
+        Assert.Equal(3, loaded.TileCount);
+    }
+
+    [Fact]
     public async Task ProjectWithoutTilemapOrCompressedData_WritesVersion10()
     {
         await AddSourcesAsync();
@@ -211,6 +242,95 @@ public sealed class TilemapProjectTests : IAsyncLifetime
         Assert.True((await _service.ApplyResourceDeletionAsync(plan, _globalPalette)).HasSucceeded);
         Assert.False(_tree.TryGetNode("/Screen", out _));
         Assert.False(File.Exists(TilemapFile));
+    }
+
+    private async Task<(TilemapArranger Tilemap, ScatteredArranger Picker)> AddTilemapWithTilePaletteAsync()
+    {
+        var (map, tiles, pal) = await AddSourcesAsync();
+        var picker = new ScatteredArranger("Picker", PixelColorType.Indexed, ElementLayout.Tiled, 2, 1, 8, 8);
+        for (int x = 0; x < 2; x++)
+        {
+            var codec = (Codec.IIndexedCodec)CodecFixture.Shared.CodecFactory.CreateCodec("GBA 4bpp")!;
+            codec.Palette = pal;
+            picker.SetElement(new ArrangerElement(0, 0, tiles, new BitAddress(x * 32, 0), codec), x, 0);
+        }
+
+        Assert.True((await _service.AddResourceAsync(_tree.Root, picker)).HasSucceeded);
+
+        var tilemap = CreateTilemap(map, tiles, pal);
+        tilemap.TilePaletteArranger = picker;
+        Assert.True((await _service.AddResourceAsync(_tree.Root, tilemap)).HasSucceeded);
+        return (tilemap, picker);
+    }
+
+    [Fact]
+    public async Task TilePalette_RoundTripsByteIdentically_AndStaysVersion11()
+    {
+        await AddTilemapWithTilePaletteAsync();
+
+        Assert.Contains("""tilepalette="/Picker">""", File.ReadAllText(TilemapFile));
+        Assert.Equal("1.1", ReadVersion(ProjectFile));
+
+        var files = Directory.GetFiles(_directory, "*.xml").ToDictionary(x => x, File.ReadAllBytes);
+        var reopened = await ReopenAsync();
+        Assert.True((await _service.SaveProjectAsync(reopened)).HasSucceeded);
+
+        foreach (var (fileName, bytes) in files)
+            Assert.Equal(bytes, File.ReadAllBytes(fileName));
+
+        Assert.True(reopened.TryGetItem<TilemapArranger>("/Screen", out var loaded));
+        Assert.True(reopened.TryGetItem<ScatteredArranger>("/Picker", out var picker));
+        Assert.Same(picker, loaded.TilePaletteArranger);
+        Assert.Equal("1.1", ReadVersion(ProjectFile));
+    }
+
+    [Theory]
+    [InlineData("/Gone")]
+    [InlineData("/Tiles")]
+    public async Task Load_UnresolvedOrNonScatteredTilePalette_FailsNamingIt(string key)
+    {
+        await AddTilemapWithTilePaletteAsync();
+        _service.CloseProjects();
+        File.WriteAllText(TilemapFile, File.ReadAllText(TilemapFile).Replace("tilepalette=\"/Picker\"", $"tilepalette=\"{key}\""));
+
+        var result = await _service.OpenProjectFileAsync(ProjectFile);
+
+        Assert.True(result.HasFailed);
+        Assert.Contains(result.AsError.Reasons, x => x.Contains("/Screen") && x.Contains($"tile palette arranger '{key}'"));
+    }
+
+    [Fact]
+    public async Task RenamingTilePaletteArranger_RewritesKey()
+    {
+        await AddTilemapWithTilePaletteAsync();
+        Assert.True(_tree.TryGetNode("/Picker", out var pickerNode));
+
+        Assert.True((await _service.RenameResourceAsync(pickerNode, "Renamed")).HasSucceeded);
+
+        Assert.Contains("""tilepalette="/Renamed">""", File.ReadAllText(TilemapFile));
+    }
+
+    [Fact]
+    public async Task DeletingTilePaletteArranger_KeepsTilemap_AndClearsTilePalette()
+    {
+        var (tilemap, _) = await AddTilemapWithTilePaletteAsync();
+        Assert.True(_tree.TryGetNode("/Picker", out var pickerNode));
+
+        var plan = _service.PreviewResourceDeletion(pickerNode).AsSuccess.Result;
+
+        var change = Assert.Single(plan.Changes, x => x.Resource is TilemapArranger);
+        Assert.False(change.Removed);
+        Assert.True(change.LostTilePalette);
+        Assert.True(change.IsChanged);
+
+        Assert.True((await _service.ApplyResourceDeletionAsync(plan, _globalPalette)).HasSucceeded);
+        Assert.True(_tree.TryGetNode("/Screen", out _));
+        Assert.Null(tilemap.TilePaletteArranger);
+        Assert.DoesNotContain("tilepalette", File.ReadAllText(TilemapFile));
+
+        var reopened = await ReopenAsync();
+        Assert.True(reopened.TryGetItem<TilemapArranger>("/Screen", out var loaded));
+        Assert.Null(loaded.TilePaletteArranger);
     }
 
     [Fact]

@@ -10,21 +10,22 @@ public enum ImportResult { Success, MissingFile, BadResourceKey, ReadOnly, Unmat
 
 public static class Importer
 {
-    /// <param name="skipReadOnly">Reports an arranger made read-only by a codec that cannot encode as skipped (<see cref="ImportResult.ReadOnly"/>) rather than failed; a read-only data file always fails</param>
+    /// <param name="skipReadOnly">Reports an arranger made read-only by a codec that cannot encode or by compressed data as skipped (<see cref="ImportResult.ReadOnly"/>)
+    /// rather than failed; a read-only data file always fails</param>
     public static ImportResult ImportImage(ProjectTree projectTree, string imageFileName, string arrangerKey,
         ImageImportOptions options, bool skipReadOnly, TextWriter output)
     {
         output.Write($"Importing '{imageFileName}' to '{arrangerKey}'...");
 
-        if (!projectTree.TryGetNode(arrangerKey, out var node) || node.Item is not ScatteredArranger arranger)
+        if (!projectTree.TryGetNode(arrangerKey, out var node) || node.Item is not Arranger { Mode: ArrangerMode.Scattered or ArrangerMode.Tilemap } arranger)
         {
-            output.WriteLine($"Resource key does not exist or is not a {nameof(ScatteredArranger)}");
+            output.WriteLine("Resource key does not exist or is not a Scattered Arranger or Tilemap");
             return ImportResult.BadResourceKey;
         }
 
         if (arranger.GetReadOnlyReason() is { } reason)
         {
-            var isSkipped = skipReadOnly && !arranger.EnumerateElements().OfType<ArrangerElement>().Any(x => x.Source.IsReadOnly);
+            var isSkipped = skipReadOnly && !ReadsReadOnlyFile(arranger);
             output.WriteLine(isSkipped
                 ? $"Skipped: arranger is read-only ({reason})"
                 : $"Arranger is read-only because it {reason}");
@@ -34,6 +35,12 @@ public static class Importer
         if (arranger.FindMissingDataSource() is { } missing)
         {
             output.WriteLine($"Data file '{missing.Name}' is missing at '{missing.FileLocation}'");
+            return ImportResult.ImportFailed;
+        }
+
+        if (arranger is TilemapArranger { MapError: { } mapError })
+        {
+            output.WriteLine(mapError);
             return ImportResult.ImportFailed;
         }
 
@@ -58,6 +65,13 @@ public static class Importer
 
                 preview.Commit();
                 output.WriteLine($"Completed successfully ({preview.Report.ToSummary()})");
+
+                foreach (var conflict in preview.Report.SharedTileConflicts)
+                {
+                    var first = conflict.Cells[0];
+                    output.WriteLine($"  Shared tile at 0x{conflict.Address.ByteOffset:X} differs between {conflict.Cells.Count} cells, first at ({first.X}, {first.Y}); not imported");
+                }
+
                 return ImportResult.Success;
             },
             fail =>
@@ -65,5 +79,14 @@ public static class Importer
                 output.WriteLine(fail.Reason);
                 return ImportResult.ImportFailed;
             });
+    }
+
+    private static bool ReadsReadOnlyFile(Arranger arranger)
+    {
+        var sources = arranger.EnumerateElements().OfType<ArrangerElement>().Select(x => x.Source);
+        if (arranger is TilemapArranger tilemap)
+            sources = sources.Append(tilemap.TileSource);
+
+        return sources.Any(x => x is not CompressedDataSource && x.IsReadOnly);
     }
 }

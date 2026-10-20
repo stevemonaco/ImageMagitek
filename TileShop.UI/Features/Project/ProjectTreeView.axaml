@@ -73,7 +73,9 @@
 
         <ContextMenu x:Key="TilemapContextMenu" x:DataType="vm:TilemapNodeViewModel">
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExportArrangerNodeAsCommand}" CommandParameter="{Binding}" Header="Export As..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ImportArrangerNodeFromCommand}" CommandParameter="{Binding}" Header="Import From..." />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).BakeTilemapCommand}" CommandParameter="{Binding}" Header="Bake to Scattered Arranger..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).EditTileSetCommand}" CommandParameter="{Binding}" Header="Edit Tile Set" />
             <Separator />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename..." />

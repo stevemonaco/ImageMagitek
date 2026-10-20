@@ -57,7 +57,7 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-CODECS] Platforms: Game Boy/GBC 2bpp (explicit entry), Master System 4bpp, PC Engine/TG16, N64 CI4/CI8/IA/I, NDS, Saturn, Neo Geo sprites, Atari/Lynx, WonderSwan; GBA/NDS BGR555 direct bitmap codecs.
 - [LIB-SCANNING] Container scanners: find self-describing graphics (PSX TIM first) in a data file and add them as arrangers and palettes, and browse archive entries through container-reader plugins: [change proposal](changes/container-scanners.md).
 - [LIB-TABLES] Table-driven resources: generate arrangers and palettes from a game's record tables through a declarative definition, regenerate them after the table changes, and relocate data by rewriting its pointer: [change proposal](changes/table-resources.md).
-- [LIB-TILEMAPS] Tilemap resources: a map read from data, decoded by a map format, edited in Arrange mode and written back in place: [change proposal](changes/tilemaps.md).
+- [LIB-TILEMAPS] Tilemap resources: a map read from data, decoded by a map format, edited in Arrange mode, plotted in Tiles mode and written back in place: [change proposal](changes/tilemaps.md).
 - [LIB-SCENES] Layered scenes: stack arrangers back to front with transparency into one composite view, export it, and draw on an active layer: [change proposal](changes/layers.md).
 - [LIB-CODECS] XML format extensions: tile stride/padding, bit order and endianness, per-tile header bytes (variable-width fonts currently need a plugin).
 - [LIB-ARRANGERS] Bit-wise sequential offsets: tiled elements and absolute moves are bit-addressed, but Single-layout stepping (TODO in `SequentialArranger`) and its row/column/page steps are not; done when Single-layout round-trip tests pass at a non-byte-aligned offset.

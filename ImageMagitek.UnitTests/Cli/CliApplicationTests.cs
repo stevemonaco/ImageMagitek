@@ -383,8 +383,15 @@ public sealed class CliApplicationTests : IDisposable
             """);
 
         var serializerFactory = new XmlProjectSerializerFactory(ProjectFixtures.ResourceSchemaPath, Fixtures.CodecFixture.Shared.CodecFactory,
-            _colorFactory, [ProjectFixtures.DefaultPalette], null, Tilemaps.MapFormatTests.LoadShippedFormats());
+            _colorFactory, [ProjectFixtures.DefaultPalette], new ImageMagitek.Compression.CompressorFactory(), Tilemaps.MapFormatTests.LoadShippedFormats());
         _bootstrap = _ => new ProjectService(serializerFactory);
+    }
+
+    private void WriteSimpleData(int offset, params byte[] bytes)
+    {
+        var data = File.ReadAllBytes(SimpleDataFile);
+        bytes.CopyTo(data, offset);
+        File.WriteAllBytes(SimpleDataFile, data);
     }
 
     [Fact]
@@ -407,23 +414,72 @@ public sealed class CliApplicationTests : IDisposable
     }
 
     [Fact]
-    public async Task Import_Tilemap_ReportsNotScatteredArrangerExits6()
+    public async Task Import_Tilemap_WritesTilesExits0()
     {
         UseTilemap();
+        WriteSimpleData(0x100, 0x01, 0x00, 0x02, 0x00);
         Assert.Equal(0, await RunAsync("export", _projectFile, _imageDirectory, TilemapKey));
+        EditPixel(TilemapKey, White);
 
-        Assert.Equal(-6, await RunAsync("import", _projectFile, _imageDirectory, TilemapKey));
-        Assert.Contains("Resource key does not exist or is not a ScatteredArranger", Output);
+        Assert.Equal(0, await RunAsync("import", _projectFile, _imageDirectory, TilemapKey));
+        Assert.Equal(White, await ReexportPixelAsync(TilemapKey));
+        Assert.DoesNotContain("Shared tile", Output);
     }
 
     [Fact]
-    public async Task ImportAll_SkipsTilemaps()
+    public async Task Import_Tilemap_SharedTileConflict_PrintsConflictExits0()
+    {
+        UseTilemap();
+        Assert.Equal(0, await RunAsync("export", _projectFile, _imageDirectory, TilemapKey));
+        EditPixel(TilemapKey, White);
+
+        Assert.Equal(0, await RunAsync("import", _projectFile, _imageDirectory, TilemapKey));
+        Assert.Contains("1 shared tile differs between cells and was not imported", Output);
+        Assert.Contains("  Shared tile at 0x0 differs between 2 cells, first at (0, 0); not imported", Output);
+        Assert.Equal(Black, await ReexportPixelAsync(TilemapKey));
+    }
+
+    [Fact]
+    public async Task Import_TilemapWithMapError_PrintsErrorExits6()
+    {
+        UseTilemap();
+        Assert.Equal(0, await RunAsync("export", _projectFile, _imageDirectory, TilemapKey));
+        var truncatedOffset = new FileInfo(SimpleDataFile).Length - 2;
+        WriteResource("Graphics/Screen.xml", $"""
+            <tilemap mapdatafile="/Data/simple" mapoffset="{truncatedOffset:X}" width="2" height="1" format="GBA Text BG" tiledatafile="/Data/simple" tileoffset="0" codec="SNES 2bpp">
+            	<paletteslot index="0" palette="/Palettes/Simple" />
+            </tilemap>
+            """);
+
+        Assert.Equal(-6, await RunAsync("import", _projectFile, _imageDirectory, TilemapKey));
+        Assert.Contains("holds 1 of the 2 entries", Output);
+    }
+
+    [Fact]
+    public async Task ImportAll_IncludesTilemaps()
     {
         UseTilemap();
         Assert.Equal(0, await RunAsync("exportall", _projectFile, _imageDirectory));
 
         Assert.Equal(0, await RunAsync("importall", _projectFile, _imageDirectory));
-        Assert.DoesNotContain($"to '/{TilemapKey}'", Output);
+        Assert.Contains($"to '/{TilemapKey}'...Completed successfully", Output);
+    }
+
+    [Fact]
+    public async Task ImportAll_CompressedTilemap_Skipped()
+    {
+        UseTilemap();
+        WriteSimpleData(0x200, 0x10, 0x20, 0x00, 0x00);
+        WriteResource("Data/packed.xml", """<compresseddata parent="/Data/simple" fileoffset="200" compression="GBA LZ77" />""");
+        WriteResource("Graphics/PackedScreen.xml", """
+            <tilemap mapdatafile="/Data/simple" mapoffset="100" width="2" height="1" format="GBA Text BG" tiledatafile="/Data/packed" tileoffset="0" codec="SNES 2bpp">
+            	<paletteslot index="0" palette="/Palettes/Simple" />
+            </tilemap>
+            """);
+        Assert.Equal(0, await RunAsync("exportall", _projectFile, _imageDirectory));
+
+        Assert.Equal(0, await RunAsync("importall", _projectFile, _imageDirectory));
+        Assert.Contains("to '/Graphics/PackedScreen'...Skipped: arranger is read-only (reads compressed data 'packed', which is read-only)", Output);
     }
 
     #endregion
@@ -539,7 +595,7 @@ public sealed class CliApplicationTests : IDisposable
     public async Task Import_BadKey_Exits6()
     {
         Assert.Equal(-6, await RunAsync("import", _projectFile, _imageDirectory, "Graphics/Nope"));
-        Assert.Contains("Resource key does not exist or is not a ScatteredArranger", Output);
+        Assert.Contains("Resource key does not exist or is not a Scattered Arranger or Tilemap", Output);
     }
 
     [Fact]

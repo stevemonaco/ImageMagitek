@@ -53,6 +53,9 @@ public static class SerializationMapperExtensions
             TileOffset = tilemap.TileOffset,
             CodecName = tilemap.CodecName,
             FirstTile = tilemap.FirstTileIndex,
+            EmptyTile = tilemap.EmptyTileIndex,
+            TileCount = tilemap.DeclaredTileCount,
+            TilePaletteKey = tilemap.TilePaletteArranger is { } tilePalette ? resourceMap[tilePalette] : null,
             PaletteSlots = slots
         };
     }

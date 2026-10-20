@@ -73,20 +73,21 @@ depends:
   - UI-ARRANGING
   - UI-DRAWING
   - UI-EDIT-HISTORY
+  - UI-TILE-PLOTTING
 ---
 
 # Graphics editor
 
 ## Purpose
 
-The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) on a zoomable canvas and hosts three modes: View (browse a data file as a sequential arranger), Arrange (compose a scattered arranger) and Draw (edit pixels). This spec owns the editor shell: modes, canvas, sequential browsing, status text, save/discard/reload, read-only and project gating, and the commands it exposes to the Edit menu. Selection and element tools are in UI-ARRANGING, pixel tools in UI-DRAWING, undo/redo in UI-EDIT-HISTORY, import/export in UI-IMAGE-IO. Opening, closing and tab management are in UI-EDITORS; the hotkey dispatcher and Edit menu are in UI-SHELL.
+The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) on a zoomable canvas and hosts four modes: View (browse a data file as a sequential arranger), Arrange (compose a scattered arranger), Tiles (plot tiles into a tilemap, UI-TILE-PLOTTING) and Draw (edit pixels). This spec owns the editor shell: modes, canvas, sequential browsing, status text, save/discard/reload, read-only and project gating, and the commands it exposes to the Edit menu. Selection and element tools are in UI-ARRANGING, pixel tools in UI-DRAWING, undo/redo in UI-EDIT-HISTORY, import/export in UI-IMAGE-IO. Opening, closing and tab management are in UI-EDITORS; the hotkey dispatcher and Edit menu are in UI-SHELL.
 
 ## Requirements
 
 ### Modes
 
-- **UI-GRAPHICS-EDITOR-001** — When an editor opens on a sequential arranger, it shall start in View mode and offer View and (if drawable) Draw; when it opens on a scattered arranger, it shall start in Arrange mode and offer Arrange and (if drawable) Draw. When it opens on a tilemap (LIB-TILEMAPS), it shall start in View mode, offer View and (if drawable) Draw but not Arrange, and hide the sequential-only View panels (codec, element pixel size, arranger size, element layout) while keeping the View tools, so element and pixel selection, copy and Add as New Scattered Arranger work on it.
-  - Tests: manual — open a data file node and a scattered arranger node; check the toolbar mode buttons; DevTools — open `/Trainer Card/Front Tilemap` in the FireRed project and check only View is offered, the read-only reason is shown and the codec panel is hidden.
+- **UI-GRAPHICS-EDITOR-001** — When an editor opens on a sequential arranger, it shall start in View mode and offer View and (if drawable) Draw; when it opens on a scattered arranger, it shall start in Arrange mode and offer Arrange and (if drawable) Draw. When it opens on a tilemap (LIB-TILEMAPS), it shall edit a clone of it, start in View mode, offer View, Arrange and Tiles (when its map is writable, UI-TILE-PLOTTING) and Draw (when drawable), in that order, and hide the sequential-only View panels (codec, element pixel size, arranger size, element layout) while keeping the View tools, so element and pixel selection, copy and Add as New Scattered Arranger work on it.
+  - Tests: manual — open a data file node and a scattered arranger node; check the toolbar mode buttons; DevTools — open `/Trainer Card/Front Tilemap` in the FireRed project (compressed map and tiles) and check only View is offered, the read-only reason is shown and the codec panel is hidden; open an uncompressed tilemap and check View, Arrange, Tiles and Draw are offered.
 - **UI-GRAPHICS-EDITOR-002** — While the arranger is read-only (LIB-ARRANGERS-009), the editor shall hide the Draw mode button and refuse to switch to Draw.
   - Tests: manual — set the read-only attribute on a data file, open an arranger on it in DevTools, and check that no Draw RadioButton is visible.
 - **UI-GRAPHICS-EDITOR-047** — While the arranger is read-only, the editor toolbar shall show "Read only: <reason>" (LIB-ARRANGERS-049).
@@ -161,8 +162,12 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
   - Tests: `GraphicsEditorPaletteTests.Sequential_ChoosePalette_RecolorsKeepingIndices`, `GraphicsEditorPaletteTests.Sequential_ChoosePalette_LeavesCopiedElementsUnchanged`; manual — DevTools: open the FF2 data file, set the palette combo's `SelectedIndex` in View and in Draw mode; the canvas recolors, the tab shows no `*` and Undo stays disabled.
 - **UI-GRAPHICS-EDITOR-050** — When the codec, element layout, size or offset changes, a sequential editor shall keep the chosen palette while the codec is indexed and the palette covers its color depth; otherwise it shall switch to the codec's default palette.
   - Tests: `GraphicsEditorPaletteTests.Sequential_ChangeCodec_KeepsPalette`, `GraphicsEditorPaletteTests.Sequential_ChangeCodec_FallsBackWhenPaletteTooSmall`; manual — DevTools: choose a palette, then change the Codec combo; the palette combo and the canvas colors are unchanged.
-- **UI-GRAPHICS-EDITOR-051** — When a sequential editor opens, it shall start on the default palette.
-  - Tests: `GraphicsEditorPaletteTests.Sequential_Opens_OnDefaultPalette`
+- **UI-GRAPHICS-EDITOR-051** — When a sequential editor opens, it shall start on the default palette, except that Edit Tile Set selects the tilemap's slot 0 palette, adding it to the palette combo (UI-EDITORS-064).
+  - Tests: `GraphicsEditorPaletteTests.Sequential_Opens_OnDefaultPalette`; manual — DevTools: Edit Tile Set on "Title Map" shows palette TitlePal0.
+- **UI-GRAPHICS-EDITOR-056** — When a sequential editor opens on an arranger already moved to an offset, the toolbar and scrollbar shall show that offset.
+  - Tests: manual — DevTools: Edit Tile Set on "Title Map" shows `Offset: 0x44000` in `JumpToOffsetButton`.
+- **UI-GRAPHICS-EDITOR-057** — While the editor is open on a tilemap, the toolbar shall show Edit Tile Set in every mode (UI-TILE-PLOTTING-016).
+  - Tests: manual — DevTools: `EditTileSetButton` is visible on "Title Map" and not on a scattered arranger.
 - **UI-GRAPHICS-EDITOR-053** — When the Codec combo switches between an indexed and a direct codec, the toolbar shall show the palette combo, indexed color swatches, palette swatch grid and Remap Colors only for indexed codecs and the primary/secondary color pickers only for direct codecs; switching back to an indexed codec shall restore the palette list and the chosen palette.
   - Tests: manual — DevTools: on a sequential editor choose Bmp24 in the Codec combo; `IsIndexedColor` is false, `PaletteSwatchGrid` and the palette combo are hidden, and Draw mode shows the two color pickers with no Remap Colors; choose an indexed codec again and the previously chosen palette returns.
 
@@ -181,15 +186,19 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
   - Tests: manual — DevTools: on "Adult Rydia Map" in Arrange mode, `ResizeArrangerButton`, grow by one column, Ctrl+S, close the tab, reload the project, reopen and check `WorkingArranger.ArrangerElementSize` with no Save Error; repeat shrinking. Library: `ScatteredArrangerTests.ReplaceElements_Larger_TakesSizeAndCells`
 - **UI-GRAPHICS-EDITOR-033** — If saving a scattered arranger finds elements that share source data but hold different pixels, then the editor shall ask "Save Conflicts" (OK/Cancel) naming the count, and save only on OK.
   - Tests: manual — duplicate an element, edit one copy, Ctrl+S. Conflict analysis: `SaveConflictTests.AnalyzeSaveConflicts_UnchangedDuplicateOfModifiedTile_IsConflict`
+- **UI-GRAPHICS-EDITOR-054** — When a tilemap editor saves with a drawable tile set and its history holds pixel edits, it shall first resolve shared tiles with changed cells winning (LIB-TILEMAPS-050); if some tiles were drawn differently in cells that share them, it shall ask "Shared Tile Conflicts" (OK/Cancel) with "N tiles were drawn differently in cells that share them and will be left unchanged. Save the rest?", and on Cancel write nothing and stay modified. It then writes the tiles. Without pixel edits it shall not write the tiles, since an editor that is modified is not reloaded when another editor saves them.
+  - Tests: manual — on the FF4 title screen tilemap, draw on a cell whose tile another cell uses and save; then draw differently on two such cells and check the prompt. Library: `TilemapEditTests.DrawnCell_SharedTile_ChangesEveryCellAfterSave`, `TilemapEditTests.DrawnCellsDisagree_IsConflict_TileUnchanged`
+- **UI-GRAPHICS-EDITOR-055** — When a tilemap editor saves with a writable map, it shall first check that every cell can be written (LIB-TILEMAPS-046) and, if not, show "Save Error" with the reason, write neither tiles nor entries, and stay modified. After writing the tiles it shall write the entries that differ from the working copy (LIB-TILEMAPS-045); if that fails, it shall show "Save Error" with the reason and stay modified. On success it saves the resource as UI-GRAPHICS-EDITOR-032 does, then replaces the working copy with a new clone of the tilemap and clears history, so cells that share a drawn tile and deleted cells show what the map now holds.
+  - Tests: manual — on a copy of the FF2 project, move a cell of the FF4 title screen tilemap, Ctrl+S, and compare the map bytes before and after.
 - **UI-GRAPHICS-EDITOR-034** — While the arranger is read-only, saving shall skip the pixel write and still save element rearrangements.
   - Tests: untested
 - **UI-GRAPHICS-EDITOR-035** — If the resource save fails, then the editor shall show "Project Error" with the reason and stay modified; if saving throws, it shall show "Save Error" with the exception message, without a stack trace, and log the exception.
   - Tests: untested
 - **UI-GRAPHICS-EDITOR-036** — When the editor's resource is not in an open project (a sequential editor, or a standalone file), saving shall write the pixels and clear the modified state without a project save.
   - Tests: manual — save a sequential editor from a standalone file and from a project data file, in Draw mode.
-- **UI-GRAPHICS-EDITOR-037** — When changes are discarded, a scattered editor shall return to the arranger as last saved and a sequential editor shall re-read its pixels, clearing history and the modified state.
+- **UI-GRAPHICS-EDITOR-037** — When changes are discarded, a scattered editor shall return to the arranger as last saved, a tilemap editor to a new clone of the tilemap, and a sequential editor shall re-read its pixels, clearing history and the modified state.
   - Tests: untested
-- **UI-GRAPHICS-EDITOR-038** — When another editor or an import writes data this editor reads, and this editor is unmodified, it shall re-read its pixels and clear its history (routing in UI-EDITORS).
+- **UI-GRAPHICS-EDITOR-038** — When another editor or an import writes data this editor reads (for a tilemap, also its map or tile source), and this editor is unmodified, it shall re-read its pixels, a tilemap editor from a new clone of the tilemap, and clear its history (routing in UI-EDITORS).
   - Tests: manual — open two editors on one file, save in one, check the other.
 
 ### Gating
@@ -215,7 +224,7 @@ The graphics editor is the document tab that shows one arranger (LIB-ARRANGERS) 
 - `WorkingArranger` is a clone of the project arranger for scattered arrangers and the arranger itself for sequential ones; the project arranger changes only on save.
 - While in View mode the editor holds no pending edits.
 - `ReadOnlyReason` equals the working arranger's read-only reason and `CanDraw` equals "`ReadOnlyReason` is null" after every image rebuild.
-- `IsViewMode`, `IsArrangerMode` and `IsDrawMode` are mutually exclusive and follow `EditMode`.
+- `IsViewMode`, `IsArrangerMode`, `IsTilesMode` and `IsDrawMode` are mutually exclusive and follow `EditMode`.
 
 ## Edge cases
 

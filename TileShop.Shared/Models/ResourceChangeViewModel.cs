@@ -13,6 +13,7 @@ public partial class ResourceChangeViewModel : ObservableObject
     [ObservableProperty] private bool _removed;
     [ObservableProperty] private bool _lostPalette;
     [ObservableProperty] private bool _lostElement;
+    [ObservableProperty] private bool _lostTilePalette;
     [ObservableProperty] private bool _isChanged;
 
     public string ChangeDescription => (LostElement, LostPalette) switch
@@ -20,6 +21,7 @@ public partial class ResourceChangeViewModel : ObservableObject
         (true, true) => "loses elements, uses default palette",
         (true, false) => "loses elements",
         (false, true) => "uses default palette",
+        _ when LostTilePalette => "uses the generated tile palette",
         _ => ""
     };
 
@@ -33,6 +35,7 @@ public partial class ResourceChangeViewModel : ObservableObject
         _removed = removed;
         _lostPalette = lostPalette;
         _lostElement = lostElement;
+        _isChanged = lostPalette || lostElement;
     }
 
     public ResourceChangeViewModel(ResourceChange change)
@@ -45,6 +48,7 @@ public partial class ResourceChangeViewModel : ObservableObject
         _removed = change.Removed;
         _lostPalette = change.LostPalette;
         _lostElement = change.LostElement;
+        _lostTilePalette = change.LostTilePalette;
         IsChanged = change.IsChanged;
     }
 }

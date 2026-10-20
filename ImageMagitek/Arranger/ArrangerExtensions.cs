@@ -254,26 +254,7 @@ public static class ArrangerExtensions
 
         if (arranger.GetElement(elementX, elementY) is { } el)
         {
-            var newMirror = (el.Mirror, mirror) switch
-            {
-                (MirrorOperation.Horizontal, MirrorOperation.Horizontal) => MirrorOperation.None,
-                (MirrorOperation.Vertical, MirrorOperation.Horizontal) => MirrorOperation.Both,
-                (MirrorOperation.Both, MirrorOperation.Horizontal) => MirrorOperation.Vertical,
-
-                (MirrorOperation.Horizontal, MirrorOperation.Vertical) => MirrorOperation.Both,
-                (MirrorOperation.Vertical, MirrorOperation.Vertical) => MirrorOperation.None,
-                (MirrorOperation.Both, MirrorOperation.Vertical) => MirrorOperation.Horizontal,
-
-                (MirrorOperation.Horizontal, MirrorOperation.Both) => MirrorOperation.Vertical,
-                (MirrorOperation.Vertical, MirrorOperation.Both) => MirrorOperation.Horizontal,
-                (MirrorOperation.Both, MirrorOperation.Both) => MirrorOperation.None,
-
-                (MirrorOperation.None, _) => mirror,
-                (_, MirrorOperation.None) => el.Mirror,
-                _ => MirrorOperation.None
-            };
-
-            var mirroredElement = el.WithMirror(newMirror);
+            var mirroredElement = el.WithMirror(el.Mirror.Combine(mirror));
             arranger.SetElement(mirroredElement, elementX, elementY);
 
             return MagitekResult.SuccessResult;
@@ -288,7 +269,8 @@ public static class ArrangerExtensions
     public static bool IsReadOnly(this Arranger arranger) => arranger.GetReadOnlyReason() is not null;
 
     /// <summary>
-    /// Why the arranger is read-only, naming the first offending element's codec or data file, or null when it is writable
+    /// Why the arranger's pixels are read-only, naming the first offending element's codec or data file, or null when it is writable.
+    /// A tilemap is also read-only when its tile source is; whether its map entries can be written is <see cref="TilemapArranger.MapReadOnlyReason"/>.
     /// </summary>
     /// <returns>A reason that completes "is read-only because it ..."</returns>
     public static string? GetReadOnlyReason(this Arranger arranger)
@@ -298,18 +280,20 @@ public static class ArrangerExtensions
             if (!element.Codec.CanEncode)
                 return $"uses codec '{element.Codec.Name}' that cannot encode";
 
-            if (element.Source is CompressedDataSource compressed)
-                return $"reads compressed data '{compressed.Name}', which is read-only";
-
-            if (element.Source.IsReadOnly)
-                return $"reads data file '{element.Source.Name}', which is read-only";
+            if (DescribeReadOnlySource(element.Source) is { } sourceReason)
+                return sourceReason;
         }
 
-        if (arranger is TilemapArranger)
-            return "is a tilemap; drawing on and importing into tilemaps is not supported yet";
-
-        return null;
+        return arranger is TilemapArranger tilemap ? DescribeReadOnlySource(tilemap.TileSource) : null;
     }
+
+    /// <returns>A reason that completes "is read-only because it ...", or null when the source can be written</returns>
+    internal static string? DescribeReadOnlySource(DataSource source) => source switch
+    {
+        CompressedDataSource compressed => $"reads compressed data '{compressed.Name}', which is read-only",
+        { IsReadOnly: true } => $"reads data file '{source.Name}', which is read-only",
+        _ => null
+    };
 
     /// <summary>
     /// The first missing file among the arranger's element sources and its referenced palettes' sources, or null when none is missing

@@ -29,7 +29,7 @@ public sealed class CliApplication
     private readonly Argument<string> _exportDirectoryArgument = new("directory") { Description = "Directory the PNGs are written to, mirroring the project tree" };
     private readonly Argument<string> _importDirectoryArgument = new("directory") { Description = "Directory the PNGs are read from, mirroring the project tree" };
     private readonly Argument<string[]> _exportKeysArgument = new("keys") { Description = "Resource keys of the scattered arrangers to export", Arity = ArgumentArity.OneOrMore };
-    private readonly Argument<string[]> _importKeysArgument = new("keys") { Description = "Resource keys of the scattered arrangers to import", Arity = ArgumentArity.OneOrMore };
+    private readonly Argument<string[]> _importKeysArgument = new("keys") { Description = "Resource keys of the scattered arrangers and tilemaps to import", Arity = ArgumentArity.OneOrMore };
 
     private readonly Option<bool> _overwriteOption = new("--overwrite") { Description = "Replace PNGs that already exist instead of skipping them" };
     private readonly Option<string?> _logOption = new("--log") { Description = "Append warnings and errors to this file instead of the application directory's log", HelpName = "file" };

@@ -325,8 +325,13 @@ public partial class ProjectTreeViewModel : ObservableRecipient
 
         var codecNames = _codecService.GetSupportedCodecNames().Where(IsIndexedTileCodec).Order(StringComparer.OrdinalIgnoreCase).ToList();
 
+        var tilePalettes = tree.EnumerateDepthFirst()
+            .Where(x => x.Item is ScatteredArranger)
+            .Select(x => new TilemapArrangerOption(tree.CreatePathKey(x), (ScatteredArranger)x.Item))
+            .ToList();
+
         var dialogModel = new AddTilemapViewModel(sources, _mapFormatFactory, codecNames, palettes, _codecService.CodecFactory,
-            name => _projectService.CanAddResource(parent, name, false));
+            name => _projectService.CanAddResource(parent, name, false), tilePalettes);
 
         if (await _interactions.RequestAsync(dialogModel) is null)
             return;
@@ -375,6 +380,9 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     }
 
     [RelayCommand]
+    public Task EditTileSet(TilemapNodeViewModel nodeModel) => _editors.OpenTileSetAsync((TilemapArranger)nodeModel.Node.Item);
+
+    [RelayCommand]
     public async Task ExportArrangerNodeAs(ResourceNodeViewModel nodeModel)
     {
         if (nodeModel.Node.Item is ScatteredArranger or TilemapArranger)
@@ -420,17 +428,17 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     [RelayCommand]
     public async Task ImportArrangerNodeFrom(ResourceNodeViewModel nodeModel)
     {
-        if (nodeModel is ArrangerNodeViewModel arrNodeModel && arrNodeModel.Node.Item is ScatteredArranger arranger)
+        if (nodeModel.Node.Item is ScatteredArranger or TilemapArranger)
         {
-            await ImportArrangerFrom(arranger);
+            await ImportArrangerFrom((Arranger)nodeModel.Node.Item);
         }
     }
 
     [RelayCommand]
-    public Task ImportArrangerFrom(ScatteredArranger arranger) => ImportArrangerInto(arranger, null);
+    public Task ImportArrangerFrom(Arranger arranger) => ImportArrangerInto(arranger, null);
 
     /// <param name="bounds">Arranger pixels the import may change, or null for the whole arranger</param>
-    public async Task ImportArrangerInto(ScatteredArranger arranger, Rectangle? bounds)
+    public async Task ImportArrangerInto(Arranger arranger, Rectangle? bounds)
     {
         if (arranger.GetReadOnlyReason() is { } reason)
         {
@@ -438,7 +446,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
             return;
         }
 
-        if (await _editors.AlertIfMissingDataSourceAsync(arranger, "Import"))
+        if (await _editors.AlertIfUnavailableAsync(arranger, "Import"))
             return;
 
         if (!await ResolveUnsavedChangesAsync(arranger, "importing", discardOnNo: true))

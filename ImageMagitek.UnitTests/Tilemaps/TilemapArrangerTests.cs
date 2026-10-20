@@ -150,7 +150,7 @@ public sealed class TilemapArrangerTests : IDisposable
     }
 
     [Fact]
-    public void CompressedMap_ReadsDecompressedBytes_IsReadOnly_AndRebuildsAfterParentWrite()
+    public void CompressedMap_ReadsDecompressedBytes_AndRebuildsAfterParentWrite()
     {
         // GBA LZ77 at offset 0: four literal bytes, entries for tiles 2 and 3
         using var rom = new MemoryDataSource("rom");
@@ -160,12 +160,34 @@ public sealed class TilemapArrangerTests : IDisposable
 
         Assert.Equal(2 * TileBytes, tilemap.GetElement(0, 0)!.Value.SourceAddress.ByteOffset);
         Assert.Equal(3 * TileBytes, tilemap.GetElement(1, 0)!.Value.SourceAddress.ByteOffset);
-        Assert.Equal("is a tilemap; drawing on and importing into tilemaps is not supported yet", tilemap.GetReadOnlyReason());
 
         rom.Write(new BitAddress(5, 0), [0x05]);
         rom.NotifyDataWritten();
 
         Assert.Equal(5 * TileBytes, tilemap.GetElement(0, 0)!.Value.SourceAddress.ByteOffset);
+    }
+
+    [Fact]
+    public void UncompressedTilemap_IsWritable()
+    {
+        _map.Write(Entry16(0));
+        using var tilemap = Create(_map, _gba, MapScreenLayout.Linear, 1, 1);
+
+        Assert.Null(tilemap.GetReadOnlyReason());
+        Assert.Null(tilemap.MapReadOnlyReason);
+    }
+
+    [Fact]
+    public void CompressedMapWritableTiles_DrawableButMapReadOnly()
+    {
+        using var rom = new MemoryDataSource("rom");
+        rom.Write([0x10, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00]);
+        using var compressed = new CompressedDataSource("packed", rom, 0, "GBA LZ77", new CompressorFactory());
+        using var tilemap = Create(compressed, _gba, MapScreenLayout.Linear, 1, 1);
+
+        Assert.Null(tilemap.GetReadOnlyReason());
+        Assert.Equal("reads compressed data 'packed', which is read-only", tilemap.MapReadOnlyReason);
+        Assert.True(tilemap.WriteEntries(tilemap.CloneArranger()).HasFailed);
     }
 
     [Fact]

@@ -43,6 +43,16 @@ public partial class GraphicsEditorViewModel
         [ViewTool.PixelSelect] = new PixelSelectToolHandler(),
     };
 
+    private readonly Dictionary<TileTool, IToolHandler<GraphicsEditorViewModel>> _tileTools = new()
+    {
+        [TileTool.Pencil] = new TileStrokeToolHandler("Plot Tiles", (s, cell) => s.PlotStroke(cell),
+            (s, ctx) => s.BrushFootprint(s.CellAt(ctx.PixelX, ctx.PixelY))),
+        [TileTool.RectangleFill] = new CellRectangleToolHandler((s, cells) => s.FillTiles(cells), (s, cell) => s.BrushFootprint(cell)),
+        [TileTool.Picker] = new CellRectangleToolHandler((s, cells) => s.PickTiles(cells)),
+        [TileTool.Erase] = new TileStrokeToolHandler("Erase Tiles", (s, cell) => s.EraseStroke(cell),
+            (s, ctx) => s.WorkingArranger.GetElementAtPixel(ctx.PixelX, ctx.PixelY) is not null ? s.GetElementRectAtPixel(ctx.PixelX, ctx.PixelY) : null),
+    };
+
     private readonly Dictionary<DrawTool, IToolHandler<GraphicsEditorViewModel>> _pixelTools = new()
     {
         [DrawTool.PixelSelect] = new PixelSelectToolHandler(),
@@ -57,6 +67,7 @@ public partial class GraphicsEditorViewModel
     {
         GraphicsEditMode.View => _viewTools[SelectedViewTool],
         GraphicsEditMode.Arrange => _arrangerTools[SelectedArrangeTool],
+        GraphicsEditMode.Tiles => _tileTools[SelectedTileTool],
         GraphicsEditMode.Draw => _pixelTools[SelectedDrawTool],
         _ => null
     };
@@ -65,6 +76,7 @@ public partial class GraphicsEditorViewModel
     {
         GraphicsEditMode.Draw => _pixelTools[DrawTool.ColorPicker],
         GraphicsEditMode.Arrange => _arrangerTools[ArrangeTool.PickPalette],
+        GraphicsEditMode.Tiles => _tileTools[TileTool.Picker],
         _ => null
     };
 
@@ -80,6 +92,7 @@ public partial class GraphicsEditorViewModel
     {
         OnPropertyChanged(nameof(DisplayedDrawTool));
         OnPropertyChanged(nameof(DisplayedArrangeTool));
+        OnPropertyChanged(nameof(DisplayedTileTool));
     }
 
     public ToolCursor ResolveCursor(KeyModifiers modifiers)
@@ -191,6 +204,8 @@ public partial class GraphicsEditorViewModel
             // An active stroke keeps following the pointer so re-entering the image does not draw a chord across it
             if (IsPencilDrawing)
                 _toolRouter.Move(new ToolContext(x, y, xc, yc, mouseState, pixelSamples), this);
+            else if (IsTileStrokeActive)
+                BreakTileStroke();
 
             LastMousePosition = null;
             SetHoverTarget(null);

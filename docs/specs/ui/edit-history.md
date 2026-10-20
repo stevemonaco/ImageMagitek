@@ -68,8 +68,8 @@ Undo and redo for the graphics editor (UI-GRAPHICS-EDITOR). Arranger-level actio
 
 - **UI-EDIT-HISTORY-005** — The editor shall record a Pencil stroke, Flood Fill, Color Remap and pixel paste as pixel actions.
   - Tests: `GraphicsEditHistoryTests.Pencil_Indexed_UndoRedo`, `GraphicsEditHistoryTests.Pencil_Direct_UndoRedo`, `GraphicsEditHistoryTests.FloodFill_IndexedWithClip_UndoRedo`, `GraphicsEditHistoryTests.FloodFill_DirectWithClip_UndoRedo`, `GraphicsEditHistoryTests.ColorRemap_WithBounds_UndoRedo`, `GraphicsEditHistoryTests.PixelPaste_UndoRedo`
-- **UI-EDIT-HISTORY-006** — The editor shall record element paste, Apply Palette, Mirror, Rotate, Delete and Resize Arranger as arranger actions.
-  - Tests: `GraphicsEditHistoryTests.ElementPaste_UndoRedo`, `GraphicsEditHistoryTests.ApplyPalette_UndoRedo`, `GraphicsEditHistoryTests.Mirror_UndoRedo`, `GraphicsEditHistoryTests.Rotate_UndoRedo`, `GraphicsEditHistoryTests.DeleteNonSquareElements_UndoRedo`, `GraphicsEditHistoryTests.Resize_UndoRedo`
+- **UI-EDIT-HISTORY-006** — The editor shall record element paste, Apply Palette, Mirror, Rotate, Delete, Resize Arranger and the Tiles mode stroke, fill and erase (`PlotTilesHistoryAction`, UI-TILE-PLOTTING) as arranger actions.
+  - Tests: `GraphicsEditHistoryTests.ElementPaste_UndoRedo`, `GraphicsEditHistoryTests.ApplyPalette_UndoRedo`, `GraphicsEditHistoryTests.Mirror_UndoRedo`, `GraphicsEditHistoryTests.Rotate_UndoRedo`, `GraphicsEditHistoryTests.DeleteNonSquareElements_UndoRedo`, `GraphicsEditHistoryTests.Resize_UndoRedo`, `GraphicsEditHistoryTests.PlotTiles_UndoRedo`
 - **UI-EDIT-HISTORY-007** — The editor shall not record sequential navigation, codec, layout or size changes in View mode, grid changes, palette association, mode changes or image import.
   - Tests: untested
 - **UI-EDIT-HISTORY-008** — When an in-progress Pencil stroke or Apply Palette drag is ended by a button release, a tool switch, a mode change or the pointer leaving the canvas, whatever modifier keys were pressed during it, the editor shall record it once if it changed anything.

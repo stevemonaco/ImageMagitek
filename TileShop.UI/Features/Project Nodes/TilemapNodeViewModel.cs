@@ -12,8 +12,16 @@ public partial class TilemapNodeViewModel : ResourceNodeViewModel
         {
             var tilemap = (TilemapArranger)Node.Item;
             var size = tilemap.ArrangerElementSize;
+            var readOnly = (tilemap.MapReadOnlyReason is not null, tilemap.GetReadOnlyReason() is not null) switch
+            {
+                (true, true) => " (map and tiles read-only)",
+                (true, false) => " (map read-only)",
+                (false, true) => " (tiles read-only)",
+                _ => ""
+            };
+
             return $"{tilemap.MapFormat.Name} {size.Width}x{size.Height} map at 0x{tilemap.MapOffset:X} of '{tilemap.MapSource.Name}', " +
-                $"{tilemap.CodecName} tiles at 0x{tilemap.TileOffset:X} of '{tilemap.TileSource.Name}' (read-only)";
+                $"{tilemap.CodecName} tiles at 0x{tilemap.TileOffset:X} of '{tilemap.TileSource.Name}'{readOnly}";
         }
     }
 

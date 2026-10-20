@@ -112,14 +112,36 @@ public static class ImageImporter
             states[i] = state;
         }
 
+        var conflicts = arranger is TilemapArranger
+            ? arranger.ResolveSharedTiles(current, result, changedCellsWin: false)
+            : [];
+
+        foreach (var conflict in conflicts)
+        {
+            foreach (var cell in conflict.Cells)
+                FlagSharedTileConflict(states, current.Width, arranger.GetElement(cell.X, cell.Y)!.Value);
+        }
+
         var report = new ImportReport(current.Width, current.Height, states,
             substitutions.Select(kv => new ColorMatchEntry(new ColorRgba32(kv.Key.Item1), kv.Key.Item2, kv.Value.Index, kv.Value.Distance, kv.Value.Count, kv.Value.First))
                 .OrderByDescending(x => x.Distance).ThenByDescending(x => x.Count).ToList(),
             unmatched.Select(kv => new UnmatchedColorEntry(new ColorRgba32(kv.Key.Item1), kv.Key.Item2, kv.Value.Count, kv.Value.First, kv.Value.NearestIndex, kv.Value.NearestDistance))
                 .OrderByDescending(x => x.Count).ToList(),
-            usedSourceIndices);
+            usedSourceIndices, conflicts);
 
         return new ImageImportPreview(arranger, source, report, current, result) { Offset = offset, Bounds = region };
+    }
+
+    private static void FlagSharedTileConflict(ImportPixelState[] states, int width, ArrangerElement element)
+    {
+        for (int y = element.Y1; y <= element.Y2; y++)
+        {
+            for (int x = element.X1; x <= element.X2; x++)
+            {
+                var i = y * width + x;
+                states[i] = (states[i] & ~ImportPixelState.Changed) | ImportPixelState.SharedTileConflict;
+            }
+        }
     }
 
     /// <summary>

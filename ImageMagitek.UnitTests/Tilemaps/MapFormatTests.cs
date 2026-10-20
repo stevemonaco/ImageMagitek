@@ -63,6 +63,59 @@ public sealed class MapFormatTests : IDisposable
         Assert.Equal(new MapEntry(tile, palette, hflip, vflip, priority), decoded);
     }
 
+    public static TheoryData<string> ShippedFormatNames() =>
+        new(LoadShippedFormats().Formats.Select(x => x.Name));
+
+    [Theory]
+    [MemberData(nameof(ShippedFormatNames))]
+    public void Encode_ShippedFormat_RoundTripsEveryField(string formatName)
+    {
+        var format = LoadShippedFormats().Find(formatName)!;
+        MapEntry[] entries =
+        [
+            new(format.MaxTileIndex, format.PaletteSlotCount - 1, format.HorizontalFlip is not null, format.VerticalFlip is not null, format.Priority is not null),
+            new(0, 0, false, false, false),
+            new(1, format.PaletteSlotCount / 2, false, format.VerticalFlip is not null, false)
+        ];
+
+        foreach (var entry in entries)
+        {
+            var bytes = new byte[format.EntryBytes];
+            format.Encode(entry, bytes);
+
+            Assert.Equal(entry, format.Decode(bytes));
+        }
+    }
+
+    [Fact]
+    public void Encode_KeepsPriorityAndBitsOutsideFields()
+    {
+        var narrow = new MapFormat("Narrow", 16, Endian.Little, new MapField(0, 10));
+        byte[] bytes = [0xFF, 0xFF];
+
+        narrow.Encode(new MapEntry(0x123, 0, false, false, false), bytes);
+
+        Assert.Equal(new byte[] { 0x23, 0xFD }, bytes);
+
+        var snes = LoadShippedFormats().Find("SNES BG")!;
+        byte[] snesBytes = [0x00, 0x20];
+
+        snes.Encode(snes.Decode(snesBytes) with { TileIndex = 5, HorizontalFlip = true }, snesBytes);
+
+        Assert.Equal(new byte[] { 0x05, 0x60 }, snesBytes);
+    }
+
+    [Fact]
+    public void Encode_ValueWiderThanField_Throws()
+    {
+        var format = LoadShippedFormats().Find("SNES BG")!;
+        var bytes = new byte[2];
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => format.Encode(new MapEntry(0x400, 0, false, false, false), bytes));
+        Assert.Throws<ArgumentOutOfRangeException>(() => format.Encode(new MapEntry(0, 8, false, false, false), bytes));
+        Assert.Equal(new byte[2], bytes);
+    }
+
     [Fact]
     public void PaletteSlotCount_FollowsPaletteBits()
     {

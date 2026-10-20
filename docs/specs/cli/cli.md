@@ -127,8 +127,8 @@ depends:
   - Tests: `CliApplicationTests.Import_EditedPng_WritesDataFileExits0`
 - **CLI-COMMANDS-052** — If the image file does not exist, then the CLI shall print "File does not exist", checked after the key, read-only and data file checks.
   - Tests: `CliApplicationTests.Import_MissingImage_Exits6`, `CliApplicationTests.Import_ReadOnlyArranger_Exits6`
-- **CLI-COMMANDS-053** — If the key is not in the project or is not a scattered arranger (a tilemap included), then the CLI shall print "Resource key does not exist or is not a ScatteredArranger".
-  - Tests: `CliApplicationTests.Import_BadKey_Exits6`, `CliApplicationTests.Import_Tilemap_ReportsNotScatteredArrangerExits6`
+- **CLI-COMMANDS-053** — If the key is not in the project or is neither a scattered arranger nor a tilemap (LIB-TILEMAPS), then the CLI shall print "Resource key does not exist or is not a Scattered Arranger or Tilemap". A tilemap imports like an arranger, writing its tiles (LIB-IMAGE-IO-046).
+  - Tests: `CliApplicationTests.Import_BadKey_Exits6`, `CliApplicationTests.Import_Tilemap_WritesTilesExits0`
 - **CLI-COMMANDS-054** — The CLI shall stage indexed imports with the strategy given by `--match exact|nearest|nearestrgb` (exact by default, any casing), the distance limit given by `--max-distance`, and transparent pixels mapped to index 0 when `--transparent-index0` is given (LIB-IMAGE-IO-028 to -032).
   - Tests: `CliApplicationTests.Import_MatchNearest_SubstitutesExits0`, `CliApplicationTests.Import_MaxDistance_RejectsFarColorExits6`, `CliApplicationTests.Import_TransparentIndex0_MapsToIndexZero`
 - **CLI-COMMANDS-055** — If any image color has no palette match, then the CLI shall print the import report's summary and write nothing for that arranger.
@@ -137,26 +137,30 @@ depends:
   - Tests: `CliApplicationTests.Import_UnreadableImage_Exits6`
 - **CLI-COMMANDS-057** — When an import succeeds, the CLI shall write the pixels to the data files at once, print "Completed successfully (<report summary>)", and leave the project files unchanged.
   - Tests: `CliApplicationTests.Import_EditedPng_WritesDataFileExits0`
+- **CLI-COMMANDS-066** — When an import into a tilemap succeeds with shared tile conflicts, the CLI shall print, after the success line, one line per conflicting tile, "  Shared tile at 0x<byte offset> differs between <n> cells, first at (x, y); not imported", and count the import as succeeded (exit code 0).
+  - Tests: `CliApplicationTests.Import_Tilemap_SharedTileConflict_PrintsConflictExits0`
 - **CLI-COMMANDS-058** — With `-f` the CLI shall skip missing image files, and with `-r` skip bad keys, continuing with the next arranger.
   - Tests: `CliApplicationTests.Import_MissingImage_WithF_Exits0`, `CliApplicationTests.Import_BadKey_WithR_Exits0`
 - **CLI-COMMANDS-059** — If an import does not succeed and is not skipped, then the CLI shall stop at once and exit with -6, leaving arrangers imported before it written.
   - Tests: `CliApplicationTests.Import_StopsAtFirstFailure_EarlierArrangersWritten`
-- **CLI-COMMANDS-060** — When `importall <project> <directory>` runs, the CLI shall import every scattered arranger, depth-first, from `<directory>/<the arranger's project path>.png`, with the same skipping and stopping rules as `import`, and skipping read-only arrangers. Tilemaps are not imported.
-  - Tests: `CliApplicationTests.ImportAll_ReadOnlyArranger_SkipsAndImportsRest`, `CliApplicationTests.ImportAll_SkipsTilemaps`
+- **CLI-COMMANDS-060** — When `importall <project> <directory>` runs, the CLI shall import every scattered arranger and tilemap, depth-first, from `<directory>/<the resource's project path>.png`, with the same skipping and stopping rules as `import`, and skipping read-only arrangers (CLI-COMMANDS-063).
+  - Tests: `CliApplicationTests.ImportAll_ReadOnlyArranger_SkipsAndImportsRest`, `CliApplicationTests.ImportAll_IncludesTilemaps`
 - **CLI-COMMANDS-061** — If an arranger reads from a missing data file, then the import shall print "...Data file '<name>' is missing at '<path>'", write nothing, and fail even with `-f`.
   - Tests: `CliApplicationTests.Import_MissingDataFile_NamesFileExits6`, `CliApplicationTests.Import_MissingDataFile_WithF_StillExits6`
+- **CLI-COMMANDS-067** — If a tilemap's map could not be fully read (LIB-TILEMAPS), then the import shall print the map error after "Importing ...", write nothing, and fail, checked after the data file check and before the image file check.
+  - Tests: `CliApplicationTests.Import_TilemapWithMapError_PrintsErrorExits6`
 - **CLI-COMMANDS-062** — If `--max-distance` is given with exact matching or is negative, then the CLI shall reject the arguments (-3).
   - Tests: `CliApplicationTests.Import_MaxDistanceWithExact_Exits3`
-- **CLI-COMMANDS-063** — When `importall` reaches an arranger that is read-only only because a codec cannot encode, the CLI shall print "Skipped: arranger is read-only (<reason>)" and continue, without affecting the exit code.
-  - Tests: `CliApplicationTests.ImportAll_ReadOnlyArranger_SkipsAndImportsRest`
-- **CLI-COMMANDS-065** — If `importall` reaches an arranger that reads a read-only data file, then the CLI shall print "Arranger is read-only because it <reason>" and treat the import as failed.
+- **CLI-COMMANDS-063** — When `importall` reaches an arranger or tilemap that is read-only only because a codec cannot encode or it reads compressed data (for a tilemap, also through its tile source), the CLI shall print "Skipped: arranger is read-only (<reason>)" and continue, without affecting the exit code.
+  - Tests: `CliApplicationTests.ImportAll_ReadOnlyArranger_SkipsAndImportsRest`, `CliApplicationTests.ImportAll_CompressedTilemap_Skipped`
+- **CLI-COMMANDS-065** — If `importall` reaches an arranger that reads a read-only data file that is not compressed data, then the CLI shall print "Arranger is read-only because it <reason>" and treat the import as failed.
   - Tests: `CliApplicationTests.ImportAll_ReadOnlyDataFile_Exits6`
 - **CLI-COMMANDS-064** — If `import` names a read-only arranger, then the CLI shall print "Arranger is read-only because it <reason>" and treat the import as failed.
   - Tests: `CliApplicationTests.Import_ReadOnlyArranger_Exits6`
 
 ## Invariants
 
-- Only scattered arrangers are exported or imported.
+- Only scattered arrangers and tilemaps are exported or imported.
 - Export never writes a data file; import never writes a project file.
 - Each run opens one project and runs one verb.
 
@@ -191,7 +195,8 @@ depends:
 - **An existing PNG without `--overwrite` is a skip, not a failure.** Reason: it is the documented protective default and the caller chose it. Rejected: failing -7, which would make re-running an export without `--overwrite` always fail.
 - **Missing data files are checked before reading.** Both verbs call `Arranger.FindMissingDataSource` (LIB-ARRANGERS), the same rule the UI uses. Reason: the message names the file instead of a `FileNotFoundException` stack. Rejected: catching `IOException` around the read, which cannot reliably name the file and fires mid-image.
 - **A missing data file is never skipped.** `-f` skips missing image files only. Reason: a moved ROM is an environment fault the build must surface; skipping it would silently ship stale graphics.
-- **`importall` skips decode-only arrangers by default; `import` fails on them.** Reason: a decode-only codec makes the arranger unwritable by design, not by bad input, and `importall` cannot know which arrangers the caller meant; `import` names the key and supplies an image that will not be written, so it is an error (-6). A read-only data file fails `importall` too: it is an environment fault (file attribute, permissions), and skipping it would exit 0 having written nothing.
+- **`importall` skips decode-only and compressed arrangers by default; `import` fails on them.** Reason: a decode-only codec or compressed data makes the arranger unwritable by design, not by bad input, so a project of compressed tilemaps such as FireRed's would otherwise always exit -6, and `importall` cannot know which arrangers the caller meant; `import` names the key and supplies an image that will not be written, so it is an error (-6). A read-only data file fails `importall` too: it is an environment fault (file attribute, permissions), and skipping it would exit 0 having written nothing.
+- **A shared tile conflict is a successful import.** An import into a tilemap whose PNG draws a shared tile differently in two cells writes every other tile, prints a line per conflicting tile and exits 0. Reason: the non-conflicting tiles were written, the exit codes are fixed, and -6 would stop `importall` with later resources unimported. Rejected: -6 for any conflict.
 - **Check order: key, read-only, missing data file, image file.** Reason: a read-only arranger with no PNG is skipped rather than failed, and a bad key is reported as a bad key even when its image is also missing.
 - **Import options mirror the UI.** `--transparent-index0` sets `MapTransparentToIndexZero` with `AlphaThreshold` 0 as the UI does; the options do not affect direct-color arrangers. `--max-distance` with exact matching, or negative, is an argument error. Reason: one behavior per option across UI and CLI; rejecting a meaningless combination catches a mistyped script instead of silently ignoring it. Rejected: exposing `AlphaThreshold` (the UI does not; add both together later).
 - **The banner shows the informational version.** It reads the same `AssemblyInformationalVersionAttribute` as `--version`, so both print `1.0.0+<hash>`. Reason: one version string per build in bug reports; how the hash is produced is decided in CLI-PUBLISH. Rejected: `Assembly.GetName().Version` (drops the suffix and the commit, and disagrees with `--version`).
