@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<charmap name="test" terminator="FF">
+	<map byte="00" text=" " />
+	<map byte="1B" text="é" />
+	<run byte="A1" text="0123456789" />
+	<map byte="AD" text="." />
+	<map byte="B4" text="'" />
+	<map byte="BA" text="/" />
+	<map byte="F0" text="PK" />
+	<run byte="BB" text="ABCDEFGHIJKLMNOPQRSTUVWXYZ" />
+	<run byte="D5" text="abcdefghijklmnopqrstuvwxyz" />
+</charmap>

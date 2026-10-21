@@ -44,6 +44,35 @@ public sealed class XmlProjectSerializerFactory : IProjectSerializerFactory
         return new XmlProjectWriter(tree, _colorFactory, GlobalResources);
     }
 
+    public IMapFormatFactory MapFormatFactory => _mapFormatFactory;
+
+    /// <inheritdoc/>
+    public MagitekResults BuildResources(ProjectTree tree, IReadOnlyList<(ResourceModel Model, string ParentNodePath, string FileLocation)> models)
+    {
+        var builder = new ProjectTreeBuilder(tree, _codecFactory, _colorFactory, GlobalResources.OfType<Palette>().First(), GlobalResources,
+            _compressorFactory, _mapFormatFactory);
+        var reasons = new List<string>();
+
+        foreach (var (model, parentNodePath, fileLocation) in models)
+        {
+            reasons.AddRange(model switch
+            {
+                CompressedDataModel compressed => ReasonsOf(builder.AddCompressedData(compressed, parentNodePath, fileLocation)),
+                PaletteModel palette => ReasonsOf(builder.AddPalette(palette, parentNodePath, fileLocation)),
+                ScatteredArrangerModel arranger => ReasonsOf(builder.AddScatteredArranger(arranger, parentNodePath, fileLocation)),
+                MetatileSetModel set => ReasonsOf(builder.AddMetatileSet(set, parentNodePath, fileLocation)),
+                TilemapModel tilemap => ReasonsOf(builder.AddTilemap(tilemap, parentNodePath, fileLocation)),
+                MetatileMapModel map => ReasonsOf(builder.AddMetatileMap(map, parentNodePath, fileLocation)),
+                _ => [$"Cannot build a resource from a model of type '{model.GetType().Name}'"]
+            });
+        }
+
+        return reasons.Count > 0 ? new MagitekResults.Failed(reasons) : MagitekResults.SuccessResults;
+    }
+
+    private static IEnumerable<string> ReasonsOf(MagitekResult result) => result.HasFailed ? [result.AsError.Reason] : [];
+    private static IEnumerable<string> ReasonsOf(MagitekResults result) => result.HasFailed ? result.AsError.Reasons : [];
+
     private XmlSchemaSet CreateSchemas(string resourceSchemaFileName)
     {
         var resourceSchemaText = File.ReadAllText(resourceSchemaFileName);

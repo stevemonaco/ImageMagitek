@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="TileShopTableSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="tabledefinition">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="addressspace" type="addressspace" />
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="charmap" type="charmapref" />
+          <xs:element name="record" type="record" />
+          <xs:element name="lookup" type="lookup" />
+          <xs:element name="nametable" type="nametable" />
+          <xs:element name="table" type="table" />
+          <xs:element name="output" type="output" />
+        </xs:choice>
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="version" type="xs:string" use="optional" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="name">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Za-z_][A-Za-z0-9_]*" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="integer">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="0[xX][0-9A-Fa-f]+|[0-9]+" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="integerlist">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\s*(0[xX][0-9A-Fa-f]+|[0-9]+)([\s,]+(0[xX][0-9A-Fa-f]+|[0-9]+))*\s*" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="expression">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="endian">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="little" />
+      <xs:enumeration value="big" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="pointerbits">
+    <xs:restriction base="xs:positiveInteger">
+      <xs:enumeration value="8" />
+      <xs:enumeration value="16" />
+      <xs:enumeration value="24" />
+      <xs:enumeration value="32" />
+      <xs:enumeration value="64" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="addressspace">
+    <xs:attribute name="mapper" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="gba" />
+          <xs:enumeration value="linear" />
+          <xs:enumeration value="snes-lorom" />
+          <xs:enumeration value="snes-hirom" />
+          <xs:enumeration value="nes" />
+          <xs:enumeration value="gb" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="base" type="integer" use="optional" />
+    <xs:attribute name="header" type="integer" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="charmapref">
+    <xs:attribute name="name" type="name" use="required" />
+    <xs:attribute name="file" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="field">
+    <xs:attribute name="name" type="name" use="required" />
+    <xs:attribute name="offset" type="integer" use="required" />
+    <xs:attribute name="bits" type="integer" use="required" />
+    <xs:attribute name="lowbit" type="integer" use="optional" />
+    <xs:attribute name="endian" type="endian" use="optional" />
+    <xs:attribute name="kind" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="int" />
+          <xs:enumeration value="pointer" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="to" type="name" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="record">
+    <xs:sequence>
+      <xs:element name="field" type="field" maxOccurs="unbounded" />
+      <xs:element name="variant" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="field" type="field" maxOccurs="unbounded" />
+          </xs:sequence>
+          <xs:attribute name="name" type="name" use="required" />
+          <xs:attribute name="when" type="expression" use="required" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" type="name" use="required" />
+    <xs:attribute name="size" type="integer" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="lookup">
+    <xs:attribute name="name" type="name" use="required" />
+    <xs:attribute name="address" type="integer" use="required" />
+    <xs:attribute name="record" type="name" use="required" />
+    <xs:attribute name="count" type="integer" use="required" />
+    <xs:attribute name="stride" type="integer" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="nametable">
+    <xs:sequence>
+      <xs:element name="override" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="value" type="integer" use="required" />
+          <xs:attribute name="text" type="xs:string" use="required" />
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" type="name" use="required" />
+    <xs:attribute name="address" type="integer" use="required" />
+    <xs:attribute name="kind" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="pointer" />
+          <xs:enumeration value="fixed" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="width" type="integer" use="optional" />
+    <xs:attribute name="pointerbits" type="pointerbits" use="optional" />
+    <xs:attribute name="endian" type="endian" use="optional" />
+    <xs:attribute name="count" type="integer" use="required" />
+    <xs:attribute name="charmap" type="name" use="required" />
+    <xs:attribute name="indexbase" type="integer" use="optional" />
+    <xs:attribute name="case" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="none" />
+          <xs:enumeration value="title" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+  <xs:complexType name="table">
+    <xs:attribute name="name" type="name" use="required" />
+    <xs:attribute name="address" type="integer" use="optional" />
+    <xs:attribute name="record" type="name" use="optional" />
+    <xs:attribute name="pointer" type="name" use="optional" />
+    <xs:attribute name="pointerbits" type="pointerbits" use="optional" />
+    <xs:attribute name="endian" type="endian" use="optional" />
+    <xs:attribute name="stride" type="integer" use="optional" />
+    <xs:attribute name="count" type="expression" use="optional" />
+    <xs:attribute name="until" type="expression" use="optional" />
+    <xs:attribute name="counts" type="integerlist" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="template" mixed="true">
+    <xs:attribute name="when" type="expression" use="optional" />
+  </xs:complexType>
+
+  <xs:complexType name="output">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="name" type="template" />
+      <xs:element name="folder" type="template" />
+      <xs:element name="tiles">
+        <xs:complexType>
+          <xs:attribute name="output" type="name" use="optional" />
+          <xs:attribute name="offset" type="expression" use="optional" />
+          <xs:attribute name="count" type="expression" use="optional" />
+          <xs:attribute name="when" type="expression" use="optional" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="paletteslots">
+        <xs:complexType>
+          <xs:attribute name="output" type="name" use="required" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="attributes">
+        <xs:complexType>
+          <xs:attribute name="offset" type="expression" use="required" />
+          <xs:attribute name="size" type="integer" use="required" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="set">
+        <xs:complexType>
+          <xs:attribute name="output" type="name" use="required" />
+          <xs:attribute name="field" type="name" use="required" />
+          <xs:attribute name="base" type="integer" use="required" />
+        </xs:complexType>
+      </xs:element>
+    </xs:choice>
+    <xs:attribute name="id" type="name" use="required" />
+    <xs:attribute name="record" type="name" use="required" />
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="compresseddata" />
+          <xs:enumeration value="palette" />
+          <xs:enumeration value="metatileset" />
+          <xs:enumeration value="metatilemap" />
+          <xs:enumeration value="tilemap" />
+          <xs:enumeration value="arranger" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="when" type="expression" use="optional" />
+    <xs:attribute name="repeat" type="expression" use="optional" />
+    <xs:attribute name="context" type="name" use="optional" />
+    <xs:attribute name="choose" type="xs:string" use="optional" />
+    <xs:attribute name="variant" type="name" use="optional" />
+    <xs:attribute name="duplicates" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="number" />
+          <xs:enumeration value="address" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="offset" type="expression" use="optional" />
+    <xs:attribute name="compression" type="xs:string" use="optional" />
+    <xs:attribute name="entries" type="expression" use="optional" />
+    <xs:attribute name="color" type="xs:string" use="optional" />
+    <xs:attribute name="zeroindextransparent" type="xs:boolean" use="optional" />
+    <xs:attribute name="endian" type="endian" use="optional" />
+    <xs:attribute name="slot" type="expression" use="optional" />
+    <xs:attribute name="count" type="expression" use="optional" />
+    <xs:attribute name="metatilewidth" type="integer" use="optional" />
+    <xs:attribute name="metatileheight" type="integer" use="optional" />
+    <xs:attribute name="layers" type="integer" use="optional" />
+    <xs:attribute name="format" type="xs:string" use="optional" />
+    <xs:attribute name="order" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="interleaved" />
+          <xs:enumeration value="planar" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="codec" type="xs:string" use="optional" />
+    <xs:attribute name="firsttile" type="expression" use="optional" />
+    <xs:attribute name="emptytile" type="integer" use="optional" />
+    <xs:attribute name="emptyblock" type="integer" use="optional" />
+    <xs:attribute name="width" type="expression" use="optional" />
+    <xs:attribute name="height" type="expression" use="optional" />
+    <xs:attribute name="layout" type="xs:string" use="optional" />
+  </xs:complexType>
+
+</xs:schema>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text encoding of the generation 3 Pokemon games (Ruby, Sapphire, Emerald, FireRed, LeafGreen); the subset map and section names use -->
+<charmap name="gen3" terminator="FF">
+	<map byte="00" text=" " />
+	<map byte="1B" text="é" />
+	<run byte="A1" text="0123456789" />
+	<map byte="AB" text="!" />
+	<map byte="AC" text="?" />
+	<map byte="AD" text="." />
+	<map byte="AE" text="-" />
+	<map byte="B0" text="…" />
+	<map byte="B1" text="“" />
+	<map byte="B2" text="”" />
+	<map byte="B3" text="‘" />
+	<map byte="B4" text="'" />
+	<map byte="B5" text="♂" />
+	<map byte="B6" text="♀" />
+	<map byte="B8" text="," />
+	<map byte="BA" text="/" />
+	<run byte="BB" text="ABCDEFGHIJKLMNOPQRSTUVWXYZ" />
+	<run byte="D5" text="abcdefghijklmnopqrstuvwxyz" />
+</charmap>

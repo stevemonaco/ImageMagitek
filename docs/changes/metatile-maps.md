@@ -1,6 +1,6 @@
 # Metatile maps
 
-**Status:** Tasks 1–5, 7 and 8 done on `dev-experiment`. Task 8 (Blocks mode) added the block grid, writing blocks, block brushes, plotting and the block palette (LIB-METATILE-MAPS-030..037), and the block-bits overlay, hover status, Blocks mode, tools, history, Save and the `DataWritten` refresh (UI-BLOCK-PLOTTING-004, -005, -010..-033, UI-EDIT-HISTORY-018). Layers above the bottom layer now treat color 0 as transparent whatever the palette flag says (LIB-METATILE-MAPS-016, user decision). The FireRed test project's Overworld folder holds 364 generated metatile maps. Pending: the add dialogs (Task 9) and the Task 6 fixture script.
+**Status:** Tasks 1–5, 7 and 8 done on `dev-experiment`. Task 8 (Blocks mode) added the block grid, writing blocks, block brushes, plotting and the block palette (LIB-METATILE-MAPS-030..037), and the block-bits overlay, hover status, Blocks mode, tools, history, Save and the `DataWritten` refresh (UI-BLOCK-PLOTTING-004, -005, -010..-033, UI-EDIT-HISTORY-018). Layers above the bottom layer now treat color 0 as transparent whatever the palette flag says (LIB-METATILE-MAPS-016, user decision). The FireRed test project's Overworld folder holds 364 generated metatile maps. Blocks mode's pointer gestures (plot, fill, pick, erase, palette drag-select) and Ctrl+S were checked by hand on 2026-10-20; the emulator check after a save is still to do. Pending: the add dialogs (Task 9), and Task 6, which [table-driven resources](table-resources.md) replaces with a FireRed table definition.
 
 ## Why
 

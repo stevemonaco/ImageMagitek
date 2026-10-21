@@ -16,19 +16,21 @@ tests:
   - CompressedDataProjectTests
   - TilemapProjectTests
   - MetatileProjectTests
+  - TableGenerationProjectTests
 depends:
   - LIB-PROJECT-TREE
   - LIB-PROJECT-FORMAT
   - LIB-DATASOURCE
   - LIB-PALETTES
   - LIB-ARRANGERS
+  - LIB-TABLES
 ---
 
 # Project service
 
 ## Purpose
 
-Owns the set of open trees (projects and standalone data files) and every operation that changes them on disk: create, open, save, close, add, rename, move, delete, and relink a missing data file. It forwards tree and content events from every open tree so consumers subscribe once. It builds on LIB-PROJECT-TREE for the in-memory tree and LIB-PROJECT-FORMAT for files; the UI and CLI call it.
+Owns the set of open trees (projects and standalone data files) and every operation that changes them on disk: create, open, save, close, add, rename, move, delete, relink a missing data file, and generate resources from a table definition (`PlanGeneration`, `FindGenerationConflicts`, `GenerateResourcesAsync`, LIB-TABLES). It forwards tree and content events from every open tree so consumers subscribe once. It builds on LIB-PROJECT-TREE for the in-memory tree and LIB-PROJECT-FORMAT for files; the UI and CLI call it.
 
 ## Requirements
 
@@ -188,9 +190,21 @@ Owns the set of open trees (projects and standalone data files) and every operat
 - **LIB-PROJECT-SERVICE-059** — `CanAddResource` and `CanRenameResource` shall return the same failure the add, create-folder or rename operation would return for that name, without changing anything.
   - Tests: `ProjectServiceTests.CanRenameResource_MatchesRenameFailure`
 
+### Generate
+
+- **LIB-PROJECT-SERVICE-067** — When generation is planned (`PlanGeneration`), the service shall resolve the data file key to a data source in the tree and the target folder key to a folder, the project root, or a path whose existing part ends in one, then plan with LIB-TABLES using the serializer factory's map formats, and write nothing. If the tree is standalone, the data file key does not name a data source, or the target key names something other than a folder or has a new segment that is not a valid folder name (LIB-PROJECT-TREE-030), then planning shall fail.
+  - Tests: `TableGenerationProjectTests.PlanGeneration_WritesNothing`, `TableGenerationProjectTests.Generate_StandaloneTree_Fails`
+- **LIB-PROJECT-SERVICE-068** — If the tree is standalone or not open, the plan's data file key no longer names a data source, any planned resource key already exists, any planned name matches an existing sibling (LIB-PROJECT-TREE-031) other than an existing folder the plan reuses, a planned resource directly under the root matches the project's name, or the manifest beside the definition exists and does not read (LIB-TABLES-134), then generation shall fail without writing, listing every conflicting key.
+  - Tests: `TableGenerationProjectTests.Generate_KeyExists_FailsWritingNothing`, `TableGenerationProjectTests.Generate_StandaloneTree_Fails`
+- **LIB-PROJECT-SERVICE-069** — When generation runs, the service shall create the planned folders that are missing, with their directories, build every planned model into the tree through the project builder in plan order (the same resolution and messages as a project load, LIB-PROJECT-FORMAT-021 to -070), and write every generated resource, the project file when its required version changes, and the manifest (LIB-TABLES-130, with this run's generation merged by LIB-TABLES-133) in one write-ahead-log transaction.
+  - Tests: `TableGenerationProjectTests.Generate_WritesResourcesAndManifestInOneTransaction`, `TableGenerationProjectTests.Generate_SavesAndReloadsWithoutDefinition`
+- **LIB-PROJECT-SERVICE-070** — If building a model or the transaction fails, then the service shall detach every generated node and created folder, dispose the generated resources, delete the directories it created when they are empty, and return the reasons, leaving the disk as it was.
+  - Tests: `TableGenerationProjectTests.Generate_TransactionFails_RollsBackTreeAndDirectories`
+- **LIB-PROJECT-SERVICE-071** — When generation conflicts are checked (`FindGenerationConflicts`), the service shall return every key and name conflict LIB-PROJECT-SERVICE-068 lists for the plan, empty when there is none, writing nothing.
+  - Tests: `TableGenerationProjectTests.FindGenerationConflicts_ListsClashWithoutWriting`
 ### Serialization
 
-- **LIB-PROJECT-SERVICE-063** — The service shall run create, save, save-as, save-resource, add, create-folder, rename, move and delete-apply one at a time; each shall wait for the previous one to finish, including its rollback.
+- **LIB-PROJECT-SERVICE-063** — The service shall run create, save, save-as, save-resource, add, create-folder, rename, move, delete-apply and generate one at a time; each shall wait for the previous one to finish, including its rollback.
   - Tests: `ProjectServiceTests.ConcurrentSaveAndSaveResource_BothSucceed_NoLeftoverFiles`
 
 ### Lookups
@@ -216,6 +230,8 @@ Owns the set of open trees (projects and standalone data files) and every operat
 - If moving a file back during move rollback throws, the exception escapes.
 - If deleting the old file after a successful rename throws, the exception escapes.
 - Relink copies on the calling thread before its task completes.
+- A failed generation raises `Added` and then `Removed` for the generated nodes and folders, because they are attached before the write so the builder can resolve their keys.
+- Generating with a stale plan (the tree changed after planning) is caught only by the key conflict check (LIB-PROJECT-SERVICE-068).
 
 ## Threading and lifetime
 
@@ -258,6 +274,7 @@ Owns the set of open trees (projects and standalone data files) and every operat
 - **Resource file deletes happen after the commit, outside the WAL.** The WAL only writes files. A crash between the commit and the deletes leaves orphan resource files that nothing references; they reappear on reopen as harmless leftovers. Rejected: a delete operation in the journal, which is more format surface for a case that does no damage.
 - **Single-file writes go through the WAL too.** Add and create each write one file through the writer's one-resource transaction, which gives the atomic replace and recovery already in place for one staging file and one journal write. Rejected: a hand-written temp-then-rename, a second mechanism for the same guarantee.
 - **One service-wide write lock.** Serializing per writer does nothing because writers are per call, and serializing per tree misses two projects in one directory, which share `_transaction.json`. Writes are short and user-driven, so a single lock costs nothing noticeable. Every locked operation is async and waits with `WaitAsync`, because a sync wait on the UI thread would deadlock against a holder whose continuation needs that thread. Public operations take the lock and private cores do not, so creating a project from an existing file calls the save core without deadlocking. Rejected: documenting "call one at a time", which the UI cannot guarantee across awaits.
+- **Generation attaches, then writes, then rolls back.** Generated nodes are built into the live tree by the project builder, their persisted models cleared, and the whole project written once with the manifest as an extra file in the same transaction. Reason: the builder resolves keys against the tree, so building into it reuses the load path, and one transaction keeps resources and manifest in step. Rejected: building into a scratch tree and grafting the nodes (the builder would resolve references to existing resources in the wrong tree); writing resources one at a time with `AddResourceAsync` (hundreds of transactions, no single rollback).
 - **Dispose a removed data source after the tree raises `Removed`.** Editors on the data file close on `Removed` (UI-PROJECT-TREE decision "Removal prompts belong to the editors"), and the graphics editors' shared clipboard drops element copies on it (UI-ARRANGING-045), so nothing reads the source after it is disposed, and the file is released at once.
 
 ## Non-goals

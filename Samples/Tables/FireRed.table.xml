@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Pokemon FireRed (BPRE, revision 0) overworld maps: one metatile map and border per map layout reached by a map header,
+	one metatile set per tileset with its palettes and compressed tiles. Generate into a folder with
+	TileShopCLI generate <project> <rom data file key> FireRed.table.xml <folder>
+-->
+<tabledefinition name="Pokemon FireRed (BPRE rev 0) overworld maps" version="1">
+	<addressspace mapper="gba" />
+	<charmap name="gen3" file="gen3.charmap.xml" />
+
+	<record name="MapHeader" size="0x1C">
+		<field name="layout" offset="0x00" bits="32" kind="pointer" to="Layout" />
+		<field name="events" offset="0x04" bits="32" kind="pointer" />
+		<field name="scripts" offset="0x08" bits="32" kind="pointer" />
+		<field name="connections" offset="0x0C" bits="32" kind="pointer" />
+		<field name="music" offset="0x10" bits="16" />
+		<field name="layoutId" offset="0x12" bits="16" />
+		<field name="mapsec" offset="0x14" bits="8" />
+		<field name="mapType" offset="0x17" bits="8" />
+	</record>
+
+	<record name="Layout" size="0x1C">
+		<field name="width" offset="0x00" bits="32" />
+		<field name="height" offset="0x04" bits="32" />
+		<field name="border" offset="0x08" bits="32" kind="pointer" />
+		<field name="blocks" offset="0x0C" bits="32" kind="pointer" />
+		<field name="primary" offset="0x10" bits="32" kind="pointer" to="Tileset" />
+		<field name="secondary" offset="0x14" bits="32" kind="pointer" to="Tileset" />
+		<field name="borderWidth" offset="0x18" bits="8" />
+		<field name="borderHeight" offset="0x19" bits="8" />
+	</record>
+
+	<record name="Tileset" size="0x18">
+		<field name="isCompressed" offset="0x00" bits="8" />
+		<field name="isSecondary" offset="0x01" bits="8" />
+		<field name="pad" offset="0x02" bits="16" />
+		<field name="tiles" offset="0x04" bits="32" kind="pointer" />
+		<field name="palettes" offset="0x08" bits="32" kind="pointer" />
+		<field name="metatiles" offset="0x0C" bits="32" kind="pointer" />
+		<field name="callback" offset="0x10" bits="32" kind="pointer" />
+		<field name="attributes" offset="0x14" bits="32" kind="pointer" />
+	</record>
+
+	<!-- Region-map section names, indexed by a header's mapsec; 0xC4 is the catch-all section of link rooms -->
+	<nametable name="sections" address="0x083F1CAC" kind="pointer" charmap="gen3" indexbase="0x58" count="109" case="title">
+		<override value="0xC4" text="Special Area" />
+	</nametable>
+
+	<!-- gMapGroups: 43 pointers to arrays of map header pointers; the group sizes live only in code -->
+	<table name="mapGroups" address="0x083526A8" pointer="groupHeaders" count="43" />
+	<table name="groupHeaders" pointer="MapHeader"
+		counts="5 123 60 66 4 6 8 10 6 8 20 10 8 2 10 4 2 2 2 1 1 2 2 3 2 3 2 1 1 1 1 7 5 5 8 8 5 5 1 1 1 2 1" />
+
+	<!-- A secondary tileset does not store its metatile count; its attributes usually follow its metatiles, and generation raises undercounts -->
+	<output id="tilesetSet" record="Tileset" type="metatileset" context="MapHeader" choose="mode(mapsec)" duplicates="address"
+		offset="metatiles"
+		count="isSecondary ? (attributes > metatiles &amp; attributes - metatiles &lt;= 384 * 16 &amp; (attributes - metatiles) % 16 == 0 ? (attributes - metatiles) / 16 : 1) : 640"
+		layers="2" format="GBA Text BG" codec="GBA 4bpp" firsttile="isSecondary ? 640 : 0">
+		<name when="address == 0x2D4A94">General</name>
+		<name when="address == 0x2D4BB4">Building</name>
+		<name>{sections[context.mapsec]}</name>
+		<folder>Tilesets</folder>
+		<tiles output="tilesetTiles" when="isCompressed" />
+		<tiles offset="tiles" count="palettes > tiles ? min(isSecondary ? 384 : 640, (palettes - tiles) / 32) : (isSecondary ? 384 : 640)" />
+		<paletteslots output="tilesetPalettes" />
+		<attributes offset="attributes" size="4" />
+	</output>
+
+	<output id="tilesetTiles" record="Tileset" type="compresseddata" when="isCompressed" offset="tiles" compression="GBA LZ77">
+		<name>{name:tilesetSet} Tiles</name>
+		<folder>Tilesets/Compressed</folder>
+	</output>
+
+	<!-- Palettes 0-6 come from the primary tileset and 7-12 from the secondary one -->
+	<output id="tilesetPalettes" record="Tileset" type="palette" repeat="isSecondary ? 6 : 7" slot="(isSecondary ? 7 : 0) + i"
+		offset="palettes + 0x20 * slot" entries="16" color="Bgr15" zeroindextransparent="true">
+		<name>{name:tilesetSet} {slot}</name>
+		<folder>Tilesets/Palettes</folder>
+	</output>
+
+	<!-- Outdoor maps (map types 1-3) take the section's name; other kinds are numbered within the section -->
+	<output id="layoutMap" record="Layout" type="metatilemap" context="MapHeader" choose="mode(mapsec)"
+		offset="blocks" width="width" height="height" format="FRLG Block">
+		<name when="context.mapType >= 1 &amp; context.mapType &lt;= 3">{sections[context.mapsec]}</name>
+		<name>{sections[context.mapsec]} {n}</name>
+		<folder>Maps/{sections[context.mapsec]}</folder>
+		<set output="tilesetSet" field="primary" base="0" />
+		<set output="tilesetSet" field="secondary" base="640" />
+	</output>
+
+	<output id="layoutBorder" record="Layout" type="metatilemap" context="MapHeader" choose="mode(mapsec)"
+		when="borderWidth > 0 &amp; borderWidth &lt;= 8 &amp; borderHeight > 0 &amp; borderHeight &lt;= 8"
+		offset="border" width="borderWidth" height="borderHeight" format="FRLG Block">
+		<name>{name:layoutMap} Border</name>
+		<folder>Borders/{sections[context.mapsec]}</folder>
+		<set output="tilesetSet" field="primary" base="0" />
+		<set output="tilesetSet" field="secondary" base="640" />
+	</output>
+</tabledefinition>

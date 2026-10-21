@@ -19,6 +19,9 @@ sources:
   - TileShop.UI/Features/Dialogs/AddScatteredArrangerView.axaml
   - TileShop.UI/Features/Dialogs/AddTilemapViewModel.cs
   - TileShop.UI/Features/Dialogs/AddTilemapView.axaml
+  - TileShop.UI/Features/Dialogs/GenerateResourcesViewModel.cs
+  - TileShop.UI/Features/Dialogs/GenerateResourcesView.axaml
+  - TileShop.UI/Features/Dialogs/GenerateResourcesView.axaml.cs
   - TileShop.UI/ViewExtenders/Behaviors/TreeViewItemNodeClassBehavior.cs
   - TileShop.UI/ViewExtenders/DragDrop/PayloadDragBehavior.cs
   - TileShop.UI/ViewExtenders/DragDrop/PayloadDropBehavior.cs
@@ -28,6 +31,7 @@ sources:
   - TileShop.Shared/Models/ResourceChangeViewModel.cs
 types:
   - ProjectTreeViewModel
+  - GenerateResourcesViewModel
   - ResourceNodeViewModel
   - ProjectNodeViewModel
   - FolderNodeViewModel
@@ -155,7 +159,7 @@ The tree pane shows every open project and standalone data file as a projection 
   - Tests: manual — right-click the FF2 project root.
 - **UI-PROJECT-TREE-051** — A folder's context menu shall offer: the five Add items, Remove, Rename..., Move to Folder..., Open in Folder.
   - Tests: manual — right-click a folder.
-- **UI-PROJECT-TREE-052** — A data file's context menu shall offer: Relink... (only while the file is missing), Remove, Rename..., Move to Folder..., Open in Folder.
+- **UI-PROJECT-TREE-052** — A data file's context menu shall offer: Relink... (only while the file is missing), Add Compressed Data..., Generate Resources from Table... (UI-PROJECT-TREE-138), Remove, Rename..., Move to Folder..., Open in Folder.
   - Tests: manual — right-click a present and a missing data file.
 - **UI-PROJECT-TREE-053** — An arranger's context menu shall offer: Export As..., Import From... (UI-IMAGE-IO), Remove, Rename..., Move to Folder..., Open in Folder.
   - Tests: manual — right-click an arranger.
@@ -209,7 +213,7 @@ The tree pane shows every open project and standalone data file as a projection 
   - Tests: manual — Arrange mode, select elements, "Add as New Scattered Arranger...".
 - **UI-PROJECT-TREE-133** — A data file's context menu shall offer Add Compressed Data..., which asks for a name, a hex offset and a registered compression format (LIB-COMPRESSION), previews the compressed and decompressed sizes or the decompression error as the inputs change, keeps Add disabled until the name passes `CanAddResource` and the block decompresses, then adds the compressed data beside the data file, selects it and opens its editor.
   - Tests: manual — Add Compressed Data... on FE8 (J) with offset `A29A88` and GBA LZ77 shows "Decompresses 0x… bytes to 0x3000 bytes".
-- **UI-PROJECT-TREE-134** — Compressed data nodes shall show in italics with a faded file icon and a tooltip naming the format, offset, parent and read-only state, and offer Export Decompressed Data..., Remove, Rename... and Move to Folder.... Export writes the decompressed bytes to a chosen file, or alerts "Export Error" with the decompression error.
+- **UI-PROJECT-TREE-134** — Compressed data nodes shall show in italics with a faded file icon and a tooltip naming the format, offset, parent and read-only state, and offer Export Decompressed Data..., Generate Resources from Table... (UI-PROJECT-TREE-138), Remove, Rename... and Move to Folder.... Export writes the decompressed bytes to a chosen file, or alerts "Export Error" with the decompression error.
   - Tests: manual — hover and export a compressed data node.
 - **UI-PROJECT-TREE-135** — Add New Tilemap... (LIB-TILEMAPS) shall ask for a name, a map data source and a tile data source chosen from the project's data sources by path key (compressed data included), a hex map offset, a map format, a width and height in cells (reset to 32 by the entries left after the map offset ÷ 32 when the map source, offset or format changes), a layout, a hex tile offset, an indexed tiled codec, a first tile index, an empty tile index (0 by default; above the format's largest tile index it previews an error), an optional tile count (`tileCountBox`, empty for every tile to the end of the data; LIB-TILEMAPS-074), one palette for each of the format's slots chosen from the project and global palettes or "(none)", and a tile palette (`TilePaletteComboBox`): "(generated from tile set)" or one of the project's scattered arrangers by path key (LIB-TILEMAPS-072). It shall preview the entry count, the highest tile index and the out-of-range count, and "tile palette: N of M cells are not tiles of the tile set" when a chosen arranger has refused cells, or the tilemap's `MapError` or creation error, keep Add disabled until the name passes `CanAddResource` and the tilemap builds without a `MapError`, then add it under the node, select it and open its editor. If the project has no data source, it shall alert "Project Error" instead.
   - Tests: DevTools — Add New Tilemap... on the FireRed project root with `/Trainer Card/Compressed/Front Map`, GBA Text BG, 30×20 and `/Trainer Card/Compressed/Card Tiles` previews "600 entries, highest tile index 183".
@@ -217,6 +221,25 @@ The tree pane shows every open project and standalone data file as a projection 
   - Tests: manual — hover a FireRed tilemap node; Export As... and Bake to Scattered Arranger... on `/Title Screen/Border Tilemap`, then compare the PNG and the new arranger with `/Title Screen/Title Border`.
 - **UI-PROJECT-TREE-137** — Metatile set and metatile map nodes (LIB-METATILE-MAPS) shall show in italics with a faded arranger icon and a tooltip: for a set, "<count> <w>x<h> metatiles, <layers> layers, <codec> tiles from <first tile> at 0x<offset> of '<tile source>'"; for a map, "<block format> <W>x<H> block map at 0x<offset> of '<source>', sets: <set names>". A set shall offer Edit Tile Set (UI-BLOCK-PLOTTING-040), Remove, Rename..., Move to Folder..., Open in Folder; a map shall offer Export As... (UI-BLOCK-PLOTTING-032), Remove, Rename..., Move to Folder..., Open in Folder.
   - Tests: manual — DevTools: the FireRed copy's `/Overworld/Pallet Town` node has class `metatilemap`; hover it and a metatile set node.
+
+### Generating from a table
+
+- **UI-PROJECT-TREE-138** — Generate Resources from Table... on a project's data file or compressed data node shall open the generation dialog for that node (LIB-TABLES), with the definition path empty and the target folder `<parent folder key>/Generated` (`/Generated` when the node is directly under the project root). Standalone roots do not offer it, since the service refuses them (LIB-PROJECT-SERVICE-067).
+  - Tests: `GenerateResourcesViewModelTests.Preview_Succeeds_ShowsSummaryOutputsAndEnablesGenerate`; manual — right-click the FireRed copy's data file and a compressed data node.
+- **UI-PROJECT-TREE-139** — The definition path box (`DefinitionPathBox`) shall accept a typed path, and Browse... (`BrowseButton`) shall open the OS file picker filtered to `*.table.xml` and `*.xml` and put the chosen file's path in the box.
+  - Tests: `GenerateResourcesViewModelTests.Browse_FillsDefinitionPath`
+- **UI-PROJECT-TREE-140** — Preview (`PreviewButton`, enabled while the path is not empty and nothing runs) shall load the definition with the schemas in `_schemas` of the application directory (as CLI-COMMANDS-074) and plan the generation (LIB-PROJECT-SERVICE-067) off the UI thread with a busy indicator, then show a summary of "Would create N <type>" per resource type in build order (the CLI-COMMANDS-072 wording), the planned outputs (`OutputsList`: type, name, folder key and size, virtualized) filterable by type (`TypeFilterBox`: All, then each planned type), and the report: each skipped record as "Skipped <record> at 0x<offset>: <reason>" and each warning, including raised counts, as "Warning: <warning>".
+  - Tests: `GenerateResourcesViewModelTests.Preview_Succeeds_ShowsSummaryOutputsAndEnablesGenerate`; DevTools — the FireRed copy with `FireRed.table.xml` previews 60 compresseddata, 362 palette, 61 metatileset and 618 metatilemap.
+- **UI-PROJECT-TREE-141** — If the definition fails to load, then `GenerationErrorText` shall show "Definition '<file>' contained N errors" and each numbered reason (the CLI-COMMANDS-071 wording); if planning fails, including a target folder the service refuses (LIB-PROJECT-SERVICE-067), it shall show the service's reason. Either way no outputs show and Generate stays disabled.
+  - Tests: `GenerateResourcesViewModelTests.Preview_DefinitionLoadError_ShowsErrorKeepsGenerateDisabled`, `GenerateResourcesViewModelTests.Preview_InvalidFolder_ShowsErrorKeepsGenerateDisabled`
+- **UI-PROJECT-TREE-142** — If the plan conflicts with existing resources (`FindGenerationConflicts`, LIB-PROJECT-SERVICE-071), then the preview shall list every conflict and keep Generate disabled.
+  - Tests: `GenerateResourcesViewModelTests.Preview_Conflict_ListsItAndBlocksGenerate`
+- **UI-PROJECT-TREE-143** — Changing the definition path or the target folder shall clear the preview and disable Generate, and a preview that finishes after such a change shall be discarded.
+  - Tests: `GenerateResourcesViewModelTests.ChangingInputs_InvalidatesPreview`
+- **UI-PROJECT-TREE-144** — Generate (the dialog's accept option) shall be enabled only after a successful preview with no conflicts while nothing runs. It shall generate the previewed plan (LIB-PROJECT-SERVICE-069) with an indeterminate progress bar and Cancel disabled; if generation fails, the dialog shall show the reason in `GenerationErrorText` and stay open; on success it shall close, and the tree shall expand to, expand and select the target folder.
+  - Tests: `GenerateResourcesViewModelTests.Generate_CallsServiceAndReturnsTargetFolder`, `GenerateResourcesViewModelTests.Generate_ServiceFails_ShowsReasonAndStaysOpen`; DevTools — generate the FireRed copy into `/Overworld`; `Overworld` is selected and expanded, and `Overworld/Maps/Pallet Town/Pallet Town` opens.
+- **UI-PROJECT-TREE-145** — Cancel shall close the dialog without writing anything.
+  - Tests: `GenerateResourcesViewModelTests.Cancel_WritesNothing`
 
 ### Rename
 
@@ -302,6 +325,10 @@ The tree pane shows every open project and standalone data file as a projection 
 - **Dialogs ask the service.** The name dialogs validate through `CanAddResource`/`CanRenameResource`, not lists of sibling names, so the dialog and the operation can never disagree. Rejected: a client-side copy of the rule (the old partial check that let `Data` beside `data` through).
 - **Enter is handled by one tunnel KeyDown handler.** `ProjectTreeView` registers `ProjectTree_KeyDown` as a tunnel handler, so it sees Enter before `TreeView`/`TreeViewItem` key handling. Rejected: a bubbling `KeyDown` in XAML, which the tree items can consume first.
 - **Add New Folder... asks for a name.** Its label has an ellipsis and users rename new folders immediately; the dialog prefills the first free "New Folder (n)" so Enter keeps the one-step flow. Rejected: keeping name augmentation in the service, which silently changed the requested name.
+- **Generation dialog lives in UI-PROJECT-TREE.** Its requirements are a section of this spec. Reason: every other add dialog of the tree (Add Compressed Data, Add New Tilemap, Add New Palette) is specified here, and its output is tree nodes, not an editor. Rejected: a new UI-TABLES spec; a UI-EDITORS section.
+- **Preview off the UI thread, generate on it.** Loading and planning run in `Task.Run`, with a version counter that discards a result whose inputs changed; generation runs on the caller's context. Reason: the service raises tree events on the caller's context, which the tree view models' collections need. Rejected: `Task.Run` for generation. A FireRed-sized generation builds about 1100 nodes on the UI thread, so the progress bar may not animate while it runs.
+- **Generate is the dialog's accept option.** Enter and the default button behave as in every dialog; DevTools finds it by its content "Generate", since host options have no `x:Name`. Rejected: an in-content `GenerateButton`, which would duplicate the option bar.
+- **Conflicts come from the service.** The preview lists `FindGenerationConflicts`, the check generation itself refuses on, following "Dialogs ask the service". Target folder validation stays in `PlanGeneration` for the same reason.
 
 ## Non-goals
 
@@ -316,4 +343,6 @@ The tree pane shows every open project and standalone data file as a projection 
 - Only the VM projection is unit tested; Open File, recent-list, close and convert paths need the file picker or many services and are manual.
 - Manual checks still open: dropping onto a folder and onto an invalid target; rename a ROM, reopen, relink.
 - Manual checks still open: Open File on a ROM shows a root with no expander and a file icon, and double-click/Enter opens a new editor each time; reopening it, or opening a file already in an open project, selects the existing node; two editors on one standalone file refresh each other after a save; Close and Create Project from File... work, with the data file node selected; the recent list is unchanged after Open File; "Add as New Scattered Arranger..." is disabled with its hint in a standalone editor (UI-ARRANGING); "Open File..." sits above "Open Project..."; "Close All Projects" closes a project DataFile's sequential editor tab.
+- The generation dialog shows no thumbnail of the selected output. A metatile map or tilemap renders only after its planned model is built into a tree by the project builder, which generation itself does; a preview build was not cheap enough for this change.
+- The Generate Resources from Table... menu items are a popup and only checkable by hand; the expand-and-select after generation lives in `ProjectTreeViewModel`, which no unit test constructs.
 - `PayloadDragBehavior`, `PayloadDropBehavior` and `DragPayloadStore` are also used by the graphics editor's arranger drag and drop (UI-ARRANGING); this spec owns them.

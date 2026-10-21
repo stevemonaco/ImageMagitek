@@ -19,12 +19,14 @@ types:
   - ExportAllOptions
   - ImportOptions
   - ImportAllOptions
+  - GenerateOptions
   - ProjectCommandHandler
   - PrintHandler
   - ExportHandler
   - ExportAllHandler
   - ImportHandler
   - ImportAllHandler
+  - GenerateHandler
   - Exporter
   - Importer
   - ImportResult
@@ -40,13 +42,14 @@ depends:
   - LIB-CODECS
   - LIB-DATASOURCE
   - LIB-ARRANGERS
+  - LIB-TABLES
 ---
 
 # CLI commands
 
 ## Purpose
 
-`TileShopCLI` exports a TileShop project's scattered arrangers to PNG and imports edited PNGs back, for build toolchains. It opens an existing project through `ProjectService` (LIB-PROJECT-SERVICE), writes and reads images through LIB-IMAGE-IO, and reports through console output and an exit code. Parsing uses System.CommandLine; `CliApplication` holds the whole run so tests drive it in-process, and `Program.Main` only supplies the console and the real environment. Packaging is CLI-PUBLISH.
+`TileShopCLI` exports a TileShop project's scattered arrangers to PNG and imports edited PNGs back, for build toolchains, and generates resources into a project from a table definition (LIB-TABLES). It opens an existing project through `ProjectService` (LIB-PROJECT-SERVICE), writes and reads images through LIB-IMAGE-IO, and reports through console output and an exit code. Parsing uses System.CommandLine; `CliApplication` holds the whole run so tests drive it in-process, and `Program.Main` only supplies the console and the real environment. Packaging is CLI-PUBLISH.
 
 ## Requirements
 
@@ -54,15 +57,15 @@ depends:
 
 - **CLI-COMMANDS-001** — The CLI shall print "TileShopCLI v<informational version> by Klarth" before anything else, the same version `--version` prints.
   - Tests: untested
-- **CLI-COMMANDS-002** — The CLI shall accept the verbs `print`, `export`, `exportall`, `import` and `importall`, and their PascalCase spellings `Print`, `Export`, `ExportAll`, `Import` and `ImportAll`.
-  - Tests: `CliApplicationTests.PascalCaseVerb_Parses`, `CliApplicationTests.UnknownVerbCasing_Exits3`
+- **CLI-COMMANDS-002** — The CLI shall accept the verbs `print`, `export`, `exportall`, `import`, `importall` and `generate`, and their PascalCase spellings `Print`, `Export`, `ExportAll`, `Import`, `ImportAll` and `Generate`.
+  - Tests: `CliApplicationTests.PascalCaseVerb_Parses`, `CliApplicationTests.UnknownVerbCasing_Exits3`, `CliApplicationTests.PascalCaseGenerate_Parses`
 - **CLI-COMMANDS-003** — If the arguments do not parse (unknown verb, missing positional value, unknown option), then the CLI shall print the parse errors and the help of the command that failed and exit with -3.
   - Tests: `CliApplicationTests.InvalidArguments_Exits3`, `CliApplicationTests.UnknownVerbCasing_Exits3`
 - **CLI-COMMANDS-004** — When `--help`, `<verb> --help` or `--version` is given, the CLI shall print the help or version text and exit with 0 without printing an exit-code description.
   - Tests: `CliApplicationTests.Help_Exits0WithoutStatusLine`, `CliApplicationTests.VerbHelp_Exits0`, `CliApplicationTests.Version_Exits0`
-- **CLI-COMMANDS-005** — The CLI shall exit with 0 on success, -2 on an exception, -3 on invalid arguments, -4 when the environment fails to load, -5 when the project cannot be opened, -6 on an import failure, and -7 on an export failure.
-  - Tests: `CliApplicationTests.OpenThrows_Exits2`, `CliApplicationTests.InvalidArguments_Exits3`, `CliApplicationTests.EnvironmentFails_Exits4`, `CliApplicationTests.ProjectFileMissing_Exits5`, `CliApplicationTests.Import_MissingImage_Exits6`, `CliApplicationTests.Export_UnknownKey_ExportsOthersExits7`
-- **CLI-COMMANDS-006** — Before exiting after running a verb or rejecting arguments, the CLI shall print a one-line description of its exit code ("Operation completed successfully", "Operation failed due to an import error", …).
+- **CLI-COMMANDS-005** — The CLI shall exit with 0 on success, -2 on an exception, -3 on invalid arguments, -4 when the environment fails to load, -5 when the project cannot be opened, -6 on an import failure, -7 on an export failure, and -8 on a generation failure.
+  - Tests: `CliApplicationTests.OpenThrows_Exits2`, `CliApplicationTests.InvalidArguments_Exits3`, `CliApplicationTests.EnvironmentFails_Exits4`, `CliApplicationTests.ProjectFileMissing_Exits5`, `CliApplicationTests.Import_MissingImage_Exits6`, `CliApplicationTests.Export_UnknownKey_ExportsOthersExits7`, `CliApplicationTests.Generate_InvalidDefinition_Exits8`
+- **CLI-COMMANDS-006** — Before exiting after running a verb or rejecting arguments, the CLI shall print a one-line description of its exit code ("Operation completed successfully", "Operation failed due to an import error", "Operation failed due to a generation error", …).
   - Tests: `CliApplicationTests.OpenYields_ReturnsVerbCode`, `CliApplicationTests.InvalidArguments_Exits3`, `CliApplicationTests.Export_UnknownKey_ExportsOthersExits7`
 - **CLI-COMMANDS-007** — If an essential resource cannot be loaded from the application directory (LIB-SERVICES), then the CLI shall print and log the failure and exit with -4; other startup issues shall be printed as warnings and shall not change the exit code.
   - Tests: `CliApplicationTests.BootstrapIssue_PrintsWarningExits0`, `CliApplicationTests.EnvironmentFails_Exits4` (an injected failure); manual — run `TileShopCLI print` with `_palettes/DefaultNes.json` (the NES master palette, an essential) renamed in the build output (exit -4)
@@ -163,10 +166,23 @@ depends:
 - **CLI-COMMANDS-064** — If `import` names a read-only arranger, then the CLI shall print "Arranger is read-only because it <reason>" and treat the import as failed.
   - Tests: `CliApplicationTests.Import_ReadOnlyArranger_Exits6`
 
+### generate
+
+- **CLI-COMMANDS-070** — When `generate <project> <datafile> <definition> <folder>` runs, the CLI shall open the project, load the definition (LIB-TABLES), plan generation of `<datafile>` (a data file key) into `<folder>` (a folder key, created when missing), print the report, and generate (LIB-PROJECT-SERVICE-069), then exit with 0.
+  - Tests: `CliApplicationTests.Generate_WritesResourcesExits0`
+- **CLI-COMMANDS-071** — If the definition fails to load, then the CLI shall print "Definition '<file>' contained N errors" followed by each numbered reason and exit with -8; if planning or generation fails, it shall print the reasons and exit with -8. A project that does not open exits with -5 (CLI-COMMANDS-009).
+  - Tests: `CliApplicationTests.Generate_InvalidDefinition_Exits8`, `CliApplicationTests.Generate_UnknownDataFileKey_Exits8`
+- **CLI-COMMANDS-072** — The report shall print, per resource type in build order, "Created N <type>" ("Would create N <type>" with `--dry-run`), then "Skipped <record> at 0x<offset>: <reason>" per skipped record and "Warning: <warning>" per warning; skipped records and warnings shall not change the exit code.
+  - Tests: `CliApplicationTests.Generate_WritesResourcesExits0`, `CliApplicationTests.Generate_DryRun_WritesNothingExits0`
+- **CLI-COMMANDS-073** — With `--dry-run`, the CLI shall print each planned resource as "<type> <key> (<size>)" before the report, write nothing (no resource, folder, project file or manifest), and exit with 0.
+  - Tests: `CliApplicationTests.Generate_DryRun_WritesNothingExits0`
+- **CLI-COMMANDS-074** — The CLI shall load the table, charmap and manifest schemas from `_schemas` in the application directory.
+  - Tests: `CliApplicationTests.Generate_WritesResourcesExits0`
+
 ## Invariants
 
 - Only scattered arrangers and tilemaps are exported or imported; metatile maps are exported as composites and skipped on import.
-- Export never writes a data file; import never writes a project file.
+- Export never writes a data file; import never writes a project file; generate writes project files and the manifest only.
 - Each run opens one project and runs one verb.
 
 ## Edge cases
@@ -207,13 +223,14 @@ depends:
 - **The banner shows the informational version.** It reads the same `AssemblyInformationalVersionAttribute` as `--version`, so both print `1.0.0+<hash>`. Reason: one version string per build in bug reports; how the hash is produced is decided in CLI-PUBLISH. Rejected: `Assembly.GetName().Version` (drops the suffix and the commit, and disagrees with `--version`).
 - **Help and version are successes.** They print with no status line and nothing logged. Reason: asking for help is not a failed operation.
 - **The logger is built after parsing.** An explicit `--log` path gets a non-rolling file sink, so the file named is the file written; the default is `errorlogCLI.txt` in the application directory, rolling monthly. Parse errors, before a log path is known, use the default. Serilog's file sink drops writes it cannot make (`SelfLog`). Reason: the documented default, and a build tree free of log files. Rejected: the current directory (litters the caller's tree, and was never the stated intent).
+- **Generation failures exit -8.** A definition that does not load, a data file key that does not resolve and a failed generation share one new code. Reason: toolchains branch on the failure class, and all three mean nothing was generated; -5 stays for a project that does not open. Rejected: reusing -6 or -7 (different operations).
 - **Plugins load like the UI's.** `CliBootstrap` calls `CreatePluginService` after the codec service and before the serializer factory, in the UI's order. How a bad plugin DLL is tolerated is decided in ARCHITECTURE.md §6 and LIB-PLUGINS.
 
 ## Non-goals
 
 - A notification area. Startup issues print to the console (CLI-COMMANDS-007), and plugin decode failures are only logged (LIB-PLUGINS-016); the UI's notifications (UI-SHELL) have no CLI counterpart.
-- Creating or editing projects (new, add-datafile, add-palette, add-arranger verbs).
-- Palette import/export verbs, dry-run reports, machine-readable (`--json`) output, key globs, batch manifests, scripting.
+- Creating or editing projects (new, add-datafile, add-palette, add-arranger verbs), other than `generate` adding generated resources.
+- Palette import/export verbs, machine-readable (`--json`) output, key globs, batch manifests, scripting.
 - Sequential arrangers and raw data-file export.
 
 ## Open items

@@ -17,6 +17,11 @@ internal class AsyncFileRequestService : IAsyncFileRequestService
         MimeTypes = new[] { "text/xml" }
     };
 
+    private static FilePickerFileType _tableDefinitionType = new("Table Definition")
+    {
+        Patterns = new[] { "*.table.xml" }
+    };
+
     private static FilePickerFileType _jascPaletteType = new("JASC Palette")
     {
         Patterns = new[] { "*.pal" }
@@ -36,6 +41,21 @@ internal class AsyncFileRequestService : IAsyncFileRequestService
                 _projectType
             },
             Title = "Select Project File"
+        };
+
+        return await OpenFilePickerAsync(options);
+    }
+
+    public async Task<Uri?> RequestTableDefinitionFileName()
+    {
+        var options = new FilePickerOpenOptions()
+        {
+            FileTypeFilter = new List<FilePickerFileType>()
+            {
+                _tableDefinitionType,
+                _projectType
+            },
+            Title = "Select Table Definition"
         };
 
         return await OpenFilePickerAsync(options);

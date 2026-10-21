@@ -42,6 +42,10 @@ public sealed class CliApplication
         DefaultValueFactory = _ => ColorMatchStrategy.Exact
     };
     private readonly Option<double?> _maxDistanceOption = new("--max-distance") { Description = "With nearest matching, report colors farther than this from every palette entry as unmatched", HelpName = "n" };
+    private readonly Argument<string> _dataFileArgument = new("datafile") { Description = "Key of the data file the table definition reads" };
+    private readonly Argument<string> _definitionArgument = new("definition") { Description = "Table definition file" };
+    private readonly Argument<string> _folderArgument = new("folder") { Description = "Key of the folder to generate into, created when missing" };
+    private readonly Option<bool> _dryRunOption = new("--dry-run") { Description = "Print the resources and report without writing anything" };
     private readonly Option<bool> _transparentIndexZeroOption = new("--transparent-index0") { Description = "Map fully transparent pixels to palette index 0 without color matching" };
 
     private readonly RootCommand _root;
@@ -50,6 +54,7 @@ public sealed class CliApplication
     private readonly Command _exportAllCommand;
     private readonly Command _importCommand;
     private readonly Command _importAllCommand;
+    private readonly Command _generateCommand;
 
     /// <param name="bootstrap">Builds the project service, printing startup issues; throws when the environment cannot load</param>
     /// <param name="defaultLogFileName">Log file used, rolling monthly, when <c>--log</c> is not given</param>
@@ -91,6 +96,12 @@ public sealed class CliApplication
         };
         _importAllCommand.Aliases.Add("ImportAll");
 
+        _generateCommand = new Command("generate", "Generates resources into a project folder from a table definition over a data file")
+        {
+            _projectArgument, _dataFileArgument, _definitionArgument, _folderArgument, _dryRunOption, _logOption
+        };
+        _generateCommand.Aliases.Add("Generate");
+
         _matchOption.Validators.Add(result =>
         {
             if (!Enum.IsDefined(result.GetValueOrDefault<ColorMatchStrategy>()))
@@ -99,9 +110,9 @@ public sealed class CliApplication
         _importCommand.Validators.Add(ValidateMaxDistance);
         _importAllCommand.Validators.Add(ValidateMaxDistance);
 
-        _root = new RootCommand("Exports a TileShop project's scattered arrangers to PNG and imports edited PNGs back")
+        _root = new RootCommand("Exports a TileShop project's scattered arrangers to PNG, imports edited PNGs back, and generates resources from table definitions")
         {
-            _printCommand, _exportCommand, _exportAllCommand, _importCommand, _importAllCommand
+            _printCommand, _exportCommand, _exportAllCommand, _importCommand, _importAllCommand, _generateCommand
         };
     }
 
@@ -178,6 +189,11 @@ public sealed class CliApplication
             return new ExportAllHandler(projectService, _output).TryExecute(new ExportAllOptions(project,
                 parseResult.GetRequiredValue(_exportDirectoryArgument), parseResult.GetValue(_overwriteOption)));
 
+        if (command == _generateCommand)
+            return new GenerateHandler(projectService, _output).TryExecute(new GenerateOptions(project,
+                parseResult.GetRequiredValue(_dataFileArgument), parseResult.GetRequiredValue(_definitionArgument),
+                parseResult.GetRequiredValue(_folderArgument), parseResult.GetValue(_dryRunOption)));
+
         var importOptions = new ImageImportOptions(parseResult.GetValue(_matchOption),
             parseResult.GetValue(_transparentIndexZeroOption), 0, parseResult.GetValue(_maxDistanceOption));
 
@@ -205,6 +221,7 @@ public sealed class CliApplication
             ExitCode.ProjectOpenError => "Operation failed because the project could not be opened or validated",
             ExitCode.ImportOperationFailed => "Operation failed due to an import error",
             ExitCode.ExportOperationFailed => "Operation failed due to an export error",
+            ExitCode.GenerateOperationFailed => "Operation failed due to a generation error",
             _ => $"Operation failed with an unknown exit code '{code}'"
         };
 

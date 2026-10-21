@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Written by hand in another program's style: attribute order, spacing and a second project's generation differ from TileShop's output -->
+<tablemanifest version="1.0">
+  <generation definition="defs/FireRed.table.xml" datafile="/Roms/FireRed" folder="/Overworld" project="../Projects/FireRed/FireRedProject.xml">
+    <resource offset="2dd4c0" record="Layout" output="layoutMap" type="metatilemap" key="/Overworld/Maps/Pallet Town/Pallet Town"/>
+    <resource index="3" entries="16" offset="2D4AB4" record="palette" output="tilesetPalettes" type="palette" key="/Overworld/Tilesets/Palettes/General 3"/>
+  </generation>
+  <generation project="Other.xml" folder="/" datafile="/Rom" definition="FireRed.table.xml"/>
+</tablemanifest>

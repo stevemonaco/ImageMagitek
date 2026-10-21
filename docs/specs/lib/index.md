@@ -37,3 +37,9 @@ One spec per feature; format and usage in [../README.md](../README.md). Find a t
 | [Project service](project-service.md) | LIB-PROJECT-SERVICE | `ProjectService`, `ResourceChange`, `ResourceDeletionPlan` |
 | [XML project format and transactional writes](project-format.md) | LIB-PROJECT-FORMAT | `XmlProjectReader`, `XmlProjectWriter`, `ProjectTreeBuilder`, serialization models, `WriteAheadLogTransaction` |
 | [Bootstrapping and application settings](services.md) | LIB-SERVICES | `BootstrapService`, `SettingsService`, `AppSettings` |
+
+## Tables
+
+| Spec | Id | Owns |
+|---|---|---|
+| [Table-driven resources](tables.md) (draft) | LIB-TABLES | `TableDefinition`, `XmlTableDefinitionReader`, `Charmap`, address mappers, `TableExpression`, `TableEvaluator`, `RecordInstance`, `TableGenerator`, `GenerationPlan`, `TableManifest` and its reader and writer |

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
 	<TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
@@ -36,6 +36,7 @@
   <ItemGroup>
     <None Include="..\ImageMagitek\_xmlprojectsamples\*.zip" Link="_xmlprojectsamples\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\Projects\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\Tables\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

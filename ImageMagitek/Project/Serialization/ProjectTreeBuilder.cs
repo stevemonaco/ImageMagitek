@@ -44,6 +44,16 @@ internal sealed class ProjectTreeBuilder
             _globalResources.Add(defaultPalette);
     }
 
+    /// <summary>
+    /// Builds into an existing tree, resolving keys against the resources it already holds
+    /// </summary>
+    public ProjectTreeBuilder(ProjectTree tree, ICodecFactory codecFactory, IColorFactory colorFactory, Palette defaultPalette,
+        IEnumerable<IProjectResource> globalResources, ICompressorFactory compressorFactory, IMapFormatFactory mapFormatFactory)
+        : this(codecFactory, colorFactory, defaultPalette, globalResources, compressorFactory, mapFormatFactory)
+    {
+        Tree = tree;
+    }
+
     public MagitekResult AddProject(ImageProjectModel projectModel, string baseDirectory, string projectFileName)
     {
         if (Tree?.Root is not null)

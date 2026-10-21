@@ -35,6 +35,7 @@ Found by reading the code, not reproduced, unless a test is named.
 ## Undecided questions
 
 - [LIB-PROJECT-SERVICE] Whether `ApplyResourceDeletionAsync` should report a kept non-empty folder as a failure although its nodes were removed; done when decided.
+- [UI-PROJECT-TREE] The generation dialog shows no thumbnail of the selected metatile map, tilemap or palette output (UI-PROJECT-TREE Open items).
 - [UI-PROJECT-TREE] A data file's missing state is read only on project open, so it does not update if the file disappears or reappears mid-session; done when refreshed, or the decision to leave it is recorded.
 - **1.0** [UI-PALETTE-EDITOR] "Duplicate to project" for global palettes (PLAN Milestone 4, marked done) does not exist; the closest is the Add Palette dialog's template option, and no UI path opens a global palette in the editor, so read-only mode looks unreachable; done when either a Duplicate command and a way to open global palettes exist, or UI-PALETTE-EDITOR-090/091 are struck.
 

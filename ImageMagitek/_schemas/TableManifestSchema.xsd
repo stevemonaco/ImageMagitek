@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="TileShopTableManifestSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="tablemanifest">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="generation" type="generation" minOccurs="0" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="version" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="1.0" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="nonempty">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="generation">
+    <xs:sequence>
+      <xs:element name="resource" type="resource" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="project" type="nonempty" use="required" />
+    <xs:attribute name="folder" type="nonempty" use="required" />
+    <xs:attribute name="datafile" type="nonempty" use="required" />
+    <xs:attribute name="definition" type="nonempty" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="resource">
+    <xs:attribute name="key" type="nonempty" use="required" />
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="compresseddata" />
+          <xs:enumeration value="palette" />
+          <xs:enumeration value="metatileset" />
+          <xs:enumeration value="metatilemap" />
+          <xs:enumeration value="tilemap" />
+          <xs:enumeration value="arranger" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="output" type="nonempty" use="required" />
+    <xs:attribute name="record" type="nonempty" use="required" />
+    <xs:attribute name="offset" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[0-9A-Fa-f]+" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="entries" type="xs:positiveInteger" use="optional" />
+    <xs:attribute name="index" type="xs:nonNegativeInteger" use="optional" />
+  </xs:complexType>
+
+</xs:schema>

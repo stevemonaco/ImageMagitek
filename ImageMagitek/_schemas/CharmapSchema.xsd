@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="TileShopCharmapSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="charmap">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="map" type="mapping" />
+        <xs:element name="run" type="mapping" />
+      </xs:choice>
+      <xs:attribute name="name" type="xs:string" use="required" />
+      <xs:attribute name="terminator" type="byte" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="byte">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9A-Fa-f]{2}" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="mapping">
+    <xs:attribute name="byte" type="byte" use="required" />
+    <xs:attribute name="text" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+  </xs:complexType>
+
+</xs:schema>

@@ -382,6 +382,11 @@ public sealed class CliApplicationTests : IDisposable
             </tilemap>
             """);
 
+        UseShippedMapFormats();
+    }
+
+    private void UseShippedMapFormats()
+    {
         var serializerFactory = new XmlProjectSerializerFactory(ProjectFixtures.ResourceSchemaPath, Fixtures.CodecFixture.Shared.CodecFactory,
             _colorFactory, [ProjectFixtures.DefaultPalette], new ImageMagitek.Compression.CompressorFactory(), Tilemaps.MapFormatTests.LoadShippedFormats());
         _bootstrap = _ => new ProjectService(serializerFactory);
@@ -778,6 +783,102 @@ public sealed class CliApplicationTests : IDisposable
 
         Assert.Equal(-6, await RunAsync("import", _projectFile, _imageDirectory, FontKey));
         Assert.Contains("Arranger is read-only because it uses codec 'Last Armageddon Font' that cannot encode", Output);
+    }
+
+    #endregion
+
+    #region Generate
+
+    private const string TableDataKey = "/Data/table";
+
+    private string DefinitionsDirectory => Path.Combine(_directory, "defs");
+    private string DefinitionFile => Path.Combine(DefinitionsDirectory, "Synthetic.table.xml");
+
+    private void UseTableData()
+    {
+        File.WriteAllBytes(Path.Combine(_directory, "Resources", "table.bin"), FireRedShapedData.Create());
+        WriteResource("Data/table.xml", """<datafile location="table.bin" />""");
+
+        Directory.CreateDirectory(DefinitionsDirectory);
+        foreach (var file in Directory.EnumerateFiles(TableTestContext.FixturesDirectory, "*.xml").Where(x => !x.EndsWith(".manifest.xml")))
+            File.Copy(file, Path.Combine(DefinitionsDirectory, Path.GetFileName(file)));
+
+        UseShippedMapFormats();
+    }
+
+    private string[] ListFiles() => Directory.GetFiles(_directory, "*", SearchOption.AllDirectories)
+        .Where(x => !x.StartsWith(Path.GetDirectoryName(_defaultLogFile)!, StringComparison.OrdinalIgnoreCase))
+        .Order()
+        .ToArray();
+
+    [Fact]
+    public async Task Generate_WritesResourcesExits0()
+    {
+        UseTableData();
+
+        Assert.Equal(0, await RunAsync("generate", _projectFile, TableDataKey, DefinitionFile, "/Generated"));
+
+        Assert.Contains("Created 1 compresseddata", Output);
+        Assert.Contains("Created 13 palette", Output);
+        Assert.Contains("Created 3 metatilemap", Output);
+        Assert.Contains("Warning: Metatile set '/Generated/Tilesets/Viridian City' declared 1 metatiles, maps use up to 4, raised to 4", Output);
+        Assert.DoesNotContain("metatilemap /Generated", Output);
+        Assert.True(File.Exists(Path.Combine(_directory, "Resources", "Generated", "Maps", "Pallet Town", "Pallet Town.xml")));
+        Assert.True(File.Exists(Path.Combine(DefinitionsDirectory, "Synthetic.manifest.xml")));
+        Assert.Contains("Operation completed successfully", Output);
+
+        Assert.Equal(0, await RunAsync("exportall", _projectFile, _imageDirectory));
+        Assert.True(File.Exists(ImagePath("Generated/Maps/Pallet Town/Pallet Town")));
+    }
+
+    [Fact]
+    public async Task Generate_DryRun_WritesNothingExits0()
+    {
+        UseTableData();
+        var before = ListFiles();
+
+        Assert.Equal(0, await RunAsync("generate", _projectFile, TableDataKey, DefinitionFile, "/Generated", "--dry-run"));
+
+        Assert.Contains("metatilemap /Generated/Maps/Pallet Town/Pallet Town (3x2 blocks)", Output);
+        Assert.Contains("palette /Generated/Tilesets/Palettes/General 0 (16 colors)", Output);
+        Assert.Contains("Would create 3 metatileset", Output);
+        Assert.Contains("Warning: Metatile set '/Generated/Tilesets/Viridian City'", Output);
+        Assert.Equal(before, ListFiles());
+        Assert.False(Directory.Exists(Path.Combine(_directory, "Resources", "Generated")));
+    }
+
+    [Fact]
+    public async Task Generate_InvalidDefinition_Exits8()
+    {
+        UseTableData();
+        File.WriteAllText(DefinitionFile, File.ReadAllText(DefinitionFile).Replace("offset=\"metatiles\"", "offset=\"metatiles +\""));
+
+        Assert.Equal(-8, await RunAsync("generate", _projectFile, TableDataKey, DefinitionFile, "/Generated"));
+
+        Assert.Contains($"Definition '{DefinitionFile}' contained 1 errors", Output);
+        Assert.Contains("1: ", Output);
+        Assert.Contains("output 'tilesetSet' attribute 'offset'", Output);
+        Assert.Contains("Operation failed due to a generation error", Output);
+    }
+
+    [Fact]
+    public async Task Generate_UnknownDataFileKey_Exits8()
+    {
+        UseTableData();
+        var before = ListFiles();
+
+        Assert.Equal(-8, await RunAsync("generate", _projectFile, "/Data/nope", DefinitionFile, "/Generated"));
+
+        Assert.Contains("'/Data/nope' is not a data file", Output);
+        Assert.Equal(before, ListFiles());
+    }
+
+    [Fact]
+    public async Task PascalCaseGenerate_Parses()
+    {
+        UseTableData();
+
+        Assert.Equal(0, await RunAsync("Generate", _projectFile, TableDataKey, DefinitionFile, "/Generated", "--dry-run"));
     }
 
     #endregion

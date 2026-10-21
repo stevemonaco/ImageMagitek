@@ -33,15 +33,18 @@ public static class ResourceFileLocator
     /// <param name="parentNode"></param>
     /// <param name="childNode"></param>
     /// <returns>The full disk path of where the resource is or should be located</returns>
-    public static string LocateByParent(ProjectTree tree, ResourceNode parentNode, ResourceNode childNode)
+    public static string LocateByParent(ProjectTree tree, ResourceNode parentNode, ResourceNode childNode) =>
+        LocateByParent(tree, parentNode, childNode.Name, childNode is ResourceFolderNode);
+
+    /// <summary>
+    /// Locate the path of a child that has no node yet, by its name and whether it is a folder
+    /// </summary>
+    public static string LocateByParent(ProjectTree tree, ResourceNode parentNode, string childName, bool isFolder)
     {
         var root = (ProjectNode)tree.Root;
         var baseDirectory = root.BaseDirectory;
         var pathKey = tree.CreatePathKey(parentNode, Path.DirectorySeparatorChar.ToString()).TrimStart(Path.DirectorySeparatorChar);
 
-        if (childNode is not ResourceFolderNode)
-            return Path.Combine(baseDirectory, pathKey, $"{childNode.Name}.xml");
-        else
-            return Path.Combine(baseDirectory, pathKey, childNode.Name);
+        return isFolder ? Path.Combine(baseDirectory, pathKey, childName) : Path.Combine(baseDirectory, pathKey, $"{childName}.xml");
     }
 }

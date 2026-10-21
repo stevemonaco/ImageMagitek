@@ -1,0 +1,75 @@
+<UserControl x:Class="TileShop.UI.Views.GenerateResourcesView"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:tables="using:ImageMagitek.Tables"
+    xmlns:vm="using:TileShop.UI.ViewModels"
+    MinWidth="420"
+    x:DataType="vm:GenerateResourcesViewModel">
+    <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto">
+        <TextBlock Grid.Row="0" Text="{Binding DataFileKey, StringFormat=Data File: {0}}" TextWrapping="Wrap" />
+
+        <Label Grid.Row="1" Margin="0,8,0,0" Content="Table definition" Target="DefinitionPathBox" />
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+            <TextBox x:Name="DefinitionPathBox" Text="{Binding DefinitionPath}" Watermark="Path to a .table.xml file" />
+            <Button x:Name="BrowseButton" Grid.Column="1" Margin="6,0,0,0" Command="{Binding BrowseCommand}" Content="Browse..." />
+        </Grid>
+
+        <Label Grid.Row="3" Margin="0,8,0,0" Content="Target folder" Target="TargetFolderBox" />
+        <TextBox x:Name="TargetFolderBox" Grid.Row="4" Text="{Binding TargetFolder}" />
+
+        <StackPanel Grid.Row="5" Margin="0,10,0,0" Orientation="Horizontal" Spacing="10">
+            <Button x:Name="PreviewButton" Command="{Binding PreviewCommand}" Content="Preview" />
+            <ProgressBar Width="160" VerticalAlignment="Center" IsIndeterminate="True" IsVisible="{Binding IsBusy}" />
+        </StackPanel>
+
+        <TextBlock x:Name="GenerationErrorText" Grid.Row="6" Margin="0,8,0,0" Foreground="{DynamicResource SemiColorDanger}"
+            IsVisible="{Binding GenerationErrorText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+            Text="{Binding GenerationErrorText}" TextWrapping="Wrap" />
+
+        <TextBlock x:Name="SummaryText" Grid.Row="7" Margin="0,8,0,0"
+            IsVisible="{Binding Summary, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+            Text="{Binding Summary}" TextWrapping="Wrap" />
+
+        <ScrollViewer Grid.Row="8" MaxHeight="120" Margin="0,8,0,0" IsVisible="{Binding !!Conflicts.Count}">
+            <ItemsControl x:Name="ConflictsList" ItemsSource="{Binding Conflicts}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <TextBlock Foreground="{DynamicResource SemiColorDanger}" Text="{Binding}" TextWrapping="Wrap" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="9" Margin="0,8,0,4" IsVisible="{Binding HasPreview}" Orientation="Horizontal" Spacing="8">
+            <Label VerticalAlignment="Center" Content="Show" Target="TypeFilterBox" />
+            <ComboBox x:Name="TypeFilterBox" MinWidth="160" ItemsSource="{Binding TypeFilters}" SelectedItem="{Binding SelectedTypeFilter}" />
+            <TextBlock VerticalAlignment="Center" Opacity="0.7" Text="{Binding FilteredOutputs.Count, StringFormat={}{0} outputs}" />
+        </StackPanel>
+
+        <ListBox x:Name="OutputsList" Grid.Row="10" MinHeight="120" IsVisible="{Binding HasPreview}" ItemsSource="{Binding FilteredOutputs}">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="tables:PlannedResource">
+                    <Grid ColumnDefinitions="130,2*,3*">
+                        <TextBlock Opacity="0.7" Text="{Binding Type}" />
+                        <TextBlock Grid.Column="1" Margin="0,0,8,0" Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Key}" />
+                        <TextBlock Grid.Column="2" Opacity="0.7" TextTrimming="CharacterEllipsis">
+                            <Run Text="{Binding ParentKey}" />
+                            <Run Text="  " />
+                            <Run Text="{Binding Summary}" />
+                        </TextBlock>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <ScrollViewer Grid.Row="11" MaxHeight="140" Margin="0,8,0,0" IsVisible="{Binding !!ReportLines.Count}">
+            <ItemsControl x:Name="ReportList" ItemsSource="{Binding ReportLines}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <TextBlock FontSize="12" Text="{Binding}" TextWrapping="Wrap" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

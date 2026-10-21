@@ -190,6 +190,26 @@ public partial class ProjectTreeViewModel : ObservableRecipient
     }
 
     [RelayCommand]
+    public async Task GenerateFromTable(ResourceNodeViewModel nodeModel)
+    {
+        var node = nodeModel.Node;
+        if (node.Parent is not { } parent)
+            return;
+
+        var tree = _projectService.GetContainingProject(node);
+        var defaultFolder = (parent is ProjectNode ? "" : tree.CreatePathKey(parent)) + "/Generated";
+        var dialogModel = new GenerateResourcesViewModel(_projectService, tree, tree.CreatePathKey(node), defaultFolder, _fileSelect);
+
+        if (await _interactions.RequestAsync(dialogModel) is { } folderKey
+            && tree.TryGetNode(folderKey, out var folder)
+            && FindViewModel(folder) is { } folderModel)
+        {
+            folderModel.IsExpanded = true;
+            RevealNode(folderModel);
+        }
+    }
+
+    [RelayCommand]
     public async Task ExportDecompressedData(CompressedDataNodeViewModel nodeModel)
     {
         var source = (CompressedDataSource)nodeModel.Node.Item;

@@ -10,6 +10,7 @@ using ImageMagitek.Colors;
 using ImageMagitek.Metatiles;
 using ImageMagitek.Project;
 using ImageMagitek.Project.Serialization;
+using ImageMagitek.Tables;
 using ImageMagitek.Utility;
 using Monaco.PathTree;
 
@@ -1206,6 +1207,232 @@ public class ProjectService : IProjectService
         }
 
         return new MagitekResult<ResourceDeletionPlan>.Success(new ResourceDeletionPlan(tree, changes));
+    }
+
+    /// <inheritdoc/>
+    public virtual MagitekResult<GenerationPlan> PlanGeneration(ProjectTree tree, string dataFileKey, TableDefinition definition, string targetFolderKey)
+    {
+        Guard.IsNotNull(tree);
+        Guard.IsNotNull(definition);
+
+        if (tree.IsStandaloneFile)
+            return new MagitekResult<GenerationPlan>.Failed(StandaloneFileReason(tree));
+
+        if (!tree.TryGetNode(dataFileKey, out var dataNode) || dataNode.Item is not DataSource source)
+            return new MagitekResult<GenerationPlan>.Failed($"'{dataFileKey}' is not a data file in project '{tree.Name}'");
+
+        var targetResult = ResolveTargetFolder(tree, targetFolderKey);
+        if (targetResult.HasFailed)
+            return new MagitekResult<GenerationPlan>.Failed(targetResult.AsError.Reason);
+
+        try
+        {
+            var generator = new TableGenerator(definition, source, tree.CreatePathKey(dataNode), targetResult.AsSuccess.Result, _serializerFactory.MapFormatFactory);
+            return new MagitekResult<GenerationPlan>.Success(generator.Plan(tree.Root.DiskLocation!));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return new MagitekResult<GenerationPlan>.Failed($"Could not read '{dataFileKey}': {ex.Message}");
+        }
+    }
+
+    // Spells the key as the existing folders spell it, so a case variant does not plan a second folder
+    private static MagitekResult<string> ResolveTargetFolder(ProjectTree tree, string targetFolderKey)
+    {
+        ResourceNode? node = tree.Root;
+        var key = "";
+
+        foreach (var segment in targetFolderKey.Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries))
+        {
+            var child = node?.ChildNodes.FirstOrDefault(x => ResourceName.AreSame(x.Name, segment));
+            if (child is not null and not ResourceFolderNode)
+                return new MagitekResult<string>.Failed($"'{tree.CreatePathKey(child)}' is not a folder");
+
+            if (child is null && ResourceName.Validate(segment, true) is { HasFailed: true } invalid)
+                return new MagitekResult<string>.Failed($"Target folder segment '{segment}' is not a valid folder name: {invalid.AsError.Reason}");
+
+            key += "/" + (child?.Name ?? segment);
+            node = child;
+        }
+
+        return new MagitekResult<string>.Success(key.Length == 0 ? "/" : key);
+    }
+
+    /// <inheritdoc/>
+    public virtual Task<MagitekResult> GenerateResourcesAsync(ProjectTree tree, GenerationPlan plan)
+    {
+        Guard.IsNotNull(tree);
+        Guard.IsNotNull(plan);
+
+        return WithWriteLockAsync(() => GenerateResourcesCoreAsync(tree, plan));
+    }
+
+    private async Task<MagitekResult> GenerateResourcesCoreAsync(ProjectTree tree, GenerationPlan plan)
+    {
+        if (tree.IsStandaloneFile)
+            return new MagitekResult.Failed(StandaloneFileReason(tree));
+
+        if (!_projects.Contains(tree))
+            return new MagitekResult.Failed($"Project '{tree.Name}' is not open");
+
+        if (!tree.TryGetItem<DataSource>(plan.DataFileKey, out _))
+            return new MagitekResult.Failed($"'{plan.DataFileKey}' is not a data file in project '{tree.Name}'");
+
+        var conflicts = FindGenerationConflicts(tree, plan);
+        if (conflicts.Count > 0)
+            return new MagitekResult.Failed($"Generation would clash with existing resources:\n{string.Join("\n", conflicts)}");
+
+        var manifest = TableManifest.Empty;
+        if (File.Exists(plan.ManifestFileName))
+        {
+            var readResult = new XmlTableManifestReader(plan.ManifestSchemaFileName).LoadFromFile(plan.ManifestFileName);
+            if (readResult.HasFailed)
+                return new MagitekResult.Failed($"Manifest '{plan.ManifestFileName}' could not be read:\n{string.Join("\n", readResult.AsError.Reasons)}");
+
+            manifest = readResult.AsSuccess.Result;
+        }
+
+        var manifestXml = XmlTableManifestWriter.Serialize(manifest.WithGeneration(plan.ManifestGeneration));
+        var createdFolders = new List<ResourceNode>();
+        var createdDirectories = new List<string>();
+        MagitekResult failure;
+
+        try
+        {
+            foreach (var folderKey in plan.FolderKeys)
+                EnsureFolder(tree, folderKey, createdFolders, createdDirectories);
+
+            var models = plan.Resources.Select(resource =>
+            {
+                tree.TryGetNode(resource.ParentKey, out var parent);
+                return (resource.Model, resource.ParentKey.TrimStart('/'), ResourceFileLocator.LocateByParent(tree, parent ?? tree.Root, resource.Name, false));
+            }).ToList();
+
+            var buildResult = _serializerFactory.BuildResources(tree, models);
+            if (buildResult.HasSucceeded)
+            {
+                // The builder records each model as persisted; clearing it makes the write include every generated resource
+                foreach (var resource in plan.Resources)
+                {
+                    if (tree.TryGetNode(resource.Key, out var node))
+                        node.Model = null;
+                }
+
+                var writeResult = await _serializerFactory.CreateWriter(tree).WriteProjectAsync(tree.Root.DiskLocation!, [(plan.ManifestFileName, manifestXml)]);
+                if (writeResult.HasSucceeded)
+                    return writeResult;
+
+                failure = writeResult;
+            }
+            else
+            {
+                failure = new MagitekResult.Failed(string.Join("\n", buildResult.AsError.Reasons));
+            }
+        }
+        catch (Exception ex)
+        {
+            failure = new MagitekResult.Failed($"Generation failed: {ex.Message}");
+        }
+
+        RollBackGeneration(tree, plan, createdFolders, createdDirectories);
+        return failure;
+    }
+
+    /// <inheritdoc/>
+    public virtual IReadOnlyList<string> FindGenerationConflicts(ProjectTree tree, GenerationPlan plan)
+    {
+        Guard.IsNotNull(tree);
+        Guard.IsNotNull(plan);
+
+        var conflicts = new List<string>();
+        var folderKeys = plan.FolderKeys.ToHashSet(StringComparer.Ordinal);
+
+        foreach (var key in plan.FolderKeys.Concat(plan.Resources.Select(x => x.Key)))
+        {
+            var isFolder = folderKeys.Contains(key);
+            var segments = key.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (segments.Length == 0)
+                continue;
+
+            ResourceNode? parent = tree.Root;
+            foreach (var segment in segments[..^1])
+                parent = parent?.ChildNodes.FirstOrDefault(x => x.Name == segment);
+
+            if (parent is null)
+                continue;
+
+            var name = segments[^1];
+            var sibling = parent.ChildNodes.FirstOrDefault(x => ResourceName.AreSame(x.Name, name));
+            if (sibling is not null && !(isFolder && sibling is ResourceFolderNode && sibling.Name == name))
+                conflicts.Add($"'{key}' clashes with '{tree.CreatePathKey(sibling)}'");
+            else if (!isFolder && parent is ProjectNode && ResourceName.AreSame(name, tree.Name))
+                conflicts.Add($"'{key}' cannot share the project's name '{tree.Name}'");
+        }
+
+        return conflicts;
+    }
+
+    private static void EnsureFolder(ProjectTree tree, string folderKey, List<ResourceNode> createdFolders, List<string> createdDirectories)
+    {
+        ResourceNode parent = tree.Root;
+
+        foreach (var segment in folderKey.Split('/', StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (parent.ChildNodes.FirstOrDefault(x => x.Name == segment) is { } existing)
+            {
+                parent = existing;
+                continue;
+            }
+
+            var node = new ResourceFolderNode(segment, new ResourceFolder(segment));
+            node.DiskLocation = ResourceFileLocator.LocateByParent(tree, parent, node);
+
+            if (!Directory.Exists(node.DiskLocation))
+            {
+                Directory.CreateDirectory(node.DiskLocation);
+                createdDirectories.Add(node.DiskLocation);
+            }
+
+            parent.AttachChildNode(node);
+            createdFolders.Add(node);
+            parent = node;
+        }
+    }
+
+    private static void RollBackGeneration(ProjectTree tree, GenerationPlan plan, List<ResourceNode> createdFolders, List<string> createdDirectories)
+    {
+        var created = createdFolders.ToHashSet();
+
+        foreach (var resource in Enumerable.Reverse(plan.Resources))
+        {
+            if (!tree.TryGetNode(resource.Key, out var node))
+                continue;
+
+            if (node.Parent is { } parent && !created.Contains(parent))
+                parent.RemoveChildNode(node.Name);
+
+            if (node.Item is IDisposable disposable)
+                disposable.Dispose();
+        }
+
+        foreach (var folder in Enumerable.Reverse(createdFolders))
+        {
+            if (folder.Parent is { } parent && !created.Contains(parent))
+                parent.RemoveChildNode(folder.Name);
+        }
+
+        foreach (var directory in Enumerable.Reverse(createdDirectories))
+        {
+            try
+            {
+                if (Directory.Exists(directory) && !Directory.EnumerateFileSystemEntries(directory).Any())
+                    Directory.Delete(directory);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // An empty directory left behind loads as an empty folder and loses nothing
+            }
+        }
     }
 
     private Dictionary<IProjectResource, string> CreateResourceMap(ProjectTree tree)

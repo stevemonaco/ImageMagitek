@@ -54,6 +54,7 @@ tests:
   - CompressedDataProjectTests
   - TilemapProjectTests
   - MetatileProjectTests
+  - TableGenerationProjectTests
 depends:
   - LIB-PROJECT-TREE
   - LIB-DATASOURCE
@@ -169,6 +170,8 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `ProjectServiceTests.OpenProject_MissingDataFile_LoadsWithSourceMarkedMissing`
 - **LIB-PROJECT-FORMAT-031** — After reading, every node shall carry the model it was read from and the file or directory it came from.
   - Tests: untested
+- **LIB-PROJECT-FORMAT-072** — The serializer factory shall build resource models into an existing tree (`BuildResources`), in the order given and under the parents named, with the same project builder, resolution and failure reasons as a load (LIB-PROJECT-FORMAT-021 to -070), and expose its map format factory. Building adds no format change.
+  - Tests: `TableGenerationProjectTests.Generate_SavesAndReloadsWithoutDefinition`, `TableGenerationProjectTests.Generate_TransactionFails_RollsBackTreeAndDirectories`
 - **LIB-PROJECT-FORMAT-054** — The reader shall load resource and folder names as they are on disk, including names the name rule (LIB-PROJECT-TREE-030) would refuse, except names starting with `.`, which LIB-PROJECT-FORMAT-004 and -005 skip.
   - Tests: `ProjectServiceTests.OpenProject_NameBreakingRule_LoadsAndMoves`
 
@@ -195,6 +198,8 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `XmlProjectWriterTests.ForeignColor_ModelMismatch_FailsSave`, `SerializationMapperTests.MapToModel_UnknownColorSource_ThrowsNamingType`
 - **LIB-PROJECT-FORMAT-056** — When given models for several nodes, the writer shall write each to its node's disk location in one transaction and set the nodes' persisted models only on success.
   - Tests: `ProjectServiceTests.DeletePalette_ArrangerFileRewrittenWithFallbackKey`, `ProjectServiceTests.ApplyDeletion_TransactionFails_LeavesTreeResourcesAndDiskUnchanged`
+- **LIB-PROJECT-FORMAT-071** — When a project write is given additional files (a path and its contents), the writer shall stage and commit them in the same transaction as the resources (LIB-PROJECT-FORMAT-037, -056), with no node or model bookkeeping, and run the transaction even when no resource changed.
+  - Tests: `TableGenerationProjectTests.Generate_WritesResourcesAndManifestInOneTransaction`, `TableGenerationProjectTests.Generate_TransactionFails_RollsBackTreeAndDirectories`
 
 ### Write-ahead log
 
@@ -253,6 +258,7 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 - An element position outside the arranger fails the load.
 - A folder and a resource file with the same name in one directory fail the load.
 - XML with a foreign root is ignored; XML that is not well formed fails the load, since it may be a resource damaged by a merge conflict.
+- Table definitions (`tabledefinition`), charmaps (`charmap`) and table manifests (`tablemanifest`, LIB-TABLES) are foreign roots: they may sit in a project directory, are ignored by LIB-PROJECT-FORMAT-005, and do not trip the XML guards of LIB-PROJECT-SERVICE-060 and -061.
 - A resource or folder whose name starts with `.` (possible only from outside TileShop) is not loaded; references to it fail the load.
 - A relative project path resolves against the current directory.
 - A `root` that is a parent of the project file's directory makes the project file part of the scan; it is ignored like any other project file (LIB-PROJECT-FORMAT-005).

@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
+using ImageMagitek.Tables;
 
 namespace ImageMagitek.Services;
 
@@ -62,6 +64,22 @@ public interface IProjectService
     MagitekResult<ResourceDeletionPlan> PreviewResourceDeletion(ResourceNode deleteNode);
     Task<MagitekResult> ApplyResourceDeletionAsync(ResourceDeletionPlan plan, Palette defaultPalette);
     Task<MagitekResult> RenameResourceAsync(ResourceNode node, string newName);
+
+    /// <summary>
+    /// Plans generating resources from a table definition over a data file into a folder, writing nothing
+    /// </summary>
+    /// <param name="targetFolderKey">Key of the folder to generate into; missing folders are created by generation</param>
+    MagitekResult<GenerationPlan> PlanGeneration(ProjectTree tree, string dataFileKey, TableDefinition definition, string targetFolderKey);
+
+    /// <summary>
+    /// Lists the existing resources the plan's keys and names clash with, the check generation refuses on, writing nothing
+    /// </summary>
+    IReadOnlyList<string> FindGenerationConflicts(ProjectTree tree, GenerationPlan plan);
+
+    /// <summary>
+    /// Creates the plan's folders and resources and writes them with the manifest in one transaction, rolling back on failure
+    /// </summary>
+    Task<MagitekResult> GenerateResourcesAsync(ProjectTree tree, GenerationPlan plan);
 
     ProjectTree GetContainingProject(ResourceNode node);
     ProjectTree GetContainingProject(IProjectResource resource);

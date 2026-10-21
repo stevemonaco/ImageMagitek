@@ -39,6 +39,7 @@
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RelinkDataFileCommand}" CommandParameter="{Binding}" Header="Relink..."
                 IsVisible="{Binding IsMissing}" />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).AddCompressedDataCommand}" CommandParameter="{Binding}" Header="Add Compressed Data..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).GenerateFromTableCommand}" CommandParameter="{Binding}" Header="Generate Resources from Table..." />
             <Separator />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename..." />
@@ -48,6 +49,7 @@
 
         <ContextMenu x:Key="CompressedDataContextMenu" x:DataType="vm:CompressedDataNodeViewModel">
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).ExportDecompressedDataCommand}" CommandParameter="{Binding}" Header="Export Decompressed Data..." />
+            <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).GenerateFromTableCommand}" CommandParameter="{Binding}" Header="Generate Resources from Table..." />
             <Separator />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RequestRemoveNodeCommand}" CommandParameter="{Binding}" Header="Remove" />
             <MenuItem Command="{Binding #_treeView.((vm:ProjectTreeViewModel)DataContext).RenameNodeCommand}" CommandParameter="{Binding}" Header="Rename..." />

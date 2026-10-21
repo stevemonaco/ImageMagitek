@@ -76,7 +76,7 @@ public static class ResourceName
     public static bool AreSame(string a, string b) =>
         string.Equals(Normalize(a), Normalize(b), StringComparison.OrdinalIgnoreCase);
 
-    private static string Normalize(string name)
+    internal static string Normalize(string name)
     {
         try
         {

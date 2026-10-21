@@ -16,6 +16,11 @@ public static class TestPaths
     /// </summary>
     public static string DemoDirectory => Path.GetFullPath(Path.Combine(ThisDir(), "..", "..", "TileShop.UI", "_demo"));
 
+    /// <summary>
+    /// The shipped table definitions and charmaps in the source tree.
+    /// </summary>
+    public static string TablesPath => Path.GetFullPath(Path.Combine(ThisDir(), "..", "..", "Samples", "Tables"));
+
     public static string CreateTempPath(string extension) =>
         Path.Combine(Path.GetTempPath(), $"imagemagitek-{Guid.NewGuid():N}{extension}");
 

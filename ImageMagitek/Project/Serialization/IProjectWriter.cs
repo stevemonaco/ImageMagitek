@@ -5,7 +5,11 @@ namespace ImageMagitek.Project.Serialization;
 
 public interface IProjectWriter
 {
-    Task<MagitekResult> WriteProjectAsync(string fileName);
+    /// <summary>
+    /// Writes every changed resource in one transaction, together with <paramref name="additionalFiles"/>
+    /// </summary>
+    /// <param name="additionalFiles">Files outside the tree, such as a table manifest, committed in the same transaction</param>
+    Task<MagitekResult> WriteProjectAsync(string fileName, IReadOnlyList<(string Path, string Contents)>? additionalFiles = null);
     string SerializeResource(ResourceNode resourceNode);
     Task<MagitekResult> WriteResourceAsync(ResourceNode resourceNode, bool alwaysOverwrite);
 
