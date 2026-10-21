@@ -37,6 +37,7 @@
     <None Include="..\ImageMagitek\_xmlprojectsamples\*.zip" Link="_xmlprojectsamples\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\Projects\**" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\Tables\**" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\Samples\Tables\ff4.charmap.xml" Link="Fixtures\Tables\ff4.charmap.xml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

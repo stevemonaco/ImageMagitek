@@ -11,6 +11,10 @@ public sealed class TableExpressionTests
         public long GetValue(string identifier) => values[identifier];
         public long GetContextValue(string field) => throw new TableEvaluationException("no context");
         public long GetLookupValue(string lookup, long index, string field) => index * 10;
+
+        public long MapPointer(long pointer) => new SnesLoRomAddressMapper(0).TryMap(pointer, out var offset)
+            ? offset
+            : throw new TableEvaluationException($"pointer 0x{pointer:X} is unmapped");
     }
 
     private static long Evaluate(string text, Dictionary<string, long>? values = null)
@@ -98,5 +102,23 @@ public sealed class TableExpressionTests
 
         Assert.True(result.HasFailed);
         Assert.Contains("modulo by zero", result.AsError.Reason);
+    }
+
+    [Fact]
+    public void Map_MapsThroughAddressSpace()
+    {
+        Assert.Equal(0x70000 + 0xCF00 - 0x8000, Evaluate("map(0x0E0000 | ptr)", new() { ["ptr"] = 0xCF00 }));
+        Assert.Equal(0x48000 + 8, Evaluate("map(0x098000) + (pointer & 0x7FFF) * 8", new() { ["pointer"] = 0x8001 }));
+        Assert.Equal(7, Evaluate("map", new() { ["map"] = 7 }));
+    }
+
+    [Fact]
+    public void Map_Unmapped_IsEvaluationError()
+    {
+        var result = TableExpression.Parse("map(0x0E0000 | ptr)").AsSuccess.Result.TryEvaluate(new Scope(new() { ["ptr"] = 0x1234 }));
+
+        Assert.True(result.HasFailed);
+        Assert.Contains("pointer 0xE1234 is unmapped", result.AsError.Reason);
+        Assert.True(TableExpression.Parse("map(1, 2)").HasFailed);
     }
 }

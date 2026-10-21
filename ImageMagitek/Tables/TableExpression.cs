@@ -22,6 +22,12 @@ public interface IExpressionScope
 
     long GetContextValue(string field);
     long GetLookupValue(string lookup, long index, string field);
+
+    /// <summary>
+    /// Maps a pointer through the definition's address space
+    /// </summary>
+    /// <exception cref="TableEvaluationException">The pointer is null or unmapped</exception>
+    long MapPointer(long pointer);
 }
 
 /// <summary>
@@ -43,7 +49,7 @@ public sealed class ExpressionBinding
 }
 
 /// <summary>
-/// A parsed integer expression with C operators and precedence, <c>min</c>, <c>max</c>, context and lookup references (LIB-TABLES-040)
+/// A parsed integer expression with C operators and precedence, <c>min</c>, <c>max</c>, <c>map</c>, context and lookup references (LIB-TABLES-040, -044)
 /// </summary>
 public sealed class TableExpression
 {
@@ -287,6 +293,13 @@ public sealed class TableExpression
                 return new Call(name, arguments);
             }
 
+            if (name == "map" && Accept("("))
+            {
+                var pointer = ParseExpression();
+                Expect(")");
+                return new MapCall(pointer);
+            }
+
             if (name == "context" && Accept("."))
                 return new ContextField(ExpectIdentifier());
 
@@ -397,6 +410,12 @@ public sealed class TableExpression
 
         public override string? Bind(ExpressionBinding binding) =>
             Condition.Bind(binding) ?? WhenTrue.Bind(binding) ?? WhenFalse.Bind(binding);
+    }
+
+    private sealed record MapCall(Node Pointer) : Node
+    {
+        public override long Evaluate(IExpressionScope scope) => scope.MapPointer(Pointer.Evaluate(scope));
+        public override string? Bind(ExpressionBinding binding) => Pointer.Bind(binding);
     }
 
     private sealed record Call(string Name, List<Node> Arguments) : Node

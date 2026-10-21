@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Metatiles;
 using ImageMagitek.Project;
@@ -83,6 +84,34 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         Assert.True((await _context.Service.SaveProjectAsync(tree)).HasSucceeded);
         foreach (var (file, bytes) in files)
             Assert.Equal(bytes, File.ReadAllBytes(file));
+    }
+
+    [Fact]
+    public async Task GenerateArrangers_SaveAndReloadWithoutDefinition()
+    {
+        File.WriteAllBytes(Path.Combine(_context.Directory, "ff4.bin"), Ff4ShapedData.Create());
+        Assert.True((await _context.Service.AddResourceAsync(_context.Tree.Root, new FileDataSource("Ff4", Path.Combine(_context.Directory, "ff4.bin")))).HasSucceeded);
+        var definition = _context.Definitions.Load("Ff4Synthetic.table.xml").AsSuccess.Result;
+        var plan = _context.Service.PlanGeneration(_context.Tree, "/Ff4", definition, "/Monsters").AsSuccess.Result;
+
+        var result = await _context.Service.GenerateResourcesAsync(_context.Tree, plan);
+        Assert.True(result.HasSucceeded, result.HasFailed ? result.AsError.Reason : null);
+        var manifest = new XmlTableManifestReader(plan.ManifestSchemaFileName)
+            .LoadFromFile(Path.Combine(_context.Definitions.Directory, "Ff4Synthetic.manifest.xml")).AsSuccess.Result;
+        Assert.Contains(new TableManifestResource("/Monsters/02 Golbez", "arranger", "boss", "Monster", Ff4ShapedData.Monsters + 8), Assert.Single(manifest.Generations).Resources);
+        _context.Definitions.Dispose();
+
+        _context.Service.CloseProjects();
+        var reopen = await _context.Service.OpenProjectFileAsync(_context.ProjectFile);
+        Assert.True(reopen.HasSucceeded, reopen.HasFailed ? string.Join("\n", reopen.AsError.Reasons) : null);
+        var tree = reopen.AsSuccess.Result;
+
+        Assert.True(tree.TryGetItem<ScatteredArranger>("/Monsters/03 Zeromus", out var zeromus));
+        Assert.True(tree.TryGetItem<Palette>("/Monsters/Monster Palettes/MonsterPal2x16", out var palette));
+        var element = zeromus.GetElement(0, 0)!.Value;
+        Assert.Equal(("SNES 4bpp", Ff4ShapedData.Boss4bppTiles + 64), (element.Codec.Name, element.SourceAddress.ByteOffset));
+        Assert.Same(palette, ((IIndexedCodec)element.Codec).Palette);
+        Assert.Null(zeromus.GetElement(1, 0));
     }
 
     [Fact]

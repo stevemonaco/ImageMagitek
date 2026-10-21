@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -20,9 +21,10 @@ public sealed class TableGenerator
 {
     private const char CounterMarker = '\u0001';
     private const int MaxRepeat = 256;
+    private const int MaxArrangerElements = 65536;
 
     private static readonly OutputType[] _buildOrder =
-        [OutputType.CompressedData, OutputType.Palette, OutputType.MetatileSet, OutputType.Tilemap, OutputType.MetatileMap];
+        [OutputType.CompressedData, OutputType.Palette, OutputType.Arranger, OutputType.MetatileSet, OutputType.Tilemap, OutputType.MetatileMap];
 
     private readonly TableDefinition _definition;
     private readonly DataSource _source;
@@ -604,6 +606,10 @@ public sealed class TableGenerator
                     candidate.Summary = $"{width}x{height} tiles";
                     break;
                 }
+
+                case OutputType.Arranger:
+                    candidate.Model = BuildArranger(candidate);
+                    break;
             }
         }
         catch (TableEvaluationException ex)
@@ -612,6 +618,89 @@ public sealed class TableGenerator
             candidate.Model = null;
             Skip(candidate.Instance, output, ex.Message);
         }
+    }
+
+    private ScatteredArrangerModel BuildArranger(Candidate candidate)
+    {
+        var output = candidate.Output;
+        var width = PositiveInt(candidate, "width");
+        var height = PositiveInt(candidate, "height");
+        if ((long)width * height > MaxArrangerElements)
+            throw new TableEvaluationException($"arranger of {width}x{height} elements has more than {MaxArrangerElements}");
+
+        var stride = PositiveInt(candidate, "tilestride");
+        var tileBase = Offset(candidate);
+        var paletteKey = output.Value("palette") is { } paletteId ? ResolveReference(paletteId, candidate.Instance, "palette").Key : null;
+        var codec = output.Value("codec")!;
+
+        var cells = output.Value("layout") == "indexmap"
+            ? ReadCellStream(candidate, width * height)
+            : Enumerable.Range(0, width * height).Select(x => (int?)x).ToList();
+
+        var grid = new ArrangerElementModel[width, height];
+        for (var n = 0; n < cells.Count; n++)
+        {
+            if (cells[n] is not { } tile)
+                continue;
+
+            var offset = tileBase + (long)tile * stride;
+            if (offset + stride > _data.Length)
+                throw new TableEvaluationException($"tile {tile} at 0x{offset:X} is past the end of the data");
+
+            grid[n % width, n / width] = new ArrangerElementModel
+            {
+                DataFileKey = _dataFileKey,
+                PaletteKey = paletteKey,
+                CodecName = codec,
+                FileAddress = new BitAddress(offset, 0),
+                PositionX = n % width,
+                PositionY = n / width
+            };
+        }
+
+        candidate.Summary = $"{width}x{height} elements";
+        return new ScatteredArrangerModel
+        {
+            Name = candidate.Name,
+            ElementGrid = grid,
+            ArrangerElementSize = new Size(width, height),
+            ElementPixelSize = new Size(IntValue(candidate, "elementwidth"), IntValue(candidate, "elementheight")),
+            Layout = ElementLayout.Tiled,
+            ColorType = PixelColorType.Indexed
+        };
+    }
+
+    private List<int?> ReadCellStream(Candidate candidate, int cellCount)
+    {
+        var output = candidate.Output;
+        var start = output.Expression("mapoffset")!.Evaluate(candidate.Scope);
+        int? emptyCode = output.Value("emptycode") is not null ? IntValue(candidate, "emptycode") : null;
+        int? runCode = output.Value("runcode") is not null ? IntValue(candidate, "runcode") : null;
+
+        var cells = new List<int?>(cellCount);
+        for (var offset = start; cells.Count < cellCount;)
+        {
+            var code = ReadByte(offset++);
+            if (code == emptyCode)
+            {
+                cells.Add(null);
+            }
+            else if (code == runCode)
+            {
+                var count = ReadByte(offset++);
+                cells.AddRange(Enumerable.Repeat((int?)null, Math.Min(count, cellCount - cells.Count)));
+            }
+            else
+            {
+                cells.Add(code);
+            }
+        }
+
+        return cells;
+
+        int ReadByte(long offset) => _data.TryRead(offset, 1) is [var b]
+            ? b
+            : throw new TableEvaluationException($"cell stream at 0x{start:X} ends after {cells.Count} of {cellCount} cells");
     }
 
     private void CheckMetatileCounts()

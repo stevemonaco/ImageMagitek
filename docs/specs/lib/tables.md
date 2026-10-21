@@ -25,6 +25,7 @@ types:
   - IAddressMapper
   - GbaAddressMapper
   - LinearAddressMapper
+  - SnesLoRomAddressMapper
   - AddressMappers
   - TableExpression
   - TableEvaluator
@@ -62,7 +63,7 @@ depends:
 
 ## Purpose
 
-Generates ordinary project resources (compressed data, palettes, metatile sets, metatile maps, tilemaps) from a game's record tables. A **table definition** is a declarative XML file that describes how the game's pointers map to file offsets, its record types and tables, small integer expressions over their fields, its text encodings (**charmaps**) and name tables, and one **output** per kind of resource to create from a record. `TableEvaluator` walks the tables over a `DataSource` (LIB-DATASOURCE) into one `RecordInstance` per record type and file offset; `TableGenerator` turns the instances into a `GenerationPlan` of LIB-PROJECT-FORMAT resource models with names, folders, a report and a **manifest** entry. LIB-PROJECT-SERVICE builds and writes a plan into a project in one transaction (its Generate group). The manifest is an open XML format, specified here so other programs can write one. Phase 1 covers definitions and generation; regeneration from a manifest is pending (proposal [table-driven resources](../../changes/table-resources.md)).
+Generates ordinary project resources (compressed data, palettes, scattered arrangers, metatile sets, metatile maps, tilemaps) from a game's record tables. A **table definition** is a declarative XML file that describes how the game's pointers map to file offsets, its record types and tables, small integer expressions over their fields, its text encodings (**charmaps**) and name tables, and one **output** per kind of resource to create from a record. `TableEvaluator` walks the tables over a `DataSource` (LIB-DATASOURCE) into one `RecordInstance` per record type and file offset; `TableGenerator` turns the instances into a `GenerationPlan` of LIB-PROJECT-FORMAT resource models with names, folders, a report and a **manifest** entry. LIB-PROJECT-SERVICE builds and writes a plan into a project in one transaction (its Generate group). The manifest is an open XML format, specified here so other programs can write one. Phase 1 covers definitions and generation; regeneration from a manifest is pending (proposal [table-driven resources](../../changes/table-resources.md)).
 
 ## Requirements
 
@@ -70,20 +71,20 @@ Generates ordinary project resources (compressed data, palettes, metatile sets, 
 
 - **LIB-TABLES-001** — A definition shall be read from a file and validated against `TableSchema.xsd`. If the file is not well-formed XML or fails validation, then loading shall fail naming the file and, for each error, its line.
   - Tests: `TableDefinitionReaderTests.SchemaError_NamesFileAndLine`
-- **LIB-TABLES-002** — If a definition names a record type, table, lookup, name table, charmap, output or field that it does not declare, declares a name twice (record types, tables, lookups and name tables share one namespace, so a pointer's `to` and a `name[expr]` reference are never ambiguous; output ids share another), names a field with a reserved word (`index`, `address`, `i`, `slot`, `context`, `min`, `max`, `name`, `n`), or names a record type `palette`, then loading shall fail naming the file, the line, the element and the attribute.
-  - Tests: `TableDefinitionReaderTests.UnknownField_FailsAtLoadNamingElementAndAttribute`, `TableDefinitionReaderTests.UnknownRecordType_FailsAtLoad`, `TableDefinitionReaderTests.UnknownCharmap_FailsAtLoad`
+- **LIB-TABLES-002** — If a definition names a record type, table, lookup, name table, charmap, output or field that it does not declare, declares a name twice (record types, tables, lookups and name tables share one namespace, so a pointer's `to` and a `name[expr]` reference are never ambiguous; output ids share another), names a field with a reserved word (`index`, `address`, `i`, `slot`, `context`, `min`, `max`, `map`, `name`, `n`), or names a record type `palette`, then loading shall fail naming the file, the line, the element and the attribute.
+  - Tests: `TableDefinitionReaderTests.UnknownField_FailsAtLoadNamingElementAndAttribute`, `TableDefinitionReaderTests.UnknownRecordType_FailsAtLoad`, `TableDefinitionReaderTests.UnknownCharmap_FailsAtLoad`, `TableDefinitionReaderTests.FieldOutsideRecord_FailsAtLoad`
 - **LIB-TABLES-003** — If an expression or a name or folder template does not parse, or names an identifier its scope does not have (LIB-TABLES-041), then loading shall fail naming the file, the line, the element, the attribute and the text, so no expression fails to parse during evaluation.
   - Tests: `TableDefinitionReaderTests.BadExpression_FailsAtLoad`
 - **LIB-TABLES-004** — A `charmap` element's `file` shall resolve against the definition's directory, and the charmap file shall be validated against `CharmapSchema.xsd`; if it is missing or invalid, then loading shall fail naming the charmap file.
   - Tests: `TableDefinitionReaderTests.UnknownCharmap_FailsAtLoad`, `TableDefinitionReaderTests.ShippedDefinitions_Load`
-- **LIB-TABLES-005** — If a definition uses a pending address mapper (LIB-TABLES-013) or the pending `arranger` output type (LIB-TABLES-079), then loading shall fail naming the mapper or output type as not implemented yet.
-  - Tests: `AddressMapperTests.PendingMapper_FailsLoad`, `TableDefinitionReaderTests.PendingOutputType_FailsLoad`
+- **LIB-TABLES-005** — If a definition uses a pending address mapper (LIB-TABLES-013) or the pending arranger `mask` layout (LIB-TABLES-079), then loading shall fail naming the mapper or layout as not implemented yet.
+  - Tests: `AddressMapperTests.PendingMapper_FailsLoad`, `TableDefinitionReaderTests.PendingArrangerLayout_FailsLoad`
 - **LIB-TABLES-006** — Loading shall collect every semantic error in the definition before failing, not only the first.
   - Tests: `TableDefinitionReaderTests.UnknownField_FailsAtLoadNamingElementAndAttribute`
 - **LIB-TABLES-007** — Integer attributes that are not expressions (sizes, offsets, bit counts, list-literal counts, override values) shall accept decimal and `0x` hexadecimal.
   - Tests: `TableDefinitionReaderTests.ShippedDefinitions_Load`
 - **LIB-TABLES-008** — The definitions and charmaps shipped in `Samples/Tables` shall load.
-  - Tests: `TableDefinitionReaderTests.ShippedDefinitions_Load`
+  - Tests: `TableDefinitionReaderTests.ShippedDefinitions_Load`, `TableDefinitionReaderTests.ShippedFf4Definition_Loads`
 
 ### Address space
 
@@ -93,10 +94,14 @@ Generates ordinary project resources (compressed data, palettes, metatile sets, 
   - Tests: `AddressMapperTests.Linear_RoundTripsWithBase`
 - **LIB-TABLES-012** — For every mapper, the pointer value 0 shall be null: it maps to no offset and is not unmapped.
   - Tests: `AddressMapperTests.Gba_NullPointer`
-- **LIB-TABLES-013** — The schema shall accept the mappers `snes-lorom`, `snes-hirom`, `nes` and `gb`; they are pending and refused at load (LIB-TABLES-005).
+- **LIB-TABLES-013** — The schema shall accept the mappers `snes-hirom`, `nes` and `gb`; they are pending and refused at load (LIB-TABLES-005). The `snes-lorom` mapper is LIB-TABLES-015.
   - Tests: `AddressMapperTests.PendingMapper_FailsLoad`
 - **LIB-TABLES-014** — Every `address` in a definition (tables, lookups, name tables) shall be a pointer in the game's address space, mapped through the address space when used; an address that does not map shall be reported as a warning and the table, lookup entry or name entry treated as unreadable.
   - Tests: `TableEvaluatorTests.UnmappedTableAddress_Warns`
+- **LIB-TABLES-015** — The `snes-lorom` mapper shall map a pointer with bank `b = (pointer >> 16) & 0x7F` and address `a = pointer & 0xFFFF` to the file offset `b × 0x8000 + (a − 0x8000) + header`, so banks `0x80` and up mirror banks `0x00` and up. A pointer above `0xFFFFFF`, with an address below `0x8000`, or in banks `0x7E` and `0x7F` (work RAM) shall be unmapped. A file offset shall map back to bank `(offset − header) / 0x8000` (with bit 7 set for banks `0x7E` and up) and address `0x8000 + (offset − header) % 0x8000`.
+  - Tests: `AddressMapperTests.SnesLoRom_RoundTrips`, `AddressMapperTests.SnesLoRom_LowHalfAndWram_Unmapped`
+- **LIB-TABLES-016** — The `addressspace` element's `header` attribute shall set the copier header size of the `snes-lorom` mapper (0 to `0x7FFF`). Without it, the header shall be 512 when the data length modulo `0x8000` is 512, and 0 otherwise, decided per data source and applied to every pointer the definition maps. If `header` is given for any other mapper than `snes-lorom` or `snes-hirom`, or outside that range, then loading shall fail.
+  - Tests: `AddressMapperTests.SnesLoRom_HeaderDetectedFromLength`, `AddressMapperTests.SnesLoRom_ExplicitHeader`, `AddressMapperTests.Header_OnNonSnesMapper_FailsLoad`, `TableGeneratorTests.BankImpliedPointer_MapsThroughLoRom`
 
 ### Records and fields
 
@@ -128,14 +133,16 @@ Generates ordinary project resources (compressed data, palettes, metatile sets, 
 
 ### Expressions
 
-- **LIB-TABLES-040** — Expressions shall evaluate on 64-bit signed integers with decimal and `0x` literals, parentheses, unary `-` and `~`, `* / %` (truncating), `+ -`, `<< >>` (arithmetic), `< <= > >=`, `== !=`, `&`, `^`, `|` and `?:`, at C precedence and associativity, comparisons giving 1 or 0, any non-zero value counting as true, and the functions `min(a, b, …)` and `max(a, b, …)`. No other syntax is accepted and no code is compiled or run.
+- **LIB-TABLES-040** — Expressions shall evaluate on 64-bit signed integers with decimal and `0x` literals, parentheses, unary `-` and `~`, `* / %` (truncating), `+ -`, `<< >>` (arithmetic), `< <= > >=`, `== !=`, `&`, `^`, `|` and `?:`, at C precedence and associativity, comparisons giving 1 or 0, any non-zero value counting as true, and the functions `min(a, b, …)`, `max(a, b, …)` and `map(p)` (LIB-TABLES-044). No other syntax is accepted and no code is compiled or run.
   - Tests: `TableExpressionTests.Precedence`, `TableExpressionTests.HexAndDecimal`, `TableExpressionTests.MinMax`, `TableExpressionTests.Ternary`, `TableExpressionTests.ShiftsAndBitwise`
 - **LIB-TABLES-041** — An expression's identifiers shall be the fields of the record in scope (with the output's variant, LIB-TABLES-051), `index` (the row index of the table row that first reached the record; a record reached through a pointer field takes its parent's index), `address` (the record's file offset), `i` (the repeat counter, 0 without `repeat`), `slot` (in a palette output, after `slot` itself), `context.<field>` (in an output with `context`), and `<lookup>[expr].<field>`.
   - Tests: `TableExpressionTests.Precedence`, `TableEvaluatorTests.Lookup_ReadsIndexedRecordField`, `TableGeneratorTests.ContextMode_PicksMostCommonSection`
-- **LIB-TABLES-042** — Division or modulo by zero, a shift count outside 0–63, a read of an unmapped pointer field, a lookup index out of range and a missing context shall be evaluation errors.
+- **LIB-TABLES-042** — Division or modulo by zero, a shift count outside 0–63, a read of an unmapped pointer field, a `map` of a null or unmapped pointer, a lookup index out of range and a missing context shall be evaluation errors.
   - Tests: `TableExpressionTests.DivisionByZero_IsEvaluationError`, `TableExpressionTests.ModuloByZero_IsEvaluationError`, `TableExpressionTests.ShiftsAndBitwise`
 - **LIB-TABLES-043** — An evaluation error in an output for one record shall skip that output for that record and be reported as a skipped record naming the output and the error; other records and outputs continue.
   - Tests: `TableGeneratorTests.EvaluationError_SkipsOutputAndReports`
+- **LIB-TABLES-044** — `map(p)` shall evaluate to the file offset the address space maps the pointer `p` to (LIB-TABLES-010 to -016, with the detected copier header). If `p` is null or unmapped, then it shall be an evaluation error naming the pointer.
+  - Tests: `TableExpressionTests.Map_MapsThroughAddressSpace`, `TableExpressionTests.Map_Unmapped_IsEvaluationError`, `TableGeneratorTests.BankImpliedPointer_MapsThroughLoRom`
 
 ### Variants
 
@@ -175,14 +182,14 @@ Generates ordinary project resources (compressed data, palettes, metatile sets, 
   - Tests: `TableGeneratorTests.SharedTileset_OneSetReferencedByBothMaps`
 - **LIB-TABLES-075** — A `tilemap` output shall create a tilemap (LIB-TILEMAPS) from `offset`, `width`, `height`, `format`, `layout`, `codec`, `firsttile` and `emptytile`, with tiles and palette slots as for a metatile set.
   - Tests: `TableGeneratorTests.TilemapOutput_BuildsModel`
-- **LIB-TABLES-076** — If an output's `tiles`, `paletteslots` or `set` reference reaches a resource that is not generated (its output's `when` was false, it was skipped, or the pointer had no record), then the output shall be skipped for that record with a reason naming the reference; outputs that reference the skipped resource are skipped in turn.
-  - Tests: `TableGeneratorTests.OutputReferencingSkippedResource_Skipped`
+- **LIB-TABLES-076** — If an output's `tiles`, `paletteslots`, `set` or `palette` reference reaches a resource that is not generated (its output's `when` was false, it was skipped, or the pointer had no record), then the output shall be skipped for that record with a reason naming the reference; outputs that reference the skipped resource are skipped in turn.
+  - Tests: `TableGeneratorTests.OutputReferencingSkippedResource_Skipped`, `TableGeneratorTests.ArrangerPaletteNotGenerated_SkipsAndReports`
 - **LIB-TABLES-077** — A child element's `when` (on `tiles`, `name`, `folder`) shall select the first child whose `when` holds or that has none.
   - Tests: `TableGeneratorTests.CompressedAndUncompressedTiles`, `TableGeneratorTests.NameTemplates_RenderSegments`
 - **LIB-TABLES-078** — Generated models shall reference the data file by the key generation was given, and every other generated resource by the key it is planned at.
   - Tests: `TableGenerationProjectTests.Generate_SavesAndReloadsWithoutDefinition`
-- **LIB-TABLES-079** — The schema shall accept the `arranger` output type with a `layout` of `rect`, `mask` or `indexmap`; it is pending and refused at load (LIB-TABLES-005).
-  - Tests: `TableDefinitionReaderTests.PendingOutputType_FailsLoad`
+- **LIB-TABLES-079** — The schema shall accept the `arranger` output type with a `layout` of `rect`, `mask` or `indexmap`. The `rect` and `indexmap` layouts are LIB-TABLES-150 to -155; `mask` is pending and refused at load (LIB-TABLES-005).
+  - Tests: `TableDefinitionReaderTests.PendingArrangerLayout_FailsLoad`
 
 ### Names and folders
 
@@ -220,8 +227,8 @@ Generates ordinary project resources (compressed data, palettes, metatile sets, 
 
 ### Plan and report
 
-- **LIB-TABLES-120** — A plan shall list each resource with its key, type, name, folder, model, output and record identity, in build order (LIB-PROJECT-FORMAT-021: compressed data, palettes, metatile sets, tilemaps, metatile maps), with a size summary (`N colors`, `N metatiles`, `WxH blocks`, `WxH tiles`, or the compression format's name), and the folder keys it needs, parents first. Planning shall write nothing.
-  - Tests: `TableGeneratorTests.SharedTileset_OneSetReferencedByBothMaps`, `TableGenerationProjectTests.PlanGeneration_WritesNothing`
+- **LIB-TABLES-120** — A plan shall list each resource with its key, type, name, folder, model, output and record identity, in build order (LIB-PROJECT-FORMAT-021: compressed data, palettes, scattered arrangers, metatile sets, tilemaps, metatile maps), with a size summary (`N colors`, `WxH elements`, `N metatiles`, `WxH blocks`, `WxH tiles`, or the compression format's name), and the folder keys it needs, parents first. Planning shall write nothing.
+  - Tests: `TableGeneratorTests.SharedTileset_OneSetReferencedByBothMaps`, `TableGenerationProjectTests.PlanGeneration_WritesNothing`, `TableGeneratorTests.BuildOrder_PalettesBeforeArrangers`
 - **LIB-TABLES-121** — The report shall give the count of planned resources per type, every skipped record with its reason, and the warnings, each warning once.
   - Tests: `TableGeneratorTests.UndercountedSet_RaisedAndReported`, `TableGeneratorTests.EvaluationError_SkipsOutputAndReports`
 - **LIB-TABLES-122** — The manifest shall be written beside the definition as `<stem>.manifest.xml`, where the stem is the definition's file name without `.table.xml` (or without `.xml`).
@@ -239,6 +246,21 @@ Generates ordinary project resources (compressed data, palettes, metatile sets, 
   - Tests: `TableManifestTests.Rewrite_KeepsOtherGenerations`
 - **LIB-TABLES-134** — If a manifest is not well-formed or fails validation, then reading shall fail naming the file and the line.
   - Tests: `TableManifestTests.Invalid_FailsNamingLine`
+
+### Arranger outputs
+
+- **LIB-TABLES-150** — An `arranger` output shall have the expressions `offset` (the file offset of tile 0), `width` and `height` (in elements) and `tilestride` (bytes per tile), the names `codec` and `layout`, and optionally `elementwidth` and `elementheight` (integers 1 to 64, 8 by default) and `palette`, the id of a `palette` output of the same record type without `repeat`. An `indexmap` layout shall also have the expression `mapoffset` and optionally the integers `emptycode` and `runcode` (0 to 255). If a required attribute is missing, `palette` names anything else, or `mapoffset`, `emptycode` or `runcode` is on a `rect` layout, then loading shall fail.
+  - Tests: `TableDefinitionReaderTests.ArrangerOutput_MissingAttributes_FailsAtLoad`, `TableGeneratorTests.RectArranger_SequentialElements`
+- **LIB-TABLES-151** — A `rect` arranger shall place tile *n* in cell *n*, in rows of `width` cells.
+  - Tests: `TableGeneratorTests.RectArranger_SequentialElements`
+- **LIB-TABLES-152** — An `indexmap` arranger shall read bytes from `mapoffset` until it has `width × height` cells, in rows: the `emptycode` byte is one empty cell, the `runcode` byte followed by a count byte *n* is *n* empty cells, and any other byte is that tile index. Cells past `width × height` shall be cut off; if the data ends first, then it shall be an evaluation error naming the stream's offset and the cells read (LIB-TABLES-043).
+  - Tests: `TableGeneratorTests.IndexmapArranger_SkipCodes`, `TableGeneratorTests.IndexmapStreamPastEnd_SkipsAndReports`
+- **LIB-TABLES-153** — The element for tile *t* shall read the data file at `offset + t × tilestride`, bit 0. If `width × height` is more than 65536, or a tile's `tilestride` bytes extend past the end of the data, then it shall be an evaluation error.
+  - Tests: `TableGeneratorTests.RectArranger_SequentialElements`, `TableGeneratorTests.BossVariant_SelectsCodecByPointerBit`, `TableGeneratorTests.ArrangerOverElementLimit_SkipsAndReports`, `TableGeneratorTests.ArrangerTilePastEnd_SkipsAndReports`
+- **LIB-TABLES-154** — Every element shall use the resource of the `palette` output for the same record, which is the deduplicated palette (LIB-TABLES-072), or no palette (the global default) without `palette`. If that output generated no resource for the record, then the arranger shall be skipped as LIB-TABLES-076 says.
+  - Tests: `TableGeneratorTests.MonsterPalettes_DedupedAcrossOutputs`, `TableGeneratorTests.ArrangerPaletteNotGenerated_SkipsAndReports`
+- **LIB-TABLES-155** — The arranger shall be a scattered arranger model with the tiled layout, indexed color, `width × height` elements of `elementwidth × elementheight` pixels, each with the output's `codec`, the generation's data file and its cell's position, and no element in an empty cell.
+  - Tests: `TableGeneratorTests.RectArranger_SequentialElements`, `TableGeneratorTests.IndexmapArranger_SkipCodes`, `TableGenerationProjectTests.GenerateArrangers_SaveAndReloadWithoutDefinition`
 
 ### Generated resources
 
@@ -258,6 +280,8 @@ Generates ordinary project resources (compressed data, palettes, metatile sets, 
 - A resource skipped after naming (LIB-TABLES-076) still took its name, so a later resource with the same rendered name keeps its " 2".
 - A pointer row in a pointer table that is null adds no child and does not end the table; only `until` does.
 - `index` of an instance reached first through a pointer field is its parent's index, which can differ from a later row that reaches it.
+- An indexmap run that reaches past `width × height` is cut off like any other cell past the end.
+- Two monsters that share graphics with different palettes are two arrangers over the same offsets, each with its own palette; two identical records are two arrangers with the same content (FF4's Dark Elf `AB` and `AC`).
 - Dry run (planning) cannot see failures only the project builder raises, such as an unknown codec or overlapping set ranges; they fail the generation itself (LIB-PROJECT-SERVICE).
 
 ## Threading and lifetime
@@ -276,10 +300,16 @@ Generates ordinary project resources (compressed data, palettes, metatile sets, 
 - **Definitions are files, not project resources.** A definition lives anywhere, typically beside the project as `<game>.table.xml`, and its root is foreign to the project reader (LIB-PROJECT-FORMAT-005). Reason: one definition can serve several projects for the same game.
 - **The manifest is an open format.** It is XML validated by a published schema and documented in LIB-TABLES-130 to -134, and TileShop treats a manifest written by another program exactly like its own. Reason: a decompilation exporter or a script in any language can generate resources plus a manifest. Rejected: JSON (no schema in use in the project); a TileShop-private format.
 - **Charmaps are shared files.** One small XML file per text encoding, referenced by path from any definition. Reason: games of one engine share an encoding (FireRed, LeafGreen and Emerald). Rejected: charmaps inline in each definition.
-- **FireRed maps drive phase 1.** The first implementation is built and checked against the FireRed definition with the scratchpad script's 364-map result as the reference; the FF4 definition follows. Reason: user decision; FireRed exercises nested records, deduplication and metatile outputs.
+- **FireRed maps drive phase 1.** The first implementation is built and checked against the FireRed definition with the scratchpad script's 364-map result as the reference; the FF4 definition followed and is checked against the project `ff4gen.py` wrote. Reason: user decision; FireRed exercises nested records, deduplication and metatile outputs.
+- **`map(p)`, not a bank attribute.** FF4 stores 16-bit pointers whose bank only the code knows (boss tilemaps in bank `$0E`), and definitions name literal bases. `map(0x0E0000 | ptr)` maps such a pointer, and `map(0x098000) + …` keeps a literal base right whether or not the ROM has a copier header. Rejected: a `bank` attribute on pointer fields, which covers only the first case and would add an attribute to fields, tables and lookups; raw file offsets in expressions (wrong on a headered ROM).
+- **The tile stride is explicit.** An arranger's `tilestride` is an expression rather than taken from the codec. Reason: the generator needs no codec factory, a dry run resolves no codecs, and a stride that differs from the codec's size can be stated. Rejected: deriving it from the codec.
+- **No tile-bias attribute.** A bias on tile indexes is part of `offset` (`offset + bias × tilestride`). Reason: one expression already says it. Rejected: a separate `tilebias` attribute.
+- **The copier header is detected from the length.** Without `header`, a `snes-lorom` data source whose length modulo `0x8000` is 512 has a 512-byte header. Reason: one definition serves headered and headerless copies of a ROM, since copier headers are 512 bytes and ROMs are whole banks. Rejected: requiring `header` (two definitions per game); detecting from the header's contents (copiers wrote different contents).
+- **FF4's skip list is an index predicate.** The FF4 definition leaves out records `53`, `CA`–`CE` and `D6`–`DE` except `D8` by index, where `ff4gen.py` also compared the name with "Dummy". Reason: the expression grammar is integer-only, and the list is fixed for the game. Rejected: string comparison in expressions (a second value type for one definition). A hack that renames or reuses a dummy record needs the definition edited.
+- **Bit 0x40 of an FF4 boss's size byte is not a tile bias.** `ff4boss.py` added `0x100` to the tile index when it is set; `ff4gen.py`, which wrote the reference project, did not. Rendered both ways, Calbrena (`B3`), Elements (`C2`), Defender (`C6`), Titan (`CF`) and Attacker (`D5`) are whole sprites without the bias and noise or other monsters' tiles with it, and all six bosses that set the bit (with MomBomb `A4`) use tile indexes inside the room before the next monster's graphics only without it. The definition uses no bias. Rejected: the `ff4boss.py` reading.
 - **Name overrides are part of the definition.** Reason: a game's own text tables are sometimes misleading for a project tree (FireRed section `0xC4`), and the fix belongs with the definition every user of that game shares. Rejected: renaming after generation (lost on regeneration).
 - **Relocation is a separate proposal.** Moving a record's data and rewriting its pointer needs a free-space model shared with tilemap re-tile import.
-- **Shipped definitions live in `Samples/Tables`.** `FireRed.table.xml` and `gen3.charmap.xml` are kept in the repo as documentation and test fixtures, beside the other samples, and are not copied to the build output. Reason: tables are per game and per revision, so a shipped `_tables` folder that TileShop loads at startup would suggest a completeness it cannot have, while a sample is something to copy and adapt. Rejected: `docs/tables` (not loaded by tests through a stable path beside the code); a shipped `_tables` folder (per-revision data, see above).
+- **Shipped definitions live in `Samples/Tables`.** `FireRed.table.xml`, `FF4.table.xml` and their charmaps `gen3.charmap.xml` and `ff4.charmap.xml` are kept in the repo as documentation and test fixtures, beside the other samples, and are not copied to the build output. Reason: tables are per game and per revision, so a shipped `_tables` folder that TileShop loads at startup would suggest a completeness it cannot have, while a sample is something to copy and adapt. Rejected: `docs/tables` (not loaded by tests through a stable path beside the code); a shipped `_tables` folder (per-revision data, see above).
 - **Models then the project builder.** The generator produces LIB-PROJECT-FORMAT models with absolute keys, and LIB-PROJECT-SERVICE builds them into the open tree with `ProjectTreeBuilder`. Reason: generated resources get exactly the resolution, validation and error messages of a project load, and there is no second construction path to keep in step. Rejected: constructing `MetatileSet`, `Palette` and the others directly in the generator (a copy of the builder's checks).
 - **Unmapped bytes as `[XX]`.** A byte the charmap does not map renders as its hex value in brackets and is reported. Reason: the name stays readable and unique, and the report says which byte to add to the charmap. Rejected: dropping the byte (merges names); failing the lookup (loses every name for one stray byte).
 - **Sanitize generated names (not user names).** Generated names have forbidden characters removed and fall back to `<output id> <offset>`. Reason: game text holds characters such as `/` and `:` that the name rule forbids, and the user did not type these names, so refusing them would only block generation. The service's rule that typed names are refused, never sanitized (LIB-PROJECT-SERVICE "One rule for names"), still holds for names a user types.
@@ -295,9 +325,12 @@ Generates ordinary project resources (compressed data, palettes, metatile sets, 
 
 ## Open items
 
-- Pending: the `snes-lorom`, `snes-hirom`, `nes` and `gb` address mappers (accepted by the schema, refused at load).
-- Pending: the scattered arranger output (`arranger` with `rect`, `mask` and `indexmap` layouts), accepted by the schema and refused at load.
+- Pending: the `snes-hirom`, `nes` and `gb` address mappers (accepted by the schema, refused at load).
+- Pending: the arranger `mask` layout, accepted by the schema and refused at load. No game in scope uses it, so its bit order cannot be checked.
 - Pending: the generator plugin contract (LIB-PLUGINS).
-- Pending: regeneration (phase 2) and the FF4 definition. The UI generation dialog is UI-PROJECT-TREE-138 to -145.
+- Pending: regeneration (phase 2). The UI generation dialog is UI-PROJECT-TREE-138 to -145.
+- A bank-implied 16-bit pointer can be mapped with `map` but not followed with a field's `to`, which maps the raw field value.
+- FF4's "All Monsters" overview, which shelf-packs every monster into one arranger with per-element palettes, cannot be expressed: an output makes one resource per record.
 - The manifest is always written beside the definition; a `--manifest` location option could be added for read-only definition folders.
 - Manual: generating FireRed's maps from `Samples/Tables/FireRed.table.xml` into a copy of the FireRed project matches the scratchpad script's CLI export pixel for pixel for every layout a header reaches (see the proposal's Status line).
+- Manual: generating FF4's monsters from `Samples/Tables/FF4.table.xml` into a copy of the FF2 project gives the reference project's 209 arrangers and 195 palettes with the same elements, codecs, palettes and colors, pixel-identical in a CLI export; a copy of the ROM with a 512-byte header gives the same resources at offsets 512 higher.

@@ -177,12 +177,12 @@ public sealed class OutputDefinition
     public required IReadOnlyList<ConditionalTemplate> Folders { get; init; }
 
     /// <summary>
-    /// Attributes holding expressions, by attribute name (offset, entries, slot, count, firsttile, width, height)
+    /// Attributes holding expressions, by attribute name (offset, entries, slot, count, firsttile, width, height, tilestride, mapoffset)
     /// </summary>
     public required IReadOnlyDictionary<string, TableExpression> Expressions { get; init; }
 
     /// <summary>
-    /// Attributes holding names or literal values, by attribute name (compression, color, format, codec, order, layout, …)
+    /// Attributes holding names or literal values, by attribute name (compression, color, format, codec, order, layout, palette, …)
     /// </summary>
     public required IReadOnlyDictionary<string, string> Values { get; init; }
 

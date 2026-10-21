@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Final Fantasy IV (Final Fantasy II US, SNES, headerless or with a copier header) monster graphics: one scattered arranger per monster
+	and one palette per distinct palette address. Generate into a folder with
+	TileShopCLI generate <project> <rom data file key> FF4.table.xml <folder>
+	The shelf-packed "All Monsters" overview arranger is not generated. Bit 0x40 of a boss record's size byte is not a tile index bias:
+	rendered with a bias of 0x100 the six bosses that set it (A4, B3, C2, C6, CF, D5) read other monsters' tiles.
+-->
+<tabledefinition name="Final Fantasy IV (FF2 US) monsters" version="1">
+	<addressspace mapper="snes-lorom" />
+	<charmap name="ff4" file="ff4.charmap.xml" />
+
+	<!-- Bit 7 of size selects a boss record; pointer bit 15 clear means 4bpp tiles (Zeromus) -->
+	<record name="Monster" size="4">
+		<field name="size" offset="0" bits="8" />
+		<field name="palette" offset="1" bits="8" />
+		<field name="pointer" offset="2" bits="16" />
+		<variant name="boss" when="size &amp; 0x80">
+			<field name="boss" offset="0" bits="6" />
+		</variant>
+	</record>
+
+	<!-- Width and height in 8x8 tiles -->
+	<record name="SizeClass" size="2">
+		<field name="w" offset="0" bits="8" />
+		<field name="h" offset="1" bits="8" />
+	</record>
+
+	<record name="Boss" size="5">
+		<field name="unknown" offset="0" bits="8" />
+		<field name="sizeClass" offset="1" bits="6" />
+		<field name="palette" offset="2" bits="8" />
+		<field name="position" offset="3" bits="8" />
+		<field name="tilemap" offset="4" bits="8" />
+	</record>
+
+	<!-- A 16-bit pointer into bank $0E -->
+	<record name="MapPointer" size="2">
+		<field name="ptr" offset="0" bits="16" />
+	</record>
+
+	<lookup name="sizes" address="0x0DFF5E" record="SizeClass" count="64" />
+	<lookup name="bosses" address="0x0FCE00" record="Boss" count="64" />
+	<lookup name="bossMaps" address="0x0ECF00" record="MapPointer" count="64" />
+
+	<nametable name="names" address="0x0E9800" kind="fixed" width="8" count="223" charmap="ff4" />
+
+	<table name="monsters" address="0x0FCA00" record="Monster" count="223" />
+
+	<!--
+		Every output is limited to the real monsters: 53 and D6 to DE except D8 are named "Dummy", and CA to CE are unused.
+		The grammar compares integers only, so the list is by index.
+	-->
+	<output id="monsterPalette" record="Monster" type="palette"
+		when="index != 0x53 &amp; (index &lt; 0xCA | index > 0xCE) &amp; (index &lt; 0xD6 | index == 0xD8) &amp; (size &amp; 0x80) == 0"
+		offset="map(0x1CEE00) + palette * 16" entries="8" color="Bgr15" zeroindextransparent="true">
+		<name>MonsterPal{palette}</name>
+		<folder>Monster Palettes</folder>
+	</output>
+
+	<!-- A 4bpp boss reads 16 colors from the same palette table -->
+	<output id="bossPalette" record="Monster" type="palette" variant="boss"
+		when="index != 0x53 &amp; (index &lt; 0xCA | index > 0xCE) &amp; (index &lt; 0xD6 | index == 0xD8)"
+		offset="map(0x1CEE00) + bosses[boss].palette * 16" entries="pointer &amp; 0x8000 ? 8 : 16" color="Bgr15" zeroindextransparent="true">
+		<name when="(pointer &amp; 0x8000) == 0">MonsterPal{bosses[boss].palette}x16</name>
+		<name>MonsterPal{bosses[boss].palette}</name>
+		<folder>Monster Palettes</folder>
+	</output>
+
+	<output id="monster" record="Monster" type="arranger" layout="rect"
+		when="index != 0x53 &amp; (index &lt; 0xCA | index > 0xCE) &amp; (index &lt; 0xD6 | index == 0xD8) &amp; (size &amp; 0x80) == 0"
+		offset="map(0x098000) + (pointer &amp; 0x7FFF) * 8" width="sizes[size].w" height="sizes[size].h"
+		codec="SNES 3bpp" tilestride="24" palette="monsterPalette">
+		<name>{index:X2} {names[index]}</name>
+	</output>
+
+	<!-- A boss places tiles by a cell stream in bank $0E: FF is one empty cell, FE n is n empty cells, any other byte a tile index -->
+	<output id="boss" record="Monster" type="arranger" layout="indexmap" variant="boss"
+		when="index != 0x53 &amp; (index &lt; 0xCA | index > 0xCE) &amp; (index &lt; 0xD6 | index == 0xD8) &amp; (pointer &amp; 0x8000) != 0"
+		offset="map(0x098000) + (pointer &amp; 0x7FFF) * 8" width="sizes[bosses[boss].sizeClass].w" height="sizes[bosses[boss].sizeClass].h"
+		mapoffset="map(0x0E0000 | bossMaps[bosses[boss].tilemap].ptr)" emptycode="0xFF" runcode="0xFE"
+		codec="SNES 3bpp" tilestride="24" palette="bossPalette">
+		<name>{index:X2} {names[index]}</name>
+	</output>
+
+	<output id="boss4bpp" record="Monster" type="arranger" layout="indexmap" variant="boss"
+		when="index != 0x53 &amp; (index &lt; 0xCA | index > 0xCE) &amp; (index &lt; 0xD6 | index == 0xD8) &amp; (pointer &amp; 0x8000) == 0"
+		offset="map(0x098000) + (pointer &amp; 0x7FFF) * 8" width="sizes[bosses[boss].sizeClass].w" height="sizes[bosses[boss].sizeClass].h"
+		mapoffset="map(0x0E0000 | bossMaps[bosses[boss].tilemap].ptr)" emptycode="0xFF" runcode="0xFE"
+		codec="SNES 4bpp" tilestride="32" palette="bossPalette">
+		<name>{index:X2} {names[index]}</name>
+	</output>
+</tabledefinition>

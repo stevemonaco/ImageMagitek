@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text encoding of Final Fantasy IV (Final Fantasy II US, SNES); the subset monster names use. Strings end in 00, which fixed-width names never contain. -->
+<charmap name="ff4" terminator="00">
+	<run byte="42" text="ABCDEFGHIJKLMNOPQRSTUVWXYZ" />
+	<run byte="5C" text="abcdefghijklmnopqrstuvwxyz" />
+	<run byte="80" text="0123456789" />
+	<map byte="C1" text="." />
+	<map byte="C2" text="-" />
+	<map byte="FF" text=" " />
+</charmap>

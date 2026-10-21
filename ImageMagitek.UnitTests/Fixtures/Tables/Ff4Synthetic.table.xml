@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The FF4 definition's shape over Ff4ShapedData: 6 monsters in bank $00, boss cell streams in bank $01, index 4 skipped -->
+<tabledefinition name="FF4-shaped synthetic data" version="1">
+	<addressspace mapper="snes-lorom" />
+	<charmap name="ff4" file="ff4.charmap.xml" />
+
+	<record name="Monster" size="4">
+		<field name="size" offset="0" bits="8" />
+		<field name="palette" offset="1" bits="8" />
+		<field name="pointer" offset="2" bits="16" />
+		<variant name="boss" when="size &amp; 0x80">
+			<field name="boss" offset="0" bits="6" />
+		</variant>
+	</record>
+
+	<record name="SizeClass" size="2">
+		<field name="w" offset="0" bits="8" />
+		<field name="h" offset="1" bits="8" />
+	</record>
+
+	<record name="Boss" size="5">
+		<field name="sizeClass" offset="1" bits="6" />
+		<field name="palette" offset="2" bits="8" />
+		<field name="tilemap" offset="4" bits="8" />
+	</record>
+
+	<record name="MapPointer" size="2">
+		<field name="ptr" offset="0" bits="16" />
+	</record>
+
+	<lookup name="sizes" address="0x008200" record="SizeClass" count="3" />
+	<lookup name="bosses" address="0x008300" record="Boss" count="2" />
+	<lookup name="bossMaps" address="0x008400" record="MapPointer" count="2" />
+
+	<nametable name="names" address="0x008500" kind="fixed" width="8" count="6" charmap="ff4" />
+
+	<table name="monsters" address="0x008100" record="Monster" count="6" />
+
+	<output id="monsterPalette" record="Monster" type="palette" when="index != 4 &amp; (size &amp; 0x80) == 0"
+		offset="map(0x00E000) + palette * 16" entries="8" color="Bgr15" zeroindextransparent="true">
+		<name>MonsterPal{palette}</name>
+		<folder>Monster Palettes</folder>
+	</output>
+
+	<output id="bossPalette" record="Monster" type="palette" variant="boss" when="index != 4"
+		offset="map(0x00E000) + bosses[boss].palette * 16" entries="pointer &amp; 0x8000 ? 8 : 16" color="Bgr15" zeroindextransparent="true">
+		<name when="(pointer &amp; 0x8000) == 0">MonsterPal{bosses[boss].palette}x16</name>
+		<name>MonsterPal{bosses[boss].palette}</name>
+		<folder>Monster Palettes</folder>
+	</output>
+
+	<output id="monster" record="Monster" type="arranger" layout="rect" when="index != 4 &amp; (size &amp; 0x80) == 0"
+		offset="map(0x008000) + (pointer &amp; 0x7FFF) * 8" width="sizes[size].w" height="sizes[size].h"
+		codec="SNES 3bpp" tilestride="24" palette="monsterPalette">
+		<name>{index:X2} {names[index]}</name>
+	</output>
+
+	<output id="boss" record="Monster" type="arranger" layout="indexmap" variant="boss" when="index != 4 &amp; (pointer &amp; 0x8000) != 0"
+		offset="map(0x008000) + (pointer &amp; 0x7FFF) * 8" width="sizes[bosses[boss].sizeClass].w" height="sizes[bosses[boss].sizeClass].h"
+		mapoffset="map(0x010000 | bossMaps[bosses[boss].tilemap].ptr)" emptycode="0xFF" runcode="0xFE"
+		codec="SNES 3bpp" tilestride="24" palette="bossPalette">
+		<name>{index:X2} {names[index]}</name>
+	</output>
+
+	<output id="boss4bpp" record="Monster" type="arranger" layout="indexmap" variant="boss" when="index != 4 &amp; (pointer &amp; 0x8000) == 0"
+		offset="map(0x008000) + (pointer &amp; 0x7FFF) * 8" width="sizes[bosses[boss].sizeClass].w" height="sizes[bosses[boss].sizeClass].h"
+		mapoffset="map(0x010000 | bossMaps[bosses[boss].tilemap].ptr)" emptycode="0xFF" runcode="0xFE"
+		codec="SNES 4bpp" tilestride="32" palette="bossPalette">
+		<name>{index:X2} {names[index]}</name>
+	</output>
+</tabledefinition>

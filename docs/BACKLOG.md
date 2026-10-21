@@ -59,6 +59,9 @@ Found by reading the code, not reproduced, unless a test is named.
 - [LIB-CODECS] Platforms: Game Boy/GBC 2bpp (explicit entry), Master System 4bpp, PC Engine/TG16, N64 CI4/CI8/IA/I, NDS, Saturn, Neo Geo sprites, Atari/Lynx, WonderSwan; GBA/NDS BGR555 direct bitmap codecs.
 - [LIB-SCANNING] Container scanners: find self-describing graphics (PSX TIM first) in a data file and add them as arrangers and palettes, and browse archive entries through container-reader plugins: [change proposal](changes/container-scanners.md).
 - [LIB-TABLES] Table-driven resources: generate arrangers and palettes from a game's record tables through a declarative definition, regenerate them after the table changes, and relocate data by rewriting its pointer: [change proposal](changes/table-resources.md).
+- [LIB-TABLES] An overview output that packs every record's arranger into one arranger with per-element palettes, such as FF4's shelf-packed "All Monsters"; done when the FF4 definition can generate it.
+- [LIB-TABLES] The arranger `mask` layout, once a game that uses it can check its bit order; done when a definition with `layout="mask"` loads and generates.
+- [LIB-TABLES] Following a bank-implied 16-bit pointer with a field's `to` (today only `map` can map one); done when a game needs it and such a field reaches its record.
 - [LIB-TILEMAPS] Tilemap resources: a map read from data, decoded by a map format, edited in Arrange mode, plotted in Tiles mode and written back in place: [change proposal](changes/tilemaps.md).
 - [LIB-SCENES] Layered scenes: stack arrangers back to front with transparency into one composite view, export it, and draw on an active layer: [change proposal](changes/layers.md).
 - [LIB-METATILE-MAPS] Metatile maps: block maps drawn through shared metatile sets with layered metatiles, viewed composited and edited by plotting blocks, as in FireRed's overworld: [change proposal](changes/metatile-maps.md).

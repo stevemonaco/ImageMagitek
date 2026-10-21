@@ -282,4 +282,169 @@ public sealed class TableGeneratorTests : IDisposable
         Assert.Equal("2x2 tiles", plan.Find("/Gen/Screen")!.Summary);
         Assert.Equal(["palette", "palette", "tilemap"], plan.Resources.Select(x => x.Type));
     }
+
+    private GenerationPlan PlanFf4(bool header = false, Action<byte[]>? edit = null, Func<string, string>? editXml = null)
+    {
+        if (editXml is not null)
+            _context.Write("Ff4Synthetic.table.xml", editXml(File.ReadAllText(Path.Combine(TableTestContext.FixturesDirectory, "Ff4Synthetic.table.xml"))));
+
+        var result = _context.Load("Ff4Synthetic.table.xml");
+        Assert.True(result.HasSucceeded, result.HasFailed ? string.Join("\n", result.AsError.Reasons) : null);
+
+        var data = Ff4ShapedData.Create(header);
+        edit?.Invoke(data);
+        return new TableGenerator(result.AsSuccess.Result, _context.Files.Open("Ff4", data), "/Rom", "/Monsters", MapFormatTests.LoadShippedFormats()).Plan(ProjectFile);
+    }
+
+    private static ArrangerElementModel?[,] Grid(GenerationPlan plan, string key) => Model<ScatteredArrangerModel>(plan, key).ElementGrid;
+
+    [Fact]
+    public void RectArranger_SequentialElements()
+    {
+        var plan = PlanFf4();
+
+        var imp = Model<ScatteredArrangerModel>(plan, "/Monsters/00 Imp");
+        Assert.Equal((new System.Drawing.Size(2, 2), new System.Drawing.Size(8, 8), ElementLayout.Tiled, PixelColorType.Indexed),
+            (imp.ArrangerElementSize, imp.ElementPixelSize, imp.Layout, imp.ColorType));
+        Assert.Equal("2x2 elements", plan.Find("/Monsters/00 Imp")!.Summary);
+
+        var bomb = Model<ScatteredArrangerModel>(plan, "/Monsters/01 Bomb");
+        for (var n = 0; n < 6; n++)
+        {
+            var element = bomb.ElementGrid[n % 3, n / 3];
+            Assert.Equal((Ff4ShapedData.MonsterTiles + 24 * n, n % 3, n / 3), (element.FileAddress.ByteOffset, element.PositionX, element.PositionY));
+            Assert.Equal(("/Rom", "SNES 3bpp", "/Monsters/Monster Palettes/MonsterPal1"), (element.DataFileKey, element.CodecName, element.PaletteKey));
+        }
+
+        Assert.NotNull(plan.Find("/Monsters/05 Mt.Dr.Ab"));
+    }
+
+    [Fact]
+    public void IndexmapArranger_SkipCodes()
+    {
+        var plan = PlanFf4();
+
+        var golbez = Grid(plan, "/Monsters/02 Golbez");
+        int?[] expected = [0, null, 1, null, null, 3];
+        for (var n = 0; n < expected.Length; n++)
+        {
+            var element = golbez[n % 3, n / 3];
+            if (expected[n] is { } tile)
+                Assert.Equal(Ff4ShapedData.BossTiles + 24 * tile, element!.FileAddress.ByteOffset);
+            else
+                Assert.Null(element);
+        }
+
+        var zeromus = Grid(plan, "/Monsters/03 Zeromus");
+        Assert.Equal(Ff4ShapedData.Boss4bppTiles + 32 * 2, zeromus[0, 0]!.FileAddress.ByteOffset);
+        Assert.Single(zeromus.Cast<ArrangerElementModel?>(), x => x is not null);
+    }
+
+    [Fact]
+    public void IndexmapStreamPastEnd_SkipsAndReports()
+    {
+        var plan = PlanFf4(edit: data => (data[Ff4ShapedData.BossMaps], data[Ff4ShapedData.BossMaps + 1]) = (0xFE, 0xFF));
+
+        Assert.Null(plan.Find("/Monsters/02 Golbez"));
+        Assert.Contains(plan.Report.Skipped, x => x.Record == "Monster" && x.Offset == Ff4ShapedData.Monsters + 8 &&
+            x.Reason.Contains("output 'boss'") && x.Reason.Contains("cell stream at 0xFFFE ends after 2 of 6 cells"));
+        Assert.NotNull(plan.Find("/Monsters/03 Zeromus"));
+    }
+
+    [Fact]
+    public void ArrangerOverElementLimit_SkipsAndReports()
+    {
+        var plan = PlanFf4(editXml: xml => xml.Replace("width=\"sizes[size].w\" height=\"sizes[size].h\"", "width=\"300\" height=\"300\""));
+
+        Assert.Null(plan.Find("/Monsters/00 Imp"));
+        Assert.Contains(plan.Report.Skipped, x => x.Record == "Monster" && x.Offset == Ff4ShapedData.Monsters &&
+            x.Reason.Contains("output 'monster'") && x.Reason.Contains("arranger of 300x300 elements has more than 65536"));
+        Assert.NotNull(plan.Find("/Monsters/02 Golbez"));
+    }
+
+    [Fact]
+    public void ArrangerTilePastEnd_SkipsAndReports()
+    {
+        var plan = PlanFf4(edit: data => (data[Ff4ShapedData.Monsters + 22], data[Ff4ShapedData.Monsters + 23]) = (0xFD, 0x1F));
+
+        Assert.Null(plan.Find("/Monsters/05 Mt.Dr.Ab"));
+        Assert.Contains(plan.Report.Skipped, x => x.Record == "Monster" && x.Offset == Ff4ShapedData.Monsters + 20 &&
+            x.Reason.Contains("output 'monster'") && x.Reason.Contains("tile 1 at 0x10000 is past the end of the data"));
+        Assert.NotNull(plan.Find("/Monsters/00 Imp"));
+    }
+
+    [Fact]
+    public void ArrangerPaletteNotGenerated_SkipsAndReports()
+    {
+        var plan = PlanFf4(editXml: xml => xml.Replace("""type="palette" when="index != 4 """, """type="palette" when="index != 4 &amp; index != 5 """));
+
+        Assert.Null(plan.Find("/Monsters/05 Mt.Dr.Ab"));
+        Assert.Null(plan.Find("/Monsters/Monster Palettes/MonsterPal3"));
+        Assert.Contains(plan.Report.Skipped, x => x.Record == "Monster" && x.Offset == Ff4ShapedData.Monsters + 20 &&
+            x.Reason.Contains("output 'monster': palette output 'monsterPalette' generated no resource"));
+        Assert.NotNull(plan.Find("/Monsters/00 Imp"));
+    }
+
+    [Fact]
+    public void BossVariant_SelectsCodecByPointerBit()
+    {
+        var plan = PlanFf4();
+
+        var golbez = Grid(plan, "/Monsters/02 Golbez")[0, 0]!;
+        var zeromus = Grid(plan, "/Monsters/03 Zeromus")[0, 0]!;
+        Assert.Equal(("SNES 3bpp", "/Monsters/Monster Palettes/MonsterPal2"), (golbez.CodecName, golbez.PaletteKey));
+        Assert.Equal(("SNES 4bpp", "/Monsters/Monster Palettes/MonsterPal2x16"), (zeromus.CodecName, zeromus.PaletteKey));
+        Assert.Equal(("boss", "boss4bpp"), (plan.Find("/Monsters/02 Golbez")!.OutputId, plan.Find("/Monsters/03 Zeromus")!.OutputId));
+        Assert.Equal((8, 16), (plan.Find("/Monsters/Monster Palettes/MonsterPal2")!.Entries, plan.Find("/Monsters/Monster Palettes/MonsterPal2x16")!.Entries));
+    }
+
+    [Fact]
+    public void MonsterPalettes_DedupedAcrossOutputs()
+    {
+        var plan = PlanFf4();
+
+        Assert.Equal(["MonsterPal1", "MonsterPal3", "MonsterPal2", "MonsterPal2x16"], plan.Resources.Where(x => x.Type == "palette").Select(x => x.Name));
+        Assert.All(plan.Resources.Where(x => x.Type == "palette"), x => Assert.Equal("/Monsters/Monster Palettes", x.ParentKey));
+        Assert.Equal(Grid(plan, "/Monsters/00 Imp")[0, 0]!.PaletteKey, Grid(plan, "/Monsters/01 Bomb")[0, 0]!.PaletteKey);
+
+        var eight = Assert.IsType<FileColorSourceModel>(Assert.Single(Model<PaletteModel>(plan, "/Monsters/Monster Palettes/MonsterPal2").ColorSources));
+        var sixteen = Assert.IsType<FileColorSourceModel>(Assert.Single(Model<PaletteModel>(plan, "/Monsters/Monster Palettes/MonsterPal2x16").ColorSources));
+        Assert.Equal((Ff4ShapedData.Palettes + 32, 8), (eight.FileAddress, eight.Entries));
+        Assert.Equal((Ff4ShapedData.Palettes + 32, 16), (sixteen.FileAddress, sixteen.Entries));
+    }
+
+    [Fact]
+    public void BankImpliedPointer_MapsThroughLoRom()
+    {
+        var plain = PlanFf4();
+        var headered = PlanFf4(header: true);
+
+        Assert.Equal(plain.Resources.Select(x => x.Key), headered.Resources.Select(x => x.Key));
+        Assert.Equal(plain.Resources.Select(x => x.Offset + SnesLoRomAddressMapper.CopierHeaderSize), headered.Resources.Select(x => x.Offset));
+
+        var golbez = Grid(headered, "/Monsters/02 Golbez");
+        Assert.Equal(Ff4ShapedData.BossTiles + SnesLoRomAddressMapper.CopierHeaderSize + 24 * 3, golbez[2, 1]!.FileAddress.ByteOffset);
+        Assert.Null(golbez[1, 0]);
+        Assert.Empty(headered.Report.Skipped);
+    }
+
+    [Fact]
+    public void SkipPredicate_LeavesNoResources()
+    {
+        var plan = PlanFf4();
+
+        Assert.DoesNotContain(plan.Resources, x => x.Offset == Ff4ShapedData.Monsters + 16 || x.Name.Contains("Dummy") || x.Name == "MonsterPal5");
+        Assert.Equal(5, plan.Resources.Count(x => x.Type == "arranger"));
+        Assert.Empty(plan.Report.Skipped);
+        Assert.Empty(plan.Report.Warnings);
+    }
+
+    [Fact]
+    public void BuildOrder_PalettesBeforeArrangers()
+    {
+        var plan = PlanFf4();
+
+        Assert.Equal(["palette", "arranger"], plan.Resources.Select(x => x.Type).Distinct());
+        Assert.Equal([("palette", 4), ("arranger", 5)], plan.Report.Counts);
+    }
 }

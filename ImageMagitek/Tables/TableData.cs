@@ -17,7 +17,10 @@ internal sealed class TableData
 
     public TableDefinition Definition { get; }
     public DataSource Source { get; }
-    public IAddressMapper Mapper => Definition.Mapper;
+    /// <summary>
+    /// The definition's mapper resolved against the data length, so a detected copier header applies to every pointer
+    /// </summary>
+    public IAddressMapper Mapper { get; }
     public long Length { get; }
     public IReadOnlyList<string> Warnings => _warnings;
 
@@ -26,6 +29,7 @@ internal sealed class TableData
         Definition = definition;
         Source = source;
         Length = source.Length;
+        Mapper = definition.Mapper.ForDataLength(Length);
     }
 
     public void Warn(string warning)

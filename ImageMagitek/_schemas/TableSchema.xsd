@@ -261,6 +261,13 @@
     <xs:attribute name="width" type="expression" use="optional" />
     <xs:attribute name="height" type="expression" use="optional" />
     <xs:attribute name="layout" type="xs:string" use="optional" />
+    <xs:attribute name="elementwidth" type="integer" use="optional" />
+    <xs:attribute name="elementheight" type="integer" use="optional" />
+    <xs:attribute name="tilestride" type="expression" use="optional" />
+    <xs:attribute name="palette" type="name" use="optional" />
+    <xs:attribute name="mapoffset" type="expression" use="optional" />
+    <xs:attribute name="emptycode" type="integer" use="optional" />
+    <xs:attribute name="runcode" type="integer" use="optional" />
   </xs:complexType>
 
 </xs:schema>

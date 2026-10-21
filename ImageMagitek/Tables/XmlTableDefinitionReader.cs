@@ -19,7 +19,7 @@ public sealed class XmlTableDefinitionReader
     public const string CharmapSchemaFileName = "CharmapSchema.xsd";
     public const string ManifestSchemaFileName = "TableManifestSchema.xsd";
 
-    private static readonly HashSet<string> _reservedNames = ["index", "address", "i", "slot", "context", "min", "max", "name", "n"];
+    private static readonly HashSet<string> _reservedNames = ["index", "address", "i", "slot", "context", "min", "max", "map", "name", "n"];
 
     private readonly string _schemaDirectory;
     private readonly XmlSchemaSet _schemas;
@@ -59,7 +59,7 @@ public sealed class XmlTableDefinitionReader
         private readonly Dictionary<string, NameTable> _nameTables = [];
         private readonly List<OutputDefinition> _outputs = [];
         private readonly List<TableDeclaration> _tableList = [];
-        private Dictionary<string, (string Type, string Record)> _outputHeaders = [];
+        private Dictionary<string, (string Type, string Record, bool Repeated)> _outputHeaders = [];
         private readonly HashSet<string> _declaredNames = [];
         private Dictionary<string, IReadOnlySet<string>> _lookupFields = [];
 
@@ -93,7 +93,8 @@ public sealed class XmlTableDefinitionReader
 
             _outputHeaders = root.Elements("output")
                 .GroupBy(x => x.Attribute("id")!.Value)
-                .ToDictionary(x => x.Key, x => (x.First().Attribute("type")!.Value, x.First().Attribute("record")!.Value));
+                .ToDictionary(x => x.Key, x => (x.First().Attribute("type")!.Value, x.First().Attribute("record")!.Value,
+                    x.Any(e => e.Attribute("repeat") is not null)));
 
             foreach (var element in root.Elements("output"))
                 ReadOutput(element);
@@ -207,7 +208,7 @@ public sealed class XmlTableDefinitionReader
 
         private IAddressMapper? ReadAddressSpace(XElement element)
         {
-            var result = AddressMappers.Create(element.Attribute("mapper")!.Value, Integer(element, "base", 0)!.Value);
+            var result = AddressMappers.Create(element.Attribute("mapper")!.Value, Integer(element, "base", 0)!.Value, Integer(element, "header"));
             if (result.HasSucceeded)
                 return result.AsSuccess.Result;
 
@@ -480,18 +481,13 @@ public sealed class XmlTableDefinitionReader
             }
 
             var typeName = element.Attribute("type")!.Value;
-            if (typeName == "arranger")
-            {
-                Error(element, "type", "output type 'arranger' is not implemented yet");
-                return;
-            }
-
             var type = typeName switch
             {
                 "compresseddata" => OutputType.CompressedData,
                 "palette" => OutputType.Palette,
                 "metatileset" => OutputType.MetatileSet,
                 "metatilemap" => OutputType.MetatileMap,
+                "arranger" => OutputType.Arranger,
                 _ => OutputType.Tilemap
             };
 
@@ -591,9 +587,40 @@ public sealed class XmlTableDefinitionReader
                     Value("layout", false);
                     values["emptytile"] = IntegerInRange(element, "emptytile", 0, 0, int.MaxValue).ToString(CultureInfo.InvariantCulture);
                     break;
+                case OutputType.Arranger:
+                    Expr("width", true);
+                    Expr("height", true);
+                    Expr("tilestride", true);
+                    Value("codec", true);
+                    Value("layout", true);
+                    Value("palette", false);
+                    values["elementwidth"] = IntegerInRange(element, "elementwidth", 8, 1, 64).ToString(CultureInfo.InvariantCulture);
+                    values["elementheight"] = IntegerInRange(element, "elementheight", 8, 1, 64).ToString(CultureInfo.InvariantCulture);
+
+                    string[] codes = ["emptycode", "runcode"];
+                    switch (element.Attribute("layout")?.Value)
+                    {
+                        case "indexmap":
+                            Expr("mapoffset", true);
+                            foreach (var code in codes.Where(x => element.Attribute(x) is not null))
+                                values[code] = IntegerInRange(element, code, 0, 0, 255).ToString(CultureInfo.InvariantCulture);
+                            break;
+                        case "rect":
+                            foreach (var attribute in codes.Prepend("mapoffset").Where(x => element.Attribute(x) is not null))
+                                Error(element, attribute, "applies only to an arranger with the 'indexmap' layout");
+                            break;
+                        case "mask":
+                            Error(element, "layout", "arranger layout 'mask' is not implemented yet");
+                            break;
+                        case { } arrangerLayout:
+                            Error(element, "layout", $"unknown arranger layout '{arrangerLayout}'");
+                            break;
+                    }
+                    break;
             }
 
-            if (values.TryGetValue("layout", out var layout) && !IsValid(() => MapScreenLayoutExtensions.FromXmlName(layout)))
+            if (type is OutputType.Tilemap or OutputType.MetatileMap && values.TryGetValue("layout", out var layout)
+                && !IsValid(() => MapScreenLayoutExtensions.FromXmlName(layout)))
                 Error(element, "layout", $"unknown map screen layout '{layout}'");
 
             var tiles = new List<TileSource>();
@@ -733,6 +760,14 @@ public sealed class XmlTableDefinitionReader
 
             if (output.PaletteSlotsOutput is { } paletteOutput && !IsOutput(paletteOutput, "palette", output.Record.Name))
                 Error(element, "paletteslots", $"'{paletteOutput}' is not a palette output of record type '{output.Record.Name}'");
+
+            if (output.Type == OutputType.Arranger && output.Value("palette") is { } arrangerPalette)
+            {
+                if (!IsOutput(arrangerPalette, "palette", output.Record.Name))
+                    Error(element, "palette", $"'{arrangerPalette}' is not a palette output of record type '{output.Record.Name}'");
+                else if (_outputHeaders[arrangerPalette].Repeated)
+                    Error(element, "palette", $"palette output '{arrangerPalette}' has 'repeat', so it is not one palette per record");
+            }
 
             foreach (var set in output.Sets)
             {

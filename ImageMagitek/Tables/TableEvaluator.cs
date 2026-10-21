@@ -94,6 +94,10 @@ internal sealed class EvaluationScope(TableData data) : IExpressionScope
         : throw new TableEvaluationException($"{Owner} has no {ContextType?.Name ?? "context"} ancestor");
 
     public long GetLookupValue(string lookup, long index, string field) => data.ReadLookup(lookup, index, field);
+
+    public long MapPointer(long pointer) => data.Mapper.TryMap(pointer, out var offset)
+        ? offset
+        : throw new TableEvaluationException($"pointer 0x{pointer:X} is unmapped");
 }
 
 /// <summary>

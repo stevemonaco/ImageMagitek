@@ -45,7 +45,7 @@ public sealed class GenerationPlan
     public required string ManifestSchemaFileName { get; init; }
 
     /// <summary>
-    /// Resources in build order: compressed data, palettes, metatile sets, tilemaps, metatile maps
+    /// Resources in build order: compressed data, palettes, arrangers, metatile sets, tilemaps, metatile maps
     /// </summary>
     public required IReadOnlyList<PlannedResource> Resources { get; init; }
 
