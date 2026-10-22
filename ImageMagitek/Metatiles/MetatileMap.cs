@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
@@ -28,7 +29,8 @@ public sealed class MetatileMap : IProjectResource, IDisposable
     private ArrangerElement?[][,] _layerGrids;
     private uint?[,] _blockValues;
     private int?[,] _blockNumbers;
-    private volatile bool _isDirty = true;
+    private int _version = 1;
+    private int _builtVersion;
     private string? _mapError;
 
     public string Name { get; set; }
@@ -209,7 +211,7 @@ public sealed class MetatileMap : IProjectResource, IDisposable
     /// </summary>
     public void SetLayerVisible(int layer, bool isVisible) => _layerVisible[layer] = isVisible;
 
-    private void OnSourceWritten(object? sender, EventArgs e) => _isDirty = true;
+    private void OnSourceWritten(object? sender, EventArgs e) => Interlocked.Increment(ref _version);
 
     internal ArrangerElement?[,] GetLayerGrid(int layer)
     {
@@ -219,15 +221,17 @@ public sealed class MetatileMap : IProjectResource, IDisposable
 
     private void EnsureBuilt()
     {
-        if (!_isDirty)
+        if (Volatile.Read(ref _builtVersion) == Volatile.Read(ref _version))
             return;
 
         lock (_gridLock)
         {
-            if (_isDirty)
+            // Read before rebuilding so a DataWritten raised during the rebuild schedules another
+            var version = Volatile.Read(ref _version);
+            if (_builtVersion != version)
             {
                 Rebuild();
-                _isDirty = false;
+                Volatile.Write(ref _builtVersion, version);
             }
         }
     }

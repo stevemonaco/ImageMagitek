@@ -141,7 +141,7 @@ public sealed class TableGenerationProjectTests : IAsyncLifetime
         {
             Assert.True(_context.Tree.TryGetNode(resource.Key, out var node));
             Assert.True(File.Exists(node.DiskLocation));
-            Assert.True(node.Model!.ResourceEquals(resource.Model));
+            Assert.Equal(resource.Model, node.Model);
         }
 
         Assert.Equal("1.1", XDocument.Load(_context.ProjectFile).Root!.Attribute("version")!.Value);

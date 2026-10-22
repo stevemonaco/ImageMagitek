@@ -1,19 +1,15 @@
-﻿using ImageMagitek.Colors;
+using System;
+using ImageMagitek.Colors;
 
 namespace ImageMagitek.Project.Serialization;
 
-public class ProjectForeignColorSourceModel : IColorSourceModel
+/// <summary>
+/// A foreign color; equality compares the color's type and packed value
+/// </summary>
+public sealed record ProjectForeignColorSourceModel(IColor Value) : IColorSourceModel
 {
-    public IColor Value { get; set; }
+    public bool Equals(ProjectForeignColorSourceModel? other) =>
+        other is not null && other.Value.GetType() == Value.GetType() && other.Value.Color == Value.Color;
 
-    public ProjectForeignColorSourceModel(IColor value)
-    {
-        Value = value;
-    }
-
-    public bool ResourceEquals(IColorSourceModel sourceModel)
-    {
-        return sourceModel is ProjectForeignColorSourceModel model && model.Value.GetType() == Value.GetType() &&
-            model.Value.Color == Value.Color;
-    }
+    public override int GetHashCode() => HashCode.Combine(Value.GetType(), Value.Color);
 }

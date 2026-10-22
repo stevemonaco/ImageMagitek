@@ -73,6 +73,7 @@ public sealed class WriteAheadLogTransaction
         catch (Exception ex)
         {
             CleanupStagingFiles(journal);
+            TryDeleteJournal();
             return new MagitekResults.Failed(new[] { $"Failed to write transaction journal: {ex.Message}" });
         }
 
@@ -120,6 +121,9 @@ public sealed class WriteAheadLogTransaction
     public static async Task<MagitekResult> RecoverAsync(string journalDirectory)
     {
         var journalPath = Path.Combine(journalDirectory, JournalFileName);
+
+        // A leftover temp is a journal write that never replaced the journal
+        TryDeleteFile(journalPath + ".tmp");
 
         if (!File.Exists(journalPath))
             return MagitekResult.SuccessResult;
@@ -213,7 +217,9 @@ public sealed class WriteAheadLogTransaction
     private async Task WriteJournalAsync(WalJournal journal)
     {
         var json = JsonSerializer.Serialize(journal, _jsonOptions);
-        await File.WriteAllTextAsync(_journalPath, json).ConfigureAwait(false);
+        var tempPath = _journalPath + ".tmp";
+        await File.WriteAllTextAsync(tempPath, json).ConfigureAwait(false);
+        File.Move(tempPath, _journalPath, true);
     }
 
     /// <summary>
@@ -270,6 +276,7 @@ public sealed class WriteAheadLogTransaction
 
     private void TryDeleteJournal()
     {
+        TryDeleteFile(_journalPath + ".tmp");
         TryDeleteFile(_journalPath);
     }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
@@ -23,7 +24,8 @@ public sealed class TilemapArranger : Arranger, IDisposable
     private readonly ConditionalWeakTable<IGraphicsCodec, StrongBox<int>> _codecSlots = new();
     private ArrangerElement?[,] _grid;
     private int[,] _gridSlots;
-    private volatile bool _isDirty = true;
+    private int _version = 1;
+    private int _builtVersion;
     private string? _mapError;
     private int _highestTileIndex;
     private int _outOfRangeCount;
@@ -199,19 +201,21 @@ public sealed class TilemapArranger : Arranger, IDisposable
             TileSource.DataWritten += OnSourceWritten;
     }
 
-    private void OnSourceWritten(object? sender, EventArgs e) => _isDirty = true;
+    private void OnSourceWritten(object? sender, EventArgs e) => Interlocked.Increment(ref _version);
 
     private void EnsureGrid()
     {
-        if (!_isDirty)
+        if (Volatile.Read(ref _builtVersion) == Volatile.Read(ref _version))
             return;
 
         lock (_gridLock)
         {
-            if (_isDirty)
+            // Read before rebuilding so a DataWritten raised during the rebuild schedules another
+            var version = Volatile.Read(ref _version);
+            if (_builtVersion != version)
             {
                 Rebuild();
-                _isDirty = false;
+                Volatile.Write(ref _builtVersion, version);
             }
         }
     }

@@ -168,6 +168,17 @@ public sealed class TilemapArrangerTests : IDisposable
     }
 
     [Fact]
+    public void DataWrittenDuringRebuild_RebuildsOnNextRead()
+    {
+        using var map = new WriteDuringReadDataSource("map", Entry16(1));
+        using var tilemap = Create(map, _gba, MapScreenLayout.Linear, 1, 1);
+        map.WriteOnNextRead(Entry16(2));
+
+        Assert.Equal(1 * TileBytes, tilemap.GetElement(0, 0)!.Value.SourceAddress.ByteOffset);
+        Assert.Equal(2 * TileBytes, tilemap.GetElement(0, 0)!.Value.SourceAddress.ByteOffset);
+    }
+
+    [Fact]
     public void UncompressedTilemap_IsWritable()
     {
         _map.Write(Entry16(0));

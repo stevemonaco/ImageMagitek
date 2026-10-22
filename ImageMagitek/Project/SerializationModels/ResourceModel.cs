@@ -1,8 +1,6 @@
-﻿namespace ImageMagitek.Project.Serialization;
+namespace ImageMagitek.Project.Serialization;
 
-public abstract class ResourceModel
+public abstract record ResourceModel
 {
-    public abstract required string Name { get; init; }
-
-    public abstract bool ResourceEquals(ResourceModel? model);
+    public required string Name { get; init; }
 }

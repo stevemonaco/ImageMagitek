@@ -57,28 +57,6 @@ public sealed class TableRegenerationTests : IDisposable
     private static RegeneratedResource Find(RegenerationPlan regeneration, string plannedKey) =>
         Assert.Single(regeneration.Resources, x => x.Planned.Key == plannedKey);
 
-    private static MetatileSetModel CopySet(MetatileSetModel set, int? count = null, IReadOnlyDictionary<int, string>? slots = null) => new()
-    {
-        Name = set.Name,
-        MetatileDataKey = set.MetatileDataKey,
-        MetatileOffset = set.MetatileOffset,
-        MetatileCount = count ?? set.MetatileCount,
-        MetatileWidth = set.MetatileWidth,
-        MetatileHeight = set.MetatileHeight,
-        Layers = set.Layers,
-        FormatName = set.FormatName,
-        Order = set.Order,
-        TileDataKey = set.TileDataKey,
-        TileOffset = set.TileOffset,
-        CodecName = set.CodecName,
-        FirstTile = set.FirstTile,
-        TileCount = set.TileCount,
-        PaletteSlots = slots ?? set.PaletteSlots,
-        AttributeDataKey = set.AttributeDataKey,
-        AttributeOffset = set.AttributeOffset,
-        AttributeSize = set.AttributeSize
-    };
-
     private static List<RegenerationEntry> Replace(List<RegenerationEntry> entries, string key, Func<RegenerationEntry, RegenerationEntry> replace) =>
         entries.Select(x => x.Entry.Key == key ? replace(x) : x).ToList();
 
@@ -152,11 +130,12 @@ public sealed class TableRegenerationTests : IDisposable
     public void ChangeKinds_Described()
     {
         var entries = EntriesOf(Plan());
-        entries = Replace(entries, PalletSet, x => x with
+        entries = Replace(entries, PalletSet, x =>
         {
-            CurrentModel = CopySet((MetatileSetModel)x.CurrentModel!, slots: ((MetatileSetModel)x.CurrentModel!).PaletteSlots.ToDictionary(slot => slot.Key, slot => "/Other"))
+            var set = (MetatileSetModel)x.CurrentModel!;
+            return x with { CurrentModel = set with { PaletteSlots = set.PaletteSlots.ToDictionary(slot => slot.Key, slot => "/Other") } };
         });
-        entries = Replace(entries, ViridianSet, x => x with { CurrentModel = CopySet((MetatileSetModel)x.CurrentModel!, count: 99) });
+        entries = Replace(entries, ViridianSet, x => x with { CurrentModel = (MetatileSetModel)x.CurrentModel! with { MetatileCount = 99 } });
 
         var regeneration = RegenerationPlan.Match(Plan(Repoint, x => x.Replace("{name:layoutMap} Border", "{name:layoutMap} Edge")), entries, false);
 
@@ -178,7 +157,7 @@ public sealed class TableRegenerationTests : IDisposable
             .Append(ExtraPalette("/Generated/Gone", 0x7F00))
             .Append(ExtraPalette("/Generated/Used", 0x7F20))
             .ToList();
-        entries = Replace(entries, ViridianSet, x => x with { CurrentModel = CopySet((MetatileSetModel)x.CurrentModel!, count: 99), IsEdited = true });
+        entries = Replace(entries, ViridianSet, x => x with { CurrentModel = (MetatileSetModel)x.CurrentModel! with { MetatileCount = 99 }, IsEdited = true });
         entries = Replace(entries, Border, x => x with { CurrentKey = null, CurrentModel = null });
         var plan = Plan(Repoint);
 
@@ -248,7 +227,7 @@ public sealed class TableRegenerationTests : IDisposable
         var entries = Replace(DeletePalette(EntriesOf(plan), palette), PalletSet, x => x with
         {
             CurrentKey = moved,
-            CurrentModel = CopySet((MetatileSetModel)x.CurrentModel!, count: 99)
+            CurrentModel = (MetatileSetModel)x.CurrentModel! with { MetatileCount = 99 }
         });
         var setEntry = entries.Single(x => x.Entry.Key == PalletSet).Entry;
 
@@ -262,5 +241,23 @@ public sealed class TableRegenerationTests : IDisposable
         Assert.Contains(((MetatileMapModel)Find(regeneration, MapA).Model).Sets, x => x.SetKey == moved);
         var generation = regeneration.ToManifestGeneration(plan.ManifestGeneration, new Dictionary<string, string>());
         Assert.Equal(setEntry with { Key = moved }, Assert.Single(generation.Resources, x => x.Key == moved));
+    }
+
+    public static TheoryData<Type> RegenerableTypes => new(ModelSamples.RegenerableTypes);
+
+    [Theory]
+    [MemberData(nameof(RegenerableTypes))]
+    public void WithKeys_RoundTripPreservesEveryProperty(Type type)
+    {
+        var model = (ResourceModel)ModelSamples.Create(type);
+
+        var remapped = RegenerationPlan.WithKeys(model, "Other", key => key + "'");
+        var back = RegenerationPlan.WithKeys(remapped, model.Name, key => key[..^1]);
+
+        Assert.Equal("Other", remapped.Name);
+        Assert.NotEmpty(RegenerationPlan.ReferencedKeys(remapped));
+        Assert.All(RegenerationPlan.ReferencedKeys(remapped), x => Assert.EndsWith("'", x));
+        Assert.Equal(model.Name, back.Name);
+        Assert.Equal(model, back);
     }
 }

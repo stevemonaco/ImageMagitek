@@ -454,38 +454,33 @@ public sealed class XmlProjectReader : IProjectReader
 
     private bool TryDeserializePalette(XElement element, string xmlFileName, string resourceName, out PaletteModel paletteModel)
     {
-        var model = new PaletteModel()
-        {
-            Name = resourceName,
-        };
-        model.DataFileKey = element.Attribute("datafile").Value;
-        model.ColorModel = Palette.StringToColorModel(element.Attribute("color").Value);
-        model.ZeroIndexTransparent = bool.Parse(element.Attribute("zeroindextransparent").Value);
-        paletteModel = model;
+        paletteModel = null;
+        var dataFileKey = element.Attribute("datafile").Value;
+        var colorModel = Palette.StringToColorModel(element.Attribute("color").Value);
+        var zeroIndexTransparent = bool.Parse(element.Attribute("zeroindextransparent").Value);
+        var sources = new List<IColorSourceModel>();
 
         var colorIndex = 0;
         foreach (var item in element.Elements())
         {
             if (item.Name.LocalName == "filesource")
             {
-                var source = new FileColorSourceModel();
                 var fileOffset = long.Parse(item.Attribute("fileoffset").Value, System.Globalization.NumberStyles.HexNumber);
-                source.FileAddress = fileOffset;
-
-                source.Entries = int.Parse(item.Attribute("entries").Value);
-                colorIndex += source.Entries;
+                var entries = int.Parse(item.Attribute("entries").Value);
+                var endian = Endian.Little;
+                colorIndex += entries;
 
                 if (item.Attribute("endian") is not null)
                 {
                     if (item.Attribute("endian").Value == "big")
-                        source.Endian = Endian.Big;
+                        endian = Endian.Big;
                     else if (item.Attribute("endian").Value == "little")
-                        source.Endian = Endian.Little;
+                        endian = Endian.Little;
                     else
                         _errors.Add($"'endian' has unknown value '{item.Attribute("endian").Value}'");
                 }
 
-                model.ColorSources.Add(source);
+                sources.Add(new FileColorSourceModel(fileOffset, entries, endian));
             }
             else if (item.Name.LocalName == "nativecolor")
             {
@@ -493,16 +488,16 @@ public sealed class XmlProjectReader : IProjectReader
                 if (!ColorParser.TryParse(value, ColorModel.Rgba32, out var nativeColor))
                     return FailColor(value, ColorModel.Rgba32);
 
-                model.ColorSources.Add(new ProjectNativeColorSourceModel((ColorRgba32)nativeColor));
+                sources.Add(new ProjectNativeColorSourceModel((ColorRgba32)nativeColor));
                 colorIndex++;
             }
             else if (item.Name.LocalName == "foreigncolor")
             {
                 var value = item.Attribute("value").Value;
-                if (!ColorParser.TryParse(value, model.ColorModel, out var foreignColor))
-                    return FailColor(value, model.ColorModel);
+                if (!ColorParser.TryParse(value, colorModel, out var foreignColor))
+                    return FailColor(value, colorModel);
 
-                model.ColorSources.Add(new ProjectForeignColorSourceModel(foreignColor));
+                sources.Add(new ProjectForeignColorSourceModel(foreignColor));
                 colorIndex++;
             }
             else if (item.Name.LocalName == "scatteredcolor")
@@ -512,7 +507,7 @@ public sealed class XmlProjectReader : IProjectReader
 
                 try
                 {
-                    Palette.ValidateScatteredFields(ScatteredColorSource.ExpandRun(entries, runs), model.ColorModel, _colorFactory);
+                    Palette.ValidateScatteredFields(ScatteredColorSource.ExpandRun(entries, runs), colorModel, _colorFactory);
                 }
                 catch (ColorFieldException ex)
                 {
@@ -520,7 +515,7 @@ public sealed class XmlProjectReader : IProjectReader
                     return false;
                 }
 
-                model.ColorSources.Add(new ScatteredColorSourceModel(entries, runs));
+                sources.Add(new ScatteredColorSourceModel(entries, runs));
                 colorIndex += entries;
             }
         }
@@ -531,6 +526,14 @@ public sealed class XmlProjectReader : IProjectReader
             return false;
         }
 
+        paletteModel = new PaletteModel()
+        {
+            Name = resourceName,
+            DataFileKey = dataFileKey,
+            ColorModel = colorModel,
+            ZeroIndexTransparent = zeroIndexTransparent,
+            ColorSources = sources
+        };
         return true;
 
         static ColorFieldRun ReadField(XElement field)
@@ -554,38 +557,28 @@ public sealed class XmlProjectReader : IProjectReader
     {
         var elementsx = int.Parse(element.Attribute("elementsx").Value); // Width of arranger in elements
         var elementsy = int.Parse(element.Attribute("elementsy").Value); // Height of arranger in elements
-
-        var model = new ScatteredArrangerModel()
-        {
-            Name = resourceName,
-            ElementGrid = new ArrangerElementModel[elementsx, elementsy],
-            ArrangerElementSize = new Size(elementsx, elementsy),
-        };
-
         var width = int.Parse(element.Attribute("width").Value); // Width of element in pixels
         var height = int.Parse(element.Attribute("height").Value); // Height of element in pixels
         var defaultCodecName = element.Attribute("defaultcodec").Value;
         var defaultDataFileKey = element.Attribute("defaultdatafile").Value;
         var defaultPaletteKey = element.Attribute("defaultpalette")?.Value ?? _globalDefaultPalette.Name;
         var layoutName = element.Attribute("layout").Value;
-        var colorType = element.Attribute("color")?.Value ?? "indexed";
+        var colorTypeName = element.Attribute("color")?.Value ?? "indexed";
         var elementList = element.Descendants("element");
 
-        if (layoutName == "tiled")
-            model.Layout = ElementLayout.Tiled;
-        else if (layoutName == "single")
-            model.Layout = ElementLayout.Single;
-        else
-            throw new XmlException($"Unsupported arranger layout type ('{layoutName}') for arranger '{model.Name}'");
+        var layout = layoutName switch
+        {
+            "tiled" => ElementLayout.Tiled,
+            "single" => ElementLayout.Single,
+            _ => throw new XmlException($"Unsupported arranger layout type ('{layoutName}') for arranger '{resourceName}'")
+        };
 
-        if (colorType == "indexed")
-            model.ColorType = PixelColorType.Indexed;
-        else if (colorType == "direct")
-            model.ColorType = PixelColorType.Direct;
-        else
-            throw new XmlException($"Unsupported pixel color type ('{colorType}') for arranger '{model.Name}'");
-
-        model.ElementPixelSize = new Size(width, height);
+        var colorType = colorTypeName switch
+        {
+            "indexed" => PixelColorType.Indexed,
+            "direct" => PixelColorType.Direct,
+            _ => throw new XmlException($"Unsupported pixel color type ('{colorTypeName}') for arranger '{resourceName}'")
+        };
 
         var xmlElements = elementList.Select(e => new
         {
@@ -600,44 +593,46 @@ public sealed class XmlProjectReader : IProjectReader
             rotation = e.Attribute("rotation")
         });
 
+        var grid = new ArrangerElementModel[elementsx, elementsy];
+
         foreach (var xmlElement in xmlElements)
         {
-            var el = new ArrangerElementModel()
+            grid[xmlElement.posx, xmlElement.posy] = new ArrangerElementModel()
             {
                 DataFileKey = xmlElement.datafile?.Value ?? defaultDataFileKey,
-                PaletteKey = model.ColorType == PixelColorType.Direct ? null : xmlElement.palette?.Value ?? defaultPaletteKey,
+                PaletteKey = colorType == PixelColorType.Direct ? null : xmlElement.palette?.Value ?? defaultPaletteKey,
                 CodecName = xmlElement.format?.Value ?? defaultCodecName,
                 PositionX = xmlElement.posx,
                 PositionY = xmlElement.posy,
+                FileAddress = new BitAddress(xmlElement.fileoffset, xmlElement.bitoffset is null ? 0 : int.Parse(xmlElement.bitoffset.Value)),
+                Mirror = xmlElement.mirror?.Value switch
+                {
+                    "none" => MirrorOperation.None,
+                    "horizontal" => MirrorOperation.Horizontal,
+                    "vertical" => MirrorOperation.Vertical,
+                    "both" => MirrorOperation.Both,
+                    _ => MirrorOperation.None
+                },
+                Rotation = xmlElement.rotation?.Value switch
+                {
+                    "none" => RotationOperation.None,
+                    "left" => RotationOperation.Left,
+                    "right" => RotationOperation.Right,
+                    "turn" => RotationOperation.Turn,
+                    _ => RotationOperation.None
+                }
             };
-
-            if (xmlElement.bitoffset is not null)
-                el.FileAddress = new BitAddress(xmlElement.fileoffset, int.Parse(xmlElement.bitoffset.Value));
-            else
-                el.FileAddress = new BitAddress(xmlElement.fileoffset, 0);
-
-            el.Mirror = xmlElement.mirror?.Value switch
-            {
-                "none" => MirrorOperation.None,
-                "horizontal" => MirrorOperation.Horizontal,
-                "vertical" => MirrorOperation.Vertical,
-                "both" => MirrorOperation.Both,
-                _ => MirrorOperation.None
-            };
-
-            el.Rotation = xmlElement.rotation?.Value switch
-            {
-                "none" => RotationOperation.None,
-                "left" => RotationOperation.Left,
-                "right" => RotationOperation.Right,
-                "turn" => RotationOperation.Turn,
-                _ => RotationOperation.None
-            };
-
-            model.ElementGrid[xmlElement.posx, xmlElement.posy] = el;
         }
 
-        arrangerModel = model;
+        arrangerModel = new ScatteredArrangerModel()
+        {
+            Name = resourceName,
+            ElementGrid = grid,
+            ArrangerElementSize = new Size(elementsx, elementsy),
+            ElementPixelSize = new Size(width, height),
+            Layout = layout,
+            ColorType = colorType
+        };
         return true;
     }
 }

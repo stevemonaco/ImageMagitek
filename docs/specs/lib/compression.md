@@ -101,6 +101,7 @@ Lets arrangers read graphics that a game stores compressed. A compressed block b
 
 - Decompression runs on the first reader's thread under a thread-safe `Lazy`; other readers wait for it.
 - The source subscribes to the parent's `DataWritten` in its constructor and unsubscribes in `Dispose`.
+- `Invalidate` (and so a parent's `DataWritten`) waits for a read of this source in progress before swapping the stream. The parent raises `DataWritten` outside its own lock, and decompression takes only the parent's lock, so the two locks are never taken in opposite orders. Tests: `CompressedDataSourceTests.Invalidate_DuringConcurrentReads_NeverThrows`
 - Each `Decompress` call uses a new plugin instance, so plugins may keep state between calls on one instance without locking.
 
 ## Decisions

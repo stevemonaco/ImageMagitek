@@ -250,9 +250,24 @@ public abstract class DataSource : IProjectResource, IDisposable
     }
 
     /// <summary>
-    /// Discards the cached length so the next <see cref="Length"/> reads it from the stream
+    /// Disposes the open stream and installs the one <paramref name="replace"/> assigns, under the stream lock so no operation sees a disposed stream
     /// </summary>
-    protected void ResetCachedLength() => _length = -1;
+    protected void ReplaceStream(Action replace)
+    {
+        _streamSemaphore.Wait();
+        try
+        {
+            if (Stream.IsValueCreated)
+                Stream.Value.Dispose();
+
+            replace();
+            _length = -1;
+        }
+        finally
+        {
+            _streamSemaphore.Release();
+        }
+    }
 
     private void ThrowIfReadOnly()
     {

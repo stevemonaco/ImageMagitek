@@ -1,28 +1,33 @@
-﻿using System.Drawing;
+using System;
+using System.Drawing;
 using System.Linq;
 
 namespace ImageMagitek.Project.Serialization;
 
-public class ScatteredArrangerModel : ResourceModel
+/// <summary>
+/// A scattered arranger's model; equality compares the layout and every element but not <see cref="ResourceModel.Name"/>
+/// </summary>
+public sealed record ScatteredArrangerModel : ResourceModel
 {
-    public override required string Name { get; init; }
     public required ArrangerElementModel[,] ElementGrid { get; init; }
-    public Size ArrangerElementSize { get; set; }
-    public Size ElementPixelSize { get; set; }
-    public ElementLayout Layout { get; set; }
-    public PixelColorType ColorType { get; set; }
+    public Size ArrangerElementSize { get; init; }
+    public Size ElementPixelSize { get; init; }
+    public ElementLayout Layout { get; init; }
+    public PixelColorType ColorType { get; init; }
 
-    public override bool ResourceEquals(ResourceModel? resourceModel)
+    public bool Equals(ScatteredArrangerModel? other)
     {
-        if (resourceModel is not ScatteredArrangerModel model)
+        if (other is null)
             return false;
 
-        if (model.ArrangerElementSize != ArrangerElementSize || model.ElementPixelSize != ElementPixelSize ||
-            model.Layout != Layout || model.ColorType != ColorType)
+        if (other.ArrangerElementSize != ArrangerElementSize || other.ElementPixelSize != ElementPixelSize ||
+            other.Layout != Layout || other.ColorType != ColorType)
             return false;
 
-        return model.EnumerateElements()
+        return other.EnumerateElements()
             .Zip(this.EnumerateElements())
-            .All(x => x.First?.ResourceEquals(x.Second) ?? (x.Second is null));
+            .All(x => Equals(x.First, x.Second));
     }
+
+    public override int GetHashCode() => HashCode.Combine(ArrangerElementSize, ElementPixelSize, Layout, ColorType);
 }

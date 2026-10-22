@@ -145,7 +145,7 @@ public sealed class RegenerationPlan
             {
                 resources.Add(new(planned, RegenerationKind.Added, target, model, null, []));
             }
-            else if (model.ResourceEquals(entry.CurrentModel) && target == entry.CurrentKey)
+            else if (model == entry.CurrentModel && target == entry.CurrentKey)
             {
                 resources.Add(new(planned, RegenerationKind.Unchanged, target, model, entry, []));
             }
@@ -317,82 +317,31 @@ public sealed class RegenerationPlan
     /// </summary>
     public static ResourceModel WithKeys(ResourceModel model, string name, Func<string, string> map) => model switch
     {
-        CompressedDataModel x => new CompressedDataModel
-        {
-            Name = name,
-            ParentKey = map(x.ParentKey),
-            FileOffset = x.FileOffset,
-            Compression = x.Compression
-        },
-        PaletteModel x => new PaletteModel
-        {
-            Name = name,
-            ColorModel = x.ColorModel,
-            DataFileKey = x.DataFileKey is null ? null : map(x.DataFileKey),
-            ZeroIndexTransparent = x.ZeroIndexTransparent,
-            StorageSource = x.StorageSource,
-            ColorSources = x.ColorSources.ToList()
-        },
-        MetatileSetModel x => new MetatileSetModel
+        CompressedDataModel x => x with { Name = name, ParentKey = map(x.ParentKey) },
+        PaletteModel x => x with { Name = name, DataFileKey = x.DataFileKey is null ? null : map(x.DataFileKey) },
+        MetatileSetModel x => x with
         {
             Name = name,
             MetatileDataKey = map(x.MetatileDataKey),
-            MetatileOffset = x.MetatileOffset,
-            MetatileCount = x.MetatileCount,
-            MetatileWidth = x.MetatileWidth,
-            MetatileHeight = x.MetatileHeight,
-            Layers = x.Layers,
-            FormatName = x.FormatName,
-            Order = x.Order,
             TileDataKey = map(x.TileDataKey),
-            TileOffset = x.TileOffset,
-            CodecName = x.CodecName,
-            FirstTile = x.FirstTile,
-            TileCount = x.TileCount,
             PaletteSlots = x.PaletteSlots.ToDictionary(slot => slot.Key, slot => map(slot.Value)),
-            AttributeDataKey = x.AttributeDataKey is null ? null : map(x.AttributeDataKey),
-            AttributeOffset = x.AttributeOffset,
-            AttributeSize = x.AttributeSize
+            AttributeDataKey = x.AttributeDataKey is null ? null : map(x.AttributeDataKey)
         },
-        MetatileMapModel x => new MetatileMapModel
+        MetatileMapModel x => x with
         {
             Name = name,
             MapDataKey = map(x.MapDataKey),
-            MapOffset = x.MapOffset,
-            Width = x.Width,
-            Height = x.Height,
-            Layout = x.Layout,
-            FormatName = x.FormatName,
-            EmptyBlock = x.EmptyBlock,
             Sets = x.Sets.Select(set => (map(set.SetKey), set.Base)).ToList()
         },
-        TilemapModel x => new TilemapModel
+        TilemapModel x => x with
         {
             Name = name,
             MapDataKey = map(x.MapDataKey),
-            MapOffset = x.MapOffset,
-            Width = x.Width,
-            Height = x.Height,
-            Layout = x.Layout,
-            FormatName = x.FormatName,
             TileDataKey = map(x.TileDataKey),
-            TileOffset = x.TileOffset,
-            CodecName = x.CodecName,
-            FirstTile = x.FirstTile,
-            EmptyTile = x.EmptyTile,
-            TileCount = x.TileCount,
             TilePaletteKey = x.TilePaletteKey is null ? null : map(x.TilePaletteKey),
             PaletteSlots = x.PaletteSlots.ToDictionary(slot => slot.Key, slot => map(slot.Value))
         },
-        ScatteredArrangerModel x => new ScatteredArrangerModel
-        {
-            Name = name,
-            ElementGrid = MapGrid(x.ElementGrid, map),
-            ArrangerElementSize = x.ArrangerElementSize,
-            ElementPixelSize = x.ElementPixelSize,
-            Layout = x.Layout,
-            ColorType = x.ColorType
-        },
+        ScatteredArrangerModel x => x with { Name = name, ElementGrid = MapGrid(x.ElementGrid, map) },
         _ => throw new NotSupportedException($"Regenerating a '{model.GetType().Name}' is not supported")
     };
 
@@ -407,17 +356,7 @@ public sealed class RegenerationPlan
                 if (grid[x, y] is not { } el)
                     continue;
 
-                mapped[x, y] = new ArrangerElementModel
-                {
-                    DataFileKey = map(el.DataFileKey),
-                    PaletteKey = el.PaletteKey is null ? null : map(el.PaletteKey),
-                    CodecName = el.CodecName,
-                    FileAddress = el.FileAddress,
-                    PositionX = el.PositionX,
-                    PositionY = el.PositionY,
-                    Mirror = el.Mirror,
-                    Rotation = el.Rotation
-                };
+                mapped[x, y] = el with { DataFileKey = map(el.DataFileKey), PaletteKey = el.PaletteKey is null ? null : map(el.PaletteKey) };
             }
         }
 

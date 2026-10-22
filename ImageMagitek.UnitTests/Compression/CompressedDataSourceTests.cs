@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using ImageMagitek.Codec;
 using ImageMagitek.Colors;
 using ImageMagitek.Compression;
@@ -95,6 +96,27 @@ public class CompressedDataSourceTests
 
         Assert.Null(source.DecompressionError);
         Assert.Equal("ABCD"u8.ToArray(), source.Read(new BitAddress(0, 0), 4 * 8));
+    }
+
+    [Fact]
+    public async Task Invalidate_DuringConcurrentReads_NeverThrows()
+    {
+        using var parent = CreateParent(_parentBytes);
+        using var source = new CompressedDataSource("compressed", parent, 4, "GBA LZ77", _factory);
+        var expected = "ABABABAB"u8.ToArray();
+
+        var reader = Task.Run(() =>
+        {
+            for (int i = 0; i < 200; i++)
+                Assert.Equal(expected, source.Read(new BitAddress(0, 0), 8 * 8));
+        });
+        var invalidator = Task.Run(() =>
+        {
+            for (int i = 0; i < 200; i++)
+                source.Invalidate();
+        });
+
+        await Task.WhenAll(reader, invalidator).WaitAsync(TimeSpan.FromSeconds(30));
     }
 
     [Fact]

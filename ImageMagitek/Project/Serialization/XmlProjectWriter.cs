@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -23,8 +22,6 @@ public sealed class XmlProjectWriter : IProjectWriter
     private readonly IColorFactory _colorFactory;
     private readonly string _resourceBaseDirectory;
     private string _journalDirectory;
-
-    private readonly SemaphoreSlim _writeLock = new(1, 1);
 
     public XmlProjectWriter(ProjectTree tree, IColorFactory colorFactory, IEnumerable<IProjectResource> globalResources)
     {
@@ -50,170 +47,46 @@ public sealed class XmlProjectWriter : IProjectWriter
         if (string.IsNullOrWhiteSpace(projectFileName))
             throw new ArgumentException($"{nameof(WriteProjectAsync)} property '{nameof(projectFileName)}' was null or empty");
 
-        await _writeLock.WaitAsync().ConfigureAwait(false);
-        try
-        {
-            _journalDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName))!;
+        _journalDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName))!;
 
-            var serializeResult = await TrySerializeProjectTreeAsync(_tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode), additionalFiles).ConfigureAwait(false);
-            return serializeResult.Match<MagitekResult>(
-                success => MagitekResult.SuccessResult,
-                failed => new MagitekResult.Failed(failed.Reasons.First()));
-        }
-        finally
-        {
-            _writeLock.Release();
-        }
+        var serializeResult = await TrySerializeProjectTreeAsync(_tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode), additionalFiles).ConfigureAwait(false);
+        return serializeResult.Match<MagitekResult>(
+            success => MagitekResult.SuccessResult,
+            failed => new MagitekResult.Failed(failed.Reasons.First()));
     }
 
-    /// <summary>
-    /// Serializes the resource to a string
-    /// </summary>
-    /// <param name="resourceNode"></param>
-    /// <returns></returns>
+    /// <inheritdoc/>
     public string SerializeResource(ResourceNode resourceNode)
     {
-        var resourceMap = CreateResourceMap();
-
-        if (resourceNode is ProjectNode { Item: ImageProject project })
-        {
-            var model = project.MapToModel(ProjectFormat.Required(_tree));
-            return Stringify(Serialize(model));
-        }
-        else if (resourceNode is DataFileNode { Item: FileDataSource df })
-        {
-            var model = df.MapToModel();
-            return Stringify(Serialize(model));
-        }
-        else if (resourceNode is CompressedDataNode { Item: CompressedDataSource compressed })
-        {
-            var model = compressed.MapToModel(resourceMap);
-            return Stringify(Serialize(model));
-        }
-        else if (resourceNode is TilemapNode { Item: TilemapArranger tilemap })
-        {
-            var model = tilemap.MapToModel(resourceMap);
-            return Stringify(Serialize(model));
-        }
-        else if (resourceNode is MetatileSetNode { Item: MetatileSet metatileSet })
-        {
-            var model = metatileSet.MapToModel(resourceMap);
-            return Stringify(Serialize(model));
-        }
-        else if (resourceNode is MetatileMapNode { Item: MetatileMap metatileMap })
-        {
-            var model = metatileMap.MapToModel(resourceMap);
-            return Stringify(Serialize(model));
-        }
-        else if (resourceNode is PaletteNode { Item: Palette pal })
-        {
-            var model = pal.MapToModel(resourceMap, _colorFactory);
-            if (FindUnwritableReason(model) is string reason)
-                throw new InvalidOperationException(reason);
-
-            return Stringify(Serialize(model));
-        }
-        else if (resourceNode is ArrangerNode { Item: ScatteredArranger arranger })
-        {
-            var model = arranger.MapToModel(resourceMap);
-            return Stringify(Serialize(model));
-        }
-        else
-            throw new NotSupportedException($"{nameof(ResourceNode)} of type '{resourceNode.GetType()}' containing item of type '{resourceNode.Item.GetType()}' is not supported");
+        var mapResult = MapCurrentModel(resourceNode);
+        return mapResult.HasSucceeded ? SerializeModel(mapResult.AsSuccess.Result) : throw new InvalidOperationException(mapResult.AsError.Reason);
     }
 
     /// <summary>
     /// Writes a single resource, updating its model, but does not update stale resources in the tree
     /// </summary>
-    /// <param name="resourceNode"></param>
-    /// <param name="alwaysOverwrite"></param>
-    /// <returns></returns>
     public async Task<MagitekResult> WriteResourceAsync(ResourceNode resourceNode, bool alwaysOverwrite)
     {
         if (resourceNode.DiskLocation is null)
             return new MagitekResult.Failed($"Resource '{resourceNode.Name}' cannot be saved because '{nameof(resourceNode.DiskLocation)}' is null");
 
-        await _writeLock.WaitAsync().ConfigureAwait(false);
-        try
+        var mapResult = MapCurrentModel(resourceNode);
+        if (mapResult.HasFailed)
+            return new MagitekResult.Failed(mapResult.AsError.Reason);
+
+        var currentModel = mapResult.AsSuccess.Result;
+
+        if (currentModel != resourceNode.Model || alwaysOverwrite)
         {
-            string contents;
-            ResourceModel currentModel;
-            var resourceMap = CreateResourceMap();
+            var actions = new[] { (resourceNode.DiskLocation, SerializeModel(currentModel), resourceNode, currentModel) };
 
-            if (resourceNode is ProjectNode { Item: ImageProject project })
-            {
-                var model = project.MapToModel(ProjectFormat.Required(_tree));
-                contents = Stringify(Serialize(model));
-                currentModel = model;
-            }
-            else if (resourceNode is DataFileNode { Item: FileDataSource df })
-            {
-                var model = df.MapToModel();
-                contents = Stringify(Serialize(model));
-                currentModel = model;
-            }
-            else if (resourceNode is CompressedDataNode { Item: CompressedDataSource compressed })
-            {
-                var model = compressed.MapToModel(resourceMap);
-                contents = Stringify(Serialize(model));
-                currentModel = model;
-            }
-            else if (resourceNode is TilemapNode { Item: TilemapArranger tilemap })
-            {
-                var model = tilemap.MapToModel(resourceMap);
-                contents = Stringify(Serialize(model));
-                currentModel = model;
-            }
-            else if (resourceNode is MetatileSetNode { Item: MetatileSet metatileSet })
-            {
-                var model = metatileSet.MapToModel(resourceMap);
-                contents = Stringify(Serialize(model));
-                currentModel = model;
-            }
-            else if (resourceNode is MetatileMapNode { Item: MetatileMap metatileMap })
-            {
-                var model = metatileMap.MapToModel(resourceMap);
-                contents = Stringify(Serialize(model));
-                currentModel = model;
-            }
-            else if (resourceNode is PaletteNode paletteNode)
-            {
-                var model = MapPaletteModel(paletteNode, resourceMap);
-                if (FindUnwritableReason(model) is string reason)
-                    return new MagitekResult.Failed(reason);
-
-                contents = Stringify(Serialize(model));
-                currentModel = model;
-            }
-            else if (resourceNode is ArrangerNode { Item: ScatteredArranger arranger })
-            {
-                var model = arranger.MapToModel(resourceMap);
-                contents = Stringify(Serialize(model));
-                currentModel = model;
-            }
-            else
-            {
-                return new MagitekResult.Failed($"{nameof(WriteResourceAsync)} cannot write resource of type '{resourceNode}'");
-            }
-
-            var diskModel = resourceNode.Model;
-
-            if (currentModel.ResourceEquals(diskModel) == false || alwaysOverwrite)
-            {
-                var actions = new[] { (resourceNode.DiskLocation, contents, resourceNode, currentModel) };
-
-                var transactionResult = await RunTransactionsAsync(actions).ConfigureAwait(false);
-                return transactionResult.Match<MagitekResult>(
-                    success => MagitekResult.SuccessResult,
-                    failed => new MagitekResult.Failed(failed.Reasons.First()));
-            }
-
-            return MagitekResult.SuccessResult;
+            var transactionResult = await RunTransactionsAsync(actions).ConfigureAwait(false);
+            return transactionResult.Match<MagitekResult>(
+                success => MagitekResult.SuccessResult,
+                failed => new MagitekResult.Failed(failed.Reasons.First()));
         }
-        finally
-        {
-            _writeLock.Release();
-        }
+
+        return MagitekResult.SuccessResult;
     }
 
     /// <inheritdoc/>
@@ -225,36 +98,20 @@ public sealed class XmlProjectWriter : IProjectWriter
                 return new MagitekResult.Failed($"Resource '{node.Name}' cannot be saved because '{nameof(node.DiskLocation)}' is null");
         }
 
-        await _writeLock.WaitAsync().ConfigureAwait(false);
-        try
-        {
-            var actions = writes.Select(x => (x.Node.DiskLocation!, Stringify(ToElement(x.Model)), x.Node, x.Model));
-            var transactionResult = await RunTransactionsAsync(actions).ConfigureAwait(false);
-            return transactionResult.Match<MagitekResult>(
-                success => MagitekResult.SuccessResult,
-                failed => new MagitekResult.Failed(failed.Reasons.First()));
-        }
-        finally
-        {
-            _writeLock.Release();
-        }
+        var actions = writes.Select(x => (x.Node.DiskLocation!, SerializeModel(x.Model), x.Node, x.Model));
+        var transactionResult = await RunTransactionsAsync(actions).ConfigureAwait(false);
+        return transactionResult.Match<MagitekResult>(
+            success => MagitekResult.SuccessResult,
+            failed => new MagitekResult.Failed(failed.Reasons.First()));
     }
 
     /// <inheritdoc/>
     public async Task<MagitekResult> WriteResourcesAsync(IReadOnlyList<ResourceNode> nodes, IReadOnlyList<(string Path, string Contents)>? additionalFiles = null)
     {
-        await _writeLock.WaitAsync().ConfigureAwait(false);
-        try
-        {
-            var serializeResult = await TrySerializeProjectTreeAsync(nodes, additionalFiles).ConfigureAwait(false);
-            return serializeResult.Match<MagitekResult>(
-                success => MagitekResult.SuccessResult,
-                failed => new MagitekResult.Failed(failed.Reasons.First()));
-        }
-        finally
-        {
-            _writeLock.Release();
-        }
+        var serializeResult = await TrySerializeProjectTreeAsync(nodes, additionalFiles).ConfigureAwait(false);
+        return serializeResult.Match<MagitekResult>(
+            success => MagitekResult.SuccessResult,
+            failed => new MagitekResult.Failed(failed.Reasons.First()));
     }
 
     private async Task<MagitekResults> TrySerializeProjectTreeAsync(IEnumerable<ResourceNode> nodes, IReadOnlyList<(string Path, string Contents)>? additionalFiles)
@@ -270,11 +127,8 @@ public sealed class XmlProjectWriter : IProjectWriter
             var currentModel = mapResult.AsSuccess.Result;
             var location = ResourceFileLocator.Locate(_tree, node);
 
-            if (!currentModel.ResourceEquals(node.Model) || node.DiskLocation != location)
-            {
-                var element = ToElement(currentModel);
-                actions.Add((location, Stringify(element), node, currentModel));
-            }
+            if (currentModel != node.Model || node.DiskLocation != location)
+                actions.Add((location, SerializeModel(currentModel), node, currentModel));
         }
 
         return await RunTransactionsAsync(actions, additionalFiles).ConfigureAwait(false);
@@ -283,9 +137,9 @@ public sealed class XmlProjectWriter : IProjectWriter
     /// <inheritdoc/>
     public MagitekResult<ResourceModel> MapCurrentModel(ResourceNode node, Dictionary<IProjectResource, string>? resourceMap = null)
     {
-        resourceMap ??= CreateResourceMap();
+        resourceMap ??= _tree.CreateResourceMap(_globalResources);
 
-        ResourceModel model = node switch
+        ResourceModel? model = node switch
         {
             ProjectNode { Item: ImageProject project } => project.MapToModel(ProjectFormat.Required(_tree)),
             DataFileNode { Item: FileDataSource df } => df.MapToModel(),
@@ -295,8 +149,11 @@ public sealed class XmlProjectWriter : IProjectWriter
             MetatileMapNode { Item: MetatileMap metatileMap } => metatileMap.MapToModel(resourceMap),
             PaletteNode paletteNode => MapPaletteModel(paletteNode, resourceMap),
             ArrangerNode { Item: ScatteredArranger arranger } => arranger.MapToModel(resourceMap),
-            _ => throw new InvalidOperationException($"Serializing project node with unexpected type '{node.GetType()}' is not supported")
+            _ => null
         };
+
+        if (model is null)
+            return new MagitekResult<ResourceModel>.Failed($"Cannot write resource of type '{node.GetType()}'");
 
         if (model is PaletteModel paletteModel && FindUnwritableReason(paletteModel) is string reason)
             return new MagitekResult<ResourceModel>.Failed(reason);
@@ -329,43 +186,7 @@ public sealed class XmlProjectWriter : IProjectWriter
         {
             foreach (var action in actionList)
             {
-                if (action.node is ProjectNode projectNode)
-                {
-                    projectNode.Model = (ImageProjectModel)action.model;
-                }
-                else if (action.node is DataFileNode dfNode)
-                {
-                    dfNode.Model = (DataFileModel)action.model;
-                }
-                else if (action.node is CompressedDataNode compressedNode)
-                {
-                    compressedNode.Model = (CompressedDataModel)action.model;
-                }
-                else if (action.node is TilemapNode tilemapNode)
-                {
-                    tilemapNode.Model = (TilemapModel)action.model;
-                }
-                else if (action.node is MetatileSetNode metatileSetNode)
-                {
-                    metatileSetNode.Model = (MetatileSetModel)action.model;
-                }
-                else if (action.node is MetatileMapNode metatileMapNode)
-                {
-                    metatileMapNode.Model = (MetatileMapModel)action.model;
-                }
-                else if (action.node is PaletteNode paletteNode)
-                {
-                    paletteNode.Model = (PaletteModel)action.model;
-                }
-                else if (action.node is ArrangerNode arrangerNode)
-                {
-                    arrangerNode.Model = (ScatteredArrangerModel)action.model;
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Serializing project node with unexpected type '{action.node.GetType()}' is not supported");
-                }
-
+                action.node.Model = action.model;
                 action.node.DiskLocation = action.targetPath;
             }
         }
@@ -713,18 +534,5 @@ public sealed class XmlProjectWriter : IProjectWriter
         xw.Flush();
 
         return writer.ToString();
-    }
-
-    private Dictionary<IProjectResource, string> CreateResourceMap()
-    {
-        var resourceMap = new Dictionary<IProjectResource, string>();
-
-        foreach (var resource in _globalResources)
-            resourceMap.Add(resource, resource.Name);
-
-        foreach (var node in _tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
-            resourceMap.Add(node.Item, _tree.CreatePathKey(node));
-
-        return resourceMap;
     }
 }

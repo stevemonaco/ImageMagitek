@@ -422,6 +422,19 @@ public sealed class MetatileMapTests : IDisposable
     }
 
     [Fact]
+    public void DataWrittenDuringRebuild_RebuildsOnNextRead()
+    {
+        var tiles = Tiles("tiles", 8);
+        var set = Set("Set", Source("table", [.. Entry(1), .. Entry(2)]), 2, tiles, 0, [_slot0], layers: 1, width: 1, height: 1);
+        var blocks = Track(new WriteDuringReadDataSource("blocks", Blocks(0)));
+        var map = Map(blocks, 1, 1, new MetatileMapSet(set, 0));
+        blocks.WriteOnNextRead(Blocks(1));
+
+        Assert.Equal(1 * TileBytes, map.Layers[0].GetElement(0, 0)!.Value.SourceAddress.ByteOffset);
+        Assert.Equal(2 * TileBytes, map.Layers[0].GetElement(0, 0)!.Value.SourceAddress.ByteOffset);
+    }
+
+    [Fact]
     public void ExportComposite_WritesCompositePng()
     {
         var composite = CompositeMap().Composite();

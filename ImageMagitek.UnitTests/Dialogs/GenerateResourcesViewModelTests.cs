@@ -12,7 +12,9 @@ using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services;
 using ImageMagitek.Services.Stores;
 using ImageMagitek.Tables;
+using ImageMagitek.Tilemaps;
 using ImageMagitek.UnitTests.Fixtures;
+using ImageMagitek.UnitTests.Tilemaps;
 using Microsoft.Extensions.Logging.Abstractions;
 using TileShop.Shared.Interactions;
 using TileShop.Shared.Services;
@@ -459,13 +461,14 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
         Assert.Same(editor, editors.ActiveEditor);
     }
 
-    private async Task<(GenerateResourcesViewModel Vm, TestEditor Editor)> PreviewWithModifiedEditorAsync()
+    private async Task<(GenerateResourcesViewModel Vm, TestEditor Editor)> PreviewWithModifiedEditorAsync(Action<EditorsViewModel>? addEditors = null)
     {
         await GenerateFirstAsync();
         var editors = CreateEditors();
         Assert.True(_context.Tree.TryGetNode(General0, out var node));
         var editor = new TestEditor(node.Item, "General 0", () => File.AppendAllText(node.DiskLocation!, "<!-- saved -->")) { IsModified = true };
         editors.Editors.Add(editor);
+        addEditors?.Invoke(editors);
         MakePalettesOpaque();
         var vm = Create(editors: editors);
         await vm.PreviewCommand.ExecuteAsync(null);
@@ -545,6 +548,83 @@ public sealed class GenerateResourcesViewModelTests : IAsyncLifetime
 
         Assert.Contains("has been modified and will be closed by regeneration", Assert.Single(_interactions.Messages));
         Assert.NotSame(stale, Assert.Single(editors.Editors));
+    }
+
+    [Fact]
+    public async Task Regenerate_SavedThenCancelled_RefreshesPreviewWithoutRegenerating()
+    {
+        EditorsViewModel editors = null!;
+        TestEditor cancelled = null!;
+        var (vm, saved) = await PreviewWithModifiedEditorAsync(x =>
+        {
+            editors = x;
+            cancelled = new TestEditor(Item(Palette12), "Pallet Town 12", () => throw new InvalidOperationException()) { IsModified = true };
+            x.Editors.Add(cancelled);
+        });
+        Assert.StartsWith("changed", Assert.Single(vm.FilteredOutputs, x => x.Key == Palette12).Change);
+        var closed = false;
+        vm.Closed += (_, _) => closed = true;
+        Assert.True(_context.Tree.TryGetNode(General0, out var node));
+        var savedFile = node.DiskLocation!;
+        var before = _context.Snapshot();
+        var generateCount = Service.GenerateCount;
+        _interactions.Answers.Enqueue(PromptResult.Accept);
+        _interactions.Answers.Enqueue(PromptResult.Cancel);
+
+        await vm.TryAcceptCommand.ExecuteAsync(null);
+
+        Assert.False(closed);
+        Assert.Equal(2, _interactions.PromptCount);
+        Assert.Equal(1, saved.SaveCount);
+        Assert.True(cancelled.IsModified);
+        Assert.Equal(generateCount, Service.GenerateCount);
+        Assert.NotEqual(before[savedFile], File.ReadAllBytes(savedFile));
+        before.Remove(savedFile);
+        Assert.All(before, x => Assert.Equal(x.Value, File.ReadAllBytes(x.Key)));
+        Assert.True(vm.HasPreview);
+        Assert.Equal("kept edited", Assert.Single(vm.FilteredOutputs, x => x.Key == General0).Change);
+        Assert.StartsWith("changed", Assert.Single(vm.FilteredOutputs, x => x.Key == Palette12).Change);
+        Assert.Equal(new ResourceEditorBaseViewModel[] { saved, cancelled }, editors.Editors);
+    }
+
+    [Fact]
+    public async Task Regenerate_ModifiedEditorOfTilemapWhoseTilePaletteIsReplaced_NotPrompted()
+    {
+        const string imp = "/Monsters/00 Imp";
+        var ff4File = Path.Combine(_context.Directory, "ff4.bin");
+        File.WriteAllBytes(ff4File, Ff4ShapedData.Create());
+        Assert.True((await Service.AddResourceAsync(_context.Tree.Root, new FileDataSource("Ff4", ff4File))).HasSucceeded);
+        var definitionFile = Path.Combine(_context.Definitions.Directory, "Ff4Synthetic.table.xml");
+        var definition = _context.Definitions.Load("Ff4Synthetic.table.xml").AsSuccess.Result;
+        var plan = Service.PlanGeneration(_context.Tree, "/Ff4", definition, "/Monsters").AsSuccess.Result;
+        Assert.True((await Service.GenerateResourcesAsync(_context.Tree, plan)).HasSucceeded);
+        Service.CloseProjects();
+        var rom = File.ReadAllBytes(ff4File);
+        Ff4ShapedData.SetMonsterPalette(rom, 0, 3);
+        File.WriteAllBytes(ff4File, rom);
+        await _context.ReopenAsync();
+
+        var source = (DataSource)Item("/Rom");
+        var palette = new Palette("Pal", new ColorFactory(), ColorModel.Bgr15, [new FileColorSource(0, Endian.Little)], false, PaletteStorageSource.ProjectXml, source);
+        Assert.True((await Service.AddResourceAsync(_context.Tree.Root, palette)).HasSucceeded);
+        var tilemap = new TilemapArranger("Screen", source, 0x10, MapFormatTests.LoadShippedFormats().Find("GBA Text BG")!, MapScreenLayout.Linear, 2, 2,
+            source, 0, "GBA 4bpp", 0, [palette], CodecFixture.Shared.CodecFactory) { TilePaletteArranger = (ScatteredArranger)Item(imp) };
+        Assert.True((await Service.AddResourceAsync(_context.Tree.Root, tilemap)).HasSucceeded);
+        var editors = CreateEditors();
+        var editor = new TestEditor(tilemap, "Screen", () => { }) { IsModified = true };
+        editors.Editors.Add(editor);
+        var vm = Create(definitionFile, editors, "/Ff4", "/Monsters");
+        await vm.PreviewCommand.ExecuteAsync(null);
+        Assert.Equal("changed: re-paletted", Assert.Single(vm.FilteredOutputs, x => x.Key == imp).Change);
+        _interactions.Answers.Enqueue(PromptResult.Reject);
+
+        await vm.TryAcceptCommand.ExecuteAsync(null);
+
+        Assert.Null(vm.GenerationErrorText);
+        Assert.Empty(_interactions.Messages);
+        Assert.True(editor.IsModified);
+        Assert.Same(editor, Assert.Single(editors.Editors));
+        Assert.Same(Item(imp), tilemap.TilePaletteArranger);
     }
 
     private sealed class TestEditor : ResourceEditorBaseViewModel

@@ -13,7 +13,7 @@ public sealed class SerializationMapperTests
     private readonly ColorFactory _colorFactory = new();
     private readonly MemoryDataSource _source = new("data", 64);
 
-    private List<IColorSourceModel> MapSources(params IColorSource[] sources)
+    private IReadOnlyList<IColorSourceModel> MapSources(params IColorSource[] sources)
     {
         var palette = new Palette("pal", _colorFactory, ColorModel.Bgr15, sources, false, PaletteStorageSource.ProjectXml, _source);
         var resourceMap = new Dictionary<IProjectResource, string> { [_source] = "/data" };

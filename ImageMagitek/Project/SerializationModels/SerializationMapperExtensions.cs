@@ -138,16 +138,7 @@ public static class SerializationMapperExtensions
         ColorModel colorModel, bool zeroIndexTransparent, IReadOnlyList<IColorSource> colorSources)
     {
         var size = colorFactory.CreateColor(colorModel).Size;
-
-        var model = new PaletteModel()
-        {
-            Name = pal.Name,
-            ColorModel = colorModel,
-            ZeroIndexTransparent = zeroIndexTransparent,
-        };
-
-        if (pal.DataSource is not null && resourceMap.TryGetValue(pal.DataSource, out var dataFileKey))
-            model.DataFileKey = dataFileKey;
+        var models = new List<IColorSourceModel>();
 
         int i = 0;
         while (i < colorSources.Count)
@@ -155,25 +146,23 @@ public static class SerializationMapperExtensions
             if (colorSources[i] is FileColorSource fileSource)
             {
                 var count = Palette.GetFileRunLength(colorSources, i, size);
-                model.ColorSources.Add(new FileColorSourceModel(fileSource.Offset, count, fileSource.Endian));
+                models.Add(new FileColorSourceModel(fileSource.Offset, count, fileSource.Endian));
                 i += count;
             }
             else if (colorSources[i] is ProjectNativeColorSource nativeSource)
             {
-                var nativeModel = new ProjectNativeColorSourceModel(nativeSource.Value);
-                model.ColorSources.Add(nativeModel);
+                models.Add(new ProjectNativeColorSourceModel(nativeSource.Value));
                 i++;
             }
             else if (colorSources[i] is ProjectForeignColorSource foreignSource)
             {
-                var foreignModel = new ProjectForeignColorSourceModel(foreignSource.Value);
-                model.ColorSources.Add(foreignModel);
+                models.Add(new ProjectForeignColorSourceModel(foreignSource.Value));
                 i++;
             }
             else if (colorSources[i] is ScatteredColorSource)
             {
                 var (count, fields) = Palette.GetScatteredRun(colorSources, i);
-                model.ColorSources.Add(new ScatteredColorSourceModel(count, fields));
+                models.Add(new ScatteredColorSourceModel(count, fields));
                 i += count;
             }
             else
@@ -182,7 +171,14 @@ public static class SerializationMapperExtensions
             }
         }
 
-        return model;
+        return new PaletteModel()
+        {
+            Name = pal.Name,
+            ColorModel = colorModel,
+            ZeroIndexTransparent = zeroIndexTransparent,
+            DataFileKey = pal.DataSource is not null && resourceMap.TryGetValue(pal.DataSource, out var dataFileKey) ? dataFileKey : null,
+            ColorSources = models
+        };
     }
 
     public static Palette MapToResource(this PaletteModel model, IColorFactory colorFactory, DataSource dataSource)
@@ -230,28 +226,28 @@ public static class SerializationMapperExtensions
 
     public static ScatteredArrangerModel MapToModel(this ScatteredArranger arranger, Dictionary<IProjectResource, string> resourceMap)
     {
-        var model = new ScatteredArrangerModel()
+        var grid = new ArrangerElementModel[arranger.ArrangerElementSize.Width, arranger.ArrangerElementSize.Height];
+
+        for (int x = 0; x < grid.GetLength(0); x++)
+        {
+            for (int y = 0; y < grid.GetLength(1); y++)
+            {
+                if (arranger.GetElement(x, y) is ArrangerElement el)
+                {
+                    grid[x, y] = MapToModel(el, x, y);
+                }
+            }
+        }
+
+        return new ScatteredArrangerModel()
         {
             Name = arranger.Name,
             ArrangerElementSize = arranger.ArrangerElementSize,
             ElementPixelSize = arranger.ElementPixelSize,
             Layout = arranger.Layout,
             ColorType = arranger.ColorType,
-            ElementGrid = new ArrangerElementModel[arranger.ArrangerElementSize.Width, arranger.ArrangerElementSize.Height]
+            ElementGrid = grid
         };
-
-        for (int x = 0; x < model.ElementGrid.GetLength(0); x++)
-        {
-            for (int y = 0; y < model.ElementGrid.GetLength(1); y++)
-            {
-                if (arranger.GetElement(x, y) is ArrangerElement el)
-                {
-                    model.ElementGrid[x, y] = MapToModel(el, x, y);
-                }
-            }
-        }
-
-        return model;
 
         ArrangerElementModel MapToModel(ArrangerElement el, int elemX, int elemY)
         {

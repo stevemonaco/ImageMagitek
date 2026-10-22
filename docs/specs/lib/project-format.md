@@ -33,6 +33,8 @@ types:
   - ProjectNativeColorSourceModel
   - ProjectForeignColorSourceModel
   - ScatteredColorSourceModel
+  - EquatableList
+  - EquatableDictionary
   - ResourceFileLocator
   - Utf8StringWriter
   - ProjectFormat
@@ -107,7 +109,7 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 - **LIB-PROJECT-FORMAT-058** — If a `scatteredcolor` field does not fit the palette's color model, overlaps another field of the run, or for some entry would cross a byte boundary, then the load shall fail naming the file, the entry index and the field.
   - Tests: `XmlProjectReaderTests.ScatteredColor_FieldOverflowsModel_FailsNamingEntry`, `XmlProjectReaderTests.ScatteredColor_OverlappingFields_Fails`, `XmlProjectReaderTests.ScatteredColor_StrideCrossesByte_FailsNamingEntry`
 - **LIB-PROJECT-FORMAT-012** — Native colors shall be written as `nativecolor` and foreign colors as `foreigncolor`, each with a hex `value`.
-  - Tests: `ProjectServiceTests.SaveProject_PaletteWithCommittedModel_WritesCommittedState`, `SerializationModelTests.ForeignColorSourceModel_SameValue_Equal`, `SerializationModelTests.ForeignColorSourceModel_DifferentModel_NotEqual`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
+  - Tests: `ProjectServiceTests.SaveProject_PaletteWithCommittedModel_WritesCommittedState`, `SerializationModelTests.ForeignColorSourceModel_SameValue_Equal`, `SerializationModelTests.ForeignColorSourceModel_DifferentModel_NotEqual`, `SerializationModelTests.NativeColorSourceModel_SameColor_Equal`, `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
 - **LIB-PROJECT-FORMAT-013** — If a `nativecolor` or `foreigncolor` value does not parse in its color model, then the load shall fail naming the file, the entry index and the value.
   - Tests: `XmlProjectReaderTests.NativeColor_Unparseable_FailsNamingEntry`, `XmlProjectReaderTests.ForeignColor_WrongWidthForModel_FailsNamingEntry`
 - **LIB-PROJECT-FORMAT-014** — A palette shall hold at most 256 entries, counting a `filesource` or `scatteredcolor` run as its `entries`: the schema accepts at most 256 source elements, `entries` up to 256 and 32 `field` elements per run, the reader fails a palette whose entries total more than 256, and the writer refuses to save one. The schema shall accept the color models Bgr15, Abgr16, Rgba32, Nes, Bgr9 and Bgr6.
@@ -187,11 +189,11 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 ### Writing
 
 - **LIB-PROJECT-FORMAT-032** — A project write shall include each resource whose current model differs from its persisted model or whose expected location differs from its disk location, and nothing else.
-  - Tests: `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
+  - Tests: `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`, `SerializationModelTests.EveryProperty_ChangesEquality`, `SerializationModelTests.IndependentlyBuiltModels_EqualWithSameHash`
 - **LIB-PROJECT-FORMAT-033** — After a successful write, each written node's persisted model and disk location shall be updated; after a failed write, neither shall change.
   - Tests: `ProjectServiceTests.MoveNode_ProjectWriteFails_RaisesReverseMove`
-- **LIB-PROJECT-FORMAT-034** — While a palette node has a committed model, writers shall serialize it instead of the live palette.
-  - Tests: `ProjectServiceTests.SaveProject_PaletteWithCommittedModel_WritesCommittedState`
+- **LIB-PROJECT-FORMAT-034** — While a palette node has a committed model, every serialization of the node (a write, and `SerializeResource`, whose text regeneration hashes) shall use it instead of the live palette.
+  - Tests: `ProjectServiceTests.SaveProject_PaletteWithCommittedModel_WritesCommittedState`, `XmlProjectWriterTests.SerializeResource_PaletteWithCommittedModel_MatchesWrittenFile`
 - **LIB-PROJECT-FORMAT-035** — Folders and in-memory resources shall never be written as files; sequential arrangers shall never be saved.
   - Tests: `XmlProjectRoundTripTests.SaveUnchanged_WritesOnlyRetiredNameArrangers`
 - **LIB-PROJECT-FORMAT-036** — The writer shall fail on a palette without a data file and on a foreign color whose model differs from the palette's, naming the palette and index. Mapping a color source of any other type than file, scattered, native or foreign shall throw `NotSupportedException` naming the type.
@@ -225,6 +227,8 @@ How a project tree is stored on disk and read back: one XML file per resource, f
   - Tests: `WriteAheadLogTransactionTests.RecoverAsync_PendingOperationWithoutStagingFile_RollsBack`
 - **LIB-PROJECT-FORMAT-046** — If the journal cannot be read, then recovery shall fail and leave the journal in place.
   - Tests: `WriteAheadLogTransactionTests.RecoverAsync_CorruptJournal_ReturnsFailed`
+- **LIB-PROJECT-FORMAT-073** — The transaction shall write each version of the journal to `_transaction.json.tmp` in the journal directory and then replace `_transaction.json` with it, and recovery shall delete a leftover `_transaction.json.tmp` before reading the journal, whether or not a journal exists.
+  - Tests: `WriteAheadLogTransactionTests.RecoverAsync_LeftoverJournalTemp_DeletesTempAndRecoversJournal`, `WriteAheadLogTransactionTests.RecoverAsync_OnlyJournalTemp_DeletesTempAndSucceeds`, `WriteAheadLogTransactionTests.ExecuteAsync_LeavesNoJournalTemp`
 - **LIB-PROJECT-FORMAT-047** — The project writer's journal directory shall be the directory of the project file being written.
   - Tests: `ProjectServiceTests.SaveProjectAs_NewDirectory_ProducesProjectThatLoads`
 
@@ -251,6 +255,7 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 - After a successful write or read, each node's persisted model equals what is on disk for it.
 - The writer never writes a standalone tree; LIB-PROJECT-SERVICE keeps it out of reach.
 - A journal on disk means a transaction did not finish; the project is not loaded until it is gone.
+- Serialization models are not mutated after construction; a changed model is a copy (`with`), and an arranger's element grid is filled before the model is built or cloned before it changes.
 
 ## Edge cases
 
@@ -263,10 +268,11 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 - A relative project path resolves against the current directory.
 - A `root` that is a parent of the project file's directory makes the project file part of the scan; it is ignored like any other project file (LIB-PROJECT-FORMAT-005).
 - A crash during staging leaves orphan `.tmp` files that nothing removes; they are not `.xml`, so loads ignore them.
+- A crash while writing the journal leaves `_transaction.json.tmp` beside the previous complete journal (or none); recovery deletes the temp and works from the journal.
 
 ## Threading and lifetime
 
-- Writes are serialized by the caller (LIB-PROJECT-SERVICE); the writer's own lock covers only a single writer.
+- Writes are serialized by the caller (LIB-PROJECT-SERVICE); the writer has no lock of its own and is created per operation.
 - Writer internals continue on thread-pool threads; persisted models and disk locations are updated there.
 - Reader and builder are single-use per read and hold no state afterwards.
 
@@ -276,7 +282,7 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 - **A map lists its sets as `set` children with a `base`.** Reason: the order matters (a set's tile and palette resolution is per map) and a map has one to a few sets, so child elements read better than a key list attribute; the `paletteslot` complex type is shared with `tilemap`. Rejected: `primaryset`/`secondaryset` attributes (FireRed-specific).
 - **Tilemaps load after scattered arrangers.** A tilemap may name a scattered arranger as its tile palette (`tilepalette`), and arrangers never reference tilemaps, so tilemaps are built last. `tilepalette` is additive to 1.1, which every tilemap already requires, so the version rule is unchanged. Rejected: resolving `tilepalette` in a second pass after all resources (more code for no ordering gain).
 - **One file per resource, folders as directories.** Projects stay hand-editable and diff-friendly, and a resource moves by moving its file.
-- **References are tree path keys.** `datafile="/Roms/FF2"` and per-element `datafile=`/`palette=`. In memory, elements and palettes hold object references; key strings exist only at the file boundary (`CreateResourceMap` on write, `ProjectTree.TryGetItem` in `ProjectTreeBuilder` on read). Renames and moves rewrite every referencing file in one transaction through the model diff (LIB-PROJECT-FORMAT-032), so the cost is diff noise and merge conflicts (renaming the FF2 sample's data file rewrites 114 of 116 files), not correctness. A rename done outside TileShop fails the load naming the key (LIB-PROJECT-FORMAT-022, -023). Stable keys can arrive later as a new format version that derives each key from its path key. Rejected: stable human-readable keys (a `key` attribute on every file, a key index, duplicate detection for copied files, a rule separating keys from global palette names, and keys that drift from names, which costs the hand-editability path keys were chosen for); GUID keys (cannot be edited by hand); an id plus a path hint (stale hints mislead); falling back to a unique name match when a path fails (ambiguous, and it hides moves).
+- **References are tree path keys.** `datafile="/Roms/FF2"` and per-element `datafile=`/`palette=`. In memory, elements and palettes hold object references; key strings exist only at the file boundary (`ProjectTree.CreateResourceMap` on write, `ProjectTree.TryGetItem` in `ProjectTreeBuilder` on read). Renames and moves rewrite every referencing file in one transaction through the model diff (LIB-PROJECT-FORMAT-032), so the cost is diff noise and merge conflicts (renaming the FF2 sample's data file rewrites 114 of 116 files), not correctness. A rename done outside TileShop fails the load naming the key (LIB-PROJECT-FORMAT-022, -023). Stable keys can arrive later as a new format version that derives each key from its path key. Rejected: stable human-readable keys (a `key` attribute on every file, a key index, duplicate detection for copied files, a rule separating keys from global palette names, and keys that drift from names, which costs the hand-editability path keys were chosen for); GUID keys (cannot be edited by hand); an id plus a path hint (stale hints mislead); falling back to a unique name match when a path fails (ambiguous, and it hides moves).
 - **No migration hook or upgrade path in 1.0.** There are no projects in the wild to carry forward, and 0.9 files are valid 1.0 files (1.0 is 0.9 plus the additive `scatteredcolor`). A 0.9 project file is written as 1.0 the next time the project file is written for another reason, with no prompt; the reader records a 0.9 file's version as 1.0, so an unchanged save still writes nothing (LIB-PROJECT-FORMAT-053, -062). Reason: a migration chain, an upgrade transaction and an upgrade prompt are code with no caller until a format change needs them, and since the reader already refuses newer versions, older builds fail cleanly when one arrives. Rejected: building the hook now (speculative); keeping a backup copy on upgrade (no upgrade exists).
 - **The version lives on the project file only.** A project has one format version, and every file under it is read as that version. Reason: per-file versions would allow mixed projects, and a future step that rewrites references needs to see every file. Rejected: a `version` attribute on each resource file.
 - **`major.minor` parsed as `System.Version`.** `ProjectFormat.TryParse` accepts only digits `.` digits, matching the schema pattern `[0-9]+\.[0-9]+`. Reason: `Version` does not depend on culture (`decimal.Parse("0.9")` throws under fr-FR and returns 9 under de-DE), and it orders `1.10` after `1.9`, where `decimal` reads `1.10` as `1.1`. Rejected: `decimal.Parse` with `InvariantCulture`, which fixes the culture bug but keeps the wrong ordering.
@@ -286,9 +292,12 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 - **Skip names starting with `.`.** Reason: this covers `.git`, `.vs`, `.idea`, `.vscode` and `.DS_Store`, and it is deterministic on every OS and in every clone, unlike the Hidden attribute, which git does not version. The scan is a pre-order recursion so a parent folder is added before its children. LIB-PROJECT-SERVICE's XML conflict check uses the same scan rules (`XmlProjectReader.FindLoadableXml`). Rejected: the Hidden attribute; an ignore file such as `.tileshopignore` (more format surface; it can be added later without a break); skipping only `.git`.
 - **Ignore XML with a foreign root; fail on XML that is not well formed.** A file with a foreign root cannot be a TileShop resource, because a newer resource type comes with a newer version, which is rejected first. A file that does not parse may be a resource damaged by a merge conflict (`<<<<<<<` markers), and dropping it would silently lose it and, on the next write, every reference to it. The root is checked before schema validation, so a foreign file never reports a schema error. Rejected: failing on every non-resource file (blocks git and IDE use); ignoring every file that fails (hides damaged resources).
 - **Atomic multi-file saves.** All files of one save go through one write-ahead-log transaction, recovered on the next open, so a crash mid-save cannot leave a mix of old and new references.
+- **The journal is replaced, never rewritten in place.** Each journal version is written to `_transaction.json.tmp` and moved over `_transaction.json` (LIB-PROJECT-FORMAT-073); the temp sits beside the journal, so the move stays on one volume and is atomic. Reason: a crash during an in-place rewrite leaves truncated JSON, which recovery cannot read, and an unreadable journal blocks opening the project (LIB-PROJECT-FORMAT-046). Rejected: rewriting in place (the old behavior); keeping a second copy of the journal to fall back on (two files to reconcile on recovery).
 - **Recovery treats a moved-but-unmarked operation as completed.** Every staging file exists before the journal is written, so a pending operation whose staging file is gone and whose target exists was moved. Rolling forward keeps the user's save, which matches recovery's roll-forward-first rule. Rollback restores only replaced targets, plus any target that is missing while its backup exists. It never restores an operation whose staging file is still present, because that backup may be a partial copy from a crash during the backup copy. A backup whose restore failed is kept, because it is the only copy of the original.
 - **Missing data files still attach.** The builder attaches the data file node whatever the disk state, so the project can be repaired (LIB-PROJECT-SERVICE).
 - **Retired codec names keep loading.** Projects naming the retired C# SNES 3bpp, PSX 4bpp and PSX 8bpp codecs load the equivalent XML codec, and saving stores the XML codec's name.
+- **Serialization models are immutable records.** Every model is a sealed record with init-only properties, so copies use `with` and carry a field added later, and change detection (LIB-PROJECT-FORMAT-032) is the record's own equality. Collections compare by value: lists through `EquatableList` (in order) and palette slots through `EquatableDictionary` (the same entries in any order), wrapped by the properties' `init` accessors so call sites pass ordinary lists and dictionaries. Two models keep a hand-written `Equals`: a foreign color compares the color's type and packed value, and a scattered arranger compares its layout and element grid cell by cell but not its name (see Open items). Reflection tests change each property of a sample of every model type and require equality to change, so a field that equality would miss fails a test. Rejected: a hand-written `ResourceEquals` per model (a forgotten field went undetected); a custom `Equals` on every collection-bearing record (still hand-listed fields); `ImmutableArray` (reference equality); positional records for the resource models (long constructor lists, and every object-initializer call site would churn).
+- **One mapping path.** `MapCurrentModel` is the only node-to-model mapping; `SerializeResource`, `WriteResourceAsync` and project writes all serialize its result with `SerializeModel`. Reason: separate per-type chains drifted, so `SerializeResource` ignored a committed palette model and a regeneration hash could disagree with the written file. Rejected: a per-kind descriptor registry (larger, proposed separately).
 - **Pending palette edits are not written.** `PaletteNode.CommittedModel` substitutes the committed state. Reason: palette edits live in the shared `Palette`, so a whole-project save after a tree operation would otherwise write another editor's unsaved state.
 - **Sequential arrangers are not project resources.** Deferred to 1.1 as an additive schema change. The full element layout is not persisted either, because a data file is browsed with many layouts and has no arranger to store one on.
 - **Standalone trees are never serialized.** No XML is read or written for them, and their nodes never get a model.
@@ -312,3 +321,4 @@ How a project tree is stored on disk and read back: one XML file per resource, f
 ## Open items
 
 - The arranger `color` attribute is required by the schema, so the reader's default of `indexed` is unreachable.
+- `ScatteredArrangerModel` equality ignores `Name` (inherited from `ResourceEquals`, pinned by `SerializationModelTests.EveryProperty_ChangesEquality`). A rename still rewrites the file because its location changes; confirm with the user whether the name should be compared.

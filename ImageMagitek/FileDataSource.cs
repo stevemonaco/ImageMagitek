@@ -50,14 +50,7 @@ public sealed class FileDataSource : DataSource
     /// <summary>
     /// Discards the cached stream, including a failed open of a missing file, so the next access opens the file again
     /// </summary>
-    public void Reopen()
-    {
-        if (_stream.IsValueCreated)
-            _stream.Value.Dispose();
-
-        _stream = CreateStream();
-        ResetCachedLength();
-    }
+    public void Reopen() => ReplaceStream(() => _stream = CreateStream());
 
     private Lazy<Stream> CreateStream() => new(() =>
     {

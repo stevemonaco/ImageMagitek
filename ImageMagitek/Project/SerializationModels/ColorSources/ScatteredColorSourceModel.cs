@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using ImageMagitek.Colors;
 
 namespace ImageMagitek.Project.Serialization;
@@ -7,19 +6,11 @@ namespace ImageMagitek.Project.Serialization;
 /// <summary>
 /// A run of scattered colors, stored as one <c>scatteredcolor</c> element
 /// </summary>
-public class ScatteredColorSourceModel : IColorSourceModel
+public sealed record ScatteredColorSourceModel(int Entries, IReadOnlyList<ColorFieldRun> Fields) : IColorSourceModel
 {
-    public int Entries { get; set; }
-    public List<ColorFieldRun> Fields { get; set; }
-
-    public ScatteredColorSourceModel(int entries, List<ColorFieldRun> fields)
+    public IReadOnlyList<ColorFieldRun> Fields
     {
-        Entries = entries;
-        Fields = fields;
-    }
-
-    public bool ResourceEquals(IColorSourceModel sourceModel)
-    {
-        return sourceModel is ScatteredColorSourceModel model && model.Entries == Entries && model.Fields.SequenceEqual(Fields);
-    }
+        get;
+        init => field = EquatableList<ColorFieldRun>.From(value);
+    } = EquatableList<ColorFieldRun>.From(Fields);
 }

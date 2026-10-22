@@ -991,18 +991,14 @@ public class ProjectService : IProjectService
 
         try
         {
-            var resourceMap = CreateResourceMap(tree);
+            var resourceMap = tree.CreateResourceMap(_serializerFactory.GlobalResources);
             var removedKeys = removedResources.Where(resourceMap.ContainsKey).Select(x => resourceMap[x]).ToHashSet();
             var fallbackPaletteKey = resourceMap.GetValueOrDefault(defaultPalette);
 
             var edits = changedArrangers
                 .Select(x => (x.ResourceNode, (ResourceModel)WithoutRemovedKeys(((ScatteredArranger)x.Resource).MapToModel(resourceMap), removedKeys, fallbackPaletteKey)))
                 .Concat(changedTilemaps.Select(x =>
-                {
-                    var model = ((TilemapArranger)x.Resource).MapToModel(resourceMap);
-                    model.TilePaletteKey = null;
-                    return (x.ResourceNode, (ResourceModel)model);
-                }))
+                    (x.ResourceNode, (ResourceModel)(((TilemapArranger)x.Resource).MapToModel(resourceMap) with { TilePaletteKey = null }))))
                 .ToList();
 
             var writeResult = await _serializerFactory.CreateWriter(tree).WriteModelsAsync(edits);
@@ -1089,7 +1085,7 @@ public class ProjectService : IProjectService
 
     private static ScatteredArrangerModel WithoutRemovedKeys(ScatteredArrangerModel model, HashSet<string> removedKeys, string? fallbackPaletteKey)
     {
-        var grid = model.ElementGrid;
+        var grid = (ArrangerElementModel[,])model.ElementGrid.Clone();
 
         for (int y = 0; y < grid.GetLength(1); y++)
         {
@@ -1106,22 +1102,15 @@ public class ProjectService : IProjectService
                 }
                 else if (el.PaletteKey is string paletteKey && removedKeys.Contains(paletteKey))
                 {
-                    grid[x, y] = new ArrangerElementModel
+                    grid[x, y] = el with
                     {
-                        DataFileKey = el.DataFileKey,
-                        PaletteKey = fallbackPaletteKey ?? throw new InvalidOperationException("The fallback palette is not available to the project"),
-                        CodecName = el.CodecName,
-                        FileAddress = el.FileAddress,
-                        PositionX = el.PositionX,
-                        PositionY = el.PositionY,
-                        Mirror = el.Mirror,
-                        Rotation = el.Rotation
+                        PaletteKey = fallbackPaletteKey ?? throw new InvalidOperationException("The fallback palette is not available to the project")
                     };
                 }
             }
         }
 
-        return model;
+        return model with { ElementGrid = grid };
     }
 
     /// <summary>
@@ -1330,7 +1319,7 @@ public class ProjectService : IProjectService
 
             var mapResult = writer.MapCurrentModel(node);
             var current = mapResult.HasSucceeded ? mapResult.AsSuccess.Result : null;
-            var isEdited = entry.Hash is null || current is null || !current.ResourceEquals(node.Model)
+            var isEdited = entry.Hash is null || current is null || current != node.Model
                 || HashOf(node) is var fileHash && fileHash != entry.Hash && !IsRewrittenByMoves(current, fileHash, entry.Hash);
             entries.Add(new RegenerationEntry(entry, tree.CreatePathKey(node), current, isEdited));
         }
@@ -1714,7 +1703,7 @@ public class ProjectService : IProjectService
         if (replacements.Count == 0)
             return retargeted;
 
-        var resourceMap = CreateResourceMap(tree);
+        var resourceMap = tree.CreateResourceMap(_serializerFactory.GlobalResources);
         foreach (var (old, replacement) in replacements)
             resourceMap[old] = resourceMap[replacement];
 
@@ -1909,18 +1898,5 @@ public class ProjectService : IProjectService
                 // An empty directory left behind loads as an empty folder and loses nothing
             }
         }
-    }
-
-    private Dictionary<IProjectResource, string> CreateResourceMap(ProjectTree tree)
-    {
-        var resourceMap = new Dictionary<IProjectResource, string>();
-
-        foreach (var resource in _serializerFactory.GlobalResources)
-            resourceMap.Add(resource, resource.Name);
-
-        foreach (var node in tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
-            resourceMap.Add(node.Item, tree.CreatePathKey(node));
-
-        return resourceMap;
     }
 }

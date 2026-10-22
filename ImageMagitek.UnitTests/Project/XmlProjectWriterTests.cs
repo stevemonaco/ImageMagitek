@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using ImageMagitek.Colors;
 using ImageMagitek.Project;
+using ImageMagitek.Project.Serialization;
 using ImageMagitek.Services;
+using ImageMagitek.Tables;
 using Xunit;
 
 namespace ImageMagitek.UnitTests.Project;
@@ -14,6 +16,7 @@ public sealed class XmlProjectWriterTests : IAsyncLifetime
 {
     private readonly string _directory;
     private readonly ColorFactory _colorFactory = new();
+    private readonly XmlProjectSerializerFactory _serializerFactory;
     private readonly ProjectService _service;
     private ProjectTree _tree = null!;
     private DataSource _data = null!;
@@ -24,7 +27,8 @@ public sealed class XmlProjectWriterTests : IAsyncLifetime
         Directory.CreateDirectory(_directory);
         File.WriteAllBytes(PathOf("rom.bin"), new byte[64]);
 
-        _service = new ProjectService(ProjectFixtures.CreateSerializerFactory(_colorFactory));
+        _serializerFactory = ProjectFixtures.CreateSerializerFactory(_colorFactory);
+        _service = new ProjectService(_serializerFactory);
     }
 
     public async Task InitializeAsync()
@@ -94,5 +98,23 @@ public sealed class XmlProjectWriterTests : IAsyncLifetime
         Assert.Contains("color 1", result.AsError.Reason);
         Assert.Equal(before, File.ReadAllText(PathOf("pal.xml")));
         Assert.Empty(Directory.GetFiles(_directory, "*.tmp").Concat(Directory.GetFiles(_directory, "_transaction.json")));
+    }
+
+    [Fact]
+    public async Task SerializeResource_PaletteWithCommittedModel_MatchesWrittenFile()
+    {
+        var committed = new ColorRgba32(0x11, 0x22, 0x33, 255);
+        var palette = await AddPaletteAsync(new ProjectNativeColorSource(committed));
+        var node = _tree.GetResourceNode<PaletteNode>(palette);
+        ((ProjectNativeColorSource)palette.ColorSources[0]).Value = new ColorRgba32(0xAA, 0xBB, 0xCC, 255);
+        node.CommittedModel = map => palette.MapToModel(map, _colorFactory, palette.ColorModel, palette.ZeroIndexTransparent,
+            [new ProjectNativeColorSource(committed)]);
+        var writer = _serializerFactory.CreateWriter(_tree);
+
+        var hash = TableManifest.HashContents(writer.SerializeResource(node));
+        var result = await writer.WriteResourceAsync(node, true);
+
+        Assert.True(result.HasSucceeded);
+        Assert.Equal(hash, TableManifest.HashFile(node.DiskLocation!));
     }
 }

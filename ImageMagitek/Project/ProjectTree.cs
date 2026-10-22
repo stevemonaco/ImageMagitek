@@ -127,4 +127,20 @@ public sealed class ProjectTree : PathTreeBase<ResourceNode, IProjectResource>
     public T GetResourceNode<T>(IProjectResource resource) where T : ResourceNode =>
         _index.TryGetValue(resource, out var node) && node is T typed ? typed :
             throw new KeyNotFoundException($"{nameof(GetResourceNode)}: resource '{resource.Name}' of node type '{typeof(T).Name}' is not contained within project '{Name}'");
+
+    /// <summary>
+    /// Maps every global resource to its name and every tree resource to its path key, as written files reference them
+    /// </summary>
+    public Dictionary<IProjectResource, string> CreateResourceMap(IEnumerable<IProjectResource> globalResources)
+    {
+        var resourceMap = new Dictionary<IProjectResource, string>();
+
+        foreach (var resource in globalResources)
+            resourceMap.Add(resource, resource.Name);
+
+        foreach (var node in this.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
+            resourceMap.Add(node.Item, CreatePathKey(node));
+
+        return resourceMap;
+    }
 }

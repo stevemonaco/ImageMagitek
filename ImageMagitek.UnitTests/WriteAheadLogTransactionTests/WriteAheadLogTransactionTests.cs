@@ -25,6 +25,8 @@ public class WriteAheadLogTransactionTests : IDisposable
 
     private string CreateTestFilePath(string name) => Path.Combine(_testDir, name);
 
+    private string JournalTempPath => Path.Combine(_testDir, "_transaction.json.tmp");
+
     #region ExecuteAsync
 
     [Fact]
@@ -182,9 +184,51 @@ public class WriteAheadLogTransactionTests : IDisposable
         }
     }
 
+    [Fact]
+    public async Task ExecuteAsync_LeavesNoJournalTemp()
+    {
+        var tx = new WriteAheadLogTransaction(_testDir);
+        tx.AddWriteFile(CreateTestFilePath("file1.txt"), "content1");
+        tx.AddWriteFile(CreateTestFilePath("file2.txt"), "content2");
+
+        var result = await tx.ExecuteAsync();
+
+        Assert.True(result.HasSucceeded);
+        Assert.False(File.Exists(JournalTempPath));
+        Assert.False(File.Exists(Path.Combine(_testDir, "_transaction.json")));
+    }
+
     #endregion
 
     #region RecoverAsync
+
+    [Fact]
+    public async Task RecoverAsync_LeftoverJournalTemp_DeletesTempAndRecoversJournal()
+    {
+        var targetPath = CreateTestFilePath("target.txt");
+        await File.WriteAllTextAsync(targetPath, "old content");
+        await File.WriteAllTextAsync(targetPath + ".tmp", "new content");
+        await WriteJournalAsync(new WalJournal { CreatedUtc = DateTime.UtcNow, Operations = [PendingOperation(targetPath)] });
+        await File.WriteAllTextAsync(JournalTempPath, "{ \"CreatedUtc\": \"2026-");
+
+        var result = await WriteAheadLogTransaction.RecoverAsync(_testDir);
+
+        Assert.True(result.HasSucceeded);
+        Assert.Equal("new content", await File.ReadAllTextAsync(targetPath));
+        Assert.False(File.Exists(JournalTempPath));
+        Assert.False(File.Exists(Path.Combine(_testDir, "_transaction.json")));
+    }
+
+    [Fact]
+    public async Task RecoverAsync_OnlyJournalTemp_DeletesTempAndSucceeds()
+    {
+        await File.WriteAllTextAsync(JournalTempPath, "{ \"Operations\": [");
+
+        var result = await WriteAheadLogTransaction.RecoverAsync(_testDir);
+
+        Assert.True(result.HasSucceeded);
+        Assert.False(File.Exists(JournalTempPath));
+    }
 
     [Fact]
     public async Task RecoverAsync_NoJournal_ReturnsSuccess()

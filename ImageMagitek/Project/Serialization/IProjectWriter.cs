@@ -14,6 +14,10 @@ public interface IProjectWriter
     /// Writes those of <paramref name="nodes"/> that changed, leaving every other resource unwritten, together with <paramref name="additionalFiles"/> in one transaction
     /// </summary>
     Task<MagitekResult> WriteResourcesAsync(IReadOnlyList<ResourceNode> nodes, IReadOnlyList<(string Path, string Contents)>? additionalFiles = null);
+
+    /// <summary>
+    /// Serializes the node's current model (<see cref="MapCurrentModel"/>) to the exact text a write produces for it; throws when it cannot be written
+    /// </summary>
     string SerializeResource(ResourceNode resourceNode);
 
     /// <summary>

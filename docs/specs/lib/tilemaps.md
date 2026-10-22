@@ -93,6 +93,8 @@ Shows a screen that a game stores as a tile set plus a tilemap without baking it
   - Tests: `TilemapArrangerTests.ShortMap_HasErrorAndEmptyCells`, `TilemapArrangerTests.CompressedMapWithError_ReportsDecompressionError`
 - **LIB-TILEMAPS-027** — When the map source or the tile source raises `DataWritten`, the tilemap shall work out its cells again on the next read of its elements.
   - Tests: `TilemapArrangerTests.CompressedMap_ReadsDecompressedBytes_AndRebuildsAfterParentWrite`, `TilemapEditTests.WriteEntries_MovedCell_ChangesOnlyTargetEntryBytes`
+- **LIB-TILEMAPS-084** — If a source raises `DataWritten` while the tilemap is working out its cells, then the next read of its elements shall work them out again.
+  - Tests: `TilemapArrangerTests.DataWrittenDuringRebuild_RebuildsOnNextRead`
 - **LIB-TILEMAPS-028** — `Resize`, `SetElement` and `ResetElement` shall throw `InvalidOperationException`; cells are edited on a clone (LIB-TILEMAPS-029) and written back with LIB-TILEMAPS-045.
   - Tests: `TilemapArrangerTests.ResizeSetAndResetElement_Throw`
 - **LIB-TILEMAPS-029** — Cloning a tilemap, whole or in part, shall return a `ScatteredArranger` with the same elements, whose codecs are new instances with the same palettes (a bake).
@@ -190,7 +192,7 @@ Shows a screen that a game stores as a tile set plus a tilemap without baking it
 
 ## Threading and lifetime
 
-- The grid is worked out lazily under a lock the first time elements are read after construction or after a source raised `DataWritten`, so it does not depend on the order of `DataWritten` handlers.
+- The grid is worked out lazily under a lock the first time elements are read after construction or after a source raised `DataWritten`, so it does not depend on the order of `DataWritten` handlers. Each `DataWritten` bumps a version; a rebuild records the version it read before starting, so a `DataWritten` during it schedules another, readers wait on the lock until it finishes, and a rebuild that throws records nothing.
 - The tilemap subscribes to `DataWritten` of its map and tile sources in its constructor and unsubscribes in `Dispose`. LIB-PROJECT-SERVICE disposes it when it is removed or the project closes.
 
 ## Decisions

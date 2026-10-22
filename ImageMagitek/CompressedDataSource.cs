@@ -62,14 +62,7 @@ public sealed class CompressedDataSource : DataSource
     /// <summary>
     /// Discards the decompressed bytes and any error, so the next access decompresses again
     /// </summary>
-    public void Invalidate()
-    {
-        if (_stream.IsValueCreated)
-            _stream.Value.Dispose();
-
-        _stream = CreateStream();
-        ResetCachedLength();
-    }
+    public void Invalidate() => ReplaceStream(() => _stream = CreateStream());
 
     public override IEnumerable<IProjectResource> LinkedResources => [Parent];
 

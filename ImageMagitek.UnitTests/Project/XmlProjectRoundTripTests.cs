@@ -84,7 +84,7 @@ public sealed class XmlProjectRoundTripTests : IDisposable
     private static void AssertResourcesEqual(Dictionary<string, ResourceModel> expected, Dictionary<string, ResourceModel> actual)
     {
         Assert.Equal(expected.Keys.Order(), actual.Keys.Order());
-        Assert.All(expected, x => Assert.True(x.Value.ResourceEquals(actual[x.Key]), $"'{x.Key}' changed"));
+        Assert.All(expected, x => Assert.True(x.Value == actual[x.Key], $"'{x.Key}' changed"));
     }
 
     private async Task WriteAllAsync(ProjectTree tree)

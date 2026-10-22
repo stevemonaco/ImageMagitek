@@ -72,6 +72,8 @@ Shows and edits maps that a game stores as a block map plus a table of metatiles
   - Tests: `MetatileMapTests.BlockBitsValue_RemovesIndexField`
 - **LIB-METATILE-MAPS-018** — The layer arrangers and the composite shall be worked out again after the block map, a metatile table, an attribute table or a tile source raises `DataWritten`, as LIB-TILEMAPS-027.
   - Tests: `MetatileMapTests.RebuildsAfterBlockMapWrite`
+- **LIB-METATILE-MAPS-038** — If a source raises `DataWritten` while the map is working out its layers, then the next access shall work them out again, as LIB-TILEMAPS-084.
+  - Tests: `MetatileMapTests.DataWrittenDuringRebuild_RebuildsOnNextRead`
 - **LIB-METATILE-MAPS-019** — A metatile map's linked resources shall be its block map source and its metatile sets; a metatile set's shall be its metatile, tile and attribute sources and each assigned slot palette.
   - Tests: `MetatileProjectTests.DeletingSet_RemovesMapsThatListIt`
 
