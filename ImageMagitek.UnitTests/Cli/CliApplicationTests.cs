@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -831,6 +832,39 @@ public sealed class CliApplicationTests : IDisposable
         Assert.True(File.Exists(ImagePath("Generated/Maps/Pallet Town/Pallet Town")));
     }
 
+    private string WriteLegacyCodecArranger()
+    {
+        WriteResource("Graphics/Legacy.xml", """
+            <arranger elementsx="1" elementsy="1" width="8" height="8" layout="tiled" color="indexed" defaultcodec="SNES 3bpp Flow" defaultdatafile="/Data/simple" defaultpalette="/Palettes/Simple">
+            	<element fileoffset="0" posx="0" posy="0" />
+            </arranger>
+            """);
+        return Path.Combine(_directory, "Resources", "Graphics", "Legacy.xml");
+    }
+
+    [Fact]
+    public async Task Generate_LeavesOtherResourcesUnwritten()
+    {
+        UseTableData();
+        var legacy = WriteLegacyCodecArranger();
+
+        Assert.Equal(0, await RunAsync("generate", _projectFile, TableDataKey, DefinitionFile, "/Generated"));
+
+        Assert.Contains("SNES 3bpp Flow", File.ReadAllText(legacy));
+    }
+
+    [Fact]
+    public async Task Generate_SaveProject_WritesOtherChangedResources()
+    {
+        UseTableData();
+        var legacy = WriteLegacyCodecArranger();
+
+        Assert.Equal(0, await RunAsync("generate", _projectFile, TableDataKey, DefinitionFile, "/Generated", "--save-project"));
+
+        Assert.DoesNotContain("SNES 3bpp Flow", File.ReadAllText(legacy));
+        Assert.Contains("defaultcodec=\"SNES 3bpp\"", File.ReadAllText(legacy));
+    }
+
     [Fact]
     public async Task Generate_DryRun_WritesNothingExits0()
     {
@@ -879,6 +913,119 @@ public sealed class CliApplicationTests : IDisposable
         UseTableData();
 
         Assert.Equal(0, await RunAsync("Generate", _projectFile, TableDataKey, DefinitionFile, "/Generated", "--dry-run"));
+    }
+
+
+    private string TableFile => Path.Combine(_directory, "Resources", "table.bin");
+    private string GeneratedMapFile => Path.Combine(_directory, "Resources", "Generated", "Maps", "Pallet Town", "Pallet Town.xml");
+    private string RemovedPaletteFile => Path.Combine(_directory, "Resources", "Generated", "Tilesets", "Palettes", "Pallet Town 12.xml");
+
+    private async Task GenerateTableDataAsync()
+    {
+        UseTableData();
+        Assert.Equal(0, await RunAsync("generate", _projectFile, TableDataKey, DefinitionFile, "/Generated"));
+        _output.GetStringBuilder().Clear();
+    }
+
+    private void RepointTableLayout()
+    {
+        var rom = File.ReadAllBytes(TableFile);
+        FireRedShapedData.RepointLayoutBlocks(rom, FireRedShapedData.LayoutA, FireRedShapedData.FreeSpace);
+        File.WriteAllBytes(TableFile, rom);
+    }
+
+    private void DropLastSecondaryPalette() =>
+        File.WriteAllText(DefinitionFile, File.ReadAllText(DefinitionFile).Replace("repeat=\"isSecondary ? 6 : 7\"", "repeat=\"isSecondary ? 5 : 7\""));
+
+    private Dictionary<string, byte[]> ReadAllFiles() => ListFiles().ToDictionary(x => x, File.ReadAllBytes);
+
+    private void AssertFilesUnchanged(Dictionary<string, byte[]> before)
+    {
+        var after = ReadAllFiles();
+        Assert.Equal(before.Keys, after.Keys);
+        foreach (var (file, bytes) in before)
+            Assert.Equal(bytes, after[file]);
+    }
+
+    [Fact]
+    public async Task Regenerate_PrintsChangesExits0()
+    {
+        await GenerateTableDataAsync();
+        RepointTableLayout();
+        var mapBytes = File.ReadAllBytes(GeneratedMapFile);
+
+        Assert.Equal(0, await RunAsync("generate", _projectFile, TableDataKey, DefinitionFile, "/Generated"));
+
+        Assert.Contains("Changed 1 metatilemap", Output);
+        Assert.Contains("Unchanged 2 metatilemap", Output);
+        Assert.Contains("Unchanged 13 palette", Output);
+        Assert.Contains("Changed /Generated/Maps/Pallet Town/Pallet Town: repointed", Output);
+        Assert.DoesNotContain("Created", Output);
+        Assert.NotEqual(mapBytes, File.ReadAllBytes(GeneratedMapFile));
+    }
+
+    [Fact]
+    public async Task Regenerate_DryRun_WritesNothingExits0()
+    {
+        await GenerateTableDataAsync();
+        RepointTableLayout();
+        var before = ReadAllFiles();
+
+        Assert.Equal(0, await RunAsync("generate", _projectFile, TableDataKey, DefinitionFile, "/Generated", "--dry-run"));
+
+        Assert.Contains("Would change 1 metatilemap", Output);
+        Assert.Contains("Would change /Generated/Maps/Pallet Town/Pallet Town: repointed", Output);
+        Assert.DoesNotContain("Changed", Output);
+        AssertFilesUnchanged(before);
+    }
+
+    [Fact]
+    public async Task Regenerate_RemovalsWithoutYes_Exits8()
+    {
+        await GenerateTableDataAsync();
+        DropLastSecondaryPalette();
+        var before = ReadAllFiles();
+
+        Assert.Equal(-8, await RunAsync("generate", _projectFile, TableDataKey, DefinitionFile, "/Generated"));
+
+        Assert.Contains("Regeneration would remove 1 resources; rerun with --yes to remove them", Output);
+        Assert.Contains("/Generated/Tilesets/Palettes/Pallet Town 12", Output);
+        Assert.Contains("Operation failed due to a generation error", Output);
+        AssertFilesUnchanged(before);
+    }
+
+    [Fact]
+    public async Task Regenerate_RemovalsWithYes_Exits0()
+    {
+        await GenerateTableDataAsync();
+        DropLastSecondaryPalette();
+        Assert.True(File.Exists(RemovedPaletteFile));
+
+        Assert.Equal(0, await RunAsync("generate", _projectFile, TableDataKey, DefinitionFile, "/Generated", "--yes"));
+
+        Assert.Contains("Removed 1 palette", Output);
+        Assert.Contains("Removed /Generated/Tilesets/Palettes/Pallet Town 12", Output);
+        Assert.Contains("Changed /Generated/Tilesets/Pallet Town: re-paletted", Output);
+        Assert.False(File.Exists(RemovedPaletteFile));
+    }
+
+    [Fact]
+    public async Task Regenerate_OverwriteEdited_RewritesEditedResource()
+    {
+        await GenerateTableDataAsync();
+        File.WriteAllText(GeneratedMapFile, File.ReadAllText(GeneratedMapFile).Replace("<metatilemap", "<!-- edited -->\n<metatilemap"));
+        RepointTableLayout();
+
+        Assert.Equal(0, await RunAsync("generate", _projectFile, TableDataKey, DefinitionFile, "/Generated"));
+
+        Assert.Contains("Kept edited /Generated/Maps/Pallet Town/Pallet Town", Output);
+        Assert.Contains("edited", File.ReadAllText(GeneratedMapFile));
+
+        _output.GetStringBuilder().Clear();
+        Assert.Equal(0, await RunAsync("generate", _projectFile, TableDataKey, DefinitionFile, "/Generated", "--overwrite-edited"));
+
+        Assert.Contains("Changed /Generated/Maps/Pallet Town/Pallet Town: repointed", Output);
+        Assert.DoesNotContain("edited", File.ReadAllText(GeneratedMapFile));
     }
 
     #endregion

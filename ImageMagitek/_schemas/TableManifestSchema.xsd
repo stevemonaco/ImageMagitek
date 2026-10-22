@@ -57,6 +57,14 @@
     </xs:attribute>
     <xs:attribute name="entries" type="xs:positiveInteger" use="optional" />
     <xs:attribute name="index" type="xs:nonNegativeInteger" use="optional" />
+    <xs:attribute name="path" type="nonempty" use="optional" />
+    <xs:attribute name="hash" use="optional">
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="[0-9A-Fa-f]{64}" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
   </xs:complexType>
 
 </xs:schema>

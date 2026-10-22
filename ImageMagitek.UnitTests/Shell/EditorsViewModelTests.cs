@@ -212,20 +212,4 @@ public sealed class EditorsViewModelTests : IAsyncLifetime
         public override void Undo() { }
         public override void Redo() { }
     }
-
-    private sealed class ScriptedInteractionService : IInteractionService
-    {
-        public Queue<PromptResult> Answers { get; } = new();
-        public int PromptCount { get; private set; }
-
-        public Task AlertAsync(string heading, string message) => Task.CompletedTask;
-
-        public Task<PromptResult> PromptAsync(PromptChoice choices, string heading, string message)
-        {
-            PromptCount++;
-            return Task.FromResult(Answers.Dequeue());
-        }
-
-        public Task<TResult?> RequestAsync<TResult>(IRequestMediator<TResult> mediator) => throw new NotSupportedException();
-    }
 }

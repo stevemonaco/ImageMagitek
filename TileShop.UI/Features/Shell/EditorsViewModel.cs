@@ -204,7 +204,10 @@ public partial class EditorsViewModel : ObservableRecipient
         return true;
     }
 
-    private static bool ReferencesAny(Arranger arranger, HashSet<object> resources) =>
+    /// <summary>
+    /// Whether any element of <paramref name="arranger"/> reads from, or has a codec palette in, <paramref name="resources"/>
+    /// </summary>
+    public static bool ReferencesAny(Arranger arranger, HashSet<object> resources) =>
         arranger.EnumerateElements().OfType<ArrangerElement>()
             .Any(el => resources.Contains(el.Source) || el.Codec is IIndexedCodec { Palette: { } palette } && resources.Contains(palette));
 
@@ -494,12 +497,13 @@ public partial class EditorsViewModel : ObservableRecipient
     /// </summary>
     /// <param name="editor">Editor to save</param>
     /// <param name="saveTree">The project tree is also saved upon a Save confirmation</param>
+    /// <param name="closing">How the prompt says the editor will close, such as "will be closed by regeneration"</param>
     /// <returns>Action requested by user</returns>
-    public async Task<UserSaveAction> RequestSaveUserChanges(ResourceEditorBaseViewModel editor, bool saveTree)
+    public async Task<UserSaveAction> RequestSaveUserChanges(ResourceEditorBaseViewModel editor, bool saveTree, string closing = "will be closed")
     {
         if (editor.IsModified)
         {
-            var result = await _interactions.PromptAsync(PromptChoices.YesNoCancel, "Save changes", $"'{editor.DisplayName}' has been modified and will be closed. Save changes?");
+            var result = await _interactions.PromptAsync(PromptChoices.YesNoCancel, "Save changes", $"'{editor.DisplayName}' has been modified and {closing}. Save changes?");
 
             if (result == PromptResult.Accept)
             {

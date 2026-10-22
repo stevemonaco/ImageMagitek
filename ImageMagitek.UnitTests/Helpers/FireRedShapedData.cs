@@ -42,6 +42,11 @@ public static class FireRedShapedData
     public const long SecondaryMetatilesB = 0x6900;
     public const int Size = 0x8000;
 
+    /// <summary>
+    /// Unused bytes that a repointed block map can be copied to
+    /// </summary>
+    public const long FreeSpace = 0x340;
+
     private static uint Pointer(long offset) => (uint)(GbaAddressMapper.RomBase + offset);
 
     public static byte[] Create()
@@ -100,6 +105,32 @@ public static class FireRedShapedData
             Put16(PrimaryPalettes + 2 * i, i);
 
         return rom;
+    }
+
+    /// <summary>
+    /// Copies a layout's block map to <paramref name="blocks"/> and points the layout at the copy
+    /// </summary>
+    public static void RepointLayoutBlocks(byte[] rom, long layout, long blocks)
+    {
+        var width = BinaryPrimitives.ReadInt32LittleEndian(rom.AsSpan((int)layout));
+        var height = BinaryPrimitives.ReadInt32LittleEndian(rom.AsSpan((int)layout + 4));
+        var current = BinaryPrimitives.ReadUInt32LittleEndian(rom.AsSpan((int)layout + 0xC)) - GbaAddressMapper.RomBase;
+        rom.AsSpan((int)current, width * height * 2).CopyTo(rom.AsSpan((int)blocks));
+        Put32(rom, layout + 0xC, Pointer(blocks));
+    }
+
+    /// <summary>
+    /// Unused bytes past the primary tileset's attribute table that its compressed tiles can be copied to
+    /// </summary>
+    public const long TilesFreeSpace = 0x7C00;
+
+    /// <summary>
+    /// Copies the primary tileset's compressed tiles to <see cref="TilesFreeSpace"/> and points the tileset at the copy
+    /// </summary>
+    public static void RepointPrimaryTiles(byte[] rom)
+    {
+        rom.AsSpan((int)PrimaryTiles, 4 + 16 * 9).CopyTo(rom.AsSpan((int)TilesFreeSpace));
+        Put32(rom, Primary + 4, Pointer(TilesFreeSpace));
     }
 
     private static void Put32(byte[] rom, long offset, uint value) => BinaryPrimitives.WriteUInt32LittleEndian(rom.AsSpan((int)offset), value);
@@ -233,6 +264,30 @@ public sealed class GenerationProjectContext : IDisposable
         Service = createService(new XmlProjectSerializerFactory(ProjectFixtures.ResourceSchemaPath, CodecFixture.Shared.CodecFactory,
             new ColorFactory(), [ProjectFixtures.DefaultPalette], null, MapFormatTests.LoadShippedFormats()));
     }
+
+    public string RomFile => Path.Combine(Directory, "rom.bin");
+
+    /// <summary>
+    /// Closes the project, applies <paramref name="editRom"/> to the data file and opens the project again
+    /// </summary>
+    public async Task ReopenAsync(Action<byte[]>? editRom = null)
+    {
+        Service.CloseProjects();
+
+        if (editRom is not null)
+        {
+            var rom = File.ReadAllBytes(RomFile);
+            editRom(rom);
+            File.WriteAllBytes(RomFile, rom);
+        }
+
+        var result = await Service.OpenProjectFileAsync(ProjectFile);
+        Assert.True(result.HasSucceeded, result.HasFailed ? string.Join("\n", result.AsError.Reasons) : null);
+        Tree = result.AsSuccess.Result;
+    }
+
+    public void EditDefinition(Func<string, string> edit) =>
+        File.WriteAllText(DefinitionFile, edit(File.ReadAllText(DefinitionFile)), new UTF8Encoding(false));
 
     public async Task InitializeAsync()
     {

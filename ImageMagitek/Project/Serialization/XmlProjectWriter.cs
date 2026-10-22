@@ -55,7 +55,7 @@ public sealed class XmlProjectWriter : IProjectWriter
         {
             _journalDirectory = Path.GetDirectoryName(Path.GetFullPath(projectFileName))!;
 
-            var serializeResult = await TrySerializeProjectTreeAsync(_tree, additionalFiles).ConfigureAwait(false);
+            var serializeResult = await TrySerializeProjectTreeAsync(_tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode), additionalFiles).ConfigureAwait(false);
             return serializeResult.Match<MagitekResult>(
                 success => MagitekResult.SuccessResult,
                 failed => new MagitekResult.Failed(failed.Reasons.First()));
@@ -228,7 +228,7 @@ public sealed class XmlProjectWriter : IProjectWriter
         await _writeLock.WaitAsync().ConfigureAwait(false);
         try
         {
-            var actions = writes.Select(x => (x.Node.DiskLocation!, Stringify(SerializeModel(x.Model)), x.Node, x.Model));
+            var actions = writes.Select(x => (x.Node.DiskLocation!, Stringify(ToElement(x.Model)), x.Node, x.Model));
             var transactionResult = await RunTransactionsAsync(actions).ConfigureAwait(false);
             return transactionResult.Match<MagitekResult>(
                 success => MagitekResult.SuccessResult,
@@ -240,76 +240,68 @@ public sealed class XmlProjectWriter : IProjectWriter
         }
     }
 
-    private async Task<MagitekResults> TrySerializeProjectTreeAsync(ProjectTree tree, IReadOnlyList<(string Path, string Contents)>? additionalFiles)
+    /// <inheritdoc/>
+    public async Task<MagitekResult> WriteResourcesAsync(IReadOnlyList<ResourceNode> nodes, IReadOnlyList<(string Path, string Contents)>? additionalFiles = null)
+    {
+        await _writeLock.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            var serializeResult = await TrySerializeProjectTreeAsync(nodes, additionalFiles).ConfigureAwait(false);
+            return serializeResult.Match<MagitekResult>(
+                success => MagitekResult.SuccessResult,
+                failed => new MagitekResult.Failed(failed.Reasons.First()));
+        }
+        finally
+        {
+            _writeLock.Release();
+        }
+    }
+
+    private async Task<MagitekResults> TrySerializeProjectTreeAsync(IEnumerable<ResourceNode> nodes, IReadOnlyList<(string Path, string Contents)>? additionalFiles)
     {
         var actions = new List<(string targetPath, string contents, ResourceNode node, ResourceModel model)>();
 
-        foreach (var node in tree.EnumerateDepthFirst().Where(x => x is not ResourceFolderNode))
+        foreach (var node in nodes)
         {
-            ResourceModel currentModel;
-            ResourceModel? diskModel;
-            var resourceMap = CreateResourceMap();
+            var mapResult = MapCurrentModel(node);
+            if (mapResult.HasFailed)
+                return new MagitekResults.Failed([mapResult.AsError.Reason]);
 
-            if (node is ProjectNode projectNode)
-            {
-                var project = (ImageProject)projectNode.Item;
-                currentModel = project.MapToModel(ProjectFormat.Required(tree));
-                diskModel = projectNode.Model;
-            }
-            else if (node is DataFileNode dfNode)
-            {
-                var df = (FileDataSource)dfNode.Item;
-                currentModel = df.MapToModel();
-                diskModel = dfNode.Model;
-            }
-            else if (node is CompressedDataNode compressedNode)
-            {
-                currentModel = ((CompressedDataSource)compressedNode.Item).MapToModel(resourceMap);
-                diskModel = compressedNode.Model;
-            }
-            else if (node is TilemapNode tilemapNode)
-            {
-                currentModel = ((TilemapArranger)tilemapNode.Item).MapToModel(resourceMap);
-                diskModel = tilemapNode.Model;
-            }
-            else if (node is MetatileSetNode metatileSetNode)
-            {
-                currentModel = ((MetatileSet)metatileSetNode.Item).MapToModel(resourceMap);
-                diskModel = metatileSetNode.Model;
-            }
-            else if (node is MetatileMapNode metatileMapNode)
-            {
-                currentModel = ((MetatileMap)metatileMapNode.Item).MapToModel(resourceMap);
-                diskModel = metatileMapNode.Model;
-            }
-            else if (node is PaletteNode paletteNode)
-            {
-                var paletteModel = MapPaletteModel(paletteNode, resourceMap);
-                if (FindUnwritableReason(paletteModel) is string reason)
-                    return new MagitekResults.Failed([reason]);
+            var currentModel = mapResult.AsSuccess.Result;
+            var location = ResourceFileLocator.Locate(_tree, node);
 
-                currentModel = paletteModel;
-                diskModel = paletteNode.Model;
-            }
-            else if (node is ArrangerNode arrangerNode)
+            if (!currentModel.ResourceEquals(node.Model) || node.DiskLocation != location)
             {
-                var arranger = (ScatteredArranger)arrangerNode.Item;
-                currentModel = arranger.MapToModel(resourceMap);
-                diskModel = arrangerNode.Model;
-            }
-            else
-                throw new InvalidOperationException($"Serializing project node with unexpected type '{node.GetType()}' is not supported");
-
-            var location = ResourceFileLocator.Locate(tree, node);
-
-            if (!currentModel.ResourceEquals(diskModel) || node.DiskLocation != location)
-            {
-                var element = SerializeModel(currentModel);
+                var element = ToElement(currentModel);
                 actions.Add((location, Stringify(element), node, currentModel));
             }
         }
 
         return await RunTransactionsAsync(actions, additionalFiles).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public MagitekResult<ResourceModel> MapCurrentModel(ResourceNode node, Dictionary<IProjectResource, string>? resourceMap = null)
+    {
+        resourceMap ??= CreateResourceMap();
+
+        ResourceModel model = node switch
+        {
+            ProjectNode { Item: ImageProject project } => project.MapToModel(ProjectFormat.Required(_tree)),
+            DataFileNode { Item: FileDataSource df } => df.MapToModel(),
+            CompressedDataNode { Item: CompressedDataSource compressed } => compressed.MapToModel(resourceMap),
+            TilemapNode { Item: TilemapArranger tilemap } => tilemap.MapToModel(resourceMap),
+            MetatileSetNode { Item: MetatileSet metatileSet } => metatileSet.MapToModel(resourceMap),
+            MetatileMapNode { Item: MetatileMap metatileMap } => metatileMap.MapToModel(resourceMap),
+            PaletteNode paletteNode => MapPaletteModel(paletteNode, resourceMap),
+            ArrangerNode { Item: ScatteredArranger arranger } => arranger.MapToModel(resourceMap),
+            _ => throw new InvalidOperationException($"Serializing project node with unexpected type '{node.GetType()}' is not supported")
+        };
+
+        if (model is PaletteModel paletteModel && FindUnwritableReason(paletteModel) is string reason)
+            return new MagitekResult<ResourceModel>.Failed(reason);
+
+        return new MagitekResult<ResourceModel>.Success(model);
     }
 
     private async Task<MagitekResults> RunTransactionsAsync(IEnumerable<(string targetPath, string contents, ResourceNode node, ResourceModel model)> actions,
@@ -411,7 +403,10 @@ public sealed class XmlProjectWriter : IProjectWriter
         return null;
     }
 
-    private XElement SerializeModel(ResourceModel model)
+    /// <inheritdoc/>
+    public string SerializeModel(ResourceModel model) => Stringify(ToElement(model));
+
+    private XElement ToElement(ResourceModel model)
     {
         return model switch
         {

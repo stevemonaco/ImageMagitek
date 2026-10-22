@@ -10,9 +10,10 @@ namespace ImageMagitek.Tables;
 /// <param name="Key">Tree path key the resource is created at</param>
 /// <param name="ParentKey">Tree path key of its folder, '/' for the project root</param>
 /// <param name="Type">The resource file's root element name</param>
+/// <param name="Path">The record path of the record it comes from (LIB-TABLES-160)</param>
 /// <param name="Summary">A size summary such as '16 colors' or '24x20 blocks'</param>
 public sealed record PlannedResource(string Key, string ParentKey, string Name, string Type, ResourceModel Model, string OutputId,
-    string Record, long Offset, int? Index, int? Entries, string Summary);
+    string Record, long Offset, int? Index, int? Entries, string Path, string Summary);
 
 /// <summary>
 /// What a generation would create and why records were left out (LIB-TABLES-121)
@@ -38,7 +39,7 @@ public sealed class GenerationReport
 /// <summary>
 /// The resources, folders, report and manifest entry of one generation, built without writing anything (LIB-TABLES-120)
 /// </summary>
-public sealed class GenerationPlan
+public sealed record GenerationPlan
 {
     public required string DataFileKey { get; init; }
     public required string ManifestFileName { get; init; }
@@ -56,6 +57,11 @@ public sealed class GenerationPlan
 
     public required GenerationReport Report { get; init; }
     public required TableManifestGeneration ManifestGeneration { get; init; }
+
+    /// <summary>
+    /// How the plan matches the manifest's earlier generation into the same folder, null for a first generation (LIB-PROJECT-SERVICE-073)
+    /// </summary>
+    public RegenerationPlan? Regeneration { get; init; }
 
     public PlannedResource? Find(string key) => Resources.FirstOrDefault(x => x.Key == key);
 }

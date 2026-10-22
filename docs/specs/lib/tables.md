@@ -35,6 +35,11 @@ types:
   - GenerationPlan
   - PlannedResource
   - GenerationReport
+  - RegenerationPlan
+  - RegenerationEntry
+  - RegeneratedResource
+  - KeptResource
+  - RegenerationKind
   - TableManifest
   - XmlTableManifestReader
   - XmlTableManifestWriter
@@ -48,6 +53,7 @@ tests:
   - NameTableTests
   - TableGeneratorTests
   - TableManifestTests
+  - TableRegenerationTests
   - TableGenerationProjectTests
 depends:
   - LIB-DATASOURCE
@@ -63,7 +69,7 @@ depends:
 
 ## Purpose
 
-Generates ordinary project resources (compressed data, palettes, scattered arrangers, metatile sets, metatile maps, tilemaps) from a game's record tables. A **table definition** is a declarative XML file that describes how the game's pointers map to file offsets, its record types and tables, small integer expressions over their fields, its text encodings (**charmaps**) and name tables, and one **output** per kind of resource to create from a record. `TableEvaluator` walks the tables over a `DataSource` (LIB-DATASOURCE) into one `RecordInstance` per record type and file offset; `TableGenerator` turns the instances into a `GenerationPlan` of LIB-PROJECT-FORMAT resource models with names, folders, a report and a **manifest** entry. LIB-PROJECT-SERVICE builds and writes a plan into a project in one transaction (its Generate group). The manifest is an open XML format, specified here so other programs can write one. Phase 1 covers definitions and generation; regeneration from a manifest is pending (proposal [table-driven resources](../../changes/table-resources.md)).
+Generates ordinary project resources (compressed data, palettes, scattered arrangers, metatile sets, metatile maps, tilemaps) from a game's record tables. A **table definition** is a declarative XML file that describes how the game's pointers map to file offsets, its record types and tables, small integer expressions over their fields, its text encodings (**charmaps**) and name tables, and one **output** per kind of resource to create from a record. `TableEvaluator` walks the tables over a `DataSource` (LIB-DATASOURCE) into one `RecordInstance` per record type and file offset; `TableGenerator` turns the instances into a `GenerationPlan` of LIB-PROJECT-FORMAT resource models with names, folders, a report and a **manifest** entry. LIB-PROJECT-SERVICE builds and writes a plan into a project in one transaction (its Generate group). The manifest is an open XML format, specified here so other programs can write one. Running a definition again into a folder its manifest lists regenerates: the plan is matched to the manifest's resources by record path, and only what changed is written (LIB-TABLES-160 to -166). Phase 1 (definitions and generation) and phase 2 (regeneration) are implemented (proposal [table-driven resources](../../changes/table-resources.md)).
 
 ## Requirements
 
@@ -246,6 +252,27 @@ Generates ordinary project resources (compressed data, palettes, scattered arran
   - Tests: `TableManifestTests.Rewrite_KeepsOtherGenerations`
 - **LIB-TABLES-134** — If a manifest is not well-formed or fails validation, then reading shall fail naming the file and the line.
   - Tests: `TableManifestTests.Invalid_FailsNamingLine`
+- **LIB-TABLES-135** — A `resource` may have `path` (its record path, LIB-TABLES-160) and `hash` (the lowercase hexadecimal SHA-256 of the resource file's bytes as written, LIB-PROJECT-SERVICE-074). The writer shall write both for every resource TileShop generated; the reader shall accept a resource with either or neither.
+  - Tests: `TableManifestTests.WriteRead_RoundTrip`, `TableManifestTests.ForeignWrittenManifest_Reads`
+
+### Regeneration
+
+- **LIB-TABLES-160** — Every planned resource shall carry its record's path: the root table's name and row as `<table>[<row>]`, then for each step from that row to the record's first reference (LIB-TABLES-100) `.<field>` for a pointer field that reaches a record, `.<field>[<row>]` for a pointer field that reaches a table, and `[<row>]` for a row of a table a pointer row reaches. A palette's path shall be that of the record whose output first planned it (LIB-TABLES-072).
+  - Tests: `TableGeneratorTests.RecordPath_FollowsFirstReference`, `TableGeneratorTests.RecordPath_DedupedPaletteTakesFirstRecord`
+- **LIB-TABLES-161** — Given a manifest generation and a plan, regeneration shall match each planned resource to at most one entry and each entry to at most one planned resource: a planned palette first matches an entry with its identity (LIB-TABLES-131), since its path is whichever record planned it first (LIB-TABLES-160); otherwise an entry with a `path` matches the planned resource with the same `type`, `output`, `path` and `index`; an entry without one matches by its identity (LIB-TABLES-131). Matching shall write nothing and need no project.
+  - Tests: `TableRegenerationTests.MatchByPath_RepointedRecordIsChanged`, `TableRegenerationTests.EntryWithoutPath_MatchesByOffset`, `TableGenerationProjectTests.Regenerate_RecordSwitchesToPaletteAnotherUses_PalettesUnchanged`, `TableGenerationProjectTests.Regenerate_RecordSwitchesToUnusedPalette_AddsIt`
+- **LIB-TABLES-162** — A planned resource with no entry shall be added, an entry with no planned resource shall be removed, and a matched pair shall be changed when the planned model differs from the current resource's model and unchanged otherwise.
+  - Tests: `TableRegenerationTests.AddedRemovedChangedUnchanged`
+- **LIB-TABLES-163** — Before matched models are compared or built, every reference in a planned model to a matched resource shall be rewritten to that resource's current key (LIB-PROJECT-SERVICE-073), so a resource the user moved is still referenced.
+  - Tests: `TableRegenerationTests.ReferenceToMovedResource_UsesCurrentKey`
+- **LIB-TABLES-164** — A changed resource shall be described as `repointed` when any file offset in its model differs, `re-paletted` when any palette reference differs, `resized` when its size summary (LIB-TABLES-120) differs, and `changed` when it differs in none of these; one resource may be several.
+  - Tests: `TableRegenerationTests.ChangeKinds_Described`
+- **LIB-TABLES-165** — The regeneration report shall give "Added N <type>", "Changed N <type>", "Unchanged N <type>" and "Removed N <type>" per type in build order, then "Changed <key>: <kinds>" per changed resource, "Removed <key>" per removed one, each kept resource with its reason (LIB-PROJECT-SERVICE-075 to -077), or as "Kept <key>: references deleted <missing key>" when it is kept for a deleted reference (LIB-TABLES-167), then "Skipped <key>: references deleted <missing key>" per skipped resource, followed by the skipped records and warnings (LIB-TABLES-121).
+  - Tests: `TableRegenerationTests.Report_ListsEveryCategory`, `TableRegenerationTests.AddedReferencingDeleted_SkippedWithDependents`, `TableRegenerationTests.ChangedReferencingDeleted_KeptAsIs`
+- **LIB-TABLES-166** — After regeneration the manifest's generation shall list every resource written or left unchanged at its current key with its new hash (none for an unchanged resource whose file is missing, so it counts as edited next time), every kept resource (edited, missing, still referenced or referencing a deleted resource) with its old entry at its current key (the entry's own key when missing), and no removed or skipped resource, so a later run adds a skipped resource once the resource it needs is back.
+  - Tests: `TableGenerationProjectTests.Regenerate_ManifestListsKeptAndDropsRemoved`, `TableRegenerationTests.AddedReferencingDeleted_SkippedWithDependents`, `TableRegenerationTests.ChangedReferencingDeleted_KeptAsIs`, `TableGenerationProjectTests.Regenerate_ArrangerReferencingDeletedPalette_KeptAsIs`
+- **LIB-TABLES-167** — A planned resource that references a planned resource whose entry is missing (LIB-PROJECT-SERVICE-076) shall be skipped when it is added, and reported as "Skipped <key>: references deleted <missing key>", with the skip passing on to the resources that reference it (as LIB-TABLES-076); when it is matched, it shall be kept as it is at its current key and reported as "Kept <key>: references deleted <missing key>", and later resources shall reference it there.
+  - Tests: `TableRegenerationTests.AddedReferencingDeleted_SkippedWithDependents`, `TableRegenerationTests.ChangedReferencingDeleted_KeptAsIs`, `TableGenerationProjectTests.Regenerate_ArrangerReferencingDeletedPalette_KeptAsIs`
 
 ### Arranger outputs
 
@@ -276,6 +303,8 @@ Generates ordinary project resources (compressed data, palettes, scattered arran
 ## Edge cases
 
 - Two palettes at one address with different entry counts are separate resources.
+- A record repointed to data another record already reaches becomes the same instance (LIB-TABLES-100), so one of the two resources is removed and the other's references change.
+- A manifest written before LIB-TABLES-135 has no hashes, so every one of its resources counts as edited on the first regeneration (LIB-PROJECT-SERVICE-075).
 - A name that renders empty, such as a name table entry of spaces, takes the fallback name (LIB-TABLES-083).
 - A resource skipped after naming (LIB-TABLES-076) still took its name, so a later resource with the same rendered name keeps its " 2".
 - A pointer row in a pointer table that is null adds no child and does not end the table; only `until` does.
@@ -315,12 +344,16 @@ Generates ordinary project resources (compressed data, palettes, scattered arran
 - **Sanitize generated names (not user names).** Generated names have forbidden characters removed and fall back to `<output id> <offset>`. Reason: game text holds characters such as `/` and `:` that the name rule forbids, and the user did not type these names, so refusing them would only block generation. The service's rule that typed names are refused, never sanitized (LIB-PROJECT-SERVICE "One rule for names"), still holds for names a user types.
 - **The manifest holds one generation per project and folder.** Reason: the manifest sits beside the definition, which several projects for the same game can share, and one project can generate into several folders; keying by both lets each run replace only its own entry. Rejected: one manifest per project (the definition's directory is the only place every user of the definition knows); one per run (stale entries pile up).
 - **Template order follows declaration order.** `{name:outputId}` may only name an earlier output, and outputs are named in declaration order. Reason: names never depend on later names, so naming is one pass per output. Folder templates cannot use `{name:…}` or `{n}`, so every folder is known before any name is checked for clashes.
+- **Regeneration matches by record path.** A generated resource is identified by the path from a root table row to its record's first reference, plus its output and repeat index. Reason: a repointed record keeps its path but not its offset, so offset identity would report a repointed map as one removed and one added and lose any move the user made. Manifests without paths (foreign or written before paths) fall back to offset identity. Rejected: offset identity (above); the resource key (breaks when the user renames or moves it, and when a definition's name template changes).
+- **A kept resource's entry moves with it.** A kept edited resource the user moved is listed with its old entry (path, hash) at its current key. Reason: an edited resource's hash no longer matches its file, so the next regeneration could not find it by hash and would count it missing. Rejected: keeping the entry's old key (the next run reports the resource missing and stops tracking it).
+- **Edits are detected by the file's hash.** The manifest records each resource file's SHA-256 as written; a different hash, a missing hash or unsaved changes mean the user edited it, and regeneration keeps it unless asked to overwrite. The file hash is checked first. A differing hash is checked again: when the file is exactly what TileShop writes for the resource's current model, and that model, with its references to found generated resources put back to their entry keys, serializes to the entry's hash, the file was only rewritten by a move or rename of a resource it references and is not an edit (LIB-PROJECT-SERVICE-075). Reason: the project format has no "generated by" marker, a file hash works the same for resources another program wrote, and moving a generated resource rewrites the files that reference it. Rejected: comparing with a re-serialized model alone (TileShop's formatting differs from other writers' and from legacy files, and a hand-added comment would stop counting as an edit); updating the manifest on a move (the service does not know where manifests live, since they sit beside definitions); always overwriting (loses hand fixes); merging (a non-goal).
+- **A resource needing a deleted one is skipped or kept.** An added resource that references a deleted generated resource is skipped, a matched one is kept as it is, and both are reported with the deleted key (LIB-TABLES-167). Reason: deleting a generated resource is how the user says they do not want it (LIB-PROJECT-SERVICE "A deleted generated resource stays deleted"), and one deletion should not block the whole run. Rejected: failing the run (the old behavior, since the builder cannot resolve the deleted key); recreating the deleted resource (undoes the user); pointing the reference at the default palette (changes the resource silently).
 - **`slot`, not `index`, for palette positions.** A palette output's position is its `slot` attribute and identifier. Reason: `index` already means the record's row index. Rejected: overloading `index` inside palette outputs.
 
 ## Non-goals
 
 - Relocating data or rewriting pointers.
-- Regeneration from a manifest, and the diff and confirmation it needs (phase 2).
+- Merging a user's edits to a generated resource with its regenerated contents; an edited resource is kept or overwritten whole.
 - Interpreting resources' contents (attribute bits, scripts, events) beyond the fields a definition names.
 
 ## Open items
@@ -328,7 +361,7 @@ Generates ordinary project resources (compressed data, palettes, scattered arran
 - Pending: the `snes-hirom`, `nes` and `gb` address mappers (accepted by the schema, refused at load).
 - Pending: the arranger `mask` layout, accepted by the schema and refused at load. No game in scope uses it, so its bit order cannot be checked.
 - Pending: the generator plugin contract (LIB-PLUGINS).
-- Pending: regeneration (phase 2). The UI generation dialog is UI-PROJECT-TREE-138 to -145.
+- Manual: hex-edited Pallet Town's block map pointer (layout `0x2DD4C0`, `0x082DD100` to `0x082DD102`) in a ROM copy after generating FireRed into `/Regen` of a project copy: an unedited rerun reported all 1101 resources unchanged and wrote no file; after the edit, regeneration reported only "Changed /Regen/Maps/Pallet Town/Pallet Town: repointed", rewrote only that file (`mapoffset="2DD102"`) and the manifest (its new hash matching the file), and a further run reported everything unchanged.
 - A bank-implied 16-bit pointer can be mapped with `map` but not followed with a field's `to`, which maps the raw field value.
 - FF4's "All Monsters" overview, which shelf-packs every monster into one arranger with per-element palettes, cannot be expressed: an output makes one resource per record.
 - The manifest is always written beside the definition; a `--manifest` location option could be added for read-only definition folders.

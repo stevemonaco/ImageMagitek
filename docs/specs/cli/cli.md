@@ -178,6 +178,16 @@ depends:
   - Tests: `CliApplicationTests.Generate_DryRun_WritesNothingExits0`
 - **CLI-COMMANDS-074** — The CLI shall load the table, charmap and manifest schemas from `_schemas` in the application directory.
   - Tests: `CliApplicationTests.Generate_WritesResourcesExits0`
+- **CLI-COMMANDS-075** — `generate` shall write only the generated resources, the manifest and the project file when its version changes (LIB-PROJECT-SERVICE-069); with `--save-project` it shall also save every other changed resource (LIB-PROJECT-SERVICE-072).
+  - Tests: `CliApplicationTests.Generate_LeavesOtherResourcesUnwritten`, `CliApplicationTests.Generate_SaveProject_WritesOtherChangedResources`
+- **CLI-COMMANDS-076** — When the manifest has a generation for the project and `<folder>`, `generate` shall regenerate (LIB-PROJECT-SERVICE-073 to -079) and print the regeneration report (LIB-TABLES-165) in place of the CLI-COMMANDS-072 report.
+  - Tests: `CliApplicationTests.Regenerate_PrintsChangesExits0`
+- **CLI-COMMANDS-077** — With `--dry-run`, a regeneration shall print the regeneration report with "Would add", "Would change" and "Would remove" in place of "Added", "Changed" and "Removed", write nothing, and exit with 0.
+  - Tests: `CliApplicationTests.Regenerate_DryRun_WritesNothingExits0`
+- **CLI-COMMANDS-078** — If a regeneration would delete resources and `--yes` is not given, then the CLI shall print "Regeneration would remove N resources; rerun with --yes to remove them" and each key, write nothing, and exit with -8 (LIB-PROJECT-SERVICE-078).
+  - Tests: `CliApplicationTests.Regenerate_RemovalsWithoutYes_Exits8`, `CliApplicationTests.Regenerate_RemovalsWithYes_Exits0`
+- **CLI-COMMANDS-079** — `--overwrite-edited` shall pass `overwriteEdited` (LIB-PROJECT-SERVICE-075), so resources edited since generation are rewritten or deleted too.
+  - Tests: `CliApplicationTests.Regenerate_OverwriteEdited_RewritesEditedResource`
 
 ## Invariants
 

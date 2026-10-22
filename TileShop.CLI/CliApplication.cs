@@ -46,6 +46,9 @@ public sealed class CliApplication
     private readonly Argument<string> _definitionArgument = new("definition") { Description = "Table definition file" };
     private readonly Argument<string> _folderArgument = new("folder") { Description = "Key of the folder to generate into, created when missing" };
     private readonly Option<bool> _dryRunOption = new("--dry-run") { Description = "Print the resources and report without writing anything" };
+    private readonly Option<bool> _saveProjectOption = new("--save-project") { Description = "Also save other project resources that changed on load, such as legacy codec names" };
+    private readonly Option<bool> _yesOption = new("--yes") { Description = "Confirm removing resources whose records no longer exist" };
+    private readonly Option<bool> _overwriteEditedOption = new("--overwrite-edited") { Description = "Also rewrite or remove resources edited since generation" };
     private readonly Option<bool> _transparentIndexZeroOption = new("--transparent-index0") { Description = "Map fully transparent pixels to palette index 0 without color matching" };
 
     private readonly RootCommand _root;
@@ -98,7 +101,7 @@ public sealed class CliApplication
 
         _generateCommand = new Command("generate", "Generates resources into a project folder from a table definition over a data file")
         {
-            _projectArgument, _dataFileArgument, _definitionArgument, _folderArgument, _dryRunOption, _logOption
+            _projectArgument, _dataFileArgument, _definitionArgument, _folderArgument, _dryRunOption, _saveProjectOption, _yesOption, _overwriteEditedOption, _logOption
         };
         _generateCommand.Aliases.Add("Generate");
 
@@ -192,7 +195,8 @@ public sealed class CliApplication
         if (command == _generateCommand)
             return new GenerateHandler(projectService, _output).TryExecute(new GenerateOptions(project,
                 parseResult.GetRequiredValue(_dataFileArgument), parseResult.GetRequiredValue(_definitionArgument),
-                parseResult.GetRequiredValue(_folderArgument), parseResult.GetValue(_dryRunOption)));
+                parseResult.GetRequiredValue(_folderArgument), parseResult.GetValue(_dryRunOption), parseResult.GetValue(_saveProjectOption),
+                parseResult.GetValue(_yesOption), parseResult.GetValue(_overwriteEditedOption)));
 
         var importOptions = new ImageImportOptions(parseResult.GetValue(_matchOption),
             parseResult.GetValue(_transparentIndexZeroOption), 0, parseResult.GetValue(_maxDistanceOption));

@@ -129,7 +129,7 @@ public sealed class TableEvaluator
                 continue;
             }
 
-            WalkTable(table, start, null, 0);
+            WalkTable(table, start, null, 0, table.Name);
         }
 
         return new TableEvaluation(_data, _instances, _skipped);
@@ -166,7 +166,7 @@ public sealed class TableEvaluator
         return result.AsSuccess.Result;
     }
 
-    private void WalkTable(TableDeclaration table, long start, RecordInstance? owner, int pointingIndex)
+    private void WalkTable(TableDeclaration table, long start, RecordInstance? owner, int pointingIndex, string prefix)
     {
         if (!_walkedTables.Add((table.Name, start, pointingIndex, owner)))
             return;
@@ -177,6 +177,7 @@ public sealed class TableEvaluator
         for (var i = 0; count is null || i < count; i++)
         {
             var rowOffset = start + (long)i * table.Stride;
+            var rowPath = $"{prefix}[{i}]";
             var bytes = _data.TryRead(rowOffset, rowSize);
 
             if (bytes is null)
@@ -192,7 +193,7 @@ public sealed class TableEvaluator
                 if (table.Until is { } until && IsTerminator(table, until, i, RecordInstance.ReadFields(record.Fields, bytes, _data.Mapper), null))
                     return;
 
-                VisitRecord(record, rowOffset, owner, table.Name, i, false);
+                VisitRecord(record, rowOffset, owner, table.Name, i, false, rowPath);
             }
             else
             {
@@ -200,7 +201,7 @@ public sealed class TableEvaluator
                 if (table.Until is { } until && IsTerminator(table, until, i, new Dictionary<string, FieldValue>(), raw))
                     return;
 
-                FollowPointer(table.PointerTarget!, raw, owner, table.Name, i, false);
+                FollowPointer(table.PointerTarget!, raw, owner, table.Name, i, false, rowPath);
             }
         }
     }
@@ -217,7 +218,7 @@ public sealed class TableEvaluator
         return true;
     }
 
-    private void FollowPointer(string target, long raw, RecordInstance? owner, string via, int index, bool viaField)
+    private void FollowPointer(string target, long raw, RecordInstance? owner, string via, int index, bool viaField, string path)
     {
         if (raw == 0)
             return;
@@ -232,7 +233,7 @@ public sealed class TableEvaluator
 
         if (_definition.FindRecordType(target) is { } record)
         {
-            var child = VisitRecord(record, offset, owner, via, index, viaField);
+            var child = VisitRecord(record, offset, owner, via, index, viaField, path);
             if (child is not null && viaField)
                 owner?.SetChild(via, child);
         }
@@ -241,11 +242,11 @@ public sealed class TableEvaluator
             if (offset >= _data.Length)
                 _skipped.Add(new SkippedRecord($"table '{table.Name}'", offset, $"is past the end of the data (reached from {from})"));
             else
-                WalkTable(table, offset, owner, index);
+                WalkTable(table, offset, owner, index, path);
         }
     }
 
-    private RecordInstance? VisitRecord(RecordType type, long offset, RecordInstance? parent, string via, int index, bool viaField)
+    private RecordInstance? VisitRecord(RecordType type, long offset, RecordInstance? parent, string via, int index, bool viaField, string path)
     {
         var reference = new RecordReference(parent, via);
 
@@ -267,7 +268,7 @@ public sealed class TableEvaluator
         var variant = SelectVariant(type, offset, baseFields, index);
         var fields = variant is null ? baseFields : RecordInstance.ReadFields(type.FieldsWith(variant), bytes, _data.Mapper);
 
-        var instance = new RecordInstance(type, offset, index, _instances.Count, variant, fields);
+        var instance = new RecordInstance(type, offset, index, _instances.Count, variant, fields, path);
         instance.AddReference(reference);
         _instances.Add(instance);
         _byOffset[(type, offset)] = instance;
@@ -275,7 +276,7 @@ public sealed class TableEvaluator
         foreach (var field in type.FieldsWith(variant).Where(x => x.To is not null))
         {
             var value = fields[field.Name];
-            FollowPointer(field.To!, value.Raw, instance, field.Name, instance.Index, true);
+            FollowPointer(field.To!, value.Raw, instance, field.Name, instance.Index, true, $"{path}.{field.Name}");
         }
 
         return instance;

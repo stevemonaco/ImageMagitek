@@ -14,6 +14,7 @@ Found by reading the code, not reproduced, unless a test is named.
 
 ### Library
 
+- [LIB-PROJECT-SERVICE-073] A generated resource moved after a resource it references was also moved has a file the first move rewrote, so the next regeneration finds it neither by key nor by hash and counts it missing; done when such a resource is found.
 
 ### UI
 
@@ -58,7 +59,7 @@ Found by reading the code, not reproduced, unless a test is named.
 
 - [LIB-CODECS] Platforms: Game Boy/GBC 2bpp (explicit entry), Master System 4bpp, PC Engine/TG16, N64 CI4/CI8/IA/I, NDS, Saturn, Neo Geo sprites, Atari/Lynx, WonderSwan; GBA/NDS BGR555 direct bitmap codecs.
 - [LIB-SCANNING] Container scanners: find self-describing graphics (PSX TIM first) in a data file and add them as arrangers and palettes, and browse archive entries through container-reader plugins: [change proposal](changes/container-scanners.md).
-- [LIB-TABLES] Table-driven resources: generate arrangers and palettes from a game's record tables through a declarative definition, regenerate them after the table changes, and relocate data by rewriting its pointer: [change proposal](changes/table-resources.md).
+- [LIB-TABLES] Table-driven resources: generate arrangers and palettes from a game's record tables through a declarative definition and regenerate them after the table changes (both done; the generator plugin contract and Task 8 remain), and relocate data by rewriting its pointer (a separate proposal): [change proposal](changes/table-resources.md).
 - [LIB-TABLES] An overview output that packs every record's arranger into one arranger with per-element palettes, such as FF4's shelf-packed "All Monsters"; done when the FF4 definition can generate it.
 - [LIB-TABLES] The arranger `mask` layout, once a game that uses it can check its bit order; done when a definition with `layout="mask"` loads and generates.
 - [LIB-TABLES] Following a bank-implied 16-bit pointer with a field's `to` (today only `map` can map one); done when a game needs it and such a field reaches its record.

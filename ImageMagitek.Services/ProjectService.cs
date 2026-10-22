@@ -1210,7 +1210,8 @@ public class ProjectService : IProjectService
     }
 
     /// <inheritdoc/>
-    public virtual MagitekResult<GenerationPlan> PlanGeneration(ProjectTree tree, string dataFileKey, TableDefinition definition, string targetFolderKey)
+    public virtual MagitekResult<GenerationPlan> PlanGeneration(ProjectTree tree, string dataFileKey, TableDefinition definition, string targetFolderKey,
+        bool overwriteEdited = false)
     {
         Guard.IsNotNull(tree);
         Guard.IsNotNull(definition);
@@ -1225,16 +1226,209 @@ public class ProjectService : IProjectService
         if (targetResult.HasFailed)
             return new MagitekResult<GenerationPlan>.Failed(targetResult.AsError.Reason);
 
+        GenerationPlan plan;
         try
         {
             var generator = new TableGenerator(definition, source, tree.CreatePathKey(dataNode), targetResult.AsSuccess.Result, _serializerFactory.MapFormatFactory);
-            return new MagitekResult<GenerationPlan>.Success(generator.Plan(tree.Root.DiskLocation!));
+            plan = generator.Plan(tree.Root.DiskLocation!);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             return new MagitekResult<GenerationPlan>.Failed($"Could not read '{dataFileKey}': {ex.Message}");
         }
+
+        var manifestResult = ReadManifest(plan);
+        if (manifestResult.HasFailed)
+            return new MagitekResult<GenerationPlan>.Failed(manifestResult.AsError.Reason);
+
+        if (manifestResult.AsSuccess.Result.FindGeneration(plan.ManifestGeneration.Project, plan.ManifestGeneration.Folder) is not { } generation)
+            return new MagitekResult<GenerationPlan>.Success(plan);
+
+        if (!string.Equals(generation.DataFile, plan.DataFileKey, StringComparison.OrdinalIgnoreCase))
+            return new MagitekResult<GenerationPlan>.Failed(
+                $"'{generation.Folder}' was generated from data file '{generation.DataFile}', not '{plan.DataFileKey}'");
+
+        var entries = FindGeneratedResources(tree, generation);
+        var regeneration = KeepReferencedRemovals(tree, RegenerationPlan.Match(plan, entries, overwriteEdited));
+        return new MagitekResult<GenerationPlan>.Success(plan with { Regeneration = regeneration });
     }
+
+    private static MagitekResult<TableManifest> ReadManifest(GenerationPlan plan)
+    {
+        if (!File.Exists(plan.ManifestFileName))
+            return new MagitekResult<TableManifest>.Success(TableManifest.Empty);
+
+        var readResult = new XmlTableManifestReader(plan.ManifestSchemaFileName).LoadFromFile(plan.ManifestFileName);
+        return readResult.HasFailed
+            ? new MagitekResult<TableManifest>.Failed($"Manifest '{plan.ManifestFileName}' could not be read:\n{string.Join("\n", readResult.AsError.Reasons)}")
+            : new MagitekResult<TableManifest>.Success(readResult.AsSuccess.Result);
+    }
+
+    private static string? GeneratedTypeName(ResourceNode node) => node switch
+    {
+        CompressedDataNode => "compresseddata",
+        PaletteNode => "palette",
+        ArrangerNode => "arranger",
+        MetatileSetNode => "metatileset",
+        MetatileMapNode => "metatilemap",
+        TilemapNode => "tilemap",
+        _ => null
+    };
+
+    // Every entry is looked up by key before any by hash, so a resource found by hash is never one another entry names
+    private List<RegenerationEntry> FindGeneratedResources(ProjectTree tree, TableManifestGeneration generation)
+    {
+        var fileHashes = new Dictionary<ResourceNode, string?>();
+        var byHash = new Dictionary<string, ILookup<string?, ResourceNode>>();
+        var found = new ResourceNode?[generation.Resources.Count];
+        var taken = new HashSet<ResourceNode>();
+
+        for (var i = 0; i < found.Length; i++)
+        {
+            var entry = generation.Resources[i];
+            if (tree.TryGetNode(entry.Key, out var node) && GeneratedTypeName(node) == entry.Type && taken.Add(node))
+                found[i] = node;
+        }
+
+        for (var i = 0; i < found.Length; i++)
+        {
+            var entry = generation.Resources[i];
+            if (found[i] is not null || entry.Hash is not { } hash)
+                continue;
+
+            if (!byHash.TryGetValue(entry.Type, out var candidates))
+            {
+                candidates = tree.EnumerateDepthFirst().Where(x => GeneratedTypeName(x) == entry.Type).ToLookup(HashOf);
+                byHash[entry.Type] = candidates;
+            }
+
+            if (candidates[hash].Where(x => !taken.Contains(x)).ToList() is [var moved])
+            {
+                found[i] = moved;
+                taken.Add(moved);
+            }
+        }
+
+        var writer = _serializerFactory.CreateWriter(tree);
+        var entries = new List<RegenerationEntry>();
+        var entryKeys = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        for (var i = 0; i < found.Length; i++)
+        {
+            if (found[i] is { } node)
+                entryKeys[tree.CreatePathKey(node)] = generation.Resources[i].Key;
+        }
+
+        for (var i = 0; i < found.Length; i++)
+        {
+            var entry = generation.Resources[i];
+            if (found[i] is not { } node)
+            {
+                entries.Add(new RegenerationEntry(entry, null, null, false));
+                continue;
+            }
+
+            var mapResult = writer.MapCurrentModel(node);
+            var current = mapResult.HasSucceeded ? mapResult.AsSuccess.Result : null;
+            var isEdited = entry.Hash is null || current is null || !current.ResourceEquals(node.Model)
+                || HashOf(node) is var fileHash && fileHash != entry.Hash && !IsRewrittenByMoves(current, fileHash, entry.Hash);
+            entries.Add(new RegenerationEntry(entry, tree.CreatePathKey(node), current, isEdited));
+        }
+
+        return entries;
+
+        // The file is exactly what TileShop writes for the model, and the model with its references put back is the one generated
+        bool IsRewrittenByMoves(ResourceModel current, string? fileHash, string entryHash)
+        {
+            if (TableManifest.HashContents(writer.SerializeModel(current)) != fileHash)
+                return false;
+
+            var original = RegenerationPlan.WithKeys(current, current.Name, key => entryKeys.GetValueOrDefault(key, key));
+            return TableManifest.HashContents(writer.SerializeModel(original)) == entryHash;
+        }
+
+        string? HashOf(ResourceNode node)
+        {
+            if (fileHashes.TryGetValue(node, out var hash))
+                return hash;
+
+            try
+            {
+                hash = node.DiskLocation is { } location && File.Exists(location) ? TableManifest.HashFile(location) : null;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                hash = null;
+            }
+
+            fileHashes[node] = hash;
+            return hash;
+        }
+    }
+
+    // Keeping one removal can block another, such as a palette a kept set uses, so this repeats until nothing more is kept
+    private RegenerationPlan KeepReferencedRemovals(ProjectTree tree, RegenerationPlan regeneration)
+    {
+        var replaced = FindNodes(tree, regeneration.Written.Where(x => x.Kind == RegenerationKind.Changed).Select(x => x.Entry!.CurrentKey)).ToHashSet();
+        var written = regeneration.Written.Select(x => (x.TargetKey, Keys: RegenerationPlan.ReferencedKeys(x.Model))).ToList();
+
+        for (var kept = true; kept;)
+        {
+            kept = false;
+            var removedResources = FindNodes(tree, regeneration.Removed.Select(x => x.CurrentKey))
+                .Select(x => x.Item)
+                .OfType<IProjectResource>()
+                .ToHashSet();
+
+            foreach (var removed in regeneration.Removed)
+            {
+                if (!tree.TryGetNode(removed.CurrentKey!, out var node))
+                    continue;
+
+                // A change only cascading through a replaced resource, such as a map whose replaced set loses a palette, does not count
+                var changes = PreviewResourceDeletion(node) is { HasSucceeded: true } preview ? preview.AsSuccess.Result.Changes : [];
+                var gone = changes.Where(x => x.Removed && !replaced.Contains(x.ResourceNode)).Select(x => x.Resource).ToHashSet();
+                var usedBy = changes
+                    .Where(x => !removedResources.Contains(x.Resource) && !replaced.Contains(x.ResourceNode) && References(x.Resource, gone.Contains))
+                    .Select(x => x.ResourcePath)
+                    .ToList();
+
+                usedBy.AddRange(written.Where(x => x.Keys.Contains(removed.CurrentKey!)).Select(x => x.TargetKey));
+
+                if (usedBy.Count > 0)
+                {
+                    regeneration = regeneration.KeepReferenced(removed, usedBy.Distinct().ToList());
+                    kept = true;
+                    break;
+                }
+            }
+        }
+
+        return regeneration;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="resource"/> links to, or uses as its tile palette, a resource matching <paramref name="contains"/>
+    /// </summary>
+    public static bool References(IProjectResource resource, Func<IProjectResource, bool> contains) =>
+        resource.LinkedResources.Any(contains) ||
+        resource is TilemapArranger { TilePaletteArranger: { } tilePalette } && contains(tilePalette);
+
+    /// <summary>
+    /// The order in which regeneration rebuilds a dependent of a replaced resource, or null when that kind is never rebuilt
+    /// </summary>
+    public static int? RebuildOrder(object? item) => item switch
+    {
+        CompressedDataSource => 0,
+        Palette => 1,
+        MetatileSet => 2,
+        TilemapArranger => 3,
+        MetatileMap => 4,
+        _ => null
+    };
+
+    private static IEnumerable<ResourceNode> FindNodes(ProjectTree tree, IEnumerable<string?> keys) =>
+        keys.Select(x => x is not null && tree.TryGetNode(x, out var node) ? node : null).OfType<ResourceNode>();
 
     // Spells the key as the existing folders spell it, so a case variant does not plan a second folder
     private static MagitekResult<string> ResolveTargetFolder(ProjectTree tree, string targetFolderKey)
@@ -1259,15 +1453,15 @@ public class ProjectService : IProjectService
     }
 
     /// <inheritdoc/>
-    public virtual Task<MagitekResult> GenerateResourcesAsync(ProjectTree tree, GenerationPlan plan)
+    public virtual Task<MagitekResult> GenerateResourcesAsync(ProjectTree tree, GenerationPlan plan, bool saveProject = false, bool confirmRemovals = false)
     {
         Guard.IsNotNull(tree);
         Guard.IsNotNull(plan);
 
-        return WithWriteLockAsync(() => GenerateResourcesCoreAsync(tree, plan));
+        return WithWriteLockAsync(() => GenerateResourcesCoreAsync(tree, plan, saveProject, confirmRemovals));
     }
 
-    private async Task<MagitekResult> GenerateResourcesCoreAsync(ProjectTree tree, GenerationPlan plan)
+    private async Task<MagitekResult> GenerateResourcesCoreAsync(ProjectTree tree, GenerationPlan plan, bool saveProject, bool confirmRemovals)
     {
         if (tree.IsStandaloneFile)
             return new MagitekResult.Failed(StandaloneFileReason(tree));
@@ -1282,17 +1476,13 @@ public class ProjectService : IProjectService
         if (conflicts.Count > 0)
             return new MagitekResult.Failed($"Generation would clash with existing resources:\n{string.Join("\n", conflicts)}");
 
-        var manifest = TableManifest.Empty;
-        if (File.Exists(plan.ManifestFileName))
-        {
-            var readResult = new XmlTableManifestReader(plan.ManifestSchemaFileName).LoadFromFile(plan.ManifestFileName);
-            if (readResult.HasFailed)
-                return new MagitekResult.Failed($"Manifest '{plan.ManifestFileName}' could not be read:\n{string.Join("\n", readResult.AsError.Reasons)}");
+        var manifestResult = ReadManifest(plan);
+        if (manifestResult.HasFailed)
+            return new MagitekResult.Failed(manifestResult.AsError.Reason);
 
-            manifest = readResult.AsSuccess.Result;
-        }
+        if (plan.Regeneration is { } regeneration)
+            return await RegenerateCoreAsync(tree, plan, regeneration, manifestResult.AsSuccess.Result, saveProject, confirmRemovals);
 
-        var manifestXml = XmlTableManifestWriter.Serialize(manifest.WithGeneration(plan.ManifestGeneration));
         var createdFolders = new List<ResourceNode>();
         var createdDirectories = new List<string>();
         MagitekResult failure;
@@ -1302,23 +1492,18 @@ public class ProjectService : IProjectService
             foreach (var folderKey in plan.FolderKeys)
                 EnsureFolder(tree, folderKey, createdFolders, createdDirectories);
 
-            var models = plan.Resources.Select(resource =>
-            {
-                tree.TryGetNode(resource.ParentKey, out var parent);
-                return (resource.Model, resource.ParentKey.TrimStart('/'), ResourceFileLocator.LocateByParent(tree, parent ?? tree.Root, resource.Name, false));
-            }).ToList();
-
-            var buildResult = _serializerFactory.BuildResources(tree, models);
+            var buildResult = _serializerFactory.BuildResources(tree, ToBuildModels(tree, plan.Resources.Select(x => (x.Model, x.ParentKey, x.Name))));
             if (buildResult.HasSucceeded)
             {
-                // The builder records each model as persisted; clearing it makes the write include every generated resource
-                foreach (var resource in plan.Resources)
+                var writer = _serializerFactory.CreateWriter(tree);
+                var (writeNodes, hashes) = PrepareWrite(tree, writer, plan.Resources.Select(x => x.Key));
+                var generation = plan.ManifestGeneration with
                 {
-                    if (tree.TryGetNode(resource.Key, out var node))
-                        node.Model = null;
-                }
+                    Resources = plan.ManifestGeneration.Resources.Select(x => x with { Hash = hashes.GetValueOrDefault(x.Key) }).ToList()
+                };
 
-                var writeResult = await _serializerFactory.CreateWriter(tree).WriteProjectAsync(tree.Root.DiskLocation!, [(plan.ManifestFileName, manifestXml)]);
+                var writeResult = await WriteGenerationAsync(tree, writer, writeNodes, plan.ManifestFileName,
+                    manifestResult.AsSuccess.Result.WithGeneration(generation), saveProject);
                 if (writeResult.HasSucceeded)
                     return writeResult;
 
@@ -1334,8 +1519,289 @@ public class ProjectService : IProjectService
             failure = new MagitekResult.Failed($"Generation failed: {ex.Message}");
         }
 
-        RollBackGeneration(tree, plan, createdFolders, createdDirectories);
+        RollBackGeneration(tree, plan.Resources.Select(x => x.Key), createdFolders, createdDirectories);
         return failure;
+    }
+
+    private static List<(ResourceModel Model, string ParentNodePath, string FileLocation)> ToBuildModels(ProjectTree tree,
+        IEnumerable<(ResourceModel Model, string ParentKey, string Name)> resources) =>
+        resources.Select(resource =>
+        {
+            tree.TryGetNode(resource.ParentKey, out var parent);
+            return (resource.Model, resource.ParentKey.TrimStart('/'), ResourceFileLocator.LocateByParent(tree, parent ?? tree.Root, resource.Name, false));
+        }).ToList();
+
+    // The builder records each model as persisted; clearing it makes the write include every built resource.
+    // The project file is a candidate too, so a format version the new resources need is written.
+    private static (List<ResourceNode> Nodes, Dictionary<string, string> Hashes) PrepareWrite(ProjectTree tree, IProjectWriter writer, IEnumerable<string> keys)
+    {
+        var nodes = new List<ResourceNode> { tree.Root };
+        var hashes = new Dictionary<string, string>();
+
+        foreach (var key in keys)
+        {
+            if (tree.TryGetNode(key, out var node))
+            {
+                node.Model = null;
+                nodes.Add(node);
+                hashes[key] = TableManifest.HashContents(writer.SerializeResource(node));
+            }
+        }
+
+        return (nodes, hashes);
+    }
+
+    private static Task<MagitekResult> WriteGenerationAsync(ProjectTree tree, IProjectWriter writer, List<ResourceNode> nodes, string manifestFileName,
+        TableManifest manifest, bool saveProject)
+    {
+        var manifestFiles = new[] { (manifestFileName, XmlTableManifestWriter.Serialize(manifest)) };
+        return saveProject
+            ? writer.WriteProjectAsync(tree.Root.DiskLocation!, manifestFiles)
+            : writer.WriteResourcesAsync(nodes, manifestFiles);
+    }
+
+    private async Task<MagitekResult> RegenerateCoreAsync(ProjectTree tree, GenerationPlan plan, RegenerationPlan regeneration, TableManifest manifest,
+        bool saveProject, bool confirmRemovals)
+    {
+        var stale = regeneration.Resources.Select(x => x.Entry?.CurrentKey)
+            .Concat(regeneration.Removed.Select(x => x.CurrentKey))
+            .OfType<string>()
+            .Where(x => !tree.TryGetNode(x, out _))
+            .ToList();
+        if (stale.Count > 0)
+            return new MagitekResult.Failed($"The project changed after regeneration was planned; these resources are gone:\n{string.Join("\n", stale)}");
+
+        if (regeneration.Removed.Count > 0 && !confirmRemovals)
+            return new MagitekResult.Failed(
+                $"Regeneration would remove {regeneration.Removed.Count} resources:\n{string.Join("\n", regeneration.Removed.Select(x => x.CurrentKey))}");
+
+        var removals = CollectRemovals(tree, regeneration);
+        var written = regeneration.Written.ToList();
+        var replaced = written
+            .Where(x => x.Kind == RegenerationKind.Changed)
+            .Select(x => (Resource: x, Node: tree.TryGetNode(x.Entry!.CurrentKey!, out var node) ? node : null!))
+            .ToList();
+        var oldNodes = replaced.Select(x => x.Node).ToHashSet();
+        var detached = new List<(ResourceNode Node, ResourceNode Parent)>();
+        var createdFolders = new List<ResourceNode>();
+        var createdDirectories = new List<string>();
+        MagitekResult failure;
+
+        try
+        {
+            var usedFolders = written.Select(x => x.ParentKey).ToHashSet(StringComparer.Ordinal);
+            foreach (var folderKey in plan.FolderKeys.Where(x => usedFolders.Any(used => used == x || used.StartsWith(x == "/" ? "/" : x + "/", StringComparison.Ordinal))))
+                EnsureFolder(tree, folderKey, createdFolders, createdDirectories);
+
+            foreach (var (_, node) in replaced)
+            {
+                var parent = node.Parent!;
+                parent.DetachChildNode(node.Name);
+                detached.Add((node, parent));
+            }
+
+            var buildResult = _serializerFactory.BuildResources(tree, ToBuildModels(tree, written.Select(x => (x.Model, x.ParentKey, x.Name))));
+            if (buildResult.HasSucceeded)
+            {
+                var writer = _serializerFactory.CreateWriter(tree);
+                var (writeNodes, hashes) = PrepareWrite(tree, writer, written.Select(x => x.TargetKey));
+
+                foreach (var resource in regeneration.Resources.Where(x => x.Kind == RegenerationKind.Unchanged))
+                {
+                    if (tree.TryGetNode(resource.TargetKey, out var node) && node.DiskLocation is { } location && File.Exists(location))
+                        hashes[resource.TargetKey] = TableManifest.HashFile(location);
+                }
+
+                var writeResult = await WriteGenerationAsync(tree, writer, writeNodes, plan.ManifestFileName,
+                    manifest.WithGeneration(regeneration.ToManifestGeneration(plan.ManifestGeneration, hashes)), saveProject);
+                if (writeResult.HasSucceeded)
+                    return await FinishRegenerationAsync(tree, written, replaced, removals);
+
+                failure = writeResult;
+            }
+            else
+            {
+                failure = new MagitekResult.Failed(string.Join("\n", buildResult.AsError.Reasons));
+            }
+        }
+        catch (Exception ex)
+        {
+            failure = new MagitekResult.Failed($"Regeneration failed: {ex.Message}");
+        }
+
+        var builtKeys = written.Select(x => x.TargetKey).Where(x => tree.TryGetNode(x, out var node) && !oldNodes.Contains(node)).ToList();
+        RollBackGeneration(tree, builtKeys, createdFolders, createdDirectories);
+
+        foreach (var (node, parent) in Enumerable.Reverse(detached))
+            parent.AttachChildNode(node);
+
+        return failure;
+    }
+
+    // Previewed again at generation, so the changes hold the nodes as they are now
+    private List<ResourceChange> CollectRemovals(ProjectTree tree, RegenerationPlan regeneration)
+    {
+        var removedNodes = FindNodes(tree, regeneration.Removed.Select(x => x.CurrentKey)).ToHashSet();
+
+        return removedNodes
+            .Select(PreviewResourceDeletion)
+            .Where(x => x.HasSucceeded)
+            .SelectMany(x => x.AsSuccess.Result.Changes)
+            .Where(x => x.Removed && removedNodes.Contains(x.ResourceNode))
+            .DistinctBy(x => x.ResourceNode)
+            .ToList();
+    }
+
+    private async Task<MagitekResult> FinishRegenerationAsync(ProjectTree tree, List<RegeneratedResource> written,
+        List<(RegeneratedResource Resource, ResourceNode Node)> replaced, List<ResourceChange> removals)
+    {
+        var reasons = new List<string>();
+        var replacements = new Dictionary<IProjectResource, IProjectResource>(ReferenceEqualityComparer.Instance);
+        var skipped = removals.Select(x => x.ResourceNode).ToHashSet();
+
+        foreach (var (resource, oldNode) in replaced)
+        {
+            if (!tree.TryGetNode(resource.TargetKey, out var newNode))
+                continue;
+
+            // Users that still name the old key read whatever now holds it, as a reload would, such as a palette added at a renamed one's key
+            var atOldKey = tree.TryGetNode(resource.Entry!.CurrentKey!, out var occupant) && occupant.Item.GetType() == oldNode.Item.GetType() ? occupant : newNode;
+            replacements[oldNode.Item] = atOldKey.Item;
+
+            if (oldNode.DiskLocation is { } oldLocation && newNode.DiskLocation is { } newLocation && !string.Equals(oldLocation, newLocation, StringComparison.Ordinal))
+            {
+                try
+                {
+                    RemoveRenamedFile(oldLocation, newLocation);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    reasons.Add($"'{oldLocation}' could not be deleted and will reappear when the project is reopened: {ex.Message}");
+                }
+            }
+        }
+
+        var retargeted = RetargetReferences(tree, replacements, skipped, reasons);
+
+        if (reasons.Count == 0)
+        {
+            foreach (var disposable in replacements.Keys.OfType<IDisposable>())
+                disposable.Dispose();
+        }
+
+        if (retargeted.Count > 0)
+        {
+            var writeResult = await _serializerFactory.CreateWriter(tree).WriteResourcesAsync(retargeted);
+            if (writeResult.HasFailed)
+                reasons.Add($"The resources that use regenerated resources could not be saved: {writeResult.AsError.Reason}");
+        }
+
+        if (removals.Count > 0)
+        {
+            var deleteResult = await ApplyResourceDeletionCoreAsync(new ResourceDeletionPlan(tree, removals), _serializerFactory.GlobalResources.OfType<Palette>().First());
+            if (deleteResult.HasFailed)
+                reasons.Add(deleteResult.AsError.Reason);
+        }
+
+        return reasons.Count > 0 ? new MagitekResult.Failed(string.Join("\n\n", reasons)) : MagitekResult.SuccessResult;
+    }
+
+    // Returns the changed or rebuilt nodes, whose files may still hold the replaced resources' old keys
+    private List<ResourceNode> RetargetReferences(ProjectTree tree, Dictionary<IProjectResource, IProjectResource> replacements,
+        HashSet<ResourceNode> skipped, List<string> reasons)
+    {
+        var retargeted = new List<ResourceNode>();
+        if (replacements.Count == 0)
+            return retargeted;
+
+        var resourceMap = CreateResourceMap(tree);
+        foreach (var (old, replacement) in replacements)
+            resourceMap[old] = resourceMap[replacement];
+
+        // Build order, so a rebuilt set's maps are rebuilt in turn
+        var rebuildable = tree.EnumerateDepthFirst()
+            .Where(x => RebuildOrder(x.Item) is not null && !skipped.Contains(x))
+            .OrderBy(x => RebuildOrder(x.Item))
+            .ToList();
+        var writer = _serializerFactory.CreateWriter(tree);
+
+        foreach (var node in rebuildable)
+        {
+            if (!node.Item.LinkedResources.Any(replacements.ContainsKey))
+                continue;
+
+            var key = tree.CreatePathKey(node);
+            var mapResult = writer.MapCurrentModel(node, resourceMap);
+            if (mapResult.HasFailed)
+            {
+                reasons.Add($"'{key}' still uses the replaced resources: {mapResult.AsError.Reason}");
+                continue;
+            }
+
+            var model = mapResult.AsSuccess.Result;
+            var parent = node.Parent!;
+            parent.DetachChildNode(node.Name);
+            var buildResult = _serializerFactory.BuildResources(tree,
+                [(model, parent is ProjectNode ? "" : tree.CreatePathKey(parent).TrimStart('/'), node.DiskLocation!)]);
+
+            if (buildResult.HasFailed || !tree.TryGetNode(key, out var rebuilt))
+            {
+                if (tree.TryGetNode(key, out var partial))
+                    partial.Parent?.RemoveChildNode(partial.Name);
+
+                parent.AttachChildNode(node);
+                reasons.Add($"'{key}' still uses the replaced resources: {(buildResult.HasFailed ? string.Join("; ", buildResult.AsError.Reasons) : "it was not rebuilt")}");
+                continue;
+            }
+
+            rebuilt.Model = node.Model;
+            replacements[node.Item] = rebuilt.Item;
+            resourceMap[node.Item] = key;
+            resourceMap[rebuilt.Item] = key;
+            retargeted.Add(rebuilt);
+        }
+
+        foreach (var node in tree.EnumerateDepthFirst().Where(x => !skipped.Contains(x)))
+        {
+            if (node.Item is TilemapArranger { TilePaletteArranger: { } tilePalette } tilemap && replacements.TryGetValue(tilePalette, out var newTilePalette))
+            {
+                tilemap.TilePaletteArranger = (ScatteredArranger)newTilePalette;
+                retargeted.Add(node);
+            }
+            else if (node.Item is ScatteredArranger arranger && RetargetElements(arranger, replacements))
+            {
+                retargeted.Add(node);
+            }
+        }
+
+        return retargeted;
+    }
+
+    private static bool RetargetElements(ScatteredArranger arranger, Dictionary<IProjectResource, IProjectResource> replacements)
+    {
+        var changed = false;
+
+        foreach (var (x, y) in arranger.EnumerateElementsWithinElementRange())
+        {
+            if (arranger.GetElement(x, y) is not ArrangerElement el)
+                continue;
+
+            var source = replacements.TryGetValue(el.Source, out var newSource) ? (DataSource)newSource : el.Source;
+            var paletteReplaced = el.Codec is IIndexedCodec { Palette: { } palette } && replacements.ContainsKey(palette);
+            if (ReferenceEquals(source, el.Source) && !paletteReplaced)
+                continue;
+
+            if (paletteReplaced)
+            {
+                var codec = (IIndexedCodec)el.Codec;
+                codec.Palette = (Palette)replacements[codec.Palette];
+            }
+
+            arranger.SetElement(el.WithFile(source, el.SourceAddress), x, y);
+            changed = true;
+        }
+
+        return changed;
     }
 
     /// <inheritdoc/>
@@ -1346,8 +1812,18 @@ public class ProjectService : IProjectService
 
         var conflicts = new List<string>();
         var folderKeys = plan.FolderKeys.ToHashSet(StringComparer.Ordinal);
+        var resourceKeys = plan.Resources.Select(x => x.Key);
+        var movingAway = new HashSet<ResourceNode>();
 
-        foreach (var key in plan.FolderKeys.Concat(plan.Resources.Select(x => x.Key)))
+        // A regeneration checks only the keys it writes to that are new, and a changed resource that moves frees its old key
+        if (plan.Regeneration is { } regeneration)
+        {
+            var moving = regeneration.Written.Where(x => x.Kind == RegenerationKind.Added || x.TargetKey != x.Entry?.CurrentKey).ToList();
+            resourceKeys = moving.Select(x => x.TargetKey);
+            movingAway = FindNodes(tree, moving.Select(x => x.Entry?.CurrentKey)).ToHashSet();
+        }
+
+        foreach (var key in plan.FolderKeys.Concat(resourceKeys))
         {
             var isFolder = folderKeys.Contains(key);
             var segments = key.Split('/', StringSplitOptions.RemoveEmptyEntries);
@@ -1362,7 +1838,7 @@ public class ProjectService : IProjectService
                 continue;
 
             var name = segments[^1];
-            var sibling = parent.ChildNodes.FirstOrDefault(x => ResourceName.AreSame(x.Name, name));
+            var sibling = parent.ChildNodes.FirstOrDefault(x => ResourceName.AreSame(x.Name, name) && !movingAway.Contains(x));
             if (sibling is not null && !(isFolder && sibling is ResourceFolderNode && sibling.Name == name))
                 conflicts.Add($"'{key}' clashes with '{tree.CreatePathKey(sibling)}'");
             else if (!isFolder && parent is ProjectNode && ResourceName.AreSame(name, tree.Name))
@@ -1399,13 +1875,13 @@ public class ProjectService : IProjectService
         }
     }
 
-    private static void RollBackGeneration(ProjectTree tree, GenerationPlan plan, List<ResourceNode> createdFolders, List<string> createdDirectories)
+    private static void RollBackGeneration(ProjectTree tree, IEnumerable<string> keys, List<ResourceNode> createdFolders, List<string> createdDirectories)
     {
         var created = createdFolders.ToHashSet();
 
-        foreach (var resource in Enumerable.Reverse(plan.Resources))
+        foreach (var key in keys.Reverse())
         {
-            if (!tree.TryGetNode(resource.Key, out var node))
+            if (!tree.TryGetNode(key, out var node))
                 continue;
 
             if (node.Parent is { } parent && !created.Contains(parent))

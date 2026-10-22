@@ -197,7 +197,9 @@ public sealed class OutputDefinition
     /// <summary>
     /// The root element name of the resource files this output creates
     /// </summary>
-    public string TypeName => Type switch
+    public string TypeName => TypeNameOf(Type);
+
+    public static string TypeNameOf(OutputType type) => type switch
     {
         OutputType.CompressedData => "compresseddata",
         OutputType.Palette => "palette",

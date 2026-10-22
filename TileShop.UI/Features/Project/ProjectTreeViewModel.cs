@@ -198,7 +198,7 @@ public partial class ProjectTreeViewModel : ObservableRecipient
 
         var tree = _projectService.GetContainingProject(node);
         var defaultFolder = (parent is ProjectNode ? "" : tree.CreatePathKey(parent)) + "/Generated";
-        var dialogModel = new GenerateResourcesViewModel(_projectService, tree, tree.CreatePathKey(node), defaultFolder, _fileSelect);
+        var dialogModel = new GenerateResourcesViewModel(_projectService, tree, tree.CreatePathKey(node), defaultFolder, _fileSelect, _interactions, _editors);
 
         if (await _interactions.RequestAsync(dialogModel) is { } folderKey
             && tree.TryGetNode(folderKey, out var folder)

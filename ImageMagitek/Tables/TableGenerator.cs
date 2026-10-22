@@ -26,6 +26,11 @@ public sealed class TableGenerator
     private static readonly OutputType[] _buildOrder =
         [OutputType.CompressedData, OutputType.Palette, OutputType.Arranger, OutputType.MetatileSet, OutputType.Tilemap, OutputType.MetatileMap];
 
+    /// <summary>
+    /// Resource type names in build order (LIB-PROJECT-FORMAT-021)
+    /// </summary>
+    public static IReadOnlyList<string> BuildOrderTypeNames { get; } = _buildOrder.Select(OutputDefinition.TypeNameOf).ToList();
+
     private readonly TableDefinition _definition;
     private readonly DataSource _source;
     private readonly string _dataFileKey;
@@ -118,7 +123,7 @@ public sealed class TableGenerator
                 _targetFolderKey,
                 _dataFileKey,
                 RelativePath(manifestDirectory, _definition.FileName),
-                resources.Select(x => new TableManifestResource(x.Key, x.Type, x.OutputId, x.Record, x.Offset, x.Entries, x.Index)).ToList())
+                resources.Select(x => new TableManifestResource(x.Key, x.Type, x.OutputId, x.Record, x.Offset, x.Entries, x.Index, x.Path)).ToList())
         };
     }
 
@@ -128,7 +133,7 @@ public sealed class TableGenerator
         foreach (var resource in resources)
         {
             for (var key = resource.ParentKey; used.Add(key);)
-                key = key.LastIndexOf('/') is var slash and > 0 ? key[..slash] : "/";
+                key = RegenerationPlan.ParentKeyOf(key);
         }
 
         return _folderKeys.Where(used.Contains).ToList();
@@ -508,7 +513,6 @@ public sealed class TableGenerator
                         FileOffset = Offset(candidate),
                         Compression = output.Value("compression")!
                     };
-                    candidate.Summary = output.Value("compression")!;
                     break;
 
                 case OutputType.Palette:
@@ -520,7 +524,6 @@ public sealed class TableGenerator
                         ZeroIndexTransparent = output.Value("zeroindextransparent") is "true" or "1",
                         ColorSources = [new FileColorSourceModel(candidate.PaletteOffset, candidate.PaletteEntries, output.Value("endian") == "big" ? Endian.Big : Endian.Little)]
                     };
-                    candidate.Summary = $"{candidate.PaletteEntries} colors";
                     break;
 
                 case OutputType.MetatileSet:
@@ -548,7 +551,6 @@ public sealed class TableGenerator
                         AttributeOffset = output.Attributes?.Offset.Evaluate(candidate.Scope) ?? 0,
                         AttributeSize = output.Attributes?.Size
                     };
-                    candidate.Summary = $"{count} metatiles";
                     break;
                 }
 
@@ -577,7 +579,6 @@ public sealed class TableGenerator
                         EmptyBlock = IntValue(candidate, "emptyblock"),
                         Sets = sets
                     };
-                    candidate.Summary = $"{width}x{height} blocks";
                     break;
                 }
 
@@ -603,7 +604,6 @@ public sealed class TableGenerator
                         TileCount = tiles.Count,
                         PaletteSlots = ResolvePaletteSlots(candidate)
                     };
-                    candidate.Summary = $"{width}x{height} tiles";
                     break;
                 }
 
@@ -611,6 +611,8 @@ public sealed class TableGenerator
                     candidate.Model = BuildArranger(candidate);
                     break;
             }
+
+            candidate.Summary = Summarize(candidate.Model!);
         }
         catch (TableEvaluationException ex)
         {
@@ -658,7 +660,6 @@ public sealed class TableGenerator
             };
         }
 
-        candidate.Summary = $"{width}x{height} elements";
         return new ScatteredArrangerModel
         {
             Name = candidate.Name,
@@ -669,6 +670,20 @@ public sealed class TableGenerator
             ColorType = PixelColorType.Indexed
         };
     }
+
+    /// <summary>
+    /// A model's size summary: the compression format's name, 'N colors', 'WxH elements', 'N metatiles', 'WxH blocks' or 'WxH tiles' (LIB-TABLES-120)
+    /// </summary>
+    public static string Summarize(ResourceModel model) => model switch
+    {
+        CompressedDataModel compressed => compressed.Compression,
+        PaletteModel palette => $"{palette.ColorSources.Sum(x => x switch { FileColorSourceModel file => file.Entries, ScatteredColorSourceModel scattered => scattered.Entries, _ => 1 })} colors",
+        ScatteredArrangerModel arranger => $"{arranger.ArrangerElementSize.Width}x{arranger.ArrangerElementSize.Height} elements",
+        MetatileSetModel set => $"{set.MetatileCount} metatiles",
+        MetatileMapModel map => $"{map.Width}x{map.Height} blocks",
+        TilemapModel tilemap => $"{tilemap.Width}x{tilemap.Height} tiles",
+        _ => ""
+    };
 
     private List<int?> ReadCellStream(Candidate candidate, int cellCount)
     {
@@ -749,6 +764,7 @@ public sealed class TableGenerator
             isPalette ? candidate.PaletteOffset : candidate.Instance.Offset,
             candidate.Output.Repeat is null ? null : (int)candidate.I,
             isPalette ? candidate.PaletteEntries : null,
+            candidate.Instance.Path,
             candidate.Summary);
     }
 }

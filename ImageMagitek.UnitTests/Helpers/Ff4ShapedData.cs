@@ -76,6 +76,10 @@ public static class Ff4ShapedData
         return header ? new byte[SnesLoRomAddressMapper.CopierHeaderSize].Concat(rom).ToArray() : rom;
     }
 
+    public static void SetMonsterPalette(byte[] rom, int monster, byte palette) => rom[Monsters + 4 * monster + 1] = palette;
+
+    public static void SetBossPalette(byte[] rom, int boss, byte palette) => rom[Bosses + 5 * boss + 2] = palette;
+
     private static byte[] Encode(string text)
     {
         var bytes = Enumerable.Repeat((byte)0xFF, 8).ToArray();

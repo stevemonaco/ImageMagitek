@@ -7,6 +7,8 @@ namespace ImageMagitek.UnitTests.Tables;
 
 public sealed class TableManifestTests : IDisposable
 {
+    private const string Hash = "656771905e1ef731f65cd0a0d9fb061238380a1a012e6abdf846ecc7d2ea36fd";
+
     private readonly TableTestContext _context = new();
     private readonly XmlTableManifestReader _reader = new(Path.Combine(TableTestContext.SchemaDirectory, XmlTableDefinitionReader.ManifestSchemaFileName));
 
@@ -26,7 +28,8 @@ public sealed class TableManifestTests : IDisposable
     public void WriteRead_RoundTrip()
     {
         var manifest = new TableManifest([Generation("FireRedProject.xml", "/Overworld",
-            new TableManifestResource("/Overworld/Maps/Pallet Town/Pallet Town", "metatilemap", "layoutMap", "Layout", 0x2DD4C0),
+            new TableManifestResource("/Overworld/Maps/Pallet Town/Pallet Town", "metatilemap", "layoutMap", "Layout", 0x2DD4C0,
+                Path: "mapGroups[0][0].layout", Hash: Hash),
             new TableManifestResource("/Overworld/Tilesets/Palettes/General 3", "palette", "tilesetPalettes", "palette", 0x2D4AB4, 16, 3))]);
 
         var xml = XmlTableManifestWriter.Serialize(manifest);
@@ -34,6 +37,7 @@ public sealed class TableManifestTests : IDisposable
 
         Assert.StartsWith("<?xml version=\"1.0\" encoding=\"utf-8\"?>", xml);
         Assert.Contains("\n\t<generation project=\"FireRedProject.xml\" folder=\"/Overworld\" datafile=\"/Rom\" definition=\"FireRed.table.xml\">", xml.Replace("\r\n", "\n"));
+        Assert.Contains($"<resource key=\"/Overworld/Maps/Pallet Town/Pallet Town\" type=\"metatilemap\" output=\"layoutMap\" record=\"Layout\" offset=\"2DD4C0\" path=\"mapGroups[0][0].layout\" hash=\"{Hash}\" />", xml);
         Assert.Contains("<resource key=\"/Overworld/Tilesets/Palettes/General 3\" type=\"palette\" output=\"tilesetPalettes\" record=\"palette\" offset=\"2D4AB4\" entries=\"16\" index=\"3\" />", xml);
 
         var read = Read(path);
@@ -53,7 +57,8 @@ public sealed class TableManifestTests : IDisposable
         Assert.Equal(("../Projects/FireRed/FireRedProject.xml", "/Overworld", "/Roms/FireRed", "defs/FireRed.table.xml"),
             (generation.Project, generation.Folder, generation.DataFile, generation.Definition));
         Assert.Equal([
-            new TableManifestResource("/Overworld/Maps/Pallet Town/Pallet Town", "metatilemap", "layoutMap", "Layout", 0x2DD4C0),
+            new TableManifestResource("/Overworld/Maps/Pallet Town/Pallet Town", "metatilemap", "layoutMap", "Layout", 0x2DD4C0,
+                Path: "mapGroups[0][0].layout", Hash: Hash),
             new TableManifestResource("/Overworld/Tilesets/Palettes/General 3", "palette", "tilesetPalettes", "palette", 0x2D4AB4, 16, 3)],
             generation.Resources);
         Assert.Empty(manifest.Generations[1].Resources);

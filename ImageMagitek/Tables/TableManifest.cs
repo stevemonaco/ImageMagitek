@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
@@ -10,9 +13,12 @@ using ImageMagitek.Project.Serialization;
 namespace ImageMagitek.Tables;
 
 /// <summary>
-/// One generated resource and the record it came from (LIB-TABLES-131)
+/// One generated resource and the record it came from (LIB-TABLES-131, -135)
 /// </summary>
-public sealed record TableManifestResource(string Key, string Type, string Output, string Record, long Offset, int? Entries = null, int? Index = null);
+/// <param name="Path">The record path (LIB-TABLES-160), absent in manifests written without paths</param>
+/// <param name="Hash">Lowercase hexadecimal SHA-256 of the resource file as written</param>
+public sealed record TableManifestResource(string Key, string Type, string Output, string Record, long Offset, int? Entries = null, int? Index = null,
+    string? Path = null, string? Hash = null);
 
 /// <summary>
 /// One generation run of a definition into a project folder (LIB-TABLES-130)
@@ -37,9 +43,7 @@ public sealed record TableManifest(IReadOnlyList<TableManifestGeneration> Genera
     public TableManifest WithGeneration(TableManifestGeneration generation)
     {
         var generations = Generations.ToList();
-        var index = generations.FindIndex(x =>
-            string.Equals(x.Project, generation.Project, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(x.Folder, generation.Folder, StringComparison.OrdinalIgnoreCase));
+        var index = generations.FindIndex(x => IsSameGeneration(x, generation.Project, generation.Folder));
 
         if (index >= 0)
             generations[index] = generation;
@@ -48,6 +52,23 @@ public sealed record TableManifest(IReadOnlyList<TableManifestGeneration> Genera
 
         return new TableManifest(generations);
     }
+
+    /// <summary>
+    /// The generation with this project and folder, compared ignoring case (LIB-TABLES-133)
+    /// </summary>
+    public TableManifestGeneration? FindGeneration(string project, string folder) =>
+        Generations.FirstOrDefault(x => IsSameGeneration(x, project, folder));
+
+    private static bool IsSameGeneration(TableManifestGeneration generation, string project, string folder) =>
+        string.Equals(generation.Project, project, StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(generation.Folder, folder, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// The lowercase hexadecimal SHA-256 of <paramref name="contents"/> as UTF-8, as resource files are written
+    /// </summary>
+    public static string HashContents(string contents) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(contents)));
+
+    public static string HashFile(string fileName) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(fileName)));
 }
 
 /// <summary>
@@ -92,7 +113,9 @@ public sealed class XmlTableManifestReader
                     resource.Attribute("record")!.Value,
                     long.Parse(resource.Attribute("offset")!.Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture),
                     resource.Attribute("entries") is { } entries ? int.Parse(entries.Value, CultureInfo.InvariantCulture) : null,
-                    resource.Attribute("index") is { } index ? int.Parse(index.Value, CultureInfo.InvariantCulture) : null)).ToList()))
+                    resource.Attribute("index") is { } index ? int.Parse(index.Value, CultureInfo.InvariantCulture) : null,
+                    resource.Attribute("path")?.Value,
+                    resource.Attribute("hash")?.Value.ToLowerInvariant())).ToList()))
             .ToList();
 }
 
@@ -127,6 +150,12 @@ public static class XmlTableManifestWriter
 
                 if (resource.Index is { } index)
                     resourceElement.Add(new XAttribute("index", index));
+
+                if (resource.Path is { } path)
+                    resourceElement.Add(new XAttribute("path", path));
+
+                if (resource.Hash is { } hash)
+                    resourceElement.Add(new XAttribute("hash", hash));
 
                 element.Add(resourceElement);
             }

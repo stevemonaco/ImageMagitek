@@ -37,6 +37,11 @@ public sealed class RecordInstance
     /// </summary>
     public int Order { get; }
 
+    /// <summary>
+    /// The record path of its first reference, from a root table row (LIB-TABLES-160)
+    /// </summary>
+    public string Path { get; }
+
     public RecordVariant? Variant { get; }
     public IReadOnlyDictionary<string, FieldValue> Fields { get; }
     public IReadOnlyList<RecordReference> References => _references;
@@ -46,7 +51,7 @@ public sealed class RecordInstance
     /// </summary>
     public IReadOnlyDictionary<string, RecordInstance> Children => _children;
 
-    internal RecordInstance(RecordType type, long offset, int index, int order, RecordVariant? variant, IReadOnlyDictionary<string, FieldValue> fields)
+    internal RecordInstance(RecordType type, long offset, int index, int order, RecordVariant? variant, IReadOnlyDictionary<string, FieldValue> fields, string path)
     {
         Type = type;
         Offset = offset;
@@ -54,6 +59,7 @@ public sealed class RecordInstance
         Order = order;
         Variant = variant;
         Fields = fields;
+        Path = path;
     }
 
     internal void AddReference(RecordReference reference) => _references.Add(reference);

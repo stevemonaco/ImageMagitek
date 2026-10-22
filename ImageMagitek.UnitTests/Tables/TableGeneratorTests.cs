@@ -447,4 +447,35 @@ public sealed class TableGeneratorTests : IDisposable
         Assert.Equal(["palette", "arranger"], plan.Resources.Select(x => x.Type).Distinct());
         Assert.Equal([("palette", 4), ("arranger", 5)], plan.Report.Counts);
     }
+
+    [Fact]
+    public void RecordPath_FollowsFirstReference()
+    {
+        var plan = PlanSynthetic();
+
+        Assert.Equal("mapGroups[0][0].layout", plan.Find("/Generated/Maps/Pallet Town/Pallet Town")!.Path);
+        Assert.Equal("mapGroups[0][1].layout", plan.Find("/Generated/Maps/Viridian City/Viridian City 1")!.Path);
+        Assert.Equal("mapGroups[0][0].layout.primary", plan.Find($"{SetsFolder}/General")!.Path);
+        Assert.Equal("mapGroups[0][0].layout.primary", plan.Find($"{SetsFolder}/Compressed/General Tiles")!.Path);
+        Assert.Equal("mapGroups[0][1].layout.secondary", plan.Find($"{SetsFolder}/Viridian City")!.Path);
+        Assert.Equal(plan.Resources.Select(x => x.Path), plan.ManifestGeneration.Resources.Select(x => x.Path));
+
+        var definition = _context.Load("Synthetic.table.xml").AsSuccess.Result;
+        var evaluation = new TableEvaluator(definition, _context.Files.Open("Rom", FireRedShapedData.Create())).Evaluate();
+        var thirdHeader = Assert.Single(evaluation.Instances, x => x.Offset == FireRedShapedData.Headers + 2 * FireRedShapedData.HeaderSize);
+        Assert.Equal("mapGroups[1][0]", thirdHeader.Path);
+    }
+
+    [Fact]
+    public void RecordPath_DedupedPaletteTakesFirstRecord()
+    {
+        var plan = PlanSynthetic();
+
+        var palletSet = plan.Find($"{SetsFolder}/Pallet Town")!;
+        var viridianSet = Model<MetatileSetModel>(plan, $"{SetsFolder}/Viridian City");
+        var shared = plan.Find(viridianSet.PaletteSlots[7])!;
+        Assert.Equal("/Generated/Tilesets/Palettes/Pallet Town 7", shared.Key);
+        Assert.Equal("mapGroups[0][0].layout.secondary", palletSet.Path);
+        Assert.Equal(palletSet.Path, shared.Path);
+    }
 }
